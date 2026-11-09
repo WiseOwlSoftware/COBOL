@@ -77,8 +77,9 @@ transcription; a 1985 rule a pass quotes carries its catalog citation, which `pl
 PUBLIC TEXT ONLY. A prompt carries the tracked transcriptions' text (through the catalogs and specs/), never a page image and
 never a per-copy stamp: a request whose text matches any stamp shape (verify_publishable) is refused before any batch.
 
-THE KEY is read from `--api-key-file` (api_key.read_api_key; `--api-account` chooses among labeled keys and the state keeps the
-account it first billed, never the key). No self-test opens a real key file.
+THE KEY is read from `--api-key-file` (api_key.read_api_key; `--api-account` chooses among labeled keys; each batch records the
+account it billed, never the key, and a pass may move to another account once its batches are collected:
+message_batches.BatchRun.load_key). No self-test opens a real key file.
 """
 from __future__ import annotations
 
@@ -1056,7 +1057,7 @@ def print_status(p: Pass, st: dict[str, Any]) -> None:
     print(f"{p.name}: items {len(items)}; answered {len(answers)}; in flight {len(p.batches.in_flight(st))}; bad replies {bad}; "
           f"cost so far ${p.batches.cost_so_far(st):.2f}; verdicts {dict(sorted(tally.items()))}", flush=True)
     if st.get("batches"):
-        print(f"batches billed to the account {st.get('api_account') or '(one unlabeled key)'}", flush=True)
+        print(p.batches.billing_line(st), flush=True)
 
 
 def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = make_client) -> int:

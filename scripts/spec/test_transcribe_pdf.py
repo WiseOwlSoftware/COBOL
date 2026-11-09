@@ -6,7 +6,8 @@ Run: python scripts/spec/test_transcribe_pdf.py   (every gate and CI run it thro
 Cases: submit; a crash between `create` and the state write, adopted on the next run; collect before and after the batch
 ends; an errored page and a cut-off page retried; a written page never overwritten, and replaced only by `--replace` (the
 old text kept); the stamp line dropped; the cost guard; the key never printed or stored; a key file of labeled keys, the
-account chosen by --api-account, recorded in the state and kept by a later command (kb/Work PB4916); the local backend;
+account chosen by --api-account, recorded on each batch and kept while a batch is uncollected (kb/Work PB4916), another
+account once every batch is collected, and each account's spend (kb/Work PB4995); the local backend;
 adoption of a run that already exists; a reply that declines or summarises the page recorded as failed and never written,
 by its refusal shape or by word agreement with the text layer (kb/Work PB4917); the check numbers; the assembly and its
 refusals.
@@ -158,15 +159,33 @@ def main() -> int:
         check("a labeled pair with no --api-account is refused before any batch", code not in (0, None) and not fake4.created)
         code, out = run(["submit", *acct, "--api-account", "account2"], fake4, pdf, key_wanted=KEY2)
         st = json.loads((billed / "state.json").read_text(encoding="utf-8"))
-        check("--api-account bills its key and the state records the account's NAME, never a key",
-              code == 0 and len(fake4.created) == 1 and st["api_account"] == "account2"
-              and KEY2 not in (billed / "state.json").read_text(encoding="utf-8"))
+        check("--api-account bills its key and the batch records the account's NAME, never a key",
+              code == 0 and len(fake4.created) == 1 and [b["api_account"] for b in st["batches"]] == ["account2"]
+              and "api_account" not in st and KEY2 not in (billed / "state.json").read_text(encoding="utf-8"))
         code, out = run(["collect", *acct], fake4, pdf, key_wanted=KEY2)
-        check("a later command with no --api-account bills the account the state records, and status names it",
-              code == 0 and "billed to the account account2" in out)
+        check("a later command with no --api-account bills the account of the run's newest batch, and status names it",
+              code == 0 and "the account account2" in out)
         code, out = run(["collect", *acct, "--api-account", "account1"], fake4, pdf, key_wanted=KEY)
-        check("a later command naming another account than the state's is refused, naming no key",
+        check("while a batch is uncollected, a command naming another account is refused, naming no key",
               code not in (0, None) and KEY not in str(code) and KEY2 not in str(code))
+        print("one run over two accounts' credit: another account once every batch is collected (kb/Work PB4995)")
+        fake4.ended.add("msgbatch_1")
+        fake4.results_by_id["msgbatch_1"] = [page_ok(1, "alpha beta gamma\n"), page_errored(2)]
+        code, out = run(["collect", *acct], fake4, pdf, key_wanted=KEY2)
+        # account1's server: it holds none of account2's batches, so retrieving one would fail
+        fake5 = FakeBatches(prefix="msgbatch_one_")
+        code, out = run(["retry", *acct, "--api-account", "account1"], fake5, pdf, key_wanted=KEY)
+        st = json.loads((billed / "state.json").read_text(encoding="utf-8"))
+        check("once every batch is collected, a retry bills another account, and its batch records that account",
+              code == 0 and len(fake5.created) == 1 and [b["api_account"] for b in st["batches"]] == ["account2", "account1"])
+        fake5.ended.add("msgbatch_one_1")
+        fake5.results_by_id["msgbatch_one_1"] = [page_ok(2, "delta epsilon zeta\n")]
+        code, out = run(["collect", *acct], fake5, pdf, key_wanted=KEY)
+        check("a later command with no --api-account bills the newest batch's account and never retrieves another "
+              "account's collected batch", code == 0 and "pages written 2/2" in out)
+        check("status prints each account's spend", "the account account1 $" in out and "the account account2 $" in out)
+        code, out = run(["collect", *acct, "--api-account", "account2"], fake5, pdf, key_wanted=KEY2)
+        check("with every batch collected, the earlier account may bill again", code == 0)
         code, out = run(["status", "--edition", "1985", "--state", str(billed), "--api-account", "account2"], fake4, pdf)
         check("--api-account without --api-key-file is refused", code not in (0, None) and "give the key file" in str(code))
         check("the estimate is pages x the measured tokens at the batch rate", abs(T.estimate_usd(976, "claude-opus-5-5") - 976 * 0.02104) < 0.5)
@@ -176,8 +195,8 @@ def main() -> int:
         (old / "pages").mkdir(parents=True)
         (old / "pages" / "p0001.md").write_text("alpha beta gamma\n", encoding="utf-8", newline="\n")
         (old / "pages" / "p0002.md").write_text("delta epsilon zeta\n" + STAMP + "\n", encoding="utf-8", newline="\n")
-        (old / "state.json").write_text(json.dumps({"model": "claude-opus-5-5", "pages": 2, "pending": None, "usage": {"p0001": [5000, 900]},
-                                                   "batches": [{"id": "msgbatch_old", "pages": [1, 2], "collected": True, "bad": []}]}), encoding="utf-8", newline="\n")
+        (old / "state.json").write_text(json.dumps({"model": "claude-opus-5-5", "pages": 2, "pending": None, "usage": {"msgbatch_old/p0001": [5000, 900]},
+                                                   "batches": [{"id": "msgbatch_old", "pages": [1, 2], "api_account": None, "collected": True, "bad": []}]}), encoding="utf-8", newline="\n")
         (old / "local.json").write_text(json.dumps({"p0002": {"model": "m", "digest": "d"}}), encoding="utf-8", newline="\n")
         fake3 = FakeBatches()
         code, out = run(["status", "--edition", "1985", "--state", str(old)], fake3, pdf)

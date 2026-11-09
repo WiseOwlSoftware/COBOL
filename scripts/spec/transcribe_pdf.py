@@ -27,9 +27,10 @@ holds is ever resubmitted, and `status`, `check` and `assemble` call no API.
 
 THE KEY is read from the file `--api-key-file`: the key of the account `--api-account` names when the file holds one
 labeled key per account (api_key.read_api_key, kb/Work PB4916). It goes to the SDK client only and is never printed, logged
-or written to state. `state.json` records the account's NAME (`api_account`) at the run's first API call: a batch belongs to
-the account that created it, so a later command takes that account from the state and refuses another
-(api_key.read_run_key), and `status` prints it.
+or written to state. Each batch record names the account that created it (`api_account`): a batch belongs to that
+account, so while one is uncollected a later command takes its account and refuses another (api_key.read_run_key), and
+once all are collected a run may bill another account (message_batches.BatchRun.load_key); `status` prints each
+account's spend.
 
 LOCAL BACKEND. `pages ... --local MODEL` sends the same render and prompt to a local vision model (Ollama) and records the
 model, digest, time and token counts per page in `local.json`; the model's outer code fence is removed. A request that
@@ -337,7 +338,7 @@ def print_status(run: Run, st: dict[str, Any]) -> None:
     print(f"pages written {count - len(missing)}/{count}; local {len(log) - len(failed)}; cost so far ${run.batches.cost_so_far(st):.2f}; missing {len(missing)} {missing[:20]}",
           flush=True)
     if st.get("batches"):
-        print(f"batches billed to the account {st.get('api_account') or '(one unlabeled key)'}", flush=True)
+        print(run.batches.billing_line(st), flush=True)
     if failed:
         print(f"local conversions failed {len(failed)}: " + "; ".join(f"{p} ({log[page_name(p)]['model']}: {log[page_name(p)]['error']})" for p in failed[:20]),
               flush=True)
