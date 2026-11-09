@@ -36723,6 +36723,12 @@ sweep of the body for every accented or foreign letter (U+00C0 to U+024F, and th
 PB4972). A damaged letter the transcription reproduced is listed here too: the printed page shows it, so the
 correction is a departure from the page.
 
+**This list is not known to be complete.** Both finders see only a misprint that makes a word the language does not
+have (`BEFCRE`) or a letter outside the ASCII range. A misprint that turns one real word into another passes both,
+and no scan can see it: only a reader can, comparing the sentence's sense with its 2023 counterpart clause. That read
+has not been done. A normative sentence of this transcription whose wording disagrees with its 2023 counterpart is
+therefore checked against the rendered page before it is taken as the rule of 1985 (kb/Work PB4984).
+
 ## Corrections applied
 
 | | page | folio | where | printed | this transcription | kind |
