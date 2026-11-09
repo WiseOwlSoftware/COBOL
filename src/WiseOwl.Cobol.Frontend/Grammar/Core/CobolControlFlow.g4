@@ -58,7 +58,8 @@ performInlineHead
     | performLocationPhrase
     ;
 
-// [WITH] LOCATION (§2023:14.9.28.2 Format 3, COBOL-2023) — WITH is an optional word (§2023:8.3.2.4.3); bare LOCATION is
+// [WITH] LOCATION (§2023:14.9.28.2 Format 3, COBOL-2023: the exception-checking format, whose rules are new in 2023, e.g.
+// §2023:14.9.28.4 GR14) — WITH is an optional word (§2023:8.3.2.4.3); bare LOCATION is
 // 2023-only because below 2023 `PERFORM LOCATION` is an ordinary out-of-line PERFORM of a paragraph named
 // LOCATION (the continuity invariant — LOCATION remains a cobolWord at every edition).
 performLocationPhrase

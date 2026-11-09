@@ -40,7 +40,21 @@ A CITATION PROVES AN EDGE ONLY WHEN EVERY RULE IT NAMES PROVES IT. A clause that
 CHANGED rules beside KEPT ones, so a gate citing the whole clause would pass whichever of its constructs it moved: a window
 that wrongly started CALL ... USING at 2002 citing `§2023:14.9.4` would be proven by CALL's BY VALUE rules. So a gate is
 proven by one of its citations whose every named rule changes, and a gate whose citations each mix changing rules with
-KEPT ones is refused until it names the rule its edge rests on (the general format's subclause, or the SR or GR).
+KEPT ones is refused until it names the SR or GR its edge rests on.
+
+A GENERAL FORMAT PROVES ONLY A WHOLE DIAGRAM'S EDGE. The catalog holds one FMT rule per clause, every format and alternative
+of the statement in it, and most general formats changed between 1985 and 2023; so a CHANGED one would prove any construct
+of its statement (`Format 1` of CALL proves CALL ... USING at 2002 as readily as CALL ... RETURNING). A general format
+proves an edge only when the whole diagram is absent on the edge's other side: a NEW newer FMT rule (the statement is new)
+a start, an older one REMOVED an end (`diagram_bound`). A construct the standard states only in its diagrams, with no SR
+or GR of its own, therefore has no edge the lineage proves; each such gate is HELD OPEN (`FORMAT_ONLY`), so a new window
+resting on a general format alone is still refused.
+
+THE DIRECTION OF AN SR OR GR IS NOT THE LINEAGE'S. A NEW rule is a construct the newer text adds or a restriction it adds,
+and a REMOVED rule a construct it drops or a restriction it lifts; the record does not say which, so an SR or GR that
+changes proves either edge, and an inverted window (`introducedIn` and `removedIn` swapped) citing one is not caught here
+(the version matrix runs each construct's program at the editions around its window). A general format has a direction:
+a NEW diagram proves only a start and a REMOVED one only an end.
 """
 from __future__ import annotations
 
@@ -74,13 +88,29 @@ _FORMAT = re.compile(r"Format\b")
 _FORMAT_KIND = "FMT"
 #: THE FINDINGS A KNOWN DEFECT HOLDS OPEN, each with the work-register note that carries its fix; checked both ways
 #: (`held_open`): an entry whose gate the audit no longer finds anything at is itself a finding. A gate lands here only
-#: when the audit has found a compiler defect whose fix is another note's, never to quiet a finding this audit got wrong.
+#: when the audit has found a defect, of the compiler or of the data it reads (the catalog, the lineage), whose fix is
+#: another note's, never to quiet a finding this audit got wrong.
+#: The gates whose construct the standard states only in a general format, with no SR or GR naming it (the module
+#: docstring); each was searched for a rule of its own (branch review R2-1, wave 20261935 C). The fix is a catalog that
+#: numbers each format's alternatives, which no note carries yet (the report's lead names it for the registrar).
+FORMAT_ONLY = "the catalog holds the general format as one rule and no SR or GR names this construct (lead R2-1, w20261935 C)"
 HELD_OPEN: dict[str, str] = {
     # ANSI X3.23-1985 deleted REMARKS (§1985:A, its history of COBOL, item 8: "The deletion of NOTE and REMARKS in
     # favor of a general comment capability for all divisions"), so the window that accepts the REMARKS paragraph at
     # --std 85 accepts what the 1985 text does not have (the open question of kb/Work PB1802 item 2, answered by the text).
     "constructs.json remarks-removed-2002": "kb/Work PB4996 lead: REMARKS accepted at --std 85, a leniency for CCVS",
-}
+} | {f"constructs.json {c}": FORMAT_ONLY for c in (
+    "end-accept-2002", "end-display-2002",                   # a scope terminator; §2023:14.5.3.2 GR1 is KEPT
+    "identification-header-optional-2002",                   # the bracketed header of §2023:11.2.1
+    "computer-name-optional-2002",                           # §2023:12.3.6.2
+    "relative-key-clause-alone-2002",                        # §2023:12.4.5.13.2, a clause of its own
+    "file-organization-record-sequential-2023",              # the RECORD word; §2023:12.4.5.10.3 GR3 is KEPT
+    "subscript-arithmetic-expression-2002",                  # §2023:8.4.2.3.2; §2023:8.4.2.3.4 GR1 is KEPT
+    "initialize-then-replacing-2002",                        # the THEN connective of §2023:14.9.20.2
+    "inline-perform-after-2002",                             # §2023:14.9.28.2 Format 2
+    "set-condition-repeated-2002",                           # §2023:14.9.39.2
+    "use-without-procedure-2002", "use-without-after-2002",  # optional words of §2023:14.9.49.2
+)}
 _COMMENT = "//"
 
 Row = dict[str, Any]
@@ -217,29 +247,59 @@ def edge_findings(g: Gate, p: Pair, schema: Schema) -> tuple[list[Finding], str 
     if not cites:
         return [Finding(g.where, f"{edge}, between {lo} and {hi}, cites nothing of {lo} or {hi}: name the rule that "
                                  f"changes at the edge (§<edition>:<locator> <rule>)")], None
-    named: dict[str, tuple[list[str], Callable[[str], str | None]]] = {}
+    named: dict[str, tuple[list[str], Callable[[str], str | None], Callable[[str], str | None]]] = {}
     for c in cites:
         ed, rules, how = side_of[c.edition]
         if ids := named_rules(c, rules, ed):
-            named[citation.render(c)] = (ids, how)
+            named[citation.render(c)] = (ids, how, diagram_bound(how, rules, ed is p.newer, starts, schema))
     if not named:
         return [], f"{edge}: prose the catalogs hold no rule of (" + ", ".join(
             citation.render(c) for c in cites[:3]) + "), outside the lineage"
-    if proofs := [cite for cite, (ids, how) in named.items() if all(how(t) for t in ids)]:
-        ids, how = named[proofs[0]]
-        return [], f"{edge}: {proofs[0]}: " + ", ".join(f"{t} {how(t)}" for t in ids[:4])
-    cited = [t for ids, _ in named.values() for t in ids]
-    if broad := [t for ids, how in named.values() for t in ids if how(t)]:
-        return [Finding(g.where, f"{edge}, between {lo} and {hi}, is proven by no citation alone: each it makes "
-                                 f"({'; '.join(named)}) names {chained} or unclassified rules beside the changing ones, so it "
-                                 f"would prove any construct of its clause; name the rule the edge rests on (the "
-                                 f"general format's subclause, or the SR or GR; candidates {', '.join(broad[:6])})")], None
+    if proofs := [cite for cite, (ids, _, proves) in named.items() if all(proves(t) for t in ids)]:
+        ids, _, proves = named[proofs[0]]
+        return [], f"{edge}: {proofs[0]}: " + ", ".join(f"{t} {proves(t)}" for t in ids[:4])
+    return unproven(g.where, f"{edge}, between {lo} and {hi},", named, p, chained), None
+
+
+def unproven(where: str, edge: str, named: Mapping[str, tuple[list[str], Callable[[str], str | None],
+                                                              Callable[[str], str | None]]],
+             p: Pair, chained: str) -> list[Finding]:
+    """The finding for an edge no citation of `named` (each citation -> the rules it names, how each changes, and whether
+    it proves the edge: `edge_findings`) proves alone: the most specific reason, broadest first."""
+    cited = [t for ids, _, _ in named.values() for t in ids]
+    if broad := [t for ids, _, proves in named.values() for t in ids if proves(t)]:
+        return [Finding(where, f"{edge} is proven by no citation alone: each it makes ({'; '.join(named)}) names "
+                               f"{chained}, unclassified or general-format rules beside the changing ones, so it would prove "
+                               f"any construct of its clause; name the SR or GR the edge rests on (candidates "
+                               f"{', '.join(broad[:6])})")]
     if pending := [t for t in cited if t in p.kind_of and p.kind_of[t] is None]:
-        return [Finding(g.where, f"{edge}, resting on {lo} rule(s) the lineage has not classified "
-                                 f"({', '.join(pending[:6])}): classify them (record_verdicts.py --edition {lo})")], None
-    return [Finding(g.where, f"{edge}, yet every rule it cites is {chained} between {lo} and {hi} "
-                             f"({', '.join(cited[:6])}): the same requirement holds at both, so either the gate or the "
-                             f"change record is wrong")], None
+        return [Finding(where, f"{edge} resting on {p.older.year} rule(s) the lineage has not classified "
+                               f"({', '.join(pending[:6])}): classify them (record_verdicts.py --edition {p.older.year})")]
+    if kept := [t for ids, how, _ in named.values() for t in ids if not how(t)]:
+        return [Finding(where, f"{edge} yet every rule it cites that is not a general format is {chained} ({', '.join(kept[:6])}): "
+                               f"the same requirement holds at both, so either the gate or the change record is wrong")]
+    return [Finding(where, f"{edge} rests only on a general format that changes ({', '.join(cited[:4])}): the catalog "
+                           f"holds one FMT rule per clause, every format and alternative of it, so it proves no one "
+                           f"construct (only a whole diagram NEW proves a start, REMOVED an end); name the SR or GR the "
+                           f"construct rests on")]
+
+
+def diagram_bound(how: Callable[[str], str | None], rules: Iterable[Row], newer: bool, starts: bool,
+                  schema: Schema) -> Callable[[str], str | None]:
+    """`how` (one side's change of a rule) narrowed for its general-format rules: the catalog holds ONE FMT rule per
+    clause, the whole diagram with every format and alternative, so a CHANGED one proves no construct of it. It proves an
+    edge only when the whole diagram is absent on the edge's other side: a NEW newer FMT rule a start, an older one whose
+    record names no successor (`to` false: REMOVED) an end."""
+    formats = {r["rule-id"] for r in rules if r["kind"] == _FORMAT_KIND}
+    kinds = schema.next.kinds
+
+    def bound(t: str) -> str | None:
+        kind = how(t)
+        if t not in formats or kind is None:
+            return kind
+        whole = kind == "NEW" if newer else kind in kinds and not kinds[kind].to
+        return kind if whole and starts == newer else None
+    return bound
 
 
 def newer_change(p: Pair, chained: str) -> Callable[[str], str | None]:
@@ -345,12 +405,17 @@ def self_test() -> int:
            {"rule-id": "1985-FMT-VI.6.15.2", "section": "VI.6.15.2", "kind": "FMT", "ordinal": 0,
             "next": {"kind": "CHANGED", "to": ["FMT-14.9.2.2"]}},
            {"rule-id": "1985-GR-VI.6.9.4-1", "section": "VI.6.9.4", "kind": "GR", "ordinal": 1, "next": {}},
+           {"rule-id": "1985-GR-VI.6.15.4-2", "section": "VI.6.15.4", "kind": "GR", "ordinal": 2,
+            "next": {"kind": "CHANGED", "to": ["FMT-14.9.2.2"]}},
+           {"rule-id": "1985-FMT-VI.6.30.2", "section": "VI.6.30.2", "kind": "FMT", "ordinal": 0,
+            "next": {"kind": "REMOVED", "to": []}},
            {"rule-id": "1989-AR-A.2.7.3-1", "section": "A.2.7.3", "kind": "AR", "ordinal": 1,
             "next": {"kind": "KEPT", "to": ["AR-15.10.3-1"]}}]
     new = [{"rule-id": "SR-14.9.1.3-1", "section": "14.9.1.3", "kind": "SR", "ordinal": 1},
            {"rule-id": "FMT-14.9.2.2", "section": "14.9.2.2", "kind": "FMT", "ordinal": 0},
            {"rule-id": "GR-14.9.3.4-1", "section": "14.9.3.4", "kind": "GR", "ordinal": 1},
-           {"rule-id": "AR-15.10.3-1", "section": "15.10.3", "kind": "AR", "ordinal": 1}]
+           {"rule-id": "AR-15.10.3-1", "section": "15.10.3", "kind": "AR", "ordinal": 1},
+           {"rule-id": "FMT-13.18.99.2", "section": "13.18.99.2", "kind": "FMT", "ordinal": 0}]
     p = pair_of(e85, e23, old, new, schema)
 
     def gate(start: int, end: int | None, text: str) -> Gate:
@@ -369,18 +434,27 @@ def self_test() -> int:
        "a clause names every rule under it, a designator its kind and ordinal, each in its own document's numbering")
     ok(cited_rules(citation.scan("§2023:14.9.2 Format 1"), new, e23) == ["FMT-14.9.2.2"],
        "a Format n names the clause's general format, its FMT rule")
-    ok(finds(gate(2002, None, "§2023:14.9.3.4 GR1")) == [] and finds(gate(2014, None, "§2023:14.9.2.2")) == []
-       and finds(gate(2014, None, "§2023:14.9.2 Format 1")) == []
+    ok(finds(gate(2002, None, "§2023:14.9.3.4 GR1")) == []
        and edge_findings(gate(2002, None, "§2023:14.9.3.4 GR1"), p, schema)[1]
        == "start 2002: §2023:14.9.3.4 GR1: GR-14.9.3.4-1 NEW",
        "a start rests on a NEW rule, or on one a CHANGED record names")
+    ok(all(any("rests only on a general format that changes" in f for f in finds(g))
+           for g in (gate(2014, None, "§2023:14.9.2 Format 1"), gate(2014, None, "§2023:14.9.2.2"),
+                     gate(2002, None, "§1985:VI.6.15.2"), gate(1985, 2023, "§1985:VI.6.15.2"))),
+       "a CHANGED general format proves no edge, of either edition: the catalog's one FMT rule holds every format and "
+       "alternative of its clause, so it would prove any construct of the statement (branch review R2-1)")
+    ok(finds(gate(2002, None, "§2023:13.18.99.2")) == [] and finds(gate(1985, 2002, "§1985:VI.6.30.2")) == []
+       and any("general format" in f for f in finds(gate(1985, 2002, "§2023:13.18.99.2")))
+       and any("general format" in f for f in finds(gate(2002, None, "§1985:VI.6.30.2"))),
+       "a whole diagram's edge is proven by its general format, with its direction: a NEW one proves only a start, a "
+       "REMOVED one only an end")
     ok(any("proven by no citation alone" in f for f in finds(gate(2002, None, "§2023:14.9")))
        and any("proven by no citation alone" in f for f in finds(gate(1985, 2023, "§1985:VI.6")))
        and finds(gate(2002, None, "§2023:14.9; §2023:14.9.3.4 GR1")) == [],
        "a citation naming KEPT rules beside the changing ones proves nothing (it would prove any construct of its clause); one "
        "citation whose every rule proves the edge does")
-    ok(any("every rule it cites is KEPT" in f for f in finds(gate(2002, None, "§2023:14.9.1.3 SR1")))
-       and any("every rule it cites is KEPT" in f for f in finds(gate(2002, None, "§1985:VI.6.19.3 SR1"))),
+    ok(any("is KEPT (" in f for f in finds(gate(2002, None, "§2023:14.9.1.3 SR1")))
+       and any("is KEPT (" in f for f in finds(gate(2002, None, "§1985:VI.6.19.3 SR1"))),
        "a start whose every cited rule, of either edition, is KEPT contradicts its chain")
     ok(any("cites nothing of 1985 or 2023" in f for f in finds(gate(2002, None, "ISO 14.9.3")))
        and any("cites nothing of 1985 or 2023" in f for f in finds(gate(1985, 2002, "ISO 14.9.3"))),
@@ -388,12 +462,12 @@ def self_test() -> int:
     ok(edge_findings(gate(2002, None, "§2023:6.2.3.1"), p, schema)
        == ([], "start 2002: prose the catalogs hold no rule of (§2023:6.2.3.1), outside the lineage"),
        "a start citing only prose the catalog holds no rule of rests on its citation (the CITATIONS audit checks it)")
-    ok(finds(gate(2002, None, "§1985:VI.6.24.4 GR4")) == [] and finds(gate(2002, None, "§1985:VI.6.15.2")) == [],
+    ok(finds(gate(2002, None, "§1985:VI.6.24.4 GR4")) == [] and finds(gate(2002, None, "§1985:VI.6.15.4 GR2")) == [],
        "a start rests on an older rule REMOVED or CHANGED too: a restriction the newer text lifts")
-    ok(finds(gate(1985, 2002, "§1985:VI.6.24.4 GR4")) == [] and finds(gate(1985, 2023, "§1985:VI.6.15.2")) == []
+    ok(finds(gate(1985, 2002, "§1985:VI.6.24.4 GR4")) == [] and finds(gate(1985, 2023, "§1985:VI.6.15.4 GR2")) == []
        and finds(gate(1985, 2002, "§2023:14.9.3.4 GR1")) == [],
        "an end rests on an older rule REMOVED, or CHANGED, or on a NEW rule: a restriction the newer text adds")
-    ok(any("every rule it cites is KEPT" in f for f in finds(gate(1985, 2014, "§1985:VI.6.19.3 SR1"))),
+    ok(any("is KEPT (" in f for f in finds(gate(1985, 2014, "§1985:VI.6.19.3 SR1"))),
        "an end whose every cited rule is KEPT contradicts its chain")
     ok(any("has not classified" in f for f in finds(gate(1985, 2002, "§1985:VI.6.9.4 GR1"))),
        "an edge resting on an unclassified rule waits for its classification, refused")

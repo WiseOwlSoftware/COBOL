@@ -934,9 +934,15 @@ the common case) or a restriction it lifts (the 1985 rule "Identifier-1 must not
 end is a construct it drops or a restriction it adds. What a kind means is the schema's `next` (`chained`), never
 spelled in code. **A citation proves an edge only when every rule it names changes** (branch review R1-1): a clause that
 gained anything after 1985 holds changing rules beside KEPT ones, so a gate citing the whole clause would pass whichever
-of its constructs it moved. A gate names the rule its edge rests on: the general format's subclause (`§2023:14.9.41.2`,
-or `Format n`, which names the clause's FMT rule) when the construct is an alternative of the format, else the SR or GR.
-A gate whose cited rules are all KEPT contradicts its chain, and the audit refuses it until the gate or the record is
+of its constructs it moved. A gate names the SR or GR its edge rests on. **A general format proves only a whole
+diagram's edge** (branch review R2-1): the catalog holds one FMT rule per clause (a general-format subclause, or `Format
+n`, names it), every format and alternative of the statement in it, so a CHANGED one would prove any construct of the
+statement; a NEW newer FMT rule (a new statement) proves a start, an older one REMOVED an end, and nothing else. A
+construct the standard states only in its diagram, with no SR or GR of its own (END-ACCEPT, the optional IDENTIFICATION
+DIVISION header, USE without PROCEDURE: 12 windows at this slice), has no edge the lineage proves, and is held open in
+`edition_gates.FORMAT_ONLY` until the catalog numbers each format's alternatives; a new window resting on a general format
+alone is refused. An SR or GR has no direction in the lineage (a NEW rule adds a construct or a restriction), so an
+inverted window citing one is the version matrix's to catch, not this audit's. A gate whose cited rules are all KEPT contradicts its chain, and the audit refuses it until the gate or the record is
 corrected (two records were, by this slice: 1985-GR-VII.2.6.3-2 KEPT into line sequential organization, and the 1985
 FILLER rules KEPT into 2023's wider entry-name clause); so is a gate citing nothing of either edition, one whose every
 citation mixes changing rules with KEPT ones, or one resting on an unclassified rule. Three

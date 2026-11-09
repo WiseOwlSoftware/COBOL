@@ -47,6 +47,20 @@ positions it proves), `band_drift` is built on it, and S5's band reader (PB4683)
 stored `85` stays: it is the only 85 position the 1026 unproven rules have until PB4995's fleet adjudication and PB5008's
 refutation close the drift, so PB4996 is now blocked by both.
 
+**Branch review round 2.** The round-1 rule moved the breadth one level down: the catalog holds ONE general-format rule
+per clause, every format and alternative of the statement, and 111 of the 297 proven gates rested on one CHANGED FMT rule
+alone, so `§2023:14.9.4 Format 1` still proved CALL ... USING at 2002 (the reviewer's probe). A general format now proves
+only a whole diagram's edge: a NEW newer FMT rule a start, an older one REMOVED an end (`diagram_bound`), which also gives
+its proof a direction (lead R2-2; an SR or GR has none in the lineage, now said in the docstring). The rule refused 56
+gates; 44 windows now name the SR or GR their construct rests on (READ PREVIOUS `§2023:14.9.30.4 GR20`, CALL RETURNING
+`§2023:14.9.4.4 GR4`, the MEMORY SIZE end `§1985:XVI.2.2.4 GR2`, DISPLAY's signed literal `§1985:VI.6.10.3 SR2` REMOVED,
+...), the PERFORM LOCATION predicate cites `§2023:14.9.28.4 GR14`, and the 12 constructs the standard states only in a
+diagram (END-ACCEPT, END-DISPLAY, the optional IDENTIFICATION DIVISION header, USE without PROCEDURE or AFTER, ...) are
+held open in `FORMAT_ONLY`: the lineage cannot prove them until the catalog numbers each format's alternatives, and a new
+window resting on a general format alone is refused. For two of them a 2023 general rule describes the phrase but is
+rightly KEPT (ORGANIZATION RECORD SEQUENTIAL, arithmetic-expression subscripts): the semantics are 1985's, only the
+syntax is new, and that is the diagram's.
+
 Self-review: one reader of the change-record kinds (the schema's `chained` flag, no kind spelled in either module), the
 citation parser reused, the word lists held as citations rather than an edition branch, a rule designator read by its prefix (`GR25e-f` is GR25), the views read once per audit, the planted self-test citations real locators of the 1985 text.
 Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,713/22,713 · Unit 40,567/40,567 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261109T014218Z, at the first checkpoint; the branch head is re-gated after the self-review fixes).
