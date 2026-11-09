@@ -542,6 +542,70 @@ def main() -> int:
         check("a check that answered and disputes the decision makes it contested, though its own check upheld it (a run "
               "whose refuter also read KEPT and CHANGED decisions)",
               disputed.get("contested") is True and "change" not in disputed and disputed["refute"] == "UNSURE")
+        print("a seeded run checks a batch of decisions (the fleet's decisions of the contested records, kb/Work PB4995)")
+        fleet = root / "fleet.json"
+        fleet.write_text(json.dumps({"records": [{"rule-id": inspect_rule, "next": {
+            "kind": "KEPT", "edition": 2023, "to": ["GR-14.9.21.4-2", "GR-14.9.21.4-7"], "bridge": True,
+            "reason": "the fleet's reading", "source": "adjudicate-712/slice-01"}}]}), encoding="utf-8", newline="\n")
+        seeded = root / "seeded"
+        sbase = ["--state", str(seeded)]
+        code, out = run(["seed", *sbase, "--upstream", str(state), "--decisions", str(fleet)], fake)
+        sadj = A.Pass(seeded, "adjudicate")
+        sans = next(iter(sadj.answers().values()))
+        check("seed writes the run's own adjudicate pass: the upstream item of each decided rule, answered by its record "
+              "and source, and reads the inherited passes from the upstream run",
+              code == 0 and [it["id"] for it in sadj.items().values()] == [inspect_rule]
+              and list(sadj.items()) == [A.custom_id("adjudicate", inspect_rule)]
+              and sans["answer"] == {"verdict": "KEPT", "rules_2023": ["GR-14.9.21.4-2", "GR-14.9.21.4-7"], "differs": {},
+                                     "reason": "the fleet's reading", "source": "adjudicate-712/slice-01"}
+              and A.Pass(seeded, "route").inherited and A.Pass(seeded, "route").dir == state.resolve() / "route"
+              and sadj.seeded and not sadj.inherited and not (seeded / "route").exists())
+        code, out = run(["withdraw", "--pass", "adjudicate", *sbase], fake)
+        code2, out = run(["retry", "--pass", "adjudicate", *sbase, *key, "--max-usd", "50"], fake)
+        check("the seeded pass holds recorded decisions no model answers: withdraw and retry are refused (review "
+              "wseeddec R1-1)", all(c not in (0, None) and "no model answers" in str(c) for c in (code, code2))
+              and len(sadj.answers()) == 1)
+        code, out = run(["plan", "--pass", "recheck", *sbase, "--catalog", str(cat85r), "--catalog-2023", str(cat23),
+                         "--near-1985", "1"], fake)
+        sitems = list(A.Pass(seeded, "recheck").items().values())
+        check("the seeded run plans its recheck from the seeded decisions, with the upstream run's routes",
+              code == 0 and [it["id"] for it in sitems] == [inspect_rule] and sitems[0]["adjudication"]["verdict"] == "KEPT"
+              and (seeded / "recheck" / "items.json").exists())
+        run(["submit", "--pass", "recheck", *sbase, *key, "--max-usd", "50", "--canary", "5"], fake)
+        upheld_kept = {"verdict": "KEPT", "rules_2023": ["GR-14.9.21.4-2", "GR-14.9.21.4-7"], "rules_1985": [],
+                       "exception": {}, "differs": {}, "reason": "the same requirement"}
+        answer(fake, fake.created[-1]["id"], {c: json.dumps(upheld_kept) for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "recheck", *sbase, *key], fake)
+        code, out = run(["results", *sbase], fake)
+        sbatch = root / "seeded-change.json"
+        code, out = run(["change-batch", *sbase, "--out", str(sbatch), "--repo", str(root / "repo-seeded")], fake)
+        srec = {r["rule-id"]: r["next"] for r in json.loads(sbatch.read_text(encoding="utf-8"))["records"]}
+        check("a seeded decision its recheck upholds keeps its own source in the change batch, never the run's (review "
+              "wseeddec R1-2)", code == 0 and srec[inspect_rule]["source"] == "adjudicate-712/slice-01"
+              and srec[inspect_rule]["to"] == ["GR-14.9.21.4-2", "GR-14.9.21.4-7"])
+        code, out = run(["plan", "--pass", "route", *sbase], fake)
+        check("a pass the run inherits is its upstream run's: planning it in the seeded run is refused",
+              code not in (0, None) and "reads its route pass" in str(code))
+        code, out = run(["seed", "--state", str(root / "seeded3"), "--upstream", str(state), "--decisions", str(fleet),
+                         "--inherit", "route,map,verify,drafts"], fake)
+        twice = root / "twice.json"
+        twice.write_text(json.dumps({"records": json.loads(fleet.read_text(encoding="utf-8"))["records"] * 2}),
+                         encoding="utf-8", newline="\n")
+        code2, out = run(["seed", "--state", str(root / "seeded4"), "--upstream", str(state), "--decisions", str(twice)],
+                         fake)
+        check("seed refuses an inherited pass a seeded run could write (drafts) and a rule decided twice, writing nothing "
+              "(review wseeddec R1-3, R1-4)", code not in (0, None) and "inherits only" in str(code)
+              and code2 not in (0, None) and "twice" in str(code2)
+              and not (root / "seeded3").exists() and not (root / "seeded4").exists())
+        code, out = run(["seed", *sbase, "--upstream", str(state), "--decisions", str(fleet)], fake)
+        check("seed refuses a run directory that is not empty", code not in (0, None) and "not empty" in str(code))
+        stray = root / "stray.json"
+        stray.write_text(json.dumps({"records": [{"rule-id": "1985-GR-IX.9.9-9", "next": {
+            "kind": "REMOVED", "edition": 2023, "to": [], "bridge": True, "reason": "r", "source": "s"}}]}),
+            encoding="utf-8", newline="\n")
+        code, out = run(["seed", "--state", str(root / "seeded2"), "--upstream", str(state), "--decisions", str(stray)], fake)
+        check("seed refuses a decided rule the upstream run has no adjudicate item for",
+              code not in (0, None) and "no adjudicate item" in str(code) and not (root / "seeded2").exists())
         code, out = run(["plan", "--pass", "drafts", *base], fake)
         regrown = {it["id"] for it in json.loads((state / "drafts" / "items.json").read_text(encoding="utf-8")).values()}
         check("the drafts plan, planned again after the adjudication and its checks, keeps every planned draft and grows "
