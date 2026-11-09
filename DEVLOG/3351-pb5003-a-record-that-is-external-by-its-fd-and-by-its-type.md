@@ -1,4 +1,4 @@
-## PB5003 - a record that is external by its FD and by its type takes one cell, not two
+## Entry 3351 — 2026-11-08 18:17 PST — PB5003 - a record that is external by its FD and by its type takes one cell, not two
 
 `FD F IS EXTERNAL. 01 R TYPE TG.` with `01 TG IS TYPEDEF STRONG EXTERNAL.` produced C# declaring `_scell_R` and `_redef_R` twice
 (CS0102, exit 70). Re-probe on the build reproduced it. `LinkageBinder.CallBindExternalAndGlobal` claimed the record twice: the
@@ -10,3 +10,4 @@ a non-EXTERNAL FD with an EXTERNAL-typed record and a plain 01 of the same type 
 Goldens: `pb5003-external-fd-record-external-type` (accept 2023, `WXYZ07 ABCD42`) and its refusal below 2023 (COBOL0900, the
 strong-EXTERNAL-type edition gate). Self-review found nothing further; the file's data (a pointer record) reads back NULL after
 a file round trip, which is a separate matter and not changed here.
+
