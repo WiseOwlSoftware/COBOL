@@ -343,7 +343,7 @@ ioControlClause
     // The APPLY COMMIT clause (ISO §2023:12.4.6.3; kb/Work PB3338). It must precede unrecognizedClause, which would
     // otherwise match the bare word APPLY and then die on COMMIT with an unnamed error. UNGATED, the union grammar
     // (kb/Work PB5025, replacing the {is2023()}? construct gate PB2291 recorded): the commit-and-rollback facility is a
-    // COBOL-2023 addition (§2023:E.3.2 2), and below 2023 VersionConformancePass ParseArm.VisitApplyCommitClause names
+    // COBOL-2023 addition (§2023:E.3.2 item 2), and below 2023 VersionConformancePass ParseArm.VisitApplyCommitClause names
     // the edition (COBOL0900) where the gate made it the closed-format refusal (COBOL1970). No earlier edition has an
     // APPLY clause, and no other I-O-CONTROL clause begins with a user-defined word, so `APPLY COMMIT` has no other
     // reading here; APPLY (a §2023:8.10 context-sensitive word) and COMMIT (reserved from 2023) as user-defined words of

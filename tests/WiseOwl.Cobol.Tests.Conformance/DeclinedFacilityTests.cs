@@ -94,7 +94,7 @@ public sealed class DeclinedFacilityTests
         Assert.Empty(warnings);
     }
 
-    /// <summary>The edition arm for commit and rollback: the facility is a COBOL-2023 addition (Annex E.3.2
+    /// <summary>The edition arm for commit and rollback: the facility is a COBOL-2023 addition (§2023:E.3.2
     /// item 2) and §2023:8.9 reserves COMMIT and ROLLBACK at 2023 only, so at <c>--std 2014</c> the word is a
     /// user-defined word a data-name may be. The failure this catches is a reservation that leaked below 2023.</summary>
     [Fact]
