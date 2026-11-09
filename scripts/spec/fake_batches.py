@@ -15,14 +15,15 @@ class Crash(Exception):
 
 
 class FakeBatches:
-    def __init__(self) -> None:
+    def __init__(self, prefix: str = "msgbatch_") -> None:
+        self.prefix = prefix               # another account's server: its own batch ids, as the API's are unique
         self.created: list[dict] = []      # server side: every accepted batch
         self.results_by_id: dict[str, list] = {}
         self.crash_after_create = False
         self.ended: set[str] = set()
 
     def create(self, requests):
-        bid = f"msgbatch_{len(self.created) + 1}"
+        bid = f"{self.prefix}{len(self.created) + 1}"
         self.created.append({"id": bid, "ids": [r["custom_id"] for r in requests], "requests": requests,
                              "at": datetime.datetime.now(datetime.timezone.utc)})
         if self.crash_after_create:

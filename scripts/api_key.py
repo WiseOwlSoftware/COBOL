@@ -17,8 +17,8 @@ it is REQUIRED. It selects the entry whose label carries, as a whole word, eithe
 the account of that name in `scripts/orchestrator/account.py`'s table (`account1`, `account2`). The sign-in is read at
 run time from that account's config dir; it is never written into the repository. No match, or more than one, is an
 error naming the path and the labels found. `ApiKey.account` is the ACCOUNT NAME the call bills, which a run records;
-the key itself is never printed, logged or recorded. A run whose record names the account its batches were billed to
-reads its key through `read_run_key`, which keeps that account: a batch belongs to the account that created it.
+the key itself is never printed, logged or recorded. A run with an uncollected batch reads its key through
+`read_run_key`, which keeps that batch's account: a batch belongs to the account that created it.
 
     python scripts/api_key.py --self-test
 """

@@ -1078,8 +1078,11 @@ against the rule text; a MISMATCH is a defect or a suspect draft for the fleet t
   `citation.RULE_KINDS` (SR, GR, AR, RV), the kinds both catalogs write.
 - **Public text only**: a prompt carries the tracked transcriptions' text, never a page image; a request whose text
   matches any per-copy stamp shape (`verify_publishable`) is refused before any batch.
-- **The key** comes through `scripts/api_key.py` with `--api-account`; a pass's `state.json` records the account's name,
-  never the key. The self-test (`scripts/spec/test_audit_batch.py`) uses a fake client (`scripts/spec/fake_batches.py`,
+- **The key** comes through `scripts/api_key.py` with `--api-account`; each batch record in a pass's `state.json` names
+  the account that created it, never the key. A batch belongs to that account, so while one is uncollected (or a
+  create's intent is unreconciled) every command bills its account; once every batch is collected a pass may move to
+  another account, so one pass can spend two accounts' credit, and `status` prints each account's spend
+  (`message_batches.BatchRun.load_key`, `pinned_account`, `billing_line`; kb/Work PB4995). The self-test (`scripts/spec/test_audit_batch.py`) uses a fake client (`scripts/spec/fake_batches.py`,
   the transcriber's self-test's too) and opens no key file.
 
 The passes run after the reconciled 1985 file (PB4850) and its catalog exist; the verdicts stay with the fleet (§5, §8).
