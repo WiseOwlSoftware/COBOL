@@ -17,5 +17,11 @@ the older edition, target not OK, no target, empty `to`) plus the CHANGED and ne
 and `gaps` are the one per-edition read; the probe's `summary` and `gen_ledger.measure_inventory` both use it, and the ledger's
 GAP tile names each older edition's GAP. The ledger's trend stays the newest edition's GAP, v1.0's metric.
 
+The first merge group bounced it (Linux shard 3, THE INERT WATCH): the new older-edition test opens
+`docs/rearchitecture/spec-rule-catalog-1985.json`, which lay under the inert `docs/` entry with no READ entry, so an
+inert-lane change to it would have skipped that test. `inert_lane.py` CLASSIFICATION.read now holds the pattern
+`docs/rearchitecture/spec-rule-catalog*.json` in place of the 2023 catalog alone: every held edition's catalog is a READ
+path, including the one a later edition gains. The Windows gate cannot see this class of red (the watch is inotify).
+
 Rows closed: none (a tooling slice).
 
