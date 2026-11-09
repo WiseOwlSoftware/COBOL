@@ -27,7 +27,12 @@ repository now, and it matches the derivation.
 **Goldens.** `remarks-paragraph` moves from `_unassigned` to `cases/11.2-Identification-division-structure/` with its
 citations, refused at 85, 2002, 2014 and 2023 with "COBOL0902: the REMARKS paragraph was removed in COBOL-85";
 `pb1758-fixed-remarks-at-2023` (fixed form) is refused at 85 too. The version matrix row runs the refusal and the
-permissive warning at each edition.
+permissive warning at each edition. The first gate was RED on two goldens that wrote an IDENTIFICATION DIVISION REMARKS
+at 85 and that the first sweep (a grep for `REMARKS.`) missed: `wiseowl/.../pb3245_free_comment_entry_is_commentary`
+wrote `REMARKS no period ...`, so its no-period leg moves to SECURITY; and
+`pb4487_library_text_copied_twice_is_decided_per_inclusion` copies a REMARKS library text into both divisions. That
+program now has no conforming edition, so it becomes a refusal at all four (one COBOL0902, at the first inclusion only),
+and its per-inclusion decision stays held by `CommentEntryResolverTests`' PB4487 facts.
 
 **Rows.** None re-verdicted: the 1985 inventory carries lineage only (1985-FMT-VI.3.2.1.1 CHANGED to FMT-11.2.1,
 unchanged), and no 2023 row covers a paragraph no edition has.
