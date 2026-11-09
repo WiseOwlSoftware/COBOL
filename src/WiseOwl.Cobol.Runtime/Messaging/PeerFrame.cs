@@ -253,7 +253,10 @@ internal static class PeerFrameCodec
                 string? name = NullableText();
                 slots[k] = new MessageSlot(token, new MessageTag(mcs!, (MessageParty)party, name!, Long()));
             }
-            return new MessageBody(image, extents, slots);
+            // A slot stands for the positions that hold its token (MessageBody.Carrying, kb/Work PB4957, PB5004): a peer that announces one its image lacks is malformed.
+            foreach (var slot in slots)
+                if (!image.Contains(slot.Token, StringComparison.Ordinal)) throw new InvalidDataException($"a message slot's token {slot.Token} is not in the message image");
+            return MessageBody.Carrying(image, extents, slots);
         }
 
         internal void End()
