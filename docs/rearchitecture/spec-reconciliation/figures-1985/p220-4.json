@@ -1,0 +1,14 @@
+{
+ "page": 220,
+ "figure": 4,
+ "drawn_lines": [
+  "S <u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]",
+  "[ <u>END-REWRITE</u> ]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "S <u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]",
+  "[ <u>END-REWRITE</u> ]"
+ ],
+ "reason": "The figure is an amendment's text applied in place, not the base page's ink: Errata C115, Section V, the first REWRITE statement format (kb/Work PB5045). It is drawn as the amendment prints it."
+}

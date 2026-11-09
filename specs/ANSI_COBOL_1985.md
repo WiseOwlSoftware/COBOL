@@ -7,8 +7,11 @@
 This document is a transcription of **American National Standard X3.23-1985, *American National Standard for
 Information Systems — Programming Language — COBOL*** (now ANSI INCITS 23-1985 (R2001)), together with its two
 amendments: **ANSI X3.23a-1989, *Intrinsic Function Module for COBOL***, and **ANSI X3.23b-1993, *Correction Amendment
-for COBOL***. Each amendment follows the standard under its own heading (`AMENDMENT 1` and `AMENDMENT 2`), as it was
-published: an amendment is never merged into the text it amends. The standard is reproduced under the permission it
+for COBOL***. **The text of the standard is kept current with every amendment applied in place**: Amendment 1 first,
+then Amendment 2, in the order Amendment 2's own preamble prescribes, so the base text reads as the amended standard
+("amended third Standard COBOL", in Amendment 2's words). Each amendment is also transcribed in full under its own
+heading (`AMENDMENT 1` and `AMENDMENT 2`), as it was published, as the record of what it changed; Amendment 1's
+Section A, the Intrinsic Function module, is held there once. The standard is reproduced under the permission it
 grants on its own page 3 (PDF page 3), in the CODASYL acknowledgment:
 
 > Any organization interested in reproducing the COBOL standard and specifications in whole or in part, using ideas
@@ -41,11 +44,16 @@ publications.
 ---
 
 > **About this transcription.** American National Standard X3.23-1985 and its amendments are the authoritative text;
-> where this transcription and the published standard differ, **the published standard governs**. The words, the
-> punctuation and the spelling are transcribed as printed, with one exception: a misspelling or a damaged letter on the
-> printed page is corrected in place, flagged there with a ⚠ note that quotes the printed form, and listed with its
-> page in the **Errata** at the end of this document, so that any correction can be reversed. The acknowledgment is
-> never corrected (the acknowledgment above omits two periods because the printed page does).
+> where this transcription and the published standard differ, **the published standard governs**. This transcription
+> is the most accurate version of the specification its maintainers can make, and it is kept current: **every change
+> Amendment 1 and Amendment 2 make to the text is applied in place**, and an evident misprint (a misspelling, a damaged
+> letter, a real word printed for another, an operand the rule's own sense shows is the wrong one) is corrected; a
+> wording that is the standard's deliberate requirement, however odd, stays as printed. **Every modification is
+> attributed**: a ⚠ note where it is made quotes what the printed page prints and names the source of the change (the
+> amendment, its change row and its page, or the sense and the evidence for it), and the **Errata** at the end of this
+> document lists it with its page, so each reads as an update and can be traced to, or reversed against, the printed
+> page. The words, the punctuation and the spelling are otherwise transcribed as printed. The acknowledgment is never
+> corrected (the acknowledgment above omits two periods because the printed page does).
 >
 > **The pages are kept.** The source is a scan, and the transcription was made and reconciled page by page against
 > the rendered page, so each `## Page N` heading opens the text of PDF page N. The printed folios (`VI-21`, `XVII-3`)
@@ -11087,7 +11095,7 @@ Nucleus - PICTURE
 
 (8) The functions of the symbols used to describe an elementary item are explained as follows:
 
-> ⚠ **CORRECTED — see the Errata (C20).** The standard prints `explain as follows` (page 263, folio VI-31): a real word printed for another on the printed page. Corrected to `explained`.
+> ⚠ **CORRECTED — see the Errata (C20).** The standard prints `explain as follows` (page 263, folio VI-31): a real word printed for another on the printed page. Corrected to `explained`. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page VI-31 (T) (page 848, folio A-18): "change 'explain' to 'explained'", a typographical error (kb/Work PB5045).
 
 A Each 'A' in the character-string represents a character position which can contain only an alphabetic character and is counted in the size of the item.
 
@@ -11700,7 +11708,7 @@ Nucleus - VALUE
 
 (6) A format 1 VALUE clause specified in a data description entry that contains an OCCURS clause or in an entry that is subordinate to an OCCURS clause causes every occurrence of the associated data item to be assigned the specified value.
 
-> ⚠ **CORRECTED — see the Errata (C21).** The standard prints `or in a entry that is subordinate` (page 282, folio VI-50): a real word printed for another on the printed page. Corrected to `an entry`.
+> ⚠ **CORRECTED — see the Errata (C21).** The standard prints `or in a entry that is subordinate` (page 282, folio VI-50): a real word printed for another on the printed page. Corrected to `an entry`. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page VI-50 (T) (page 848, folio A-18): "change 'or in a entry' to 'or in an entry'", a typographical error (kb/Work PB5045).
 
 VI-50
 
@@ -18323,7 +18331,7 @@ If the invalid key condition does not exist after the execution of the input-out
 
 (2) If no exception condition exists, control is transferred to the end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified. In the latter case, execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which
 
-> ⚠ **CORRECTED — see the Errata (C28).** The standard prints `If not exception condition exists` (page 476, folio IX-6): a real word printed for another on the printed page. Corrected to `no`.
+> ⚠ **CORRECTED — see the Errata (C28).** The standard prints `If not exception condition exists` (page 476, folio IX-6): a real word printed for another on the printed page. Corrected to `no`. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page IX-6 (T) (page 849, folio A-19): "change 'If not exception' to 'If no exception'", a typographical error (kb/Work PB5045).
 
 IX-6
 
@@ -37555,11 +37563,12 @@ B-64
 > **This section is NOT part of American National Standard X3.23-1985 or its amendments.** It is supplied by
 > the publisher of this transcription.
 
-This transcription is the working copy of the standard for the project that keeps it, and **correctness rules
-over faithfulness to a typographical error**: where the printed page carries a misspelling, or a letter the
-printing damaged, the word is corrected in place. **Every departure is listed here with the printed form and the
-page, so that any correction can be reversed** if it later proves mistaken. The published standard remains
-authoritative: where this transcription and the published standard differ, **the published standard governs**.
+This transcription is the most accurate version of the specification its maintainers can make (owner, 2026-11-09,
+kb/Work PB5045): **an amendment's change is applied where it belongs, an evident misprint is corrected, and incorrect
+text is never kept because the printed page carries it.** **Every departure from the printed page is listed here
+with the printed form, the page and the source of the change**, so that each reads as an update and any correction can
+be reversed if it later proves mistaken. The published standard remains authoritative: where this transcription and
+the published standard differ, **the published standard governs**.
 
 Each correction is flagged where it was made with a ⚠ note that quotes the printed form verbatim, so a quotation
 of either form is found in the same paragraph (`scripts/spec/cite.py --check` accepts both) and the rule
@@ -37571,6 +37580,18 @@ printed form or page each fail it.
 > **Page numbers here are PDF pages**, the `## Page N` headings of this transcription, because the scanned
 > standard numbers its pages per section (`XIII-56`). The printed folio follows where the page prints one.
 
+**The kinds.** `damage` and `spelling`: a letter the printing damaged or a misspelling. `word`: a real word printed
+for another. `sense`: an operand or a term the rule's own sense shows is the wrong one, with the evidence (the same
+rule's other words, the rules around it, or a later edition's checked citation). `amendment-1` and `amendment-2`: a
+change of Amendment 1's Addendum 1 (ANSI X3.23a-1989) or of Amendment 2 (ANSI X3.23b-1993) applied in place, the
+entry naming the amendment's change row (its `Page No.` cell) and the PDF page that prints the row; the amendment's
+own text, transcribed in full under its heading, is the record of the change. Every change row is applied in the order
+the amendment lists it, Amendment 1 before Amendment 2 (Amendment 2's preamble, page 913), and each was read on its
+rendered page first. A row that changes only what this transcription does not draw (the indentation of a rule item:
+Addendum 1's rows VI-105 (T) and IX-3 (T); the fourth period of an ellipsis the general format draws as one `…`:
+row XIII-7 (T)) changes nothing here and has no entry. Addendum 1's additions to the index (rows XVIII-1 thru
+XVIII-13) are superseded by Amendment 2's replacement of the whole index (its row XVIII-1).
+
 C1 to C19 were found by a scan of the transcription for rare words one letter from a common word, and by a
 sweep of the body for every accented or foreign letter (U+00C0 to U+024F, and the dotless i), and each was read on the rendered page before it was corrected (kb/Work
 PB4972). A damaged letter the transcription reproduced is listed here too: the printed page shows it, so the
@@ -37580,12 +37601,13 @@ C20 to C30 (kind `word`) are misprints that turn one real word into another, whi
 them: the `misprints` pass of `scripts/spec/audit_batch.py` proofread every one of the 2,255 rules of the 1985 rule
 catalog, 1,863 of them beside the 2023 rules an earlier reader had paired with them and 392 (a rule of a module 2023
 dropped, or one no 2023 rule states) for their own sense alone. It reported 26 candidates. Each was read on the rendered
-page, and a candidate was corrected only when the page prints it and the sentence's own sense (or the same paragraph's
-other uses of the word) shows which word was meant. A candidate that is the standard's own requirement, however odd,
-stays as printed: an operand the sense seems to want changed (`index-name-1` where `index-name-2` reads better), a
-category list that omits one, a term the editions use differently. So do two candidates that Amendment 2 corrects in
-its own list of changes (page 934, folio XI-20, `had been execution`; page 936, folio XIII-34, `current page group`):
-the amendment is the standard's correction, and its text is the rule (kb/Work PB4984).
+page (kb/Work PB4984), and C31 to C35 are the candidates the owner's rule then re-judged on their pages (kb/Work PB5045):
+a candidate is corrected when the page prints it and the sentence's own sense, the same paragraph, or a later revision
+shows which word was meant, and stays as printed when it is the standard's own requirement or a wording that reads
+right (`multiplier` in the MULTIPLY statement names the BY operand; `next more significant key`, `whenever 'literal'
+appears`, `specific conventions`, `on the reel or file` and `allowed for the RECORD IS VARYING clause` read as the
+standard means them). Two candidates are corrected by Amendment 2 itself (page 934, folio XI-20, `had been execution`;
+page 936, folio XIII-34, `current page group`), and three by Amendment 1 (C20, C21 and C28 name its rows).
 
 **This list is still not known to be complete.** The reader read the catalog only (its syntax, general, argument and
 returned-value rules and 210 general formats): the prose outside them (the introductions, the Function paragraphs, the
@@ -37993,7 +38015,7 @@ A damaged letter on the printed page, which the transcription had reproduced, re
 | **Printed** | `explain as follows` |
 | **This transcription** | `explained as follows` |
 
-A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page VI-31 (T) (page 848, folio A-18): "change 'explain' to 'explained'", a typographical error (kb/Work PB5045).
 
 <a id="errata-c21"></a>
 
@@ -38004,7 +38026,7 @@ A real word printed for another, which no spelling check sees: found by the misp
 | **Printed** | `or in a entry that is subordinate` |
 | **This transcription** | `or in an entry that is subordinate` |
 
-A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page VI-50 (T) (page 848, folio A-18): "change 'or in a entry' to 'or in an entry'", a typographical error (kb/Work PB5045).
 
 <a id="errata-c22"></a>
 
@@ -38081,7 +38103,7 @@ A real word printed for another, which no spelling check sees: found by the misp
 | **Printed** | `If not exception condition exists` |
 | **This transcription** | `If no exception condition exists` |
 
-A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page IX-6 (T) (page 849, folio A-19): "change 'If not exception' to 'If no exception'", a typographical error (kb/Work PB5045).
 
 <a id="errata-c29"></a>
 
