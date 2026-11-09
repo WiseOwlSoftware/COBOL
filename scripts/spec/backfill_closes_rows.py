@@ -84,16 +84,22 @@ def pb_ids(text: str) -> set[str]:
     return set(PB.findall(text or ""))
 
 
-def attribute(commit_message: str, row_notes: str) -> set[str]:
-    """Which note(s) a single row's closure belongs to. See the four arms in the module docstring."""
+def attribute(commit_message: str, row_notes: str, row_message: str | None = None) -> set[str]:
+    """Which note(s) a single row's closure belongs to. See the four arms in the module docstring.
+
+    `row_message` is the narrower evidence of a merge landing (:func:`message_for_row`): arm 3, which trusts a message
+    naming EXACTLY ONE note, reads it, because another brought-in commit naming a second note must not defeat it. Arm 1
+    intersects the row's own notes with `commit_message`, the widest evidence, so a note the row names is never lost
+    to a narrowing (kb/Work PB5000, branch review R1-1)."""
     from_row, from_commit = pb_ids(row_notes), pb_ids(commit_message)
     both = from_row & from_commit
     if both:
         return both
     if from_row:
         return from_row
-    if len(from_commit) == 1:
-        return from_commit
+    from_narrow = from_commit if row_message is None else pb_ids(row_message)
+    if len(from_narrow) == 1:
+        return from_narrow
     return set()
 
 
@@ -103,12 +109,44 @@ def verdicts_at(sha: str, repo: pathlib.Path = REPO) -> dict[str, tuple[str, str
             for r in inventory_view.inventory_at(sha, repo=repo) or ()}
 
 
+#: What a merge landed: each brought-in commit's message with the inventory paths it changed, and every brought-in message.
+Landed = tuple[list[tuple[str, frozenset[str]]], str]
+
+
+def brought_in(sha: str, repo: pathlib.Path = REPO) -> Landed:
+    """What the merge `sha` landed, over the commits its first parent lacks. The paths are those under the store's
+    pathspecs, so a commit that did not touch the inventory is absent from the first part (but not from the second)."""
+    out = git("log", "--format=%x1e%B%x1f", "--name-only", f"{sha}^1..{sha}", "--",
+              *inventory_store.history_pathspecs(inventory_schema.NEWEST), repo=repo)
+    commits = []
+    for chunk in out.split("\x1e")[1:]:
+        message, _, names = chunk.partition("\x1f")
+        commits.append((message, frozenset(n.strip() for n in names.splitlines() if n.strip())))
+    return commits, git("log", "--format=%B", f"{sha}^1..{sha}", repo=repo)
+
+
+def message_for_row(landed: Landed, rule_id: str) -> str:
+    """The messages a merge landing credits to the row `rule_id`: those of the brought-in commits that changed the row's
+    own store file (or the one legacy file that held every row before kb/Work PB4148). Another brought-in commit may name
+    another note; it did not touch this row, so its message is no evidence for it (kb/Work PB5000).
+
+    When no brought-in commit touched the row (the merge itself resolved a conflict on it), every brought-in message is
+    the evidence that is left, as before."""
+    commits, everything = landed
+    own = f"{inventory_schema.NEWEST.store}/{inventory_store.row_name(rule_id)}"
+    legacy = inventory_schema.NEWEST.legacy_file
+    mine = [m for m, paths in commits if own in paths or (legacy and legacy in paths)]
+    return "\n".join(mine) if mine else everything
+
+
 def closures_from_history(resolving: set[str], progress=None,
                           repo: pathlib.Path = REPO) -> tuple[dict[str, set[str]], dict]:
     """`note id -> rule-ids it closed`, walked over every LANDING that touched the inventory: main's `--first-parent` line,
     each step a state main had (branch review R2-1 of PB4992: a branch's WIP checkpoints, which the merge queue keeps, are
-    trees main never held). A landing's message is the messages of every commit it brought in, so a note named by the
-    branch's commit is still the one it attributes to."""
+    trees main never held). A merge landing is credited, for each row, with the messages of the commits it brought in that
+    touched THAT ROW's store file (:func:`brought_in`, :func:`message_for_row`), so the note named by the branch's commit
+    that changed the row is the one it attributes to, and a second note named by another brought-in commit does not
+    defeat arm 3 (kb/Work PB5000)."""
     log = git("log", "--reverse", "--first-parent", "--format=%H%x1f%P%x1f%B%x1e", inventory_store.landed_head(repo), "--",
               *inventory_store.history_pathspecs(inventory_schema.NEWEST), repo=repo)
     commits = [c.strip() for c in log.split("\x1e") if c.strip()]
@@ -117,8 +155,7 @@ def closures_from_history(resolving: set[str], progress=None,
     previous: dict[str, tuple[str, str]] = {}
     for i, entry in enumerate(commits):
         sha, parents, message = entry.split("\x1f", 2)
-        if len(parents.split()) > 1:        # a merge: what it lands is every commit its first parent lacks
-            message = git("log", "--format=%B", f"{sha}^1..{sha}", repo=repo)
+        landed = brought_in(sha, repo) if len(parents.split()) > 1 else None   # a merge lands every commit its first parent lacks
         current = verdicts_at(sha, repo)
         if progress and i % 25 == 0:
             progress(i, len(commits))
@@ -127,7 +164,8 @@ def closures_from_history(resolving: set[str], progress=None,
             if verdict not in resolving or was in resolving:
                 continue
             stats["transitions"] += 1
-            ids = attribute(message, notes)
+            ids = (attribute(message, notes) if landed is None
+                   else attribute(landed[1], notes, message_for_row(landed, rule_id)))
             stats["by-arm"]["attributed" if ids else "unattributed"] += 1
             if not ids:
                 stats["unattributed"] += 1
@@ -277,6 +315,35 @@ def self_test() -> int:
         walked = {"refused": {str(e.code)}}
     check("the history walk reads main's landings only, and a landing carries its branch's note",
           walked == {"PB9001": {"R-1"}}, str(walked))
+
+    # ── a merge is credited per row with the commits that changed THAT row (kb/Work PB5000) ───────────
+    # The second branch brings in a commit naming PB9002 that changes another row (R-3) and one that touches no inventory
+    # file, beside the commit naming PB9003 that closes R-2: arm 3 must still credit R-2 to PB9003 alone.
+    def open_row(rid: str) -> str:
+        return json.dumps({"rule-id": rid, "section": "1.1", "ordinal": 1, "verdict": "", "state": "GAP"})
+
+    def closed_row(rid: str) -> str:
+        return json.dumps({"rule-id": rid, "section": "1.1", "ordinal": 1, "verdict": "CONFORMS", "state": "OK"})
+
+    sr.commit("base 2", {f"{store}/R-2.json": open_row("R-2"), f"{store}/R-3.json": open_row("R-3")})
+    sr.git("checkout", "-q", "-b", "side2")
+    sr.commit("PB9002: close R-3", {f"{store}/R-3.json": closed_row("R-3")})
+    sr.commit("PB9002: a file outside the inventory", {"notes.txt": "x"})
+    sr.commit("PB9003: close R-2", {f"{store}/R-2.json": closed_row("R-2")})
+    sr.git("checkout", "-q", "main")
+    sr.git("merge", "-q", "--no-ff", "-m", "Merge pull request #2 from side2", "side2")
+    try:
+        walked2, _ = closures_from_history({"CONFORMS"}, repo=sr.path)
+    except SystemExit as e:
+        walked2 = {"refused": {str(e.code)}}
+    check("a merge credits each row with the brought-in commits that changed it, so a second note does not defeat arm 3",
+          walked2 == {"PB9001": {"R-1"}, "PB9002": {"R-3"}, "PB9003": {"R-2"}}, str(walked2))
+    check("and the union of all brought-in messages is exactly what arm 3 could not use",
+          attribute("PB9002: close R-3\nPB9003: close R-2", "") == set())
+    check("at a merge arm 1 still reads every brought-in message, so a note the row names is kept (R1-1)",
+          attribute("PB9002: close R-3\nPB9003: close R-2", "PB9003 and PB9004", "PB9002: close R-3") == {"PB9003"})
+    check("at a merge arm 3 reads only the row's own commits",
+          attribute("PB9002: close R-3\nPB9003: close R-2", "", "PB9002: close R-3") == {"PB9002"})
 
     # ── the attribution rule, arm by arm ─────────────────────────────────────────────────────────────
     check("arm 1 — commit and row agree, and the INTERSECTION wins over either alone",
