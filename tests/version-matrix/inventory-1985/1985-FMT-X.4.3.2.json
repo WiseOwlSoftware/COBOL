@@ -6,11 +6,12 @@
   "edition": 2023,
   "to": [
    "FMT-13.16.2",
+   "SR-13.16.3-4",
    "FMT-13.18.22.2",
    "FMT-13.18.27.2"
   ],
   "bridge": true,
-  "reason": "1985: \"01 {data-name-1|FILLER} ... [ IS EXTERNAL ] [ IS GLOBAL ]\"; 2023: \"level-number [ entry-name-clause ] ... [ IS EXTERNAL [ AS literal-1 ] ] [ IS GLOBAL ]\". 2023 covers the same entry with EXTERNAL and GLOBAL, but makes the entry name optional, adds EXTERNAL AS literal-1 and many more clauses and usages, so more programs are accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 IPC 01 entry: '01 [data-name-1|FILLER] [REDEFINES] [IS EXTERNAL] [IS GLOBAL]' plus PICTURE, USAGE (BINARY, COMP, DISPLAY, INDEX, PACKED-DECIMAL), SIGN, OCCURS, SYNC, JUSTIFIED, BLANK WHEN ZERO, VALUE. §2023:13.16.2 Format 1 keeps every one of these, with the name optional as before (§2023:13.16.3 SR4 'If no entry-name clause is specified, it is as though the filler format ... were specified'), EXTERNAL now 'IS EXTERNAL [AS literal-1]' (§2023:13.18.22.2), GLOBAL unchanged (§2023:13.18.27.2), and adds clauses and usages (TYPEDEF, BASED, DYNAMIC LENGTH, GROUP-USAGE, ...). More entries accepted; 1985 entries keep their meaning. CHANGED (looser).",
+  "source": "adjudicate-712/slice-03"
  }
 }

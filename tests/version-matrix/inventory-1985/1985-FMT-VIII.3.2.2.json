@@ -6,11 +6,13 @@
   "edition": 2023,
   "to": [
    "FMT-13.4.5.2",
+   "SR-13.4.5.3-7",
    "FMT-13.18.10.2",
-   "FMT-13.18.43.2"
+   "FMT-13.18.43.2",
+   "SR-13.18.43.3-2"
   ],
   "bridge": true,
-  "reason": "1985: \"LABEL {RECORD IS|RECORDS ARE} {STANDARD|OMITTED} ... VALUE OF implementor-name-1 IS ... DATA {RECORD IS|RECORDS ARE}\"; 2023: \"FD file-name-1 [IS EXTERNAL [AS literal-1]] [IS GLOBAL] [BLOCK CONTAINS ...] [ record-clause ] .\". The 2023 Format 2 FD keeps BLOCK CONTAINS and RECORD but drops the LABEL RECORDS, VALUE OF and DATA RECORDS clauses, so 1985 entries using them are refused.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 relative FD allows BLOCK CONTAINS, RECORD, LABEL RECORD(S) STANDARD/OMITTED, VALUE OF implementor-name-1 and DATA RECORD(S). §2023:13.4.5.2 Format 2 'relative-or-indexed' (§2023:13.4.5.3 SR7) keeps BLOCK CONTAINS (§2023:13.18.10.2) and the record-clause (§2023:13.18.43.2, BYTES a synonym per §2023:13.18.43.3 SR2) but has no LABEL, VALUE OF or DATA RECORDS clause anywhere in the standard, so a 1985 relative FD using them is refused. EXTERNAL/GLOBAL are not new (1985 X.4.2.2). CHANGED (stricter).",
+  "source": "adjudicate-712/slice-03"
  }
 }

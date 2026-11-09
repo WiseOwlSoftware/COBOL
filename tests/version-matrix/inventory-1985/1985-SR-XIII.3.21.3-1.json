@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.18.60.3-7"
+   "FMT-13.15.2",
+   "GR-13.15.4-2",
+   "SR-13.18.60.3-1"
   ],
   "bridge": true,
-  "reason": "2023 still lets USAGE appear on any report group item, group or elementary (not among the elementary-only clauses); the DISPLAY/NATIONAL limit is a separate phrase rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The USAGE clause may be written in any data description entry' of the Report Section. §2023:13.15.2 offers '[ USAGE IS ] { DISPLAY | NATIONAL }' in every report group description entry, and it is not among the elementary-only clauses; §2023:13.15.4 GR2 applies the data description USAGE rules, whose placement bar §2023:13.18.60.3 SR1 ('shall not be specified in a data description entry that has a level-number of 66 or 88') no report group entry meets. Same placement; the rule refuses nothing in either edition.",
+  "source": "adjudicate-712-r2/slice-14"
  }
 }

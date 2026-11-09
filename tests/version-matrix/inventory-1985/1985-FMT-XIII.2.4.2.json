@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "FMT-12.4.6.2",
-   "FMT-12.4.6.4.2"
+   "FMT-12.4.6.4.2",
+   "SR-12.4.6.4.3-5"
   ],
   "bridge": true,
-  "reason": "1985: \"[ MULTIPLE FILE TAPE CONTAINS { file-name-3 [ POSITION integer-1 ] } … ] …\"; 2023: \"I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ]\". The I-O-CONTROL paragraph and SAME AREA FOR are kept, but the 2023 format has no MULTIPLE FILE TAPE clause, so programs using it are no longer accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 report-writer I-O-CONTROL: '[SAME AREA FOR file-name-1 {file-name-2} ...] ... [MULTIPLE FILE TAPE CONTAINS {file-name-3 [POSITION integer-1]} ...] ...'. §2023:12.4.6.2 keeps I-O-CONTROL with the same-clause (and adds apply-commit-clause); the file-area format 'SAME AREA FOR' of §2023:12.4.6.4.2 still takes a report file (§2023:12.4.6.4.3 SR5). The MULTIPLE FILE TAPE clause appears nowhere in the 2023 standard, so a 1985 paragraph using it is refused. CHANGED (stricter).",
+  "source": "adjudicate-712/slice-03"
  }
 }

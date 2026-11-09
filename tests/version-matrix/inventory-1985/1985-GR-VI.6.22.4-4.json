@@ -9,7 +9,7 @@
    "GR-14.9.37.4-1"
   ],
   "bridge": true,
-  "reason": "Same nonserial search, index kept within table bounds, undefined final index on failure, AT END or end of SEARCH. EC-RANGE-SEARCH-NO-MATCH acts only when checking is enabled, which 1985 cannot do.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.37.4 GR9 restates the nonserial SEARCH ALL: initial setting ignored, varied as the implementor specifies, 'At no time is it set to a value that exceeds the value that corresponds to the last element of the table', final setting undefined on no match, success when all conditions are satisfied; §2023:14.9.37.4 GR1 a) and b) give the same control (imperative-statement-2 or NEXT SENTENCE; AT END, else end of SEARCH). The added EC-RANGE-SEARCH-NO-MATCH turns no refusal into an exception and changes control only when checking is enabled, which a 1985 program cannot do: 'If the AT END phrase is not specified and neither exception condition was raised because the checking for those exception conditions was not enabled, control is transferred to the end of the SEARCH statement' (GR1 b) 3.). The search-index identity is 1985 GR6's (2023 GR8); multiple matches are 1985 GR3's (2023 GR7).",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

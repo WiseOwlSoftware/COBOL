@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.2.7.4-4",
+ "rule-digest": "3158545a69d1",
+ "next": {
+  "kind": "REMOVED",
+  "to": [],
+  "reason": "1985 PADDING CHARACTER clause GR4: 'If the CODE-SET clause is specified for the file, conversion of the padding character specified by literal-1 or the content of data-name-1 is established for the file when the file is opened.' 2023 has no PADDING CHARACTER clause (absent from the file control formats of §2023:12.4.5.1 (General formats)), so there is no padding character to convert; the CODE-SET rules of §2023:13.18.13 convert record data only, and §2023:9.1.1 'Padding characters are added or deleted as necessary' does not name a user padding character. No 2023 rule carries this rule.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-15"
+ }
+}

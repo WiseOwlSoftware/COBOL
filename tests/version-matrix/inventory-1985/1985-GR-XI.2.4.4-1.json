@@ -6,12 +6,10 @@
   "edition": 2023,
   "to": [
    "FMT-12.4.6.2",
-   "GR-12.4.6.4.4-2",
-   "GR-12.4.6.4.4-4",
-   "SR-12.4.6.4.3-1"
+   "FMT-12.4.6.4.2"
   ],
   "bridge": true,
-  "reason": "The 1985 GR1 only says the SAME RECORD/SORT/SORT-MERGE AREA clause belongs in I-O-CONTROL. 2023 keeps same-clause there, with record-area and sort-merge-area formats.",
-  "source": "audit-1985/state-route"
+  "reason": "The 1985 rule only points to where the SAME RECORD/SORT/SORT-MERGE AREA clause is presented. 2023's I-O-CONTROL format holds '{ same-clause }…' 'where apply-commit-clause and same-clause are shown below' (§2023:12.4.6.2), and §2023:12.4.6.4.2 gives 'Format 2 (record-area)' and 'Format 3 (sort-merge-area)'. The general and syntax rules (GR2, GR4, SR1) carry the clause's semantics, not this pointer.",
+  "source": "adjudicate-712/slice-22"
  }
 }

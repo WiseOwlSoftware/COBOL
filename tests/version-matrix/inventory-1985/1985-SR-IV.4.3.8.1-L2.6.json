@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.1-L2.6",
+ "rule-digest": "8cc54f61181a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.2.3-7",
+   "SR-8.4.2.2.1-6",
+   "FMT-8.4.2.2.2"
+  ],
+  "bridge": true,
+  "reason": "§2023:8.4.2.2.3 SR7: 'If explicitly referenced, a paragraph-name shall not be duplicated within a section' and need not be qualified within the same section, restated as the exemption in §2023:8.4.2.2.1 ('The name is a paragraph-name and the section containing the reference also contains the named paragraph'). Format 4 of §2023:8.4.2.2.2 is 'paragraph-name-1 IN/OF section-name-1' with no SECTION word. The cross-program bar is the uncataloged §2023:8.4.6.1 ('may be referenced only by statements in the source element in which the user-defined word is declared'). Every part is kept.",
+  "source": "adjudicate-712/slice-28"
+ }
+}

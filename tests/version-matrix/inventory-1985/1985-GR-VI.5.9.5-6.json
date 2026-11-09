@@ -6,12 +6,14 @@
   "edition": 2023,
   "to": [
    "GR-13.18.40.5-5",
+   "GR-13.18.40.4-14",
+   "SR-13.18.40.3-23",
    "SR-13.18.40.3-24",
    "SR-13.18.40.3-25",
    "SR-13.18.40.3-26"
   ],
   "bridge": true,
-  "reason": "1985: \"The currency symbol must be the leftmost character position to be counted in the size of the item\"; 2023: \"or the rightmost symbol in character-string-1, optionally followed by one of the symbols '+', '-', 'CR', or 'DB'\". 2023 also allows a rightmost currency symbol (e.g. '999$+'), which 1985 refused. The one-symbol limits, sign placement and the Table 8 results are the same.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The currency symbol must be the leftmost character position ... except that it can be preceded by either a '+' or a '-''. §2023:13.18.40.3 SR26 also allows it as 'the rightmost symbol in character-string-1, optionally followed by one of the symbols '+', '-', 'CR', or 'DB'', so PIC 999$ and 999$CR, refused in 1985, are accepted (looser). The one-symbol limits (§2023:13.18.40.3 SR23, SR24), sign position (§2023:13.18.40.3 SR25), CR/DB size (§2023:13.18.40.4 GR14) and the result table (§2023:13.18.40.5 GR5) are unchanged.",
+  "source": "adjudicate-712/slice-11"
  }
 }

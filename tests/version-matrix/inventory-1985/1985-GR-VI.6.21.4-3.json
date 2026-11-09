@@ -3,12 +3,13 @@
  "rule-digest": "453681a4439c",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
+   "FMT-14.9.28.2",
    "GR-14.9.28.4-4"
   ],
+  "reason": "1985 GR3 names a PERFORM with procedure-name-1 out-of-line and one without it in-line. §2023:14.9.28.2 labels the format with procedure-name-1 'Format 1 (out-of-line)' and the one with imperative-statement-1 END-PERFORM 'Format 2 (inline)', and §2023:14.9.28.4 GR4 ties the out-of-line set to procedure-name-1 and 'For an inline PERFORM statement, the specified set of statements consists of all statements contained within the PERFORM statement'. Every 1985 PERFORM is classed the same; format 3 (exception-checking) is new. A definition only: nothing refused, no result changed.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "GR-4 ties out-of-line PERFORM to procedure-name-1 and inline PERFORM to statements contained within it. That is the same split as the 1985 definition; no program's acceptance or effect changes.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-12"
  }
 }

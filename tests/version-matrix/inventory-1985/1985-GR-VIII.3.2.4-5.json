@@ -5,13 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.43.4-1",
-   "GR-13.18.43.4-6",
-   "GR-13.18.43.4-7",
-   "SR-13.4.5.3-7"
+   "FMT-13.4.5.2",
+   "SR-13.4.5.3-5",
+   "SR-13.4.5.3-7",
+   "FMT-13.18.43.2"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only says relative files use the sequential RECORD clause. 2023 has one RECORD clause (13.18.43) for every file description entry, relative and sequential alike.",
-  "source": "audit-1985/state-route"
+  "reason": "The 1985 rule only makes the relative RECORD clause the sequential one. 2023 writes one RECORD clause (13.18.43) into FD Format 1 (sequential, §2023:13.4.5.3 SR5) and Format 2 (relative or indexed, §2023:13.4.5.3 SR7), so the sameness holds; the clause's content is carried by the sequential rule's record.",
+  "source": "adjudicate-712/slice-18"
  }
 }

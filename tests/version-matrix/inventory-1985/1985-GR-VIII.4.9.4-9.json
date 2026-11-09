@@ -5,11 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-9.1.14-L2.2",
-   "GR-9.1.14-L2.1"
+   "GR-9.1.14-L2.1",
+   "GR-9.1.14-L2.2"
   ],
   "bridge": true,
-  "reason": "1985: \"If the execution of the WRITE statement is unsuccessful for a reason other than an invalid key condition, after updating the I-O status\"; 2023: \"If control is returned from those statements, then control is transferred to the end of the input-output statement.\". 1985 also runs NOT INVALID KEY after a non-invalid-key failure, once the USE procedure ends. 2023 runs it only on success; a failure goes to the end of the statement.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR9 (base text): with NOT INVALID KEY, control goes to imperative-statement-2 on success and also 'b. If the execution of the WRITE statement is unsuccessful for a reason other than an invalid key condition, after updating the I-O status ... and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE'. §2023:9.1.14, when the invalid key condition does not exist: 'If the I-O status indicates an unsuccessful completion that is not an invalid key condition', control follows the exception processing and then goes to the end of the statement; the NOT INVALID KEY statement runs only 'If the I-O status indicates a successful completion'. A relative WRITE that fails for another reason (status 44 or 48) ran imperative-statement-2 under 1985 and does not under 2023. The X3.23b-1993 Correction Amendment, item (21), made this change, so it separates base 1985 from amended 1985.",
+  "source": "adjudicate-712/slice-20"
  }
 }

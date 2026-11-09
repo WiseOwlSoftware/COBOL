@@ -8,7 +8,7 @@
    "GR-14.9.30.4-18"
   ],
   "bridge": true,
-  "reason": "GR18 states the same three results: record area undefined, key of reference undefined, no valid record position. 'Unless otherwise specified' covers cases like record locking, new in 2023.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: after an unsuccessful READ the record area is undefined, the key of reference is undefined for indexed files, and no valid next record is established. §2023:14.9.30.4 GR18 states all three ('the key of reference is undefined for indexed files, and the file position indicator is set to indicate that no valid record position has been established'). Its 'Unless otherwise specified' covers the record operation conflict (§2023:14.9.30.4 GR10, record locking 1985 has no model of) and the at end setting, which 1985 GR4/GR10 also made; the next sequential READ fails in both. The 46 and at end rules are their own records.",
+  "source": "adjudicate-712-r2/slice-02"
  }
 }

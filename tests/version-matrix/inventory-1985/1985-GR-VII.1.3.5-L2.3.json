@@ -7,12 +7,16 @@
   "to": [
    "GR-9.1.13.6-1",
    "GR-9.1.13.6-3",
+   "GR-9.1.13.6-4",
    "GR-9.1.13.6-5",
    "GR-9.1.13.6-6",
-   "GR-9.1.13.6-7"
+   "GR-9.1.13.6-7",
+   "GR-14.9.51.4-20",
+   "GR-14.9.27.4-16",
+   "GR-14.9.27.4-10"
   ],
   "bridge": true,
-  "reason": "1985: \"I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.\"; 2023: \"No status 38 in 9.1.13.6; 37 adds: OPEN or DELETE FILE statement ... insufficient authority exists to access the file\". Statuses 30, 34, 35 and 39 match. The 2023 list of permanent errors drops status 38 (closed with lock). Status 37 gains an insufficient-authority case.",
-  "source": "audit-1985/state-route"
+  "reason": "30, 34 (write boundary), 35 and 37 a) are kept (§2023:9.1.13.6 GR1, GR3, GR5, GR6; restated by WRITE GR20, OPEN GR16 and GR10). Status 38 is gone: 2023 lists among removed features 'The WITH LOCK phrase of the CLOSE statement and the related File Status of 38' (§2023:E.2), and 9.1.13.6 has no 38. Status 37 adds 'insufficient authority exists to access the file' for OPEN (§2023:9.1.13.6 GR6), a new failure a 1985 OPEN can meet. Status 34 adds a READ case ('A READ statement is unsuccessfully executed because the records are variable in length' under OCCURS DEPENDING ON, §2023:9.1.13.6 GR4). 39 keeps the OPEN conflict ('a conflict has been detected between the fixed file attributes and the attributes specified for that file in the source unit', §2023:9.1.13.6 GR7) and adds DELETE FILE.",
+  "source": "adjudicate-712/slice-14"
  }
 }

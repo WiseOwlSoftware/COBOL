@@ -75,7 +75,7 @@ public static partial class ConstructRegistry
         new("aligned-clause-2002", "ALIGNED clause", 2002, null, null, "COBOL0900", "ISO §2023:13.18.1"),
         new("value-implied-picture-2002", "the VALUE-implied PICTURE clause (an elementary item with a VALUE literal and no PICTURE)", 2002, null, null, "COBOL0900", "ISO §2023:13.16.3 SR9; §2023:13.15.3 SR14"),
         new("group-usage-clause-2002", "GROUP-USAGE clause", 2002, null, null, "COBOL0900", "ISO §2023:13.18.29"),
-        new("procedure-returning-2002", "PROCEDURE DIVISION RETURNING", 2002, null, null, "COBOL0900", "ISO §2023:14.2.1 (the RETURNING phrase of the general format)"),
+        new("procedure-returning-2002", "PROCEDURE DIVISION RETURNING", 2002, null, null, "COBOL0900", "ISO §2023:14.2.1 (the RETURNING phrase of the general format); §2023:14.2.2 SR4"),
         new("currency-picture-symbol-2002", "CURRENCY SIGN WITH PICTURE SYMBOL", 2002, null, null, "COBOL0893", "ISO §2023:12.3.7.2 (the WITH PICTURE SYMBOL phrase of the CURRENCY clause); pinned pre-band code (VCR Table 7 row 7.3); §2023:12.3.7.3 SR23"),
         new("pic-wide-19-digits-2002", "fixed-point item wider than 18 digits", 2002, null, null, "COBOL0802", "ISO §2023:13.18.40.3 SR14 (1 through 31 digit positions; 1985: 1 to 18); §2023:8.3.3.3.2"),
         new("options-arithmetic-native-2002", "OPTIONS paragraph / ARITHMETIC IS NATIVE", 2002, null, null, "COBOL0900", "ISO §2023:11.9 / §2023:11.9.5; Annex E.2 item 21"),

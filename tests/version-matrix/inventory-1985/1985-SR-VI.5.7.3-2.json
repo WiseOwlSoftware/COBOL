@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-13.18.33.3-2"
+   "SR-13.18.33.3-2",
+   "SR-13.18.33.3-3"
   ],
   "bridge": true,
-  "reason": "1985: \"Data description entries subordinate to a CD, FD, or SD entry must have level-numbers\"; 2023: \"Data description entries subordinate to a FD or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.\". Values 01-49, 66 and 88 are kept for FD/SD (the level-2 box is no difference). The CD case is dropped: no 2023 candidate covers entries subordinate to a CD.",
-  "source": "audit-1985/state-route"
+  "reason": "For FD and SD the rule is kept: §2023:13.18.33.3 SR2 'Data description entries subordinate to a FD or SD entry shall have level-numbers with the values 66, 88, or 1 through 49', and §2023:13.18.33.3 SR3 lets 1 through 9 be written as 01 through 09. 1985 also covers entries subordinate to a CD. 2023 has no communication section and no rule for CD entries, so that part of the requirement is gone.",
+  "source": "adjudicate-712/slice-30"
  }
 }

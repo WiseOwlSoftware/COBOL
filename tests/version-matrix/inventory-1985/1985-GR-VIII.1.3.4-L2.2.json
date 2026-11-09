@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-9.1.13.4-1",
-   "GR-9.1.13.4-2"
+   "GR-9.1.13.4-2",
+   "GR-14.9.30.4-21",
+   "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "Status 10 still covers end of file and a first sequential READ on an absent optional file; status 14 is the same. The added PREVIOUS case applies only to syntax 1985 lacks.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 status 10 (end of file; first sequential READ of an absent optional input file) and 14 (relative record number too large). §2023:9.1.13.4 GR1 keeps 10 for 'the end of the physical file has been reached' and 'a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present'; §2023:9.1.13.4 GR2 states 14 verbatim; §2023:14.9.30.4 GR21 and §2023:14.9.30.4 GR24 set '10' at end. The PREVIOUS case needs 2023-only syntax; run-time only, no refusal differs.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

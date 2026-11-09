@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-XIII.3.19.3-5",
+ "rule-digest": "799b65514588",
+ "next": {
+  "kind": "KEPT",
+  "to": [
+   "FMT-8.4.2.2.2",
+   "SR-8.4.2.2.3-4"
+  ],
+  "reason": "§1985:XIII.3.19.3 SR5: 'The highest permissible qualifier of a sum counter is the report-name.' 2023 qualified-data-name is 'data-name-1 [ data-qualifier ] … [ file-report-qualifier ]' (§2023:8.4.2.2.2), the file-report-qualifier being a single file-name or report-name placed last, and §2023:8.4.2.2.3 SR4 makes every data-qualifier a superordinate level ('Qualifiers shall be specified in the order of successively more inclusive levels in the hierarchy'). A sum counter is qualified by its group names and at most a report-name above them, as in 1985.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-34"
+ }
+}

@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-12.4.5.1",
+   "FMT-12.4.5.14.2",
    "GR-12.4.5.14.3-1"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only makes the indexed RESERVE clause the same as the sequential one. 2023 has a single RESERVE clause rule for every organization, so the equivalence holds.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 only says the indexed RESERVE clause is the sequential one. 2023 has one RESERVE clause, used by the indexed file control entry (Format 1 of 12.4.5), with one general rule for every organization: §2023:12.4.5.14.3 GR1 'the number of input-output areas allocated is equal to the value of integer-1'. The equivalence holds.",
+  "source": "adjudicate-712/slice-06"
  }
 }

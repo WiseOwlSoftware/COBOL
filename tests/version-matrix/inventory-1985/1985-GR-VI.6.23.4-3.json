@@ -2,14 +2,16 @@
  "rule-id": "1985-GR-VI.6.23.4-3",
  "rule-digest": "0eb3e64b95ec",
  "next": {
-  "kind": "CHANGED",
-  "edition": 2023,
+  "kind": "KEPT",
   "to": [
    "GR-14.9.39.4-2",
+   "SR-14.9.39.3-2",
+   "SR-14.9.39.3-3",
    "SR-14.9.39.3-4"
   ],
+  "reason": "§2023:14.9.39.4 GR2 restates 1985 GR3 for every operand a 1985 program can write: index-name-1 is set to the element corresponding in occurrence number to index-name-2, identifier-2 or the value (integer-1 is now one case of arithmetic-expression-1), with no conversion from the same table's index or an index data item; b) an index data item receives index-name-2 or an index data item unchanged; c) a numeric identifier-1 receives index-name-2's occurrence number; and 'The value of the sending operand is determined once at the beginning ... item identification of the data item referenced by identifier-1 is done immediately before the value of that data item is changed' is 1985 d). The 1985 refusals in b and c are kept as §2023:14.9.39.3 SR2, SR3 and SR4. The EC-BOUND-SUBSCRIPT and EC-RANGE-INDEX outcomes and 'even if that occurrence is not a valid occurrence within this table' reach only values 1985 excludes elsewhere (1985 SR2 integer operands, SR4 'Integer-1 must be positive', GR2 'must correspond to an occurrence number of an element in the table'); the non-integer sender that 1985 SR2 refused and 2023 turns into EC-BOUND-SUBSCRIPT belongs to the record for 1985 SR2, not to this rule.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"refer to the table element that corresponds in occurrence number to the table element referenced by index-name-2, identifier-2, or integer-1\"; 2023: \"If arithmetic-expression-1 is specified, ... Otherwise, if ... outside the limit ... EC-RANGE-INDEX ... content of the receiving operand is unchanged\". 2023 keeps format-1 index setting but widens integer-1 to arithmetic-expression-1. It adds EC-BOUND-SUBSCRIPT and EC-RANGE-INDEX cases that leave the receiver unchanged; 1985 has neither.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-12"
  }
 }

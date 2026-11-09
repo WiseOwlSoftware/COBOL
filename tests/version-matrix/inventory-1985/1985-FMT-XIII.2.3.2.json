@@ -1,0 +1,20 @@
+{
+ "rule-id": "1985-FMT-XIII.2.3.2",
+ "rule-digest": "df144c5a7079",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.5.1",
+   "SR-12.4.5.2-11",
+   "FMT-12.4.5.5.1",
+   "FMT-12.4.5.8.2",
+   "FMT-12.4.5.10.2",
+   "FMT-12.4.5.11.2",
+   "FMT-12.4.5.14.2"
+  ],
+  "bridge": true,
+  "reason": "1985 report-file control entry: SELECT [OPTIONAL] file-name-1 ASSIGN TO ..., RESERVE, [ORGANIZATION IS] SEQUENTIAL, PADDING CHARACTER IS {data-name-1|literal-2}, RECORD DELIMITER IS {STANDARD-1|implementor-name-2}, ACCESS MODE IS SEQUENTIAL, FILE STATUS. §2023:12.4.5.1 Format 3 (sequential), required for a report file by §2023:12.4.5.2 SR11, keeps ASSIGN, RESERVE (§2023:12.4.5.14.2), ORGANIZATION (§2023:12.4.5.10.2), RECORD DELIMITER (§2023:12.4.5.11.2), ACCESS MODE (§2023:12.4.5.5.1) and FILE STATUS (§2023:12.4.5.8.2), adds ASSIGN USING, LOCK MODE and SHARING, but has no PADDING CHARACTER clause anywhere in the standard, so a 1985 entry using it is refused. CHANGED (stricter and looser).",
+  "source": "adjudicate-712/slice-03"
+ }
+}

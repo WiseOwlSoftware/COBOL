@@ -10,7 +10,7 @@
    "GR-9.1.13.7-4"
   ],
   "bridge": true,
-  "reason": "2023 keeps the RECORD IS VARYING size limits on REWRITE: unsuccessful, no update, record area unaffected, status 44. Literal-1 and FORMAT only extend to new features; bytes is wording.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.35.4 GR20 keeps the bound: the record 'shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause', else unsuccessful with '44' (§2023:9.1.13.7 GR4 a)); §2023:14.9.35.4 GR14: 'no logical record updating takes place, the content of the record area is unaffected'. Literal-1, FILE and FORMAT are 2023-only. Same.",
+  "source": "adjudicate-712/slice-19"
  }
 }

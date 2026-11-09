@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.2.7.4-2",
+ "rule-digest": "efc923e14416",
+ "next": {
+  "kind": "REMOVED",
+  "to": [],
+  "reason": "1985 PADDING CHARACTER clause GR2: 'If the PADDING CHARACTER clause is not applicable to the device type to which the file is assigned, the creation or recognition of padding characters does not occur.' 2023 has no PADDING CHARACTER clause: the file control entry formats of §2023:12.4.5.1 (General formats) do not list it and the word occurs nowhere in a 2023 clause definition. The only mention, §2023:9.1.1 'Padding characters are added or deleted as necessary', is about CODE-SET or FORMAT translation, not a user-specified padding character or its applicability to a device. No 2023 rule carries this rule; a 1985 program using the clause is refused.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-15"
+ }
+}

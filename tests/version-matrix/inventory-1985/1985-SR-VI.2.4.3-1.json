@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-10.7.2",
    "SR-10.7.3-2"
   ],
   "bridge": true,
-  "reason": "In 2023, END PROGRAM's program-name-1 is a program-name, a kind of user-defined word (8.3.2.2.21). It must equal the PROGRAM-ID name, so the same names are accepted or refused.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: the END PROGRAM program-name 'must conform to the rules for forming a user-defined word.' 2023 writes the operand as program-name-1 (FMT-10.7.2), a user-defined word (8.3.2.2.21, uncataloged), and §2023:10.7.3 SR2 requires it 'identical to the program-name declared in a preceding PROGRAM-ID paragraph'. Same programs refused.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

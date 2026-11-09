@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-14.9.27.2"
+   "FMT-14.9.27.2",
+   "SR-14.9.27.3-5"
   ],
   "bridge": true,
-  "reason": "1985: \"OPEN {INPUT {file-name-1} … / OUTPUT {file-name-2} … / I-O {file-name-3} … / EXTEND {file-name-4} …} …\"; 2023: \"OPEN {{INPUT/OUTPUT/I-O/EXTEND} [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …} …\". Same four open modes, repeatable in one statement. 2023 adds the optional SHARING, RETRY and NO REWIND phrases, so it accepts OPEN statements the 1985 relative format refused.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 relative OPEN is {INPUT|OUTPUT|I-O|EXTEND} {file-name} ... repeated. §2023:14.9.27.2 keeps the four modes and repetition but adds the optional sharing-phrase and retry-phrase, which the 1985 format refuses; WITH NO REWIND remains unavailable to relative files (§2023:14.9.27.3 SR5 'The NO REWIND phrase may be specified only for sequential files'). Every 1985 form keeps its meaning; more forms are accepted. CHANGED (looser).",
+  "source": "adjudicate-712/slice-03"
  }
 }

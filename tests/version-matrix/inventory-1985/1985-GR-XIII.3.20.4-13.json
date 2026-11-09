@@ -2,15 +2,16 @@
  "rule-id": "1985-GR-XIII.3.20.4-13",
  "rule-digest": "41818d996adf",
  "next": {
-  "kind": "CHANGED",
-  "edition": 2023,
+  "kind": "KEPT",
   "to": [
+   "GR-13.18.16.4-3",
    "GR-13.18.16.4-4",
    "GR-13.18.16.4-5",
    "GR-14.9.46.4-3"
   ],
-  "bridge": true,
-  "reason": "1985: \"All other data item references within report groups and their USE procedures access the current values\"; 2023: \"If the printing of the control footing causes a page advance and the page heading or page footing refers to a control data item, the value produced is similarly the prior value\". Prior values still go to control footings and, on TERMINATE, to report footings. 2023 also gives prior values to page heading/footing printed during a control footing's page advance.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR13: control values used to detect a break are prior values; a) a control footing's SOURCE and USE references get prior values; b) at TERMINATE, control footings and the report footing get prior values as though the highest control broke; c) every other reference gets current values. 2023: §2023:13.18.16.4 GR3 defines the 'prior control'; §2023:13.18.16.4 GR4 a) stores the prior controls in the control data items before any control footing prints, so its references and its USE 'similarly yield the prior value', then 'All subsequent references to the control data items will obtain the new current values'; §2023:13.18.16.4 GR5 and §2023:14.9.46.4 GR3 a) 'The contents of any control data items are changed to their prior values' for TERMINATE. The one case 2023 adds, a page heading or page footing printed during a control footing's page advance seeing 'similarly the prior value', is unreachable from a conforming 1985 program: §1985:p.XIII-56 (TYPE SR5) 'In page heading and page footing report groups, SOURCE clauses and USE statements must not reference control data-names', and SR5 a-c also forbid the group, subordinate and redefining references through which the swap could otherwise be seen. Lifting that refusal is the SR5 record's change (error mode a); every conforming 1985 program gets the same values.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

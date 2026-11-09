@@ -8,7 +8,7 @@
    "GR-14.9.40.4-12"
   ],
   "bridge": true,
-  "reason": "1985: \"The initiation is performed as if an OPEN statement with the INPUT phrase had been executed.\"; 2023: \"is larger than the largest record allowed in the file description entry for file-name-1, the EC-SORT-MERGE-RELEASE\". Same USING rule, but 2023 adds cases: SHARING on the implicit OPEN, IGNORING LOCK on the READ, continuing after nonfatal OPEN exceptions, and SORT termination on bad record size.",
-  "source": "audit-1985/state-route"
+  "reason": "Same USING model: implicit OPEN INPUT, READ NEXT AT END, CLOSE before sequencing, relative key undefined, USE procedures not touching file-name-2. §2023:14.9.40.4 GR12 adds results 1985 lacks: after a nonfatal OPEN exception 'the SORT statement continues as if the exception condition did not exist'; a record of illegal size sets 'the EC-SORT-MERGE-RELEASE exception condition ... and the execution of the SORT statement is terminated' (1985 had only the SR3 restriction); the DEPENDING ON item of file-name-2 is undefined afterwards; IGNORING LOCK/SHARING on the implicit statements.",
+  "source": "adjudicate-712/slice-23"
  }
 }

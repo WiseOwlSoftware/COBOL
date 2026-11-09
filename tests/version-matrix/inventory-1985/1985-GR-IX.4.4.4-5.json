@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.27.4-2",
-   "GR-14.9.6.4-8"
+   "GR-14.9.6.4-8",
+   "GR-9.1.13.7-1"
   ],
   "bridge": true,
-  "reason": "1985: \"must be preceded by the execution of a CLOSE statement, without the LOCK phrase, for that file\"; 2023: \"The file connector referenced by file-name-1 shall not be open. If it is open, ... the I-O status ... is set to '41'.\". 2023 keeps the close-before-reopen rule (status 41), but any successful CLOSE without UNIT allows a reopen. No LOCK exclusion is stated, and status 38 is absent from the list.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: reopening a file requires a prior CLOSE 'without the LOCK phrase' (a reopen after CLOSE WITH LOCK gives status 38). 2023 keeps the close-before-reopen rule: §2023:14.9.27.4 GR2 'shall not be open. If it is open, the execution of the OPEN statement is unsuccessful' (status 41, §2023:9.1.13.7 GR1), and §2023:14.9.6.4 GR8 makes any successful CLOSE without UNIT leave the connector not open. The LOCK carve-out is gone: §2023:E.2 lists 'The WITH LOCK phrase of the CLOSE statement and the related File Status of 38' as removed. The first sentence (all four open modes may be used in one run unit) follows from GR4's open modes and is unchanged.",
+  "source": "adjudicate-712/slice-07"
  }
 }

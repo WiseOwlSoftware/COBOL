@@ -10,7 +10,7 @@
    "GR-13.18.54.4-4"
   ],
   "bridge": true,
-  "reason": "Both: COLUMN makes the SOURCE, VALUE or SUM item printable, and without COLUMN it is not printed. The size-error handling belongs to SUM-clause rules, not this rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: COLUMN NUMBER makes the SOURCE/VALUE object or SUM counter presented; without it the entry is not presented. 2023 §2023:13.18.14.4 GR1 'If a COLUMN clause is not specified, the items are not printed'; §2023:13.18.53.4 GR3 no COLUMN 'defines an unprintable item, the SOURCE clause causes no action'; §2023:13.18.54.4 GR4 'If the entry also contains a COLUMN clause, the sum counter acts as a source data item'. SR-13.15.3-10 (a COLUMN entry needs SOURCE/VALUE/SUM) is a separate refusal, not part of this rule. A multiple-operand COLUMN is format syntax 1985 refuses. Same.",
+  "source": "adjudicate-712-r2/slice-11"
  }
 }

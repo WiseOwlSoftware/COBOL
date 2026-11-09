@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-12.3.6.2"
+   "FMT-12.3.6.2",
+   "SR-12.3.6.3-4"
   ],
   "bridge": true,
-  "reason": "1985: \"[ MEMORY SIZE integer-1 {WORDS|CHARACTERS|MODULES} ] [ PROGRAM COLLATING SEQUENCE IS alphabet-name-1 ] [ SEGMENT-LIMIT IS segment-number ]\"; 2023: \"OBJECT-COMPUTER. [computer-name-1] [CHARACTER CLASSIFICATION ...] [PROGRAM COLLATING SEQUENCE ... FOR NATIONAL ...] .\". The 2023 format keeps computer-name and PROGRAM COLLATING SEQUENCE but drops MEMORY SIZE and the segmentation SEGMENT-LIMIT clause, so programs using them are refused.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 Segmentation OBJECT-COMPUTER: 'OBJECT-COMPUTER. [computer-name [MEMORY SIZE integer-1 {WORDS|CHARACTERS|MODULES}] [PROGRAM COLLATING SEQUENCE IS alphabet-name-1] [SEGMENT-LIMIT IS segment-number] . ]' (§1985:XVI.2.2.2). 2023 keeps computer-name-1, PROGRAM COLLATING SEQUENCE IS alphabet-name-1 and the optional closing period (§2023:12.3.6.2; 'the second period in the General format may be omitted', §2023:12.3.6.3 SR4), adds CHARACTER CLASSIFICATION and FOR ALPHANUMERIC/NATIONAL, but has no MEMORY SIZE and no SEGMENT-LIMIT clause. A 1985 program that writes MEMORY SIZE or SEGMENT-LIMIT is refused under 2023 (stricter); a compile-time difference, no exception condition.",
+  "source": "adjudicate-712/slice-04"
  }
 }

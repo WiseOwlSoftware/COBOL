@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.4.3-3",
+ "rule-digest": "4ad8a7d6b2db",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.2.3-6",
+   "SR-14.9.44.3-6",
+   "SR-14.9.25.3-12"
+  ],
+  "bridge": true,
+  "reason": "§1985:VI.6.4.3 bars level 66, 77, 88 and USAGE INDEX in the description of D1 and D2 for every CORRESPONDING statement. 2023 states the D1/D2 restriction per statement: ADD and SUBTRACT keep the level-66 ban (§2023:14.9.2.3 SR6, §2023:14.9.44.3 SR6 'shall not be described with level-number 66'), but MOVE requires only 'Identifier-3 and identifier-4 shall specify group data items and shall not be reference-modified' (§2023:14.9.25.3 SR12), and a level-66 RENAMES ... THROUGH entry 'defines an alphanumeric group item' (§2023:13.18.45.4 GR2). MOVE CORRESPONDING naming a level-66 group, refused in 1985, is legal in 2023, and no 2023 rule bars a group described USAGE INDEX as D1/D2. 77 and 88 stay excluded because they cannot be group items. The requirement is looser.",
+  "source": "adjudicate-712/slice-14"
+ }
+}

@@ -3,16 +3,17 @@
  "rule-digest": "b315b0f0d05b",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "GR-14.9.25.4-4",
    "GR-14.9.25.4-7",
-   "SR-14.9.25.3-10",
+   "GR-13.18.40.4-3",
    "SR-14.9.25.3-5",
-   "SR-14.9.25.3-6"
+   "SR-14.9.25.3-6",
+   "SR-14.9.25.3-10"
   ],
+  "reason": "1985 GR3: 'All other figurative constants belong to the category alphanumeric' and 'e. All other elementary moves are legal', so MOVE QUOTE, HIGH-VALUE, LOW-VALUE or ALL literal to a numeric or numeric-edited item is legal 1985. §2023:14.9.25.3 SR5 refuses it at compile time: 'the move of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL literal, or ALL symbolic-character) to either a numeric item or a numeric-edited item is prohibited', save ALL digits to an integer item. The rest is kept: the elementary-move definition (§2023:14.9.25.4 GR4), literal and figurative-constant categories (§2023:14.9.25.4 GR7), item categories (§2023:13.18.40.4 GR3), ZERO not to alphabetic (§2023:14.9.25.3 SR6) and prohibitions a-d via Table 16 (§2023:14.9.25.3 SR10).",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"All other figurative constants belong to the category alphanumeric. ... e. All other elementary moves are legal\"; 2023: \"the move of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL \"literal\", ...) to ... numeric ... is prohibited\". 1985 allowed QUOTE, HIGH-VALUE, LOW-VALUE and ALL literal (alphanumeric) to be moved to numeric items. 2023 prohibits these, except ALL digits moved to an integer item.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-12"
  }
 }

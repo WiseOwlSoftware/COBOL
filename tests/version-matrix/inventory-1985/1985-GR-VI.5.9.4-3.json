@@ -10,7 +10,7 @@
    "GR-13.18.40.4-14"
   ],
   "bridge": true,
-  "reason": "1985: \"The number of digit positions that can be described by the PICTURE character-string must range from 1 to 18 inclusive\"; 2023: \"the number of digit positions described by character-string-1 shall range from 1 through 31.\". The symbol set 9, P, S, V and the digit-content rule are carried over, but the maximum number of digit positions rises from 18 to 31, so more programs are accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a numeric PICTURE contains only '9', 'P', 'S', 'V' and 'The number of digit positions ... must range from 1 to 18 inclusive'; content numeric characters plus an operational sign if signed. 2023: §2023:13.18.40.4 GR11 (at least one '9', may contain 'P', 'S', 'V') and §2023:13.18.40.4 GR14 ('9' 'shall contain a numeric character in the range 0 through 9 with the possible inclusion of an operational sign') keep the symbol set and content, but §2023:13.18.40.3 SR14 sets 'from 1 through 31' digit positions: 19 to 31 digit numeric PICTUREs refused in 1985 are accepted.",
+  "source": "adjudicate-712/slice-10"
  }
 }

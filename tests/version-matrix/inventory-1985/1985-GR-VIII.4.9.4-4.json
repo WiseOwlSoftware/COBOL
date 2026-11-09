@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.51.4-9"
+   "GR-14.9.51.4-9",
+   "GR-14.9.51.4-4"
   ],
   "bridge": true,
-  "reason": "Same guarantee for identifier-1. The proviso only covers FILE-phrase cases that 1985 forbade (no storage overlap), and an unsuccessful WRITE never alters identifier-1.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR4: after WRITE 'the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause'. §2023:14.9.51.4 GR9 says the same after successful execution, 'provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description', and §2023:14.9.51.4 GR4 restates the record-area half ('unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause'). The proviso excludes only programs 1985 SR1 refuses, since every record of the file shares record-name-1's area; a failed WRITE alters identifier-1 in neither edition. Same.",
+  "source": "adjudicate-712/slice-20"
  }
 }

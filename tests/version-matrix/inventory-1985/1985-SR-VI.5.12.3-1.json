@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-13.18.52.3-1"
+   "SR-13.18.52.3-1",
+   "GR-13.18.52.4-1"
   ],
   "bridge": true,
-  "reason": "1985: \"or a group item containing at least one such numeric data description entry\"; 2023: \"an alphanumeric group item, national group item, or strongly-typed group item.\". 2023 lets SIGN appear on any alphanumeric, national or strongly-typed group, even one with no subordinate signed numeric item. It also adds screen and report group entries.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 allows SIGN on a group only if the group contains 'at least one such numeric data description entry' (signed, PICTURE with S). 2023 §2023:13.18.52.3 SR1 allows it on 'an alphanumeric group item, national group item, or strongly-typed group item' with no such condition, and §2023:13.18.52.4 GR1 'applies only to numeric items whose picture character-string contains the symbol' S, so a group with no signed item is now accepted with no effect. Screen entries are new; report group entries were already allowed in the 1985 Report Writer module.",
+  "source": "adjudicate-712/slice-29"
  }
 }

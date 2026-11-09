@@ -2,17 +2,16 @@
  "rule-id": "1985-GR-XIII.3.3.4-2",
  "rule-digest": "796e14b3d719",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-13.18.46.4-2",
-   "SR-14.9.51.3-12",
-   "SR-14.9.27.3-1",
-   "SR-14.9.35.3-11",
-   "SR-14.9.40.3-8",
-   "SR-14.9.24.3-9"
+   "SR-13.18.46.3-3",
+   "SR-13.4.5.3-9",
+   "GR-14.9.6.4-5"
   ],
   "bridge": true,
-  "source": "adjudication kb/Work PB5008"
+  "reason": "The ban is the same, but the result of breaking it is now defined. 1985: between INITIATE and TERMINATE 'no input-output statement may be executed which references that report file'; 1985 XIII.3.3.3 SR3 already allows only USE, CLOSE and OPEN OUTPUT/EXTEND to name a report file, so the ban meant OPEN and CLOSE. 2023 §2023:13.18.46.4 GR2 'no OPEN or CLOSE statements shall be executed that reference the report file', with the same reference limit in §2023:13.18.46.3 SR3 and §2023:13.4.5.3 SR9 (the store's 'other I-O statements no longer refused' is wrong: they are refused at compile time in both). Difference: 1985 leaves a violating CLOSE undefined; 2023 §2023:14.9.6.4 GR5 completes the CLOSE and sets EC-REPORT-NOT-TERMINATED.",
+  "source": "adjudicate-712/slice-26"
  }
 }

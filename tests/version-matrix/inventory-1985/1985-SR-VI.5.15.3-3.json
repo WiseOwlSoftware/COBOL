@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-VI.5.15.3-3",
+ "rule-digest": "9a8a05f1a8bf",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.63.3-2",
+   "SR-13.18.63.3-4",
+   "SR-13.18.63.3-6"
+  ],
+  "bridge": true,
+  "reason": "The numeric part is kept: §2023:13.18.63.3 SR2 'permissible values within the range indicated by the PICTURE clause ... without truncation of leading or trailing nonzero digits' (its float exceptions cover usages 1985 lacks), and §2023:13.18.63.3 SR6 extends no-truncation to numeric literals for numeric-edited items. The nonnumeric size limit is kept by §2023:13.18.63.3 SR4 only for alphabetic, alphanumeric and alphanumeric-edited items. 1985 limits a nonnumeric literal for ANY item, and numeric edited items take only nonnumeric literals there (§1985:VI.5.15.4 GR1b). 2023 states no size limit for an alphanumeric literal in a numeric-edited item: §2023:13.18.63.3 SR7 constrains only its class. An oversize literal for a numeric-edited item, refused in 1985, is refused by no 2023 rule.",
+  "source": "adjudicate-712/slice-30"
+ }
+}

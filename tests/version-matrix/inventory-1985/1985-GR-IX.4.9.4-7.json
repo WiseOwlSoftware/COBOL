@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.51.4-12"
+   "GR-14.9.51.4-12",
+   "GR-14.9.51.4-34"
   ],
   "bridge": true,
-  "reason": "Both say executing WRITE releases a logical record. 'Operating environment' only renames 'operating system'. 'Successful' changes nothing, since GR-15 says an unsuccessful write does not take place.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR7: 'The execution of the WRITE statement releases a logical record to the operating system.' 2023 §2023:14.9.51.4 GR12: 'The successful execution of a WRITE statement releases a logical record to the operating environment', and §2023:14.9.51.4 GR34 restates the release. 'Successful' only spells out 1985 GR2 ('released by the successful execution') and GR8/GR18 (a failed WRITE does not take place); operating system -> operating environment is wording. Same.",
+  "source": "adjudicate-712/slice-08"
  }
 }

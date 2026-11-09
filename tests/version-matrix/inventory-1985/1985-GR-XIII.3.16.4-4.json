@@ -2,15 +2,16 @@
  "rule-id": "1985-GR-XIII.3.16.4-4",
  "rule-digest": "2ed8a4cc60fe",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "GR-13.18.37.4-3",
    "GR-13.18.37.4-4",
-   "GR-13.18.37.4-5"
+   "GR-13.18.37.4-5",
+   "GR-13.18.35.4-4"
   ],
   "bridge": true,
-  "reason": "1985: \"The NEXT GROUP clause of a report heading report group can affect the location at which the page heading report group is presented.\"; 2023: \"namely the first body group when the report is not divided into pages, or the first page heading when the page heading consists only of relative lines\". Body group and page footing effects match. In 2023 a report heading's NEXT GROUP also positions the first body group of an unpaged report, a case the 1985 rule does not state.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a body group's NEXT GROUP affects the next body group, a report heading's the page heading, a page footing's the report footing. 2023 §2023:13.18.37.4 GR4 'it will affect the location of the next non-dummy body group', with §2023:13.18.35.4 GR4 page fit and first line 'modified if the immediately preceding body group's description contained the absolute form of a NEXT GROUP clause'; §2023:13.18.37.4 GR3 report heading: 'namely the first body group when the report is not divided into pages, or the first page heading'; §2023:13.18.37.4 GR5 a page footing affects a relative report footing (1985 RF rule 3a ignores LINE-COUNTER for an absolute RF line, so the same). The unpaged RH -> first body group case was already 1985 (a relative NEXT GROUP in an unpaged RH sets LINE-COUNTER; body rule 4d adds to it). Same.",
+  "source": "adjudicate-712-r2/slice-11"
  }
 }

@@ -8,7 +8,7 @@
    "RV-15.50.4-3"
   ],
   "bridge": true,
-  "reason": "For the 1985 cases (nonnumeric literal, elementary item, group without ODO) 2023 returns the integer length in alphanumeric positions; ODO groups fall under a separate rule (-4).",
-  "source": "audit-1985/state-route"
+  "reason": "1989 RV1 arguments (nonnumeric literal, elementary item, group without ODO) are never boolean or national, so §2023:15.50.4 RV3 applies: 'an integer equal to the length of argument-1 in alphanumeric character positions', the 1985 character positions. Implicit FILLER (1989 RV3) maps separately; rounding (§2023:15.50.4 RV9) cannot arise for a 1985 item.",
+  "source": "adjudicate-712/slice-35"
  }
 }

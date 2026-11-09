@@ -2,15 +2,16 @@
  "rule-id": "1985-GR-VI.6.13.4-1",
  "rule-digest": "828253071aed",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-14.9.13.4-3",
    "GR-14.9.13.4-4",
+   "GR-14.9.13.4-1",
    "GR-14.9.13.4-2"
   ],
   "bridge": true,
-  "reason": "2023 evaluates objects as relation conditions (subject = / NOT = object, >= and <= for THROUGH), so ZERO takes its class from context. 1985 results hold; boolean and partial forms are only added.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 'operates as if each selection subject and selection object were evaluated and assigned' a value. §2023:14.9.13.4 GR3 evaluates the subjects at the start but §2023:14.9.13.4 GR4 evaluates objects pair by pair: 'no more pairs in that WHEN phrase are evaluated' and later WHENs are not analyzed. A 1985 (X3.23a-1989) program whose skipped object references FUNCTION RANDOM (§1989:A.2.35.3 AR4 'return the next number in the current sequence') gets a different later value. Value, class and range assignment are kept (§2023:14.9.13.4 GR1, GR2, GR4).",
+  "source": "adjudicate-712/slice-11"
  }
 }

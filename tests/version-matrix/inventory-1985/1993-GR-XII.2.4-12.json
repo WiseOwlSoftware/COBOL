@@ -3,14 +3,15 @@
  "rule-digest": "1e8437876da2",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "GR-7.2.3.4-12",
+   "SR-7.2.3.3-1",
    "GR-7.2.3.4-10",
+   "GR-7.2.3.4-12",
    "GR-7.2.3.4-13"
   ],
+  "reason": "1985 (1993 amendment): 'The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement', so no copied text may hold a COPY. 2023 is looser. §2023:7.2.3.3 SR1 allows a COPY statement 'in source text or in library text'. §2023:7.2.3.4 GR12 says 'If the REPLACING phrase is not specified, the library text may contain a COPY statement that does not include a REPLACING phrase', and requires support for at least 5 nesting levels. The bar remains only where §2023:7.2.3.4 GR10 applies ('If the REPLACING phrase is specified, the library text shall not contain a COPY statement') and where §2023:7.2.3.4 GR13 applies ('The replacing action of a COPY statement shall not introduce a COPY statement'). A program 1985 must refuse, nested COPY without REPLACING, is legal in 2023. Both editions check this at compile time; no exception condition is involved.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.\"; 2023: \"If the REPLACING phrase is not specified, the library text may contain a COPY statement that does not include a REPLACING phrase.\". 1985 bars any COPY in copied text. 2023 allows nested COPY (at least 5 levels) without REPLACING and bars COPY only with REPLACING or when the replacing action introduces one.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-36"
  }
 }
