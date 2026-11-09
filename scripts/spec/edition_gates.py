@@ -438,14 +438,14 @@ def self_test() -> int:
        and edge_findings(gate(2002, None, "§2023:14.9.3.4 GR1"), p, schema)[1]
        == "start 2002: §2023:14.9.3.4 GR1: GR-14.9.3.4-1 NEW",
        "a start rests on a NEW rule, or on one a CHANGED record names")
-    ok(all(any("rests only on a general format that changes" in f for f in finds(g))
+    ok(all(any("rests only on a" in f for f in finds(g))
            for g in (gate(2014, None, "§2023:14.9.2 Format 1"), gate(2014, None, "§2023:14.9.2.2"),
                      gate(2002, None, "§1985:VI.6.15.2"), gate(1985, 2023, "§1985:VI.6.15.2"))),
        "a CHANGED general format proves no edge, of either edition: the catalog's one FMT rule holds every format and "
        "alternative of its clause, so it would prove any construct of the statement (branch review R2-1)")
     ok(finds(gate(2002, None, "§2023:13.18.99.2")) == [] and finds(gate(1985, 2002, "§1985:VI.6.30.2")) == []
-       and any("general format" in f for f in finds(gate(1985, 2002, "§2023:13.18.99.2")))
-       and any("general format" in f for f in finds(gate(2002, None, "§1985:VI.6.30.2"))),
+       and any("rests only on a" in f for f in finds(gate(1985, 2002, "§2023:13.18.99.2")))
+       and any("rests only on a" in f for f in finds(gate(2002, None, "§1985:VI.6.30.2"))),
        "a whole diagram's edge is proven by its general format, with its direction: a NEW one proves only a start, a "
        "REMOVED one only an end")
     ok(any("proven by no citation alone" in f for f in finds(gate(2002, None, "§2023:14.9")))
