@@ -3070,7 +3070,7 @@
    "edits": [
     {
      "was": "**Page No.** | **Change to ANSI X3.23-1985 and ISO 1989-1985**",
-     "now": "**<u>Page No.</u>** | **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**"
+     "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
     }
    ]
   },
@@ -3084,7 +3084,7 @@
    "edits": [
     {
      "was": "**Page No.** | **Change to ANSI X3.23-1985 and ISO 1989-1985**",
-     "now": "**<u>Page No.</u>** | **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**"
+     "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
     }
    ]
   },
@@ -3485,7 +3485,7 @@
    "page": 837,
    "sweep": "amendment-1-heads(p853-0)",
    "was": "**Page No.** — **Change to ANSI X3.23-1985 and ISO 1989-1985**",
-   "now": "**<u>Page No.</u>** — **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**"
+   "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
   },
   {
    "page": 838,
@@ -3509,13 +3509,13 @@
    "page": 841,
    "sweep": "amendment-1-heads(p853-0)",
    "was": "Page No. | **Change to ANSI X3.23-1985 and ISO 1989-1985**",
-   "now": "<u>Page No.</u> | **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**"
+   "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
   },
   {
    "page": 842,
    "sweep": "amendment-1-heads(p853-0)",
    "was": "Page No. Change to ANSI X3.23-1985 and ISO 1989-1985",
-   "now": "<u>Page No.</u> <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
+   "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
   },
   {
    "page": 843,
@@ -3593,7 +3593,7 @@
    "page": 855,
    "sweep": "amendment-1-heads(p853-0)",
    "was": "**Page No.** **Change to ANSI X3.23-1985 and ISO 1989-1985**",
-   "now": "**<u>Page No.</u>** **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**"
+   "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
   },
   {
    "page": 856,
@@ -3660,6 +3660,3204 @@
    "sweep": "paragraph-heads(p709-1)",
    "was": "4. <u>UNDEFINED LANGUAGE ELEMENT LIST</u>",
    "now": "## 4. <u>UNDEFINED LANGUAGE ELEMENT LIST</u>"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in words 0-9 A-Z - (hyphen) .................",
+   "now": "&nbsp;Characters used in words 0-9 A-Z - (hyphen) ................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in punctuation \" ( ) . , ; space ............",
+   "now": "&nbsp;Characters used in punctuation \" ( ) . , ; space ............"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in punctuation : (colon) ....................",
+   "now": "&nbsp;Characters used in punctuation : (colon) ...................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in editing B + - . , Z \\* $ 0 CR DB / ........",
+   "now": "&nbsp;Characters used in editing B + - . , Z \\* $ 0 CR DB / ........"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in arithmetic operations + - \\* / \\*\\* .........",
+   "now": "&nbsp;Characters used in arithmetic operations + - \\* / \\*\\* ........."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in relation conditions = &gt; &lt; &gt;= &lt;= ..........",
+   "now": "&nbsp;Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .........."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in subscripting + - .........................",
+   "now": "&nbsp;Characters used in subscripting + - ........................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Single character substitution allowed .......................",
+   "now": "&nbsp;Single character substitution allowed ......................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Double character substitution allowed .......................",
+   "now": "&nbsp;Double character substitution allowed ......................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "\" ( ) . , ; space ...........................................",
+   "now": "&nbsp;\" ( ) . , ; space ..........................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": ": (colon) ...................................................",
+   "now": "&nbsp;: (colon) ..................................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "COBOL words",
+   "now": "&nbsp;COBOL words"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Maximum of 30 characters ....................................",
+   "now": "&nbsp;&nbsp;Maximum of 30 characters ...................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "User-defined words",
+   "now": "&nbsp;&nbsp;User-defined words"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Alphabet-name ...............................................",
+   "now": "&nbsp;&nbsp;&nbsp;Alphabet-name ..............................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Class-name ..................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Class-name .................................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Condition-name ..............................................",
+   "now": "&nbsp;&nbsp;&nbsp;Condition-name .............................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Data-name ...................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Data-name ..................................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Index-name ..................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Index-name .................................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Level-number ................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Level-number ................................................"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Mnemonic-name ...............................................",
+   "now": "&nbsp;&nbsp;&nbsp;Mnemonic-name ..............................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Paragraph-name ..............................................",
+   "now": "&nbsp;&nbsp;&nbsp;Paragraph-name .............................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Program-name ................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Program-name ................................................"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Routine-name ................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Routine-name ................................................"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Section-name ................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Section-name ................................................"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Symbolic-character ..........................................",
+   "now": "&nbsp;&nbsp;&nbsp;Symbolic-character .........................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "System-names",
+   "now": "&nbsp;&nbsp;System-names"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Computer-name ...............................................",
+   "now": "&nbsp;&nbsp;&nbsp;Computer-name ..............................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name ............................................",
+   "now": "&nbsp;&nbsp;&nbsp;Implementor-name ............................................"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Language-name ...............................................",
+   "now": "&nbsp;&nbsp;&nbsp;Language-name ..............................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Reserved words",
+   "now": "&nbsp;&nbsp;Reserved words"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Required words ..............................................",
+   "now": "&nbsp;&nbsp;&nbsp;Required words .............................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Key words ...................................................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;Key words ..................................................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Special character words",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;Special character words"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Arithmetic operators + - \\* / \\*\\* .............................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic operators + - \\* / \\*\\* ............................."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Arithmetic operators used in subscripting + - ...............",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic operators used in subscripting + - ..............."
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Relation characters = &gt; &lt; &gt;= &lt;= ................................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Relation characters = &gt; &lt; &gt;= &lt;= ................................"
+  },
+  {
+   "page": 31,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Optional words ..............................................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;Optional words .............................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Special purpose words",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;Special purpose words"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Figurative constants",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Figurative constants"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ZERO, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE ................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ZERO, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE ................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ALL option ............................................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ............................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ZEROS, ZEROES, SPACES, HIGH-VALUES, LOW-VALUES, QUOTES ...",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ZEROS, ZEROES, SPACES, HIGH-VALUES, LOW-VALUES, QUOTES ..."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ALL option ............................................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ............................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Symbolic-character ......................................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Symbolic-character ......................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ALL option ..........................................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option .........................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ALL literal .............................................",
+   "now": "&nbsp;ALL literal ............................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Literals",
+   "now": "&nbsp;&nbsp;Literals"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Numeric literals: 1 through 18 digits .......................",
+   "now": "&nbsp;&nbsp;Numeric literals: 1 through 18 digits ......................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Nonnumeric literals: 1 through 160 characters ...............",
+   "now": "&nbsp;Nonnumeric literals: 1 through 160 characters ..............."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "PICTURE character-string ......................................",
+   "now": "&nbsp;PICTURE character-string ......................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Comment-entries ...............................................",
+   "now": "<u>Comment-entries</u> ..............................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "<u>Uniqueness of Reference</u>",
+   "now": "&nbsp;<u>Uniqueness of Reference</u>"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Qualification",
+   "now": "&nbsp;&nbsp;Qualification"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "No qualification permitted; names must be unique if referenced ................................................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "50 qualifiers ...............................................",
+   "now": "&nbsp;&nbsp;50 qualifiers ..............................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Subscripting",
+   "now": "&nbsp;Subscripting"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "3 levels of subscripts ......................................",
+   "now": "&nbsp;&nbsp;3 levels of subscripts ......................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "7 levels of subscripts ......................................",
+   "now": "&nbsp;&nbsp;7 levels of subscripts ......................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Subscripting with a literal .................................",
+   "now": "&nbsp;&nbsp;Subscripting with a literal ................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Subscripting with a data-name ...............................",
+   "now": "&nbsp;&nbsp;Subscripting with a data-name ..............................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Subscripting with an index-name .............................",
+   "now": "&nbsp;&nbsp;Subscripting with an index-name ............................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Relative subscripting .......................................",
+   "now": "&nbsp;&nbsp;Relative subscripting ......................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Reference modification ........................................",
+   "now": "&nbsp;Reference modification ........................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Sequence number ...............................................",
+   "now": "&nbsp;Sequence number ..............................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Continuation of lines",
+   "now": "&nbsp;Continuation of lines"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Continuation of nonnumeric literal ..........................",
+   "now": "&nbsp;&nbsp;Continuation of nonnumeric literal .........................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Continuation of COBOL word, numeric literal, PICTURE character-string ................................",
+   "now": "&nbsp;&nbsp;Continuation of COBOL word, numeric literal, PICTURE character-string ................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Blank lines ...................................................",
+   "now": "&nbsp;Blank lines ..................................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Comment lines",
+   "now": "&nbsp;Comment lines"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Asterisk (8) comment line ...................................",
+   "now": "&nbsp;&nbsp;Asterisk (8) comment line ..................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Slant (/) comment line ......................................",
+   "now": "&nbsp;&nbsp;Slant (/) comment line ......................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Debugging line with D in indicator area .......................",
+   "now": "&nbsp;Debugging line with D in indicator area ......................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Identification Division required ..............................",
+   "now": "&nbsp;Identification Division required .............................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Environment Division optional .................................",
+   "now": "&nbsp;Environment Division optional ................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Data Division optional ........................................",
+   "now": "&nbsp;Data Division optional ........................................"
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Procedure Division optional ...................................",
+   "now": "&nbsp;Procedure Division optional ..................................."
+  },
+  {
+   "page": 32,
+   "sweep": "summary-rows(PB4953)",
+   "was": "End program header ............................................",
+   "now": "&nbsp;End program header ............................................"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "PROGRAM-ID paragraph",
+   "now": "&nbsp;PROGRAM-ID paragraph"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Program-name",
+   "now": "&nbsp;&nbsp;Program-name"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "AUTHOR paragraph",
+   "now": "&nbsp;AUTHOR paragraph"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INSTALLATION paragraph",
+   "now": "&nbsp;INSTALLATION paragraph"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DATE-WRITTEN paragraph",
+   "now": "&nbsp;DATE-WRITTEN paragraph"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DATE-COMPILED paragraph",
+   "now": "&nbsp;DATE-COMPILED paragraph"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SECURITY paragraph",
+   "now": "&nbsp;SECURITY paragraph"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SOURCE-COMPUTER paragraph",
+   "now": "&nbsp;SOURCE-COMPUTER paragraph"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Computer-name",
+   "now": "&nbsp;&nbsp;Computer-name"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "WITH DEBUGGING MODE clause",
+   "now": "&nbsp;&nbsp;WITH DEBUGGING MODE clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "OBJECT-COMPUTER paragraph",
+   "now": "&nbsp;OBJECT-COMPUTER paragraph"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Computer-name",
+   "now": "&nbsp;&nbsp;Computer-name"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "MEMORY SIZE clause",
+   "now": "&nbsp;&nbsp;MEMORY SIZE clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "PROGRAM COLLATING SEQUENCE clause",
+   "now": "&nbsp;&nbsp;PROGRAM COLLATING SEQUENCE clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SPECIAL-NAMES paragraph",
+   "now": "&nbsp;SPECIAL-NAMES paragraph"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ALPHABET clause",
+   "now": "&nbsp;&nbsp;ALPHABET clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "STANDARD-1 option",
+   "now": "&nbsp;&nbsp;&nbsp;STANDARD-1 option"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "STANDARD-2 option",
+   "now": "&nbsp;&nbsp;&nbsp;STANDARD-2 option"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NATIVE option",
+   "now": "&nbsp;&nbsp;&nbsp;NATIVE option"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name option",
+   "now": "&nbsp;&nbsp;&nbsp;Implementor-name option"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Literal option",
+   "now": "&nbsp;&nbsp;&nbsp;Literal option"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "CLASS clause",
+   "now": "&nbsp;&nbsp;CLASS clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "CURRENCY SIGN clause",
+   "now": "&nbsp;&nbsp;CURRENCY SIGN clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DECIMAL-POINT clause",
+   "now": "&nbsp;&nbsp;DECIMAL-POINT clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name clause",
+   "now": "&nbsp;&nbsp;Implementor-name clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "IS mnemonic-name option",
+   "now": "&nbsp;&nbsp;&nbsp;IS mnemonic-name option"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON STATUS IS condition-name option",
+   "now": "&nbsp;&nbsp;&nbsp;ON STATUS IS condition-name option"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "OFF STATUS IS condition-name option",
+   "now": "&nbsp;&nbsp;&nbsp;OFF STATUS IS condition-name option"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SYMBOLIC CHARACTERS clause",
+   "now": "&nbsp;&nbsp;SYMBOLIC CHARACTERS clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "BLANK WHEN ZERO clause",
+   "now": "&nbsp;BLANK WHEN ZERO clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Data-name clause",
+   "now": "&nbsp;Data-name clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FILLER clause",
+   "now": "&nbsp;FILLER clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "JUSTIFIED clause",
+   "now": "&nbsp;JUSTIFIED clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Level-number clause",
+   "now": "&nbsp;Level-number clause"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "01 through 49; level-number may be 1 or 2 digits",
+   "now": "&nbsp;&nbsp;01 through 49; level-number may be 1 or 2 digits"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "66",
+   "now": "&nbsp;&nbsp;66"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "77",
+   "now": "&nbsp;&nbsp;77"
+  },
+  {
+   "page": 33,
+   "sweep": "summary-rows(PB4953)",
+   "was": "88",
+   "now": "&nbsp;&nbsp;88"
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Index-name/identifier TO ................................",
+   "now": "&nbsp;Index-name/identifier TO ................................"
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Index-name UP BY/DOWN BY ................................",
+   "now": "&nbsp;Index-name UP BY/DOWN BY ................................"
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Mnemonic-name TO ON/OFF .................................",
+   "now": "&nbsp;Mnemonic-name TO ON/OFF ................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Condition-name TO TRUE ..................................",
+   "now": "&nbsp;Condition-name TO TRUE .................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RUN .....................................................",
+   "now": "&nbsp;RUN ....................................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Literal .................................................",
+   "now": "&nbsp;Literal ................................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DELIMITED BY series .....................................",
+   "now": "&nbsp;DELIMITED BY series ....................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "WITH POINTER phrase .....................................",
+   "now": "&nbsp;WITH POINTER phrase ....................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON OVERFLOW phrase ......................................",
+   "now": "&nbsp;ON OVERFLOW phrase ......................................"
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NOT ON OVERFLOW phrase ..................................",
+   "now": "&nbsp;NOT ON OVERFLOW phrase .................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END-STRING phrase .......................................",
+   "now": "&nbsp;END-STRING phrase ......................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Identifier/literal ......................................",
+   "now": "&nbsp;Identifier/literal ......................................"
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Identifier/literal series ...............................",
+   "now": "&nbsp;Identifier/literal series ..............................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FROM identifier .........................................",
+   "now": "&nbsp;FROM identifier ........................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FROM identifier series ..................................",
+   "now": "&nbsp;FROM identifier series .................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "GIVING identifier .......................................",
+   "now": "&nbsp;GIVING identifier ......................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "GIVING identifier series ................................",
+   "now": "&nbsp;GIVING identifier series ................................"
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ROUNDED phrase ..........................................",
+   "now": "&nbsp;ROUNDED phrase .........................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON SIZE ERROR phrase ....................................",
+   "now": "&nbsp;ON SIZE ERROR phrase ...................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NOT ON SIZE ERROR phrase ................................",
+   "now": "&nbsp;NOT ON SIZE ERROR phrase ................................"
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END-SUBTRACT phrase .....................................",
+   "now": "&nbsp;END-SUBTRACT phrase ....................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "CORRESPONDING phrase ....................................",
+   "now": "&nbsp;CORRESPONDING phrase ...................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DELIMITED BY phrase .....................................",
+   "now": "&nbsp;DELIMITED BY phrase ....................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DELIMITER IN phrase .....................................",
+   "now": "&nbsp;DELIMITER IN phrase ....................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "COUNT IN phrase .........................................",
+   "now": "&nbsp;COUNT IN phrase ........................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "WITH POINTER phrase .....................................",
+   "now": "&nbsp;WITH POINTER phrase ....................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "TALLYING phrase .........................................",
+   "now": "&nbsp;TALLYING phrase ........................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON OVERFLOW phrase ......................................",
+   "now": "&nbsp;ON OVERFLOW phrase ......................................"
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NOT ON OVERFLOW phrase ..................................",
+   "now": "&nbsp;NOT ON OVERFLOW phrase .................................."
+  },
+  {
+   "page": 38,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END-UNSTRING phrase .....................................",
+   "now": "&nbsp;END-UNSTRING phrase ....................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**LANGUAGE CONCEPTS**",
+   "now": "<u>LANGUAGE CONCEPTS</u>"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File-name ................................................",
+   "now": "&nbsp;File-name ................................................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Record-name ..............................................",
+   "now": "&nbsp;Record-name .............................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**ENVIRONMENT DIVISION**",
+   "now": "<u>ENVIRONMENT DIVISION</u>"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**Input-Output Section**",
+   "now": "<u>Input-Output Section</u>"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File control entry .......................................",
+   "now": "&nbsp;File control entry ......................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SELECT clause ............................................",
+   "now": "&nbsp;&nbsp;SELECT clause ............................................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "OPTIONAL phrase ..........................................",
+   "now": "&nbsp;&nbsp;&nbsp;OPTIONAL phrase .........................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Input, I-O, and extend files only ........................",
+   "now": "&nbsp;&nbsp;&nbsp;&nbsp;Input, I-O, and extend files only ........................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ACCESS MODE clause .......................................",
+   "now": "&nbsp;&nbsp;ACCESS MODE clause ......................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SEQUENTIAL ...............................................",
+   "now": "&nbsp;&nbsp;&nbsp;SEQUENTIAL ..............................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RANDOM ...................................................",
+   "now": "&nbsp;&nbsp;&nbsp;RANDOM ..................................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DYNAMIC ..................................................",
+   "now": "&nbsp;&nbsp;&nbsp;DYNAMIC .................................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RELATIVE KEY phrase ......................................",
+   "now": "&nbsp;&nbsp;&nbsp;RELATIVE KEY phrase ......................................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ASSIGN clause ............................................",
+   "now": "&nbsp;&nbsp;ASSIGN clause ............................................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name .........................................",
+   "now": "&nbsp;&nbsp;&nbsp;Implementor-name ........................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Literal ..................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Literal .................................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FILE STATUS clause .......................................",
+   "now": "&nbsp;&nbsp;FILE STATUS clause ......................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ORGANIZATION IS RELATIVE clause ..........................",
+   "now": "&nbsp;&nbsp;ORGANIZATION IS RELATIVE clause .........................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RESERVE AREA clause ......................................",
+   "now": "&nbsp;&nbsp;RESERVE AREA clause ......................................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RERUN clause .............................................",
+   "now": "&nbsp;RERUN clause ............................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SAME AREA clause .........................................",
+   "now": "&nbsp;SAME AREA clause ........................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SAME RECORD AREA clause ..................................",
+   "now": "&nbsp;SAME RECORD AREA clause .................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**DATA DIVISION**",
+   "now": "<u>DATA DIVISION</u>"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**File Section**",
+   "now": "<u>File Section</u>"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FD level indicator .......................................",
+   "now": "&nbsp;FD level indicator ......................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "BLOCK CONTAINS clause ....................................",
+   "now": "&nbsp;BLOCK CONTAINS clause ...................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer RECORDS/CHARACTERS ...............................",
+   "now": "&nbsp;&nbsp;Integer RECORDS/CHARACTERS ..............................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer-1 TO integer-2 RECORDS/CHARACTERS ................",
+   "now": "&nbsp;&nbsp;Integer-1 TO integer-2 RECORDS/CHARACTERS ................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DATA RECORDS clause ......................................",
+   "now": "&nbsp;DATA RECORDS clause ......................................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "LABEL RECORDS clause .....................................",
+   "now": "&nbsp;LABEL RECORDS clause ....................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RECORD clause ............................................",
+   "now": "&nbsp;RECORD clause ............................................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer-1 CHARACTERS .....................................",
+   "now": "&nbsp;&nbsp;Integer-1 CHARACTERS ....................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "VARYING IN SIZE phrase ...................................",
+   "now": "&nbsp;&nbsp;VARYING IN SIZE phrase ..................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FROM integer-2 TO integer-3 CHARACTERS ...................",
+   "now": "&nbsp;&nbsp;&nbsp;FROM integer-2 TO integer-3 CHARACTERS ..................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DEPENDING ON phrase ......................................",
+   "now": "&nbsp;&nbsp;&nbsp;DEPENDING ON phrase ......................................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer-4 TO integer-5 CHARACTERS ........................",
+   "now": "&nbsp;&nbsp;Integer-4 TO integer-5 CHARACTERS ........................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "VALUE OF clause ..........................................",
+   "now": "&nbsp;VALUE OF clause .........................................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS literal ..............................",
+   "now": "&nbsp;&nbsp;Implementor-name IS literal .............................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS literal series .......................",
+   "now": "&nbsp;&nbsp;Implementor-name IS literal series ......................."
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS data-name ............................",
+   "now": "&nbsp;&nbsp;Implementor-name IS data-name ............................"
+  },
+  {
+   "page": 42,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS data-name series .....................",
+   "now": "&nbsp;&nbsp;Implementor-name IS data-name series ....................."
+  },
+  {
+   "page": 43,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**PROCEDURE DIVISION**",
+   "now": "<u>PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 45,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**LANGUAGE CONCEPTS**",
+   "now": "<u>LANGUAGE CONCEPTS</u>"
+  },
+  {
+   "page": 45,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**ENVIRONMENT DIVISION**",
+   "now": "<u>ENVIRONMENT DIVISION</u>"
+  },
+  {
+   "page": 45,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**Input-Output Section**",
+   "now": "<u>Input-Output Section</u>"
+  },
+  {
+   "page": 45,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**DATA DIVISION**",
+   "now": "<u>DATA DIVISION</u>"
+  },
+  {
+   "page": 45,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**File Section**",
+   "now": "<u>File Section</u>"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "VALUE OF clause",
+   "now": "&nbsp;VALUE OF clause"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS literal",
+   "now": "&nbsp;&nbsp;Implementor-name IS literal"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS literal series",
+   "now": "&nbsp;&nbsp;Implementor-name IS literal series"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS data-name",
+   "now": "&nbsp;&nbsp;Implementor-name IS data-name"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS data-name series",
+   "now": "&nbsp;&nbsp;Implementor-name IS data-name series"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DECLARATIVES",
+   "now": "&nbsp;DECLARATIVES"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END DECLARATIVES",
+   "now": "&nbsp;END DECLARATIVES"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File-name",
+   "now": "&nbsp;File-name"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File-name series",
+   "now": "&nbsp;File-name series"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "WITH LOCK phrase",
+   "now": "&nbsp;WITH LOCK phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INVALID KEY phrase",
+   "now": "&nbsp;INVALID KEY phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NOT INVALID KEY phrase",
+   "now": "&nbsp;NOT INVALID KEY phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END-DELETE phrase",
+   "now": "&nbsp;END-DELETE phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File-name",
+   "now": "&nbsp;File-name"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File-name series",
+   "now": "&nbsp;File-name series"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INPUT phrase",
+   "now": "&nbsp;INPUT phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "OUTPUT phrase",
+   "now": "&nbsp;OUTPUT phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "I-O phrase",
+   "now": "&nbsp;I-O phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "EXTEND phrase",
+   "now": "&nbsp;EXTEND phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INPUT, OUTPUT, and I-O series",
+   "now": "&nbsp;INPUT, OUTPUT, and I-O series"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "EXTEND series",
+   "now": "&nbsp;EXTEND series"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NEXT phrase",
+   "now": "&nbsp;NEXT phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INTO phrase",
+   "now": "&nbsp;INTO phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "AT END phrase",
+   "now": "&nbsp;AT END phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NOT AT END phrase",
+   "now": "&nbsp;NOT AT END phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "KEY phrase",
+   "now": "&nbsp;KEY phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INVALID KEY phrase",
+   "now": "&nbsp;INVALID KEY phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NOT INVALID KEY phrase",
+   "now": "&nbsp;NOT INVALID KEY phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END-READ phrase",
+   "now": "&nbsp;END-READ phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FROM phrase",
+   "now": "&nbsp;FROM phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INVALID KEY phrase",
+   "now": "&nbsp;INVALID KEY phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NOT INVALID KEY phrase",
+   "now": "&nbsp;NOT INVALID KEY phrase"
+  },
+  {
+   "page": 46,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END-REWRITE phrase",
+   "now": "&nbsp;END-REWRITE phrase"
+  },
+  {
+   "page": 52,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**LANGUAGE CONCEPTS**",
+   "now": "<u>LANGUAGE CONCEPTS</u>"
+  },
+  {
+   "page": 52,
+   "sweep": "summary-rows(PB4953)",
+   "was": "**ALL DIVISIONS**",
+   "now": "<u>ALL DIVISIONS</u>"
+  },
+  {
+   "page": 54,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;WITH NO REWIND phrase",
+   "now": "&nbsp;WITH NO REWIND phrase"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Cd-name",
+   "now": "&nbsp;Cd-name"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "CD level indicator",
+   "now": "&nbsp;CD level indicator"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FOR INPUT clause",
+   "now": "&nbsp;FOR INPUT clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INITIAL phrase",
+   "now": "&nbsp;&nbsp;INITIAL phrase"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END KEY clause",
+   "now": "&nbsp;&nbsp;END KEY clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "MESSAGE COUNT clause",
+   "now": "&nbsp;&nbsp;MESSAGE COUNT clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "MESSAGE DATE clause",
+   "now": "&nbsp;&nbsp;MESSAGE DATE clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "MESSAGE TIME clause",
+   "now": "&nbsp;&nbsp;MESSAGE TIME clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SYMBOLIC QUEUE clause",
+   "now": "&nbsp;&nbsp;SYMBOLIC QUEUE clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SYMBOLIC SOURCE clause",
+   "now": "&nbsp;&nbsp;SYMBOLIC SOURCE clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SYMBOLIC SUB-QUEUE-1 clause",
+   "now": "&nbsp;&nbsp;SYMBOLIC SUB-QUEUE-1 clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SYMBOLIC SUB-QUEUE-2 clause",
+   "now": "&nbsp;&nbsp;SYMBOLIC SUB-QUEUE-2 clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SYMBOLIC SUB-QUEUE-3 clause",
+   "now": "&nbsp;&nbsp;SYMBOLIC SUB-QUEUE-3 clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "STATUS KEY clause",
+   "now": "&nbsp;&nbsp;STATUS KEY clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "TEXT LENGTH clause",
+   "now": "&nbsp;&nbsp;TEXT LENGTH clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Data-name series",
+   "now": "&nbsp;&nbsp;Data-name series"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FOR OUTPUT clause",
+   "now": "&nbsp;FOR OUTPUT clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DESTINATION COUNT clause",
+   "now": "&nbsp;&nbsp;DESTINATION COUNT clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Must be one",
+   "now": "&nbsp;&nbsp;&nbsp;Must be one"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Must be one or greater",
+   "now": "&nbsp;&nbsp;&nbsp;Must be one or greater"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DESTINATION TABLE clause",
+   "now": "&nbsp;&nbsp;DESTINATION TABLE clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INDEXED BY phrase",
+   "now": "&nbsp;&nbsp;&nbsp;INDEXED BY phrase"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ERROR KEY clause",
+   "now": "&nbsp;&nbsp;ERROR KEY clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SYMBOLIC DESTINATION clause",
+   "now": "&nbsp;&nbsp;SYMBOLIC DESTINATION clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "STATUS KEY clause",
+   "now": "&nbsp;&nbsp;STATUS KEY clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "TEXT LENGTH clause",
+   "now": "&nbsp;&nbsp;TEXT LENGTH clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FOR I-O clause",
+   "now": "&nbsp;FOR I-O clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "INITIAL phrase",
+   "now": "&nbsp;&nbsp;INITIAL phrase"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END KEY clause",
+   "now": "&nbsp;&nbsp;END KEY clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "MESSAGE DATE clause",
+   "now": "&nbsp;&nbsp;MESSAGE DATE clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "MESSAGE TIME clause",
+   "now": "&nbsp;&nbsp;MESSAGE TIME clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "STATUS KEY clause",
+   "now": "&nbsp;&nbsp;STATUS KEY clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SYMBOLIC TERMINAL clause",
+   "now": "&nbsp;&nbsp;SYMBOLIC TERMINAL clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "TEXT LENGTH clause",
+   "now": "&nbsp;&nbsp;TEXT LENGTH clause"
+  },
+  {
+   "page": 56,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Data-name series",
+   "now": "&nbsp;&nbsp;Data-name series"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in words 0-9 A-Z - (hyphen) ..........................",
+   "now": "&nbsp;Characters used in words 0-9 A-Z - (hyphen) .........................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in punctuation \" ( ) . , ; space .....................",
+   "now": "&nbsp;Characters used in punctuation \" ( ) . , ; space ....................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in punctuation : (colon) .............................",
+   "now": "&nbsp;Characters used in punctuation : (colon) ............................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in punctuation = .....................................",
+   "now": "&nbsp;Characters used in punctuation = ....................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in editing B + - . , Z \\* $ 0 CR DB / ................",
+   "now": "&nbsp;Characters used in editing B + - . , Z \\* $ 0 CR DB / ................"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in arithmetic operations + - \\* / \\*\\* .................",
+   "now": "&nbsp;Characters used in arithmetic operations + - \\* / \\*\\* ................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in relation conditions = &gt; &lt; &gt;= &lt;= ..................",
+   "now": "&nbsp;Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Characters used in subscripting + - ..................................",
+   "now": "&nbsp;Characters used in subscripting + - .................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Single character substitution allowed ................................",
+   "now": "&nbsp;Single character substitution allowed ................................"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Double character substitution allowed ................................",
+   "now": "&nbsp;Double character substitution allowed ................................"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "\" ( ) . , ; space ......................................................",
+   "now": "&nbsp;\" ( ) . , ; space ......................................................"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": ": (colon) ..............................................................",
+   "now": "&nbsp;: (colon) .............................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "COBOL words",
+   "now": "&nbsp;COBOL words"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Maximum of 30 characters .............................................",
+   "now": "&nbsp;&nbsp;Maximum of 30 characters ............................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "User-defined words",
+   "now": "&nbsp;&nbsp;User-defined words"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Alphabet-name ........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Alphabet-name ........................................................"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Cd-name ..............................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Cd-name .............................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Class-name ...........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Class-name ..........................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Condition-name .......................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Condition-name ......................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Data-name ............................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Data-name ............................................................"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File-name ............................................................",
+   "now": "&nbsp;&nbsp;&nbsp;File-name ............................................................"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Index-name ...........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Index-name ..........................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Level-number .........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Level-number ........................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Library-name .........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Library-name ........................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Mnemonic-name ........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Mnemonic-name ........................................................"
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Paragraph-name .......................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Paragraph-name ......................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Program-name .........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Program-name ........................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Record-name ..........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Record-name .........................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Report-name ..........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Report-name .........................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Routine-name .........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Routine-name ........................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Section-name .........................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Section-name ........................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Segment-number .......................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Segment-number ......................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Symbolic-character ...................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Symbolic-character ..................................................."
+  },
+  {
+   "page": 61,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Text-name ............................................................",
+   "now": "&nbsp;&nbsp;&nbsp;Text-name ............................................................"
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Sequence number ........................................................",
+   "now": "&nbsp;Sequence number ........................................................"
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Continuation of lines",
+   "now": "&nbsp;Continuation of lines"
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Continuation of nonnumeric literal ....................................",
+   "now": "&nbsp;&nbsp;Continuation of nonnumeric literal ...................................."
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Continuation of COBOL word, numeric literal, PICTURE character-string ...........................................",
+   "now": "&nbsp;&nbsp;Continuation of COBOL word, numeric literal, PICTURE character-string ..........................................."
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Blank lines ...........................................................",
+   "now": "&nbsp;Blank lines ..........................................................."
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Comment lines",
+   "now": "&nbsp;Comment lines"
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Asterisk (\\*) comment line .............................................",
+   "now": "&nbsp;&nbsp;Asterisk (\\*) comment line ............................................."
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Slant (/) comment line ................................................",
+   "now": "&nbsp;&nbsp;Slant (/) comment line ................................................"
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Debugging line with D in indicator area ...............................",
+   "now": "&nbsp;Debugging line with D in indicator area ..............................."
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Identification Division required ......................................",
+   "now": "&nbsp;Identification Division required ......................................"
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Environment Division optional .........................................",
+   "now": "&nbsp;Environment Division optional ........................................."
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Data Division optional ................................................",
+   "now": "&nbsp;Data Division optional ................................................"
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Procedure Division optional ...........................................",
+   "now": "&nbsp;Procedure Division optional ..........................................."
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "End program header ....................................................",
+   "now": "&nbsp;End program header ...................................................."
+  },
+  {
+   "page": 63,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Nested source program .................................................",
+   "now": "&nbsp;Nested source program ................................................."
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SOURCE-COMPUTER paragraph",
+   "now": "&nbsp;SOURCE-COMPUTER paragraph"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Computer-name",
+   "now": "&nbsp;&nbsp;Computer-name"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "WITH DEBUGGING MODE clause",
+   "now": "&nbsp;&nbsp;WITH DEBUGGING MODE clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "OBJECT-COMPUTER paragraph",
+   "now": "&nbsp;OBJECT-COMPUTER paragraph"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Computer-name",
+   "now": "&nbsp;&nbsp;Computer-name"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "MEMORY SIZE clause",
+   "now": "&nbsp;&nbsp;MEMORY SIZE clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "PROGRAM COLLATING SEQUENCE clause",
+   "now": "&nbsp;&nbsp;PROGRAM COLLATING SEQUENCE clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SEGMENT-LIMIT clause",
+   "now": "&nbsp;&nbsp;SEGMENT-LIMIT clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SPECIAL-NAMES paragraph",
+   "now": "&nbsp;SPECIAL-NAMES paragraph"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ALPHABET clause",
+   "now": "&nbsp;&nbsp;ALPHABET clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "STANDARD-1 option",
+   "now": "&nbsp;&nbsp;&nbsp;STANDARD-1 option"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "STANDARD-2 option",
+   "now": "&nbsp;&nbsp;&nbsp;STANDARD-2 option"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NATIVE option",
+   "now": "&nbsp;&nbsp;&nbsp;NATIVE option"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name option",
+   "now": "&nbsp;&nbsp;&nbsp;Implementor-name option"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Literal option",
+   "now": "&nbsp;&nbsp;&nbsp;Literal option"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "CLASS clause",
+   "now": "&nbsp;&nbsp;CLASS clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "CURRENCY SIGN clause",
+   "now": "&nbsp;&nbsp;CURRENCY SIGN clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DECIMAL-POINT clause",
+   "now": "&nbsp;&nbsp;DECIMAL-POINT clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name clause",
+   "now": "&nbsp;&nbsp;Implementor-name clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "IS mnemonic-name option",
+   "now": "&nbsp;&nbsp;&nbsp;IS mnemonic-name option"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON STATUS IS condition-name option",
+   "now": "&nbsp;&nbsp;&nbsp;ON STATUS IS condition-name option"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "OFF STATUS IS condition-name option",
+   "now": "&nbsp;&nbsp;&nbsp;OFF STATUS IS condition-name option"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SYMBOLIC CHARACTERS clause",
+   "now": "&nbsp;&nbsp;SYMBOLIC CHARACTERS clause"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FILE-CONTROL paragraph",
+   "now": "&nbsp;FILE-CONTROL paragraph"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File control entry",
+   "now": "&nbsp;&nbsp;File control entry"
+  },
+  {
+   "page": 65,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SELECT clause",
+   "now": "&nbsp;&nbsp;&nbsp;SELECT clause"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;OPTIONAL phrase",
+   "now": "&nbsp;OPTIONAL phrase"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Input, I-O, and extend files only",
+   "now": "&nbsp;&nbsp;Input, I-O, and extend files only"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Extend files only",
+   "now": "&nbsp;&nbsp;Extend files only"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;SEQUENTIAL",
+   "now": "&nbsp;SEQUENTIAL"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;RANDOM",
+   "now": "&nbsp;RANDOM"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;DYNAMIC",
+   "now": "&nbsp;DYNAMIC"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;RELATIVE KEY phrase",
+   "now": "&nbsp;RELATIVE KEY phrase"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;WITH DUPLICATES phrase",
+   "now": "&nbsp;WITH DUPLICATES phrase"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Implementor-name",
+   "now": "&nbsp;Implementor-name"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Literal",
+   "now": "&nbsp;Literal"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;SEQUENTIAL",
+   "now": "&nbsp;SEQUENTIAL"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;RELATIVE",
+   "now": "&nbsp;RELATIVE"
+  },
+  {
+   "page": 66,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;INDEXED",
+   "now": "&nbsp;INDEXED"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File control entry (continued)",
+   "now": "&nbsp;&nbsp;File control entry (continued)"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RECORD KEY clause",
+   "now": "&nbsp;&nbsp;&nbsp;RECORD KEY clause"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RESERVE AREA clause",
+   "now": "&nbsp;&nbsp;&nbsp;RESERVE AREA clause"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "MULTIPLE FILE TAPE clause",
+   "now": "&nbsp;MULTIPLE FILE TAPE clause"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RERUN clause",
+   "now": "&nbsp;RERUN clause"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SAME AREA clause",
+   "now": "&nbsp;SAME AREA clause"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SAME RECORD AREA clause",
+   "now": "&nbsp;SAME RECORD AREA clause"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SAME SORT/SORT-MERGE AREA clause",
+   "now": "&nbsp;SAME SORT/SORT-MERGE AREA clause"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "OF/IN library-name",
+   "now": "&nbsp;OF/IN library-name"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "REPLACING phrase",
+   "now": "&nbsp;REPLACING phrase"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Pseudo-text",
+   "now": "&nbsp;&nbsp;Pseudo-text"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Identifier",
+   "now": "&nbsp;&nbsp;Identifier"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Literal",
+   "now": "&nbsp;&nbsp;Literal"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Word",
+   "now": "&nbsp;&nbsp;Word"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Pseudo-text BY pseudo-text",
+   "now": "&nbsp;Pseudo-text BY pseudo-text"
+  },
+  {
+   "page": 67,
+   "sweep": "summary-rows(PB4953)",
+   "was": "OFF",
+   "now": "&nbsp;OFF"
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FD level indicator ......................................................",
+   "now": "&nbsp;FD level indicator ......................................................"
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "BLOCK CONTAINS clause",
+   "now": "&nbsp;BLOCK CONTAINS clause"
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer RECORDS/CHARACTERS ..............................................",
+   "now": "&nbsp;&nbsp;Integer RECORDS/CHARACTERS .............................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer-1 TO integer-2 RECORDS/CHARACTERS ............................",
+   "now": "&nbsp;&nbsp;Integer-1 TO integer-2 RECORDS/CHARACTERS ............................"
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "CODE-SET clause .........................................................",
+   "now": "&nbsp;CODE-SET clause ........................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DATA RECORDS clause......................................................",
+   "now": "&nbsp;DATA RECORDS clause......................................................"
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "EXTERNAL clause .........................................................",
+   "now": "&nbsp;EXTERNAL clause ........................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "GLOBAL clause ...........................................................",
+   "now": "&nbsp;GLOBAL clause ..........................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "LABEL RECORDS clause ....................................................",
+   "now": "&nbsp;LABEL RECORDS clause ...................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "LINAGE clause ...........................................................",
+   "now": "&nbsp;LINAGE clause ..........................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FOOTING phrase ..........................................................",
+   "now": "&nbsp;&nbsp;FOOTING phrase .........................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "TOP phrase ..............................................................",
+   "now": "&nbsp;&nbsp;TOP phrase .............................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "BOTTOM phrase ...........................................................",
+   "now": "&nbsp;&nbsp;BOTTOM phrase ..........................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RECORD clause",
+   "now": "&nbsp;RECORD clause"
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer-1 CHARACTERS ....................................................",
+   "now": "&nbsp;&nbsp;Integer-1 CHARACTERS ...................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "VARYING IN SIZE phrase ..................................................",
+   "now": "&nbsp;&nbsp;VARYING IN SIZE phrase .................................................."
+  },
+  {
+   "page": 68,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer-4 TO integer-5 CHARACTERS ......................................",
+   "now": "&nbsp;&nbsp;Integer-4 TO integer-5 CHARACTERS ......................................"
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "REPORT clause ........................................................",
+   "now": "&nbsp;REPORT clause ........................................................"
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "VALUE OF clause",
+   "now": "&nbsp;VALUE OF clause"
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS literal ...........................................",
+   "now": "&nbsp;&nbsp;Implementor-name IS literal ..........................................."
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS literal series ....................................",
+   "now": "&nbsp;&nbsp;Implementor-name IS literal series ...................................."
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS data-name .........................................",
+   "now": "&nbsp;&nbsp;Implementor-name IS data-name ........................................."
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Implementor-name IS data-name series ..................................",
+   "now": "&nbsp;&nbsp;Implementor-name IS data-name series .................................."
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "SD level indicator ...................................................",
+   "now": "&nbsp;SD level indicator ..................................................."
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DATA RECORDS clause ..................................................",
+   "now": "&nbsp;DATA RECORDS clause .................................................."
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "RECORD clause",
+   "now": "&nbsp;RECORD clause"
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer-1 CHARACTERS .................................................",
+   "now": "&nbsp;&nbsp;Integer-1 CHARACTERS ................................................."
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "VARYING IN SIZE phrase ...............................................",
+   "now": "&nbsp;&nbsp;VARYING IN SIZE phrase ..............................................."
+  },
+  {
+   "page": 69,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Integer-4 TO integer-5 CHARACTERS ....................................",
+   "now": "&nbsp;&nbsp;Integer-4 TO integer-5 CHARACTERS ...................................."
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;BINARY",
+   "now": "&nbsp;BINARY"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;COMPUTATIONAL",
+   "now": "&nbsp;COMPUTATIONAL"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;DISPLAY",
+   "now": "&nbsp;DISPLAY"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;INDEX",
+   "now": "&nbsp;INDEX"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;PACKED-DECIMAL",
+   "now": "&nbsp;PACKED-DECIMAL"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Literal",
+   "now": "&nbsp;Literal"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Literal series",
+   "now": "&nbsp;Literal series"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Literal-1 THROUGH literal-2",
+   "now": "&nbsp;Literal-1 THROUGH literal-2"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Literal range series",
+   "now": "&nbsp;Literal range series"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;OF/IN library-name",
+   "now": "&nbsp;OF/IN library-name"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;REPLACING phrase",
+   "now": "&nbsp;REPLACING phrase"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Pseudo-text",
+   "now": "&nbsp;&nbsp;Pseudo-text"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Identifier",
+   "now": "&nbsp;&nbsp;Identifier"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Literal",
+   "now": "&nbsp;&nbsp;Literal"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Word",
+   "now": "&nbsp;&nbsp;Word"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Pseudo-text BY pseudo-text",
+   "now": "&nbsp;Pseudo-text BY pseudo-text"
+  },
+  {
+   "page": 72,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;OFF",
+   "now": "&nbsp;OFF"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DELIMITED BY phrase ......................................................",
+   "now": "&nbsp;DELIMITED BY phrase ......................................................"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "DELIMITER IN phrase ......................................................",
+   "now": "&nbsp;DELIMITER IN phrase ......................................................"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "COUNT IN phrase ..........................................................",
+   "now": "&nbsp;COUNT IN phrase .........................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "WITH POINTER phrase ......................................................",
+   "now": "&nbsp;WITH POINTER phrase ......................................................"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "TALLYING phrase ..........................................................",
+   "now": "&nbsp;TALLYING phrase .........................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON OVERFLOW phrase .......................................................",
+   "now": "&nbsp;ON OVERFLOW phrase ......................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "NOT ON OVERFLOW phrase ...................................................",
+   "now": "&nbsp;NOT ON OVERFLOW phrase ..................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "END-UNSTRING phrase ......................................................",
+   "now": "&nbsp;END-UNSTRING phrase ......................................................"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "EXCEPTION/ERROR PROCEDURE phrase .........................................",
+   "now": "&nbsp;EXCEPTION/ERROR PROCEDURE phrase ........................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "GLOBAL phrase ............................................................",
+   "now": "&nbsp;&nbsp;GLOBAL phrase ............................................................"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON file-name .............................................................",
+   "now": "&nbsp;&nbsp;ON file-name ............................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON file-name series ......................................................",
+   "now": "&nbsp;&nbsp;ON file-name series ......................................................"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON INPUT .................................................................",
+   "now": "&nbsp;&nbsp;ON INPUT ................................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON OUTPUT ................................................................",
+   "now": "&nbsp;&nbsp;ON OUTPUT ................................................................"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON I-O ...................................................................",
+   "now": "&nbsp;&nbsp;ON I-O ..................................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ON EXTEND ................................................................",
+   "now": "&nbsp;&nbsp;ON EXTEND ................................................................"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "BEFORE REPORTING phrase ..................................................",
+   "now": "&nbsp;BEFORE REPORTING phrase .................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "GLOBAL phrase ............................................................",
+   "now": "&nbsp;&nbsp;GLOBAL phrase ............................................................"
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "FOR DEBUGGING phrase .....................................................",
+   "now": "&nbsp;FOR DEBUGGING phrase ....................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Procedure-name ...........................................................",
+   "now": "&nbsp;&nbsp;Procedure-name ..........................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ALL PROCEDURES ...........................................................",
+   "now": "&nbsp;&nbsp;ALL PROCEDURES ..........................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "ALL REFERENCES OF identifier-1 ...........................................",
+   "now": "&nbsp;&nbsp;ALL REFERENCES OF identifier-1 ..........................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "Cd-name ..................................................................",
+   "now": "&nbsp;&nbsp;Cd-name .................................................................."
+  },
+  {
+   "page": 82,
+   "sweep": "summary-rows(PB4953)",
+   "was": "File-name ................................................................",
+   "now": "&nbsp;&nbsp;File-name ................................................................"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;FROM phrase",
+   "now": "&nbsp;FROM phrase"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;BEFORE/AFTER ADVANCING phrase",
+   "now": "&nbsp;BEFORE/AFTER ADVANCING phrase"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Integer LINE/LINES",
+   "now": "&nbsp;&nbsp;Integer LINE/LINES"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Identifier LINE/LINES",
+   "now": "&nbsp;&nbsp;Identifier LINE/LINES"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Mnemonic-name",
+   "now": "&nbsp;&nbsp;Mnemonic-name"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;PAGE",
+   "now": "&nbsp;&nbsp;PAGE"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;AT END-OF-PAGE/EOP phrase",
+   "now": "&nbsp;AT END-OF-PAGE/EOP phrase"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;NOT AT END-OF-PAGE/EOP phrase",
+   "now": "&nbsp;NOT AT END-OF-PAGE/EOP phrase"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;INVALID KEY phrase",
+   "now": "&nbsp;INVALID KEY phrase"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;NOT INVALID KEY phrase",
+   "now": "&nbsp;NOT INVALID KEY phrase"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;END-WRITE phrase",
+   "now": "&nbsp;END-WRITE phrase"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Segment-numbers 0 through 49 for permanent segments",
+   "now": "&nbsp;Segment-numbers 0 through 49 for permanent segments"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Segment-numbers 50 through 99 for independent segments",
+   "now": "&nbsp;Segment-numbers 50 through 99 for independent segments"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;All sections with the same segment-number must be together in the source program",
+   "now": "&nbsp;All sections with the same segment-number must be together in the source program"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Sections with the same segment-number need not be physically contiguous in the source program",
+   "now": "&nbsp;Sections with the same segment-number need not be physically contiguous in the source program"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;OF/IN library-name phrase",
+   "now": "&nbsp;OF/IN library-name phrase"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;REPLACING phrase",
+   "now": "&nbsp;REPLACING phrase"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Pseudo-text",
+   "now": "&nbsp;&nbsp;Pseudo-text"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Identifier",
+   "now": "&nbsp;&nbsp;Identifier"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Literal",
+   "now": "&nbsp;&nbsp;Literal"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;&nbsp;&nbsp;Word",
+   "now": "&nbsp;&nbsp;Word"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;Pseudo-text BY pseudo-text",
+   "now": "&nbsp;Pseudo-text BY pseudo-text"
+  },
+  {
+   "page": 83,
+   "sweep": "summary-rows(PB4953)",
+   "was": "&nbsp;&nbsp;OFF",
+   "now": "&nbsp;OFF"
+  },
+  {
+   "page": 96,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## 4. TABLE HANDLING",
+   "now": "## 4. <u>TABLE HANDLING</u>"
+  },
+  {
+   "page": 102,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## 6. PROGRAM AND RUN UNIT ORGANIZATION AND COMMUNICATION",
+   "now": "## 6. <u>PROGRAM AND RUN UNIT ORGANIZATION AND COMMUNICATION</u>"
+  },
+  {
+   "page": 114,
+   "sweep": "figure-1-connectors(p114-0)",
+   "was": "│ SEND     │   │o │                                             │N │        └─┘",
+   "now": "│ SEND     │───│o │                 ^                           │N │        └─┘"
+  },
+  {
+   "page": 114,
+   "sweep": "figure-1-connectors(p114-0)",
+   "was": "│          │   │m │                                             │A │        ┌─┐",
+   "now": "│          │   │m │                 │                           │A │        ┌─┐"
+  },
+  {
+   "page": 114,
+   "sweep": "figure-1-connectors(p114-0)",
+   "was": "│          │   │m │                                             │B │───────&gt;│ │",
+   "now": "│          │   │m │                 └───────────────────────────│B │───────&gt;│ │"
+  },
+  {
+   "page": 114,
+   "sweep": "figure-1-connectors(p114-0)",
+   "was": "│          │   │c │            │          │          │          │D │───────&gt;│ │",
+   "now": "│          │   │c │───────────&gt;│          │          │          │D │───────&gt;│ │"
+  },
+  {
+   "page": 121,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## SECTION III: GLOSSARY",
+   "now": "## <u>SECTION III: GLOSSARY</u>"
+  },
+  {
+   "page": 121,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "### 1. INTRODUCTION",
+   "now": "### 1. <u>INTRODUCTION</u>"
+  },
+  {
+   "page": 147,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## SECTION IV: OVERALL LANGUAGE CONSIDERATION",
+   "now": "## <u>SECTION IV: OVERALL LANGUAGE CONSIDERATION</u>"
+  },
+  {
+   "page": 147,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "### 1. INTRODUCTION",
+   "now": "### 1. <u>INTRODUCTION</u>"
+  },
+  {
+   "page": 147,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "### 2. NOTATION USED IN FORMATS",
+   "now": "### 2. <u>NOTATION USED IN FORMATS</u>"
+  },
+  {
+   "page": 195,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## GENERAL FORMAT FOR ENVIRONMENT DIVISION",
+   "now": "## <u>GENERAL FORMAT FOR ENVIRONMENT DIVISION</u>"
+  },
+  {
+   "page": 199,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## GENERAL FORMAT FOR FILE CONTROL ENTRY",
+   "now": "## <u>GENERAL FORMAT FOR FILE CONTROL ENTRY</u>"
+  },
+  {
+   "page": 203,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## GENERAL FORMAT FOR FILE DESCRIPTION ENTRY",
+   "now": "## <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>"
+  },
+  {
+   "page": 209,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## GENERAL FORMAT FOR REPORT DESCRIPTION ENTRY",
+   "now": "## <u>GENERAL FORMAT FOR REPORT DESCRIPTION ENTRY</u>"
+  },
+  {
+   "page": 210,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## GENERAL FORMAT FOR REPORT GROUP DESCRIPTION ENTRY",
+   "now": "## <u>GENERAL FORMAT FOR REPORT GROUP DESCRIPTION ENTRY</u>"
+  },
+  {
+   "page": 211,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## GENERAL FORMAT FOR PROCEDURE DIVISION",
+   "now": "## <u>GENERAL FORMAT FOR PROCEDURE DIVISION</u>"
+  },
+  {
+   "page": 215,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## GENERAL FORMAT FOR COBOL VERBS",
+   "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+  },
+  {
+   "page": 222,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## GENERAL FORMAT FOR COBOL VERBS",
+   "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+  },
+  {
+   "page": 223,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## GENERAL FORMAT FOR COBOL VERBS",
+   "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+  },
+  {
+   "page": 227,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "RELATION CONDITION:",
+   "now": "<u>RELATION CONDITION</u>:"
+  },
+  {
+   "page": 227,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "CLASS CONDITION:",
+   "now": "<u>CLASS CONDITION</u>:"
+  },
+  {
+   "page": 227,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "SWITCH-STATUS CONDITION:",
+   "now": "<u>SWITCH-STATUS CONDITION</u>:"
+  },
+  {
+   "page": 227,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "SIGN CONDITION:",
+   "now": "<u>SIGN CONDITION</u>:"
+  },
+  {
+   "page": 227,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "NEGATED CONDITION:",
+   "now": "<u>NEGATED CONDITION</u>:"
+  },
+  {
+   "page": 431,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## 1. INTRODUCTION TO THE RELATIVE I-O MODULE",
+   "now": "## 1. <u>INTRODUCTION TO THE RELATIVE I-O MODULE</u>"
+  },
+  {
+   "page": 553,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## SECTION XI: SORT-MERGE MODULE",
+   "now": "## <u>SECTION XI: SORT-MERGE MODULE</u>"
+  },
+  {
+   "page": 553,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## 1. INTRODUCTION OF THE SORT-MERGE MODULE",
+   "now": "## 1. <u>INTRODUCTION OF THE SORT-MERGE MODULE</u>"
+  },
+  {
+   "page": 659,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## 1. INTRODUCTION TO THE COMMUNICATION MODULE",
+   "now": "## 1. <u>INTRODUCTION TO THE COMMUNICATION MODULE</u>"
+  },
+  {
+   "page": 689,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "# SECTION XV: DEBUG MODULE",
+   "now": "# <u>SECTION XV: DEBUG MODULE</u>"
+  },
+  {
+   "page": 689,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## 1. INTRODUCTION TO THE DEBUG MODULE",
+   "now": "## 1. <u>INTRODUCTION TO THE DEBUG MODULE</u>"
+  },
+  {
+   "page": 699,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "# SECTION XVI: SEGMENTATION MODULE",
+   "now": "# <u>SECTION XVI: SEGMENTATION MODULE</u>"
+  },
+  {
+   "page": 709,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## SECTION XVII: APPENDICES",
+   "now": "## <u>SECTION XVII: APPENDICES</u>"
+  },
+  {
+   "page": 709,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "### APPENDIX A: THE HISTORY OF COBOL",
+   "now": "### <u>APPENDIX A: THE HISTORY OF COBOL</u>"
+  },
+  {
+   "page": 724,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL",
+   "now": "## <u>APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>"
+  },
+  {
+   "page": 724,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "### 1. SUMMARY OF DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL",
+   "now": "### 1. <u>SUMMARY OF DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>"
+  },
+  {
+   "page": 749,
+   "sweep": "heading-underlines(PB4953)",
+   "was": "## ADDITIONAL SUMMARY OF DIFFERENCES",
+   "now": "## <u>ADDITIONAL SUMMARY OF DIFFERENCES</u>"
+  },
+  {
+   "page": 837,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "**<u>Page No.</u>** — **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**",
+   "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
+  },
+  {
+   "page": 837,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "| Page No. | Change |",
+   "now": "| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |"
+  },
+  {
+   "page": 841,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "<u>Page No.</u> | **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**",
+   "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
+  },
+  {
+   "page": 842,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "<u>Page No.</u> <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>",
+   "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>",
+   "now": "| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "---|---",
+   "now": "|---|---|"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "IX-41 | Paragraph 4.9.3, change syntax rule 1 to read:<br><br>(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, ",
+   "now": "| IX-41 | Paragraph 4.9.3, change syntax rule 1 to read:<br><br>(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "X-1 (T) | Paragraph 1.1, Function for Inter-Program Communication module, fifth line, change \"data value available\" to \"data values available\".",
+   "now": "| X-1 (T) | Paragraph 1.1, Function for Inter-Program Communication module, fifth line, change \"data value available\" to \"data values available\". |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "X-2 (T) | Paragraph 1.3.4, entitled \"External Objects and Internal Objects\", second paragraph, last sentence, change \"representative\" to \"representation\".",
+   "now": "| X-2 (T) | Paragraph 1.3.4, entitled \"External Objects and Internal Objects\", second paragraph, last sentence, change \"representative\" to \"representation\". |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "X-5 (T) | Paragraph 1.3.8, entitled \"Scope of Names\", second paragraph on page X-5, second line, box the word \"either\". In the same paragraph, third and fourth lines, box \"which contains a Configurati",
+   "now": "| X-5 (T) | Paragraph 1.3.8, entitled \"Scope of Names\", second paragraph on page X-5, second line, box the word \"either\". In the same paragraph, third and fourth lines, box \"which contains a Configura"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "X-6 (T) | Paragraph 1.3.8.1, entitled \"Conventions for Program-Names\", rule 3, box \"except programs it directly or indirectly contains\".",
+   "now": "| X-6 (T) | Paragraph 1.3.8.1, entitled \"Conventions for Program-Names\", rule 3, box \"except programs it directly or indirectly contains\". |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "X-10 (T) | Paragraph 2.4.2, entitled \"Programs in the Initial State\", box numbered paragraphs 3 and 4.",
+   "now": "| X-10 (T) | Paragraph 2.4.2, entitled \"Programs in the Initial State\", box numbered paragraphs 3 and 4. |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "X-19 (T) | Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, first paragraph, last line, box \"or global names\".",
+   "now": "| X-19 (T) | Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, first paragraph, last line, box \"or global names\". |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "X-19 (T) | Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, second paragraph, second line, box \"or external\".",
+   "now": "| X-19 (T) | Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, second paragraph, second line, box \"or external\". |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "X-27 | Paragraph 5.2.3, add new syntax rule 4 as follows:<br><br>(4) Identifier-2 must not be a function-identifier.",
+   "now": "| X-27 | Paragraph 5.2.3, add new syntax rule 4 as follows:<br><br>(4) Identifier-2 must not be a function-identifier. |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "X-29 (T) | Paragraph 5.2.4 of the CALL statement, general rule 10, change two occurrences of \"data-names\" to \"parameters\"; also change two occurrences of \"data-name\" to \"parameter\".",
+   "now": "| X-29 (T) | Paragraph 5.2.4 of the CALL statement, general rule 10, change two occurrences of \"data-names\" to \"parameters\"; also change two occurrences of \"data-name\" to \"parameter\". |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XI-8 (T) | Paragraph 4.1.3 of the MERGE statement, syntax rule 3, fifth line, change \"in the file\" to \"in the files\".",
+   "now": "| XI-8 (T) | Paragraph 4.1.3 of the MERGE statement, syntax rule 3, fifth line, change \"in the file\" to \"in the files\". |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XI-13 | Paragraph 4.2.3, change syntax rule 3 to read:<br><br>(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, ",
+   "now": "| XI-13 | Paragraph 4.2.3, change syntax rule 3 to read:<br><br>(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XII-4 (T) | Paragraph 2.4 of the COPY statement, general rule 7, fifth and sixth lines, change two occurrences of \"pseudo-text-delimiter\" to \"pseudo-text delimiter\".",
+   "now": "| XII-4 (T) | Paragraph 2.4 of the COPY statement, general rule 7, fifth and sixth lines, change two occurrences of \"pseudo-text-delimiter\" to \"pseudo-text delimiter\". |"
+  },
+  {
+   "page": 850,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XII-4 (T) | Paragraph 2.4 of the COPY statement, general rule 9, third paragraph, fourth line, change \"When a text word\" to \"When a text word specified in the BY phrase is introduced, it appears on a ",
+   "now": "| XII-4 (T) | Paragraph 2.4 of the COPY statement, general rule 9, third paragraph, fourth line, change \"When a text word\" to \"When a text word specified in the BY phrase is introduced, it appears on "
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>",
+   "now": "| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |"
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "---|---",
+   "now": "|---|---|"
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XIII-7 (T) | Paragraph 3.2.2 of the file description entry in the Report Writer module, VALUE OF clause, delete the fourth period in the ellipsis.",
+   "now": "| XIII-7 (T) | Paragraph 3.2.2 of the file description entry in the Report Writer module, VALUE OF clause, delete the fourth period in the ellipsis. |"
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XIV-3 (T) | Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-11, inclusively, in format 1.",
+   "now": "| XIV-3 (T) | Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-11, inclusively, in format 1. |"
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XIV-4 (T) | Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-6, inclusively, in format 3.",
+   "now": "| XIV-4 (T) | Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-6, inclusively, in format 3. |"
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XIV-19 (T) | Paragraph 3.2.4 of the DISABLE statement, general rule 4, third line, change \"SOURCE)\" to \"SOURCE))\".",
+   "now": "| XIV-19 (T) | Paragraph 3.2.4 of the DISABLE statement, general rule 4, third line, change \"SOURCE)\" to \"SOURCE))\". |"
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XIV-26 | Paragraph 3.6.3, add new syntax rule 6 as follows:<br><br>(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function.",
+   "now": "| XIV-26 | Paragraph 3.6.3, add new syntax rule 6 as follows:<br><br>(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function. |"
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XV-5 (T) | Paragraph 3.2.3 of the USE FOR DEBUGGING statement, syntax rule 10, last line, delete \"or indexing\".",
+   "now": "| XV-5 (T) | Paragraph 3.2.3 of the USE FOR DEBUGGING statement, syntax rule 10, last line, delete \"or indexing\". |"
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XVII-8 (T) | Paragraph 2.11, entitled \"CODASYL COBOL JOURNAL OF DEVELOPMENT 1981\", item 12, change \"PROGRAM\" to \"PERFORM\".",
+   "now": "| XVII-8 (T) | Paragraph 2.11, entitled \"CODASYL COBOL JOURNAL OF DEVELOPMENT 1981\", item 12, change \"PROGRAM\" to \"PERFORM\". |"
+  },
+  {
+   "page": 851,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "XVII-13 | Add the following after paragraph 3.4:",
+   "now": "| XVII-13 | Add the following after paragraph 3.4: |"
+  },
+  {
+   "page": 852,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>",
+   "now": "| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |"
+  },
+  {
+   "page": 852,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "---|---",
+   "now": "|---|---|"
+  },
+  {
+   "page": 853,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "**<u>Page No.</u>** | **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**",
+   "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
+  },
+  {
+   "page": 855,
+   "sweep": "amendment-1-heads(PB4953)",
+   "was": "**<u>Page No.</u>** **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**",
+   "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
   }
  ],
  "boxes": [

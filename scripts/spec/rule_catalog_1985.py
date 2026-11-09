@@ -143,9 +143,9 @@ CHANGE_PAGE = re.compile(r"(?P<amd>\()?(?P<folio>(?:[IVX]+|[A-F])-\d+)\)?")
 CHANGE_PARAGRAPH = re.compile(r"\bParagraphs? (?P<num>\d+(?:\.\d+)*)")
 CHANGE_RULE = re.compile(r"\b(?:(?P<kind>syntax|general|arguments?|returned values?) )?rules? \(?(?P<n>\d+)\)?(?![\d.])",
                          re.IGNORECASE)
-#: A change that ADDS a rule: "add the following as the new general rule 4", "as new syntax rule 5", "as a new general
-#: rule 12" (never "as a new last paragraph for general rule 7", which amends rule 7).
-CHANGE_ADDS = re.compile(r"\bas (?:the |a )?new (?P<kind>syntax|general|arguments?|returned values?) rule (?P<n>\d+)",
+#: A change that ADDS a rule: "add the following as the new general rule 4", "add new syntax rule 4 as follows" (X3.23a-1989
+#: X-27, XIV-26), "as new syntax rule 5", "as a new general rule 12" (never "as a new last paragraph for general rule 7", which amends rule 7).
+CHANGE_ADDS = re.compile(r"\b(?:as (?:the |a )?|add )new (?P<kind>syntax|general|arguments?|returned values?) rule (?P<n>\d+)",
                          re.IGNORECASE)
 
 

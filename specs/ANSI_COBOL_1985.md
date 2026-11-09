@@ -1368,46 +1368,46 @@ Nucleus Element Summary
 |---|---|---|
 | <u>LANGUAGE CONCEPTS</u> | | |
 | <u>Character Set</u> | | |
-| Characters used in words 0-9 A-Z - (hyphen) ................. | X | X |
-| Characters used in punctuation " ( ) . , ; space ............ | X | X |
-| Characters used in punctuation : (colon) .................... | N | X |
-| Characters used in editing B + - . , Z \* $ 0 CR DB / ........ | X | X |
-| Characters used in arithmetic operations + - \* / \*\* ......... | N | X |
-| Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .......... | X | X |
-| Characters used in subscripting + - ......................... | X | X |
-| Single character substitution allowed ....................... | X | X |
-| Double character substitution allowed ....................... | Z | Z |
+| &nbsp;Characters used in words 0-9 A-Z - (hyphen) ................. | X | X |
+| &nbsp;Characters used in punctuation " ( ) . , ; space ............ | X | X |
+| &nbsp;Characters used in punctuation : (colon) .................... | N | X |
+| &nbsp;Characters used in editing B + - . , Z \* $ 0 CR DB / ........ | X | X |
+| &nbsp;Characters used in arithmetic operations + - \* / \*\* ......... | N | X |
+| &nbsp;Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .......... | X | X |
+| &nbsp;Characters used in subscripting + - ......................... | X | X |
+| &nbsp;Single character substitution allowed ....................... | X | X |
+| &nbsp;Double character substitution allowed ....................... | Z | Z |
 | <u>Separators</u> | | |
-| " ( ) . , ; space ........................................... | X | X |
-| : (colon) ................................................... | N | X |
+| &nbsp;" ( ) . , ; space ........................................... | X | X |
+| &nbsp;: (colon) ................................................... | N | X |
 | <u>Character-Strings</u> | | |
-| COBOL words | | |
-| Maximum of 30 characters .................................... | X | X |
-| User-defined words | | |
-| Alphabet-name ............................................... | X | X |
-| Class-name .................................................. | X | X |
-| Condition-name .............................................. | N | X |
-| Data-name ................................................... | X | X |
-| Index-name .................................................. | X | X |
-| Level-number ................................................ | X | X |
-| Mnemonic-name ............................................... | X | X |
-| Paragraph-name .............................................. | X | X |
-| Program-name ................................................ | X | X |
-| Routine-name ................................................ | Z | Z |
-| Section-name ................................................ | X | X |
-| Symbolic-character .......................................... | N | X |
-| System-names | | |
-| Computer-name ............................................... | X | X |
-| Implementor-name ............................................ | X | X |
-| Language-name ............................................... | Z | Z |
-| Reserved words | | |
-| Required words .............................................. | X | X |
-| Key words ................................................... | X | X |
-| Special character words | | |
-| Arithmetic operators + - \* / \*\* ............................. | N | X |
-| Arithmetic operators used in subscripting + - ............... | X | X |
-| Relation characters = &gt; &lt; &gt;= &lt;= ................................ | X | X |
-| Optional words .............................................. | X | X |
+| &nbsp;COBOL words | | |
+| &nbsp;&nbsp;Maximum of 30 characters .................................... | X | X |
+| &nbsp;&nbsp;User-defined words | | |
+| &nbsp;&nbsp;&nbsp;Alphabet-name ............................................... | X | X |
+| &nbsp;&nbsp;&nbsp;Class-name .................................................. | X | X |
+| &nbsp;&nbsp;&nbsp;Condition-name .............................................. | N | X |
+| &nbsp;&nbsp;&nbsp;Data-name ................................................... | X | X |
+| &nbsp;&nbsp;&nbsp;Index-name .................................................. | X | X |
+| &nbsp;&nbsp;&nbsp;Level-number ................................................ | X | X |
+| &nbsp;&nbsp;&nbsp;Mnemonic-name ............................................... | X | X |
+| &nbsp;&nbsp;&nbsp;Paragraph-name .............................................. | X | X |
+| &nbsp;&nbsp;&nbsp;Program-name ................................................ | X | X |
+| &nbsp;&nbsp;&nbsp;Routine-name ................................................ | Z | Z |
+| &nbsp;&nbsp;&nbsp;Section-name ................................................ | X | X |
+| &nbsp;&nbsp;&nbsp;Symbolic-character .......................................... | N | X |
+| &nbsp;&nbsp;System-names | | |
+| &nbsp;&nbsp;&nbsp;Computer-name ............................................... | X | X |
+| &nbsp;&nbsp;&nbsp;Implementor-name ............................................ | X | X |
+| &nbsp;&nbsp;&nbsp;Language-name ............................................... | Z | Z |
+| &nbsp;&nbsp;Reserved words | | |
+| &nbsp;&nbsp;&nbsp;Required words .............................................. | X | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;Key words ................................................... | X | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;Special character words | | |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic operators + - \* / \*\* ............................. | N | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Arithmetic operators used in subscripting + - ............... | X | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Relation characters = &gt; &lt; &gt;= &lt;= ................................ | X | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;Optional words .............................................. | X | X |
 
 I-11
 
@@ -1420,48 +1420,48 @@ Nucleus Element Summary
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
 | <u>Character-Strings (Continued)</u> | | |
-| Special purpose words | | |
-| Figurative constants | | |
-| ZERO, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE ................ | X | X |
-| ALL option ............................................ | N | X |
-| ZEROS, ZEROES, SPACES, HIGH-VALUES, LOW-VALUES, QUOTES ... | X | X |
-| ALL option ............................................ | N | X |
-| Symbolic-character ...................................... | N | X |
-| ALL option .......................................... | N | X |
-| ALL literal ............................................. | N | X |
-| Literals | | |
-| Numeric literals: 1 through 18 digits ....................... | X | X |
-| Nonnumeric literals: 1 through 160 characters ............... | X | X |
-| PICTURE character-string ...................................... | X | X |
-| Comment-entries ............................................... | Z | Z |
-| <u>Uniqueness of Reference</u> | | |
-| Qualification | | |
-| No qualification permitted; names must be unique if referenced ................................................ | X | N |
-| 50 qualifiers ............................................... | N | X |
-| Subscripting | | |
-| 3 levels of subscripts ...................................... | X | N |
-| 7 levels of subscripts ...................................... | N | X |
-| Subscripting with a literal ................................. | X | X |
-| Subscripting with a data-name ............................... | X | X |
-| Subscripting with an index-name ............................. | X | X |
-| Relative subscripting ....................................... | X | X |
-| Reference modification ........................................ | N | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;Special purpose words | | |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Figurative constants | | |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ZERO, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE ................ | X | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ............................................ | N | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ZEROS, ZEROES, SPACES, HIGH-VALUES, LOW-VALUES, QUOTES ... | X | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option ............................................ | N | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Symbolic-character ...................................... | N | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ALL option .......................................... | N | X |
+| &nbsp;ALL literal ............................................. | N | X |
+| &nbsp;&nbsp;Literals | | |
+| &nbsp;&nbsp;Numeric literals: 1 through 18 digits ....................... | X | X |
+| &nbsp;Nonnumeric literals: 1 through 160 characters ............... | X | X |
+| &nbsp;PICTURE character-string ...................................... | X | X |
+| <u>Comment-entries</u> ............................................... | Z | Z |
+| &nbsp;<u>Uniqueness of Reference</u> | | |
+| &nbsp;&nbsp;Qualification | | |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No qualification permitted; names must be unique if referenced ................................................ | X | N |
+| &nbsp;&nbsp;50 qualifiers ............................................... | N | X |
+| &nbsp;Subscripting | | |
+| &nbsp;&nbsp;3 levels of subscripts ...................................... | X | N |
+| &nbsp;&nbsp;7 levels of subscripts ...................................... | N | X |
+| &nbsp;&nbsp;Subscripting with a literal ................................. | X | X |
+| &nbsp;&nbsp;Subscripting with a data-name ............................... | X | X |
+| &nbsp;&nbsp;Subscripting with an index-name ............................. | X | X |
+| &nbsp;&nbsp;Relative subscripting ....................................... | X | X |
+| &nbsp;Reference modification ........................................ | N | X |
 | <u>Reference Format</u> | | |
-| Sequence number ............................................... | X | X |
-| Continuation of lines | | |
-| Continuation of nonnumeric literal .......................... | X | X |
-| Continuation of COBOL word, numeric literal, PICTURE character-string ................................ | N | X |
-| Blank lines ................................................... | X | X |
-| Comment lines | | |
-| Asterisk (8) comment line ................................... | X | X |
-| Slant (/) comment line ...................................... | X | X |
-| Debugging line with D in indicator area ....................... | X | X |
+| &nbsp;Sequence number ............................................... | X | X |
+| &nbsp;Continuation of lines | | |
+| &nbsp;&nbsp;Continuation of nonnumeric literal .......................... | X | X |
+| &nbsp;&nbsp;Continuation of COBOL word, numeric literal, PICTURE character-string ................................ | N | X |
+| &nbsp;Blank lines ................................................... | X | X |
+| &nbsp;Comment lines | | |
+| &nbsp;&nbsp;Asterisk (8) comment line ................................... | X | X |
+| &nbsp;&nbsp;Slant (/) comment line ...................................... | X | X |
+| &nbsp;Debugging line with D in indicator area ....................... | X | X |
 | <u>Source Program Structure</u> | | |
-| Identification Division required .............................. | X | X |
-| Environment Division optional ................................. | X | X |
-| Data Division optional ........................................ | X | X |
-| Procedure Division optional ................................... | X | X |
-| End program header ............................................ | N | X |
+| &nbsp;Identification Division required .............................. | X | X |
+| &nbsp;Environment Division optional ................................. | X | X |
+| &nbsp;Data Division optional ........................................ | X | X |
+| &nbsp;Procedure Division optional ................................... | X | X |
+| &nbsp;End program header ............................................ | N | X |
 
 I-12
 
@@ -1474,51 +1474,51 @@ Nucleus Element Summary
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
 | <u>IDENTIFICATION DIVISION</u> | | |
-| PROGRAM-ID paragraph | X | X |
-| Program-name | X | X |
-| AUTHOR paragraph | Z | Z |
-| INSTALLATION paragraph | Z | Z |
-| DATE-WRITTEN paragraph | Z | Z |
-| DATE-COMPILED paragraph | N | Z |
-| SECURITY paragraph | Z | Z |
+| &nbsp;PROGRAM-ID paragraph | X | X |
+| &nbsp;&nbsp;Program-name | X | X |
+| &nbsp;AUTHOR paragraph | Z | Z |
+| &nbsp;INSTALLATION paragraph | Z | Z |
+| &nbsp;DATE-WRITTEN paragraph | Z | Z |
+| &nbsp;DATE-COMPILED paragraph | N | Z |
+| &nbsp;SECURITY paragraph | Z | Z |
 | <u>ENVIRONMENT DIVISION</u> | | |
 | <u>Configuration Section</u> | X | X |
-| SOURCE-COMPUTER paragraph | X | X |
-| Computer-name | X | X |
-| WITH DEBUGGING MODE clause | X | X |
-| OBJECT-COMPUTER paragraph | X | X |
-| Computer-name | X | X |
-| MEMORY SIZE clause | Z | Z |
-| PROGRAM COLLATING SEQUENCE clause | X | X |
-| SPECIAL-NAMES paragraph | X | X |
-| ALPHABET clause | X | X |
-| STANDARD-1 option | X | X |
-| STANDARD-2 option | X | X |
-| NATIVE option | X | X |
-| Implementor-name option | X | X |
-| Literal option | N | X |
-| CLASS clause | X | X |
-| CURRENCY SIGN clause | X | X |
-| DECIMAL-POINT clause | X | X |
-| Implementor-name clause | X | X |
-| IS mnemonic-name option | X | X |
-| ON STATUS IS condition-name option | X | X |
-| OFF STATUS IS condition-name option | X | X |
-| SYMBOLIC CHARACTERS clause | N | X |
+| &nbsp;SOURCE-COMPUTER paragraph | X | X |
+| &nbsp;&nbsp;Computer-name | X | X |
+| &nbsp;&nbsp;WITH DEBUGGING MODE clause | X | X |
+| &nbsp;OBJECT-COMPUTER paragraph | X | X |
+| &nbsp;&nbsp;Computer-name | X | X |
+| &nbsp;&nbsp;MEMORY SIZE clause | Z | Z |
+| &nbsp;&nbsp;PROGRAM COLLATING SEQUENCE clause | X | X |
+| &nbsp;SPECIAL-NAMES paragraph | X | X |
+| &nbsp;&nbsp;ALPHABET clause | X | X |
+| &nbsp;&nbsp;&nbsp;STANDARD-1 option | X | X |
+| &nbsp;&nbsp;&nbsp;STANDARD-2 option | X | X |
+| &nbsp;&nbsp;&nbsp;NATIVE option | X | X |
+| &nbsp;&nbsp;&nbsp;Implementor-name option | X | X |
+| &nbsp;&nbsp;&nbsp;Literal option | N | X |
+| &nbsp;&nbsp;CLASS clause | X | X |
+| &nbsp;&nbsp;CURRENCY SIGN clause | X | X |
+| &nbsp;&nbsp;DECIMAL-POINT clause | X | X |
+| &nbsp;&nbsp;Implementor-name clause | X | X |
+| &nbsp;&nbsp;&nbsp;IS mnemonic-name option | X | X |
+| &nbsp;&nbsp;&nbsp;ON STATUS IS condition-name option | X | X |
+| &nbsp;&nbsp;&nbsp;OFF STATUS IS condition-name option | X | X |
+| &nbsp;&nbsp;SYMBOLIC CHARACTERS clause | N | X |
 | <u>DATA DIVISION</u> | | |
 | <u>Working-Storage Section</u> | X | X |
 | Record description entry | X | X |
 | 77 level description entry | X | X |
 | Data description entry | X | X |
-| BLANK WHEN ZERO clause | X | X |
-| Data-name clause | X | X |
-| FILLER clause | X | X |
-| JUSTIFIED clause | X | X |
-| Level-number clause | X | X |
-| 01 through 49; level-number may be 1 or 2 digits | X | X |
-| 66 | N | X |
-| 77 | X | X |
-| 88 | N | X |
+| &nbsp;BLANK WHEN ZERO clause | X | X |
+| &nbsp;Data-name clause | X | X |
+| &nbsp;FILLER clause | X | X |
+| &nbsp;JUSTIFIED clause | X | X |
+| &nbsp;Level-number clause | X | X |
+| &nbsp;&nbsp;01 through 49; level-number may be 1 or 2 digits | X | X |
+| &nbsp;&nbsp;66 | N | X |
+| &nbsp;&nbsp;77 | X | X |
+| &nbsp;&nbsp;88 | N | X |
 
 I-13
 
@@ -1774,40 +1774,40 @@ Nucleus Element Summary
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
 | SET statement ........................................... | X | X |
-| Index-name/identifier TO ................................ | X | X |
-| Index-name UP BY/DOWN BY ................................ | X | X |
-| Mnemonic-name TO ON/OFF ................................. | X | X |
-| Condition-name TO TRUE .................................. | N | X |
+| &nbsp;Index-name/identifier TO ................................ | X | X |
+| &nbsp;Index-name UP BY/DOWN BY ................................ | X | X |
+| &nbsp;Mnemonic-name TO ON/OFF ................................. | X | X |
+| &nbsp;Condition-name TO TRUE .................................. | N | X |
 | STOP statement .......................................... | X | X |
-| RUN ..................................................... | X | X |
-| Literal ................................................. | Z | Z |
+| &nbsp;RUN ..................................................... | X | X |
+| &nbsp;Literal ................................................. | Z | Z |
 | STRING statement ........................................ | N | X |
-| DELIMITED BY series ..................................... | N | X |
-| WITH POINTER phrase ..................................... | N | X |
-| ON OVERFLOW phrase ...................................... | N | X |
-| NOT ON OVERFLOW phrase .................................. | N | X |
-| END-STRING phrase ....................................... | N | X |
+| &nbsp;DELIMITED BY series ..................................... | N | X |
+| &nbsp;WITH POINTER phrase ..................................... | N | X |
+| &nbsp;ON OVERFLOW phrase ...................................... | N | X |
+| &nbsp;NOT ON OVERFLOW phrase .................................. | N | X |
+| &nbsp;END-STRING phrase ....................................... | N | X |
 | SUBTRACT statement ...................................... | X | X |
-| Identifier/literal ...................................... | X | X |
-| Identifier/literal series ............................... | X | X |
-| FROM identifier ......................................... | X | X |
-| FROM identifier series .................................. | X | X |
-| GIVING identifier ....................................... | X | X |
-| GIVING identifier series ................................ | X | X |
-| ROUNDED phrase .......................................... | X | X |
-| ON SIZE ERROR phrase .................................... | X | X |
-| NOT ON SIZE ERROR phrase ................................ | X | X |
-| END-SUBTRACT phrase ..................................... | X | X |
-| CORRESPONDING phrase .................................... | N | X |
+| &nbsp;Identifier/literal ...................................... | X | X |
+| &nbsp;Identifier/literal series ............................... | X | X |
+| &nbsp;FROM identifier ......................................... | X | X |
+| &nbsp;FROM identifier series .................................. | X | X |
+| &nbsp;GIVING identifier ....................................... | X | X |
+| &nbsp;GIVING identifier series ................................ | X | X |
+| &nbsp;ROUNDED phrase .......................................... | X | X |
+| &nbsp;ON SIZE ERROR phrase .................................... | X | X |
+| &nbsp;NOT ON SIZE ERROR phrase ................................ | X | X |
+| &nbsp;END-SUBTRACT phrase ..................................... | X | X |
+| &nbsp;CORRESPONDING phrase .................................... | N | X |
 | UNSTRING statement ...................................... | N | X |
-| DELIMITED BY phrase ..................................... | N | X |
-| DELIMITER IN phrase ..................................... | N | X |
-| COUNT IN phrase ......................................... | N | X |
-| WITH POINTER phrase ..................................... | N | X |
-| TALLYING phrase ......................................... | N | X |
-| ON OVERFLOW phrase ...................................... | N | X |
-| NOT ON OVERFLOW phrase .................................. | N | X |
-| END-UNSTRING phrase ..................................... | N | X |
+| &nbsp;DELIMITED BY phrase ..................................... | N | X |
+| &nbsp;DELIMITER IN phrase ..................................... | N | X |
+| &nbsp;COUNT IN phrase ......................................... | N | X |
+| &nbsp;WITH POINTER phrase ..................................... | N | X |
+| &nbsp;TALLYING phrase ......................................... | N | X |
+| &nbsp;ON OVERFLOW phrase ...................................... | N | X |
+| &nbsp;NOT ON OVERFLOW phrase .................................. | N | X |
+| &nbsp;END-UNSTRING phrase ..................................... | N | X |
 
 I-18
 
@@ -1957,53 +1957,53 @@ Relative I-O Element Summary
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
-| **LANGUAGE CONCEPTS** | | |
+| <u>LANGUAGE CONCEPTS</u> | | |
 | User-defined words | | |
-| File-name ................................................ | X | X |
-| Record-name .............................................. | X | X |
+| &nbsp;File-name ................................................ | X | X |
+| &nbsp;Record-name .............................................. | X | X |
 | I-O status ............................................... | X | X |
-| **ENVIRONMENT DIVISION** | | |
-| **Input-Output Section** | | |
+| <u>ENVIRONMENT DIVISION</u> | | |
+| <u>Input-Output Section</u> | | |
 | FILE-CONTROL paragraph ................................... | X | X |
-| File control entry ....................................... | X | X |
-| SELECT clause ............................................ | X | X |
-| OPTIONAL phrase .......................................... | N | X |
-| Input, I-O, and extend files only ........................ | N | X |
-| ACCESS MODE clause ....................................... | X | X |
-| SEQUENTIAL ............................................... | X | X |
-| RANDOM ................................................... | X | X |
-| DYNAMIC .................................................. | N | X |
-| RELATIVE KEY phrase ...................................... | X | X |
-| ASSIGN clause ............................................ | X | X |
-| Implementor-name ......................................... | X | X |
-| Literal .................................................. | X | X |
-| FILE STATUS clause ....................................... | X | X |
-| ORGANIZATION IS RELATIVE clause .......................... | X | X |
-| RESERVE AREA clause ...................................... | N | X |
+| &nbsp;File control entry ....................................... | X | X |
+| &nbsp;&nbsp;SELECT clause ............................................ | X | X |
+| &nbsp;&nbsp;&nbsp;OPTIONAL phrase .......................................... | N | X |
+| &nbsp;&nbsp;&nbsp;&nbsp;Input, I-O, and extend files only ........................ | N | X |
+| &nbsp;&nbsp;ACCESS MODE clause ....................................... | X | X |
+| &nbsp;&nbsp;&nbsp;SEQUENTIAL ............................................... | X | X |
+| &nbsp;&nbsp;&nbsp;RANDOM ................................................... | X | X |
+| &nbsp;&nbsp;&nbsp;DYNAMIC .................................................. | N | X |
+| &nbsp;&nbsp;&nbsp;RELATIVE KEY phrase ...................................... | X | X |
+| &nbsp;&nbsp;ASSIGN clause ............................................ | X | X |
+| &nbsp;&nbsp;&nbsp;Implementor-name ......................................... | X | X |
+| &nbsp;&nbsp;&nbsp;Literal .................................................. | X | X |
+| &nbsp;&nbsp;FILE STATUS clause ....................................... | X | X |
+| &nbsp;&nbsp;ORGANIZATION IS RELATIVE clause .......................... | X | X |
+| &nbsp;&nbsp;RESERVE AREA clause ...................................... | N | X |
 | I-O-CONTROL paragraph .................................... | X | X |
-| RERUN clause ............................................. | Z | Z |
-| SAME AREA clause ......................................... | X | X |
-| SAME RECORD AREA clause .................................. | N | X |
-| **DATA DIVISION** | | |
-| **File Section** | | |
+| &nbsp;RERUN clause ............................................. | Z | Z |
+| &nbsp;SAME AREA clause ......................................... | X | X |
+| &nbsp;SAME RECORD AREA clause .................................. | N | X |
+| <u>DATA DIVISION</u> | | |
+| <u>File Section</u> | | |
 | File description entry ................................... | X | X |
-| FD level indicator ....................................... | X | X |
-| BLOCK CONTAINS clause .................................... | X | X |
-| Integer RECORDS/CHARACTERS ............................... | X | X |
-| Integer-1 TO integer-2 RECORDS/CHARACTERS ................ | N | X |
-| DATA RECORDS clause ...................................... | Z | Z |
-| LABEL RECORDS clause ..................................... | Z | Z |
-| RECORD clause ............................................ | X | X |
-| Integer-1 CHARACTERS ..................................... | X | X |
-| VARYING IN SIZE phrase ................................... | N | X |
-| FROM integer-2 TO integer-3 CHARACTERS ................... | N | X |
-| DEPENDING ON phrase ...................................... | N | X |
-| Integer-4 TO integer-5 CHARACTERS ........................ | X | X |
-| VALUE OF clause .......................................... | Z | Z |
-| Implementor-name IS literal .............................. | Z | Z |
-| Implementor-name IS literal series ....................... | Z | Z |
-| Implementor-name IS data-name ............................ | N | Z |
-| Implementor-name IS data-name series ..................... | N | Z |
+| &nbsp;FD level indicator ....................................... | X | X |
+| &nbsp;BLOCK CONTAINS clause .................................... | X | X |
+| &nbsp;&nbsp;Integer RECORDS/CHARACTERS ............................... | X | X |
+| &nbsp;&nbsp;Integer-1 TO integer-2 RECORDS/CHARACTERS ................ | N | X |
+| &nbsp;DATA RECORDS clause ...................................... | Z | Z |
+| &nbsp;LABEL RECORDS clause ..................................... | Z | Z |
+| &nbsp;RECORD clause ............................................ | X | X |
+| &nbsp;&nbsp;Integer-1 CHARACTERS ..................................... | X | X |
+| &nbsp;&nbsp;VARYING IN SIZE phrase ................................... | N | X |
+| &nbsp;&nbsp;&nbsp;FROM integer-2 TO integer-3 CHARACTERS ................... | N | X |
+| &nbsp;&nbsp;&nbsp;DEPENDING ON phrase ...................................... | N | X |
+| &nbsp;&nbsp;Integer-4 TO integer-5 CHARACTERS ........................ | X | X |
+| &nbsp;VALUE OF clause .......................................... | Z | Z |
+| &nbsp;&nbsp;Implementor-name IS literal .............................. | Z | Z |
+| &nbsp;&nbsp;Implementor-name IS literal series ....................... | Z | Z |
+| &nbsp;&nbsp;Implementor-name IS data-name ............................ | N | Z |
+| &nbsp;&nbsp;Implementor-name IS data-name series ..................... | N | Z |
 | Record description entry ................................. | X | X |
 
 I-22
@@ -2016,7 +2016,7 @@ Relative I-O Element Summary
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
-| **PROCEDURE DIVISION** | | |
+| <u>PROCEDURE DIVISION</u> | | |
 | Declarative procedures | X | X |
 | &nbsp;DECLARATIVES | X | X |
 | &nbsp;END DECLARATIVES | X | X |
@@ -2098,13 +2098,13 @@ Indexed I-O Element Summary
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
-| **LANGUAGE CONCEPTS** | | |
+| <u>LANGUAGE CONCEPTS</u> | | |
 | User-defined words | | |
 | &nbsp;File-name | X | X |
 | &nbsp;Record-name | X | X |
 | I-O status | X | X |
-| **ENVIRONMENT DIVISION** | | |
-| **Input-Output Section** | | |
+| <u>ENVIRONMENT DIVISION</u> | | |
+| <u>Input-Output Section</u> | | |
 | FILE-CONTROL paragraph | X | X |
 | &nbsp;File control entry | X | X |
 | &nbsp;&nbsp;SELECT clause | X | X |
@@ -2127,8 +2127,8 @@ Indexed I-O Element Summary
 | &nbsp;RERUN clause | Z | Z |
 | &nbsp;SAME AREA clause | X | X |
 | &nbsp;SAME RECORD AREA clause | N | X |
-| **DATA DIVISION** | | |
-| **File Section** | | |
+| <u>DATA DIVISION</u> | | |
+| <u>File Section</u> | | |
 | File description entry | X | X |
 | &nbsp;FD level indicator | X | X |
 | &nbsp;BLOCK CONTAINS clause | X | X |
@@ -2154,47 +2154,47 @@ Indexed I-O Element Summary
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
 | File description entry (continued) | | |
-| VALUE OF clause | Z | Z |
-| Implementor-name IS literal | Z | Z |
-| Implementor-name IS literal series | Z | Z |
-| Implementor-name IS data-name | N | Z |
-| Implementor-name IS data-name series | N | Z |
+| &nbsp;VALUE OF clause | Z | Z |
+| &nbsp;&nbsp;Implementor-name IS literal | Z | Z |
+| &nbsp;&nbsp;Implementor-name IS literal series | Z | Z |
+| &nbsp;&nbsp;Implementor-name IS data-name | N | Z |
+| &nbsp;&nbsp;Implementor-name IS data-name series | N | Z |
 | Record description entry | X | X |
 | <u>PROCEDURE DIVISION</u> | | |
 | Declarative procedures | X | X |
-| DECLARATIVES | X | X |
-| END DECLARATIVES | X | X |
+| &nbsp;DECLARATIVES | X | X |
+| &nbsp;END DECLARATIVES | X | X |
 | CLOSE statement | X | X |
-| File-name | X | X |
-| File-name series | X | X |
-| WITH LOCK phrase | N | X |
+| &nbsp;File-name | X | X |
+| &nbsp;File-name series | X | X |
+| &nbsp;WITH LOCK phrase | N | X |
 | DELETE statement | X | X |
-| INVALID KEY phrase | X | X |
-| NOT INVALID KEY phrase | X | X |
-| END-DELETE phrase | X | X |
+| &nbsp;INVALID KEY phrase | X | X |
+| &nbsp;NOT INVALID KEY phrase | X | X |
+| &nbsp;END-DELETE phrase | X | X |
 | OPEN statement | X | X |
-| File-name | X | X |
-| File-name series | X | X |
-| INPUT phrase | X | X |
-| OUTPUT phrase | X | X |
-| I-O phrase | X | X |
-| EXTEND phrase | N | X |
-| INPUT, OUTPUT, and I-O series | X | X |
-| EXTEND series | N | X |
+| &nbsp;File-name | X | X |
+| &nbsp;File-name series | X | X |
+| &nbsp;INPUT phrase | X | X |
+| &nbsp;OUTPUT phrase | X | X |
+| &nbsp;I-O phrase | X | X |
+| &nbsp;EXTEND phrase | N | X |
+| &nbsp;INPUT, OUTPUT, and I-O series | X | X |
+| &nbsp;EXTEND series | N | X |
 | READ statement | X | X |
-| NEXT phrase | N | X |
-| INTO phrase | X | X |
-| AT END phrase | X | X |
-| NOT AT END phrase | X | X |
-| KEY phrase | N | X |
-| INVALID KEY phrase | X | X |
-| NOT INVALID KEY phrase | X | X |
-| END-READ phrase | X | X |
+| &nbsp;NEXT phrase | N | X |
+| &nbsp;INTO phrase | X | X |
+| &nbsp;AT END phrase | X | X |
+| &nbsp;NOT AT END phrase | X | X |
+| &nbsp;KEY phrase | N | X |
+| &nbsp;INVALID KEY phrase | X | X |
+| &nbsp;NOT INVALID KEY phrase | X | X |
+| &nbsp;END-READ phrase | X | X |
 | REWRITE statement | X | X |
-| FROM phrase | X | X |
-| INVALID KEY phrase | X | X |
-| NOT INVALID KEY phrase | X | X |
-| END-REWRITE phrase | X | X |
+| &nbsp;FROM phrase | X | X |
+| &nbsp;INVALID KEY phrase | X | X |
+| &nbsp;NOT INVALID KEY phrase | X | X |
+| &nbsp;END-REWRITE phrase | X | X |
 
 I-26
 
@@ -2393,13 +2393,13 @@ Source Text Manipulation Element Summary
 
 | ELEMENT | LEVEL 1 | LEVEL 2 |
 |---|---|---|
-| **LANGUAGE CONCEPTS** | | |
+| <u>LANGUAGE CONCEPTS</u> | | |
 | Character set | | |
 | &nbsp;Characters used in punctuation = | N | X |
 | User-defined words | | |
 | &nbsp;Library-name | N | X |
 | &nbsp;Text-name | X | X |
-| **ALL DIVISIONS** | | |
+| <u>ALL DIVISIONS</u> | | |
 | COPY statement | X | X |
 | &nbsp;OF/IN library-name phrase | N | X |
 | &nbsp;REPLACING phrase | N | X |
@@ -2519,7 +2519,7 @@ Report Writer Element Summary
 | INITIATE statement | X |
 | OPEN statement | X |
 | &nbsp;OUTPUT phrase | X |
-| &nbsp;&nbsp;WITH NO REWIND phrase | X |
+| &nbsp;WITH NO REWIND phrase | X |
 | &nbsp;EXTEND phrase | X |
 | SUPPRESS statement | X |
 | TERMINATE statement | X |
@@ -2554,45 +2554,45 @@ Communication Element Summary
 |---|---|---|
 | <u>LANGUAGE CONCEPTS</u> | | |
 | User-defined words | | |
-| Cd-name | X | X |
+| &nbsp;Cd-name | X | X |
 | | | |
 | <u>DATA DIVISION</u> | | |
 | <u>Communication Section</u> | | |
 | Communication description entry | X | X |
-| CD level indicator | X | X |
-| FOR INPUT clause | X | X |
-| INITIAL phrase | N | X |
-| END KEY clause | X | X |
-| MESSAGE COUNT clause | X | X |
-| MESSAGE DATE clause | X | X |
-| MESSAGE TIME clause | X | X |
-| SYMBOLIC QUEUE clause | X | X |
-| SYMBOLIC SOURCE clause | X | X |
-| SYMBOLIC SUB-QUEUE-1 clause | N | X |
-| SYMBOLIC SUB-QUEUE-2 clause | N | X |
-| SYMBOLIC SUB-QUEUE-3 clause | N | X |
-| STATUS KEY clause | X | X |
-| TEXT LENGTH clause | X | X |
-| Data-name series | N | X |
-| FOR OUTPUT clause | X | X |
-| DESTINATION COUNT clause | X | X |
-| Must be one | X | N |
-| Must be one or greater | N | X |
-| DESTINATION TABLE clause | N | X |
-| INDEXED BY phrase | N | X |
-| ERROR KEY clause | X | X |
-| SYMBOLIC DESTINATION clause | X | X |
-| STATUS KEY clause | X | X |
-| TEXT LENGTH clause | X | X |
-| FOR I-O clause | X | X |
-| INITIAL phrase | N | X |
-| END KEY clause | X | X |
-| MESSAGE DATE clause | X | X |
-| MESSAGE TIME clause | X | X |
-| STATUS KEY clause | X | X |
-| SYMBOLIC TERMINAL clause | X | X |
-| TEXT LENGTH clause | X | X |
-| Data-name series | N | X |
+| &nbsp;CD level indicator | X | X |
+| &nbsp;FOR INPUT clause | X | X |
+| &nbsp;&nbsp;INITIAL phrase | N | X |
+| &nbsp;&nbsp;END KEY clause | X | X |
+| &nbsp;&nbsp;MESSAGE COUNT clause | X | X |
+| &nbsp;&nbsp;MESSAGE DATE clause | X | X |
+| &nbsp;&nbsp;MESSAGE TIME clause | X | X |
+| &nbsp;&nbsp;SYMBOLIC QUEUE clause | X | X |
+| &nbsp;&nbsp;SYMBOLIC SOURCE clause | X | X |
+| &nbsp;&nbsp;SYMBOLIC SUB-QUEUE-1 clause | N | X |
+| &nbsp;&nbsp;SYMBOLIC SUB-QUEUE-2 clause | N | X |
+| &nbsp;&nbsp;SYMBOLIC SUB-QUEUE-3 clause | N | X |
+| &nbsp;&nbsp;STATUS KEY clause | X | X |
+| &nbsp;&nbsp;TEXT LENGTH clause | X | X |
+| &nbsp;&nbsp;Data-name series | N | X |
+| &nbsp;FOR OUTPUT clause | X | X |
+| &nbsp;&nbsp;DESTINATION COUNT clause | X | X |
+| &nbsp;&nbsp;&nbsp;Must be one | X | N |
+| &nbsp;&nbsp;&nbsp;Must be one or greater | N | X |
+| &nbsp;&nbsp;DESTINATION TABLE clause | N | X |
+| &nbsp;&nbsp;&nbsp;INDEXED BY phrase | N | X |
+| &nbsp;&nbsp;ERROR KEY clause | X | X |
+| &nbsp;&nbsp;SYMBOLIC DESTINATION clause | X | X |
+| &nbsp;&nbsp;STATUS KEY clause | X | X |
+| &nbsp;&nbsp;TEXT LENGTH clause | X | X |
+| &nbsp;FOR I-O clause | X | X |
+| &nbsp;&nbsp;INITIAL phrase | N | X |
+| &nbsp;&nbsp;END KEY clause | X | X |
+| &nbsp;&nbsp;MESSAGE DATE clause | X | X |
+| &nbsp;&nbsp;MESSAGE TIME clause | X | X |
+| &nbsp;&nbsp;STATUS KEY clause | X | X |
+| &nbsp;&nbsp;SYMBOLIC TERMINAL clause | X | X |
+| &nbsp;&nbsp;TEXT LENGTH clause | X | X |
+| &nbsp;&nbsp;Data-name series | N | X |
 | Record description entry | X | X |
 
 I-36
@@ -2743,49 +2743,49 @@ Language Concepts Element Summary
 |---|---|
 | <u>LANGUAGE CONCEPTS</u> | |
 | <u>Character Set</u> | |
-| Characters used in words 0-9 A-Z - (hyphen) .......................... | 1 NUC |
-| Characters used in punctuation " ( ) . , ; space ..................... | 1 NUC |
-| Characters used in punctuation : (colon) ............................. | 2 NUC |
-| Characters used in punctuation = ..................................... | 1 STM |
-| Characters used in editing B + - . , Z \* $ 0 CR DB / ................ | 1 NUC |
-| Characters used in arithmetic operations + - \* / \*\* ................. | 2 NUC |
-| Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .................. | 1 NUC |
-| Characters used in subscripting + - .................................. | 1 NUC |
-| Single character substitution allowed ................................ | 1 NUC |
-| Double character substitution allowed ................................ | 1 NUC Z |
+| &nbsp;Characters used in words 0-9 A-Z - (hyphen) .......................... | 1 NUC |
+| &nbsp;Characters used in punctuation " ( ) . , ; space ..................... | 1 NUC |
+| &nbsp;Characters used in punctuation : (colon) ............................. | 2 NUC |
+| &nbsp;Characters used in punctuation = ..................................... | 1 STM |
+| &nbsp;Characters used in editing B + - . , Z \* $ 0 CR DB / ................ | 1 NUC |
+| &nbsp;Characters used in arithmetic operations + - \* / \*\* ................. | 2 NUC |
+| &nbsp;Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .................. | 1 NUC |
+| &nbsp;Characters used in subscripting + - .................................. | 1 NUC |
+| &nbsp;Single character substitution allowed ................................ | 1 NUC |
+| &nbsp;Double character substitution allowed ................................ | 1 NUC Z |
 | <u>Separators</u> | |
-| " ( ) . , ; space ...................................................... | 1 NUC |
-| : (colon) .............................................................. | 2 NUC |
+| &nbsp;" ( ) . , ; space ...................................................... | 1 NUC |
+| &nbsp;: (colon) .............................................................. | 2 NUC |
 | <u>Character-Strings</u> | |
-| COBOL words | |
-| Maximum of 30 characters ............................................. | 1 NUC |
-| User-defined words | |
-| Alphabet-name ........................................................ | 1 NUC |
-| Cd-name .............................................................. | 1 COM |
-| Class-name ........................................................... | 1 NUC |
-| Condition-name ....................................................... | 2 NUC |
-| Data-name ............................................................ | 1 NUC |
-| File-name ............................................................ | 1 SEQ |
+| &nbsp;COBOL words | |
+| &nbsp;&nbsp;Maximum of 30 characters ............................................. | 1 NUC |
+| &nbsp;&nbsp;User-defined words | |
+| &nbsp;&nbsp;&nbsp;Alphabet-name ........................................................ | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Cd-name .............................................................. | 1 COM |
+| &nbsp;&nbsp;&nbsp;Class-name ........................................................... | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Condition-name ....................................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;Data-name ............................................................ | 1 NUC |
+| &nbsp;&nbsp;&nbsp;File-name ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 SRT |
 | | 1 RPW |
-| Index-name ........................................................... | 1 NUC |
-| Level-number ......................................................... | 1 NUC |
-| Library-name ......................................................... | 2 STM |
-| Mnemonic-name ........................................................ | 1 NUC |
-| Paragraph-name ....................................................... | 1 NUC |
-| Program-name ......................................................... | 1 NUC |
-| Record-name .......................................................... | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;Index-name ........................................................... | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Level-number ......................................................... | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Library-name ......................................................... | 2 STM |
+| &nbsp;&nbsp;&nbsp;Mnemonic-name ........................................................ | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Paragraph-name ....................................................... | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Program-name ......................................................... | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Record-name .......................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 SRT |
-| Report-name .......................................................... | 1 RPW |
-| Routine-name ......................................................... | 1 NUC Z |
-| Section-name ......................................................... | 1 NUC |
-| Segment-number ....................................................... | 1 SEG Z |
-| Symbolic-character ................................................... | 2 NUC |
-| Text-name ............................................................ | 1 STM |
+| &nbsp;&nbsp;&nbsp;Report-name .......................................................... | 1 RPW |
+| &nbsp;&nbsp;&nbsp;Routine-name ......................................................... | 1 NUC Z |
+| &nbsp;&nbsp;&nbsp;Section-name ......................................................... | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Segment-number ....................................................... | 1 SEG Z |
+| &nbsp;&nbsp;&nbsp;Symbolic-character ................................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;Text-name ............................................................ | 1 STM |
 
 I-41
 
@@ -2855,22 +2855,22 @@ Language Concepts Element Summary
 | ELEMENT | MODULE |
 |---|---|
 | <u>Reference Format</u> | |
-| Sequence number ........................................................ | 1 NUC |
-| Continuation of lines | |
-| Continuation of nonnumeric literal .................................... | 1 NUC |
-| Continuation of COBOL word, numeric literal, PICTURE character-string ........................................... | 2 NUC |
-| Blank lines ........................................................... | 1 NUC |
-| Comment lines | |
-| Asterisk (\*) comment line ............................................. | 1 NUC |
-| Slant (/) comment line ................................................ | 1 NUC |
-| Debugging line with D in indicator area ............................... | 1 NUC |
+| &nbsp;Sequence number ........................................................ | 1 NUC |
+| &nbsp;Continuation of lines | |
+| &nbsp;&nbsp;Continuation of nonnumeric literal .................................... | 1 NUC |
+| &nbsp;&nbsp;Continuation of COBOL word, numeric literal, PICTURE character-string ........................................... | 2 NUC |
+| &nbsp;Blank lines ........................................................... | 1 NUC |
+| &nbsp;Comment lines | |
+| &nbsp;&nbsp;Asterisk (\*) comment line ............................................. | 1 NUC |
+| &nbsp;&nbsp;Slant (/) comment line ................................................ | 1 NUC |
+| &nbsp;Debugging line with D in indicator area ............................... | 1 NUC |
 | <u>Source Program Structure</u> | |
-| Identification Division required ...................................... | 1 NUC |
-| Environment Division optional ......................................... | 1 NUC |
-| Data Division optional ................................................ | 1 NUC |
-| Procedure Division optional ........................................... | 1 NUC |
-| End program header .................................................... | 2 NUC |
-| Nested source program ................................................. | 2 IPC |
+| &nbsp;Identification Division required ...................................... | 1 NUC |
+| &nbsp;Environment Division optional ......................................... | 1 NUC |
+| &nbsp;Data Division optional ................................................ | 1 NUC |
+| &nbsp;Procedure Division optional ........................................... | 1 NUC |
+| &nbsp;End program header .................................................... | 2 NUC |
+| &nbsp;Nested source program ................................................. | 2 IPC |
 
 I-43
 
@@ -2916,46 +2916,46 @@ Environment Division Element Summary
 |---|---|
 | <u>ENVIRONMENT DIVISION</u> | |
 | <u>Configuration Section</u> | 1 NUC |
-| SOURCE-COMPUTER paragraph | 1 NUC |
-| Computer-name | 1 NUC |
-| WITH DEBUGGING MODE clause | 1 NUC |
+| &nbsp;SOURCE-COMPUTER paragraph | 1 NUC |
+| &nbsp;&nbsp;Computer-name | 1 NUC |
+| &nbsp;&nbsp;WITH DEBUGGING MODE clause | 1 NUC |
 | | 1 DEB Z |
-| OBJECT-COMPUTER paragraph | 1 NUC |
-| Computer-name | 1 NUC |
-| MEMORY SIZE clause | 1 NUC Z |
-| PROGRAM COLLATING SEQUENCE clause | 1 NUC |
-| SEGMENT-LIMIT clause | 1 SEG Z |
-| SPECIAL-NAMES paragraph | 1 NUC |
-| ALPHABET clause | 1 NUC |
-| STANDARD-1 option | 1 NUC |
-| STANDARD-2 option | 1 NUC |
-| NATIVE option | 1 NUC |
-| Implementor-name option | 1 NUC |
-| Literal option | 2 NUC |
-| CLASS clause | 1 NUC |
-| CURRENCY SIGN clause | 1 NUC |
-| DECIMAL-POINT clause | 1 NUC |
-| Implementor-name clause | 1 NUC |
-| IS mnemonic-name option | 1 NUC |
-| ON STATUS IS condition-name option | 1 NUC |
-| OFF STATUS IS condition-name option | 1 NUC |
-| SYMBOLIC CHARACTERS clause | 2 NUC |
+| &nbsp;OBJECT-COMPUTER paragraph | 1 NUC |
+| &nbsp;&nbsp;Computer-name | 1 NUC |
+| &nbsp;&nbsp;MEMORY SIZE clause | 1 NUC Z |
+| &nbsp;&nbsp;PROGRAM COLLATING SEQUENCE clause | 1 NUC |
+| &nbsp;&nbsp;SEGMENT-LIMIT clause | 1 SEG Z |
+| &nbsp;SPECIAL-NAMES paragraph | 1 NUC |
+| &nbsp;&nbsp;ALPHABET clause | 1 NUC |
+| &nbsp;&nbsp;&nbsp;STANDARD-1 option | 1 NUC |
+| &nbsp;&nbsp;&nbsp;STANDARD-2 option | 1 NUC |
+| &nbsp;&nbsp;&nbsp;NATIVE option | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Implementor-name option | 1 NUC |
+| &nbsp;&nbsp;&nbsp;Literal option | 2 NUC |
+| &nbsp;&nbsp;CLASS clause | 1 NUC |
+| &nbsp;&nbsp;CURRENCY SIGN clause | 1 NUC |
+| &nbsp;&nbsp;DECIMAL-POINT clause | 1 NUC |
+| &nbsp;&nbsp;Implementor-name clause | 1 NUC |
+| &nbsp;&nbsp;&nbsp;IS mnemonic-name option | 1 NUC |
+| &nbsp;&nbsp;&nbsp;ON STATUS IS condition-name option | 1 NUC |
+| &nbsp;&nbsp;&nbsp;OFF STATUS IS condition-name option | 1 NUC |
+| &nbsp;&nbsp;SYMBOLIC CHARACTERS clause | 2 NUC |
 | <u>Input-Output Section</u> | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 SRT |
 | | 1 RPW |
-| FILE-CONTROL paragraph | 1 SEQ |
+| &nbsp;FILE-CONTROL paragraph | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 SRT |
 | | 1 RPW |
-| File control entry | 1 SEQ |
+| &nbsp;&nbsp;File control entry | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 SRT |
 | | 1 RPW |
-| SELECT clause | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;SELECT clause | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 SRT |
@@ -2972,24 +2972,24 @@ Environment Division Element Summary
 | ELEMENT | MODULE |
 |---|---|
 | SELECT clause (continued) | |
-| &nbsp;&nbsp;OPTIONAL phrase | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW |
-| &nbsp;&nbsp;&nbsp;&nbsp;Input, I-O, and extend files only | 2 SEQ<br>2 REL<br>2 INX |
-| &nbsp;&nbsp;&nbsp;&nbsp;Extend files only | 1 RPW |
+| &nbsp;OPTIONAL phrase | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW |
+| &nbsp;&nbsp;Input, I-O, and extend files only | 2 SEQ<br>2 REL<br>2 INX |
+| &nbsp;&nbsp;Extend files only | 1 RPW |
 | ACCESS MODE clause | |
-| &nbsp;&nbsp;SEQUENTIAL | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
-| &nbsp;&nbsp;RANDOM | 1 REL<br>1 INX |
-| &nbsp;&nbsp;DYNAMIC | 2 REL<br>2 INX |
-| &nbsp;&nbsp;RELATIVE KEY phrase | 1 REL |
+| &nbsp;SEQUENTIAL | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
+| &nbsp;RANDOM | 1 REL<br>1 INX |
+| &nbsp;DYNAMIC | 2 REL<br>2 INX |
+| &nbsp;RELATIVE KEY phrase | 1 REL |
 | ALTERNATE RECORD KEY clause | 2 INX |
-| &nbsp;&nbsp;WITH DUPLICATES phrase | 2 INX |
+| &nbsp;WITH DUPLICATES phrase | 2 INX |
 | ASSIGN clause | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |
-| &nbsp;&nbsp;Implementor-name | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |
-| &nbsp;&nbsp;Literal | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |
+| &nbsp;Implementor-name | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |
+| &nbsp;Literal | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |
 | FILE STATUS clause | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
 | ORGANIZATION clause | |
-| &nbsp;&nbsp;SEQUENTIAL | 1 SEQ<br>1 RPW |
-| &nbsp;&nbsp;RELATIVE | 1 REL |
-| &nbsp;&nbsp;INDEXED | 1 INX |
+| &nbsp;SEQUENTIAL | 1 SEQ<br>1 RPW |
+| &nbsp;RELATIVE | 1 REL |
+| &nbsp;INDEXED | 1 INX |
 | PADDING CHARACTER clause | 2 SEQ<br>1 RPW |
 | RECORD DELIMITER clause | 2 SEQ<br>1 RPW |
 
@@ -3003,9 +3003,9 @@ Environment Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| File control entry (continued) | |
-| RECORD KEY clause | 1 INX |
-| RESERVE AREA clause | 2 SEQ |
+| &nbsp;&nbsp;File control entry (continued) | |
+| &nbsp;&nbsp;&nbsp;RECORD KEY clause | 1 INX |
+| &nbsp;&nbsp;&nbsp;RESERVE AREA clause | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
@@ -3014,31 +3014,31 @@ Environment Division Element Summary
 | | 1 INX |
 | | 1 SRT |
 | | 1 RPW |
-| MULTIPLE FILE TAPE clause | 2 SEQ Z |
+| &nbsp;MULTIPLE FILE TAPE clause | 2 SEQ Z |
 | | 1 RPW Z |
-| RERUN clause | 1 SEQ Z |
+| &nbsp;RERUN clause | 1 SEQ Z |
 | | 1 REL Z |
 | | 1 INX Z |
-| SAME AREA clause | 1 SEQ |
+| &nbsp;SAME AREA clause | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| SAME RECORD AREA clause | 2 SEQ |
+| &nbsp;SAME RECORD AREA clause | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 SRT |
-| SAME SORT/SORT-MERGE AREA clause | 1 SRT |
+| &nbsp;SAME SORT/SORT-MERGE AREA clause | 1 SRT |
 | <u>Source Text Manipulation in Environment Division</u> | |
 | COPY statement | 1 STM |
-| OF/IN library-name | 2 STM |
-| REPLACING phrase | 2 STM |
-| Pseudo-text | 2 STM |
-| Identifier | 2 STM |
-| Literal | 2 STM |
-| Word | 2 STM |
+| &nbsp;OF/IN library-name | 2 STM |
+| &nbsp;REPLACING phrase | 2 STM |
+| &nbsp;&nbsp;Pseudo-text | 2 STM |
+| &nbsp;&nbsp;Identifier | 2 STM |
+| &nbsp;&nbsp;Literal | 2 STM |
+| &nbsp;&nbsp;Word | 2 STM |
 | REPLACE statement | 2 STM |
-| Pseudo-text BY pseudo-text | 2 STM |
-| OFF | 2 STM |
+| &nbsp;Pseudo-text BY pseudo-text | 2 STM |
+| &nbsp;OFF | 2 STM |
 
 I-47
 
@@ -3053,23 +3053,23 @@ Data Division Element Summary
 | <u>DATA DIVISION</u> | |
 | <u>File Section</u> ............................................................ | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT<br>1 RPW |
 | <u>File description entry</u> .................................................. | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
-| FD level indicator ...................................................... | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
-| BLOCK CONTAINS clause | |
-| Integer RECORDS/CHARACTERS .............................................. | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
-| Integer-1 TO integer-2 RECORDS/CHARACTERS ............................ | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW |
-| CODE-SET clause ......................................................... | 1 SEQ<br>1 RPW |
-| DATA RECORDS clause...................................................... | 1 SEQ Z<br>1 REL Z<br>1 INX Z |
-| EXTERNAL clause ......................................................... | 2 IPC |
-| GLOBAL clause ........................................................... | 2 IPC |
-| LABEL RECORDS clause .................................................... | 1 SEQ Z<br>1 REL Z<br>1 INX Z<br>1 RPW Z |
-| LINAGE clause ........................................................... | 2 SEQ |
-| FOOTING phrase .......................................................... | 2 SEQ |
-| TOP phrase .............................................................. | 2 SEQ |
-| BOTTOM phrase ........................................................... | 2 SEQ |
-| RECORD clause | |
-| Integer-1 CHARACTERS .................................................... | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
-| VARYING IN SIZE phrase .................................................. | 2 SEQ<br>2 REL<br>2 INX |
-| Integer-4 TO integer-5 CHARACTERS ...................................... | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
+| &nbsp;FD level indicator ...................................................... | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
+| &nbsp;BLOCK CONTAINS clause | |
+| &nbsp;&nbsp;Integer RECORDS/CHARACTERS .............................................. | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
+| &nbsp;&nbsp;Integer-1 TO integer-2 RECORDS/CHARACTERS ............................ | 2 SEQ<br>2 REL<br>2 INX<br>1 RPW |
+| &nbsp;CODE-SET clause ......................................................... | 1 SEQ<br>1 RPW |
+| &nbsp;DATA RECORDS clause...................................................... | 1 SEQ Z<br>1 REL Z<br>1 INX Z |
+| &nbsp;EXTERNAL clause ......................................................... | 2 IPC |
+| &nbsp;GLOBAL clause ........................................................... | 2 IPC |
+| &nbsp;LABEL RECORDS clause .................................................... | 1 SEQ Z<br>1 REL Z<br>1 INX Z<br>1 RPW Z |
+| &nbsp;LINAGE clause ........................................................... | 2 SEQ |
+| &nbsp;&nbsp;FOOTING phrase .......................................................... | 2 SEQ |
+| &nbsp;&nbsp;TOP phrase .............................................................. | 2 SEQ |
+| &nbsp;&nbsp;BOTTOM phrase ........................................................... | 2 SEQ |
+| &nbsp;RECORD clause | |
+| &nbsp;&nbsp;Integer-1 CHARACTERS .................................................... | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
+| &nbsp;&nbsp;VARYING IN SIZE phrase .................................................. | 2 SEQ<br>2 REL<br>2 INX |
+| &nbsp;&nbsp;Integer-4 TO integer-5 CHARACTERS ...................................... | 1 SEQ<br>1 REL<br>1 INX<br>1 RPW |
 
 I-48
 
@@ -3082,19 +3082,19 @@ Data Division Element Summary
 | ELEMENT | MODULE |
 |---|---|
 | <u>File description entry (continued)</u> | |
-| REPORT clause ........................................................ | 1 RPW |
-| VALUE OF clause | |
-| Implementor-name IS literal ........................................... | 1 SEQ Z<br>1 REL Z<br>1 INX Z<br>1 RPW Z |
-| Implementor-name IS literal series .................................... | 1 SEQ Z<br>1 REL Z<br>1 INX Z<br>1 RPW Z |
-| Implementor-name IS data-name ......................................... | 2 SEQ Z<br>2 REL Z<br>2 INX Z<br>1 RPW Z |
-| Implementor-name IS data-name series .................................. | 2 SEQ Z<br>2 REL Z<br>2 INX Z<br>1 RPW Z |
+| &nbsp;REPORT clause ........................................................ | 1 RPW |
+| &nbsp;VALUE OF clause | |
+| &nbsp;&nbsp;Implementor-name IS literal ........................................... | 1 SEQ Z<br>1 REL Z<br>1 INX Z<br>1 RPW Z |
+| &nbsp;&nbsp;Implementor-name IS literal series .................................... | 1 SEQ Z<br>1 REL Z<br>1 INX Z<br>1 RPW Z |
+| &nbsp;&nbsp;Implementor-name IS data-name ......................................... | 2 SEQ Z<br>2 REL Z<br>2 INX Z<br>1 RPW Z |
+| &nbsp;&nbsp;Implementor-name IS data-name series .................................. | 2 SEQ Z<br>2 REL Z<br>2 INX Z<br>1 RPW Z |
 | <u>Sort-merge file description entry</u> .................................... | 1 SRT |
-| SD level indicator ................................................... | 1 SRT |
-| DATA RECORDS clause .................................................. | 1 SRT Z |
-| RECORD clause | |
-| Integer-1 CHARACTERS ................................................. | 1 SRT |
-| VARYING IN SIZE phrase ............................................... | 1 SRT |
-| Integer-4 TO integer-5 CHARACTERS .................................... | 1 SRT |
+| &nbsp;SD level indicator ................................................... | 1 SRT |
+| &nbsp;DATA RECORDS clause .................................................. | 1 SRT Z |
+| &nbsp;RECORD clause | |
+| &nbsp;&nbsp;Integer-1 CHARACTERS ................................................. | 1 SRT |
+| &nbsp;&nbsp;VARYING IN SIZE phrase ............................................... | 1 SRT |
+| &nbsp;&nbsp;Integer-4 TO integer-5 CHARACTERS .................................... | 1 SRT |
 | <u>Record description entry in File Section</u> ............................. | 1 SEQ<br>1 REL<br>1 INX<br>1 SRT |
 | <u>Working-Storage Section</u> .............................................. | 1 NUC |
 | Record description entry ............................................. | 1 NUC |
@@ -3219,27 +3219,27 @@ Data Division Element Summary
 | SYNCHRONIZED clause | 1 NUC |
 | TYPE clause | 1 RPW |
 | USAGE clause | 1 NUC<br>1 RPW |
-| &nbsp;&nbsp;BINARY | 1 NUC |
-| &nbsp;&nbsp;COMPUTATIONAL | 1 NUC |
-| &nbsp;&nbsp;DISPLAY | 1 NUC<br>1 RPW |
-| &nbsp;&nbsp;INDEX | 1 NUC |
-| &nbsp;&nbsp;PACKED-DECIMAL | 1 NUC |
+| &nbsp;BINARY | 1 NUC |
+| &nbsp;COMPUTATIONAL | 1 NUC |
+| &nbsp;DISPLAY | 1 NUC<br>1 RPW |
+| &nbsp;INDEX | 1 NUC |
+| &nbsp;PACKED-DECIMAL | 1 NUC |
 | VALUE clause | 1 NUC<br>1 RPW |
-| &nbsp;&nbsp;Literal | 1 NUC<br>1 RPW |
-| &nbsp;&nbsp;Literal series | 2 NUC |
-| &nbsp;&nbsp;Literal-1 THROUGH literal-2 | 2 NUC |
-| &nbsp;&nbsp;Literal range series | 2 NUC |
+| &nbsp;Literal | 1 NUC<br>1 RPW |
+| &nbsp;Literal series | 2 NUC |
+| &nbsp;Literal-1 THROUGH literal-2 | 2 NUC |
+| &nbsp;Literal range series | 2 NUC |
 | <u>Source Text Manipulation in Data Division</u> | |
 | COPY statement | 1 STM |
-| &nbsp;&nbsp;OF/IN library-name | 2 STM |
-| &nbsp;&nbsp;REPLACING phrase | 2 STM |
-| &nbsp;&nbsp;&nbsp;&nbsp;Pseudo-text | 2 STM |
-| &nbsp;&nbsp;&nbsp;&nbsp;Identifier | 2 STM |
-| &nbsp;&nbsp;&nbsp;&nbsp;Literal | 2 STM |
-| &nbsp;&nbsp;&nbsp;&nbsp;Word | 2 STM |
+| &nbsp;OF/IN library-name | 2 STM |
+| &nbsp;REPLACING phrase | 2 STM |
+| &nbsp;&nbsp;Pseudo-text | 2 STM |
+| &nbsp;&nbsp;Identifier | 2 STM |
+| &nbsp;&nbsp;Literal | 2 STM |
+| &nbsp;&nbsp;Word | 2 STM |
 | REPLACE statement | 2 STM |
-| &nbsp;&nbsp;Pseudo-text BY pseudo-text | 2 STM |
-| &nbsp;&nbsp;OFF | 2 STM |
+| &nbsp;Pseudo-text BY pseudo-text | 2 STM |
+| &nbsp;OFF | 2 STM |
 
 I-52
 
@@ -3721,54 +3721,54 @@ Procedure Division Element Summary
 | ELEMENT | MODULE |
 |---|---|
 | UNSTRING statement ........................................................ | 2 NUC |
-| DELIMITED BY phrase ...................................................... | 2 NUC |
-| DELIMITER IN phrase ...................................................... | 2 NUC |
-| COUNT IN phrase .......................................................... | 2 NUC |
-| WITH POINTER phrase ...................................................... | 2 NUC |
-| TALLYING phrase .......................................................... | 2 NUC |
-| ON OVERFLOW phrase ....................................................... | 2 NUC |
-| NOT ON OVERFLOW phrase ................................................... | 2 NUC |
-| END-UNSTRING phrase ...................................................... | 2 NUC |
+| &nbsp;DELIMITED BY phrase ...................................................... | 2 NUC |
+| &nbsp;DELIMITER IN phrase ...................................................... | 2 NUC |
+| &nbsp;COUNT IN phrase .......................................................... | 2 NUC |
+| &nbsp;WITH POINTER phrase ...................................................... | 2 NUC |
+| &nbsp;TALLYING phrase .......................................................... | 2 NUC |
+| &nbsp;ON OVERFLOW phrase ....................................................... | 2 NUC |
+| &nbsp;NOT ON OVERFLOW phrase ................................................... | 2 NUC |
+| &nbsp;END-UNSTRING phrase ...................................................... | 2 NUC |
 | USE statement ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
 | | 1 DEB Z |
-| EXCEPTION/ERROR PROCEDURE phrase ......................................... | 1 SEQ |
+| &nbsp;EXCEPTION/ERROR PROCEDURE phrase ......................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| GLOBAL phrase ............................................................ | 2 IPC |
-| ON file-name ............................................................. | 1 SEQ |
+| &nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
+| &nbsp;&nbsp;ON file-name ............................................................. | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| ON file-name series ...................................................... | 2 SEQ |
+| &nbsp;&nbsp;ON file-name series ...................................................... | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| ON INPUT ................................................................. | 1 SEQ |
+| &nbsp;&nbsp;ON INPUT ................................................................. | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| ON OUTPUT ................................................................ | 1 SEQ |
+| &nbsp;&nbsp;ON OUTPUT ................................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| ON I-O ................................................................... | 1 SEQ |
+| &nbsp;&nbsp;ON I-O ................................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| ON EXTEND ................................................................ | 2 SEQ |
+| &nbsp;&nbsp;ON EXTEND ................................................................ | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| BEFORE REPORTING phrase .................................................. | 1 RPW |
-| GLOBAL phrase ............................................................ | 2 IPC |
-| FOR DEBUGGING phrase ..................................................... | 1 DEB Z |
-| Procedure-name ........................................................... | 1 DEB Z |
-| ALL PROCEDURES ........................................................... | 1 DEB Z |
-| ALL REFERENCES OF identifier-1 ........................................... | 2 DEB Z |
-| Cd-name .................................................................. | 2 DEB Z |
-| File-name ................................................................ | 2 DEB Z |
+| &nbsp;BEFORE REPORTING phrase .................................................. | 1 RPW |
+| &nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
+| &nbsp;FOR DEBUGGING phrase ..................................................... | 1 DEB Z |
+| &nbsp;&nbsp;Procedure-name ........................................................... | 1 DEB Z |
+| &nbsp;&nbsp;ALL PROCEDURES ........................................................... | 1 DEB Z |
+| &nbsp;&nbsp;ALL REFERENCES OF identifier-1 ........................................... | 2 DEB Z |
+| &nbsp;&nbsp;Cd-name .................................................................. | 2 DEB Z |
+| &nbsp;&nbsp;File-name ................................................................ | 2 DEB Z |
 
 I-62
 
@@ -3783,39 +3783,39 @@ Procedure Division Element Summary
 | WRITE statement | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;FROM phrase | 1 SEQ |
+| &nbsp;FROM phrase | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;BEFORE/AFTER ADVANCING phrase | 1 SEQ |
-| &nbsp;&nbsp;&nbsp;&nbsp;Integer LINE/LINES | 1 SEQ |
-| &nbsp;&nbsp;&nbsp;&nbsp;Identifier LINE/LINES | 1 SEQ |
-| &nbsp;&nbsp;&nbsp;&nbsp;Mnemonic-name | 2 SEQ |
-| &nbsp;&nbsp;&nbsp;&nbsp;PAGE | 1 SEQ |
-| &nbsp;&nbsp;AT END-OF-PAGE/EOP phrase | 2 SEQ |
-| &nbsp;&nbsp;NOT AT END-OF-PAGE/EOP phrase | 2 SEQ |
-| &nbsp;&nbsp;INVALID KEY phrase | 1 REL |
+| &nbsp;BEFORE/AFTER ADVANCING phrase | 1 SEQ |
+| &nbsp;&nbsp;Integer LINE/LINES | 1 SEQ |
+| &nbsp;&nbsp;Identifier LINE/LINES | 1 SEQ |
+| &nbsp;&nbsp;Mnemonic-name | 2 SEQ |
+| &nbsp;&nbsp;PAGE | 1 SEQ |
+| &nbsp;AT END-OF-PAGE/EOP phrase | 2 SEQ |
+| &nbsp;NOT AT END-OF-PAGE/EOP phrase | 2 SEQ |
+| &nbsp;INVALID KEY phrase | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;NOT INVALID KEY phrase | 1 REL |
+| &nbsp;NOT INVALID KEY phrase | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;END-WRITE phrase | 1 SEQ |
+| &nbsp;END-WRITE phrase | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | <u>Segmentation</u> | |
-| &nbsp;&nbsp;Segment-numbers 0 through 49 for permanent segments | 1 SEG Z |
-| &nbsp;&nbsp;Segment-numbers 50 through 99 for independent segments | 1 SEG Z |
-| &nbsp;&nbsp;All sections with the same segment-number must be together in the source program | 1 SEG Z |
-| &nbsp;&nbsp;Sections with the same segment-number need not be physically contiguous in the source program | 2 SEG Z |
+| &nbsp;Segment-numbers 0 through 49 for permanent segments | 1 SEG Z |
+| &nbsp;Segment-numbers 50 through 99 for independent segments | 1 SEG Z |
+| &nbsp;All sections with the same segment-number must be together in the source program | 1 SEG Z |
+| &nbsp;Sections with the same segment-number need not be physically contiguous in the source program | 2 SEG Z |
 | <u>Source Text Manipulation in Procedure Division</u> | |
 | COPY statement | 1 STM |
-| &nbsp;&nbsp;OF/IN library-name phrase | 2 STM |
-| &nbsp;&nbsp;REPLACING phrase | 2 STM |
-| &nbsp;&nbsp;&nbsp;&nbsp;Pseudo-text | 2 STM |
-| &nbsp;&nbsp;&nbsp;&nbsp;Identifier | 2 STM |
-| &nbsp;&nbsp;&nbsp;&nbsp;Literal | 2 STM |
-| &nbsp;&nbsp;&nbsp;&nbsp;Word | 2 STM |
+| &nbsp;OF/IN library-name phrase | 2 STM |
+| &nbsp;REPLACING phrase | 2 STM |
+| &nbsp;&nbsp;Pseudo-text | 2 STM |
+| &nbsp;&nbsp;Identifier | 2 STM |
+| &nbsp;&nbsp;Literal | 2 STM |
+| &nbsp;&nbsp;Word | 2 STM |
 | REPLACE statement | 2 STM |
-| &nbsp;&nbsp;Pseudo-text BY pseudo-text | 2 STM |
-| &nbsp;&nbsp;OFF | 2 STM |
+| &nbsp;Pseudo-text BY pseudo-text | 2 STM |
+| &nbsp;OFF | 2 STM |
 
 I-63
 
@@ -4127,7 +4127,7 @@ II-11
 
 Concepts - Table Handling
 
-## 4. TABLE HANDLING
+## 4. <u>TABLE HANDLING</u>
 
 Tables of data are common components of business data processing problems. Although the repeating items that make up a table could be otherwise described by a series of separate data description entries all having the same level-number and all subordinate to the same group item, there are two reasons why this approach is not satisfactory. First, from a documentation standpoint, the underlying homogeneity of the items would not be readily apparent; and second, the problem of making available an individual element of such a table would be severe when there is a decision as to which element is to be made available at object time.
 
@@ -4314,7 +4314,7 @@ II-17
 
 Concepts - Program Communication
 
-## 6. PROGRAM AND RUN UNIT ORGANIZATION AND COMMUNICATION
+## 6. <u>PROGRAM AND RUN UNIT ORGANIZATION AND COMMUNICATION</u>
 
 Complete data processing problems are frequently solved by developing a set of separately compilable but logically coordinated programs which at some time prior to execution may be compiled and assembled into a complete problem solution. The organization of COBOL programs and run units supports this approach of dividing large problem solutions into small, more manageable, portions which may be programmed and validated independently.
 
@@ -4704,13 +4704,13 @@ COBOL Program                 Message Control System                 Communicati
 │          │   │  │            │          │          │          │  │        └─┘
 │ RECEIVE &lt;────│  │────────────│          │          │&lt;─────────│  │        ┌─┐
 │          │   │C │            └──────────┴──────────┘          │E │────────│ │
-│ SEND     │   │o │                                             │N │        └─┘
-│          │   │m │                                             │A │        ┌─┐
-│          │   │m │                                             │B │───────&gt;│ │
+│ SEND     │───│o │                 ^                           │N │        └─┘
+│          │   │m │                 │                           │A │        ┌─┐
+│          │   │m │                 └───────────────────────────│B │───────&gt;│ │
 │          │   │u │               Output  Queues                │L │        └─┘
 │          │   │n │            ┌──────────┬──────────┐          │E │
 │ SEND     │───│i │───────────&gt;│          │          │──────────│/ │        ┌─┐
-│          │   │c │            │          │          │          │D │───────&gt;│ │
+│          │   │c │───────────&gt;│          │          │          │D │───────&gt;│ │
 │          │   │a │            └──────────┴──────────┘          │I │        └─┘
 │          │   │t │                                             │S │
 │          │   │i │                                             │A │
@@ -4931,9 +4931,9 @@ II-35
 
 Glossary
 
-## SECTION III: GLOSSARY
+## <u>SECTION III: GLOSSARY</u>
 
-### 1. INTRODUCTION
+### 1. <u>INTRODUCTION</u>
 
 The terms in this section are defined in accordance with their meaning in COBOL, and may not have the same meaning for other languages.
 
@@ -5888,13 +5888,13 @@ III-26
 
 Notation
 
-## SECTION IV: OVERALL LANGUAGE CONSIDERATION
+## <u>SECTION IV: OVERALL LANGUAGE CONSIDERATION</u>
 
-### 1. INTRODUCTION
+### 1. <u>INTRODUCTION</u>
 
 The language considerations and rules specified in this section, apply to the highest level of Standard COBOL. When a particular level of a module does not allow all of these language concepts, the restrictions will be pointed out in the section describing that language element. Throughout this document, specifications unique to the high level are enclosed in boxes. It should also be noted that restrictions contained in one module might possibly affect other modules. For example, qualification is not allowed in level 1 of the Nucleus; therefore, any module which is combined with level 1 of the Nucleus would have the same restriction. The flowcharts in this document illustrate the logic of the statement under which they are contained and are not meant to dictate implementation.
 
-### 2. NOTATION USED IN FORMATS
+### 2. <u>NOTATION USED IN FORMATS</u>
 
 #### 2.1 DEFINITION OF A GENERAL FORMAT
 
@@ -7576,7 +7576,7 @@ V-2
 
 Environment Division
 
-## GENERAL FORMAT FOR ENVIRONMENT DIVISION
+## <u>GENERAL FORMAT FOR ENVIRONMENT DIVISION</u>
 
 <pre style="line-height:1">
 [<u>ENVIRONMENT</u> <u>DIVISION</u>.
@@ -7766,7 +7766,7 @@ V-6
                                                     Environment Division - File Control Entry
 </pre>
 
-## GENERAL FORMAT FOR FILE CONTROL ENTRY
+## <u>GENERAL FORMAT FOR FILE CONTROL ENTRY</u>
 
 <pre style="line-height:1">
 <u>REPORT</u> <u>FILE</u>:
@@ -7933,7 +7933,7 @@ Data Division - File Description Entry
 
 Data Division - File Description Entry
 
-## GENERAL FORMAT FOR FILE DESCRIPTION ENTRY
+## <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>
 
 <u>INDEXED FILE</u>:
 
@@ -8188,7 +8188,7 @@ V-16
 
 Data Division - Report Description Entry
 
-## GENERAL FORMAT FOR REPORT DESCRIPTION ENTRY
+## <u>GENERAL FORMAT FOR REPORT DESCRIPTION ENTRY</u>
 
 <pre style="line-height:1">
 <u>RD</u> report-name-1
@@ -8264,7 +8264,7 @@ V-17
 
 Data Division - Report Group Description Entry
 
-## GENERAL FORMAT FOR REPORT GROUP DESCRIPTION ENTRY
+## <u>GENERAL FORMAT FOR REPORT GROUP DESCRIPTION ENTRY</u>
 
 <u>FORMAT 2</u>:
 
@@ -8326,7 +8326,7 @@ V-18
                                                                     Procedure Division
 </pre>
 
-## GENERAL FORMAT FOR PROCEDURE DIVISION
+## <u>GENERAL FORMAT FOR PROCEDURE DIVISION</u>
 
 <u>FORMAT 1</u>:
 
@@ -8549,7 +8549,7 @@ V-22
 
 Verb Formats (DIVIDE - EVALUATE)
 
-## GENERAL FORMAT FOR COBOL VERBS
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
        ╭ identifier-1 ╮    ╭ identifier-2 ╮
@@ -9016,7 +9016,7 @@ V-29
 
 Verb Formats (SET - STOP)
 
-## GENERAL FORMAT FOR COBOL VERBS
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
                        ╭ <u>UP</u> <u>BY</u>   ╮ ╭ identifier-3 ╮
@@ -9085,7 +9085,7 @@ V-30
 
 Verb Formats (STRING - TERMINATE)
 
-## GENERAL FORMAT FOR COBOL VERBS
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
        ╭                                 ╭ identifier-2 ╮ ╮
@@ -9275,7 +9275,7 @@ Condition Formats
 
 **GENERAL FORMAT FOR CONDITIONS**
 
-RELATION CONDITION:
+<u>RELATION CONDITION</u>:
 
 <pre style="line-height:1">
                             ╭ IS [<u>NOT</u>] <u>GREATER</u> THAN       ╮
@@ -9290,7 +9290,7 @@ RELATION CONDITION:
                             ╰ IS &lt;=                       ╯
 </pre>
 
-CLASS CONDITION:
+<u>CLASS CONDITION</u>:
 
 <pre style="line-height:1">
                       ╭ <u>NUMERIC</u>          ╮
@@ -9306,13 +9306,13 @@ CONDITION-NAME CONDITION:
 condition-name-1
 </pre>
 
-SWITCH-STATUS CONDITION:
+<u>SWITCH-STATUS CONDITION</u>:
 
 <pre style="line-height:1">
 condition-name-1
 </pre>
 
-SIGN CONDITION:
+<u>SIGN CONDITION</u>:
 
 <pre style="line-height:1">
                                  ╭ <u>POSITIVE</u> ╮
@@ -9320,7 +9320,7 @@ arithmetic-expression-1 IS [<u>NOT</u>] ┤ <u>NEGATIVE</u> ├
                                  ╰ <u>ZERO</u>     ╯
 </pre>
 
-NEGATED CONDITION:
+<u>NEGATED CONDITION</u>:
 
 <pre style="line-height:1">
 <u>NOT</u> condition-1
@@ -16318,7 +16318,7 @@ Relative I-O - Introduction
 
 ## SECTION VIII: RELATIVE I-O MODULE
 
-## 1. INTRODUCTION TO THE RELATIVE I-O MODULE
+## 1. <u>INTRODUCTION TO THE RELATIVE I-O MODULE</u>
 
 ### 1.1 FUNCTION
 
@@ -20189,9 +20189,9 @@ X-35
 
 Sort-Merge - Introduction
 
-## SECTION XI: SORT-MERGE MODULE
+## <u>SECTION XI: SORT-MERGE MODULE</u>
 
-## 1. INTRODUCTION OF THE SORT-MERGE MODULE
+## 1. <u>INTRODUCTION OF THE SORT-MERGE MODULE</u>
 
 ### 1.1 FUNCTION
 
@@ -23619,7 +23619,7 @@ Communication - Introduction
 
 # SECTION XIV: COMMUNICATION MODULE
 
-## 1. INTRODUCTION TO THE COMMUNICATION MODULE
+## 1. <u>INTRODUCTION TO THE COMMUNICATION MODULE</u>
 
 ### 1.1 FUNCTION
 
@@ -24584,9 +24584,9 @@ XIV-30
 
 Debug - Introduction
 
-# SECTION XV: DEBUG MODULE
+# <u>SECTION XV: DEBUG MODULE</u>
 
-## 1. INTRODUCTION TO THE DEBUG MODULE
+## 1. <u>INTRODUCTION TO THE DEBUG MODULE</u>
 
 ### 1.1 FUNCTION
 
@@ -24946,7 +24946,7 @@ XV-10
 
 Segmentation - Introduction
 
-# SECTION XVI: SEGMENTATION MODULE
+# <u>SECTION XVI: SEGMENTATION MODULE</u>
 
 ## 1. INTRODUCTION TO THE SEGMENTATION MODULE
 
@@ -25241,9 +25241,9 @@ XVI-9
 
 History of COBOL
 
-## SECTION XVII: APPENDICES
+## <u>SECTION XVII: APPENDICES</u>
 
-### APPENDIX A: THE HISTORY OF COBOL
+### <u>APPENDIX A: THE HISTORY OF COBOL</u>
 
 ## 1. <u>THE DEVELOPMENT OF COBOL</u>
 
@@ -25765,9 +25765,9 @@ XVII-15
 
 Second and Third Standard Differences
 
-## APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL
+## <u>APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>
 
-### 1. SUMMARY OF DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL
+### 1. <u>SUMMARY OF DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>
 
 This first portion of Appendix B contains a summary of all elements in second Standard COBOL and in third Standard COBOL. These elements are organized according to the COBOL divisions.
 
@@ -26999,7 +26999,7 @@ XVII-40
 
 Additional Difference Summary
 
-## ADDITIONAL SUMMARY OF DIFFERENCES
+## <u>ADDITIONAL SUMMARY OF DIFFERENCES</u>
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
@@ -31191,7 +31191,7 @@ A-6
 
 ## Page 837
 
-**<u>Page No.</u>** — **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
 | Entry | |
 |---|---|
@@ -31216,7 +31216,7 @@ A-6
 
 Statements
 
-| Page No. | Change |
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
 |---|---|
 | I-54 thru I-63 | Indent all lines following the newly inserted "Statements" entry beginning with "ACCEPT statement" and ending with "END-WRITE phrase". |
 | II-23 (T) | Paragraph 6.4.1.1, entitled "Names of Programs", second paragraph, first line, change "compiled program" to "compiled programs". |
@@ -31284,7 +31284,7 @@ A-10
 
 ## Page 841
 
-<u>Page No.</u> | **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
 IV-21 Paragraph 4.3.8.2.2, replace the general format with the following:
 
@@ -31332,7 +31332,7 @@ A-11
 
 ## Page 842
 
-<u>Page No.</u> <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
 a. As a receiving operand of any statement.
 
@@ -31660,37 +31660,37 @@ A-19
 
 ## Page 850
 
-<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
----|---
-IX-41 | Paragraph 4.9.3, change syntax rule 1 to read:<br><br>(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
-X-1 (T) | Paragraph 1.1, Function for Inter-Program Communication module, fifth line, change "data value available" to "data values available".
-X-2 (T) | Paragraph 1.3.4, entitled "External Objects and Internal Objects", second paragraph, last sentence, change "representative" to "representation".
-X-5 (T) | Paragraph 1.3.8, entitled "Scope of Names", second paragraph on page X-5, second line, box the word "either". In the same paragraph, third and fourth lines, box "which contains a Configuration Section or in any program contained within that program".
-X-6 (T) | Paragraph 1.3.8.1, entitled "Conventions for Program-Names", rule 3, box "except programs it directly or indirectly contains".
-X-10 (T) | Paragraph 2.4.2, entitled "Programs in the Initial State", box numbered paragraphs 3 and 4.
-X-19 (T) | Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, first paragraph, last line, box "or global names".
-X-19 (T) | Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, second paragraph, second line, box "or external".
-X-27 | Paragraph 5.2.3, add new syntax rule 4 as follows:<br><br>(4) Identifier-2 must not be a function-identifier.
-X-29 (T) | Paragraph 5.2.4 of the CALL statement, general rule 10, change two occurrences of "data-names" to "parameters"; also change two occurrences of "data-name" to "parameter".
-XI-8 (T) | Paragraph 4.1.3 of the MERGE statement, syntax rule 3, fifth line, change "in the file" to "in the files".
-XI-13 | Paragraph 4.2.3, change syntax rule 3 to read:<br><br>(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
-XII-4 (T) | Paragraph 2.4 of the COPY statement, general rule 7, fifth and sixth lines, change two occurrences of "pseudo-text-delimiter" to "pseudo-text delimiter".
-XII-4 (T) | Paragraph 2.4 of the COPY statement, general rule 9, third paragraph, fourth line, change "When a text word" to "When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except".
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
+|---|---|
+| IX-41 | Paragraph 4.9.3, change syntax rule 1 to read:<br><br>(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area. |
+| X-1 (T) | Paragraph 1.1, Function for Inter-Program Communication module, fifth line, change "data value available" to "data values available". |
+| X-2 (T) | Paragraph 1.3.4, entitled "External Objects and Internal Objects", second paragraph, last sentence, change "representative" to "representation". |
+| X-5 (T) | Paragraph 1.3.8, entitled "Scope of Names", second paragraph on page X-5, second line, box the word "either". In the same paragraph, third and fourth lines, box "which contains a Configuration Section or in any program contained within that program". |
+| X-6 (T) | Paragraph 1.3.8.1, entitled "Conventions for Program-Names", rule 3, box "except programs it directly or indirectly contains". |
+| X-10 (T) | Paragraph 2.4.2, entitled "Programs in the Initial State", box numbered paragraphs 3 and 4. |
+| X-19 (T) | Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, first paragraph, last line, box "or global names". |
+| X-19 (T) | Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, second paragraph, second line, box "or external". |
+| X-27 | Paragraph 5.2.3, add new syntax rule 4 as follows:<br><br>(4) Identifier-2 must not be a function-identifier. |
+| X-29 (T) | Paragraph 5.2.4 of the CALL statement, general rule 10, change two occurrences of "data-names" to "parameters"; also change two occurrences of "data-name" to "parameter". |
+| XI-8 (T) | Paragraph 4.1.3 of the MERGE statement, syntax rule 3, fifth line, change "in the file" to "in the files". |
+| XI-13 | Paragraph 4.2.3, change syntax rule 3 to read:<br><br>(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area. |
+| XII-4 (T) | Paragraph 2.4 of the COPY statement, general rule 7, fifth and sixth lines, change two occurrences of "pseudo-text-delimiter" to "pseudo-text delimiter". |
+| XII-4 (T) | Paragraph 2.4 of the COPY statement, general rule 9, third paragraph, fourth line, change "When a text word" to "When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except". |
 
 A-20
 
 ## Page 851
 
-<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
----|---
-XIII-7 (T) | Paragraph 3.2.2 of the file description entry in the Report Writer module, VALUE OF clause, delete the fourth period in the ellipsis.
-XIV-3 (T) | Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-11, inclusively, in format 1.
-XIV-4 (T) | Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-6, inclusively, in format 3.
-XIV-19 (T) | Paragraph 3.2.4 of the DISABLE statement, general rule 4, third line, change "SOURCE)" to "SOURCE))".
-XIV-26 | Paragraph 3.6.3, add new syntax rule 6 as follows:<br><br>(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function.
-XV-5 (T) | Paragraph 3.2.3 of the USE FOR DEBUGGING statement, syntax rule 10, last line, delete "or indexing".
-XVII-8 (T) | Paragraph 2.11, entitled "CODASYL COBOL JOURNAL OF DEVELOPMENT 1981", item 12, change "PROGRAM" to "PERFORM".
-XVII-13 | Add the following after paragraph 3.4:
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
+|---|---|
+| XIII-7 (T) | Paragraph 3.2.2 of the file description entry in the Report Writer module, VALUE OF clause, delete the fourth period in the ellipsis. |
+| XIV-3 (T) | Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-11, inclusively, in format 1. |
+| XIV-4 (T) | Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-6, inclusively, in format 3. |
+| XIV-19 (T) | Paragraph 3.2.4 of the DISABLE statement, general rule 4, third line, change "SOURCE)" to "SOURCE))". |
+| XIV-26 | Paragraph 3.6.3, add new syntax rule 6 as follows:<br><br>(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function. |
+| XV-5 (T) | Paragraph 3.2.3 of the USE FOR DEBUGGING statement, syntax rule 10, last line, delete "or indexing". |
+| XVII-8 (T) | Paragraph 2.11, entitled "CODASYL COBOL JOURNAL OF DEVELOPMENT 1981", item 12, change "PROGRAM" to "PERFORM". |
+| XVII-13 | Add the following after paragraph 3.4: |
 
 **3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1**
 
@@ -31706,8 +31706,8 @@ A-21
 
 ## Page 852
 
-<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
----|---
+| <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u> |
+|---|---|
 
 addendum to American National Standard COBOL X3.23-1985. The specifications of this approved Addendum 1 are published in the American National Standards Institute document X3.23A-1989.
 
@@ -31746,7 +31746,7 @@ A-22
 
 ## Page 853
 
-**<u>Page No.</u>** | **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
 **XVII-31** Add the following before the entry for "ACCEPT statement":
 
@@ -31818,7 +31818,7 @@ A-24
 
 ## Page 855
 
-**<u>Page No.</u>** **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**
+<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
 Cosine function, A-38
 CURRENT-DATE function, A-39
