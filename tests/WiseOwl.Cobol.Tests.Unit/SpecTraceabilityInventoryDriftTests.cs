@@ -162,7 +162,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
         //: the object from the JSON closes the door in both engines at once.
         DerivationRule? Derivation,
         //: Every rule-id the catalog knows, for the `indistinguishable-consequent` arm.
-        IReadOnlySet<string> CatalogRuleIds);
+        IReadOnlySet<string> CatalogRuleIds,
+        //: The schema's `next` kind whose verdict is its CHAIN's (`chained`: KEPT): an older row of that kind has the state of
+        //: the rules it carries into (kb/Work PB4994). Twin of `inventory_schema.Schema.next.chained`.
+        string ChainedKind);
 
     private static string Str(JsonElement e, string name) =>
         e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : "";
@@ -243,7 +246,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
             anchored,
             ConformanceRegister.Determinations.Keys.ToHashSet(StringComparer.Ordinal),
             root.TryGetProperty("derivation", out var derivation) ? LoadDerivation(derivation) : null,
-            CatalogIds.Value);
+            CatalogIds.Value,
+            root.GetProperty("next").GetProperty("kinds").EnumerateObject()
+                .Single(k => !k.Name.StartsWith('$') && k.Value.GetProperty("chained").GetBoolean()).Name);
     }
 
     /// <summary>
@@ -303,15 +308,20 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// also the Python view's refusals: a store record it refuses (a rule the catalog dropped, a copied catalog field or
     /// state, an adjudication decided against other text) fails it, naming the record.
     /// </summary>
-    private static readonly Lazy<IReadOnlyDictionary<string, string>> PythonStates = new(() =>
+    private static readonly Lazy<IReadOnlyDictionary<string, string>> PythonStates = new(() => PythonStatesOf(TraceabilityInventory.Newest));
+
+    /// <summary>The Python view's state of every rule of <paramref name="edition"/> (<c>inventory_view.py --states --edition</c>),
+    /// one process per call: a caller that reads one edition more than once holds the result.</summary>
+    private static IReadOnlyDictionary<string, string> PythonStatesOf(TraceabilityInventory.Edition edition)
     {
-        var run = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "inventory_view.py"), "--states");
+        var run = PythonInstrument.Run(ObservationBudget.OneProcess, TestRepo.Scripts("spec", "inventory_view.py"),
+            "--states", "--edition", edition.Year.ToString(System.Globalization.CultureInfo.InvariantCulture));
         string? line = run.Stdout.Split('\n').Select(l => l.Trim())
             .FirstOrDefault(l => l.StartsWith("JSON ", StringComparison.Ordinal));
         Assert.True(run.ExitCode == 0 && line is not null,
-            $"inventory_view.py --states exited {run.ExitCode} with no JSON line:\n{run.Stdout}\n{run.Stderr}");
+            $"inventory_view.py --states --edition {edition.Year} exited {run.ExitCode} with no JSON line:\n{run.Stdout}\n{run.Stderr}");
         return JsonSerializer.Deserialize<Dictionary<string, string>>(line!["JSON ".Length..])!;
-    });
+    }
 
     private static IReadOnlyList<TraceabilityInventory.Row> LoadInventory() => TraceabilityInventory.Rows;
 
@@ -353,6 +363,35 @@ public sealed class SpecTraceabilityInventoryDriftTests
         if (!s.SpecDerivedRequired) return r.TestRef.Length > 0 ? "OK" : "GAP";
         if (Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s))) return "OK";
         return DerivationStands(r, s) ? "OK" : "GAP";
+    }
+
+    /// <summary>
+    /// A row's state at its OWN edition (DESIGN-spec-conformance-review.md §10.2, kb/Work PB4994): the newest edition's, and
+    /// an older row not of the chained (KEPT) kind, by <see cref="DerivedState"/>; a KEPT row's is its chain's, OK when it
+    /// carries into at least one rule, every rule it carries into is OK at the next held edition, and each one's
+    /// <c>editions</c> band includes this edition, which is what places the chain's test here. Mirrors
+    /// <c>lineage.state_of</c> in Python. <paramref name="next"/> are the next held edition's rows and their states by id.
+    /// </summary>
+    private static string StateAt(
+        TraceabilityInventory.Row r, TraceabilityInventory.Edition edition, Schema s,
+        IReadOnlyDictionary<string, (TraceabilityInventory.Row Row, string State)> next)
+    {
+        if (edition.IsNewest || r.Next?.Kind != s.ChainedKind) return DerivedState(r, s);
+        return r.Next.To.Count > 0 && r.Next.To.All(t => next.TryGetValue(t, out var target) && target.State == "OK"
+            && Split(target.Row.Editions, s.EditionsSeparator).Contains(edition.Spelling, StringComparer.Ordinal))
+            ? "OK" : "GAP";
+    }
+
+    /// <summary>Every rule of <paramref name="edition"/>'s view and its state at that edition: the newest edition's by
+    /// <see cref="DerivedState"/>, an older one's through its change records against the next held edition's states.</summary>
+    private static Dictionary<string, (TraceabilityInventory.Row Row, string State)> StatesOf(
+        TraceabilityInventory.Edition edition, Schema s)
+    {
+        var next = edition.NextHeld is { } year
+            ? StatesOf(TraceabilityInventory.Editions.Single(e => e.Year == year), s)
+            : [];
+        return TraceabilityInventory.RowsOf(edition)
+            .ToDictionary(r => r.RuleId, r => (r, StateAt(r, edition, s, next)), StringComparer.Ordinal);
     }
 
     /// <summary>
@@ -1060,7 +1099,34 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// The C# view reads every field the newest edition's store file holds: <c>inventory-schema.json</c>'s
+    /// An OLDER edition's rule has the state of its KEPT chain, evaluated at its own edition (DESIGN-spec-conformance-review.md
+    /// §10.2, kb/Work PB4994): every held edition's views hold the same rules in both languages, and each rule's state as
+    /// this engine computes it (<see cref="StatesOf"/>) is the state the Python view computes
+    /// (<c>inventory_view.py --states --edition</c>). The newest edition's is <see cref="EveryRuleState_AgreesWithThePythonView"/>.
+    /// </summary>
+    [Fact]
+    public void EveryOlderEditionsRuleState_AgreesWithThePythonView()
+    {
+        var s = LoadSchema();
+        var older = TraceabilityInventory.Editions.Where(e => !e.IsNewest).ToList();
+        Assert.NotEmpty(older);
+        foreach (var edition in older)
+        {
+            var mine = StatesOf(edition, s);
+            var theirs = PythonStatesOf(edition);
+            var onlyOneSide = mine.Keys.ToHashSet(StringComparer.Ordinal);
+            onlyOneSide.SymmetricExceptWith(theirs.Keys);
+            Assert.True(onlyOneSide.Count == 0,
+                $"the C# and Python {edition.Year} views hold different rules: [{string.Join(", ", onlyOneSide.Order().Take(10))}]");
+            List<string> bad = [.. mine.Where(m => m.Value.State != theirs[m.Key])
+                .Select(m => $"{m.Key}: the Python view computes '{theirs[m.Key]}' but this engine derives '{m.Value.State}' "
+                             + $"(change record {m.Value.Row.Next?.Kind ?? "none"})")];
+            Assert.True(bad.Count == 0, Report($"{edition.Year} rule(s) whose state the two engines compute differently", bad, mine.Count));
+        }
+    }
+
+    /// <summary>
+    /// The C# view reads every field each held edition's store file holds: <c>inventory-schema.json</c>'s
     /// <c>editions.of</c>, the one list (kb/Work PB4992, branch review R1-6), which the Python store and view read too.
     /// A store record carrying a distinct value in each field is joined through the view's own reader
     /// (<see cref="TraceabilityInventory.RowOf"/>), and each field must come back through <c>Row.Field</c>: a field added
@@ -1069,17 +1135,25 @@ public sealed class SpecTraceabilityInventoryDriftTests
     [Fact]
     public void TheViewsRow_CarriesEveryStoreField()
     {
-        var fields = TraceabilityInventory.Newest.Adjudicated;
-        Assert.True(fields.Count >= 6, $"the newest edition names {fields.Count} adjudicated field(s): the schema lost its list");
-        var record = fields.ToDictionary(f => f, f => $"value of {f}", StringComparer.Ordinal);
-        using var ruleDoc = JsonDocument.Parse(JsonSerializer.Serialize(new Dictionary<string, object>
+        foreach (var edition in TraceabilityInventory.Editions)
         {
-            ["id"] = "X-1", [TraceabilityInventory.Newest.Locator] = "1.1", ["kind"] = "GR", ["ordinal"] = 1, ["subject"] = "s",
-        }));
-        using var recordDoc = JsonDocument.Parse(JsonSerializer.Serialize(record));
-        var row = TraceabilityInventory.RowOf(ruleDoc.RootElement, recordDoc.RootElement, TraceabilityInventory.Newest.Locator);
-        Assert.Equal(record, fields.ToDictionary(f => f, row.Field, StringComparer.Ordinal));
-        Assert.Equal("1.1", row.Section);
+            var fields = edition.Adjudicated;
+            Assert.True(fields.Count >= 5, $"the {edition.Year} edition names {fields.Count} adjudicated field(s): the schema lost its list");
+            // The change record is an object, not a string: it is carried as `Next`, and `Field` projects its kind.
+            var record = fields.ToDictionary(f => f, f => f == "next" ? (object)new { kind = "KEPT", to = new[] { "X-2" } } : $"value of {f}",
+                StringComparer.Ordinal);
+            using var ruleDoc = JsonDocument.Parse(JsonSerializer.Serialize(new Dictionary<string, object>
+            {
+                ["id"] = "X-1", [edition.Locator] = "1.1", ["kind"] = "GR", ["ordinal"] = 1, ["subject"] = "s",
+            }));
+            using var recordDoc = JsonDocument.Parse(JsonSerializer.Serialize(record));
+            var row = TraceabilityInventory.RowOf(ruleDoc.RootElement, recordDoc.RootElement, edition.Locator);
+            Assert.Equal(fields.ToDictionary(f => f, f => f == "next" ? "KEPT" : $"value of {f}", StringComparer.Ordinal),
+                fields.ToDictionary(f => f, row.Field, StringComparer.Ordinal));
+            Assert.Equal("1.1", row.Section);
+            string[]? carries = fields.Contains("next") ? ["X-2"] : null;
+            Assert.Equal(carries, row.Next?.To.ToArray());
+        }
     }
 
     /// <summary>Each verdict carries the evidence the schema says that verdict requires.</summary>
@@ -1570,6 +1644,30 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Empty(DifferentialOnlyCoverage(
             [Covered("X-5d", "nist:IF128A; conformance:cases/15.63.4-Returned-value-rules/da2_function_as_text")], s));
         Assert.Empty(BadStates([Covered("X-5e", "nist:IF128A; conformance:cases/15.63.4-Returned-value-rules/da2_function_as_text")], s));
+
+        // ⛔ A KEPT rule's state is its CHAIN's, evaluated at its own edition (kb/Work PB4994): OK only when it carries into
+        // a rule, that rule is OK, and its band places the chain's test at the older edition. Each way to fail is a GAP.
+        var older = TraceabilityInventory.Editions[0];
+        var kept = Base("1985-X-1") with { Next = new(s.ChainedKind, ["X-6"]) };
+        TraceabilityInventory.Row Target(string editions, string verdict = "CONFORMS") => Base("X-6") with
+        {
+            Verdict = verdict, CodeLocation = "scripts/spec/inventory_schema.py", Editions = editions,
+            TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRuleState_AgreesWithThePythonView",
+        };
+        IReadOnlyDictionary<string, (TraceabilityInventory.Row, string)> At(TraceabilityInventory.Row t) =>
+            new Dictionary<string, (TraceabilityInventory.Row, string)> { ["X-6"] = (t, DerivedState(t, s)) };
+        string older85 = older.Spelling + s.EditionsSeparator + "2023";
+        Assert.Equal("OK", StateAt(kept, older, s, At(Target(older85))));
+        Assert.Equal("GAP", StateAt(kept, older, s, At(Target("2023"))));                       // the test is not placed at the older edition
+        Assert.Equal("GAP", StateAt(kept, older, s, At(Target(older85, verdict: ""))));          // the chain's newest rule is not OK
+        Assert.Equal("GAP", StateAt(kept, older, s, new Dictionary<string, (TraceabilityInventory.Row, string)>()));   // it carries into no rule of the next edition
+        Assert.Equal("GAP", StateAt(kept with { Next = new(s.ChainedKind, []) }, older, s, At(Target(older85))));
+        // a CHANGED row is judged on its own fields, and so is the newest edition's whatever its record says
+        var evidenced = Target("2023");
+        Assert.Equal("GAP", StateAt(kept with { Next = new("CHANGED", ["X-6"]) }, older, s, At(Target(older85))));
+        Assert.Equal("OK", StateAt(evidenced with { Next = new("CHANGED", ["X-6"]) }, older, s, At(evidenced)));
+        Assert.Equal("OK", StateAt(evidenced with { Next = kept.Next }, TraceabilityInventory.Newest, s, At(evidenced)));
+        Assert.Equal("GAP", StateAt(evidenced with { Next = kept.Next }, older, s, At(evidenced)));
 
         // CONFORMS-but-untested: verdict recordable, row NOT closed. This is the category the split exists for.
         Assert.Empty(MissingEvidence(
