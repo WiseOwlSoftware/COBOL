@@ -25977,6 +25977,8 @@ If a SORT statement appears in an independent segment, then any input procedures
 
 (2) Wholly within the same independent segment as that SORT statement.
 
+> ⚠ **CORRECTED — see the Errata (C176).** The standard prints `(the end of Section XVI, page XVI-9)` (page 707, folio XVI-9). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVI-9 (page 854, folio A-24), applied in place: "Insert after section XVI pages A-27 through A-76 containing the Intrinsic Function module". Section A is that module, and this transcription holds it once, where Amendment 1 prints it (under AMENDMENT 1, `SECTION A: INTRINSIC FUNCTION MODULE`, with Amendment 2's changes to it applied there): it stands after Section XVI in the amended standard, and its rules are cited §1989:A (docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.1) (kb/Work PB5045). Corrected to `Section A, the Intrinsic Function Module, inserted after Section XVI`.
+
 XVI-9
 
 ## Page 708
@@ -26475,6 +26477,19 @@ In April 1985 X3J4 approved the final version of the draft proposed X3.23 Americ
 
 The revised X3.23 American National Standard COBOL proposed by X3 was approved by the Board of Standards Review of the American National Standards Institute (ANSI) in September 1985 as an American National Standard. The specifications of this American National Standard are published in the American National Standards Institute document X3.23-1985.
 
+## 3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1
+
+The X3J4 COBOL Technical Committee of the Accredited Standards Committee X3 was charged with the responsibility to develop addenda to American National Standard COBOL X3.23-1985 as a means of adding upward compatible language extensions. In June 1985, X3J4 began the task of preparing the first addendum. Language extensions considered for inclusion in Addendum 1 were taken from the CODASYL COBOL Journal of Development 1984.
+
+In January 1987 X3J4 approved the content and format for the first draft proposed Addendum 1 to American National Standard COBOL X3.23-1985 and recommended to X3 that it be published for public review and comment. X3J4 held two public review and comment periods in which comments were received from the data processing community on the content of the draft proposed Addendum 1 to American National Standard COBOL X3.23-1985. X3J4 reviewed and responded to all comments received during these two public review periods.
+
+In October 1988 X3J4 approved the final version of the draft proposed Addendum 1 to American National Standard COBOL X3.23-1985 and forwarded the document to the X3 committee for processing. The X3 committee then voted in favor of the acceptability of the draft proposed Addendum 1 to American National Standard COBOL X3.23-1985. This X3 vote also forwarded the proposed Addendum 1 for American National Standard COBOL X3.23-1985 to the American National Standards Institute for final approval.
+
+Addendum 1 to American National Standard COBOL X3.23-1985 proposed by X3 was approved by the American National Standards Institute on September 13, 1989 as an
+ addendum to American National Standard COBOL X3.23-1985. The specifications of this approved Addendum 1 are published in the American National Standards Institute document X3.23A-1989.
+
+> ⚠ **CORRECTED — see the Errata (C162).** The standard prints `The revised X3.23 American National Standard COBOL proposed by X3 was approved b ... (the last paragraph of 3.4)` (page 721, folio XVII-13). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-13 (page 851, folio A-21), applied in place: "Add the following after paragraph 3.4: 3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1", which runs on to page 852 (folio A-22) (kb/Work PB5045). Corrected to `3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1 (the four paragraphs above)`.
+
 XVII-13
 
 ## Page 722
@@ -26508,6 +26523,14 @@ History of COBOL
 During X3J4's work on the revision of American National Standard COBOL X3.23-1974, close and continuous liaison was maintained with the international COBOL community through ISO/TC 97/SC 5 COBOL Experts Group (CEG). The draft proposed revision of American National Standard COBOL X3.23-1974 was presented to ISO/TC 97/SC 5 in October 1981 as a proposed revision of ISO 1989-1978, Programming Language - COBOL. ISO/TC 97/SC 5 unanimously approved a resolution to send the proposed revision of ISO 1989-1978 COBOL to the central secretariat for registration as a draft proposal and for circulation to SC 5 primary members for a comment period closing February 13, 1982.
 
 The draft revision of ISO Standard 1989 for COBOL was circulated to all the ISO member bodies for inquiry. This revised ISO Standard 1989 was accepted by the ISO Council in 1985. The resulting ISO Standard was called ISO Standard 1989-1985 for COBOL.
+
+4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1
+
+At its meeting in Vienna, Austria, in February 1984, ISO Technical Committee 97, Subcommittee 22, Working Group 4 on COBOL resolved to propose addenda for upward compatible language extensions to ISO Standard 1989-1985 for COBOL. The purpose of proposing addenda of upward compatible language extensions instead of embarking immediately on a revision to Standard COBOL was to provide the language enhancements in a more timely manner, e.g., in a two to five year time frame rather than a five to ten year, or longer, time frame. At this same meeting ISO/TC97/SC22 Working Group 4 recommended that the United States be requested to provide draft documents for the addenda. The recommendations of ISO/TC97/SC22 Working Group 4 were approved and the work of developing the addenda was assigned to X3J4.
+
+During X3J4's work on Addendum 1 for Standard COBOL, close and continuous liaison was maintained with the international community through ISO/IEC JTC1/SC22 Working Group 4. The draft document was presented for review and comment to ISO/IEC JTC1/SC22 in March 1987 as a draft proposed Addendum 1 to ISO Standard 1989-1985 for COBOL. ISO/IEC JTC1/SC22 unanimously approved a resolution to send the proposed Addendum 1 to ISO Standard 1989-1985 for COBOL to the Central Secretariat for registration as a draft international standard (DIS). The DIS Addendum 1 to ISO Standard 1989-1985 for COBOL was circulated to all the ISO member bodies for inquiry. Addendum 1 to ISO Standard 1989-1985 for COBOL was accepted by the ISO Council.
+
+> ⚠ **CORRECTED — see the Errata (C163).** The standard prints `The draft revision of ISO Standard 1989 for COBOL was circulated to all the ISO ... (the last paragraph of 4.3)` (page 723, folio XVII-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-15 (page 852, folio A-22), applied in place: "Add the following after paragraph 4.3: 4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1" (kb/Work PB5045). Corrected to `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1 (the two paragraphs above)`.
 
 XVII-15
 
@@ -26579,6 +26602,7 @@ Language Concepts Difference Summary
 | Maximum of 30 characters ..................................... | 1 NUC | 1 NUC | |
 | System-names and user-defined words must be disjoint sets ...... | 1 NUC | N | |
 | System-names and user-defined words form intersecting sets ..... | N | 1 NUC | |
+| Function-names, system-names, and user-defined words form intersecting sets ...... | N | 1 ITR | |
 | User-defined words | | | |
 | Alphabet-name .............................................. | 1 NUC | 1 NUC | |
 | Cd-name .................................................... | 1 COM | 1 COM | |
@@ -26598,6 +26622,8 @@ Language Concepts Difference Summary
 | Mnemonic-name .............................................. | 1 NUC | 1 NUC | |
 | Paragraph-name ............................................. | 1 NUC | 1 NUC | |
 | Program-name ............................................... | 1 NUC | 1 NUC | |
+
+> ⚠ **CORRECTED — see the Errata (C164).** The standard prints `User-defined words (the entry it precedes)` (page 725, folio XVII-17). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-17 (page 852, folio A-22), applied in place: "Add the following before the entry for 'User-defined words'; align the word 'Function-names' with the word 'User-defined'" (kb/Work PB5045). Corrected to `Function-names, system-names, and user-defined words form intersecting sets ... N 1 ITR`.
 
 XVII-17
 
@@ -26649,6 +26675,7 @@ Language Concepts Difference Summary
 | LINE-COUNTER ............................................... | 1 RPW | 1 RPW | |
 | PAGE-COUNTER ............................................... | 1 RPW | 1 RPW | |
 | DEBUG-ITEM ................................................. | 1 DEB | 1 DEB | Z |
+| &nbsp;Function-names .............................................. | N | 1 ITR | |
 | Literals | | | |
 | Numeric literals: 1 through 18 digits ......................... | 1 NUC | 1 NUC | |
 | Nonnumeric literals: 1 through 120 characters ................. | 1 NUC | N | |
@@ -26656,6 +26683,8 @@ Language Concepts Difference Summary
 | Nonnumeric literals: Length applies to representation in object program ...................... | N | 1 NUC | |
 | PICTURE character-strings ......................................... | 1 NUC | 1 NUC | |
 | Comment-entries ................................................... | 1 NUC | 1 NUC | Z |
+
+> ⚠ **CORRECTED — see the Errata (C165).** The standard prints `Literals (the entry it precedes)` (page 726, folio XVII-18). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-18 (page 852, folio A-22), applied in place: "Add the following before the entry for 'Literals'; align the word 'Function-names' one position to the right of the word 'Literals'" (kb/Work PB5045). Corrected to `Function-names ... N 1 ITR`.
 
 XVII-18
 
@@ -26683,14 +26712,15 @@ Language Concepts Difference Summary
 | 7 levels ........................................................ | N | 2 NUC |
 | Relative subscripting ........................................... | N | 1 NUC |
 | Relative indexing ............................................... | 1 TBL | 1 NUC |
-| Reference modification .......................................... | N | 2 NUC |
+| Function-identifier ............................................. | N | 1 ITR |
+| Reference-modifier .............................................. | N | 2 NUC |
 | <u>Reference Format</u> | | |
 | Sequence number ................................................. | 1 NUC | 1 NUC |
 | Must be digits .................................................. | 1 NUC | N |
 | May be any character in computer character set ................ | N | 1 NUC |
 | Continuation of lines | | |
 | Continuation of nonnumeric literal ............................ | 1 NUC | 1 NUC |
-| Continuation of COBOL word, numeric literal ................... | 2 NUC | 1 NUC |
+| Continuation of COBOL word, numeric literal ................... | 2 NUC | 2 NUC |
 | Continuation of PICTURE character-string ...................... | N | 2 NUC |
 | Intervening comment lines allowed ............................. | N | 1 NUC |
 | Intervening blank lines allowed ............................... | N | 1 NUC |
@@ -26706,6 +26736,12 @@ Language Concepts Difference Summary
 | Procedure Division optional ..................................... | N | 1 NUC |
 | End program header .............................................. | N | 2 NUC |
 | Nested source programs .......................................... | N | 2 IPC |
+
+> ⚠ **CORRECTED — see the Errata (C166).** The standard prints `Reference modification` (page 727, folio XVII-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (page 852, folio A-22), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045). Corrected to `Reference-modifier`.
+
+> ⚠ **CORRECTED — see the Errata (C167).** The standard prints `Reference-modifier (the entry it precedes)` (page 727, folio XVII-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (page 852, folio A-22), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier'" (kb/Work PB5045). Corrected to `Function-identifier ... N 1 ITR`.
+
+> ⚠ **CORRECTED — see the Errata (C168).** The standard prints `Continuation of COBOL word, numeric literal ... 2 NUC 1 NUC` (page 727, folio XVII-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (T) (page 852, folio A-22), applied in place: "Under 'Reference Format', change entry in 3RD STD column for 'Continuation of COBOL word, numeric literal' from '1 NUC' to '2 NUC'", a typographical error (kb/Work PB5045). Corrected to `... 2 NUC 2 NUC`.
 
 XVII-19
 
@@ -27238,6 +27274,49 @@ Procedure Division Difference Summary
 | Arithmetic statements | 1 NUC | 1 NUC |
 | &nbsp;Arithmetic operands limited to 18 digits | 1 NUC | 1 NUC |
 | &nbsp;Composite of operands limited to 18 digits | 1 NUC | 1 NUC |
+| Intrinsic functions | N | 1 ITR |
+| &nbsp;&nbsp;ACOS function | N | 1 ITR |
+| &nbsp;&nbsp;ANNUITY function | N | 1 ITR |
+| &nbsp;&nbsp;ASIN function | N | 1 ITR |
+| &nbsp;&nbsp;ATAN function | N | 1 ITR |
+| &nbsp;&nbsp;CHAR function | N | 1 ITR |
+| &nbsp;&nbsp;COS function | N | 1 ITR |
+| &nbsp;&nbsp;CURRENT-DATE function | N | 1 ITR |
+| &nbsp;&nbsp;DATE-OF-INTEGER function | N | 1 ITR |
+| &nbsp;&nbsp;DAY-OF-INTEGER function | N | 1 ITR |
+| &nbsp;&nbsp;FACTORIAL function | N | 1 ITR |
+| &nbsp;&nbsp;INTEGER function | N | 1 ITR |
+| &nbsp;&nbsp;INTEGER-OF-DATE function | N | 1 ITR |
+| &nbsp;&nbsp;INTEGER-OF-DAY function | N | 1 ITR |
+| &nbsp;&nbsp;INTEGER-PART function | N | 1 ITR |
+| &nbsp;&nbsp;LENGTH function | N | 1 ITR |
+| &nbsp;&nbsp;LOG function | N | 1 ITR |
+| &nbsp;&nbsp;LOG10 function | N | 1 ITR |
+| &nbsp;&nbsp;LOWER-CASE function | N | 1 ITR |
+| &nbsp;&nbsp;MAX function | N | 1 ITR |
+| &nbsp;&nbsp;MEAN function | N | 1 ITR |
+| &nbsp;&nbsp;MEDIAN function | N | 1 ITR |
+| &nbsp;&nbsp;MIDRANGE function | N | 1 ITR |
+| &nbsp;&nbsp;MIN function | N | 1 ITR |
+| &nbsp;&nbsp;MOD function | N | 1 ITR |
+| &nbsp;&nbsp;NUMVAL function | N | 1 ITR |
+| &nbsp;&nbsp;NUMVAL-C function | N | 1 ITR |
+| &nbsp;&nbsp;ORD function | N | 1 ITR |
+| &nbsp;&nbsp;ORD-MAX function | N | 1 ITR |
+| &nbsp;&nbsp;ORD-MIN function | N | 1 ITR |
+| &nbsp;&nbsp;PRESENT-VALUE function | N | 1 ITR |
+| &nbsp;&nbsp;RANDOM function | N | 1 ITR |
+| &nbsp;&nbsp;RANGE function | N | 1 ITR |
+| &nbsp;&nbsp;REM function | N | 1 ITR |
+| &nbsp;&nbsp;REVERSE function | N | 1 ITR |
+| &nbsp;&nbsp;SIN function | N | 1 ITR |
+| &nbsp;&nbsp;SQRT function | N | 1 ITR |
+| &nbsp;&nbsp;STANDARD-DEVIATION function | N | 1 ITR |
+| &nbsp;&nbsp;SUM function | N | 1 ITR |
+| &nbsp;&nbsp;TAN function | N | 1 ITR |
+| &nbsp;&nbsp;UPPER-CASE function | N | 1 ITR |
+| &nbsp;&nbsp;VARIANCE function | N | 1 ITR |
+| &nbsp;&nbsp;WHEN-COMPILED function | N | 1 ITR |
 | ACCEPT statement | 1 NUC | 1 NUC |
 | &nbsp;Identifier | 1 NUC | 1 NUC |
 | &nbsp;Only one transfer of data | 1 NUC | 1 NUC |
@@ -27263,6 +27342,8 @@ Procedure Division Difference Summary
 | ALTER statement | 1 NUC | 1 NUC Z |
 | &nbsp;Only one procedure-name | 1 NUC | 1 NUC Z |
 | &nbsp;Procedure-name series | 2 NUC | 2 NUC Z |
+
+> ⚠ **CORRECTED — see the Errata (C169).** The standard prints `ACCEPT statement (the entry it precedes)` (page 739, folio XVII-31). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-31 (page 853, folio A-23), applied in place: "Add the following before the entry for 'ACCEPT statement'": the entry Intrinsic functions and its 42 function entries, each N 1 ITR (kb/Work PB5045). Corrected to `Intrinsic functions N 1 ITR, ACOS function ... WHEN-COMPILED function (each N 1 ITR)`.
 
 XVII-31
 
@@ -28044,6 +28125,10 @@ Substantive Changes (Not Affecting)
 
 (107) <u>NOT INVALID KEY phrase of WRITE statement (1 REL, 1 INX)</u>. The NOT INVALID KEY phrase provides the programmer with the capability to specify procedures to be executed when an invalid key condition does not exist for the WRITE statement.
 
+(108) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.
+
+> ⚠ **CORRECTED — see the Errata (C170).** The standard prints `(107) NOT INVALID KEY phrase of WRITE statement (1 REL, 1 INX) ... (the item it follows)` (page 758, folio XVII-50). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-50 (page 853, folio A-23), applied in place: "Add the following after item 107" (kb/Work PB5045). Corrected to `(108) Intrinsic Function Module (1 ITR). The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.`.
+
 XVII-50
 
 ## Page 759
@@ -28502,6 +28587,8 @@ Under second Standard COBOL, PARA3 will be executed 8 times with the following v
 
 Under third Standard COBOL, PARA3 will be executed 6 times with the following values:
 
+> ⚠ **CORRECTED — see the Errata (C171).** The standard prints `Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.` (page 772, folio XVII-64). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-64 (T) (page 854, folio A-24), applied in place: "Substantive change 26, entitled 'PERFORM statement', prior to the last paragraph on the page, delete: 'Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.'", a typographical error (the sentences repeat the two that precede the values) (kb/Work PB5045). Corrected to `(deleted)`.
+
 | | | | | | | |
 |---|---|---|---|---|---|---|
 | X: | 1 | 1 | 1 | 2 | 2 | 3 |
@@ -28515,8 +28602,6 @@ One would expect the above example to perform the same as the following example:
       PARA2.
           PERFORM PARA3 VARYING Y FROM X BY 1 UNTIL Y IS GREATER THAN 3.
 </pre>
-
-Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.
 
 The X3J4 COBOL Technical Committee believes that few existing programs will be affected by this change. The situation where one VARYING variable depends on another is useful for processing half of a matrix along the diagonal; the rules in third Standard COBOL specify this function properly while the rules in second Standard COBOL did not specify this function properly.
 
@@ -28730,7 +28815,9 @@ In third Standard COBOL, the rules based on the file position indicator are stra
 
 The only two cases where this change in concepts may affect programs are described in the next two items (item 37 and item 38). These only occur in very unusual sequences of operations on files in the dynamic access mode.
 
-(37) <u>File position indicator (2 REL, 2 INX)</u>. For a relative or indexed file in the dynamic access made, execution of an OPEN I-O statement followed by one or more WRITE statements and then a READ NEXT statement will cause the READ statement to access the first record in the file at the time of execution of the READ statement.
+(37) <u>File position indicator (2 REL, 2 INX)</u>. For a relative or indexed file in the dynamic access mode, execution of an OPEN I-O statement followed by one or more WRITE statements and then a READ NEXT statement will cause the READ statement to access the first record in the file at the time of execution of the READ statement.
+
+> ⚠ **CORRECTED — see the Errata (C172).** The standard prints `in the dynamic access made, execution` (page 778, folio XVII-70). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-70 (T) (page 854, folio A-24), applied in place: "Substantive change 37, entitled 'File position indicator', first paragraph, second line, change 'access made' to 'access mode'", a typographical error (kb/Work PB5045). Corrected to `in the dynamic access mode, execution`.
 
 <u>Justification</u>:
 
@@ -28764,21 +28851,23 @@ Second Standard COBOL semantics for this situation were the subject of a request
 |---|---|---|
 | ALPHABET | END-DIVIDE | EXTERNAL |
 | ALPHABETIC-LOWER | END-EVALUATE | FALSE |
-| ALPHABETIC-UPPER | END-IF | GLOBAL |
-| ALPHANUMERIC | END-MULTIPLY | INITIALIZE |
-| ALPHANUMERIC-EDITED | END-PERFORM | NUMERIC-EDITED |
-| ANY | END-READ | ORDER |
-| BINARY | END-RECEIVE | OTHER |
-| CLASS | END-RETURN | PACKED-DECIMAL |
-| COMMON | END-REWRITE | PADDING |
-| CONTENT | END-SEARCH | PURGE |
-| CONTINUE | END-START | REFERENCE |
-| CONVERTING | END-STRING | REPLACE |
-| DAY-OF-WEEK | END-SUBTRACT | STANDARD-2 |
-| END-ADD | END-UNSTRING | TEST |
-| END-CALL | END-WRITE | THEN |
-| END-COMPUTE | EVALUATE | TRUE |
-| END-DELETE | | |
+| ALPHABETIC-UPPER | END-IF | FUNCTION |
+| ALPHANUMERIC | END-MULTIPLY | GLOBAL |
+| ALPHANUMERIC-EDITED | END-PERFORM | INITIALIZE |
+| ANY | END-READ | NUMERIC-EDITED |
+| BINARY | END-RECEIVE | ORDER |
+| CLASS | END-RETURN | OTHER |
+| COMMON | END-REWRITE | PACKED-DECIMAL |
+| CONTENT | END-SEARCH | PADDING |
+| CONTINUE | END-START | PURGE |
+| CONVERTING | END-STRING | REFERENCE |
+| DAY-OF-WEEK | END-SUBTRACT | REPLACE |
+| END-ADD | END-UNSTRING | STANDARD-2 |
+| END-CALL | END-WRITE | TEST |
+| END-COMPUTE | EVALUATE | THEN |
+| END-DELETE | | TRUE |
+
+> ⚠ **CORRECTED — see the Errata (C173).** The standard prints `the reserved words added in item 39, without FUNCTION` (page 779, folio XVII-71). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-71 (page 854, folio A-24), applied in place: "Add the word FUNCTION to the list of reserved words in item 39" (kb/Work PB5045). Corrected to `the list with FUNCTION after FALSE`.
 
 <u>Justification</u>:
 
@@ -29465,6 +29554,16 @@ Implementor-Defined Element List
 
 (80) <u>SEND statement</u>. If mnemonic-name-1 is specified, characters transmitted to the communication device are positioned according to the rules specified by the implementor for that communication device. (See 3.6.4, general rule 15c, on page XIV-29.)
 
+(81) <u>Integer and Numeric Functions</u>. The implementor specifies the representation of integer and numeric functions, and this representation need not be the standard data format. (See 4.3.4, second occurrence of page number IV-16, on page A-10.)
+
+(82) <u>Types of Functions</u>. The characteristics of the returned value are defined by the implementor. (See 2.3, paragraphs 2 and 3, on page A-29.)
+
+(83) <u>CHAR function</u>. If the current program collating sequence was not specified by the ALPHABET clause, the implementor determines the value. (See 2.9.4, rule 2, on page A-37.)
+
+(84) <u>RANDOM function</u>. If the first reference to this function in the run unit does not specify argument-1, the seed value is defined by the implementor. (See 2.35.3, rule 3, on page A-64.)
+
+> ⚠ **CORRECTED — see the Errata (C174).** The standard prints `(80) SEND statement ... (the item they follow)` (page 801, folio XVII-93). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-93 (page 854, folio A-24), applied in place: "Add the following after item 80" (kb/Work PB5045). Corrected to `(81) Integer and Numeric Functions ... (82) Types of Functions ... (83) CHAR function ... (84) RANDOM function ...`.
+
 XVII-93
 
 ## Page 802
@@ -29600,6 +29699,10 @@ Undefined Element List
 (27) <u>SEND statement</u>. During the execution of the run unit, the disposition of a portion of a message which is not terminated by an EMI or EGI or which has not been eliminated by the execution of a PURGE statement is undefined. (See 3.6.4, general rule 7, on page XIV-27.)
 
 (28) <u>SEND statement</u>. If the value of the data item referenced by identifier-3 is negative, the results are undefined. (See 3.6.4, general rule 15b, on page XIV-29.)
+
+(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined. (See 1.2.2, on page A-27.)
+
+> ⚠ **CORRECTED — see the Errata (C175).** The standard prints `(28) SEND statement ... (the item it follows)` (page 806, folio XVII-98). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-98 (page 854, folio A-24), applied in place: "Add the following after item 28" (kb/Work PB5045). Corrected to the text above.
 
 XVII-98
 
@@ -37656,6 +37759,21 @@ it is taken as the rule of 1985.
 | [C159](#errata-c159) | 684 | XIV-26 | Section XIV, paragraph 3.6.3 (SEND), a new syntax rule 6 | `(no rule 6)` | `(6) If identifier-1 is a function-identifier ...` | amendment-1 |
 | [C160](#errata-c160) | 693 | XV-5 | Section XV, paragraph 3.2.3 (USE FOR DEBUGGING), syntax rule 10 | `subscripting or indexing` | `subscripting` | amendment-1 |
 | [C161](#errata-c161) | 716 | XVII-8 | Appendix A of Section XVII, paragraph 2.11 (CODASYL COBOL Journal of Development 1981), item 12 | `EXIT PROGRAM` | `EXIT PERFORM` | amendment-1 |
+| [C162](#errata-c162) | 721 | XVII-13 | Appendix A of Section XVII, a new paragraph 3.5 | `(no paragraph 3.5)` | `3.5 American National Standard COBOL 1985, Addendum 1` | amendment-1 |
+| [C163](#errata-c163) | 723 | XVII-15 | Appendix A of Section XVII, a new paragraph 4.4 | `(no paragraph 4.4)` | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1` | amendment-1 |
+| [C164](#errata-c164) | 725 | XVII-17 | Appendix B of Section XVII, the summary table, before User-defined words | `(no entry)` | `Function-names, system-names, and user-defined words ...` | amendment-1 |
+| [C165](#errata-c165) | 726 | XVII-18 | Appendix B of Section XVII, the summary table, before Literals | `(no entry)` | `Function-names N 1 ITR` | amendment-1 |
+| [C166](#errata-c166) | 727 | XVII-19 | Appendix B of Section XVII, the summary table, Reference modification | `Reference modification ..................................…` | `Reference-modifier ......................................…` | amendment-1 |
+| [C167](#errata-c167) | 727 | XVII-19 | Appendix B of Section XVII, the summary table, before Reference-modifier | `(no entry)` | `Function-identifier N 1 ITR` | amendment-1 |
+| [C168](#errata-c168) | 727 | XVII-19 | Appendix B of Section XVII, the summary table, under Reference Format | `Continuation of COBOL word, numeric literal .............…` | `Continuation of COBOL word, numeric literal .............…` | amendment-1 |
+| [C169](#errata-c169) | 739 | XVII-31 | Appendix B of Section XVII, the summary table, before ACCEPT statement | `(no entries)` | `Intrinsic functions ...` | amendment-1 |
+| [C170](#errata-c170) | 758 | XVII-50 | Appendix B of Section XVII, the substantive changes not affecting existing programs, a new item 108 | `(no item 108)` | `(108) Intrinsic Function Module (1 ITR)` | amendment-1 |
+| [C171](#errata-c171) | 772 | XVII-64 | Appendix B of Section XVII, substantive change 26 (PERFORM statement) | `Under second Standard COBOL, PARA3 ... as shown above.` | `(deleted)` | amendment-1 |
+| [C172](#errata-c172) | 778 | XVII-70 | Appendix B of Section XVII, substantive change 37 (File position indicator) | `access made` | `access mode` | amendment-1 |
+| [C173](#errata-c173) | 779 | XVII-71 | Appendix B of Section XVII, substantive change 39 (Reserved words), its list | `(no FUNCTION)` | `FUNCTION` | amendment-1 |
+| [C174](#errata-c174) | 801 | XVII-93 | Appendix C of Section XVII, the implementor-defined language element list, new items 81 to 84 | `(no items 81 to 84)` | `(81) to (84)` | amendment-1 |
+| [C175](#errata-c175) | 806 | XVII-98 | Appendix C of Section XVII, the undefined language element list, a new item 29 | `(no item 29)` | `(29) Intrinsic functions` | amendment-1 |
+| [C176](#errata-c176) | 707 | XVI-9 | after Section XVI, the Intrinsic Function module (Section A) | `(Section XVI ends)` | `Section A follows` | amendment-1 |
 
 <a id="errata-c1"></a>
 
@@ -39427,6 +39545,171 @@ Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XV-5 (T) (page 8
 | **This transcription** | `(12) The inclusion of an EXIT PERFORM statement.` |
 
 Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-8 (T) (page 851, folio A-21), applied in place: "Paragraph 2.11, entitled 'CODASYL COBOL JOURNAL OF DEVELOPMENT 1981', item 12, change 'PROGRAM' to 'PERFORM'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c162"></a>
+
+### C162 · page 721 (folio XVII-13) · Appendix A of Section XVII, a new paragraph 3.5 · `(no paragraph 3.5)` → `3.5 American National Standard COBOL 1985, Addend…`
+
+| | |
+|---|---|
+| **Printed** | `The revised X3.23 American National Standard COBOL proposed by X3 was approved b ... (the last paragraph of 3.4)` |
+| **This transcription** | `3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1 (the four paragraphs above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-13 (page 851, folio A-21), applied in place: "Add the following after paragraph 3.4: 3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1", which runs on to page 852 (folio A-22) (kb/Work PB5045).
+
+<a id="errata-c163"></a>
+
+### C163 · page 723 (folio XVII-15) · Appendix A of Section XVII, a new paragraph 4.4 · `(no paragraph 4.4)` → `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1`
+
+| | |
+|---|---|
+| **Printed** | `The draft revision of ISO Standard 1989 for COBOL was circulated to all the ISO ... (the last paragraph of 4.3)` |
+| **This transcription** | `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1 (the two paragraphs above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-15 (page 852, folio A-22), applied in place: "Add the following after paragraph 4.3: 4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1" (kb/Work PB5045).
+
+<a id="errata-c164"></a>
+
+### C164 · page 725 (folio XVII-17) · Appendix B of Section XVII, the summary table, before User-defined words · `(no entry)` → `Function-names, system-names, and user-defined wo…`
+
+| | |
+|---|---|
+| **Printed** | `User-defined words (the entry it precedes)` |
+| **This transcription** | `Function-names, system-names, and user-defined words form intersecting sets ... N 1 ITR` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-17 (page 852, folio A-22), applied in place: "Add the following before the entry for 'User-defined words'; align the word 'Function-names' with the word 'User-defined'" (kb/Work PB5045).
+
+<a id="errata-c165"></a>
+
+### C165 · page 726 (folio XVII-18) · Appendix B of Section XVII, the summary table, before Literals · `(no entry)` → `Function-names N 1 ITR`
+
+| | |
+|---|---|
+| **Printed** | `Literals (the entry it precedes)` |
+| **This transcription** | `Function-names ... N 1 ITR` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-18 (page 852, folio A-22), applied in place: "Add the following before the entry for 'Literals'; align the word 'Function-names' one position to the right of the word 'Literals'" (kb/Work PB5045).
+
+<a id="errata-c166"></a>
+
+### C166 · page 727 (folio XVII-19) · Appendix B of Section XVII, the summary table, Reference modification · `Reference modification ........................…` → `Reference-modifier ............................…`
+
+| | |
+|---|---|
+| **Printed** | `Reference modification` |
+| **This transcription** | `Reference-modifier` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (page 852, folio A-22), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045).
+
+<a id="errata-c167"></a>
+
+### C167 · page 727 (folio XVII-19) · Appendix B of Section XVII, the summary table, before Reference-modifier · `(no entry)` → `Function-identifier N 1 ITR`
+
+| | |
+|---|---|
+| **Printed** | `Reference-modifier (the entry it precedes)` |
+| **This transcription** | `Function-identifier ... N 1 ITR` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (page 852, folio A-22), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier'" (kb/Work PB5045).
+
+<a id="errata-c168"></a>
+
+### C168 · page 727 (folio XVII-19) · Appendix B of Section XVII, the summary table, under Reference Format · `Continuation of COBOL word, numeric literal ...…` → `Continuation of COBOL word, numeric literal ...…`
+
+| | |
+|---|---|
+| **Printed** | `Continuation of COBOL word, numeric literal ... 2 NUC 1 NUC` |
+| **This transcription** | `... 2 NUC 2 NUC` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (T) (page 852, folio A-22), applied in place: "Under 'Reference Format', change entry in 3RD STD column for 'Continuation of COBOL word, numeric literal' from '1 NUC' to '2 NUC'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c169"></a>
+
+### C169 · page 739 (folio XVII-31) · Appendix B of Section XVII, the summary table, before ACCEPT statement · `(no entries)` → `Intrinsic functions ...`
+
+| | |
+|---|---|
+| **Printed** | `ACCEPT statement (the entry it precedes)` |
+| **This transcription** | `Intrinsic functions N 1 ITR, ACOS function ... WHEN-COMPILED function (each N 1 ITR)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-31 (page 853, folio A-23), applied in place: "Add the following before the entry for 'ACCEPT statement'": the entry Intrinsic functions and its 42 function entries, each N 1 ITR (kb/Work PB5045).
+
+<a id="errata-c170"></a>
+
+### C170 · page 758 (folio XVII-50) · Appendix B of Section XVII, the substantive changes not affecting existing programs, a new item 108 · `(no item 108)` → `(108) Intrinsic Function Module (1 ITR)`
+
+| | |
+|---|---|
+| **Printed** | `(107) NOT INVALID KEY phrase of WRITE statement (1 REL, 1 INX) ... (the item it follows)` |
+| **This transcription** | `(108) Intrinsic Function Module (1 ITR). The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-50 (page 853, folio A-23), applied in place: "Add the following after item 107" (kb/Work PB5045).
+
+<a id="errata-c171"></a>
+
+### C171 · page 772 (folio XVII-64) · Appendix B of Section XVII, substantive change 26 (PERFORM statement) · `Under second Standard COBOL, PARA3 ... as shown a…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.` |
+| **This transcription** | `(deleted)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-64 (T) (page 854, folio A-24), applied in place: "Substantive change 26, entitled 'PERFORM statement', prior to the last paragraph on the page, delete: 'Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.'", a typographical error (the sentences repeat the two that precede the values) (kb/Work PB5045).
+
+<a id="errata-c172"></a>
+
+### C172 · page 778 (folio XVII-70) · Appendix B of Section XVII, substantive change 37 (File position indicator) · `access made` → `access mode`
+
+| | |
+|---|---|
+| **Printed** | `in the dynamic access made, execution` |
+| **This transcription** | `in the dynamic access mode, execution` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-70 (T) (page 854, folio A-24), applied in place: "Substantive change 37, entitled 'File position indicator', first paragraph, second line, change 'access made' to 'access mode'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c173"></a>
+
+### C173 · page 779 (folio XVII-71) · Appendix B of Section XVII, substantive change 39 (Reserved words), its list · `(no FUNCTION)` → `FUNCTION`
+
+| | |
+|---|---|
+| **Printed** | `the reserved words added in item 39, without FUNCTION` |
+| **This transcription** | `the list with FUNCTION after FALSE` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-71 (page 854, folio A-24), applied in place: "Add the word FUNCTION to the list of reserved words in item 39" (kb/Work PB5045).
+
+<a id="errata-c174"></a>
+
+### C174 · page 801 (folio XVII-93) · Appendix C of Section XVII, the implementor-defined language element list, new items 81 to 84 · `(no items 81 to 84)` → `(81) to (84)`
+
+| | |
+|---|---|
+| **Printed** | `(80) SEND statement ... (the item they follow)` |
+| **This transcription** | `(81) Integer and Numeric Functions ... (82) Types of Functions ... (83) CHAR function ... (84) RANDOM function ...` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-93 (page 854, folio A-24), applied in place: "Add the following after item 80" (kb/Work PB5045).
+
+<a id="errata-c175"></a>
+
+### C175 · page 806 (folio XVII-98) · Appendix C of Section XVII, the undefined language element list, a new item 29 · `(no item 29)` → `(29) Intrinsic functions`
+
+| | |
+|---|---|
+| **Printed** | `(28) SEND statement ... (the item it follows)` |
+| **This transcription** | `(29) Intrinsic functions. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined. (See 1.2.2, on page A-27.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-98 (page 854, folio A-24), applied in place: "Add the following after item 28" (kb/Work PB5045).
+
+<a id="errata-c176"></a>
+
+### C176 · page 707 (folio XVI-9) · after Section XVI, the Intrinsic Function module (Section A) · `(Section XVI ends)` → `Section A follows`
+
+| | |
+|---|---|
+| **Printed** | `(the end of Section XVI, page XVI-9)` |
+| **This transcription** | `Section A, the Intrinsic Function Module, inserted after Section XVI` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVI-9 (page 854, folio A-24), applied in place: "Insert after section XVI pages A-27 through A-76 containing the Intrinsic Function module". Section A is that module, and this transcription holds it once, where Amendment 1 prints it (under AMENDMENT 1, `SECTION A: INTRINSIC FUNCTION MODULE`, with Amendment 2's changes to it applied there): it stands after Section XVI in the amended standard, and its rules are cited §1989:A (docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.1) (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
