@@ -231,3 +231,13 @@ read on the page.
 ISO 1989-1985`) has two shapes: the table header row `| <u>Page No.</u> | <u>Change to …</u> |` where a change table
 follows it, and the single line `<u>Page No.</u> | <u>Change to …</u>` on a page of prose. Every table in that list is
 written with its outer pipes (ledger sweep `amendment-1-heads(PB4953)`).
+
+**Underlined words of Amendment 1's running text (PDF pages 842-906)** were measured on every page, not sampled (kb/Work
+PB5041): `figure_raster.py --underlined PAGE...` judges each OCR word by the rows below its baseline (a printed rule inks
+the word's whole width for three pixel rows; the feet of bold Times reach 0.94 at most), and the result was compared with
+the page's `<u>` marks. The Amendment's headings are bold, not underlined; the underlines are the running head, the general
+formats, and the column heads of its tables. Eight table heads the page underlines lacked `<u>` (`Argument Type` and
+`Function Type` on pages 882, 886, 895 and 901; `Character Positions` and `Contents` on 869, 870, 905 and 906); the ledger
+sweep is `table-head-underlines(PB5041)`. A table's border reads as a rule on pages 861 and 862 and is not an underline.
+The detector misses a word whose OCR box is displaced (page 905's `Contents`), so a hit is read on the page and a miss is
+not proof.

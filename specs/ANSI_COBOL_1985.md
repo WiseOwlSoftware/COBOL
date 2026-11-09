@@ -32416,7 +32416,7 @@ The CURRENT-DATE function returns a 21-character alphanumeric value that represe
 
 (1) The character positions returned, numbered from left to right, are:
 
-| Character Positions | Contents |
+| Character <u>Positions</u> | <u>Contents</u> |
 |---|---|
 | 1-4 | Four numeric digits of the year in the Gregorian calendar. |
 | 5-6 | Two numeric digits of the month of the year, in the range 01 through 12. |
@@ -32434,7 +32434,7 @@ A-39
 
 Intrinsic Function - CURRENT-DATE
 
-| Character Positions | Contents |
+| Character <u>Positions</u> | <u>Contents</u> |
 |---|---|
 | 20-21 | Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the reported time is ahead of or behind Greenwich Mean Time, depending on whether character position 17 is '+' or '-', respectively. If character position 17 is '0', the value 00 is returned. |
 
@@ -32776,7 +32776,7 @@ Intrinsic Function - MAX
 
 The MAX function returns the content of the argument-1 that contains the maximum value. The type of this function depends upon the argument types as follows:
 
-| Argument Type | Function Type |
+| <u>Argument Type</u> | <u>Function Type</u> |
 |---|---|
 | Alphabetic | Alphanumeric |
 | Alphanumeric | Alphanumeric |
@@ -32897,7 +32897,7 @@ Intrinsic Function - MIN
 
 The MIN function returns the content of the argument-1 that contains the minimum value. The type of this function depends upon the argument types as follows:
 
-| Argument Type | Function Type |
+| <u>Argument Type</u> | <u>Function Type</u> |
 |---|---|
 | Alphabetic | Alphanumeric |
 | Alphanumeric | Alphanumeric |
@@ -33235,7 +33235,7 @@ Intrinsic Function - RANGE
 
 The RANGE function returns a value that is equal to the value of the maximum argument minus the value of the minimum argument. The type of this function depends upon the argument types as follows:
 
-| Argument Type | Function Type |
+| <u>Argument Type</u> | <u>Function Type</u> |
 |---|---|
 | All arguments integer | Integer |
 | Numeric (some arguments may be integer) | Numeric |
@@ -33414,7 +33414,7 @@ Intrinsic Function - SUM
 
 The SUM function returns a value that is the sum of the arguments. The type of this function depends upon the argument types as follows:
 
-| Argument Type | Function Type |
+| <u>Argument Type</u> | <u>Function Type</u> |
 |---|---|
 | All arguments integer | Integer |
 | Numeric (some arguments may be integer) | Numeric |
@@ -33543,7 +33543,7 @@ The WHEN-COMPILED function returns the date and time the program was compiled as
 
 (1) The character positions returned, numbered from left to right, are:
 
-| Positions | Contents |
+| <u>Positions</u> | <u>Contents</u> |
 |---|---|
 | 1-4 | Four numeric digits of the year in the Gregorian calendar. |
 | 5-6 | Two numeric digits of the month of the year, in the range 01 through 12. |
@@ -33561,7 +33561,7 @@ A-75
 
 Intrinsic Function - WHEN-COMPILED
 
-| Character Positions | Contents |
+| Character <u>Positions</u> | <u>Contents</u> |
 |---|---|
 | 20-21 | Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the reported time is ahead of or behind Greenwich Mean Time, depending on whether character position 17 is '+' or '-', respectively. If character position 17 is '0', the value 00 is returned. |
 
