@@ -24432,12 +24432,14 @@ The communication description entry specifies the interface area between the mes
                           │    [<u>END</u> <u>KEY</u> IS data-name-9]                  │
                           │    [<u>STATUS</u> <u>KEY</u> IS data-name-10]              │
                           │    [MESSAGE <u>COUNT</u> IS data-name-11]]          │
-                          │╔[data-name-1, data-name-2, data-name-3,     ╗│
-                          │║    data-name-4, data-name-5, data-name-6,  ║│
-                          │║    data-name-7, data-name-8, data-name-9,  ║│
-                          │╚    data-name-10, data-name-11]             ╝│
+                          │╔[data-name-1 data-name-2 data-name-3        ╗│
+                          │║    data-name-4 data-name-5 data-name-6     ║│
+                          │║    data-name-7 data-name-8 data-name-9     ║│
+                          │╚    data-name-10 data-name-11]              ╝│
                           └                                              ┘
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C156).** The standard prints `[data-name-1, data-name-2, data-name-3, ... data-name-10, data-name-11]` (page 661, folio XIV-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-3 (T) (page 851, folio A-21), applied in place: "Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-11, inclusively, in format 1", a typographical error (kb/Work PB5045). Corrected to `[data-name-1 data-name-2 data-name-3 ... data-name-10 data-name-11]`.
 
 XIV-3
 
@@ -24477,10 +24479,12 @@ Communication - CD Entry
      FOR ║[<u>INITIAL</u>]║ <u>I-O</u>   │    [<u>TEXT</u> <u>LENGTH</u> IS data-name-4]              │ .
                            │    [<u>END</u> <u>KEY</u> IS data-name-5]                  │
                            │    [<u>STATUS</u> <u>KEY</u> IS data-name-6]]              │
-                           │╔[data-name-1, data-name-2, data-name-3,     ╗│
-                           │╚    data-name-4, data-name-5, data-name-6]  ╝│
+                           │╔[data-name-1 data-name-2 data-name-3        ╗│
+                           │╚    data-name-4 data-name-5 data-name-6]    ╝│
                            └                                              ┘
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C157).** The standard prints `[data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, data-name-6]` (page 662, folio XIV-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-4 (T) (page 851, folio A-21), applied in place: "Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-6, inclusively, in format 3", a typographical error (kb/Work PB5045). Corrected to `[data-name-1 data-name-2 data-name-3 data-name-4 data-name-5 data-name-6]`.
 
 **2.2.3 Syntax Rules**
 
@@ -24966,7 +24970,9 @@ XIV-18
 
 Communication - DISABLE
 
-║(4) When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE) and all of its associated queues and sub-queues are deactivated.║
+║(4) When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues and sub-queues are deactivated.║
+
+> ⚠ **CORRECTED — see the Errata (C158).** The standard prints `referenced by data-name-7 (SYMBOLIC SOURCE) and all of its associated queues` (page 677, folio XIV-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-19 (T) (page 851, folio A-21), applied in place: "Paragraph 3.2.4 of the DISABLE statement, general rule 4, third line, change 'SOURCE)' to 'SOURCE))'", a typographical error (kb/Work PB5045). Corrected to `referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues`.
 
 ║(5) When the I-O TERMINAL phrase is specified, the logical path between the source (as defined by the content of the data item referenced by data-name-3 (SYMBOLIC TERMINAL)) and the program is deactivated.║
 
@@ -25194,6 +25200,10 @@ The SEND statement causes a message, ║a message segment, or a portion of a mes
 ║(4) When the mnemonic-name phrase is used, the name is identified with a particular feature specified by the implementor. The mnemonic-name is defined in the SPECIAL-NAMES paragraph in the Environment Division.║
 
 (5) Integer-1 or the value of the data item referenced by identifier-3 may be zero.
+
+(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function.
+
+> ⚠ **CORRECTED — see the Errata (C159).** The standard prints `(5) Integer-1 or the value of the data item referenced by identifier-3 may be zero.` (page 684, folio XIV-26). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-26 (page 851, folio A-21), applied in place: "Paragraph 3.6.3, add new syntax rule 6 as follows" (kb/Work PB5045). Corrected to `(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function.`.
 
 ### 3.6.4 General Rules
 
@@ -25471,7 +25481,9 @@ The USE FOR DEBUGGING statement identifies the user items that are to be monitor
 
 ║(9) Identifier-1 must not reference any data item defined in the Report Section except sum counters.║
 
-║(10) If the data description entry of the data item referenced by identifier-1 contains an OCCURS clause or is subordinate to a data description entry that contains an OCCURS clause, identifier-1 must be specified without the subscripting or indexing normally required.║
+║(10) If the data description entry of the data item referenced by identifier-1 contains an OCCURS clause or is subordinate to a data description entry that contains an OCCURS clause, identifier-1 must be specified without the subscripting normally required.║
+
+> ⚠ **CORRECTED — see the Errata (C160).** The standard prints `identifier-1 must be specified without the subscripting or indexing normally required.` (page 693, folio XV-5). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XV-5 (T) (page 851, folio A-21), applied in place: "Paragraph 3.2.3 of the USE FOR DEBUGGING statement, syntax rule 10, last line, delete 'or indexing'", a typographical error (kb/Work PB5045). Corrected to `identifier-1 must be specified without the subscripting normally required.`.
 
 (11) References to the special register DEBUG-ITEM are restricted to references from within a debugging section.
 
@@ -26307,7 +26319,9 @@ The major changes incorporated in the COBOL specifications within the CODASYL CO
 
 (11) The deletion of the CORRESPONDING option.
 
-(12) The inclusion of an EXIT PROGRAM statement.
+(12) The inclusion of an EXIT PERFORM statement.
+
+> ⚠ **CORRECTED — see the Errata (C161).** The standard prints `(12) The inclusion of an EXIT PROGRAM statement.` (page 716, folio XVII-8). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-8 (T) (page 851, folio A-21), applied in place: "Paragraph 2.11, entitled 'CODASYL COBOL JOURNAL OF DEVELOPMENT 1981', item 12, change 'PROGRAM' to 'PERFORM'", a typographical error (kb/Work PB5045). Corrected to `(12) The inclusion of an EXIT PERFORM statement.`.
 
 (13) A change to the COLUMN clause in the report writer.
 
@@ -37636,6 +37650,12 @@ it is taken as the rule of 1985.
 | [C153](#errata-c153) | 565 | XI-13 | Section XI, paragraph 4.2.3 (RELEASE), syntax rule 3 | `(3) Record-name-1 and identifier-1 must not refer to the sa…` | `(3) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
 | [C154](#errata-c154) | 578 | XII-4 | Section XII, paragraph 2.4 (COPY), general rule 7 | `pseudo-text-delimiter (twice)` | `pseudo-text delimiter` | amendment-1 |
 | [C155](#errata-c155) | 578 | XII-4 | Section XII, paragraph 2.4 (COPY), general rule 9, third paragraph | `When a text word` | `When a text word specified in the BY phrase is introduced,…` | amendment-1 |
+| [C156](#errata-c156) | 661 | XIV-3 | Section XIV, paragraph 2.2.2 (communication description entry), format 1 | `data-name-1, data-name-2, ...` | `data-name-1 data-name-2 ...` | amendment-1 |
+| [C157](#errata-c157) | 662 | XIV-4 | Section XIV, paragraph 2.2.2 (communication description entry), format 3 | `data-name-1, data-name-2, ...` | `data-name-1 data-name-2 ...` | amendment-1 |
+| [C158](#errata-c158) | 677 | XIV-19 | Section XIV, paragraph 3.2.4 (DISABLE), general rule 4 | `SOURCE)` | `SOURCE))` | amendment-1 |
+| [C159](#errata-c159) | 684 | XIV-26 | Section XIV, paragraph 3.6.3 (SEND), a new syntax rule 6 | `(no rule 6)` | `(6) If identifier-1 is a function-identifier ...` | amendment-1 |
+| [C160](#errata-c160) | 693 | XV-5 | Section XV, paragraph 3.2.3 (USE FOR DEBUGGING), syntax rule 10 | `subscripting or indexing` | `subscripting` | amendment-1 |
+| [C161](#errata-c161) | 716 | XVII-8 | Appendix A of Section XVII, paragraph 2.11 (CODASYL COBOL Journal of Development 1981), item 12 | `EXIT PROGRAM` | `EXIT PERFORM` | amendment-1 |
 
 <a id="errata-c1"></a>
 
@@ -39341,6 +39361,72 @@ Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 
 | **This transcription** | `║When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except║` |
 
 Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4 of the COPY statement, general rule 9, third paragraph, fourth line, change 'When a text word' to 'When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c156"></a>
+
+### C156 · page 661 (folio XIV-3) · Section XIV, paragraph 2.2.2 (communication description entry), format 1 · `data-name-1, data-name-2, ...` → `data-name-1 data-name-2 ...`
+
+| | |
+|---|---|
+| **Printed** | `[data-name-1, data-name-2, data-name-3, ... data-name-10, data-name-11]` |
+| **This transcription** | `[data-name-1 data-name-2 data-name-3 ... data-name-10 data-name-11]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-3 (T) (page 851, folio A-21), applied in place: "Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-11, inclusively, in format 1", a typographical error (kb/Work PB5045).
+
+<a id="errata-c157"></a>
+
+### C157 · page 662 (folio XIV-4) · Section XIV, paragraph 2.2.2 (communication description entry), format 3 · `data-name-1, data-name-2, ...` → `data-name-1 data-name-2 ...`
+
+| | |
+|---|---|
+| **Printed** | `[data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, data-name-6]` |
+| **This transcription** | `[data-name-1 data-name-2 data-name-3 data-name-4 data-name-5 data-name-6]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-4 (T) (page 851, folio A-21), applied in place: "Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-6, inclusively, in format 3", a typographical error (kb/Work PB5045).
+
+<a id="errata-c158"></a>
+
+### C158 · page 677 (folio XIV-19) · Section XIV, paragraph 3.2.4 (DISABLE), general rule 4 · `SOURCE)` → `SOURCE))`
+
+| | |
+|---|---|
+| **Printed** | `referenced by data-name-7 (SYMBOLIC SOURCE) and all of its associated queues` |
+| **This transcription** | `referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-19 (T) (page 851, folio A-21), applied in place: "Paragraph 3.2.4 of the DISABLE statement, general rule 4, third line, change 'SOURCE)' to 'SOURCE))'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c159"></a>
+
+### C159 · page 684 (folio XIV-26) · Section XIV, paragraph 3.6.3 (SEND), a new syntax rule 6 · `(no rule 6)` → `(6) If identifier-1 is a function-identifier ...`
+
+| | |
+|---|---|
+| **Printed** | `(5) Integer-1 or the value of the data item referenced by identifier-3 may be zero.` |
+| **This transcription** | `(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-26 (page 851, folio A-21), applied in place: "Paragraph 3.6.3, add new syntax rule 6 as follows" (kb/Work PB5045).
+
+<a id="errata-c160"></a>
+
+### C160 · page 693 (folio XV-5) · Section XV, paragraph 3.2.3 (USE FOR DEBUGGING), syntax rule 10 · `subscripting or indexing` → `subscripting`
+
+| | |
+|---|---|
+| **Printed** | `identifier-1 must be specified without the subscripting or indexing normally required.` |
+| **This transcription** | `identifier-1 must be specified without the subscripting normally required.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XV-5 (T) (page 851, folio A-21), applied in place: "Paragraph 3.2.3 of the USE FOR DEBUGGING statement, syntax rule 10, last line, delete 'or indexing'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c161"></a>
+
+### C161 · page 716 (folio XVII-8) · Appendix A of Section XVII, paragraph 2.11 (CODASYL COBOL Journal of Development 1981), item 12 · `EXIT PROGRAM` → `EXIT PERFORM`
+
+| | |
+|---|---|
+| **Printed** | `(12) The inclusion of an EXIT PROGRAM statement.` |
+| **This transcription** | `(12) The inclusion of an EXIT PERFORM statement.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-8 (T) (page 851, folio A-21), applied in place: "Paragraph 2.11, entitled 'CODASYL COBOL JOURNAL OF DEVELOPMENT 1981', item 12, change 'PROGRAM' to 'PERFORM'", a typographical error (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
