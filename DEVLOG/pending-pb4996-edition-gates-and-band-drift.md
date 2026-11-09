@@ -33,5 +33,5 @@ rules KEPT from "The CONTINUE statement has no effect"). A script decides neithe
 the sets are adjudicated and empty. PB4996 stays open for that step.
 
 Self-review: one reader of the change-record kinds (the schema's `chained` flag, no kind spelled in either module), the
-citation parser reused, the views read once per audit, the planted self-test citations real locators of the 1985 text.
-Gate: see the branch's gate record.
+citation parser reused, the word lists held as citations rather than an edition branch, a rule designator read by its prefix (`GR25e-f` is GR25), the views read once per audit, the planted self-test citations real locators of the 1985 text.
+Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,713/22,713 · Unit 40,567/40,567 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261109T014218Z, at the first checkpoint; the branch head is re-gated after the self-review fixes).

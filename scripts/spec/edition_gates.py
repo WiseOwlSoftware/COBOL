@@ -36,6 +36,7 @@ catalog does not number formats). What a kind means is the schema's (`ChangeReco
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import pathlib
 import re
@@ -53,9 +54,9 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 CONSTRUCTS_REL = "tests/version-matrix/constructs.json"
 GRAMMAR_REL = "src/WiseOwl.Cobol.Frontend/Grammar"
-#: The clauses of the 2023 text that list the reserved words (8.9) and the context-sensitive words (8.10): a gate citing
+#: The clauses of the 2023 text that list the reserved words and the context-sensitive words, as citations: a gate citing
 #: only these is a word's reservation, whose edges are the word lists' (see the module docstring).
-WORD_LISTS = frozenset({"8.9", "8.10"})
+WORD_LISTS = frozenset({"§2023:8.9", "§2023:8.10"})
 #: A version predicate of the grammar: `{is2002()}?`, alone or in a disjunction (`{is2002() || retryPhraseAhead()}?`).
 _PREDICATE = re.compile(r"\{[^{}]*\bis(\d+)\(\)[^{}]*\}\?")
 _RULE = re.compile(r"(SR|GR|AR|RV)(\d+)")
@@ -154,14 +155,14 @@ def cited_rules(cites: Iterable[citation.Citation], rules: Iterable[Row], ed: Ed
     for c in cites:
         under = [r for r in rules if document_year(r, ed) == c.edition
                  and (r["section"] == c.locator or r["section"].startswith(c.locator + "."))]
-        m = _RULE.fullmatch(re.sub(r"[a-z].*$", "", c.rule or "")) if c.rule else None
+        m = _RULE.match(c.rule) if c.rule else None
         out += [r["rule-id"] for r in under if m is None or (r["kind"] == m[1] and r["ordinal"] == int(m[2]))]
     return list(dict.fromkeys(out))
 
 
 def word_gate(g: Gate) -> bool:
     """Does `g` cite only the word lists (`WORD_LISTS`): a word's reservation, not a rule's edge?"""
-    return bool(g.cites) and all(c.edition == 2023 and c.locator in WORD_LISTS for c in g.cites)
+    return bool(g.cites) and all(citation.render(dataclasses.replace(c, rule=None)) in WORD_LISTS for c in g.cites)
 
 
 # -- the audit ----------------------------------------------------------------------------------------------------------
