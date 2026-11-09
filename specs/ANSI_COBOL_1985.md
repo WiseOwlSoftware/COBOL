@@ -387,6 +387,9 @@ i
 | 5. | Shared Memory Area ................................................... | II-17 |
 | 6. | Program and Run Unit Organization and Communication ............ | II-18 |
 | 7. | Communication Facility ............................................... | II-28 |
+| 8. | Intrinsic Function Facility .......................................... | II-36 |
+
+> ⚠ **CORRECTED — see the Errata (C36).** The standard prints `| 7. | Communication Facility ... | II-28 |` (page 10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page ii (page 831, folio A-1), applied in place: "Add the following after the entry for section II, paragraph 7" (kb/Work PB5045). Corrected to `| 8. | Intrinsic Function Facility ... | II-36 |`.
 
 <u>SECTION III: GLOSSARY</u>
 
@@ -451,7 +454,9 @@ Chapter 1:  Introduction to the Nucleus Module
 |---|---|---|
 | 1.1 | Function .................................................. | VI-1 |
 | 1.2 | Level Characteristics ..................................... | VI-1 |
-| 1.3 | Level Restrictions on Overall Language .................... | VI-1 |
+| 1.3 | Restrictions on Overall Language .......................... | VI-1 |
+
+> ⚠ **CORRECTED — see the Errata (C37).** The standard prints `Level Restrictions on Overall Language` (page 11). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page iii (page 831, folio A-1), applied in place: "Change the entry for section VI, paragraph 1.3 to read" (kb/Work PB5045). Corrected to `Restrictions on Overall Language`.
 
 Chapter 2:  A COBOL Source Program
 
@@ -999,6 +1004,9 @@ Chapter 3: The Standardization of COBOL
 | 3.2 | USA Standard COBOL 1968 ......................................... | XVII-11 |
 | 3.3 | American National Standard COBOL 1974 ........................... | XVII-12 |
 | 3.4 | American National Standard COBOL 1985 ........................... | XVII-12 |
+| 3.5 | American National Standard COBOL 1985, Addendum 1 ............... | XVII-13 |
+
+> ⚠ **CORRECTED — see the Errata (C38).** The standard prints `| 3.4 | American National Standard COBOL 1985 ... | XVII-12 |` (page 19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 3.4" (kb/Work PB5045). Corrected to `| 3.5 | American National Standard COBOL 1985, Addendum 1 ... | XVII-13 |`.
 
 Chapter 4: International Standardization of COBOL
 
@@ -1007,6 +1015,9 @@ Chapter 4: International Standardization of COBOL
 | 4.1 | ISO Recommendation R-1989-1972 for COBOL ....................... | XVII-14 |
 | 4.2 | ISO Standard 1989-1978 for COBOL ................................ | XVII-14 |
 | 4.3 | ISO Standard 1989-1985 for COBOL ................................ | XVII-15 |
+| 4.4 | ISO Standard 1989-1985 for COBOL, Addendum 1 .................... | XVII-15 |
+
+> ⚠ **CORRECTED — see the Errata (C39).** The standard prints `| 4.3 | ISO Standard 1989-1985 for COBOL ... | XVII-15 |` (page 19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 4.3" (kb/Work PB5045). Corrected to `| 4.4 | ISO Standard 1989-1985 for COBOL, Addendum 1 ... | XVII-15 |`.
 
 <u>APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>
 
@@ -1063,7 +1074,11 @@ The scope of this standard is to specify both the form and interpretation of pro
 
 ### 1.2 STRUCTURE OF LANGUAGE SPECIFICATIONS
 
-The organization of COBOL specifications in this standard is based on a functional processing module concept. The standard defines 11 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, and Segmentation. Nine of the modules have the elements within the module divided into level 1 elements and level 2 elements. Level 1 elements of a module are a subset of level 2 elements of the same module. Two of the modules contain only level 1 elements.
+The organization of COBOL specifications in this standard is based on a functional processing module concept. The standard defines 12 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, Segmentation, and Intrinsic Function. Nine of the modules have the elements within the module divided into level 1 elements and level 2 elements. Level 1 elements of a module are a subset of level 2 elements of the same module. Three of the modules contain only level 1 elements.
+
+> ⚠ **CORRECTED — see the Errata (C40).** The standard prints `The standard defines 11 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, and Segmentation.` (page 21, folio I-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-1 (page 831, folio A-1), applied in place: "Paragraph 1.2, first paragraph, second sentence, change to read" (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C41).** The standard prints `Two of the modules contain only level 1 elements.` (page 21, folio I-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-1 (page 831, folio A-1), applied in place: "Paragraph 1.2, first paragraph, last sentence, change to read" (kb/Work PB5045). Corrected to `Three of the modules contain only level 1 elements.`.
 
 The Nucleus module contains the language elements for internal processing of data within the basic structure of the four divisions of a program. The Nucleus also contains the language elements for the definition and access of tables. The elements of the Nucleus are divided into two levels. Nucleus level 1 supplies elements that perform basic internal operations, i.e., the more elementary options of the various clauses and verbs. Nucleus level 2 provides elements for more extensive and sophisticated internal processing capabilities.
 
@@ -1099,15 +1114,25 @@ The Debug module provides a means by which the user can specify his debugging al
 
 The Segmentation module provides for the overlaying at object time of Procedure Division sections. The elements of the Segmentation module are divided into two levels. Segmentation level 1 provides for section segment-numbers and fixed segment limits. Segmentation level 2 adds the capability for varying the segment limit.
 
+The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program. The Intrinsic Function module contains only level 1 elements.
+
+> ⚠ **CORRECTED — see the Errata (C42).** The standard prints `Segmentation level 2 adds the capability for varying the segment limit.` (page 23, folio I-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 831, folio A-1), applied in place: "Paragraph 1.2, add the following paragraph after the last paragraph" (kb/Work PB5045). Corrected to the text above.
+
 ## 1.3 ORGANIZATION OF DOCUMENT
 
-This document is divided into eighteen sections. Section I is composed of the introduction, a summary of elements by module, and a summary of elements by COBOL division. Section II presents concepts pertaining to the use and organization of features within the COBOL language. Section III is composed of a glossary defining terms in accordance with their meaning in COBOL.
+This document is divided into nineteen sections. Section I is composed of the introduction, a summary of elements by module, and a summary of elements by COBOL division. Section II presents concepts pertaining to the use and organization of features within the COBOL language. Section III is composed of a glossary defining terms in accordance with their meaning in COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C43).** The standard prints `This document is divided into eighteen sections.` (page 23, folio I-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, first paragraph, first sentence, change to read: '...into nineteen sections.'" (kb/Work PB5045). Corrected to `This document is divided into nineteen sections.`.
 
 Section IV contains a presentation of overall language considerations. Section V contains a composite language skeleton.
 
-Sections VI through XVI contain specifications for the eleven functional processing modules. Within these sections, specifications unique to level 2 of the modules are enclosed in boxes.
+Sections VI through XVI and section A contain specifications for the twelve functional processing modules. Within these sections, specifications unique to level 2 of the modules are enclosed in boxes.
 
-Sections II through XVI comprise the detailed specifications of Standard COBOL.
+> ⚠ **CORRECTED — see the Errata (C44).** The standard prints `Sections VI through XVI contain specifications for the eleven functional processing modules.` (page 23, folio I-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, third paragraph, first sentence, change to read: 'Sections VI through XVI and section A contain specifications for the twelve functional...'" (kb/Work PB5045). Corrected to `Sections VI through XVI and section A contain specifications for the twelve functional processing modules.`.
+
+Sections II through XVI and section A comprise the detailed specifications of Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C45).** The standard prints `Sections II through XVI comprise the detailed specifications of Standard COBOL.` (page 23, folio I-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, fourth paragraph, change to read: 'Sections II through XVI and section A comprise the detailed...'" (kb/Work PB5045). Corrected to `Sections II through XVI and section A comprise the detailed specifications of Standard COBOL.`.
 
 Section XVII contains the appendices to the document. Section XVIII contains the index for the document.
 
@@ -1127,7 +1152,9 @@ Introduction
 
 COBOL and their occurrences within the various modules. Those elements which are not completely contained within one level of a module are shown in sufficient detail to specify the location of each subelement. For example, the READ statement appears in level 1 of the Sequential I-O module, the Relative I-O module, and the Indexed I-O module. Because certain phrases of the READ statement appear only in level 2 of these modules; the subelements of the READ statement are listed separately (see page I-59).
 
-The schematic diagram on page I-5 is a graphic representation of the 11 functional processing modules forming the content of Standard COBOL. This schematic diagram shows the hierarchy of levels within each functional processing module. Within the schematic diagram a shorthand notation (such as 2 INX 0,2) indicates the hierarchical position of any level within the functional processing module as well as the number of levels into which the elements of the module have been divided. This shorthand notation is composed of, from left to right, a one-digit number indicating the level's position in the hierarchy, a three-character module abbreviation, and a two-digit number indicating the minimum and maximum levels of the module to which the level belongs. The number zero indicates a null level for the lowest level within a module. For example, 2 INX 0,2 indicates that this level is the second non-null level (level 2) of the Indexed I-O module which contains a null level and two non-null levels (level 1 and level 2). 2 NUC 1,2 indicates that this level is the second non-null level of the Nucleus module which contains two non-null levels (level 1 and level 2).
+The schematic diagram on page I-5 is a graphic representation of the 12 functional processing modules forming the content of Standard COBOL. This schematic diagram shows the hierarchy of levels within each functional processing module. Within the schematic diagram a shorthand notation (such as 2 INX 0,2) indicates the hierarchical position of any level within the functional processing module as well as the number of levels into which the elements of the module have been divided. This shorthand notation is composed of, from left to right, a one-digit number indicating the level's position in the hierarchy, a three-character module abbreviation, and a two-digit number indicating the minimum and maximum levels of the module to which the level belongs. The number zero indicates a null level for the lowest level within a module. For example, 2 INX 0,2 indicates that this level is the second non-null level (level 2) of the Indexed I-O module which contains a null level and two non-null levels (level 1 and level 2). 2 NUC 1,2 indicates that this level is the second non-null level of the Nucleus module which contains two non-null levels (level 1 and level 2).
+
+> ⚠ **CORRECTED — see the Errata (C46).** The standard prints `is a graphic representation of the 11 functional processing modules` (page 24, folio I-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-4 (page 832, folio A-2), applied in place: "Paragraph 1.4, fourth paragraph, first sentence, change to read: '...representation of the 12 functional processing modules...'" (kb/Work PB5045). Corrected to `is a graphic representation of the 12 functional processing modules`.
 
 The three-character module abbreviations are as follows:
 
@@ -1144,6 +1171,9 @@ The three-character module abbreviations are as follows:
 | COM | Communication |
 | DEB | Debug |
 | SEG | Segmentation |
+| ITR | Intrinsic Function |
+
+> ⚠ **CORRECTED — see the Errata (C47).** The standard prints `| SEG | Segmentation |` (page 24, folio I-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-4 (page 832, folio A-2), applied in place: "Paragraph 1.4, fifth paragraph, add to the list: ITR Intrinsic Function" (kb/Work PB5045). Corrected to `| SEG | Segmentation | ¶ | ITR | Intrinsic Function |`.
 
 I-4
 
@@ -1155,7 +1185,7 @@ Introduction
 <tr>
 <th rowspan="2" colspan="2"></th>
 <th colspan="7">REQUIRED MODULES<br>(Required in Subsets)</th>
-<th colspan="4">OPTIONAL MODULES<br>(Not Required in Subsets)</th>
+<th colspan="5">OPTIONAL MODULES<br>(Not Required in Subsets)</th>
 </tr>
 <tr>
 <th>Nucleus</th>
@@ -1169,6 +1199,7 @@ Introduction
 <th>Communication</th>
 <th>Debug</th>
 <th>Segmentation</th>
+<th>Intrinsic<br>Function</th>
 </tr>
 <tr>
 <td rowspan="3">COBOL SUBSETS</td>
@@ -1184,6 +1215,7 @@ Introduction
 <td rowspan="2">2 COM 0,2</td>
 <td rowspan="2">2 DEB 0,2</td>
 <td rowspan="2">2 SEG 0,2</td>
+<td rowspan="3">1 ITR 0,1</td>
 </tr>
 <tr>
 <td>Intermediate</td>
@@ -1210,6 +1242,8 @@ Introduction
 </tr>
 </table>
 
+> ⚠ **CORRECTED — see the Errata (C48).** The standard prints `OPTIONAL MODULES (Not Required in Subsets): Report Writer, Communication, Debug, Segmentation` (page 25, folio I-5). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-5 (page 832, folio A-2), applied in place: "Change diagram to include the Intrinsic Function module as shown on the next page of this addendum" (the diagram of page 833, folio A-3: an Intrinsic Function column, 1 ITR 0,1, spanning the three subsets) (kb/Work PB5045). Corrected to `OPTIONAL MODULES (Not Required in Subsets): Report Writer, Communication, Debug, Segmentation, Intrinsic Function (1 ITR 0,1)`.
+
 I-5
 
 ## Page 26
@@ -1218,11 +1252,15 @@ Implementation Definition
 
 ## 1.5 DEFINITION OF AN IMPLEMENTATION OF STANDARD COBOL
 
-This document provides a definition of the language features that comprise Standard COBOL. Standard COBOL consists of 11 modules, seven of which are required and four of which are optional. Paragraph 1.5 and its subparagraphs identify the criteria which must be met in order for a valid claim to be made that an implementation conforms to Standard COBOL.
+This document provides a definition of the language features that comprise Standard COBOL. Standard COBOL consists of 12 modules, seven of which are required and five of which are optional. (It is the intention of X3J4 to require the Intrinsic Function module in the next complete revision of Standard COBOL.) Paragraph 1.5 and its subparagraphs identify the criteria which must be met in order for a valid claim to be made that an implementation conforms to Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C49).** The standard prints `Standard COBOL consists of 11 modules, seven of which are required and four of which are optional.` (page 26, folio I-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-6 (page 834, folio A-4), applied in place: "Paragraph 1.5, second sentence, change 'consists of 11 modules, seven of which are required and four of which are optional.' to ..." (kb/Work PB5045). Corrected to `Standard COBOL consists of 12 modules, seven of which are required and five of which are optional. (It is the intention of X3J4 to require the Intrinsic Function module in the next complete revision of Standard COBOL.)`.
 
 ### 1.5.1 Definition of Subsets
 
-The three subsets of Standard COBOL are: the high subset, the intermediate subset, and the minimum subset. Each subset is composed of a level of the seven required modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, and Source Text Manipulation. In terms of the schematic diagram on page I-5, a subset of Standard COBOL is represented by one of the three horizontal rows within the required module columns. The four optional modules (Report Writer, Communication, Debug, and Segmentation) are not required in the three subsets of Standard COBOL.
+The three subsets of Standard COBOL are: the high subset, the intermediate subset, and the minimum subset. Each subset is composed of a level of the seven required modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, and Source Text Manipulation. In terms of the schematic diagram on page I-5, a subset of Standard COBOL is represented by one of the three horizontal rows within the required module columns. The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not required in the three subsets of Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C50).** The standard prints `The four optional modules (Report Writer, Communication, Debug, and Segmentation) are not required` (page 26, folio I-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-6 (page 834, folio A-4), applied in place: "Paragraph 1.5.1, first paragraph, last sentence, change to read: 'The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not...'" (kb/Work PB5045). Corrected to `The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not required`.
 
 The high subset of Standard COBOL is composed of all language elements of the highest level of all required modules, that is:
 
@@ -1298,7 +1336,9 @@ A conforming implementation of Standard COBOL must provide a warning mechanism, 
 
 #### 1.5.2.5.3 Reserved Words
 
-An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules. (See page IV-45, COBOL Reserved Words.)
+An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation. An implementation of Standard COBOL need not recognize any new reserved words introduced by the optional Intrinsic Function module until that module is included in the implementation. (See page IV-45, COBOL Reserved Words.)
+
+> ⚠ **CORRECTED — see the Errata (C51).** The standard prints `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules. (See page IV-45, COBOL Reserved Words.)` (page 28, folio I-8). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-8 (page 834, folio A-4), applied in place: "Paragraph 1.5.2.5.3, change to read" (kb/Work PB5045). Corrected to the text above.
 
 #### 1.5.2.5.4 Character Substitution
 
@@ -1357,6 +1397,9 @@ The following is a list of the summary of elements by module shown on pages I-11
 - Pages I-36 and I-37: Summary of elements in the Communication module
 - Page I-38: Summary of elements in the Debug module
 - Page I-39: Summary of elements in the Segmentation module
+- Page I-39: Summary of elements in the Intrinsic Function module
+
+> ⚠ **CORRECTED — see the Errata (C52).** The standard prints `- Page I-39: Summary of elements in the Segmentation module` (page 30, folio I-10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-10 (page 834, folio A-4), applied in place: "Paragraph 2.1, last paragraph, add the following to the list" (kb/Work PB5045). Corrected to `- Page I-39: Summary of elements in the Intrinsic Function module`.
 
 I-10
 
@@ -1447,7 +1490,7 @@ Nucleus Element Summary
 | &nbsp;&nbsp;Subscripting with a data-name ............................... | X | X |
 | &nbsp;&nbsp;Subscripting with an index-name ............................. | X | X |
 | &nbsp;&nbsp;Relative subscripting ....................................... | X | X |
-| &nbsp;Reference modification ........................................ | N | X |
+| &nbsp;Reference-modifier ............................................ | N | X |
 | <u>Reference Format</u> | | |
 | &nbsp;Sequence number ............................................... | X | X |
 | &nbsp;Continuation of lines | | |
@@ -1455,7 +1498,7 @@ Nucleus Element Summary
 | &nbsp;&nbsp;Continuation of COBOL word, numeric literal, PICTURE character-string ................................ | N | X |
 | &nbsp;Blank lines ................................................... | X | X |
 | &nbsp;Comment lines | | |
-| &nbsp;&nbsp;Asterisk (8) comment line ................................... | X | X |
+| &nbsp;&nbsp;Asterisk (\*) comment line ................................... | X | X |
 | &nbsp;&nbsp;Slant (/) comment line ...................................... | X | X |
 | &nbsp;Debugging line with D in indicator area ....................... | X | X |
 | <u>Source Program Structure</u> | | |
@@ -1464,6 +1507,10 @@ Nucleus Element Summary
 | &nbsp;Data Division optional ........................................ | X | X |
 | &nbsp;Procedure Division optional ................................... | X | X |
 | &nbsp;End program header ............................................ | N | X |
+
+> ⚠ **CORRECTED — see the Errata (C53).** The standard prints `| &nbsp;Reference modification ........................................ | N | X |` (page 32, folio I-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (page 834, folio A-4), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045). Corrected to `Reference-modifier`.
+
+> ⚠ **CORRECTED — see the Errata (C54).** The standard prints `| &nbsp;&nbsp;Asterisk (8) comment line ................................... | X | X |` (page 32, folio I-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (T) (page 834, folio A-4), applied in place: "Under 'Reference Format', change 'Asterisk (8) comment line' to 'Asterisk (\*) comment line'", a typographical error (kb/Work PB5045). Corrected to `Asterisk (*) comment line`.
 
 I-12
 
@@ -2695,6 +2742,62 @@ Segmentation Element Summary
 | All sections with the same segment-number must<br>&nbsp;&nbsp;&nbsp;be together in the source program ........................... | Z | N |
 | Sections with the same segment-number need not be<br>&nbsp;&nbsp;&nbsp;physically contiguous in the source program ................. | N | Z |
 
+<u>SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE</u>
+
+| ELEMENT | LEVEL 1 |
+|---|---|
+| <u>LANGUAGE CONCEPTS</u> | |
+| <u>Character-Strings</u> | |
+| COBOL words | |
+| Function-name | X |
+| <u>Uniqueness of Reference</u> | |
+| Function-Identifier | X |
+| <u>PROCEDURE DIVISION</u> | |
+| ACOS function | X |
+| ANNUITY function | X |
+| ASIN function | X |
+| ATAN function | X |
+| CHAR function | X |
+| COS function | X |
+| CURRENT-DATE function | X |
+| DATE-OF-INTEGER function | X |
+| DAY-OF-INTEGER function | X |
+| FACTORIAL function | X |
+| INTEGER function | X |
+| INTEGER-OF-DATE function | X |
+| INTEGER-OF-DAY function | X |
+| INTEGER-PART function | X |
+| LENGTH function | X |
+| LOG function | X |
+| LOG10 function | X |
+| LOWER-CASE function | X |
+| MAX function | X |
+| MEAN function | X |
+| MEDIAN function | X |
+| MIDRANGE function | X |
+| MIN function | X |
+| MOD function | X |
+| NUMVAL function | X |
+| NUMVAL-C function | X |
+| ORD function | X |
+| ORD-MAX function | X |
+| ORD-MIN function | X |
+| PRESENT-VALUE function | X |
+| RANDOM function | X |
+| RANGE function | X |
+| REM function | X |
+| REVERSE function | X |
+| SIN function | X |
+| SQRT function | X |
+| STANDARD-DEVIATION function | X |
+| SUM function | X |
+| TAN function | X |
+| UPPER-CASE function | X |
+| VARIANCE function | X |
+| WHEN-COMPILED function | X |
+
+> ⚠ **CORRECTED — see the Errata (C55).** The standard prints `SUMMARY OF ELEMENTS IN THE SEGMENTATION MODULE (the last list of page I-39)` (page 59, folio I-39). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-39 (page 834, folio A-4), applied in place: "After the Segmentation module list, add the Intrinsic Function module list shown on the next page of this addendum" (page 835, folio A-5) (kb/Work PB5045). Corrected to `SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE (the list above)`.
+
 I-39
 
 ## Page 60
@@ -2722,6 +2825,9 @@ The column titled "MODULE" specifies the module and the level within that module
 | COM | Communication |
 | DEB | Debug |
 | SEG | Segmentation |
+| ITR | Intrinsic Function |
+
+> ⚠ **CORRECTED — see the Errata (C56).** The standard prints `SEG Segmentation` (page 60, folio I-40). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-40 (page 836, folio A-6), applied in place: "Paragraph 3.1, second paragraph, add the following to the list: ITR Intrinsic Function" (kb/Work PB5045). Corrected to `SEG Segmentation ¶ ITR Intrinsic Function`.
 
 The level of an element within the module is indicated by the number preceding the three-character abbreviation of the module. For example, 2 NUC indicates that the element is a level 2 element within the Nucleus and 1 INX indicates that the element is a level 1 element within the Indexed I-O module. The letter Z follows the three-character abbreviation of the module if the element is an obsolete element in Standard COBOL that is to be deleted from the next revision of Standard COBOL.
 
@@ -2748,7 +2854,7 @@ Language Concepts Element Summary
 | &nbsp;Characters used in words 0-9 A-Z - (hyphen) .......................... | 1 NUC |
 | &nbsp;Characters used in punctuation " ( ) . , ; space ..................... | 1 NUC |
 | &nbsp;Characters used in punctuation : (colon) ............................. | 2 NUC |
-| &nbsp;Characters used in punctuation = ..................................... | 1 STM |
+| &nbsp;Characters used in punctuation = ..................................... | 2 STM |
 | &nbsp;Characters used in editing B + - . , Z \* $ 0 CR DB / ................ | 1 NUC |
 | &nbsp;Characters used in arithmetic operations + - \* / \*\* ................. | 2 NUC |
 | &nbsp;Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .................. | 1 NUC |
@@ -2789,6 +2895,8 @@ Language Concepts Element Summary
 | &nbsp;&nbsp;&nbsp;Symbolic-character ................................................... | 2 NUC |
 | &nbsp;&nbsp;&nbsp;Text-name ............................................................ | 1 STM |
 
+> ⚠ **CORRECTED — see the Errata (C57).** The standard prints `| &nbsp;Characters used in punctuation = ..................................... | 1 STM |` (page 61, folio I-41). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-41 (T) (page 836, folio A-6), applied in place: "Under 'Character Set', change entry in MODULE column for 'Characters used in punctuation =' from '1 STM' to '2 STM'", a typographical error (kb/Work PB5045). Corrected to `| &nbsp;Characters used in punctuation = ..................................... | 2 STM |`.
+
 I-41
 
 ## Page 62
@@ -2827,6 +2935,7 @@ Language Concepts Element Summary
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LINE-COUNTER | 1 RPW |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PAGE-COUNTER | 1 RPW |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DEBUG-ITEM | 1 DEB Z |
+| &nbsp;&nbsp;Function-names ............................................. | 1 ITR |
 | &nbsp;Literals | |
 | &nbsp;&nbsp;Numeric literals: &nbsp;1 through 18 digits | 1 NUC |
 | &nbsp;&nbsp;Nonnumeric literals: &nbsp;1 through 160 characters | 1 NUC |
@@ -2844,7 +2953,14 @@ Language Concepts Element Summary
 | &nbsp;&nbsp;Subscripting with a data-name | 1 NUC |
 | &nbsp;&nbsp;Subscripting with an index-name | 1 NUC |
 | &nbsp;&nbsp;Relative subscripting | 1 NUC |
-| &nbsp;Reference modification | 2 NUC |
+| &nbsp;Function-identifier | 1 ITR |
+| &nbsp;Reference-modifier | 2 NUC |
+
+> ⚠ **CORRECTED — see the Errata (C58).** The standard prints `Literals` (page 62, folio I-42). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Literals'; align the word 'Function-names' one position to the right of the word 'Literals': Function-names ... 1 ITR" (kb/Work PB5045). Corrected to `Function-names ... 1 ITR ¶ Literals`.
+
+> ⚠ **CORRECTED — see the Errata (C59).** The standard prints `| &nbsp;Reference modification | 2 NUC |` (page 62, folio I-42). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045). Corrected to `| &nbsp;Reference-modifier | 2 NUC |`.
+
+> ⚠ **CORRECTED — see the Errata (C60).** The standard prints `Reference-modifier` (page 62, folio I-42). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier': Function-identifier ... 1 ITR" (kb/Work PB5045). Corrected to `Function-identifier ... 1 ITR ¶ Reference-modifier`.
 
 I-42
 
@@ -2926,7 +3042,7 @@ Environment Division Element Summary
 | &nbsp;&nbsp;Computer-name | 1 NUC |
 | &nbsp;&nbsp;MEMORY SIZE clause | 1 NUC Z |
 | &nbsp;&nbsp;PROGRAM COLLATING SEQUENCE clause | 1 NUC |
-| &nbsp;&nbsp;SEGMENT-LIMIT clause | 1 SEG Z |
+| &nbsp;&nbsp;SEGMENT-LIMIT clause | 2 SEG Z |
 | &nbsp;SPECIAL-NAMES paragraph | 1 NUC |
 | &nbsp;&nbsp;ALPHABET clause | 1 NUC |
 | &nbsp;&nbsp;&nbsp;STANDARD-1 option | 1 NUC |
@@ -2962,6 +3078,8 @@ Environment Division Element Summary
 | | 1 INX |
 | | 1 SRT |
 | | 1 RPW |
+
+> ⚠ **CORRECTED — see the Errata (C61).** The standard prints `| &nbsp;&nbsp;SEGMENT-LIMIT clause | 1 SEG Z |` (page 65, folio I-45). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-45 (T) (page 836, folio A-6), applied in place: "Under 'OBJECT-COMPUTER paragraph', change entry in MODULE column for 'SEGMENT-LIMIT clause' from '1 SEG Z' to '2 SEG Z'", a typographical error (kb/Work PB5045). Corrected to `| &nbsp;&nbsp;SEGMENT-LIMIT clause | 2 SEG Z |`.
 
 I-45
 
@@ -3181,7 +3299,7 @@ Data Division Element Summary
 | GROUP INDICATE clause | 1 RPW |
 | JUSTIFIED clause | 1 NUC<br>1 RPW |
 | Level-number clause | 1 NUC |
-| &nbsp;01 through 49; level-number may be 1 or 1 digits | 1 NUC<br>1 RPW |
+| &nbsp;01 through 49; level-number may be 1 or 2 digits | 1 NUC<br>1 RPW |
 | &nbsp;66 | 2 NUC |
 | &nbsp;77 | 1 NUC |
 | &nbsp;88 | 2 NUC |
@@ -3205,6 +3323,8 @@ Data Division Element Summary
 | &nbsp;May be nested | 2 NUC |
 | RENAMES clause | 2 NUC |
 | SIGN clause | 1 NUC<br>1 RPW |
+
+> ⚠ **CORRECTED — see the Errata (C62).** The standard prints `| &nbsp;01 through 49; level-number may be 1 or 1 digits | 1 NUC<br>1 RPW |` (page 71, folio I-51). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-51 (T) (page 836, folio A-6), applied in place: "In the line following 'Level-number clause', change 'may be 1 or 1 digits' to 'may be 1 or 2 digits'", a typographical error (kb/Work PB5045). Corrected to `level-number may be 1 or 2 digits`.
 
 I-51
 
@@ -3311,44 +3431,90 @@ Procedure Division Element Summary
 | Arithmetic statements | 1 NUC |
 | &nbsp;Arithmetic operands limited to 18 digits | 1 NUC |
 | &nbsp;Composite of operands limited to 18 digits | 1 NUC |
-| ACCEPT statement | 1 NUC |
-| &nbsp;Identifier | 1 NUC |
-| &nbsp;Only one transfer of data | 1 NUC |
-| &nbsp;No restriction on number of transfers of data | 2 NUC |
-| &nbsp;FROM mnemonic-name phrase | 2 NUC |
-| &nbsp;FROM DATE/DAY/DAY-OF-WEEK/TIME phrase | 2 NUC |
-| ACCEPT MESSAGE COUNT statement | 1 COM |
-| ADD statement | 1 NUC |
-| &nbsp;Identifier/literal | 1 NUC |
-| &nbsp;Identifier/literal series | 1 NUC |
-| &nbsp;TO identifier | 1 NUC |
-| &nbsp;TO identifier series | 1 NUC |
-| &nbsp;TO identifier/literal GIVING identifier | 1 NUC |
-| &nbsp;TO identifier/literal GIVING identifier series | 1 NUC |
-| &nbsp;ROUNDED phrase | 1 NUC |
-| &nbsp;ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;END-ADD phrase | 1 NUC |
-| &nbsp;CORRESPONDING phrase | 2 NUC |
-| ALTER statement | 1 NUC Z |
-| &nbsp;Only one procedure-name | 1 NUC Z |
-| &nbsp;Procedure-name series | 2 NUC Z |
-| CALL statement | 1 IPC |
-| &nbsp;Literal | 1 IPC |
-| &nbsp;Identifier | 2 IPC |
-| &nbsp;USING phrase | 1 IPC |
-| &nbsp;&nbsp;Identifier | 1 IPC |
-| &nbsp;&nbsp;&nbsp;At least 5 operands permitted | 1 IPC |
-| &nbsp;&nbsp;&nbsp;No limit on number of operands permitted | 2 IPC |
-| &nbsp;&nbsp;BY REFERENCE phrase | 2 IPC |
-| &nbsp;&nbsp;BY CONTENT phrase | 2 IPC |
-| &nbsp;ON OVERFLOW phrase | 2 IPC |
-| &nbsp;ON EXCEPTION phrase | 2 IPC |
-| &nbsp;NOT ON EXCEPTION phrase | 2 IPC |
-| &nbsp;END-CALL phrase | 1 IPC |
-| CANCEL statement | 2 IPC |
-| &nbsp;Literal | 2 IPC |
-| &nbsp;Identifier | 2 IPC |
+| Intrinsic functions | |
+| &nbsp;ACOS function | 1 ITR |
+| &nbsp;ANNUITY function | 1 ITR |
+| &nbsp;ASIN function | 1 ITR |
+| &nbsp;ATAN function | 1 ITR |
+| &nbsp;CHAR function | 1 ITR |
+| &nbsp;COS function | 1 ITR |
+| &nbsp;CURRENT-DATE function | 1 ITR |
+| &nbsp;DATE-OF-INTEGER function | 1 ITR |
+| &nbsp;DAY-OF-INTEGER function | 1 ITR |
+| &nbsp;FACTORIAL function | 1 ITR |
+| &nbsp;INTEGER function | 1 ITR |
+| &nbsp;INTEGER-OF-DATE function | 1 ITR |
+| &nbsp;INTEGER-OF-DAY function | 1 ITR |
+| &nbsp;INTEGER-PART function | 1 ITR |
+| &nbsp;LENGTH function | 1 ITR |
+| &nbsp;LOG function | 1 ITR |
+| &nbsp;LOG10 function | 1 ITR |
+| &nbsp;LOWER-CASE function | 1 ITR |
+| &nbsp;MAX function | 1 ITR |
+| &nbsp;MEAN function | 1 ITR |
+| &nbsp;MEDIAN function | 1 ITR |
+| &nbsp;MIDRANGE function | 1 ITR |
+| &nbsp;MIN function | 1 ITR |
+| &nbsp;MOD function | 1 ITR |
+| &nbsp;NUMVAL function | 1 ITR |
+| &nbsp;NUMVAL-C function | 1 ITR |
+| &nbsp;ORD function | 1 ITR |
+| &nbsp;ORD-MAX function | 1 ITR |
+| &nbsp;ORD-MIN function | 1 ITR |
+| &nbsp;PRESENT-VALUE function | 1 ITR |
+| &nbsp;RANDOM function | 1 ITR |
+| &nbsp;RANGE function | 1 ITR |
+| &nbsp;REM function | 1 ITR |
+| &nbsp;REVERSE function | 1 ITR |
+| &nbsp;SIN function | 1 ITR |
+| &nbsp;SQRT function | 1 ITR |
+| &nbsp;STANDARD-DEVIATION function | 1 ITR |
+| &nbsp;SUM function | 1 ITR |
+| &nbsp;TAN function | 1 ITR |
+| &nbsp;UPPER-CASE function | 1 ITR |
+| &nbsp;VARIANCE function | 1 ITR |
+| &nbsp;WHEN-COMPILED function | 1 ITR |
+| Statements | |
+| &nbsp;ACCEPT statement | 1 NUC |
+| &nbsp;&nbsp;Identifier | 1 NUC |
+| &nbsp;&nbsp;Only one transfer of data | 1 NUC |
+| &nbsp;&nbsp;No restriction on number of transfers of data | 2 NUC |
+| &nbsp;&nbsp;FROM mnemonic-name phrase | 2 NUC |
+| &nbsp;&nbsp;FROM DATE/DAY/DAY-OF-WEEK/TIME phrase | 2 NUC |
+| &nbsp;ACCEPT MESSAGE COUNT statement | 1 COM |
+| &nbsp;ADD statement | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal series | 1 NUC |
+| &nbsp;&nbsp;TO identifier | 1 NUC |
+| &nbsp;&nbsp;TO identifier series | 1 NUC |
+| &nbsp;&nbsp;TO identifier/literal GIVING identifier | 1 NUC |
+| &nbsp;&nbsp;TO identifier/literal GIVING identifier series | 1 NUC |
+| &nbsp;&nbsp;ROUNDED phrase | 1 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;END-ADD phrase | 1 NUC |
+| &nbsp;&nbsp;CORRESPONDING phrase | 2 NUC |
+| &nbsp;ALTER statement | 1 NUC Z |
+| &nbsp;&nbsp;Only one procedure-name | 1 NUC Z |
+| &nbsp;&nbsp;Procedure-name series | 2 NUC Z |
+| &nbsp;CALL statement | 1 IPC |
+| &nbsp;&nbsp;Literal | 1 IPC |
+| &nbsp;&nbsp;Identifier | 2 IPC |
+| &nbsp;&nbsp;USING phrase | 1 IPC |
+| &nbsp;&nbsp;&nbsp;Identifier | 1 IPC |
+| &nbsp;&nbsp;&nbsp;&nbsp;At least 5 operands permitted | 1 IPC |
+| &nbsp;&nbsp;&nbsp;&nbsp;No limit on number of operands permitted | 2 IPC |
+| &nbsp;&nbsp;&nbsp;BY REFERENCE phrase | 2 IPC |
+| &nbsp;&nbsp;&nbsp;BY CONTENT phrase | 2 IPC |
+| &nbsp;&nbsp;ON OVERFLOW phrase | 2 IPC |
+| &nbsp;&nbsp;ON EXCEPTION phrase | 2 IPC |
+| &nbsp;&nbsp;NOT ON EXCEPTION phrase | 2 IPC |
+| &nbsp;&nbsp;END-CALL phrase | 1 IPC |
+| &nbsp;CANCEL statement | 2 IPC |
+| &nbsp;&nbsp;Literal | 2 IPC |
+| &nbsp;&nbsp;Identifier | 2 IPC |
+
+> ⚠ **CORRECTED — see the Errata (C63).** The standard prints `ACCEPT statement 1 NUC` (page 74, folio I-54). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-54 (page 836, folio A-6), applied in place: "Add the following before the entry for 'ACCEPT statement'": the entry Intrinsic functions, the 42 function entries of pages 836 and 837 (folios A-6 and A-7), each 1 ITR, and the entry Statements (kb/Work PB5045). Corrected to `Intrinsic functions, ACOS function ... WHEN-COMPILED function (each 1 ITR), Statements, ACCEPT statement`.
 
 I-54
 
@@ -3360,50 +3526,50 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| CLOSE statement ............................................................ | 1 SEQ |
+| &nbsp;CLOSE statement ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;File-name ............................................................ | 1 SEQ |
+| &nbsp;&nbsp;File-name ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;File-name series ............................................................ | 1 SEQ |
+| &nbsp;&nbsp;File-name series ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;REEL/UNIT phrase ............................................................ | 1 SEQ |
+| &nbsp;&nbsp;REEL/UNIT phrase ............................................................ | 1 SEQ |
 | | 1 RPW |
-| &nbsp;&nbsp;FOR REMOVAL phrase ............................................................ | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;FOR REMOVAL phrase ............................................................ | 2 SEQ |
 | | 1 RPW |
-| &nbsp;WITH NO REWIND phrase ............................................................ | 2 SEQ |
+| &nbsp;&nbsp;WITH NO REWIND phrase ............................................................ | 2 SEQ |
 | | 1 RPW |
-| &nbsp;WITH LOCK phrase ............................................................ | 2 SEQ |
+| &nbsp;&nbsp;WITH LOCK phrase ............................................................ | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| COMPUTE statement ............................................................ | 2 NUC |
-| &nbsp;Arithmetic expression ............................................................ | 2 NUC |
-| &nbsp;Identifier series ............................................................ | 2 NUC |
-| &nbsp;ROUNDED phrase ............................................................ | 2 NUC |
-| &nbsp;ON SIZE ERROR phrase ............................................................ | 2 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase ............................................................ | 2 NUC |
-| &nbsp;END-COMPUTE phrase ............................................................ | 2 NUC |
-| CONTINUE statement ............................................................ | 1 NUC |
-| DELETE statement ............................................................ | 1 REL |
+| &nbsp;COMPUTE statement ............................................................ | 2 NUC |
+| &nbsp;&nbsp;Arithmetic expression ............................................................ | 2 NUC |
+| &nbsp;&nbsp;Identifier series ............................................................ | 2 NUC |
+| &nbsp;&nbsp;ROUNDED phrase ............................................................ | 2 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase ............................................................ | 2 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase ............................................................ | 2 NUC |
+| &nbsp;&nbsp;END-COMPUTE phrase ............................................................ | 2 NUC |
+| &nbsp;CONTINUE statement ............................................................ | 1 NUC |
+| &nbsp;DELETE statement ............................................................ | 1 REL |
 | | 1 INX |
-| &nbsp;INVALID KEY phrase ............................................................ | 1 REL |
+| &nbsp;&nbsp;INVALID KEY phrase ............................................................ | 1 REL |
 | | 1 INX |
-| &nbsp;NOT INVALID KEY phrase ............................................................ | 1 REL |
+| &nbsp;&nbsp;NOT INVALID KEY phrase ............................................................ | 1 REL |
 | | 1 INX |
-| &nbsp;END-DELETE phrase ............................................................ | 1 REL |
+| &nbsp;&nbsp;END-DELETE phrase ............................................................ | 1 REL |
 | | 1 INX |
-| DISABLE statement ............................................................ | 2 COM |
-| &nbsp;INPUT phrase ............................................................ | 2 COM |
-| &nbsp;&nbsp;TERMINAL phrase ............................................................ | 2 COM |
-| &nbsp;I-O TERMINAL phrase ............................................................ | 2 COM |
-| &nbsp;OUTPUT phrase ............................................................ | 2 COM |
-| &nbsp;WITH KEY phrase ............................................................ | 2 COM Z |
+| &nbsp;DISABLE statement ............................................................ | 2 COM |
+| &nbsp;&nbsp;INPUT phrase ............................................................ | 2 COM |
+| &nbsp;&nbsp;&nbsp;TERMINAL phrase ............................................................ | 2 COM |
+| &nbsp;&nbsp;I-O TERMINAL phrase ............................................................ | 2 COM |
+| &nbsp;&nbsp;OUTPUT phrase ............................................................ | 2 COM |
+| &nbsp;&nbsp;WITH KEY phrase ............................................................ | 2 COM Z |
 
 I-55
 
@@ -3415,49 +3581,49 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| DISPLAY statement ...................................................... | 1 NUC |
-| &nbsp;Only one transfer of data ............................................ | 1 NUC |
-| &nbsp;No restriction on number of transfers of data ........................ | 2 NUC |
-| &nbsp;Identifier/literal ................................................... | 1 NUC |
-| &nbsp;Identifier/literal series ............................................ | 1 NUC |
-| &nbsp;UPON mnemonic-name phrase ............................................ | 2 NUC |
-| &nbsp;WITH NO ADVANCING phrase ............................................. | 2 NUC |
-| DIVIDE statement ....................................................... | 1 NUC |
-| &nbsp;BY identifier/literal ................................................ | 1 NUC |
-| &nbsp;INTO identifier ...................................................... | 1 NUC |
-| &nbsp;INTO identifier series ............................................... | 1 NUC |
-| &nbsp;GIVING identifier .................................................... | 1 NUC |
-| &nbsp;GIVING identifier series ............................................. | 1 NUC |
-| &nbsp;ROUNDED phrase ....................................................... | 1 NUC |
-| &nbsp;REMAINDER phrase ..................................................... | 2 NUC |
-| &nbsp;ON SIZE ERROR phrase ................................................. | 1 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase ............................................. | 1 NUC |
-| &nbsp;END-DIVIDE phrase .................................................... | 1 NUC |
-| ENABLE statement ....................................................... | 2 COM |
-| &nbsp;INPUT phrase ......................................................... | 2 COM |
-| &nbsp;&nbsp;TERMINAL phrase ..................................................... | 2 COM |
-| &nbsp;I-O TERMINAL phrase .................................................. | 2 COM |
-| &nbsp;OUTPUT phrase ........................................................ | 2 COM |
-| &nbsp;WITH KEY phrase ...................................................... | 2 COM Z |
-| EVALUATE statement ..................................................... | 2 NUC |
-| &nbsp;Identifier/literal ................................................... | 2 NUC |
-| &nbsp;Arithmetic expression ................................................ | 2 NUC |
-| &nbsp;Conditional expression ............................................... | 2 NUC |
-| &nbsp;TRUE/FALSE ........................................................... | 2 NUC |
-| &nbsp;&nbsp;ALSO phrase ......................................................... | 2 NUC |
-| &nbsp;WHEN phrase .......................................................... | 2 NUC |
-| &nbsp;&nbsp;ALSO phrase ......................................................... | 2 NUC |
-| &nbsp;WHEN OTHER phrase .................................................... | 2 NUC |
-| &nbsp;END-EVALUATE phrase .................................................. | 2 NUC |
-| EXIT statement ......................................................... | 1 NUC |
-| EXIT PROGRAM statement ................................................. | 1 IPC |
-| GENERATE statement ..................................................... | 1 RPW |
-| &nbsp;Data-name ............................................................ | 1 RPW |
-| &nbsp;Report-name .......................................................... | 1 RPW |
-| GO TO statement ........................................................ | 1 NUC |
-| &nbsp;Procedure-name is required ........................................... | 1 NUC |
-| &nbsp;Procedure-name is optional ........................................... | 2 NUC Z |
-| &nbsp;DEPENDING ON phrase .................................................. | 1 NUC |
+| &nbsp;DISPLAY statement ...................................................... | 1 NUC |
+| &nbsp;&nbsp;Only one transfer of data ............................................ | 1 NUC |
+| &nbsp;&nbsp;No restriction on number of transfers of data ........................ | 2 NUC |
+| &nbsp;&nbsp;Identifier/literal ................................................... | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal series ............................................ | 1 NUC |
+| &nbsp;&nbsp;UPON mnemonic-name phrase ............................................ | 2 NUC |
+| &nbsp;&nbsp;WITH NO ADVANCING phrase ............................................. | 2 NUC |
+| &nbsp;DIVIDE statement ....................................................... | 1 NUC |
+| &nbsp;&nbsp;BY identifier/literal ................................................ | 1 NUC |
+| &nbsp;&nbsp;INTO identifier ...................................................... | 1 NUC |
+| &nbsp;&nbsp;INTO identifier series ............................................... | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier .................................................... | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier series ............................................. | 1 NUC |
+| &nbsp;&nbsp;ROUNDED phrase ....................................................... | 1 NUC |
+| &nbsp;&nbsp;REMAINDER phrase ..................................................... | 2 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase ................................................. | 1 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase ............................................. | 1 NUC |
+| &nbsp;&nbsp;END-DIVIDE phrase .................................................... | 1 NUC |
+| &nbsp;ENABLE statement ....................................................... | 2 COM |
+| &nbsp;&nbsp;INPUT phrase ......................................................... | 2 COM |
+| &nbsp;&nbsp;&nbsp;TERMINAL phrase ..................................................... | 2 COM |
+| &nbsp;&nbsp;I-O TERMINAL phrase .................................................. | 2 COM |
+| &nbsp;&nbsp;OUTPUT phrase ........................................................ | 2 COM |
+| &nbsp;&nbsp;WITH KEY phrase ...................................................... | 2 COM Z |
+| &nbsp;EVALUATE statement ..................................................... | 2 NUC |
+| &nbsp;&nbsp;Identifier/literal ................................................... | 2 NUC |
+| &nbsp;&nbsp;Arithmetic expression ................................................ | 2 NUC |
+| &nbsp;&nbsp;Conditional expression ............................................... | 2 NUC |
+| &nbsp;&nbsp;TRUE/FALSE ........................................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;ALSO phrase ......................................................... | 2 NUC |
+| &nbsp;&nbsp;WHEN phrase .......................................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;ALSO phrase ......................................................... | 2 NUC |
+| &nbsp;&nbsp;WHEN OTHER phrase .................................................... | 2 NUC |
+| &nbsp;&nbsp;END-EVALUATE phrase .................................................. | 2 NUC |
+| &nbsp;EXIT statement ......................................................... | 1 NUC |
+| &nbsp;EXIT PROGRAM statement ................................................. | 1 IPC |
+| &nbsp;GENERATE statement ..................................................... | 1 RPW |
+| &nbsp;&nbsp;Data-name ............................................................ | 1 RPW |
+| &nbsp;&nbsp;Report-name .......................................................... | 1 RPW |
+| &nbsp;GO TO statement ........................................................ | 1 NUC |
+| &nbsp;&nbsp;Procedure-name is required ........................................... | 1 NUC |
+| &nbsp;&nbsp;Procedure-name is optional ........................................... | 2 NUC Z |
+| &nbsp;&nbsp;DEPENDING ON phrase .................................................. | 1 NUC |
 
 I-56
 
@@ -3469,53 +3635,53 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| IF statement | 1 NUC |
-| &nbsp;Only imperative statements | 1 NUC |
-| &nbsp;Imperative and/or conditional statements | 2 NUC |
-| &nbsp;Nested IF statements | 1 NUC |
-| &nbsp;THEN optional word | 1 NUC |
-| &nbsp;NEXT SENTENCE phrase | 1 NUC |
-| &nbsp;ELSE phrase | 1 NUC |
-| &nbsp;END-IF phrase | 1 NUC |
-| INITIALIZE statement | 2 NUC |
-| &nbsp;Identifier series | 2 NUC |
-| &nbsp;REPLACING phrase | 2 NUC |
-| &nbsp;REPLACING series | 2 NUC |
-| INITIATE statement | 1 RPW |
-| INSPECT statement | 1 NUC |
-| &nbsp;Only single character data item | 1 NUC |
-| &nbsp;Multi-character data item | 2 NUC |
-| &nbsp;TALLYING phrase | 1 NUC |
-| &nbsp;&nbsp;BEFORE/AFTER phrase | 1 NUC |
-| &nbsp;&nbsp;BEFORE/AFTER phrase series | 2 NUC |
-| &nbsp;TALLYING phrase series | 2 NUC |
-| &nbsp;REPLACING phrase | 1 NUC |
-| &nbsp;&nbsp;BEFORE/AFTER phrase | 1 NUC |
-| &nbsp;&nbsp;BEFORE/AFTER phrase series | 2 NUC |
-| &nbsp;REPLACING phrase series | 2 NUC |
-| &nbsp;TALLYING and REPLACING phrase | 1 NUC |
-| &nbsp;CONVERTING phrase | 2 NUC |
-| MERGE statement | 1 SRT |
-| &nbsp;ASCENDING/DESCENDING KEY phrase | 1 SRT |
-| &nbsp;COLLATING SEQUENCE phrase | 1 SRT |
-| &nbsp;USING phrase | 1 SRT |
-| &nbsp;OUTPUT PROCEDURE phrase | 1 SRT |
-| &nbsp;&nbsp;Procedure-name | 1 SRT |
-| &nbsp;GIVING phrase | 1 SRT |
-| MOVE statement | 1 NUC |
-| &nbsp;TO identifier | 1 NUC |
-| &nbsp;TO identifier series | 1 NUC |
-| &nbsp;CORRESPONDING phrase | 2 NUC |
-| &nbsp;De-editing of numeric edited items | 2 NUC |
-| MULTIPLY statement | 1 NUC |
-| &nbsp;BY identifier | 1 NUC |
-| &nbsp;BY identifier series | 1 NUC |
-| &nbsp;GIVING identifier | 1 NUC |
-| &nbsp;GIVING identifier series | 1 NUC |
-| &nbsp;ROUNDED phrase | 1 NUC |
-| &nbsp;ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;END-MULTIPLY phrase | 1 NUC |
+| &nbsp;IF statement | 1 NUC |
+| &nbsp;&nbsp;Only imperative statements | 1 NUC |
+| &nbsp;&nbsp;Imperative and/or conditional statements | 2 NUC |
+| &nbsp;&nbsp;Nested IF statements | 1 NUC |
+| &nbsp;&nbsp;THEN optional word | 1 NUC |
+| &nbsp;&nbsp;NEXT SENTENCE phrase | 1 NUC |
+| &nbsp;&nbsp;ELSE phrase | 1 NUC |
+| &nbsp;&nbsp;END-IF phrase | 1 NUC |
+| &nbsp;INITIALIZE statement | 2 NUC |
+| &nbsp;&nbsp;Identifier series | 2 NUC |
+| &nbsp;&nbsp;REPLACING phrase | 2 NUC |
+| &nbsp;&nbsp;REPLACING series | 2 NUC |
+| &nbsp;INITIATE statement | 1 RPW |
+| &nbsp;INSPECT statement | 1 NUC |
+| &nbsp;&nbsp;Only single character data item | 1 NUC |
+| &nbsp;&nbsp;Multi-character data item | 2 NUC |
+| &nbsp;&nbsp;TALLYING phrase | 1 NUC |
+| &nbsp;&nbsp;&nbsp;BEFORE/AFTER phrase | 1 NUC |
+| &nbsp;&nbsp;&nbsp;BEFORE/AFTER phrase series | 2 NUC |
+| &nbsp;&nbsp;TALLYING phrase series | 2 NUC |
+| &nbsp;&nbsp;REPLACING phrase | 1 NUC |
+| &nbsp;&nbsp;&nbsp;BEFORE/AFTER phrase | 1 NUC |
+| &nbsp;&nbsp;&nbsp;BEFORE/AFTER phrase series | 2 NUC |
+| &nbsp;&nbsp;REPLACING phrase series | 2 NUC |
+| &nbsp;&nbsp;TALLYING and REPLACING phrase | 1 NUC |
+| &nbsp;&nbsp;CONVERTING phrase | 2 NUC |
+| &nbsp;MERGE statement | 1 SRT |
+| &nbsp;&nbsp;ASCENDING/DESCENDING KEY phrase | 1 SRT |
+| &nbsp;&nbsp;COLLATING SEQUENCE phrase | 1 SRT |
+| &nbsp;&nbsp;USING phrase | 1 SRT |
+| &nbsp;&nbsp;OUTPUT PROCEDURE phrase | 1 SRT |
+| &nbsp;&nbsp;&nbsp;Procedure-name | 1 SRT |
+| &nbsp;&nbsp;GIVING phrase | 1 SRT |
+| &nbsp;MOVE statement | 1 NUC |
+| &nbsp;&nbsp;TO identifier | 1 NUC |
+| &nbsp;&nbsp;TO identifier series | 1 NUC |
+| &nbsp;&nbsp;CORRESPONDING phrase | 2 NUC |
+| &nbsp;&nbsp;De-editing of numeric edited items | 2 NUC |
+| &nbsp;MULTIPLY statement | 1 NUC |
+| &nbsp;&nbsp;BY identifier | 1 NUC |
+| &nbsp;&nbsp;BY identifier series | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier series | 1 NUC |
+| &nbsp;&nbsp;ROUNDED phrase | 1 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;END-MULTIPLY phrase | 1 NUC |
 
 I-57
 
@@ -3527,55 +3693,55 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| OPEN statement ........................................................ | 1 SEQ |
+| &nbsp;OPEN statement ........................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;File-name ........................................................ | 1 SEQ |
+| &nbsp;&nbsp;File-name ........................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;File-name series ................................................. | 1 SEQ |
+| &nbsp;&nbsp;File-name series ................................................. | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;INPUT phrase ..................................................... | 1 SEQ |
+| &nbsp;&nbsp;INPUT phrase ..................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;WITH NO REWIND ................................................ | 2 SEQ |
-| &nbsp;&nbsp;REVERSED phrase ............................................... | 2 SEQ Z |
-| &nbsp;OUTPUT phrase .................................................... | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;WITH NO REWIND ................................................ | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;REVERSED phrase ............................................... | 2 SEQ Z |
+| &nbsp;&nbsp;OUTPUT phrase .................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;WITH NO REWIND phrase ......................................... | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;WITH NO REWIND phrase ......................................... | 2 SEQ |
 | | 1 RPW |
-| &nbsp;I-O phrase ....................................................... | 1 SEQ |
+| &nbsp;&nbsp;I-O phrase ....................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;EXTEND phrase .................................................... | 2 SEQ |
+| &nbsp;&nbsp;EXTEND phrase .................................................... | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| &nbsp;INPUT, OUTPUT, and I-O series .................................... | 1 SEQ |
+| &nbsp;&nbsp;INPUT, OUTPUT, and I-O series .................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;EXTEND series .................................................... | 2 SEQ |
+| &nbsp;&nbsp;EXTEND series .................................................... | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
-| PERFORM statement ..................................................... | 1 NUC |
-| &nbsp;Procedure-name is optional ....................................... | 1 NUC |
-| &nbsp;THROUGH procedure-name phrase .................................... | 1 NUC |
-| &nbsp;Imperative-statement option ...................................... | 1 NUC |
-| &nbsp;END-PERFORM phrase ............................................... | 1 NUC |
-| &nbsp;TIMES phrase ..................................................... | 1 NUC |
-| &nbsp;UNTIL phrase ..................................................... | 1 NUC |
-| &nbsp;&nbsp;TEST BEFORE/AFTER phrase ...................................... | 2 NUC |
-| &nbsp;VARYING phrase ................................................... | 2 NUC |
-| &nbsp;&nbsp;TEST BEFORE/AFTER phrase ...................................... | 2 NUC |
-| &nbsp;&nbsp;AFTER phrase .................................................. | 2 NUC |
-| &nbsp;&nbsp;&nbsp;At least 6 AFTER phrases permitted ......................... | 2 NUC |
-| PURGE statement ....................................................... | 2 COM |
+| &nbsp;PERFORM statement ..................................................... | 1 NUC |
+| &nbsp;&nbsp;Procedure-name is optional ....................................... | 1 NUC |
+| &nbsp;&nbsp;THROUGH procedure-name phrase .................................... | 1 NUC |
+| &nbsp;&nbsp;Imperative-statement option ...................................... | 1 NUC |
+| &nbsp;&nbsp;END-PERFORM phrase ............................................... | 1 NUC |
+| &nbsp;&nbsp;TIMES phrase ..................................................... | 1 NUC |
+| &nbsp;&nbsp;UNTIL phrase ..................................................... | 1 NUC |
+| &nbsp;&nbsp;&nbsp;TEST BEFORE/AFTER phrase ...................................... | 2 NUC |
+| &nbsp;&nbsp;VARYING phrase ................................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;TEST BEFORE/AFTER phrase ...................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;AFTER phrase .................................................. | 2 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;At least 6 AFTER phrases permitted ......................... | 2 NUC |
+| &nbsp;PURGE statement ....................................................... | 2 COM |
 
 I-58
 
@@ -3587,34 +3753,34 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| READ statement ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;NEXT phrase ........................................................... | 2 SEQ<br>2 REL<br>2 INX |
-| &nbsp;INTO phrase ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;AT END phrase ......................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;NOT AT END phrase ..................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;KEY phrase ............................................................ | 2 INX |
-| &nbsp;INVALID KEY phrase .................................................... | 1 REL<br>1 INX |
-| &nbsp;NOT INVALID KEY phrase ................................................ | 1 REL<br>1 INX |
-| &nbsp;END-READ phrase ....................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| RECEIVE statement ....................................................... | 1 COM |
-| &nbsp;MESSAGE phrase ........................................................ | 1 COM |
-| &nbsp;SEGMENT phrase ........................................................ | 2 COM |
-| &nbsp;INTO phrase ........................................................... | 1 COM |
-| &nbsp;NO DATA phrase ........................................................ | 1 COM |
-| &nbsp;WITH DATA phrase ...................................................... | 1 COM |
-| &nbsp;END-RECEIVE phrase .................................................... | 1 COM |
-| RELEASE statement ....................................................... | 1 SRT |
-| &nbsp;FROM phrase ........................................................... | 1 SRT |
-| RETURN statement ........................................................ | 1 SRT |
-| &nbsp;INTO phrase ........................................................... | 1 SRT |
-| &nbsp;AT END phrase ......................................................... | 1 SRT |
-| &nbsp;NOT AT END phrase ..................................................... | 1 SRT |
-| &nbsp;END-RETURN phrase ..................................................... | 1 SRT |
-| REWRITE statement ....................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;FROM phrase ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;INVALID KEY phrase .................................................... | 1 REL<br>1 INX |
-| &nbsp;NOT INVALID KEY phrase ................................................ | 1 REL<br>1 INX |
-| &nbsp;END-REWRITE phrase .................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;READ statement ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;NEXT phrase ........................................................... | 2 SEQ<br>2 REL<br>2 INX |
+| &nbsp;&nbsp;INTO phrase ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;AT END phrase ......................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;NOT AT END phrase ..................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;KEY phrase ............................................................ | 2 INX |
+| &nbsp;&nbsp;INVALID KEY phrase .................................................... | 1 REL<br>1 INX |
+| &nbsp;&nbsp;NOT INVALID KEY phrase ................................................ | 1 REL<br>1 INX |
+| &nbsp;&nbsp;END-READ phrase ....................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;RECEIVE statement ....................................................... | 1 COM |
+| &nbsp;&nbsp;MESSAGE phrase ........................................................ | 1 COM |
+| &nbsp;&nbsp;SEGMENT phrase ........................................................ | 2 COM |
+| &nbsp;&nbsp;INTO phrase ........................................................... | 1 COM |
+| &nbsp;&nbsp;NO DATA phrase ........................................................ | 1 COM |
+| &nbsp;&nbsp;WITH DATA phrase ...................................................... | 1 COM |
+| &nbsp;&nbsp;END-RECEIVE phrase .................................................... | 1 COM |
+| &nbsp;RELEASE statement ....................................................... | 1 SRT |
+| &nbsp;&nbsp;FROM phrase ........................................................... | 1 SRT |
+| &nbsp;RETURN statement ........................................................ | 1 SRT |
+| &nbsp;&nbsp;INTO phrase ........................................................... | 1 SRT |
+| &nbsp;&nbsp;AT END phrase ......................................................... | 1 SRT |
+| &nbsp;&nbsp;NOT AT END phrase ..................................................... | 1 SRT |
+| &nbsp;&nbsp;END-RETURN phrase ..................................................... | 1 SRT |
+| &nbsp;REWRITE statement ....................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;FROM phrase ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;INVALID KEY phrase .................................................... | 1 REL<br>1 INX |
+| &nbsp;&nbsp;NOT INVALID KEY phrase ................................................ | 1 REL<br>1 INX |
+| &nbsp;&nbsp;END-REWRITE phrase .................................................... | 1 SEQ<br>1 REL<br>1 INX |
 
 I-59
 
@@ -3626,44 +3792,44 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| SEARCH statement | 2 NUC |
-| &nbsp;VARYING phrase | 2 NUC |
-| &nbsp;AT END phrase | 2 NUC |
-| &nbsp;WHEN phrase | 2 NUC |
-| &nbsp;WHEN phrase series | 2 NUC |
-| &nbsp;END-SEARCH phrase | 2 NUC |
-| SEARCH ALL statement | 2 NUC |
-| &nbsp;AT END phrase | 2 NUC |
-| &nbsp;WHEN phrase | 2 NUC |
-| &nbsp;END-SEARCH phrase | 2 NUC |
-| SEND statement | 1 COM |
-| &nbsp;FROM identifier phrase (portion of a message) | 2 COM |
-| &nbsp;FROM identifier phrase (complete message) | 1 COM |
-| &nbsp;WITH identifier phrase | 2 COM |
-| &nbsp;WITH ESI phrase | 2 COM |
-| &nbsp;WITH EMI phrase | 1 COM |
-| &nbsp;WITH EGI phrase | 1 COM |
-| &nbsp;BEFORE/AFTER ADVANCING phrase | 1 COM |
-| &nbsp;&nbsp;Integer LINE/LINES | 1 COM |
-| &nbsp;&nbsp;Identifier LINE/LINES | 1 COM |
-| &nbsp;&nbsp;Mnemonic-name | 2 COM |
-| &nbsp;&nbsp;PAGE | 1 COM |
-| &nbsp;REPLACING LINE phrase | 2 COM |
-| SET statement | 1 NUC |
-| &nbsp;Index-name/identifier TO | 1 NUC |
-| &nbsp;Index-name UP BY/DOWN BY | 1 NUC |
-| &nbsp;Mnemonic-name TO ON/OFF | 1 NUC |
-| &nbsp;Condition-name TO TRUE | 2 NUC |
-| SORT statement | 1 SRT |
-| &nbsp;ASCENDING/DESCENDING KEY phrase | 1 SRT |
-| &nbsp;DUPLICATES phrase | 1 SRT |
-| &nbsp;COLLATING SEQUENCE phrase | 1 SRT |
-| &nbsp;INPUT PROCEDURE phrase | 1 SRT |
-| &nbsp;&nbsp;Procedure-name | 1 SRT |
-| &nbsp;USING phrase | 1 SRT |
-| &nbsp;OUTPUT PROCEDURE phrase | 1 SRT |
-| &nbsp;&nbsp;Procedure-name | 1 SRT |
-| &nbsp;GIVING phrase | 1 SRT |
+| &nbsp;SEARCH statement | 2 NUC |
+| &nbsp;&nbsp;VARYING phrase | 2 NUC |
+| &nbsp;&nbsp;AT END phrase | 2 NUC |
+| &nbsp;&nbsp;WHEN phrase | 2 NUC |
+| &nbsp;&nbsp;WHEN phrase series | 2 NUC |
+| &nbsp;&nbsp;END-SEARCH phrase | 2 NUC |
+| &nbsp;SEARCH ALL statement | 2 NUC |
+| &nbsp;&nbsp;AT END phrase | 2 NUC |
+| &nbsp;&nbsp;WHEN phrase | 2 NUC |
+| &nbsp;&nbsp;END-SEARCH phrase | 2 NUC |
+| &nbsp;SEND statement | 1 COM |
+| &nbsp;&nbsp;FROM identifier phrase (portion of a message) | 2 COM |
+| &nbsp;&nbsp;FROM identifier phrase (complete message) | 1 COM |
+| &nbsp;&nbsp;WITH identifier phrase | 2 COM |
+| &nbsp;&nbsp;WITH ESI phrase | 2 COM |
+| &nbsp;&nbsp;WITH EMI phrase | 1 COM |
+| &nbsp;&nbsp;WITH EGI phrase | 1 COM |
+| &nbsp;&nbsp;BEFORE/AFTER ADVANCING phrase | 1 COM |
+| &nbsp;&nbsp;&nbsp;Integer LINE/LINES | 1 COM |
+| &nbsp;&nbsp;&nbsp;Identifier LINE/LINES | 1 COM |
+| &nbsp;&nbsp;&nbsp;Mnemonic-name | 2 COM |
+| &nbsp;&nbsp;&nbsp;PAGE | 1 COM |
+| &nbsp;&nbsp;REPLACING LINE phrase | 2 COM |
+| &nbsp;SET statement | 1 NUC |
+| &nbsp;&nbsp;Index-name/identifier TO | 1 NUC |
+| &nbsp;&nbsp;Index-name UP BY/DOWN BY | 1 NUC |
+| &nbsp;&nbsp;Mnemonic-name TO ON/OFF | 1 NUC |
+| &nbsp;&nbsp;Condition-name TO TRUE | 2 NUC |
+| &nbsp;SORT statement | 1 SRT |
+| &nbsp;&nbsp;ASCENDING/DESCENDING KEY phrase | 1 SRT |
+| &nbsp;&nbsp;DUPLICATES phrase | 1 SRT |
+| &nbsp;&nbsp;COLLATING SEQUENCE phrase | 1 SRT |
+| &nbsp;&nbsp;INPUT PROCEDURE phrase | 1 SRT |
+| &nbsp;&nbsp;&nbsp;Procedure-name | 1 SRT |
+| &nbsp;&nbsp;USING phrase | 1 SRT |
+| &nbsp;&nbsp;OUTPUT PROCEDURE phrase | 1 SRT |
+| &nbsp;&nbsp;&nbsp;Procedure-name | 1 SRT |
+| &nbsp;&nbsp;GIVING phrase | 1 SRT |
 
 I-60
 
@@ -3675,42 +3841,42 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| START statement | 2 REL<br>2 INX |
-| &nbsp;KEY phrase | 2 REL<br>2 INX |
-| &nbsp;&nbsp;EQUAL TO | 2 REL<br>2 INX |
-| &nbsp;&nbsp;= | 2 REL<br>2 INX |
-| &nbsp;&nbsp;GREATER THAN | 2 REL<br>2 INX |
-| &nbsp;&nbsp;&gt; | 2 REL<br>2 INX |
-| &nbsp;&nbsp;NOT LESS THAN | 2 REL<br>2 INX |
-| &nbsp;&nbsp;NOT &lt; | 2 REL<br>2 INX |
-| &nbsp;&nbsp;GREATER THAN OR EQUAL TO | 2 REL<br>2 INX |
-| &nbsp;&nbsp;&gt;= | 2 REL<br>2 INX |
-| &nbsp;INVALID KEY phrase | 2 REL<br>2 INX |
-| &nbsp;NOT INVALID KEY phrase | 2 REL<br>2 INX |
-| &nbsp;END-START phrase | 2 REL<br>2 INX |
-| STOP statement | 1 NUC |
-| &nbsp;RUN | 1 NUC |
-| &nbsp;Literal | 1 NUC Z |
-| STRING statement | 2 NUC |
-| &nbsp;DELIMITED BY series | 2 NUC |
-| &nbsp;WITH POINTER phrase | 2 NUC |
-| &nbsp;ON OVERFLOW phrase | 2 NUC |
-| &nbsp;NOT ON OVERFLOW phrase | 2 NUC |
-| &nbsp;END-STRING phrase | 2 NUC |
-| SUBTRACT statement | 1 NUC |
-| &nbsp;Identifier/literal | 1 NUC |
-| &nbsp;Identifier/literal series | 1 NUC |
-| &nbsp;FROM identifier | 1 NUC |
-| &nbsp;FROM identifier series | 1 NUC |
-| &nbsp;GIVING identifier | 1 NUC |
-| &nbsp;GIVING identifier series | 1 NUC |
-| &nbsp;ROUNDED phrase | 1 NUC |
-| &nbsp;ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;END-SUBTRACT phrase | 1 NUC |
-| &nbsp;CORRESPONDING phrase | 2 NUC |
-| SUPPRESS statement | 1 RPW |
-| TERMINATE statement | 1 RPW |
+| &nbsp;START statement | 2 REL<br>2 INX |
+| &nbsp;&nbsp;KEY phrase | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;EQUAL TO | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;= | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;GREATER THAN | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;&gt; | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;NOT LESS THAN | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;NOT &lt; | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;GREATER THAN OR EQUAL TO | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;&gt;= | 2 REL<br>2 INX |
+| &nbsp;&nbsp;INVALID KEY phrase | 2 REL<br>2 INX |
+| &nbsp;&nbsp;NOT INVALID KEY phrase | 2 REL<br>2 INX |
+| &nbsp;&nbsp;END-START phrase | 2 REL<br>2 INX |
+| &nbsp;STOP statement | 1 NUC |
+| &nbsp;&nbsp;RUN | 1 NUC |
+| &nbsp;&nbsp;Literal | 1 NUC Z |
+| &nbsp;STRING statement | 2 NUC |
+| &nbsp;&nbsp;DELIMITED BY series | 2 NUC |
+| &nbsp;&nbsp;WITH POINTER phrase | 2 NUC |
+| &nbsp;&nbsp;ON OVERFLOW phrase | 2 NUC |
+| &nbsp;&nbsp;NOT ON OVERFLOW phrase | 2 NUC |
+| &nbsp;&nbsp;END-STRING phrase | 2 NUC |
+| &nbsp;SUBTRACT statement | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal series | 1 NUC |
+| &nbsp;&nbsp;FROM identifier | 1 NUC |
+| &nbsp;&nbsp;FROM identifier series | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier series | 1 NUC |
+| &nbsp;&nbsp;ROUNDED phrase | 1 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;END-SUBTRACT phrase | 1 NUC |
+| &nbsp;&nbsp;CORRESPONDING phrase | 2 NUC |
+| &nbsp;SUPPRESS statement | 1 RPW |
+| &nbsp;TERMINATE statement | 1 RPW |
 
 I-61
 
@@ -3722,55 +3888,55 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| UNSTRING statement ........................................................ | 2 NUC |
-| &nbsp;DELIMITED BY phrase ...................................................... | 2 NUC |
-| &nbsp;DELIMITER IN phrase ...................................................... | 2 NUC |
-| &nbsp;COUNT IN phrase .......................................................... | 2 NUC |
-| &nbsp;WITH POINTER phrase ...................................................... | 2 NUC |
-| &nbsp;TALLYING phrase .......................................................... | 2 NUC |
-| &nbsp;ON OVERFLOW phrase ....................................................... | 2 NUC |
-| &nbsp;NOT ON OVERFLOW phrase ................................................... | 2 NUC |
-| &nbsp;END-UNSTRING phrase ...................................................... | 2 NUC |
-| USE statement ............................................................ | 1 SEQ |
+| &nbsp;UNSTRING statement ........................................................ | 2 NUC |
+| &nbsp;&nbsp;DELIMITED BY phrase ...................................................... | 2 NUC |
+| &nbsp;&nbsp;DELIMITER IN phrase ...................................................... | 2 NUC |
+| &nbsp;&nbsp;COUNT IN phrase .......................................................... | 2 NUC |
+| &nbsp;&nbsp;WITH POINTER phrase ...................................................... | 2 NUC |
+| &nbsp;&nbsp;TALLYING phrase .......................................................... | 2 NUC |
+| &nbsp;&nbsp;ON OVERFLOW phrase ....................................................... | 2 NUC |
+| &nbsp;&nbsp;NOT ON OVERFLOW phrase ................................................... | 2 NUC |
+| &nbsp;&nbsp;END-UNSTRING phrase ...................................................... | 2 NUC |
+| &nbsp;USE statement ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
 | | 1 DEB Z |
-| &nbsp;EXCEPTION/ERROR PROCEDURE phrase ......................................... | 1 SEQ |
+| &nbsp;&nbsp;EXCEPTION/ERROR PROCEDURE phrase ......................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
-| &nbsp;&nbsp;ON file-name ............................................................. | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
+| &nbsp;&nbsp;&nbsp;ON file-name ............................................................. | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;ON file-name series ...................................................... | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;ON file-name series ...................................................... | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;ON INPUT ................................................................. | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;ON INPUT ................................................................. | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;ON OUTPUT ................................................................ | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;ON OUTPUT ................................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;ON I-O ................................................................... | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;ON I-O ................................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;ON EXTEND ................................................................ | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;ON EXTEND ................................................................ | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| &nbsp;BEFORE REPORTING phrase .................................................. | 1 RPW |
-| &nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
-| &nbsp;FOR DEBUGGING phrase ..................................................... | 1 DEB Z |
-| &nbsp;&nbsp;Procedure-name ........................................................... | 1 DEB Z |
-| &nbsp;&nbsp;ALL PROCEDURES ........................................................... | 1 DEB Z |
-| &nbsp;&nbsp;ALL REFERENCES OF identifier-1 ........................................... | 2 DEB Z |
-| &nbsp;&nbsp;Cd-name .................................................................. | 2 DEB Z |
-| &nbsp;&nbsp;File-name ................................................................ | 2 DEB Z |
+| &nbsp;&nbsp;BEFORE REPORTING phrase .................................................. | 1 RPW |
+| &nbsp;&nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
+| &nbsp;&nbsp;FOR DEBUGGING phrase ..................................................... | 1 DEB Z |
+| &nbsp;&nbsp;&nbsp;Procedure-name ........................................................... | 1 DEB Z |
+| &nbsp;&nbsp;&nbsp;ALL PROCEDURES ........................................................... | 1 DEB Z |
+| &nbsp;&nbsp;&nbsp;ALL REFERENCES OF identifier-1 ........................................... | 2 DEB Z |
+| &nbsp;&nbsp;&nbsp;Cd-name .................................................................. | 2 DEB Z |
+| &nbsp;&nbsp;&nbsp;File-name ................................................................ | 2 DEB Z |
 
 I-62
 
@@ -3782,24 +3948,24 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| WRITE statement | 1 SEQ |
+| &nbsp;WRITE statement | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;FROM phrase | 1 SEQ |
+| &nbsp;&nbsp;FROM phrase | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;BEFORE/AFTER ADVANCING phrase | 1 SEQ |
-| &nbsp;&nbsp;Integer LINE/LINES | 1 SEQ |
-| &nbsp;&nbsp;Identifier LINE/LINES | 1 SEQ |
-| &nbsp;&nbsp;Mnemonic-name | 2 SEQ |
-| &nbsp;&nbsp;PAGE | 1 SEQ |
-| &nbsp;AT END-OF-PAGE/EOP phrase | 2 SEQ |
-| &nbsp;NOT AT END-OF-PAGE/EOP phrase | 2 SEQ |
-| &nbsp;INVALID KEY phrase | 1 REL |
+| &nbsp;&nbsp;BEFORE/AFTER ADVANCING phrase | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;Integer LINE/LINES | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;Identifier LINE/LINES | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;Mnemonic-name | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;PAGE | 1 SEQ |
+| &nbsp;&nbsp;AT END-OF-PAGE/EOP phrase | 2 SEQ |
+| &nbsp;&nbsp;NOT AT END-OF-PAGE/EOP phrase | 2 SEQ |
+| &nbsp;&nbsp;INVALID KEY phrase | 1 REL |
 | | 1 INX |
-| &nbsp;NOT INVALID KEY phrase | 1 REL |
+| &nbsp;&nbsp;NOT INVALID KEY phrase | 1 REL |
 | | 1 INX |
-| &nbsp;END-WRITE phrase | 1 SEQ |
+| &nbsp;&nbsp;END-WRITE phrase | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | <u>Segmentation</u> | |
@@ -3818,6 +3984,8 @@ Procedure Division Element Summary
 | REPLACE statement | 2 STM |
 | &nbsp;Pseudo-text BY pseudo-text | 2 STM |
 | &nbsp;OFF | 2 STM |
+
+> ⚠ **CORRECTED — see the Errata (C64).** The standard prints `END-WRITE phrase` (page 83, folio I-63). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-54 thru I-63 (page 837, folio A-7), applied in place: "Indent all lines following the newly inserted 'Statements' entry beginning with 'ACCEPT statement' and ending with 'END-WRITE phrase'": every element line of pages 74 to 83 from ACCEPT statement to END-WRITE phrase is indented one position (`&nbsp;`) more than the page prints it (kb/Work PB5045). Corrected to `END-WRITE phrase, indented one position`.
 
 I-63
 
@@ -4474,7 +4642,9 @@ The CALL statement may be used to call a program which is not written in COBOL, 
 
 In order to call a program, a CALL statement identifies the program's name. The names assigned to programs which directly or indirectly are contained within another program must be unique.
 
-The names assigned to each of the separately compiled program which constitute a run unit must also be unique.
+The names assigned to each of the separately compiled programs which constitute a run unit must also be unique.
+
+> ⚠ **CORRECTED — see the Errata (C65).** The standard prints `The names assigned to each of the separately compiled program which constitute` (page 107, folio II-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-23 (T) (page 837, folio A-7), applied in place: "Paragraph 6.4.1.1, entitled 'Names of Programs', second paragraph, first line, change 'compiled program' to 'compiled programs'", a typographical error (kb/Work PB5045). Corrected to `The names assigned to each of the separately compiled programs which constitute`.
 
 #### 6.4.1.2 Scope of the CALL Statement
 
@@ -4556,7 +4726,9 @@ Only the positions of the data-names are significant, not the names themselves.
 
 The calling program controls the methods by which a called program evaluates the values of the parameters passed to it and by which the called program returns results as modified parameter values.
 
-The individual parameters referenced in the CALL statement's USING phrase may be passed either by reference or by content. A called program is allowed to access and modify the value of the data item referenced in the calling program's CALL statement as a parameter passed by reference. This permission to access and modify a data item in the calling program is denied to the called program if the data item is specified in the CALL statement as a parameter passed by content. The value of the parameter is evaluated when the CALL statement is executed and is presented to the called program. This value may be changed by the called program during the course of its execution, but the value of the corresponding data item in the calling program is not modified. Thus a parameter passed by reference may be used by a called program to return to the calling program whereas a parameter passed by content cannot be so used.
+The individual parameters referenced in the CALL statement's USING phrase may be passed either by reference or by content. A called program is allowed to access and modify the value of the data item referenced in the calling program's CALL statement as a parameter passed by reference. This permission to access and modify a data item in the calling program is denied to the called program if the data item is specified in the CALL statement as a parameter passed by content. The value of the parameter is evaluated when the CALL statement is executed and is presented to the called program. This value may be changed by the called program during the course of its execution, but the value of the corresponding data item in the calling program is not modified. Thus a parameter passed by reference may be used by a called program to return a result to the calling program whereas a parameter passed by content cannot be so used.
+
+> ⚠ **CORRECTED — see the Errata (C66).** The standard prints `may be used by a called program to return to the calling program` (page 109, folio II-25). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-25 (T) (page 837, folio A-7), applied in place: "Paragraph 6.4.2.2, entitled 'Value of Parameters', second paragraph, penultimate line, change 'may be used by a called program to return to the' to 'may be used by a called program to return a result to the'", a typographical error (kb/Work PB5045). Corrected to `may be used by a called program to return a result to the calling program`.
 
 The parameters referenced in a called program's Procedure Division header must be described in the Linkage Section of that program's Data Division.
 
@@ -4925,7 +5097,13 @@ II-35
 
 ## Page 120
 
-<!-- This page is blank; it contains no standard text. -->
+## 8. INTRINSIC FUNCTION FACILITY
+
+Data processing problems frequently require the use of values which are not directly accessible in the data storage associated with the object program. These data values must be derived through performing some operations on other data. A function represents a temporary data item whose value is derived automatically at the time of reference during the execution of the object program.
+
+The value returned by a function is considered to be a data value. A mechanism is provided at object time to assign a data value to a function when it is referenced. In order to determine the value of a function, the evaluation mechanism may require access to data values provided by the referencing program. These data values are provided by specifying parameters, known as arguments, when referencing the function. Specific functions may place constraints on these arguments such as range, data types, or size, etc. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined.
+
+> ⚠ **CORRECTED — see the Errata (C67).** The standard prints `(page II-36, a blank page)` (page 120). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-35 (page 837, folio A-7), applied in place: "Add the following on page II-36 after paragraph 7.6: 8. INTRINSIC FUNCTION FACILITY" and its two paragraphs; page II-36 is printed blank (kb/Work PB5045). Corrected to `8. INTRINSIC FUNCTION FACILITY (the two paragraphs above)`.
 
 # SECTION III: GLOSSARY
 
@@ -36939,6 +37117,38 @@ it is taken as the rule of 1985.
 | [C33](#errata-c33) | 422 | VII-48 | Section VII, the REWRITE statement, general rule 3 | `the associated output file` | `the associated I-O file` | sense |
 | [C34](#errata-c34) | 461 | VIII-31 | Section VIII, the REWRITE statement, general rule 4 | `the associated output file` | `the associated I-O file` | sense |
 | [C35](#errata-c35) | 503 | IX-33 | Section IX, the REWRITE statement, general rule 4 | `the associated output file` | `the associated I-O file` | sense |
+| [C36](#errata-c36) | 10 | — | the table of contents, Section II | `(no entry 8)` | `8. Intrinsic Function Facility` | amendment-1 |
+| [C37](#errata-c37) | 11 | — | the table of contents, Section VI, entry 1.3 | `Level Restrictions on Overall Language` | `Restrictions on Overall Language` | amendment-1 |
+| [C38](#errata-c38) | 19 | — | the table of contents, Appendix A, Chapter 3 | `(no entry 3.5)` | `3.5 American National Standard COBOL 1985, Addendum 1` | amendment-1 |
+| [C39](#errata-c39) | 19 | — | the table of contents, Appendix A, Chapter 4 | `(no entry 4.4)` | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1` | amendment-1 |
+| [C40](#errata-c40) | 21 | I-1 | Section I, paragraph 1.2, first paragraph, second sentence | `defines 11 functional processing modules` | `defines 12 ... and Intrinsic Function` | amendment-1 |
+| [C41](#errata-c41) | 21 | I-1 | Section I, paragraph 1.2, first paragraph, last sentence | `Two of the modules contain only level 1 elements.` | `Three of the modules contain only level 1 elements.` | amendment-1 |
+| [C42](#errata-c42) | 23 | I-3 | Section I, paragraph 1.2, a new last paragraph | `(no paragraph)` | `The Intrinsic Function module provides ...` | amendment-1 |
+| [C43](#errata-c43) | 23 | I-3 | Section I, paragraph 1.3, first paragraph, first sentence | `This document is divided into eighteen sections.` | `This document is divided into nineteen sections.` | amendment-1 |
+| [C44](#errata-c44) | 23 | I-3 | Section I, paragraph 1.3, third paragraph, first sentence | `Sections VI through XVI contain specifications for the elev…` | `Sections VI through XVI and section A contain specification…` | amendment-1 |
+| [C45](#errata-c45) | 23 | I-3 | Section I, paragraph 1.3, fourth paragraph | `Sections II through XVI comprise the detailed specification…` | `Sections II through XVI and section A comprise the detailed…` | amendment-1 |
+| [C46](#errata-c46) | 24 | I-4 | Section I, paragraph 1.4, fourth paragraph, first sentence | `is a graphic representation of the 11 functional processing…` | `is a graphic representation of the 12 functional processing…` | amendment-1 |
+| [C47](#errata-c47) | 24 | I-4 | Section I, paragraph 1.4, fifth paragraph, the list of module abbreviations | `(no ITR entry)` | `ITR Intrinsic Function` | amendment-1 |
+| [C48](#errata-c48) | 25 | I-5 | Section I, the schematic diagram of the modules | `four optional module columns` | `Intrinsic Function column added` | amendment-1 |
+| [C49](#errata-c49) | 26 | I-6 | Section I, paragraph 1.5, second sentence | `Standard COBOL consists of 11 modules, seven of which are r…` | `Standard COBOL consists of 12 modules, seven of which are r…` | amendment-1 |
+| [C50](#errata-c50) | 26 | I-6 | Section I, paragraph 1.5.1, first paragraph, last sentence | `The four optional modules (Report Writer, Communication, De…` | `The five optional modules (Report Writer, Communication, De…` | amendment-1 |
+| [C51](#errata-c51) | 28 | I-8 | Section I, paragraph 1.5.2.5.3 (Reserved Words) | `An implementation of Standard COBOL must recognize as reser…` | `An implementation of Standard COBOL must recognize as reser…` | amendment-1 |
+| [C52](#errata-c52) | 30 | I-10 | Section I, paragraph 2.1, last paragraph, the list of summaries | `(no entry)` | `Page I-39: ... Intrinsic Function module` | amendment-1 |
+| [C53](#errata-c53) | 32 | I-12 | Section I, the Nucleus module summary, Language Concepts | `&nbsp;Reference modification ............................…` | `&nbsp;Reference-modifier ................................…` | amendment-1 |
+| [C54](#errata-c54) | 32 | I-12 | Section I, the Nucleus module summary, under Reference Format | `Asterisk (8) comment line` | `Asterisk (*) comment line` | amendment-1 |
+| [C55](#errata-c55) | 59 | I-39 | Section I, after the Segmentation module summary | `(no Intrinsic Function list)` | `SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE` | amendment-1 |
+| [C56](#errata-c56) | 60 | I-40 | Section I, paragraph 3.1, second paragraph, the table of module abbreviations | `(no ITR entry)` | `ITR Intrinsic Function` | amendment-1 |
+| [C57](#errata-c57) | 61 | I-41 | Section I, the division summary, Character Set | `Characters used in punctuation = 1 STM` | `2 STM` | amendment-1 |
+| [C58](#errata-c58) | 62 | I-42 | Section I, the division summary, Language Concepts, before Literals | `(no entry)` | `Function-names 1 ITR` | amendment-1 |
+| [C59](#errata-c59) | 62 | I-42 | Section I, the division summary, Uniqueness of Reference | `Reference modification` | `Reference-modifier` | amendment-1 |
+| [C60](#errata-c60) | 62 | I-42 | Section I, the division summary, Uniqueness of Reference, before Reference-modifier | `(no entry)` | `Function-identifier 1 ITR` | amendment-1 |
+| [C61](#errata-c61) | 65 | I-45 | Section I, the division summary, OBJECT-COMPUTER paragraph | `SEGMENT-LIMIT clause 1 SEG Z` | `2 SEG Z` | amendment-1 |
+| [C62](#errata-c62) | 71 | I-51 | Section I, the division summary, the line following Level-number clause | `level-number may be 1 or 1 digits` | `level-number may be 1 or 2 digits` | amendment-1 |
+| [C63](#errata-c63) | 74 | I-54 | Section I, the division summary, Procedure Division, before ACCEPT statement | `(no Intrinsic functions entries)` | `Intrinsic functions ... Statements` | amendment-1 |
+| [C64](#errata-c64) | 83 | I-63 | Section I, the division summary, Procedure Division, ACCEPT statement (page 74) to END-WRITE phrase | `ACCEPT statement ... END-WRITE phrase` | `each indented one position` | amendment-1 |
+| [C65](#errata-c65) | 107 | II-23 | Section II, paragraph 6.4.1.1 (Names of Programs), second paragraph | `compiled program` | `compiled programs` | amendment-1 |
+| [C66](#errata-c66) | 109 | II-25 | Section II, paragraph 6.4.2.2 (Value of Parameters), second paragraph | `to return to the` | `to return a result to the` | amendment-1 |
+| [C67](#errata-c67) | 120 | — | Section II, a new paragraph 8 on page II-36, after paragraph 7.6 | `(blank page)` | `8. INTRINSIC FUNCTION FACILITY` | amendment-1 |
 
 <a id="errata-c1"></a>
 
@@ -37324,6 +37534,358 @@ A slip of the printed page: the sentence is the WRITE statement's, but the file 
 | **This transcription** | `as the associated I-O file, as well as the file associated with record-name-1` |
 
 A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:IX.4.6.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045).
+
+<a id="errata-c36"></a>
+
+### C36 · page 10 · the table of contents, Section II · `(no entry 8)` → `8. Intrinsic Function Facility`
+
+| | |
+|---|---|
+| **Printed** | `7. Communication Facility ... II-28` |
+| **This transcription** | `8. Intrinsic Function Facility ... II-36` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page ii (page 831, folio A-1), applied in place: "Add the following after the entry for section II, paragraph 7" (kb/Work PB5045).
+
+<a id="errata-c37"></a>
+
+### C37 · page 11 · the table of contents, Section VI, entry 1.3 · `Level Restrictions on Overall Language` → `Restrictions on Overall Language`
+
+| | |
+|---|---|
+| **Printed** | `Level Restrictions on Overall Language` |
+| **This transcription** | `Restrictions on Overall Language` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page iii (page 831, folio A-1), applied in place: "Change the entry for section VI, paragraph 1.3 to read" (kb/Work PB5045).
+
+<a id="errata-c38"></a>
+
+### C38 · page 19 · the table of contents, Appendix A, Chapter 3 · `(no entry 3.5)` → `3.5 American National Standard COBOL 1985, Addend…`
+
+| | |
+|---|---|
+| **Printed** | `3.4 American National Standard COBOL 1985 ... XVII-12` |
+| **This transcription** | `3.5 American National Standard COBOL 1985, Addendum 1 ... XVII-13` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 3.4" (kb/Work PB5045).
+
+<a id="errata-c39"></a>
+
+### C39 · page 19 · the table of contents, Appendix A, Chapter 4 · `(no entry 4.4)` → `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1`
+
+| | |
+|---|---|
+| **Printed** | `4.3 ISO Standard 1989-1985 for COBOL ... XVII-15` |
+| **This transcription** | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1 ... XVII-15` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 4.3" (kb/Work PB5045).
+
+<a id="errata-c40"></a>
+
+### C40 · page 21 (folio I-1) · Section I, paragraph 1.2, first paragraph, second sentence · `defines 11 functional processing modules` → `defines 12 ... and Intrinsic Function`
+
+| | |
+|---|---|
+| **Printed** | `The standard defines 11 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, and Segmentation.` |
+| **This transcription** | `The standard defines 12 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, Segmentation, and Intrinsic Function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-1 (page 831, folio A-1), applied in place: "Paragraph 1.2, first paragraph, second sentence, change to read" (kb/Work PB5045).
+
+<a id="errata-c41"></a>
+
+### C41 · page 21 (folio I-1) · Section I, paragraph 1.2, first paragraph, last sentence · `Two of the modules contain only level 1 elements.` → `Three of the modules contain only level 1 element…`
+
+| | |
+|---|---|
+| **Printed** | `Two of the modules contain only level 1 elements.` |
+| **This transcription** | `Three of the modules contain only level 1 elements.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-1 (page 831, folio A-1), applied in place: "Paragraph 1.2, first paragraph, last sentence, change to read" (kb/Work PB5045).
+
+<a id="errata-c42"></a>
+
+### C42 · page 23 (folio I-3) · Section I, paragraph 1.2, a new last paragraph · `(no paragraph)` → `The Intrinsic Function module provides ...`
+
+| | |
+|---|---|
+| **Printed** | `Segmentation level 2 adds the capability for varying the segment limit.` |
+| **This transcription** | `The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program. The Intrinsic Function module contains only level 1 elements.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 831, folio A-1), applied in place: "Paragraph 1.2, add the following paragraph after the last paragraph" (kb/Work PB5045).
+
+<a id="errata-c43"></a>
+
+### C43 · page 23 (folio I-3) · Section I, paragraph 1.3, first paragraph, first sentence · `This document is divided into eighteen sections.` → `This document is divided into nineteen sections.`
+
+| | |
+|---|---|
+| **Printed** | `This document is divided into eighteen sections.` |
+| **This transcription** | `This document is divided into nineteen sections.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, first paragraph, first sentence, change to read: '...into nineteen sections.'" (kb/Work PB5045).
+
+<a id="errata-c44"></a>
+
+### C44 · page 23 (folio I-3) · Section I, paragraph 1.3, third paragraph, first sentence · `Sections VI through XVI contain specifications fo…` → `Sections VI through XVI and section A contain spe…`
+
+| | |
+|---|---|
+| **Printed** | `Sections VI through XVI contain specifications for the eleven functional processing modules.` |
+| **This transcription** | `Sections VI through XVI and section A contain specifications for the twelve functional processing modules.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, third paragraph, first sentence, change to read: 'Sections VI through XVI and section A contain specifications for the twelve functional...'" (kb/Work PB5045).
+
+<a id="errata-c45"></a>
+
+### C45 · page 23 (folio I-3) · Section I, paragraph 1.3, fourth paragraph · `Sections II through XVI comprise the detailed spe…` → `Sections II through XVI and section A comprise th…`
+
+| | |
+|---|---|
+| **Printed** | `Sections II through XVI comprise the detailed specifications of Standard COBOL.` |
+| **This transcription** | `Sections II through XVI and section A comprise the detailed specifications of Standard COBOL.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, fourth paragraph, change to read: 'Sections II through XVI and section A comprise the detailed...'" (kb/Work PB5045).
+
+<a id="errata-c46"></a>
+
+### C46 · page 24 (folio I-4) · Section I, paragraph 1.4, fourth paragraph, first sentence · `is a graphic representation of the 11 functional…` → `is a graphic representation of the 12 functional…`
+
+| | |
+|---|---|
+| **Printed** | `is a graphic representation of the 11 functional processing modules` |
+| **This transcription** | `is a graphic representation of the 12 functional processing modules` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-4 (page 832, folio A-2), applied in place: "Paragraph 1.4, fourth paragraph, first sentence, change to read: '...representation of the 12 functional processing modules...'" (kb/Work PB5045).
+
+<a id="errata-c47"></a>
+
+### C47 · page 24 (folio I-4) · Section I, paragraph 1.4, fifth paragraph, the list of module abbreviations · `(no ITR entry)` → `ITR Intrinsic Function`
+
+| | |
+|---|---|
+| **Printed** | `SEG Segmentation` |
+| **This transcription** | `SEG Segmentation ¶ ITR Intrinsic Function` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-4 (page 832, folio A-2), applied in place: "Paragraph 1.4, fifth paragraph, add to the list: ITR Intrinsic Function" (kb/Work PB5045).
+
+<a id="errata-c48"></a>
+
+### C48 · page 25 (folio I-5) · Section I, the schematic diagram of the modules · `four optional module columns` → `Intrinsic Function column added`
+
+| | |
+|---|---|
+| **Printed** | `OPTIONAL MODULES (Not Required in Subsets): Report Writer, Communication, Debug, Segmentation` |
+| **This transcription** | `OPTIONAL MODULES (Not Required in Subsets): Report Writer, Communication, Debug, Segmentation, Intrinsic Function (1 ITR 0,1)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-5 (page 832, folio A-2), applied in place: "Change diagram to include the Intrinsic Function module as shown on the next page of this addendum" (the diagram of page 833, folio A-3: an Intrinsic Function column, 1 ITR 0,1, spanning the three subsets) (kb/Work PB5045).
+
+<a id="errata-c49"></a>
+
+### C49 · page 26 (folio I-6) · Section I, paragraph 1.5, second sentence · `Standard COBOL consists of 11 modules, seven of w…` → `Standard COBOL consists of 12 modules, seven of w…`
+
+| | |
+|---|---|
+| **Printed** | `Standard COBOL consists of 11 modules, seven of which are required and four of which are optional.` |
+| **This transcription** | `Standard COBOL consists of 12 modules, seven of which are required and five of which are optional. (It is the intention of X3J4 to require the Intrinsic Function module in the next complete revision of Standard COBOL.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-6 (page 834, folio A-4), applied in place: "Paragraph 1.5, second sentence, change 'consists of 11 modules, seven of which are required and four of which are optional.' to ..." (kb/Work PB5045).
+
+<a id="errata-c50"></a>
+
+### C50 · page 26 (folio I-6) · Section I, paragraph 1.5.1, first paragraph, last sentence · `The four optional modules (Report Writer, Communi…` → `The five optional modules (Report Writer, Communi…`
+
+| | |
+|---|---|
+| **Printed** | `The four optional modules (Report Writer, Communication, Debug, and Segmentation) are not required` |
+| **This transcription** | `The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not required` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-6 (page 834, folio A-4), applied in place: "Paragraph 1.5.1, first paragraph, last sentence, change to read: 'The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not...'" (kb/Work PB5045).
+
+<a id="errata-c51"></a>
+
+### C51 · page 28 (folio I-8) · Section I, paragraph 1.5.2.5.3 (Reserved Words) · `An implementation of Standard COBOL must recogniz…` → `An implementation of Standard COBOL must recogniz…`
+
+| | |
+|---|---|
+| **Printed** | `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules. (See page IV-45, COBOL Reserved Words.)` |
+| **This transcription** | `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation. An implementation of Standard COBOL need not recognize any new reserved words introduced by the optional Intrinsic Function module until that module is included in the implementation. (See page IV-45, COBOL Reserved Words.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-8 (page 834, folio A-4), applied in place: "Paragraph 1.5.2.5.3, change to read" (kb/Work PB5045).
+
+<a id="errata-c52"></a>
+
+### C52 · page 30 (folio I-10) · Section I, paragraph 2.1, last paragraph, the list of summaries · `(no entry)` → `Page I-39: ... Intrinsic Function module`
+
+| | |
+|---|---|
+| **Printed** | `- Page I-39: Summary of elements in the Segmentation module` |
+| **This transcription** | `- Page I-39: Summary of elements in the Intrinsic Function module` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-10 (page 834, folio A-4), applied in place: "Paragraph 2.1, last paragraph, add the following to the list" (kb/Work PB5045).
+
+<a id="errata-c53"></a>
+
+### C53 · page 32 (folio I-12) · Section I, the Nucleus module summary, Language Concepts · `&nbsp;Reference modification ..................…` → `&nbsp;Reference-modifier ......................…`
+
+| | |
+|---|---|
+| **Printed** | `Reference modification` |
+| **This transcription** | `Reference-modifier` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (page 834, folio A-4), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045).
+
+<a id="errata-c54"></a>
+
+### C54 · page 32 (folio I-12) · Section I, the Nucleus module summary, under Reference Format · `Asterisk (8) comment line` → `Asterisk (*) comment line`
+
+| | |
+|---|---|
+| **Printed** | `Asterisk (8) comment line` |
+| **This transcription** | `Asterisk (*) comment line` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (T) (page 834, folio A-4), applied in place: "Under 'Reference Format', change 'Asterisk (8) comment line' to 'Asterisk (\*) comment line'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c55"></a>
+
+### C55 · page 59 (folio I-39) · Section I, after the Segmentation module summary · `(no Intrinsic Function list)` → `SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MOD…`
+
+| | |
+|---|---|
+| **Printed** | `SUMMARY OF ELEMENTS IN THE SEGMENTATION MODULE (the last list of page I-39)` |
+| **This transcription** | `SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE (the list above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-39 (page 834, folio A-4), applied in place: "After the Segmentation module list, add the Intrinsic Function module list shown on the next page of this addendum" (page 835, folio A-5) (kb/Work PB5045).
+
+<a id="errata-c56"></a>
+
+### C56 · page 60 (folio I-40) · Section I, paragraph 3.1, second paragraph, the table of module abbreviations · `(no ITR entry)` → `ITR Intrinsic Function`
+
+| | |
+|---|---|
+| **Printed** | `SEG Segmentation` |
+| **This transcription** | `SEG Segmentation ¶ ITR Intrinsic Function` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-40 (page 836, folio A-6), applied in place: "Paragraph 3.1, second paragraph, add the following to the list: ITR Intrinsic Function" (kb/Work PB5045).
+
+<a id="errata-c57"></a>
+
+### C57 · page 61 (folio I-41) · Section I, the division summary, Character Set · `Characters used in punctuation = 1 STM` → `2 STM`
+
+| | |
+|---|---|
+| **Printed** | `&nbsp;Characters used in punctuation = ..................................... 1 STM` |
+| **This transcription** | `&nbsp;Characters used in punctuation = ..................................... 2 STM` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-41 (T) (page 836, folio A-6), applied in place: "Under 'Character Set', change entry in MODULE column for 'Characters used in punctuation =' from '1 STM' to '2 STM'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c58"></a>
+
+### C58 · page 62 (folio I-42) · Section I, the division summary, Language Concepts, before Literals · `(no entry)` → `Function-names 1 ITR`
+
+| | |
+|---|---|
+| **Printed** | `Literals` |
+| **This transcription** | `Function-names ... 1 ITR ¶ Literals` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Literals'; align the word 'Function-names' one position to the right of the word 'Literals': Function-names ... 1 ITR" (kb/Work PB5045).
+
+<a id="errata-c59"></a>
+
+### C59 · page 62 (folio I-42) · Section I, the division summary, Uniqueness of Reference · `Reference modification` → `Reference-modifier`
+
+| | |
+|---|---|
+| **Printed** | `&nbsp;Reference modification 2 NUC` |
+| **This transcription** | `&nbsp;Reference-modifier 2 NUC` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045).
+
+<a id="errata-c60"></a>
+
+### C60 · page 62 (folio I-42) · Section I, the division summary, Uniqueness of Reference, before Reference-modifier · `(no entry)` → `Function-identifier 1 ITR`
+
+| | |
+|---|---|
+| **Printed** | `Reference-modifier` |
+| **This transcription** | `Function-identifier ... 1 ITR ¶ Reference-modifier` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier': Function-identifier ... 1 ITR" (kb/Work PB5045).
+
+<a id="errata-c61"></a>
+
+### C61 · page 65 (folio I-45) · Section I, the division summary, OBJECT-COMPUTER paragraph · `SEGMENT-LIMIT clause 1 SEG Z` → `2 SEG Z`
+
+| | |
+|---|---|
+| **Printed** | `&nbsp;&nbsp;SEGMENT-LIMIT clause 1 SEG Z` |
+| **This transcription** | `&nbsp;&nbsp;SEGMENT-LIMIT clause 2 SEG Z` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-45 (T) (page 836, folio A-6), applied in place: "Under 'OBJECT-COMPUTER paragraph', change entry in MODULE column for 'SEGMENT-LIMIT clause' from '1 SEG Z' to '2 SEG Z'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c62"></a>
+
+### C62 · page 71 (folio I-51) · Section I, the division summary, the line following Level-number clause · `level-number may be 1 or 1 digits` → `level-number may be 1 or 2 digits`
+
+| | |
+|---|---|
+| **Printed** | `&nbsp;01 through 49; level-number may be 1 or 1 digits 1 NUC<br>1 RPW` |
+| **This transcription** | `level-number may be 1 or 2 digits` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-51 (T) (page 836, folio A-6), applied in place: "In the line following 'Level-number clause', change 'may be 1 or 1 digits' to 'may be 1 or 2 digits'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c63"></a>
+
+### C63 · page 74 (folio I-54) · Section I, the division summary, Procedure Division, before ACCEPT statement · `(no Intrinsic functions entries)` → `Intrinsic functions ... Statements`
+
+| | |
+|---|---|
+| **Printed** | `ACCEPT statement 1 NUC` |
+| **This transcription** | `Intrinsic functions, ACOS function ... WHEN-COMPILED function (each 1 ITR), Statements, ACCEPT statement` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-54 (page 836, folio A-6), applied in place: "Add the following before the entry for 'ACCEPT statement'": the entry Intrinsic functions, the 42 function entries of pages 836 and 837 (folios A-6 and A-7), each 1 ITR, and the entry Statements (kb/Work PB5045).
+
+<a id="errata-c64"></a>
+
+### C64 · page 83 (folio I-63) · Section I, the division summary, Procedure Division, ACCEPT statement (page 74) to END-WRITE phrase · `ACCEPT statement ... END-WRITE phrase` → `each indented one position`
+
+| | |
+|---|---|
+| **Printed** | `END-WRITE phrase` |
+| **This transcription** | `END-WRITE phrase, indented one position` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-54 thru I-63 (page 837, folio A-7), applied in place: "Indent all lines following the newly inserted 'Statements' entry beginning with 'ACCEPT statement' and ending with 'END-WRITE phrase'": every element line of pages 74 to 83 from ACCEPT statement to END-WRITE phrase is indented one position (`&nbsp;`) more than the page prints it (kb/Work PB5045).
+
+<a id="errata-c65"></a>
+
+### C65 · page 107 (folio II-23) · Section II, paragraph 6.4.1.1 (Names of Programs), second paragraph · `compiled program` → `compiled programs`
+
+| | |
+|---|---|
+| **Printed** | `The names assigned to each of the separately compiled program which constitute` |
+| **This transcription** | `The names assigned to each of the separately compiled programs which constitute` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-23 (T) (page 837, folio A-7), applied in place: "Paragraph 6.4.1.1, entitled 'Names of Programs', second paragraph, first line, change 'compiled program' to 'compiled programs'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c66"></a>
+
+### C66 · page 109 (folio II-25) · Section II, paragraph 6.4.2.2 (Value of Parameters), second paragraph · `to return to the` → `to return a result to the`
+
+| | |
+|---|---|
+| **Printed** | `may be used by a called program to return to the calling program` |
+| **This transcription** | `may be used by a called program to return a result to the calling program` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-25 (T) (page 837, folio A-7), applied in place: "Paragraph 6.4.2.2, entitled 'Value of Parameters', second paragraph, penultimate line, change 'may be used by a called program to return to the' to 'may be used by a called program to return a result to the'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c67"></a>
+
+### C67 · page 120 · Section II, a new paragraph 8 on page II-36, after paragraph 7.6 · `(blank page)` → `8. INTRINSIC FUNCTION FACILITY`
+
+| | |
+|---|---|
+| **Printed** | `(page II-36, a blank page)` |
+| **This transcription** | `8. INTRINSIC FUNCTION FACILITY (the two paragraphs above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-35 (page 837, folio A-7), applied in place: "Add the following on page II-36 after paragraph 7.6: 8. INTRINSIC FUNCTION FACILITY" and its two paragraphs; page II-36 is printed blank (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
