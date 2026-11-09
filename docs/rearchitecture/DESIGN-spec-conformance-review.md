@@ -1019,7 +1019,7 @@ box sides and line breaks are dropped, and it holds the printed words whole), so
 prints. `misprint-leads` writes `DIR/misprint-leads.json`, each lead with its rule's citation and whether a counterpart was
 read beside it. A lead is never a correction: a reader confirms it on the rendered page before the Errata of
 `specs/ANSI_COBOL_1985.md` lists it (kb/Work PB4972's convention). The pass reads catalog rules only; the prose outside
-the catalog, the general formats and the index stay unread by it, and the Errata says so.
+the catalog, and the index, stay unread by it; the catalog's 210 general-format (FMT) rows are planned with every other rule and so are read, and the Errata says so.
 
 **A rule's candidates are drawn from the strongest signal down** (`audit_batch.candidates`, kb/Work PB4971, owner
 2026-11-08: "Use the strongest appropriate signals"):
