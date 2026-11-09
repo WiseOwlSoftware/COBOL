@@ -14,8 +14,10 @@ a run restartable with minimal loss, so neither carries a copy:
   - the usage of EVERY succeeded reply is recorded (a cut-off reply is billed too), keyed by its batch AND its custom id
     (`usage_key`): a retried member's earlier billed reply keeps its own entry beside the retry's, and a collect repeated
     after a crash rewrites the same entries, so `cost_so_far` is what was spent;
-  - the API key goes to the SDK client only (`load_key`): `state.json` records the NAME of the account the run bills
-    (api_key.read_run_key keeps a later command to it), never a key.
+  - the API key goes to the SDK client only (`load_key`): each batch record names the account that created it
+    (`api_account`), never a key. A batch belongs to that account and only its key reads the batch back, so while a batch
+    is uncollected every command bills its account (api_key.read_run_key); once every batch is collected a run may bill
+    another account, so one pass can spend two accounts' credit (kb/Work PB4995).
 
 A batch's MEMBERS are what its requests stand for: a page number for the transcriber (state key `pages`, custom id
 `p0012`), a request's custom id for the audit (state key `items`). The state key and the two conversions are the caller's,
@@ -102,13 +104,14 @@ def reply_text(message: Any) -> str:
 
 class BatchRun(Generic[M]):
     """One run's `state.json`: `model`, `batches` (each `{id, <members key>: [...], collected?, bad?}` plus the caller's
-    fields), `pending` (the intent of a create not yet recorded), `usage` (`usage_key` -> [input, output] tokens, one
-    entry per billed reply) and `api_account`."""
+    fields and the `api_account` that created it), `pending` (the intent of a create not yet recorded, with its
+    `api_account`) and `usage` (`usage_key` -> [input, output] tokens, one entry per billed reply)."""
 
     def __init__(self, state_file: pathlib.Path, members: str, member_of: Callable[[str], M],
                  custom_id: Callable[[M], str], tool: str):
         self.state_file, self.members, self.member_of, self.custom_id, self.tool = (
             state_file, members, member_of, custom_id, tool)
+        self.account: str | None = None     # the account `load_key` chose: each batch this command creates records it
 
     def load(self, **fresh: Any) -> dict[str, Any]:
         """The recorded state, or a new one with `fresh`'s fields (never written until `save`)."""
@@ -120,14 +123,26 @@ class BatchRun(Generic[M]):
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
         write_atomic(self.state_file, json.dumps(st, indent=1))
 
+    @staticmethod
+    def pinned_account(st: dict[str, Any]) -> str | None:
+        """The account every command must bill: the one an uncollected batch (or a create's intent) belongs to, since only
+        its key reads that batch back; None once every batch is collected."""
+        unread = [b for b in st["batches"] if not b.get("collected")] + ([st["pending"]] if st.get("pending") else [])
+        return next((b["api_account"] for b in unread), None)
+
     def load_key(self, key_file: str, account: str | None, st: dict[str, Any]) -> ApiKey:
-        """The key of `account` in `key_file`, kept to the account `st` records (`read_run_key`), which it then records; a
-        file with no such key, or another account than the state's, exits naming the path (never a key)."""
+        """The key of `account` in `key_file` (unnamed: the pinned account, else the account of the run's newest batch),
+        kept to `pinned_account` (`read_run_key`); a file with no such key, or another account while a batch or a
+        create's intent is uncollected, exits naming the path (never a key). The account chosen bills every batch this
+        command creates."""
+        pinned = self.pinned_account(st)
+        newest = st["batches"][-1]["api_account"] if st["batches"] else None
         try:
-            chosen = read_run_key(key_file, account, st.get("api_account"), self.state_file)
+            chosen = read_run_key(key_file, account if account is not None else (pinned or newest), pinned,
+                                  self.state_file)
         except RuntimeError as e:
             raise SystemExit(f"{self.tool}: {e}") from None
-        st["api_account"] = chosen.account
+        self.account = chosen.account
         return chosen
 
     def covered(self, st: dict[str, Any]) -> set[M]:
@@ -146,7 +161,22 @@ class BatchRun(Generic[M]):
 
     def cost_so_far(self, st: dict[str, Any]) -> float:
         """The batch price of every reply `usage` records: what the run has been billed."""
-        return sum(usd(st["model"], *u) for u in st.get("usage", {}).values())
+        return sum(self.cost_by_account(st).values())
+
+    def cost_by_account(self, st: dict[str, Any]) -> dict[str | None, float]:
+        """What each account was billed: every recorded reply's batch price, under the account of its batch (None: a key
+        file of one unlabeled key)."""
+        account = {b["id"]: b["api_account"] for b in st["batches"]}
+        billed: dict[str | None, float] = dict.fromkeys(account.values(), 0.0)
+        for key, u in st.get("usage", {}).items():
+            who = account[key.split("/", 1)[0]]
+            billed[who] = billed.get(who, 0.0) + usd(st["model"], *u)
+        return billed
+
+    def billing_line(self, st: dict[str, Any]) -> str:
+        """`status`'s account line: each account the run's batches billed, with its spend."""
+        return "batches billed to " + "; ".join(f"the account {who or '(one unlabeled key)'} ${spent:.2f}"
+                                                for who, spent in sorted(self.cost_by_account(st).items(), key=str))
 
     def adopt_pending(self, st: dict[str, Any], client: Any) -> None:
         """A crash between `create` and the state write: find the batch the server accepted (the same request count,
@@ -177,10 +207,10 @@ class BatchRun(Generic[M]):
             if not chunk:
                 return
             members = [self.member_of(r["custom_id"]) for r in chunk]
-            st["pending"] = {"t": time.time(), self.members: members, **fields}
+            st["pending"] = {"t": time.time(), self.members: members, "api_account": self.account, **fields}
             self.save(st)
             b = client.messages.batches.create(requests=chunk)
-            st["batches"].append({"id": b.id, self.members: members, **fields})
+            st["batches"].append({"id": b.id, self.members: members, "api_account": self.account, **fields})
             st["pending"] = None
             self.save(st)
             created.append(b.id)
@@ -201,10 +231,12 @@ class BatchRun(Generic[M]):
         """Take every batch that has ENDED and is not yet collected. `take(member, message, batch)` stores one reply that
         stopped at `end_turn` and returns None, or returns why it refused it; every other result is recorded as bad."""
         for b in st["batches"]:
+            if b.get("collected"):
+                continue                    # it may be another account's batch, which only that account's key reads
             bb = client.messages.batches.retrieve(b["id"])
             b["status"] = bb.processing_status
             print(b["id"], len(b[self.members]), bb.processing_status, flush=True)
-            if bb.processing_status != "ended" or b.get("collected"):
+            if bb.processing_status != "ended":
                 continue
             bad: list[list[str]] = []
             for res in client.messages.batches.results(b["id"]):
