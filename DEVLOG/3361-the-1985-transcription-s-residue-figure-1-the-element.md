@@ -1,4 +1,4 @@
-## The 1985 transcription's residue: Figure 1, the element-summary tables, body headings and Amendment 1's heads (PB4953)
+## Entry 3361 — 2026-11-08 21:47 PST — The 1985 transcription's residue: Figure 1, the element-summary tables, body headings and Amendment 1's heads (PB4953)
 
 PB4812's reconciliation compared every page of `specs/ANSI_COBOL_1985.md` against its scan, but it repaired only what a claim
 pointed at. Four things were left, each now read against the rendered page.
@@ -31,3 +31,4 @@ place, because `rule_catalog_1985.CHANGE_ADDS` knew only "as new ... rule n". It
 **Ledger.** 533 sweep entries (`summary-rows`, `heading-underlines`, `amendment-1-heads`, `figure-1-connectors`) were added to
 `LEDGER-1985.json`, and the page-853 claim and sweep entries whose text the new head replaced were updated, so `verify_publishable.py
 --edition 1985` agrees with the file. Rows closed: none (a transcription residue).
+
