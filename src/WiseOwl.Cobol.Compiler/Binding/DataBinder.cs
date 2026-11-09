@@ -5004,7 +5004,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
     /// (<c>BindEntry</c>) and §2023:13.18.60.4 GR1 group inheritance (<c>UsageInheritanceElementary</c>). The two
     /// call sites differ only in WHOSE clause they name, never in the verdict, which is what GR1 requires: the
     /// two spellings describe one item. Guard every call with <see cref="UsageFamilies.IsPictureless"/> — the
-    /// fall-through arm is the FLOAT family, so a usage outside the set would be misreported as one.</para></summary>
+    /// float family is a named arm and the fall-through throws, so a usage outside the set is a crash, never a wrong message.</para></summary>
     private static (DiagnosticDescriptor Rule, string Text) Sr8PicturelessVerdict(Usage usage) => usage switch
     {
         Usage.ObjectReference => (DiagnosticCatalog.PictureWithObjectReferenceUsage,

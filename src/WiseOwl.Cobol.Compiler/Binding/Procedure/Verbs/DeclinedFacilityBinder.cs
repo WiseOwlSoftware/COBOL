@@ -11,12 +11,15 @@ using Core = CobolParserCore;
 
 /// <summary>
 /// ⛔ THE OPERANDS OF A STATEMENT THE COMPILER ACCEPTS INERT ARE STILL IDENTIFIERS (kb/Work PB3568). A DECLINED facility's STATEMENT — VALIDATE (§2023:14.9.50,
-/// Annex A.4.14) — binds to a no-op, so the facility does nothing; but declining a facility licenses its BEHAVIOUR to be absent, never its SYNTAX RULES: an
-/// undefined name, a reference-modified operand and a pointer operand compiled clean because nothing ever resolved them (GnuCOBOL refused the first, and
-/// was right). This collaborator is the ONE place the declined statements' identifiers are read, so the next declined statement is one more method here,
-/// never one more unbound parse subtree. It builds no node and stores nothing: the resolution is for its DIAGNOSTICS.
-/// <para>SEND and RECEIVE left this class when the asynchronous messaging facility was implemented (<see cref="MessagingBinder"/>, kb/Work PB4743); they
-/// are still routed through the declined-statement seam until the exchange they build is rendered (kb/Work PB4744).</para>
+/// Annex A.4.14) — binds to a no-op, so the facility does nothing. VALIDATE is an OPTIONAL element: §2023:4.2.7 obliges the implementation only to document
+/// its non-support (docs/CONFORMANCE.md §4), and no clause requires a declined statement's operands to be diagnosed (§2023:4.2.6 ¶3 even leaves the syntax
+/// of an unsupported processor-dependent element undiagnosed: "not required to diagnose syntax errors within this unsupported syntax"). Reading the operands
+/// is a QUALITY CHOICE, made because an undefined name, a reference-modified operand and a pointer operand compiled clean while nothing resolved them
+/// (GnuCOBOL refuses the first) and §2023:14.9.50.3 names the operand forms. This collaborator is the ONE place a declined statement's identifiers are
+/// read, so the next declined statement is one more method here, never one more unbound parse subtree. It builds no node and stores nothing: the
+/// resolution is for its DIAGNOSTICS.
+/// <para>SEND and RECEIVE left this class when the asynchronous messaging facility was implemented (<see cref="MessagingBinder"/>, kb/Work PB4743 and
+/// PB4744): they are bound, emitted and run, never declined.</para>
 /// <para>⚠ A DEFERRED reference shape (<see cref="RefOutcome.Deferred"/>: a legal reference whose storage place this compiler has not built) is taken back
 /// off the unbuilt-operand ledger by the seam that calls this class (<c>StatementBinder.BindDeclinedStatement</c>). The ledger exists so the statement
 /// funnel can announce "not implemented — reaching this statement aborts the run unit"; an inert statement never reaches the storage, so the announcement
