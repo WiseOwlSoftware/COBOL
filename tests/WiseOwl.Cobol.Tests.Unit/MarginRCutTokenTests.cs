@@ -73,6 +73,18 @@ public sealed class MarginRCutTokenTests : IDisposable
         Assert.DoesNotContain(diagnostics, d => d.IsError);
     }
 
+    [Fact] // R1-1: a hyphen-continued literal whose first segment ends at position 72 with cut text at 73 is named too
+    public void AContinuedLiteralCutAtMarginR_IsNamed()
+    {
+        string first = "           DISPLAY 'AB".PadRight(71) + "DEFG";                // D at position 72; EFG at 73 to 75
+        string[] continued = [first, "      -    'HIJ'."];
+        var diagnostics = Compile(Program([.. Head, .. continued, "           STOP RUN."]));
+
+        string warning = Assert.Single(Of(diagnostics, Warning));
+        Assert.Contains("main.cob(10,73): warning", warning);
+        Assert.Contains("'EFG' (positions 73 to 75)", warning);
+    }
+
     [Fact] // a data name the margin cut in two: the parse takes the short name, only the warning says why
     public void AWordCutAtMarginR_ThatStillParses_IsNamedWithItsToken()
     {

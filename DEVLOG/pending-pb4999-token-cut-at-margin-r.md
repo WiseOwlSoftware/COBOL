@@ -16,3 +16,5 @@ into `MarginRCut.Account` and `MarginRCut.Remedy`, shared by both warnings.
 
 **Witnesses.** `unit:MarginRCutTokenTests` (10 cases), conformance case `pb4999-token-cut-at-margin-r` (output `1`, derived from
 the text the format keeps). The suite has no form for an accepted program's warning, so the warning itself is pinned by the unit test.
+
+Review round 1 (R1-1): the screen now asks the locator at every character of a token, so a hyphen-continued literal whose first segment ends at position 72 is named too (test AContinuedLiteralCutAtMarginR_IsNamed); the COBOL2449 summary spacing was restored (R1-2).

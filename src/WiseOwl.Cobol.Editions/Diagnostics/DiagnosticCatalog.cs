@@ -3161,7 +3161,7 @@ public static class DiagnosticCatalog
         + "of a program that still parses (the number 0.7 read as 0.). Shorten the line to end at position 72 or continue it on "
         + "the next line with a continuation indicator.",
         "ISO §2023:6.3.1 / Annex A.1 item 158");
-    /// <summary>COBOL2449— a COPY or REPLACE statement that does not follow its general format (kb/Work PB1354).
+    /// <summary>COBOL2449 — a COPY or REPLACE statement that does not follow its general format (kb/Work PB1354).
     /// Both statements are parsed over §2023:7.2.2.5 text-words in general-format order (COPY: text-name-1/literal-1, the
     /// OF/IN phrase, SUPPRESS [PRINTING], REPLACING operands, the separator period); a word out of place, a missing BY,
     /// an empty REPLACING phrase, an unterminated pseudo-text or a missing separator period is this error. Before, a

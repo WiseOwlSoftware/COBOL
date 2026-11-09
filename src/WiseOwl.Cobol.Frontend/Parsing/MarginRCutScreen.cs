@@ -35,16 +35,21 @@ public static class MarginRCutScreen
             if (token.Channel != TokenConstants.DefaultChannel || token.Type == TokenConstants.EOF
                 || token.StopIndex < token.StartIndex)
                 continue;
-            if (cuts.MarginRCutAt(token.Line, token.Column + (token.StopIndex - token.StartIndex)) is not { EndsAtMarginR: true } cut)
-                continue;
-            var at = cut.CutLocation;
-            if (reported.Any(d => d.Code == DiagnosticCatalog.ProgramTextPastMarginR.Code && d.Location.Equals(at))) continue;
-            string code = DiagnosticCatalog.TokenCutAtMarginR.Code;
-            if (warnings.Any(d => d.Code == code && d.Location.Equals(at))) continue;
-            warnings.Add(new Diagnostic(code, DiagnosticSeverity.Warning,
-                $"{cut.Cut.Account} The token '{WrittenSource.Of(token)}' ends at position {cut.Cut.LastProgramTextPosition} with the "
-                + "cut text right after it and no space between, so the compiler read the token as far as it was written within "
-                + $"the program-text area, which may not be the token meant. {cut.Cut.Remedy}", at, TextSpan.Empty));
+            // A token continued across lines (ISO §2023:6.3.5) is one token of the resultant line whose characters stand on
+            // several physical lines, and any segment may end at margin R: every character is asked about, not only the last.
+            for (int offset = 0; offset <= token.StopIndex - token.StartIndex; offset++)
+            {
+                if (cuts.MarginRCutAt(token.Line, token.Column + offset) is not { EndsAtMarginR: true } cut)
+                    continue;
+                var at = cut.CutLocation;
+                if (reported.Any(d => d.Code == DiagnosticCatalog.ProgramTextPastMarginR.Code && d.Location.Equals(at))) continue;
+                string code = DiagnosticCatalog.TokenCutAtMarginR.Code;
+                if (warnings.Any(d => d.Code == code && d.Location.Equals(at))) continue;
+                warnings.Add(new Diagnostic(code, DiagnosticSeverity.Warning,
+                    $"{cut.Cut.Account} The token '{WrittenSource.Of(token)}' ends at position {cut.Cut.LastProgramTextPosition} with the "
+                    + "cut text right after it and no space between, so the compiler read the token as far as it was written within "
+                    + $"the program-text area, which may not be the token meant. {cut.Cut.Remedy}", at, TextSpan.Empty));
+            }
         }
         return warnings;
     }
