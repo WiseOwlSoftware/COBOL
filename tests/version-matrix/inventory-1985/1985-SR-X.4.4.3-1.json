@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-X.4.4.3-1",
+ "rule-digest": "f5074de9e2b9",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The availability of the report description entry is dependent on whether the Report Writer module is supported\"; 2023: \"13.14.3 gives report description entry rules (SR-13.14.3-1, -2) with no dependency on a Report Writer module\". 2023 specifies the report description entry without tying its availability to a supported Report Writer module. No candidate keeps the module-dependency rule.",
+  "source": "audit-1985/state-route"
+ }
+}

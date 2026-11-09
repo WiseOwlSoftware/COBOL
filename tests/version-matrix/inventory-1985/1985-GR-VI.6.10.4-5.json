@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.10.4-5",
+ "rule-digest": "09b34a5def51",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.11.4-5"
+  ],
+  "bridge": true,
+  "reason": "2023 GR5 repeats the full rule: left-aligned storage, the remainder sent per rules 4 and 5, short data left-aligned. The level-1 single-transfer note only marks the level-2 box, which is no difference.",
+  "source": "audit-1985/state-route"
+ }
+}

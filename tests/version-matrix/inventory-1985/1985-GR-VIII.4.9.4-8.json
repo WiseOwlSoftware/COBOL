@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-8",
+ "rule-digest": "847beb7d4bb8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-14",
+   "GR-14.9.51.4-15",
+   "GR-9.1.13.7-4"
+  ],
+  "bridge": true,
+  "reason": "Both make a WRITE of a record outside the RECORD IS VARYING bounds unsuccessful: no write, record area unaffected, status set (44 boundary violation). Extra 2023 operands are new syntax.",
+  "source": "audit-1985/state-route"
+ }
+}

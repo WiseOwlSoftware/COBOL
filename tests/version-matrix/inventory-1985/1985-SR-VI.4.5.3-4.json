@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-4",
+ "rule-digest": "36ec2ce6aa18",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-14"
+  ],
+  "bridge": true,
+  "reason": "b)1 and b)3 restate both 1985 limits for the implied ALPHANUMERIC case. No-duplicate, cap and NATIONAL items are separate or new rules and do not alter this one.",
+  "source": "audit-1985/state-route"
+ }
+}

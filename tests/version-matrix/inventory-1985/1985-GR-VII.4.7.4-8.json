@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-8",
+ "rule-digest": "05b4bb568a7f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-14",
+   "GR-14.9.51.4-15",
+   "GR-9.1.13.7-4"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps the RECORD IS VARYING size limit for record-name-1: WRITE unsuccessful, no write, record area unaffected, status '44'. Literal, FILE and FORMAT cases are new features.",
+  "source": "audit-1985/state-route"
+ }
+}

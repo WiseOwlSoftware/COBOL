@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-12",
+ "rule-digest": "445c0670ec50",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.28.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both exclude from the PERFORM range statements reached by an EXIT PROGRAM executed in the range in the same program. GOBACK and recursive instances are later additions, not 1985 cases.",
+  "source": "audit-1985/state-route"
+ }
+}

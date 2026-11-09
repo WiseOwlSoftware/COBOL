@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.19.4-2",
+ "rule-digest": "4b85b9bd4d54",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.50.4-4"
+  ],
+  "bridge": true,
+  "reason": "A group with an OCCURS DEPENDING subordinate is still sized by the sending-item rules. The receiving-item case covers only based items and type declarations, which 1985 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

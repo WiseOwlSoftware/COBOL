@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.4.3-1",
+ "rule-digest": "e4c6eae8bc48",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Cd-name-1 must reference an output CD or input-output CD.\"; 2023: \"No PURGE statement or CD in any candidate; the Communication module is absent from 2023\". The PURGE statement and CDs belong to the Communication module. No candidate covers PURGE or communication descriptions, so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

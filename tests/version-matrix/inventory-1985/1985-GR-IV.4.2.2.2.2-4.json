@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.2-4",
+ "rule-digest": "8b790e2028b1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.3.2-4"
+  ],
+  "bridge": true,
+  "reason": "Value as algebraic quantity and size as digit count are restated for fixed-point literals, the only 1985 kind. Category numeric is classified in 8.5.2.12, but that line is not among the candidates.",
+  "source": "audit-1985/state-route"
+ }
+}

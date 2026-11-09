@@ -9,7 +9,10 @@ between `create` and the state write adopted on the next run; a text-only reques
 an answer outside the pass's shape kept in raw/ and retried; the full submit priced by the canary's measured cost and refused
 past --max-usd; an answer never overwritten; the cost so far counting every billed reply (a retried item's refused or
 cut-off first reply too, and each reply once when a collect is repeated); the verify plan from the SAME answers, and the
-dispositions; the drafts plan; the claims plan from the 1985 text and its citation check; a stamp in a prompt refused before any batch; the key never
+dispositions; the drafts plan; the adjudicate, refute and recheck plans (each decided kind's one check, kb/Work PB5008),
+their answer shapes and the decided or contested change records they give (and the change batch that records them, never
+over a fleet adjudication, kb/Work PB4995, PB5008); the claims plan from the 1985 text and its
+citation check; a stamp in a prompt refused before any batch; the key never
 printed or stored, and the account recorded.
 """
 import contextlib
@@ -21,6 +24,8 @@ import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import audit_batch as A  # noqa: E402
+import inventory_schema  # noqa: E402  (the 1985 edition and the change record, change-batch)
+import lineage  # noqa: E402  (THE validator of a change record)
 import rule_catalog_1985  # noqa: E402  (THE reader of a level-2 box)
 import spec_pdf  # noqa: E402
 from fake_batches import Crash, FakeBatches, client, succeeded  # noqa: E402  (THE fake client)
@@ -168,6 +173,15 @@ def main() -> int:
               is None
               and A.parse_answer("route", inspect_item, json.dumps({"verdict": "ROUTED", "clauses_2023": [], "reason": "r"}))[0]
               is None)
+        routed = json.dumps({"verdict": "ROUTED", "clauses_2023": ["14.9.21"], "reason": "r"})
+        check("an answer is the one object at the reply's first brace: a stray brace or prose after it is not part of it",
+              A.parse_answer("route", inspect_item, routed + "}")[0] is not None
+              and A.parse_answer("route", inspect_item, "```json" + chr(10) + routed + chr(10) + "```")[0] is not None
+              and A.parse_answer("route", inspect_item, "Answer: " + routed + " (from the text)")[0] is not None
+              and A.parse_answer("route", inspect_item, routed[:-1]) == (None, "unparsed"))
+        nonroute = json.dumps({"verdict": "NONE", "clauses_2023": [], "reason": "r"})
+        check("a reply that answers twice (a self-correction after the first object) is refused, never read as its first",
+              A.parse_answer("route", inspect_item, routed + " Correction: " + nonroute) == (None, "two answers"))
         wide = dict(inspect_item, clauses_2023=[{"id": f"1.{n}", "subject": "s"} for n in range(A.MAX_ROUTES + 1)])
         check("a route answer naming more than MAX_ROUTES clauses is refused, and MAX_ROUTES is accepted",
               A.parse_answer("route", wide, json.dumps({"verdict": "ROUTED", "clauses_2023": [c["id"] for c in
@@ -334,6 +348,26 @@ def main() -> int:
         check("a refuted SAME is DISPUTED, a DIFFERS and a NONE are rows of their own",
               results[same_rule]["disposition"] == "DISPUTED" and results[same_rule]["verify"] == "REFUTED"
               and sorted(d["disposition"] for d in results.values()) == ["DISPUTED", "OWN-ROW", "OWN-ROW"])
+        kept = root / "kept.json"
+        code, out = run(["change-batch", *base, "--out", str(kept)], fake)
+        check("change-batch writes no record while no SAME is upheld and nothing is adjudicated (kb/Work PB4993)",
+              code == 0 and json.loads(kept.read_text(encoding="utf-8"))["records"] == [])
+        planted = {"1985-SR-VI.5.8.3-1": {"disposition": A.CARRIES, "rules_2023": ["SR-13.18.38.3-1"],
+                                          "change": {"kind": "KEPT", "to": ["SR-13.18.38.3-1"]}},
+                   "1985-SR-VI.5.8.3-2": {"disposition": A.DISPUTED, "rules_2023": ["SR-13.18.38.3-1"], "contested": True},
+                   "1985-GR-VI.5.8.4-1": {"disposition": A.OWN_ROW, "rules_2023": [],
+                                          "change": {"kind": "REMOVED", "to": [], "reason": "the module is deleted"}},
+                   "1985-GR-VI.5.8.4-2": {"disposition": A.OWN_ROW, "rules_2023": []}}
+        recs = A.change_records(planted, "audit-1985/planted")
+        schema = inventory_schema.load_schema()
+        targets = {"SR-13.18.38.3-1": {"rule-id": "SR-13.18.38.3-1", "state": "OK", "editions": "85,2002,2014,2023"}}
+        check("the change records are the decided rules only (no contested or unadjudicated one), each legal, a reason "
+              "stored only when one is stated (one stored form)",
+              [r["rule-id"] for r in recs] == ["1985-GR-VI.5.8.4-1", "1985-SR-VI.5.8.3-1"]
+              and "reason" not in recs[1]["next"] and recs[0]["next"]["reason"] == "the module is deleted"
+              and all(lineage.next_errors({**r, "verdict": ""}, inventory_schema.edition(1985), schema, targets) == []
+                      for r in recs)
+              and lineage.chained(recs[1], schema) and not lineage.chained(recs[0], schema))
         code, out = run(["plan", "--pass", "drafts", *base], fake)
         ditems = json.loads((state / "drafts" / "items.json").read_text(encoding="utf-8"))
         check("the drafts plan holds the rows of their own only", code == 0 and len(ditems) == 2
@@ -343,6 +377,210 @@ def main() -> int:
             {"program": "       IDENTIFICATION DIVISION.", "expected": {"outcome": "output", "output": ["A"]}, "basis": "GR2"}))
         check("a draft answer is a program and an expected outcome", draft is not None and why == "")
         check("a draft with no outcome is refused", A.parse_answer("drafts", ditems[dcid], '{"program": "x"}')[0] is None)
+        two_lines = chr(10).join(["       IDENTIFICATION DIVISION.", "       PROGRAM-ID. P."])
+
+        def refused(**exp: Any) -> tuple[Any, str]:
+            return A.parse_answer("drafts", ditems[dcid], json.dumps(
+                {"program": two_lines, "expected": {"outcome": "refused", **exp}, "basis": "SR1"}))
+        check("a refused draft names its violating line and carries its control (review w20261931a R1-1)",
+              refused(line=2, control="       IDENTIFICATION DIVISION.")[0] is not None
+              and "line" in refused(control="x")[1] and "line" in refused(line=3, control="x")[1]
+              and "line" in refused(line=True, control="x")[1] and "control" in refused(line=2)[1]
+              and "control" in refused(line=2, control=two_lines)[1])
+
+        print("adjudicate and refute: the decided change records (kb/Work PB4995)")
+        code, out = run(["plan", "--pass", "refute", *base], fake)
+        check("the refute plan waits for the adjudicate pass", code not in (0, None) and "adjudicate pass has no plan" in str(code))
+        code, out = run(["plan", "--pass", "adjudicate", *base], fake)
+        aitems = json.loads((state / "adjudicate" / "items.json").read_text(encoding="utf-8"))
+        aby = {it["id"]: (c, it) for c, it in aitems.items()}
+        check("the adjudicate plan holds every DISPUTED and OWN-ROW rule, with its candidates and both readers' answers",
+              code == 0 and sorted(aby) == sorted(results) and aby[same_rule][1]["readers"]["verify"]["verdict"] == "REFUTED"
+              and aby[same_rule][1]["readers"]["map"]["verdict"] == "SAME"
+              and all(it["readers"]["verify"] is None for k, (_c, it) in aby.items() if k != same_rule)
+              and A.map_candidates(aby[same_rule][1]) == A.map_candidates(items[A.custom_id("map", same_rule)]))
+        atext = A.prompt_parts("adjudicate", aby[same_rule][1])
+        check("an adjudicate request shares the map's cached clause block and carries both readers in its own part",
+              atext[1] == A.prompt_parts("map", items[A.custom_id("map", same_rule)])[1]
+              and "THE VERIFY READER'S ANSWER" in atext[2] and "77 differs" in atext[2] and "KEPT|CHANGED" in atext[0])
+        check("the adjudicate prompt offers every kind of the schema's change record, and UNDECIDED (a kind the schema "
+              "adds is offered, or this fails)",
+              f'"verdict": "{"|".join([*inventory_schema.load_schema().next.kinds, A.UNDECIDED])}"' in atext[0])
+        inspect_rule = "1985-GR-VI.6.18.4-2"
+        debug_rule = "1985-GR-XV.3.2.4-1"
+        ait = aby[inspect_rule][1]
+        kept = {"verdict": "KEPT", "rules_2023": ["GR-14.9.21.4-2"], "differs": {}, "reason": "same"}
+        changed = {"verdict": "CHANGED", "rules_2023": ["GR-14.9.21.4-2"], "differs": {"1985": "character", "2023": "position"},
+                   "reason": "the unit changed"}
+        check("an adjudication names candidates for KEPT and CHANGED, none for REMOVED and OPEN, and a reason for a change",
+              A.parse_answer("adjudicate", ait, json.dumps(kept))[0] is not None
+              and A.parse_answer("adjudicate", ait, json.dumps(changed))[0] is not None
+              and A.parse_answer("adjudicate", ait, json.dumps(dict(kept, rules_2023=[])))[0] is None
+              and A.parse_answer("adjudicate", ait, json.dumps(dict(kept, rules_2023=["GR-99.9-1"])))[0] is None
+              and A.parse_answer("adjudicate", ait, json.dumps(dict(changed, reason=" ")))[0] is None
+              and A.parse_answer("adjudicate", ait, json.dumps({"verdict": "REMOVED", "rules_2023": [], "differs": {},
+                                                                "reason": "deleted"}))[0] is not None
+              and A.parse_answer("adjudicate", ait, json.dumps({"verdict": "REMOVED", "rules_2023": ["GR-14.9.21.4-2"],
+                                                                "differs": {}, "reason": "deleted"}))[0] is None
+              and A.parse_answer("adjudicate", ait, json.dumps({"verdict": "SAME", "rules_2023": [], "reason": "x"}))[0] is None)
+        quoted = A.change_of(dict(changed, differs={"1985": "the ' [character-1] ' word", "2023": 'a "position"'}))
+        check("a change record's reason quotes the differing words as written, never escaped (review w20261931a R1-6)",
+              quoted["reason"] == '''1985: "the ' [character-1] ' word"; 2023: "a "position"". the unit changed'''
+              and quoted["kind"] == "CHANGED" and quoted["to"] == ["GR-14.9.21.4-2"])
+        removed = {"verdict": "REMOVED", "rules_2023": [], "differs": {"1985": "USE FOR DEBUGGING", "2023": "the Debug "
+                   "module is deleted"}, "reason": "the debugging declaratives are gone"}
+        adjudicated = {same_rule: {"verdict": "OPEN", "rules_2023": [], "differs": {}, "reason": "undecided"},
+                       inspect_rule: changed, debug_rule: removed}
+        run(["submit", "--pass", "adjudicate", *base, *key, "--max-usd", "50", "--canary", "5"], fake)
+        bid = fake.created[-1]["id"]
+        answer(fake, bid, {c: json.dumps(adjudicated[aitems[c]["id"]]) for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "adjudicate", *base, *key], fake)
+        code, out = run(["plan", "--pass", "refute", *base], fake)
+        fitems = json.loads((state / "refute" / "items.json").read_text(encoding="utf-8"))
+        fby = {it["id"]: (c, it) for c, it in fitems.items()}
+        check("the refute plan holds each decision that names no 2023 rule (REMOVED), with the decision and every "
+              "candidate; a KEPT or CHANGED one is the recheck's (kb/Work PB5008)",
+              code == 0 and sorted(fby) == [debug_rule]
+              and A.map_candidates(fby[debug_rule][1]) == A.map_candidates(aby[debug_rule][1])
+              and "THE ADJUDICATOR'S DECISION" in A.prompt_parts("refute", fby[debug_rule][1])[2]
+              and "strongest reading" in A.prompt_parts("refute", fby[debug_rule][1])[0])
+        check("each decided kind has one check, read from its `to` flag: the recheck for KEPT and CHANGED, the refuter "
+              "for REMOVED", {k: A.checker(v) for k, v in inventory_schema.load_schema().next.kinds.items()}
+              == {"KEPT": "recheck", "CHANGED": "recheck", "REMOVED": "refute"})
+        cat85r = root / "c85r.json"     # a 1985 rule of another clause on the same element: the near rule mode (a) reads
+        cat85r.write_text(json.dumps({"rules": RULES_1985 + [dict(
+            RULES_1985[1], id="1985-GR-VI.6.15.4-1", locator="VI.6.15.4", citation="§1985:VI.6.15.4 GR1",
+            subject="THE EXAMINE STATEMENT", text="Examination proceeds from the leftmost character position.")]}),
+            encoding="utf-8", newline="\n")
+        recheck_plan = ["plan", "--pass", "recheck", *base, "--catalog", str(cat85r), "--catalog-2023", str(cat23),
+                        "--near-1985", "1"]
+        code, out = run(recheck_plan, fake)
+        citems = json.loads((state / "recheck" / "items.json").read_text(encoding="utf-8"))
+        cit = next(iter(citems.values()))
+        cparts = A.prompt_parts("recheck", cit)
+        check("the recheck plan holds each KEPT or CHANGED decision with its whole 1985 clause, the 1985 rules most like "
+              "it, and every rule of the 2023 clauses that hold its feature, the map's worded candidates beyond them",
+              code == 0 and [it["id"] for it in citems.values()] == [inspect_rule]
+              and [x["id"] for x in cit["clause_1985"]] == [inspect_rule] and len(cit["near_1985"]) == 1
+              and [x["id"] for x in cit["feature_2023"]] == ["GR-14.9.21.4-2", "GR-14.9.21.4-7"]
+              and cit["decided_2023"] == []
+              and not {c["id"] for c in cit["word_candidates"]} & {"GR-14.9.21.4-2", "GR-14.9.21.4-7"}
+              and cit["adjudication"]["verdict"] == "CHANGED")
+        check("a recheck request caches its clauses (the 1985 clause and the 2023 feature clauses, shared by every rule "
+              "of that 1985 clause) and carries the rule, its near rules and the decision in its own part",
+              "Tallying counts" in cparts[1] and "Tallying counts" not in cparts[2]
+              and "THE ADJUDICATOR'S DECISION" in cparts[2] and f"[{inspect_rule}]" in cparts[2]
+              and A.request("recheck", "c", cit, "claude-opus-5-5", [], set())["params"]["output_config"]
+              == {"effort": "max"})
+        rechecked = {"verdict": "CHANGED", "rules_2023": ["GR-14.9.21.4-2"], "rules_1985": [], "exception": {},
+                     "differs": {"1985": "character", "2023": "position"}, "reason": "the unit changed"}
+        near_id = cit["near_1985"][0]["id"]
+        check("a recheck answer names only rules shown, 1985 rules besides its own, and no exception condition under KEPT",
+              A.parse_answer("recheck", cit, json.dumps(rechecked))[0] is not None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, rules_1985=[near_id])))[0] is not None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, rules_1985=[inspect_rule])))[0] is None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, rules_2023=["GR-99.9-1"])))[0] is None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, exception=None)))[0] is None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, verdict="KEPT", differs={}, exception={
+                  "1985": "must not", "2023": "EC-BOUND"})))[0] is None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, exception={
+                  "1985": "must not", "2023": "EC-BOUND"})))[0] is not None)
+        check("a recheck upholds a decision only when it finds the same record: the same kind into the same rules (one "
+              "it adds is one the decision omits)",
+              A.upholds("recheck", changed, rechecked)
+              and not A.upholds("recheck", changed, dict(rechecked, rules_2023=["GR-14.9.21.4-2", "GR-14.9.21.4-7"]))
+              and not A.upholds("recheck", changed, dict(rechecked, verdict="KEPT")))
+        code, out = run(["results", *base], fake)
+        mid = json.loads((state / "results.json").read_text(encoding="utf-8"))
+        check("before its check answers, a decided adjudication is no change; an OPEN one is contested at once",
+              "change" not in mid[inspect_rule] and not mid[inspect_rule].get("contested")
+              and mid[same_rule].get("contested") is True and "change" not in mid[same_rule])
+        run(["submit", "--pass", "refute", *base, *key, "--max-usd", "50", "--canary", "5"], fake)
+        refuted = {debug_rule: {"verdict": "REFUTED", "reason": "14.9.1 still states it", "differs": {}}}
+        answer(fake, fake.created[-1]["id"], {c: json.dumps(refuted[fitems[c]["id"]]) for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "refute", *base, *key], fake)
+        run(["submit", "--pass", "recheck", *base, *key, "--max-usd", "50", "--canary", "5"], fake)
+        check("a recheck request asks for room to think at the highest effort",
+              A.MAX_OUTPUT_TOKENS["recheck"] > A.MAX_OUTPUT_TOKENS["refute"])
+        answer(fake, fake.created[-1]["id"], {c: json.dumps(rechecked) for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "recheck", *base, *key], fake)
+        code, out = run(["results", *base], fake)
+        final = json.loads((state / "results.json").read_text(encoding="utf-8"))
+        check("a decision its check upholds is the rule's change, its reason the differing words before the why; a "
+              "refuted one is contested, never a change",
+              final[inspect_rule]["change"] == {"kind": "CHANGED", "to": ["GR-14.9.21.4-2"],
+                                                "reason": '1985: "character"; 2023: "position". the unit changed'}
+              and final[debug_rule].get("contested") is True and "change" not in final[debug_rule]
+              and final[inspect_rule]["recheck"] == "CHANGED" and final[debug_rule]["refute"] == "REFUTED"
+              and "decided {'CHANGED': 1}; contested 2" in out)
+        refute_dir = state / "refute" / "answers"
+        legacy = refute_dir / f"{A.custom_id('refute', inspect_rule)}.json"
+        legacy.write_text(json.dumps({"id": inspect_rule, "answer": {"verdict": "UNSURE", "reason": "r", "differs": {}}}),
+                          encoding="utf-8", newline="\n")
+        disputed = A.dispositions(state)[inspect_rule]
+        legacy.unlink()
+        check("a check that answered and disputes the decision makes it contested, though its own check upheld it (a run "
+              "whose refuter also read KEPT and CHANGED decisions)",
+              disputed.get("contested") is True and "change" not in disputed and disputed["refute"] == "UNSURE")
+        code, out = run(["plan", "--pass", "drafts", *base], fake)
+        regrown = {it["id"] for it in json.loads((state / "drafts" / "items.json").read_text(encoding="utf-8")).values()}
+        check("the drafts plan, planned again after the adjudication and its checks, keeps every planned draft and grows "
+              "by each rule an answer reads as other than KEPT, though no check upheld it (a contested OPEN SAME): it "
+              "reads the answers, never the withheld change (review w20261935a R1-1)",
+              code == 0 and "grew by 1" in out and regrown == {it["id"] for it in ditems.values()} | {same_rule}
+              and "change" not in final[same_rule])
+        batch = root / "change-batch.json"
+        empty_repo = root / "repo-none"
+        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
+        records = json.loads(batch.read_text(encoding="utf-8"))["records"]
+        check("the change batch records each decided change once, bridged to the next held edition, and no contested rule",
+              [r["rule-id"] for r in records] == [inspect_rule]
+              and records[0]["next"] == {"kind": "CHANGED", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True,
+                                         "reason": final[inspect_rule]["change"]["reason"], "source": "planted"})
+        store = A.inventory_dir(inventory_schema.edition(1985), empty_repo)
+        store.mkdir(parents=True)
+        (store / f"{inspect_rule}.json").write_text(json.dumps({"rule-id": inspect_rule, "rule-digest": "0", "next": {
+            "kind": "KEPT", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True, "source": "adjudication PB0"}}),
+            encoding="utf-8", newline="\n")
+        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
+        check("a rule a fleet adjudication decided keeps that record: the run's batch never reverts it (kb/Work PB5008)",
+              json.loads(batch.read_text(encoding="utf-8"))["records"] == [])
+        (store / f"{inspect_rule}.json").write_text(json.dumps({"rule-id": inspect_rule, "rule-digest": "0", "next": {
+            "kind": "KEPT", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True, "source": "planted"}}),
+            encoding="utf-8", newline="\n")
+        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
+        check("a rule the run itself recorded is recorded again with its new decision",
+              [r["rule-id"] for r in json.loads(batch.read_text(encoding="utf-8"))["records"]] == [inspect_rule])
+        grow = A.Pass(root / "run9", "drafts")
+        one, two = {"id": "r1", "rule": {"text": "a"}}, {"id": "r2", "rule": {"text": "b"}}
+        with contextlib.redirect_stdout(io.StringIO()) as said:
+            A.write_plan(grow, [one])
+            A.write_plan(grow, [one, two])
+        try:
+            A.write_plan(grow, [dict(one, rule={"text": "changed"}), two])
+            changed_refused = False
+        except SystemExit as e:
+            changed_refused = "another plan" in str(e)
+        try:
+            A.write_plan(grow, [two])
+            dropped_refused = False
+        except SystemExit as e:
+            dropped_refused = "another plan" in str(e)
+        check("a plan grows by new items (the drafts of the rules the adjudication changed), and a planned item that "
+              "changes or goes is refused",
+              "grew by 1" in said.getvalue() and sorted(it["id"] for it in grow.items().values()) == ["r1", "r2"]
+              and changed_refused and dropped_refused)
+        state8 = root / "run8"
+        A.write_plan(A.Pass(state8, "map"), [word_item])
+        A.write_plan(A.Pass(state8, "verify"), [{"id": word_item["id"], "rule": word_item["rule"], "candidates": [c_b]}])
+        for name, said in (("map", json.loads(same_on_word)), ("verify", {"verdict": "UPHELD", "reason": "r", "differs": {}})):
+            (state8 / name / "answers").mkdir()
+            (state8 / name / "answers" / f"{A.custom_id(name, word_item['id'])}.json").write_text(
+                json.dumps({"id": word_item["id"], "answer": said}), encoding="utf-8", newline="\n")
+        check("a SAME the verify pass upheld (CARRIES) is a KEPT change into the rules it named, with no adjudication",
+              A.dispositions(state8)[word_item["id"]] == {
+                  "citation": word_item["rule"]["citation"], "map": "SAME", "rules_2023": [c_b["id"]], "verify": "UPHELD",
+                  "disposition": "CARRIES", "change": {"kind": "KEPT", "to": [c_b["id"]]}})
 
         print("claims: the 1985 text and the citation check")
         planted = root / "repo"
@@ -409,7 +647,10 @@ def main() -> int:
         side = spec_pdf.BOX_SIDE
         boxed = dict(RULES_1985[0], box="whole", level=2, text=f"{side}(1) A planted rule boxed whole.{side}")
         texts = {p: A.prompt_text(p, {"rule": boxed, "candidates": RULES_2023[:1], "clause_candidates": RULES_2023[:1],
-                                      "word_candidates": [], "id": "c1", "claim": "planted",
+                                      "word_candidates": [], "id": "c1", "claim": "planted", "readers": {"map": None},
+                                      "clause_1985": [dict(boxed, id="c1")], "near_1985": [],
+                                      "feature_2023": RULES_2023[:1], "decided_2023": [],
+                                      "adjudication": {"verdict": "REMOVED"},
                                       "locator": "VI.5.8.3", "text": boxed["text"],
                                       "clause": {"locator": "VI.5.8", "document": "X3.23-1985", "module": "Nucleus",
                                                  "subject": "THE OCCURS CLAUSE", "rules": 1, "sample": [boxed["text"]]},

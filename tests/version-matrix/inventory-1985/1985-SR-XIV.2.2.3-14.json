@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.2.2.3-14",
+ "rule-digest": "55c3e46457a5",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Record description entries following an input-output CD entry implicitly redefine the record area established by the input-output CD entry\"; 2023: \"No 2023 clause holds the CD entry; no candidate covers communication description entries or their record areas\". No 2023 clause carries the communication description entry, and no candidate addresses records redefining a CD record area. The feature is absent from 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

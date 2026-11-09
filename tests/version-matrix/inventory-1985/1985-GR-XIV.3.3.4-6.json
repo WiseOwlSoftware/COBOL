@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.3.4-6",
+ "rule-digest": "3508396e6d52",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The ENABLE statement will be honored only if literal-1 or the content of the data item referenced by identifier-1 match the system password\"; 2023: \"No clause holds the ENABLE statement; no candidate covers ENABLE or MCS password matching\". No 2023 clause holds the ENABLE feature, and no candidate addresses ENABLE or password checking. The candidates cover INSPECT, STOP, RECEIVE and I-O status, so the statement is absent in 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-28",
+ "rule-digest": "9ad121442ab7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"symbolic name of the communication terminal ... is placed in the data item referenced by data-name-3 of the input-output CD\"; 2023: \"No communication description entry or INITIAL clause; no 2023 clause holds the CD feature and no candidate covers it.\". 2023 has no clause holding the CD feature. The candidates, including the RECEIVE statement rule, do not address the input-output CD, the INITIAL clause or setting data-name-3.",
+  "source": "audit-1985/state-route"
+ }
+}

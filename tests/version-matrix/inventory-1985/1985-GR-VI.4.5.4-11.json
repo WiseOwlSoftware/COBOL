@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-11",
+ "rule-digest": "13905962cfae",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-22",
+   "SR-12.3.7.3-25",
+   "SR-12.3.7.3-23"
+  ],
+  "bridge": true,
+  "reason": "1985: \"uppercase letters A, B, C, D, P, R, S, V, X, Z; the lowercase letters a through z; or the space\"; 2023: \"alphabetic characters A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents; or the space\". 2023 also bars E and N but allows other lowercase letters (e.g. 'm'). PICTURE SYMBOL permits multi-character currency strings, and '$' stays implied unless specified.",
+  "source": "audit-1985/state-route"
+ }
+}

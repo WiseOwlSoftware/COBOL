@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.11.3-6",
+ "rule-digest": "006c32c600c4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.45.3-8"
+  ],
+  "bridge": true,
+  "reason": "2023 still bars variable-length items and occurs-depending tables in the RENAMES range. The object, pointer and strongly-typed bans cover post-1985 features, so 1985 programs are unaffected.",
+  "source": "audit-1985/state-route"
+ }
+}

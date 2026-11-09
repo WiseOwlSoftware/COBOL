@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-1",
+ "rule-digest": "0f479ec79739",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-3",
+   "GR-14.9.27.4-8",
+   "GR-9.1.13.7-8"
+  ],
+  "bridge": true,
+  "reason": "For sequential access, 2023 still requires the write file connector to be open in extend or output mode. Status '48' only reports a violation; the requirement itself is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

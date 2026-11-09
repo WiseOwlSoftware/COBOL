@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-14",
+ "rule-digest": "d0e1cc6f5b7f",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the occurrence number of each level is entered in DEBUG-SUB-1, DEBUG-SUB-2, DEBUG-SUB-3\"; 2023: \"No 2023 clause holds the Debug module; the USE statement candidates cover only exception, file and report declaratives, with no FOR DEBUGGING.\". No 2023 clause holds the Debug module, and the USE candidates have no FOR DEBUGGING or DEBUG-SUB-n. The feature appears dropped with the module.",
+  "source": "audit-1985/state-route"
+ }
+}

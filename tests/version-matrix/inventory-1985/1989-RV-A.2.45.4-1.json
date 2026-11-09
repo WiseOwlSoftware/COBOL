@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.45.4-1",
+ "rule-digest": "db72579b7805",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.98.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 states the variance of the argument-1 series as an equivalent arithmetic expression. One argument gives 0, and n arguments give mean squared deviation over n. Same result in substance.",
+  "source": "audit-1985/state-route"
+ }
+}

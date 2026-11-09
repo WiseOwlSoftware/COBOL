@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-8",
+ "rule-digest": "136af03a1b52",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-4"
+  ],
+  "bridge": true,
+  "reason": "Both release a logical record to the system or environment. 'Successful' only states outright what the unsuccessful-REWRITE rules (no updating takes place) already imply.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -139,7 +139,7 @@ originally architected it"; kb/Work PB4992). Each fact has one home:
 
 | fact | its one home |
 |---|---|
-| the rule: id, citation, section or locator, kind, ordinal, subject, module, level, box, text, status (normal or obsolete, read from the text) | the edition's catalog (`extract_rule_catalog.py --edition`), regenerated from the text |
+| the rule: id, citation, section or locator, kind, ordinal, subject, module, level, box, text, status (normal, archaic or obsolete, read from the text's own lists) | the edition's catalog (`extract_rule_catalog.py --edition`), regenerated from the text |
 | the adjudication: verdict, code-location, test-ref, derivation, notes, and for an older edition the change record `next` (§10.2) | the edition's store, one file per adjudicated rule |
 | the text the adjudication was decided against | the store file's `rule-digest`, compared with the catalog's text on every read |
 | the state (OK or GAP) | nowhere: computed by the view, never stored |
@@ -758,8 +758,18 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
   column-0 `(n)`, and its lettered `a.` items and their `1)` items are its text (THE RULE IS THE UNIT, §3). A General
   Format paragraph is an FMT row. The page-break furniture (the folio, the page's running header) is never rule text.
 - **The row key** is `<year>-<kind>-<locator>-<n>` (`1985-SR-VI.5.7.3-1`; a list restarted inside a block `-L<k>.<n>`, an
-  FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). The year prefix names the edition (or amendment) the
+  FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). A CITATION NAMES ONE RULE (kb/Work PB4969): a rule of a
+  restarted list is cited by its list, `GRL2.1` for the id's `-L2.1` (`citation.rule_designator`, the one writer; the format's
+  `SUBLIST_RULE`), so `§1985:IV.4.2.2.2.3 GR1` is the first list's rule 1 alone, and the extractor's `--check` fails on two
+  rows that share a citation (a row cited by a printed page, `§1985:p.XIII-56`, is exempt: the page is no rule's citation).
+  The 2023 catalog carries no `citation` field. The year prefix names the edition (or amendment) the
   rule is from, in the 1985 store (§10.2).
+- **The conformance requirements are the FRAME, not rows** (kb/Work PB4968). Paragraph 1.5 of Section I (§1985:I.1.5: what a
+  conforming implementation must support, the subsets, the optional modules, the obsolete elements of §1985:I.1.5.2.3) is
+  unnumbered prose, and the 2023 audit treats its conformance clause the same way: §2023:4.2 enters the definition of DONE
+  (§1) and docs/CONFORMANCE.md by direct citation, and only its numbered lists (§2023:4.2.10) are catalog rows. So the 1985
+  conformance statement (kb/Work PB4885) cites §1985:I.1.5 and its sub-paragraphs directly as its frame, each requirement
+  answered in docs/CONFORMANCE.md, and the catalog gains no row.
 - **Module and level.** Sections VI to XVI are the eleven modules and Section A the twelfth. Every module but Sort-Merge,
   Report Writer and Intrinsic Function has two levels (§1985:I.1.2; Amendment 1 adds the third one-level module), and the
   standard boxes every specification unique to level 2. A row's `box` is `none`, `part` or `whole` (the prose box is the
@@ -840,34 +850,125 @@ never between every pair. Each rule of the older edition carries one classificat
 A rule of the newer edition that no older row's `to` names is NEW; that is derived, never written. A `next` stores the
 rule ids it links, its `reason` (the words that differ, or what deleted the feature) and its `source` (the audit run or
 the adjudication); its evidence is the citation of the older rule and of each `to` rule, read from their catalogs,
-never stored a second time, and each one `cite.py --check`s against its own text.
+never stored a second time, and each one `cite.py --check`s against its own text. The record's shape is DATA, the
+schema's `next` (kb/Work PB4993): the keys it may carry, the fields that state a verdict, and each kind's flags (does it
+name `to` rules, must it state its `reason`, is its verdict its chain's: `chained`, KEPT alone), read as
+`inventory_schema.ChangeRecord` by `lineage.next_errors` and `lineage.state_of`; no code spells a kind. The one writer
+is `record_verdicts.py --edition <older edition>`.
+
 **Deprecation is not a fourth kind.** The standard itself marks an element obsolete or archaic in an edition
 (§1985:I.1.5.2.3 requires a conforming implementation to support the obsolete elements of what it claims), so `status`
 is a fact of that edition's rule, read from its text into its catalog: KEPT into a row whose status is obsolete, then REMOVED at the next edition, is the
-deprecate-then-remove lifecycle.
+deprecate-then-remove lifecycle. A catalog row's `status`, in every edition's catalog, is `normal`, or one clause per
+standing naming the list entries that confer it (`obsolete: C.1(n)`, `archaic: F.1(n)`; two standings join with `; `).
+The authority is the edition's own enumerated lists: 1985's obsolete list (§1985:C.1, 18 entries); 2023's archaic list
+(§2023:F.1, 2 entries, which §2023:4.2.12 defines) and obsolete list (§2023:F.2, 5 entries, which §2023:4.2.13
+defines). They are held once as data per edition (`docs/rearchitecture/spec-element-standing-<edition>.json`,
+`extract_rule_catalog.STANDING_OF`): per list its standing, its locator and its remark sections; per entry its number,
+the terms that name the element in a rule, the sections that specify it, a section's own extra terms (VALUE's VALID and
+INVALID phrases), and a SHARED section's numbered formats that are wholly the element (`section-formats`: the EXIT
+statement's Format 2 (program), the data description entry's Format 4 (validation), PRESENT WHEN's Format 2
+(validation), VALUE's Format 5 (content-validation-entry)), whose band's every syntax and general rule is marked, by the
+rule's `band-formats`, whether its text names a term or not; the entry's name is the list's own text. Both catalog arms apply them through one call (`element_standing.apply`). The
+marking (`scripts/spec/element_standing.py`) is decided per SECTION: an OWN section, whose heading names one of the
+entry's terms (THE ALTER STATEMENT, THE RERUN CLAUSE, the Debug and Segmentation modules; 2023's FLAG-02 directive,
+standard-binary arithmetic, the VALIDATE statement and the clauses that exist only for it), marks every rule; a SHARED
+one (an I-O-CONTROL paragraph beside SAME, a file description entry, VI 3.2 beside PROGRAM-ID, the OPEN, STOP, GO TO,
+DISABLE and ENABLE statements; 2023's EXIT, IF, SEARCH and MOVE statements, the ARITHMETIC clause, the data description
+entry and the PRESENT WHEN, VALUE and VARYING clauses) marks only the syntax and general rules that name a term, never
+its general format, whose later fate is its own CHANGED record. OWN or SHARED is derived from the heading, never held.
+The drift checks, which the RULE CATALOG and RULE CATALOG 1985 audits fail on, hold the data to the text, per list: the
+entries are exactly the list's items, every section is a locator of the text, every sentence that gives an element the
+list's standing ("is an obsolete element", "is an archaic feature") falls in a section some entry names (or a remark
+section the data names: the 1985 level tables' Z notation, a 2023 definition's note, Annex A's lists, Annex D's
+concepts), every sentence giving a NAMED format the standing ("The Program format of the EXIT statement is an archaic
+feature", "The validation format of the data description is an obsolete feature") names a format an entry declares, a
+declared format is a numbered format of its section, a format's number is never a term (it misses the band's rules that
+do not repeat it), every entry marks a rule (counted by the marking itself, so a shared general format naming a term does not
+count; 1985 entry 1, double character substitution, is prose outside any rule block and entry 4, MEMORY SIZE, is named
+only in the shared OBJECT-COMPUTER format, so both are declared `no-rule`, checked both ways), and no shared section's
+format and no rule outside its entries' sections is marked. 1985: 143 rules obsolete. 2023: 13 archaic and 106
+obsolete. A later edition's lists are one more data file read by the same code.
 
 **A verdict is held once per chain.** A run of KEPT links is one chain; its verdict, code location and test live on the
 chain's NEWEST row, and an older row in it holds none (the schema refuses them there), so 2023's adjudicated work serves
 every 1985 rule that carries into it without a copy. The older row's state is the chain's, evaluated at its own edition:
 the chain's test must also be placed at that edition (the conformance suite's placement, DESIGN-conformance-suite.md).
 CHANGED and REMOVED rows, and NEW ones, carry verdicts of their own. The fleet's work is therefore only what changed.
+Both languages compute it: Python's `lineage.state_of` and the C# view's `StateAt` in the drift test over
+`TraceabilityInventory.RowsOf`, held to each other for every held edition by
+`EveryOlderEditionsRuleState_AgreesWithThePythonView`. The session probe and the ledger report each held edition's rules and
+GAP side by side (`inventory_view.edition_views`); the ledger's trend series stays the newest edition's GAP.
 
 **The audit fills the change records** (§10.3). Its passes are detections. A SAME that the verify pass upholds is
-recorded as KEPT through the one recording path (`record_verdicts.py`, a batch derived from the run's `results.json`, as
-the 2023 derived batches are); a DISPUTED rule goes to a fleet adjudicator, who records KEPT or CHANGED; a DIFFERS or
-NONE answer is a CHANGED or REMOVED candidate that an adjudicator confirms with its evidence, and then a verdict of its own
-under `--std=<edition>`, its witness a draft from the drafts pass checked against the rule text.
+recorded as KEPT through the one recording path (`record_verdicts.py --edition 1985`, a batch the run itself writes from
+its dispositions, `audit_batch.py change-batch`, as the 2023 derived batches are written by `derive_verdict_batch.py`);
+a DISPUTED rule, and a DIFFERS or NONE answer (a CHANGED or REMOVED candidate), is decided by the `adjudicate` pass and
+checked by one independent pass per decided kind (§10.3, kb/Work PB4995, PB5008): the `recheck` for a KEPT or CHANGED
+decision, the `refute` pass for a REMOVED one. An upheld decision is recorded through the same batch, and only what they
+leave contested goes to a fleet adjudicator, whose decision is recorded through `record_verdicts.py --edition 1985` with
+itself as the `source` and outranks the run's: the run's batch never writes over it. The 1985 audit's decided rules are
+recorded (759 upheld SAME rules, kb/Work PB4993, and the upheld adjudications, kb/Work PB4995; 7 of them corrected by
+the sample audit of kb/Work PB5008). A record states its `reason` or omits the
+key: an empty reason is not stored (`lineage.next_errors`). A CHANGED or REMOVED rule then takes a verdict of its own
+under `--std=<edition>`, its witness a draft from the drafts pass that `run_drafts.py` ran and the fleet checked against
+the rule text.
 
 **Everything else is derived from the chains, never written by hand:** each edition's GAP count (the session probe and
 the ledger report one per edition), the conformance statement of each edition (kb/Work PB4885 for 1985), the conformance
 suite's edition bands (a band is a chain's span: DESIGN-conformance-suite.md §3.5), the drift test that the
-compiler's edition gates (`constructs.json` windows, the grammar's version predicates) agree with every NEW and REMOVED
-edge, and **each diagnostic's citation at each edition** (kb/Work PB4950, the owner on 2026-11-08: "a way for a
+compiler's edition gates (`constructs.json` windows, the grammar's version predicates) agree with the lineage's edges,
+and **each diagnostic's citation at each edition** (kb/Work PB4950, the owner on 2026-11-08: "a way for a
 compilation error to accurately describe the edition + rule violated"). A diagnostic cites one rule; walking that rule's
 chain gives the rule of the compilation's edition (a 2023 SR read back along KEPT and CHANGED links to its 1985 rule),
 and a chain that does not reach that edition gives the gate's own message from its edge: the construct is NEW at a later
 edition, or REMOVED after an earlier one, each with the citation that proves it. The per-edition citations are generated
 from the chains into the compiler's diagnostic data and checked by a drift test, never kept by hand.
+
+**The band at an older edition is the chains' (kb/Work PB4996).** A rule of the newest edition exists at an older held
+edition exactly when a KEPT record of that edition carries into it, and a bridged record carries it through every edition
+the bridge spans (`lineage.spanned`); a CHANGED record proves no band, since the newer rule's requirement is not the
+older one's (the older rule holds its own verdict). That rule has one definition, `lineage.chain_bands`, which maps each
+rule a KEPT chain reaches to the positions it proves; the conformance suite's band reader (S5, kb/Work PB4683) takes the
+positions below the newest edition from it. Until the stored `85` token and the derived one agree it stays stored, and
+the view measures the distance (`lineage.band_drift`, built on `chain_bands`, printed by `inventory_view.py --check` and
+listed by `--band-drift`): rules a KEPT chain reaches whose stored band lacks 85 or an edition the bridge spans
+(`unstored`), rules whose stored band names 85 that no KEPT chain reaches (`unproven`), and the 1985 rules not yet
+classified, while any of which remains `unproven` is provisional. The first set is a wrong band or a wrong KEPT record,
+never decided by a script: each is adjudicated, through `record_verdicts.py` (the band) or `record_verdicts.py --edition
+1985` (the record), by the fleet adjudication of slice 4 (kb/Work PB4995) and the refutation of the audit's upheld
+records (kb/Work PB5008). When all three are empty the `85` token leaves the stored `editions` and every reader takes
+the band at 85 from `chain_bands`; until then the token is the only 85 position the 1026 unproven rules have, and
+deleting it would place them nowhere.
+
+**The edition gates rest on the lineage's edges (kb/Work PB4996).** `scripts/spec/edition_gates.py --check` (the gate's
+EDITION GATES audit) reads every gate, a `constructs.json` window and a version predicate of the grammar (citing what its
+rule's comment cites), and holds each edge the held editions span to the rules its citation names. An edge between two
+held editions, a START or an END, rests on a cited rule that changes between them: a rule of the newer one that is NEW or
+that a CHANGED record names, or a rule of the older one whose record is REMOVED or CHANGED. Either side carries either
+edge: a start is a construct the newer text adds (a new rule, or an alternative added to a format the older text has,
+the common case) or a restriction it lifts (the 1985 rule "Identifier-1 must not be reference modified", REMOVED); an
+end is a construct it drops or a restriction it adds. What a kind means is the schema's `next` (`chained`), never
+spelled in code. **A citation proves an edge only when every rule it names changes** (branch review R1-1): a clause that
+gained anything after 1985 holds changing rules beside KEPT ones, so a gate citing the whole clause would pass whichever
+of its constructs it moved. A gate names the SR or GR its edge rests on. **A general format proves only a whole
+diagram's edge** (branch review R2-1): the catalog holds one FMT rule per clause (a general-format subclause, or `Format
+n`, names it), every format and alternative of the statement in it, so a CHANGED one would prove any construct of the
+statement; a NEW newer FMT rule (a new statement) proves a start, an older one REMOVED an end, and nothing else. A
+construct the standard states only in its diagram, with no SR or GR of its own (END-ACCEPT, the optional IDENTIFICATION
+DIVISION header, USE without PROCEDURE: 12 windows at this slice), has no edge the lineage proves, and is held open in
+`edition_gates.FORMAT_ONLY` until the catalog numbers each format's alternatives; a new window resting on a general format
+alone is refused. An SR or GR has no direction in the lineage (a NEW rule adds a construct or a restriction), so an
+inverted window citing one is the version matrix's to catch, not this audit's. A gate whose cited rules are all KEPT contradicts its chain, and the audit refuses it until the gate or the record is
+corrected (two records were, by this slice: 1985-GR-VII.2.6.3-2 KEPT into line sequential organization, and the 1985
+FILLER rules KEPT into 2023's wider entry-name clause); so is a gate citing nothing of either edition, one whose every
+citation mixes changing rules with KEPT ones, or one resting on an unclassified rule. Three
+gates lie outside the rules: a word's reservation (a gate citing only the word lists, §2023:8.9 and §2023:8.10, whose
+edges `reserved-words.json` and `context-sensitive-words.json` carry), an edge specified in prose the catalog holds no
+rule of (the 1985 continuation of lines, §1985:IV.7.2.2; the 2023 floating indicators, §2023:6.2.3.1), which the
+CITATIONS audit still holds to the text, and a window wholly between two held editions, which waits for the edition
+between them. A finding a known compiler defect holds open is listed in the audit (`HELD_OPEN`, checked both ways) with
+the note that fixes it.
 
 **A missing edition is bridged, provisionally.** Until the 2002 and 2014 texts are transcribed, the 1985 rows' `next`
 points straight at 2023 and is marked `bridge`. When 2002 is held, its two adjacent records replace the bridge, and
@@ -885,8 +986,9 @@ classified exactly once and every newer rule is reached or NEW.
    audit's upheld SAME answers as KEPT;
 3. chain state in the view, in both languages, and the GAP count per edition in the probe and the ledger;
 4. the fleet adjudication of the disputed and own-row rules against `--std=1985`;
-5. the derived bands (the conformance suite's S5 reads the chains), the `85` token leaving the stored `editions`
-   once the stored and the derived 85 agree, and the edition-gate drift test;
+5. the derived bands (`lineage.chain_bands`, which the conformance suite's S5 reads), the `85` token leaving the
+   stored `editions` once the stored and the derived 85 agree (the band drift measures how far apart they are, and
+   slice 4's adjudication closes it), and the edition-gate drift test (the EDITION GATES audit);
 6. the 1985 conformance statement (kb/Work PB4885).
 
 ### 10.3 The Message Batches arm — `scripts/spec/audit_batch.py`
@@ -900,7 +1002,10 @@ each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
 | `map` | 1985 catalog rule, with its candidates (below); planned only once every route item is answered | SAME, DIFFERS or NONE, the 2023 ids and the differing words |
 | `verify` | SAME answer | UPHELD, REFUTED or UNSURE: the adversarial pass tries to refute it |
 | `claims` | 1985 claim of `VERSION_CHANGE_REFERENCE.md` (a JSON list of claims the fleet prepares, each with its 1985 locator) | CONFIRMED, REFUTED or NOT-ADDRESSED, with the 1985 `locator` and `rule` (null where no numbered rule decides) as fields of their own |
-| `drafts` | rule whose disposition is a row of its own | a minimal program and the outcome the rule requires, which the fleet compiles and runs under `--std=1985` and checks against the rule text before any use |
+| `drafts` | rule whose disposition is a row of its own, and rule an adjudicate or recheck answer reads as CHANGED, REMOVED or OPEN (read from the answers, which only grow, so a re-plan only grows the plan) | a minimal program and the outcome the rule requires (for a refusal, the violating line and a conforming control), which `scripts/spec/run_drafts.py` compiles and runs under `--std=1985` and the fleet checks against the rule text before any use |
+| `adjudicate` | DISPUTED or OWN-ROW rule, with its map candidates and both readers' answers (kb/Work PB4995) | its change record: KEPT or CHANGED (the 2023 candidates it carries into, and for CHANGED the differing words) or REMOVED (2023 drops it), or OPEN when the texts do not decide |
+| `refute` | REMOVED adjudication, with every candidate the adjudicator saw | the strongest reading on which the requirement survives, first; then UPHELD, REFUTED or UNSURE |
+| `recheck` | KEPT or CHANGED adjudication (kb/Work PB5008), at the highest effort, with its whole 1985 clause and the 1985 rules most like it by wording, every rule of every kind of the 2023 clauses that hold its feature and of each clause a decided rule lies in, and the map's worded candidates beyond them | framed to DISPROVE the decision: (a) another 1985 rule bearing on the element, (b) every 2023 rule that states any part of the requirement, (c) a refusal made a run-time exception condition; then the change record the texts support, with `rules_1985` and `exception` |
 
 **A rule's candidates are drawn from the strongest signal down** (`audit_batch.candidates`, kb/Work PB4971, owner
 2026-11-08: "Use the strongest appropriate signals"):
@@ -913,7 +1018,34 @@ it" rather than a deleted feature; a heading alone matches no 2023 clause for 59
 a clause per module and names clauses differently. The route pass is the signal that reads the clause as a whole, one
 request per clause (247 for 1985), so it is cheap; the heading and the wording stay as the routes' complement.
 
-`results` writes each mapped rule's disposition (CARRIES, OWN-ROW, DISPUTED, or still open). The tool's rules:
+`results` writes each mapped rule's disposition (CARRIES, OWN-ROW, DISPUTED, or still open) and its DECIDED change
+(`audit_batch.dispositions`, the one derivation): KEPT for CARRIES, and the adjudicate pass's answer once the check its
+kind takes (`audit_batch.checker`, read from the kind's `to` flag: the recheck when it names 2023 rules, the refuter when
+it names none) UPHELD it and no other check that answered disputes it. The recheck upholds a decision only when the
+record it finds is the same one, the same kind into the same set of 2023 rules (`audit_batch.upholds`): a rule it adds
+is one the decision omits. An OPEN or disputed adjudication is `contested`, a fleet adjudicator's (`cobol-adjudicator`),
+never a vote. `python scripts/spec/audit_batch.py change-batch` turns every decided change into a `record_verdicts.py --edition
+1985` batch (`change_records`, the one writer), leaving out each rule whose stored record another source (a fleet
+adjudication) decided.
+
+**Why KEPT and CHANGED take the recheck** (kb/Work PB5008, 2026-11-08). The refute pass upheld 1,345 of the first 1,371
+decisions it read, and a sample audit by `cobol-adjudicator`s from both texts found 5 of 18 upheld CHANGED and 3 of 15
+upheld KEPT decisions wrong, every one of them upheld by the refuter (12 REMOVED and 15 map + verify KEPT records: no
+error). The refuter, the same model at the same effort shown the same candidates, measured agreement, not accuracy. The
+errors fell in three modes, which the recheck's three questions name: a 1985 rule elsewhere already allows what the
+record calls new; the record omits the 2023 rule that states the requirement (the commonest: a definition restated in
+another clause, a group-parameter rule, the general rule of §2023:14.7.7 over every arithmetic statement); and a
+compile-time refusal that 2023 turned into a run-time exception condition (§2023:14.9.39.4 GR2). So the recheck reads
+whole clauses at the highest effort, and the refuter keeps REMOVED, its prompt stating the strongest counter-reading
+before it judges. `python scripts/spec/run_drafts.py --state DIR` compiles and runs each draft at `--std=1985` through the
+conformance harness (`conformance-suite/harness/run.py`'s `Run` and the WiseOwl adapter, the one judge of a program's
+outcome): an output draft is an accepted test (`Run.accept`), and a refused draft a FLAGGED test (`Run.flagged`), so a
+refusal counts only when it is the rule's: the draft names the line that violates the rule and carries a control (the
+program with that line made conforming), the control must compile and the diagnostic must be AT that line. A draft that
+names neither (one written before the drafts prompt asked for them) is REFUSED UNCONFIRMED when the compiler reports any
+diagnostic, never a MATCH. It writes `DIR/drafts/runs.json`: MATCH, MISMATCH, REFUSED UNCONFIRMED or NO VERDICT per rule,
+naming the compiler binary (its `--version` and the digest of its assemblies, never a checkout's HEAD). A MATCH is a candidate witness, placed in the conformance suite only after the fleet checks the draft
+against the rule text; a MISMATCH is a defect or a suspect draft for the fleet to tell apart. The tool's rules:
 
 - **Restartable**, on the ONE batch state the transcriber shares (`scripts/spec/message_batches.py`, `BatchRun`): an
   intent written before every create and the batch after, a crash between them adopted from the server's list on the next

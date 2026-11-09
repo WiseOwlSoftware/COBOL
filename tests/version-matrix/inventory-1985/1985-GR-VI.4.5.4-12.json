@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-12",
+ "rule-digest": "0bbd145484f0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-14",
+   "SR-13.18.40.3-13"
+  ],
+  "bridge": true,
+  "reason": "2023 still exchanges comma and period in numeric literals and basic-format PICTURE strings. The locale-format exemption covers a feature new in 2023, so no 1985 program changes.",
+  "source": "audit-1985/state-route"
+ }
+}

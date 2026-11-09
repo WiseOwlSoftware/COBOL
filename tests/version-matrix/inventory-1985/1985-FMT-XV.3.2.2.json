@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-XV.3.2.2",
+ "rule-digest": "08d8595713fc",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"USE FOR DEBUGGING ON { cd-name-1 | [ALL REFERENCES OF] identifier-1 | file-name-1 | procedure-name-1 | ALL PROCEDURES }\"; 2023: \"The 2023 USE statement rules cover only exception (EC/EO, file), AFTER EXCEPTION and BEFORE REPORTING forms; none has FOR DEBUGGING.\". The candidates cover the 2023 USE statement, and none of its forms is FOR DEBUGGING. The Debug module's USE FOR DEBUGGING format is no longer part of 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

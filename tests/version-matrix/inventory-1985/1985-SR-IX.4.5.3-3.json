@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IX.4.5.3-3",
+ "rule-digest": "7fd21581dbe8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-12"
+  ],
+  "bridge": true,
+  "reason": "2023 still lets data-name-1 in the READ KEY phrase be qualified. Record-key-name-1 is a new 2023 operand, which leaves the 1985 case unchanged. The level-2 box is no difference.",
+  "source": "audit-1985/state-route"
+ }
+}

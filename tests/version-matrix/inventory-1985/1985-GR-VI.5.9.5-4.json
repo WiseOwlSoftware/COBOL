@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-4",
+ "rule-digest": "81e19762c1f0",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.5-3",
+   "GR-13.18.40.4-14",
+   "SR-13.18.40.3-7",
+   "SR-13.18.40.3-13"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The ',' (comma), 'B' (space), '0' (zero), and '/' (slant) are used as the insertion characters.\"; 2023: \"Character-1 and the symbols 'B', '0', '/', ',' and, if literal=1 is specified, character-1 are used as the simple insertion editing symbols.\". Size counting, trailing-comma placement and DECIMAL-POINT IS COMMA swap carry over. 2023 adds character-1 (EDITING phrase literal-1) as a simple insertion symbol, a case 1985 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-10",
+ "rule-digest": "7ffc6fb0a6de",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-24",
+   "GR-14.9.30.4-21"
+  ],
+  "bridge": true,
+  "reason": "1985: \"If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1\"; 2023: \"If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement.\". 1985 requires a USE procedure when AT END is absent. 2023 allows neither and defines the result as continuing at the end of READ. It also adds the EC-I-O-AT-END and file position indicator steps.",
+  "source": "audit-1985/state-route"
+ }
+}

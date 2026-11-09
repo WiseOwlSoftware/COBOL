@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-11",
+ "rule-digest": "c473a6cfa39d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.35.2"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps END-REWRITE as the REWRITE statement's optional explicit scope terminator. The 1985 rule only ties it to Scope of Statements, which 2023 also defines (14.5.3).",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.19.4-1",
+ "rule-digest": "f822a4a2f2bb",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.25.4-11"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The results are the same as if the user had referred to each pair of corresponding identifiers in separate MOVE statements.\"; 2023: \"except that if subscripting is specified for identifier-3 or identifier-4, the subscript value used is that resulting from the evaluation\". 2023 keeps the separate-MOVE equivalence but adds an exception: subscripts are evaluated once, at the start of the statement. That can change results when a move alters a subscript.",
+  "source": "audit-1985/state-route"
+ }
+}

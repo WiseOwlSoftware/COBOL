@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.3.3-L2.2",
+ "rule-digest": "12849583386a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.12.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 gives NOT standing alone as a logical operator, which yields a negated relation condition, with identical expansions of all five 1985 examples. The added XOR example is new syntax, not a change.",
+  "source": "audit-1985/state-route"
+ }
+}

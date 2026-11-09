@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-L2.6",
+ "rule-digest": "2f8eb6c3d764",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.11-1"
+  ],
+  "bridge": true,
+  "reason": "Both define 9x as an implementor-defined failure whose x is set by the implementor. 1985's 00-49 range was every other status then; 2023's 'another I-O status value' says the same.",
+  "source": "audit-1985/state-route"
+ }
+}

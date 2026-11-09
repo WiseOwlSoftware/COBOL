@@ -1,0 +1,15 @@
+{
+ "rule-id": "1989-GR-A.2.3-1",
+ "rule-digest": "8126f9e600b6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-15.2-1",
+   "GR-8.4.3.2.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both keep class and category alphanumeric and implicit usage display. Size still comes from the function definition in Clause 15. The coded character set sentence only clarifies representation.",
+  "source": "audit-1985/state-route"
+ }
+}

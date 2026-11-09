@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.7.4-2",
+ "rule-digest": "40785f5241e0",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.33.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Level-number 88 is assigned to entries which define condition-names ... can be used only as described by format 3\"; 2023: \"and to define criteria to be used to validate a data item ... condition-name format or the validation format\". 66/77/88 assignments are kept, but 2023 adds cases: 88 may also be used in the validation format, and 77 also identifies noncontiguous local storage items.",
+  "source": "audit-1985/state-route"
+ }
+}

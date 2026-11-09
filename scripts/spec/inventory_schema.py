@@ -33,6 +33,7 @@ DIVISION OF LABOUR between the two, deliberately with NO overlap:
 from __future__ import annotations
 
 import dataclasses
+import functools
 import json
 import pathlib
 import re
@@ -177,6 +178,44 @@ def held_edition(editions: Iterable[Edition], year: int) -> Edition:
     if year not in held:
         raise SystemExit(f"inventory: edition {year} is not held ({SCHEMA_REL} editions.of holds {sorted(held)})")
     return held[year]
+
+
+@dataclasses.dataclass(frozen=True)
+class ChangeKind:
+    """A kind of change record (the schema's `next.kinds`): does it name rules of the next edition (`to`), must it state
+    its `reason`, and is its verdict its chain's (`chained`) rather than its own?"""
+    name: str
+    to: bool
+    reason: bool
+    chained: bool
+
+
+@dataclasses.dataclass(frozen=True)
+class ChangeRecord:
+    """The shape of an older edition's change record, the schema's `next` (DESIGN-spec-conformance-review.md section
+    10.2, kb/Work PB4993): the keys it may carry, the fields that state a verdict and its evidence, and its kinds. Exactly
+    one kind is `chained` (KEPT): its record carries none of `verdict_fields`, and its rule is judged by its chain."""
+    keys: frozenset[str]
+    verdict_fields: tuple[str, ...]
+    kinds: Mapping[str, ChangeKind]
+
+    @property
+    def chained(self) -> ChangeKind:
+        return next(k for k in self.kinds.values() if k.chained)
+
+
+def change_record_of(raw: dict[str, Any]) -> ChangeRecord:
+    """The schema `raw`'s `next`; a kind that is not one object of the three flags, or a count of chained kinds other
+    than one, is a SystemExit."""
+    spec = raw["next"]
+    kinds: dict[str, ChangeKind] = {}
+    for name, k in spec["kinds"].items():
+        if not all(isinstance(k.get(f), bool) for f in ("to", "reason", "chained")):
+            raise SystemExit(f"{SCHEMA_REL}: next.kinds.{name} states `to`, `reason` and `chained` as booleans")
+        kinds[name] = ChangeKind(name, k["to"], k["reason"], k["chained"])
+    if sum(k.chained for k in kinds.values()) != 1:
+        raise SystemExit(f"{SCHEMA_REL}: exactly one of next.kinds is `chained` (the kind whose verdict is its chain's)")
+    return ChangeRecord(frozenset(spec["keys"]), tuple(spec["verdict-fields"]), kinds)
 
 
 _RAW_SCHEMA: dict[str, Any] = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -1013,6 +1052,16 @@ class Schema:
         self._rule_ids: set[str] | None = None
         #: The §7 register, injectable — see `register_items`.
         self._register_items: set[str] | None = None
+
+    @functools.cached_property
+    def next(self) -> ChangeRecord:
+        """An older edition's change record (`next`): its keys, its verdict fields and its kinds (kb/Work PB4993). Read when
+        first asked, as only the lineage asks: a history reader's view of the newest edition at a commit whose schema
+        predates the change record (main before PB4993) never asks, and one that does is refused by name."""
+        if "next" not in self._raw:
+            raise SystemExit(f"inventory schema at {self.tree.rev or self.tree.root} has no `next`, the change record this "
+                             f"reader needs (kb/Work PB4993)")
+        return change_record_of(self._raw)
 
     def edition(self, year: int) -> Edition:
         """The held edition `year` of this schema."""

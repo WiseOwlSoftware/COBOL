@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.9.4-1",
+ "rule-digest": "78541ead1444",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.9.3-2",
+   "GR-14.9.9.4-1",
+   "GR-14.9.9.4-2"
+  ],
+  "bridge": true,
+  "reason": "A CONTINUE without AFTER runs as AFTER zero seconds: no suspension, execution goes on to the next statement. That is no effect, as in 1985. AFTER is a new phrase 1985 programs cannot contain.",
+  "source": "audit-1985/state-route"
+ }
+}

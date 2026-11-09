@@ -45,7 +45,7 @@ carries a recommendation; §3 records each answer as a `docs/CONFORMANCE.md` det
    RECEIVE rule the second. **Recommend:** the message is identifier-1's content; GR1 makes the SEND unsuccessful; GR7
    raises EC-MCS-NO-REQUESTER, the Table 13 name for a missing requestor (the D-MCS-NR determination, extended), and no new
    exception-name is invented. Table 13's other attributions are placed, not set aside: a SEND Format 2 tag that "is not
-   a correct format for the MCS" (a tag of another MCS directory) is EC-MCS-INVALID-TAG, the test §2023:14.9.31.4 GR1 b) makes
+   a correct format for the MCS" (a tag of another MCS directory) is EC-MCS-INVALID-TAG, the test §2023:14.9.31.4 GR1b makes
    of the same operand, and a RECEIVE FROM NULL in a run unit that serves no name, which no requestor can address, is
    EC-MCS-NO-REQUESTER at once (§2.4). The alternative, EC-MCS-NO-REQUESTER for every bad SEND tag as GR7 alone reads,
    leaves both attributions unused. The CD corrects only GR1: its 14.9.41.4 GR2 reads "the execution of the SEND
@@ -402,22 +402,32 @@ outcome back through the ordinary channels:
   subordinates at compile time, so the only slot-carried leaf a message holds is a message tag. **Correction (PB4744): the category is NOT admitted to
   `DataItem.ElementImageCapable`.** The equality and group-MOVE consumers of the image read that capability, so a group holding a tag keeps the one-way image
   for them (DISPLAY, MOVE sender, the `BYTE-LENGTH` of 8 positions per tag), whose 8 positions per tag hold the tag's TOKEN (kb/Work PB4838; DOC-A.1-212). A token
-  names a tag of the run unit that wrote it: a file record read back in that run unit decodes it (`FromImage`, `DataItem.ElementRecordImageCapable`), but a message
-  crosses run units, so it never does. The message needs the receiving half only, and a separate method carries it: a group whose only managed slots are message tags
-  (`DataItem.HoldsOnlyMessageTagSlots`) gets a generated `FromMessageImage` beside `AsImage` - the `FromImage` distribution with every tag's
-  token positions skipped (a nested struct that holds tags, and a dynamic-capacity table's element that does, calls its own `FromMessageImage`) - which `PlaceRenderer.WriteMessageGroupImage` calls. The tags
-  travel as the message's slots in storage order: `AsyncMessaging.TagsOf(<leaf vector>)` flattens the group's `AsLeaves` vector on SEND (a table is an array of its
-  occurrences and a nested group a nested vector, so the inner OCCURS levels fall out of the walk the vector already is; a storage-cell group's vector comes from
-  `PlaceRenderer.GroupLeaves` over `PlaceCursor`), and on RECEIVE `AsyncMessaging.WithTags(<leaf vector>, slots)` rebuilds the vector with the message's tags in place of
-  the area's and `PlaceRenderer.WriteGroupLeaves` stores it back after the image. A tag the message did not carry (the receiving group holds more) is NULL. A
+  names a tag of the run unit that wrote it: a file record read back in that run unit decodes it (`FromImage`, `DataItem.ElementRecordImageCapable`), and a
+  message crosses run units, so the token alone does not say which tag it is. **A received tag is the content of ITS positions (kb/Work PB4957; §2023:14.9.31.4
+  GR1 b): "The content of identifier-1 is the content of the message").** The sender's tags travel beside the image as the message's slots, each a `MessageSlot`
+  of the tag and its token (`AsyncMessaging.SlotsOf(<area>)`: an elementary tag, or the group's `AsLeaves` vector - a table is an array of its occurrences and a
+  nested group a nested vector; a storage-cell group's vector comes from `PlaceRenderer.GroupLeaves` over `PlaceCursor` - one slot per tag that is not NULL, its
+  token `MessageTagImage.Of`'s, the positions the image holds for it). `MessageBody.Carrying` keeps only the slots whose token the image holds, so a tag of an
+  occurrence past an OCCURS DEPENDING ON count, or one a cut to the receiver's capacity removed (`MessageBody.Truncated`, GR3), is not carried. The receiver
+  stores the image as a record area is stored (`SequentialIoEmitter.EmitImageInto`: a record struct's `FromImage`, a storage cell's byte window), so each tag
+  decodes its own positions as a file record's does: eight X"00" are NULL, and a token this run unit did not assign is an `Unresolved` tag that keeps its
+  positions (DOC-A.1-212). Then `AsyncMessaging.Resolved(<leaf vector>, slots)` replaces each unresolved tag whose positions are a carried slot's token by
+  that slot's tag (`AsyncMessaging.Resolve`), and `PlaceRenderer.WriteGroupLeaves` stores the vector back. The vector is `PlaceRenderer.ImagedGroupLeaves`:
+  a record struct's `AsLeaves()`, whose `FromImage` already decoded the tags, or a storage cell's members with each tag decoded from its positions, because a
+  cell keeps a tag's value in its managed slot beside the bytes and the image written through the group's window does not reach the slot. The tag a receiver
+  gets therefore follows the POSITIONS: a sender's `[X(8), tag]` received as `[tag, tag]` sets the first from the X(8)'s positions and the second to the
+  sender's tag, never the first slot the message carries. A
+  position past the end of a shorter message is a space, and a tag of spaces is an unresolved tag, not NULL, exactly as a short file record's is. A
   VARIABLE-LENGTH group (an OCCURS DYNAMIC table) that holds a tag is a message area too: its SEND image is the current-extent image and its receiving half is the
-  contiguous decomposition (`FromContiguousImage` to `FromVarImage`), whose fixed-part distribution skips a tag's token positions (`GroupImageCodec.EmitVarImageMethods`,
-  `EmitMemberFromImage(messageImage: true)`, and a dynamic table's elements through `TableElementFromImage`; the gate is `DataItem.CurrentExtentMessageImageCapable`); the tags travel as slots over the same `AsLeaves` vector, a dynamic table's occurrences included.
+  contiguous decomposition (`FromContiguousImage` to `FromVarImage`), whose fixed-part distribution decodes a tag's token positions as `FromImage` does
+  (`GroupImageCodec.EmitVarImageMethods`, `EmitMemberFromImage`, and a dynamic table's elements through `TableElementFromImage`; the gate is
+  `DataItem.CurrentExtentMessageImageCapable`), and the same `Resolved` follows over its `AsLeaves` vector, a dynamic table's occurrences included.
   An area that holds an OCCURS DYNAMIC table has no allocated maximum (§2023:8.5.1.9.1), so its RECEIVE capacity is `AsyncMessaging.UnboundedCapacity`, and after the store
   the program states the size the area took (`AsyncMessaging.Received`, the length of its current-extent image: the store recreated its tables to the message, each raised
   to its FROM minimum, §2023:14.6.9.2), which the run unit's end answers an unanswered message with (§2023:14.6.11 7)). An identifier-1
   that is a single elementary message tag is its 8 token positions (`RecordAreaImage`'s slot-carried arm), so GR1's "shall not be zero" holds; its content, the tag,
-  travels as the message's one slot, and a RECEIVE into an elementary tag (capacity 8) takes it back from the slot (`AsyncMessaging.TagOf`), NULL when the message carried none.
+  travels as the message's one slot, and a RECEIVE into an elementary tag (capacity 8) is the first 8 positions of the message decoded and resolved as a group's tag is
+  (`AsyncMessaging.TagOf(image, slots)`): the sender's tag when they hold its token, NULL when they are eight X"00".
 - RECEIVE stores the message by the receiving inverse a READ uses, arm for arm. An identifier-1 that is a
   variable-length group decomposes the image by the received extent table through
   `PlaceRenderer.WriteVarGroupContiguous` (the group arm of `SequentialIoEmitter.EmitOutOfLineInto`), which honours the
@@ -548,7 +558,7 @@ A frame a role never receives, or one before `HELLO`, closes the link; a `CLAIM`
 (the server has not yet read it) and is ignored. `PeerFrameCodec` (Runtime/Messaging) encodes each payload: text as a
 UTF-16 code-unit count and the units, integers little-endian. A message travels as three parts: its image as UTF-16 code units, so no encoding is chosen; its extent table
 (§4.4), absent or the `FixedAt` and `Lengths` arrays of a `RecordExtents`, which is what a file frame records of it; and
-its slots, each a `MessageTag` as its four fields. SEND SR3 and RECEIVE SR2 refuse every pointer and object-reference
+its slots, each a `MessageSlot` as its token (a text of 8 units, refused otherwise in both directions) and its `MessageTag`'s four fields. SEND SR3 and RECEIVE SR2 refuse every pointer and object-reference
 leaf at compile time, so no other slot reaches a frame. Kinds: `Ring` (no payload; the only frame a bell receives),
 `HELLO`, `OFFER`, `CLAIM`, `GRANT` (with the message), `WITHDRAW`, `ACK`, `REPLY` (with the message and an exception-name), each
 of the last six carrying the serial and, before `ACK`, the offer round. The requestor keeps one link per server.
@@ -624,7 +634,7 @@ RECEIVE FROM NULL in a run unit that serves no name is EC-MCS-NO-REQUESTER (Q2).
 its oldest offer and moves on at a `WITHDRAW`. At a `GRANT` it records the message in `Active` with
 identifier-1's maximum length and issues one `Deliver` action: write `ACK`, and only then complete with the requestor tag (Requestor, `<r>`, serial). A `Deliver` whose `ACK` write fails does not complete the RECEIVE: the protocol forgets the `Active` entry, the RECEIVE is current again, and the link ends, so the requestor's new round (§5.4.1 step 9) is the only delivery; a message longer than
 identifier-1 is taken and answered EC-MCS-MESSAGE-LENGTH (Q7). A RECEIVE that ends EC-MCS-IMP with a CLAIM in flight closes the claimed link when the server owes no reply on it: it will never read the `GRANT`, and the requestor, still holding the message, goes on to a new round (§5.4.1 step 9). With a reply owed on the link it stays open (the requestor would answer that reply "server ended"): the offer stays claimed, the next RECEIVE adopts it, and a `GRANT` that arrives between the two is held on the offer. The SEND Format 2 that answers the last message owed on that link decides the offer as the RECEIVE would have with no reply owed: the link ends and the requestor goes on to a new round, instead of staying granted to a server that may not RECEIVE again. RECEIVE FROM a requestor tag considers only that link, and
-a missing or ended link gives "the EC-MCS-REQUESTOR-FAILED exception condition is set to exist" (§2023:14.9.31.4 GR1 b).
+a missing or ended link gives "the EC-MCS-REQUESTOR-FAILED exception condition is set to exist" (§2023:14.9.31.4 GR1b).
 
 SEND Format 2 tests in GR order. A message of zero character positions is EC-MCS-MESSAGE-LENGTH (GR1); `maxLength` does
 not apply, because it is the limit a server definition sets on what that server accepts (§2.1 GR1, D-MCS-LENGTH), and a
@@ -723,12 +733,12 @@ refusal rule of §5.4.1 deletes the files it left.
 ```csharp
 public static class AsyncMessaging      // Runtime/Messaging; PublicAPI.Unshipped.txt
 {
-    public static MessageOutcome SendToServer(string server, string image, RecordExtents? extents, object?[] slots, string checking);
-    public static MessageOutcome SendResponse(MessageTag to, string image, RecordExtents? extents, object?[] slots, string? raising, bool raisingLast, string checking);
+    public static MessageOutcome SendToServer(string server, string image, RecordExtents? extents, MessageSlot[] slots, string checking);
+    public static MessageOutcome SendResponse(MessageTag to, string image, RecordExtents? extents, MessageSlot[] slots, string? raising, bool raisingLast, string checking);
     public static MessageOutcome Receive(MessageTag from, int capacity, MessageWait wait, string checking);   // checking: the statement's EcCheckingProfile, encoded
 }
 public readonly record struct MessageOutcome(bool Successful, MessageTag Tag, string? Image, RecordExtents? Extents,
-    object?[]? Slots, long? Length, string? Raised, bool RaisedFatal, string? Detail);   // Raised: the condition set to exist, when checking enabled it
+    MessageSlot[]? Slots, long? Length, string? Raised, bool RaisedFatal, string? Detail);   // Raised: the condition set to exist, when checking enabled it
 public readonly record struct MessageWait(MessageWaitKind Kind, long Seconds);
 ```
 

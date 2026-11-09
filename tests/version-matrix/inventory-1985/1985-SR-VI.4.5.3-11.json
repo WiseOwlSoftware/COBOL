@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-11",
+ "rule-digest": "d74cc193ca09",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-17"
+  ],
+  "bridge": true,
+  "reason": "1985: \"If numeric, must be unsigned integers and must have a value within the range of one through the maximum number of characters\"; 2023: \"The number of characters specified shall not exceed the number of characters in the native alphanumeric character set or\". 2023 keeps the CLASS literal rules (unsigned integer in range, one-character THROUGH literals) but adds a cap on total characters specified, refusing programs 1985 accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

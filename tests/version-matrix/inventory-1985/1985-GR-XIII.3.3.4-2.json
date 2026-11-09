@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-GR-XIII.3.3.4-2",
+ "rule-digest": "796e14b3d719",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.46.4-2",
+   "SR-14.9.51.3-12",
+   "SR-14.9.27.3-1",
+   "SR-14.9.35.3-11",
+   "SR-14.9.40.3-8",
+   "SR-14.9.24.3-9"
+  ],
+  "bridge": true,
+  "source": "adjudication kb/Work PB5008"
+ }
+}

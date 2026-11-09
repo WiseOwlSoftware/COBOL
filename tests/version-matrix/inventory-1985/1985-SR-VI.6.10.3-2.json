@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.10.3-2",
+ "rule-digest": "9f25367bb269",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If literal-1 is numeric, then it must be an unsigned integer.\"; 2023: \"DISPLAY syntax rules 14.9.11.3 restrict only identifier-1, mnemonic-name-1, identifier-2/3; no rule on numeric literal-1\". The 2023 DISPLAY syntax rules cover the statement but no longer require a numeric literal-1 to be an unsigned integer. The GOBACK/STOP literal rules belong to other statements.",
+  "source": "audit-1985/state-route"
+ }
+}

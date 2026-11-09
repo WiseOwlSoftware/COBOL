@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.3.9.3-2",
+ "rule-digest": "33723eaacd6b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Data-name-1 must be in the Working-Storage Section. (VALUE OF clause)\"; 2023: \"No 2023 clause holds the VALUE OF clause; no candidate covers it\". No 2023 clause carries the VALUE OF clause of the file description entry. The wording candidates concern other clauses (RECORD, FILE STATUS, SAME AS and others), so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

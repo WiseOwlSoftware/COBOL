@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-L2.2",
+ "rule-digest": "e5d66394d7f4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.4-1",
+   "GR-9.1.13.4-2"
+  ],
+  "bridge": true,
+  "reason": "Status 10 still covers end of file and a first sequential READ on an absent optional file; status 14 is the same. The added PREVIOUS case applies only to syntax 1985 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

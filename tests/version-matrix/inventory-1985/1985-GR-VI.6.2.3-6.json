@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-GR-VI.6.2.3-6",
+ "rule-digest": "56346672c34f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.1.2-7",
+   "GR-11.9.5.2-1",
+   "GR-11.9.5.2-3",
+   "GR-11.9.5.2-2",
+   "GR-11.9.5.2-4",
+   "DOC-A.1-123"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Each implementor will indicate the techniques used in handling arithmetic expressions.\"; 2023: \"If the STANDARD-DECIMAL phrase is specified, the techniques used in handling arithmetic expressions ... shall be as described\". First sentence kept verbatim. Implementor-defined techniques now hold only for NATIVE, the default. STANDARD-DECIMAL and STANDARD-BINARY make them standard-defined.",
+  "source": "audit-1985/state-route"
+ }
+}

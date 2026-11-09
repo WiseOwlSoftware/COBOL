@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VI.6.24.4-4",
+ "rule-digest": "fc7730e9f5ca",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If STOP literal-1 is specified, the execution of the run unit is suspended and literal-1 is communicated to the operator.\"; 2023: \"Format is only STOP RUN [WITH ERROR/NORMAL STATUS literal-1]; \"Execution of the run unit terminates\"\". The 2023 STOP format offers only STOP RUN. The suspend-and-resume STOP literal-1 is gone. A literal in WITH STATUS is passed to the OS at termination, not shown to an operator awaiting resumption.",
+  "source": "audit-1985/state-route"
+ }
+}

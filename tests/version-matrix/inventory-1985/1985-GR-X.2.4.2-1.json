@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.2.4.2-1",
+ "rule-digest": "93ce19e30660",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.6.2.3.2-1"
+  ],
+  "bridge": true,
+  "reason": "For programs both texts place them in the initial state on first activation (call) in a run unit. Covering functions and methods only extends the rule to newer features; programs are unaffected.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-12",
+ "rule-digest": "336c0bc591a5",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The content of the data item referenced by data-name-9 is set only by the MCS as part of the execution of a RECEIVE statement\"; 2023: \"No CD entry or end-key item; 2023 RECEIVE returns the message to identifier-1 from the MCS (GR-14.9.31.4-2), with no end-key setting\". 2023 drops the communication description entry and its END KEY item. No candidate covers the CD, and the 2023 RECEIVE rules shown set no end-of-segment/message/group indicator.",
+  "source": "audit-1985/state-route"
+ }
+}

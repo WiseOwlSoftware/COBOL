@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.1.3.7-1",
+ "rule-digest": "5c074fadbaa0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-10",
+   "GR-9.1.13.6-7"
+  ],
+  "bridge": true,
+  "reason": "Both editions place a value in the file's I-O status to show the file attribute conflict condition. 2023 names it '39', the I-O status value defined for that condition; no substantive difference.",
+  "source": "audit-1985/state-route"
+ }
+}

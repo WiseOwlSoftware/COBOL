@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VII.4.6.3-2",
+ "rule-digest": "92bcab32136b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both say the USE statement defines the conditions for running the use procedures. 2023 gives it no executable effect, so leaving out 'never executed' changes no program's acceptance or result.",
+  "source": "audit-1985/state-route"
+ }
+}

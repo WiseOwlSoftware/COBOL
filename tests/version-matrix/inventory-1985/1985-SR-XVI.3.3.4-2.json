@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XVI.3.3.4-2",
+ "rule-digest": "6cdf204a3cb2",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If a SORT statement appears in an independent segment, then any input procedures or output procedures ... must be contained\"; 2023: \"No 2023 clause holds the Segmentation feature; no candidate deals with independent segments\". Independent segments (Segmentation module) have no 2023 counterpart. The SORT/MERGE candidates restrict SORT statements and procedures but say nothing about segment placement.",
+  "source": "audit-1985/state-route"
+ }
+}

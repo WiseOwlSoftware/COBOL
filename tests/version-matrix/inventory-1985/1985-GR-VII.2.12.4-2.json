@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.2.12.4-2",
+ "rule-digest": "8040d4162367",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"There are seven forms of the RERUN clause, based on the several conditions under which rerun points can be established.\"; 2023: \"No 2023 clause carries the RERUN clause; no candidate covers rerun points or any RERUN form.\". No 2023 clause holds the RERUN feature and no candidate covers rerun points, so 2023 lacks the RERUN clause.",
+  "source": "audit-1985/state-route"
+ }
+}

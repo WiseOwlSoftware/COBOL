@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-8",
+ "rule-digest": "9cce72409f6f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.12.4-6",
+   "GR-14.7.7-4"
+  ],
+  "bridge": true,
+  "reason": "Quotient size error: id-3 unchanged and no remainder stored. Remainder size error: id-4 unchanged. Without the phrase 2023 leaves effects implementor-defined, so no real gap.",
+  "source": "audit-1985/state-route"
+ }
+}

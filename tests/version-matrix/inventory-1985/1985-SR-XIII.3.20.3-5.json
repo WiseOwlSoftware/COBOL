@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIII.3.20.3-5",
+ "rule-digest": "be1b310f6d96",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"SOURCE clauses and associated USE statements must not reference any of the following: a. Group data items containing a control data item.\"; 2023: \"The 2023 TYPE clause syntax rules (SR-13.18.57.3-9 to -16) cover the report group types but state no limit on SOURCE/USE references to control data\". The 2023 TYPE clause rules cover report group types, yet none bars SOURCE or USE in CF, PH, PF or RF groups from referencing control data items, their groups, subordinates or redefinitions.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.4.4.4-2",
+ "rule-digest": "58b1e4d9e756",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.14.4-1",
+   "GR-13.18.27.4-1"
+  ],
+  "bridge": true,
+  "reason": "The 1985 pointer only says the RD may carry GLOBAL, governed by the GLOBAL clause rules. 2023 still allows GLOBAL in the RD (13.14.4) with the general GLOBAL rules (13.18.27); the module split is editorial.",
+  "source": "audit-1985/state-route"
+ }
+}

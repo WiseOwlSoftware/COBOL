@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-3",
+ "rule-digest": "6a8b49c1a4c2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.6.4-6",
+   "GR-12.3.7.4-8"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Except in the SPECIAL-NAMES paragraph, represents one or more of the character that has the highest ordinal position in the program collating sequence.\"; 2023: \"At compile time ... highest ordinal position in the collating sequence used during compilation. ... or multiple-character combination ... LC_COLLATE\". 2023 uses the compile-time collating sequence at compile time and adds multiple-character combinations, locale LC_COLLATE and national-sequence cases. 1985 names only the program collating sequence.",
+  "source": "audit-1985/state-route"
+ }
+}

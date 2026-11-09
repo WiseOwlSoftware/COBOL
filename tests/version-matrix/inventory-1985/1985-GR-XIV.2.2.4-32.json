@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-32",
+ "rule-digest": "716be8feda8d",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the MCS interprets the content of the data item referenced by data-name-4 as the user's indication of the number of leftmost character\"; 2023: \"No communication description entry or text-length field; the 2023 SEND rule only checks identifier-1 length against the message server\". The 2023 standard has no CD entry, and no candidate covers it. GR-14.9.38.4-1 is a message-server SEND length check with no MCS-set or user-set text-length data item.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.5.4.3-1",
+ "rule-digest": "68c9a391bac7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.8.3-1",
+   "SR-13.18.8.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"only for an elementary item whose PICTURE is specified as numeric or numeric edited\"; 2023: \"as category numeric-edited or as numeric without the picture symbol 'S'\". 2023 refuses a numeric PICTURE with 'S', which the 1985 rule accepts, and adds a usage display or national requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

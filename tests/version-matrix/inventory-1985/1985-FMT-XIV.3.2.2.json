@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-XIV.3.2.2",
+ "rule-digest": "00e9b9d16031",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"DISABLE { INPUT [ TERMINAL ] | I-O TERMINAL | OUTPUT } cd-name-1 [ WITH KEY { identifier-1 | literal-1 } ]\"; 2023: \"no DISABLE statement or communication module among the candidates; they cover CANCEL, OPEN, USE and screen clauses only\". DISABLE is a communication-module statement. No 2023 candidate covers it or cd-names, so the feature is shown absent from 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

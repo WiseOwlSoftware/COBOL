@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-6",
+ "rule-digest": "35ad9758e086",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-8"
+  ],
+  "bridge": true,
+  "reason": "GR8 a-e repeat the 1985 comparison cycle; only BACKWARD alternatives and renumbered cross-references are added. Programs valid in 1985 (no BACKWARD) get the same effect.",
+  "source": "audit-1985/state-route"
+ }
+}

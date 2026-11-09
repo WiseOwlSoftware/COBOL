@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.2.12.3-3",
+ "rule-digest": "abd08ad74502",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When either the integer-1 RECORDS phrase or the integer-2 CLOCK-UNITS phrase is specified, implementor-name-1 must be given\"; 2023: \"No 2023 clause holds the RERUN clause; no candidate covers RERUN, RECORDS or CLOCK-UNITS checkpoint phrases\". No 2023 clause carries the RERUN feature, and the wording candidates cover only unrelated integer rules (PAGE, BLOCK, OCCURS etc.), so the feature is absent in 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

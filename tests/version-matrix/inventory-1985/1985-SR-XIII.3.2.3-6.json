@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIII.3.2.3-6",
+ "rule-digest": "cb2b0b4e4c38",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The availability of specific clauses in this file description entry is dependent on the level of Sequential I-O module supported\"; 2023: \"No module levels exist; Format 3 report-file FD (SR-13.4.5.3-8) states no level-dependent clause availability\". The 1985 rule only ties report FD clause availability to the Sequential I-O module level. 2023 has no modules or levels, and its report-file FD rules state no such dependency.",
+  "source": "audit-1985/state-route"
+ }
+}

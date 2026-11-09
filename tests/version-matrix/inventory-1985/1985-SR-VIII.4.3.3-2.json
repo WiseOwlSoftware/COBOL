@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VIII.4.3.3-2",
+ "rule-digest": "f6a93613751f",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The INVALID KEY phrase must be specified for a DELETE statement which references a file which is not in sequential access mode\"; 2023: \"the optional INVALID KEY and NOT INVALID KEY phrases in the DELETE RECORD statement (GR-14.9.10.4-11); no SR requires them\". 2023 DELETE syntax rules only forbid INVALID KEY in sequential access, and GR-11 calls the phrase optional. The 1985 requirement to code it when no USE procedure applies is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

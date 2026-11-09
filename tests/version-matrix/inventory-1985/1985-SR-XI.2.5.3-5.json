@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-XI.2.5.3-5",
+ "rule-digest": "0d4a9d07155a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.6.4.3-6",
+   "SR-12.4.6.4.3-7",
+   "SR-12.4.6.4.3-10"
+  ],
+  "bridge": true,
+  "reason": "a and b match the single record-area and single sort-merge-area limits in SR-6/7. In c, 'a SAME clause' beside the RECORD/SORT formats reads as SAME AREA, the file-area format of SR-10.",
+  "source": "audit-1985/state-route"
+ }
+}

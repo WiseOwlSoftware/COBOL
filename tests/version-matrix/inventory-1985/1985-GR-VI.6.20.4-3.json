@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.20.4-3",
+ "rule-digest": "cf5941430cfb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.26.4-4"
+  ],
+  "bridge": true,
+  "reason": "Both are pointer rules for MULTIPLY that set no requirement of their own. 2023 folds multiple results and overlapping operands into 14.7.7; the cited rules are judged separately.",
+  "source": "audit-1985/state-route"
+ }
+}

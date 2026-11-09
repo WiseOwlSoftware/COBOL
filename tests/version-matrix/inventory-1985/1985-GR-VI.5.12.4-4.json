@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.5.12.4-4",
+ "rule-digest": "aa06bb4640fc",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.52.4-4",
+   "DOC-A.1-177"
+  ],
+  "bridge": true,
+  "reason": "Both give an implementor-specified sign position and representation for 'S' with no SIGN clause. 2023 GR7's conversion text applies only when a SIGN clause applies, so not exempting it changes nothing.",
+  "source": "audit-1985/state-route"
+ }
+}

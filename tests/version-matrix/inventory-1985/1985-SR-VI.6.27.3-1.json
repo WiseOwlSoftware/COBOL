@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.27.3-1",
+ "rule-digest": "9563454e2e6e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.48.3-1"
+  ],
+  "bridge": true,
+  "reason": "Both require alphanumeric (nonnumeric) literals and bar ALL figurative constants. National and zero-length literals do not exist in 1985, so no 1985 program is treated differently.",
+  "source": "audit-1985/state-route"
+ }
+}

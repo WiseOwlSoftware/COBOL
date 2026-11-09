@@ -201,6 +201,15 @@ class Run:
             lines.add(int(m.group("line")))
         return sorted(lines)
 
+    def flag(self, edition: str, entry: dict[str, Any], work: Path, source: str,
+             program: str) -> tuple[str | None, list[int], Step]:
+        """The warning mechanism (the adapter's `flag` command, ISO 4.2.2) on a staged source: why it cannot be judged
+        (NO VERDICT) or None, the lines at which it reported a diagnostic, and the step. `flagged` judges a flagged test
+        by it; a caller with no marked line (run_drafts.py's draft that names none) reads only where it reported one."""
+        step = self.operation("flag", edition, entry, work, source, program)
+        why = self.unjudgeable(step, "the compiler")
+        return why, [] if why else self.diagnostic_lines(step, source), step
+
     # ── one test ──
 
     def not_applicable(self, edition: str, entry: dict[str, Any]) -> str | None:
@@ -271,11 +280,9 @@ class Run:
         if compiled.returncode != 0:
             return NOT_APPLICABLE, (f"its control {control['id']} did not compile (exit {compiled.returncode}), so "
                                     f"the compiler lacks what the test needs (§3.2)")
-        step = self.operation("flag", edition, entry, work, source, program)
-        why = self.unjudgeable(step, "the compiler")
+        why, lines, _ = self.flag(edition, entry, work, source, program)
         if why:
             return NO_VERDICT, why
-        lines = self.diagnostic_lines(step, source)
         if entry["line"] in lines:
             return PASS, ""
         where = f"diagnostics at line(s) {', '.join(map(str, lines))}" if lines else "no diagnostic reported"

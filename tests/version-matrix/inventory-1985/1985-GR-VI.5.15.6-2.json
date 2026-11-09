@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.15.6-2",
+ "rule-digest": "cd9ee9dfb674",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.63.3-12"
+  ],
+  "bridge": true,
+  "reason": "2023 rules are format-specific: SR-18 reads as general but fits only format 2. So SR-12 binds the data-value format, not format 3 condition-name entries, which matches the 1985 exemption.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "rule-id": "1985-GR-VI.6.8.4-4",
+ "rule-digest": "e4e9fbe0dac9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.8.4-2",
+   "GR-14.7.7-1",
+   "SR-14.7.7-2",
+   "GR-14.7.7-3",
+   "GR-14.7.7-4",
+   "GR-14.6.10-1",
+   "GR-14.6.10-2"
+  ],
+  "bridge": true,
+  "reason": "A pointer rule: 2023 states each rule it points to, the arithmetic statements' common rules through \"The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements\" (§2023:14.7.7) and the overlapping operands in §2023:14.6.10.",
+  "source": "adjudication kb/Work PB5008"
+ }
+}

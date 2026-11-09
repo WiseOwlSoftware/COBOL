@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-8",
+ "rule-digest": "d5867edf6e35",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-11"
+  ],
+  "bridge": true,
+  "reason": "The implied ALPHANUMERIC case keeps the rule: the character at ordinal integer-1 in the native set, or in the IN alphabet's set. NATIONAL is a new phrase that leaves 1985 programs unaffected.",
+  "source": "audit-1985/state-route"
+ }
+}

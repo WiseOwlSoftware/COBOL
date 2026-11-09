@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VI.3.4.4-1",
+ "rule-digest": "2bd41ece235d",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The paragraph-name DATE-COMPILED causes the current date to be inserted during program compilation.\"; 2023: \"No 2023 clause holds the DATE-COMPILED paragraph; no candidate covers inserting the compilation date.\". No 2023 clause holds the DATE-COMPILED feature. The wording candidates cover other paragraphs (SPECIAL-NAMES, REPOSITORY, OPTIONS etc.), so 2023 lacks this paragraph.",
+  "source": "audit-1985/state-route"
+ }
+}

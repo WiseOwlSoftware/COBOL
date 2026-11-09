@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-XI.4.2.2",
+ "rule-digest": "04ae738d186c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.32.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"RELEASE record-name-1 [ FROM identifier-1 ]\"; 2023: \"RELEASE record-name-1 [ FROM { identifier-1 | literal-1 } ]\". 2023 adds literal-1 as an alternative FROM operand. RELEASE ... FROM literal, refused under the 1985 format, is now accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

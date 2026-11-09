@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.2.3.4-2",
+ "rule-digest": "5861547494fb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.13.4-7"
+  ],
+  "bridge": true,
+  "reason": "2023 states the same default, native character set on external media. Whether CODE-SET may be given for relative files is a separate CODE-SET syntax rule, not shown among these candidates.",
+  "source": "audit-1985/state-route"
+ }
+}

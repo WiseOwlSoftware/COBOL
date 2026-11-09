@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.19.4-2",
+ "rule-digest": "056a8060ee8e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.54.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"This addition is consistent with the rules for arithmetic statements.\"; 2023: \"consistent with ... the ADD statement with the ON SIZE ERROR phrase ... if a size error occurs, the EC-REPORT-SUM-SIZE exception\". Both add each addend into the sum counter by arithmetic rules. 2023 also tests every addition for size error and sets EC-REPORT-SUM-SIZE, a defined result 1985 does not state.",
+  "source": "audit-1985/state-route"
+ }
+}

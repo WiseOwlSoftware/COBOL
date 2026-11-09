@@ -590,17 +590,6 @@ internal static class PlaceRenderer
         _ => WriteGroupImage(record, image, context),
     };
 
-    /// <summary>The store of a received message's image into a group that holds message tags (kb/Work PB4744; §2023:14.9.31.4 GR1): the record struct's generated
-    /// <c>FromMessageImage</c>, which distributes every position but a tag's token (<c>DataItem.HoldsOnlyMessageTagSlots</c>). A group in a storage cell
-    /// takes the image through its window as any group image does - its tags are slots of the cell beside the bytes - and an occurs-depending wrapper is unwrapped.
-    /// The tags follow through <see cref="GroupLeaves"/> / <see cref="WriteGroupLeaves"/>.</summary>
-    public static string WriteMessageGroupImage(Place group, string image, string context) => group switch
-    {
-        OdoGroupPlace o => WriteMessageGroupImage(o.Inner, image, context),
-        RedefViewPlace or RenamesPlace => WriteGroupImage(group, image, context),
-        _ => $"{GroupTarget(group)}.FromMessageImage({image});",
-    };
-
     /// <summary>The LEAF VECTOR of a strongly-typed group that has no character image — the activation-boundary carrier
     /// <c>ActivationCrossing.LeafCarried</c> selects (kb/Work PB1116): its record struct's generated <c>AsLeaves()</c>.
     /// <para>⛔ A GROUP THAT LIVES IN A STORAGE CELL HAS NO RECORD STRUCT (kb/Work PB2087): an area formal, or a group the
@@ -612,7 +601,15 @@ internal static class PlaceRenderer
     /// boxes a record struct's physical fields, because §2023:14.8.2.2 makes the two sides of the crossing "of the same type"
     /// and the vector is the neutral carrier between their storage forms.</para></summary>
     public static string GroupLeaves(Place group) =>
-        PlaceCursor.Over(group) is ViewCursor view ? CellLeaves(view, 0) : $"{Read(group)}.AsLeaves()";
+        PlaceCursor.Over(group) is ViewCursor view ? CellLeaves(view, 0, slotsFromPositions: false) : $"{Read(group)}.AsLeaves()";
+
+    /// <summary>The <see cref="GroupLeaves"/> vector of a group whose storage IMAGE was just written, with each pointer or message-tag leaf the value its
+    /// positions now hold (kb/Work PB4957; the token decode of DOC-A.1-212 and DOC-A.1-216): a RECEIVE's area, whose tags it then resolves against the message's
+    /// slots (<c>AsyncMessaging.Resolved</c>). A record struct's <c>FromImage</c> already decoded them, so its <c>AsLeaves()</c> is the vector; a storage cell keeps
+    /// a slot leaf's value in its managed slot beside the bytes, which an image written through the group's byte window does not reach, so the leaf is decoded
+    /// from its positions instead.</summary>
+    public static string ImagedGroupLeaves(Place group) =>
+        PlaceCursor.Over(group) is ViewCursor view ? CellLeaves(view, 0, slotsFromPositions: true) : $"{Read(group)}.AsLeaves()";
 
     /// <summary>The inverse of <see cref="GroupLeaves"/>: the place's record struct with every field made from
     /// <paramref name="leaves"/> by its generated <c>WithLeaves</c> (which recreates a dynamic-capacity table in the
@@ -633,9 +630,13 @@ internal static class PlaceRenderer
     /// <summary>The leaf vector of the cell-backed group at <paramref name="cur"/> (see <see cref="GroupLeaves"/>): a
     /// member is boxed in the carrier form its record-struct field has — a nested group as its own vector, a fixed table as
     /// an array of its occurrences (a table of groups as an array of their vectors), an elementary item as its field value
-    /// (<see cref="LeafCarrierRead"/>). <paramref name="depth"/> keeps the occurrence variables of nested tables apart.</summary>
-    private static string CellLeaves(PlaceCursor cur, int depth)
+    /// (<see cref="LeafCarrierRead"/>). <paramref name="depth"/> keeps the occurrence variables of nested tables apart; <paramref name="slotsFromPositions"/>
+    /// reads a token-carrying slot leaf from its positions (<see cref="ImagedGroupLeaves"/>).</summary>
+    private static string CellLeaves(PlaceCursor cur, int depth, bool slotsFromPositions)
     {
+        string Leaf(Place p) => slotsFromPositions && p is RedefViewPlace { Coding: SlotWindow } v && SlotWindow.CarriesTokenImage(v.ViewItem)
+            ? RuntimeApi.SlotFromImage(v.ViewItem, ByteWindowRead(v))
+            : LeafCarrierRead(p);
         var parts = new List<string>();
         foreach (var c in LeafFieldsOf(cur.Item))
         {
@@ -646,18 +647,18 @@ internal static class PlaceRenderer
                 string k = $"__lk{depth}";
                 var element = at.DynamicElement(CSharpLocal.Position(k))
                     ?? throw new InvalidOperationException($"no element cursor reaches '{c.CobolName}' (kb/Work PB3139)");
-                string elem = c.IsGroup ? $"(object?){CellLeaves(element, depth + 1)}"
-                    : $"(object?)({c.ElementType})({LeafCarrierRead(element.ToPlace())})";
+                string elem = c.IsGroup ? $"(object?){CellLeaves(element, depth + 1, slotsFromPositions)}"
+                    : $"(object?)({c.ElementType})({Leaf(element.ToPlace())})";
                 parts.Add($"global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select(global::System.Linq.Enumerable.Range(1, (int){CellTable(at)}.Capacity), {k} => {elem}))");
             }
             else if (c.Occurs is int n)
             {
                 string k = $"__lk{depth}";
-                string elem = c.IsGroup ? $"(object?){CellLeaves(at.Indexed(CSharpLocal.Position(k)), depth + 1)}"
-                    : $"({c.ElementType})({LeafCarrierRead(at.Indexed(CSharpLocal.Position(k)).ToPlace())})";
+                string elem = c.IsGroup ? $"(object?){CellLeaves(at.Indexed(CSharpLocal.Position(k)), depth + 1, slotsFromPositions)}"
+                    : $"({c.ElementType})({Leaf(at.Indexed(CSharpLocal.Position(k)).ToPlace())})";
                 parts.Add($"global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select(global::System.Linq.Enumerable.Range(1, {n}), {k} => {elem}))");
             }
-            else parts.Add(c.IsGroup ? CellLeaves(at, depth + 1) : $"(object?)({LeafCarrierRead(at.ToPlace())})");
+            else parts.Add(c.IsGroup ? CellLeaves(at, depth + 1, slotsFromPositions) : $"(object?)({Leaf(at.ToPlace())})");
         }
         // The implicit filler after the members (§2023:8.5.1.6.3, kb/Work PB3598): one string of boolean positions per entry, the
         // record struct's `__bf` field in `RecordStructEmitter.EmitLeafMethods` — a table's pad as every gap back to back.

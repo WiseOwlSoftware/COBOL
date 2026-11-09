@@ -43,6 +43,28 @@
     "keys": ["rule-id", "rule-digest"]
   },
 
+  "next": {
+    "$comment": [
+      "THE CHANGE RECORD of an older edition's rule against the next HELD edition (DESIGN-spec-conformance-review.md",
+      "section 10.2, kb/Work PB4991, PB4993): the `next` field of a store file of an edition whose `adjudicated` fields name",
+      "it. A record carries the `keys` below and no other: its `kind`, the next held `edition`, the rule ids `to` it carries",
+      "into, whether it `bridge`s an edition between the two that is not held, its `reason` and its `source` (the audit",
+      "run or the adjudication that decided it). Its evidence is the citation of the row and of each `to` rule, read from",
+      "their catalogs and never stored. Each kind states whether it names rules of the next edition (`to`), whether it",
+      "must state its `reason`, and whether its verdict is its CHAIN's (`chained`: held once, on the chain's newest row,",
+      "so the row carries none of the `verdict-fields`) or its own. A rule of the next edition no record's `to` names is",
+      "NEW: derived, never written. lineage.py (`next_errors`, `state_of`) reads this through inventory_schema.ChangeRecord;",
+      "no code spells a kind."
+    ],
+    "keys": ["kind", "edition", "to", "bridge", "reason", "source"],
+    "verdict-fields": ["verdict", "code-location", "test-ref", "derivation"],
+    "kinds": {
+      "KEPT": {"meaning": "the next edition states the same requirement", "to": true, "reason": false, "chained": true},
+      "CHANGED": {"meaning": "the same subject, a different requirement", "to": true, "reason": true, "chained": false},
+      "REMOVED": {"meaning": "no counterpart in the next edition", "to": false, "reason": true, "chained": false}
+    }
+  },
+
   "verdicts": {
     "CONFORMS": {
       "resolves": true,

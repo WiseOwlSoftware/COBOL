@@ -6,14 +6,22 @@ using WiseOwl.Cobol.Runtime.Mcs;
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
 /// <summary>A message in flight (docs/rearchitecture/DESIGN-message-control.md design 5.3): its image, its extent table (§2023:4.4; null for a message with no
-/// variable-length component) and its slots, each a <see cref="MessageTag"/> (SEND SR3 and RECEIVE SR2 refuse every other slot class at compile time).</summary>
-internal sealed record MessageBody(string Image, RecordExtents? Extents, object?[] Slots)
+/// variable-length component) and its slots, each a <see cref="MessageTag"/> beside the token that stands for it in the image (<see cref="MessageSlot"/>; SEND SR3
+/// and RECEIVE SR2 refuse every other slot class at compile time). Build one with <see cref="Carrying"/>, which keeps the slots the image holds.</summary>
+internal sealed record MessageBody(string Image, RecordExtents? Extents, MessageSlot[] Slots)
 {
     /// <summary>A body of no slots and no extent table.</summary>
     internal static MessageBody Of(string image) => new(image, null, []);
 
-    /// <summary>The same message cut to its first <paramref name="capacity"/> character positions (§0 Q7).</summary>
-    internal MessageBody Truncated(int capacity) => Image.Length <= capacity ? this : this with { Image = Image[..capacity] };
+    /// <summary>⛔ THE ONE CONSTRUCTION OF A BODY THAT CARRIES SLOTS (kb/Work PB4957): a slot stands for the positions that hold its token, so a slot whose token
+    /// the image does not hold stands for nothing the receiver gets - a tag of an occurrence past an OCCURS DEPENDING ON count the current-extent image leaves out,
+    /// or one a cut to the receiver's capacity removed (<see cref="Truncated"/>) - and it is dropped here rather than carried.</summary>
+    internal static MessageBody Carrying(string image, RecordExtents? extents, MessageSlot[] slots) =>
+        new(image, extents, Array.FindAll(slots, slot => slot.IsHeldBy(image)));
+
+    /// <summary>The same message cut to its first <paramref name="capacity"/> character positions (§0 Q7; §2023:14.9.31.4 GR3), with the slots those positions
+    /// still hold (<see cref="Carrying"/>): a tag that lay past the capacity is no part of what identifier-1 receives.</summary>
+    internal MessageBody Truncated(int capacity) => Image.Length <= capacity ? this : Carrying(Image[..capacity], Extents, Slots);
 }
 
 /// <summary>One frame of the 2023 facility's protocol, decoded (design 5.3). <see cref="PeerFrameCodec"/> maps it to and from an <see cref="McsFrame"/> payload.</summary>
@@ -165,10 +173,12 @@ internal static class PeerFrameCodec
             }
             else Byte(0);
             Int(body.Slots.Length);
-            foreach (object? slot in body.Slots)
+            foreach (var slot in body.Slots)
             {
-                if (slot is not MessageTag tag)
-                    throw new ArgumentException($"a message slot is a message tag, not {slot?.GetType().Name ?? "null"}", nameof(body));
+                var (token, tag) = (slot.Token, slot.Tag);
+                if (token.Length != PointerImage.Width)
+                    throw new ArgumentException($"a message slot's token is {PointerImage.Width} positions, not {token.Length}", nameof(body));
+                Text(token);
                 NullableText(tag.Mcs);
                 Byte((byte)tag.Party);
                 NullableText(tag.Name);
@@ -232,16 +242,21 @@ internal static class PeerFrameCodec
             }
             int slotCount = Int();
             if (slotCount < 0 || slotCount > payload.Length - _at) throw new InvalidDataException("a message announces more slots than the payload holds");
-            var slots = new object?[slotCount];
+            var slots = new MessageSlot[slotCount];
             for (int k = 0; k < slotCount; k++)
             {
+                string token = Text();
+                if (token.Length != PointerImage.Width) throw new InvalidDataException($"a message slot's token is {token.Length} positions, not {PointerImage.Width}");
                 string? mcs = NullableText();
                 byte party = Byte();
                 if (party > (byte)MessageParty.Unresolved) throw new InvalidDataException($"a message tag names party {party}, which is none");
                 string? name = NullableText();
-                slots[k] = new MessageTag(mcs!, (MessageParty)party, name!, Long());
+                slots[k] = new MessageSlot(token, new MessageTag(mcs!, (MessageParty)party, name!, Long()));
             }
-            return new MessageBody(image, extents, slots);
+            // A slot stands for the positions that hold its token (MessageBody.Carrying, kb/Work PB4957, PB5004): a peer that announces one its image lacks is malformed.
+            foreach (var slot in slots)
+                if (!slot.IsHeldBy(image)) throw new InvalidDataException($"a message slot's token {slot.Token} is not in the message image");
+            return MessageBody.Carrying(image, extents, slots);
         }
 
         internal void End()

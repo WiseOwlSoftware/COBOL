@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.26.4-3",
+ "rule-digest": "512f87538196",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.44.4-3"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps that identifier-4 items are subtracted from and stored in corresponding identifier-5 items. The reversed formula applies only to standard arithmetic, which is new in 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

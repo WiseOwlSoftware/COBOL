@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.4.7.4-2",
+ "rule-digest": "269089380c52",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.46.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both say that without an intervening GENERATE, TERMINATE prints no report groups and does no related processing. Making the report inactive is TERMINATE's normal effect, not a new requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

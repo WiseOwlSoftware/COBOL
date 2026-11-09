@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XV.3.2.3-7",
+ "rule-digest": "aa84c80ca9e3",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The ALL PROCEDURES phrase can appear only once in a program.\"; 2023: \"The 2023 USE statement rules cover file, exception, report and object declaratives only; no FOR DEBUGGING or ALL PROCEDURES phrase.\". The 2023 USE statement rules cover file, exception, report and object declaratives, with no USE FOR DEBUGGING or ALL PROCEDURES. The Debug feature is absent, so the rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

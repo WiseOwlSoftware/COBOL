@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.7.4-3",
+ "rule-digest": "be579e54610f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-6",
+   "GR-13.18.57.4-6"
+  ],
+  "bridge": true,
+  "reason": "2023 still prints any defined page footing and page heading automatically when a body group fails the page fit test. The RH-only page exception concerns the heading's own advance; 1985 defers to its tables.",
+  "source": "audit-1985/state-route"
+ }
+}

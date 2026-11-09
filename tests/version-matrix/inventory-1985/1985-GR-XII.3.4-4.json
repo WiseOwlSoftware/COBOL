@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XII.3.4-4",
+ "rule-digest": "f2f1a57f41cb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.4.4-1",
+   "GR-7.2.4.4-9"
+  ],
+  "bridge": true,
+  "reason": "REPLACE acts on the conditionally-processed group and its result may not contain a COPY statement. That presupposes COPY was already processed, so the order is kept, if only implicitly.",
+  "source": "audit-1985/state-route"
+ }
+}

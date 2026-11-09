@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XIII.2.4.4-2",
+ "rule-digest": "8203d0b20058",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.6.2",
+   "GR-12.4.6.4.4-1",
+   "GR-12.4.6.4.4-2"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule only cross-refers to the SAME clause. 2023 keeps same-clause in the single I-O-CONTROL format, with its rules given in 12.4.6.4.4.",
+  "source": "audit-1985/state-route"
+ }
+}

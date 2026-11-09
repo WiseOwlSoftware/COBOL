@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-13",
+ "rule-digest": "b9c16624de49",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"DEBUG-NAME contains the first 30 characters of the name that caused the debugging section to be executed.\"; 2023: \"No USE FOR DEBUGGING or DEBUG-NAME; the 2023 USE statement covers only file, exception and BEFORE REPORTING declaratives.\". No clause holds the Debug feature. The 2023 USE candidates cover file I-O, exception and report declaratives only, with no USE FOR DEBUGGING or DEBUG-NAME, so it was dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

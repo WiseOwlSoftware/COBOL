@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-7",
+ "rule-digest": "334c438c23a0",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-10"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The range of the input procedure must not cause the execution of any MERGE, RETURN, or SORT statement.\"; 2023: \"If the range of the input procedure causes the execution of any MERGE, RETURN, or format 1 SORT statements, the EC-SORT-MERGE-ACTIVE exception condition is set\". Same range and same banned statements (table SORT is new in 2023). A 1985 prohibition with no stated effect now sets EC-SORT-MERGE-ACTIVE with undefined results.",
+  "source": "audit-1985/state-route"
+ }
+}

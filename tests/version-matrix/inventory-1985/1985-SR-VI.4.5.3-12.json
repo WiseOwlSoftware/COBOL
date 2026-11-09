@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-12",
+ "rule-digest": "e43248ea6e43",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-18"
+  ],
+  "bridge": true,
+  "reason": "1985 literal-6 is the CURRENCY SIGN literal, now literal-7. Both bar figurative constants. The added class wording covers what other 1985 currency-symbol rules already required.",
+  "source": "audit-1985/state-route"
+ }
+}

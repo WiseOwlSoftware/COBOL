@@ -13,6 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 /// precedes Katakana) and the CASE LEVEL (<c>[caseLevel on]</c>, <c>-u-kc-true</c>: "a level consisting only of case
 /// characteristics will be inserted in front of tertiary level"). Compare and GetKey must agree under every setting.
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class CldrCollationSettingsTests
 {
     private static Collator Ja(CollationStrength? strength = null, AlternateHandling? alternate = null) =>

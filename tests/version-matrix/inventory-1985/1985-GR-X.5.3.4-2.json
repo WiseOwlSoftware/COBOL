@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-2",
+ "rule-digest": "0fc5b1121d6a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.5.4-3"
+  ],
+  "bridge": true,
+  "reason": "Same rule: no logical relationship after CANCEL; initial state if called again. 2023 implicit CANCELs (GOBACK of initial program, contained programs) are CANCEL statements, so coverage is the same.",
+  "source": "audit-1985/state-route"
+ }
+}

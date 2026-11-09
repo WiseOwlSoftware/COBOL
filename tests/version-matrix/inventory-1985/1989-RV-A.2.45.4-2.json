@@ -1,0 +1,15 @@
+{
+ "rule-id": "1989-RV-A.2.45.4-2",
+ "rule-digest": "e2a1957be82b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.98.4-1",
+   "RV-15.86.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 defines STANDARD-DEVIATION as SQRT(VARIANCE), so VARIANCE is still the square of the standard deviation of the series. The 1985 rule states that same relation; its SD formula is a separate rule.",
+  "source": "audit-1985/state-route"
+ }
+}

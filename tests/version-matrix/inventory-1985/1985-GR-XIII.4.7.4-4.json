@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.7.4-4",
+ "rule-digest": "0e2a6a8768ec",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.46.4-1",
+   "GR-14.9.21.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The TERMINATE statement cannot be executed for a report unless the TERMINATE statement was chronologically preceded by an INITIATE\"; 2023: \"If the report is not in the active state, the EC-REPORT-INACTIVE exception condition is set to exist and the execution of the statement has no other effect.\". Both require an initiated, not-yet-terminated report. 1985 only forbids the other case and states no result; 2023 defines it: EC-REPORT-INACTIVE is set and nothing else happens.",
+  "source": "audit-1985/state-route"
+ }
+}

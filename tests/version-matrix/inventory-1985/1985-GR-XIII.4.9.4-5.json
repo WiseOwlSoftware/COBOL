@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.9.4-5",
+ "rule-digest": "f1af72dd8468",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-2",
+   "GR-14.9.49.4-10"
+  ],
+  "bridge": true,
+  "reason": "1985: \"there must not be the execution of any statement that would cause the execution of a USE procedure that had previously been invoked\"; 2023: \"if a statement raises an exception condition that would cause the execution of a USE procedure ... the EC-FLOW-USE exception condition is set to exist\". 1985 forbids such execution and leaves the effect unspecified. 2023 defines a result: EC-FLOW-USE, or EC-FLOW-REPORT for GENERATE/INITIATE/TERMINATE in BEFORE REPORTING.",
+  "source": "audit-1985/state-route"
+ }
+}

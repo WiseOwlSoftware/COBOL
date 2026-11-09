@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-5",
+ "rule-digest": "6625b3c75b0a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.60.4-7"
+  ],
+  "bridge": true,
+  "reason": "Both: implicit or explicit USAGE DISPLAY means a character representation aligned on a character boundary. The added size and documentation rules address the new national usage.",
+  "source": "audit-1985/state-route"
+ }
+}

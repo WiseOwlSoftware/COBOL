@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-13",
+ "rule-digest": "f124e4deae22",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-14",
+   "GR-9.1.13.2-3"
+  ],
+  "bridge": true,
+  "reason": "Same rule: short record leaves the rest undefined, long record truncated, READ successful, status '04' (length conflict). Line sequential files are new in 2023, so 1985 programs are unaffected.",
+  "source": "audit-1985/state-route"
+ }
+}

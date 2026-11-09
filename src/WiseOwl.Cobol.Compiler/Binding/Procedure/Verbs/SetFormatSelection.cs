@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 
@@ -134,6 +135,13 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// <see cref="SetOperandKind"/>, computed once at class initialization: selection runs at every SET
     /// statement in the program, and the set algebra it needs ("are all present kinds admitted", "is any") is a
     /// single machine instruction over a mask where it would otherwise allocate a <c>HashSet</c> per statement.
+    /// <para><see cref="IntroducedIn"/> is the first edition (85/2002/2014/2023, the <see cref="EditionInfo"/> year)
+    /// whose general-format list prints this format; the diagnostics name only the rows the compiled edition has
+    /// (kb/Work PB4954). Formats 5, 7, 9 and 10 begin at 2002 (§2002:14.8.35.1 prints them; the registry rows
+    /// <c>set-object-reference-2002</c>, <c>set-program-pointer-2002</c>, <c>pointer-arithmetic-2002</c>), Format 8 at
+    /// 2014 (<c>set-function-pointer-2014</c>), Format 14 at 2014 (<c>occurs-dynamic-2014</c>: Annex E compares only
+    /// 2014 with 2023 and lists no SET Format 14), Formats 16 and 17 at 2023 (VERSION_CHANGE_REFERENCE row 60;
+    /// <c>usage-message-tag-2023</c>).</para>
     /// <see cref="Admits"/> stays the readable form the table is written in and the drift test reads.
     /// <para><see cref="SendsOnly"/> is the other half of the printed format: the operand kinds this format's
     /// SENDING brace admits and Format 1's does NOT (§2023:8.8.1.1 numeric operands and SR2's class index). A kind
@@ -141,7 +149,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// receiving list landed on Format 1's catch-all brace — <see cref="SelectForTo"/>.</para></summary>
     private readonly record struct Row(
         SetFormat Format, SetDirections Dir, SetOperandKind[] Admits, SetOperandKind[] SendsOnly,
-        string Rule, string Brace, RowAt1985? At1985 = null)
+        string Rule, string Brace, int IntroducedIn, RowAt1985? At1985 = null)
     {
         public uint Mask { get; } = Bits(Admits);
 
@@ -162,12 +170,28 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// <summary>The clause that prints the SET formats in the governing edition.</summary>
     private string FormatsClause => Is1985 ? "ISO §1985:VI.6.23.2" : "ISO §2023:14.9.39.2";
 
-    /// <summary>The row's receiving brace in the governing edition's words (a row the 1985 standard lacks keeps the
-    /// 2023 text: no 1985 wording exists to give).</summary>
-    private string BraceOf(Row row) => Is1985 && row.At1985 is { } r ? r.Brace : row.Brace;
+    /// <summary>The row's format exists in the compiled edition: <see cref="Row.IntroducedIn"/> is the first edition
+    /// whose general-format list prints it (kb/Work PB4954).</summary>
+    private bool InEdition(Row row) => ctx.Edition.Edition.Has(row.IntroducedIn);
 
-    /// <summary>The row's governing rule in the governing edition's words.</summary>
-    private string RuleOf(Row row) => Is1985 && row.At1985 is { } r ? r.Rule : row.Rule;
+    /// <summary>The row's receiving brace in the governing edition's words. A row the edition lacks is never named
+    /// in <see cref="ReportNoFormat"/>'s list, but <see cref="ReportNotAdmitted"/> and
+    /// <see cref="ReportNotSoleReceiver"/> name the SELECTED row, and selection reads the operands' kinds, not the
+    /// edition: a refused declaration still binds its item, and an item the edition declares can select a format the
+    /// edition does not print. Both are reached (kb/Work PB5015): a dynamic-length item is declarable from 2014
+    /// (registry <c>dynamic-length-item-2014</c>) while Format 16 begins at 2023, so <c>SET D N TO 5</c> at
+    /// <c>--std 2014</c> selects Format 16; and a CAPACITY register declared at 2002 (refused COBOL0900, still bound)
+    /// selects Format 14, which begins at 2014. The brace is then labelled with the edition that introduced it
+    /// instead of being printed as though the compiled edition had it;
+    /// <c>SetFormatSelectionDriftTests.ASelectedRowTheEditionLacks_IsLabelledWithItsIntroducingEdition</c> pins the
+    /// wording.</summary>
+    private string BraceOf(Row row) =>
+        !InEdition(row) ? $"{row.Brace} (a format first printed in COBOL-{row.IntroducedIn}, absent from this edition)"
+        : Is1985 && row.At1985 is { } r ? r.Brace : row.Brace;
+
+    /// <summary>The row's governing rule in the governing edition's words (a row the edition lacks keeps the 2023
+    /// rule, which <see cref="BraceOf"/> has already labelled).</summary>
+    private string RuleOf(Row row) => Is1985 && InEdition(row) && row.At1985 is { } r ? r.Rule : row.Rule;
 
     /// <summary>The kinds as a bit set — one bit per <see cref="SetOperandKind"/> member.</summary>
     private static uint Bits(IEnumerable<SetOperandKind> kinds)
@@ -184,31 +208,31 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     private static readonly Row[] Formats =
     [
         new(SetFormat.F14, SetDirections.Any,    [SetOperandKind.CapacityRegister], [], "ISO §2023:14.9.39.3 SR29",
-            "Format 14's receiving operand is data-name-2, a register defined in the CAPACITY phrase of a dynamic-capacity-table OCCURS clause"),
+            "Format 14's receiving operand is data-name-2, a register defined in the CAPACITY phrase of a dynamic-capacity-table OCCURS clause", 2014),
         new(SetFormat.F16, SetDirections.To,     [SetOperandKind.DynamicLength],    [], "ISO §2023:14.9.39.3 SR33",
-            "Format 16's receiving operand is data-name-3, a dynamic-length elementary data item"),
+            "Format 16's receiving operand is data-name-3, a dynamic-length elementary data item", 2023),
         new(SetFormat.F7,  SetDirections.To,     [SetOperandKind.DataPointer],
             [SetOperandKind.DataPointer],                                               "ISO §2023:14.9.39.3 SR17",
-            "Format 7's receiving operand is identifier-5, of category data-pointer"),
+            "Format 7's receiving operand is identifier-5, of category data-pointer", 2002),
         new(SetFormat.F8,  SetDirections.To,     [SetOperandKind.FunctionPointer],
             [SetOperandKind.FunctionPointer],                                           "ISO §2023:14.9.39.3 SR20",
-            "Format 8's receiving operand is identifier-12, of category function-pointer"),
+            "Format 8's receiving operand is identifier-12, of category function-pointer", 2014),
         new(SetFormat.F9,  SetDirections.To,     [SetOperandKind.ProgramPointer],
             [SetOperandKind.ProgramPointer],                                            "ISO §2023:14.9.39.3 SR21",
-            "Format 9's receiving operand is identifier-7, of category program-pointer"),
+            "Format 9's receiving operand is identifier-7, of category program-pointer", 2002),
         new(SetFormat.F5,  SetDirections.To,     [SetOperandKind.ObjectReference],
             [SetOperandKind.ObjectReference],                                           "ISO §2023:14.9.39.3 SR8",
-            "Format 5's receiving operand is identifier-3, an item of class object permitted as a receiving item"),
+            "Format 5's receiving operand is identifier-3, an item of class object permitted as a receiving item", 2002),
         // Format 17 (message-tag). §2023:14.9.39.3 SR35 makes BOTH its operands message-tag data items, so the kind
         // names this row from either side and `SET N TO MT` is Format 17 just as `SET MT TO N` is; SetBinder's
         // BindMessageTagSet refuses the operand that is not one.
         new(SetFormat.F17, SetDirections.To,     [SetOperandKind.MessageTag],
             [SetOperandKind.MessageTag],                                                "ISO §2023:14.9.39.3 SR35",
-            "Format 17's receiving operand is data-name-4, a message-tag data item"),
+            "Format 17's receiving operand is data-name-4, a message-tag data item", 2023),
         new(SetFormat.F10, SetDirections.UpDown, [SetOperandKind.DataPointer],      [], "ISO §2023:14.9.39.3 SR23",
-            "Format 10's receiving operand is identifier-9, of category data-pointer"),
+            "Format 10's receiving operand is identifier-9, of category data-pointer", 2002),
         new(SetFormat.F2,  SetDirections.UpDown, [SetOperandKind.IndexName],        [], "ISO §2023:14.9.39.2 Format 2 / §2023:14.9.39.4 GR4",
-            "Format 2's receiving operand is index-name-3, an index-name of an INDEXED BY phrase",
+            "Format 2's receiving operand is index-name-3, an index-name of an INDEXED BY phrase", 85,
             new("Format 2's receiving operand is index-name-3, an index-name of an INDEXED BY phrase",
                 "ISO §1985:VI.6.23.2 Format 2 / §1985:VI.6.23.4 GR4")),
         // ⛔ LAST, AND DELIBERATELY WIDE. Format 1's brace is `{ index-name-1 | identifier-1 } …`: the BRACE
@@ -220,7 +244,7 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
             [SetOperandKind.IndexName, SetOperandKind.IndexDataItem, SetOperandKind.IntegerItem, SetOperandKind.OtherDataItem],
             [],
             "ISO §2023:14.9.39.3 SR1",
-            "Format 1's receiving operand is index-name-1 or identifier-1, a data item of class index or an integer data item",
+            "Format 1's receiving operand is index-name-1 or identifier-1, a data item of class index or an integer data item", 85,
             new("Format 1's receiving operand is index-name-1 or identifier-1, an index data item or an elementary item described as an integer",
                 "ISO §1985:VI.6.23.3 SR2")),
     ];
@@ -229,6 +253,11 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     internal static IEnumerable<(SetFormat Format, SetDirections Dir, SetOperandKind[] Admits,
                                  SetOperandKind[] SendsOnly)> Rows =>
         Formats.Select(f => (f.Format, f.Dir, f.Admits, f.SendsOnly));
+
+    /// <summary>Each row's introducing edition and whether it carries 1985 wording, for the drift test that pins the
+    /// two together (kb/Work PB4954).</summary>
+    internal static IEnumerable<(SetFormat Format, int IntroducedIn, bool HasWording1985)> RowEditions =>
+        Formats.Select(f => (f.Format, f.IntroducedIn, f.At1985 is not null));
 
     /// <summary>What ONE receiving operand is (§2023:14.9.39.2's receiving braces, in the order that makes each
     /// answer decidable): the CAPACITY register first — it is implicitly defined at the OCCURS entry and is not
@@ -385,9 +414,9 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
         string what = string.Join("; ", receivers
             .Select((r, i) => $"'{DataBinder.WrittenText(r)}' is {Describe(kinds[i])}")
             .Distinct());
-        // Below 2002 only the formats §1985:VI.6.23.2 prints are named; the 2023 rows are formats that edition lacks.
+        // Only the formats the compiled edition prints are named (kb/Work PB4954): a row introduced later is absent.
         string braces = string.Join("; ", Formats
-            .Where(f => (f.Dir & dir) != 0 && (!Is1985 || f.At1985 is not null)).Select(BraceOf));
+            .Where(f => (f.Dir & dir) != 0 && InEdition(f)).Select(BraceOf));
         ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
             $"SET {written} {(dir == SetDirections.UpDown ? "UP/DOWN BY" : "TO")} {amount}: no SET general format "
             + $"admits this receiving operand list — {what}, and {braces} ({FormatsClause})");

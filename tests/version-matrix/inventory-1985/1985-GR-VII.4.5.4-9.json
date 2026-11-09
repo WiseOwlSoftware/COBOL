@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-9",
+ "rule-digest": "4508bf0dd429",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.35.2"
+  ],
+  "bridge": true,
+  "reason": "The 2023 REWRITE format keeps the optional END-REWRITE terminator. The 1985 rule itself defers its effect to the general Scope of Statements rules, which 2023 also has (14.5.3).",
+  "source": "audit-1985/state-route"
+ }
+}

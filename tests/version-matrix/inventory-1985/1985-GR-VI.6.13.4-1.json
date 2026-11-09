@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.13.4-1",
+ "rule-digest": "828253071aed",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.13.4-3",
+   "GR-14.9.13.4-4",
+   "GR-14.9.13.4-2"
+  ],
+  "bridge": true,
+  "reason": "2023 evaluates objects as relation conditions (subject = / NOT = object, >= and <= for THROUGH), so ZERO takes its class from context. 1985 results hold; boolean and partial forms are only added.",
+  "source": "audit-1985/state-route"
+ }
+}

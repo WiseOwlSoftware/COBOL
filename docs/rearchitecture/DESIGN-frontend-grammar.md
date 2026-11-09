@@ -582,32 +582,42 @@ and the determinations are RE-DERIVED from the standard where the standard is in
 1985-only) needs no rule; the earlier editions' texts are not in the repository, so a determination for them would
 stand on its row's citation.
 
-⛔ **A LATER CONSTRUCT'S KEYWORD IS KEPT, SO ITS EDITION REFUSAL STAYS REACHABLE (kb/Work PB4933).** The union grammar
-spells a construct at the editions that lack it so its named refusal can answer, and a gated word that heads such a
-construct is free exactly there: `01 SCREEN LINE 1.` in a COBOL-85 SCREEN SECTION had every SCREEN retyped, the header's
-too, and the section drew COBOL0001 "unexpected 'SCREEN'" instead of COBOL1560; LOCAL-STORAGE, REPOSITORY and OPTIONS at
-85, COMMUNICATION and CD at 2014 and 2023, and the five comment paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN,
-DATE-COMPILED, SECURITY) from 2002 lost their edition refusals the same way. Their rows carry a second determination,
-`refusalWhereFree` (the construct and the editions, cited): every keyword position of the word heads or sits in a
-construct the free editions lack, and no reading of the free word competes there. `gen-cobol-words.ps1` step 5d checks
-the rows (gated, free at some edition, never also `keywordWhereFree`) and step 6 emits `CobolLexer.IsRefusalWhereFree`.
-`ReservationGateRewriter.ParseToFixpoint` then KEEPS, for such a word the pass declared in a user-defined-word slot, every
-keyword token the pass's tree holds outside `reservedGatedWord` (`TokenRetypes.KeptKeywords`, by source offset, so a
-re-lex of the same text keeps them and a fragment, a slice of it, applies none: `TokenRetypes.RewriteSlice`); the word's
-other occurrences are retyped as before. A word freed only by the second witness (a syntax error at it) keeps nothing: its
-keyword reading is the one that failed (`01 LOCAL-STORAGE SECTION.` at 85 stays an entry named LOCAL-STORAGE).
-**Why not a keyword rule.** The `<word>Keyword` rule above was tried first and fails here: its IDENTIFIER arm at a header
-is in every predicate-blind reading of the ATN the error strategy makes, so recovery sets, the missing-period walk and the
-closed-format residue read EVERY user-defined word there as the header (`MAIN SECTION.` after a missing period became a
-missing period before the LOCAL-STORAGE SECTION, `WIBBLE GLOBAL.` in the identification division named GLOBAL instead of
-WIBBLE, since the arm kept a second alternative viable past the unknown word). Keeping the token changes no grammar rule,
-so the parse of a program that declares the word reads the header exactly as one that does not. The source-unit words
-(CLASS-ID, FUNCTION-ID, INTERFACE-ID, METHOD-ID, FACTORY, OBJECT) carry no determination: the union grammar lets a unit
-begin without its IDENTIFICATION DIVISION header, so `FUNCTION-ID. X.` after a COBOL-85 program's paragraphs is two
-paragraphs there, and FACTORY and OBJECT are keywords of phrases a name competes in. `CobolWordsDriftTests`
-(`A_Gated_Header_Word_Carries_The_RefusalWhereFree_Determination`) scans every header-shaped alternative (one word, an
-optional SECTION, the period) and requires each gated header word to carry the determination or to be one of those six,
-so the next gated header fails a test.
+⛔ **WHERE A DECLARED FREE WORD'S USER-WORD READING FAILS, ITS KEYWORD IS PUT BACK, SO A LATER CONSTRUCT'S EDITION REFUSAL
+STAYS REACHABLE (kb/Work PB4933, PB4958).** The union grammar spells a construct at the editions that lack it so its named
+refusal can answer, and a gated word that heads or begins such a construct is free exactly there. Retyped with the rest,
+`01 SCREEN LINE 1.` in a COBOL-85 SCREEN SECTION made the header COBOL0001 "unexpected 'SCREEN'" instead of COBOL1560;
+`01 TYPEDEF PIC X.` made `01 T PIC X TYPEDEF.` at 85 COBOL1941 "'TYPEDEF' is not a clause" instead of the clause's COBOL0900;
+a FACTORY paragraph header drew COBOL5506; and every clause and paragraph a closed format's list opens with a gated word
+(the USAGE words, BASED, ALIGNED, GROUP-USAGE, PROPERTY, CONSTANT RECORD, the FD's FORMAT and LABEL, SHARING, PADDING,
+RERUN, the REPOSITORY and OPTIONS paragraphs, the five comment paragraphs from 2002, COMMUNICATION and CD at 2014 and 2023)
+lost its edition refusal the same way. `ReservationGateRewriter.ParseToFixpoint` therefore runs a third round. Before a
+word's retype, `KeywordsReadIn` records the source offset of every token of it the pass's tree holds outside
+`reservedGatedWord`, in a rule that spells the token, that was no syntax error's offending token: the occurrences whose
+keyword reading the gate has SEEN parse. A later pass whose user-word reading of such a token fails, a syntax error at it
+or a closed format's error production (`ClosedFormats.IsErrorProduction`) that holds it (`NameReadingsRefused`), gives it
+its keyword type back (`TokenRetypes.KeptKeywords`, by source offset, so a re-lex of the same text keeps it and a
+fragment, a slice of it, applies none: `TokenRetypes.RewriteSlice`; a token retyped earlier in the same stream remembers
+its keyword type, `RetypedToken`), and the source is parsed again. §2023:8.3.2.1 leaves such a word two readings, the
+user-defined word and its keyword; the parse decides between them per OCCURRENCE. A word freed only by the second witness
+loses nothing it should keep: its offending token is no keyword reading (`01 LOCAL-STORAGE SECTION.` at 85 stays an entry
+named LOCAL-STORAGE).
+**Why per occurrence, not a per-word determination.** PB4933 first gave the header words a row determination,
+`refusalWhereFree`, that kept every keyword token of the word on the claim that no reading of the free word competes at
+any of its keyword positions. The claim fails for every clause a data description entry can hold: `ASCENDING KEY IS K
+TYPEDEF` at COBOL-85 keys the table on the item TYPEDEF, and the clause reading of TYPEDEF parses there too, so a TYPEDEF
+row made that legal COBOL-85 program a COBOL0900 (measured on PB4958's build). The per-word rule also needed an exemption
+list for the source-unit words (FACTORY, CLASS-ID, ...); the per-occurrence rule needs none: where the user-word reading
+parses (`GOBACK.` as a paragraph header, `FUNCTION-ID. X.` as two COBOL-85 paragraphs, the KEY list), the word stays a
+name. The determination, its generator step and its drift tests are deleted.
+**Why not a keyword rule.** The `<word>Keyword` rule above was tried first for the headers and fails there: its
+IDENTIFIER arm at a header is in every predicate-blind reading of the ATN the error strategy makes, so recovery sets, the
+missing-period walk and the closed-format residue read EVERY user-defined word there as the header (`MAIN SECTION.` after
+a missing period became a missing period before the LOCAL-STORAGE SECTION, `WIBBLE GLOBAL.` in the identification division
+named GLOBAL instead of WIBBLE). Putting the token back changes no grammar rule, so the parse of a program that declares
+the word reads the construct exactly as one that does not. `DeclaredFreeWordKeywordTests` computes, from the generated
+parser's ATN, every gated word that opens an alternative of a closed format's list and that §2023:8.9 leaves free at some
+edition, requires a sample of each, and compiles each sample with and without an item of that name: the two must draw the
+same diagnostics, so the next such word fails a test.
 
 ⛔ **NO LEXER TOKEN MAY COST THE USER A WORD ISO LEAVES FREE (kb/Work PB655).** A word the lexer tokenizes never
 reaches `IDENTIFIER` by itself, so without a `nameSlot` row it is refused as a user-defined word at every edition.
@@ -831,6 +841,22 @@ FINAL and the PAGE clause's phrases (`ReportSectionBinder.BindReportDescriptionC
 (`DataBinder.NarrowToDataDivisionFormats`). Its known catches, replayed as a control run, are PB755 (`LOCK ON?`),
 PB756 (`ALTERNATE RECORD?`) and PB1183's shape (`unstringIntoPhrase+`). A compiler directive's format (§2023:7.3, "IF
 directive") is the preprocessor's and is never joined to a parser rule that shares its keyword.
+
+The audit runs on the scanned 1985 standard too (`--edition 1985`, its formats read from the transcription's decided
+drawings), and three things it learned there (kb/Work PB4929) hold for every edition. **A required choice is one
+slot**: what an alternative demands is the sequence of slots it fills (`_slots`), a required `( A | B )` deleted
+whole, and a choice with an arm that writes no word (`(cobolWord | literal | IS)+`) fills none, so VALUE OF's IS, PAGE's
+`LINE`/`LINES` and SYMBOLIC CHARACTERS' `IS`/`ARE` are no longer reported where a sibling alternative already spells
+the omission. **A construct is all of its printings**: §1985:VIII.2.6.3 GR1 prints the Relative I-O RERUN clause as "a
+subset of the RERUN clause for the Sequential I-O module", so a scan's format is read together with every printing
+of its construct (`construct_of`: a statement by its verb, anything else by its whole title), as one band of a vector
+edition holds every format of its clause. **An edition gate is a later phase that decides one edition's format**: the
+marker takes the editions after the member, `// audit:required-word AFTER PROCEDURE decided-by
+VersionConformancePass.VisitUseStatement at 1985`, decides that edition's candidates alone and is found dead by a full
+run of that edition (USE's AFTER and PROCEDURE, PERFORM's BY, SET Format 4's repetition). And the drawing reader pairs a
+delimiter typed at the head of one line with the closer that ends its portion lines later (`figure_reading.spans`,
+1985 EVALUATE's `{{WHEN` and `[ALSO`): such a pair holds the text between its delimiters in reading order. The 1985 run
+reports no candidate.
 
 ⛔ **Why this is generated and not written by hand (kb/Work PB300, CLAUDE.md rule 5).** The second half used to be
 a hand-written list of two words inside `CobolData.g4`'s `dataName`, paired with a hand-written
@@ -1300,8 +1326,15 @@ reference formats, and the only place source comments are recognized. Its model:
   numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
   most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file in which such a word recurs on at
   least `MarginRCut.RecurrenceThatMakesATag` (two) lines, a tagged blank line counting. Shape cannot tell ONE tag from the
-  one-word tail of a statement, so a lone tag-shaped word still draws the note, which says "may". Only a parse error asks, so
-  a program that parses never hears of its tags.
+  one-word tail of a statement, so a lone tag-shaped word still draws the note, which says "may". The note is asked only by a
+  parse error; the program that still parses is the other arm (kb/Work PB4999, COBOL6688): `MarginRCutScreen.Warnings`
+  asks the SAME locator, after the parse, of every default-channel token of the stream, and a token whose last character
+  stands at position 72 with the cut text right behind it (`LocatedMarginRCut.EndsAtMarginR`, the decision the listener's
+  in-word arm already used) draws the warning, because the format read the token short and the program means something else
+  (`Y ** 0.7` with the `7` at position 73 is `Y ** 0.`). A cut set off by a space (a sequence number, a tag) is no cut of a
+  token and stays silent, as does every shape `CutAt` answers null for; a line that already drew COBOL5788 is not named twice;
+  an omitted or absent debugging line has no default-channel token. The text of the two warnings is `MarginRCut.Account` and
+  `MarginRCut.Remedy`, one sentence for both.
   `MarginRCut` carries the margin twice because the two units differ on a line holding a tab (kb/Work PB4373): `Column` is the
   physical column the file holds the cut at (what the warning's location names), `LastProgramTextPosition` is the position the
   format fixes (72, `FixedFormLine.MarginR`) and the one the message states, so the positions it quotes for the cut text

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-10",
+ "rule-digest": "d73658bdbba6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.5.4-9",
+   "GR-14.9.5.4-4"
+  ],
+  "bridge": true,
+  "reason": "Both close each open file on an internal connector of the canceled program by an implicit CLOSE without phrases, skipping USE procedures. Cancel of contained programs acts as explicit CANCEL; extras are new.",
+  "source": "audit-1985/state-route"
+ }
+}

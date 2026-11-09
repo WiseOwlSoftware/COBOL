@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.9.4-1",
+ "rule-digest": "7f019854f7fd",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "RV-15.15.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"the character returned as the function value is that of the first literal specified for that character position in the ALPHABET clause\"; 2023: \"If the order of multiple characters having the same position is undefined, the implementor shall define which of those multiple characters is returned\". For ALPHABET-clause ties both return the first character. 2023 widens the rule to 'first character defined' and adds an implementor-defined case where the order of tied characters is undefined.",
+  "source": "audit-1985/state-route"
+ }
+}

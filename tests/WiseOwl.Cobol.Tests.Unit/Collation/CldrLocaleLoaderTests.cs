@@ -17,6 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 /// user of that locale would recognize; keys and comparisons agree; the hand-derived es .tailor orders exactly like
 /// the CLDR derivation (the drift test that keeps the two sources honest); the BCP 47 -u- keys resolve.
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class CldrLocaleLoaderTests(ITestOutputHelper output)
 {
     private static Collator L(string tag) => CollationEngine.ForLocale(tag);

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-7",
+ "rule-digest": "e84672dd15ef",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The associated debugging section is not executed for a specific operand more than once as a result of the execution of a single statement\"; 2023: \"No 2023 clause holds the Debug module; the USE statement rules (14.9.49) cover only exception and BEFORE REPORTING procedures\". No 2023 clause holds USE FOR DEBUGGING. The USE candidates cover only exception and report declaratives, so 2023 drops debugging sections and this execution-count rule.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-11",
+ "rule-digest": "c9d89ee845ec",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-29"
+  ],
+  "bridge": true,
+  "reason": "Output-mode sequential WRITE still numbers records 1,2,3… and moves the number to the relative key; random/dynamic needs the key preset. Error statuses are separate invalid-key rules (cf. GR-33).",
+  "source": "audit-1985/state-route"
+ }
+}

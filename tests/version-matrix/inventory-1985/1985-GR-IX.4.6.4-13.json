@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-13",
+ "rule-digest": "e055b6358133",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-22",
+   "GR-14.9.35.4-25"
+  ],
+  "bridge": true,
+  "reason": "2023 GR22 restates the rule: for sequential access the prime key identifies the record and must equal the key of the last record read. The '21' result belongs to the separate invalid key rule.",
+  "source": "audit-1985/state-route"
+ }
+}

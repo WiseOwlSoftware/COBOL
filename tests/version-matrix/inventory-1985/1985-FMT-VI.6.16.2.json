@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VI.6.16.2",
+ "rule-digest": "bc372c1a905b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.19.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"IF condition-1 THEN NEXT SENTENCE ... ELSE {statement-2} … [END-IF] | END-IF\"; 2023: \"Format 1 (delimited): IF condition-1 THEN statement-1 [ ELSE statement-2 ] END-IF; Format 2 (historic) ... NEXT SENTENCE (no END-IF)\". 1985 lets THEN NEXT SENTENCE be ended by END-IF. In 2023 END-IF exists only in Format 1, which has no NEXT SENTENCE, so IF c NEXT SENTENCE ... END-IF is now refused.",
+  "source": "audit-1985/state-route"
+ }
+}

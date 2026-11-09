@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-XIII.3.5.2",
+ "rule-digest": "95b260b9e676",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.14.2",
+   "FMT-13.18.39.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"RD report-name-1 [ CODE literal-1 ] ... PAGE LIMIT IS integer-1 LINE [ HEADING integer-2 ] [ FIRST DETAIL integer-3 ]\"; 2023: \"RD report-name-1 [ IS GLOBAL ] ...; PAGE ... integer-2 COLS/COLUMNS ... LAST CONTROL HEADING IS integer-5\". Same RD entry, but 2023 adds IS GLOBAL, a page width (COLS/COLUMNS), LAST CONTROL HEADING, DE/CH abbreviations and makes integer-1 optional: added cases.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.2.11.3-1",
+ "rule-digest": "c9b1012f8e79",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The MULTIPLE FILE TAPE clause is required when more than one file shares the same physical reel of tape.\"; 2023: \"No 2023 clause holds the MULTIPLE FILE TAPE clause; no candidate covers files sharing a reel or the POSITION phrase.\". No 2023 clause holds this feature. The SAME clause's one-file-open rule is about shared memory areas, not files sharing a tape reel, so the clause is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

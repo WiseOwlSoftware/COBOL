@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.19.3-4",
+ "rule-digest": "b6576d7172e9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.25.3-1"
+  ],
+  "bridge": true,
+  "reason": "2023 still forbids index-class operands of MOVE. Message-tag, object and pointer classes do not exist in 1985, so adding them changes no 1985 program's validity.",
+  "source": "audit-1985/state-route"
+ }
+}

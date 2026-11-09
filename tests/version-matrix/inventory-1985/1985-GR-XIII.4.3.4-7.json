@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-7",
+ "rule-digest": "cbe98479c119",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-7"
+  ],
+  "bridge": true,
+  "reason": "Both require the report to be active, i.e. after INITIATE and before TERMINATE, for GENERATE. The added EC-REPORT-INACTIVE only detects a violation; the requirement is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.22.4-8",
+ "rule-digest": "1cca15029a1e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.37.4-3",
+   "SR-14.9.37.3-5"
+  ],
+  "bridge": true,
+  "reason": "Same search-index choice and same increments. Identifier-2 is limited to index or integer items by syntax, and 1985 already says only the listed items vary, so 'others unchanged' adds nothing.",
+  "source": "audit-1985/state-route"
+ }
+}

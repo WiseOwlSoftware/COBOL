@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.2.4-3",
+ "rule-digest": "edeb969ce093",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the INPUT phrase without the optional word TERMINAL is specified, the logical paths between the queue and sub-queues\"; 2023: \"No 2023 clause holds the DISABLE statement or the communication module; no candidate covers queues or cd-names\". No 2023 clause covers the DISABLE statement or communication queues, and the wording candidates concern unrelated features. The communication feature is absent, so the rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -398,26 +398,4 @@ public partial class CobolLexer
         "METHOD",
         "MULTIPLE",
     };
-
-    /// <summary>The gated words whose keyword token a parse reads in a keyword position is KEPT when the program declares
-    /// the word where §2023:8.9 leaves it free: the rows carrying the refusalWhereFree determination (kb/Work PB4933). Every
-    /// keyword position of such a word heads or sits in a construct the free editions lack, and no reading of the free word
-    /// competes there, so ReservationGateRewriter retypes the word's other occurrences and the construct still draws its
-    /// named edition refusal. Generated, so a determination added tomorrow needs no edit anywhere.</summary>
-    internal static bool IsRefusalWhereFree(string word) => _refusalWhereFreeWords.Contains(word);
-
-    private static readonly System.Collections.Generic.HashSet<string> _refusalWhereFreeWords = new(System.StringComparer.Ordinal)
-    {
-        "AUTHOR",
-        "CD",
-        "COMMUNICATION",
-        "DATE-COMPILED",
-        "DATE-WRITTEN",
-        "INSTALLATION",
-        "LOCAL-STORAGE",
-        "OPTIONS",
-        "REPOSITORY",
-        "SCREEN",
-        "SECURITY",
-    };
 }

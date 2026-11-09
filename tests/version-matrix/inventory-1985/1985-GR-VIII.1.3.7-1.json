@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.7-1",
+ "rule-digest": "c93ab07fd247",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-10",
+   "GR-9.1.13.6-7"
+  ],
+  "bridge": true,
+  "reason": "Both editions place a value in the I-O status to signal the file attribute conflict condition; 2023 names it '39'. DELETE FILE is a new statement and leaves this 1985 requirement unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

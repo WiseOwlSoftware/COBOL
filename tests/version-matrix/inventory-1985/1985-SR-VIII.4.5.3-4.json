@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VIII.4.5.3-4",
+ "rule-digest": "9b02c2896ebe",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-6",
+   "SR-14.9.30.3-9"
+  ],
+  "bridge": true,
+  "reason": "Random mode bars sequential phrases, so reads are random. Dynamic READ without NEXT/PREVIOUS/AT END is random, as 1985 Format 2. AT END implying NEXT bears on 1985's separate NEXT rule.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-2",
+ "rule-digest": "d92a6f7b6c58",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-1",
+   "GR-13.18.57.4-5"
+  ],
+  "bridge": true,
+  "reason": "Both: GENERATE data-name does detail processing and prints the named detail. 1985 'Normally' covers suppression, which 2023 provides via SUPPRESS and PRESENT WHEN.",
+  "source": "audit-1985/state-route"
+ }
+}

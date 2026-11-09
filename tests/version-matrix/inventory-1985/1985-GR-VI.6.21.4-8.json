@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-8",
+ "rule-digest": "27214678e009",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.28.4-6",
+   "GR-14.9.14.4-1"
+  ],
+  "bridge": true,
+  "reason": "First sentence is identical. GO TO/PERFORM are still allowed (NOTE 2), and an EXIT-only paragraph may still name procedure-name-2 (EXIT GR1). No program's acceptance or effect changes.",
+  "source": "audit-1985/state-route"
+ }
+}

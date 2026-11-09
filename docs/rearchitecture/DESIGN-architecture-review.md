@@ -1771,7 +1771,8 @@ authoritative pass's syntax-error listener), both now through their one helper `
 words the pass declared (kb/Work PB4933); and `ReservedUserWordViolation` (`:545-554`, the COBOL0901 message, not
 a predicate); the `DialectLevel` setter shim is deleted (the front end sets `Edition`, both axes). And these sites: five spelled `{isXXXX()}?` —
 `| {is2023()}? LOCATION` (`CobolControlFlow.g4:66`), `| {is2002()}? validationClause` (`CobolData.g4:379`),
-`({is2002()}? validateValidPhrase)?` (`CobolData.g4:828`), `| {is2023()}? applyCommitClause` (`CobolIO.g4:334`) and
+`({is2002()}? validateValidPhrase)?` (`CobolData.g4:828`; these two construct gates were deleted by kb/Work PB5007, and
+the union grammar plus VersionConformancePass replaced them), `| {is2023()}? applyCommitClause` (`CobolIO.g4:334`) and
 OPEN's `{is2002() || retryPhraseAhead()}?` (`CobolIO.g4:393`); `{reservedHere("CRT")}?` and `{reservedHere("CURSOR")}?`
 (`CobolSpecialNames.g4:33-34`); the five `{facilityWord(…)}?` statement arms (`CobolParserCore.g4:929-933`);
 `{setLocaleAhead()}?` (`CobolParserCore.g4:1475`); DISPLAY's operand loop `{!screenPositionAhead()}?`

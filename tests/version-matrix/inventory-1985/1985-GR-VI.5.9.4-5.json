@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.9.4-5",
+ "rule-digest": "e75402a7168a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.4-7"
+  ],
+  "bridge": true,
+  "reason": "1985: \"must contain at least one 'B' or '0' (zero) or '/' (slant)\"; 2023: \"at least one instance of character-1 or one of the symbols from the set 'B', '0', '/'\". Both require at least one A or X plus an insertion symbol. 2023 adds character-1 (an EDITING-phrase insertion symbol) as a further way to make an item alphanumeric-edited.",
+  "source": "audit-1985/state-route"
+ }
+}

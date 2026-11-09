@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-10",
+ "rule-digest": "fe7cc5c05f24",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.41.4-15",
+   "GR-14.9.41.4-16"
+  ],
+  "bridge": true,
+  "reason": "GR15 makes the prime key apply when KEY is omitted. GR16 makes the named or leftmost-matching key the key of reference, used to order this START and later sequential READs.",
+  "source": "audit-1985/state-route"
+ }
+}

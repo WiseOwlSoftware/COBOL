@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XV.3.2.3-2",
+ "rule-digest": "949c55d617a9",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Except in the USE FOR DEBUGGING statement itself, there must be no reference to any non-declarative procedure within the debugging section.\"; 2023: \"No candidate covers USE FOR DEBUGGING; the 2023 USE statement rules (14.9.49.3) have no debugging format or debugging section.\". The rule restricts debugging sections, a Debug module feature. No 2023 candidate covers it, and SR-3 is the general declarative rule, not a debugging-section rule.",
+  "source": "audit-1985/state-route"
+ }
+}

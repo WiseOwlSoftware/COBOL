@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-L2.3",
+ "rule-digest": "b76aca5aebdb",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.6.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"When the figurative constant ALL literal is not associated with another data item, the length of the string is the length of the literal.\"; 2023: \"a) When a figurative constant is specified in a concatenation expression, the length of the string is one character.\". 2023 keeps length-of-literal-1 as the default for ALL literal-1, but adds a case first: in a concatenation expression the string is one character long.",
+  "source": "audit-1985/state-route"
+ }
+}

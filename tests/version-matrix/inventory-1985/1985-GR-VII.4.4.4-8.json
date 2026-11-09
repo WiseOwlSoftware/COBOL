@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-8",
+ "rule-digest": "f6e9c4ed236a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-4",
+   "GR-14.9.30.4-5"
+  ],
+  "bridge": true,
+  "reason": "Same two-step equivalence, RECORD-clause sizing and group move for VARYING; no move if the READ fails. Subscripting is restated as item identification after the read.",
+  "source": "audit-1985/state-route"
+ }
+}

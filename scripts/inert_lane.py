@@ -350,7 +350,11 @@ CLASSIFICATION = Classification(inert={
 }, read={
     "specs/ISO_COBOL_2023.md": "the standard's text, the ORACLE (CLAUDE.md rule 1): ~45 Unit and Conformance classes derive their "  # spec_pdf: names-the-file
                           "expected tables from it",
-    "docs/rearchitecture/spec-rule-catalog.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests",
+    # Every held edition's rule catalog (inventory-schema.json editions.of `catalog`): a pattern, so an edition that gains
+    # a catalog is a READ path the day it lands (kb/Work PB4994's older-edition drift tests first read the 1985 one).
+    "docs/rearchitecture/spec-rule-catalog*.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests "
+                                                   "(TraceabilityInventory.RowsOf and inventory_view.py --edition read "
+                                                   "every held edition's catalog)",
     "docs/rearchitecture/architecture-edges.json": "ArchitectureEdgesDriftTests",
     "docs/rearchitecture/evidence/arch-census/": "ArchCensusDriftTests (CensusRecord)",
 }, tooling_under=("scripts/", ".github/", "tools/", ".claude/", ".gitattributes", "toolchain.env"),

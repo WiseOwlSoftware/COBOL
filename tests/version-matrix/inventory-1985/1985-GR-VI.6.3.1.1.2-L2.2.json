@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.1.2-L2.2",
+ "rule-digest": "86aa2b738bcd",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.2.7-2",
+   "GR-8.8.4.2.10-2"
+  ],
+  "bridge": true,
+  "reason": "2023 still extends the shorter operand on the right with spaces. Locale-based truncation applies only when locale-based comparison, a new feature, is specified; 1985 programs act alike.",
+  "source": "audit-1985/state-route"
+ }
+}

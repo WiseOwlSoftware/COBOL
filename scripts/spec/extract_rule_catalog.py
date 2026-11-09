@@ -55,6 +55,8 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 SPEC = spec_pdf.markdown(2023)
 import inventory_schema  # noqa: E402  (each edition's catalog path: the schema's `editions.of`, the one home)
+import citation  # noqa: E402  (each edition's regions: the standing lists' sections and headings)
+import element_standing  # noqa: E402  (THE standing of a rule, from the edition's lists; kb/Work PB4993)
 OUT = REPO / inventory_schema.edition(2023).catalog
 #: The 1985 catalog (`--edition 1985`, kb/Work PB4886): written once the 1985 transcription is reconciled (PB4850).
 OUT_1985 = REPO / inventory_schema.edition(1985).catalog
@@ -344,6 +346,11 @@ def ordinal_shape(body: list[str], ordinal: re.Pattern[str] = ORDINAL) -> dict |
 #: Amendment 1 both have an `A.2.1`) ⇒ its measured shape, its `disposition` (`rules` with its `kind`, `not-rules` with
 #: `why`, or `pending`, never a decision) and the reason.
 UNHARVESTED_OF = {2023: UNHARVESTED, 1985: REPO / "docs" / "rearchitecture" / "spec-unharvested-rule-blocks-1985.json"}
+#: THE STANDING LISTS of an edition, held once as data (kb/Work PB4993; element_standing.py): each catalog rule's
+#: `status` is read from them, by the one call both arms make (`element_standing.apply`). 1985's is the obsolete list
+#: of §1985:C.1; 2023's are the archaic list of §2023:F.1 and the obsolete list of §2023:F.2.
+STANDING_OF = {edition: REPO / "docs" / "rearchitecture" / f"spec-element-standing-{edition}.json"
+               for edition in (1985, 2023)}
 
 
 def manifest_blocks(path: pathlib.Path) -> dict[str, dict]:
@@ -497,6 +504,7 @@ def main_1985(args: argparse.Namespace) -> int:
     lines = spec.read_text(encoding="utf-8").splitlines()
     cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]))
     rule_catalog_1985.cite_check(cat)
+    cat.standing = element_standing.apply(cat.rules, "locator", lines, citation.regions_1985(lines), STANDING_OF[1985])
     print(f"spec:            {spec.relative_to(REPO)}  ({len(lines):,} lines)")
     for line in rule_catalog_1985.summary(cat):
         print(line)
@@ -1146,6 +1154,19 @@ def main_2023(args: argparse.Namespace) -> int:
         print(f"✓ {len(paragraph_blocks)} prose clause(s) admitted as paragraph rows, each present, unambiguous and "
               f"non-empty ({sum(1 for r in rules if r.get('shape') == 'paragraph')} rows)")
 
+    # THE STANDING of each rule (kb/Work PB4993): archaic by §2023:F.1, obsolete by §2023:F.2, else normal, read from the
+    # lists' data by the call the 1985 arm makes; a disagreement of the data with the text fails --check.
+    standing = element_standing.apply(rules, "section", lines, citation.iso_regions(lines), STANDING_OF[2023])
+    print()
+    for line in element_standing.tally(rules):
+        print(line)
+    if standing:
+        print(f"⛔ {len(standing)} disagreement(s) of the standing lists' data with the text (element_standing.findings):")
+        for d in standing:
+            print(f"      {d}")
+    else:
+        print("✓ the archaic and obsolete lists' data agree with the text")
+
     # ⛔ THE COMMITTED CATALOG IS THIS RUN'S OUTPUT, OR IT IS STALE (kb/Work PB55). The inventory, every drift
     # test and every derived-verdict selector read the COMMITTED catalog, never the transcription; three landings
     # (PB1221, PB1374, PB351+PB1146+PB937) corrected general-format text in specs/ISO_COBOL_2023.md without regenerating it, and the
@@ -1166,7 +1187,7 @@ def main_2023(args: argparse.Namespace) -> int:
     if args.check:
         return 1 if (gaps or unrecognised or drifts or unexplained
                      or heading_labels or flattened_tails or unmeasured or stale or fmt_undrawn
-                     or unrecognised_general or paragraph_defects) else 0
+                     or unrecognised_general or paragraph_defects or standing) else 0
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({

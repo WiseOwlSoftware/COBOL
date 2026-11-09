@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-7",
+ "rule-digest": "8ff49278a95a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-10"
+  ],
+  "bridge": true,
+  "reason": "Without NATIONAL, which no 1985 program can write, 2023 uses the native alphanumeric collating sequence, the 1985 native one. The national case only serves a new feature.",
+  "source": "audit-1985/state-route"
+ }
+}

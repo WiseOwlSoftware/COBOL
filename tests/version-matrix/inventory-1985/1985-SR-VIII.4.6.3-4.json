@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VIII.4.6.3-4",
+ "rule-digest": "dd2099bfbe23",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The INVALID KEY phrase must be specified in the REWRITE statement for relative files in the random or dynamic access mode\"; 2023: \"SR-14.9.35.3-2 only forbids INVALID KEY/NOT INVALID KEY for sequential access; no rule requires INVALID KEY absent a USE procedure\". The 2023 REWRITE syntax rules cover INVALID KEY only to forbid it in sequential access. None requires it for random/dynamic relative files without a USE procedure, so such programs are now accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

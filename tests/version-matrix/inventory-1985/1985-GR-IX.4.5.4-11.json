@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-11",
+ "rule-digest": "470091b4a027",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-13"
+  ],
+  "bridge": true,
+  "reason": "1985: \"control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure\"; 2023: \"according to the rules in 9.1.12, Input-output exception processing. If the exception condition is not a fatal exception condition, control is then\". Same subject and structure. 2023 routes other exceptions through 9.1.12 (which also covers PERFORM WHEN) and returns to the end of READ only for nonfatal ones; a fatal case is added.",
+  "source": "audit-1985/state-route"
+ }
+}

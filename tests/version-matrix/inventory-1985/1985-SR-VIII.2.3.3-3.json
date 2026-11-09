@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VIII.2.3.3-3",
+ "rule-digest": "f86530250e99",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.2-4",
+   "SR-12.4.5.2-5"
+  ],
+  "bridge": true,
+  "reason": "Both require a non-figurative nonnumeric (alphanumeric) literal and leave device/implementor-name and literal value to the implementor. The zero-length bar concerns a literal form 1985 lacked.",
+  "source": "audit-1985/state-route"
+ }
+}

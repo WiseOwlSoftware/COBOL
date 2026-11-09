@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.5.4-2",
+ "rule-digest": "f58e277c0714",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If cd-name-1 references an input-output CD, the content of the data item specified by data-name-3 (SYMBOLIC TERMINAL) ... designates the source\"; 2023: \"The 2023 RECEIVE has no cd-name or CD: \"data-name-1 is an implementor-defined value that identifies the run unit that sent a message\"\". 2023 has no communication description entries or SYMBOLIC TERMINAL. Its RECEIVE takes messages between run units by message tag, so the CD-based source rule is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

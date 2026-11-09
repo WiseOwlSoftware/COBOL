@@ -430,29 +430,18 @@ public abstract class CobolParserCoreBase : Parser
 
     private HashSet<string>? _freeGatedDeclarations;
 
-    /// <summary>The words of <see cref="FreeGatedDeclarations"/> this parse matched in a user-defined-word slot itself (the
-    /// <c>reservedGatedWord</c> action), not merely as a syntax error's offending token (<see cref="NoteGatedOffender"/>):
-    /// the program DECLARES them. Only such a word keeps the keyword token a parse read in a keyword position of it
-    /// (<see cref="ReservationGateRewriter"/>, kb/Work PB4933); a word freed by the second witness alone was refused there,
-    /// and its keyword reading is the one that failed. Cleared by <see cref="Reset"/>.</summary>
-    internal IReadOnlyCollection<string> DeclaredGatedWords => (IReadOnlyCollection<string>?)_declaredGatedWords ?? [];
-
-    private HashSet<string>? _declaredGatedWords;
-
     /// <summary>The <c>reservedGatedWord</c> action: <paramref name="word"/> was read as a USER-DEFINED WORD — every use
     /// of that rule is a user-defined-word slot (VersionConformancePass.VisitReservedGatedWord relies on the same fact):
     /// a definition slot, or <c>procedureName</c>, whose REFERENCES match the word only where the full-context parse
     /// found no keyword reading of it that parses — the evidence <see cref="NoteGatedOffender"/> takes from a syntax
     /// error (kb/Work PB4206). Recorded only when §2023:8.9 leaves it free here; where §2023:8.9 reserves it the match stands and
     /// the funnel answers COBOL0901. Actions never run during prediction.</summary>
-    protected void gatedDeclaration(IToken? word) => FreeGatedWord(word, declared: true);
+    protected void gatedDeclaration(IToken? word) => FreeGatedWord(word);
 
-    private void FreeGatedWord(IToken? word, bool declared)
+    private void FreeGatedWord(IToken? word)
     {
         if (word?.Text is not { Length: > 0 } t || !userWordHere(t)) return;
-        string upper = CobolNames.UpperFold(t);
-        (_freeGatedDeclarations ??= new(StringComparer.Ordinal)).Add(upper);
-        if (declared) (_declaredGatedWords ??= new(StringComparer.Ordinal)).Add(upper);
+        (_freeGatedDeclarations ??= new(StringComparer.Ordinal)).Add(CobolNames.UpperFold(t));
     }
 
     /// <summary>The token-level gate's SECOND witness (kb/Work PB655): a syntax error whose offending token is a
@@ -463,7 +452,7 @@ public abstract class CobolParserCoreBase : Parser
     /// listener of the authoritative pass.</summary>
     internal void NoteGatedOffender(IToken? offending)
     {
-        if (offending is not null && CobolLexer.IsReservationGated(offending.Type)) FreeGatedWord(offending, declared: false);
+        if (offending is not null && CobolLexer.IsReservationGated(offending.Type)) FreeGatedWord(offending);
     }
 
     /// <summary>⛔ THE ENTRY-NAME SLOT YIELDS TO THE CLAUSE A RESERVED WORD BEGINS (kb/Work PB845, PB2501, PB4889) — the
@@ -966,7 +955,6 @@ public abstract class CobolParserCoreBase : Parser
         base.Reset();
         RestoreWordsReadAsNames();   // a new pass reads the source as written
         _freeGatedDeclarations = null;
-        _declaredGatedWords = null;
         _declaredNames = null;
         _communicationNames.Clear();
         _entryClauseProbe = null;
@@ -1601,6 +1589,10 @@ public abstract class CobolParserCoreBase : Parser
             switch (t)
             {
                 // The operator-free parenthesized boolean literal, the same recognition boolExprAhead makes.
+                // A grouping '(' straight after a completed term at depth 0 STARTS A NEW TERM (PB124's space-separated boundary; a
+                // subscript / ref-mod '(' is REF_LPAREN), so `CONCAT("A" (B"1"))` is two arguments, not one boolean expression.
+                case CobolLexer.LPAREN when depth == 0 && IsBoolOperandTerm(prev) && ParenRunOpensOnBoolLiteral(i):
+                    return false;
                 case CobolLexer.LPAREN when ParenRunOpensOnBoolLiteral(i):
                     return true;
                 case CobolLexer.LPAREN: case CobolLexer.FNARG_LPAREN: case CobolLexer.REF_LPAREN: depth++; break;

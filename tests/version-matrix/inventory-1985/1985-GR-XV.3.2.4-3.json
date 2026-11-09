@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-3",
+ "rule-digest": "ddf53e391fee",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When procedure-name-1 is specified in a USE FOR DEBUGGING statement that debugging section is executed\"; 2023: \"No 2023 clause holds the Debug feature; the 2023 USE rules cover only AFTER EXCEPTION, BEFORE REPORTING and exception objects.\". 2023 USE statement rules have no FOR DEBUGGING format, and no clause holds the Debug module, so the debugging-section execution rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

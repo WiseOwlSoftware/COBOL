@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.6.13.3-4",
+ "rule-digest": "e61acf97cccb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.13.3-4",
+   "SR-14.9.13.3-10"
+  ],
+  "bridge": true,
+  "reason": "2023 still requires both THROUGH operands to be of the same class. The added exclusions name classes absent from 1985. Table 15 treats a range-expression as one selection object.",
+  "source": "audit-1985/state-route"
+ }
+}

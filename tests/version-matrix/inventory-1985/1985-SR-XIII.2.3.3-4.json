@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.2.3.3-4",
+ "rule-digest": "b910692f3344",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.2-11"
+  ],
+  "bridge": true,
+  "reason": "Both give a report file the sequential file control entry clauses. 2023's Format 3 serves sequential and report files alike; the 1985 tie to module levels only reflects levels 2023 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

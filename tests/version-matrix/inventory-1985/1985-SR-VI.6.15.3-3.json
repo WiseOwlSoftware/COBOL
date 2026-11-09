@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.15.3-3",
+ "rule-digest": "176643d9d074",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"A format 1 GO TO statement, without procedure-name-1, can only appear in a single statement paragraph.\"; 2023: \"Format 1 (unconditional): GO TO procedure-name-1 (procedure-name-1 is required; GO TO without it is no longer allowed)\". 2023 format 1 GO TO requires procedure-name-1, so GO TO without it, and its single-statement-paragraph rule, is gone. No candidate states the rule.",
+  "source": "audit-1985/state-route"
+ }
+}

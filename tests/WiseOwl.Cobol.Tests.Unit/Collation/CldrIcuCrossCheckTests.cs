@@ -14,6 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 /// is either a builder defect or a documented CLDR change between the host's release and the pinned one, and the
 /// test names the pair. Skipped (silently) on a host in globalization-invariant mode, where CompareInfo is ordinal.
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class CldrIcuCrossCheckTests(ITestOutputHelper output)
 {
     private static bool HostHasIcu()

@@ -391,7 +391,7 @@ dataDescriptionClause
     | dynamicLengthClause
     | groupUsageClause   // COBOL-2002 §2023:13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
     | selectWhenClause   // ISO §2023:13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOL1705)
-    | {is2002()}? validationClause   // ISO §2023:13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only, refused by name at bind (COBOL1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
+    | validationClause   // ISO §2023:13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitValidationClause (COBOL0900 below 2002, kb/Work PB5007) and refused by name at 2002 and later (COBOL1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
     | unrecognizedDataClause   // ⛔ LAST — the error production above; refused BY NAME by ClosedFormatPass (COBOL1941)
     ;
 
@@ -879,11 +879,13 @@ valueClause
       // `[IS|ARE] {INVALID|VALID} [WHEN condition-1]`, refused by name with COBOL1708 at bind. Written as
       // a tail of the condition-name arm because formats 3 and 5 share their literal/THRU list; the printed
       // format-5 figure differs only in dropping the IS/ARE connective before the list, which this arm's
-      // `(IS|ARE)?` already tolerates as a superset. {is2002()}? at the left edge of the optional block: VALID
-      // is a user-defined word at COBOL-85 (§2023:8.9). ⚠ kb/Work PB2291 VERDICT: a CONSTRUCT GATE in part — INVALID is
-      // reserved at every edition and has no other reading here, so only the VALID arm needs word status; the
-      // INVALID arm is a COBOL0001 below 2002 where the conformance pass should name the edition (EditionReadDriftTests).
-      ({is2002()}? validateValidPhrase)?
+      // `(IS|ARE)?` already tolerates as a superset. UNGATED, the union grammar (kb/Work PB5007, replacing the
+      // {is2002()}? construct gate PB2291 recorded): below 2002 VersionConformancePass ParseArm.VisitValidateValidPhrase
+      // names the edition (COBOL0900). VALID is a user-defined word at COBOL-85 (§2023:8.9), and that word status
+      // is the token-level reservation gate's (Parsing/ReservationGateRewriter.cs): a program that declares VALID
+      // (a symbolic-character, §2023:8.3.3.6.3 SR1, may stand as a VALUE operand) has every occurrence retyped to a
+      // user-defined word, so this arm cannot take it.
+      validateValidPhrase?
     ;
 
 // Format 3's SECOND literal position: `[ WHEN SET TO FALSE IS literal-4 ]` (ISO §2023:13.18.63.2 format 3 — the

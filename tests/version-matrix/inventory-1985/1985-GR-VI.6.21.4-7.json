@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-7",
+ "rule-digest": "d5d5b11622d4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.28.4-5",
+   "GR-14.9.28.4-4",
+   "GR-14.6.3-1"
+  ],
+  "bridge": true,
+  "reason": "Same first transfer, exceptions and return points; a section's last statement is that of its last paragraph. 'Only once' is descriptive; 14.6.3 handles repeats via the control mechanism.",
+  "source": "audit-1985/state-route"
+ }
+}

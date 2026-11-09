@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-18",
+ "rule-digest": "ffa764b7fd69",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-15",
+   "GR-9.1.14-1"
+  ],
+  "bridge": true,
+  "reason": "GR15 says an unsuccessful WRITE (invalid key included) does not write, leaves the record area unaffected, sets I-O status to the cause, and passes control per 9.1.14.",
+  "source": "audit-1985/state-route"
+ }
+}

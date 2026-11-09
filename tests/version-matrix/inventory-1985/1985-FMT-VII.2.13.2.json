@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VII.2.13.2",
+ "rule-digest": "6df16ec31572",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.6.4.2"
+  ],
+  "bridge": true,
+  "reason": "2023 Formats 1 and 2 (SAME AREA, SAME RECORD AREA FOR file-name-1 {file-name-2}...) match the 1985 format. The level-2 box is no difference; Format 3 is a separate sort-merge format.",
+  "source": "audit-1985/state-route"
+ }
+}

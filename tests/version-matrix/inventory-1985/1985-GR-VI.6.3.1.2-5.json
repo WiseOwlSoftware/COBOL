@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.2-5",
+ "rule-digest": "5bdf109c4b1c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.4.4-3"
+  ],
+  "bridge": true,
+  "reason": "The rule is GR5 on class-name-1. Item f) gives the same test: true if the content consists entirely of the characters listed in class-name-1's SPECIAL-NAMES definition.",
+  "source": "audit-1985/state-route"
+ }
+}

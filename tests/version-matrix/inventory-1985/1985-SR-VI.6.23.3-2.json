@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-SR-VI.6.23.3-2",
+ "rule-digest": "71efbbc19636",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.39.3-1",
+   "SR-14.9.39.3-2",
+   "SR-14.9.39.3-3",
+   "SR-14.9.39.3-4",
+   "GR-14.9.39.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"an elementary item described as an integer\"; 2023: \"If the value of arithmetic-expression-1 does not result in an integer\" (§2023:14.9.39.4 GR2). An integer sender is now an arithmetic expression whose non-integer value is a run-time EC-BOUND-SUBSCRIPT, not a compile-time refusal; identifier-2 is an index item, and a numeric identifier-1 still needs index-name-2 (§2023:14.9.39.3 SR4).",
+  "source": "adjudication kb/Work PB5008"
+ }
+}

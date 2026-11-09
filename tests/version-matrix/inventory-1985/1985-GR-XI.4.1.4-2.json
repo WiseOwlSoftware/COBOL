@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-2",
+ "rule-digest": "6bf51c2cfa5b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.24.4-2"
+  ],
+  "bridge": true,
+  "reason": "Same right space fill of short records released to fixed-length file-name-1. The national-space cases apply only to national items, absent in 1985; all other records get alphanumeric spaces.",
+  "source": "audit-1985/state-route"
+ }
+}

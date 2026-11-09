@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-7",
+ "rule-digest": "e63e2295b073",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If the MCS attempts to schedule a program lacking an INITIAL clause, the results are undefined.\"; 2023: \"No communication description entry, MCS or CD INITIAL clause; no candidate covers the feature\". The 2023 standard lacks the communication module. No candidate covers the CD entry or MCS scheduling, so the rule is dropped with the feature.",
+  "source": "audit-1985/state-route"
+ }
+}

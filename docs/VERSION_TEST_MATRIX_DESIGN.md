@@ -96,8 +96,17 @@ A single **construct catalogue** (data, not code) is the source of truth for the
   introducedIn, removedIn?, deprecatedIn?,        // edition metadata
   snippet,                                        // a minimal COBOL program exercising the construct
   behaviorVariants?: { "85": out, "2002": out, … },
-  expectDiagnostic?: "CBL####" }                  // the code expected on rejection
+  expectDiagnostic?: "CBL####",                   // the code expected on rejection
+  declined?: "CBL####" }                          // a DECLINED optional element: the code that refuses it
+                                                  // at and after introducedIn
 ```
+
+A **declined** row (`declined`, kb/Work PB5007) is a construct of an optional element WiseOwl COBOL does not claim
+(Annex A.4.1, `docs/CONFORMANCE.md` §4): it compiles at NO edition. Below `introducedIn` its introduction gate refuses
+it (`expectDiagnostic`, COBOL0900), and from `introducedIn` the decline does (the `declined` code). The grammar spells
+it at every edition (the union grammar), so the edition below its introduction is named rather than answered with a
+generic parse error. `VersionMatrixCatalogue.ExpectedRejection` is the one statement of which code a reject cell
+expects. `validation-clauses-2002` (the VALIDATE facility's data description clauses, COBOL1708) is the first.
 
 **Mapping reference-doc `gatingImplication` → matrix obligation:**
 

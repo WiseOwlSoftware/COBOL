@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-XI.3.2.3-3",
+ "rule-digest": "bb3e18d27a23",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.4.6.3-2",
+   "SR-13.4.6.3-3",
+   "SR-13.4.6.3-4"
+  ],
+  "bridge": true,
+  "reason": "2023 still requires record descriptions for an SD and bars I/O statements on the sort file. As a syntax rule, 1985 'executed' acts at compile time; the FROM/INTO rule spells this out.",
+  "source": "audit-1985/state-route"
+ }
+}

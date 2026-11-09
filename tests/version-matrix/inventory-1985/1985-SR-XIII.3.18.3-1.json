@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.18.3-1",
+ "rule-digest": "60105b9e4eb9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.53.3-4"
+  ],
+  "bridge": true,
+  "reason": "Same rule: any Data Division section; report section items limited to report counters (PAGE-/LINE-COUNTER) or this report's sum counter. Arithmetic-expression extension covers new syntax only.",
+  "source": "audit-1985/state-route"
+ }
+}

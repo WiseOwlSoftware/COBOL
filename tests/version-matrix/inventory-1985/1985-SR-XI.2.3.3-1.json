@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-SR-XI.2.3.3-1",
+ "rule-digest": "471917632daa",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.2-2",
+   "SR-13.4.6.3-1",
+   "SR-12.4.5.2-3",
+   "SR-12.4.5.2-13"
+  ],
+  "bridge": true,
+  "reason": "SR-13.4.6.3-1 requires each SD file in a file control entry, and SR-12.4.5.2-2 allows only one SELECT, so exactly once. 12.4.5.2-3 and -13 require an SD in the same unit.",
+  "source": "audit-1985/state-route"
+ }
+}

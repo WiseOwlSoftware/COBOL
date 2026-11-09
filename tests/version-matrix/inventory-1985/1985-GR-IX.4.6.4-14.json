@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-14",
+ "rule-digest": "b642e9fa1dcc",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-23"
+  ],
+  "bridge": true,
+  "reason": "In random or dynamic access mode the record to be replaced is specified by the prime record key, in both. The '23' result is a separate invalid-key rule; the level-2 box is no difference.",
+  "source": "audit-1985/state-route"
+ }
+}

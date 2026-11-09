@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XVI.3.2.3-3",
+ "rule-digest": "7e9b75e1a087",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Sections in the declaratives must contain segment-numbers less than 50.\"; 2023: \"No 2023 clause holds the segmentation feature; no candidate addresses segment-numbers.\". No 2023 clause holds the Segmentation feature, and no candidate covers segment-numbers. The feature is absent from 2023, so this requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

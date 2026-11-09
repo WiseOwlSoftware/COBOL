@@ -234,13 +234,19 @@ def check() -> int:
         ed = schema.edition(year)
         v = view(year, schema)
         findings += [f"{year}: {p}" for p in v.problems]
-        line = f"inventory {year}: {len(v.rows)} rules, {_gaps(v.rows)} GAP"
+        line = f"inventory {year}: {len(v.rows)} rules, {gaps(v.rows)} GAP"
         if not ed.newest:
             targets = {r["rule-id"]: r for r in inventory(ed.next_held, schema)}
-            findings += [f"{year}: {r['rule-id']}: {e}" for r in v.rows for e in lineage.next_errors(r, ed, targets)]
+            findings += [f"{year}: {r['rule-id']}: {e}" for r in v.rows for e in lineage.next_errors(r, ed, schema, targets)]
             kinds = Counter((r["next"] or {}).get("kind") or "unclassified" for r in v.rows)
             line += (f"; change records {dict(sorted(kinds.items()))}; "
                      f"{len(lineage.new_rules(ed, v.rows, targets))} rule(s) of {ed.next_held} NEW (derived)")
+            if schema.edition(ed.next_held).newest:
+                d = lineage.band_drift(ed, v.rows, targets, schema)
+                line += (f"\n  band {ed.spelling}: {len(d.unstored)} rule(s) a KEPT chain reaches lack it, {len(d.unproven)} "
+                         f"name it that no KEPT chain reaches, {len(d.unclassified)} rule(s) of {year} unclassified: the "
+                         f"stored {ed.spelling} leaves the bands when all three are 0 (--band-drift lists them; kb/Work "
+                         f"PB4996)")
         print(line)
     for f in findings[:40]:
         print(f"  ✗ {f}")
@@ -248,16 +254,23 @@ def check() -> int:
     return 1 if findings else 0
 
 
-def _gaps(rows: list[Row]) -> int:
+def gaps(rows: list[Row]) -> int:
+    """How many of `rows` are a GAP: the burn-down metric, which the session probe and the ledger report per edition."""
     return sum(1 for r in rows if r["state"] == "GAP")
+
+
+def edition_views(schema: Schema | None = None) -> dict[int, list[Row]]:
+    """Every held edition's rows by year, newest first: each older edition's state is its chain's, evaluated at its own
+    edition (DESIGN-spec-conformance-review.md section 10.2, kb/Work PB4994). The one read behind every per-edition report."""
+    schema = schema or load_schema()
+    return {year: inventory(year, schema) for year in sorted(HELD, reverse=True)}
 
 
 def summary() -> list[str]:
     """The session probe's lines: each held edition's rules and GAP count side by side (the burn-down metric), then each
     edition's adjudicated verdicts, and the CONFORMS rows a spec-derived test would close."""
-    schema = load_schema()
-    views = {year: inventory(year, schema) for year in sorted(HELD, reverse=True)}
-    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules · {_gaps(rows)} GAP" for year, rows in views.items())
+    views = edition_views()
+    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules · {gaps(rows)} GAP" for year, rows in views.items())
              + " (v1.0 = zero GAP)"]
     for year, rows in views.items():
         adjudicated = [r for r in rows if r["verdict"]]
@@ -269,6 +282,17 @@ def summary() -> list[str]:
         if need := sum(1 for r in adjudicated if r["verdict"] == "CONFORMS" and r["state"] == "GAP"):
             lines.append(f"       {year}: {need} CONFORMS still test-needed (each is one spec-derived golden from OK)")
     return lines
+
+
+def band_drift(year: int) -> lineage.BandDrift:
+    """The band drift of the older held edition `year` against the newest edition's stored bands (`lineage.band_drift`):
+    the adjudication the stored band token's retirement waits on."""
+    schema = load_schema()
+    ed = schema.edition(year)
+    if ed.newest or not schema.edition(ed.next_held).newest:
+        raise SystemExit(f"--band-drift: {year}'s next held edition must be the newest, whose rows carry the bands")
+    return lineage.band_drift(ed, inventory(year, schema), {r["rule-id"]: r for r in inventory(ed.next_held, schema)},
+                              schema)
 
 
 def states(year: int | None = None) -> dict[str, str]:
@@ -428,13 +452,19 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--check", action="store_true", help="the gate audit of every held edition's view")
     mode.add_argument("--summary", action="store_true", help="each edition's rules, GAP and verdicts")
     mode.add_argument("--states", action="store_true", help="`JSON {rule-id: state}` of one edition's view")
+    mode.add_argument("--band-drift", action="store_true",
+                      help="`JSON {unstored, unproven, unclassified}`: the newest edition's stored bands against the "
+                           "chains of an older edition (--edition, default the oldest held)")
     mode.add_argument("--self-test", action="store_true")
-    ap.add_argument("--edition", type=int, help="the held edition --states reads (default: the newest)")
+    ap.add_argument("--edition", type=int, help="the held edition --states or --band-drift reads")
     a = ap.parse_args(argv)
     if a.self_test:
         return self_test()
     if a.check:
         return check()
+    if a.band_drift:
+        print("JSON " + json.dumps(band_drift(a.edition or min(HELD))._asdict(), indent=1))
+        return 0
     if a.summary:
         print("\n".join(summary()))
         return 0

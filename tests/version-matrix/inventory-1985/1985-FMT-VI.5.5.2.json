@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VI.5.5.2",
+ "rule-digest": "0aca5554cc6e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.20.2",
+   "SR-13.18.20.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985 offers data-name-1 or FILLER to a data description entry only; 2023's entry-name clause (13.18.20, SR3) also names a report group description entry (FILLER as a report item's name, ISO/IEC 1989:2002 Annex F.2 item 53) and a screen description entry. The data-entry form is unchanged, but the requirement the 2023 rules state is wider, so the record is CHANGED: the EDITION GATES audit found the report-filler-2002 gate contradicted by a KEPT link (kb/Work PB4996).",
+  "source": "kb/Work PB4996 (edition-gate audit re-adjudication of audit-1985/state-route)"
+ }
+}

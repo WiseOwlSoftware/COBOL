@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-22",
+ "rule-digest": "65a982e320e2",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the MCS determines an error has occurred, the content of the data item referenced by data-name-3 and ... data-name-4 ... are updated\"; 2023: \"no communication description entry or MCS in the candidates; the Communication module is absent\". None of the candidates covers the CD entry, the MCS or SEND/PURGE/ENABLE/DISABLE error keys. The feature 2023 lacks is the Communication module, so the requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

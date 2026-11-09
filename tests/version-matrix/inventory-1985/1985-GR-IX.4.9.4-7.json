@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-7",
+ "rule-digest": "a93f0567cc16",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-12"
+  ],
+  "bridge": true,
+  "reason": "Both say executing WRITE releases a logical record. 'Operating environment' only renames 'operating system'. 'Successful' changes nothing, since GR-15 says an unsuccessful write does not take place.",
+  "source": "audit-1985/state-route"
+ }
+}

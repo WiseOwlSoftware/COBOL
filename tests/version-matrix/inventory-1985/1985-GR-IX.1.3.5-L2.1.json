@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.1.3.5-L2.1",
+ "rule-digest": "9d0da313e1ca",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.14-L2.1"
+  ],
+  "bridge": true,
+  "reason": "Both send control for a non-invalid-key exception to the applicable exception procedure. Return to the statement's end matches 1985 USE return-to-invoker; PERFORM WHEN is a new feature.",
+  "source": "audit-1985/state-route"
+ }
+}

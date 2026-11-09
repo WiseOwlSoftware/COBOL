@@ -1,0 +1,17 @@
+{
+ "rule-id": "1989-RV-A.2.41.4-2",
+ "rule-digest": "2a2f5c4e0c3f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.86.4-1",
+   "RV-15.84.4-4",
+   "RV-15.84.4-2",
+   "RV-15.84.4-3"
+  ],
+  "bridge": true,
+  "reason": "2023 defines the result as SQRT(VARIANCE(args)), the root of the mean squared deviation, and SQRT returns the absolute value as 1985 does. The rounding rules only govern the new arithmetic modes.",
+  "source": "audit-1985/state-route"
+ }
+}

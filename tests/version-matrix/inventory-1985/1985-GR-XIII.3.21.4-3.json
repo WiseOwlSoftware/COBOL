@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.21.4-3",
+ "rule-digest": "c5927178f785",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.60.4-7",
+   "GR-13.15.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both define DISPLAY as the character-coded standard format. Report groups follow the general USAGE rules. Alignment and implementor-defined character size elaborate it without changing effect.",
+  "source": "audit-1985/state-route"
+ }
+}

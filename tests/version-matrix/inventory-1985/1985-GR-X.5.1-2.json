@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-X.5.1-2",
+ "rule-digest": "72611a97ff33",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.2.3-8",
+   "GR-14.8.2.3.2-L2.1",
+   "SR-14.8.2.2-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"must describe the same number of character positions\" for every parameter passed by reference; 2023: a group argument or formal parameter takes the group rules (§2023:14.8.2.1), where each side \"shall be an alphanumeric group item or an elementary item of category alphanumeric\" and the formal parameter may be the same or a smaller number of bytes (§2023:14.8.2.2 rule 1). A shorter group formal parameter is legal; a group against a numeric item of the same size is not.",
+  "source": "adjudication kb/Work PB5008"
+ }
+}

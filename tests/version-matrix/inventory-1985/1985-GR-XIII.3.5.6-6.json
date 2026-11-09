@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.6-6",
+ "rule-digest": "0f324eaf30ec",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-4"
+  ],
+  "bridge": true,
+  "reason": "Both say LINE-COUNTER holds the line number as each line is printed. Its value after a group is the last line printed or follows NEXT GROUP rules, which is the 1985 tables' content in substance.",
+  "source": "audit-1985/state-route"
+ }
+}

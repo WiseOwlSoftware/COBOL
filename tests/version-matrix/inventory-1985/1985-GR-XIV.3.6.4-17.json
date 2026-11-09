@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-17",
+ "rule-digest": "fd0ed9226fe7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the characters transmitted by the SEND statement appear superimposed upon the characters which may have previously been transmitted\"; 2023: \"SEND now sends a message to a message server run unit (GR-14.9.38.4-4); there are no communication devices, lines or REPLACING phrase\". The 2023 SEND is message-server messaging. The 1985 Communication module's device-line transmission and superimposition behavior is dropped, and no candidate carries it.",
+  "source": "audit-1985/state-route"
+ }
+}

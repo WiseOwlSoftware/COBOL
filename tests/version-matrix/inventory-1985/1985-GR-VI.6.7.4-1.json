@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VI.6.7.4-1",
+ "rule-digest": "a38256378cd7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Execution of the ALTER statement modifies the GO TO statement in the paragraph named procedure-name-1\"; 2023: \"No ALTER clause; GO TO GR1 just says: control is transferred to procedure-name-1\". No 2023 clause holds the ALTER statement. The 2023 GO TO rules give a fixed target and no way to modify it, so ALTER and its effect on GO TO are dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.23.4-2",
+ "rule-digest": "3c5b47664b3a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.39.4-2",
+   "GR-14.9.39.4-4",
+   "GR-13.18.38.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"the value of the index after the execution of the SET statement must correspond to an occurrence number of an element in the table\"; 2023: \"even if that occurrence is not a valid occurrence within this table\". 1985 requires SET index values to lie within the table. 2023 allows occurrences outside it and raises EC-RANGE-INDEX only outside the OCCURS GR2 limit (1 - integer-2 to 2 * integer-2).",
+  "source": "audit-1985/state-route"
+ }
+}

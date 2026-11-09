@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IX.2.5.3-3",
+ "rule-digest": "c5637dbffa2a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.6.3-3"
+  ],
+  "bridge": true,
+  "reason": "A group containing an OCCURS DEPENDING item is a variable-length data item, so 2023 refuses the same 1985 programs. Its wider reach (dynamic-length items, data-name-2) only covers features new since 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

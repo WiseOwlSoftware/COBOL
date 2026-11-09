@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.2-1",
+ "rule-digest": "14a4acac014a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.4.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"consists entirely of the characters 0, 1, 2, 3, ... , 9, with or without an operational sign\"; 2023: \"presence or absence of an operational sign ... is in agreement with the data description of identifier-1\". Unlike 1985, 2023 requires a sign to match the data description, takes only digits for non-numeric items, and adds rules by usage (floating-point, others), as far as these texts show.",
+  "source": "audit-1985/state-route"
+ }
+}

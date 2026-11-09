@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-12",
+ "rule-digest": "082f6b8537ae",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.24.4-13"
+  ],
+  "bridge": true,
+  "reason": "Both space-fill a short file-name-1 record on the right when it is returned to a fixed-length file-name-4. The national-space and SELECT WHEN cases cover only features absent in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

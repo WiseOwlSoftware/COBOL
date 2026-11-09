@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-14",
+ "rule-digest": "35cef664079c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.30.2",
+   "GR-14.5.3.3-2"
+  ],
+  "bridge": true,
+  "reason": "Both 2023 READ formats keep the optional END-READ terminator. 14.5.3, Scope of statements, still governs how a statement's scope ends, so the same programs are accepted with the same effect.",
+  "source": "audit-1985/state-route"
+ }
+}

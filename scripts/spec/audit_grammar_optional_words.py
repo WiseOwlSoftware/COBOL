@@ -332,9 +332,9 @@ def _refs(alt: tuple[Elem, ...]) -> list[str]:
 
 
 def _mandatory(alt: tuple[Elem, ...]) -> tuple[str, ...]:
-    """The token SEQUENCE every use of this alternative writes: optional tokens and optional groups drop out, and
-    a required group contributes every one of its alternatives' mandatory tokens (a choice among required words
-    demands each of them — `(IS | ARE)` written bare is a demand of whichever is chosen)."""
+    """The tokens a use of this alternative may write unconditionally, for `_written`: optional tokens and optional
+    groups drop out, and a required group contributes every one of its alternatives' mandatory tokens, whichever
+    arm writes them. What the alternative DEMANDS is `_slots`'s question, which treats a choice as one unit."""
     out: list[str] = []
     for e in alt:
         if e.optional:
@@ -344,6 +344,28 @@ def _mandatory(alt: tuple[Elem, ...]) -> tuple[str, ...]:
         elif e.kind == "group":
             for inner in e.alts:
                 out += _mandatory(inner)
+    return tuple(out)
+
+
+def _slots(alt: tuple[Elem, ...]) -> tuple[frozenset[str], ...]:
+    """The SLOTS every use of this alternative fills, in order: a required token is a slot of one word, and a required
+    CHOICE is ONE slot holding every word of its arms, because leaving the word out leaves the whole choice out
+    (`demanded`'s deletion test). A required choice with an arm that writes no word (`(cobolWord | literal | IS)+`,
+    `( integerOperand (LINE | LINES) … | integerOperand | … )`) fills no slot: the source chooses that arm and writes
+    none of the others' words, so no word of the choice is demanded of the alternative (kb/Work PB4929: the 1985
+    VALUE OF clause's `IS` and the PAGE clause's `LINE`/`LINES`). A one-arm group fills its arm's slots."""
+    out: list[frozenset[str]] = []
+    for e in alt:
+        if e.optional:
+            continue
+        if e.kind == "tok":
+            out.append(frozenset({e.name}))
+        elif e.kind == "group" and len(e.alts) == 1:
+            out += _slots(e.alts[0])
+        elif e.kind == "group":
+            arms = [_slots(a) for a in e.alts]
+            if all(arms):
+                out.append(frozenset().union(*(s for arm in arms for s in arm)))
     return tuple(out)
 
 
@@ -377,7 +399,9 @@ def demanded(alts: tuple[tuple[Elem, ...], ...], omittable: bool) -> list[frozen
       {is2023()}? LOCATION` writes the two spellings of one optional word as two arms, so WITH is mandatory in the
       first and the unit still accepts `LOCATION` (kb/Work PB695). ⚠ The comparison is on the ORDERED SEQUENCE,
       never on the required SET: with sets, `switchOnClause : ON STATUS IS cobolWord | ON IS? cobolWord` would
-      subsume its own IS and hide a real rejection of `ON STATUS condition-name-1`;
+      subsume its own IS and hide a real rejection of `ON STATUS condition-name-1`. The sequence is of SLOTS
+      (`_slots`): a required choice is deleted whole, so `cobolWord+ (IS | ARE) integerOperand+` beside
+      `cobolWord+ (IS | ARE)? integerLiteral+` demands neither IS nor ARE (kb/Work PB4929);
     * the unit is OMITTABLE (an optional group, or a rule referenced only with `?`/`*`) and the alternative IS the
       word, alone: `(TIMES)?`, or `timesKeyword : TIMES ;` used as `timesKeyword?`, already permits `OCCURS 5` —
       the token is the optional unit. Contrast `startWithLength : WITH LENGTH …` used as `(startWithLength)?`:
@@ -389,7 +413,7 @@ def demanded(alts: tuple[tuple[Elem, ...], ...], omittable: bool) -> list[frozen
       PB3751) demands nothing, because `LIMIT` without LIMIT is the group omitted and `LIMIT IS` without it is the
       `IS` arm — while `(LIMIT IS?)?` still demands LIMIT, since `IS` alone is no spelling it accepts.
     """
-    seqs = [_mandatory(a) for a in alts]
+    seqs = [_slots(a) for a in alts]
     flat = [_flat_spellings(a) for a in alts]
     language: set[tuple[str, ...]] | None = None
     if all(f is not None for f in flat):
@@ -406,7 +430,7 @@ def demanded(alts: tuple[tuple[Elem, ...], ...], omittable: bool) -> list[frozen
                                  if not e.optional and not _flat_spellings(alt, drop=j) <= language))
             continue
         seq = seqs[i]
-        out.append(frozenset(w for k, w in enumerate(seq)
+        out.append(frozenset(w for k, slot in enumerate(seq) for w in slot
                              if not any(other == seq[:k] + seq[k + 1:] for j, other in enumerate(seqs) if j != i)))
     return out
 
@@ -620,15 +644,33 @@ def closure(refs: dict[str, frozenset[str]], anchors: set[str]) -> set[str]:
 #: and a repetition a later phase refuses is `audit:repeated-word`. One marker grammar, one check, for all three.
 #: A line may name several words one member decides (`audit:repeated-word CAPACITY FROM TO decided-by …`); each is
 #: a decision of its own, and each must match a candidate.
+#: ⛔ AN EDITION GATE IS A LATER PHASE TOO, AND IT DECIDES ONE EDITION'S FORMAT (kb/Work PB4929). §1985:VII.4.6.2
+#: underlines USE's AFTER and the 2002 format does not, so the grammar writes `AFTER?` for 2002 on and the version
+#: pass refuses the omission at --std 85: the candidate exists in the 1985 run alone, and a marker every run read
+#: would be dead in the 2023 one. Such a marker names its editions after the member,
+#:     // audit:required-word AFTER PROCEDURE decided-by VersionConformancePass.VisitUseStatement at 1985
+#: decides that edition's candidates alone, and is found dead by a full run of that edition.
 DECIDED_BY = re.compile(r"audit:(?P<kind>optional-word|required-word|repeated-word)"
                         r"(?P<words>(?:\s+[A-Z][A-Z0-9-]*)+)\s+"
-                        r"decided-by\s+(?P<type>[A-Za-z_]\w*)\.(?P<member>[A-Za-z_]\w*)")
+                        r"decided-by\s+(?P<type>[A-Za-z_]\w*)\.(?P<member>[A-Za-z_]\w*)"
+                        r"(?:\s+at(?P<editions>(?:\s+\d{4})+))?")
 
 
-def decisions(rules: dict[str, grammar_source.Rule]) -> dict[tuple[str, str, str], tuple[str, str]]:
-    """(kind, rule, word) -> (type, member) for every word of every `audit:<kind> … decided-by …` line in a rule's
+class Decision(NamedTuple):
+    """One word's `audit:<kind>` marker: the member that decides it, and the editions whose candidates it decides."""
+    type: str
+    member: str
+    editions: frozenset[int]        # empty: every edition's run (the dead-marker check: the current standard's)
+
+    def decides(self, edition: int) -> bool:
+        return not self.editions or edition in self.editions
+
+
+def decisions(rules: dict[str, grammar_source.Rule]) -> dict[tuple[str, str, str], Decision]:
+    """(kind, rule, word) -> its Decision for every word of every `audit:<kind> … decided-by …` line in a rule's
     source or in the comment block directly above its head."""
-    return {(m["kind"], r.name, word): (m["type"], m["member"])
+    return {(m["kind"], r.name, word): Decision(m["type"], m["member"],
+                                                frozenset(int(e) for e in (m["editions"] or "").split()))
             for r in rules.values() for line in r.lead + r.source for m in DECIDED_BY.finditer(line)
             for word in m["words"].split()}
 
@@ -933,8 +975,18 @@ def self_test() -> int:
         ("valueClause : VALUE cobolWord", "    // audit:optional-word IN decided-by DataBinder.RangeAlphabetPhraseOf",
          "    (IN cobolWord)? ;"), ())
     check("PB3751: an `audit:optional-word` line records the word and the member that decides it",
-          decisions({"valueClause": marked}) == {("optional-word", "valueClause", "IN"): ("DataBinder", "RangeAlphabetPhraseOf")},
+          decisions({"valueClause": marked})
+          == {("optional-word", "valueClause", "IN"): Decision("DataBinder", "RangeAlphabetPhraseOf", frozenset())},
           decisions({"valueClause": marked}))
+    gated = grammar_source.Rule(
+        "useStatement", "parser", pathlib.Path("Fixture.g4"), 1, 3, "useStatement : USE AFTER? PROCEDURE? ;",
+        ("    // audit:required-word AFTER PROCEDURE decided-by VersionConformancePass.VisitUseStatement at 1985",
+         "useStatement : USE AFTER? PROCEDURE? ;"), ())
+    scoped = decisions({"useStatement": gated})
+    check("PB4929: a marker scoped `at 1985` decides that edition's candidates, and no other edition's",
+          set(scoped) == {("required-word", "useStatement", "AFTER"), ("required-word", "useStatement", "PROCEDURE")}
+          and all(d.editions == {1985} and d.decides(1985) and not d.decides(2023) for d in scoped.values())
+          and decisions({"valueClause": marked})[("optional-word", "valueClause", "IN")].decides(1985), scoped)
     check("…and a member no src file names is UNDECLARED, so a marker can fail the run",
           not member_declared("DataBinder", "RangeAlphabetPhraseOf", src=HERE / "no-such-src-tree"))
     seq = demanded(parse_body("ON STATUS IS cobolWord | ON IS? cobolWord"), False)
@@ -1022,6 +1074,14 @@ def self_test() -> int:
           [(f.clause, f.title, f.keyword, f.page, f.line, len(b)) for f, b in drawn]
           == [("4.6.2", "THE REWRITE STATEMENT", "REWRITE", 9001, 4, 2),
               ("4.7.2", "THE FILE DESCRIPTION ENTRY", None, 9002, 13, 1)], drawn)
+    def fmt(title: str, keyword: str) -> Format:
+        return Format("5.4.2", "5.4", title, keyword, 1, 1)
+    check("PB4929: a scan's construct is all its printings: a statement by its verb, a clause by its whole title",
+          construct_of(fmt("THE EXIT PROGRAM STATEMENT", "EXIT")) == construct_of(fmt("THE EXIT STATEMENT", "EXIT"))
+          and construct_of(fmt("THE USE BEFORE REPORTING STATEMENT", "USE")) == construct_of(fmt("THE USE STATEMENT", "USE"))
+          and construct_of(fmt("THE RECORD KEY CLAUSE", "RECORD")) != construct_of(fmt("THE RECORD CLAUSE", "RECORD"))
+          and construct_of(fmt("THE SIGN CLAUSE", "SIGN")) == construct_of(Format("3.17.2", "3.17", "THE SIGN CLAUSE",
+                                                                                   "SIGN", 629, 9)))
     rewrite = drawn[0][1]
     layout = figure_options.Layout(figure_options.read_drawn(rewrite).words)
     plain_r, under_r = measure([{"text": w.text, "y0": w.y0, "underlined": w.underlined} for w in layout.words], False)
@@ -1031,8 +1091,28 @@ def self_test() -> int:
     chosen = examine(_fixture(rules), keys, "REWRITE", {w.replace("-", "_") for w in plain_r},
                      {w.replace("-", "_") for w in plain_r | under_r}, set, layout)
     check("a 1985 format printing one arm of a required choice (`REWRITE record-name-1`, no FILE) is spelled by the "
-          "rule, anchored by `choosing`", chosen.anchoring == "choosing" and chosen.anchors == {"rewriteStatement"}
-          and not chosen.candidates, chosen)
+          "rule: the choice's operand arm writes no word, so it demands no FILE (`_slots`)",
+          chosen.anchoring == "demanding" and chosen.anchors == {"rewriteStatement"} and not chosen.candidates, chosen)
+    worded = examine(_fixture(rules.replace("(recordName | FILE fileName)", "(FROM recordName | FILE fileName)")), keys,
+                     "REWRITE", {w.replace("-", "_") for w in plain_r},
+                     {w.replace("-", "_") for w in plain_r | under_r}, set, layout)
+    check("…while a choice whose every arm writes a word demands them all, so the format printing one arm is "
+          "anchored by `choosing`", worded.anchoring == "choosing" and worded.anchors == {"rewriteStatement"}, worded)
+    # ---- a required choice is ONE slot, and one with a wordless arm is none (kb/Work PB4929) ----
+    value_of = demanded(parse_body("VALUE OF (cobolWord | literal | IS)+"), False)
+    check("PB4929: a required choice with a wordless arm demands none of its words (1985 `VALUE OF … [IS]`)",
+          value_of == [frozenset({"VALUE", "OF"})], value_of)
+    page_lines = demanded(parse_body("integerOperand (LINE | LINES) reportPageWidth? | integerOperand | reportPageWidth"),
+                          False)
+    check("PB4929: leaving out a choice leaves out the whole choice, so `integerOperand` alone subsumes "
+          "`integerOperand (LINE | LINES)` (1985 PAGE … [LINE | LINES])", page_lines == [frozenset()] * 3, page_lines)
+    symbolic = demanded(parse_body("cobolWord+ (IS | ARE)? integerLiteral+ | cobolWord+ (IS | ARE) integerOperand+ "
+                                   "| cobolWord+"), False)
+    check("PB4929: …and a sibling with the choice optional subsumes it (SYMBOLIC CHARACTERS … [IS | ARE])",
+          symbolic == [frozenset()] * 3, symbolic)
+    kept = demanded(parse_body("ON (IS | ARE) cobolWord | ON cobolWord STATUS"), False)
+    check("…while a choice no sibling spells without is still demanded, each of its words",
+          kept == [frozenset({"ON", "IS", "ARE"}), frozenset({"ON", "STATUS"})], kept)
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 
@@ -1047,6 +1127,8 @@ class Population(NamedTuple):
     reading: Callable[[Format], figure_options.Reading]     # its option structure
     close: Callable[[], None]
     prose: bool                                             # whether its words can carry a line of prose (`measure`)
+    construct: Callable[[Format], tuple[str, str]]          # what a format is one printing of: a vector edition's
+    #                                                         clause, a scan's `construct_of`
 
 
 def printed_population(edition: int) -> Population:
@@ -1075,7 +1157,8 @@ def printed_population(edition: int) -> Population:
         return bands[f]
 
     return Population(formats, [f for f in formats if f.clause in where], lambda f: heads[where[f.clause]].page,
-                      lambda f: band(f).words, lambda f: figure_options.read(band(f).pages), doc.close, True)
+                      lambda f: band(f).words, lambda f: figure_options.read(band(f).pages), doc.close, True,
+                      lambda f: ("clause", f.clause))
 
 
 #: A scanned edition's construct titles, and the anchor keyword each names (the 2023 titles' is `ANCHOR`). The 1985
@@ -1123,24 +1206,48 @@ def drawn_formats(lines: list[str], edition: int) -> list[tuple[Format, list[lis
     return list(out.values())
 
 
+#: A title naming a statement: the 1985 `THE EXIT PROGRAM STATEMENT`, `THE USE BEFORE REPORTING STATEMENT`.
+_STATEMENT_TITLE = re.compile(r"\bSTATEMENT\b")
+
+
+def construct_of(f: Format) -> tuple[str, str]:
+    """The construct a scanned edition's format is one printing of (`drawn_population`). ⛔ THE 1985 STANDARD PRINTS ONE
+    CONSTRUCT ONCE PER MODULE THAT USES IT, each module a subset or a part (kb/Work PB4929): §1985:VIII.2.6.3 GR1, "The
+    RERUN clause for the Relative I-O module is a subset of the RERUN clause for the Sequential I-O module", so the
+    Relative page underlines ON while the Sequential page brackets it; the Inter-Program Communication module prints
+    `EXIT PROGRAM` beside the Nucleus's bare `EXIT`; the Relative READ prints INVALID KEY, the Indexed READ `KEY IS`.
+    The construct is all of its printings, as the 2023 standard prints it in one clause. A statement is named by its
+    verb (`EXIT PROGRAM` and `USE BEFORE REPORTING` are formats of EXIT and USE); a clause, a paragraph or an entry by
+    its whole title (`THE RECORD KEY CLAUSE` is not `THE RECORD CLAUSE`). A format with no anchor is its own."""
+    if f.keyword is None:
+        return "format", f"{f.line}"
+    if _STATEMENT_TITLE.search(f.title):
+        return "statement", f.keyword
+    return "title", f.title
+
+
 def drawn_population(edition: int) -> Population:
     """A scanned edition's formats (kb/Work PB4849): a scan has no vector layer to measure, so each is read from its
     decided drawing in the transcription (`drawn_formats`, `figure_options.read_drawn`), which `sweep_figures.py --check`
-    holds to the measured page."""
+    holds to the measured page. A format is read together with every other printing of its construct (`construct_of`),
+    as one band of a vector edition holds every format of its clause."""
     found = drawn_formats(spec_pdf.markdown(edition).read_text(encoding="utf-8").splitlines(), edition)
-    blocks = {f: b for f, b in found}
-    readings: dict[Format, figure_options.Reading] = {}
+    printings: dict[tuple[str, str], list[list[str]]] = collections.defaultdict(list)
+    for f, b in found:
+        printings[construct_of(f)] += b
+    readings: dict[tuple[str, str], figure_options.Reading] = {}
 
     def reading(f: Format) -> figure_options.Reading:
-        if f not in readings:
-            readings[f] = figure_options.read_drawn(blocks[f])
-        return readings[f]
+        key = construct_of(f)
+        if key not in readings:
+            readings[key] = figure_options.read_drawn(printings[key])
+        return readings[key]
 
     def words(f: Format) -> list[dict]:
         return [{"text": w.text, "y0": w.y0 + 1000 * w.page, "underlined": w.underlined} for w in reading(f).words]
 
     formats = [f for f, _ in found]
-    return Population(formats, formats, lambda f: f.page, words, reading, lambda: None, False)
+    return Population(formats, formats, lambda f: f.page, words, reading, lambda: None, False, construct_of)
 
 
 def main() -> int:
@@ -1215,6 +1322,8 @@ def main() -> int:
     decided_used: set[tuple[str, str, str]] = set()
     candidates: collections.Counter = collections.Counter()
     unpaired: list[str] = []
+    seen_constructs: set[tuple[str, str]] = set()
+    reported: set[tuple[tuple[str, str], Candidate]] = set()
     measured = 0
     empty: list[Format] = []
     by_anchoring: collections.Counter = collections.Counter()
@@ -1238,8 +1347,10 @@ def main() -> int:
             not_parser.append(f)
             continue
         reading = population.reading(f)
-        if reading.unpaired:
+        construct = population.construct(f)
+        if reading.unpaired and construct not in seen_constructs:
             unpaired.append(f"{f.clause} ({reading.unpaired})")
+        seen_constructs.add(construct)
         ex = examine(gm, keywords, f.keyword, plain, printed_words(plain, underlined),
                      lambda f=f: enclosing_words(f), figure_options.Layout(reading.words))
         if args.show_format:
@@ -1252,10 +1363,16 @@ def main() -> int:
             continue
         by_anchoring[ex.anchoring] += 1
         for c in ex.candidates:
+            # One construct's printings share one reading (`Population.construct`), so each says what the first did.
+            if (construct, c) in reported:
+                continue
+            reported.add((construct, c))
             where_said = f"{c.kind:<14} {c.word:<12} {KINDS[c.kind]} {gm.origin[c.rule]}#{c.rule}"
-            if (by := decided.get((c.kind, c.rule, c.word))) is not None:
+            by = decided.get((c.kind, c.rule, c.word))
+            if by is not None and by.decides(args.edition):
                 decided_used.add((c.kind, c.rule, c.word))
-                print(f"  DECIDED    {f.keyword:<14} {f.clause:<12} p{page:<5} {where_said}, decided by {by[0]}.{by[1]}")
+                print(f"  DECIDED    {f.keyword:<14} {f.clause:<12} p{page:<5} {where_said}, decided by {by.type}.{by.member}"
+                      + (f" at {' '.join(map(str, sorted(by.editions)))}" if by.editions else ""))
                 continue
             print(f"  CANDIDATE  {f.keyword:<14} {f.clause:<12} p{page:<5} {where_said}"
                   + (f" inside {c.group}" if c.group else ""))
@@ -1297,16 +1414,19 @@ def main() -> int:
                         + ", ".join(f.clause for f in empty[:12]) + (" …" if len(empty) > 12 else ""))
     if selected and not measured:
         failures.append("every selected general format measured zero words — the audit inspected nothing")
-    undeclared = sorted(f"{kind} {rule} {word} -> {t}.{m}" for (kind, rule, word), (t, m) in decided.items()
-                        if not member_declared(t, m))
+    undeclared = sorted(f"{kind} {rule} {word} -> {d.type}.{d.member}" for (kind, rule, word), d in decided.items()
+                        if not member_declared(d.type, d.member))
     if undeclared:
         failures.append(f"{len(undeclared)} `audit:<kind>` marker(s) name a member no src file declares: "
                         + ", ".join(undeclared))
-    dead = sorted(f"{kind} {rule} {word}" for kind, rule, word in set(decided) - decided_used)
-    # A marker decides a candidate of the CURRENT standard's formats (`DEFAULT_EDITION`), which the grammar spells; an
-    # earlier edition prints fewer constructs (1985 has no OCCURS … CAPACITY), so only a full run of that edition can
-    # find a marker dead. Another edition's run still reports each marker it matches as DECIDED.
-    if dead and not (args.construct or args.clause) and args.edition == spec_pdf.DEFAULT_EDITION:
+    # An unscoped marker decides a candidate of the CURRENT standard's formats (`DEFAULT_EDITION`), which the grammar
+    # spells; an earlier edition prints fewer constructs (1985 has no OCCURS … CAPACITY), so only a full run of that
+    # edition can find it dead, while another edition's run still reports each one it matches as DECIDED. A marker
+    # scoped `at <edition>` decides that edition's candidates alone, and a full run of that edition finds it dead.
+    dead = sorted(f"{kind} {rule} {word}" for (kind, rule, word), d in decided.items()
+                  if (kind, rule, word) not in decided_used
+                  and (args.edition in d.editions if d.editions else args.edition == spec_pdf.DEFAULT_EDITION))
+    if dead and not (args.construct or args.clause):
         failures.append(f"{len(dead)} `audit:<kind>` marker(s) matched no candidate in a full run — the rule no "
                         "longer says what the marker decides, so the marker is dead: " + ", ".join(dead))
     if unexamined:

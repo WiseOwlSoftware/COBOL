@@ -21,7 +21,7 @@ internal static class VersionMatrixCatalogue
 {
     internal sealed record Construct(string Id, string Description, int IntroducedIn, int? RemovedIn, string Vcr,
         string Source, string Status, string? ExpectDiagnostic, int? ObsoleteIn, string? ExpectDiagnosticBelow,
-        IReadOnlyDictionary<string, string>? Copybooks = null);
+        IReadOnlyDictionary<string, string>? Copybooks = null, string? Declined = null);
 
     /// <summary>The catalogue file: the one spelling of the path. Declared before <see cref="All"/>, whose initializer
     /// reads it.</summary>
@@ -36,9 +36,20 @@ internal static class VersionMatrixCatalogue
 
     internal static IEnumerable<Construct> Active => All.Where(c => c.Status == "active");
 
-    /// <summary>The matrix expected-outcome function f(case, V) (design §2).</summary>
+    /// <summary>The matrix expected-outcome function f(case, V) (design §2). A DECLINED row (<see cref="Construct.Declined"/>)
+    /// compiles at no edition: below its introduction its gate refuses it, and from it the implementation does not
+    /// claim the optional element (Annex A.4.1), so its decline refuses it.</summary>
     internal static bool ExpectCompiles(Construct c, int edition)
-        => edition >= c.IntroducedIn && (c.RemovedIn is null || edition < c.RemovedIn);
+        => c.Declined is null && edition >= c.IntroducedIn && (c.RemovedIn is null || edition < c.RemovedIn);
+
+    /// <summary>The code a REJECT cell expects, or null when the row names none. Below the introduction a dual-window
+    /// row names its below-edge code (<see cref="Construct.ExpectDiagnosticBelow"/>, 0900 not-yet-introduced); inside
+    /// the availability window a declined row names its decline (<see cref="Construct.Declined"/>); otherwise the
+    /// row's <see cref="Construct.ExpectDiagnostic"/>.</summary>
+    internal static string? ExpectedRejection(Construct c, int edition)
+        => edition < c.IntroducedIn ? c.ExpectDiagnosticBelow ?? c.ExpectDiagnostic
+           : c.Declined is { } declined && (c.RemovedIn is null || edition < c.RemovedIn) ? declined
+           : c.ExpectDiagnostic;
 
     /// <summary>Every (active construct × edition) cell — the introduction-gating matrix, both ways.</summary>
     internal static IEnumerable<object[]> Matrix()
@@ -119,7 +130,10 @@ internal static class VersionMatrixCatalogue
                 // beside the program and named as a --copy directory (kb/Work PB1355 — a missing text is CBL3620).
                 e.TryGetProperty("copybooks", out var cb)
                     ? cb.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetString()!, StringComparer.Ordinal)
-                    : null));
+                    : null,
+                // A DECLINED row (kb/Work PB5007): the code that refuses the construct at and after its introduction,
+                // because WiseOwl COBOL does not claim the optional element it belongs to (Annex A.4.1).
+                e.TryGetProperty("declined", out var dc) ? dc.GetString() : null));
         }
 
         return list;
@@ -175,16 +189,18 @@ public abstract class VersionMatrixTestsBase<TSlot>
         }
         else
         {
-            Assert.False(ok, $"[{constructId}] expected to be REJECTED at COBOL-{edition} (not valid until "
-                + $"{c.IntroducedIn}{(c.RemovedIn is { } r ? $" / removed {r}" : "")}; {c.Vcr}) but it compiled.");
+            Assert.False(ok, $"[{constructId}] expected to be REJECTED at COBOL-{edition} ("
+                + (c.Declined is { } dc && edition >= c.IntroducedIn ? $"declined, {dc}"
+                   : $"not valid until {c.IntroducedIn}{(c.RemovedIn is { } r ? $" / removed {r}" : "")}")
+                + $"; {c.Vcr}) but it compiled.");
             // The two-obligation rule's diagnostic half: reject cells assert the QUALITY of the rejection
             // once their edition-band code exists (P2.7 — expectDiagnostic in constructs.json). A DUAL-window
             // row (introduced ≥2002 AND removed — e.g. EXIT METHOD, method WS) rejects with DIFFERENT codes at
             // the two edges: expectDiagnosticBelow (0900 not-yet-introduced) below introducedIn,
             // expectDiagnostic (0902 removed) at/after removedIn (the exit-method-window reactivation
-            // contract, landed with OO slice 2).
-            string? code = edition < c.IntroducedIn ? c.ExpectDiagnosticBelow ?? c.ExpectDiagnostic : c.ExpectDiagnostic;
-            if (code is not null)
+            // contract, landed with OO slice 2). A DECLINED row names its decline from its introduction
+            // (kb/Work PB5007). ExpectedRejection is the one statement of that choice.
+            if (VersionMatrixCatalogue.ExpectedRejection(c, edition) is { } code)
             {
                 EditionHarness.AssertHasDiagnostic(diagnostics, code);
             }
@@ -220,7 +236,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
             + $"REMOVED constructs, not a licence for future ones ({c.Vcr}). It compiled"
             + (warnings.Count > 0 ? $", warning only:\n{string.Join("\n", warnings)}" : " clean."));
         // Same code selection as the strict theory: a dual-window row rejects with its below-edge code.
-        if ((c.ExpectDiagnosticBelow ?? c.ExpectDiagnostic) is { } code)
+        if (VersionMatrixCatalogue.ExpectedRejection(c, edition) is { } code)
         {
             EditionHarness.AssertHasDiagnostic(errors, code);
         }

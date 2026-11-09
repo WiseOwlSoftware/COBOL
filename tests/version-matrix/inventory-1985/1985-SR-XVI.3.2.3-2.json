@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XVI.3.2.3-2",
+ "rule-digest": "664421477e61",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If the segment-number is omitted from the section header, the segment-number is assumed to be 0.\"; 2023: \"No 2023 clause holds the Segmentation feature; no candidate covers segment-numbers in section headers.\". No 2023 clause holds segment-numbers. The wording candidates give other defaults (PAGE, LINE, ACCESS MODE, TEST BEFORE), so 2023 lacks the segmentation feature.",
+  "source": "audit-1985/state-route"
+ }
+}
