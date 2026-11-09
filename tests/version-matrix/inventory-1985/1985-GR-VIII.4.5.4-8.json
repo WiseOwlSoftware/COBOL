@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-8",
+ "rule-digest": "7a7a925cd7a0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-4",
+   "GR-14.9.30.4-5"
+  ],
+  "bridge": true,
+  "reason": "Same equivalence: READ without INTO, then MOVE; VARYING gives a group move; target identified after the read; no move if unsuccessful. The undefined-MOVE sentence follows from MOVE rules.",
+  "source": "audit-1985/state-route"
+ }
+}

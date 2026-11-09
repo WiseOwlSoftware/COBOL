@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-1",
+ "rule-digest": "2133f024d904",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.57.4-5"
+  ],
+  "bridge": true,
+  "reason": "Both say detail groups are produced by explicit GENERATE and all other group types are processed automatically. The timing details in -6 elaborate other rules and leave this one unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

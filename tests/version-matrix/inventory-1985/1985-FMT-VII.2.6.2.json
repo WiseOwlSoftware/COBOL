@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VII.2.6.2",
+ "rule-digest": "858149650fb0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.5.10.2",
+   "GR-12.4.5.10.3-3"
+  ],
+  "bridge": true,
+  "reason": "RECORD is an optional word in the 2023 format, so [ORGANIZATION IS] SEQUENTIAL is still accepted and means record sequential. LINE SEQUENTIAL is a separate new alternative.",
+  "source": "audit-1985/state-route"
+ }
+}

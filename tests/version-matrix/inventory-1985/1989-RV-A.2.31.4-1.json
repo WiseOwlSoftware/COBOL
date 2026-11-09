@@ -1,0 +1,15 @@
+{
+ "rule-id": "1989-RV-A.2.31.4-1",
+ "rule-digest": "1f6eb42aea64",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.70.4-1",
+   "RV-15.70.4-2"
+  ],
+  "bridge": true,
+  "reason": "Every 1985 argument is alphabetic or alphanumeric and still gets its ordinal position in the program collating sequence. The national case covers a class 1985 lacked; 'current' changes no 1985 result.",
+  "source": "audit-1985/state-route"
+ }
+}

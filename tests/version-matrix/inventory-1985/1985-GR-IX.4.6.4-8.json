@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-8",
+ "rule-digest": "06f08621e0bb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-1",
+   "GR-14.9.35.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both require REWRITE to update the I-O status of the file associated with record-name-1. The file-name-1 form is new 2023 syntax and leaves the 1985 case unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

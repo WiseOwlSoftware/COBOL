@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.8.4-5",
+ "rule-digest": "8e25b2a72335",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.38.4-9"
+  ],
+  "bridge": true,
+  "reason": "Same rule nearly verbatim. 'referencing that record description entry' only states the scope the 1985 rule implies: the count matters only for statements writing that record.",
+  "source": "audit-1985/state-route"
+ }
+}

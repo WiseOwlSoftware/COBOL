@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-IX.1.3.4-L2.4",
+ "rule-digest": "0961f411bcbe",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.6-1",
+   "GR-9.1.13.6-5",
+   "GR-9.1.13.6-6",
+   "GR-9.1.13.6-7"
+  ],
+  "bridge": true,
+  "reason": "1985: \"I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.\"; 2023: \"9.1.13.6 lists 30, 31, 34, 35, 37, 39 but no 38; 37 adds: \"insufficient authority exists to access the file\"\". Statuses 30, 35 and 39 carry over. Status 38 (OPEN after CLOSE WITH LOCK) is absent from the 2023 permanent-error list. Status 37 gains an insufficient-authority case.",
+  "source": "audit-1985/state-route"
+ }
+}

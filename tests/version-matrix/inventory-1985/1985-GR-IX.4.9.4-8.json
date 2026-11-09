@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-8",
+ "rule-digest": "2d3c13d9f236",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-14",
+   "GR-14.9.51.4-15"
+  ],
+  "bridge": true,
+  "reason": "Same RECORD IS VARYING size bounds and the same unsuccessful WRITE: no write, record area unaffected. '44' is the boundary-violation status 1985 refers to; literal/FORMAT cover new syntax.",
+  "source": "audit-1985/state-route"
+ }
+}

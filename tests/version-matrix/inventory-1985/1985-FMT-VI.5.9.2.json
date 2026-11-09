@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VI.5.9.2",
+ "rule-digest": "7ed3675a7ec3",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.40.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"PICTURE/PIC IS character-string\"; 2023: \"IS character-string-1 [EDITING character-1 FOR {NEGATIVE IS literal-2 | POSITIVE IS literal-3}]...; Format 2 ... LOCALE ... SIZE IS integer-1\". The 1985 PICTURE IS character-string form survives as Format 1's base, but 2023 adds an optional repeatable EDITING phrase and a LOCALE/SIZE format, accepting clauses 1985 refused.",
+  "source": "audit-1985/state-route"
+ }
+}

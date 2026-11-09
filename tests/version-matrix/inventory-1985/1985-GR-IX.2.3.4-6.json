@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.2.3.4-6",
+ "rule-digest": "2d56c1b034d4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.14.3-1"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule only makes the indexed RESERVE clause the same as the sequential one. 2023 has a single RESERVE clause rule for every organization, so the equivalence holds.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.9.4-1",
+ "rule-digest": "28cf13e1fcfe",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"There are five categories of data ... alphabetic, numeric, alphanumeric, alphanumeric edited, and numeric edited.\"; 2023: \"alphabetic — alphanumeric — alphanumeric-edited — boolean — national — national-edited — numeric — numeric-edited\". 2023 extends the PICTURE categories from five to eight by adding boolean, national and national-edited, so pictures such as N or 1 now define valid items.",
+  "source": "audit-1985/state-route"
+ }
+}

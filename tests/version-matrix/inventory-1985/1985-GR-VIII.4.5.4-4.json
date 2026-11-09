@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-4",
+ "rule-digest": "03df7d7816b4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-21",
+   "GR-14.9.30.4-24",
+   "GR-9.1.13.4-2"
+  ],
+  "bridge": true,
+  "reason": "Relative sequential READ keeps 1985's cases: no valid position, absent optional file to at end, OPEN/START and READ selection, key overflow, no record. PREVIOUS is a new phrase only.",
+  "source": "audit-1985/state-route"
+ }
+}

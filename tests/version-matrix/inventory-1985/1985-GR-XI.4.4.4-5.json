@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-5",
+ "rule-digest": "45769c69e0e5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-5"
+  ],
+  "bridge": true,
+  "reason": "Same precedence for SORT key collation: the SORT COLLATING SEQUENCE phrase first, then the program collating sequence. The national split covers a class 1985 lacked; 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

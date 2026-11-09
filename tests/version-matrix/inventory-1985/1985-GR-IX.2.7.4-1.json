@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.2.7.4-1",
+ "rule-digest": "ca8b92eca754",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.12.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both say the clause names the prime record key and forbid equal key values across records. The collating-sequence sentence only defines equality; ALSO-type cases rest on 2023-only features.",
+  "source": "audit-1985/state-route"
+ }
+}

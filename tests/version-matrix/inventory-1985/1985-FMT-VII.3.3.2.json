@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VII.3.3.2",
+ "rule-digest": "a8b4efb8ecfb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.10.2"
+  ],
+  "bridge": true,
+  "reason": "Both formats are BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS|CHARACTERS}. Under the instructions the level-2 box around integer-1 TO is no difference.",
+  "source": "audit-1985/state-route"
+ }
+}

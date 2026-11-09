@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.21.3-1",
+ "rule-digest": "76efde98824a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.60.3-7"
+  ],
+  "bridge": true,
+  "reason": "2023 still lets USAGE appear on any report group item, group or elementary (not among the elementary-only clauses); the DISPLAY/NATIONAL limit is a separate phrase rule.",
+  "source": "audit-1985/state-route"
+ }
+}

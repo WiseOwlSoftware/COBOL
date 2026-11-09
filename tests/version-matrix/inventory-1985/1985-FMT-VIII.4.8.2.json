@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VIII.4.8.2",
+ "rule-digest": "ec80c8140ea3",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.49.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"<u>USE</u> <u>AFTER</u> STANDARD ┤ … ├ <u>PROCEDURE</u> ON\"; 2023: \"USE [ GLOBAL ] AFTER STANDARD … PROCEDURE ON; `AFTER`, `STANDARD`, `PROCEDURE`, and `ON` are printed without underlining\". Same file and open-mode choices, but 2023 adds optional GLOBAL, and AFTER and PROCEDURE, which are required (underlined) in 1985, become optional words.",
+  "source": "audit-1985/state-route"
+ }
+}

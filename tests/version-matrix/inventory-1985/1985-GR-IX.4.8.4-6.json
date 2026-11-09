@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.8.4-6",
+ "rule-digest": "a5e1d0a4cc95",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-7",
+   "GR-14.9.49.4-12"
+  ],
+  "bridge": true,
+  "reason": "Both return control after the failing I-O statement unless the I-O status is fatal/critical, then the implementor decides. The SORT/MERGE item only defers to those statements' own rules.",
+  "source": "audit-1985/state-route"
+ }
+}

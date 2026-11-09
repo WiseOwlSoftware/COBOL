@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-11",
+ "rule-digest": "b8d899226feb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-13"
+  ],
+  "bridge": true,
+  "reason": "Same three actions: status and position set, non-at-end exceptions to exception processing, else record and INTO move then end or NOT AT END. Lock-conflict proviso is 2023-only.",
+  "source": "audit-1985/state-route"
+ }
+}

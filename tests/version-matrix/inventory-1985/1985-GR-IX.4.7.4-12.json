@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-12",
+ "rule-digest": "a5d5fafe1265",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.41.4-15"
+  ],
+  "bridge": true,
+  "reason": "With no KEY phrase, both use the prime record key (the RECORD KEY item) as the compared item. The implied relational operator belongs to another 1985 rule, not this one.",
+  "source": "audit-1985/state-route"
+ }
+}

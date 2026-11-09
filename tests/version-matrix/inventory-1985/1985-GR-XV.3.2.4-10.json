@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-10",
+ "rule-digest": "151be80a8a86",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Associated with each execution of a debugging section is the special register DEBUG-ITEM\"; 2023: \"USE statement rules cover only exception conditions, I-O and BEFORE REPORTING forms; no USE FOR DEBUGGING or DEBUG-ITEM\". The 2023 USE statement candidates give exception, I-O and report forms only. None describes debugging sections or the DEBUG-ITEM special register, so the Debug feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

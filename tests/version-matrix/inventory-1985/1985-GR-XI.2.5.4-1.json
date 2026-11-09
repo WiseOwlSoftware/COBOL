@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.2.5.4-1",
+ "rule-digest": "ad49315aac3d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.6.4.4-2"
+  ],
+  "bridge": true,
+  "reason": "Same shared record area, simultaneous opens, output/most-recently-read semantics and leftmost alignment. The file-area exception only restates the separate SAME AREA open limit (GR-1).",
+  "source": "audit-1985/state-route"
+ }
+}

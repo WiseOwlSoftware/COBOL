@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.8-6",
+ "rule-digest": "3c9a33e20ca7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.37.4-4",
+   "GR-13.18.37.4-1",
+   "GR-13.18.37.4-2",
+   "GR-8.4.3.15.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: \"the RWCS places the sum of the line number on which the final print line was presented and the NEXT GROUP integer into LINE-COUNTER\"; 2023: \"If the NEXT GROUP clause is relative and if the sum of integer-2 and LINE-COUNTER is less than the FOOTING integer, ... otherwise the FOOTING integer\". Cases a-d match 2023. But 1985 f sets an uncapped sum, while 2023 applies one FOOTING-capped rule to every body group. 2023 states no nonprintable-group exemption (e); it says 'last line, if any'.",
+  "source": "audit-1985/state-route"
+ }
+}

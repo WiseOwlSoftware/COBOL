@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-2",
+ "rule-digest": "6c34b69f8e64",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.5-2",
+   "GR-13.18.40.5-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Alphanumeric edited | Simple insertion '0', 'B', and '/'\"; 2023: \"Alphanumeric-edited | Simple insertion; Character-1 and the symbols 'B', '0', '/', ',' ... are used as the simple insertion editing symbols\". Same category/editing table, but 2023 extends alphanumeric-edited simple insertion to character-1 (and ','), and limits floating-point numeric-edited editing.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-9",
+ "rule-digest": "938cae9cbee8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.60.4-11"
+  ],
+  "bridge": true,
+  "reason": "GR11 restates radix 10, minimum digit storage, implementor-defined alignment, representation and sign, and sufficient storage. WITH NO SIGN is new syntax; 1985 programs are unaffected.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.7.3-2",
+ "rule-digest": "e171f313dc78",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.33.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Data description entries subordinate to a CD, FD, or SD entry must have level-numbers\"; 2023: \"Data description entries subordinate to a FD or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.\". Values 01-49, 66 and 88 are kept for FD/SD (the level-2 box is no difference). The CD case is dropped: no 2023 candidate covers entries subordinate to a CD.",
+  "source": "audit-1985/state-route"
+ }
+}

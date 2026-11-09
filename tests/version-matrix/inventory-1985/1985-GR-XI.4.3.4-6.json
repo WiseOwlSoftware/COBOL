@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.3.4-6",
+ "rule-digest": "e6b68f56eea6",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.34.4-5"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved\"; 2023: \"Item identification of the data item referenced by identifier-1 is done after the record has been read and immediately before\". Same two-step equivalence otherwise. But 1985 fixes timing only for subscripting; 2023 fixes it for all item identification of identifier-1, e.g. reference modification and length.",
+  "source": "audit-1985/state-route"
+ }
+}

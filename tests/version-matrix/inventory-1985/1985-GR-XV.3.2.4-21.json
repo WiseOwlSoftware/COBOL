@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-21",
+ "rule-digest": "e4e7d289aad0",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"DEBUG-CONTENTS contains 'USE PROCEDURE'.\"; 2023: \"No candidate covers USE FOR DEBUGGING or DEBUG-ITEM; the Debug module is absent from 2023\". No clause holds the Debug feature. The candidates cover USE for exceptions and reporting only, and none sets DEBUG-LINE, DEBUG-NAME or DEBUG-CONTENTS.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-17",
+ "rule-digest": "dfd675027278",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If a reference to procedure-name-1 in an ALTER statement causes the debugging section to be executed\"; 2023: \"No candidate covers USE FOR DEBUGGING, DEBUG-NAME or ALTER; the 2023 USE statement rules address only exceptions and reporting.\". No candidate states the debugging-section conditions for ALTER. The 2023 USE rules cover only exception and report declaratives, so the Debug feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

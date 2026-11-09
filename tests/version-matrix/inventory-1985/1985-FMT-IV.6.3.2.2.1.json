@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-IV.6.3.2.2.1",
+ "rule-digest": "72529637a599",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.2.1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"[COMMUNICATION SECTION. [communication-description-entry ...]; file-description-entry {record-description-entry} …\"; 2023: \"no COMMUNICATION SECTION; file-description-entry [constant-entry | record-description-entry | type-declaration-entry] …\". Same Data Division structure, but 2023 drops COMMUNICATION SECTION and report-file entries, makes records after an FD optional, and adds LOCAL-STORAGE and SCREEN sections.",
+  "source": "audit-1985/state-route"
+ }
+}

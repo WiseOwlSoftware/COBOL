@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-AR-A.2.16.3-1",
+ "rule-digest": "be7ceaa671d3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "AR-15.46.3-1"
+  ],
+  "bridge": true,
+  "reason": "Same YYYYMMDD form, calculation and month/day limits. The explicit year < 10000 only spells out what the four-digit YYYY of the 1985 form already implies.",
+  "source": "audit-1985/state-route"
+ }
+}

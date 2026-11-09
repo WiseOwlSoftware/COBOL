@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.2.3.4-4",
+ "rule-digest": "3abe6168149f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.2-11"
+  ],
+  "bridge": true,
+  "reason": "2023 gives a report file the sequential-format (Format 3) file control entry, as 1985 does. The sort-merge ban adds nothing, since a report file was never a sort-merge file in 1985 either.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VII.4.6.4-4",
+ "rule-digest": "c458ad37989c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-5",
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-3"
+  ],
+  "bridge": true,
+  "reason": "A USE naming file-name-1 takes precedence and INPUT/OUTPUT/I-O/EXTEND USEs exclude files named in another USE. Only the first qualifying declarative runs, so 1985 USE forms behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

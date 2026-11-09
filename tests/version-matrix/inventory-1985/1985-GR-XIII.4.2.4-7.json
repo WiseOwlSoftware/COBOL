@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.4.2.4-7",
+ "rule-digest": "a86ce0c1b4a9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-10"
+  ],
+  "bridge": true,
+  "reason": "GR-14.9.6.4-10 repeats the 1985 equivalence rule word for word. The added RESUME NEXT STATEMENT sentence concerns a feature absent from 1985, so 1985 programs keep the same effect.",
+  "source": "audit-1985/state-route"
+ }
+}

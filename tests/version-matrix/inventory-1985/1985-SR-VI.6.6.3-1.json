@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-VI.6.6.3-1",
+ "rule-digest": "e54d1eaae33b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.2.3-2",
+   "SR-14.9.2.3-4",
+   "SR-14.9.2.3-6"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps numeric operands, numeric or numeric-edited GIVING targets and group items for CORR. The level-66 bar is a separate CORRESPONDING restriction; new group kinds are new features.",
+  "source": "audit-1985/state-route"
+ }
+}

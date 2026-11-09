@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-5",
+ "rule-digest": "a91bb36ce6a2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-10"
+  ],
+  "bridge": true,
+  "reason": "1985: \"the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not\"; 2023: \"is available, provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description\". 2023 keeps the availability rule but adds a proviso: identifier-1 is no longer guaranteed available when it is, or is part of, a record description of the file.",
+  "source": "audit-1985/state-route"
+ }
+}

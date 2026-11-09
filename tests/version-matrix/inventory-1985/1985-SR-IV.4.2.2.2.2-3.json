@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.2-3",
+ "rule-digest": "675bed0ce911",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.3.3.2-3",
+   "GR-8.3.3.3.2-4",
+   "SR-8.3.3.2.3-2"
+  ],
+  "bridge": true,
+  "reason": "Same one-decimal-point limit, assumed point, no rightmost point; no point means integer. Any quoted characters still form an alphanumeric literal; 1985 had no floating literals.",
+  "source": "audit-1985/state-route"
+ }
+}

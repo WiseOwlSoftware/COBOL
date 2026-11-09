@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-2",
+ "rule-digest": "5115b953f180",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.15.3-2"
+  ],
+  "bridge": true,
+  "reason": "Both require the naming clause, when present, to immediately follow the level-number, with all other clauses in any order. The data-name/filler format sentence concerns allowed formats, not order.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VIII.3.2.4-3",
+ "rule-digest": "1c5a275ba08b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The DATA RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision\"; 2023: \"No DATA RECORDS clause: the 13.4.5.4 file description entry rules cover BLOCK CONTAINS, CODE-SET, LINAGE, RECORD, REPORT only\". 1985 marks DATA RECORDS obsolete and due for deletion. The 2023 file description rules list other clauses but never DATA RECORDS, so the clause is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

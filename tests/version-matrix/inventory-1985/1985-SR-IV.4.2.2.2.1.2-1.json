@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.1.2-1",
+ "rule-digest": "530eff6fccdf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.3.2.3-2"
+  ],
+  "bridge": true,
+  "reason": "Both let character-1 be any character of the implementor's character set. 2023 only names that set in its alphanumeric/national model; the national-source note is permissive.",
+  "source": "audit-1985/state-route"
+ }
+}

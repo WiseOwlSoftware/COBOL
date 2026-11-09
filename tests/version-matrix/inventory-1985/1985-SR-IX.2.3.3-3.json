@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-IX.2.3.3-3",
+ "rule-digest": "f86530250e99",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.2-4",
+   "SR-12.4.5.2-5"
+  ],
+  "bridge": true,
+  "reason": "Same literal rule and implementor-defined meaning (implementor-name is now device-name). The zero-length bar only excludes a literal form 1985 lacked, so the same 1985 programs pass.",
+  "source": "audit-1985/state-route"
+ }
+}

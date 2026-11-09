@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-16",
+ "rule-digest": "7ebee13bced5",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-14",
+   "GR-9.1.13.2-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"If the number of character positions in the record that is read is less than the minimum size ... (Relative I-O READ)\"; 2023: \"For a record sequential file, if the number of bytes in the record that is read is less than the minimum size\". 2023 limits the undefined-area and right-truncation rule to record sequential files. For relative files only the general status 04 of 9.1.13 remains; the content effects are not stated.",
+  "source": "audit-1985/state-route"
+ }
+}

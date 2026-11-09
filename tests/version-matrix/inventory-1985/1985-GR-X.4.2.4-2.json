@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-X.4.2.4-2",
+ "rule-digest": "c3b28707f079",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.22.4-4",
+   "GR-13.18.27.4-1",
+   "GR-13.4.5.4-3"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule only points to where the EXTERNAL and GLOBAL clauses of the file description entry are given. 2023 still allows both clauses in file description entries, with their own clause rules.",
+  "source": "audit-1985/state-route"
+ }
+}

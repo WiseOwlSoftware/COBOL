@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.22.4-2",
+ "rule-digest": "b358a0a35a42",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.63.4-22"
+  ],
+  "bridge": true,
+  "reason": "2023 still prints literal-1 each time the item prints, with GROUP INDICATE suppression. The extra exceptions name clauses a 1985 report item cannot use, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-14",
+ "rule-digest": "7c0fea3fb8e4",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the I-O phrase is specified and the LABEL RECORDS clause indicates label records are present... labels are checked\"; 2023: \"OPEN rules (e.g. GR-14.9.27.4-16 on the I-O phrase) state no label checking or writing; no candidate mentions LABEL RECORDS\". 2023 OPEN rules cover the I-O phrase but say nothing of label records or label checking and writing. The LABEL RECORDS feature is absent from the candidates, so the requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

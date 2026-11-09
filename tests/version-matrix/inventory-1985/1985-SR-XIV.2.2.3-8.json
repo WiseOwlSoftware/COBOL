@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.2.2.3-8",
+ "rule-digest": "5b34a7da1434",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If none of the optional clauses of the CD entry is specified, a level 01 data description entry must follow the CD entry.\"; 2023: \"No CD entry or communication module in 2023; no candidate covers the feature.\". 2023 drops the communication module and the CD entry. No candidate addresses CD entries; the candidates cover only report, file, screen and data description entries.",
+  "source": "audit-1985/state-route"
+ }
+}

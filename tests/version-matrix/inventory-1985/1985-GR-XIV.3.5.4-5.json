@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.5.4-5",
+ "rule-digest": "21ef3183e691",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If the NO DATA phrase is specified in the RECEIVE statement, the RECEIVE operation is terminated ... If one or more queues\"; 2023: \"The 2023 RECEIVE receives a message from a server or requestor run unit; it has no NO DATA phrase and no queues or subqueues.\". The 1985 communication-module RECEIVE (NO DATA phrase, MCS queues, status key) is gone. The 2023 RECEIVE is a different run-unit messaging statement and does not carry this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

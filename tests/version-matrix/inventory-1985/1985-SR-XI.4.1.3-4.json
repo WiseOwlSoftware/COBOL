@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XI.4.1.3-4",
+ "rule-digest": "b9dcddd33ccc",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.24.3-4"
+  ],
+  "bridge": true,
+  "reason": "Same key rules: in file-name-1 records, one description suffices, no OCCURS, no variable-length groups, within minimum record size. New class limits hit only post-1985 features.",
+  "source": "audit-1985/state-route"
+ }
+}

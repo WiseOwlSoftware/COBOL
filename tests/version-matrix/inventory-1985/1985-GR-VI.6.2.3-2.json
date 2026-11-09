@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.2.3-2",
+ "rule-digest": "ec3451df8d01",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.1.2-3"
+  ],
+  "bridge": true,
+  "reason": "Left-to-right order for same-level operations without parentheses is kept verbatim. The purpose of parentheses was descriptive and is now a NOTE; the added 'emphasize' purpose refuses no program.",
+  "source": "audit-1985/state-route"
+ }
+}

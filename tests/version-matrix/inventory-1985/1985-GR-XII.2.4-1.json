@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XII.2.4-1",
+ "rule-digest": "bd17e58d010a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.3.4-6",
+   "GR-7.2.3.4-8"
+  ],
+  "bridge": true,
+  "reason": "2023 copies library text into the compilation group, replacing the COPY, while building the structured compilation group; syntax is judged only after all text manipulation.",
+  "source": "audit-1985/state-route"
+ }
+}

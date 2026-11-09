@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.2.3.4-7",
+ "rule-digest": "0304fd3d03af",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.5.3-1",
+   "GR-12.4.5.10.3-4"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule is only a pointer to the ACCESS MODE and ORGANIZATION IS RELATIVE clauses and states no requirement. 2023 still presents both clauses (12.4.5.5, 12.4.5.10), so nothing differs.",
+  "source": "audit-1985/state-route"
+ }
+}

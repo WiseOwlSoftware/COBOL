@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IX.2.5.3-2",
+ "rule-digest": "2da743d9b5fb",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.6.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Data-name-1 must be defined as a data item of the category alphanumeric\"; 2023: \"shall be defined as a data item of category alphanumeric or national\". Same subject and placement rule, but 2023 adds category national as an allowed key category. It also extends the rule to data-name-2 occurrences, which must all share one category.",
+  "source": "audit-1985/state-route"
+ }
+}

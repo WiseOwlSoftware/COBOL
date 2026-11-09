@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.12.3-1",
+ "rule-digest": "d57eb850d782",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Language-name-1 may refer to any programming language which the implementor specifies may be entered through COBOL.\"; 2023: \"No ENTER statement; no candidate clause holds the feature. Pointer and address rules cover other languages only by address.\". No 2023 clause holds the ENTER statement. Candidates on program/function pointers and externalized names concern other languages but not entering one via ENTER.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XVI.3.3.2-L2.2",
+ "rule-digest": "aefec18a1a96",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Sections and/or paragraphs wholly contained in the same independent segment as that PERFORM statement.\"; 2023: \"No counterpart: no 2023 clause holds the segmentation feature, and no candidate covers independent segments.\". The rule belongs to the Segmentation module. No 2023 clause holds that feature, and no candidate addresses independent segments or PERFORM range limits, so 2023 lacks it.",
+  "source": "audit-1985/state-route"
+ }
+}

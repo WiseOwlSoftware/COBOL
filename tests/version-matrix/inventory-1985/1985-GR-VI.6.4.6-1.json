@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.4.6-1",
+ "rule-digest": "a1b9eca396d7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.7.7-4"
+  ],
+  "bridge": true,
+  "reason": "Rule 4a keeps the requirement: do the initial evaluation, place the result in an intermediate item, items named by each statement's rules. Size-error text restates SIZE ERROR rules.",
+  "source": "audit-1985/state-route"
+ }
+}

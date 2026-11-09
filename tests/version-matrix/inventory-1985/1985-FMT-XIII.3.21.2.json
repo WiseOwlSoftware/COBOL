@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-XIII.3.21.2",
+ "rule-digest": "e60802e8d128",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.15.2",
+   "SR-13.18.60.3-7"
+  ],
+  "bridge": true,
+  "reason": "1985: \"[ USAGE IS ] DISPLAY\"; 2023: \"Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item.\". 1985 permits only USAGE DISPLAY in a report group entry. 2023 also permits USAGE NATIONAL there, so programs 1985 refused are now accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

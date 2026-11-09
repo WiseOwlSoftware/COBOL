@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-3",
+ "rule-digest": "cb2c48143d11",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the MCS will interpret the content of the text length data item of the area referenced by cd-name-1\"; 2023: \"Communication module and CDs deleted; 2023 SEND is a message-server statement with no text length or status key\". 2023 SEND sends to a message server run unit. There is no CD, no text length data item and no status key, so partial transfer by text length is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

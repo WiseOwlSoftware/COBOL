@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-II.4.2-1",
+ "rule-digest": "cb42ac1a0140",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.63.3-12"
+  ],
+  "bridge": true,
+  "reason": "1985 bars VALUE in OCCURS-repeated entries under a REDEFINES entry. 2023 bars VALUE in any entry under a REDEFINES, which refuses those same entries; the wider ban is not this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

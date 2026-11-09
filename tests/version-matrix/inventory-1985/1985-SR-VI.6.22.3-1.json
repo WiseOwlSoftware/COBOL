@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-SR-VI.6.22.3-1",
+ "rule-digest": "678a7736d4fd",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.37.3-1",
+   "SR-14.9.37.3-2",
+   "SR-14.9.37.3-3",
+   "SR-14.9.37.3-7"
+  ],
+  "bridge": true,
+  "reason": "1985: \"identifier-1 must not be subscripted or reference modified\"; 2023: \"shall not be subscripted at the level for which the SEARCH is applicable ... for which the subscripting is still required\". 1985 bars all subscripting of identifier-1. 2023 bars it only at the searched level and requires subscripts for containing tables. INDEXED, KEY and no ref-mod are kept.",
+  "source": "audit-1985/state-route"
+ }
+}

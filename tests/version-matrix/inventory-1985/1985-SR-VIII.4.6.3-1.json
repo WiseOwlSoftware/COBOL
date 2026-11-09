@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VIII.4.6.3-1",
+ "rule-digest": "7d9a9519c2f2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-7"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Record-name-1 and identifier-1 must not refer to the same storage area.\"; 2023: \"14.6.10, Overlapping operands, and 14.9.25, MOVE statement, general rules, apply to any cases in which ... share any part\". 1985 refuses a REWRITE whose record-name-1 and identifier-1 share storage. 2023 has no such syntax rule; such overlap is accepted and governed by the MOVE and overlap rules.",
+  "source": "audit-1985/state-route"
+ }
+}

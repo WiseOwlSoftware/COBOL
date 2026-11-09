@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIII.4.5.3-2",
+ "rule-digest": "09c81c6c79be",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The availability of the phrases within the OPEN statement is dependent on the level of the Sequential I-O module supported\"; 2023: \"No module levels; the OPEN syntax rules (e.g. SR-14.9.27.3-1, -2) state no level dependency for phrase availability\". 2023 has no module levels. The candidates cover OPEN phrases but none makes their availability depend on an implemented Sequential I-O level, so the 1985 requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

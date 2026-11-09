@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-6",
+ "rule-digest": "b0f93d2cd156",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-5",
+   "GR-14.9.16.4-2",
+   "GR-13.18.16.4-3",
+   "GR-13.18.16.4-4",
+   "GR-13.18.57.4-6"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps the order: sense break, footings minor up to break level with prior values, headings down, then detail or summary. 'Test for equality' states no other comparison method.",
+  "source": "audit-1985/state-route"
+ }
+}

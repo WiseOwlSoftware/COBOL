@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XI.2.4.3-1",
+ "rule-digest": "7951a7e47b46",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The availability of the RECORD option of the SAME clause is dependent on the level of Sequential I-O module supported\"; 2023: \"No module levels; SR-12.4.6.4.3-6 lets a sort or merge file appear in a record-area format SAME clause unconditionally\". 2023 drops modules and levels. The record-area SAME format is always available to sort and merge files, so the 1985 dependency on the Sequential I-O level is no longer stated.",
+  "source": "audit-1985/state-route"
+ }
+}

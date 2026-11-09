@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.4.9.3-5",
+ "rule-digest": "0320b27635db",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 still says USE only defines the conditions for running use procedures. Dropping 'never executed' changes no program's acceptance or effect; USE stays a non-executed declarative header.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.21.4-1",
+ "rule-digest": "4a943c255d9f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.60.4-1",
+   "GR-13.15.4-2"
+  ],
+  "bridge": true,
+  "reason": "2023 makes report-group USAGE obey the general rule: a group-level USAGE applies to each elementary item. GROUP-USAGE is a new feature that leaves programs without it unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

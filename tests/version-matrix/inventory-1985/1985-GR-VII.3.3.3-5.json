@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.3.3.3-5",
+ "rule-digest": "ba5c6b7e3776",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.4.5.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"all BLOCK CONTAINS clauses in the run unit which are associated with that file connector must have the same value for integer-1 and integer-2\"; 2023: \"If any of the file description entries has a BLOCK CONTAINS clause, all shall have a BLOCK CONTAINS clause specifying the same minimum and maximum size\". 1985 constrains only the BLOCK CONTAINS clauses present. 2023 also requires that every entry for the external connector have the clause once any one has it, so it refuses programs 1985 accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

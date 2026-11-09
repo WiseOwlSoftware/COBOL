@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.17.3-2",
+ "rule-digest": "32631728d173",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.20.3-4"
+  ],
+  "bridge": true,
+  "reason": "For the non-pointer categories, 2023 still requires a valid MOVE from identifier-2 or literal-1. The SET rule covers only categories 1985 lacks, so 1985 programs are judged alike.",
+  "source": "audit-1985/state-route"
+ }
+}

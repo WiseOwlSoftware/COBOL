@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.13.4-1",
+ "rule-digest": "70c7681cab5c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.28.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"it causes the SOURCE or VALUE clause to be ignored and spaces supplied, except: a. On the first presentation\"; 2023: \"has the same effect as a PRESENT WHEN clause where the associated condition is true only on the first occasion that a GENERATE\". 1985 supplies spaces except on the first presentation. 2023 makes the item absent (PRESENT WHEN) and counts the GENERATE issued, not the presentation, so a SUPPRESSed first detail now uses the occasion.",
+  "source": "audit-1985/state-route"
+ }
+}

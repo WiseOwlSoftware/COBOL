@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.10-4",
+ "rule-digest": "d3224b384c5a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-4",
+   "GR-8.4.3.15.4-5"
+  ],
+  "bridge": true,
+  "reason": "2023 sets LINE-COUNTER after a group to its last printed line; NEXT GROUP rules cover only RH, body groups and PF, not RF. Dummy groups leave LINE-COUNTER unaffected.",
+  "source": "audit-1985/state-route"
+ }
+}

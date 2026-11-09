@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-7",
+ "rule-digest": "deef996720b5",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"If only one record description is subordinate to the file description entry, or ... describe a group item or an elementary alphanumeric item\"; 2023: \"If no record description entry or only one record description is subordinate ... or an elementary item of category alphanumeric or category national\". 2023 also permits INTO when no record description entry is subordinate to the FD, and when the items are elementary items of category national. Both are cases 1985 did not allow.",
+  "source": "audit-1985/state-route"
+ }
+}

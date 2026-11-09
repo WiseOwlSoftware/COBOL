@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.19.3-3",
+ "rule-digest": "42819dd1a92c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.25.3-12"
+  ],
+  "bridge": true,
+  "reason": "1985: \"When the CORRESPONDING phrase is used, all identifiers must be group items.\"; 2023: \"Identifier-3 and identifier-4 shall specify group data items and shall not be reference-modified.\". Both require group items for MOVE CORRESPONDING. 2023 also forbids reference-modifying the operands, a refusal the 1985 rule text does not state.",
+  "source": "audit-1985/state-route"
+ }
+}

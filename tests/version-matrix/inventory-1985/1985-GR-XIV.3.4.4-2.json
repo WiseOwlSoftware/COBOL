@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.4.4-2",
+ "rule-digest": "fa624133ee52",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Any message that has associated with it an EMI or EGI is not affected by the execution of a PURGE statement.\"; 2023: \"No PURGE statement or EMI/EGI concept; the 2023 message-server SEND/RECEIVE rules replace the Communication module.\". The 1985 Communication module and its PURGE statement are gone from 2023. No candidate covers PURGE or EMI/EGI; the 2023 SEND/RECEIVE rules concern a different message-server feature.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-19",
+ "rule-digest": "e91b6292180d",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Treatment of a file contained in a multiple file tape environment is logically equivalent to the treatment of a sequential file\"; 2023: \"No OPEN general rule (14.9.27.4 rules 1-26) or file rule mentions a multiple file tape environment\". The 2023 OPEN general rules, read in full, have no multiple-file-tape rule, and no file or CLOSE candidate mentions that environment. The feature appears dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

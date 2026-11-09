@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.40.4-1",
+ "rule-digest": "2e86181c13ca",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.84.4-4"
+  ],
+  "bridge": true,
+  "reason": "Under native arithmetic, 2023 returns the same absolute value of the approximated square root. Standard-binary and standard-decimal modes are new 2023 features a 1985 program cannot select.",
+  "source": "audit-1985/state-route"
+ }
+}

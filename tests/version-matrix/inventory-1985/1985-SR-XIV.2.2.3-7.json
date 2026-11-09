@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.2.2.3-7",
+ "rule-digest": "ca0d2e6ffd93",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The optional clauses may be written in any order.\"; 2023: \"No 2023 clause holds the communication description entry; the candidates cover only file, report, data and screen entries.\". The rule orders CD entry clauses. No 2023 clause covers the communication description entry, so the Communication module is gone and the rule with it.",
+  "source": "audit-1985/state-route"
+ }
+}

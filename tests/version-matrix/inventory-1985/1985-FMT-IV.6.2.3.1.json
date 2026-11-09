@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-FMT-IV.6.2.3.1",
+ "rule-digest": "9a4189da85ed",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.2.1",
+   "FMT-12.3.2",
+   "FMT-12.4.2",
+   "FMT-12.4.4.2",
+   "FMT-12.4.6.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"[INPUT-OUTPUT SECTION. FILE-CONTROL. {file-control-entry} …\"; 2023: \"INPUT-OUTPUT SECTION. [ file-control-paragraph ] [ i-o-control-paragraph ] / FILE-CONTROL. [ file-control-entry ] …\". 1985 requires FILE-CONTROL with at least one entry in an input-output section. 2023 makes both optional, and its configuration section also allows a REPOSITORY paragraph.",
+  "source": "audit-1985/state-route"
+ }
+}

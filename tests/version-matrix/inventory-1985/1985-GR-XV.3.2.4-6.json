@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-6",
+ "rule-digest": "3c7c50594e4c",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When identifier-1 is specified without the ALL REFERENCES OF phrase, that debugging section is executed at each of the following times\"; 2023: \"No candidate covers USE FOR DEBUGGING on identifiers; candidates only cover implicit moves, PERFORM sequencing and general USE selection.\". None of the candidates covers when a debugging section runs for identifier-1. The 2023 standard lacks the Debug module's identifier debugging, so the requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

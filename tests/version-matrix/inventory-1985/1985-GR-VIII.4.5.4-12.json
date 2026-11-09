@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-12",
+ "rule-digest": "4f426bb04279",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-18"
+  ],
+  "bridge": true,
+  "reason": "Unsuccessful READ still leaves the record area undefined and no valid record position. 'Unless otherwise specified' covers lock conflicts absent in 1985; a later READ still gets status 46.",
+  "source": "audit-1985/state-route"
+ }
+}

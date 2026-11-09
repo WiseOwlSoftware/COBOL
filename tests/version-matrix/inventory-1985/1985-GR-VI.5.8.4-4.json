@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.8.4-4",
+ "rule-digest": "3c291a4d7f6e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.38.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"When the KEY IS phrase is specified, the repeated data must be arranged in ascending or descending order\"; 2023: \"shall be ordered when a SEARCH statement with the ALL phrase is executed if data-name-2 is specified in one of the conditions in the WHEN phrase\". 1985 requires ordering whenever KEY is given. 2023 requires it only during SEARCH ALL, for keys named in WHEN, using that WHEN condition's comparison rules. KEY also now drives table SORT.",
+  "source": "audit-1985/state-route"
+ }
+}

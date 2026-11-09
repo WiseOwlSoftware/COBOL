@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.5.3-1",
+ "rule-digest": "b4e491cb6555",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Cd-name-1 must reference an input CD or input-output CD.\"; 2023: \"No CDs exist; SR-14.9.31.3-1 says instead: Data-name-1 shall be the name of a message-tag data item.\". 2023 drops the communication module and CDs. Its RECEIVE takes a message-tag data item, so no rule requires an input or input-output CD.",
+  "source": "audit-1985/state-route"
+ }
+}

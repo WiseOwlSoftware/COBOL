@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-12",
+ "rule-digest": "5988c3959c7e",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The ADVANCING phrase allows control of the vertical positioning of each message or message segment on a communication device\"; 2023: \"SEND has no ADVANCING phrase: \"A message is sent to the run unit identified by the content of literal-1 or message-server-name-1.\"\". The 2023 SEND sends messages to a message server run unit and has no ADVANCING phrase; the 1985 communication-device SEND is gone. The DISPLAY and WRITE rules cover other statements.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.6.4-2",
+ "rule-digest": "801ea6f97b5d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.2.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both sum the operands preceding GIVING and store the sum in each identifier-3. The added sentence covers only standard-decimal/standard-binary arithmetic, a mode 1985 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

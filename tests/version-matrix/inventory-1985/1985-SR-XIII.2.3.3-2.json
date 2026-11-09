@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-XIII.2.3.3-2",
+ "rule-digest": "8df71f264064",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.2-2",
+   "SR-12.4.5.2-3",
+   "SR-13.4.5.3-8"
+  ],
+  "bridge": true,
+  "reason": "2023 allows a file-name in only one SELECT and requires its FD in the same source element. Format 3 is the report-file FD; the record-entry bar is a separate rule.",
+  "source": "audit-1985/state-route"
+ }
+}

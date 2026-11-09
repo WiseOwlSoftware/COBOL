@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-XVI.2.2.2",
+ "rule-digest": "7ab68b80698d",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.3.6.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"[ MEMORY SIZE integer-1 {WORDS|CHARACTERS|MODULES} ] [ PROGRAM COLLATING SEQUENCE IS alphabet-name-1 ] [ SEGMENT-LIMIT IS segment-number ]\"; 2023: \"OBJECT-COMPUTER. [computer-name-1] [CHARACTER CLASSIFICATION ...] [PROGRAM COLLATING SEQUENCE ... FOR NATIONAL ...] .\". The 2023 format keeps computer-name and PROGRAM COLLATING SEQUENCE but drops MEMORY SIZE and the segmentation SEGMENT-LIMIT clause, so programs using them are refused.",
+  "source": "audit-1985/state-route"
+ }
+}

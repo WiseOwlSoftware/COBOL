@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VI.6.12.4-1",
+ "rule-digest": "8932883378a4",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The other language statements are executed in the object program as if they had been compiled into the object program following the ENTER\"; 2023: \"No 2023 clause holds the ENTER statement; no candidate covers other-language statements embedded in the program\". No 2023 clause carries the ENTER statement, and no candidate addresses executing embedded other-language statements. The feature is absent from 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

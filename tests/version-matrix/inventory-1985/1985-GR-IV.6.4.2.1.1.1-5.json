@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2.1.1.1-5",
+ "rule-digest": "83c79dc57373",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"NO DATA or WITH DATA phrase when specified within a RECEIVE statement.\"; 2023: \"RECEIVE now has only ON EXCEPTION / NOT ON EXCEPTION and CONTINUE phrases; the communication module's NO DATA/WITH DATA is gone\". The 2023 RECEIVE is message-based and has no NO DATA or WITH DATA phrase, so this conditional-statement case no longer exists.",
+  "source": "audit-1985/state-route"
+ }
+}

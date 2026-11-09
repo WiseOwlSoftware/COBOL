@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-VII.3.9.2",
+ "rule-digest": "6ae4ee5011a3",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"VALUE OF implementor-name-1 IS data-name-1 / literal-1 …\"; 2023: \"No VALUE OF clause in the 2023 file description; no candidate states it (the clauses holding the feature give no candidates)\". None of the candidates covers the file description VALUE OF clause. Matches are only on wording (data-name-1, literal-1); 2023 lacks the feature, which 1985 already marked obsolete.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-5",
+ "rule-digest": "d06b27294916",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the ALL REFERENCES OF identifier-1 phrase is specified, that debugging section is executed for every statement\"; 2023: \"No 2023 clause holds USE FOR DEBUGGING; the USE candidate covers only exception declaratives (EXCEPTION-OBJECT)\". No 2023 clause holds the Debug module's USE FOR DEBUGGING. The wording candidates cover READ, WRITE, PERFORM, MOVE and exception USE, not debugging-section timing, so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

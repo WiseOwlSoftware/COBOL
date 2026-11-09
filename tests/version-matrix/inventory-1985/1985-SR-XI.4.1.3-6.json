@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XI.4.1.3-6",
+ "rule-digest": "f31fd7c0dbb2",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"No two files specified in any one MERGE statement may reside on the same multiple file reel.\"; 2023: \"The MERGE syntax rules (SR-14.9.24.3-1 to -13) state no reel-placement restriction; only SAME clauses and repeated file-names are restricted.\". The 2023 MERGE syntax rules cover file-name reuse and SAME clauses but drop the multiple-file-reel restriction. No candidate covers multiple file reels.",
+  "source": "audit-1985/state-route"
+ }
+}

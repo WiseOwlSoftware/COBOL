@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-12",
+ "rule-digest": "39d48fc5b0f4",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present, ... These labels are then deleted.\"; 2023: \"GR-14.9.27.4-15 only positions the file after the last logical record; no LABEL RECORDS clause or label processing is stated.\". 2023 OPEN EXTEND rules cover positioning but say nothing of label records. The LABEL RECORDS clause and its label processing are absent from the 2023 candidates.",
+  "source": "audit-1985/state-route"
+ }
+}

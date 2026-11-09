@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.23.4-7",
+ "rule-digest": "5fff984fc65d",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.39.4-6"
+  ],
+  "bridge": true,
+  "reason": "1985: \"is placed in the conditional variable according to the rules of the VALUE clause\"; 2023: \"except that when the conditional variable is an alphanumeric group item... to which a table is subordinate, its length is determined as specified in 13.18.38\". Both keep VALUE-clause placement and the first-literal rule. 2023 takes a group variable's length from the OCCURS rules when a table is subordinate, and leaves a zero-length variable unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

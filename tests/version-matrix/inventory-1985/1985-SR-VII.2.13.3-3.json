@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-VII.2.13.3-3",
+ "rule-digest": "68b206bfad4e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.6.4.3-7",
+   "SR-12.4.6.4.3-9",
+   "GR-12.4.6.4.4-1"
+  ],
+  "bridge": true,
+  "reason": "Ordinary files: one file-area and one record-area SAME each (SR-7); subset rule (SR-9); one open file (GR-1). Report-file limit is a Report Writer matter, outside this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

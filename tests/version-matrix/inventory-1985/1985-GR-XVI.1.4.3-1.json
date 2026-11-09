@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XVI.1.4.3-1",
+ "rule-digest": "71687e4d961b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Control is transferred to that segment as a result of the implicit transfer of control between consecutive statements\"; 2023: \"No 2023 clause holds segmentation; candidates cover file ORGANIZATION, PERFORM, GO TO and other transfers, not segments\". The rule belongs to the Segmentation module, for independent segments. No 2023 clause carries segments or segment-numbers, and the wording matches are unrelated, so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

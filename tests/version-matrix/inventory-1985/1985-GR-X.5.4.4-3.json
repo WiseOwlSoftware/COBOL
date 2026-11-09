@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.4.4-3",
+ "rule-digest": "3c621f2c069f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.14.4-3",
+   "GR-14.9.18.4-2"
+  ],
+  "bridge": true,
+  "reason": "EXIT PROGRAM in a called program follows GOBACK rules, which run an implicit CANCEL for an initial program on return. 8.5.1.11.3 GR2 confirms reset on EXIT PROGRAM.",
+  "source": "audit-1985/state-route"
+ }
+}

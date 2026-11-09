@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-13",
+ "rule-digest": "f2cee78885c7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-21",
+   "GR-14.9.35.4-14"
+  ],
+  "bridge": true,
+  "reason": "GR21 keeps random/dynamic replacement by relative key and invalid key if no record; '23' is that cause's status. GR14 keeps no update, record area unaffected.",
+  "source": "audit-1985/state-route"
+ }
+}

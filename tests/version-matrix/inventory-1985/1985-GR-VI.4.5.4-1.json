@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-1",
+ "rule-digest": "f81962f3e939",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both make every SPECIAL-NAMES clause apply to contained programs. 2023's longer list of names follows from that. Locale-names are new 2023 features, not a changed rule.",
+  "source": "audit-1985/state-route"
+ }
+}

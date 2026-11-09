@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-4",
+ "rule-digest": "65fbae2e5d7c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-4"
+  ],
+  "bridge": true,
+  "reason": "For file SORT without DUPLICATES, the return order of records with equal keys stays undefined. The table-element wording only extends the rule to the new table SORT format.",
+  "source": "audit-1985/state-route"
+ }
+}

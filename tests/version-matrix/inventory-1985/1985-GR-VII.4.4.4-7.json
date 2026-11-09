@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-7",
+ "rule-digest": "deef996720b5",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"a. If only one record description is subordinate to the file description entry, or\"; 2023: \"a) If no record description entry or only one record description is subordinate to the file description entry, or\". Same INTO rule, but 2023 adds the case of an FD with no record description entry (see GR-14.9.30.4-6) and admits national elementary items.",
+  "source": "audit-1985/state-route"
+ }
+}

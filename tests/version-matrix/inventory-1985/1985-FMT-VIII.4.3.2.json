@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VIII.4.3.2",
+ "rule-digest": "dbb85b9db052",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.10.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"DELETE file-name-1 RECORD [ INVALID KEY imperative-statement-1 ] [ NOT INVALID KEY imperative-statement-2 ]\"; 2023: \"DELETE file-name-1 RECORD [ retry-phrase ] ┌ │ INVALID KEY imperative-statement-1 │ ┐ … NOT INVALID KEY imperative-statement-2\". 2023 Format 1 adds an optional retry-phrase. Its choice indicators also let INVALID KEY and NOT INVALID KEY appear in either order, where 1985 fixed the order, so more programs are accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

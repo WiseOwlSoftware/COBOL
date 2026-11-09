@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.2.5.3-1",
+ "rule-digest": "c2dba2371642",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-10.7.3-2"
+  ],
+  "bridge": true,
+  "reason": "END PROGRAM's name must equal the PROGRAM-ID program-name. 8.3.2.2 treats program-name as a user-defined word, so the same END PROGRAM names are accepted or refused.",
+  "source": "audit-1985/state-route"
+ }
+}

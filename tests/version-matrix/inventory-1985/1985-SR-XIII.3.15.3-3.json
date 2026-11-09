@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.15.3-3",
+ "rule-digest": "4a125d03d0ff",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.35.3-6"
+  ],
+  "bridge": true,
+  "reason": "1985: \"all absolute LINE NUMBER clauses must precede all relative LINE NUMBER clauses.\"; 2023: \"If the description of any absolute line appears later than that of a relative line, they shall each be subject to a different PRESENT WHEN clause.\". 1985 always forbids an absolute LINE after a relative one. 2023 permits it when each line is subject to a different PRESENT WHEN clause.",
+  "source": "audit-1985/state-route"
+ }
+}

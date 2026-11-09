@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-2",
+ "rule-digest": "a85b43f7735e",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When file-name-1 is specified in a USE FOR DEBUGGING statement, that debugging section is executed\"; 2023: \"No candidate states USE FOR DEBUGGING; the 2023 USE rules cover only exception, report and object declaratives.\". 2023 lacks USE FOR DEBUGGING and its debugging sections. No candidate covers a debugging section run after OPEN, CLOSE, READ, DELETE or START.",
+  "source": "audit-1985/state-route"
+ }
+}

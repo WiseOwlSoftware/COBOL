@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.5.9.4-4",
+ "rule-digest": "a10f51cece9a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.4-6",
+   "GR-13.18.40.4-14"
+  ],
+  "bridge": true,
+  "reason": "1985: \"the item is treated as if the character-string contained all 'X's.\"; 2023: \"The symbol 'A' is equivalent to the symbol 'X' except within the execution of a VALIDATE statement.\". The A/X/9 combination rule matches 1985's all-A/all-9 exclusion. But 2023 drops 'treated as all X's': A and 9 keep their own meaning (VALIDATE checks; 9 must hold a numeral).",
+  "source": "audit-1985/state-route"
+ }
+}

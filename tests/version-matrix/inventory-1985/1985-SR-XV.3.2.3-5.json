@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XV.3.2.3-5",
+ "rule-digest": "43b39b4ed6ce",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Procedure-names defined within debugging sections must not appear within USE FOR DEBUGGING statements.\"; 2023: \"No USE FOR DEBUGGING format: the 2023 USE rules cover only AFTER EXCEPTION, BEFORE REPORTING, EC and EO.\". The 2023 USE candidates cover only exception, reporting, EC and EO forms. None has the DEBUGGING phrase, and no clause holds the Debug module, so the feature and its rule are dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-IX.2.5.2",
+ "rule-digest": "378ad43bf089",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.5.6.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"ALTERNATE RECORD KEY IS data-name-1 [ WITH DUPLICATES ]\"; 2023: \"record-key-name-1 SOURCE IS { data-name-2 } … [ WITH DUPLICATES ] [ SUPPRESS WHEN literal-1 ]\". The 1985 form remains valid. 2023 adds a SOURCE-defined key alternative and an optional SUPPRESS WHEN phrase, so it accepts programs the 1985 format refuses.",
+  "source": "audit-1985/state-route"
+ }
+}

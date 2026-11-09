@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.5-5",
+ "rule-digest": "1123e9a95b56",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-2"
+  ],
+  "bridge": true,
+  "reason": "2023 says PAGE-COUNTER 'is updated by 1 during each page advance', the same increment rule. The INITIATE initial value and NEXT GROUP RESET are separate rules, not this one.",
+  "source": "audit-1985/state-route"
+ }
+}

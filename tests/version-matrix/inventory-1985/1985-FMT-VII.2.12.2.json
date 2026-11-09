@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-VII.2.12.2",
+ "rule-digest": "e8eb1fd10968",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"RERUN [ON {file-name-1|implementor-name-1}] EVERY {[END OF] {REEL|UNIT} OF file-name-2 | integer-1 RECORDS ...}\"; 2023: \"No 2023 clause holds the RERUN feature; candidates cover only CLOSE, READ, BLOCK CONTAINS and similar clauses\". No 2023 clause holds RERUN. Candidates merely share words (REEL/UNIT, RECORDS, condition-name-1); the RERUN clause is dropped from 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

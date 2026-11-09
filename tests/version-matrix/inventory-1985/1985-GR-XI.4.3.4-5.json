@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.3.4-5",
+ "rule-digest": "347f96a72467",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.34.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"describe a group item or an elementary alphanumeric item\"; 2023: \"describe an alphanumeric group item or an elementary item of category alphanumeric or category national\". Same INTO rule, but 2023 adds a case (elementary national items) and limits groups to alphanumeric groups, so national group items are excluded.",
+  "source": "audit-1985/state-route"
+ }
+}

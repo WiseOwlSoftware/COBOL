@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.3.4-2",
+ "rule-digest": "796e14b3d719",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.46.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"no input-output statement may be executed which references that report file\"; 2023: \"no OPEN or CLOSE statements shall be executed that reference the report file\". Both bar statements on the report file between INITIATE and TERMINATE. 1985 bars every input-output statement; 2023 bars only OPEN and CLOSE, so other I-O statements are no longer refused.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -8,7 +8,8 @@ The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In s
 - Each edition has its own catalog and its own inventory store (`inventory_store.inventory_dir`). The 2023 store is the
   newest held edition's; an OLDER edition's row carries `next`, its one change record against the next HELD edition:
   `{"kind": "KEPT"|"CHANGED"|"REMOVED", "edition": <int>, "to": [<rule ids of that edition>], "bridge": <bool>,
-  "reason": "<why>", "source": "<the audit run or adjudication that decided it>"}`. Its keys and its kinds are DATA, the
+  "reason": "<why>", "source": "<the audit run or adjudication that decided it>"}`, its `reason` omitted when it states
+  none (one stored form: an empty reason is refused, kb/Work PB4995). Its keys and its kinds are DATA, the
   schema's `next` (`inventory_schema.ChangeRecord`, kb/Work PB4993): no code here spells a kind. A rule of the newer
   edition that no older `to` names is NEW: derived, never written. `bridge` is true while an edition between the two is
   not held (1985 straight to 2023 until 2002 and 2014 are transcribed, kb/Work PB4813).
@@ -85,6 +86,8 @@ def next_errors(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[
         errs.append(f"a {kind.name} record names no rule of the next edition")
     if kind.reason and not (nxt.get("reason") or "").strip():
         errs.append(f"a {kind.name} record states its reason (the words that differ, or what deleted the feature)")
+    elif "reason" in nxt and not (nxt["reason"] or "").strip():
+        errs.append("next.reason is empty: a record that states no reason omits the key (one stored form)")
     if kind.chained and (own := [f for f in shape.verdict_fields if row.get(f)]):
         errs.append(f"a {kind.name} rule holds no verdict of its own (its chain's newest rule does), but it carries {own}")
     return errs
@@ -133,7 +136,7 @@ def self_test() -> int:
                "GR-14.9.21.4-2": {"rule-id": "GR-14.9.21.4-2", "state": "GAP", "editions": "85,2002,2014,2023"}}
 
     def row(**nxt: Any) -> dict[str, Any]:
-        base = {"kind": "KEPT", "edition": 2023, "to": ["SR-13.18.38.3-1"], "bridge": True, "reason": "", "source": "planted"}
+        base = {"kind": "KEPT", "edition": 2023, "to": ["SR-13.18.38.3-1"], "bridge": True, "source": "planted"}
         return {"rule-id": "1985-SR-VI.5.8.3-1", "verdict": "", "next": {**base, **nxt}}
 
     def errs(r: dict[str, Any], s: Schema = schema) -> list[str]:
@@ -157,6 +160,8 @@ def self_test() -> int:
        and errs(row(kind="REMOVED", to=[], reason="the communication module is deleted")) == [],
        "a REMOVED record names no rule, and states its reason")
     ok(any("states its reason" in e for e in errs(row(kind="CHANGED"))), "a CHANGED record states its reason")
+    ok(any("omits the key" in e for e in errs(row(reason=""))) and errs(row(reason="the same in other words")) == [],
+       "a KEPT record states a reason or omits the key: an empty reason is not stored (one stored form)")
     ok(any("carries into" in e for e in errs(row(kind="CHANGED", to=[], reason="x"))),
        "a CHANGED record names the rule(s) it carries into")
     ok(any("is not one of" in e for e in errs(row(kind="DEPRECATED"))), "a kind the schema does not name is refused")
@@ -214,7 +219,7 @@ def self_test() -> int:
        and e85.next_held == 2023 and e85.bridged and inventory_dir(e27).name == "inventory-2027",
        "a held edition named in the schema alone becomes the newest; 2023 then carries a change record into it, unbridged")
     kept23 = {"rule-id": "SR-13.18.38.3-1", "verdict": "",
-              "next": {"kind": "KEPT", "edition": 2027, "to": ["SR-1"], "bridge": False, "reason": "", "source": "planted"}}
+              "next": {"kind": "KEPT", "edition": 2027, "to": ["SR-1"], "bridge": False, "source": "planted"}}
     t27 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023,2027"}}
     ok(next_errors(kept23, e23, s_held, t27) == [] and state_of(kept23, e23, s_held, t27) == "OK"
        and state_of(kept23, e23, s_held, {"SR-1": dict(t27["SR-1"], editions="2027")}) == "GAP",
@@ -225,7 +230,7 @@ def self_test() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="The rule lineage across editions (kb/Work PB4991). The audit's kept change "
-                                             "records are written by audit_batch.py kept-batch.")
+                                             "records are written by audit_batch.py change-batch.")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args(argv)
     if a.self_test:

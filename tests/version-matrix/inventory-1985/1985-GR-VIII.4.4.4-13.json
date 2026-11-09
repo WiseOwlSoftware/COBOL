@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-13",
+ "rule-digest": "1ce166672fd2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-16",
+   "GR-9.1.13.6-6"
+  ],
+  "bridge": true,
+  "reason": "Both require a file opened I-O to support the I-O-mode operations of its organization, and a successful OPEN I-O sets I-O mode. Status '37' only names the failure result of that same rule.",
+  "source": "audit-1985/state-route"
+ }
+}

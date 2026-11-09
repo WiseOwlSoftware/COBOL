@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-15",
+ "rule-digest": "4beb3da3c0a4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-17",
+   "GR-14.9.27.4-18"
+  ],
+  "bridge": true,
+  "reason": "Both create an absent optional file on OPEN EXTEND/I-O as if OPEN OUTPUT then CLOSE, then the OPEN; OPEN OUTPUT creates an empty file. The '05' status adds no conflicting requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

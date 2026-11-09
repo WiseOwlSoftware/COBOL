@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.7-2",
+ "rule-digest": "ea2a4d0daabf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.14-3",
+   "GR-14.9.49.4-6"
+  ],
+  "bridge": true,
+  "reason": "With no INVALID KEY phrase, 2023 still runs the applicable USE procedure for the file. Only the new PERFORM WHEN can take precedence, and no 1985 program uses it, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.6.3-2",
+ "rule-digest": "d5cbdb001f18",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Identifier-2 must reference a one-character integer without an operational sign.\"; 2023: \"2023 SEND is the message-server SEND (message-server-name-1, message-tag data items); it has no end-indicator identifier-2.\". The communication module's SEND and its end-indicator identifier-2 are gone. The 2023 SEND rules cover message servers only, and no candidate restates the one-character unsigned integer rule.",
+  "source": "audit-1985/state-route"
+ }
+}

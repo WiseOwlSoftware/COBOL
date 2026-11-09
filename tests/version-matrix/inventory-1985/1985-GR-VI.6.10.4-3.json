@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.10.4-3",
+ "rule-digest": "b2f7be3db837",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.11.4-3"
+  ],
+  "bridge": true,
+  "reason": "2023 repeats the single-occurrence rule word for word. The added alphanumeric-representation sentence concerns national data, absent in 1985, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.7.3-1",
+ "rule-digest": "026ac7bcdf51",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.16.3-2"
+  ],
+  "bridge": true,
+  "reason": "SR-13.18.16.3-2 keeps the report-section ban. No 2023 CONTROL rule forbids qualification (unlike entry-name's explicit ban), so qualified data-name-1 is still accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

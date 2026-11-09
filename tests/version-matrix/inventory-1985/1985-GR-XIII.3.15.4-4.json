@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-XIII.3.15.4-4",
+ "rule-digest": "ea74ff22d7e5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.35.4-7",
+   "GR-13.18.35.4-5",
+   "GR-13.18.35.4-3",
+   "SR-13.18.35.3-3"
+  ],
+  "bridge": true,
+  "reason": "A later relative line prints at LINE-COUNTER (the previous line) plus integer-2. Zero reuses that line, with overwrite exempt from the overlap rule. GR5 places the first relative line.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VI.6.15.4-2",
+ "rule-digest": "f33716681f91",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If procedure-name-1 is not specified in format 1, an ALTER statement, referring to this GO TO statement, must be executed\"; 2023: \"GR-14.9.17.4-1: format 1 always names its target: \"control is transferred to procedure-name-1\"; no ALTER-dependent GO TO is stated\". The 2023 GO TO rules cover format 1 only with procedure-name-1 given. The ALTER-set GO TO without a target is not carried, so the requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

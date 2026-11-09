@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.2.4-2",
+ "rule-digest": "bc108bccfa72",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-2"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps the same three categories (reel/unit now 'unit'; REEL and UNIT are equivalent). Added category d covers non-sequential files, outside this 1985 Sequential I-O rule.",
+  "source": "audit-1985/state-route"
+ }
+}

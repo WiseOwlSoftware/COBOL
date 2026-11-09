@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-19",
+ "rule-digest": "39e3b0f89302",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the MCS will interpret the content of the data item referenced by data-name-2 to be the user's indication of the number of\"; 2023: \"No candidate covers the communication description entry, the MCS or SEND; the communication module is absent from 2023.\". The rule covers the CD entry, MCS and SEND text length. No 2023 clause holds this feature, and the candidates cover only file, sort, data, report and screen entries.",
+  "source": "audit-1985/state-route"
+ }
+}

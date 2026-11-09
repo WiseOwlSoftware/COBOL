@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.2.2.3-13",
+ "rule-digest": "3df81e529b4b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"In level 1, the value of the data item referenced by data-name-1 must be 1.\"; 2023: \"No candidate covers the communication description entry; the clauses holding the feature yield no candidates.\". The rule restricts the communication description entry. No 2023 candidate covers that entry, and the wording matches concern other entries' level numbers, so 2023 lacks the feature.",
+  "source": "audit-1985/state-route"
+ }
+}

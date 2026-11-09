@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-12",
+ "rule-digest": "76a104554092",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the REVERSED phrase is specified, the subsequent READ statements for the file make the data records of the file available in reversed order\"; 2023: \"No REVERSED phrase; GR 20 lists only \"open mode specification, the sharing-phrase, retry-phrase, and REWIND phrase\"\". The 2023 OPEN rules cover NO REWIND, SHARING and RETRY but never REVERSED; positioning rule 12 names only EXTEND and NO REWIND. The REVERSED phrase is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

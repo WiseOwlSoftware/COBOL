@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.2.4-1",
+ "rule-digest": "b4152c377ea4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-1",
+   "GR-9.1.13.7-2"
+  ],
+  "bridge": true,
+  "reason": "2023 'The file connector referenced by file-name-1 shall be open' states the same restriction. The status '42' sentence only spells out the I-O status result of a violation.",
+  "source": "audit-1985/state-route"
+ }
+}
