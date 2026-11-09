@@ -12,7 +12,7 @@
       *> runs "immediately after execution of" any statement that
       *> "explicitly references identifier-1"; rule 24 b: DEBUG-NAME
       *> "contains the name of identifier-1". TOT is the sum counter of
-      *> the report footing's entry (ISO/IEC 1989:2023 13.18.54.4 GR12:
+      *> the control footing's entry (ISO/IEC 1989:2023 13.18.54.4 GR12:
       *> procedure division statements may alter it). A: MOVE 7 TO TOT.
       *> B: ADD 1 TO TOT. C: IF TOT = 8 reads TOT in its condition, and
       *> its imperative statement is a statement of its own (rule 7), so
@@ -34,11 +34,11 @@
        WORKING-STORAGE SECTION.
        01 AMT PIC 9 VALUE 3.
        REPORT SECTION.
-       RD R1 PAGE LIMIT IS 20 LINES HEADING 1 FIRST DETAIL 2
-           LAST DETAIL 18.
+       RD R1 CONTROL IS FINAL PAGE LIMIT IS 20 LINES
+           HEADING 1 FIRST DETAIL 2 LAST DETAIL 18.
        01 DET TYPE DETAIL LINE PLUS 1.
           02 COLUMN 1 PIC 9 SOURCE AMT.
-       01 TYPE REPORT FOOTING LINE PLUS 1.
+       01 TYPE CONTROL FOOTING FINAL LINE PLUS 1.
           02 TOT COLUMN 1 PIC 99 SUM AMT.
        PROCEDURE DIVISION.
        DECLARATIVES.

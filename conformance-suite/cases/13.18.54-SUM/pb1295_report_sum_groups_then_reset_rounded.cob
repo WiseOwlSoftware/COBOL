@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1295_report_sum_groups_then_reset_rounded
       *> rules: [FMT-13.18.54.2]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
