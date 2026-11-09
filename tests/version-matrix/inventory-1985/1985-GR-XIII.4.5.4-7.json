@@ -5,11 +5,10 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-14.9.27.3-5",
-   "GR-14.9.27.4-11"
+   "SR-14.9.27.3-5"
   ],
   "bridge": true,
-  "reason": "1985: \"The NO REWIND phrase must only be used with: a. Sequential single reel/unit files. ... b. Sequential files wholly contained within a single reel\"; 2023: \"The NO REWIND phrase may be specified only for sequential files.\". 1985 limits NO REWIND to single-reel/unit sequential files. 2023 allows any sequential file, including multi-unit ones, and ignores the phrase where the medium does not apply (status '07').",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The NO REWIND phrase must only be used with: a. Sequential single reel/unit files ... b. Sequential files wholly contained within a single reel of tape within a multiple file tape environment.' 2023 keeps only 'The NO REWIND phrase may be specified only for sequential files' (§2023:14.9.27.3 SR5); no 2023 rule limits it to single-unit files, so NO REWIND on a multi-unit sequential file becomes allowed. Looser.",
+  "source": "adjudicate-712/slice-27"
  }
 }

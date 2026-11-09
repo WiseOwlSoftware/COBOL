@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.49.4-7",
-   "GR-14.9.49.4-12"
+   "GR-9.1.14-L2.1",
+   "DOC-A.1-218"
   ],
   "bridge": true,
-  "reason": "Both return control after the failing I-O statement unless the I-O status is fatal/critical, then the implementor decides. The SORT/MERGE item only defers to those statements' own rules.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR6: non-critical status -> control to the next executable statement after the I-O statement; critical -> 'the implementor determines what action is taken'. §2023:14.9.49.4 GR7 b) 'control is returned to an implicit CONTINUE statement following the input-output statement whose execution caused the exception', c) fatal EC-I-O -> 'the implementor determines what action is taken'; 9.1.14 level-2 rule 1 restates the return; §2023:A.1 item 218 keeps it implementor-defined. 1985 critical = 2023 fatal for 1985 statuses (7x needs 2023 features). GR7 a) defers to SORT/MERGE; GR12 is format 3. Same.",
+  "source": "adjudicate-712-r2/slice-03"
  }
 }

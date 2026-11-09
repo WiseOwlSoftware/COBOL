@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.35.4-21",
-   "GR-14.9.35.4-14"
+   "GR-14.9.35.4-14",
+   "GR-9.1.14-1"
   ],
   "bridge": true,
-  "reason": "GR21 keeps random/dynamic replacement by relative key and invalid key if no record; '23' is that cause's status. GR14 keeps no update, record area unaffected.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: random/dynamic REWRITE replaces the record named by the relative key; if absent, invalid key, unsuccessful, no update, record area unaffected, status set to the cause. §2023:14.9.35.4 GR21: same, status 'set to the invalid key condition '23''; §2023:14.9.35.4 GR14: 'no logical record updating takes place, the content of the record area is unaffected'; §2023:9.1.14 GR1 sets the invalid key status. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

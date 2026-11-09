@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-14.9.6.2",
    "GR-14.9.6.4-10"
   ],
   "bridge": true,
-  "reason": "2023 sets no CLOSE rule tying the files' organization or access. Each file-name-1 is closed as if by a separate CLOSE, so mixed files are accepted with the same effect.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: files in one CLOSE 'need not all have the same organization or access'. 2023 states no such restriction either: the format §2023:14.9.6.2 repeats file-name-1, and §2023:14.9.6.4 GR10 makes a multi-file CLOSE 'the same as if a separate CLOSE statement had been written for each file-name-1', so mixed organizations/access are accepted with the same per-file effect. No refusal or exception condition introduced.",
+  "source": "adjudicate-712/slice-32"
  }
 }

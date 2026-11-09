@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.2.3-5",
+ "rule-digest": "02a61f081c99",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-8.4.2.3.2",
+   "GR-8.4.2.3.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985 requires at compile time that the subscript data-name-2 'must be a numeric elementary item representing an integer'. In 2023 a subscript is arithmetic-expression-1 (§2023:8.4.2.3.2), whose identifiers need only reference a numeric data item (uncataloged §2023:8.8.1.1, 'an identifier referencing a numeric data item'), qualified as needed. A non-integer is no longer refused: §2023:8.4.2.3.4 GR1 says 'does not result in an integer, the EC-BOUND-SUBSCRIPT exception condition is set to exist'. A compile-time refusal became a run-time exception condition (error mode c). Integer subscripts in conforming 1985 programs behave the same.",
+  "source": "adjudicate-712/slice-28"
+ }
+}

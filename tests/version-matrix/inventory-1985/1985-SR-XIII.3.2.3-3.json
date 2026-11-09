@@ -6,13 +6,14 @@
   "edition": 2023,
   "to": [
    "SR-12.4.5.2-11",
+   "GR-12.4.5.3-8",
    "SR-12.4.5.2-8",
    "SR-12.4.5.2-9",
    "SR-13.4.5.3-7",
    "SR-13.4.5.3-8"
   ],
   "bridge": true,
-  "reason": "Report files take file control format 3 (sequential); formats 1/2 serve only indexed/relative files, whose FD is format 2, not the report format 3. Report file stays sequential.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'File-name-1 may only reference a sequential file.' In 2023 a report file's FD is Format 3 (§2023:13.4.5.3 SR8 'Format 3 is the file description entry for a report file'), not the relative/indexed Format 2 (§2023:13.4.5.3 SR7); its file control entry can only be Format 3, which 'shall be specified only for a sequential file or a report file' (§2023:12.4.5.2 SR11) and 'defines a file connector for a sequential file' (§2023:12.4.5.3 GR8), Formats 1 and 2 being indexed and relative only (§2023:12.4.5.2 SR8, SR9). Same compile-time refusals.",
+  "source": "adjudicate-712-r2/slice-14"
  }
 }

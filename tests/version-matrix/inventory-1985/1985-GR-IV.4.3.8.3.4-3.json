@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.3.4-3",
+ "rule-digest": "0d736d9e18c4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.6.4-4",
+   "GR-14.6.4-7"
+  ],
+  "bridge": true,
+  "reason": "1985: reference modification 'is evaluated immediately after evaluation of the subscripts', or without subscripts 'at the time subscripting would be evaluated' (§1985:IV.4.3.8.3.4 GR3). 2023 item identification evaluates, in order, subscript evaluation (§2023:14.6.4 GR4) and later reference modification (§2023:14.6.4 GR7), and item identification is done 'as the first step in the evaluation of that identifier'. The steps between them (object property evaluation, length of an occurs-depending group) are absent from 1985 programs or have no side effect, so reference modification is still evaluated directly after the subscripts, or where they would be. Same result.",
+  "source": "adjudicate-712/slice-04"
+ }
+}

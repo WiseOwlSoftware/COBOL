@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-10.6.1"
+   "FMT-10.6.1",
+   "FMT-11.2.1"
   ],
   "bridge": true,
-  "reason": "1985: \"identification-division [ environment-division ] [ data-division ] [ procedure-division ] [ end-program-header ]\"; 2023: \"[ IDENTIFICATION DIVISION. ] PROGRAM-ID. program-name-1 ... [ END PROGRAM program-name-1. ]\". Same division order with optional end marker, but 2023 makes the IDENTIFICATION DIVISION header optional, so a program opening with PROGRAM-ID alone is now accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 program structure is identification-division [environment-division] [data-division] [procedure-division] [end-program-header], and the identification-division opens with the required IDENTIFICATION DIVISION. header (IV.6.1.3.1). §2023:10.6.1 program-definition keeps the division order and the optional END PROGRAM marker but writes \"[ IDENTIFICATION DIVISION. ]\" and adds [ options-paragraph ]; §2023:11.2.1 restates the bracketed header for the identification division. A program that starts at PROGRAM-ID, refused by 1985, is accepted. End-marker presence rules belong to 1985 VI.2.3.3 GR2 and X.2.3.2 SR1, not to this format. Compile-time only.",
+  "source": "adjudicate-712/slice-01"
  }
 }

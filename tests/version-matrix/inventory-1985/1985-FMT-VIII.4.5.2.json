@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-14.9.30.2"
+   "FMT-14.9.30.2",
+   "SR-14.9.30.3-9",
+   "SR-14.9.30.3-10"
   ],
   "bridge": true,
-  "reason": "1985: \"[ AT END imperative-statement-1 ] [ NOT AT END imperative-statement-2 ]\"; 2023: \"zero or more of the enclosed alternatives may be specified, each at most once, in any order\". 2023 READ format accepts NOT AT END/NOT INVALID KEY before AT END/INVALID KEY, which 1985 refused. It also adds PREVIOUS, LOCK, retry and KEY phrases.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 relative READ: Format 1 READ f [NEXT] RECORD [INTO] [AT END][NOT AT END], Format 2 READ f RECORD [INTO] [INVALID KEY][NOT INVALID KEY], each pair in fixed order. §2023:14.9.30.2 adds PREVIOUS, ADVANCING ON LOCK, IGNORING LOCK, retry-phrase, WITH [NO] LOCK and puts the AT END/INVALID KEY pairs in choice indicators (either order); §2023:14.9.30.3 SR9 implies NEXT in dynamic mode when AT END is written, where 1985 SR3 required NEXT. The KEY phrase is not new for relative files (§2023:14.9.30.3 SR10 'only if ORGANIZATION IS INDEXED'). More forms accepted; 1985 forms keep their meaning. CHANGED (looser).",
+  "source": "adjudicate-712/slice-03"
  }
 }

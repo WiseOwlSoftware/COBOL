@@ -5,13 +5,15 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.4.5.5.3-1",
-   "GR-12.4.5.6.4-1",
+   "FMT-12.4.5.1",
+   "FMT-12.4.5.5.1",
+   "FMT-12.4.5.6.2",
+   "FMT-12.4.5.10.2",
    "GR-12.4.5.10.3-5",
-   "GR-12.4.5.12.4-1"
+   "FMT-12.4.5.12.2"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only says these four clauses are described separately. 2023 likewise gives ACCESS MODE, ALTERNATE RECORD KEY, ORGANIZATION INDEXED and RECORD KEY their own subclauses.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 pointer: the ACCESS MODE, ALTERNATE RECORD KEY, ORGANIZATION IS INDEXED and RECORD KEY clauses are specified on the following pages. Format 1 (indexed) of §2023:12.4.5.1 lists them, each specified in its own subclause (§2023:12.4.5.5.1, §2023:12.4.5.6.2, §2023:12.4.5.10.2, §2023:12.4.5.12.2); §2023:12.4.5.10.3 GR5 'The INDEXED phrase specifies that the file organization is indexed'. Merging the per-module descriptions is editorial; each clause's own changes are on its own records.",
+  "source": "adjudicate-712-r2/slice-02"
  }
 }

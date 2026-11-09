@@ -5,11 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-9.1.14-3",
-   "GR-14.9.49.4-6"
+   "GR-14.9.27.4-25",
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-3",
+   "GR-9.1.12-2"
   ],
   "bridge": true,
-  "reason": "With no INVALID KEY phrase, 2023 still runs the applicable USE procedure for the file. Only the new PERFORM WHEN can take precedence, and no 1985 program uses it, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 'A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed' on a file attribute conflict; §2023:14.9.27.4 GR25 d) 'Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed', the procedure associated and selected per §2023:14.9.49.4 GR3 and §2023:9.1.12 GR2 and run per §2023:14.9.49.4 GR6. GR25 c)'s exception-checking PERFORM needs 2023-only syntax. OPEN GR10 states the condition, not this rule.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

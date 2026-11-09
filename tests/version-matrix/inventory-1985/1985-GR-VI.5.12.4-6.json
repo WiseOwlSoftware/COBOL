@@ -6,11 +6,10 @@
   "edition": 2023,
   "to": [
    "GR-13.18.52.4-6",
-   "GR-13.18.40.4-14",
-   "SR-13.18.52.3-2"
+   "GR-13.18.40.4-14"
   ],
   "bridge": true,
-  "reason": "52.4-6 keeps the separate sign position (not a digit position) and '+'/'-'. PICTURE rule 14 counts 'S' in the size with SEPARATE. National usage is an extension; 1985 programs act the same.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 a) and c): with SEPARATE CHARACTER the sign is the leading/trailing character position, 'not a digit position', and '+'/'-'. §2023:13.18.52.4 GR6 a) and b) state the same ('basic special characters' for 1985 'standard data format characters'). 1985 b) ('S' counted in the size) is in §2023:13.18.40.4 GR14: 'the symbol 'S' is counted in the size of the item only when the subject of the entry is described with a SIGN clause with the SEPARATE phrase'.",
+  "source": "adjudicate-712/slice-09"
  }
 }

@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-12.4.5.3-1"
+   "GR-12.4.5.3-1",
+   "DOC-A.1-72",
+   "DOC-A.1-149"
   ],
   "bridge": true,
-  "reason": "1985: \"g. The same specification for the PADDING CHARACTER clause.\"; 2023: \"g) The same specification of COLLATING SEQUENCE clauses. h) The same specification of the RELATIVE KEY clause\". Same external-connector consistency rule, but the PADDING CHARACTER item is gone and new items are added (collating sequence, keys, FILE STATUS, sharing, lock modes), so different programs are refused.",
-  "source": "audit-1985/state-route"
+  "reason": "Items a-f carry over into §2023:12.4.5.3 GR1 a-f, with the implementor consistency rules documented per §2023:A.1 72 and §2023:A.1 149. But 1985 item g 'The same specification for the PADDING CHARACTER clause' is gone (2023 has no PADDING CHARACTER clause), and 2023 adds, for a report file's sequential FCE, 'i) The same specification of the FILE STATUS clause' (plus collating sequence, sharing and lock items). External report-file connectors that differ in FILE STATUS, legal in 1985, are now nonconforming.",
+  "source": "adjudicate-712/slice-23"
  }
 }

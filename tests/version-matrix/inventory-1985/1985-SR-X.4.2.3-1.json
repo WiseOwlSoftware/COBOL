@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.4.5.3-5"
+   "SR-13.4.5.3-5",
+   "FMT-13.4.5.2"
   ],
   "bridge": true,
-  "reason": "Both make Format 1 the sequential-file FD. The 1985 clause-availability sentence only points to Sequential I-O module levels, a subsetting matter like the level-2 box.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'Format 1 is the file description entry for a sequential file', with clause availability by Sequential I-O module level. 2023 §2023:13.4.5.3 SR5: 'Format 1 is the file description entry for a sequential file' (§2023:13.4.5.2 'Format 1 (sequential)'). Module-level availability is subsetting that gives a conforming 1985 program no different meaning. Same.",
+  "source": "adjudicate-712/slice-32"
  }
 }

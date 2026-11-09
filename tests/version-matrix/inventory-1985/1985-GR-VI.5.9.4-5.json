@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-13.18.40.4-7"
+   "GR-13.18.40.4-7",
+   "SR-13.18.40.3-2",
+   "GR-13.18.40.4-14"
   ],
   "bridge": true,
-  "reason": "1985: \"must contain at least one 'B' or '0' (zero) or '/' (slant)\"; 2023: \"at least one instance of character-1 or one of the symbols from the set 'B', '0', '/'\". Both require at least one A or X plus an insertion symbol. 2023 adds character-1 (an EDITING-phrase insertion symbol) as a further way to make an item alphanumeric-edited.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: alphanumeric edited uses only 'A', 'X', '9', 'B', '0', '/' and 'must contain at least one A or X and must contain at least one B or 0 (zero) or / (slant)'. §2023:13.18.40.4 GR7: 'at least one symbol A or one symbol X, and at least one instance of character-1 or one of the symbols from the set B, 0, /': character-1 of the new EDITING phrase is an added way to make an item alphanumeric-edited. Allowed combinations are those of §2023:13.18.40.3 SR2 (precedence table); content per symbol in §2023:13.18.40.4 GR14. Looser through the added symbol.",
+  "source": "adjudicate-712/slice-10"
  }
 }

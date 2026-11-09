@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-5",
+ "rule-digest": "7f7c451e34e1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.12.4-1",
+   "GR-14.9.12.4-2",
+   "GR-14.9.12.4-6",
+   "GR-14.9.12.4-7",
+   "FMT-14.9.12.2"
+  ],
+  "bridge": true,
+  "reason": "1985 format 5 (DIVIDE identifier-1 BY identifier-2 ... REMAINDER): the first operand divided by the second, then as format 4. The 2023 format 5 (§2023:14.9.12.2) writes identifier-2 BY identifier-1 and §2023:14.9.12.4 GR2 makes identifier-2 the dividend, so the written order means the same; §2023:14.9.12.4 GR1, GR6 and GR7 carry the format-4 process for both formats.",
+  "source": "adjudicate-712/slice-11"
+ }
+}

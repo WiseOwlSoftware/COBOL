@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.2.7.3-3",
+ "rule-digest": "cdc237709adb",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985 VII.2.7.3 SR3: PADDING CHARACTER data-name-1 'must be defined ... as a one-character data item of the category alphanumeric' outside the Communication, File and Report Sections. 2023 has no PADDING CHARACTER clause (none among the file control entry clauses of §2023:12.4.5; PADDING is not a 2023 reserved word; deleted in 2014 per docs/VERSION_CHANGE_REFERENCE.md row 7.20), so no 2023 rule carries this requirement.",
+  "source": "adjudicate-712/slice-31"
+ }
+}

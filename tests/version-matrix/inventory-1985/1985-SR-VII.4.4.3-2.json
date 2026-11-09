@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
+   "FMT-14.9.30.2",
    "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "1985: \"The AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.\"; 2023: \"If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement.\". 2023 READ syntax rules no longer require AT END. A READ with neither AT END nor an applicable USE, refused in 1985, is now accepted, and 2023 defines its execution.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 VII.4.4.3 SR2: 'The AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1' (a compile-time refusal). 2023's READ format §2023:14.9.30.2 makes AT END optional and no §2023:14.9.30.3 rule requires it; §2023:14.9.30.4 GR24 defines the case: I-O status '10' and, 'if enabled, the EC-I-O-AT-END exception condition is set to exist', and 'If the AT END phrase is not specified ... any applicable at end exception processing statements are executed. If there are none, control is transferred to the end of the READ statement.' A READ refused in 1985 is accepted in 2023 with run-time handling (error mode c: the refusal became a run-time condition).",
+  "source": "adjudicate-712/slice-31"
  }
 }

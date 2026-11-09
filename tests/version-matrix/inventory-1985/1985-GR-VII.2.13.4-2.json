@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.4.6.4.4-2"
+   "GR-12.4.6.4.4-2",
+   "GR-14.9.51.4-4",
+   "GR-14.9.35.4-6"
   ],
   "bridge": true,
-  "reason": "Same shared record area, all files may be open together, record of output files and last-read input file, left-aligned redefinition. The added exception restates the file-area one-open limit.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 SAME RECORD AREA: the files share the current-logical-record area, 'All of these files may be in the open mode at the same time', the record is one of each output file and of the most recently read input file, an implicit redefinition aligned leftmost. §2023:12.4.6.4.4 GR2 states each part ('All of these files may be in the open mode at the same time', 'aligned on the leftmost byte position'); its 'except' restates 1985 SR3c. WRITE and REWRITE restate the record's availability to the other files (§2023:14.9.51.4 GR4, §2023:14.9.35.4 GR6), as 1985 WRITE/REWRITE did. GR2's added availability sentences match §2023:14.9.6.4 GR7, the CLOSE-side change recorded on 1985-GR-VII.4.2.4-6.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

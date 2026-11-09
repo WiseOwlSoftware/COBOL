@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.32.4-4"
+   "GR-14.9.32.4-4",
+   "SR-14.9.32.3-3"
   ],
   "bridge": true,
-  "reason": "1985: \"MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE statement.\"; 2023: \"MOVE identifier-1 TO record-name-1 or MOVE literal-1 TO record-name-1 according to the rules specified for the MOVE statement\". The MOVE-then-RELEASE equivalence is kept. 2023 adds a FROM literal-1 case that 1985 lacks. The added undefined-result sentence follows from the equivalence.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.32.4 GR4 keeps the MOVE-then-RELEASE equivalence and adds 'MOVE literal-1 TO record-name-1' for the new FROM literal-1 form, which the 1985 format lacks. §2023:14.9.32.3 SR3 states the MOVE-validity part ('shall be valid as a sending operand in a MOVE statement'). The added undefined-result sentence and the overlap NOTE follow from the MOVE equivalence. A 1985 RELEASE FROM identifier means the same; the rule is looser.",
+  "source": "adjudicate-712/slice-22"
  }
 }

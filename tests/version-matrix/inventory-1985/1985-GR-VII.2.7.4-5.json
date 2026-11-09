@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.2.7.4-5",
+ "rule-digest": "764c504f450b",
+ "next": {
+  "kind": "REMOVED",
+  "to": [],
+  "reason": "1985 PADDING CHARACTER clause GR5: 'If the PADDING CHARACTER clause is not specified, the value used for the padding character will be defined by the implementor.' 2023 has no PADDING CHARACTER clause (absent from the file control formats of §2023:12.4.5.1 (General formats)) and no implementor-defined item in §2023:A.1 for a padding character value; §2023:9.1.1 'Padding characters are added or deleted as necessary' sets no default value. No 2023 rule carries this rule.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-15"
+ }
+}

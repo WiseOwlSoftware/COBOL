@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.4.5.3-7"
+   "SR-13.4.5.3-7",
+   "FMT-13.4.5.2"
   ],
   "bridge": true,
-  "reason": "Both make Format 2 the FD for relative or indexed files. The 1985 clause availability by module level is subsetting, not a language rule. The added indexed-file sentence is outside this rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'Format 2 is the file description entry for a relative file or an indexed file', clause availability by module level. 2023 §2023:13.4.5.3 SR7 says the same; its added sentence (an indexed FD needs a record description) is a separate requirement. Module-level availability is subsetting. Same.",
+  "source": "adjudicate-712/slice-32"
  }
 }

@@ -3,12 +3,14 @@
  "rule-digest": "064911f94892",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "FMT-14.9.6.2"
+   "FMT-14.9.6.2",
+   "SR-14.9.6.3-1",
+   "SR-14.9.6.3-2"
   ],
+  "reason": "§1985:VII.4.2.2 gives each file-name either {REEL | UNIT} [FOR REMOVAL] or WITH {NO REWIND | LOCK}; §1985:VII.4.2.4 GR3's table gives 'CLOSE WITH LOCK' its effect E ('The file is locked and cannot be opened again'). §2023:14.9.6.2 keeps {REEL | UNIT} [FOR REMOVAL] and 'WITH NO REWIND' but has no LOCK alternative, so CLOSE f WITH LOCK, conforming in 1985, is refused at compile time (not an exception condition). The 2023 format is the CLOSE of every organization, and §2023:14.9.6.3 SR1 ('The NO REWIND, REEL, and UNIT phrases may be used only with files that are of sequential organization') and SR2 ('The words REEL and UNIT are equivalent') state the rest of what the 1985 sequential format shows. Narrower: CHANGED.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"WITH { NO REWIND | LOCK }\"; 2023: \"└ WITH NO REWIND ┘ (no LOCK alternative in the 2023 CLOSE format)\". The 2023 CLOSE format keeps REEL/UNIT [FOR REMOVAL] and WITH NO REWIND but drops WITH LOCK, so CLOSE file WITH LOCK is no longer a valid format.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-02"
  }
 }

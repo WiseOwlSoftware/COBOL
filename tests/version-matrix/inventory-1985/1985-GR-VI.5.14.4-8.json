@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-8",
+ "rule-digest": "a291b779b1d8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.25.4-4",
+   "GR-14.9.30.4-4",
+   "GR-14.9.32.4-4",
+   "GR-14.9.34.4-5",
+   "GR-14.9.35.4-7",
+   "GR-14.9.51.4-5"
+  ],
+  "bridge": true,
+  "reason": "1985: a MOVE or input-output statement referencing a group containing an index data item does no conversion of it. §2023:14.9.25.4 GR4: a non-elementary move is alphanumeric 'except that there is no conversion of data from one form of internal representation to another' (the implementation carve-out names message-tag, object, pointer, not index); READ INTO §2023:14.9.30.4 GR4, RELEASE FROM, RETURN INTO, REWRITE FROM and WRITE FROM move by the MOVE rules. The rule refuses nothing; same effect.",
+  "source": "adjudicate-712-r2/slice-04"
+ }
+}

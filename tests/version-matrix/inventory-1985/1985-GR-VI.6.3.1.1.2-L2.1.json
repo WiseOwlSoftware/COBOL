@@ -3,12 +3,13 @@
  "rule-digest": "4d95c48d8718",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
-   "GR-8.8.4.2.7-1"
+   "GR-8.8.4.2.7-1",
+   "GR-8.8.4.2.1-13"
   ],
+  "reason": "1985: equal-size operands compared character by character from the high-order end until an unequal pair or the low-order end; equal if all pairs equal; the first unequal pair decides by collating sequence. §2023:8.8.4.2.7 GR1 restates this ('The operands are determined to be equal if all pairs of corresponding alphanumeric characters are equal'; the first unequal pair decides by the alphanumeric collating sequence), and §2023:8.8.4.2.1 GR13 ('For comparison, an alphanumeric group item shall be treated as an elementary alphanumeric data item', alphabetic as alphanumeric) keeps group and alphabetic operands under it as in 1985. Zero-length equality and national operands are new cases, and locale-based comparison applies only 'when the alphanumeric program collating sequence in effect is locale based' (§2023:8.8.4.2.7), which no 1985 program can specify. Same results.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "Same high-order-first comparison of equal-length operands, decided by the first unequal pair in the collating sequence. Zero-length items are new in 2023; alphabetic and group operands are treated as alphanumeric.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-13"
  }
 }

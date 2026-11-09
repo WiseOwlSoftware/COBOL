@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-2",
+ "rule-digest": "fc947c6d7b7b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.2.3-1",
+   "SR-8.4.2.2.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985 says 'Data-name-1 and data-name-2 may be qualified.' 2023's OCCURS clause has no rule of its own, but the general rules carry the permission for every explicitly referenced name. §2023:8.4.2.2.3 SR1 requires that uniqueness 'be established through a sequence of qualifiers', and §2023:8.4.2.2.3 SR2 says 'A name may be qualified even though it does not need qualification'. Nothing in 13.18.38 forbids qualification (§2023:13.18.38.3 SR2 forbids only subscripting). A 1985 program with a qualified DEPENDING or KEY data-name means the same. The implicit qualifiers of 8.4.2.2.1 rule 5 only relax when qualification is needed.",
+  "source": "adjudicate-712/slice-30"
+ }
+}

@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-14.9.12.4-6",
-   "GR-14.7.7-4"
+   "GR-14.7.7-4",
+   "GR-14.7.5-L2.1",
+   "GR-14.7.5-L2.2"
   ],
   "bridge": true,
-  "reason": "Quotient size error: id-3 unchanged and no remainder stored. Remainder size error: id-4 unchanged. Without the phrase 2023 leaves effects implementor-defined, so no real gap.",
-  "source": "audit-1985/state-route"
+  "reason": "With SIZE ERROR: a quotient size error leaves identifier-3 unchanged (§2023:14.7.7 GR4, §2023:14.7.5 GR1, GR2) and §2023:14.9.12.4 GR6 forms the remainder only 'If the size error condition is not raised', so identifier-4 is unchanged; a remainder size error leaves 'the content of identifier-4 ... unchanged' (GR6). Same as 1985 a and b.",
+  "source": "adjudicate-712/slice-11"
  }
 }

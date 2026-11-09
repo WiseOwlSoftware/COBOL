@@ -8,7 +8,7 @@
    "SR-13.18.45.3-8"
   ],
   "bridge": true,
-  "reason": "2023 still bars variable-length items and occurs-depending tables in the RENAMES range. The object, pointer and strongly-typed bans cover post-1985 features, so 1985 programs are unaffected.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: none of the items in the RENAMES range, data-name-2 and data-name-3 included, 'can be variable occurrence data items.' §2023:13.18.45.3 SR8: none 'shall be ... a variable-length data item, or an occurs-depending table'. The other classes listed (object, message-tag, pointer, strongly-typed) are post-1985 features. Same programs refused.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

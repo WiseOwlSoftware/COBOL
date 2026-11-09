@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.7.3-4"
+   "SR-13.7.3-4",
+   "FMT-14.2.1",
+   "FMT-14.9.4.2"
   ],
+  "reason": "1985 GR4 a-e lets a Linkage Section item be referenced 'if, and only if' it is a USING operand, subordinate to one, a REDEFINES/RENAMES of one, subordinate to such, or an associated condition-name/index-name; level 1 must permit at least five USING data-names. §2023:13.7.3 SR4 restates a-e ('It is an operand of the USING phrase or the RETURNING phrase of the procedure division header' ...); its additions (based items, RETURNING operands) need 2023-only syntax, so 1985 programs are accepted or refused alike, at compile time. The USING lists of §2023:14.2.1 and §2023:14.9.4.2 are unbounded, covering the five-name minimum.",
   "bridge": true,
-  "reason": "SR-13.7.3-4 restates conditions a-e. RETURNING and BASED are 2023-only features, so 1985 programs fare the same; the level-1 minimum of five is a level artifact.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-21"
  }
 }

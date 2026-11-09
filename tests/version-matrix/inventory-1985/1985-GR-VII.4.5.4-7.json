@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.35.4-1",
-   "GR-14.9.35.4-2"
+   "GR-14.9.35.4-2",
+   "GR-14.9.35.4-14"
   ],
   "bridge": true,
-  "reason": "REWRITE still updates the I-O status of the file of record-name-1, now called the rewrite file connector. The file-name-1 case only covers the new REWRITE FILE form; 1985 programs act the same.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 REWRITE GR7: execution updates the I-O status of the file associated with record-name-1. §2023:14.9.35.4 GR1 'causes the I-O status value in the rewrite file connector to be updated'; §2023:14.9.35.4 GR2 makes that connector record-name-1's file; §2023:14.9.35.4 GR14 restates it for failure. Same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

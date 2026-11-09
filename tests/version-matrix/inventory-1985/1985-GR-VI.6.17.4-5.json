@@ -10,7 +10,7 @@
    "GR-14.9.20.4-6"
   ],
   "bridge": true,
-  "reason": "Without REPLACING, VALUE or DEFAULT, 2023 MOVEs SPACES to alphabetic, alphanumeric and alphanumeric-edited items and ZEROES to numeric(-edited). VALUE is new syntax; 1985 programs act alike.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 without REPLACING: alphabetic, alphanumeric, alphanumeric edited 'set to spaces', numeric and numeric edited 'set to zeros', as an elementary MOVE. §2023:14.9.20.4 GR5 c)4 ('Neither the REPLACING phrase nor the VALUE phrase is specified'), §2023:14.9.20.4 GR6 c) (same categories to 'Figurative constant alphanumeric SPACES' / ZEROES), §2023:14.9.20.4 GR4 (implicit MOVE). The added table rows are for categories 1985 cannot declare; FILLER/VALUE/DEFAULT phrases belong to other rules.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

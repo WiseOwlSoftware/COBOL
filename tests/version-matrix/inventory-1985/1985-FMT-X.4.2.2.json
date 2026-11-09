@@ -7,10 +7,15 @@
   "to": [
    "FMT-13.4.5.2",
    "FMT-13.18.22.2",
-   "FMT-13.18.27.2"
+   "FMT-13.18.27.2",
+   "FMT-13.18.10.2",
+   "FMT-13.18.43.2",
+   "FMT-13.18.34.2",
+   "FMT-13.18.13.2",
+   "FMT-13.18.46.2"
   ],
   "bridge": true,
-  "reason": "1985: \"LABEL {RECORD IS|RECORDS ARE} {STANDARD|OMITTED} VALUE OF implementor-name-1 IS ... DATA {RECORD IS|RECORDS ARE}\"; 2023: \"FD file-name-1 [ IS EXTERNAL [ AS literal-1 ] ] [ IS GLOBAL ] [FORMAT ...] [ BLOCK CONTAINS ... ] [ record-clause ]\". The 2023 FD formats keep EXTERNAL and GLOBAL but drop the LABEL RECORDS, VALUE OF and DATA RECORDS clauses. They add AS literal-1 and FORMAT, so the accepted programs differ.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 IPC FD Formats 1-3 (sequential, relative/indexed, report) carry IS EXTERNAL, IS GLOBAL, BLOCK, RECORD, LABEL RECORD(S), VALUE OF, DATA RECORD(S), LINAGE, CODE-SET and REPORT(S). §2023:13.4.5.2 keeps the three formats with EXTERNAL (§2023:13.18.22.2, now with [AS literal-1]), GLOBAL (§2023:13.18.27.2), BLOCK (§2023:13.18.10.2), RECORD (§2023:13.18.43.2), LINAGE (§2023:13.18.34.2), CODE-SET (§2023:13.18.13.2, adding FOR ALPHANUMERIC/NATIONAL) and REPORT (§2023:13.18.46.2), adds FORMAT, but has no LABEL, VALUE OF or DATA RECORDS clause anywhere, so 1985 entries using them are refused. CHANGED (stricter and looser).",
+  "source": "adjudicate-712/slice-03"
  }
 }

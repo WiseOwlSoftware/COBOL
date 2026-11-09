@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-11.2.1"
+   "FMT-11.2.1",
+   "FMT-11.10.2",
+   "FMT-10.6.1"
   ],
   "bridge": true,
-  "reason": "1985: \"IDENTIFICATION DIVISION. PROGRAM-ID. ... [ AUTHOR. [ comment-entry ] … ] ... [ SECURITY. [ comment-entry ] … ]\"; 2023: \"[ IDENTIFICATION DIVISION. ] { program-id-paragraph | ... } [ options-paragraph ]\". 2023 makes the division header optional and drops the AUTHOR through SECURITY comment paragraphs. It adds other ID paragraphs and an OPTIONS paragraph.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: IDENTIFICATION DIVISION. PROGRAM-ID. program-identification-entry, then optional AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED and SECURITY paragraphs of comment-entries. §2023:11.2.1 has \"[ IDENTIFICATION DIVISION. ]\" (header optional) followed by one id paragraph and [ options-paragraph ], and §2023:10.6.1 restates the same for a program-definition; §2023:11.10.2 keeps PROGRAM-ID. program-name-1. No 2023 rule carries AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED or SECURITY (the paragraph names do not occur in the 2023 text), so a 1985 program using them is refused under 2023, while a program without the header is newly accepted. Both directions are compile-time.",
+  "source": "adjudicate-712/slice-01"
  }
 }

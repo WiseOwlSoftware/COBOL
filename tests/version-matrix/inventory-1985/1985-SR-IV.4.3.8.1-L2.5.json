@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-8.4.2.2.3-4"
+   "SR-8.4.2.2.3-4",
+   "FMT-8.4.2.2.2"
   ],
   "bridge": true,
-  "reason": "A record-name is a level-01 data-name. 2023 lets data-name-2 be any name tied to a level number the item is subordinate to, so record-names stay valid as qualifier or qualified name.",
-  "source": "audit-1985/state-route"
+  "reason": "A record-name is a level-01 data-name. §2023:8.4.2.2.3 SR4 admits as data-name-2 any 'name associated with a level number to which the item being qualified is subordinate', which includes a level-01 record. Format 1 of §2023:8.4.2.2.2 takes any data-name-1, record-names included. Same programs accepted.",
+  "source": "adjudicate-712/slice-28"
  }
 }

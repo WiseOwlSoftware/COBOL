@@ -2,14 +2,16 @@
  "rule-id": "1985-GR-XIII.3.19.4-9",
  "rule-digest": "c24c30935061",
  "next": {
-  "kind": "KEPT",
-  "edition": 2023,
+  "kind": "CHANGED",
   "to": [
-   "GR-13.18.54.4-7",
-   "GR-13.18.54.4-6"
+   "SR-13.18.54.3-4",
+   "SR-13.18.54.3-5",
+   "GR-13.18.54.4-6",
+   "GR-13.18.54.4-7"
   ],
-  "bridge": true,
-  "reason": "Item a is printed; items b and c are PROVISIONAL (a reconstruction of folio XIII-54, kb/Work PB4952). A sum counter of the same footing is added when that footing is processed (crossfooting), one of a lower footing when that footing is processed (rolling forward), and any other addend at each GENERATE, or each GENERATE of a detail the UPON phrase names (subtotalling). 2023 GR7 a), b) and c) state the same times.",
-  "source": "adjudication kb/Work PB4952"
+  "reason": "Item a is printed; items b and c are PROVISIONAL (a reconstruction of folio XIII-54, kb/Work PB4952), and the verdict rests on item a. 1985 GR9a: 'When the addend is a sum counter defined in the same control footing report group' it is crossfooted, at the control break when the footing is processed; §1985:XIII.3.19.3 SR1 permits sum-counter identifiers 'defined either in the same report group that contains this SUM clause' or a lower one. The timing survives: §2023:13.18.54.4 GR7 b) 'If data-name-1 is the name of an entry in the current report group description, adding takes place during the processing of the current report group before any of the report group's lines are printed', and §2023:13.18.54.4 GR6 completes the addend's own additions first. But the operand is now refused: a report-section sum counter can be an addend only as data-name-1 (§2023:13.18.54.3 SR5 'If the addend is identifier-1, it shall specify a numeric data item not defined in the report section'), and §2023:13.18.54.3 SR4 b) 'If data-name-1 is specified in the same report group description as the subject of the entry, data-name-1 shall be a repeating item' with at least one more level of repetition (§2023:13.15.4 GR3 'A report item is a repeating item if it is defined by a repeating entry'). A 1985 crossfoot of a non-repeating sum counter in the same control footing is legal in 1985 and rejected at compile time in 2023: stricter.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

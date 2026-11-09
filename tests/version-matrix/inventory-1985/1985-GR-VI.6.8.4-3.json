@@ -7,10 +7,11 @@
   "to": [
    "GR-8.8.1.2-7",
    "GR-11.9.5.2-1",
-   "GR-11.9.5.2-3"
+   "GR-11.9.5.2-4",
+   "GR-14.9.8.4-1"
   ],
   "bridge": true,
-  "reason": "1985: \"Thus, each implementor will indicate the techniques used in handling arithmetic expressions.\"; 2023: \"If the NATIVE phrase is specified, the techniques used in handling arithmetic expressions ... shall be those specified by the implementor\". The freedom from composite-of-operands and receiving-item restrictions is kept. Implementor-defined expression techniques now apply only under NATIVE; STANDARD-DECIMAL and STANDARD-BINARY are standard-defined.",
-  "source": "audit-1985/state-route"
+  "reason": "The freedom from composite-of-operands and receiving-item limits is kept: 'Arithmetic expressions allow the user to combine arithmetic operations without the restrictions on composite of operands and receiving data items' (§2023:8.8.1.2 GR7). With no ARITHMETIC clause 'it is as if the ARITHMETIC clause were specified with the NATIVE phrase' (§2023:11.9.5.2 GR4), and then 'the techniques used in handling arithmetic expressions and intrinsic functions shall be those specified by the implementor' (§2023:11.9.5.2 GR1), so 1985's implementor-chosen technique survives for a 1985 program. It is no longer unrestricted: under native arithmetic a COMPUTE whose expression is a single fixed-point literal or data item 'evaluates to the exact algebraic value of that literal or item' (§2023:14.9.8.4 GR1), a requirement 1985 left to the implementor. The requirement is stricter.",
+  "source": "adjudicate-712/slice-14"
  }
 }

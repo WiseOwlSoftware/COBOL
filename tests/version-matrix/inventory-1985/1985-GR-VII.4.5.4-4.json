@@ -2,13 +2,14 @@
  "rule-id": "1985-GR-VII.4.5.4-4",
  "rule-digest": "d430dccf0617",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.35.4-7"
+   "GR-14.9.35.4-7",
+   "SR-14.9.35.3-6"
   ],
   "bridge": true,
-  "reason": "2023 keeps REWRITE FROM as MOVE identifier-1 TO record-name-1, then REWRITE without FROM. The literal-1 form is added syntax; 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "2023 adds FROM literal-1 (§2023:14.9.35.4 GR7: \"MOVE literal-1 TO record-name-1\"), which the 1985 format refuses; the FROM identifier-1 case is unchanged. 1985 REWRITE GR4: REWRITE FROM = 'MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE statement', then REWRITE without FROM. §2023:14.9.35.4 GR7 states the same two steps ('MOVE identifier-1 TO record-name-1 ... according to the rules specified for the MOVE statement'); §2023:14.9.35.3 SR6 restates the MOVE-validity part. literal-1 and the FILE form are additions outside 1985 programs.",
+  "source": "adjudicate-712/slice-16"
  }
 }

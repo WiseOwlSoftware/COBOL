@@ -2,14 +2,14 @@
  "rule-id": "1985-GR-VI.6.19.4-5",
  "rule-digest": "7056d0d6937a",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "GR-14.9.25.4-4",
-   "GR-14.9.25.4-9"
+   "GR-13.18.38.4-8"
   ],
   "bridge": true,
-  "reason": "1985: \"Any move that is not an elementary move is treated exactly as if it were an alphanumeric to alphanumeric elementary move\"; 2023: \"Any move that is not an elementary move, and does not reference a variable-length group, is treated exactly as if\". 2023 drops the alphanumeric-move treatment for variable-length groups (incl. occurs-depending); GR 9 moves corresponding tables separately and space-fills excess.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.25.4 GR4 restates 1985 GR5: a non-elementary move 'is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion', filling the receiving area without regard to subordinate items, except as specified in OCCURS GR8, the exception 1985 GR5 names ('except as noted in the OCCURS clause'), now §2023:13.18.38.4 GR8 ('If the group is a receiving operand, the maximum length of the group will be used'). The variable-length-group, bit/national-group and message-tag/object/pointer carve-outs reach only 2023 item kinds (a 1985 occurs-depending group is not a variable-length group).",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

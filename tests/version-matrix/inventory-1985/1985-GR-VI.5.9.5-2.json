@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-13.18.40.5-2",
-   "GR-13.18.40.5-3"
+   "GR-13.18.40.5-3",
+   "GR-13.18.40.4-7"
   ],
   "bridge": true,
-  "reason": "1985: \"Alphanumeric edited | Simple insertion '0', 'B', and '/'\"; 2023: \"Alphanumeric-edited | Simple insertion; Character-1 and the symbols 'B', '0', '/', ',' ... are used as the simple insertion editing symbols\". Same category/editing table, but 2023 extends alphanumeric-edited simple insertion to character-1 (and ','), and limits floating-point numeric-edited editing.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 table: alphabetic, numeric, alphanumeric 'None'; alphanumeric edited 'Simple insertion 0, B, and /'; numeric edited 'All'. §2023:13.18.40.5 GR2 (Table 7) keeps None for those three and 'All' for fixed-point numeric-edited, but gives alphanumeric-edited plain 'Simple insertion', whose symbols per §2023:13.18.40.5 GR3 include 'Character-1' of the new EDITING phrase, which §2023:13.18.40.4 GR7 admits in alphanumeric-edited items. ',' is not usable there (Table 10 lets no ',' precede or follow 'A X'). Looser by character-1; floating-point and national rows are new.",
+  "source": "adjudicate-712/slice-10"
  }
 }

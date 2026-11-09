@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-14.9.43.4-1",
-   "GR-14.9.43.4-2"
+   "GR-14.9.43.4-2",
+   "GR-8.3.3.6.4-3",
+   "GR-8.3.3.6.4-1"
   ],
   "bridge": true,
-  "reason": "Delimiter and SIZE wording is the same. A figurative delimiter is still one character, and alphanumeric for display identifier-3. The dynamic-length and national cases only add new features.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.43.4 GR1 repeats both 1985 sentences ('If the SIZE phrase is used, the content of the complete data item defined by identifier-1 or literal-1 is moved'), adding only dynamic-length items (2023-only). The single-character figurative delimiter is §2023:14.9.43.4 GR2 ('an implicit one character data item whose usage shall be the same as the usage of identifier-3, either display or national'), §2023:8.3.3.6.4 GR3 ('When a figurative constant is other than ALL literal-1, the length of the string is one character') and, for 1985's 'nonnumeric', §2023:8.3.3.6.4 GR1 ('the figurative constant represents an alphanumeric character value'). Omitting DELIMITED (§2023:14.9.43.3 SR9) is format, not this rule.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

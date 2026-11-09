@@ -8,7 +8,7 @@
    "SR-8.4.2.3.3-5"
   ],
   "bridge": true,
-  "reason": "1985: \"a. In a USE FOR DEBUGGING statement.\"; 2023: \"d) In the KEY phrase of a SORT statement that references a table. ... g) As a data-name addend in the SUM clause\". Same subscripting rule and exceptions, but 2023 drops the USE FOR DEBUGGING exception and adds SORT table, screen FROM/TO/USING and report SUM addend exceptions.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:8.4.2.3.3 SR5 keeps the SEARCH subject, REDEFINES and OCCURS KEY IS exceptions. It drops 1985's 'In a USE FOR DEBUGGING statement' (the debug module is gone) and adds SORT KEY and table SORT, screen FROM/TO/USING, and 'As a data-name addend in the SUM clause of a report description entry'. The set of permitted unsubscripted references differs. No refusal became an exception condition.",
+  "source": "adjudicate-712/slice-28"
  }
 }

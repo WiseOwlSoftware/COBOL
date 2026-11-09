@@ -12,10 +12,11 @@
    "GR-9.1.13.7-6",
    "GR-9.1.13.7-7",
    "GR-9.1.13.7-8",
-   "GR-9.1.13.7-9"
+   "GR-9.1.13.7-9",
+   "GR-14.9.35.4-18"
   ],
   "bridge": true,
-  "reason": "1985: \"attempted on a file not open in the I-O, output, or extend mode\"; 2023: \"If the access mode is sequential, the file connector is not open in the extend or output mode.\". A sequential-access WRITE in I-O mode now gets status 48, which the 1985 list did not give. The 44 case for a different-size indexed rewrite is gone; 2023 covers only sequential files.",
-  "source": "audit-1985/state-route"
+  "reason": "41, 42, 43, 46, 47, 49 keep their 1985 cases (46: an at-end READ is an unsuccessful READ, §2023:9.1.13.7 GR6 b) 'The preceding READ statement referencing that file connector was unsuccessful'; 41/42 add only DELETE FILE/UNLOCK). Two results differ. 1985 g. 'WRITE ... on a file not open in the I-O, output, or extend mode' gives no 48 for a sequential-access WRITE in I-O mode; §2023:9.1.13.7 GR8 a) 'If the access mode is sequential, the file connector is not open in the extend or output mode' gives 48. And 1985 d.2) 'rewrite a record to an indexed file and the record is not the same size' (44) is gone: 44 b) now covers only 'a sequential file' (§2023:9.1.13.7 GR4) and §2023:14.9.35.4 GR18 says for relative and indexed files the size 'may differ from the number of bytes in the record being replaced'.",
+  "source": "adjudicate-712/slice-06"
  }
 }

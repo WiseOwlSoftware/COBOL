@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.6.4-3"
+   "GR-14.9.6.4-3",
+   "FMT-14.9.6.2",
+   "SR-14.9.6.3-2"
   ],
   "bridge": true,
-  "reason": "1985: \"CLOSE WITH LOCK | C,E | C,E,G | A,C,E,G ... E. File Lock The report file is locked and cannot be opened again\"; 2023: \"Table 14 rows: CLOSE, CLOSE WITH NO REWIND, CLOSE UNIT, CLOSE UNIT FOR REMOVAL (no WITH LOCK row); c) Close file Closing operations specified\". Same CLOSE category/format table, but 2023 drops the WITH LOCK row (E), the label processing in C and F, and adds I-O status '07' for non-unit media.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 Table 1 has a CLOSE WITH LOCK row (E: the report file 'is locked and cannot be opened again during this execution of this run unit') and label processing in C and F. 2023 §2023:14.9.6.4 GR3 Table 14 keeps the CLOSE, NO REWIND, UNIT and UNIT FOR REMOVAL cells (REEL and UNIT equivalent, §2023:14.9.6.3 SR2) but has no LOCK row, the format §2023:14.9.6.2 has no WITH LOCK, and c) is only 'Closing operations specified by the implementor are executed'. A 1985 CLOSE WITH LOCK of a report file is refused and label processing is gone. The '07' for ignored phrases is not new (1985 F defers to I-O status 07).",
+  "source": "adjudicate-712/slice-26"
  }
 }

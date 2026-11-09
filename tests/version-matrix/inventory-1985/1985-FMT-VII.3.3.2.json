@@ -2,13 +2,15 @@
  "rule-id": "1985-FMT-VII.3.3.2",
  "rule-digest": "a8b4efb8ecfb",
  "next": {
-  "kind": "KEPT",
-  "edition": 2023,
+  "kind": "CHANGED",
   "to": [
-   "FMT-13.18.10.2"
+   "FMT-13.18.10.2",
+   "SR-13.18.10.3-1",
+   "FMT-13.4.5.2"
   ],
+  "reason": "The diagram is the same in both editions: §1985:VII.3.3.2 and §2023:13.18.10.2 are 'BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS | CHARACTERS}' (the 1985 level-2 box and the order of the alternatives are no difference). But 2023 restricts its operands where 1985 does not: §2023:13.18.10.3 SR1, 'If integer-1 is specified, integer-2 shall be greater than integer-1'. 1985 has no syntax rule for the clause, and §1985:VII.3.3.3 GR4 only names them 'the minimum and maximum size of the physical record', so BLOCK CONTAINS 10 TO 10 RECORDS (or 20 TO 10), conforming in 1985, is refused at compile time in 2023: CHANGED, stricter. The sequential file description entry §2023:13.4.5.2 'Format 1 (sequential)' restates the clause in line, as the 1985 FD format did.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "Both formats are BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS|CHARACTERS}. Under the instructions the level-2 box around integer-1 TO is no difference.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-02"
  }
 }

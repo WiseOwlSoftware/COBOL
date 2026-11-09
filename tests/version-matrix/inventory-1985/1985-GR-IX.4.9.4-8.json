@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.51.4-14",
-   "GR-14.9.51.4-15"
+   "GR-14.9.51.4-15",
+   "GR-9.1.13.7-4"
   ],
   "bridge": true,
-  "reason": "Same RECORD IS VARYING size bounds and the same unsuccessful WRITE: no write, record area unaffected. '44' is the boundary-violation status 1985 refers to; literal/FORMAT cover new syntax.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR8: the record must lie within the RECORD IS VARYING bounds, else the WRITE is unsuccessful, does not take place, record area unaffected, status to the cause (44). §2023:14.9.51.4 GR14 'shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause', else '44'; §2023:14.9.51.4 GR15 the same unsuccessful effect; §2023:9.1.13.7 GR4 defines 44. Bytes vs character positions is unit wording for 1985 data; literal-1/FILE/FORMAT are 2023 syntax. GR1 (status update) is GR7's counterpart. Same.",
+  "source": "adjudicate-712-r2/slice-03"
  }
 }

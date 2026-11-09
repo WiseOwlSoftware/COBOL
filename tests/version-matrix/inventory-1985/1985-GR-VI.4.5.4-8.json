@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.3.7.4-11"
+   "GR-12.3.7.4-11",
+   "GR-8.3.3.6.4-10"
   ],
   "bridge": true,
-  "reason": "The implied ALPHANUMERIC case keeps the rule: the character at ordinal integer-1 in the native set, or in the IN alphabet's set. NATIONAL is a new phrase that leaves 1985 programs unaffected.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: without IN, symbolic-character-1 is the character at ordinal integer-1 in the native character set; with IN, at that ordinal in alphabet-name-2's set. §2023:12.3.7.4 GR11 b): with ALPHANUMERIC specified or implied (always, for 1985 text), 'the value of figurative constant symbolic-character-1 is the representation of the coded character at ordinal position integer-1 in the native alphanumeric character set or, if the IN phrase is specified, in the character set referenced by alphabet-name-3'; §2023:8.3.3.6.4 GR10 makes the figurative constant represent that character. NATIONAL is new syntax.",
+  "source": "adjudicate-712/slice-09"
  }
 }

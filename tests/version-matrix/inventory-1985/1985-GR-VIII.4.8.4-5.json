@@ -5,10 +5,14 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.49.4-6"
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-5",
+   "GR-9.1.14-2",
+   "GR-9.1.14-3",
+   "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "Rules a-e on when USE procedures run match. The added exception-checking PERFORM condition concerns only 2023 syntax, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: USE procedures run after the standard exception routine 'unless an AT END or INVALID KEY phrase takes precedence', cases a-e. §2023:14.9.49.4 GR6 repeats the sentence and a)-e); its exception-checking PERFORM proviso always holds for a 1985 program. §2023:14.9.49.4 GR5 (file-name-1 precedence), §2023:9.1.14 GR2/GR3 and §2023:14.9.30.4 GR24 ('Any other applicable exception processing statements are not executed') restate the precedences. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

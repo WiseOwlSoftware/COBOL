@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.12.4-3"
+   "GR-14.9.12.4-3",
+   "GR-14.9.12.4-6"
   ],
   "bridge": true,
-  "reason": "Both are DIVIDE cross-reference rules. 2023 folds overlapping operands and multiple results into 14.7.7 (GR-14.7.7-4); the remainder rounding/size-error rules are now GR 6.",
-  "source": "audit-1985/state-route"
+  "reason": "A cross-reference in both editions: §2023:14.9.12.4 GR3 'Additional rules and explanations relative to this statement are given in' ROUNDED, SIZE ERROR and 14.7.7 Arithmetic statements (multiple results, overlap); the formats 4-5 pointer is §2023:14.9.12.4 GR6, which presents the remainder truncation and size error. No requirement differs.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

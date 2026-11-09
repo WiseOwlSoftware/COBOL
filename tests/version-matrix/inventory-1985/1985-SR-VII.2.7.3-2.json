@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.2.7.3-2",
+ "rule-digest": "7fd21581dbe8",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985 VII.2.7.3 SR2: PADDING CHARACTER 'Data-name-1 may be qualified.' The PADDING CHARACTER clause does not exist in 2023: the file control entry formats and clauses of §2023:12.4.5 contain no PADDING clause and the word PADDING is not a 2023 reserved word (deleted by the 2014 edition, docs/VERSION_CHANGE_REFERENCE.md row 7.20). With the clause gone, the rule on its operand has no 2023 counterpart.",
+  "source": "adjudicate-712/slice-31"
+ }
+}

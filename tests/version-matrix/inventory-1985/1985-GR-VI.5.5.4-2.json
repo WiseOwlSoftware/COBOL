@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-13.18.20.4-1"
+   "GR-13.18.20.4-1",
+   "SR-13.18.20.3-3",
+   "SR-13.16.3-24"
   ],
   "bridge": true,
-  "reason": "1985: the key word FILLER may be used to name a data item. 2023: the word FILLER may be used to name a data, report, or screen item. The ban on an explicit reference is the same, but the items FILLER may name widened (report items from 2002, Annex F.2 item 53), so the record is CHANGED: the EDITION GATES audit found the report-filler-2002 gate contradicted by a KEPT link (kb/Work PB4996).",
-  "source": "kb/Work PB4996 (edition-gate audit re-adjudication of audit-1985/state-route)"
+  "reason": "1985: 'The key word FILLER may be used to name a data item. Under no circumstances can a FILLER item be referred to explicitly'; FILLER may name a conditional variable. §2023:13.18.20.4 GR1: 'The word FILLER may be used to name a data, report, or screen item. Under no circumstances shall a FILLER item be referred to explicitly'; §2023:13.18.20.3 SR3 admits FILLER in a report group description entry, which the 1985 format '01 [data-name-1]' refuses; §2023:13.16.3 SR24 keeps the conditional-variable allowance. FILLER-named report/screen items are accepted: range widened.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

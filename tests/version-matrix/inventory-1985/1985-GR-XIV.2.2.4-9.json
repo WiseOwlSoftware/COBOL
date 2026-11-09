@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-9",
+ "rule-digest": "d914cadc3664",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: the MCS stores in data-name-6 of the communication description entry 'the time at which it recognized that the message was complete in the form HHMMSSTT', updated only by RECEIVE. 2023 has no communication section or communication description entry; its RECEIVE statement 'receives a message from a server run unit' through a message-tag data item and a length data item (§2023:14.9.31.4 GR1) and sets no message-completion time. No 2023 rule carries the requirement.",
+  "source": "adjudicate-712/slice-27"
+ }
+}

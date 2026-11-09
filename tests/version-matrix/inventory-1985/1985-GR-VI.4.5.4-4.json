@@ -8,7 +8,7 @@
    "GR-12.3.7.4-7"
   ],
   "bridge": true,
-  "reason": "1985: \"If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause\"; 2023: \"If a character code set is being specified, the implementor defines the ordinal number within the character code set\". 2023 lets a literal-phrase alphabet define a coded character set (Table 6: Y), so CODE-SET may use it. STANDARD-2 may also be the IRV or a national version, as the implementor specifies.",
-  "source": "audit-1985/state-route"
+  "reason": "Both relate an alphabet-name to a code set and/or collating sequence by the context that references it, and NATIVE names the native set and sequence (§2023:12.3.7.4 GR7 NOTE 2, Table 6, d)). Differs: 1985 'If the STANDARD-2 phrase is specified, the character code set identified is the International Reference Version of the ISO 7-bit code'; §2023:12.3.7.4 GR7 c): 'the implementor shall specify whether the International Reference Version or a national version is referenced'. STANDARD-1 moves from ANSI X3.4-1977 to 'ISO/IEC 646 International Reference Version', and the collating sequence of both is the ISO/IEC 646 order.",
+  "source": "adjudicate-712/slice-09"
  }
 }

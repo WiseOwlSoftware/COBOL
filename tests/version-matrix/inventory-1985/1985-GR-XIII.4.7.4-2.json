@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.46.4-2"
+   "GR-14.9.46.4-2",
+   "GR-13.18.57.4-6"
   ],
   "bridge": true,
-  "reason": "Both say that without an intervening GENERATE, TERMINATE prints no report groups and does no related processing. Making the report inactive is TERMINATE's normal effect, not a new requirement.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: with no GENERATE between INITIATE and TERMINATE, TERMINATE does not 'produce any report groups or perform any of the related processing'. 2023: it 'causes no processing of any kind to take place for any report groups and has the sole effect of changing the state of the report to inactive' (§2023:14.9.46.4 GR2); §2023:13.18.57.4 GR6 prints control and report footings at TERMINATE only 'provided that at least one GENERATE statement has been executed'. Ending the active state is what every 1985 TERMINATE does (1985 GR4), so same effect.",
+  "source": "adjudicate-712/slice-27"
  }
 }

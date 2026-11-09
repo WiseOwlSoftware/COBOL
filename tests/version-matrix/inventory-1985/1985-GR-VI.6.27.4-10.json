@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-10",
+ "rule-digest": "695bc9ee95a6",
+ "next": {
+  "kind": "KEPT",
+  "to": [
+   "GR-13.18.40.4-14"
+  ],
+  "reason": "1985: 'Literal-1 or the content of the data item referenced by identifier-2 can contain any character in the computer's character set.' 2023 drops the sentence from UNSTRING but keeps the permission in the general definitions that §2023:14.9.48.3 SR1 and §2023:14.9.48.3 SR2 make apply (delimiters are alphanumeric or national literals or items): for literals, §2023:8.1.2 'the content of alphanumeric and national literals, except for hexadecimal formats, may contain any characters in the computer's coded character set used for writing source code' (prose with no catalog rule id), and for identifier-2, §2023:13.18.40.4 GR14 'Each symbol 'X' represents a character position that shall contain any character from the computer's alphanumeric character set'. No UNSTRING rule restricts delimiter content, so every 1985 delimiter is still valid and means the same.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-13"
+ }
+}

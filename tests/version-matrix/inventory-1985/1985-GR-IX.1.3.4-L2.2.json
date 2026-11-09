@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-9.1.13.4-1",
-   "GR-14.9.30.4-21"
+   "GR-14.9.30.4-21",
+   "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "Status 10 still covers end of file and a first sequential READ on an absent optional file. The added PREVIOUS case only concerns a new 2023 phrase; 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "KEPT: 1985 status 10 when a sequential READ finds no next logical record because the end of file is reached or it is the first sequential READ of an absent optional input file; §2023:9.1.13.4 GR1 keeps both (\"NEXT was specified or implied and the end of the physical file has been reached\"; \"a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present\"), §2023:14.9.30.4 GR21 sets '10' for those positions and GR24 makes the READ unsuccessful when \"the at end condition exists\". The PREVIOUS case needs 2023-only syntax; EC-I-O-AT-END is set only if enabled.",
+  "source": "adjudicate-712/slice-05"
  }
 }
