@@ -1,4 +1,4 @@
-## PB4996: the compiler's edition gates are held to the rule lineage, and the band drift is measured
+## Entry 3359 — 2026-11-08 21:38 PST — PB4996: the compiler's edition gates are held to the rule lineage, and the band drift is measured
 
 Lineage slice 5 (kb/Work PB4996; DESIGN-spec-conformance-review.md §10.2). Two mechanisms.
 
@@ -64,3 +64,4 @@ syntax is new, and that is the diagram's.
 Self-review: one reader of the change-record kinds (the schema's `chained` flag, no kind spelled in either module), the
 citation parser reused, the word lists held as citations rather than an edition branch, a rule designator read by its prefix (`GR25e-f` is GR25), the views read once per audit, the planted self-test citations real locators of the 1985 text.
 Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,713/22,713 · Unit 40,567/40,567 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261109T014218Z, at the first checkpoint; the branch head is re-gated after the self-review fixes).
+
