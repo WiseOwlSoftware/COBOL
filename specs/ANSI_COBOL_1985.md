@@ -30011,7 +30011,15 @@ Implementor-Defined Element List
 
 (84) <u>RANDOM function</u>. If the first reference to this function in the run unit does not specify argument-1, the seed value is defined by the implementor. (See 2.35.3, rule 3, on page A-64.)
 
+(85) **ALPHABET clause in SPECIAL-NAMES paragraph.** The implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase. (See 4.5.4, general rule 4d, subitem 4 on page VI-16.)
+
+(86) **OPEN statement.** The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. (See 4.3.4 general rule 8, on page VII-41; 4.4.4, general rule 8, on page VIII-24; 4.4.4, general rule 8, on page IX-26; 4.5.4, general rule 6, on page XIII-71.)
+
+(87) **RANDOM function.** The implementor will specify the subset of the domain of argument-1 values that will yield distinct sequences of pseudo-random numbers. (See 2.35.4, rule 3, on page A-64.)
+
 > ⚠ **CORRECTED — see the Errata (C174).** The standard prints `(80) SEND statement ... (the item they follow)` (page 801, folio XVII-93). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-93 (page 854, folio A-24), applied in place: "Add the following after item 80" (kb/Work PB5045). Corrected to `(81) Integer and Numeric Functions ... (82) Types of Functions ... (83) CHAR function ... (84) RANDOM function ...`.
+
+> ⚠ **CORRECTED — see the Errata (C333).** The standard prints `(the list ends with item 84)` (page 801, folio XVII-93). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-93 (A-24) (page 958, folio B-46), applied in place: "Insert items 85 through 87 after item 84 in the Implementor-Defined Language Element List" (item 84 is Amendment 1's) (kb/Work PB5045). Corrected to `(85) ALPHABET clause in SPECIAL-NAMES paragraph ... (86) OPEN statement ... (87) RANDOM function ... (above)`.
 
 XVII-93
 
@@ -30149,9 +30157,29 @@ Undefined Element List
 
 (28) <u>SEND statement</u>. If the value of the data item referenced by identifier-3 is negative, the results are undefined. (See 3.6.4, general rule 15b, on page XIV-29.)
 
-(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined. (See 1.2.2, on page A-27.)
+(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined. (See 1.2.2, on page A-27.)
+
+(30) **MERGE statement.** For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement. (See 4.1.4, general rule 7c, on page XI-11.)
+
+> ⚠ **CORRECTED — see the Errata (C336).** The standard prints `(See 4.1.4, general rule 17c, on page XI-11.)` (page 806, folio XVII-98). A rule number misprinted in Amendment 2's new item 30 (its page 959, folio B-47, prints 'general rule 17c'): the MERGE statement has thirteen general rules, and the sentence item 30 restates ("For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement") is the one Amendment 2 adds to general rule 7c on page XI-11 (C293), so the reference is general rule 7c (kb/Work PB5045). Corrected to `(See 4.1.4, general rule 7c, on page XI-11.)`.
+
+(31) **MERGE statement.** The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 or file-name-3 is undefined upon completion of the MERGE statement. (See 4.1.4, general rule 7, on page XI-11.)
+
+(32) **MERGE statement.** The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the MERGE statement for which the GIVING phrase is specified. (See 4.1.4, general rule 11, on page XI-12.)
+
+(33) **SORT statement.** For a relative file, the content of the relative key data item associated with file-name-2 is undefined after the execution of the SORT statement if file-name-2 is not referenced in the GIVING phrase. (See 4.4.4, general rule 9c, on page XI-19.)
+
+(34) **SORT statement.** The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 is undefined upon completion of the SORT statement. (See 4.4.4, general rule 9, on page XI-19.)
+
+(35) **SORT statement.** The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the SORT statement for which the GIVING phrase is specified. (See 4.4.4, general rule 12, on page XI-20.)
+
+(36) **Intrinsic functions.** The evaluation of an ALL subscript must result in at least one argument, otherwise the result of the reference to the function-identifier is undefined. (See 2.2 on page A-29.)
 
 > ⚠ **CORRECTED — see the Errata (C175).** The standard prints `(28) SEND statement ... (the item it follows)` (page 806, folio XVII-98). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-98 (page 854, folio A-24), applied in place: "Add the following after item 28" (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C334).** The standard prints `(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined. (See 1.2.2, on page A-27.)` (page 806, folio XVII-98). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-98 (A-24) (page 959, folio B-47), applied in place: "In the change to page XVII-98 inserting item 29 in the Undefined Language Elements List, replace the first sentence after the header Intrinsic functions with the following" (item 29 is Amendment 1's) (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C335).** The standard prints `(the list ends with item 29)` (page 806, folio XVII-98). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-98 (A-24) (page 959, folio B-47), applied in place: "Insert the following after item 29 in the Undefined Language Element List" (kb/Work PB5045). Corrected to `(30) MERGE statement ... (36) Intrinsic functions ... (above)`.
 
 XVII-98
 
@@ -30163,122 +30191,7 @@ Index
 
 # INDEX
 
-'A' PICTURE symbol, VI-31
-Abbreviated combined relation conditions, VI-60
-ACCEPT MESSAGE COUNT statement, XIV-17
-   USE FOR DEBUGGING statement, XV-7
-ACCEPT statement, VI-71
-   Imperative statement, IV-39
-   Mnemonic-name, VI-13
-   SPECIAL-NAMES paragraph, VI-13
-ACCESS MODE clause
-   DYNAMIC, VIII-8, VIII-10, IX-8, IX-10
-   RANDOM, VIII-8, VIII-10, IX-8, IX-10
-   SEQUENTIAL, VII-7, VII-9, VIII-8, VIII-10, IX-8,
-      IX-10, XIII-3
-Access modes, VII-1, VIII-2, IX-2
-Accessing data and files, II-19
-ADD statement, VI-73
-   Composite of operands, VI-69
-   COMPUTE statement, VI-76
-   Conditional statement, IV-37
-   CORRESPONDING (CORR), VI-68
-   Data conversion, VI-69
-   Decimal alignment, VI-69
-   Imperative statement, IV-39
-   Maximum operand size, VI-69
-   Multiple results, VI-69
-ADD CORRESPONDING (ADD CORR) statement,  VI-68,
-      VI-73
-Additional language elements, I-7
-ADVANCING phrase
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-AFTER phrase
-   INSPECT statement, VI-94
-   PERFORM statement, VI-109, VI-110
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-Algebraic sign, IV-16
-Alignment of data, IV-16
-   Synchronization, IV-17
-ALL
-   Figurative constant, IV-11
-   INSPECT statement, VI-94
-   SEARCH statement, VI-122
-   UNSTRING, VI-136
-   USE FOR DEBUGGING statement, XV-5
-ALL literal, IV-11
-   INSPECT statement, VI-95
-   STOP statement, VI-130
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-ALL PROCEDURES phrase, XV-5
-ALL REFERENCES OF phrase, XV-5
-ALPHABET clause, VI-13
-Alphabet-name, III-1, IV-6, VI-13
-   CODE-SET clause, VII-24
-   MERGE statement, XI-8
-   SORT statement, XI-16
-
-ALPHABETIC
-   Class condition,·VI-57
-   INITIALIZE statement, VI-92
-Alphabetic category, IV-15, VI-29, VI-48,
-      VI-104
-Alphabetic class, IV-15, VI-56
-Alphabetic data item, VI-29
-ALPHABETIC-LOWER, VI-57
-ALPHABETIC-UPPER, VI-57
-ALPHANUMERIC, VI-92
-Alphanumeric category, IV-15, VI-29, VI-48,
-      VI-104
-Alphanumeric character, III-1
-Alphanumeric class, IV-15
-Alphanumeric data item, VI-30
-ALPHANUMERIC-EDITED, VI-92
-Alphanumeric edited category, IV-15, VI-29,
-      VI-48, VI-104
-Alphanumeric edited data item, VI-30
-ALSO phrase
-   ALPHABET clause, VI-13
-   EVALUATE statement, VI-84
-ALTER statement, VI-75
-   GO TO statement, VI-89
-   Imperative statement, IV-39
-   Initial state of program, X-10
-   Segmentation, XVI-8
-   Transfer of control, IV-26
-   USE FOR DEBUGGING statement, XV-6
-ALTERNATE RECORD KEY clause, IX-8, IX-11
-AND
-   Abbreviated combined relation condition,
-      VI-61
-   Combined condition, VI-59
-   Evaluation order, VI-61
-   Logical operator, VI-59
-   SEARCH statement, VI-122
-ANY, VI-84
-Area A, IV-41
-Area B, IV-41
-Arithmetic expression, VI-51
-   COMPUTE statement, VI-76
-   EVALUATE statement, VI-84
-   Relation condition, VI-54
-   SEARCH statement, VI-122
-   Sign condition, VI-58
-Arithmetic operator, IV-9, VI-52
-Arithmetic statement, III-2, VI-69
-ASCENDING KEY phrase
-   MERGE statement, XI-8
-   OCCURS clause, VI-26
-   SORT statement, XI-16
-ASSIGN clause
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Sequential I-O module, VII-7
-   Sort-Merge module, XI-2
+> ⚠ **CORRECTED — see the Errata (C337).** The standard prints `the index on pages XVIII-1 through XVIII-13 (PDF pages 807 to 819)` (page 807, folio XVIII-1). Amendment 2 (ANSI X3.23b-1993), its change for page XVIII-1 (page 960, folio B-48), applied in place: "Replace the index on pages XVIII-1 through XVIII-13 with the index on pages B-49 through B-64." The base index's entries are deleted from pages 807 to 819 (each keeps its running header and folio), and this transcription holds the replacement once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2). Addendum 1's additions to the base index (its rows XVIII-1 through XVIII-13) are superseded by this replacement and are not applied (kb/Work PB5045). Corrected to `the index replaced by Amendment 2's (pages B-49 through B-64), held once where Amendment 2 prints it (under AMENDMENT 2, `# INDEX`, PDF pages 961 to 976)`.
 
 XVIII-1
 
@@ -30286,298 +30199,11 @@ XVIII-1
 
 Index
 
-Asterisk (*) comment line, IV-42
-Asterisk (*) PICTURE symbol, VI-32, VI-35
-At end condition, VII-5, VIII-6, IX-7
-   READ statement, VII-46, VIII-28, IX-30
-   RETURN statement, XI-14
-AT END phrase
-   READ statement, VII-44, VIII-26, IX-28
-   RETURN statement, XI-14
-   SEARCH statement, VI-122
-AT END-OF-PAGE phrase, VII-52
-AUTHOR paragraph, VI-6
-
-'B' PICTURE symbol, VI-31, VI-33
-BEFORE phrase
-   INSPECT statement, VI-94
-   PERFORM statement, VI-109, VI-110
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-BINARY, VI-46
-Binary arithmetic operators, VI-52
-Blank line, IV-42
-BLANK WHEN ZERO clause, VI-22
-   PICTURE clause, VI-29
-   Report group description entry, XIII-21
-   USAGE IS INDEX clause, VI-46
-   VALUE clause, VI-49
-BLOCK CONTAINS clause
-   Indexed I-O module, IX-16
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22, VII-23
-Body group presentation rules, XIII-32
-Braces, IV-2
-Brackets, IV-2
-BY
-   COPY statement, XII-2
-   DIVIDE statement, VI-80
-   INITIALIZE statement, VI-92
-   INSPECT statement, VI-94
-   MULTIPLY statement, VI-107
-   PERFORM statement, VI-110
-BY CONTENT phrase, X-27
-BY REFERENCE phrase, X-27
-
-CALL statement, X-27
-   CANCEL statement, X-31
-   Conditional statement, IV-37
-   EXIT PROGRAM statement, X-33
-   Imperative statement, IV-39
-   Linkage Section, X-13
-   PERFORM statement, VI-120
-   Procedure Division header, X-25
-   Transfer of Control, II-23, IV-26
-Called program, III-2, X-27
-Calling program, III-2, X-27
-CANCEL statement, X-31
-   CALL statement, X-29
-   EXIT PROGRAM statement, X-33
-   Imperative statement, IV-39
-Category of data, IV-15
-   Editing, VI-33
-   MOVE statement, VI-104
-   Nonnumeric literal, IV-10
-   Numeric literal, IV-10
-   PICTURE clause, VI-29
-   VALUE clause, VI-48
-CD entry, XIV-3
-CD level indicator, III-13, XIV-3, XIV-4
-   Reference format, IV-43
-Cd-name, III-3, IV-6, XIV-3, XIV-4, XV-5
-CF, XIII-55
-
-CH, XIII-55
-Character, IV-4
-   Alphabetic, III-1
-   Alphanumeric, III-1
-   Editing, III-8
-   Numeric, III-15
-   Punctuation, III-18, IV-4
-   Relation, III-19
-   Special, III-23
-Character representation, IV-16
-Character set, IV-4
-   Restriction, VI-1
-Character-string, IV-5
-Character substitution, I-8, IV-4
-CHARACTERS
-   BLOCK CONTAINS clause, VII-23
-   INSPECT statement, VI-94
-   MEMORY SIZE clause, VI-11
-   RECORD clause, VII-30
-Choice indicators, IV-2
-CLASS clause, VI-13, VI-16, VI-56
-Class condition, VI-56
-Class-name, III-3, IV-6, VI-13, VI-16, VI-57
-Class of data, IV-15
-Clause, III-3
-CLOCK-UNITS phrase, VII-17, VII-18
-CLOSE statement
-   Imperative statement, IV-39
-   Indexed I-O module, IX-19
-   Relative I-O module, VIII-17
-   Report Writer module, XIII-63
-   Sequential I-O module, VII-35
-   STOP statement, VI-130
-COBOL character set, III-3, IV-4
-COBOL development, XVII-1
-COBOL Journal of Development, XVII-2
-COBOL library, XII-2
-COBOL reserved words, IV-45
-COBOL source program, IV-29, VI-3
-COBOL standardization, XVII-11
-COBOL word, IV-5
-CODASYL, XVII-1
-CODASYL COBOL Committee, XVII-2
-CODE clause, XIII-11, XIII-14
-CODE-SET clause
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22, VII-24
-COLLATING SEQUENCE phrase
-   ALPHABET clause, VI-15
-   MERGE statement, XI-8
-   SORT statement, XI-16
-Colon, IV-5
-   Restriction, VI-1
-COLUMN NUMBER clause, XIII-21, XIII-42
-Combined condition, VI-59
-Comma
-   DECIMAL-POINT IS COMMA clause, VI-13, VI-17
-   Interchangeable with semicolon, IV-2
-   PICTURE symbol, VI-32, VI-33
-   Separator, IV-4
-Comment-entry, IV-12, VI-6
-   DATE-COMPILED paragraph, VI-8
-Comment line, lV-42
-   Library text, XII-4, XII-7
-COMMON clause, X-12
-Common program, II-22, X-3, X-12
-Communication concepts, II-28
-Communication description entry, III-4, IV-34,
-      XIV-2, XIV-3
-Communication module, XIV-1
-   Element summary, I-36
-
 XVIII-2
 
 ## Page 809
 
 Index
-
-Communication Section, IV-33, XIV-2
-Communication status key conditions, XIV-14
-Compile time switch, VI-141, XV-2
-Compiler directing sentence, IV-38
-Compiler directing statement, IV-38
-Complex condition, VI-59
-Composite language skeleton, V-1
-COMPUTATIONAL (COMP), VI-46
-COMPUTE statement, VI-76
-&nbsp;&nbsp;&nbsp;Composite of operands, VI-69
-&nbsp;&nbsp;&nbsp;Conditional statement, IV-37
-&nbsp;&nbsp;&nbsp;Data conversion, VI-69
-&nbsp;&nbsp;&nbsp;Decimal alignment, VI-69
-&nbsp;&nbsp;&nbsp;Imperative statement, IV-39
-&nbsp;&nbsp;&nbsp;Maximum operand size, VI-69
-&nbsp;&nbsp;&nbsp;Multiple results, VI-69
-Computer-name, IV-8, VI-10, VI-11
-Concepts, II-1
-Condition, VI-54
-&nbsp;&nbsp;&nbsp;Abbreviated combined relation condition,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VI-60
-&nbsp;&nbsp;&nbsp;Class condition, VI-56
-&nbsp;&nbsp;&nbsp;Combined condition, VI-59
-&nbsp;&nbsp;&nbsp;Complex condition, VI-59
-&nbsp;&nbsp;&nbsp;Condition-name condition, VI-58
-&nbsp;&nbsp;&nbsp;EVALUATE statement, VI-84
-&nbsp;&nbsp;&nbsp;Evaluation rules, VI-61
-&nbsp;&nbsp;&nbsp;IF statement, VI-90
-&nbsp;&nbsp;&nbsp;Negated condition, VI-59
-&nbsp;&nbsp;&nbsp;PERFORM UNTIL statement, VI-109, VI-110
-&nbsp;&nbsp;&nbsp;Relation condition, VI-54
-&nbsp;&nbsp;&nbsp;SEARCH statement, VI-122
-&nbsp;&nbsp;&nbsp;Sign condition, VI-58
-&nbsp;&nbsp;&nbsp;Simple condition, VI-54
-&nbsp;&nbsp;&nbsp;Switch-status condition, VI-58
-Condition-name, IV-6, IV-7, IV-24
-&nbsp;&nbsp;&nbsp;Condition-name condition, VI-58
-&nbsp;&nbsp;&nbsp;Conventions, X-6
-&nbsp;&nbsp;&nbsp;Level-number 88, IV-14
-&nbsp;&nbsp;&nbsp;Qualified, IV-19
-&nbsp;&nbsp;&nbsp;RERUN clause, VII-17, VII-18
-&nbsp;&nbsp;&nbsp;SEARCH statement, VI-122
-&nbsp;&nbsp;&nbsp;SET statement, VI-127
-&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph, VI-13
-&nbsp;&nbsp;&nbsp;Subscripted, IV-21
-&nbsp;&nbsp;&nbsp;Switch-status condition, VI-58
-&nbsp;&nbsp;&nbsp;Uniqueness, IV-24
-&nbsp;&nbsp;&nbsp;VALUE clause, VI-49
-Condition-name condition, VI-58
-Condition-name data description entry, VI-21,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VI-25, VI-49
-Conditional expression, VI-54
-&nbsp;&nbsp;&nbsp;EVALUATE statement, VI-85
-&nbsp;&nbsp;&nbsp;PERFORM statement, VI-111
-&nbsp;&nbsp;&nbsp;SEARCH statement, VI-123
-Conditional phrase, IV-37
-Conditional sentence, IV-38
-Conditional statement, IV-37
-Conditional variable, III-6, VI-58, VI-127
-&nbsp;&nbsp;&nbsp;FILLER, VI-23
-Configuration Section, IV-31
-&nbsp;&nbsp;&nbsp;Nucleus, VI-9
-Conforming implementation, I-6
-Conforming source program, I-9
-Contained programs, X-1, X-8
-Continuation line, IV-42
-Continuation of lines, IV-42
-&nbsp;&nbsp;&nbsp;Comment-entries, VI-6, VI-8
-CONTINUE statement, VI-77
-Continued line, IV-42
-CONTROL clause, XIII-11, XIII-15
-
-Control break
-&nbsp;&nbsp;&nbsp;CONTROL clause, XIII-15
-&nbsp;&nbsp;&nbsp;GENERATE statement, XIII-66
-&nbsp;&nbsp;&nbsp;GROUP INDICATE clause, XIII-44
-&nbsp;&nbsp;&nbsp;TYPE clause, XIII-56
-CONTROL FOOTING (CF), XIII-55
-CONTROL HEADING (CH), XIII-55
-CONVERTING, VI-95
-COPY statement, XII-2
-&nbsp;&nbsp;&nbsp;Compiler directing statement, IV-38
-CORRESPONDING (CORR) phrase, VI-68
-&nbsp;&nbsp;&nbsp;ADD statement, VI-73
-&nbsp;&nbsp;&nbsp;MOVE statement, VI-103
-&nbsp;&nbsp;&nbsp;ON SIZE ERROR phrase, VI-68
-&nbsp;&nbsp;&nbsp;SUBTRACT statement, VI-134
-COUNT IN phrase, VI-136
-CR PICTURE symbol, VI-32, VI-34
-Currency PICTURE symbol, VI-32, VI-34
-Currency sign, III-6, VI-17, VI-34
-CURRENCY SIGN clause, VI-13, VI-17, VI-34
-Currency symbol, III-6, VI-17, VI-33
-Current volume pointer, II-5, VII-2
-
-Data description entry, III-7, VI-20
-&nbsp;&nbsp;&nbsp;Inter-Program Communication module, X-19
-&nbsp;&nbsp;&nbsp;Working-Storage Section, VI-18
-Data Division, IV-33
-&nbsp;&nbsp;&nbsp;Communication module, XIV-2
-&nbsp;&nbsp;&nbsp;Element summary, I-48
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-16
-&nbsp;&nbsp;&nbsp;Inter-Program Communication module, X-13
-&nbsp;&nbsp;&nbsp;Nucleus, VI-18
-&nbsp;&nbsp;&nbsp;Reference format, IV-43
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-14
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-6
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-21
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-6
-Data Division entries, IV-43
-Data-name, III-7, IV-6, VI-23, XIII-20,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;XIII-43
-&nbsp;&nbsp;&nbsp;Conventions, X-6
-&nbsp;&nbsp;&nbsp;Identifier, IV-23
-&nbsp;&nbsp;&nbsp;Qualified, IV-19
-&nbsp;&nbsp;&nbsp;Subscripted, IV-21
-DATA BY phrase, VI-92
-DATA RECORDS clause
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-16
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-14
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-22, VII-25
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-7
-DATE, VI-72
-DATE-COMPILED paragraph, VI-8
-DATE-WRITTEN paragraph, VI-6
-DAY, VI-72
-DAY-OF-WEEK, VI-72
-DB PICTURE symbol, VI-32, VI-34
-DE, XIII-55
-DEBUG-CONTENTS, XV-8
-DEBUG-ITEM, IV-9, XV-1, XV-8
-DEBUG-LINE, XV-8
-Debug module, XV-1
-&nbsp;&nbsp;&nbsp;Element summary, I-38
-DEBUG-NAME, XV-8
-DEBUG-SUB-1, XV-8
-DEBUG-SUB-2, XV-8
-DEBUG-SUB-3, XV-8
-Debugging line, VI-141
-&nbsp;&nbsp;&nbsp;Library text, XII-4, XII-7
-DEBUGGING MODE clause, VI-10, XV-2, XV-3
-Debugging section, XV-5
 
 XVIII-3
 
@@ -30585,298 +30211,11 @@ XVIII-3
 
 Index
 
-Decimal point
-   Actual, VI-32
-   Alignment, IV-16
-   Assumed, VI-32
-DECIMAL POINT IS COMMA clause, VI-13, VI-17,
-      VI-33
-Declarative sentence, III-7
-Declaratives, IV-35
-   Reference format, IV-44
-   USE BEFORE REPORTING statement, XIII-78
-   USE FOR DEBUGGING statement, XV-5
-   USE statement, VII-50, VIII-35, IX-39
-Declarative procedures
-   Debug module, XV-4
-   Indexed I-O module, IX-18
-   PERFORM statement, VI-121
-   Relative I-O module, VIII-16
-   Report Writer module, XIII-62
-   Sequential I-O module, VII-34
-   USE BEFORE REPORTING statement, XIII-78
-   USE FOR DEBUGGING statement, XV-5
-   USE statement, VII-50, VIII-35, IX-39
-De-editing, VI-104
-Definitions, III-1
-DELETE statement
-   Indexed I-O module, IX-21
-   Relative I-O module, VIII-19
-DELIMITED BY phrase
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-Delimited scope statement, IV-39
-DELIMITER IN phrase, VI-136
-Delimiters
-   Character-string, IV-5
-   Pseudo-text, III-18, IV-5
-DEPENDING phrase
-   GO TO statement, VI-89
-   OCCURS clause, VI-26
-   RECORD clause, VII-30
-DESCENDING KEY phrase
-   MERGE statement, XI-8
-   OCCURS clause, VI-26
-   SORT statement, XI-16
-DESTINATION COUNT clause, XIV-4
-DESTINATION TABLE OCCURS clause, XIV-4
-DETAIL (DE), XIII-55
-Development of COBOL, XVII-1
-Differences between current standard & draft
-   proposed revision, XVII-16
-DISABLE statement, XIV-18
-DISPLAY in USAGE clause, VI-46
-DISPLAY statement, VI-78
-   Figurative constant, IV-11
-   Imperative statement, IV-39
-   Mnemonic-name, VI-13
-DIVIDE statement, VI-80
-   Composite of operands, VI-69
-   COMPUTE statement, VI-76
-   Conditional statement, IV-37
-   Data conversion, VI-69
-   Decimal alignment, VI-69
-   Imperative statement, IV-39
-   Maximum operand size, VI-69
-   Multiple results, VI-69
-Division, III-8, IV-30
-Division header, III-8, IV-43
-Double character substitution, IV-4
-DOWN BY, VI-127
-DUPLICATES phrase
-   ALTERNATE RECORD KEY clause, IX-8, IX-11
-   SORT statement, XI-16
-
-Dynamic access, II-4, VIII-2, IX-2
-
-Editing, VI-104
-Editing characters, III-8
-Editing rules, VI-33
-Editing sign, IV-16, VI-32
-Editing sign control symbols, VI-32
-EGI, XIV-26
-Element summary by COBOL division, I-40
-Element summary by module, I-10
-Elementary item, IV-14
-   MOVE statement, VI-104
-   Noncontiguous, VI-18
-   PICTURE clause, VI-29
-Elementary move, VI-104
-Ellipsis, IV-2
-ELSE clause, VI-90
-EMI, XIV-26
-ENABLE statement, XIV-20
-END-ADD phrase, VI-73
-END-CALL phrase, X-27
-END-COMPUTE phrase, VI-76
-END DECLARATIVES, IV-35, IV-44
-END-DELETE phrase, VIII-19, IX-21
-END-DIVIDE phrase, VI-80
-END-EVALUATE phrase, VI-84
-END-IF phrase, VI-90
-END KEY clause, XIV-3, XIV-4
-END-MULTIPLY phrase, VI-107
-End of COBOL source program, IV-29, VI-3
-End of group indicator (EGI), XIV-26
-End of message indicator (EMI), XIV-26
-END-OF-PAGE phrase, VII-52
-END OF REEL/UNIT phrase, VII-15, VII-17
-End of segment indicator (ESI), XIV-26
-END-PERFORM phrase, VI-109, VI-110
-END PROGRAM, VI-5
-End program header
-   Inter-Program Communication module, X-8
-      X-11
-   Nucleus, VI-5
-   Reference format, IV-44
-END-READ phrase, VII-44, VIII-26, IX-28
-END-RECEIVE phrase, XIV-23
-END-RETURN phrase, XI-14
-END-REWRITE phrase, VIII-30, IX-33
-END-SEARCH phrase, VI-122
-END-START phrase, VIII-33, IX-36
-END-STRING phrase, VI-131
-END-SUBTRACT phrase, VI-134
-END-WRITE phrase, VII-52, VIII-37, IX-41
-ENTER COBOL, VI-83
-ENTER statement, I-9,VI-83
-Entry, III-8
-Environment Division, IV-31
-   Debug module, XV-3
-   Element summary, I-45
-   Indexed I-O module, IX-8
-   Nucleus, VI-9
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Segmentation module, XVI-4
-   Sequential I-O module, VII-6
-   Sort-Merge module, XI-2
-EQUAL TO relation, VI-54, VI-122, VIII-33,
-      IX-36
-EOP phrase, VII-52
-ERROR KEY clause, XIV-4
-Error key values, XIV-16
-ERROR PROCEDURES, VII-50, VIII-35, IX-39,
-      X-34, XIII-76
-
 XVIII-4
 
 ## Page 811
 
 Index
-
-ESI, XIV-26
-EVALUATE statement, VI-84
-   Conditional expression, VI-54
-Exception declarative, II-7
-Exception handling, II-6
-EXCEPTION PROCEDURE, VII-50, VIII-35, IX-39,
-      X-34, XIII-76
-Execution, IV-35
-EXIT statement, VI-88
-   Imperative statement, IV-39
-   PERFORM statement, VI-120
-EXIT PROGRAM statement, X-33
-   CANCEL statement, X-31
-   PERFORM statement, VI-120
-   Transfer of control, IV-26
-Explicit specifications, IV-25
-Exponentiation, VI-52
-EXTEND phrase
-   OPEN statement, VII-39, VIII-21, IX-23, XIII-70
-   USE statement, VII-50, VIII-35, IX-39, XIII-76
-Extension language elements, I-8
-EXTERNAL clause, X-23
-   OCCURS clause, VI-27
-External objects, X-2
-External switch, IV-28, VI-13, VI-15, VI-127
-Externally provided functions, I-7
-
-FALSE, VI-84
-FD level indicator, III-13
-   Indexed I-O module, IX-16
-   Inter-Program Communication module, X-15
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22
-Figurative constant, IV-9, IV-10
-   DISPLAY statement, VI-78
-   INSPECT statement, VI-95
-   MOVE statement, VI-104
-   Restriction, VI-2
-   STOP statement, VI-130
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-File, II-1
-   Attributes, II-1
-   Conceptual characteristics, IV-13
-   Physical aspects, IV-13
-File attribute conflict condition, VII-5,
-      VIII-6, IX-7
-File connector, III-9
-   File control entry, VII-8, VIII-8, IX-9
-   OPEN statement, VII-40, VIII-22, IX-24
-File control entry, III-9, IV-32
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report writer module, XIII-3
-   Sequential I-O module, VII-7
-   Sort-Merge module, XI-2
-FILE-CONTROL paragraph, III-9, IV-31
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Sequential I-O module, VII-7
-   Sort-Merge module, XI-2
-File description entry, III-10, IV-34
-   Indexed I-O module, IX-16
-   Inter-Program Communication module, X-15
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-6, XIII-7
-   Sequential I-O module, VII-21, VII-22
-File-name, III-10, IV-6, VII-7, VIII-8, IX-8,
-      XI-7, XIII-3
-File-name conventions, X-6
-File operations, II-5
-File position indicator, II-5, VII-2, VIII-2,
-      IX-2
-File processing, II-3
-File Section, IV-33
-   Indexed I-O module, IX-16
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-6
-   Sequential I-O module, VII-21
-   Sort-Merge module, XI-6
-   VALUE clause, VI-49
-FILE STATUS clause
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Sequential I-O module, VII-7, VII-10
-FILLER, VI-23
-   CORRESPONDING, VI-68
-   SYNCHRONIZED, VI-45
-FINAL
-   CONTROL clause, XIII-15
-   SUM clause, XIII-52
-   TYPE clause, XIII-55
-FIRST, VI-94
-FIRST DETAIL, XIII-17
-Fixed insertion editing, VI-34
-Fixed length records, II-3, VII-31
-Fixed overlayable segments, XVI-1
-Fixed permanent segments, XVI-2
-Floating insertion editing, VI-34
-FOOTING, VII-27, XIII-17
-FOR, VI-94
-FOR REMOVAL phrase, VII-35, XIII-63
-Format punctuation, IV-2
-FROM phrase
-   ACCEPT statement, VI-71
-   PERFORM VARYING statement, VI-110
-   RELEASE statement, XI-13
-   REWRITE statement, VII-48, VIII-30, IX-33
-   SEND statement, XIV-26
-   SUBTRACT statement, VI-134
-   WRITE statement, VII-52, VIII-37, IX-41
-
-General format, IV-1
-General rules, IV-3
-GENERATE statement, XIII-66
-   Imperative statement, IV-39
-Generic terms, IV-1
-GIVING phrase
-   ADD statement, VI-73
-   DIVIDE statement, VI-80
-   MERGE statement, XI-8
-   MULTIPLY statement, VI-107
-   SORT statement, XI-16
-   SUBTRACT statement, VI-134
-GLOBAL clause, X-24, X-34, X-35
-   OCCURS clause, VI-27
-Global names, X-2
-Glossary of COBOL terms, III-1
-GO TO statement, VI-89
-   Imperative statement, IV-39
-   Initial state of program, X-10
-   PERFORM statement, VI-120
-   SEARCH statement, VI-126
-GREATER THAN relation, VI-54, VIII-33, IX-36
-Group, IV-14
-GROUP INDICATE clause, XIII-21, XIII-44
-
-Hardware dependent language element list, XVII-94
-Hardware dependent language elements, I-8
 
 XVIII-5
 
@@ -30884,293 +30223,13 @@ XVIII-5
 
 # Index
 
-HEADING phrase, XIII-17
-High subset, I-6
-HIGH-VALUE/HIGH-VALUES, IV-11
-   SPECIAL-NAMES paragraph, VI-16
-History of COBOL, XVII-1
-Hyphen (-) continuation line, IV-42
-
-Identification Division, IV-30
-   Element summary, I-44
-   Inter-Program Communication module, X-12
-   Nucleus, VI-6
-Identifier, IV-23, IV-35
-IF statement, VI-90
-   Conditional expression, VI-54
-   Conditional statement, IV-37
-   Imperative statement, IV-39
-   SEARCH statement, VI-123
-Imperative sentence, IV-39
-Imperative statement, IV-39
-Implementation of Standard COBOL, I-6
-Implementor-defined language element list,
-      XVII-87
-Implementor-defined record types, II-3
-Implementor-defined specifications, I-7
-Implementor-name, IV-8
-   ALPHABET clause, VI-13
-   ASSIGN clause, VII-7, VIII-8, IX-8, XI-2,
-      XIII-3
-   RECORD DELIMITER clause, VII-13
-   RERUN clause, VII-17
-   SPECIAL-NAMES paragraph, VI-13
-   VALUE OF clause, VII-33
-Implicit specifications, IV-25
-Implied relational operator, VI-61
-Implied subject, VI-61
-IN, IV-19, IV-20, XII-2
-Incompatible data, VI-70
-Indentation, IV-44
-Independent segments, XVI-2
-Index, III-11, IV-21, IV-22
-INDEX in USAGE clause, VI-46
-Index data item, VI-47
-   Condition-name, VI-21
-   CONTROL clause, XIII-15
-   Initial value, VI-19
-   INITIALIZE statement, VI-92
-   MOVE statement, VI-103
-   PICTURE clause, VI-29
-   Relation condition, VI-56
-   SEARCH statement, VI-123
-   SET statement, VI-127
-Index-name, III-11, IV-6, IV-21
-   Conventions, X-7
-   OCCURS clause, VI-26
-   PERFORM statement, VI-110
-   Relation condition, VI-56
-   SEARCH statement, VI-122
-   SET statement, VI-127
-INDEXED BY phrase, VI-26, VI-27, XIV-4
-Indexed file, IX-1
-Indexed I-O module, IX-1
-   Element summary, I-25
-Indexed organization, II-2, IX-1, IX-13
-Indicator area, IV-41
-INITIAL clause, X-12
-INITIAL phrase
-   Communication description entry, XIV-3,
-      XIV-4
-   INSPECT statement, VI-94
-Initial program, II-22, X-3
-Initial state of program, X-10
-
-Initial values
-   File Section, VII-21, XI-6
-   Linkage Section, X-14
-   Working-Storage Section, VI-19
-INITIALIZE statement, VI-92
-INITIATE statement, XIII-69
-   Imperative statement, IV-39
-In-line PERFORM statement, VI-111
-Input-Output Section, IV-31
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Sequential I-O module, VII-6
-   Sort-Merge module, XI-2
-Input-output statement, III-12
-INPUT phrase
-   Communication description entry, XIV-3
-   DISABLE statement, XIV-18
-   ENABLE statement, XIV-20
-   OPEN statement, VII-39, VIII-21, IX-23
-   USE statement, VII-50, VIII-35, IX-39
-INPUT PROCEDURE phrase, XI-16
-INSPECT statement, VI-94
-   Imperative statement, IV-39
-INSTALLATION paragraph, VI-6
-Integer, III-12
-Inter-program communication concepts, II-22
-Inter-Program Communication module, X-1
-   Element summary, I-28
-Intermediate subset, I-6
-International standardization of COBOL, XVII-14
-International Organization for
-   Standardization (ISO), XVII-14
-Internal objects, X-2
-INTO
-   DIVIDE statement, VI-80
-   READ statement, VII-44, VIII-26, IX-28
-   RECEIVE statement, XIV-23
-   RETURN statement, XI-14
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-Intra-program communication, II-26
-INVALID KEY condition, VIII-5, IX-6
-   DELETE statement, VIII-19, IX-21
-   READ statement, VIII-26, IX-28
-   REWRITE statement, VIII-30, IX-33
-   START statement, VIII-33, IX-36
-   WRITE statement, VIII-37, IX-41
-I-O-CONTROL paragraph, III-10
-   Indexed I-O module, IX-15
-   Relative I-O module, VIII-13
-   Report Writer module, XIII-5
-   Sequential I-O module, VII-15
-   Sort-Merge module, XI-3
-I-O phrase
-   Communication description entry, XIV-4
-   OPEN statement, VII-39, VIII-21, IX-23
-   USE statement, VII-50, VIII-35, IX-39
-I-O status, II-7
-   FILE STATUS clause, VII-10
-   Indexed I-O module, IX-2
-   Relative I-O module, VIII-2
-   Sequential I-O module, VII-2
-I-O TERMINAL phrase, XIV-18, XIV-20
-
 XVIII-6
 
 ## Page 813
 
 Index
 
-JUSTIFIED (JUST) clause, VI-24
-   Condition-name, VI-21
-   Figurative constant, IV-11
-   Report group description entry, XIII-21
-   Standard alignment, IV-17
-   STRING statement, VI-131
-   USAGE IS INDEX clause, VI-46
-   VALUE clause, VI-49
-
-> ⚠ **CORRECTED — see the Errata (C19).** The standard prints `Report group desçription entry` (page 813, folio XVIII-7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `description`.
-
-KEY data-names
-   MERGE statement, XI-8
-   SORT statement, XI-16
-KEY phrase
-   DISABLE statement, XIV-18
-   ENABLE statement, XIV-20
-   MERGE statement, XI-8
-   OCCURS clause, VI-26
-   READ statement, IX-28
-   SEARCH statement, VI-123
-   SORT statement, XI-16
-   START statement, VIII-33, IX-36
-Key word, IV-1, IV-8
-
-LABEL RECORDS clause
-   Indexed I-O module, IX-16
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22, VII-26
-Language concepts, IV-4
-   Element summary, I-41
-   Language-name, III-13, IV-8, VI-83
-Language structure, IV-4
-LAST DETAIL phrase, XIII-17
-LEADING
-   INSPECT statement, VI-94
-   SIGN clause, VI-42
-LEFT, VI-44
-LESS THAN relation, VI-54, VIII-33, IX-36
-Level concept, IV-14
-Level indicator, IV-43
-Level-number, III-13, IV-6, IV-7, IV-14,
-      VI-21, VI-25
-   Data description entry, VI-20
-   Notation, IV-2
-   Reference format, IV-44
-   Report group description entry, XIII-20,
-      XIII-45
-Leveling of module elements, I-1
-Library, XII-2
-Library-name, III-13, IV-6, XII-2
-Library text, III-13, XII-2
-LIMIT/LIMITS, XIII-17
-LINAGE clause, VII-27, X-15
-Linage concepts, II-5
-LINAGE-COUNTER, VII-5, VII-28, VII-55
-   Qualified, IV-19, IV-20
-   Special register IV-9
-LINE-COUNTER, XIII-1, XIII-13
-   Qualified, IV-19, IV-20
-   Special register, IV-9
-LINE/LINES
-   PAGE clause, XIII-17
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-LINE NUMBER clause, XIII-20, XIII-21, XIII-46
-LINES AT BOTTOM phrase, VII-27
-LINES AT TOP phrase, VII-27
-Linkage Section, IV-33, X-13
-   VALUE clause, VI-49
-List of elements by COBOL division, I-40
-List of elements by module, I-10
-
-Literal, IV-9
-   ALPHABET clause, VI-13, VI-15
-   CURRENCY SIGN clause, VI-13, VI-17
-   STOP statement, VI-130
-Local names, X-2
-LOCK phrase, VII-35, VIII-17, IX-19, XIII-63
-Logical operator, VI-59
-   Precedence, VI-60
-Logical record, II-2, IV-13, VII-23
-LOW-VALUE/LOW-VALUES, IV-11
-   SPECIAL-NAMES paragraph, VI-16
-Lowercase letters, IV-5, VI-29, VI-56
-
-MCS, II-28
-MEMORY SIZE clause, VI-11
-Merge file, XI-1
-MERGE statement, XI-8
-   Imperative statement, IV-39
-   Segmentation, XVI-8
-   Transfer of control, IV-26
-Merging, II-6
-Message concepts, II-32
-Message control system, II-28
-   STOP statement, VI-130
-MESSAGE COUNT clause, XIV-3
-MESSAGE DATE clause, XIV-3, XIV-4
-MESSAGE phrase, XIV-23
-MESSAGE TIME clause, XIV-3, XIV-4
-Minimum subset, I-6
-Minus (-) PICTURE symbol, VI-32, VI-34, VI-35
-Mnemonic-name, IV-6, IV-7
-   ACCEPT statement, VI-71
-   DISPLAY statement, VI-78
-   SEND statement, XIV-26
-   SET statement, VI-127
-   SPECIAL-NAMES paragraph, VI-13
-   WRITE statement, VII-52
-Module abbreviations, I-4
-Module chart, I-5
-Module concept, I-1
-MODULES, VI-11
-MOVE statement, VI-103
-   CORRESPONDING (CORR), VI-68
-   Imperative statement, IV-39
-   Index data item, VI-47
-MOVE CORRESPONDING (MOVE CORR) statement, VI-103
-MULTIPLE FILE TAPE clause, VII-15, VII-16, XIII-5
-Multiple results in arithmetics, VI-69
-MULTIPLY statement, VI-107
-   Composite of operands, VI-69
-   COMPUTE statement, VI-76
-   Conditional statement, IV-37
-   Data conversion, VI-69
-   Decimal alignment, VI-69
-   Imperative statement, IV-39
-   Maximum operand size, VI-69
-   Multiple results, VI-69
-
-NATIVE phrase, VI-13, VI-15
-Native character set, III-14, VI-15
-Native collating sequence, III-14, VI-15
-NEGATIVE, VI-58
-Negated condition, VI-59
-Nested source programs, X-1, X-8
-Nested statements, IV-40
-NEXT phrase
-   Indexed I-O module, IX-28
-   Relative I-O module, VIII-26
-   Sequential I-O module, VII-44
-NEXT GROUP clause, XIII-20, XIII-48
+> ⚠ **CORRECTED — see the Errata (C19).** The standard prints `Report group desçription entry` (page 813, folio XVIII-7), a damaged letter in the index entry under JUSTIFIED (JUST) clause, corrected to `description`; Amendment 2 then replaced the whole index (C337), so the corrected entry no longer stands here.
 
 XVIII-7
 
@@ -31178,300 +30237,11 @@ XVIII-7
 
 Index
 
-NEXT PAGE phrase
-   LINE NUMBER clause, XIII-46
-   NEXT GROUP clause, XIII-48
-NEXT SENTENCE phrase
-   IF statement, VI-90
-   SEARCH statement, VI-122
-NO DATA phrase, XIV-23
-NO REWIND phrase, VII-35, VII-39, XIII-63,
-      XIII-70
-Noncontiguous elementary item, VI-18, X-13
-   Level-number 77, VI-25
-Nonnumeric comparison, VI-55
-Nonnumeric literal, IV-9
-   Continuation, IV-42
-NOT
-   EVALUATE statement, VI-84
-   Logical operator, VI-59
-   Relational operator, VI-55
-NOT AT END-OF-PAGE phrase, VII-52
-NOT AT EOP phrase, VII-52
-NOT AT END phrase
-   Implicit scope terminator, IV-27
-   READ statement, VII-44
-   RETURN statement, XI-14
-NOT INVALID KEY phrase
-   DELETE statement, VIII-19, IX-21
-   READ statement, VIII-26, IX-28
-   REWRITE statement, VIII-30, IX-33
-   START statement, VIII-33, IX-36
-   WRITE statement, VIII-37, IX-41
-NOT ON EXCEPTION phrase, X-27
-NOT ON OVERFLOW phrase
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-NOT ON SIZE ERROR phrase
-   ADD statement, VI-73
-   COMPUTE statement, VI-76
-   DIVIDE statement, VI-80
-   MULTIPLY statement, VI-107
-   SUBTRACT statement, VI-134
-Notation rules, IV-1
-Nucleus, VI-1
-   Element summary, I-11
-NUMERIC
-   Class condition, VI-57
-   INITIALIZE statement, VI-92
-Numeric category, IV-15, VI-29, VI-48, VI-104
-Numeric character, III-15
-Numeric class, IV-15, VI-56
-Numeric comparison, VI-55
-Numeric data item, VI-30
-NUMERIC-EDITED, VI-92
-Numeric edited category, IV-15, VI-29, VI-48,
-      VI-104
-Numeric edited data item, VI-30
-Numeric literal, IV-10, VI-104
-
-OBJECT-COMPUTER paragraph, VI-11, XVI-4
-Object time switch, XV-2
-Obsolete language element, I-7
-Obsolete language element list, XVII-81
-Occurrence number, IV-21, VI-124, VI-128
-OCCURS clause, VI-26
-   CORRESPONDING phrase, VI-68
-   INITIALIZE statement, VI-92
-   MOVE statement, VI-104
-   REDEFINES clause, VI-38
-   RENAMES clause, VI-40
-   SEARCH statement, VI-123
-   SET statement, VI-128
-   SYNCHRONIZED clause, VI-45
-   VALUE clause, VI-50
-
-OF, IV-19, IV-20, XII-2
-OFF, VI-127
-OFF STATUS phrase, VI-13
-ON, VI-127
-ON EXCEPTION phrase, X-27
-ON OVERFLOW phrase
-   CALL statement, X-27
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-ON phrase, VII-17, VIII-13, IX-15
-ON SIZE ERROR phrase, VI-67
-   ADD statement, VI-73
-   COMPUTE statement, VI-76
-   DIVIDE statement, VI-80
-   MULTIPLY statement, VI-107
-   SUBTRACT statement, VI-134
-Open mode, II-4, VII-39, VIII-21, IX-23,
-      XIII-70
-OPEN statement
-   Imperative statement, IV-39
-   Indexed I-O module, IX-23
-   Relative I-O module, VIII-21
-   Report Writer module, XIII-70
-   Sequential I-O module, VII-39
-Operational sign, IV-16
-Operator
-   Arithmetic, IV-9, VI-52
-   Logical, VI-59
-   Relational, VI-54, VI-55
-Optional modules, I-6
-OPTIONAL phrase
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Sequential I-O module, VII-7
-Optional word, IV-9
-OR phrase, VI-136
-OR
-   Abbreviated combined relation condition,
-      VI-61
-   Combined condition, VI-59
-   Evaluation order, VI-61
-   Logical operator, VI-59
-ORGANIZATION IS INDEXED clause, IX-13
-ORGANIZATION IS RELATIVE clause, VIII-12
-ORGANIZATION IS SEQUENTIAL clause, VII-11, XIII-3
-OTHER, VI-84
-Out-of-line PERFORM statement, VI-111
-OUTPUT phrase
-   Communication description entry, XIV-4
-   DISABLE statement, XIV-18
-   ENABLE statement, XIV-20
-   OPEN statement, VII-39, VIII-21, IX-23,
-      XIII-70
-   USE statement, VII-50, VIII-35, IX-39
-OUTPUT PROCEDURE phrase, XI-8, XI-16
-Overall language consideration, IV-1
-OVERFLOW phrase
-   CALL statement, X-27
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-Overlapping operands, VI-69
-
-'P' PICTURE symbol, VI-31
-   USAGE clause, VI-46
-PACKED-DECIMAL, VI-46
-PADDING CHARACTER clause, VII-7, VII-12, XIII-3
-PAGE
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-PAGE clause, XIII-11, XIII-17
-
 XVIII-8
 
 ## Page 815
 
 Index
-
-PAGE-COUNTER, XIII-1, XIII-12
-&nbsp;&nbsp;&nbsp;Qualified, IV-19, IV-20
-&nbsp;&nbsp;&nbsp;Special register, IV-9
-PAGE FOOTING (PF), XIII-55
-Page footing presentation rules, XIII-37
-PAGE HEADING (PH), XIII-55
-Page heading group presentation rules, XIII-30
-Paragraph, IV-35, IV-43
-Paragraph header, III-17, IV-43
-Paragraph-name, IV-6, IV-7, IV-35
-&nbsp;&nbsp;&nbsp;Qualified, IV-19
-&nbsp;&nbsp;&nbsp;Reference format, IV-43
-Parentheses
-&nbsp;&nbsp;&nbsp;Arithmetic expression, VI-53
-&nbsp;&nbsp;&nbsp;Condition, VI-60
-&nbsp;&nbsp;&nbsp;PICTURE clause, VI-30
-&nbsp;&nbsp;&nbsp;Separators, IV-4
-&nbsp;&nbsp;&nbsp;Subscripting, IV-21
-PERFORM statement, VI-109
-&nbsp;&nbsp;&nbsp;Conditional expression, VI-54
-&nbsp;&nbsp;&nbsp;Imperative statement, IV-39
-&nbsp;&nbsp;&nbsp;Segmentation, XVI-8
-&nbsp;&nbsp;&nbsp;SET statement, VI-128
-&nbsp;&nbsp;&nbsp;Transfer of control, IV-26
-Period, IV-3
-&nbsp;&nbsp;&nbsp;DECIMAL-POINT IS COMMA clause, VI-17
-&nbsp;&nbsp;&nbsp;PICTURE symbol, VI-32, VI-33
-&nbsp;&nbsp;&nbsp;Separator, IV-4
-PF, XIII-55
-PH, XIII-55
-Phrase, III-17
-Physical record, IV-13, VII-23
-PICTURE character-string, IV-12
-PICTURE (PIC) clause, VI-29
-&nbsp;&nbsp;&nbsp;BLANK WHEN ZERO clause, VI-22
-&nbsp;&nbsp;&nbsp;CURRENCY SIGN clause, VI-17
-&nbsp;&nbsp;&nbsp;DECIMAL POINT IS COMMA clause, VI-17
-&nbsp;&nbsp;&nbsp;Linkage Section, X-13
-&nbsp;&nbsp;&nbsp;Report group description entry, XIII-21
-&nbsp;&nbsp;&nbsp;SIGN clause, VI-42
-&nbsp;&nbsp;&nbsp;STRING statement, VI-131
-&nbsp;&nbsp;&nbsp;SYNCHRONIZED clause, VI-44
-&nbsp;&nbsp;&nbsp;UNSTRING statement, VI-136
-&nbsp;&nbsp;&nbsp;USAGE clause, VI-46
-&nbsp;&nbsp;&nbsp;Working-Storage Section, VI-18
-PLUS phrase
-&nbsp;&nbsp;&nbsp;LINE NUMBER clause, XIII-46
-&nbsp;&nbsp;&nbsp;NEXT GROUP clause, XIII-48
-Plus (+) PICTURE symbol, VI-32, VI-34, VI-35
-POINTER phrase
-&nbsp;&nbsp;&nbsp;STRING statement, VI-131
-&nbsp;&nbsp;&nbsp;UNSTRING statement, VI-136
-POSITION phrase, VII-16
-POSITIVE, VI-58
-Precedence rules for PICTURE character-string,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VI-36
-Presentation rules tables, XIII-24
-Prime record key, IX-14
-Procedure, IV-35
-Procedure branching statement, III-17, IV-26
-Procedure Division, IV-35
-&nbsp;&nbsp;&nbsp;Communication module, XIV-17
-&nbsp;&nbsp;&nbsp;Debug module, XV-4
-&nbsp;&nbsp;&nbsp;Element summary, I-53
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-18
-&nbsp;&nbsp;&nbsp;Inter-Program Communication module, X-25
-&nbsp;&nbsp;&nbsp;Nucleus, VI-51
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-16
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-62
-&nbsp;&nbsp;&nbsp;Segmentation module, XVI-6
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-34
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-8
-
-Procedure Division header, IV-36, X-25
-Procedure-name, III-18
-&nbsp;&nbsp;&nbsp;GO TO statement, VI-89
-&nbsp;&nbsp;&nbsp;MERGE statement, XI-8
-&nbsp;&nbsp;&nbsp;PERFORM statement, VI-109
-&nbsp;&nbsp;&nbsp;SORT statement, XI-16
-&nbsp;&nbsp;&nbsp;USE FOR DEBUGGING statement, XV-5
-PROGRAM-ID paragraph
-&nbsp;&nbsp;&nbsp;Inter-Program Communication module, X-12
-&nbsp;&nbsp;&nbsp;Nucleus, VI-7
-Program-name, III-18, IV-6
-&nbsp;&nbsp;&nbsp;Conventions, X-5
-&nbsp;&nbsp;&nbsp;End program header, X-11
-&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph, VI-7, X-12
-PROGRAM COLLATING SEQUENCE clause, VI-11
-&nbsp;&nbsp;&nbsp;ALPHABET clause, VI-15
-Program & run unit organization, II-18
-Program classes, II-22
-Program segments, XVI-1
-Pseudo-text, XII-2, XII-6
-Pseudo-text delimiters, III-18, IV-5, IV-43
-Pseudo-text format, IV-43
-Punctuation characters, III-18
-&nbsp;&nbsp;&nbsp;Format punctuation, IV-2
-&nbsp;&nbsp;&nbsp;Separators, IV-4
-PURGE statement, XIV-22
-
-Qualification, IV-18
-&nbsp;&nbsp;&nbsp;Restriction, VI-1
-Queue, III-18
-Queue concepts, II-32
-Queue hierarchy, II-33
-Quotation mark
-&nbsp;&nbsp;&nbsp;Separator, IV-5
-QUOTE, QUOTES, IV-11
-
-Random access, II-4, VIII-2, IX-2
-RD entry, XIII-10, XIII-11
-RD level indicator, III-13, X-22, XIII-11
-&nbsp;&nbsp;&nbsp;Reference format, IV-43
-READ statement
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-28
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-26
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-44
-RECEIVE statement, XIV-23
-Record
-&nbsp;&nbsp;&nbsp;Concepts, IV-14
-&nbsp;&nbsp;&nbsp;Fixed length records, II-3
-&nbsp;&nbsp;&nbsp;Implementor-defined record types, II-3
-&nbsp;&nbsp;&nbsp;Linkage records, X-14
-&nbsp;&nbsp;&nbsp;Logical, II-2, IV-13
-&nbsp;&nbsp;&nbsp;Physical, IV-13
-&nbsp;&nbsp;&nbsp;Variable length records, II-3
-&nbsp;&nbsp;&nbsp;Working storage records, VI-18
-RECORD clause
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-16
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-14
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-7
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-22, VII-30
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-7
-RECORD CONTAINS clause
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-16
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-14
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-7
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-22, VII-30
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-7
-RECORD DELIMITER clause
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-3
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-7, VII-13
-Record description entry, III-19, IV-33,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IV-34
 
 XVIII-9
 
@@ -31479,300 +30249,11 @@ XVIII-9
 
 # Index
 
-Record description structure, VI-19, VII-21,
-  XI-6, XIV-2
-RECORD KEY clause, IX-14
-Record-name, III-19, IV-6
-  Conventions, X-6
-RECORDS, VII-23
-RECORDS phrase, VII-17, VII-18
-RECORD VARYING clause, VII-22, VII-30,
-  VIII-14, IX-16, XI-7
-REDEFINES clause, VI-38
-  CORRESPONDING phrase, VI-68
-  INITIALIZE statement, VI-93
-  Procedure Division header, X-25
-  SYNCHRONIZED clause, VI-44
-  VALUE clause, VI-49
-REEL, VII-35, XIII-63
-Reference format, IV-41
-  Restriction, VI-2
-  Text-words, XII-4
-Reference modification, IV-22
-  Restriction, VI-2
-  STRING statement, VI-131
-  UNSTRING statement, VI-136
-  USE FOR DEBUGGING statement, XV-5
-Relation character, IV-9
-Relation condition, VI-54
-  Abbreviated combined, VI-60
-  Indexed data item, VI-46
-  Nonnumeric operands, VI-55
-  Numeric operands, VI-55
-Relational operator, VI-54, VI-55
-Relative file, VIII-1
-Relative I-O module, VIII-1
-  Element summary, I-22
-RELATIVE KEY phrase, VIII-8, VIII-10
-Relative organization, II-2, VIII-1, VIII-12
-Relative record number, VIII-1, VIII-10
-RELEASE statement, XI-13
-  Imperative statement, IV-39
-Relative subscripting, IV-22
-REMAINDER phrase, VI-80
-REMOVAL phrase, VII-35, XIII-63
-RENAMES clause, VI-21, VI-40
-  CORRESPONDING phrase, VI-68
-  INITIALIZE statement, VI-92
-  Level-number, IV-15, VI-25
-  PICTURE clause, VI-29
-REPLACE statement, XII-6
-  Compiler directing statement, IV-38
-REPLACING LINE phrase, XIV-26
-REPLACING phrase
-  COPY statement, XII-2
-  INITIALIZE statement, VI-92
-  INSPECT statement, VI-94
-REPORT clause, XIII-9
-Report description entry, III-20, X-22,
-  XIII-10, XIII-11
-Report file, XIII-1, XIII-3
-REPORT FOOTING (RF), XIII-55
-Report footing presentation rules, XIII-39
-Report group description entry, III-20,
-  XIII-10, XIII-20
-REPORT HEADING (RH), XIII-55
-Report heading group presentation rules, XIII-27
-Report-name, III-21, IV-6, XIII-9, XIII-11,
-  XIII-66, XIII-75
-  Conventions, X-6
-Report Section, IV-33, XIII-10
-Report writer concepts, II-8
-Report Writer module, XIII-1
-  Element summary, I-33
-
-Required words, IV-8
-RERUN clause
-  Indexed I-O module, IX-15
-  Relative I-O module, VIII-13
-  Sequential I-O module, VII-15, VII-17
-RESERVE clause
-  Indexed I-O module, IX-8
-  Relative I-O module, VIII-8
-  Report Writer module, XIII-3
-  Sequential I-O module, VII-7, VII-14
-Reserved word, IV-8, IV-45
-  Implementation, I-8
-Reserved word list, IV-45
-RESET phrase, XIII-52
-RETURN statement, XI-14
-  Conditional statement, IV-37
-REVERSED phrase, VII-39
-REWRITE statement
-  Indexed I-O module, IX-33
-  Relative I-O module, VIII-30
-  Sequential I-O module, VII-48
-RF, XIII-55
-RH, XIII-55
-RIGHT, VI-24, VI-44
-ROUNDED phrase, VI-67
-  ADD statement, VI-73
-  COMPUTE statement, VI-76
-  DIVIDE statement, VI-80
-  MULTIPLY statement, VI-107
-  SUBTRACT statement, VI-134
-Routine-name, III-21, IV-6, VI-83
-Rules, IV-3
-RUN, VI-130
-
-'S' PICTURE symbol, VI-31
-  SIGN clause, VI-42
-  USAGE clause, VI-46
-SAME clause
-  Indexed I-O module, IX-15
-  Relative I-O module, VIII-13
-  Report Writer module, XIII-5
-  Sequential I-O module, VII-15, VII-19
-SAME RECORD AREA clause
-  Indexed I-O module, IX-15
-  Relative I-O module, VIII-13
-  Sequential I-O module, VII-15, VII-19
-  Sort-Merge module, XI-3, XI-4
-SAME SORT AREA clause, XI-3, XI-4
-SAME SORT-MERGE AREA clause, XI-3, XI-4
-Scope of names, X-4
-Scope of statements, IV-40
-Scope terminators, IV-27, IV-40
-SD level indicator, III-13, XI-6, XI-7
-  Reference format, IV-43
-SEARCH statement, VI-122
-  Conditional expression, VI-54
-  SET statement, VI-128
-  USAGE IS INDEX clause, VI-46
-Section, IV-35, IV-43
-Section header, III-22, IV-43
-Section-name, IV-6, IV-7
-SECURITY paragraph, VI-6
-Segment, XVI-1
-SEGMENT-LIMIT clause, XVI-5
-Segment-number, III-22, IV-6, XVI-7
-SEGMENT phrase, XIV-23
-Segmentation classification, XVI-2
-Segmentation control, XVI-3
-Segmentation module, XVI-1
-  Element summary, I-39
-
 XVIII-10
 
 ## Page 817
 
 Index
-
-SELECT clause
-  Indexed I-O module, IX-8
-  Relative I-O module, VIII-8
-  Report Writer module, XIII-3
-  Sequential I-O module, VII-7
-  Sort-Merge module, XI-2
-Semicolon, IV-2, IV-4
-  Interchangeable with comma, IV-2
-SEND statement, XIV-26
-  Mnemonic-name, VI-13
-  SPECIAL-NAMES paragraph, VI-13
-  STOP statement, VI-130
-Sentence, IV-35, IV-37, IV-43
-SEPARATE CHARACTER phrase, VI-42
-Separator, IV-4
-  Restriction, VI-1
-SEQUENCE clause, VI-11
-Sequence number, IV-42
-Sequence number area, IV-41
-Sequential access, II-3, VII-1, VIII-2, IX-2
-Sequential file, VII-1
-Sequential I-O module, VII-1
-  Element summary, I-19
-Sequential organization, II-1, VII-1, VII-11
-SET statement, VI-127
-  Imperative statement, IV-39
-  SPECIAL-NAMES paragraph, VI-15
-Shared memory area, II-17
-Sharing data, X-4
-Sharing files, X-4
-SIGN clause, VI-42
-  Class condition, VI-57
-  MOVE statement, VI-105
-  Operational sign, IV-16
-  PICTURE clause, VI-31
-  Report group description entry, XIII-21,
-    XIII-49
-Sign condition, VI-58
-Simple condition, VI-54
-Simple insertion editing, VI-33
-Single character substitution, IV-4
-SIZE, VI-11, VI-131
-SIZE ERROR phrase, VI-67
-  ADD statement, VI-73
-  COMPUTE statement, VI-76
-  DIVIDE statement, VI-80
-  MULTIPLY statement, VI-107
-  SUBTRACT statement, VI-134
-Slant (/) comment line, IV-42
-Sort file, XI-1
-SORT statement, XI-16
-  Imperative statement, IV-39
-  Segmentation, XVI-9
-  Transfer of control, IV-26
-Sort-merge file description entry, III-23,
-    XI-6, XI-7
-Sort-Merge module, XI-1
-  Element summary, I-30
-Sorting, II-5
-SOURCE clause, XIII-21, XIII-51
-SOURCE-COMPUTER paragraph, VI-10
-  WITH DEBUGGING MODE phrase, XV-3
-Source program, IV-29, VI-3
-  COPY statement, XII-2
-  Separately compiled, VI-4
-Source text manipulation module, XII-1
-  Element summary, I-32
-Space, IV-4
-SPACE/SPACES, IV-11, VI-104
-Special character, III-23, IV-3
-Special-character words, IV-3, IV-9
-Special insertion editing, VI-33
-
-SPECIAL-NAMES paragraph, VI-13
-  ACCEPT statement, VI-71
-  Condition-name, IV-7
-  DISPLAY statement, VI-78
-  Mnemonic-name, IV-7
-  SEND statement, XIV-26
-  Switch-status condition, VI-58
-  WRITE statement, VII-52
-Special registers, IV-9
-  DEBUG-ITEM, XV-1
-  LINAGE-COUNTER, VII-5
-  LINE-COUNTER, XIII-1
-  PAGE-COUNTER, XIII-1
-Standard alignment rules, IV-16
-Standard COBOL, I-6
-Standard data format, III-24, IV-13
-Standard language element acceptance, I-7
-STANDARD-1 phrase
-  ALPHABET clause, VI-13, VI-15
-  RECORD DELIMITER clause, VII-13
-STANDARD-2 phrase, VI-13, VI-15
-Standardization of COBOL, XVII-11
-START statement
-  Indexed I-O module, IX-36
-  Relative I-O module, VIII-33
-Statement, IV-35, IV-37
-STATUS KEY clause, XIV-3, XIV-4
-STOP statement, VI-130
-  Figurative constant, IV-11
-  Imperative statement, IV-39
-  Transfer of control, IV-26
-STRING statement, VI-131
-  Figurative constant, IV-11
-  Imperative statement, IV-39
-Subscripting, IV-21
-  Concepts, II-14
-  Condition-name, IV-24
-  Conditional variable, IV-24
-  MOVE statement, VI-103
-  Qualified, IV-21
-  Report Section, XIII-2
-  Restriction, VI-2
-  SET statement, VI-128
-Subsets of Standard COBOL, I-5
-Substantive changes, XVII-42
-Substitute language elements, I-7
-SUBTRACT statement, VI-134
-  Composite of operands, VI-69
-  COMPUTE statement, VI-76
-  Conditional statement, IV-37
-  CORRESPONDING (CORR), VI-68
-  Data conversion, VI-69
-  Decimal alignment, VI-69
-  Imperative statement, IV-39
-  Maximum operand size, VI-69
-  Multiple results, VI-69
-SUBTRACT CORRESPONDING (SUBTRACT CORR), VI-68,
-    VI-134
-SUM clause, XIII-21, XIII-52
-Summary of elements by COBOL division, I-40
-Summary of elements by module, I-10
-Summary of differences, XVII-16
-SUPPRESS statement, XIII-74
-  Imperative statement, IV-39
-Switch-status condition, VI-58
-Symbolic-character, III-24, IV-6
-Symbolic-character figurative constant, IV-11
-SYMBOLIC CHARACTERS clause, VI-13
-SYMBOLIC DESTINATION clause, XIV-4
-SYMBOLIC QUEUE clause, XIV-3
-SYMBOLIC SOURCE clause, XIV-3
-SYMBOLIC SUB-QUEUE-1 clause, XIV-3
 
 XVIII-11
 
@@ -31780,192 +30261,11 @@ XVIII-11
 
 Index
 
-SYMBOLIC SUB-QUEUE-2 clause, XIV-3
-SYMBOLIC SUB-QUEUE-3 clause, XIV-3
-SYMBOLIC TERMINAL clause, XIV-4
-SYNCHRONIZED (SYNC) clause, VI-44
-   Elementary data item, VI-21
-   VALUE clause, VI-49
-Syntax rules, IV-3
-System-name, IV-8
-
-Table, II-12, VI-122, VI-127
-Table definition, II-12
-Table element, II-12, VI-122, VI-127
-Table handling, II-12, VI-127
-TALLYING phrase
-   INSPECT statement, VI-94
-   UNSTRING statement, VI-136
-TERMINAL phrase, XIV-18, XIV-20
-TERMINATE statement, XIII-75
-TEST AFTER phrase, VI-109, VI-110
-TEST BEFORE phrase, VI-109, VI-110
-TEXT LENGTH clause, XIV-3, XIV-4
-Text-name, III-25, IV-6, XII-2
-   Qualified, IV-19
-Text word, III-25, XII-2
-THEN, VI-90
-THROUGH (THRU)
-   ALPHABET clause, VI-13
-   EVALUATE statement, VI-84
-   MERGE statement, XI-8
-   PERFORM statement, VI-109
-   RENAMES clause, VI-40
-   SORT statement, XI-16
-   VALUE clause, VI-48
-TIME, VI-72
-TIMES, VI-109
-TRAILING, VI-42
-Transaction communication, II-35
-Transfer of control, II-23, IV-25
-TRUE, VI-84, VI-127
-TYPE clause, XIII-20, XIII-55
-
-Unary arithmetic operator, VI-52
-Unary minus, VI-52
-Unary plus, VI-52
-Undefined language element list, XVII-96
-Uniqueness of reference, IV-17
-UNIT, VII-35, XIII-63
-UNSTRING statement, VI-136
-   Figurative constant, IV-11
-   Imperative statement, IV-39
-UNTIL phrase, VI-109, VI-110
-UP BY, VI-127
-UPON phrase
-   DISPLAY statement, VI-78
-   SUM clause, XIII-52
-Uppercase letters, IV-6, VI-29, VI-56
-USAGE clause, VI-46
-   Class condition, VI-57
-   INSPECT statement, VI-95
-   Relation condition, VI-54
-   Report group description entry, XIII-20,
-      XIII-21, XIII-60
-   SIGN clause, VI-42
-   STRING statement, VI-131
-   SYNCHRONIZED clause, VI-44
-   UNSTRING statement, VI-136
-   VALUE clause, VI-49
-USAGE IS INDEX clause, VI-46
-   CORRESPONDING phrase, VI-68
-   SEARCH statement, VI-123
-   Working-Storage Section, VI-18
-
-USE statement
-   Compiler directing statement, IV-38
-   Declaratives, IV-35
-   Indexed I-O module, IX-39
-   Inter-Program Communication module, X-34
-   Relative I-O module, VIII-35
-   Report Writer module, XIII-76
-   Sequential I-O module, VII-50
-USE BEFORE REPORTING statement, X-35, XIII-78
-USE FOR DEBUGGING statement, XV-5
-User-defined words, IV-6
-   Restrictions, VI-1
-USING phrase in CALL statement, X-27
-   Index data item, VI-46
-USING phrase in MERGE statement, XI-8
-USING phrase in Procedure Division header, X-25
-   Index data item, VI-46
-USING phrase in SORT statement, XI-16
-
-'V' PICTURE symbol, VI-32
-   USAGE clause, VI-46
-VALUE clause, VI-48
-   Report Writer module, XIII-21, XIII-61
-   SET statement, VI-129
-VALUE OF clause
-   Indexed I-O module, IX-16
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22, VII-33
-Variable length records, II-3, VII-30
-Variable occurrence data item, III-26, VI-27,
-      VI-50
-VARYING IN SIZE phrase, VII-30
-VARYING phrase
-   PERFORM statement, VI-110
-   SEARCH statement, VI-122
-Verb, III-26
-
-WHEN phrase
-   EVALUATE statement, VI-84
-   SEARCH statement, VI-122
-WITH DATA phrase, XIV-23
-WITH DEBUGGING MODE clause, VI-10, XV-2,
-      XV-3
-WITH DUPLICATES phrase
-   ALTERNATE RECORD KEY clause, IX-8, IX-11
-   SORT statement, XI-16
-WITH EGI phrase, XIV-26
-WITH EMI phrase, XIV-26
-WITH ESI phrase, XIV-26
-WITH FOOTING phrase, VII-27
-WITH identifier phrase, XIV-26
-WITH KEY phrase, XIV-18, XIV-20
-WITH LOCK phrase, VII-35, VIII-17, IX-19,
-      XIII-63
-WITH NO ADVANCING phrase, VI-78
-WITH NO REWIND phrase, VII-35, VII-39, XIII-63,
-      XIII-70
-WITH POINTER phrase
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-WITH TEST phrase, VI-109
-Word, IV-1
-WORDS, VI-11
-Working-Storage Section, IV-33, VI-18
-   VALUE clause, VI-49
-
 XVIII-12
 
 ## Page 819
 
 Index
-
-WRITE statement
-   Conditional statement, IV-37
-   Imperative statement, IV-39
-   Indexed I-O module, IX-41
-   Mnemonic-name, VI-13
-   Relative I-O module, VIII-37
-   Sequential I-O module, VII-52
-   SPECIAL-NAMES paragraph, VI-13
-'X' PICTURE symbol, VI-32
-
-'Z' PICTURE symbol, VI-32, VI-35
-ZERO/ZEROS/ZEROES, IV-11, VI-104
-ZERO in sign condition, VI-58
-Zero suppression editing, VI-35
-
-'0' PICTURE symbol, VI-32, VI-33
-'9' PICTURE symbol, VI-32, VI-46
-'01' entry, IV-14, VI-25, XIII-20
-'66' RENAMES data description entry, VI-21,
-      VI-25, VI-40
-'77' item description entry, VI-18, VI-25,
-      X-13
-'88' condition-name data description entry,
-      VI-21, VI-25
-
-\> relation, VI-54
-< relation, VI-54
-= relation, VI-54
-\+ operator, VI-52
-\+ PICTURE symbol, VI-32, VI-34, VI-35
-\- continuation line, IV-42
-\- operator, VI-52
-\- PICTURE symbol, VI-32, VI-34, VI-35
-\* comment line, IV-42
-\* operator, VI-52
-\* PICTURE symbol, VI-32, VI-35
-/ comment line, IV-42
-/ operator, VI-52
-/ PICTURE symbol, VI-32, VI-33
-\*\* operator, VI-52
-== pseudo-text delimiter, III-18, IV-42
 
 XVIII-13
 
@@ -38407,6 +36707,11 @@ it is taken as the rule of 1985.
 | [C330](#errata-c330) | 788 | XVII-80 | Appendix B of Section XVII, paragraph 2.2, new items 43 to 47 after item 42d | `(no items 43-47)` | `(43) ... (47)` | amendment-2 |
 | [C331](#errata-c331) | 788 | XVII-80 | Appendix B of Section XVII, a new paragraph 2.2A at the end of paragraph 2.2 | `(no paragraph 2.2A)` | `2.2A ... (INTRINSIC FUNCTION AMENDMENT), item 1` | amendment-2 |
 | [C332](#errata-c332) | 788 | XVII-80 | Appendix B of Section XVII, a new paragraph 2.2B after paragraph 2.2A | `(paragraph 2.2A ends)` | `2.2B follows (held under Amendment 2, pages 942-958)` | amendment-2 |
+| [C333](#errata-c333) | 801 | XVII-93 | Appendix C of Section XVII, the Implementor-Defined Language Element List, new items 85 to 87 | `(no items 85-87)` | `(85) ALPHABET clause ..., (86) OPEN statement, (87) RANDOM…` | amendment-2 |
+| [C334](#errata-c334) | 806 | XVII-98 | Appendix C of Section XVII, the Undefined Language Element List, item 29 (Intrinsic functions), first sentence | `the returned value for the function is undefined.` | `then the result of such a reference is undefined.` | amendment-2 |
+| [C335](#errata-c335) | 806 | XVII-98 | Appendix C of Section XVII, the Undefined Language Element List, new items 30 to 36 | `(no items 30-36)` | `(30) ... (36)` | amendment-2 |
+| [C336](#errata-c336) | 806 | XVII-98 | Appendix C of Section XVII, the Undefined Language Element List, item 30 (MERGE statement) | `general rule 17c` | `general rule 7c` | sense |
+| [C337](#errata-c337) | 807 | XVIII-1 | Section XVIII, the index | `the index of pages XVIII-1 to XVIII-13` | `Amendment 2's index, pages B-49 to B-64 (PDF 961-976)` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -42059,6 +40364,61 @@ Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 941, folio B-2
 | **This transcription** | `paragraph 2.2B, SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT), follows: its first paragraph and items 1 to 23 are held once, where Amendment 2 prints them (under AMENDMENT 2, pages 942 to 958, folios B-30 to B-46)` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 942, folio B-30), applied in place: "Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A". Paragraph 2.2B runs over seventeen pages of Amendment 2, with its examples; this transcription holds it once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2): it stands here, after 2.2A, in the amended standard (kb/Work PB5045).
+
+<a id="errata-c333"></a>
+
+### C333 · page 801 (folio XVII-93) · Appendix C of Section XVII, the Implementor-Defined Language Element List, new items 85 to 87 · `(no items 85-87)` → `(85) ALPHABET clause ..., (86) OPEN statement, (8…`
+
+| | |
+|---|---|
+| **Printed** | `(the list ends with item 84)` |
+| **This transcription** | `(85) ALPHABET clause in SPECIAL-NAMES paragraph ... (86) OPEN statement ... (87) RANDOM function ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-93 (A-24) (page 958, folio B-46), applied in place: "Insert items 85 through 87 after item 84 in the Implementor-Defined Language Element List" (item 84 is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c334"></a>
+
+### C334 · page 806 (folio XVII-98) · Appendix C of Section XVII, the Undefined Language Element List, item 29 (Intrinsic functions), first sentence · `the returned value for the function is undefined.` → `then the result of such a reference is undefined.`
+
+| | |
+|---|---|
+| **Printed** | `(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined. (See 1.2.2, on page A-27.)` |
+| **This transcription** | `(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined. (See 1.2.2, on page A-27.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-98 (A-24) (page 959, folio B-47), applied in place: "In the change to page XVII-98 inserting item 29 in the Undefined Language Elements List, replace the first sentence after the header Intrinsic functions with the following" (item 29 is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c335"></a>
+
+### C335 · page 806 (folio XVII-98) · Appendix C of Section XVII, the Undefined Language Element List, new items 30 to 36 · `(no items 30-36)` → `(30) ... (36)`
+
+| | |
+|---|---|
+| **Printed** | `(the list ends with item 29)` |
+| **This transcription** | `(30) MERGE statement ... (36) Intrinsic functions ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-98 (A-24) (page 959, folio B-47), applied in place: "Insert the following after item 29 in the Undefined Language Element List" (kb/Work PB5045).
+
+<a id="errata-c336"></a>
+
+### C336 · page 806 (folio XVII-98) · Appendix C of Section XVII, the Undefined Language Element List, item 30 (MERGE statement) · `general rule 17c` → `general rule 7c`
+
+| | |
+|---|---|
+| **Printed** | `(See 4.1.4, general rule 17c, on page XI-11.)` |
+| **This transcription** | `(See 4.1.4, general rule 7c, on page XI-11.)` |
+
+A rule number misprinted in Amendment 2's new item 30 (its page 959, folio B-47, prints 'general rule 17c'): the MERGE statement has thirteen general rules, and the sentence item 30 restates ("For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement") is the one Amendment 2 adds to general rule 7c on page XI-11 (C293), so the reference is general rule 7c (kb/Work PB5045).
+
+<a id="errata-c337"></a>
+
+### C337 · page 807 (folio XVIII-1) · Section XVIII, the index · `the index of pages XVIII-1 to XVIII-13` → `Amendment 2's index, pages B-49 to B-64 (PDF 961-…`
+
+| | |
+|---|---|
+| **Printed** | `the index on pages XVIII-1 through XVIII-13 (PDF pages 807 to 819)` |
+| **This transcription** | `the index replaced by Amendment 2's (pages B-49 through B-64), held once where Amendment 2 prints it (under AMENDMENT 2, `# INDEX`, PDF pages 961 to 976)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVIII-1 (page 960, folio B-48), applied in place: "Replace the index on pages XVIII-1 through XVIII-13 with the index on pages B-49 through B-64." The base index's entries are deleted from pages 807 to 819 (each keeps its running header and folio), and this transcription holds the replacement once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2). Addendum 1's additions to the base index (its rows XVIII-1 through XVIII-13) are superseded by this replacement and are not applied (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
