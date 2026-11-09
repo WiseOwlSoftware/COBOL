@@ -126,14 +126,14 @@
   {
    "id": "async-messaging-2023",
    "status": "active",
-   "description": "The asynchronous messaging statements RECEIVE (ISO §2023:14.9.31) and SEND (§2023:14.9.38) — a COBOL-2023 introduction (Annex E.3.2 item 1). The facility is provided (Annex A.3 item 4; docs/CONFORMANCE.md §2 row 4, kb/Work PB4744): at 2023 each statement binds and exchanges messages between run units. Both grammar arms are the UNION grammar, predicated only on the verb's spelling, because §2023:8.9 reserves RECEIVE and SEND at 85 (the '85 communication module) and again at 2023 with a user-word gap between; the VersionConformancePass parse arm (VisitMessagingReceiveStatement / VisitMessagingSendStatement) names the edition on RECOGNITION, so 85, 2002 and 2014 all answer COBOL0900 (kb/Work PB374: the reservation predicate had compiled the 2023 formats at --std 85 under a warning naming the 2023 facility). The SEND writes its END-SEND: §2023:14.9.38.2 prints it without brackets in both formats, so its omission is refused at 2023 (COBOL1850, kb/Work PB2024).",
+   "description": "The asynchronous messaging statements RECEIVE (ISO §2023:14.9.31) and SEND (§2023:14.9.38) — a COBOL-2023 introduction (§2023:E.3.2 item 1). The facility is provided (Annex A.3 item 4; docs/CONFORMANCE.md §2 row 4, kb/Work PB4744): at 2023 each statement binds and exchanges messages between run units. Both grammar arms are the UNION grammar, predicated only on the verb's spelling, because §2023:8.9 reserves RECEIVE and SEND at 85 (the '85 communication module) and again at 2023 with a user-word gap between; the VersionConformancePass parse arm (VisitMessagingReceiveStatement / VisitMessagingSendStatement) names the edition on RECOGNITION, so 85, 2002 and 2014 all answer COBOL0900 (kb/Work PB374: the reservation predicate had compiled the 2023 formats at --std 85 under a warning naming the 2023 facility). The SEND writes its END-SEND: §2023:14.9.38.2 prints it without brackets in both formats, so its omission is refused at 2023 (COBOL1850, kb/Work PB2024).",
    "display": "RECEIVE/SEND (asynchronous messaging)",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO §2023:14.9.31 / §2023:14.9.38 (asynchronous messaging; Annex E.3.2 item 1)",
+   "citation": "ISO §2023:14.9.31 / §2023:14.9.38 (asynchronous messaging; §2023:E.3.2 item 1)",
    "introducedIn": 2023,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
-   "vcr": "VCR Table 2 row 38 (Annex E.3.2 item 1)",
+   "vcr": "VCR Table 2 row 38 (§2023:E.3.2 item 1)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AMG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-TAG USAGE MESSAGE-TAG.\n01 WS-MSG PIC X(20).\n01 WS-LEN PIC 9(4).\n01 WS-REPLY USAGE MESSAGE-TAG.\nPROCEDURE DIVISION.\nMAIN.\n    RECEIVE FROM WS-TAG GIVING WS-MSG WS-LEN.\n    SEND TO WS-SRV FROM WS-MSG RETURNING WS-REPLY END-SEND.\n    STOP RUN.\n"
   },
  {
@@ -164,14 +164,14 @@
   {
    "id": "apply-commit-clause-2023",
    "status": "active",
-   "description": "The I-O-CONTROL APPLY COMMIT clause (ISO §2023:12.4.6.3) and with it the COMMIT and ROLLBACK statements it gives effect to (§2023:14.9.7, §2023:14.9.36) \u2014 the commit and rollback facility, a COBOL-2023 introduction (Annex E.3.2 item 2). Provided for RELATIVE and INDEXED files (kb/Work PB3337, PB3338; docs/CONFORMANCE.md §5, A.4.3 Partial). The ISO/IEC 1989:2002 and 2014 I-O-CONTROL formats have no APPLY clause and the paragraph's format is closed, so below 2023 the clause draws COBOL1970 (the 85 format likewise). COMMIT and ROLLBACK are user-defined words below 2023 (user-word-commit-2023).",
+   "description": "The I-O-CONTROL APPLY COMMIT clause (ISO §2023:12.4.6.3) and with it the COMMIT and ROLLBACK statements it gives effect to (§2023:14.9.7, §2023:14.9.36) \u2014 the commit and rollback facility, a COBOL-2023 introduction (§2023:E.3.2 item 2). Provided for RELATIVE and INDEXED files (kb/Work PB3337, PB3338; docs/CONFORMANCE.md §5, A.4.3 Partial). The ISO/IEC 1989:2002 and 2014 I-O-CONTROL formats have no APPLY clause (nor the 85 format); the grammar is the union, so below 2023 VersionConformancePass names the edition on recognition (COBOL0900; kb/Work PB5025). COMMIT and ROLLBACK are user-defined words below 2023 (user-word-commit-2023).",
    "display": "APPLY COMMIT clause (commit and rollback)",
-   "diagnosticCode": "COBOL1970",
-   "citation": "ISO §2023:12.4.6.3 (APPLY COMMIT clause; Annex E.3.2 item 2)",
+   "diagnosticCode": "COBOL0900",
+   "citation": "ISO §2023:12.4.6.3 (APPLY COMMIT clause; §2023:E.3.2 item 2)",
    "introducedIn": 2023,
    "removedIn": null,
-   "expectDiagnostic": "COBOL1970",
-   "vcr": "VCR Table 2 row 39 (Annex E.3.2 item 2)",
+   "expectDiagnostic": "COBOL0900",
+   "vcr": "VCR Table 2 row 39 (§2023:E.3.2 item 2)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. ACC.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RELF ASSIGN TO \"acc.dat\"\n        ORGANIZATION IS RELATIVE\n        RELATIVE KEY IS RK.\nI-O-CONTROL.\n    APPLY COMMIT ON RELF.\nDATA DIVISION.\nFILE SECTION.\nFD RELF.\n01 RREC PIC X(10).\nWORKING-STORAGE SECTION.\n01 RK PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {
@@ -215,7 +215,7 @@
    "description": "USAGE PACKED-DECIMAL WITH NO SIGN (ISO §2023:13.18.60.4 GR11) — a COBOL-2023 addition: the packed item reserves no trailing sign nibble (storage = ceil(Digits/2) bytes), the value is always zero-or-positive, and SR31 forbids an 'S' picture. NO SIGN is a modifier on Usage.Packed (which exists at every edition) so the gate is recognition-based on the parsed noSignPhrase, not a resolved-usage key.",
    "display": "USAGE PACKED-DECIMAL WITH NO SIGN",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR11; SR31; Annex E.3.2 item 5; §2023:13.18.40.3 SR31",
+   "citation": "ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR11; SR31; §2023:E.3.2 item 5; §2023:13.18.40.3 SR31",
    "introducedIn": 2023,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
@@ -1666,15 +1666,15 @@
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AC.\nAUTHOR. CCVS-STYLE COMMENT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {
-   "id": "remarks-removed-2002",
-   "description": "REMARKS paragraph — a '74 carryover the grammar accepts at 85 for CCVS (NEVER flagged there — the 85 FIPS flagger is future strictness work); absent from ISO 2002+ (P2.6 gate ≥2002 only).",
+   "id": "remarks-removed-85",
+   "description": "REMARKS paragraph — a pre-1985 comment paragraph that NO held edition has: the CODASYL Journal of Development 1968 deleted it (§1985:A.2.5 item 8), the X3.23-1985 Identification Division general format (§1985:VI.3.2.1.1) prints only PROGRAM-ID, AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED and SECURITY, and ISO 2002 and later print none of the comment paragraphs. The grammar still recognizes it so every edition refuses it by name (COBOL0902) and --permissive keeps a migrated program compiling with a warning (kb/Work PB5026). Its window is empty: removed at the first held edition.",
    "display": "the REMARKS paragraph",
    "diagnosticCode": "COBOL0902",
-   "citation": "'74 carryover accepted at 85 for CCVS (never flagged there); absent from ISO 2002+; VCR Table 7",
+   "citation": "absent from the X3.23-1985 Identification Division general format (§1985:VI.3.2.1.1), deleted by the CODASYL Journal of Development 1968 (§1985:A.2.5); absent from ISO 2002 and later; VCR Table 7",
    "introducedIn": 85,
-   "removedIn": 2002,
+   "removedIn": 85,
    "expectDiagnostic": "COBOL0902",
-   "vcr": "VCR Table 7; the P2.6 REMARKS carve-out",
+   "vcr": "VCR Table 7 row 7.10",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RM2.\nREMARKS. CCVS-STYLE REMARK TEXT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {
@@ -3101,14 +3101,14 @@
   {
    "id": "sync-on-group-2023",
    "status": "active",
-   "description": "SYNCHRONIZED clause on a GROUP item - a COBOL-2023 introduction (Annex E.3.2 item 6 / VCR row 43; before 2023 SYNCHRONIZED is permitted only on elementary items). Below 2023 it is REJECTED on BOTH axes through the canonical ConstructRegistry.Check funnel in DataBinder.UsageInheritanceWalk, like every other introduction. CA14 (owner-approved option (a), 2026-07-28) RETIRED the former accept-inert-under---permissive disposition: it was the sole site routing an introduction through the removed-severity seam, contradicting EditionSeverityPolicy.For(NotYetIntroduced)=>Error and the EditionContext.Permissive contract. --permissive is the migration mode for constructs an edition REMOVED; it has no meaning for one the targeted edition has not yet acquired, which no pre-existing program can legally contain.",
+   "description": "SYNCHRONIZED clause on a GROUP item - a COBOL-2023 introduction (§2023:E.3.2 item 6 / VCR row 43; before 2023 SYNCHRONIZED is permitted only on elementary items). Below 2023 it is REJECTED on BOTH axes through the canonical ConstructRegistry.Check funnel in DataBinder.UsageInheritanceWalk, like every other introduction. CA14 (owner-approved option (a), 2026-07-28) RETIRED the former accept-inert-under---permissive disposition: it was the sole site routing an introduction through the removed-severity seam, contradicting EditionSeverityPolicy.For(NotYetIntroduced)=>Error and the EditionContext.Permissive contract. --permissive is the migration mode for constructs an edition REMOVED; it has no meaning for one the targeted edition has not yet acquired, which no pre-existing program can legally contain.",
    "display": "SYNCHRONIZED on a group item",
    "diagnosticCode": "COBOL0900",
-   "citation": "ISO Annex E.3.2 item 6 / VCR row 43 (SYNCHRONIZED permitted on a group item, introduced 2023); §2023:13.18.55.3 SR1",
+   "citation": "ISO §2023:E.3.2 item 6 / VCR row 43 (SYNCHRONIZED permitted on a group item, introduced 2023); §2023:13.18.55.3 SR1",
    "introducedIn": 2023,
    "removedIn": null,
    "expectDiagnostic": "COBOL0900",
-   "vcr": "VCR row 43 / Annex E.3.2 item 6 (2014->2023: SYNCHRONIZED on a group item)",
+   "vcr": "VCR row 43 / §2023:E.3.2 item 6 (2014->2023: SYNCHRONIZED on a group item)",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G SYNCHRONIZED.\n  05 A PIC X.\n  05 B PIC X.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
   {

@@ -13,7 +13,8 @@
 *>   apostrophe in a name (an unclosed literal, COBOL5563), an unclosed
 *>   quotation mark, a comma and a semicolon with no space after them
 *>   (COBOL2631), a hexadecimal literal with non-hex digits (COBOL2630),
-*>   a period inside the entry, and a paragraph word with no period.
+*>   and a paragraph word with no period and a period inside the entry
+*>   (the REMARKS paragraph is in no edition: kb/Work PB5026).
 *>   No edition has both free form and a comment-entry, so the entry's
 *>   end is GnuCOBOL 3.2's -free reading (CLAUDE.md rule 1): the rest of
 *>   the header line. Accepted at 85, where the paragraphs exist.
@@ -23,8 +24,7 @@ AUTHOR. Pat O'Brien.
   INSTALLATION. Joe's "big program.
 DATE-WRITTEN. Smith,J"r" X;Y.
 DATE-COMPILED. X"ZZ" B"12".
-SECURITY. J. Smith.
-REMARKS no period after the paragraph word.
+SECURITY no period after the paragraph word. J. Smith.
 PROCEDURE DIVISION.
     PB4305-LEAD.
     DISPLAY "OK".

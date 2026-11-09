@@ -8,7 +8,7 @@ namespace WiseOwl.Cobol.Binding;
 /// <summary>
 /// The SYNCHRONIZED clause on a GROUP item — <b>ISO §2023:13.18.55.4 GR1</b>: "When this clause is specified for a group
 /// item, it is treated as though it had instead been separately specified for each of the subordinate elementary items
-/// for which this clause is permitted." — and the COBOL-2023 edition gate that comes with it (Annex E.3.2 item 6).
+/// for which this clause is permitted." — and the COBOL-2023 edition gate that comes with it (§2023:E.3.2 item 6).
 ///
 /// <para><b>Why the flag is copied down (kb/Work PB539).</b> The clause changes no offset here (the one-byte natural
 /// boundary, docs/CONFORMANCE.md DOC-A.1-195/197), so the LAYOUT half of GR1 holds by itself. The rules that ask
@@ -60,7 +60,7 @@ public sealed partial class DataBinder
         foreach (var c in item.Children) InheritSynchronized(c, down, permitted);
     }
 
-    /// <summary>SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (ISO Annex E.3.2 item 6 — "This clause may now
+    /// <summary>SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (ISO §2023:E.3.2 item 6 — "This clause may now
     /// be specified for a group level data item"; §2023:13.18.55.3 SR1 is the 2023 text). It routes through the CANONICAL
     /// funnel like every other introduction, so it is a hard error on BOTH axes: §2023:4.2.2's warning mechanism reports
     /// violations of the standard, and --permissive is the migration mode for constructs an edition REMOVED — it has no

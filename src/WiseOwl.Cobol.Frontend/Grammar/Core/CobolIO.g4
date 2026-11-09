@@ -341,12 +341,14 @@ applyCommitClause
 ioControlClause
     : sameClause
     // The APPLY COMMIT clause (ISO §2023:12.4.6.3; kb/Work PB3338). It must precede unrecognizedClause, which would
-    // otherwise match the bare word APPLY and then die on COMMIT with an unnamed error. {is2023()}? because the whole
-    // commit-and-rollback facility is a COBOL-2023 addition (Annex E.3.2 item 2). ⚠ kb/Work PB2291 VERDICT: a
-    // CONSTRUCT GATE, not word status — APPLY is a §2023:8.10 context-sensitive word only from COBOL-2023 and no earlier edition
-    // has an APPLY clause, so `APPLY COMMIT` has no other reading below 2023, and the gate turns what the
-    // conformance pass should name (COBOL0900) into a bare COBOL0001. Recorded in EditionReadDriftTests.
-    | {is2023()}? applyCommitClause
+    // otherwise match the bare word APPLY and then die on COMMIT with an unnamed error. UNGATED, the union grammar
+    // (kb/Work PB5025, replacing the {is2023()}? construct gate PB2291 recorded): the commit-and-rollback facility is a
+    // COBOL-2023 addition (§2023:E.3.2 item 2), and below 2023 VersionConformancePass ParseArm.VisitApplyCommitClause names
+    // the edition (COBOL0900) where the gate made it the closed-format refusal (COBOL1970). No earlier edition has an
+    // APPLY clause, and no other I-O-CONTROL clause begins with a user-defined word, so `APPLY COMMIT` has no other
+    // reading here; APPLY (a §2023:8.10 context-sensitive word) and COMMIT (reserved from 2023) as user-defined words of
+    // an earlier edition are the token-level reservation gate's (Parsing/ReservationGateRewriter.cs), never this arm's.
+    | applyCommitClause
     | multipleFileClause
     | rerunClause
     // ⛔ THE §2023:12.4.6.2 GENERAL FORMAT IS CLOSED (kb/Work PB829; RENDERED from the printed page — PDF p363 /

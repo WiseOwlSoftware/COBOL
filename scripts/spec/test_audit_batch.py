@@ -11,7 +11,8 @@ past --max-usd; an answer never overwritten; the cost so far counting every bill
 cut-off first reply too, and each reply once when a collect is repeated); the verify plan from the SAME answers, and the
 dispositions; the drafts plan; the adjudicate, refute and recheck plans (each decided kind's one check, kb/Work PB5008),
 their answer shapes and the decided or contested change records they give (and the change batch that records them, never
-over a fleet adjudication, kb/Work PB4995, PB5008); the claims plan from the 1985 text and its
+over a fleet adjudication, kb/Work PB4995, PB5008); the misprints plan, its answer shape and its leads (kb/Work PB4984);
+the claims plan from the 1985 text and its
 citation check; a stamp in a prompt refused before any batch; the key never
 printed or stored, and the account recorded.
 """
@@ -542,6 +543,70 @@ def main() -> int:
         check("a check that answered and disputes the decision makes it contested, though its own check upheld it (a run "
               "whose refuter also read KEPT and CHANGED decisions)",
               disputed.get("contested") is True and "change" not in disputed and disputed["refute"] == "UNSURE")
+        print("a seeded run checks a batch of decisions (the fleet's decisions of the contested records, kb/Work PB4995)")
+        fleet = root / "fleet.json"
+        fleet.write_text(json.dumps({"records": [{"rule-id": inspect_rule, "next": {
+            "kind": "KEPT", "edition": 2023, "to": ["GR-14.9.21.4-2", "GR-14.9.21.4-7"], "bridge": True,
+            "reason": "the fleet's reading", "source": "adjudicate-712/slice-01"}}]}), encoding="utf-8", newline="\n")
+        seeded = root / "seeded"
+        sbase = ["--state", str(seeded)]
+        code, out = run(["seed", *sbase, "--upstream", str(state), "--decisions", str(fleet)], fake)
+        sadj = A.Pass(seeded, "adjudicate")
+        sans = next(iter(sadj.answers().values()))
+        check("seed writes the run's own adjudicate pass: the upstream item of each decided rule, answered by its record "
+              "and source, and reads the inherited passes from the upstream run",
+              code == 0 and [it["id"] for it in sadj.items().values()] == [inspect_rule]
+              and list(sadj.items()) == [A.custom_id("adjudicate", inspect_rule)]
+              and sans["answer"] == {"verdict": "KEPT", "rules_2023": ["GR-14.9.21.4-2", "GR-14.9.21.4-7"], "differs": {},
+                                     "reason": "the fleet's reading", "source": "adjudicate-712/slice-01"}
+              and A.Pass(seeded, "route").inherited and A.Pass(seeded, "route").dir == state.resolve() / "route"
+              and sadj.seeded and not sadj.inherited and not (seeded / "route").exists())
+        code, out = run(["withdraw", "--pass", "adjudicate", *sbase], fake)
+        code2, out = run(["retry", "--pass", "adjudicate", *sbase, *key, "--max-usd", "50"], fake)
+        check("the seeded pass holds recorded decisions no model answers: withdraw and retry are refused (review "
+              "wseeddec R1-1)", all(c not in (0, None) and "no model answers" in str(c) for c in (code, code2))
+              and len(sadj.answers()) == 1)
+        code, out = run(["plan", "--pass", "recheck", *sbase, "--catalog", str(cat85r), "--catalog-2023", str(cat23),
+                         "--near-1985", "1"], fake)
+        sitems = list(A.Pass(seeded, "recheck").items().values())
+        check("the seeded run plans its recheck from the seeded decisions, with the upstream run's routes",
+              code == 0 and [it["id"] for it in sitems] == [inspect_rule] and sitems[0]["adjudication"]["verdict"] == "KEPT"
+              and (seeded / "recheck" / "items.json").exists())
+        run(["submit", "--pass", "recheck", *sbase, *key, "--max-usd", "50", "--canary", "5"], fake)
+        upheld_kept = {"verdict": "KEPT", "rules_2023": ["GR-14.9.21.4-2", "GR-14.9.21.4-7"], "rules_1985": [],
+                       "exception": {}, "differs": {}, "reason": "the same requirement"}
+        answer(fake, fake.created[-1]["id"], {c: json.dumps(upheld_kept) for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "recheck", *sbase, *key], fake)
+        code, out = run(["results", *sbase], fake)
+        sbatch = root / "seeded-change.json"
+        code, out = run(["change-batch", *sbase, "--out", str(sbatch), "--repo", str(root / "repo-seeded")], fake)
+        srec = {r["rule-id"]: r["next"] for r in json.loads(sbatch.read_text(encoding="utf-8"))["records"]}
+        check("a seeded decision its recheck upholds keeps its own source in the change batch, never the run's (review "
+              "wseeddec R1-2)", code == 0 and srec[inspect_rule]["source"] == "adjudicate-712/slice-01"
+              and srec[inspect_rule]["to"] == ["GR-14.9.21.4-2", "GR-14.9.21.4-7"])
+        code, out = run(["plan", "--pass", "route", *sbase], fake)
+        check("a pass the run inherits is its upstream run's: planning it in the seeded run is refused",
+              code not in (0, None) and "reads its route pass" in str(code))
+        code, out = run(["seed", "--state", str(root / "seeded3"), "--upstream", str(state), "--decisions", str(fleet),
+                         "--inherit", "route,map,verify,drafts"], fake)
+        twice = root / "twice.json"
+        twice.write_text(json.dumps({"records": json.loads(fleet.read_text(encoding="utf-8"))["records"] * 2}),
+                         encoding="utf-8", newline="\n")
+        code2, out = run(["seed", "--state", str(root / "seeded4"), "--upstream", str(state), "--decisions", str(twice)],
+                         fake)
+        check("seed refuses an inherited pass a seeded run could write (drafts) and a rule decided twice, writing nothing "
+              "(review wseeddec R1-3, R1-4)", code not in (0, None) and "inherits only" in str(code)
+              and code2 not in (0, None) and "twice" in str(code2)
+              and not (root / "seeded3").exists() and not (root / "seeded4").exists())
+        code, out = run(["seed", *sbase, "--upstream", str(state), "--decisions", str(fleet)], fake)
+        check("seed refuses a run directory that is not empty", code not in (0, None) and "not empty" in str(code))
+        stray = root / "stray.json"
+        stray.write_text(json.dumps({"records": [{"rule-id": "1985-GR-IX.9.9-9", "next": {
+            "kind": "REMOVED", "edition": 2023, "to": [], "bridge": True, "reason": "r", "source": "s"}}]}),
+            encoding="utf-8", newline="\n")
+        code, out = run(["seed", "--state", str(root / "seeded2"), "--upstream", str(state), "--decisions", str(stray)], fake)
+        check("seed refuses a decided rule the upstream run has no adjudicate item for",
+              code not in (0, None) and "no adjudicate item" in str(code) and not (root / "seeded2").exists())
         code, out = run(["plan", "--pass", "drafts", *base], fake)
         regrown = {it["id"] for it in json.loads((state / "drafts" / "items.json").read_text(encoding="utf-8")).values()}
         check("the drafts plan, planned again after the adjudication and its checks, keeps every planned draft and grows "
@@ -601,6 +666,60 @@ def main() -> int:
               A.dispositions(state8)[word_item["id"]] == {
                   "citation": word_item["rule"]["citation"], "map": "SAME", "rules_2023": [c_b["id"]], "verify": "UPHELD",
                   "disposition": "CARRIES", "change": {"kind": "KEPT", "to": [c_b["id"]]}})
+
+        print("misprints: the reader of a real word printed for another (kb/Work PB4984)")
+        # The catalog as it now reads: a rule repaired since the map was planned, and a rule the map never saw.
+        repaired = dict(RULES_1985[1], text=RULES_1985[1]["text"].replace("leftmost", "leftmost (repaired)"))
+        added = dict(RULES_1985[0], id="1985-SR-VI.5.8.3-2", citation="§1985:VI.5.8.3 SR2", text="A planted added rule.")
+        now85 = root / "c85now.json"
+        now85.write_text(json.dumps({"rules": [RULES_1985[0], repaired, RULES_1985[2], added]}), encoding="utf-8",
+                         newline="\n")
+        code, out = run(["plan", "--pass", "misprints", *base, "--catalog", str(now85), "--catalog-2023", str(cat23)], fake)
+        mitems = json.loads((state / "misprints" / "items.json").read_text(encoding="utf-8"))
+        mby = {it["id"]: (c, it) for c, it in mitems.items()}
+        maps = {a["id"]: a["answer"] for a in A.Pass(state, "map").answers().values()}
+        check("the misprints plan holds every rule of the catalog as it now reads, with the 2023 rules its map answer "
+              "named (none for a NONE or a rule the map never saw)",
+              code == 0 and sorted(mby) == sorted([*(r["id"] for r in RULES_1985), added["id"]])
+              and mby[repaired["id"]][1]["rule"]["text"] == repaired["text"] and not mby[added["id"]][1]["counterparts"]
+              and all([c["id"] for c in it["counterparts"]] == maps[i]["rules_2023"] for i, (_c, it) in mby.items()
+                      if i in maps)
+              and any(not it["counterparts"] for i, (_c, it) in mby.items() if i in maps))
+        occurs = mby["1985-SR-VI.5.8.3-1"][1]
+        unpaired = next(it for _c, it in mby.values() if not it["counterparts"])
+        check("a misprints prompt quotes the rule and its counterparts, and says when there is none",
+              occurs["rule"]["text"] in A.prompt_text("misprints", occurs) and "SR-13.18.38.3-1" in A.prompt_text(
+                  "misprints", occurs) and "read the 1985 rule for its own sense" in A.prompt_text("misprints", unpaired))
+        def proofread(verdict: str, *found: dict[str, str]) -> tuple[Any, str]:
+            return A.parse_answer("misprints", occurs, json.dumps({"verdict": verdict, "misprints": list(found),
+                                                                   "reason": "r"}))
+        lead = {"printed": "77", "intended": "78", "context": "a level-number of 01, 66, 77, or 88"}
+        ok, _ = proofread("MISPRINT", lead)
+        clean, _ = proofread("CLEAN")
+        broken = dict(occurs, rule=dict(occurs["rule"], text="<u>The OCCURS</u> clause must not be\nspecified in a data"))
+        tagged, _ = A.parse_answer("misprints", broken, json.dumps({"verdict": "MISPRINT", "reason": "r", "misprints": [
+            {"printed": "be", "intended": "by", "context": "The OCCURS clause must not be specified"}]}))
+        check("a misprint the rule prints is an answer, quoted as a reply quotes it (no tag, one space), and CLEAN has none",
+              ok is not None and clean is not None and tagged is not None)
+        refused = {"CLEAN with a misprint": proofread("CLEAN", lead), "MISPRINT with none": proofread("MISPRINT"),
+                   "a context the rule lacks": proofread("MISPRINT", dict(lead, context="a level-number of 01 or 77")),
+                   "printed words outside the context": proofread("MISPRINT", dict(lead, printed="88 or")),
+                   "printed words only part of a word": proofread("MISPRINT", dict(lead, printed="7")),
+                   "the intended words the printed ones": proofread("MISPRINT", dict(lead, intended=" 77")),
+                   "a misprint missing a field": proofread("MISPRINT", {"printed": "77", "intended": "78"})}
+        check("a misprint that points at nothing the rule prints is a reply to retry: " + ", ".join(refused),
+              all(a is None and w for a, w in refused.values()))
+        run(["submit", "--pass", "misprints", *base, *key, "--max-usd", "50", "--canary", "5"], fake)
+        answer(fake, fake.created[-1]["id"], {c: json.dumps({"verdict": "MISPRINT", "misprints": [lead], "reason": "r"})
+                                              if c == mby["1985-SR-VI.5.8.3-1"][0] else
+                                              json.dumps({"verdict": "CLEAN", "misprints": [], "reason": "r"})
+                                              for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "misprints", *base, *key], fake)
+        code, out = run(["misprint-leads", *base], fake)
+        leads = json.loads((state / "misprint-leads.json").read_text(encoding="utf-8"))
+        check("misprint-leads lists each reported misprint with its rule's citation and whether a counterpart was read",
+              code == 0 and leads == [{"rule-id": "1985-SR-VI.5.8.3-1", "citation": "§1985:VI.5.8.3 SR1", "paired": True,
+                                       **lead}] and "1 lead(s) in 1 rule(s), 0 read without" in out)
 
         print("claims: the 1985 text and the citation check")
         planted = root / "repo"
@@ -667,7 +786,7 @@ def main() -> int:
         side = spec_pdf.BOX_SIDE
         boxed = dict(RULES_1985[0], box="whole", level=2, text=f"{side}(1) A planted rule boxed whole.{side}")
         texts = {p: A.prompt_text(p, {"rule": boxed, "candidates": RULES_2023[:1], "clause_candidates": RULES_2023[:1],
-                                      "word_candidates": [], "id": "c1", "claim": "planted", "readers": {"map": None},
+                                      "word_candidates": [], "counterparts": RULES_2023[:1], "id": "c1", "claim": "planted", "readers": {"map": None},
                                       "clause_1985": [dict(boxed, id="c1")], "near_1985": [],
                                       "feature_2023": RULES_2023[:1], "decided_2023": [],
                                       "adjudication": {"verdict": "REMOVED"},
