@@ -161,7 +161,7 @@ public sealed class MessagingProtocolTests
     {
         var extents = new RecordExtents([0, 4], [2, 3]);
         var tag = new MessageTag(Mcs, MessageParty.Requestor, "run1", 7);
-        var body = new MessageBody("héllo 😀", extents, [new MessageSlot("TOKEN-01", tag), new MessageSlot("TOKEN-02", MessageTag.Null)]);
+        var body = MessageBody.Carrying("héllo 😀TOKEN-01TOKEN-02", extents, [new MessageSlot("TOKEN-01", tag), new MessageSlot("TOKEN-02", MessageTag.Null)]);
         PeerFrame[] frames =
         [
             new HelloFrame(1, Mcs, "run1", 42, "SRV"), new OfferFrame(9, 3), new ClaimFrame(9, 3), new GrantFrame(9, 3, body),
@@ -195,15 +195,19 @@ public sealed class MessagingProtocolTests
         var negative = (byte[])good.Clone();
         negative[12 + 3] = 0x80;                                                                                          // the image's count goes negative
         Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, negative));
-        var badParty = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("", null, [new MessageSlot("TOKEN-01", new MessageTag(Mcs, MessageParty.Server, "S", 1))])));
+        var badParty = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("TOKEN-01", null, [new MessageSlot("TOKEN-01", new MessageTag(Mcs, MessageParty.Server, "S", 1))])));
         badParty[badParty.Length - 8 - 7 - 1] = 9;                                                                        // the party byte
         Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, badParty));
         // A slot's token is the 8 positions a message tag occupies (DOC-A.1-212), on the way out and on the way in (kb/Work PB4957).
         Assert.Throws<ArgumentException>(() => PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("", null, [new MessageSlot("SHORT", MessageTag.Null)]))));
-        var shortToken = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("", null, [new MessageSlot("TOKEN-01", MessageTag.Null)])));
+        var shortToken = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("TOKEN-01", null, [new MessageSlot("TOKEN-01", MessageTag.Null)])));
         int tokenCount = Array.IndexOf(shortToken, (byte)'T', 0) - 4;                                                    // the token's count precedes its first unit
         shortToken[tokenCount] = 7;
         Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, shortToken));
+        // PB5004: a slot whose token the image does not hold is no slot of that message; the decoder refuses it as it refuses the party byte.
+        var absent = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("TOKEN-01", null, [new MessageSlot("TOKEN-01", MessageTag.Null)])));
+        absent[Array.IndexOf(absent, (byte)'T', 0)] = (byte)'X';                                                          // the image's first unit; the slot's token stays
+        Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, absent));
     }
 
     [Fact]
@@ -307,7 +311,7 @@ public sealed class MessagingProtocolTests
     {
         var (_, server, requestor) = Pair();
         var tag = new MessageTag(Mcs, MessageParty.Requestor, "someone", 4);
-        requestor.Send("SRV", new MessageBody("AAKEY", new RecordExtents([0], [2]), [new MessageSlot("TOKEN-01", tag)]));
+        requestor.Send("SRV", MessageBody.Carrying("AATOKEN-01", new RecordExtents([0], [2]), [new MessageSlot("TOKEN-01", tag)]));
         server.Receive(default);
         Pump(requestor, server);
         var got = server.Last;
