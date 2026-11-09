@@ -12,6 +12,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 /// of the 41,724-element base pool into hash sets, a root-by-root numbering of every weight line, a delegate call per
 /// element to re-weight the pool, and the pool copied into a list and out of it twice.
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class CldrBuildCostTests
 {
     private static long AllocatedByABuild(string tag)
