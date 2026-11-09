@@ -32,6 +32,13 @@ held edition (kb/Work PB4995, PB5008), and the fleet decides only what they leav
           (`dispositions`' `change`, which `change-batch` writes); an OPEN or disputed one is CONTESTED and goes to a fleet
           adjudicator, never to a vote.
 
+A ninth pass serves the 1985 transcription, not the change records (kb/Work PB4984):
+
+  misprints one request per 1985 catalog rule as it now reads, with the 2023 rules its map answer paired it with (none
+          for a NONE, or a rule the map never saw, which is read for its own sense alone): a proofreader of the misprints a spelling check cannot see, a real word printed for another (MISPRINT, with the
+          printed words, the intended words and their context, all checked against the rule's text, or CLEAN). Each is a
+          LEAD (`misprint-leads`), which a reader of the rendered page confirms before the Errata lists it.
+
     python scripts/spec/audit_batch.py plan    --pass route  --state DIR [--catalog F] [--catalog-2023 F]
     python scripts/spec/audit_batch.py plan    --pass map    --state DIR [--catalog F] [--catalog-2023 F] [--candidates 15]
                                                                                    # once every route item is answered
@@ -42,7 +49,8 @@ held edition (kb/Work PB4995, PB5008), and the fleet decides only what they leav
     python scripts/spec/audit_batch.py plan    --pass refute --state DIR          # once every adjudicate item is answered
     python scripts/spec/audit_batch.py plan    --pass recheck --state DIR [--catalog F] [--catalog-2023 F] [--near-1985 10]
                                                                                    # once every adjudicate item is answered
-    python scripts/spec/audit_batch.py submit  --pass P --state DIR --api-key-file KEY [--api-account A] --max-usd N --canary 20
+    python scripts/spec/audit_batch.py plan    --pass misprints --state DIR [--catalog F]  # once every map item is answered
+    python scripts/spec/audit_batch.py submit --pass P --state DIR --api-key-file KEY [--api-account A] --max-usd N --canary 20
     python scripts/spec/audit_batch.py submit  --pass P --state DIR --api-key-file KEY --max-usd N      # the rest
     python scripts/spec/audit_batch.py status  --pass P --state DIR [--api-key-file KEY]
     python scripts/spec/audit_batch.py collect --pass P --state DIR --api-key-file KEY
@@ -50,6 +58,8 @@ held edition (kb/Work PB4995, PB5008), and the fleet decides only what they leav
     python scripts/spec/audit_batch.py withdraw --pass P --state DIR             # each stored answer the shape now
                                                                                    # refuses, to raw/; retry asks again
     python scripts/spec/audit_batch.py results --state DIR                        # DIR/results.json: each rule's disposition
+    python scripts/spec/audit_batch.py misprint-leads --state DIR                 # DIR/misprint-leads.json: each misprint
+                                                                                   # the misprints pass reports
     python scripts/spec/audit_batch.py change-batch --state DIR --out FILE        # every DECIDED change record (KEPT,
                                                                                    # CHANGED, REMOVED; record_verdicts.py
                                                                                    # --edition 1985) no adjudication
@@ -244,13 +254,26 @@ part of the requirement"], "rules_1985": ["the id of every other 1985 rule below
 "rules_2023" names only ids shown below, is non-empty for KEPT and CHANGED and empty for REMOVED and OPEN; "rules_1985"
 names only 1985 ids shown below, and is empty when no other rule bears on it; "exception" is empty unless (c) found one;
 "differs" is empty for KEPT and OPEN.""",
+    "misprints": COMMON + """
+Proofread one rule of ANSI X3.23-1985 (as amended by X3.23a-1989 and X3.23b-1993) for MISPRINTS: a word printed in error
+that is itself a real word, so a spelling check cannot see it ("form" for "from", "of" for "or", "than" for "then", "date"
+for "data", "and" for "any", "identifier-1" for "identifier-2", a dropped "not"). Read the 1985 sentence for its own sense;
+where 2023 rules an earlier reader paired with it are given below, a word that differs from them is a lead, never proof.
+A requirement the two editions state differently on purpose (a case added or removed, a term renamed, such as "nonnumeric
+literal" and "alphanumeric literal") is NO misprint, and neither is a non-word: report only a real word the sentence's own
+sense shows was meant to be another.
+- MISPRINT: one or more words read as a misprint of the word the sense requires;
+- CLEAN: none does.
+The JSON object: {"verdict": "MISPRINT|CLEAN", "misprints": [{"printed": "the misprinted word or words, exactly as the 1985
+rule prints them", "intended": "the words the sense requires", "context": "the 1985 rule's words around it, exactly as
+printed, at most 120 characters"}], "reason": "at most 200 characters"}; "misprints" is empty exactly when CLEAN.""",
 }
 #: The output tokens of one reply, for the estimate before a canary has measured them (thinking included).
 #: The recheck's is its canary's measured mean (22,300 over 20 replies on state-route, kb/Work PB4995).
 EST_OUTPUT_TOKENS = {"route": 1200, "map": 1500, "verify": 1500, "claims": 1200, "drafts": 2500, "adjudicate": 2500,
-                     "refute": 2000, "recheck": 22000}
+                     "refute": 2000, "recheck": 22000, "misprints": 1200}
 EFFORT = {"route": "high", "map": "medium", "verify": "high", "claims": "medium", "drafts": "medium", "adjudicate": "high",
-          "refute": "high", "recheck": "max"}
+          "refute": "high", "recheck": "max", "misprints": "medium"}
 #: The most output tokens one reply may spend, thinking included: the recheck thinks at the highest effort over whole
 #: clauses, and a reply cut off at the limit is no answer (4 of its canary's 20 replies stopped at 32,000, kb/Work PB4995).
 MAX_OUTPUT_TOKENS = {**dict.fromkeys(EFFORT, 8000), "recheck": 64000}
@@ -258,7 +281,8 @@ ROUTED = "ROUTED"
 #: The most 2023 clauses one route answer may name: a 1985 clause spread over more than this is no single feature.
 MAX_ROUTES = 8
 VERDICTS = {"route": {ROUTED, NONE}, "map": {SAME, DIFFERS, NONE}, "verify": {"UPHELD", "REFUTED", "UNSURE"},
-            "claims": {"CONFIRMED", "REFUTED", "NOT-ADDRESSED"}, "refute": {"UPHELD", "REFUTED", "UNSURE"}}
+            "claims": {"CONFIRMED", "REFUTED", "NOT-ADDRESSED"}, "refute": {"UPHELD", "REFUTED", "UNSURE"},
+            "misprints": {"MISPRINT", "CLEAN"}}
 
 
 #: The passes whose answer is a change record: the change record's kinds, and UNDECIDED.
@@ -553,6 +577,32 @@ def plan_verify(state: pathlib.Path) -> list[dict[str, Any]]:
     return out
 
 
+def plan_misprints(catalog: pathlib.Path, catalog_2023: pathlib.Path, state: pathlib.Path) -> list[dict[str, Any]]:
+    """Every rule of the 1985 catalog AS IT NOW READS (the transcription it proofreads, repaired since the map was
+    planned), with the 2023 rules the map answer named as its counterparts (SAME or DIFFERS), or none (NONE, or a rule
+    the map never saw): the reader of the misprints a spelling check cannot see, a real word printed for another
+    (kb/Work PB4984). A rule with no counterpart is read for its own sense alone."""
+    m = Pass(state, "map")
+    items, answers = m.items(), m.answers()
+    if missing := [cid for cid in items if cid not in answers]:
+        raise SystemExit(f"{TOOL}: {len(missing)} map item(s) are unanswered; collect and retry the map pass first")
+    named = {it["id"]: [c for c in map_candidates(it) if c["id"] in set(answers[cid]["answer"]["rules_2023"])]
+             for cid, it in items.items()}
+    rules, _ = load_catalogs(catalog, catalog_2023)    # every quoted citation one in the one format
+    return [{"id": r["id"], "rule": quoted_rule(r), "counterparts": named.get(r["id"], [])} for r in rules]
+
+
+def misprint_leads(state: pathlib.Path) -> list[dict[str, Any]]:
+    """Each misprint the misprints pass reports, with its rule's citation and whether a 2023 counterpart was read beside
+    it: a LEAD for a reader of the rendered page, never a correction (the Errata of specs/ANSI_COBOL_1985.md lists only
+    what the page shows, kb/Work PB4972)."""
+    p = Pass(state, "misprints")
+    items = {it["id"]: it for it in p.items().values()}
+    return [{"rule-id": a["id"], "citation": items[a["id"]]["rule"]["citation"],
+             "paired": bool(items[a["id"]]["counterparts"]), **m}
+            for a in p.answers().values() for m in a["answer"]["misprints"]]
+
+
 def plan_claims(claims_file: pathlib.Path, repo: pathlib.Path = spec_pdf.REPO) -> list[dict[str, Any]]:
     """Each claim with the 1985 text of the locator it names (citation.regions: every region the locator owns)."""
     claims = json.loads(claims_file.read_text(encoding="utf-8"))
@@ -792,6 +842,9 @@ def prompt_parts(pass_name: str, item: dict[str, Any]) -> tuple[str, str, str]:
                f"THE ADJUDICATOR'S DECISION:\n{json.dumps(item['adjudication'], ensure_ascii=False)}")
     elif pass_name == "verify":
         own = f"{rule_block(item['rule'])}\n\nTHE 2023 RULES JUDGED SAME:\n{candidate_block(item['candidates']) or '(none)'}"
+    elif pass_name == "misprints":
+        own = (f"{rule_block(item['rule'])}\n\nTHE 2023 RULES AN EARLIER READER PAIRED WITH IT:\n"
+               f"{candidate_block(item['counterparts']) or '(none: read the 1985 rule for its own sense)'}")
     elif pass_name == "route":
         c = item["clause"]
         shared += "\n\nTHE 2023 CLAUSES:\n" + "\n".join(f"{x['id']} {x['subject'] or '-'}" for x in item["clauses_2023"])
@@ -894,12 +947,42 @@ def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[
         kind = change_kinds().kinds.get(obj["verdict"])
         if kind and kind.chained and any(str(v or "").strip() for v in exception.values()):
             return None, f"a refusal that became an exception condition is a change, never {obj['verdict']}"
+    if pass_name == "misprints":
+        why = misprints_error(item["rule"]["text"], obj)
+        if why:
+            return None, why
     if pass_name == "claims" and obj["verdict"] != "NOT-ADDRESSED":
         found, why = cited(obj)
         if found is None:
             return None, why
         obj["citation"] = citation.render(found)
     return obj, ""
+
+
+def spaced(text: str) -> str:
+    """`text` as a reply quotes it: no markup tag (the catalog's underlines), no `\\` escape, no level-2 box side, and every
+    run of white space one space."""
+    return " ".join(re.sub(r"<[^>]+>", "", text).replace("\\", "").replace(spec_pdf.BOX_SIDE, " ").split())
+
+
+def misprints_error(rule_text: str, obj: dict[str, Any]) -> str:
+    """Why a misprints answer is none, or "": its list is empty exactly when CLEAN, and each misprint quotes words the
+    1985 rule prints (`printed`, whole words, inside its `context`, itself the rule's own words) and names other words
+    (`intended`). A lead whose words the rule lacks points at nothing on the page, so it is a reply to retry."""
+    found = obj.get("misprints")
+    if not isinstance(found, list) or (obj["verdict"] == "CLEAN") != (not found):
+        return "misprints must be a list, empty exactly when the verdict is CLEAN"
+    text = spaced(rule_text)
+    for m in found:
+        if not isinstance(m, dict) or not all(isinstance(m.get(f), str) and m[f].strip()
+                                              for f in ("printed", "intended", "context")):
+            return "a misprint gives its printed, intended and context words"
+        printed, context = spaced(m["printed"]), spaced(m["context"])
+        if spaced(m["intended"]) == printed:
+            return "a misprint's intended words differ from its printed words"
+        if context not in text or not re.search(rf"(?<![\w-]){re.escape(printed)}(?![\w-])", context):
+            return "a misprint's context is the rule's own words, and holds its printed words whole"
+    return ""
 
 
 def cited(obj: dict[str, Any]) -> tuple[citation.Citation | None, str]:
@@ -1020,8 +1103,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     pl = sub.add_parser("plan", help="write a pass's items (once)")
     common(pl, key=False)
-    pl.add_argument("--catalog", default=str(OUT_1985), help="the 1985 rule catalog (route, map, recheck)")
-    pl.add_argument("--catalog-2023", default=str(OUT), help="the 2023 rule catalog (route, map, recheck)")
+    pl.add_argument("--catalog", default=str(OUT_1985), help="the 1985 rule catalog (route, map, recheck, misprints)")
+    pl.add_argument("--catalog-2023", default=str(OUT), help="the 2023 rule catalog (route, map, recheck, misprints)")
     pl.add_argument("--candidates", type=int, default=15,
                     help="the 2023 rules by wording per 1985 rule, after those of its routed clauses (map)")
     pl.add_argument("--near-1985", type=int, default=10,
@@ -1040,6 +1123,9 @@ def build_parser() -> argparse.ArgumentParser:
     common(sub.add_parser("withdraw", help="move each stored answer the pass's answer shape now refuses to raw/, so "
                                            "retry asks again"), key=False)
     common(sub.add_parser("results", help="write DIR/results.json: each mapped rule's disposition and decided change"),
+           key=False, pass_arg=False)
+    common(sub.add_parser("misprint-leads", help="write DIR/misprint-leads.json: each misprint the misprints pass "
+                                                 "reports, a lead for a reader of the rendered page"),
            key=False, pass_arg=False)
     cb = sub.add_parser("change-batch", help="write every decided change record as a record_verdicts batch")
     common(cb, key=False, pass_arg=False)
@@ -1082,6 +1168,13 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         print(f"change-batch: {len(records)} change record(s) {dict(sorted(kinds.items()))} -> {out}\n"
               f"  validate: python scripts/spec/record_verdicts.py --edition 1985 --dry-run {out}", flush=True)
         return 0
+    if a.cmd == "misprint-leads":
+        leads = misprint_leads(state)
+        write_atomic(state / "misprint-leads.json", json.dumps(leads, indent=1, ensure_ascii=False))
+        print(f"misprint-leads: {len(leads)} lead(s) in {len({x['rule-id'] for x in leads})} rule(s), "
+              f"{sum(1 for x in leads if not x['paired'])} read without a 2023 counterpart -> "
+              f"{state / 'misprint-leads.json'}", flush=True)
+        return 0
     p = Pass(state, a.pass_name)
     if a.cmd == "plan":
         if a.pass_name == "claims" and not a.claims:
@@ -1095,6 +1188,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
             "adjudicate": lambda: plan_adjudicate(state),
             "refute": lambda: plan_refute(state),
             "recheck": lambda: plan_recheck(pathlib.Path(a.catalog), pathlib.Path(a.catalog_2023), a.near_1985, state),
+            "misprints": lambda: plan_misprints(pathlib.Path(a.catalog), pathlib.Path(a.catalog_2023), state),
         }
         return write_plan(p, planners[a.pass_name]())
     if a.cmd == "withdraw":
