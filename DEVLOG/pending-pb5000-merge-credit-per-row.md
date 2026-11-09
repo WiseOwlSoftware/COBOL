@@ -13,4 +13,8 @@ reading of the history can divide, so it is not this mechanism. The self-test ga
 a second note and touch another row.
 
 Self-review: the legacy-file branch is the only place a commit that did not change the row is credited to it, and only for
-history before kb/Work PB4148; there the old noise is unchanged. Gate: see the landing's record.
+history before kb/Work PB4148.
+
+Branch review R1-1: the per-row message first replaced the merge's message for every arm, which narrowed arm 1 (the row's
+notes intersected with the message) and lost correct credits (DOC-A.1-143 lost PB1536, DOC-A.1-51 fell to arm 2). Now only
+arm 3 reads the per-row message; `attribute` takes it as a third argument and arm 1 keeps the widest evidence, as before. Gate: see the landing's record.

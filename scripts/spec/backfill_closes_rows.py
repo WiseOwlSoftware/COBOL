@@ -84,16 +84,22 @@ def pb_ids(text: str) -> set[str]:
     return set(PB.findall(text or ""))
 
 
-def attribute(commit_message: str, row_notes: str) -> set[str]:
-    """Which note(s) a single row's closure belongs to. See the four arms in the module docstring."""
+def attribute(commit_message: str, row_notes: str, row_message: str | None = None) -> set[str]:
+    """Which note(s) a single row's closure belongs to. See the four arms in the module docstring.
+
+    `row_message` is the narrower evidence of a merge landing (:func:`message_for_row`): arm 3, which trusts a message
+    naming EXACTLY ONE note, reads it, because another brought-in commit naming a second note must not defeat it. Arm 1
+    intersects the row's own notes with `commit_message`, the widest evidence, so a note the row names is never lost
+    to a narrowing (kb/Work PB5000, branch review R1-1)."""
     from_row, from_commit = pb_ids(row_notes), pb_ids(commit_message)
     both = from_row & from_commit
     if both:
         return both
     if from_row:
         return from_row
-    if len(from_commit) == 1:
-        return from_commit
+    from_narrow = from_commit if row_message is None else pb_ids(row_message)
+    if len(from_narrow) == 1:
+        return from_narrow
     return set()
 
 
@@ -158,7 +164,8 @@ def closures_from_history(resolving: set[str], progress=None,
             if verdict not in resolving or was in resolving:
                 continue
             stats["transitions"] += 1
-            ids = attribute(message if landed is None else message_for_row(landed, rule_id), notes)
+            ids = (attribute(message, notes) if landed is None
+                   else attribute(landed[1], notes, message_for_row(landed, rule_id)))
             stats["by-arm"]["attributed" if ids else "unattributed"] += 1
             if not ids:
                 stats["unattributed"] += 1
@@ -333,6 +340,10 @@ def self_test() -> int:
           walked2 == {"PB9001": {"R-1"}, "PB9002": {"R-3"}, "PB9003": {"R-2"}}, str(walked2))
     check("and the union of all brought-in messages is exactly what arm 3 could not use",
           attribute("PB9002: close R-3\nPB9003: close R-2", "") == set())
+    check("at a merge arm 1 still reads every brought-in message, so a note the row names is kept (R1-1)",
+          attribute("PB9002: close R-3\nPB9003: close R-2", "PB9003 and PB9004", "PB9002: close R-3") == {"PB9003"})
+    check("at a merge arm 3 reads only the row's own commits",
+          attribute("PB9002: close R-3\nPB9003: close R-2", "", "PB9002: close R-3") == {"PB9002"})
 
     # ── the attribution rule, arm by arm ─────────────────────────────────────────────────────────────
     check("arm 1 — commit and row agree, and the INTERSECTION wins over either alone",
