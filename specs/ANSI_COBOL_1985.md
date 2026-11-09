@@ -6864,11 +6864,18 @@ Subscripts are used when reference is made to an individual element within a tab
 4.3.8.2.2 General Format
 
 <pre style="line-height:1">
-                           ╭ integer-1                      ╮
-╭ condition-name-1 ╮    (  ┤ data-name-2 [{±} integer-2]    ├ …   )
-┤                  ├       │                                │
-╰ data-name-1      ╯       ╰ index-name-1 [{±} integer-3]   ╯
+                      ╭ <u>ALL</u>                               ╮
+                      │                                   │
+                      │ integer-1                         │
+╭ condition-name-1 ╮  │               ┌ ╭ + ╮           ┐ │
+┤                  ├ (┤ data-name-2   │ ┤   ├ integer-2 │ ├ …  )
+╰ data-name-1      ╯  │               └ ╰ - ╯           ┘ │
+                      │               ┌ ╭ + ╮           ┐ │
+                      │ index-name-1  │ ┤   ├ integer-3 │ │
+                      ╰               └ ╰ - ╯           ┘ ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C91).** The standard prints `the general format of subscripting without ALL` (page 167, folio IV-21). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.2, replace the general format with the following" (kb/Work PB5045). Corrected to `the general format above, with ALL`.
 
 4.3.8.2.3 Syntax Rules
 
@@ -6892,6 +6899,10 @@ d. In the KEY IS phrase of an OCCURS clause.
 
 (6) Integer-1 may be signed and, if signed, it must be positive.
 
+(7) The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified. (See page A-28, Arguments.)
+
+> ⚠ **CORRECTED — see the Errata (C92).** The standard prints `(6) Integer-1 may be signed and, if signed, it must be positive.` (page 167, folio IV-21). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.3, add new syntax rule 7 as follows" (kb/Work PB5045). Corrected to `(7) The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified. (See page A-28, Arguments.)`.
+
 4.3.8.2.4 General Rules
 
 (1) The value of the subscript must be a positive integer. The lowest possible occurrence number represented by a subscript is 1. The first element of any given dimension of a table is referenced by an occurrence number of 1. Each successive element within that dimension of the table is referenced by occurrence numbers of 2, 3, ... . The highest permissible occurrence number for
@@ -6910,19 +6921,62 @@ any given dimension of the table is the maximum number of occurrences of the ite
 
 (4) If integer-2 or integer-3 is specified, the value of the subscript is determined by incrementing by the value of integer-2 or integer-3 (when the operator + is used) or by decrementing by the value of integer-2 or integer-3 (when the operator - is used) either the occurrence number represented by the value of the index referenced by index-name-1 or the value of the data item referenced by data-name-2.
 
-#### 4.3.8.3 Reference Modification
+#### 4.3.8.3 Function-Identifier
 
-##### 4.3.8.3.1 Function
+##### 4.3.8.3.1 Purpose of a Function-Identifier
 
-Reference modification defines a data item by specifying a leftmost character and length for the data item.
+A function-identifier is a syntactically correct combination of character-strings and separators that uniquely references the data item resulting from the evaluation of a function.
 
 ##### 4.3.8.3.2 General Format
 
 <pre style="line-height:1">
-data-name-1 ( leftmost-character-position: [ length ] )
+<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]
 </pre>
 
 ##### 4.3.8.3.3 Syntax Rules
+
+(1) Argument-1 must be an identifier, a literal, or an arithmetic expression. Specific rules governing the number, class, and category of argument-1 are given in the definition of each function. (See page A-27, Intrinsic Function Module.)
+
+(2) A reference-modifier may be specified only for functions of the category alphanumeric.
+
+(3) A function-identifier which references an alphanumeric function may be specified anywhere in the general formats that an identifier is permitted and where the rules associated with the general formats do not specifically prohibit reference to functions, except as follows:
+
+
+a. As a receiving operand of any statement.
+
+b. Where the rules associated with the general formats require the data item being referenced to have particular characteristics (such as class and category, usage, size, sign, and permissible values) and the evaluation of the function according to its definition and the particular arguments specified would not have these characteristics.
+
+(4) A function-identifier which references an integer or numeric function may be used only in an arithmetic expression.
+
+##### 4.3.8.3.4 General Rules
+
+(1) The class and other characteristics of the function being referenced are determined by the function definition. (See page A-27, Intrinsic Functions.)
+
+(2) At the time reference is made to a function, its arguments are evaluated individually in the order specified in the list of arguments, from left to right. An argument being evaluated may itself be a function-identifier or may be an expression containing function-identifiers. There is no restriction preventing the function referenced in evaluating an argument from being the same function as that for which the argument is specified.
+
+> ⚠ **CORRECTED — see the Errata (C95).** The standard prints `4.3.8.3 Reference Modification (the paragraph now numbered 4.3.8.4)` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 841, folio A-11), applied in place: "Add the following as new paragraph 4.3.8.3: 4.3.8.3 Function-Identifier", which runs on to page 842 (folio A-12) (kb/Work PB5045). Corrected to `4.3.8.3 Function-Identifier, its Purpose, General Format, Syntax Rules (1) to (4) and General Rules (1) and (2), above`.
+
+#### 4.3.8.4 Reference-Modifier
+
+> ⚠ **CORRECTED — see the Errata (C96).** The standard prints `4.3.8.3 Reference Modification` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4, change the title to 'Reference-Modifier'" (kb/Work PB5045). Corrected to `4.3.8.4 Reference-Modifier`.
+
+##### 4.3.8.4.1 Function
+
+Reference modification defines a data item by specifying a leftmost character and length for the data item.
+
+##### 4.3.8.4.2 General Format
+
+<pre style="line-height:1">
+╭ data-name-1                                    ╮
+┤                                                ├ (leftmost-character-position:[length])
+╰ <u>FUNCTION</u> function-name-1 [({argument-1} …   )] ╯
+</pre>
+
+NOTE: Data-name-1 and FUNCTION function-name-1 (argument-1) are shown in the above format to provide context and are not part of the reference-modifier.
+
+> ⚠ **CORRECTED — see the Errata (C97).** The standard prints `data-name-1 ( leftmost-character-position: [ length ] )` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.2, replace the general format with the following" (kb/Work PB5045). Corrected to `the general format above, with FUNCTION function-name-1, and its NOTE`.
+
+##### 4.3.8.4.3 Syntax Rules
 
 (1) Data-name-1 must reference a data item whose usage is DISPLAY.
 
@@ -6932,9 +6986,17 @@ data-name-1 ( leftmost-character-position: [ length ] )
 
 (4) Data-name-1 may be qualified or subscripted.
 
-##### 4.3.8.3.4 General Rules
+(5) The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.
 
-(1) Each character of a data item referenced by data-name-1 is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position. The leftmost position is assigned the ordinal number one. If the data description entry for data-name-1 contains a SIGN IS SEPARATE clause, the sign position is assigned an ordinal number within that data item.
+> ⚠ **CORRECTED — see the Errata (C98).** The standard prints `(4) Data-name-1 may be qualified or subscripted.` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.3, add the following as new syntax rule 5" (kb/Work PB5045). Corrected to `(5) The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.`.
+
+##### 4.3.8.4.4 General Rules
+
+> ⚠ **CORRECTED — see the Errata (C93).** The standard prints `4.3.8.3 Reference Modification, 4.3.8.3.1 Function, 4.3.8.3.2 General Format, 4.3.8.3.3 Syntax Rules, 4.3.8.3.4 General Rules` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045). Corrected to `4.3.8.4, 4.3.8.4.1 to 4.3.8.4.4`.
+
+(1) Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position. The leftmost position is assigned the ordinal number one. If the data description entry for data-name-1 contains a SIGN IS SEPARATE clause, the sign position is assigned an ordinal number within that data item.
+
+> ⚠ **CORRECTED — see the Errata (C99).** The standard prints `(1) Each character of a data item referenced by data-name-1 is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read" (kb/Work PB5045). Corrected to `(1) Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.`.
 
 (2) If the data item referenced by data-name-1 is described as numeric, numeric edited, alphabetic, or alphanumeric edited, it is operated upon for purposes of reference modification as if it were redefined as an alphanumeric data item of the same size as the data item referenced by data-name-1.
 
@@ -6946,31 +7008,61 @@ Identifier
 
 (3) Reference modification for an operand is evaluated as follows:
 
-a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts.
+a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts. If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table.
+
+> ⚠ **CORRECTED — see the Errata (C100).** The standard prints `a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts.` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence" (kb/Work PB5045). Corrected to the text above.
 
 b. If the subscripting is not specified for the operand, the reference modification is evaluated at the time subscripting would be evaluated if subscripts had been specified.
 
-(4) Reference modification creates a unique data item which is a subset of the data item referenced by data-name-1. This unique data item is defined as follows:
+c. If reference modification is specified in a function reference, the reference modification is evaluated immediately after evaluation of the function.
 
-a. The evaluation of leftmost-character-position specifies the ordinal position of the leftmost character of the unique data item in relation to the leftmost character of the data item referenced by data-name-1. Evaluation of leftmost-character-position must result in a positive nonzero integer less than or equal to the number of characters in the data item referenced by data-name-1.
+> ⚠ **CORRECTED — see the Errata (C101).** The standard prints `b. If the subscripting is not specified for the operand, ...` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c" (kb/Work PB5045). Corrected to `c. If reference modification is specified in a function reference, the reference modification is evaluated immediately after evaluation of the function.`.
 
-b. The evaluation of length specifies the size of the data item to be used in the operation. The evaluation of length must result in a positive nonzero integer. The sum of leftmost-character-position and length minus the value one must be less than or equal to the number of characters in the data item referenced by data-name-1. If length is not specified, the unique data item extends from and includes the character identified by leftmost-character-position up to and including the rightmost character of the data item referenced by data-name-1.
+(4) Reference modification creates a unique data item that is a subset of the data item referenced by data-name-1 or by function-name-1 and its arguments, if any. This unique data item is defined as follows:
 
-(5) The unique data item is considered an elementary data item without the JUSTIFIED clause. It has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric.
+> ⚠ **CORRECTED — see the Errata (C102).** The standard prints `(4) Reference modification creates a unique data item which is a subset of the data item referenced by data-name-1.` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 4, change the first sentence to read" (kb/Work PB5045). Corrected to `(4) Reference modification creates a unique data item that is a subset of the data item referenced by data-name-1 or by function-name-1 and its arguments, if any.`.
 
-#### 4.3.8.4 Identifier
+a. The evaluation of leftmost-character-position specifies the ordinal position of the leftmost character of the unique data item in relation to the leftmost character of the data item referenced by data-name-1 or function-name-1 and its arguments, if any. Evaluation of leftmost-character-position must result in a positive nonzero integer less than or equal to the number of characters in the data item referenced by data-name-1 or function-name-1 and its arguments, if any.
 
-An identifier is a term used to reflect a data-name that, if not unique in a program, must be followed by a syntactically correct combination of qualifiers, subscripts, or reference modifiers necessary for uniqueness of reference. (See page X-4, Scope of Names.)
+b. The evaluation of length specifies the size of the data item to be used in the operation. The evaluation of length must result in a positive nonzero integer. The sum of leftmost-character-position and length minus the value one must be less than or equal to the number of characters in the data item referenced by data-name-1 or function-name-1 and its arguments, if any. If length is not specified, the unique data item extends from and includes the character identified by leftmost-character-position up to and including the rightmost character of the data item referenced by data-name-1 or function-name-1 and its arguments, if any.
 
-The general format for identifier is:
+> ⚠ **CORRECTED — see the Errata (C103).** The standard prints `the data item referenced by data-name-1` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 4, paragraphs a and b, replace four occurrences of 'the data item referenced by data-name-1' by 'the data item referenced by data-name-1 or function-name-1 and its arguments, if any'" (kb/Work PB5045). Corrected to `the data item referenced by data-name-1 or function-name-1 and its arguments, if any`.
+
+(5) The unique data item is considered an elementary data item without the JUSTIFIED clause. When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric.
+
+> ⚠ **CORRECTED — see the Errata (C104).** The standard prints `without the JUSTIFIED clause. It has the same class and category` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 5, second sentence, replace the word 'It' by 'When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item'" (kb/Work PB5045). Corrected to `without the JUSTIFIED clause. When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item has the same class and category`.
+
+#### 4.3.8.5 Identifier
+
+##### 4.3.8.5.1 Function
+
+An identifier is a syntactically correct sequence of character-strings and separators used to reference data uniquely.
+
+When a data item other than a function is being referenced, identifier is a term used to reflect that a data-name, if not unique in a program, must be followed by a syntactically correct combination of qualifiers, subscripts, or reference modifiers necessary for uniqueness of reference. (See page X-4, Scope of Names.)
+
+##### 4.3.8.5.2 General Format
+
+<u>Format 1</u>:
 
 <pre style="line-height:1">
-            ┌╭<u>IN</u> ╮              ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮┐
-data-name-1 │┤   ├ data-name-2  │ …   │┤  ├ ┤file-name-1   ├│
-            └╰<u>OF</u> ╯              ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯┘
-
-   [({subscript}  …   )]  [(leftmost-character-position: [length])]
+function-identifier-1
 </pre>
+
+<u>Format 2</u>:
+
+<pre style="line-height:1">
+            ┌╭<u>IN</u>╮             ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮ ┐
+data-name-1 │┤  ├ data-name-2 │ …   │┤  ├ ┤file-name-1   ├ │
+            └╰<u>OF</u>╯             ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯ ┘
+
+     [({subscript} …   )] [reference-modifier]
+</pre>
+
+##### 4.3.8.5.3 Syntax Rules
+
+(1) The words IN and OF are equivalent.
+
+> ⚠ **CORRECTED — see the Errata (C105).** The standard prints `4.3.8.4 Identifier: An identifier is a term used to reflect a data-name that, if not unique in a program, must be followed by ... (the 1985 paragraph and its general format)` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.5, change to read: 4.3.8.5 Identifier"; the paragraph is the one the renumbering of the change for pages IV-22 thru IV-24 (page 841, folio A-11) makes 4.3.8.5 (kb/Work PB5045). Corrected to `4.3.8.5 Identifier, its Function, General Format (formats 1 and 2) and Syntax Rule (1), above`.
 
 IV-23
 
@@ -6978,7 +7070,9 @@ IV-23
 
 Condition-Name
 
-### 4.3.8.5 Condition-Name
+### 4.3.8.6 Condition-Name
+
+> ⚠ **CORRECTED — see the Errata (C94).** The standard prints `### 4.3.8.5 Condition-Name` (page 170, folio IV-24). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045). Corrected to `### 4.3.8.6 Condition-Name`.
 
 If explicitly referenced, a condition-name must be unique or be made unique through qualification and/or subscripting except when the scope of names conventions by themselves ensure uniqueness of reference. (See page X-4, Scope of Names.)
 
@@ -7657,6 +7751,10 @@ COBOL Reserved Words
 
 ## 8. <u>COBOL RESERVED WORDS</u>
 
+The following is a list of COBOL reserved words for the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation.
+
+> ⚠ **CORRECTED — see the Errata (C106).** The standard prints `8. COBOL RESERVED WORDS (the heading the list follows)` (page 191, folio IV-45). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-45 (page 843, folio A-13), applied in place: "Paragraph 8, insert the following before the list of reserved words" (kb/Work PB5045). Corrected to `The following is a list of COBOL reserved words for the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation.`.
+
 | | | | |
 |---|---|---|---|
 | ACCEPT | CONFIGURATION | END-DELETE | I-O-CONTROL |
@@ -7765,6 +7863,12 @@ COBOL Reserved Words
 | | SEGMENT | THEN | &lt;= |
 | QUEUE | SEGMENT-LIMIT | THROUGH | |
 
+The following is a list of COBOL reserved words for the optional Intrinsic Function module.
+
+FUNCTION
+
+> ⚠ **CORRECTED — see the Errata (C107).** The standard prints `QUEUE SEGMENT-LIMIT THROUGH (the last row of the list)` (page 192, folio IV-46). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-46 (page 844, folio A-14), applied in place: "Paragraph 8, insert the following after the list of reserved words" (kb/Work PB5045). Corrected to `The following is a list of COBOL reserved words for the optional Intrinsic Function module. ¶ FUNCTION`.
+
 IV-46
 
 # SECTION V: COMPOSITE LANGUAGE SKELETON
@@ -7868,10 +7972,10 @@ Environment Division
      │ ┤literal-1│╰<u>THRU</u>   ╯           │├ …  ││
      ╰ ╰         └{<u>ALSO</u> literal-3} …  ┘╯    ╯┘
 
-   ┌<u>SYMBOLIC</u> CHARACTERS ╭╭{symbolic-character-1} …   ╭IS ╮ {integer-1} …   ╮ …  ╮┐
-   │                    │┤                           ┤   ├                 ├    ││
-   │                    ┤╰                           ╰ARE╯                 ╯    ├│
-   └                    ╰ [<u>IN</u> alphabet-name-2]                                  ╯┘ …
+   ┌<u>SYMBOLIC</u> CHARACTERS  ╭{symbolic-character-1} …   ╭IS ╮ {integer-1} …   ╮ …   ┐
+   │                     ┤                           ┤   ├                 ├     │
+   │                     ╰                           ╰ARE╯                 ╯     │
+   └                      [<u>IN</u> alphabet-name-2]                                   ┘ …
 
    ┌<u>CLASS</u> class-name-1 IS ╭literal-4 ┌╭<u>THROUGH</u>╮ literal-5┐╮ …  ┐ …
    │                      ┤          │┤       ├          │├    │
@@ -7881,6 +7985,8 @@ Environment Division
 
    [<u>DECIMAL-POINT</u> IS <u>COMMA</u>].]]]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C108).** The standard prints `SYMBOLIC CHARACTERS { {symbolic-character-1} ... {IS|ARE} {integer-1} ... } ... [IN alphabet-name-2] } ... (two sets of braces)` (page 195, folio V-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-3 (T) (page 844, folio A-14), applied in place: "SYMBOLIC CHARACTERS clause, delete outermost set of braces", a typographical error (kb/Work PB5045). Corrected to `the format above, its outermost braces deleted`.
 
 V-3
 
@@ -8038,7 +8144,7 @@ V-6
 │ <u>RESERVE</u> integer-1 │       │ │
 └                   └ AREAS ┘ ┘
 
-[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ]
+[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]
 
 ┌                      ╭ data-name-1 ╮ ┐
 │ <u>PADDING</u> CHARACTER IS ┤             ├ │
@@ -8051,6 +8157,8 @@ V-6
 [ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ]
 [ FILE <u>STATUS</u> IS data-name-2 ] .
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C109).** The standard prints `[ [ ORGANIZATION IS ] SEQUENTIAL ] ]` (page 199, folio V-7). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-7 (T) (page 844, folio A-14), applied in place: "ORGANIZATION clause, delete second occurrence of a right bracket after the word SEQUENTIAL", a typographical error (kb/Work PB5045). Corrected to `[ [ ORGANIZATION IS ] SEQUENTIAL ]`.
 
 V-7
 
@@ -8391,11 +8499,15 @@ Data Division - Communication Description Entry
                           │      [<u>END</u> <u>KEY</u> IS data-name-9]                │
                           │      [<u>STATUS</u> <u>KEY</u> IS data-name-10]            │
                           │      [MESSAGE <u>COUNT</u> IS data-name-11]]        │
-                          │ [data-name-1, data-name-2, data-name-3,      │
-                          │      data-name-4, data-name-5, data-name-6,  │
-                          │      data-name-7, data-name-8, data-name-9,  │
-                          └      data-name-10, data-name-11]             ┘
+                          │ [data-name-1 data-name-2 data-name-3         │
+                          │      data-name-4 data-name-5 data-name-6     │
+                          │      data-name-7 data-name-8 data-name-9     │
+                          └      data-name-10 data-name-11]              ┘ .
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C110).** The standard prints `data-name-10, data-name-11] ┘` (page 207, folio V-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-15 (T) (page 844, folio A-14), applied in place: "Insert a terminal period following the last bracket in format 1", a typographical error (kb/Work PB5045). Corrected to `┘ .`.
+
+> ⚠ **CORRECTED — see the Errata (C111).** The standard prints `[data-name-1, data-name-2, data-name-3, ... data-name-10, data-name-11]` (page 207, folio V-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-15 (T) (page 844, folio A-14), applied in place: "Delete the commas between data-name-1 through data-name-11, inclusively, in format 1", a typographical error (kb/Work PB5045). Corrected to `[data-name-1 data-name-2 data-name-3 ... data-name-10 data-name-11]`.
 
 V-15
 
@@ -8435,10 +8547,14 @@ Data Division - Communication Description Entry
                          │                                             │
                          │      [<u>STATUS</u> <u>KEY</u> IS data-name-6]]           │
                          │                                             │
-                         │ [data-name-1, data-name-2, data-name-3,     │
+                         │ [data-name-1 data-name-2 data-name-3        │
                          │                                             │
-                         └      data-name-4, data-name-5, data-name-6] ┘
+                         └      data-name-4 data-name-5 data-name-6]   ┘ .
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C112).** The standard prints `data-name-4, data-name-5, data-name-6] ┘` (page 208, folio V-16). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-16 (T) (page 844, folio A-14), applied in place: "Insert a terminal period following the last bracket in format 3", a typographical error (kb/Work PB5045). Corrected to `┘ .`.
+
+> ⚠ **CORRECTED — see the Errata (C113).** The standard prints `[data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, data-name-6]` (page 208, folio V-16). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-16 (T) (page 844, folio A-14), applied in place: "Delete the commas between data-name-1 through data-name-6, inclusively, in format 3", a typographical error (kb/Work PB5045). Corrected to `[data-name-1 data-name-2 data-name-3 data-name-4 data-name-5 data-name-6]`.
 
 V-16
 
@@ -9123,7 +9239,7 @@ Verb Formats (PERFORM - READ)
 
     ┌       ╭ identifier-5 ╮      ╭ identifier-6 ╮                      ┐
     │ <u>AFTER</u> ┤              ├ <u>FROM</u> ┤ index-name-4 ├                      │
-    │       ╰ literal-3    ╯      ╰ literal-3    ╯                      │
+    │       ╰ index-name-3 ╯      ╰ literal-3    ╯                      │
     │                                                                   │ …
     │            ╭ identifier-7 ╮                                       │
     │         <u>BY</u> ┤              ├ <u>UNTIL</u> condition-2                     │
@@ -9131,6 +9247,8 @@ Verb Formats (PERFORM - READ)
 
    [ imperative-statement-1 <u>END-PERFORM</u> ]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C114).** The standard prints `AFTER { identifier-5 / literal-3 } FROM { identifier-6 / index-name-4 / literal-3 }` (page 219, folio V-27). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-27 (T) (page 844, folio A-14), applied in place: "PERFORM format, AFTER phrase, change 'literal-3' immediately after the reserved word AFTER to 'index-name-3'", a typographical error (kb/Work PB5045). Corrected to `AFTER { identifier-5 / index-name-3 } FROM ...`.
 
 <pre style="line-height:1">
 <u>PURGE</u> cd-name-1
@@ -9191,7 +9309,10 @@ AT <u>END</u> imperative-statement-1
 
 <pre style="line-height:1">
 S <u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
+[ <u>END-REWRITE</u> ]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C115).** The standard prints `S REWRITE record-name-1 [ FROM identifier-1 ]` (page 220, folio V-28). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-28 (T) (page 844, folio A-14), applied in place: "Insert '[END-REWRITE]' at the end of the first REWRITE statement", a typographical error (kb/Work PB5045). Corrected to `S REWRITE record-name-1 [ FROM identifier-1 ] [ END-REWRITE ]`.
 
 <pre style="line-height:1">
 RI <u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
@@ -9682,26 +9803,150 @@ Miscellaneous Formats
 <u>SUBSCRIPTING</u>:
 
 <pre style="line-height:1">
-╭ condition-name-1 ╮   ╭ integer-1                    ╮
-┤                  ├ ( ┤ data-name-2 [{±} integer-2]  ├ …   )
-╰ data-name-1      ╯   ╰ index-name-1 [{±} integer-3] ╯
+                      ╭ <u>ALL</u>                               ╮
+                      │                                   │
+                      │ integer-1                         │
+╭ condition-name-1 ╮  │               ┌ ╭ + ╮           ┐ │
+┤                  ├ (┤ data-name-2   │ ┤   ├ integer-2 │ ├ …  )
+╰ data-name-1      ╯  │               └ ╰ - ╯           ┘ │
+                      │               ┌ ╭ + ╮           ┐ │
+                      │ index-name-1  │ ┤   ├ integer-3 │ │
+                      ╰               └ ╰ - ╯           ┘ ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C116).** The standard prints `the format of subscripting without ALL` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Change the format for subscripting to read" (kb/Work PB5045). Corrected to `the format above, with ALL`.
+
+<u>FUNCTION-IDENTIFIER</u>:
+
+<pre style="line-height:1">
+<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]
+</pre>
+
+> ⚠ **CORRECTED — see the Errata (C117).** The standard prints `REFERENCE MODIFICATION (the format it precedes)` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Add the following after the format for subscripting: FUNCTION-IDENTIFIER" (kb/Work PB5045). Corrected to `FUNCTION-IDENTIFIER: FUNCTION function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]`.
 
 <u>REFERENCE MODIFICATION</u>:
 
 <pre style="line-height:1">
-data-name-1 ( leftmost-character-position: [ length ] )
+╭ data-name-1                                    ╮
+┤                                                ├ (leftmost-character-position:[length])
+╰ <u>FUNCTION</u> function-name-1 [({argument-1} …   )] ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C118).** The standard prints `data-name-1 ( leftmost-character-position: [ length ] )` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Change the format for reference modification to read" (kb/Work PB5045). Corrected to `the format above, with FUNCTION function-name-1`.
 
 <u>IDENTIFIER</u>:
 
-<pre style="line-height:1">
-             ┌╭<u>IN</u> ╮              ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮┐
-data-name-1  │┤   ├  data-name-2 │ …   │┤  ├ ┤file-name-1   ├│
-             └╰<u>OF</u> ╯              ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯┘
+<u>Format 1</u>:
 
-     [({subscript } …   )]  [(leftmost-character-position: [length])]
+<pre style="line-height:1">
+function-identifier-1
 </pre>
+
+<u>Format 2</u>:
+
+<pre style="line-height:1">
+                                   ┌     ╭cd-name-1     ╮ ┐
+            ┌╭<u>IN</u>╮            ┐     │╭<u>IN</u>╮ │              │ │
+data-name-1 │┤  ├ data-name-2│ …   │┤  ├ ┤file-name-1   ├ │
+            └╰<u>OF</u>╯            ┘     │╰<u>OF</u>╯ │              │ │
+                                   └     ╰report-name-1 ╯ ┘
+
+     [({subscript} …   )] [reference-modifier]
+</pre>
+
+> ⚠ **CORRECTED — see the Errata (C119).** The standard prints `data-name-1 [ {IN|OF} data-name-2 ] ... [ {IN|OF} {cd-name-1|file-name-1|report-name-1} ] [({subscript} ...)] [(leftmost-character-position: [length])]` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, folio A-15), applied in place: "Change the format for identifier to read" (kb/Work PB5045). Corrected to `Format 1: function-identifier-1; Format 2 (above)`.
+
+## <u>GENERAL FORMAT FOR INTRINSIC FUNCTIONS</u>
+
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ACOS</u> (argument-1)
+
+<u>FUNCTION</u> <u>ANNUITY</u> (argument-1 argument-2)
+
+<u>FUNCTION</u> <u>ASIN</u> (argument-1)
+
+<u>FUNCTION</u> <u>ATAN</u> (argument-1)
+
+<u>FUNCTION</u> <u>CHAR</u> (argument-1)
+
+<u>FUNCTION</u> <u>COS</u> (argument-1)
+
+<u>FUNCTION</u> <u>CURRENT-DATE</u>
+
+<u>FUNCTION</u> <u>DATE-OF-INTEGER</u> (argument-1)
+
+<u>FUNCTION</u> <u>DAY-OF-INTEGER</u> (argument-1)
+
+<u>FUNCTION</u> <u>FACTORIAL</u> (argument-1)
+
+<u>FUNCTION</u> <u>INTEGER</u> (argument-1)
+
+<u>FUNCTION</u> <u>INTEGER-OF-DATE</u> (argument-1)
+
+<u>FUNCTION</u> <u>INTEGER-OF-DAY</u> (argument-1)
+
+<u>FUNCTION</u> <u>INTEGER-PART</u> (argument-1)
+
+<u>FUNCTION</u> <u>LENGTH</u> (argument-1)
+
+<u>FUNCTION</u> <u>LOG</u> (argument-1)
+
+<u>FUNCTION</u> <u>LOG10</u> (argument-1)
+
+<u>FUNCTION</u> <u>LOWER-CASE</u> (argument-1)
+
+<u>FUNCTION</u> <u>MAX</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MEAN</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MEDIAN</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MIDRANGE</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MIN</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MOD</u> (argument-1 argument-2)
+
+<u>FUNCTION</u> <u>NUMVAL</u> (argument-1)
+
+<u>FUNCTION</u> <u>NUMVAL-C</u> (argument-1 [argument-2])
+</pre>
+
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ORD</u> (argument-1)
+
+<u>FUNCTION</u> <u>ORD-MAX</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>ORD-MIN</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>PRESENT-VALUE</u> (argument-1 {argument-2} …  )
+
+<u>FUNCTION</u> <u>RANDOM</u> [(argument-1)]
+
+<u>FUNCTION</u> <u>RANGE</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>REM</u> (argument-1 argument-2)
+
+<u>FUNCTION</u> <u>REVERSE</u> (argument-1)
+
+<u>FUNCTION</u> <u>SIN</u> (argument-1)
+
+<u>FUNCTION</u> <u>SQRT</u> (argument-1)
+
+<u>FUNCTION</u> <u>STANDARD-DEVIATION</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>SUM</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>TAN</u> (argument-1)
+
+<u>FUNCTION</u> <u>UPPER-CASE</u> (argument-1)
+
+<u>FUNCTION</u> <u>VARIANCE</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>WHEN-COMPILED</u>
+</pre>
+
+> ⚠ **CORRECTED — see the Errata (C120).** The standard prints `(the end of page V-38)` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, folio A-15), applied in place: "Insert after page V-38 the contents of pages A-16 and A-17 which contain the general format for functions" (pages 846 and 847) (kb/Work PB5045). Corrected to `GENERAL FORMAT FOR INTRINSIC FUNCTIONS: FUNCTION ACOS (argument-1) ... FUNCTION WHEN-COMPILED`.
 
 V-38
 
@@ -37250,6 +37495,36 @@ it is taken as the rule of 1985.
 | [C88](#errata-c88) | 162 | IV-16 | Section IV, paragraph 4.3.4, second paragraph, first sentence | `must be used if not otherwise` | `must be used for data items other than integer and numeric…` | amendment-1 |
 | [C89](#errata-c89) | 162 | IV-16 | Section IV, paragraph 4.3.4, a new paragraph before the last | `(no paragraph)` | `An alphanumeric function is always represented ...` | amendment-1 |
 | [C90](#errata-c90) | 164 | IV-18 | Section IV, paragraph 4.3.8, a new paragraph before the last | `(no paragraph)` | `When the resource named is a function, ...` | amendment-1 |
+| [C91](#errata-c91) | 167 | IV-21 | Section IV, paragraph 4.3.8.2.2, the general format of subscripting | `(1985 format)` | `(format with ALL)` | amendment-1 |
+| [C92](#errata-c92) | 167 | IV-21 | Section IV, paragraph 4.3.8.2.3, a new syntax rule 7 | `(no rule 7)` | `(7) The subscript ALL may be used only ...` | amendment-1 |
+| [C93](#errata-c93) | 168 | IV-22 | Section IV, paragraph 4.3.8.3 (Reference Modification) and its subparagraphs, renumbered | `4.3.8.3 Reference Modification` | `4.3.8.4` | amendment-1 |
+| [C94](#errata-c94) | 170 | IV-24 | Section IV, paragraph 4.3.8.5 (Condition-Name), renumbered | `4.3.8.5 Condition-Name` | `4.3.8.6 Condition-Name` | amendment-1 |
+| [C95](#errata-c95) | 168 | IV-22 | Section IV, a new paragraph 4.3.8.3 (Function-Identifier) | `(no paragraph 4.3.8.3)` | `4.3.8.3 Function-Identifier` | amendment-1 |
+| [C96](#errata-c96) | 168 | IV-22 | Section IV, paragraph 4.3.8.4, its title | `Reference Modification` | `Reference-Modifier` | amendment-1 |
+| [C97](#errata-c97) | 168 | IV-22 | Section IV, paragraph 4.3.8.4.2, the general format of reference modification | `data-name-1 ( leftmost-character-position: [ length ] )` | `(format with FUNCTION)` | amendment-1 |
+| [C98](#errata-c98) | 168 | IV-22 | Section IV, paragraph 4.3.8.4.3, a new syntax rule 5 | `(no rule 5)` | `(5) The function referenced by function-name-1 ...` | amendment-1 |
+| [C99](#errata-c99) | 168 | IV-22 | Section IV, paragraph 4.3.8.4.4, general rule 1, first sentence | `referenced by data-name-1 is assigned` | `referenced by data-name-1 or by function-name-1 and its arg…` | amendment-1 |
+| [C100](#errata-c100) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 3a, a new last sentence | `after evaluation of the subscripts.` | `... If an ALL subscript is specified ...` | amendment-1 |
+| [C101](#errata-c101) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 3, a new item c | `(no item c)` | `c. If reference modification is specified in a function ref…` | amendment-1 |
+| [C102](#errata-c102) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 4, first sentence | `which is a subset of the data item referenced by data-name-…` | `that is a subset ... or by function-name-1 and its argument…` | amendment-1 |
+| [C103](#errata-c103) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 4, items a and b | `the data item referenced by data-name-1` | `... or function-name-1 and its arguments, if any` | amendment-1 |
+| [C104](#errata-c104) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 5, second sentence | `It has the same class` | `When a function is referenced, ... When data-name-1 is spec…` | amendment-1 |
+| [C105](#errata-c105) | 169 | IV-23 | Section IV, paragraph 4.3.8.4 (Identifier), renumbered 4.3.8.5 and changed | `4.3.8.4 Identifier (1985 text)` | `4.3.8.5 Identifier (amended)` | amendment-1 |
+| [C106](#errata-c106) | 191 | IV-45 | Section IV, paragraph 8, before the list of reserved words | `(no sentence)` | `The following is a list of COBOL reserved words ...` | amendment-1 |
+| [C107](#errata-c107) | 192 | IV-46 | Section IV, paragraph 8, after the list of reserved words | `(no list)` | `The following is a list ... Intrinsic Function module. FUNC…` | amendment-1 |
+| [C108](#errata-c108) | 195 | V-3 | Section V, the SPECIAL-NAMES paragraph format, the SYMBOLIC CHARACTERS clause | `two sets of braces` | `outermost set deleted` | amendment-1 |
+| [C109](#errata-c109) | 199 | V-7 | Section V, the file control entry format, the ORGANIZATION clause | `[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ]` | `[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]` | amendment-1 |
+| [C110](#errata-c110) | 207 | V-15 | Section V, the communication description entry, format 1, its end | `(no period)` | `a terminal period` | amendment-1 |
+| [C111](#errata-c111) | 207 | V-15 | Section V, the communication description entry, format 1, the data-name list | `data-name-1, data-name-2, ...` | `data-name-1 data-name-2 ...` | amendment-1 |
+| [C112](#errata-c112) | 208 | V-16 | Section V, the communication description entry, format 3, its end | `(no period)` | `a terminal period` | amendment-1 |
+| [C113](#errata-c113) | 208 | V-16 | Section V, the communication description entry, format 3, the data-name list | `data-name-1, data-name-2, ...` | `data-name-1 data-name-2 ...` | amendment-1 |
+| [C114](#errata-c114) | 219 | V-27 | Section V, the PERFORM statement format, the AFTER phrase | `AFTER ... literal-3` | `AFTER ... index-name-3` | amendment-1 |
+| [C115](#errata-c115) | 220 | V-28 | Section V, the first REWRITE statement format | `(no END-REWRITE)` | `[ END-REWRITE ]` | amendment-1 |
+| [C116](#errata-c116) | 230 | V-38 | Section V, the miscellaneous formats, SUBSCRIPTING | `(1985 format)` | `(format with ALL)` | amendment-1 |
+| [C117](#errata-c117) | 230 | V-38 | Section V, the miscellaneous formats, after SUBSCRIPTING | `(no format)` | `FUNCTION-IDENTIFIER` | amendment-1 |
+| [C118](#errata-c118) | 230 | V-38 | Section V, the miscellaneous formats, REFERENCE MODIFICATION | `(1985 format)` | `(format with FUNCTION)` | amendment-1 |
+| [C119](#errata-c119) | 230 | V-38 | Section V, the miscellaneous formats, IDENTIFIER | `(1985 format)` | `(formats 1 and 2)` | amendment-1 |
+| [C120](#errata-c120) | 230 | V-38 | Section V, after page V-38, the general format for intrinsic functions | `(no format)` | `GENERAL FORMAT FOR INTRINSIC FUNCTIONS` | amendment-1 |
 
 <a id="errata-c1"></a>
 
@@ -38240,6 +38515,336 @@ Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-16 (page 840,
 | **This transcription** | `When the resource named is a function, the function definition may require the user to specify in the reference to the function a value or set of values for one or more parameters which determine the value of the function for that particular reference. This is accomplished through the specification of arguments as described in the following paragraphs.` |
 
 Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-18 (page 840, folio A-10), applied in place: "Paragraph 4.3.8, add the following new paragraph preceding the last paragraph" (kb/Work PB5045).
+
+<a id="errata-c91"></a>
+
+### C91 · page 167 (folio IV-21) · Section IV, paragraph 4.3.8.2.2, the general format of subscripting · `(1985 format)` → `(format with ALL)`
+
+| | |
+|---|---|
+| **Printed** | `the general format of subscripting without ALL` |
+| **This transcription** | `the general format above, with ALL` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.2, replace the general format with the following" (kb/Work PB5045).
+
+<a id="errata-c92"></a>
+
+### C92 · page 167 (folio IV-21) · Section IV, paragraph 4.3.8.2.3, a new syntax rule 7 · `(no rule 7)` → `(7) The subscript ALL may be used only ...`
+
+| | |
+|---|---|
+| **Printed** | `(6) Integer-1 may be signed and, if signed, it must be positive.` |
+| **This transcription** | `(7) The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified. (See page A-28, Arguments.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.3, add new syntax rule 7 as follows" (kb/Work PB5045).
+
+<a id="errata-c93"></a>
+
+### C93 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.3 (Reference Modification) and its subparagraphs, renumbered · `4.3.8.3 Reference Modification` → `4.3.8.4`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3 Reference Modification, 4.3.8.3.1 Function, 4.3.8.3.2 General Format, 4.3.8.3.3 Syntax Rules, 4.3.8.3.4 General Rules` |
+| **This transcription** | `4.3.8.4, 4.3.8.4.1 to 4.3.8.4.4` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045).
+
+<a id="errata-c94"></a>
+
+### C94 · page 170 (folio IV-24) · Section IV, paragraph 4.3.8.5 (Condition-Name), renumbered · `4.3.8.5 Condition-Name` → `4.3.8.6 Condition-Name`
+
+| | |
+|---|---|
+| **Printed** | `### 4.3.8.5 Condition-Name` |
+| **This transcription** | `### 4.3.8.6 Condition-Name` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045).
+
+<a id="errata-c95"></a>
+
+### C95 · page 168 (folio IV-22) · Section IV, a new paragraph 4.3.8.3 (Function-Identifier) · `(no paragraph 4.3.8.3)` → `4.3.8.3 Function-Identifier`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3 Reference Modification (the paragraph now numbered 4.3.8.4)` |
+| **This transcription** | `4.3.8.3 Function-Identifier, its Purpose, General Format, Syntax Rules (1) to (4) and General Rules (1) and (2), above` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 841, folio A-11), applied in place: "Add the following as new paragraph 4.3.8.3: 4.3.8.3 Function-Identifier", which runs on to page 842 (folio A-12) (kb/Work PB5045).
+
+<a id="errata-c96"></a>
+
+### C96 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4, its title · `Reference Modification` → `Reference-Modifier`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3 Reference Modification` |
+| **This transcription** | `4.3.8.4 Reference-Modifier` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4, change the title to 'Reference-Modifier'" (kb/Work PB5045).
+
+<a id="errata-c97"></a>
+
+### C97 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4.2, the general format of reference modification · `data-name-1 ( leftmost-character-position: [ leng…` → `(format with FUNCTION)`
+
+| | |
+|---|---|
+| **Printed** | `data-name-1 ( leftmost-character-position: [ length ] )` |
+| **This transcription** | `the general format above, with FUNCTION function-name-1, and its NOTE` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.2, replace the general format with the following" (kb/Work PB5045).
+
+<a id="errata-c98"></a>
+
+### C98 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4.3, a new syntax rule 5 · `(no rule 5)` → `(5) The function referenced by function-name-1 ...`
+
+| | |
+|---|---|
+| **Printed** | `(4) Data-name-1 may be qualified or subscripted.` |
+| **This transcription** | `(5) The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.3, add the following as new syntax rule 5" (kb/Work PB5045).
+
+<a id="errata-c99"></a>
+
+### C99 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4.4, general rule 1, first sentence · `referenced by data-name-1 is assigned` → `referenced by data-name-1 or by function-name-1 a…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Each character of a data item referenced by data-name-1 is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.` |
+| **This transcription** | `(1) Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c100"></a>
+
+### C100 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 3a, a new last sentence · `after evaluation of the subscripts.` → `... If an ALL subscript is specified ...`
+
+| | |
+|---|---|
+| **Printed** | `a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts.` |
+| **This transcription** | `a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts. If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence" (kb/Work PB5045).
+
+<a id="errata-c101"></a>
+
+### C101 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 3, a new item c · `(no item c)` → `c. If reference modification is specified in a fu…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the subscripting is not specified for the operand, ...` |
+| **This transcription** | `c. If reference modification is specified in a function reference, the reference modification is evaluated immediately after evaluation of the function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c" (kb/Work PB5045).
+
+<a id="errata-c102"></a>
+
+### C102 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 4, first sentence · `which is a subset of the data item referenced by…` → `that is a subset ... or by function-name-1 and it…`
+
+| | |
+|---|---|
+| **Printed** | `(4) Reference modification creates a unique data item which is a subset of the data item referenced by data-name-1.` |
+| **This transcription** | `(4) Reference modification creates a unique data item that is a subset of the data item referenced by data-name-1 or by function-name-1 and its arguments, if any.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 4, change the first sentence to read" (kb/Work PB5045).
+
+<a id="errata-c103"></a>
+
+### C103 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 4, items a and b · `the data item referenced by data-name-1` → `... or function-name-1 and its arguments, if any`
+
+| | |
+|---|---|
+| **Printed** | `the data item referenced by data-name-1` |
+| **This transcription** | `the data item referenced by data-name-1 or function-name-1 and its arguments, if any` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 4, paragraphs a and b, replace four occurrences of 'the data item referenced by data-name-1' by 'the data item referenced by data-name-1 or function-name-1 and its arguments, if any'" (kb/Work PB5045).
+
+<a id="errata-c104"></a>
+
+### C104 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 5, second sentence · `It has the same class` → `When a function is referenced, ... When data-name…`
+
+| | |
+|---|---|
+| **Printed** | `without the JUSTIFIED clause. It has the same class and category` |
+| **This transcription** | `without the JUSTIFIED clause. When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item has the same class and category` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 5, second sentence, replace the word 'It' by 'When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item'" (kb/Work PB5045).
+
+<a id="errata-c105"></a>
+
+### C105 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4 (Identifier), renumbered 4.3.8.5 and changed · `4.3.8.4 Identifier (1985 text)` → `4.3.8.5 Identifier (amended)`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.4 Identifier: An identifier is a term used to reflect a data-name that, if not unique in a program, must be followed by ... (the 1985 paragraph and its general format)` |
+| **This transcription** | `4.3.8.5 Identifier, its Function, General Format (formats 1 and 2) and Syntax Rule (1), above` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.5, change to read: 4.3.8.5 Identifier"; the paragraph is the one the renumbering of the change for pages IV-22 thru IV-24 (page 841, folio A-11) makes 4.3.8.5 (kb/Work PB5045).
+
+<a id="errata-c106"></a>
+
+### C106 · page 191 (folio IV-45) · Section IV, paragraph 8, before the list of reserved words · `(no sentence)` → `The following is a list of COBOL reserved words .…`
+
+| | |
+|---|---|
+| **Printed** | `8. COBOL RESERVED WORDS (the heading the list follows)` |
+| **This transcription** | `The following is a list of COBOL reserved words for the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-45 (page 843, folio A-13), applied in place: "Paragraph 8, insert the following before the list of reserved words" (kb/Work PB5045).
+
+<a id="errata-c107"></a>
+
+### C107 · page 192 (folio IV-46) · Section IV, paragraph 8, after the list of reserved words · `(no list)` → `The following is a list ... Intrinsic Function mo…`
+
+| | |
+|---|---|
+| **Printed** | `QUEUE SEGMENT-LIMIT THROUGH (the last row of the list)` |
+| **This transcription** | `The following is a list of COBOL reserved words for the optional Intrinsic Function module. ¶ FUNCTION` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-46 (page 844, folio A-14), applied in place: "Paragraph 8, insert the following after the list of reserved words" (kb/Work PB5045).
+
+<a id="errata-c108"></a>
+
+### C108 · page 195 (folio V-3) · Section V, the SPECIAL-NAMES paragraph format, the SYMBOLIC CHARACTERS clause · `two sets of braces` → `outermost set deleted`
+
+| | |
+|---|---|
+| **Printed** | `SYMBOLIC CHARACTERS { {symbolic-character-1} ... {ISARE} {integer-1} ... } ... [IN alphabet-name-2] } ... (two sets of braces)` |
+| **This transcription** | `the format above, its outermost braces deleted` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-3 (T) (page 844, folio A-14), applied in place: "SYMBOLIC CHARACTERS clause, delete outermost set of braces", a typographical error (kb/Work PB5045).
+
+<a id="errata-c109"></a>
+
+### C109 · page 199 (folio V-7) · Section V, the file control entry format, the ORGANIZATION clause · `[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ]` → `[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]`
+
+| | |
+|---|---|
+| **Printed** | `[ [ ORGANIZATION IS ] SEQUENTIAL ] ]` |
+| **This transcription** | `[ [ ORGANIZATION IS ] SEQUENTIAL ]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-7 (T) (page 844, folio A-14), applied in place: "ORGANIZATION clause, delete second occurrence of a right bracket after the word SEQUENTIAL", a typographical error (kb/Work PB5045).
+
+<a id="errata-c110"></a>
+
+### C110 · page 207 (folio V-15) · Section V, the communication description entry, format 1, its end · `(no period)` → `a terminal period`
+
+| | |
+|---|---|
+| **Printed** | `data-name-10, data-name-11] ┘` |
+| **This transcription** | `┘ .` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-15 (T) (page 844, folio A-14), applied in place: "Insert a terminal period following the last bracket in format 1", a typographical error (kb/Work PB5045).
+
+<a id="errata-c111"></a>
+
+### C111 · page 207 (folio V-15) · Section V, the communication description entry, format 1, the data-name list · `data-name-1, data-name-2, ...` → `data-name-1 data-name-2 ...`
+
+| | |
+|---|---|
+| **Printed** | `[data-name-1, data-name-2, data-name-3, ... data-name-10, data-name-11]` |
+| **This transcription** | `[data-name-1 data-name-2 data-name-3 ... data-name-10 data-name-11]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-15 (T) (page 844, folio A-14), applied in place: "Delete the commas between data-name-1 through data-name-11, inclusively, in format 1", a typographical error (kb/Work PB5045).
+
+<a id="errata-c112"></a>
+
+### C112 · page 208 (folio V-16) · Section V, the communication description entry, format 3, its end · `(no period)` → `a terminal period`
+
+| | |
+|---|---|
+| **Printed** | `data-name-4, data-name-5, data-name-6] ┘` |
+| **This transcription** | `┘ .` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-16 (T) (page 844, folio A-14), applied in place: "Insert a terminal period following the last bracket in format 3", a typographical error (kb/Work PB5045).
+
+<a id="errata-c113"></a>
+
+### C113 · page 208 (folio V-16) · Section V, the communication description entry, format 3, the data-name list · `data-name-1, data-name-2, ...` → `data-name-1 data-name-2 ...`
+
+| | |
+|---|---|
+| **Printed** | `[data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, data-name-6]` |
+| **This transcription** | `[data-name-1 data-name-2 data-name-3 data-name-4 data-name-5 data-name-6]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-16 (T) (page 844, folio A-14), applied in place: "Delete the commas between data-name-1 through data-name-6, inclusively, in format 3", a typographical error (kb/Work PB5045).
+
+<a id="errata-c114"></a>
+
+### C114 · page 219 (folio V-27) · Section V, the PERFORM statement format, the AFTER phrase · `AFTER ... literal-3` → `AFTER ... index-name-3`
+
+| | |
+|---|---|
+| **Printed** | `AFTER { identifier-5 / literal-3 } FROM { identifier-6 / index-name-4 / literal-3 }` |
+| **This transcription** | `AFTER { identifier-5 / index-name-3 } FROM ...` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-27 (T) (page 844, folio A-14), applied in place: "PERFORM format, AFTER phrase, change 'literal-3' immediately after the reserved word AFTER to 'index-name-3'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c115"></a>
+
+### C115 · page 220 (folio V-28) · Section V, the first REWRITE statement format · `(no END-REWRITE)` → `[ END-REWRITE ]`
+
+| | |
+|---|---|
+| **Printed** | `S REWRITE record-name-1 [ FROM identifier-1 ]` |
+| **This transcription** | `S REWRITE record-name-1 [ FROM identifier-1 ] [ END-REWRITE ]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-28 (T) (page 844, folio A-14), applied in place: "Insert '[END-REWRITE]' at the end of the first REWRITE statement", a typographical error (kb/Work PB5045).
+
+<a id="errata-c116"></a>
+
+### C116 · page 230 (folio V-38) · Section V, the miscellaneous formats, SUBSCRIPTING · `(1985 format)` → `(format with ALL)`
+
+| | |
+|---|---|
+| **Printed** | `the format of subscripting without ALL` |
+| **This transcription** | `the format above, with ALL` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Change the format for subscripting to read" (kb/Work PB5045).
+
+<a id="errata-c117"></a>
+
+### C117 · page 230 (folio V-38) · Section V, the miscellaneous formats, after SUBSCRIPTING · `(no format)` → `FUNCTION-IDENTIFIER`
+
+| | |
+|---|---|
+| **Printed** | `REFERENCE MODIFICATION (the format it precedes)` |
+| **This transcription** | `FUNCTION-IDENTIFIER: FUNCTION function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Add the following after the format for subscripting: FUNCTION-IDENTIFIER" (kb/Work PB5045).
+
+<a id="errata-c118"></a>
+
+### C118 · page 230 (folio V-38) · Section V, the miscellaneous formats, REFERENCE MODIFICATION · `(1985 format)` → `(format with FUNCTION)`
+
+| | |
+|---|---|
+| **Printed** | `data-name-1 ( leftmost-character-position: [ length ] )` |
+| **This transcription** | `the format above, with FUNCTION function-name-1` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Change the format for reference modification to read" (kb/Work PB5045).
+
+<a id="errata-c119"></a>
+
+### C119 · page 230 (folio V-38) · Section V, the miscellaneous formats, IDENTIFIER · `(1985 format)` → `(formats 1 and 2)`
+
+| | |
+|---|---|
+| **Printed** | `data-name-1 [ {INOF} data-name-2 ] ... [ {INOF} {cd-name-1file-name-1report-name-1} ] [({subscript} ...)] [(leftmost-character-position: [length])]` |
+| **This transcription** | `Format 1: function-identifier-1; Format 2 (above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, folio A-15), applied in place: "Change the format for identifier to read" (kb/Work PB5045).
+
+<a id="errata-c120"></a>
+
+### C120 · page 230 (folio V-38) · Section V, after page V-38, the general format for intrinsic functions · `(no format)` → `GENERAL FORMAT FOR INTRINSIC FUNCTIONS`
+
+| | |
+|---|---|
+| **Printed** | `(the end of page V-38)` |
+| **This transcription** | `GENERAL FORMAT FOR INTRINSIC FUNCTIONS: FUNCTION ACOS (argument-1) ... FUNCTION WHEN-COMPILED` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, folio A-15), applied in place: "Insert after page V-38 the contents of pages A-16 and A-17 which contain the general format for functions" (pages 846 and 847) (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
