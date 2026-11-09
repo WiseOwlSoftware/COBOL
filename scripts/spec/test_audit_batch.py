@@ -9,8 +9,9 @@ between `create` and the state write adopted on the next run; a text-only reques
 an answer outside the pass's shape kept in raw/ and retried; the full submit priced by the canary's measured cost and refused
 past --max-usd; an answer never overwritten; the cost so far counting every billed reply (a retried item's refused or
 cut-off first reply too, and each reply once when a collect is repeated); the verify plan from the SAME answers, and the
-dispositions; the drafts plan; the adjudicate and refute plans, their answer shapes and the decided or contested change
-records they give (and the change batch that records them, kb/Work PB4995); the claims plan from the 1985 text and its
+dispositions; the drafts plan; the adjudicate, refute and recheck plans (each decided kind's one check, kb/Work PB5008),
+their answer shapes and the decided or contested change records they give (and the change batch that records them, never
+over a fleet adjudication, kb/Work PB4995, PB5008); the claims plan from the 1985 text and its
 citation check; a stamp in a prompt refused before any batch; the key never
 printed or stored, and the account recorded.
 """
@@ -437,36 +438,119 @@ def main() -> int:
         code, out = run(["plan", "--pass", "refute", *base], fake)
         fitems = json.loads((state / "refute" / "items.json").read_text(encoding="utf-8"))
         fby = {it["id"]: (c, it) for c, it in fitems.items()}
-        check("the refute plan holds every decided adjudication (not an OPEN one), with the decision and every candidate",
-              code == 0 and sorted(fby) == sorted([inspect_rule, debug_rule])
-              and fby[inspect_rule][1]["adjudication"]["verdict"] == "CHANGED"
+        check("the refute plan holds each decision that names no 2023 rule (REMOVED), with the decision and every "
+              "candidate; a KEPT or CHANGED one is the recheck's (kb/Work PB5008)",
+              code == 0 and sorted(fby) == [debug_rule]
               and A.map_candidates(fby[debug_rule][1]) == A.map_candidates(aby[debug_rule][1])
-              and "THE ADJUDICATOR'S DECISION" in A.prompt_parts("refute", fby[debug_rule][1])[2])
+              and "THE ADJUDICATOR'S DECISION" in A.prompt_parts("refute", fby[debug_rule][1])[2]
+              and "strongest reading" in A.prompt_parts("refute", fby[debug_rule][1])[0])
+        check("each decided kind has one check, read from its `to` flag: the recheck for KEPT and CHANGED, the refuter "
+              "for REMOVED", {k: A.checker(v) for k, v in inventory_schema.load_schema().next.kinds.items()}
+              == {"KEPT": "recheck", "CHANGED": "recheck", "REMOVED": "refute"})
+        cat85r = root / "c85r.json"     # a 1985 rule of another clause on the same element: the near rule mode (a) reads
+        cat85r.write_text(json.dumps({"rules": RULES_1985 + [dict(
+            RULES_1985[1], id="1985-GR-VI.6.15.4-1", locator="VI.6.15.4", citation="§1985:VI.6.15.4 GR1",
+            subject="THE EXAMINE STATEMENT", text="Examination proceeds from the leftmost character position.")]}),
+            encoding="utf-8", newline="\n")
+        recheck_plan = ["plan", "--pass", "recheck", *base, "--catalog", str(cat85r), "--catalog-2023", str(cat23),
+                        "--near-1985", "1"]
+        code, out = run(recheck_plan, fake)
+        citems = json.loads((state / "recheck" / "items.json").read_text(encoding="utf-8"))
+        cit = next(iter(citems.values()))
+        cparts = A.prompt_parts("recheck", cit)
+        check("the recheck plan holds each KEPT or CHANGED decision with its whole 1985 clause, the 1985 rules most like "
+              "it, and every rule of the 2023 clauses that hold its feature, the map's worded candidates beyond them",
+              code == 0 and [it["id"] for it in citems.values()] == [inspect_rule]
+              and [x["id"] for x in cit["clause_1985"]] == [inspect_rule] and len(cit["near_1985"]) == 1
+              and [x["id"] for x in cit["feature_2023"]] == ["GR-14.9.21.4-2", "GR-14.9.21.4-7"]
+              and cit["decided_2023"] == []
+              and not {c["id"] for c in cit["word_candidates"]} & {"GR-14.9.21.4-2", "GR-14.9.21.4-7"}
+              and cit["adjudication"]["verdict"] == "CHANGED")
+        check("a recheck request caches its clauses (the 1985 clause and the 2023 feature clauses, shared by every rule "
+              "of that 1985 clause) and carries the rule, its near rules and the decision in its own part",
+              "Tallying counts" in cparts[1] and "Tallying counts" not in cparts[2]
+              and "THE ADJUDICATOR'S DECISION" in cparts[2] and f"[{inspect_rule}]" in cparts[2]
+              and A.request("recheck", "c", cit, "claude-opus-5-5", [], set())["params"]["output_config"]
+              == {"effort": "max"})
+        rechecked = {"verdict": "CHANGED", "rules_2023": ["GR-14.9.21.4-2"], "rules_1985": [], "exception": {},
+                     "differs": {"1985": "character", "2023": "position"}, "reason": "the unit changed"}
+        near_id = cit["near_1985"][0]["id"]
+        check("a recheck answer names only rules shown, 1985 rules besides its own, and no exception condition under KEPT",
+              A.parse_answer("recheck", cit, json.dumps(rechecked))[0] is not None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, rules_1985=[near_id])))[0] is not None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, rules_1985=[inspect_rule])))[0] is None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, rules_2023=["GR-99.9-1"])))[0] is None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, exception=None)))[0] is None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, verdict="KEPT", differs={}, exception={
+                  "1985": "must not", "2023": "EC-BOUND"})))[0] is None
+              and A.parse_answer("recheck", cit, json.dumps(dict(rechecked, exception={
+                  "1985": "must not", "2023": "EC-BOUND"})))[0] is not None)
+        check("a recheck upholds a decision only when it finds the same record: the same kind into the same rules (one "
+              "it adds is one the decision omits)",
+              A.upholds("recheck", changed, rechecked)
+              and not A.upholds("recheck", changed, dict(rechecked, rules_2023=["GR-14.9.21.4-2", "GR-14.9.21.4-7"]))
+              and not A.upholds("recheck", changed, dict(rechecked, verdict="KEPT")))
         code, out = run(["results", *base], fake)
         mid = json.loads((state / "results.json").read_text(encoding="utf-8"))
-        check("before its refuter answers, a decided adjudication is no change; an OPEN one is contested at once",
+        check("before its check answers, a decided adjudication is no change; an OPEN one is contested at once",
               "change" not in mid[inspect_rule] and not mid[inspect_rule].get("contested")
               and mid[same_rule].get("contested") is True and "change" not in mid[same_rule])
         run(["submit", "--pass", "refute", *base, *key, "--max-usd", "50", "--canary", "5"], fake)
-        refuted = {inspect_rule: {"verdict": "UPHELD", "reason": "r", "differs": {}},
-                   debug_rule: {"verdict": "REFUTED", "reason": "14.9.1 still states it", "differs": {}}}
+        refuted = {debug_rule: {"verdict": "REFUTED", "reason": "14.9.1 still states it", "differs": {}}}
         answer(fake, fake.created[-1]["id"], {c: json.dumps(refuted[fitems[c]["id"]]) for c in fake.created[-1]["ids"]})
         run(["collect", "--pass", "refute", *base, *key], fake)
+        run(["submit", "--pass", "recheck", *base, *key, "--max-usd", "50", "--canary", "5"], fake)
+        check("a recheck request asks for room to think at the highest effort",
+              A.MAX_OUTPUT_TOKENS["recheck"] > A.MAX_OUTPUT_TOKENS["refute"])
+        answer(fake, fake.created[-1]["id"], {c: json.dumps(rechecked) for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "recheck", *base, *key], fake)
         code, out = run(["results", *base], fake)
         final = json.loads((state / "results.json").read_text(encoding="utf-8"))
-        check("an upheld adjudication is the rule's change, its reason the differing words before the why; a refuted "
-              "one is contested, never a change",
+        check("a decision its check upholds is the rule's change, its reason the differing words before the why; a "
+              "refuted one is contested, never a change",
               final[inspect_rule]["change"] == {"kind": "CHANGED", "to": ["GR-14.9.21.4-2"],
                                                 "reason": '1985: "character"; 2023: "position". the unit changed'}
               and final[debug_rule].get("contested") is True and "change" not in final[debug_rule]
-              and final[inspect_rule]["refute"] == "UPHELD" and "decided {'CHANGED': 1}; contested 2" in out)
+              and final[inspect_rule]["recheck"] == "CHANGED" and final[debug_rule]["refute"] == "REFUTED"
+              and "decided {'CHANGED': 1}; contested 2" in out)
+        refute_dir = state / "refute" / "answers"
+        legacy = refute_dir / f"{A.custom_id('refute', inspect_rule)}.json"
+        legacy.write_text(json.dumps({"id": inspect_rule, "answer": {"verdict": "UNSURE", "reason": "r", "differs": {}}}),
+                          encoding="utf-8", newline="\n")
+        disputed = A.dispositions(state)[inspect_rule]
+        legacy.unlink()
+        check("a check that answered and disputes the decision makes it contested, though its own check upheld it (a run "
+              "whose refuter also read KEPT and CHANGED decisions)",
+              disputed.get("contested") is True and "change" not in disputed and disputed["refute"] == "UNSURE")
+        code, out = run(["plan", "--pass", "drafts", *base], fake)
+        regrown = {it["id"] for it in json.loads((state / "drafts" / "items.json").read_text(encoding="utf-8")).values()}
+        check("the drafts plan, planned again after the adjudication and its checks, keeps every planned draft and grows "
+              "by each rule an answer reads as other than KEPT, though no check upheld it (a contested OPEN SAME): it "
+              "reads the answers, never the withheld change (review w20261935a R1-1)",
+              code == 0 and "grew by 1" in out and regrown == {it["id"] for it in ditems.values()} | {same_rule}
+              and "change" not in final[same_rule])
         batch = root / "change-batch.json"
-        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted"], fake)
+        empty_repo = root / "repo-none"
+        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
         records = json.loads(batch.read_text(encoding="utf-8"))["records"]
         check("the change batch records each decided change once, bridged to the next held edition, and no contested rule",
               [r["rule-id"] for r in records] == [inspect_rule]
               and records[0]["next"] == {"kind": "CHANGED", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True,
                                          "reason": final[inspect_rule]["change"]["reason"], "source": "planted"})
+        store = A.inventory_dir(inventory_schema.edition(1985), empty_repo)
+        store.mkdir(parents=True)
+        (store / f"{inspect_rule}.json").write_text(json.dumps({"rule-id": inspect_rule, "rule-digest": "0", "next": {
+            "kind": "KEPT", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True, "source": "adjudication PB0"}}),
+            encoding="utf-8", newline="\n")
+        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
+        check("a rule a fleet adjudication decided keeps that record: the run's batch never reverts it (kb/Work PB5008)",
+              json.loads(batch.read_text(encoding="utf-8"))["records"] == [])
+        (store / f"{inspect_rule}.json").write_text(json.dumps({"rule-id": inspect_rule, "rule-digest": "0", "next": {
+            "kind": "KEPT", "edition": 2023, "to": ["GR-14.9.21.4-2"], "bridge": True, "source": "planted"}}),
+            encoding="utf-8", newline="\n")
+        code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
+        check("a rule the run itself recorded is recorded again with its new decision",
+              [r["rule-id"] for r in json.loads(batch.read_text(encoding="utf-8"))["records"]] == [inspect_rule])
         grow = A.Pass(root / "run9", "drafts")
         one, two = {"id": "r1", "rule": {"text": "a"}}, {"id": "r2", "rule": {"text": "b"}}
         with contextlib.redirect_stdout(io.StringIO()) as said:
@@ -564,6 +648,8 @@ def main() -> int:
         boxed = dict(RULES_1985[0], box="whole", level=2, text=f"{side}(1) A planted rule boxed whole.{side}")
         texts = {p: A.prompt_text(p, {"rule": boxed, "candidates": RULES_2023[:1], "clause_candidates": RULES_2023[:1],
                                       "word_candidates": [], "id": "c1", "claim": "planted", "readers": {"map": None},
+                                      "clause_1985": [dict(boxed, id="c1")], "near_1985": [],
+                                      "feature_2023": RULES_2023[:1], "decided_2023": [],
                                       "adjudication": {"verdict": "REMOVED"},
                                       "locator": "VI.5.8.3", "text": boxed["text"],
                                       "clause": {"locator": "VI.5.8", "document": "X3.23-1985", "module": "Nucleus",

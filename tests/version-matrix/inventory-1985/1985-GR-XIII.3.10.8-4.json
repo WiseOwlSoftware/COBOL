@@ -2,13 +2,13 @@
  "rule-id": "1985-GR-XIII.3.10.8-4",
  "rule-digest": "65b74a5c7bbc",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.35.4-5"
+   "GR-13.18.35.4-5",
+   "GR-13.18.37.4-4"
   ],
   "bridge": true,
-  "reason": "1985: \"and if no body group has previously been presented on the page ... presented on the line immediately following the line indicated by ... LINE-COUNTER\"; 2023: \"if that report group is the first body group to be printed on the current page, the line number is given by the FIRST DETAIL integer\". 1985 places a page's first relative body group at LINE-COUNTER+1 when LINE-COUNTER >= FIRST DETAIL; 2023 always places it on the FIRST DETAIL line.",
-  "source": "audit-1985/state-route"
+  "source": "adjudication kb/Work PB5008"
  }
 }
