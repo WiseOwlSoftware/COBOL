@@ -117,7 +117,7 @@ an Addendum candidate, an owner call.
 | `END-PERFORM, END-RECEIVE, END-READ` | alphabetical order | §8.9 — the printed list is out of order here |
 
 **`>>IF` vs `>> IF` is NOT a defect and belongs in no such table** — the standard prints both because **BOTH ARE
-LEGAL, and it says so twice.** §7.3 SR5: "A compiler directive is composed of the compiler directive indicator,
+LEGAL, and it says so twice.** §2023:7.3.3 SR5: "A compiler directive is composed of the compiler directive indicator,
 *optionally followed by the COBOL character space*, followed by compiler-instruction. The compiler directive
 indicator shall be treated as though it were followed by a space if no space is specified after the
 indicator." And the character-set table: "`>>` … a compiler-directive line when followed by a
