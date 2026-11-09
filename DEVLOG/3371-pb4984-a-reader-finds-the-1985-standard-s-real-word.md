@@ -1,4 +1,4 @@
-## PB4984: a reader finds the 1985 standard's real-word misprints, and the Errata corrects eleven
+## Entry 3371 — 2026-11-09 02:19 PST — PB4984: a reader finds the 1985 standard's real-word misprints, and the Errata corrects eleven
 
 PB4972's finders saw only a misprint that makes a non-word (`BEFCRE`) or a letter outside ASCII; a misprint that turns
 one real word into another needed a reader. The earlier decision (wave 20261937 B) put that reader into the verify
@@ -23,3 +23,4 @@ The 1985 catalog is regenerated (ten rule texts), and the ten 1985 change record
 restated against the corrected text through `record_verdicts.py --edition 1985`, decisions unchanged; the inventory
 view is GREEN. A lead for the 2002 campaign (PB4813): `specs/ISO_COBOL_2002.md` carries the same `participate only` slip
 in INSPECT's AFTER rule, which 2023 corrected.
+
