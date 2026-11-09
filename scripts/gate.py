@@ -325,6 +325,9 @@ AUDITS = (
     # what the view refuses (an adjudication of a dropped rule, a copied catalog field or state, an adjudication decided
     # against other text) and an older edition's illegal change record are refused here, in every lane.
     ("INVENTORY VIEW", ["scripts/spec/inventory_view.py", "--check"]),
+    # kb/Work PB4996: every edition gate of the compiler (a constructs.json window, a grammar version predicate) rests on
+    # an edge the rule lineage proves: a start on a NEW or CHANGED rule, an end on a REMOVED or CHANGED one.
+    ("EDITION GATES", ["scripts/spec/edition_gates.py", "--check"]),
     ("SPEC CORRECTIONS", ["scripts/spec/verify_publishable.py"]),
     # kb/Work PB4850: the 1985 transcription is publishable and agrees with its reconciliation ledger (LEDGER-1985.json).
     ("SPEC CORRECTIONS 1985", ["scripts/spec/verify_publishable.py", "--edition", "1985"]),

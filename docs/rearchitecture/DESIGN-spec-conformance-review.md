@@ -907,13 +907,58 @@ the rule text.
 **Everything else is derived from the chains, never written by hand:** each edition's GAP count (the session probe and
 the ledger report one per edition), the conformance statement of each edition (kb/Work PB4885 for 1985), the conformance
 suite's edition bands (a band is a chain's span: DESIGN-conformance-suite.md §3.5), the drift test that the
-compiler's edition gates (`constructs.json` windows, the grammar's version predicates) agree with every NEW and REMOVED
-edge, and **each diagnostic's citation at each edition** (kb/Work PB4950, the owner on 2026-11-08: "a way for a
+compiler's edition gates (`constructs.json` windows, the grammar's version predicates) agree with the lineage's edges,
+and **each diagnostic's citation at each edition** (kb/Work PB4950, the owner on 2026-11-08: "a way for a
 compilation error to accurately describe the edition + rule violated"). A diagnostic cites one rule; walking that rule's
 chain gives the rule of the compilation's edition (a 2023 SR read back along KEPT and CHANGED links to its 1985 rule),
 and a chain that does not reach that edition gives the gate's own message from its edge: the construct is NEW at a later
 edition, or REMOVED after an earlier one, each with the citation that proves it. The per-edition citations are generated
 from the chains into the compiler's diagnostic data and checked by a drift test, never kept by hand.
+
+**The band at an older edition is the chains' (kb/Work PB4996).** A rule of the newest edition exists at an older held
+edition exactly when a KEPT record of that edition carries into it, and a bridged record carries it through every edition
+the bridge spans (`lineage.spanned`); a CHANGED record proves no band, since the newer rule's requirement is not the
+older one's (the older rule holds its own verdict). That rule has one definition, `lineage.chain_bands`, which maps each
+rule a KEPT chain reaches to the positions it proves; the conformance suite's band reader (S5, kb/Work PB4683) takes the
+positions below the newest edition from it. Until the stored `85` token and the derived one agree it stays stored, and
+the view measures the distance (`lineage.band_drift`, built on `chain_bands`, printed by `inventory_view.py --check` and
+listed by `--band-drift`): rules a KEPT chain reaches whose stored band lacks 85 or an edition the bridge spans
+(`unstored`), rules whose stored band names 85 that no KEPT chain reaches (`unproven`), and the 1985 rules not yet
+classified, while any of which remains `unproven` is provisional. The first set is a wrong band or a wrong KEPT record,
+never decided by a script: each is adjudicated, through `record_verdicts.py` (the band) or `record_verdicts.py --edition
+1985` (the record), by the fleet adjudication of slice 4 (kb/Work PB4995) and the refutation of the audit's upheld
+records (kb/Work PB5008). When all three are empty the `85` token leaves the stored `editions` and every reader takes
+the band at 85 from `chain_bands`; until then the token is the only 85 position the 1026 unproven rules have, and
+deleting it would place them nowhere.
+
+**The edition gates rest on the lineage's edges (kb/Work PB4996).** `scripts/spec/edition_gates.py --check` (the gate's
+EDITION GATES audit) reads every gate, a `constructs.json` window and a version predicate of the grammar (citing what its
+rule's comment cites), and holds each edge the held editions span to the rules its citation names. An edge between two
+held editions, a START or an END, rests on a cited rule that changes between them: a rule of the newer one that is NEW or
+that a CHANGED record names, or a rule of the older one whose record is REMOVED or CHANGED. Either side carries either
+edge: a start is a construct the newer text adds (a new rule, or an alternative added to a format the older text has,
+the common case) or a restriction it lifts (the 1985 rule "Identifier-1 must not be reference modified", REMOVED); an
+end is a construct it drops or a restriction it adds. What a kind means is the schema's `next` (`chained`), never
+spelled in code. **A citation proves an edge only when every rule it names changes** (branch review R1-1): a clause that
+gained anything after 1985 holds changing rules beside KEPT ones, so a gate citing the whole clause would pass whichever
+of its constructs it moved. A gate names the SR or GR its edge rests on. **A general format proves only a whole
+diagram's edge** (branch review R2-1): the catalog holds one FMT rule per clause (a general-format subclause, or `Format
+n`, names it), every format and alternative of the statement in it, so a CHANGED one would prove any construct of the
+statement; a NEW newer FMT rule (a new statement) proves a start, an older one REMOVED an end, and nothing else. A
+construct the standard states only in its diagram, with no SR or GR of its own (END-ACCEPT, the optional IDENTIFICATION
+DIVISION header, USE without PROCEDURE: 12 windows at this slice), has no edge the lineage proves, and is held open in
+`edition_gates.FORMAT_ONLY` until the catalog numbers each format's alternatives; a new window resting on a general format
+alone is refused. An SR or GR has no direction in the lineage (a NEW rule adds a construct or a restriction), so an
+inverted window citing one is the version matrix's to catch, not this audit's. A gate whose cited rules are all KEPT contradicts its chain, and the audit refuses it until the gate or the record is
+corrected (two records were, by this slice: 1985-GR-VII.2.6.3-2 KEPT into line sequential organization, and the 1985
+FILLER rules KEPT into 2023's wider entry-name clause); so is a gate citing nothing of either edition, one whose every
+citation mixes changing rules with KEPT ones, or one resting on an unclassified rule. Three
+gates lie outside the rules: a word's reservation (a gate citing only the word lists, §2023:8.9 and §2023:8.10, whose
+edges `reserved-words.json` and `context-sensitive-words.json` carry), an edge specified in prose the catalog holds no
+rule of (the 1985 continuation of lines, §1985:IV.7.2.2; the 2023 floating indicators, §2023:6.2.3.1), which the
+CITATIONS audit still holds to the text, and a window wholly between two held editions, which waits for the edition
+between them. A finding a known compiler defect holds open is listed in the audit (`HELD_OPEN`, checked both ways) with
+the note that fixes it.
 
 **A missing edition is bridged, provisionally.** Until the 2002 and 2014 texts are transcribed, the 1985 rows' `next`
 points straight at 2023 and is marked `bridge`. When 2002 is held, its two adjacent records replace the bridge, and
@@ -931,8 +976,9 @@ classified exactly once and every newer rule is reached or NEW.
    audit's upheld SAME answers as KEPT;
 3. chain state in the view, in both languages, and the GAP count per edition in the probe and the ledger;
 4. the fleet adjudication of the disputed and own-row rules against `--std=1985`;
-5. the derived bands (the conformance suite's S5 reads the chains), the `85` token leaving the stored `editions`
-   once the stored and the derived 85 agree, and the edition-gate drift test;
+5. the derived bands (`lineage.chain_bands`, which the conformance suite's S5 reads), the `85` token leaving the
+   stored `editions` once the stored and the derived 85 agree (the band drift measures how far apart they are, and
+   slice 4's adjudication closes it), and the edition-gate drift test (the EDITION GATES audit);
 6. the 1985 conformance statement (kb/Work PB4885).
 
 ### 10.3 The Message Batches arm — `scripts/spec/audit_batch.py`
