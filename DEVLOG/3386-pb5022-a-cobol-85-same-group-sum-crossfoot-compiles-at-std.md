@@ -1,4 +1,4 @@
-## PB5022: a COBOL-85 same-group SUM crossfoot compiles at --std 85
+## Entry 3386 — 2026-11-09 12:54 PST — PB5022: a COBOL-85 same-group SUM crossfoot compiles at --std 85
 
 **Re-probe.** A control footing group whose entry TOT writes `SUM SA SB`, over the sum counters SA and SB of its own
 group, was refused at `--std 85` with COBOL2730 quoting 2023:13.18.54.3 SR4 b) ("shall be a repeating item"). That rule is
@@ -17,3 +17,4 @@ SB = 6, TOT = 10) and the negative `pb5022-sum-crossfoot-same-group` (refused at
 1985:XIII.3.19.3 SR3 refuses for its own reason, a separate lead); its `refuse-at` drops 85.
 
 **Rows.** None closed: 1985-SR-XIII.3.19.3-1 has more sentences than this change witnesses and stays with the 1985 audit.
+
