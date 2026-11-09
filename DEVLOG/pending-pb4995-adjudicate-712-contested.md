@@ -7,9 +7,12 @@ the 1985 and 2023 texts with the three PB5008 error modes in view, every citatio
 decision checkpointed: 711 decided (KEPT 440, CHANGED 255, REMOVED 16), 1 left as a question.
 
 696 are recorded here through `record_verdicts.py --edition 1985` (source `adjudicate-712/<slice>`); the 1985 GAP falls
-from 1,089 to 986. 15 KEPT and CHANGED records are held: their 2023 carrier is normative prose or a table the 2023
-catalog has no row for (Table 12, 10.3, 14.6.2.2, 8.3.2.3), so `to` could name nothing, filed as PB5020 with the
-undecided `1985-GR-VI.2.3.3-1`. The fleet's other findings are filed: PB5021 (one KEPT/CHANGED convention for 2023
-changes only 1985-absent syntax reaches, and for lifted refusals), PB5022 (two 2023 refusals of 1985-legal source to
-probe at `--std=85`: SPECIAL-NAMES clause order, a SUM crossfoot) and PB5023 (four catalog-row and citation defects).
-The owner approved one more max-effort recheck of these decisions on account2 (cap $165) through `audit_batch.py seed`.
+from 1,089 to 986. 15 KEPT and CHANGED records are held: their 2023 carrier is unnumbered prose or a table the 2023
+catalog has no row for (Table 12, 10.3, 14.6.2.2, 8.3.2.3), so `to` could name nothing; that list, with the undecided
+`1985-GR-VI.2.3.3-1`, joins PB479, which owns the class. The fleet's other findings are filed: PB5021 (the fleet's brief
+paraphrased KEPT as "a conforming 1985 program means the same", dropping "the same programs are accepted or refused"
+that the design and prompts state, so 2023 additions only 1985-absent syntax reaches were recorded KEPT; the EDITION
+GATES audit refused 8 of them), PB5022 (a 2023 SUM refusal of 1985-legal source to probe at `--std=85`) and PB5023
+(catalog rows cut at 4,000 characters, a merged errata row, and an ambiguous citation). The seeded recheck of these
+decisions (`audit_batch.py seed`, account2) contests the wrong KEPTs, which go back to adjudicators under the design's
+own definition before this lands.
