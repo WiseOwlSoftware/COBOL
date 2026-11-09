@@ -1,4 +1,4 @@
-## Every unit-test class that resolves a locale joins the process-globals collection (PB3947)
+## Entry 3347 — 2026-11-08 16:53 PST — Every unit-test class that resolves a locale joins the process-globals collection (PB3947)
 
 `LocaleCollationFailureTests` sets `COBOL_CLDR_DIR` / `COBOL_COLLATION_DIR` (process-wide) to a temporary site directory,
 and `CldrLocaleLoaderTests` resolves real locales through the same variables without being in
@@ -21,3 +21,4 @@ outside the collection. The resolver list now includes `LocaleCollation`, `Local
 `LocaleState` and `LocaleInfo`, the three classes joined the collection, and a second drift test
 (`EveryRuntimeTypeNamingAResolver_IsClassified`) makes every product type that names a root resolver be classified as a
 resolver or as non-resolving, so a new resolving type cannot slip past the scan.
+
