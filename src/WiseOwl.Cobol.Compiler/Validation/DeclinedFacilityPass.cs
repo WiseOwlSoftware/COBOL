@@ -69,7 +69,7 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
 
     /// <summary>Do not descend into a PROCEDURE DIVISION: every declined construct this pass refuses is a DATA
     /// DIVISION clause, so the procedure body — much the largest part of a real compilation unit — cannot contain
-    /// one. The declined STATEMENTS (VALIDATE §2023:14.9.50, MCS SEND/RECEIVE) are recognized-and-named at BIND instead
+    /// one. The declined STATEMENT (VALIDATE §2023:14.9.50; MCS SEND/RECEIVE are implemented, kb/Work PB4700) is recognized-and-named at BIND instead
     /// (<c>StatementBinder.BindUnsupportedFacility</c>, the recognize-and-name warning band — mandated by
     /// §2023:4.2.6 ¶3 for the Annex A.3 half, MCS, and a documented §2023:4.2.7 choice for the
     /// Annex A.4.14 VALIDATE statement; kb/Work PB709), because they DO have a bound

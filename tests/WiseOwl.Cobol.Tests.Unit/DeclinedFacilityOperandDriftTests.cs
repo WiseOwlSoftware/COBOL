@@ -13,8 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A DECLINED FACILITY'S STATEMENT STILL READS ITS IDENTIFIERS (kb/Work PB3568, CLAUDE.md rule 5).
-/// <para>The recognize-and-name arms (<c>StatementBinder.BindUnsupportedFacility</c>: VALIDATE, the MCS SEND and
-/// RECEIVE) bind to a no-op, and for a long time they bound NOTHING else: an undefined name, a reference-modified
+/// <para>The recognize-and-name arms (<c>StatementBinder.BindUnsupportedFacility</c>: VALIDATE) bind to a no-op, and for a long time they bound NOTHING else: an undefined name, a reference-modified
 /// VALIDATE operand and a pointer operand compiled clean, and so did an undefined name in the statement list of a
 /// SEND's ON EXCEPTION phrase. Declining a facility licenses its BEHAVIOUR to be absent; §2023:4.2.6 ¶3 even leaves the syntax of an
 /// unsupported processor-dependent element undiagnosed ("not required to diagnose syntax errors within this unsupported syntax") and
