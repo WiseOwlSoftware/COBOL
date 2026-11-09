@@ -15,6 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Unicode;
 /// point the derived table calls decomposable — a difference is tolerated only where the host does not know the
 /// character decomposes at all (an older Unicode version), and those are counted and reported.
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class UnicodeNormalizerTests(ITestOutputHelper output)
 {
     private const string CombiningAcute = "\U00000301";        // ccc 230

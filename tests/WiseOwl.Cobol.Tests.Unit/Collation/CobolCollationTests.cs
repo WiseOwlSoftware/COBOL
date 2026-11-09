@@ -15,6 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Collation;
 /// arms' unchanged answers through the carrier, and the DRIFT test that the overload set stays collapsed — no
 /// consumer may grow a raw-<c>ushort[]</c> or <c>NationalCollation</c>-typed collating slot again.
 /// </summary>
+[Collection("process-globals")]
 public sealed class CobolCollationTests
 {
     private static readonly LocaleCollation Loc = LocaleCollation.Current;
