@@ -209,7 +209,10 @@ def measure_head() -> dict:
 
 
 def measure_inventory() -> dict:
-    rows = inventory_view.inventory()
+    """The inventory's numbers: the newest edition's (v1.0 is its GAP at zero) in full, and every held edition's rules and
+    GAP side by side as `editions` (kb/Work PB4994; each older edition's state is its chain's)."""
+    views = inventory_view.edition_views()
+    rows = next(iter(views.values()))
     verdict = collections.Counter(r["verdict"] for r in rows)
     kind = collections.Counter(r["kind"] for r in rows)
 
@@ -245,7 +248,8 @@ def measure_inventory() -> dict:
             b["unadj"] += 1
 
     return {
-        "rows": len(rows), "closed": closed, "gap": sum(1 for r in rows if r["state"] == "GAP"),
+        "rows": len(rows), "closed": closed, "gap": inventory_view.gaps(rows),
+        "editions": [(year, len(view), inventory_view.gaps(view)) for year, view in views.items()],
         "adjudicated": sum(1 for r in rows if r["verdict"]),
         "kind": kind, "verdict": verdict,
         "conforms_closed": cell("CONFORMS", "OK"), "conforms_owed": cell("CONFORMS", "GAP"),
@@ -1032,6 +1036,14 @@ def defective_rows(verdict: collections.Counter) -> str:
     return NL.join(out)
 
 
+def editions_text(editions: list[tuple[int, int, int]]) -> str:
+    """Each OLDER held edition's GAP beside the newest's (the tile's own number): an older rule's state is its KEPT chain's,
+    evaluated at its own edition (DESIGN-spec-conformance-review.md section 10.2, kb/Work PB4994)."""
+    older = editions[1:]
+    return ("Older editions: " + " · ".join(f"{year} {n(gap)} GAP of {n(rules)} rules" for year, rules, gap in older)
+            + ".") if older else ""
+
+
 def render(ctx: dict) -> str:
     inv, wk, a1, cf, bat, cp = (ctx["inv"], ctx["work"], ctx["a1"], ctx["conf"], ctx["battery"], ctx["suite"])
     head, pts, plan, pacing, rem = ctx["head"], ctx["trend"], ctx["plan"], ctx["pacing"], ctx["remaining"]
@@ -1112,6 +1124,7 @@ def render(ctx: dict) -> str:
         trend_points=n(len(pts)),
         register_svg=register_svg(pts), register_legend=register_legend(pts),
         register_points=n(sum(1 for p in pts if "compiler_open" in p)),
+        editions_gap=editions_text(inv["editions"]),
         gap_delta_word=("not recorded" if gap_delta is None else "unchanged" if gap_delta == 0 else f"{gap_delta:+d}"),
         remaining=render_remaining(rem, ctx["estimate"], cp, ctx["inputs"]),
         lane_external=render_external(plan),
@@ -1206,7 +1219,7 @@ TEMPLATE = """<title>{title}</title>
     <div class="tile">
       <div class="label">GAP</div>
       <div class="value num">{gap}</div>
-      <div class="note">{gap_delta_word} since battery #{bat_n}; v1.0 is this number at zero</div>
+      <div class="note">{gap_delta_word} since battery #{bat_n}; v1.0 is this number at zero. {editions_gap}</div>
     </div>
   </div>
 
@@ -1362,6 +1375,12 @@ def self_test() -> int:
     check("the harm line counts every class of work.HARM_LABELS and the silent qualifier (R1-1: no second table)",
           all(f'<span class="num">{n(count)}</span>' in shown for count in planted.values())
           and all(label in shown for label in work.HARM_LABELS.values()), shown[:300])
+    two = [(2023, 4214, 0), (1985, 2253, 1087)]
+    check("the page names each older edition's GAP beside the newest's, and nothing when one edition is held",
+          editions_text(two) == "Older editions: 1985 1,087 GAP of 2,253 rules." and editions_text(two[:1]) == "")
+    held = measure_inventory()["editions"]
+    check("the inventory's numbers carry every held edition, newest first, each with its rules and GAP (kb/Work PB4994)",
+          [y for y, *_ in held] == sorted(inventory_schema.HELD, reverse=True) and all(r > 0 and 0 <= g <= r for _, r, g in held))
     check("a GAP holder outside the GAP campaign is flagged loudly",
           any("outside the GAP campaign" in f and "PB9004" in f for f in flags), str(flags)[:300])
     check("an open compiler note no lane plans is flagged loudly",

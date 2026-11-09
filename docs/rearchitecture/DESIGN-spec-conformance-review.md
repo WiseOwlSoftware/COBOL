@@ -885,14 +885,21 @@ chain's NEWEST row, and an older row in it holds none (the schema refuses them t
 every 1985 rule that carries into it without a copy. The older row's state is the chain's, evaluated at its own edition:
 the chain's test must also be placed at that edition (the conformance suite's placement, DESIGN-conformance-suite.md).
 CHANGED and REMOVED rows, and NEW ones, carry verdicts of their own. The fleet's work is therefore only what changed.
+Both languages compute it: Python's `lineage.state_of` and the C# view's `StateAt` in the drift test over
+`TraceabilityInventory.RowsOf`, held to each other for every held edition by
+`EveryOlderEditionsRuleState_AgreesWithThePythonView`. The session probe and the ledger report each held edition's rules and
+GAP side by side (`inventory_view.edition_views`); the ledger's trend series stays the newest edition's GAP.
 
 **The audit fills the change records** (§10.3). Its passes are detections. A SAME that the verify pass upholds is
 recorded as KEPT through the one recording path (`record_verdicts.py --edition 1985`, a batch the run itself writes from
 its dispositions, `audit_batch.py change-batch`, as the 2023 derived batches are written by `derive_verdict_batch.py`);
 a DISPUTED rule, and a DIFFERS or NONE answer (a CHANGED or REMOVED candidate), is decided by the `adjudicate` pass and
-its independent `refute` pass (§10.3, kb/Work PB4995): an upheld decision is recorded through the same batch, and only
-what they leave contested goes to a fleet adjudicator. The 1985 audit's 2,104 decided rules are recorded (759 upheld
-SAME rules, kb/Work PB4993, and 1,345 upheld adjudications, kb/Work PB4995). A record states its `reason` or omits the
+checked by one independent pass per decided kind (§10.3, kb/Work PB4995, PB5008): the `recheck` for a KEPT or CHANGED
+decision, the `refute` pass for a REMOVED one. An upheld decision is recorded through the same batch, and only what they
+leave contested goes to a fleet adjudicator, whose decision is recorded through `record_verdicts.py --edition 1985` with
+itself as the `source` and outranks the run's: the run's batch never writes over it. The 1985 audit's decided rules are
+recorded (759 upheld SAME rules, kb/Work PB4993, and the upheld adjudications, kb/Work PB4995; 7 of them corrected by
+the sample audit of kb/Work PB5008). A record states its `reason` or omits the
 key: an empty reason is not stored (`lineage.next_errors`). A CHANGED or REMOVED rule then takes a verdict of its own
 under `--std=<edition>`, its witness a draft from the drafts pass that `run_drafts.py` ran and the fleet checked against
 the rule text.
@@ -939,9 +946,10 @@ each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
 | `map` | 1985 catalog rule, with its candidates (below); planned only once every route item is answered | SAME, DIFFERS or NONE, the 2023 ids and the differing words |
 | `verify` | SAME answer | UPHELD, REFUTED or UNSURE: the adversarial pass tries to refute it |
 | `claims` | 1985 claim of `VERSION_CHANGE_REFERENCE.md` (a JSON list of claims the fleet prepares, each with its 1985 locator) | CONFIRMED, REFUTED or NOT-ADDRESSED, with the 1985 `locator` and `rule` (null where no numbered rule decides) as fields of their own |
-| `drafts` | rule whose disposition is a row of its own | a minimal program and the outcome the rule requires (for a refusal, the violating line and a conforming control), which `scripts/spec/run_drafts.py` compiles and runs under `--std=1985` and the fleet checks against the rule text before any use |
+| `drafts` | rule whose disposition is a row of its own, and rule an adjudicate or recheck answer reads as CHANGED, REMOVED or OPEN (read from the answers, which only grow, so a re-plan only grows the plan) | a minimal program and the outcome the rule requires (for a refusal, the violating line and a conforming control), which `scripts/spec/run_drafts.py` compiles and runs under `--std=1985` and the fleet checks against the rule text before any use |
 | `adjudicate` | DISPUTED or OWN-ROW rule, with its map candidates and both readers' answers (kb/Work PB4995) | its change record: KEPT or CHANGED (the 2023 candidates it carries into, and for CHANGED the differing words) or REMOVED (2023 drops it), or OPEN when the texts do not decide |
-| `refute` | KEPT, CHANGED or REMOVED adjudication, with every candidate the adjudicator saw | UPHELD, REFUTED or UNSURE: the independent refuter of the decision |
+| `refute` | REMOVED adjudication, with every candidate the adjudicator saw | the strongest reading on which the requirement survives, first; then UPHELD, REFUTED or UNSURE |
+| `recheck` | KEPT or CHANGED adjudication (kb/Work PB5008), at the highest effort, with its whole 1985 clause and the 1985 rules most like it by wording, every rule of every kind of the 2023 clauses that hold its feature and of each clause a decided rule lies in, and the map's worded candidates beyond them | framed to DISPROVE the decision: (a) another 1985 rule bearing on the element, (b) every 2023 rule that states any part of the requirement, (c) a refusal made a run-time exception condition; then the change record the texts support, with `rules_1985` and `exception` |
 
 **A rule's candidates are drawn from the strongest signal down** (`audit_batch.candidates`, kb/Work PB4971, owner
 2026-11-08: "Use the strongest appropriate signals"):
@@ -955,10 +963,25 @@ a clause per module and names clauses differently. The route pass is the signal 
 request per clause (247 for 1985), so it is cheap; the heading and the wording stay as the routes' complement.
 
 `results` writes each mapped rule's disposition (CARRIES, OWN-ROW, DISPUTED, or still open) and its DECIDED change
-(`audit_batch.dispositions`, the one derivation): KEPT for CARRIES, and the adjudicate pass's answer once the refute pass
-UPHELD it; an OPEN, refuted or unsure adjudication is `contested`, a fleet adjudicator's (`cobol-adjudicator`), never a
-vote. `python scripts/spec/audit_batch.py change-batch` turns every decided change into a `record_verdicts.py --edition
-1985` batch (`change_records`, the one writer). `python scripts/spec/run_drafts.py --state DIR` compiles and runs each draft at `--std=1985` through the
+(`audit_batch.dispositions`, the one derivation): KEPT for CARRIES, and the adjudicate pass's answer once the check its
+kind takes (`audit_batch.checker`, read from the kind's `to` flag: the recheck when it names 2023 rules, the refuter when
+it names none) UPHELD it and no other check that answered disputes it. The recheck upholds a decision only when the
+record it finds is the same one, the same kind into the same set of 2023 rules (`audit_batch.upholds`): a rule it adds
+is one the decision omits. An OPEN or disputed adjudication is `contested`, a fleet adjudicator's (`cobol-adjudicator`),
+never a vote. `python scripts/spec/audit_batch.py change-batch` turns every decided change into a `record_verdicts.py --edition
+1985` batch (`change_records`, the one writer), leaving out each rule whose stored record another source (a fleet
+adjudication) decided.
+
+**Why KEPT and CHANGED take the recheck** (kb/Work PB5008, 2026-11-08). The refute pass upheld 1,345 of the first 1,371
+decisions it read, and a sample audit by `cobol-adjudicator`s from both texts found 5 of 18 upheld CHANGED and 3 of 15
+upheld KEPT decisions wrong, every one of them upheld by the refuter (12 REMOVED and 15 map + verify KEPT records: no
+error). The refuter, the same model at the same effort shown the same candidates, measured agreement, not accuracy. The
+errors fell in three modes, which the recheck's three questions name: a 1985 rule elsewhere already allows what the
+record calls new; the record omits the 2023 rule that states the requirement (the commonest: a definition restated in
+another clause, a group-parameter rule, the general rule of §2023:14.7.7 over every arithmetic statement); and a
+compile-time refusal that 2023 turned into a run-time exception condition (§2023:14.9.39.4 GR2). So the recheck reads
+whole clauses at the highest effort, and the refuter keeps REMOVED, its prompt stating the strongest counter-reading
+before it judges. `python scripts/spec/run_drafts.py --state DIR` compiles and runs each draft at `--std=1985` through the
 conformance harness (`conformance-suite/harness/run.py`'s `Run` and the WiseOwl adapter, the one judge of a program's
 outcome): an output draft is an accepted test (`Run.accept`), and a refused draft a FLAGGED test (`Run.flagged`), so a
 refusal counts only when it is the rule's: the draft names the line that violates the rule and carries a control (the
