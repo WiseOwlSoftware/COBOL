@@ -17,7 +17,7 @@ The same test file had two more unchecked citations. Its free-form comment parap
 `§2023:6.4.1`, and its `Annex A.1 item 158` gained its edition. Every `§` citation that the PB5024 and PB5025 landings added
 passed `--check`.
 
-`audit_code_citations.py` already reads these comments and reports 0 findings. It cannot refuse the `§2023:X N)` shape: `cite.py`
+`audit_code_citations.py` already reads these comments and reports 0 findings. It cannot refuse the `§2023:<clause> N)` shape: `cite.py`
 prints its own rule paths in that shape and the tree holds about 7,600 such lines, so the shape is a tooling lead in the wave
 report. No inventory row closes (`closes_rows: []`, with a reason). The branch continues PB5026 (wave 20261946 group A) and lands
 with it.
