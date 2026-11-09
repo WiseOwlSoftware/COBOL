@@ -422,14 +422,17 @@ securityParagraph
     ;
 
 
-// REMARKS. (a COBOL-74 carryover, accepted at 85 for the CCVS and removal-gated at 2002+ — COBOL0902.)
+// REMARKS. (in no held edition: §1985:VI.3.2.1.1 prints no REMARKS paragraph, deleted by the CODASYL Journal of
+// Development 1968 (§1985:A.2.5). Recognized only so the removal gate refuses it by name at every edition, COBOL0902,
+// and --permissive warns instead; kb/Work PB5026.)
 // ⛔ THE SIXTH COMMENT-ENTRY BODY, AND IT WAS THE ODD ONE OUT (kb/Work PB829). The five paragraphs above all
 // spell their body `~DOT+` with a terminating DOT; this one spelled it `(IDENTIFIER | STRINGLIT)+` with NO
 // terminating DOT, so a comment-entry word that happens to be a LEXER TOKEN ended the content early and the
 // remainder of the entry fell out of the paragraph. That was invisible only because the §2023:11.2.1 paragraph list
 // then ended in a vendor catch-all which swallowed it: `REMARKS. CCVS-STYLE REMARK TEXT.` parsed as the REMARKS
 // paragraph "CCVS-STYLE REMARK" plus a generic paragraph "TEXT." — TEXT being a token — and closing that list
-// turned a silent mis-parse into a diagnostic on legal '85 source (VersionMatrixTests remarks-removed-2002).
+// turned the silent mis-parse into a stray paragraph diagnostic beside the edition gate's (VersionMatrixTests
+// remarks-removed-85).
 // A comment-entry is arbitrary text by definition, which is why ISO/IEC 1989:2023 defines no syntax for one
 // anywhere; `~DOT+` is what that means, and it is now ONE rule, `commentEntry`, shared by all six paragraphs (kb/Work PB3845).
 remarksParagraph
