@@ -47,4 +47,9 @@ reconstruction, a reconstructed heading followed by printed rules, an unclosed a
 with none, and a transcribed page beside one. Performance: `in_reconstruction` walks back with a substring test first.
 Duplication: the four readers share `cite.reconstructed`.
 
+**Also in this landing (register only).** The merge with #1413 conflicted on SUM GR9's record: #1413's CHANGED
+adjudication stays, with this branch's digest and the provisional marker (review round 3 CLEAN). PB5031: SET GR2
+(page 360, VI-128) was read on the rendered page; it prints `index-name-1`, as transcribed, and the Errata policy keeps
+it, so no erratum is owed and the rule's `--std=85` verdict stays owed.
+
 **Gate:** see the branch's gate record.
