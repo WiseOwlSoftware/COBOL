@@ -25,3 +25,5 @@ and `pb3540_commit_under_method_below_2023` now expect COBOL0900.
 site, and the GAP stays 0. The VCR row 39 text and the generated index, DESIGN.md D7 and DESIGN-architecture-review
 section 8.4 are updated. The sibling sweep found two `{isXXXX()}?` predicates left in the grammar, the bare LOCATION
 in PERFORM and OPEN's RETRY. Both are word status.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 22,757/22,757 · Unit 40,617/40,617 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261109T113529Z, at b1a0bbcb5d). Self-review (architecture, code, performance, duplication): one edition check per clause, made at the one recognition site, as the sibling I-O-CONTROL arms (MULTIPLE FILE, RERUN) make theirs; no new allocation and no second statement of the rule. No new defect was found.
