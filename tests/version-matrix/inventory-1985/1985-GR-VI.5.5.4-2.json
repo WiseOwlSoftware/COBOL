@@ -2,13 +2,13 @@
  "rule-id": "1985-GR-VI.5.5.4-2",
  "rule-digest": "aab15c7bb52b",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-13.18.20.4-1"
   ],
   "bridge": true,
-  "reason": "Both let FILLER name a data item and forbid explicit reference to it. No 2023 rule bars a FILLER conditional variable. Report and screen items are added features; 1985 programs are treated alike.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: the key word FILLER may be used to name a data item. 2023: the word FILLER may be used to name a data, report, or screen item. The ban on an explicit reference is the same, but the items FILLER may name widened (report items from 2002, Annex F.2 item 53), so the record is CHANGED: the EDITION GATES audit found the report-filler-2002 gate contradicted by a KEPT link (kb/Work PB4996).",
+  "source": "kb/Work PB4996 (edition-gate audit re-adjudication of audit-1985/state-route)"
  }
 }
