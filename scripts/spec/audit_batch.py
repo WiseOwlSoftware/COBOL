@@ -49,6 +49,9 @@ held edition (kb/Work PB4995, PB5008), and the fleet decides only what they leav
     python scripts/spec/audit_batch.py retry   --pass P --state DIR --api-key-file KEY --max-usd N
     python scripts/spec/audit_batch.py withdraw --pass P --state DIR             # each stored answer the shape now
                                                                                    # refuses, to raw/; retry asks again
+    python scripts/spec/audit_batch.py seed    --state NEW --upstream DIR --decisions BATCH [--inherit route,map,verify]
+                                                                                   # a run checking a batch's decisions:
+                                                                                   # then plan its recheck and refute
     python scripts/spec/audit_batch.py results --state DIR                        # DIR/results.json: each rule's disposition
     python scripts/spec/audit_batch.py change-batch --state DIR --out FILE        # every DECIDED change record (KEPT,
                                                                                    # CHANGED, REMOVED; record_verdicts.py
@@ -299,11 +302,26 @@ values one two all being been have has such only also other there their them the
 
 # -- the pass's directory --------------------------------------------------------------------------------------------------
 
+#: A run seeded from another (`seed`) names that run and the passes it reads from it; every other pass is its own.
+UPSTREAM = "upstream.json"
+
+
+def pass_dir(state: pathlib.Path, name: str) -> pathlib.Path:
+    """The directory of `state`'s pass `name`: its own, or its upstream run's when `state` inherits that pass (`seed`)."""
+    up = state / UPSTREAM
+    if up.exists():
+        u = json.loads(up.read_text(encoding="utf-8"))
+        if name in u["passes"]:
+            return pass_dir(pathlib.Path(u["run"]), name)
+    return state / name
+
+
 class Pass:
-    """`DIR/<name>/`: items.json, state.json, answers/, raw/."""
+    """`DIR/<name>/`: items.json, state.json, answers/, raw/; an inherited pass is its upstream run's, read only."""
 
     def __init__(self, state: pathlib.Path, name: str):
-        self.name, self.dir = name, state / name
+        self.name, self.dir = name, pass_dir(state, name)
+        self.inherited = self.dir != state / name
         self.items_file, self.answers_dir, self.raw_dir = self.dir / "items.json", self.dir / "answers", self.dir / "raw"
         self.batches: BatchRun[str] = BatchRun(self.dir / "state.json", "items", str, str, TOOL)
 
@@ -998,6 +1016,37 @@ def guard(p: Pass, st: dict[str, Any], todo: list[str], max_usd: float) -> None:
         raise SystemExit(f"{TOOL}: the estimate ${estimate:.2f} exceeds --max-usd {max_usd}; nothing submitted")
 
 
+def seed(state: pathlib.Path, upstream: pathlib.Path, decisions: pathlib.Path, inherit: list[str]) -> int:
+    """Start the run `state` to check a record_verdicts batch's decisions (kb/Work PB4995: the fleet's decisions of the
+    contested records, checked again before they stand). It reads the passes `inherit` names from `upstream`, and its
+    own adjudicate pass is the upstream items of the decided rules, each ANSWERED by its record (the kind, the 2023 rules,
+    the reason, and the record's source): its recheck and refute passes then plan from them as from any adjudication,
+    and `results` contests each decision a check disputes."""
+    if state.exists() and any(state.iterdir()):
+        raise SystemExit(f"{TOOL}: {state} is not empty: a seeded run starts empty")
+    if "adjudicate" in inherit or not (upstream / "adjudicate").is_dir():
+        raise SystemExit(f"{TOOL}: a seeded run's adjudicate pass is its own, and {upstream} needs one")
+    records = json.loads(decisions.read_text(encoding="utf-8"))["records"]
+    up_items = {it["id"]: (cid, it) for cid, it in Pass(upstream, "adjudicate").items().items()}
+    if missing := [r["rule-id"] for r in records if r["rule-id"] not in up_items]:
+        raise SystemExit(f"{TOOL}: {len(missing)} decided rule(s) have no adjudicate item in {upstream}: {missing[:5]}")
+    state.mkdir(parents=True, exist_ok=True)
+    write_atomic(state / UPSTREAM, json.dumps({"run": str(upstream), "passes": inherit}, indent=1) + "\n")
+    p = Pass(state, "adjudicate")
+    write_plan(p, [up_items[r["rule-id"]][1] for r in records])
+    p.answers_dir.mkdir(parents=True, exist_ok=True)
+    for r in records:
+        nxt = r["next"]
+        write_atomic(p.answer_file(up_items[r["rule-id"]][0]), json.dumps(
+            {"id": r["rule-id"], "answer": {"verdict": nxt["kind"], "rules_2023": nxt["to"], "differs": {},
+                                            "reason": nxt["reason"]}, "source": nxt["source"]},
+            indent=1, ensure_ascii=False))
+    kinds = collections.Counter(r["next"]["kind"] for r in records)
+    print(f"seed: {state} holds {len(records)} decision(s) {dict(sorted(kinds.items()))} from {decisions}; it reads "
+          f"{', '.join(inherit)} from {upstream}", flush=True)
+    return 0
+
+
 def canary_proven(p: Pass, st: dict[str, Any]) -> bool:
     """A collected canary batch of this pass holds at least one valid answer."""
     return any(b.get("canary") and b.get("collected") and any(p.answer_file(c).exists() for c in b["items"])
@@ -1041,6 +1090,13 @@ def build_parser() -> argparse.ArgumentParser:
                                            "retry asks again"), key=False)
     common(sub.add_parser("results", help="write DIR/results.json: each mapped rule's disposition and decided change"),
            key=False, pass_arg=False)
+    sd = sub.add_parser("seed", help="start a run whose adjudicate pass holds a record_verdicts batch's decisions, to check "
+                                     "them with its own recheck and refute passes")
+    common(sd, key=False, pass_arg=False)
+    sd.add_argument("--upstream", required=True, help="the run whose adjudicate items the decisions answer")
+    sd.add_argument("--decisions", required=True, help="the record_verdicts batch file of the decisions to check")
+    sd.add_argument("--inherit", default="route,map,verify",
+                    help="the passes the new run reads from the upstream run, comma-separated (default: route,map,verify)")
     cb = sub.add_parser("change-batch", help="write every decided change record as a record_verdicts batch")
     common(cb, key=False, pass_arg=False)
     cb.add_argument("--out", required=True, help="the batch file to write")
@@ -1082,7 +1138,11 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
         print(f"change-batch: {len(records)} change record(s) {dict(sorted(kinds.items()))} -> {out}\n"
               f"  validate: python scripts/spec/record_verdicts.py --edition 1985 --dry-run {out}", flush=True)
         return 0
+    if a.cmd == "seed":
+        return seed(state, pathlib.Path(a.upstream), pathlib.Path(a.decisions), a.inherit.split(","))
     p = Pass(state, a.pass_name)
+    if p.inherited and a.cmd != "status":
+        raise SystemExit(f"{TOOL}: {state} reads its {p.name} pass from {p.dir.parent} ({UPSTREAM}): {a.cmd} it there")
     if a.cmd == "plan":
         if a.pass_name == "claims" and not a.claims:
             raise SystemExit(f"{TOOL}: plan --pass claims needs --claims")

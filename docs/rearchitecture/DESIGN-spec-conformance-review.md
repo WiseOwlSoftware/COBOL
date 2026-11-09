@@ -1028,6 +1028,13 @@ never a vote. `python scripts/spec/audit_batch.py change-batch` turns every deci
 1985` batch (`change_records`, the one writer), leaving out each rule whose stored record another source (a fleet
 adjudication) decided.
 
+**The fleet's decisions take the same checks** (kb/Work PB4995, owner 2026-11-09). `audit_batch.py seed --state NEW
+--upstream DIR --decisions BATCH` starts a run whose own adjudicate pass is the upstream items of the rules a
+`record_verdicts` batch decides, each answered by its record (kind, 2023 rules, reason, and the record's source), and
+which reads the route, map and verify passes from the upstream run (`upstream.json`, `audit_batch.pass_dir`; an
+inherited pass is read only). Its recheck and refute passes then plan from the fleet's decisions exactly as from the
+adjudicate pass's, and its `results` contests each one a check disputes, for a `cobol-adjudicator` again.
+
 **Why KEPT and CHANGED take the recheck** (kb/Work PB5008, 2026-11-08). The refute pass upheld 1,345 of the first 1,371
 decisions it read, and a sample audit by `cobol-adjudicator`s from both texts found 5 of 18 upheld CHANGED and 3 of 15
 upheld KEPT decisions wrong, every one of them upheld by the refuter (12 REMOVED and 15 map + verify KEPT records: no
