@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1474_report_subscripts_legal
       *> rules: [SR-8.4.2.3.3-8]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

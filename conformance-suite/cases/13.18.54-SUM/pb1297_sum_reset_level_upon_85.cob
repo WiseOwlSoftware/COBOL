@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1297_sum_reset_level_upon_85
       *> rules: [GR-13.18.54.4-2, GR-13.18.54.4-7]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
