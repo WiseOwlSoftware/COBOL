@@ -761,7 +761,7 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
   FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). A CITATION NAMES ONE RULE (kb/Work PB4969): a rule of a
   restarted list is cited by its list, `GRL2.1` for the id's `-L2.1` (`citation.rule_designator`, the one writer; the format's
   `SUBLIST_RULE`), so `§1985:IV.4.2.2.2.3 GR1` is the first list's rule 1 alone, and the extractor's `--check` fails on two
-  rows that share a citation (a row cited by a printed page, `§1993:p.B-16`, the two rules an amendment adds on that page, is exempt: the page is no rule's citation).
+  rows that share a citation.
   The 2023 catalog carries no `citation` field. The year prefix names the edition (or amendment) the
   rule is from, in the 1985 store (§10.2).
 - **The conformance requirements are the FRAME, not rows** (kb/Work PB4968). Paragraph 1.5 of Section I (§1985:I.1.5: what a
@@ -862,10 +862,16 @@ amendments make (Addendum 1: Section IV 4.3.8.3 to 4.3.8.5 become 4.3.8.4 to 4.3
 Function-Identifier, Section VI 1.3.5 and 1.3.6 become 1.3.6 and 1.3.7; Amendment 2: the INSPECT, RECORD and WRITE
 general rules it renumbers) is the numbering 1985 citations use, and every citation, change record and row id of a moved
 rule moves with it in the same change, through `record_verdicts.py --edition 1985`, never an alias. Section A (the
-Intrinsic Function module) is the one exception to "in the body": Amendment 1 inserts it after Section XVI, and the
-transcription holds it once, where Amendment 1 prints it, its rules cited `§1989:A` (§10.1) with Amendment 2's
-changes applied there. Implementing this in `rule_catalog_1985.resolve_change` (its ADD path finds the body's row
-instead of adding one) and regenerating the catalog follow the last amendment row applied.
+Intrinsic Function module) is the exception to "in the body" that carries rules: Amendment 1 inserts it after Section
+XVI, and the transcription holds it once, where Amendment 1 prints it, its rules cited `§1989:A` (§10.1) with Amendment
+2's changes applied there. Two insertions of Amendment 2 that run over many pages and carry no rule are held the same
+way, once where Amendment 2 prints them, a flag at the place they take in the body: paragraph 2.2B of Appendix B of
+Section XVII (pages B-30 to B-46, the Errata's C332) and the replacement index (pages B-49 to B-64, C337, whose row also
+deletes the base index's entries). `rule_catalog_1985.resolve_change`'s ADD path finds the body's row (of Section A for
+an Amendment 1 page) at the number the amended text gives it and records `amended_by` on it; it adds no row, so the
+catalog carries no `§1993` row and no page citation. The store records the renumberings and deletions moved through
+`record_verdicts.py --edition 1985`, whose WITHDRAWAL record (`{"rule-id", "withdraw"}`) takes a record whose rule is gone
+or whose id now names another rule out of the store.
 
 **Change is recorded once, between ADJACENT editions only** (85 to 2002, 2002 to 2014, 2014 to 2023, and 2023 to 2027),
 never between every pair. Each rule of the older edition carries one classification against the next held edition, in a

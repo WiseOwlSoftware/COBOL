@@ -19,7 +19,9 @@ is not ISO's:
   - Amendment 1's Addendum 1 and Amendment 2 (ANSI X3.23b-1993) are TABLES OF CHANGES to the base text, a row per change
     keyed by the printed page it begins on (`VI-104`, `(A-12)` for an Amendment 1 page) and a paragraph and rule; a rule a
     change names carries that amendment in `amended_by`, because the amended 1985 is a different language level for
-    edition gating.
+    edition gating. The transcription applies every change in place (kb/Work PB5045), so a rule a change ADDS is a row
+    of the body, at the number the amended text gives it, and the change only records `amended_by` on it: an amended
+    rule has one home (docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2).
 
 THE ROW. `id` `<year>-<kind>-<locator>-<n>` (a sub-list restarted inside a block: `-L<sublist>.<n>`, as 2023's), its
 citation (`§1985:VI.5.7.3 SR1`), section, paragraph, module, subject (the enclosing paragraph's title), kind (SR, GR, AR,
@@ -194,9 +196,8 @@ class Catalog:
 
     def shared_citations(self) -> list[str]:
         """Every citation more than one row carries: a citation names ONE rule (kb/Work PB4969), so a rule of a restarted
-        list is cited by its list (citation.rule_designator). The rows cited by a printed page (`§1993:p.B-16`: the rules an
-        amendment adds) are exempt, the page being no rule's citation."""
-        counts = collections.Counter(r["citation"] for r in self.rules if ":p." not in r["citation"])
+        list is cited by its list (citation.rule_designator)."""
+        counts = collections.Counter(r["citation"] for r in self.rules)
         return sorted(c for c, n in counts.items() if n > 1)
 
     def findings(self) -> int:
@@ -246,7 +247,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     page = 0
     page_top = False
     amendment: str | None = None       # the amendment whose part is being read
-    change_rows: list[tuple[str, str, str, str, int]] = []   # (document, page cell, change, own folio, own page)
+    change_rows: list[tuple[str, str, str]] = []   # (document, page cell, change)
     open_change = False                # the last change row's new text follows the table row as prose
 
     def flush() -> None:
@@ -354,13 +355,13 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             if (row := CHANGE_ROW.match(line) or CHANGE_PROSE_ROW.match(line)) is not None:
                 open_change = CHANGE_PAGE.search(row["page"]) is not None
                 if open_change:
-                    change_rows.append((amendment, row["page"], row["change"], folio_of.get(page, ""), page))
+                    change_rows.append((amendment, row["page"], row["change"]))
                 open_change = open_change and row["change"].endswith(":") and "<br>" not in row["change"]
             elif open_change and not ANY_HEADING.match(line) and not CHANGE_HEADER.match(line):
                 # A change whose new text the table prints BELOW its row ("add the following as the new general
                 # rule 19:", then the rule as prose): the text is the row's, as a `<br><br>` cell would carry it.
-                doc_, cell, change, own, own_page = change_rows[-1]
-                change_rows[-1] = (doc_, cell, f"{change}<br><br>{line.strip()}", own, own_page)
+                doc_, cell, change = change_rows[-1]
+                change_rows[-1] = (doc_, cell, f"{change}<br><br>{line.strip()}")
             continue
         p = PARAGRAPH_85.match(line)
         if p is not None:
@@ -444,8 +445,8 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
         if declared not in met:
             cat.stale.append(f"{declared}: adjudicated here, but the transcription no longer has it")
     cat.changes = len(change_rows)
-    for doc, cell, change, own_folio, own_page in change_rows:
-        resolve_change(cat, doc, cell, change, own_folio, own_page)
+    for doc, cell, change in change_rows:
+        resolve_change(cat, doc, cell, change)
     return cat
 
 
@@ -468,12 +469,13 @@ def add_row(cat: Catalog, *, document: str, section: str | None, paragraph: str,
     return row
 
 
-def resolve_change(cat: Catalog, doc: str, cell: str, change: str, own_folio: str, own_page: int) -> None:
-    """Record amendment `doc` on the rule one change row names, or add the rule the row adds ("add the following as the
-    new general rule 4"), cited by the amendment's own printed page; a row naming a rule the catalog cannot find is
-    reported. A row that names no rule (a heading, a figure, a table of contents) changes no row and is left alone.
-    An added rule keeps the number the amendment gives it; the base rules after it keep their 1985 numbers, which are
-    the ones the 1985 citations use.
+def resolve_change(cat: Catalog, doc: str, cell: str, change: str) -> None:
+    """Record amendment `doc` on the rule one change row names, a rule it changes or one it adds ("add the following as
+    the new general rule 4"); a row naming a rule the catalog cannot find is reported. A row that names no rule (a
+    heading, a figure, a table of contents) changes no row and is left alone.
+    The transcription applies every change in place (kb/Work PB5045), so a rule a change adds is already a row of the
+    body (of Section A for an Amendment 1 page), at the number the amended text gives it: the change records itself on
+    that row and adds none, an amended rule having one home (DESIGN-spec-conformance-review.md section 10.2).
     The paragraph and the rule a change names are read from its DIRECTIVE, the text before the new text it carries
     (`<br><br>`): the new text is the standard's own words, and a "(See 2.9.4, rule 2, ...)" inside an item it adds to an
     appendix list (X3.23a-1989 XVII-93) names no rule the change touches."""
@@ -481,21 +483,19 @@ def resolve_change(cat: Catalog, doc: str, cell: str, change: str, own_folio: st
     directive = change.split("<br><br>", 1)[0]
     para = CHANGE_PARAGRAPH.search(directive)
     if (added := CHANGE_ADDS.search(directive)) is not None:
-        if para is None:   # an added rule with no paragraph has no block to join: never read as a change to rule n
+        if para is None:   # an added rule with no paragraph has no block to find it in: never read as a change to rule n
             cat.unresolved.append((doc, cell, change[:100]))
             return
         kind = KINDS.get(canonical_title(f"{added['kind']} rule"))
         folio, in_amendment = pages[0]
         sec = "A" if in_amendment else folio.split("-")[0]
-        blocks = [loc for loc, k in cat.blocks if k in (kind, MIXED) and loc.split(".", 1)[0] == sec
-                  and para["num"] in (loc.split(".", 1)[1], loc.split(".", 1)[1].rsplit(".", 1)[0])]
-        if len(blocks) == 1 and "<br><br>" in change:
-            paragraph = blocks[0].split(".", 1)[1]
-            text = re.sub(r"\s+", " ", change.split("<br><br>", 1)[1].replace("<br>", " ")).strip()
-            add_row(cat, document=doc, section=sec, paragraph=paragraph, kind=kind, n=int(added["n"]), sublist=1,
-                    text=re.sub(r"^\\?\(\d+\\?\)\s*", "", text), page=own_page, folio=own_folio, band="",
-                    subject=next((r["subject"] for r in cat.rules if r["locator"] == blocks[0]), ""),
-                    citation=f"§{YEAR_OF[doc]}:p.{own_folio}")
+        home = AMENDMENT_1 if in_amendment else BASE
+        found = [r for r in cat.rules if r["document"] == home and r["section"] == sec and r["kind"] == kind
+                 and r["ordinal"] == int(added["n"]) and r["sublist"] == 1
+                 and para["num"] in (r["paragraph"], r["paragraph"].rsplit(".", 1)[0])]
+        if len(found) == 1:
+            if doc not in found[0]["amended_by"]:
+                found[0]["amended_by"].append(doc)
         else:
             cat.unresolved.append((doc, cell, change[:100]))
         return
@@ -634,6 +634,10 @@ Nucleus - Level-Number
 
 continued on the next page.
 
+(3) A planted rule printed below its row:
+
+a. its item.
+
 ### ║5.7.4 General Rules║
 
 ║(1) A planted rule boxed whole.║
@@ -641,6 +645,8 @@ continued on the next page.
 FORMAT 2
 
 (2) A planted rule under a band.
+
+(3) A planted added rule.
 
 ## 5.8 THE OCCURS CLAUSE
 
@@ -825,6 +831,7 @@ A-33
 |---|---|
 | VI-26 | General rule 7 of nothing on this page, planted. |
 | VI-25 | Paragraph 5.7.4 of the level-number, add the following as the new general rule 3:<br><br>(3) A planted added rule. |
+| VI-25 | Paragraph 5.7.4 of the level-number, add the following as the new general rule 9:<br><br>(9) Planted, never applied in place. |
 | (A-33) | Paragraph 2.5.3 of the ACOS function, argument rule 1, change to read: planted. |
 | x | Add an entry to the table of contents, planted. |
 | VI-25 | Paragraph 5.7.3 of the level-number, add the following as new syntax rule 3: |
@@ -896,8 +903,10 @@ def self_test() -> int:
     check("an Addendum change names its rule by page, paragraph and rule", r2["amended_by"] == [AMENDMENT_1])
     check("an Amendment 2 change to an Amendment 1 page resolves in Section A",
           by["1989-AR-A.2.5.3-1"]["amended_by"] == [AMENDMENT_2])
-    check("a change naming no rule is no finding, one naming an absent rule is",
-          cat.changes == 7 and len(cat.unresolved) == 1 and cat.unresolved[0][1] == "VI-26")
+    check("a change naming no rule is no finding, one naming an absent rule is, and so is one adding a rule the body "
+          "lacks (a change not applied in place)",
+          cat.changes == 8 and [cell for _d, cell, _c in cat.unresolved] == ["VI-26", "VI-25"]
+          and "general rule 9" in cat.unresolved[1][2])
     check("a change row printed without the table's pipes is read, its rule named in parentheses",
           by["1985-SR-VI.5.7.3-1"]["amended_by"] == [AMENDMENT_1])
     check("a rule the new text of a change mentions is no rule the change names (XVII-93's '(See 5.7.3, rule 1')",
@@ -953,18 +962,19 @@ def self_test() -> int:
     check("a sub-list's kind may be an items map (rule_kind), and kinds_of names every kind a map gives",
           (rule_kind(nested, 1, 3), rule_kind(nested, 2, 9), rule_kind(nested, 1, 2), rule_kind(nested, 3, 1))
           == ("SR", "GR", None, None) and kinds_of(nested) == {"GR", "SR"})
-    check("an added rule the table prints below its row is that row's text",
-          by.get("1993-SR-VI.5.7.3-3", {}).get("text") == "A planted rule printed below its row: a. its item.")
+    check("an added rule the table prints below its row names the body's rule, applied in place",
+          by["1985-SR-VI.5.7.3-3"]["amended_by"] == [AMENDMENT_2]
+          and by["1985-SR-VI.5.7.3-3"]["text"] == "A planted rule printed below its row:\na. its item.")
     check("every id is unique", not cat.duplicates())
     twin = Catalog(rules=[{"citation": "§1985:IV.4.4.2 GR1"}, {"citation": "§1985:IV.4.4.2 GR1"},
-                          {"citation": "§1993:p.B-1"}, {"citation": "§1993:p.B-1"},
                           {"citation": f"§1985:IV.4.4.2 {citation.rule_designator('GR', 1, 2)}"}])
-    check("no two rows share a citation, a sub-list's rule naming its list; a page-cited row is exempt (kb/Work PB4969)",
+    check("no two rows share a citation, a sub-list's rule naming its list (kb/Work PB4969)",
           not cat.shared_citations() and twin.shared_citations() == ["§1985:IV.4.4.2 GR1"])
-    added = by.get("1993-GR-VI.5.7.4-3", {})
-    check("a change that adds a rule is a row of its amendment, cited by the amendment's own page",
-          added.get("document") == AMENDMENT_2 and added.get("citation") == "§1993:p.B-1"
-          and added.get("text") == "A planted added rule." and added.get("module") == "Nucleus")
+    added = by["1985-GR-VI.5.7.4-3"]
+    check("a change that adds a rule records itself on the body's row, which the transcription applied in place: one "
+          "home, no row of the amendment (design 10.2, kb/Work PB5045)",
+          added["document"] == BASE and added["citation"] == "§1985:VI.5.7.4 GR3" and added["amended_by"] == [AMENDMENT_2]
+          and added["text"] == "A planted added rule." and not any(r["document"] == AMENDMENT_2 for r in cat.rules))
     check("a box in a one-level module leaves its rule at level 1", by["1985-SR-XI.4.3.3-1"]["level"] == 1)
     check("the summary counts per module and level (the whole-boxed rule and the whole-boxed format are level 2)",
           any(ln.split()[:7] == ["Nucleus", "level", "1", "11", "level", "2", "5"] for ln in summary(cat)))

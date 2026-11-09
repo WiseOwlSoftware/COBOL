@@ -1,18 +1,15 @@
 {
  "rule-id": "1985-GR-VI.6.18.4-15",
- "rule-digest": "4aab759f9f70",
+ "rule-digest": "4030107e1a09",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.22.4-19",
-   "GR-14.9.22.4-6",
-   "GR-14.6.4-4",
-   "GR-14.6.4-6",
-   "GR-14.6.4-7"
+   "GR-14.9.22.4-17",
+   "GR-14.9.22.4-7"
   ],
   "bridge": true,
-  "reason": "Equivalence to two successive INSPECTs is verbatim in §2023:14.9.22.4 GR19, but 1985 'Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement' became 'Item identification of any identifier in the format 2 statement is done only once before executing the format 1 statement', and item identification includes 'length evaluation for an occurs-depending group item' (§2023:14.6.4 GR6). A tally into identifier-1's DEPENDING ON item no longer changes the length the REPLACING part scans: a result changed.",
-  "source": "adjudicate-712-r2/slice-04"
+  "reason": "§2023:14.9.22.4 GR17 a) to d) repeat 1985 GR13 (rule 6e renumbered 8e); c) 'first such occurrence encountered' and d) 'or, if BACKWARD is specified, the rightmost occurrence' differ only under BACKWARD, which the 1985 format lacks; §2023:14.9.22.4 GR7 restates replacement by literal-3. Every 1985 statement replaces the same characters.",
+  "source": "adjudicate-712/slice-11"
  }
 }
