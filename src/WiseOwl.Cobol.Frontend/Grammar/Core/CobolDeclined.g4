@@ -35,28 +35,23 @@
 // arithmetic): those rules are optional WITH the facility (A.4.1), and a second, unreachable enforcement of
 // them would be code nothing can ever exercise.
 //
-// ⛔ EVERY RULE HERE IS EDITION-GATED AT ITS LEFT EDGE, for TWO different reasons — and conflating them is how a
-// gate gets removed as redundant, or kept for the wrong one. kb/Work PB2291 adjudicated each gate against D7
-// (DESIGN §1.1: the parse reads the edition only for §2023:8.9 word status; every construct gate is the
-// post-bind VersionConformancePass's):
-//   (a) WORD STATUS — sanctioned. The arms whose LEADING word is a §2023:8.9 user-defined word below the edition that
-//       reserves it (DEFAULT, PRESENT, VALIDATE-STATUS, VAL-STATUS and the VALID phrase, all reserved from 2002): an
-//       ungated arm would report "the declined VALIDATE facility" for a COBOL-85 program that is merely using a
-//       legal name — the wrong answer under the four-editions mandate.
-//   (b) A CONSTRUCT GATE — a D7 defect. The arms whose words have NO other reading below the introducing edition:
-//       CLASS, DESTINATION, INVALID and VARYING are reserved at all four editions (MEASURED against
-//       tests/version-matrix/reserved-words.json; CLASS because §2023:12.3.7's SPECIAL-NAMES CLASS clause has always
-//       existed), and the data-description CLASS clause (§2023:13.18.11) arrived with VALIDATE at COBOL-2002. Below its
-//       introduction such a construct does not exist, and the gate refuses it with a bare COBOL0001 where D7 wants
-//       the conformance pass to name the edition (COBOL0900). (kb/Work PB375 stated (a) for CLASS; the
-//       measurement says (b).)
-// The edition numbers that carry (b) (dataDescriptionClause's and valueClause's is2002) are recorded as D7 defects
-// in EditionReadDriftTests, to be replaced by a word-status read of the arm's
-// leading word plus a conformance-pass gate once constructs.json can carry a construct that is refused by name AT
-// its introduction (a declined row). Until then the gates stay — a (b) gate is not removable as redundant, because
-// without it the construct would be reported as the declined facility at an edition that never had it.
-// A LEFT-EDGE predicate steers ANTLR's prediction; mid-alternative it would let the alternative be chosen and
-// then throw (DEVLOG: the SET regression).
+// ⛔ NO RULE HERE IS EDITION-GATED: THE UNION GRAMMAR SPELLS THE FACILITY AT EVERY EDITION (kb/Work PB5007). The
+// VALIDATE facility is a COBOL-2002 introduction, and its data description syntax does not exist at COBOL-85. Below
+// 2002 `VersionConformancePass` names that edition on RECOGNITION (COBOL0900; constructs.json row
+// `validation-clauses-2002`, a DECLINED row; ParseArm.VisitValidationClause and VisitValidateValidPhrase), and from
+// 2002 `DeclinedFacilityPass` refuses the clause by name (COBOL1708). That is D7 (DESIGN §1.1): the parse reads the
+// edition only for §2023:8.9 word status, and every construct gate is the post-bind pass's.
+// Until PB5007 both entries into this file sat behind {is2002()}? predicates, which kb/Work PB2291 split in two:
+// (a) WORD STATUS, for the arms whose leading word is a §2023:8.9 user-defined word below 2002 (DEFAULT, PRESENT,
+// VALIDATE-STATUS, VAL-STATUS and the VALID phrase), and (b) a CONSTRUCT GATE, a D7 defect, for CLASS, DESTINATION,
+// INVALID and VARYING, which are reserved at every edition (MEASURED against tests/version-matrix/reserved-words.json;
+// CLASS because §2023:12.3.7's SPECIAL-NAMES CLASS clause has always existed). Both made a COBOL-85 program draw a
+// generic COBOL5506 or COBOL1941 where the edition should be named. Reason (a) needs no predicate: the token-level
+// reservation gate (Parsing/ReservationGateRewriter.cs, kb/Work PB655, PB4958) retypes every occurrence of a DECLARED
+// free word to a user-defined word, so `01 DEFAULT PIC X.` at COBOL-85 keeps its name and no arm here can take a later
+// DEFAULT of that program, while an undeclared free word in a clause position has no user-word reading to keep. The
+// witnesses are DeclinedFacilityTests.ValidationClauseWords_AreLegalNamesAt85 (names in the entry-name slot, a KEY
+// list, a symbolic-character VALUE operand) and ValidationClausesAt85_AreRefusedByTheirEdition_NotByTheDecline.
 // ══════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 parser grammar CobolDeclined;
@@ -88,16 +83,11 @@ options {
 // after whatever the user wrote. A sub-rule is also the faithful transcription: the printed format's braces
 // ARE a group, exactly as validateVaryingSpec and validateStatusStage already are.
 // `DeclinedFacilityTests.ClassClause_IsNamedByItsClauseWord_NotByItsOperand` pins the consequence.
-// ⛔ WHERE THIS IS HOOKED IN, AND WHY THE PREDICATE IS WHERE IT IS. `CobolData.g4`'s
-// `dataDescriptionClause` gains `| {is2002()}? validationClause` as its LAST alternative — recognized only
-// so `DeclinedFacilityPass` can refuse the clause BY NAME with COBOL1708 instead of the generic parse
-// error, or the misleading COBOL0901 "is a reserved word", that it drew before. `{is2002()}?` sits at
-// the LEFT EDGE of that alternative, where a semantic predicate steers PREDICTION: mid-alternative it lets
-// the alternative be chosen and then throws a raw parse error (the `left_edge_predicates` lesson). WHY the
-// gate is needed is the file header's two-reason split — (a) word status, for the clause words that are ordinary
-// user-defined words at COBOL-85 (§2023:8.9), (b) a construct gate (a recorded D7 defect), for CLASS, DESTINATION,
-// INVALID and VARYING, which are reserved at every edition and whose data-description clauses do not exist below
-// 2002. Stated once, there; do not restate it here.
+// ⛔ WHERE THIS IS HOOKED IN. `CobolData.g4`'s `dataDescriptionClause` carries `| validationClause` as its
+// alternative before the error production, recognized so `DeclinedFacilityPass` can refuse the clause BY NAME with
+// COBOL1708 instead of the generic parse error, or the misleading COBOL0901 "is a reserved word", that it drew
+// before, and so the introduction gate can name COBOL-2002 below it. It carries no edition predicate; the file
+// header says why. Stated once, there; do not restate it here.
 validationClause
     : validateClassClause
     | validateDefaultClause

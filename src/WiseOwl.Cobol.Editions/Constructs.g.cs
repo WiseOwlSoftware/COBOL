@@ -21,6 +21,7 @@ public static class Constructs
     public const string Invoke2002 = "invoke-2002";
     public const string AsyncMessaging2023 = "async-messaging-2023";
     public const string ValidateStatement2002 = "validate-statement-2002";
+    public const string ValidationClauses2002 = "validation-clauses-2002";
     public const string ApplyCommitClause2023 = "apply-commit-clause-2023";
     public const string GobackReturning2002 = "goback-returning-2002";
     public const string StopRunStatus2002 = "stop-run-status-2002";

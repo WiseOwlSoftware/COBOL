@@ -175,8 +175,16 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     private bool InEdition(Row row) => ctx.Edition.Edition.Has(row.IntroducedIn);
 
     /// <summary>The row's receiving brace in the governing edition's words. A row the edition lacks is never named
-    /// in a list; one reached by a statement anyway (its declaration was refused earlier, so this is unreachable
-    /// in practice) says so instead of printing wording the edition does not have.</summary>
+    /// in <see cref="ReportNoFormat"/>'s list, but <see cref="ReportNotAdmitted"/> and
+    /// <see cref="ReportNotSoleReceiver"/> name the SELECTED row, and selection reads the operands' kinds, not the
+    /// edition: a refused declaration still binds its item, and an item the edition declares can select a format the
+    /// edition does not print. Both are reached (kb/Work PB5015): a dynamic-length item is declarable from 2014
+    /// (registry <c>dynamic-length-item-2014</c>) while Format 16 begins at 2023, so <c>SET D N TO 5</c> at
+    /// <c>--std 2014</c> selects Format 16; and a CAPACITY register declared at 2002 (refused COBOL0900, still bound)
+    /// selects Format 14, which begins at 2014. The brace is then labelled with the edition that introduced it
+    /// instead of being printed as though the compiled edition had it;
+    /// <c>SetFormatSelectionDriftTests.ASelectedRowTheEditionLacks_IsLabelledWithItsIntroducingEdition</c> pins the
+    /// wording.</summary>
     private string BraceOf(Row row) =>
         !InEdition(row) ? $"{row.Brace} (a format first printed in COBOL-{row.IntroducedIn}, absent from this edition)"
         : Is1985 && row.At1985 is { } r ? r.Brace : row.Brace;
