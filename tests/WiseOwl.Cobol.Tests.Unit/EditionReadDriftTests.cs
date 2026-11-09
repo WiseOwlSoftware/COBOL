@@ -58,14 +58,16 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// ANY name — a sixth <c>{isXXXX()}?</c> spelling, a new <c>reservedHere</c> site, a new member, a lexer field primed
 /// from the edition, a new listener call — fails here until it is adjudicated and recorded, with its verdict.</para>
 ///
-/// <para><b>Why a construct gate is still recorded.</b> PB2291 found three (<see cref="Verdict.ConstructGate"/>), all
-/// on the declined Annex A.4 surface of <c>CobolDeclined.g4</c>: the §2023:13.16.2 validation clauses, the VALUE clause's
-/// §2023:13.18.63 format-5 phrase and the §2023:12.4.6.3 APPLY COMMIT clause. Below its introducing edition each is refused with a
-/// bare COBOL0001 where D7 wants the conformance pass to name the edition (COBOL0900). Moving them needs a
-/// declined-construct row form the version matrix does not have yet (a constructs.json row that is refused by name AT
-/// and after its introduction), so they are pinned here as defects with their verdict rather than left unseen.
-/// Removing one is a change to this table, which is the point: the table is the verdict, and the test keeps it equal
-/// to the code.</para>
+/// <para><b>Why a construct gate is still recorded.</b> PB2291 found three (<see cref="Verdict.ConstructGate"/>): the
+/// §2023:13.16.2 validation clauses, the VALUE clause's §2023:13.18.63 format-5 phrase and the §2023:12.4.6.3 APPLY COMMIT
+/// clause. Below its introducing edition each was refused with a generic parse error where D7 wants the conformance pass
+/// to name the edition (COBOL0900). kb/Work PB5007 moved the first two: the version matrix gained the declined-row form
+/// (a constructs.json row refused by name AT and after its introduction, <c>validation-clauses-2002</c>), the two
+/// {is2002()}? gates were deleted, and VersionConformancePass names the edition on recognition; the word status the
+/// gates were thought to carry for DEFAULT, PRESENT, VALID, VALIDATE-STATUS and VAL-STATUS is the token-level
+/// reservation gate's (<c>ReservationGateRewriter</c>). The APPLY COMMIT gate remains, pinned here as a defect with its
+/// verdict rather than left unseen. Removing one is a change to this table, which is the point: the table is the
+/// verdict, and the test keeps it equal to the code.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class EditionReadDriftTests
@@ -131,15 +133,6 @@ public sealed class EditionReadDriftTests
         // clause, so no earlier program reads `APPLY COMMIT` another way: the gate refuses a construct (COBOL0001)
         // where the conformance pass should name its 2023 introduction.
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4 | ioControlClause | is2023"] = (1, Verdict.ConstructGate),
-        // The §2023:13.16.2 validation clauses: CLASS, DESTINATION, INVALID and VARYING are reserved at every edition and
-        // have no data-description reading below 2002, so at --std 85 the gate turns a construct the conformance pass
-        // should name into COBOL0001. (DEFAULT, PRESENT, VALIDATE-STATUS and VAL-STATUS are §2023:8.9 user words there,
-        // so the replacement keeps a word-status read on those four arms.)
-        ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | dataDescriptionClause | is2002"] = (1, Verdict.ConstructGate),
-        // The VALUE clause's format-5 tail `[IS|ARE] {INVALID|VALID}`: INVALID is reserved at every edition (a
-        // construct gate below 2002); VALID is a §2023:8.9 user word below 2002 and can be a VALUE operand there (a
-        // symbolic-character, §2023:8.3.3.6.3 SR1), which a word-status read must keep.
-        ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | valueClause | is2002"] = (1, Verdict.ConstructGate),
         // SET LOCALE: setLocaleAhead's `|| Edition.Has(2002)` decides whether LOCALE and USER-DEFAULT are §2023:8.9 user
         // words (two receivers of a COBOL-85 SET) or the Format-11 keywords.
         ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | setLocaleStatement | setLocaleAhead"] = (1, Verdict.WordStatus),
@@ -294,16 +287,15 @@ public sealed class EditionReadDriftTests
         Assert.Contains("NextToken", model.LexerReads.Keys);
     }
 
-    /// <summary>Every recorded site carries a verdict, and the construct gates are exactly the ones PB2291 found —
-    /// a new one is a D7 defect to fix, never a row to add (CLAUDE.md rule 4).</summary>
+    /// <summary>Every recorded site carries a verdict, and the construct gates are exactly the ones PB2291 found that
+    /// are still open (kb/Work PB5007 moved the validation clauses' two) — a new one is a D7 defect to fix, never a row
+    /// to add (CLAUDE.md rule 4).</summary>
     [Fact]
     public void ConstructGates_AreOnlyTheOnesPb2291Found()
     {
         string[] gates = [.. RecordedSites.Where(kv => kv.Value.Verdict == Verdict.ConstructGate).Select(kv => kv.Key)];
         Assert.Equal(
         [
-            "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | dataDescriptionClause | is2002",
-            "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4 | valueClause | is2002",
             "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4 | ioControlClause | is2023",
         ], gates);
     }

@@ -2473,6 +2473,29 @@ internal sealed class VersionConformancePass
         public override object? VisitValidateFacilityStatement(CobolParserCore.ValidateFacilityStatementContext ctx)
         { _p.Check(Constructs.ValidateStatement2002, "the VALIDATE statement"); return base.VisitChildren(ctx); }
 
+        /// <summary>A clause of the §2023:13.16.2 validation-clauses group — the VALIDATE facility's data description
+        /// syntax, a COBOL-2002 introduction, gated on RECOGNITION (kb/Work PB5007). The arm is the union grammar, so at
+        /// --std 85 <c>05 A PIC X(4) DEFAULT IS "AB".</c> reaches here and names the edition where the {is2002()}?
+        /// construct gate made it a generic COBOL5506 or COBOL1941. From 2002 <c>DeclinedFacilityPass</c> refuses the
+        /// clause by name (COBOL1708, Annex A.4.14). Ungated by entry kind, as the decline is: the clause is refused
+        /// wherever it is written. Nothing below it is diagnosed (one diagnostic per clause, the decline's posture).
+        /// A COBOL-85 name spelled DEFAULT, PRESENT, VALIDATE-STATUS or VAL-STATUS never reaches here: the
+        /// reservation gate retypes a declared free word to a user-defined word.</summary>
+        public override object? VisitValidationClause(CobolParserCore.ValidationClauseContext ctx)
+        {
+            _p.Check(Constructs.ValidationClauses2002, $"the {DeclinedFacilityPass.ClauseName(ctx)} clause");
+            return null;
+        }
+
+        /// <summary>The §2023:13.18.63 format-5 content-validation tail of a level-88 VALUE clause — the same COBOL-2002
+        /// facility and the same recognition gate as <see cref="VisitValidationClause"/> (kb/Work PB5007).</summary>
+        public override object? VisitValidateValidPhrase(CobolParserCore.ValidateValidPhraseContext ctx)
+        {
+            _p.Check(Constructs.ValidationClauses2002,
+                $"the VALUE clause's '{(ctx.VALID() is not null ? "VALID" : "INVALID")}' phrase");
+            return null;
+        }
+
         /// <summary>The INLINE METHOD INVOCATION (ISO §2023:8.4.3.4 — the §2023:8.4.3.1.2 Format 4 identifier), gated
         /// with the rest of the object-orientation facility at 2002 (kb/Work PB428).
         /// <para>⛔ IT IS GATED ON RECOGNITION AND IT NOW CAN BE, which is the whole reason the row changed.

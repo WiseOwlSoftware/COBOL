@@ -3755,10 +3755,9 @@ public static class DiagnosticCatalog
         + "VALIDATE facility is an OPTIONAL element (Annex A.4.14) whose support WiseOwl COBOL does not claim "
         + "(docs/CONFORMANCE.md §4 item 3, §5), and at COBOL-2023 it is additionally OBSOLETE (§2023:4.2.13; Annex "
         + "F.2 item 5); Annex A.4.1 admits the syntax only when support IS claimed, so the clause is refused by "
-        + "name. Every clause of the group exists from COBOL-2002. CLASS is the one whose leading word is "
-        + "reserved BELOW that edition too (§2023:12.3.7's SPECIAL-NAMES CLASS clause, continuous since 1985), so "
-        + "at --std 85 `CLASS IS NUMERIC` in a data description entry is an ordinary syntax error rather than "
-        + "this decline; for the others the word is a user-defined word there (§2023:8.9). Annex A.4 does not list "
+        + "name. Every clause of the group exists from COBOL-2002; below that edition it is not declined but refused "
+        + "by its edition (COBOL0900, kb/Work PB5007), and a COBOL-85 name spelled DEFAULT, PRESENT, VALID, "
+        + "VALIDATE-STATUS or VAL-STATUS stays a user-defined word there (§2023:8.9). Annex A.4 does not list "
         + "CLASS among A.4.14's items — it reaches the module through §2023:13.16.2's validation-clauses group, "
         + "which opens with `[ class-clause ]` (owner decision, kb/Work PB375, 2026-09-02).",
         "ISO §2023:4.2.7 / Annex A.4.1 / Annex A.4.14 / §2023:13.16.2 / §2023:4.2.13", DeclinedOptionalElement,

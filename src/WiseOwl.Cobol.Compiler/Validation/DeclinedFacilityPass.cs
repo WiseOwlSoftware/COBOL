@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding;              // EditionContext
 using WiseOwl.Cobol.Binding.Passes;       // GroupBindContext
+using WiseOwl.Cobol.Editions;             // ConstructRegistry, Constructs — the facility's introducing edition
 using WiseOwl.Cobol.Editions.Diagnostics; // DiagnosticCatalog
 using WiseOwl.Cobol.Frontend.Generated;   // CobolParserCore
 using WiseOwl.Cobol.Runtime;
@@ -56,12 +57,12 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
 
     public static void Run(GroupBindContext group, EditionContext edition)
     {
-        // Below COBOL-2002 no declined-facility node can exist: every entry into CobolDeclined.g4 is behind an
-        // {is2002()}? left-edge predicate (kb/Work PB2291 records them, and finds them construct gates
-        // rather than §2023:8.9 word status for CLASS, DESTINATION, INVALID and VARYING). Skipping the walk
-        // there is not an optimization that could hide a diagnostic — it is the same fact the predicates state, and
-        // it keeps a pure COBOL-85 compile byte-for-byte free of this pass.
-        if (edition.DialectLevel < 2002) return;
+        // Below COBOL-2002 the facility does not exist, so there is nothing to decline. Its syntax still parses there
+        // (the union grammar, kb/Work PB5007) and VersionConformancePass's parse arms (VisitValidationClause,
+        // VisitValidateValidPhrase) refuse it with COBOL0900 naming COBOL-2002; telling a COBOL-85 program that this
+        // implementation declines an optional element of an edition it does not target would be a second, wrong
+        // answer to the same clause. The edge is the registry row's, so the gate and this skip cannot disagree.
+        if (!ConstructRegistry.IsAvailable(edition.Edition, Constructs.ValidationClauses2002)) return;
         var pass = new DeclinedFacilityPass(edition);
         foreach (var text in group.Texts) pass.VisitPositioned(text);   // an expansion's text read from the repository too (kb/Work PB4483)
     }
@@ -160,7 +161,7 @@ internal sealed class DeclinedFacilityPass(EditionContext edition) : CursorFollo
     /// renames the clause after whatever the user wrote. <c>validateClassOperand</c> exists for that reason and
     /// <c>DeclinedFacilityTests.ClassClause_IsNamedByItsClauseWord_NotByItsOperand</c> makes the contract
     /// fail loudly rather than silently.</para></summary>
-    private static string ClauseName(CobolParserCore.ValidationClauseContext ctx)
+    internal static string ClauseName(CobolParserCore.ValidationClauseContext ctx)
     {
         var words = new List<string>();
         // The single child is the matched alternative's own context; its leading terminals are the keywords.
