@@ -7,10 +7,12 @@
   "to": [
    "SR-14.9.39.3-1",
    "SR-14.9.39.3-2",
-   "SR-14.9.39.3-3"
+   "SR-14.9.39.3-3",
+   "SR-14.9.39.3-4",
+   "GR-14.9.39.4-2"
   ],
   "bridge": true,
-  "reason": "1985: \"Identifier-1 and identifier-2 must each reference an index data item or an elementary item described as an integer.\"; 2023: \"Identifier-2 shall reference a data item of class index. / If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be\". Identifier-1 is unchanged. The integer sending operand is now arithmetic-expression-1, and no candidate rule requires it to be an integer, so non-integer operands are no longer refused.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: \"an elementary item described as an integer\"; 2023: \"If the value of arithmetic-expression-1 does not result in an integer\" (§2023:14.9.39.4 GR2). An integer sender is now an arithmetic expression whose non-integer value is a run-time EC-BOUND-SUBSCRIPT, not a compile-time refusal; identifier-2 is an index item, and a numeric identifier-1 still needs index-name-2 (§2023:14.9.39.3 SR4).",
+  "source": "adjudication kb/Work PB5008"
  }
 }

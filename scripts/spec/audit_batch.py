@@ -2,8 +2,8 @@
 """audit_batch.py - THE Message Batches arm of the edition audit (kb/Work PB4886; DESIGN-spec-conformance-review.md §10).
 
 The 1985 audit is the 2023 audit run with an edition parameter. Its independent JUDGMENTS go to a model through the Message
-Batches API in seven passes. The first five are DETECTIONS; the last two DECIDE each rule's change record against the next
-held edition (kb/Work PB4995), and the fleet decides only what they leave open:
+Batches API in eight passes. The first five are DETECTIONS; the last three DECIDE each rule's change record against the next
+held edition (kb/Work PB4995, PB5008), and the fleet decides only what they leave open:
 
   route   one request per 1985 clause (the paragraph that holds its rule blocks): its subject, module and first rules, and
           the list of every 2023 clause; the answer is ROUTED, with the 2023 clauses that state the same feature (a 1985
@@ -21,9 +21,16 @@ held edition (kb/Work PB4995), and the fleet decides only what they leave open:
   adjudicate  one request per DISPUTED or OWN-ROW rule: its candidates and both readers' answers; the answer is the rule's
           change record, KEPT (with the 2023 rules it carries into), CHANGED (with the rules and the words that differ) or
           REMOVED (the 2023 text drops it), or OPEN when the texts do not decide it;
-  refute  the adjudication's independent refuter: one request per KEPT, CHANGED or REMOVED answer (UPHELD, REFUTED, UNSURE).
-          An upheld answer is the rule's change record (`dispositions`' `change`, which `change-batch` writes);
-          a refuted, unsure or OPEN one is CONTESTED and goes to a fleet adjudicator, never to a vote.
+  refute  the independent refuter of a decision that names no rule of the next edition (REMOVED): one request each, which
+          states the strongest reading on which the requirement survives first (UPHELD, REFUTED, UNSURE);
+  recheck the independent check of a decision that names the next edition's rules (KEPT, CHANGED), framed to DISPROVE it
+          (kb/Work PB5008): one request per decision, at the highest effort, with the whole 1985 clause and the 1985 rules
+          most like it (another rule may already allow what the decision calls new), and every rule of every 2023 clause
+          that holds the feature or a decided rule (the record may omit the rule that states the requirement); the answer
+          is the change record the rechecker finds, and it upholds the decision only when it is the same record.
+          A decision its checker (`checker`) upholds, and no other check disputes, is the rule's change record
+          (`dispositions`' `change`, which `change-batch` writes); an OPEN or disputed one is CONTESTED and goes to a fleet
+          adjudicator, never to a vote.
 
     python scripts/spec/audit_batch.py plan    --pass route  --state DIR [--catalog F] [--catalog-2023 F]
     python scripts/spec/audit_batch.py plan    --pass map    --state DIR [--catalog F] [--catalog-2023 F] [--candidates 15]
@@ -33,6 +40,8 @@ held edition (kb/Work PB4995), and the fleet decides only what they leave open:
     python scripts/spec/audit_batch.py plan    --pass drafts --state DIR          # once every verify item is answered
     python scripts/spec/audit_batch.py plan    --pass adjudicate --state DIR      # once every verify item is answered
     python scripts/spec/audit_batch.py plan    --pass refute --state DIR          # once every adjudicate item is answered
+    python scripts/spec/audit_batch.py plan    --pass recheck --state DIR [--catalog F] [--catalog-2023 F] [--near-1985 10]
+                                                                                   # once every adjudicate item is answered
     python scripts/spec/audit_batch.py submit  --pass P --state DIR --api-key-file KEY [--api-account A] --max-usd N --canary 20
     python scripts/spec/audit_batch.py submit  --pass P --state DIR --api-key-file KEY --max-usd N      # the rest
     python scripts/spec/audit_batch.py status  --pass P --state DIR [--api-key-file KEY]
@@ -41,7 +50,8 @@ held edition (kb/Work PB4995), and the fleet decides only what they leave open:
     python scripts/spec/audit_batch.py results --state DIR                        # DIR/results.json: each rule's disposition
     python scripts/spec/audit_batch.py change-batch --state DIR --out FILE        # every DECIDED change record (KEPT,
                                                                                    # CHANGED, REMOVED; record_verdicts.py
-                                                                                   # --edition 1985)
+                                                                                   # --edition 1985) no adjudication
+                                                                                   # outranks
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
 RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written by `plan`: custom id -> the item, every input its prompt
@@ -85,6 +95,7 @@ import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes)
 from extract_rule_catalog import OUT, OUT_1985  # noqa: E402  (the 2023 and the 1985 catalogs)
 from inventory_schema import ChangeRecord, edition, load_schema  # noqa: E402  (the 1985 edition and its change record)
+from inventory_store import inventory_dir, read_store  # noqa: E402  (the 1985 store, whose adjudications outrank the run)
 from message_batches import (CACHE_MIN_SHARERS, DEFAULT_MODEL, BatchRun, cached_system, cached_text,  # noqa: E402
                              make_client, reply_text, usd, write_atomic)  # noqa: E402  (THE batch state)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/
@@ -92,7 +103,6 @@ from api_key import ACCOUNT_HELP  # noqa: E402
 from standard_streams import ensure_utf8  # noqa: E402
 
 TOOL = "audit_batch"
-MAX_OUTPUT_TOKENS = 8000
 #: A 1985 region quoted to a claims request is cut at this many characters (a claim names a paragraph, not a section).
 REGION_CHARS = 12000
 #: Characters per input token, for the estimate before a canary has measured one.
@@ -197,22 +207,48 @@ The JSON object: {"verdict": "KEPT|CHANGED|REMOVED|OPEN", "rules_2023": ["candid
 words", "2023": "the 2023 words, or what removed it"}, "reason": "at most 200 characters"}. "rules_2023" names only candidate
 ids, is non-empty for KEPT and CHANGED and empty for REMOVED and OPEN; "differs" is empty for KEPT and OPEN.""",
     "refute": COMMON + """
-An adjudicator decided how ISO/IEC 1989:2023 carries the ANSI X3.23-1985 rule below: KEPT (the 2023 rules state the same
-requirement), CHANGED (the 2023 rules cover the subject with a different requirement, in the words quoted) or REMOVED (2023
-drops it). Try to REFUTE that decision from the texts: for KEPT, a case, phrase, exception, default or result one text has
-and the other lacks; for CHANGED, that the quoted difference is none in substance, or that another rule shown states the
-1985 requirement; for REMOVED, a 2023 rule shown that still states the requirement.
-- UPHELD: you found nothing that refutes it;
-- REFUTED: you did (quote it);
+An adjudicator decided that ISO/IEC 1989:2023 drops the ANSI X3.23-1985 rule below (REMOVED): no 2023 rule states its
+requirement. Try to REFUTE that decision from the texts. FIRST write the strongest reading on which the requirement
+survives in 2023: the candidate below that comes closest to stating it, in other words, under another name or in another
+clause. THEN judge whether that reading holds.
+- UPHELD: even the strongest reading fails: no candidate states the requirement;
+- REFUTED: a candidate states it (quote it);
 - UNSURE: the texts do not let you decide.
-The JSON object: {"verdict": "UPHELD|REFUTED|UNSURE", "reason": "at most 200 characters", "differs": {"1985": "...",
-"2023": "..."}}; "differs" is empty unless REFUTED.""",
+The JSON object: {"counter_reading": "the strongest reading, at most 200 characters", "verdict": "UPHELD|REFUTED|UNSURE",
+"reason": "at most 200 characters", "differs": {"1985": "...", "2023": "..."}}; "differs" is empty unless REFUTED.""",
+    "recheck": COMMON + """
+An adjudicator decided how ISO/IEC 1989:2023 carries the ANSI X3.23-1985 rule below. An audit of such decisions found one
+in four wrong, in three ways, so try to DISPROVE this one. Work through all three, quoting both texts:
+(a) Search the other 1985 rules below for one that bears on the same element: a 1985 rule elsewhere may already allow or
+    require what the decision calls a change, so that there is none.
+(b) Find EVERY 2023 rule below that states any part of the 1985 requirement: a general rule of the clause, a definition
+    restated in another clause, a general rule over a whole class of statements, not only the rules the decision names.
+    Name a rule that states part of the requirement; never one that only shares its subject.
+(c) Say whether a program the 1985 rule makes the compiler refuse is, in 2023, accepted and given a run-time exception
+    condition instead (or the reverse): that is a change.
+Then give the change record the texts support, whether or not it is the adjudicator's:
+- KEPT: the 2023 rules state the same requirement in substance: the same programs are accepted or refused, with the same
+  effect. Wording, numbering and terms for the same thing are no difference, and neither is the 1985 level-2 box.
+- CHANGED: they cover the same subject with a different requirement (a case added or removed, a result changed, made
+  undefined or implementor-defined, a refusal made an exception condition); quote the words that differ.
+- REMOVED: the 2023 standard drops the feature or the requirement, and no rule below states it.
+- OPEN: the texts below do not let you decide.
+The JSON object: {"verdict": "KEPT|CHANGED|REMOVED|OPEN", "rules_2023": ["the id of every 2023 rule below that states any
+part of the requirement"], "rules_1985": ["the id of every other 1985 rule below that bears on the same element"],
+"exception": {"1985": "the words that make it a refusal", "2023": "the words that make it an exception condition"},
+"differs": {"1985": "the 1985 words", "2023": "the 2023 words, or what removed it"}, "reason": "at most 300 characters"}.
+"rules_2023" names only ids shown below, is non-empty for KEPT and CHANGED and empty for REMOVED and OPEN; "rules_1985"
+names only 1985 ids shown below, and is empty when no other rule bears on it; "exception" is empty unless (c) found one;
+"differs" is empty for KEPT and OPEN.""",
 }
 #: The output tokens of one reply, for the estimate before a canary has measured them (thinking included).
 EST_OUTPUT_TOKENS = {"route": 1200, "map": 1500, "verify": 1500, "claims": 1200, "drafts": 2500, "adjudicate": 2500,
-                     "refute": 2000}
+                     "refute": 2000, "recheck": 8000}
 EFFORT = {"route": "high", "map": "medium", "verify": "high", "claims": "medium", "drafts": "medium", "adjudicate": "high",
-          "refute": "high"}
+          "refute": "high", "recheck": "max"}
+#: The most output tokens one reply may spend, thinking included: the recheck thinks at the highest effort over whole
+#: clauses, and a reply cut off at the limit is no answer.
+MAX_OUTPUT_TOKENS = {**dict.fromkeys(EFFORT, 8000), "recheck": 32000}
 ROUTED = "ROUTED"
 #: The most 2023 clauses one route answer may name: a 1985 clause spread over more than this is no single feature.
 MAX_ROUTES = 8
@@ -220,11 +256,34 @@ VERDICTS = {"route": {ROUTED, NONE}, "map": {SAME, DIFFERS, NONE}, "verify": {"U
             "claims": {"CONFIRMED", "REFUTED", "NOT-ADDRESSED"}, "refute": {"UPHELD", "REFUTED", "UNSURE"}}
 
 
+#: The passes whose answer is a change record: the change record's kinds, and UNDECIDED.
+RECORDING = ("adjudicate", "recheck")
+
+
 def verdicts(pass_name: str) -> set[str]:
-    """The verdicts a pass's answer may give: the adjudicate pass's are the change record's kinds, and UNDECIDED."""
-    return {*change_kinds().kinds, UNDECIDED} if pass_name == "adjudicate" else VERDICTS[pass_name]
+    """The verdicts a pass's answer may give: a recording pass's are the change record's kinds, and UNDECIDED."""
+    return {*change_kinds().kinds, UNDECIDED} if pass_name in RECORDING else VERDICTS[pass_name]
 #: The passes whose one item is a map item's rule with its candidates: their requests share the map's cached clause block.
 WITH_CANDIDATES = ("map", "adjudicate", "refute")
+#: The passes that check an adjudication: each decided kind has ONE checker (`checker`), and any check that answered
+#: and disputes the decision makes it contested.
+CHECKS = ("refute", "recheck")
+
+
+def checker(kind: Any) -> str:
+    """The pass that checks a decided adjudication of `kind` (a `ChangeRecord` kind): the recheck when it names rules of
+    the next edition (KEPT, CHANGED: kb/Work PB5008 found the refuter upheld every one of the 8 wrong ones it sampled),
+    the refuter when it names none (REMOVED). Read from the kind's own `to` flag, the schema's: no kind is spelled."""
+    return "recheck" if kind.to else "refute"
+
+
+def upholds(pass_name: str, decided: dict[str, Any], answer: dict[str, Any]) -> bool:
+    """Does check `pass_name`'s answer uphold the adjudication `decided`? The refuter's when it found nothing; the recheck's
+    when the record it found is the same record: the same kind into the same 2023 rules (a rule it adds is one the
+    decision omits, kb/Work PB5008's commonest error)."""
+    if pass_name == "refute":
+        return answer["verdict"] == "UPHELD"
+    return answer["verdict"] == decided["verdict"] and set(answer["rules_2023"]) == set(decided["rules_2023"])
 
 WORD = re.compile(r"[a-z][a-z0-9-]{2,}")
 #: Words too common in both standards to say which rule is which.
@@ -357,47 +416,72 @@ class Candidates(NamedTuple):
         return self.clause + self.worded
 
 
+def bag_of(rule: dict[str, Any]) -> set[str]:
+    """A rule's words, its subject's marked apart (they weigh twice in `Wording`)."""
+    return words(rule.get("text", "")) | {f"s:{w}" for w in words(rule.get("subject", ""))}
+
+
+class Wording:
+    """The rules of one catalog ranked by how like another rule they are in wording: the inverse-document-frequency weight
+    of the words they share (the subject's words count twice), normalized by the length of the rule, a rule of the same
+    kind preferred. The map pass ranks the 2023 rules by it (`candidates`), the recheck the 1985 rules (`plan_recheck`)."""
+
+    def __init__(self, rules: list[dict[str, Any]]):
+        self.rules = rules
+        self.bags = [bag_of(r) for r in rules]
+        self.index: dict[str, list[int]] = collections.defaultdict(list)
+        for i, bag in enumerate(self.bags):
+            for w in bag:
+                self.index[w].append(i)
+        self.idf = {w: math.log(len(rules) / len(post)) for w, post in self.index.items()}
+
+    def nearest(self, rule: dict[str, Any], k: int, skip: set[str]) -> list[str]:
+        """The ids of the k rules most like `rule`, the most alike first, none of `skip`."""
+        score: dict[int, float] = collections.defaultdict(float)
+        for w in bag_of(rule):
+            for i in self.index.get(w, ()):
+                score[i] += self.idf[w] * (2.0 if w.startswith("s:") else 1.0)
+        for i in score:
+            score[i] /= math.sqrt(len(self.bags[i]) + 1)
+            if self.rules[i]["kind"] == rule["kind"]:
+                score[i] *= 1.5
+        ranked = sorted(score, key=lambda j: (-score[j], self.rules[j]["id"]))
+        return [self.rules[i]["id"] for i in ranked if self.rules[i]["id"] not in skip][:k]
+
+
+def subject_clauses(rules_2023: list[dict[str, Any]]) -> dict[str, list[str]]:
+    """Each heading (`subject_key`) -> the 2023 clauses that carry it, in catalog order."""
+    out: dict[str, list[str]] = collections.defaultdict(list)
+    for r in rules_2023:
+        c = clause_of(r["section"])
+        if c not in out[subject_key(r.get("subject"))]:
+            out[subject_key(r.get("subject"))].append(c)
+    return out
+
+
+def feature_clauses(rule: dict[str, Any], routed: dict[str, list[str]], by_subject: dict[str, list[str]]) -> list[str]:
+    """The 2023 clauses that hold a 1985 rule's feature: those its clause was routed to (closest first), then those that
+    share its heading."""
+    return list(dict.fromkeys(routed.get(clause_key_1985(rule), []) + by_subject.get(subject_key(rule.get("subject")), [])))
+
+
 def candidates(rules_1985: list[dict[str, Any]], rules_2023: list[dict[str, Any]], k: int,
                routed: dict[str, list[str]]) -> dict[str, Candidates]:
     """The 2023 rules that may state each 1985 rule, ids in order (kb/Work PB4971), from the strongest signal down:
     1. every 2023 rule of the SAME KIND in the clauses the rule's clause was routed to (`routed`, the route pass, closest
-       clause first) or shares a heading with (`subject_key`), in catalog order;
-    2. then the k rules most like it by wording that step 1 did not name: the inverse-document-frequency weight of the words
-       they share (the subject's words count twice), a rule of the same kind preferred.
+       clause first) or shares a heading with (`subject_key`), in catalog order (`feature_clauses`);
+    2. then the k rules most like it by wording that step 1 did not name (`Wording`).
     Step 1 finds the counterpart that wording misses (another clause's name, a module's copy); step 2 finds a rule 2023
     moved to a clause of another subject, and a counterpart of another kind."""
     by_clause_kind: dict[tuple[str, str], list[str]] = collections.defaultdict(list)
-    clause_by_subject: dict[str, list[str]] = collections.defaultdict(list)
     for r in rules_2023:
-        c = clause_of(r["section"])
-        by_clause_kind[(c, r["kind"])].append(r["id"])
-        if c not in clause_by_subject[subject_key(r.get("subject"))]:
-            clause_by_subject[subject_key(r.get("subject"))].append(c)
-    index: dict[str, list[int]] = collections.defaultdict(list)
-    bags = []
-    for i, r in enumerate(rules_2023):
-        bag = words(r.get("text", "")) | {f"s:{w}" for w in words(r.get("subject", ""))}
-        bags.append(bag)
-        for w in bag:
-            index[w].append(i)
-    idf = {w: math.log(len(rules_2023) / len(post)) for w, post in index.items()}
+        by_clause_kind[(clause_of(r["section"]), r["kind"])].append(r["id"])
+    by_subject, wording = subject_clauses(rules_2023), Wording(rules_2023)
     out: dict[str, Candidates] = {}
     for r in rules_1985:
-        mine = words(r.get("text", "")) | {f"s:{w}" for w in words(r.get("subject", ""))}
-        score: dict[int, float] = collections.defaultdict(float)
-        for w in mine:
-            for i in index.get(w, ()):
-                score[i] += idf[w] * (2.0 if w.startswith("s:") else 1.0)
-        for i in score:
-            score[i] /= math.sqrt(len(bags[i]) + 1)
-            if rules_2023[i]["kind"] == r["kind"]:
-                score[i] *= 1.5
-        clauses = list(dict.fromkeys(routed.get(clause_key_1985(r), []) + clause_by_subject.get(subject_key(r.get("subject")), [])))
+        clauses = feature_clauses(r, routed, by_subject)
         first = list(dict.fromkeys(i for c in clauses for i in by_clause_kind.get((c, r["kind"]), [])))
-        named = set(first)
-        worded = [rules_2023[i]["id"] for i in sorted(score, key=lambda j: (-score[j], rules_2023[j]["id"]))
-                  if rules_2023[i]["id"] not in named][:k]
-        out[r["id"]] = Candidates(first, worded)
+        out[r["id"]] = Candidates(first, wording.nearest(r, k, set(first)))
     return out
 
 
@@ -428,13 +512,20 @@ def plan_map(catalog: pathlib.Path, catalog_2023: pathlib.Path, k: int, state: p
         raise SystemExit(f"{TOOL}: the route answers name 2023 clause(s) this 2023 catalog lacks (e.g. {stale[0]}): the "
                          "route pass was planned from another 2023 catalog")
     near = candidates(rules, rules_2023, k, routed)
-
-    def quoted(ids: list[str]) -> list[dict[str, Any]]:
-        return [{"id": c, "section": by_id[c].get("section"), "subject": by_id[c].get("subject", ""),
-                 "kind": by_id[c]["kind"], "text": by_id[c].get("text", "")} for c in ids]
-    return [{"id": r["id"], "rule": {f: r.get(f) for f in ("citation", "module", "level", "box", "subject", "kind", "text")},
-             "clause_candidates": quoted(near[r["id"]].clause), "word_candidates": quoted(near[r["id"]].worded)}
+    return [{"id": r["id"], "rule": quoted_rule(r), "clause_candidates": quoted_2023(by_id, near[r["id"]].clause),
+             "word_candidates": quoted_2023(by_id, near[r["id"]].worded)}
             for r in rules]
+
+
+def quoted_rule(rule: dict[str, Any]) -> dict[str, Any]:
+    """A 1985 rule as a request quotes it (`rule_block`)."""
+    return {f: rule.get(f) for f in ("citation", "module", "level", "box", "subject", "kind", "text")}
+
+
+def quoted_2023(by_id: dict[str, dict[str, Any]], ids: Iterable[str]) -> list[dict[str, Any]]:
+    """2023 rules as a request quotes them (`candidate_block`)."""
+    return [{"id": c, "section": by_id[c].get("section"), "subject": by_id[c].get("subject", ""),
+             "kind": by_id[c]["kind"], "text": by_id[c].get("text", "")} for c in ids]
 
 
 def map_candidates(item: dict[str, Any]) -> list[dict[str, Any]]:
@@ -495,11 +586,14 @@ def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
     yet) or OPEN (no map answer yet).
 
     A rule's `change` is its DECIDED change record against 2023 (kb/Work PB4995): KEPT for CARRIES, and for a DISPUTED or
-    OWN-ROW rule the adjudicate pass's answer once its refuter UPHELD it. A DISPUTED or OWN-ROW rule whose adjudication is
-    OPEN, or was refuted or left unsure, is `contested` (a fleet adjudicator decides it); one not yet adjudicated has
-    neither."""
+    OWN-ROW rule the adjudicate pass's answer once the check its kind takes (`checker`: the recheck for KEPT and CHANGED,
+    the refuter for REMOVED, kb/Work PB5008) UPHELD it and no other check that answered disputes it. A DISPUTED or OWN-ROW
+    rule whose adjudication is OPEN, or that a check disputes, is `contested` (a fleet adjudicator decides it); one whose
+    check has not answered yet has neither. Each check's verdict is the row's under the check's name."""
     m = Pass(state, "map")
-    verify, adjudicate, refute = (answers_by_id(state, n) for n in ("verify", "adjudicate", "refute"))
+    verify, adjudicate = answers_by_id(state, "verify"), answers_by_id(state, "adjudicate")
+    checks = {n: answers_by_id(state, n) for n in CHECKS}
+    kinds = change_kinds().kinds
     answers = m.answers()
     out = {}
     for cid, it in m.items().items():
@@ -517,25 +611,34 @@ def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
         if row["disposition"] == CARRIES:
             row["change"] = {"kind": change_kinds().chained.name, "to": row["rules_2023"]}   # the same requirement: no reason
         elif (adj := adjudicate.get(it["id"])) is not None:
-            row["adjudicate"], row["refute"] = adj["verdict"], (refute.get(it["id"]) or {}).get("verdict")
-            if row["refute"] == "UPHELD":
-                row["change"] = change_of(adj)
-            elif adj["verdict"] == UNDECIDED or row["refute"] is not None:
+            row["adjudicate"] = adj["verdict"]
+            said = {n: got for n, by_id in checks.items() if (got := by_id.get(it["id"])) is not None}
+            row.update({n: a["verdict"] for n, a in said.items()})
+            upheld = {n: upholds(n, adj, a) for n, a in said.items()}
+            kind = kinds.get(adj["verdict"])
+            if kind is None or not all(upheld.values()):      # OPEN, or a check disputes it
                 row["contested"] = True
+            elif upheld.get(checker(kind)):
+                row["change"] = change_of(adj)
         out[it["id"]] = row
     return out
 
 
-def change_records(disp: dict[str, dict[str, Any]], source: str) -> list[dict[str, Any]]:
+def change_records(disp: dict[str, dict[str, Any]], source: str,
+                   held: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
     """Every DECIDED change record of the run (each rule's `change`: the chained kind, KEPT, for a CARRIES rule, and the
-    adjudicate pass's KEPT, CHANGED or REMOVED once its refuter upheld it) as record_verdicts records of the 1985 edition's
-    change record (the schema's `next`): into the 2023 rules it names, its reason only when it states one (one stored form,
+    adjudicate pass's decision once its check upheld it) as record_verdicts records of the 1985 edition's change record
+    (the schema's `next`): into the 2023 rules it names, its reason only when it states one (one stored form,
     lineage.next_errors), the run as its source (kb/Work PB4993, PB4995; DESIGN-spec-conformance-review.md section 10.2).
-    A contested or unadjudicated rule is the fleet's, and not in it."""
+    A contested or unadjudicated rule is the fleet's, and not in it; nor is a rule whose record in the store (`held`, by
+    rule id) another source decided: a fleet adjudication outranks the audit's detection, so re-running the batch never
+    reverts one (kb/Work PB5008)."""
     ed = edition(1985)
+    held = held or {}
     return [{"rule-id": rid, "next": {"kind": c["kind"], "edition": ed.next_held, "to": c["to"], "bridge": ed.bridged,
                                       **({"reason": c["reason"]} if c.get("reason") else {}), "source": source}}
-            for rid, d in sorted(disp.items()) if (c := d.get("change"))]
+            for rid, d in sorted(disp.items())
+            if (c := d.get("change")) and (held.get(rid, {}).get("next") or {}).get("source", source) == source]
 
 
 def final_dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
@@ -547,15 +650,19 @@ def final_dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
 
 
 def plan_drafts(state: pathlib.Path) -> list[dict[str, Any]]:
-    """Each rule that may hold a verdict of its own at its edition: an OWN-ROW rule, and a rule the adjudication decided
-    CHANGED or REMOVED (a DISPUTED SAME can be either; kb/Work PB4995). Planned again after the adjudication, the plan
-    grows by those (`write_plan`)."""
+    """Each rule that may hold a verdict of its own at its edition: an OWN-ROW rule, and a rule any recording pass's
+    answer (the adjudication's, the recheck's) reads as anything but the chained kind: CHANGED, REMOVED, or OPEN, which
+    the fleet decides (a DISPUTED SAME can be any; kb/Work PB4995). Read from the ANSWERS, never from the upheld
+    `change`: answers are only ever added, so the set only grows, and the plan planned again after the adjudication, the
+    recheck or a later check grows by the new ones (`write_plan`) and never loses a planned draft because a check now
+    withholds or disputes its decision (review w20261935a R1-1)."""
     disp = final_dispositions(state)
     items = Pass(state, "map").items()
-    kinds = change_kinds().kinds
+    chained = change_kinds().chained.name
+    read = [answers_by_id(state, n) for n in RECORDING]
     return [{"id": it["id"], "rule": it["rule"]} for it in items.values()
             if disp[it["id"]]["disposition"] == OWN_ROW
-            or ((c := disp[it["id"]].get("change")) and not kinds[c["kind"]].chained)]
+            or any((got := by_id.get(it["id"])) is not None and got["verdict"] != chained for by_id in read)]
 
 
 def plan_adjudicate(state: pathlib.Path) -> list[dict[str, Any]]:
@@ -568,16 +675,72 @@ def plan_adjudicate(state: pathlib.Path) -> list[dict[str, Any]]:
             for it in m.items().values() if disp[it["id"]]["disposition"] in ADJUDICATED]
 
 
-def plan_refute(state: pathlib.Path) -> list[dict[str, Any]]:
-    """Each adjudication that decided (KEPT, CHANGED or REMOVED), with the rule and every candidate the adjudicator saw:
-    a refuter of a REMOVED or a CHANGED looks for the candidate that still states the requirement."""
+def checked(state: pathlib.Path, pass_name: str) -> list[tuple[dict[str, Any], dict[str, Any]]]:
+    """Each adjudicate item with its decision, for the decisions check `pass_name` takes (`checker`); refused while an
+    adjudicate item is unanswered."""
     adj = Pass(state, "adjudicate")
     items, answers = adj.items(), adj.answers()
     if missing := [cid for cid in items if cid not in answers]:
         raise SystemExit(f"{TOOL}: {len(missing)} adjudicate item(s) are unanswered; collect and retry that pass first")
+    kinds = change_kinds().kinds
+    return [(it, answers[cid]["answer"]) for cid, it in items.items()
+            if (kind := kinds.get(answers[cid]["answer"]["verdict"])) is not None and checker(kind) == pass_name]
+
+
+def plan_refute(state: pathlib.Path) -> list[dict[str, Any]]:
+    """Each decision that names no 2023 rule (REMOVED), with the rule and every candidate the adjudicator saw: the refuter
+    looks for the candidate that still states the requirement."""
     return [{"id": it["id"], "rule": it["rule"], "clause_candidates": it["clause_candidates"],
-             "word_candidates": it["word_candidates"], "adjudication": answers[cid]["answer"]}
-            for cid, it in items.items() if answers[cid]["answer"]["verdict"] != UNDECIDED]
+             "word_candidates": it["word_candidates"], "adjudication": decided}
+            for it, decided in checked(state, "refute")]
+
+
+def plan_recheck(catalog: pathlib.Path, catalog_2023: pathlib.Path, near_1985: int,
+                 state: pathlib.Path) -> list[dict[str, Any]]:
+    """Each decision that names 2023 rules (KEPT, CHANGED) with the texts its three questions need (kb/Work PB5008):
+    - its 1985 CLAUSE, every rule of it, and the `near_1985` other 1985 rules most like it by wording (`Wording`): another
+      1985 rule may already allow what the decision calls new;
+    - every rule, of every kind, of each 2023 clause that holds its feature (`feature_clauses`) and of each clause a decided
+      rule lies in, then the map's candidates by wording not among them: the record may omit the rule that states the
+      requirement (a clause's general rules, a definition restated elsewhere, a general rule over a class of statements).
+    The 1985 clause and the 2023 feature clauses are the same for every rule of that 1985 clause: they are the request's
+    cached group (`prompt_parts`)."""
+    rules, rules_2023 = load_catalogs(catalog, catalog_2023)
+    routed, by_subject, wording = routes(state), subject_clauses(rules_2023), Wording(rules)
+    by_id_85, by_id_23 = {r["id"]: r for r in rules}, {r["id"]: r for r in rules_2023}
+    clause_85: dict[str, list[dict[str, Any]]] = collections.defaultdict(list)
+    for r in rules:
+        clause_85[clause_key_1985(r)].append(r)
+    clause_23: dict[str, list[str]] = collections.defaultdict(list)
+    for r in rules_2023:
+        clause_23[clause_of(r["section"])].append(r["id"])
+    out = []
+    for it, decided in checked(state, "recheck"):
+        r = by_id_85[it["id"]]
+        own_clause = clause_85[clause_key_1985(r)]
+        feature = feature_clauses(r, routed, by_subject)
+        decided_clauses = [c for c in dict.fromkeys(clause_of(by_id_23[t]["section"]) for t in decided["rules_2023"])
+                           if c not in feature]
+        shown = {i for c in feature + decided_clauses for i in clause_23[c]}
+        out.append({"id": it["id"], "rule": it["rule"],
+                    "clause_1985": [dict(quoted_rule(x), id=x["id"]) for x in own_clause],
+                    "near_1985": [dict(quoted_rule(by_id_85[i]), id=i)
+                                  for i in wording.nearest(r, near_1985, {x["id"] for x in own_clause})],
+                    "feature_2023": quoted_2023(by_id_23, (i for c in feature for i in clause_23[c])),
+                    "decided_2023": quoted_2023(by_id_23, (i for c in decided_clauses for i in clause_23[c])),
+                    "word_candidates": [c for c in it["word_candidates"] if c["id"] not in shown],
+                    "adjudication": decided})
+    return out
+
+
+def recheck_rules_2023(item: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every 2023 rule a recheck request shows."""
+    return item["feature_2023"] + item["decided_2023"] + item["word_candidates"]
+
+
+def recheck_rules_1985(item: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every 1985 rule a recheck request shows besides its own."""
+    return [x for x in item["clause_1985"] if x["id"] != item["id"]] + item["near_1985"]
 
 
 # -- the requests ---------------------------------------------------------------------------------------------------------
@@ -591,6 +754,10 @@ def rule_block(rule: dict[str, Any]) -> str:
 def candidate_block(cands: list[dict[str, Any]]) -> str:
     return "\n\n".join(f"[{c['id']}] (§2023:{c['section']}, {c['kind']}; subject: {c['subject'] or '-'}):\n{c['text']}"
                        for c in cands)
+
+
+def rules_1985_block(rules: list[dict[str, Any]]) -> str:
+    return "\n\n".join(f"[{r['id']}] ({r['citation']}; subject: {r.get('subject') or '-'}):\n{r['text']}" for r in rules)
 
 
 def prompt_parts(pass_name: str, item: dict[str, Any]) -> tuple[str, str, str]:
@@ -609,6 +776,15 @@ def prompt_parts(pass_name: str, item: dict[str, Any]) -> tuple[str, str, str]:
                            for name, said in item["readers"].items() if said)
         elif pass_name == "refute":
             own += f"\n\nTHE ADJUDICATOR'S DECISION:\n{json.dumps(item['adjudication'], ensure_ascii=False)}"
+    elif pass_name == "recheck":
+        group = (f"THE WHOLE 1985 CLAUSE:\n{rules_1985_block(item['clause_1985'])}\n\n"
+                 f"EVERY RULE OF THE 2023 CLAUSES THAT HOLD THE 1985 RULE'S FEATURE:\n"
+                 f"{candidate_block(item['feature_2023']) or '(none)'}")
+        own = (f"[{item['id']}] {rule_block(item['rule'])}\n\n"
+               f"THE OTHER 1985 RULES MOST LIKE IT BY WORDING:\n{rules_1985_block(item['near_1985']) or '(none)'}\n\n"
+               f"EVERY RULE OF THE OTHER 2023 CLAUSES THE DECISION NAMES:\n{candidate_block(item['decided_2023']) or '(none)'}"
+               f"\n\nTHE 2023 RULES MOST LIKE IT BY WORDING:\n{candidate_block(item['word_candidates']) or '(none)'}\n\n"
+               f"THE ADJUDICATOR'S DECISION:\n{json.dumps(item['adjudication'], ensure_ascii=False)}")
     elif pass_name == "verify":
         own = f"{rule_block(item['rule'])}\n\nTHE 2023 RULES JUDGED SAME:\n{candidate_block(item['candidates']) or '(none)'}"
     elif pass_name == "route":
@@ -646,7 +822,7 @@ def request(pass_name: str, cid: str, item: dict[str, Any], model: str, shapes: 
     shared, group, own = prompt_parts(pass_name, item)
     if any(p.search(part) for p in shapes for part in (shared, group, own)):
         raise SystemExit(f"{TOOL}: the {pass_name} request for {item['id']} carries a per-copy stamp shape; nothing submitted")
-    return {"custom_id": cid, "params": {"model": model, "max_tokens": MAX_OUTPUT_TOKENS,
+    return {"custom_id": cid, "params": {"model": model, "max_tokens": MAX_OUTPUT_TOKENS[pass_name],
                                          "output_config": {"effort": EFFORT[pass_name]},
                                          "system": cached_system(shared),
                                          "messages": [{"role": "user", "content": (
@@ -693,17 +869,26 @@ def parse_answer(pass_name: str, item: dict[str, Any], text: str) -> tuple[dict[
             return None, "clauses_2023 names a clause that is not in the list"
         if (obj["verdict"] == NONE) != (not ids) or len(ids) > MAX_ROUTES:
             return None, f"clauses_2023 must be empty exactly when the verdict is NONE, and name at most {MAX_ROUTES}"
-    if pass_name in ("map", "adjudicate"):
+    if pass_name in ("map", *RECORDING):
         ids = obj.get("rules_2023")
-        known = {c["id"] for c in map_candidates(item)}
+        known = {c["id"] for c in (recheck_rules_2023(item) if pass_name == "recheck" else map_candidates(item))}
         if not isinstance(ids, list) or not set(ids) <= known:
             return None, "rules_2023 names a rule that is no candidate"
-        kind = change_kinds().kinds.get(obj["verdict"]) if pass_name == "adjudicate" else None
+        kind = change_kinds().kinds.get(obj["verdict"]) if pass_name in RECORDING else None
         names = obj["verdict"] == SAME or obj["verdict"] == DIFFERS or bool(kind and kind.to)
         if names == (not ids):
             return None, "rules_2023 must be empty exactly when the verdict names no counterpart"
         if kind and kind.reason and not str(obj.get("reason") or "").strip():
             return None, f"a {obj['verdict']} decision states its reason"   # the change record's (lineage.next_errors)
+    if pass_name == "recheck":
+        others, exception = obj.get("rules_1985"), obj.get("exception")
+        if not isinstance(others, list) or not set(others) <= {x["id"] for x in recheck_rules_1985(item)}:
+            return None, "rules_1985 names a rule that is not another 1985 rule shown"
+        if not isinstance(exception, dict):
+            return None, "exception is an object, empty unless a refusal became an exception condition"
+        kind = change_kinds().kinds.get(obj["verdict"])
+        if kind and kind.chained and any(str(v or "").strip() for v in exception.values()):
+            return None, f"a refusal that became an exception condition is a change, never {obj['verdict']}"
     if pass_name == "claims" and obj["verdict"] != "NOT-ADDRESSED":
         found, why = cited(obj)
         if found is None:
@@ -809,10 +994,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     pl = sub.add_parser("plan", help="write a pass's items (once)")
     common(pl, key=False)
-    pl.add_argument("--catalog", default=str(OUT_1985), help="the 1985 rule catalog (route, map)")
-    pl.add_argument("--catalog-2023", default=str(OUT), help="the 2023 rule catalog (route, map)")
+    pl.add_argument("--catalog", default=str(OUT_1985), help="the 1985 rule catalog (route, map, recheck)")
+    pl.add_argument("--catalog-2023", default=str(OUT), help="the 2023 rule catalog (route, map, recheck)")
     pl.add_argument("--candidates", type=int, default=15,
                     help="the 2023 rules by wording per 1985 rule, after those of its routed clauses (map)")
+    pl.add_argument("--near-1985", type=int, default=10,
+                    help="the other 1985 rules by wording per decision, beside its own clause's (recheck)")
     pl.add_argument("--claims", help="the VERSION_CHANGE_REFERENCE claims, a JSON list of {id, claim, locator} (claims)")
     for name, helptext in (("submit", "submit the unanswered items not in any batch"),
                            ("retry", "resubmit the items no answer covers and no uncollected batch holds")):
@@ -830,6 +1017,8 @@ def build_parser() -> argparse.ArgumentParser:
     common(cb, key=False, pass_arg=False)
     cb.add_argument("--out", required=True, help="the batch file to write")
     cb.add_argument("--source", help="each record's next.source (default: audit-1985/<the state directory's name>)")
+    cb.add_argument("--repo", default=str(spec_pdf.REPO),
+                    help="the repository whose 1985 store's adjudications outrank the run's records")
     return ap
 
 
@@ -855,7 +1044,8 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
               f"-> {state / 'results.json'}", flush=True)
         return 0
     if a.cmd == "change-batch":
-        records = change_records(dispositions(state), a.source or f"audit-1985/{state.name}")
+        held = read_store(inventory_dir(edition(1985), pathlib.Path(a.repo)))
+        records = change_records(dispositions(state), a.source or f"audit-1985/{state.name}", held)
         out = pathlib.Path(a.out)
         out.parent.mkdir(parents=True, exist_ok=True)
         write_atomic(out, json.dumps({"batch": f"lineage-change:{state.name}", "records": records}, indent=1,
@@ -876,6 +1066,7 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
             "drafts": lambda: plan_drafts(state),
             "adjudicate": lambda: plan_adjudicate(state),
             "refute": lambda: plan_refute(state),
+            "recheck": lambda: plan_recheck(pathlib.Path(a.catalog), pathlib.Path(a.catalog_2023), a.near_1985, state),
         }
         return write_plan(p, planners[a.pass_name]())
     st = p.batches.load(model=getattr(a, "model", DEFAULT_MODEL))
