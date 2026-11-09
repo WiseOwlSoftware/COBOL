@@ -17,6 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// gives its lowest pages first and the file grows only when the released pages and the FREE tree are exhausted; and
 /// the trees survive a promotion. The key orders' own rules are checked here too.
 /// </summary>
+[Collection("process-globals")]
 public sealed class BTreeShapeTests
 {
     /// <summary>A relative record's frame in these tests: 8 bytes, so a leaf entry is 2 + 4 + 8 + 8 = 22 bytes.</summary>

@@ -21,6 +21,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>⚖ Conformance statement, verbatim (owner decision Q4): "Implements collation behavior consistent with
 /// ISO/IEC 14651 through derived tables and CLDR/UCA data."</para>
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class StandardCompareTests
 {
     private const string Default = CollationEngine.DefaultOrderingTableName;   // "ISO 14651_2020_TABLE1"

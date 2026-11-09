@@ -22,6 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Unicode;
 /// the design claims (clusters survive NFC/NFD, a cluster-safe truncation never changes how a text's kept prefix
 /// collates, and keys are NOT built per cluster — a contraction may cross a cluster boundary).
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class GraphemeBreakerTests(ITestOutputHelper output)
 {
     private static readonly string DataDir = Path.Combine(TestRepo.Root, "src", "WiseOwl.Cobol.Runtime", "Unicode", "Segmentation", "Data");
