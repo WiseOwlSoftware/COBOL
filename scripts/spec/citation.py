@@ -156,11 +156,16 @@ class Citation:
         return self.locator
 
 
-def _rule(raw: str | None) -> str | None:
-    """The rule designator in its canonical spelling (`GR 1` -> `GR1`), or CitationError."""
+def _rule(raw: str | None, edition: int | None = None) -> str | None:
+    """The rule designator in its canonical spelling (`GR 1` -> `GR1`), or CitationError. A sub-list designator
+    (`GRL2.1`) exists only in an edition whose rule catalog restarts a numbered list, the 1985 section edition: in
+    any other edition `cite.py --check` derives the rule ordinal through NUMBERED_RULE, which the form would skip."""
     if raw is None:
         return None
     raw = raw.strip()
+    if edition is not None and SUBLIST_RULE.match(raw) and EDITIONS[edition].locator != "section":
+        raise CitationError(f"{raw!r} is a restarted-list designator, which only a 1985 citation carries; "
+                            f"§{edition}: cites its rule as GR n")
     if not _RULE.match(raw):
         raise CitationError(f"{raw!r} is not a rule designator: write SR n, GR n, AR n or RV n (its sub-item path "
                             "glued: GR6d.2), Format n or Table n")
@@ -197,7 +202,7 @@ def parse(text: str) -> Citation:
     text = text.strip()
     if m := _WHOLE.fullmatch(text):
         edition, locator = _edition_locator(m["edition"], m["locator"])
-        return Citation(edition, locator, _rule(m["rule"]), 0, len(text))
+        return Citation(edition, locator, _rule(m["rule"], edition), 0, len(text))
     if m := _NO_EDITION.fullmatch(text):
         raise CitationError(f"{text!r} carries no edition: write §<edition>:<locator>[ <rule>], the edition mandatory "
                             f"(§2023:{m['clause']} for ISO/IEC 1989:2023, §1985:VI.5.3.2 for ANSI X3.23-1985)")
@@ -217,7 +222,7 @@ def from_match(m: re.Match, bare: bool = False) -> Citation | None:
         return Citation(2023, m["bare"], rule and _rule(rule), start, end, bare=True)
     try:
         edition, locator = _edition_locator(m["edition"], m["locator"])
-        return Citation(edition, locator, rule and _rule(rule), start, end)
+        return Citation(edition, locator, rule and _rule(rule, edition), start, end)
     except CitationError as e:
         return Citation(int(m["edition"]), m["locator"] or "", None, start, end, error=str(e))
 
@@ -599,6 +604,8 @@ def self_test() -> int:
          parse("§1985:IV.4.4.2 GRL2.1").rule == "GRL2.1" and render(parse("§1985:IV.4.4.2 GR L2.1")) == "§1985:IV.4.4.2 GRL2.1"
          and rule_designator("GR", 1) == "GR1" and rule_designator("SR", 3, 2) == "SRL2.3"
          and raises("§1985:IV.4.4.2 GRL2", "not a rule designator")),
+        ("an ISO edition refuses the restarted-list designator, which would skip the rule-ordinal check (PB4969 review)",
+         raises("§2023:14.9.8.4 GRL9.9", "restarted-list designator") and raises("§2002:14.9.8.4 GRL1.1", "1985")),
         ("canonicalizes GR 1 to GR1", render(parse("§2023:14.9.8.4 GR 1")) == "§2023:14.9.8.4 GR1"),
         ("parses an annex clause", parse("§2023:A.1").locator == "A.1"),
         ("parses every edition token", all(parse(f"§{e}:{'VI.5.3' if e == 1985 else '1.2'}").edition == e

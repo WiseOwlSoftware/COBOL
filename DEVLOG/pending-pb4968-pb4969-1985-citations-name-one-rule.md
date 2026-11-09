@@ -16,3 +16,5 @@ DESIGN-spec-conformance-review.md §10.1: PB4885's 1985 conformance statement ci
 
 Rows closed: none (`closes_rows: []` on both). Citations checked with `cite.py --check`: §1985:I.1.5.2.3, §1985:I.1.5.1,
 §2023:4.2.10, §1985:IV.4.2.2.2.3 GRL2.1. Self-review: the tooling lane only, one writer of the designator, no second copy.
+
+Review round 1 (R1-1): the restarted-list designator `GRL<k>.<n>` is now refused in every edition whose locator is not a 1985 section (`citation._rule` takes the edition), because `cite.py --check` reads an ISO rule ordinal through NUMBERED_RULE and the form would have skipped that check; self-test case added.
