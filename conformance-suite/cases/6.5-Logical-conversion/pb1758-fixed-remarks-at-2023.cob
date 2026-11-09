@@ -4,9 +4,10 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> The REMARKS paragraph is a COBOL-74 carryover absent from
-      *> COBOL-2002 and later (kb/Work R61, VCR row 7.10); fixed form
-      *> must enforce it as free form does (kb/Work PB1494, PB1758).
+      *> The REMARKS paragraph is absent from every held edition
+      *> (1985 VI.3.2.1.1 prints none; kb/Work PB5026, VCR row 7.10);
+      *> fixed form must enforce it as free form does (kb/Work PB1494,
+      *> PB1758).
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. PB1758RM.
 000300 REMARKS. THE OLD COMMENT ENTRY.

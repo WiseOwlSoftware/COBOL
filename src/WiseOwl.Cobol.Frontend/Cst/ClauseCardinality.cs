@@ -183,20 +183,19 @@ public static class ClauseCardinalities
             // identifying) paragraph, which the grammar already places first — so a second OPTIONS paragraph, which
             // OptionsBinder never read (the first one won in silence), is a repeat (kb/Work PB1508's sibling arm).
             // The figure fixes its sequence and ranks one element here. The AUTHOR … SECURITY and REMARKS
-            // comment-entry paragraphs are not elements of this figure at all: they are the COBOL-85 / COBOL-74 lists
-            // removed at 2002 and refused by the removal gate (COBOL0902; under --permissive a warning, and they
-            // are still not counted against a figure that does not print them).
+            // comment-entry paragraphs are not elements of this figure at all: the five are COBOL-85's, removed at
+            // 2002, and REMARKS is in no held edition; the removal gates refuse them (COBOL0902; under --permissive a warning, and
+            // they are still not counted against a figure that does not print them).
             //
-            // ⛔ EARLIER: THE COBOL-85 FIGURE (kb/Work PB2532), in force below 2002. ⚠ DERIVED, NOT QUOTED — the
-            // repository holds no 1985 text (docs/VERSION_CHANGE_REFERENCE.md ratified decision #1; row 7.10). ANSI
-            // X3.23-1985 prints the PROGRAM-ID paragraph, then `[ AUTHOR. [ comment-entry ] … ]`, `[ INSTALLATION. … ]`,
+            // ⛔ EARLIER: THE COBOL-85 FIGURE (kb/Work PB2532), in force below 2002: §1985:VI.3.2.1.1 (VCR row 7.10).
+            // ANSI X3.23-1985 prints the PROGRAM-ID paragraph, then `[ AUTHOR. [ comment-entry ] … ]`, `[ INSTALLATION. … ]`,
             // `[ DATE-WRITTEN. … ]`, `[ DATE-COMPILED. … ]` and `[ SECURITY. … ]`: each paragraph in its own bracket,
             // the ellipsis on the comment-entry and never on the paragraph, so each is written at most once and in
             // that sequence (the same bracket, ellipsis and sequence conventions ISO §2023:5.2.6.2, §2023:5.2.7 and §2023:5.2.1 state).
             // Measured against the in-repository corpora (5,958 sources): none repeats or reorders them, and the 38
             // NIST CCVS-85 programs that write them all keep this sequence. Its OPTIONS paragraph is a 2002
-            // introduction, refused at 85 (COBOL0804), and REMARKS is the COBOL-74 carryover the 1985 figure does
-            // not print, accepted at 85 for the CCVS: neither is counted. Overturn here if a 1985 text says otherwise.
+            // introduction, refused at 85 (COBOL0804), and REMARKS, which the 1985 figure does not print, is refused at
+            // every edition (kb/Work PB5026): neither is counted.
             [typeof(Core.IdentificationParagraphContext)] =
                 new("ISO §2023:11.2.1", "", "identification division",
                     new HashSet<Type>

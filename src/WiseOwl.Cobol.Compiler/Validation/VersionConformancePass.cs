@@ -750,10 +750,12 @@ internal sealed class VersionConformancePass
         public override object? VisitSecurityParagraph(CobolParserCore.SecurityParagraphContext ctx)
         { _p.Check(Constructs.IdentificationCommentsRemoved2002, "the SECURITY paragraph"); return base.VisitChildren(ctx); }
 
-        /// <summary>REMARKS — a '74 carryover the grammar accepts for CCVS; flagged ≥2002 ONLY (never at 85 —
-        /// CCVS-85 programs write it; the 85 FIPS flagger is future strictness work, P2.6).</summary>
+        /// <summary>REMARKS — in no held edition: the X3.23-1985 Identification Division general format
+        /// (§1985:VI.3.2.1.1) prints only PROGRAM-ID and the five comment paragraphs above, the CODASYL Journal of
+        /// Development 1968 having deleted REMARKS (§1985:A.2.5). The grammar recognizes it only so every edition
+        /// refuses it by name, and <c>--permissive</c> warns instead (kb/Work PB5026).</summary>
         public override object? VisitRemarksParagraph(CobolParserCore.RemarksParagraphContext ctx)
-        { _p.Check(Constructs.RemarksRemoved2002, "the REMARKS paragraph"); return base.VisitChildren(ctx); }
+        { _p.Check(Constructs.RemarksRemoved85, "the REMARKS paragraph"); return base.VisitChildren(ctx); }
 
         /// <summary>STOP literal (Format 2) — obsolete '85 element deleted 2002 (P2.6). The STOP RUN … WITH
         /// STATUS phrase (Format 1, a 2002 INTRODUCTION) is the disjoint alternative, gated in the same

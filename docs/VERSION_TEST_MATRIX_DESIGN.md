@@ -327,8 +327,8 @@ SD gate MIGRATES into the validator, one enforcement site; Table 7 row 7.1's rec
 SEGMENT-LIMIT (the modelled `memorySizeClause` / `segmentLimitClause`, CobolParserCore.g4 — kb/Work PB830; 0902) ·
 WITH DEBUGGING MODE (the modelled `debuggingModeClause`; NOT a 2002 removal — obsolete 2002 with 0903, removed 2014,
 owner decision kb/Work R61, row `debugging-mode-removed-2014`) · MULTIPLE FILE [TAPE] (CobolIO.g4:170; 0902) · the five identification comment
-paragraphs AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY (0902) · REMARKS (0902 ≥2002 ONLY — CCVS
-uses it; never flag at 85 until the FIPS-flagging strictness work) · STOP literal (CobolControlFlow.g4:222;
+paragraphs AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY (0902) · REMARKS (0902 at EVERY
+edition, row `remarks-removed-85`: §1985:VI.3.2.1.1 prints no REMARKS paragraph; kb/Work PB5026) · STOP literal (CobolControlFlow.g4:222;
 0902) · OPEN REVERSED (CobolIO.g4:193; 0902).
 2014→2023 removals — `Removed` ≥2023: CLOSE WITH LOCK (CobolIO.g4:214; 0902; VCR row 7) · EXIT METHOD / EXIT
 FUNCTION (CobolControlFlow.g4:213; ALSO introduction-gated 0900 <2002; VCR rows 5/6).

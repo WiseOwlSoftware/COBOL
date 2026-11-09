@@ -131,7 +131,7 @@ public static class Constructs
     public const string CommunicationFacilityRemoved2014 = "communication-facility-removed-2014";
     public const string CommunicationKeyPhraseRemoved2002 = "communication-key-phrase-removed-2002";
     public const string IdentificationCommentsRemoved2002 = "identification-comments-removed-2002";
-    public const string RemarksRemoved2002 = "remarks-removed-2002";
+    public const string RemarksRemoved85 = "remarks-removed-85";
     public const string StopLiteralRemoved2002 = "stop-literal-removed-2002";
     public const string OpenReversedRemoved2002 = "open-reversed-removed-2002";
     public const string CloseWithLockRemoved2023 = "close-with-lock-removed-2023";
