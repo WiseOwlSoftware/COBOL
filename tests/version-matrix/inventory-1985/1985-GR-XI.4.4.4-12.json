@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.40.4-15"
+   "GR-14.9.40.4-15",
+   "GR-14.9.40.4-9"
   ],
   "bridge": true,
-  "reason": "1985: \"The initiation is performed as if an OPEN statement with the OUTPUT phrase had been executed.\"; 2023: \"DEPENDING ON phrase of a RECORD IS VARYING clause ... for file-name-1 is undefined upon completion of the SORT statement\". Same GIVING actions, but 2023 adds SHARING WITH NO OTHER, SORT ends on fatal implicit OPEN, fixes variable-length record size, and makes the file-name-1 DEPENDING ON item undefined.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.40.4 GR15 keeps the GIVING actions (OPEN OUTPUT after any input procedure, WRITE, relative keys, CLOSE, the USE ban, end at the boundary). It adds that the OPEN is 'as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed', that 'If a fatal exception condition exists for file-name-3 as a result of the implicit OPEN during file initiation, the SORT is terminated', the variable-length write size, and an undefined DEPENDING ON item for file-name-1. §2023:14.9.40.4 GR9 c restates the write phase and adds EC-SORT-MERGE-FILE-OPEN if file-name-3 is open when that phase starts.",
+  "source": "adjudicate-712/slice-22"
  }
 }

@@ -3,12 +3,14 @@
  "rule-digest": "5385cc8af532",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "FMT-14.9.51.2"
+   "FMT-14.9.51.2",
+   "SR-14.9.51.3-2",
+   "SR-14.9.51.3-17"
   ],
+  "reason": "§1985:VII.4.7.2 is 'WRITE record-name-1 [FROM identifier-1]', an optional {BEFORE | AFTER} ADVANCING phrase (one of them), then AT END-OF-PAGE before NOT AT END-OF-PAGE, then [END-WRITE]. Its 2023 counterpart is §2023:14.9.51.2 'Format 1 (sequential)', which §2023:14.9.51.3 SR2 ('If the organization of the write file is sequential, format 1 shall be specified') ties to sequential files; every 1985 WRITE fits it with the same meaning. But BEFORE and AFTER are now in choice indicators, so both may be written, limited only by §2023:14.9.51.3 SR17 ('The BEFORE and AFTER phrases shall not both be specified if the PAGE phrase is specified'); the end-of-page phrases may come in either order; and 'FILE file-name-1', 'FROM literal-1', the retry-phrase and WITH [NO] LOCK are added. All are refused by the 1985 format and accepted by 2023, at compile time: CHANGED.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"{ BEFORE | AFTER } ADVANCING … [ AT END-OF-PAGE … ] [ NOT AT END-OF-PAGE … ]\"; 2023: \"choice indicators around BEFORE/AFTER and around END-OF-PAGE/NOT END-OF-PAGE; adds FILE file-name-1, FROM literal-1, retry-phrase, LOCK\". 2023 allows BEFORE and AFTER together and the EOP phrases in any order, which 1985 refused. It also adds FILE, FROM literal, RETRY and LOCK phrases.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-02"
  }
 }

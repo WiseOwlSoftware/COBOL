@@ -5,12 +5,16 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-12.4.6.2",
+   "SR-12.4.6.4.3-5",
+   "SR-12.4.6.4.3-6",
    "SR-12.4.6.4.3-7",
    "SR-12.4.6.4.3-9",
-   "GR-12.4.6.4.4-1"
+   "GR-12.4.6.4.4-1",
+   "GR-12.4.6.4.4-2"
   ],
   "bridge": true,
-  "reason": "Ordinary files: one file-area and one record-area SAME each (SR-7); subset rule (SR-9); one open file (GR-1). Report-file limit is a Report Writer matter, outside this rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 VII.2.13.3 (3): 'More than one SAME clause may be included', a file-name in at most one SAME AREA and one SAME RECORD AREA clause, the subset rule, and the precedence of the one-open-file rule. §2023:12.4.6.2 allows '{ same-clause }…'; (a)/(b) are split by file kind over §2023:12.4.6.4.3 SR5 (report file: one file-area, no record-area, matching 1985 XIII.2.4.3 SR2), §2023:12.4.6.4.3 SR6 (sort/merge file: one record-area) and §2023:12.4.6.4.3 SR7 (other files: one file-area, one record-area); (c) is §2023:12.4.6.4.3 SR9 verbatim; the precedence is §2023:12.4.6.4.4 GR1 ('No more than one of these files may be in the open mode') with §2023:12.4.6.4.4 GR2 ('except that only one file that is also specified in a file-area format SAME clause may be open'). Same requirement, all compile-time.",
+  "source": "adjudicate-712/slice-31"
  }
 }

@@ -7,10 +7,13 @@
   "to": [
    "GR-13.18.35.4-5",
    "GR-13.18.35.4-1",
-   "GR-13.18.35.4-6"
+   "GR-13.18.35.4-6",
+   "GR-13.18.37.4-5",
+   "GR-8.4.3.15.4-4",
+   "GR-13.18.57.4-6"
   ],
   "bridge": true,
-  "reason": "Absolute, NEXT PAGE, relative (FOOTING+integer or LINE-COUNTER+integer) and unpaged placement all match. A footing with no LINE clause defines no report lines, so none print.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 RF first line: absolute integer; relative after a PF on the page = PF final LINE-COUNTER + integer, else FOOTING + integer; NEXT PAGE = own page; unpaged LINE-COUNTER + integer; no LINE, not presented. §2023:13.18.35.4 GR5 a) 'If in addition the NEXT PAGE phrase is present and the report group is a report footing, the first line is printed beginning on a new page', b) 5. 'if no page footing has been printed on the same page, the line number is given by (FOOTING integer + integer-2)' else LINE-COUNTER + integer-2, c) unpaged; LINE-COUNTER per §2023:8.4.3.15.4 GR4, §2023:13.18.37.4 GR5; alone per §2023:13.18.57.4 GR6 f); §2023:13.18.35.4 GR1, GR6. Same results.",
+  "source": "adjudicate-712-r2/slice-10"
  }
 }

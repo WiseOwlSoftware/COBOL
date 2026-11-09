@@ -3,12 +3,13 @@
  "rule-digest": "366c9fd79e0a",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "SR-13.18.63.3-3"
+   "SR-13.18.63.3-3",
+   "SR-13.18.63.3-6"
   ],
+  "reason": "§1985:XIII.3.22.3 SR1: 'A signed numeric literal must have associated with it a signed numeric PICTURE character-string'; a numeric-edited report item took only a nonnumeric literal (§1985:XIII.3.22.4 GR1 b). §2023:13.18.63.3 SR3 lets the subject be 'either a signed numeric data item or a numeric-edited data item with a representation of a sign', and §2023:13.18.63.3 SR6 lets numeric literals be used for numeric-edited items in formats 1, 2 and 4 (format 4 is the report section). A signed numeric literal for a signed numeric-edited report item, refused in 1985, is accepted: looser. Compile-time in both.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"A signed numeric literal must have associated with it a signed numeric PICTURE character-string.\"; 2023: \"shall be either a signed numeric data item or a numeric-edited data item with a representation of a sign.\". Same subject, but 2023 adds a case: a signed numeric literal may also initialize a numeric-edited item that has a sign representation. 1985 allowed only a signed numeric PICTURE.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-34"
  }
 }

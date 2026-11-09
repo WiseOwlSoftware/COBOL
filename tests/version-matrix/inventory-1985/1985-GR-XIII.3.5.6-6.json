@@ -8,7 +8,7 @@
    "GR-8.4.3.15.4-4"
   ],
   "bridge": true,
-  "reason": "Both say LINE-COUNTER holds the line number as each line is printed. Its value after a group is the last line printed or follows NEXT GROUP rules, which is the 1985 tables' content in substance.",
-  "source": "audit-1985/state-route"
+  "reason": "Same. 1985: as each print line is presented LINE-COUNTER is its line number; the value after a group follows the presentation rules tables (their final LINE-COUNTER setting rules: the last line presented, or the NEXT GROUP setting). 2023 §2023:8.4.3.15.4 GR4 'the value of LINE-COUNTER specifies the line number of the page on which the line is printed', afterwards the last line printed unless the NEXT GROUP rules define it. The dummy/suppressed-group case is 1985 XIII.3.5.6 rule 5, a separate record (2023 GR5).",
+  "source": "adjudicate-712/slice-26"
  }
 }

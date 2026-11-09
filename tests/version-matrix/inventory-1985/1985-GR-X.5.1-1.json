@@ -6,11 +6,15 @@
   "edition": 2023,
   "to": [
    "GR-14.2.3-9",
+   "SR-14.8.2.2-2",
    "GR-14.8.2.3.3-L2.1",
-   "GR-14.8.2.3.3-L2.2"
+   "GR-14.8.2.3.3-L2.2",
+   "SR-13.7.3-3",
+   "SR-14.9.4.3-25",
+   "GR-14.9.4.4-3"
   ],
+  "reason": "1985: a BY CONTENT value is 'placed into a system-defined storage item possessing the attributes declared in the Linkage Section', and each BY CONTENT parameter's description 'must be the same, meaning no conversion or extension or truncation'. §2023:14.2.3 GR9: for a plain CALL the allocated record 'is of the same length as the argument' and 'moved to this allocated record without conversion'; for a prototyped or NESTED call it has the formal parameter's description and is filled by COMPUTE, SET or MOVE. Conformance is looser: §2023:14.8.2.3.3 asks only that 'the formal parameter shall be of the same length as the corresponding argument' for an elementary item in a plain CALL (MOVE/COMPUTE rules otherwise), and §2023:14.8.2.2 SR2 applies MOVE rules to a group. §2023:13.7.3 SR3 and §2023:14.9.4.3 SR25 bind both sides to these rules, and §2023:14.9.4.4 GR3d makes a detected violation set EC-PROGRAM-ARG-MISMATCH (1985 stated only the requirement).",
   "bridge": true,
-  "reason": "1985: \"The data description of each parameter in the BY CONTENT phrase ... must be the same, meaning no conversion\"; 2023: \"the formal parameter shall be of the same length as the corresponding argument; ...rules are the same as for a MOVE statement\". 1985 requires an identical description for BY CONTENT. 2023 requires only equal length for a plain CALL, and allows MOVE/COMPUTE conversion with a prototype or NESTED.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-21"
  }
 }

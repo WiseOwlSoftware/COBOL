@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-4",
+ "rule-digest": "e3629f4f1fcb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-21",
+   "GR-14.9.30.4-24"
+  ],
+  "bridge": true,
+  "reason": "1985 selects by the current key of reference in the file's collating sequence: >= after OPEN or START, > after READ, the next duplicate for a duplicates key, at end when none, FPI set to the key read; no valid next record: unsuccessful; optional file absent: GR10. §2023:14.9.30.4 GR21 'The setting of the file position indicator at the start of the execution of the READ statement is used in determining the record to be made available', with a), d)-g) the same cases (e) read per the transcription's correction C12) and the at end cases routed to §2023:14.9.30.4 GR24 'the at end condition exists, the following occurs in the order specified', as 1985 GR10. KEY, PREVIOUS and SUPPRESS cases need 2023-only syntax.",
+  "source": "adjudicate-712-r2/slice-02"
+ }
+}

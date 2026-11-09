@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-8.4.6.3-1"
+   "SR-8.4.6.3-1",
+   "GR-11.10.4-4"
   ],
   "bridge": true,
-  "reason": "1985: \"that program-name may be referenced only by statements included in that containing program.\"; 2023: \"or, if the program possesses the recursive attribute, in the program itself.\". Same scope rule for a non-common contained program, but 2023 adds a case: a recursive program may also reference its own name.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a non-common directly contained program-name 'may be referenced only by statements included in that containing program'. 2023 §2023:8.4.6.3 SR1 keeps that and adds 'or, if the program possesses the recursive attribute, in the program itself'; §2023:11.10.4 GR4: a recursive program 'may call itself'. Looser: a new permitted reference (RECURSIVE did not exist in 1985, so conforming 1985 programs are unaffected).",
+  "source": "adjudicate-712/slice-32"
  }
 }

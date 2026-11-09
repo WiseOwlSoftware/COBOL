@@ -8,7 +8,7 @@
    "SR-14.9.11.3-2"
   ],
   "bridge": true,
-  "reason": "1985: \"Mnemonic-name-1 is associated with a hardware device in the SPECIAL-NAMES paragraph\"; 2023: \"identified in the operating environment as a hardware or software device capable of receiving data from the program\". Same SPECIAL-NAMES association rule, but 2023 adds software devices to hardware ones, and requires the device to be capable of receiving data from the program.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'Mnemonic-name-1 is associated with a hardware device in the SPECIAL-NAMES paragraph'. §2023:14.9.11.3 SR2 keeps the SPECIAL-NAMES association but widens the device to 'a hardware or software device capable of receiving data from the program'. No 1985 rule admits a software device. Receiving capability was already implied by the 1985 DISPLAY GR1 and GR4. Both are compile-time rules. §2023:12.3.7.3 SR7 limits where mnemonic-name-3 may be used and states no part of this rule.",
+  "source": "adjudicate-712/slice-30"
  }
 }

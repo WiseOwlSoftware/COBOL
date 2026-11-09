@@ -5,12 +5,16 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-13.4.5.2",
+   "FMT-13.18.22.2",
+   "SR-13.18.22.3-1",
    "GR-13.18.22.4-4",
-   "GR-13.18.27.4-1",
-   "GR-13.4.5.4-3"
+   "FMT-13.18.27.2",
+   "SR-13.18.27.3-1",
+   "GR-13.18.27.4-1"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only points to where the EXTERNAL and GLOBAL clauses of the file description entry are given. 2023 still allows both clauses in file description entries, with their own clause rules.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR2 only points: EXTERNAL and GLOBAL are presented on X-23/X-24, other FD clauses in their modules; it refuses nothing. §2023:13.4.5.2 lists EXTERNAL and GLOBAL in the FD; §2023:13.18.22.3 SR1 ('may be specified only in file description entries'), §2023:13.18.22.4 GR4 and §2023:13.18.27.4 GR1 ('is a global name') present them. Module split is editorial. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

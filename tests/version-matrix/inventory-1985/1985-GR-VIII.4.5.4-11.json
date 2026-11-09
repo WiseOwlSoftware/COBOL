@@ -5,10 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.30.4-13"
+   "GR-14.9.30.4-13",
+   "GR-9.1.14-4",
+   "GR-9.1.14-L2.1",
+   "GR-9.1.14-L2.2"
   ],
   "bridge": true,
-  "reason": "Same flow: phrases ignored, status/position updated, other exceptions via exception processing, record made available, NOT phrase then end. Conflict caveat only concerns 2023-new locking.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: with no at end or invalid key condition 'the AT END phrase or the INVALID KEY phrase is ignored', status updated and FPI set, other exceptions go to USE, else record made available, INTO move, then end of READ or imperative-statement-2. §2023:14.9.30.4 GR13 restates it ('the AT END phrase or the INVALID KEY phrase is ignored, if specified'); §2023:9.1.14 GR4 and its L2 items restate the invalid-key path. The record-operation-conflict proviso reaches only 2023 locking. No program accepted or refused differently.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

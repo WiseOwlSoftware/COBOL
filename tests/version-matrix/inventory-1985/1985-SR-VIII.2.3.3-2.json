@@ -7,10 +7,11 @@
   "to": [
    "SR-12.4.5.2-2",
    "SR-12.4.5.2-3",
+   "SR-12.4.5.2-9",
    "SR-13.4.5.3-1"
   ],
   "bridge": true,
-  "reason": "2023 allows only one SELECT per file-name, requires an FD in the same program's file section, and requires each FD file-name in a file control entry (13.4.5.3-1). Same rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 VIII.2.3.3 SR2: 'Each file-name in the Data Division must be specified only once in the FILE-CONTROL paragraph. Each file-name specified in the SELECT clause must have a file description entry in the Data Division of the same program.' §2023:12.4.5.2 SR2: 'A given file-name may be specified in only one SELECT clause'; §2023:13.4.5.3 SR1: an FD's 'File-name-1 shall be specified in a file control entry'; §2023:12.4.5.2 SR3 requires an FD or SD 'in the file section of the ... program in which the SELECT clause is specified', and §2023:12.4.5.2 SR9 bars the SD alternative for a relative file. Same compile-time requirement.",
+  "source": "adjudicate-712/slice-31"
  }
 }

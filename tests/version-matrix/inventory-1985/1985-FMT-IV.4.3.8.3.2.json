@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-8.4.3.3.2"
+   "FMT-8.4.3.3.2",
+   "SR-8.4.3.3.3-2",
+   "SR-8.4.3.3.3-3"
   ],
   "bridge": true,
-  "reason": "1985: \"data-name-1 ( leftmost-character-position: [ length ] )\"; 2023: \"identifier-1( leftmost-position : [ length ] )\". Same reference-modification format, but the operand is now identifier-1 instead of data-name-1. That is a broader class of operands, so more programs are accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 reference-modifies data-name-1 ( leftmost-character-position: [ length ] ), with data-name-1 only qualified or subscripted (SR4). §2023:8.4.3.3.2 writes identifier-1( leftmost-position : [ length ] ); the renamed position operand is no difference. Identifier-1 admits more: §2023:8.4.3.3.3 SR2 \"If identifier-1 is a function-identifier, it shall reference an alphanumeric, boolean, or national function\", so a reference-modified function reference that 1985 refuses is accepted; §2023:8.4.3.3.3 SR3 still refuses a reference-modified identifier-1 (\"Identifier-1 shall not be a reference-modification format identifier\"), as 1985 data-name-1 did. Every 1985 form keeps its meaning; cases are added, no refusal became an exception.",
+  "source": "adjudicate-712/slice-01"
  }
 }

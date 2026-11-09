@@ -3,13 +3,13 @@
  "rule-digest": "f8d052abfd75",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
-   "GR-13.18.46.4-1",
-   "SR-13.4.5.3-8"
+   "FMT-13.4.5.2",
+   "FMT-13.18.46.2"
   ],
-  "bridge": true,
-  "reason": "The 1985 rule is only a pointer to the REPORT clause and sets no requirement. 2023 keeps the REPORT clause for report-file FDs (format 3, 13.18.46), so the reference holds.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR4 'The REPORT clause is presented on page XIII-9' only points to where the report FD's REPORT clause is specified; it sets no program requirement. 2023 keeps the REPORT clause in the report FD, §2023:13.4.5.2 'Format 3 (report)' ending in REPORT IS / REPORTS ARE report-name-1, and presents it in its own subclause, §2023:13.18.46.2 'REPORTS ARE'. The same programs are accepted with the same meaning. GR-13.18.46.4-1 and SR-13.4.5.3-8 state other requirements (multiple reports per file, Format 3's identity) and are not part of this pointer.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

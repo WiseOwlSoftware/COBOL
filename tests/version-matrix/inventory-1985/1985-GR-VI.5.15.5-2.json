@@ -5,12 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-13.18.63.3-26",
-   "GR-13.18.33.4-2",
-   "GR-13.16.4-3"
+   "SR-13.18.63.3-33",
+   "SR-13.18.63.3-26"
   ],
   "bridge": true,
-  "reason": "1985: \"Wherever the THRU phrase is used, literal-2 must be less than literal-3.\"; 2023: \"when literal-2 is of class alphanumeric or national, and the runtime collating sequence is known, the value of literal-2 shall be less\". Level 88 is still for condition-names. But 2023 requires literal-2 < literal-3 for alphanumeric/national literals only when the runtime collating sequence is known; 1985 required it for every THRU.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'Format 2 can be used only in connection with condition-names ... Wherever the THRU phrase is used, literal-2 must be less than literal-3.' The first sentence is kept: §2023:13.18.63.3 SR33 'Formats 3 and 5 may be specified only when the level-number of the subject of the entry is 88.' The ordering requirement is narrowed: §2023:13.18.63.3 SR26 keeps 'literal-2 shall be less than the value of literal-3' unconditionally only for classes other than alphanumeric or national; for alphanumeric or national literals it applies only 'when the runtime collating sequence is known', and 'The runtime collating sequence is unknown when the collating sequence is defined by a locale or ... otherwise determined at runtime'. A THRU range 1985 refused can therefore be accepted. Looser, not an exception condition.",
+  "source": "adjudicate-712/slice-10"
  }
 }

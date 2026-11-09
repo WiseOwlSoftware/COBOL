@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.1.4-6"
+   "GR-14.9.1.4-6",
+   "SR-14.9.1.3-3"
   ],
   "bridge": true,
-  "reason": "Same transfer by MOVE rules and same conceptual items. The added current-date/time sentence only says what the 1985 rules for DATE/TIME already give. The level-2 box is no difference.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR6: format-2 ACCEPT transfers to identifier-2 'according to the rules for the MOVE statement'; DATE, DAY, DAY-OF-WEEK and TIME 'are conceptual data items'. §2023:14.9.1.4 GR6 repeats both ('are conceptual data items and, therefore, are not described in the COBOL source unit'); its 'reference the current date and time provided by the system' restates 1985 GR7-GR10. §2023:14.9.1.3 SR3 'Identifier-2 shall not reference a data item of class alphabetic, ... index' states the receivers the 1985 MOVE rules already refused for these numeric sources; the other classes it names do not exist in 1985. Same programs accepted and refused, same effect. YYYYMMDD/YYYYDDD are new phrases of the format record, not of this rule.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

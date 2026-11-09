@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.4.3-5",
+ "rule-digest": "4cc9917c39e0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.7.6-6"
+  ],
+  "bridge": true,
+  "reason": "Same rule in the same place: both editions open the list with 'A pair of data items correspond if' (§2023:14.7.6; 1985 'correspond if the following conditions exist'), and condition 6 reads 'The name of each data item that satisfies the above conditions is unique after application of the implied qualifiers' (§2023:14.7.6 GR6) against 1985 'must be unique after application of the implied qualifiers' (§1985:VI.6.4.3). 'is' for 'must be' inside the same condition list is wording, not a change of force; no refusal became an exception condition.",
+  "source": "adjudicate-712/slice-14"
+ }
+}

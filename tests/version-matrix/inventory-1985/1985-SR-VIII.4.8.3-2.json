@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VIII.4.8.3-2",
+ "rule-digest": "92bcab32136b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The USE statement is never executed; it merely defines the conditions calling for the execution of the USE procedures.' 2023 §2023:14.9.49.4 GR1: 'The USE statement defines the conditions calling for the execution of the use procedures', and §2023:14.5.1 classes it as a declarative statement that 'directs that actions be taken in response to specified conditions'; no 2023 rule gives USE any run-time action when control reaches it (e.g. a PERFORMed declarative section). Same effect.",
+  "source": "adjudicate-712/slice-32"
+ }
+}

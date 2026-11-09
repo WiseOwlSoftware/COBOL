@@ -10,7 +10,7 @@
    "GR-14.7.7-4"
   ],
   "bridge": true,
-  "reason": "2023 still makes a zero divisor in any divide operation or DIVIDE statement a size error. If raised during evaluation, no resultant is changed, so the operation stops. The EC name is general handling.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'Division by zero always terminates the arithmetic operation and always causes a size error condition.' 2023: the size error condition exists 'if the divisor in a divide operation or in a DIVIDE statement is zero' (§2023:14.7.5 GR2); with the phrase the resultants 'remain unchanged from the values they had at the start of the execution of the arithmetic statement' (§2023:14.7.5, catalog L2.1); §2023:14.7.7 GR4 'If the size error condition is raised during the initial evaluation, none of the resultant data items are changed'. The no-phrase EC-SIZE-ZERO-DIVIDE (L3.2) revises 1985 GR3, not this rule.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

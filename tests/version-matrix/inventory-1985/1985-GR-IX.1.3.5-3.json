@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-9.1.14-3",
-   "GR-9.1.14-4"
+   "GR-9.1.14-4",
+   "GR-9.1.12-2"
   ],
   "bridge": true,
-  "reason": "1985: \"a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed\"; 2023: \"If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end\". 1985 requires a USE procedure when INVALID KEY is omitted. 2023 allows none and goes to the end of the statement. The paragraph on no invalid key condition is carried in GR-9.1.14-4.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: if INVALID KEY is not specified 'a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed'. 2023 drops the requirement: §2023:9.1.14 GR3 runs any applicable exception processing statements (USE declaratives, §2023:9.1.12 GR2) and 'If control is returned from those statements or there are no applicable exception processing statements, control is transferred to the end of the input-output statement', and §2023:9.1.14 GR4 'If the INVALID KEY phrase is not specified in the input-output statement and there are no applicable exception processing statements' continues the same way. Looser: a program with neither INVALID KEY nor USE is now conforming; EC-I-O-INVALID-KEY is nonfatal, so no refusal became a fatal exception. The paragraph on no invalid key condition is carried verbatim in GR4's trailing text.",
+  "source": "adjudicate-712/slice-06"
  }
 }

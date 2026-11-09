@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-12.4.5.2-11"
+   "SR-12.4.5.2-11",
+   "GR-12.4.5.3-8"
   ],
   "bridge": true,
-  "reason": "2023 gives a report file the sequential-format (Format 3) file control entry, as 1985 does. The sort-merge ban adds nothing, since a report file was never a sort-merge file in 1985 either.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a report file has sequential organization and its FCE clauses are those of Sequential I-O. 2023: 'Format 3 shall be specified only for a sequential file or a report file' (§2023:12.4.5.2 SR11) and 'The sequential format defines a file connector for a sequential file' (§2023:12.4.5.3 GR8). Same.",
+  "source": "adjudicate-712/slice-23"
  }
 }

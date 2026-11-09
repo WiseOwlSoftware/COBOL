@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-XI.2.5.4-2",
+ "rule-digest": "2e4d75313c25",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.6.4.3-8",
+   "GR-12.4.6.4.4-4",
+   "GR-12.4.6.4.4-5",
+   "DOC-A.1-169"
+  ],
+  "bridge": true,
+  "reason": "1985 'at least one of the file-names must represent a sort or merge file' = §2023:12.4.6.4.3 SR8. Items a-c = §2023:12.4.6.4.4 GR4 a)-c), 'The extent of such allocation shall be specified by the implementor' (also §2023:A.1 item 169). Item d = §2023:12.4.6.4.4 GR5 'shall not be in the open mode', no exception condition added. Same programs, same effect.",
+  "source": "adjudicate-712-r2/slice-10"
+ }
+}

@@ -5,10 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.4.5.14.3-1"
+   "FMT-12.4.5.1",
+   "SR-12.4.5.2-9",
+   "SR-12.4.5.2-11",
+   "FMT-12.4.5.14.2"
   ],
   "bridge": true,
-  "reason": "1985 only says relative RESERVE equals sequential RESERVE. 2023 has one RESERVE clause, integer-1 areas else implementor-defined, for every format, so it stays the same.",
-  "source": "audit-1985/state-route"
+  "reason": "The 1985 rule only makes the relative RESERVE clause the sequential one. 2023 writes one RESERVE clause (12.4.5.14) into both the relative format (§2023:12.4.5.2 SR9 'Format 2 shall be specified only for a relative file') and the sequential format (§2023:12.4.5.2 SR11), so the sameness holds. The clause's content (§2023:12.4.5.14.3 GR1) is the sequential RESERVE rule's record, not a part of this one.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

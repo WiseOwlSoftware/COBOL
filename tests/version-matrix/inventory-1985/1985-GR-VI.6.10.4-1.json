@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.11.4-1"
+   "GR-14.9.11.4-1",
+   "GR-14.9.11.4-6",
+   "DOC-A.1-56"
   ],
   "bridge": true,
-  "reason": "2023 still transfers each operand in the order listed, with implementor-defined conversion. The zero-length clause covers items 1985 lacks, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.11.4 GR1: 'causes the content of each operand to be transferred to the device in the order listed', conversion 'defined by the implementor' (DOC-A.1-56), as 1985; §2023:14.9.11.4 GR6 restates the order. The added 'zero-length data item or a zero-length literal, no data is transferred' changes nothing a 1985 program can write: a 1985 zero-length operand also transfers nothing, and the empty literal is a literal-rule change, not this rule's.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

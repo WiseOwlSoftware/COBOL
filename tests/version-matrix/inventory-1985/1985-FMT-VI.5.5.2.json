@@ -3,13 +3,14 @@
  "rule-digest": "0aca5554cc6e",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "FMT-13.18.20.2",
-   "SR-13.18.20.3-3"
+   "SR-13.18.20.3-3",
+   "SR-13.16.3-4"
   ],
+  "reason": "§1985:VI.5.5.2 offers the data description entry 'data-name-1 | FILLER'. §2023:13.18.20.2 keeps that choice as the entry-name clause's 'Format 1 (data-name)' and 'Format 3 (filler)' but adds 'Format 2 (screen-name)', and §2023:13.18.20.3 SR3 states which alternatives apply ('either data-name-1 or FILLER shall be specified' in a data description or report group description entry, screen-name-1 or FILLER in a screen description entry); §2023:13.16.3 SR4 restates it for the data description entry ('either the data-name format or the filler format may be specified'). A 1985 data entry means the same, but the general format is wider (screen-name, and the report-group use), so the diagram's edge is CHANGED, as PB4996 already recorded. GR-13.18.20.4-1 carries 1985 GR2 (FILLER naming), not this format.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985 offers data-name-1 or FILLER to a data description entry only; 2023's entry-name clause (13.18.20, SR3) also names a report group description entry (FILLER as a report item's name, ISO/IEC 1989:2002 Annex F.2 item 53) and a screen description entry. The data-entry form is unchanged, but the requirement the 2023 rules state is wider, so the record is CHANGED: the EDITION GATES audit found the report-filler-2002 gate contradicted by a KEPT link (kb/Work PB4996).",
-  "source": "kb/Work PB4996 (edition-gate audit re-adjudication of audit-1985/state-route)"
+  "source": "adjudicate-712/slice-02"
  }
 }

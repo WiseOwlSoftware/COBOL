@@ -7,10 +7,11 @@
   "to": [
    "GR-13.18.35.4-5",
    "GR-13.18.35.4-1",
+   "GR-13.18.35.4-6",
    "GR-8.4.3.15.4-3"
   ],
   "bridge": true,
-  "reason": "2023 places the first line at integer-1 (absolute), HEADING+integer-2-1 (relative, paged), or LINE-COUNTER (zero)+integer-2; with no LINE clause no line is defined, so none prints.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 RH first line: absolute integer; relative paged integer + HEADING - 1; unpaged LINE-COUNTER (zero) + integer; no LINE not presented. 2023 §2023:13.18.35.4 GR5 a) integer-1, b)1 (HEADING integer + integer-2 - 1), c) LINE-COUNTER + integer-2, with §2023:8.4.3.15.4 GR3 'The initial value of LINE-COUNTER is set to zero by execution of an INITIATE statement'; §2023:13.18.35.4 GR1/GR6: only LINE clauses define lines. Same.",
+  "source": "adjudicate-712/slice-24"
  }
 }

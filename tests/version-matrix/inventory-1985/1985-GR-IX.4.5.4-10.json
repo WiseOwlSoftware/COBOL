@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-14.9.30.4-24",
-   "GR-14.9.30.4-21"
+   "GR-14.9.30.4-21",
+   "GR-9.1.13.4-1",
+   "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "1985: \"If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1\"; 2023: \"If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement.\". 1985 requires a USE procedure when AT END is absent. 2023 allows neither and defines the result as continuing at the end of READ. It also adds the EC-I-O-AT-END and file position indicator steps.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 c: 'If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1' (with 1985 SR7 a compile-time requirement). 2023 has no such syntax rule and §2023:14.9.30.4 GR24 d) says 'If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement'; GR24 a) also sets EC-I-O-AT-END if enabled. A source unit 1985 refused is now accepted. The trigger (no next record or optional file absent, §2023:14.9.30.4 GR21; status 10, §2023:9.1.13.4 GR1), AT END precedence over USE (§2023:14.9.49.4 GR6) and the unsuccessful result are kept.",
+  "source": "adjudicate-712/slice-07"
  }
 }

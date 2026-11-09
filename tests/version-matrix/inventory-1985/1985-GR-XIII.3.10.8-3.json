@@ -2,14 +2,15 @@
  "rule-id": "1985-GR-XIII.3.10.8-3",
  "rule-digest": "152e3fead1bf",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-13.18.35.4-4",
-   "GR-13.18.37.4-4"
+   "GR-13.18.37.4-4",
+   "GR-14.9.16.4-6"
   ],
   "bridge": true,
-  "reason": "Same absolute (LINE-COUNTER < integer-1), relative trial-sum and NEXT PAGE fit tests; saved next-group handling moved to NEXT GROUP GR4a. OCCURS/PRESENT WHEN cover only new features.",
-  "source": "audit-1985/state-route"
+  "reason": "Fit tests kept: 2023 §2023:13.18.35.4 GR4 a) NEXT PAGE unsuccessful, b) 'If integer-1 is greater than LINE-COUNTER, the page fit is declared successful', c) relative trial sum against the lower limit; page advance per §2023:14.9.16.4 GR6; the saved-integer reapplication after the advance is §2023:13.18.37.4 GR4 a)1-3. Difference: 1985 applies the saved next group integer to whatever body group is presented next, including control footings TERMINATE presents; 2023 GR4 a) says the absolute NEXT GROUP 'will have no effect at all if a TERMINATE is next executed for the report'. Different placement for those control footings.",
+  "source": "adjudicate-712/slice-24"
  }
 }

@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "AR-15.3-6",
-   "AR-15.3-14"
+   "AR-15.3-14",
+   "GR-8.4.2.3.4-1"
   ],
   "bridge": true,
-  "reason": "1985: \"do not have values within the permissible range, the returned value for the function is undefined.\"; 2023: \"the EC-ARGUMENT-FUNCTION exception condition is set to exist... the implementor defines the result of the function reference\". Integer arguments and ALL subscripting carry over. Out-of-range arguments, undefined in 1985, now set EC-ARGUMENT-FUNCTION, and the result is implementor-defined if checking is not enabled.",
-  "source": "audit-1985/state-route"
+  "reason": "Integer arguments (§2023:15.3 AR6 adds 'or an integer data item', already an integer arithmetic expression) and the ALL-subscript expansion (§2023:15.3 AR14, §2023:8.4.2.3.4 GR1) carry over. But 1989 says out-of-range arguments make 'the returned value for the function ... undefined'; §2023:15.3 AR14 instead sets 'the EC-ARGUMENT-FUNCTION exception condition' and leaves the result implementor-defined when checking is off. Different run-time result; no compile-time refusal changed.",
+  "source": "adjudicate-712/slice-35"
  }
 }

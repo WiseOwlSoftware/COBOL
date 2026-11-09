@@ -6,11 +6,11 @@
   "edition": 2023,
   "to": [
    "SR-14.9.49.3-8",
-   "GR-14.9.49.4-5",
-   "GR-14.9.49.4-6"
+   "GR-14.9.49.4-3",
+   "GR-14.9.49.4-5"
   ],
   "bridge": true,
-  "reason": "2023 bars a file-name in more than one USE AFTER EXCEPTION statement, and a file-name USE excludes the file from INPUT/OUTPUT/I-O/EXTEND USE, so one USE procedure runs.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 VII.4.6.3 SR3: 'Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.' With 1985 GR4 already excluding INPUT/OUTPUT/I-O/EXTEND USE for an explicitly named file, the rule refuses a file-name in two USE statements. §2023:14.9.49.3 SR8: 'The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within the same procedure division' (compile-time); §2023:14.9.49.4 GR5 gives the file-name USE precedence over the open-mode USE statements and §2023:14.9.49.4 GR3 executes only 'The first declarative that satisfies the selection criteria'. Same requirement.",
+  "source": "adjudicate-712/slice-31"
  }
 }

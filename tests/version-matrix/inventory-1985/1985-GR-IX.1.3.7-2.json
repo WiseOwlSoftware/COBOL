@@ -5,11 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-9.1.14-3",
+   "GR-14.9.27.4-25",
    "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "Without INVALID KEY, 2023 runs applicable exception processing, including the file's USE AFTER EXCEPTION procedure. The PERFORM WHEN bypass is new; 1985 programs behave alike.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.' §2023:14.9.27.4 GR25 d) 'Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed as specified for the rules for the USE statement'; §2023:14.9.49.4 GR6 'the procedures associated with a USE statement are executed after completion of the standard input-output exception routine upon the unsuccessful execution of an input-output operation'. The WHEN bypass (GR25 c) needs 2023-only PERFORM syntax. USE GR3 and 9.1.12 GR2 state declarative selection order, not this rule.",
+  "source": "adjudicate-712-r2/slice-02"
  }
 }

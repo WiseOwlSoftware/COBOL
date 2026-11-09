@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.51.4-34"
+   "GR-14.9.51.4-34",
+   "GR-14.9.51.4-12"
   ],
   "bridge": true,
-  "reason": "Same rule. 'Operating environment' replaces MSCS. 'Successful' only states what is implied, since GR-15 says a failed WRITE does not take place; no program is accepted or treated differently.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR11: 'Execution of a WRITE statement causes the content of the record area to be released' and the MSCS uses the record keys so the record can later be accessed by any of them. 2023 §2023:14.9.51.4 GR34: 'Successful execution of a WRITE statement causes the content of the record area to be released. The operating environment utilizes the contents of the record keys ...'; §2023:14.9.51.4 GR12 also states the release. 'Successful' adds nothing: 1985 GR8 and GR18 say a failed WRITE does not take place and leaves the record area unaffected. MSCS -> operating environment is wording. Same.",
+  "source": "adjudicate-712/slice-08"
  }
 }

@@ -2,14 +2,20 @@
  "rule-id": "1985-GR-X.5.2.4-13",
  "rule-digest": "ed5730f158ca",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-14.2.3-8",
-   "GR-14.8.2.3.2-L2.1"
+   "GR-8.6.7-3",
+   "SR-14.8.2.2-1",
+   "GR-14.8.2.3.2-L2.1",
+   "GR-14.8.2.3.2-L2.2",
+   "SR-13.7.3-3",
+   "SR-14.9.4.3-25",
+   "GR-14.9.4.4-3"
   ],
+  "reason": "1985: BY REFERENCE (specified or implied) means the called item 'occupies the same storage area', and its description 'must describe the same number of character positions'. Storage sharing is kept (§2023:14.2.3 GR8; §2023:8.6.7 GR3 'establishes a common data item'). The length rule differs: §2023:14.8.2.3.2 keeps 'the formal parameter shall be of the same length as the corresponding argument' only for elementary items in a plain CALL (matching ALIGN/PICTURE/USAGE clauses for prototyped or NESTED calls), while for an alphanumeric group §2023:14.8.2.2 SR1 allows 'the same number or a smaller number of bytes' and requires the other operand to be a group or alphanumeric item (a group argument with an equal-size numeric formal, legal in 1985, now violates). §2023:13.7.3 SR3 and §2023:14.9.4.3 SR25 apply these rules, and §2023:14.9.4.4 GR3d sets EC-PROGRAM-ARG-MISMATCH on a detected violation.",
   "bridge": true,
-  "reason": "Shared storage for by-reference is kept. Equal length is kept for plain CALLs with no prototype and no NESTED, which covers every 1985 program; other cases come only from features new in 2023.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-21"
  }
 }

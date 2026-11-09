@@ -2,13 +2,15 @@
  "rule-id": "1985-GR-VI.4.4.4-8",
  "rule-digest": "f9781230d195",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.3.6.4-13"
+   "GR-12.3.6.4-13",
+   "GR-14.9.24.4-5",
+   "GR-14.9.40.4-5"
   ],
   "bridge": true,
-  "reason": "1985: \"is applied to any nonnumeric merge or sort keys unless the COLLATING SEQUENCE phrase is specified in the respective SORT or MERGE\"; 2023: \"unless the sort or merge collating sequence has been modified by execution of a SET statement or a COLLATING SEQUENCE phrase is specified\". Same rule, but 2023 adds a second exception: a sort or merge collating sequence modified by executing a SET statement overrides the program collating sequence for keys.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: the program collating sequence 'is applied to any nonnumeric merge or sort keys unless the COLLATING SEQUENCE phrase is specified'. §2023:12.3.6.4 GR13 says the same for alphanumeric keys and adds 'unless the sort or merge collating sequence has been modified by execution of a SET statement'; §2023:14.9.24.4 GR5 and §2023:14.9.40.4 GR5 give the same precedence (phrase first, then program sequence). The added exception needs SET ... COLLATING SEQUENCE, which no 1985 program can write, so a conforming 1985 program sorts and merges identically.",
+  "source": "adjudicate-712/slice-09"
  }
 }

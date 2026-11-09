@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "SR-13.18.63.3-13",
+   "SR-13.18.63.3-4",
    "GR-13.18.63.4-5"
   ],
   "bridge": true,
-  "reason": "1985 groups are alphanumeric. Same-category literal or a MOVE-permitted figurative constant accepts and refuses the same programs. Group-area initialization and the subordinate ban are unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: at group level 'the literal must be a figurative constant or a nonnumeric literal, and the group area is initialized without consideration for the individual elementary or group items', and VALUE 'cannot be stated at the subordinate levels'. 2023: §2023:13.18.63.3 SR13 'literal-1 shall be of the same category as the group item or shall be a figurative constant that is permitted in a MOVE statement to a receiving item of that category. The VALUE clause shall not be specified at subordinate levels within this group'; every 1985 group is an alphanumeric group, and §2023:13.18.63.3 SR4 requires alphanumeric literals for it; §2023:13.18.63.4 GR5 keeps the whole-area initialization. National and bit groups are 2023-only. Same programs, same result.",
+  "source": "adjudicate-712/slice-10"
  }
 }

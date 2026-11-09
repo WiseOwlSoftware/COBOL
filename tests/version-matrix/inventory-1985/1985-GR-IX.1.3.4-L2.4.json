@@ -11,7 +11,7 @@
    "GR-9.1.13.6-7"
   ],
   "bridge": true,
-  "reason": "1985: \"I-O Status = 38. A permanent error exists because an OPEN statement is attempted on a file previously closed with lock.\"; 2023: \"9.1.13.6 lists 30, 31, 34, 35, 37, 39 but no 38; 37 adds: \"insufficient authority exists to access the file\"\". Statuses 30, 35 and 39 carry over. Status 38 (OPEN after CLOSE WITH LOCK) is absent from the 2023 permanent-error list. Status 37 gains an insufficient-authority case.",
-  "source": "audit-1985/state-route"
+  "reason": "30, 35, 37 a) and 39 carry over (§2023:9.1.13.6 GR1, §2023:9.1.13.6 GR5 'is attempted on a file that is not described as optional and the physical file is not present', §2023:9.1.13.6 GR7). Two differences: 1985 d. 'I-O Status = 38 ... OPEN statement is attempted on a file previously closed with lock' has no 2023 counterpart (§2023:E.2 lists 'The WITH LOCK phrase of the CLOSE statement and the related File Status of 38' as deleted), and 37 gains a case, §2023:9.1.13.6 GR6 b) 'insufficient authority exists to access the file'. Run-time statuses only; nothing refused.",
+  "source": "adjudicate-712/slice-06"
  }
 }

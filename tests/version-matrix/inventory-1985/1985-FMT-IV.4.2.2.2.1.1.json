@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-8.3.3.2.2"
+   "FMT-8.3.3.2.2",
+   "GR-8.3.3.2.4-3"
   ],
   "bridge": true,
-  "reason": "1985: \"\"{character-1} …   \"\"; 2023: \"╭ \" [character-1] … \" ╮ ┤ ├ ╰ ' [character-1] … ' ╯\". 1985 braces require at least one character between quotation marks. 2023 brackets make character-1 optional (zero-length literal) and add an apostrophe-delimited form.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 writes a nonnumeric literal \"{character-1} ...\": braces, so at least one character, and only the quotation mark delimits it (SR2 and GR2 name only the quotation mark). §2023:8.3.3.2.2 brackets it, \" [character-1] … \", adds the apostrophe-delimited form ' [character-1] … ' and the X\"…\" hexadecimal form, and §2023:8.3.3.2.4 GR3 gives the empty case its meaning: \"If character-1 is not specified, the literal is a zero-length literal.\" Every 1985 literal keeps its meaning; \"\" and apostrophe literals that 1985 refuses are accepted at compile time, with no exception condition.",
+  "source": "adjudicate-712/slice-01"
  }
 }

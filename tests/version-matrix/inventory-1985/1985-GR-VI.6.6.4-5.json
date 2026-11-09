@@ -9,7 +9,7 @@
    "GR-14.7.7-4"
   ],
   "bridge": true,
-  "reason": "1985: \"page VI-69, Overlapping Operands; page VI-69, Multiple Results in Arithmetic Statements\"; 2023: \"given in 14.6.13.2, Incompatible data; ... 14.7.7, Arithmetic statements (NOTE 3: results ... are defined regardless ... share storage)\". ADD no longer refers to Overlapping Operands: 14.7.7 NOTE 3 defines results despite shared storage, where 1985 left them undefined. Incompatible data is added; multiple results move into 14.7.7.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 subjects ADD to 'Overlapping Operands', under which shared storage not from the same entry makes 'the result of the execution of such a statement is undefined' (§1985:VI.6.4.5). 2023's list (§2023:14.9.2.4 GR6 'Additional rules and explanations relative to this statement are given in 14.6.13.2, Incompatible data; ... 14.7.7, Arithmetic statements') drops that reference, and §2023:14.7.7 GR4 specifies an intermediate data item ('The initial evaluation of the statement is done and the result of this operation is placed in an intermediate data item'), so 'the results contained in the receiving operands for all arithmetic statements are defined regardless of whether any of the sending operands share storage' (§2023:14.7.7). An ADD with overlapping operands goes from undefined to defined; 14.6.10 applies only where the statement's rules give no specific result. Incompatible data (EC-DATA-INCOMPATIBLE) is newly referenced.",
+  "source": "adjudicate-712/slice-14"
  }
 }

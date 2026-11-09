@@ -8,7 +8,7 @@
    "GR-7.2.3.4-9"
   ],
   "bridge": true,
-  "reason": "1985: \"is equal, character for character, to the ordered sequence of library text words.\"; 2023: \"each lowercase letter is equivalent to its corresponding uppercase letter ... When the LEADING phrase is specified, partial-word-1 matches\". Same comparison cycle, but 2023 adds case and national-character equivalence, quote-delimiter rules, directive-line handling, and LEADING/TRAILING partial-word matching. Matches differ.",
-  "source": "audit-1985/state-route"
+  "reason": "The comparison cycle (a-f) is the same in §2023:7.2.3.4 GR9, but its operands differ: 1985 compares 'pseudo-text-1, identifier-1, word-1, or literal-1', 2023 'pseudo-text-1 or partial-word-1' with LEADING/TRAILING partial matching. 2023 also adds matching equivalences 1985's 'equal, character for character' lacks: 'each lowercase letter is equivalent to its corresponding uppercase letter' outside literals, and 'The two representations of the quotation symbol match'. Match results can differ.",
+  "source": "adjudicate-712/slice-23"
  }
 }

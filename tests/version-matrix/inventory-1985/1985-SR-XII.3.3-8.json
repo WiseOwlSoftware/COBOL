@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XII.3.3-8",
+ "rule-digest": "1ea46f744951",
+ "next": {
+  "kind": "REMOVED",
+  "to": [],
+  "reason": "1985 makes the word REPLACE inside a comment-entry part of the comment-entry. 2023 has no comment-entries (the term and the AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY paragraphs do not occur in ISO 1989:2023); §2023:7.2.4.3 SR1 places REPLACE only where a character-string or separator may appear. No 2023 rule carries this requirement.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-33"
+ }
+}

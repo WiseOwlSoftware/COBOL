@@ -2,13 +2,19 @@
  "rule-id": "1985-GR-VII.4.5.4-1",
  "rule-digest": "713dcf706870",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.35.4-3"
+   "GR-14.9.35.4-3",
+   "GR-14.9.35.4-2",
+   "GR-14.9.27.4-4",
+   "GR-14.9.27.4-8",
+   "GR-14.9.27.4-16",
+   "GR-9.1.13.7-9",
+   "GR-9.1.13.6-6"
   ],
   "bridge": true,
-  "reason": "1985: \"must be a mass storage file and must be open in the I-O mode at the time of execution of this statement\"; 2023: \"shall have an open mode of I-O. If the open mode is some other value or the file is not open, the I-O status ... is set to '49'\". The I-O open-mode rule is kept, but 2023 REWRITE no longer requires a mass storage file (unlike its DELETE rule) and provides for line sequential files.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 REWRITE GR1: file 'must be a mass storage file and must be open in the I-O mode' (run-time; status 49/37). §2023:14.9.35.4 GR3 'The rewrite file connector shall have an open mode of I-O' ('49', §2023:9.1.13.7 GR9), connector per §2023:14.9.35.4 GR2; Table 20 (§2023:14.9.27.4 GR4, §2023:14.9.27.4 GR8) allows REWRITE only in I-O; §2023:14.9.27.4 GR16 and §2023:9.1.13.6 GR6 admit to I-O only a file supporting its I-O statements ('37'), carrying the mass-storage part. Same effect.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

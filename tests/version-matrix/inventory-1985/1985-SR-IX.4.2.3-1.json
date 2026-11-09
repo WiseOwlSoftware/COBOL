@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-14.9.6.2",
    "GR-14.9.6.4-10"
   ],
   "bridge": true,
-  "reason": "2023 sets no same-organization/access limit on CLOSE. GR-14.9.6.4-10 runs a multi-file CLOSE as separate per-file CLOSEs, so mixed-file CLOSEs are still accepted alike.",
-  "source": "audit-1985/state-route"
+  "reason": "No 2023 CLOSE rule requires the files to share organization or access mode. Format §2023:14.9.6.2 repeats file-name-1 with per-file phrases, and §2023:14.9.6.4 GR10 makes a multi-file CLOSE 'the same as if a separate CLOSE statement had been written for each file-name-1'. SR-14.9.6.3-3 restricts only a 2023-new context (exception-checking PERFORM). Mixed CLOSEs are accepted with the same effect.",
+  "source": "adjudicate-712/slice-28"
  }
 }

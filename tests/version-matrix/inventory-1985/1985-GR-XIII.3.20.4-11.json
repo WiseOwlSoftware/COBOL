@@ -1,0 +1,25 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-11",
+ "rule-digest": "7816ba8c29bd",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-1",
+   "GR-14.9.16.4-2",
+   "GR-14.9.16.4-4",
+   "GR-14.9.16.4-5",
+   "GR-13.18.54.4-3",
+   "GR-13.18.54.4-7",
+   "GR-14.9.49.4-8",
+   "GR-14.9.49.4-9",
+   "GR-14.9.45.4-1",
+   "GR-14.9.45.4-3",
+   "GR-8.4.3.15.4-5",
+   "GR-13.18.57.4-6"
+  ],
+  "bridge": true,
+  "reason": "1985 GR11 detail steps: a) subtotalling, b) USE BEFORE REPORTING, c) stop if suppressed or not printable, d) stop under GENERATE report-name, e) present. 2023: a) §2023:13.18.54.4 GR3, GR7 c) 'whenever any GENERATE statement is executed for the current report or any detail defined for the current report' (covers the no-detail case); b) §2023:14.9.49.4 GR8, GR9 b) 'After incrementing sum counters defined in the report group', before page fit and LINE processing; c) §2023:14.9.45.4 GR1, GR3, §2023:8.4.3.15.4 GR5 dummy group; d) §2023:14.9.16.4 GR2 'except that no detail is printed'; e) §2023:14.9.16.4 GR1, GR4, GR5, §2023:13.18.57.4 GR6 d). The rule refuses nothing; GENERATE report-name with two or more details is refused by the 1985 GENERATE syntax, whose record carries it. Same processing. GR-13.18.57.4-5 is not one of these steps.",
+  "source": "adjudicate-712-r2/slice-11"
+ }
+}

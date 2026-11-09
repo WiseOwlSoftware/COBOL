@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "FMT-14.9.41.2",
-   "GR-14.9.41.4-9"
+   "SR-14.9.41.3-3",
+   "FMT-8.7.5.1"
   ],
   "bridge": true,
-  "reason": "1985: \"KEY { IS EQUAL TO | IS = | IS GREATER THAN | IS > | IS NOT LESS THAN | IS NOT < | IS GREATER THAN OR EQUAL TO | IS >= } data-name-1\"; 2023: \"[ FIRST | KEY relational-operator {data-name-1|record-key-name-1} [WITH LENGTH ...] | LAST ]; LESS, NOT GREATER, or LESS OR EQUAL\". 2023 adds FIRST, LAST, record-key-name-1, the LENGTH phrase and backward operators. Its choice indicators also let INVALID KEY and NOT INVALID KEY appear in any order; 1985 fixed it.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 indexed START: START file-name-1 [KEY {IS EQUAL TO | = | GREATER | > | NOT LESS | NOT < | GREATER OR EQUAL | >=} data-name-1] [INVALID KEY] [NOT INVALID KEY] [END-START]. §2023:14.9.41.2 adds FIRST, LAST, record-key-name-1 and WITH LENGTH arithmetic-expression-1, and lets the INVALID KEY phrases appear in either order; §2023:14.9.41.3 SR3 admits any relational operator of the general relation \"with the exception of the relational operators 'IS NOT EQUAL TO' or 'IS NOT='\", i.e. the §2023:8.7.5.1 set including LESS, NOT GREATER and LESS OR EQUAL. 1985 STARTs keep their meaning. §2023:14.9.41.4 GR9 does not belong: it speaks of the \"relative record number\" and governs relative files.",
+  "source": "adjudicate-712/slice-01"
  }
 }

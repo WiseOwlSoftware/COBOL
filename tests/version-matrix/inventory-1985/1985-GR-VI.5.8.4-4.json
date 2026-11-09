@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-13.18.38.4-3"
+   "GR-13.18.38.4-3",
+   "GR-14.9.37.4-5"
   ],
   "bridge": true,
-  "reason": "1985: \"When the KEY IS phrase is specified, the repeated data must be arranged in ascending or descending order\"; 2023: \"shall be ordered when a SEARCH statement with the ALL phrase is executed if data-name-2 is specified in one of the conditions in the WHEN phrase\". 1985 requires ordering whenever KEY is given. 2023 requires it only during SEARCH ALL, for keys named in WHEN, using that WHEN condition's comparison rules. KEY also now drives table SORT.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'When the KEY IS phrase is specified, the repeated data must be arranged in ascending or descending order according to the values contained in data-name-2' (all keys, at all times; 1985 SEARCH GR3 makes SEARCH ALL predictable only when the table is 'ordered in the same manner as described in the KEY IS phrase'). §2023:13.18.38.4 GR3: 'The data associated with data-name-2 shall be ordered when a SEARCH statement with the ALL phrase is executed if data-name-2 is specified in one of the conditions in the WHEN phrase', the order by the comparison rules 'that apply to the condition specified in the WHEN phrase'; §2023:14.9.37.4 GR5 a) likewise covers only 'each key data item referenced in the WHEN phrase'. Keys not named in WHEN need no order; KEY also orders a table SORT. Looser requirement on the program.",
+  "source": "adjudicate-712/slice-10"
  }
 }

@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "FMT-13.15.2",
-   "SR-13.18.60.3-7"
+   "SR-13.18.60.3-7",
+   "FMT-13.18.60.2",
+   "GR-13.15.4-2"
   ],
   "bridge": true,
-  "reason": "1985: \"[ USAGE IS ] DISPLAY\"; 2023: \"Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item.\". 1985 permits only USAGE DISPLAY in a report group entry. 2023 also permits USAGE NATIONAL there, so programs 1985 refused are now accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 report-writer USAGE is '[USAGE IS] DISPLAY' only (§1985:XIII.3.21.3 SR3). §2023:13.15.2 gives '[USAGE IS] {DISPLAY|NATIONAL}' and §2023:13.18.60.3 SR7 'Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item', the clause otherwise being the general USAGE clause of §2023:13.18.60.2 (§2023:13.15.4 GR2). USAGE NATIONAL in a report group, refused in 1985, is accepted. CHANGED (looser).",
+  "source": "adjudicate-712/slice-03"
  }
 }

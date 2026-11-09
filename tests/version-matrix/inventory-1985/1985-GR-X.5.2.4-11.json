@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.4.4-3"
+   "GR-14.9.4.4-3",
+   "GR-14.2.3-2"
   ],
   "bridge": true,
-  "reason": "2023 still makes the USING argument values available to the called program when control passes to it. The no-exception condition only covers cases where no program is called, which 1985 also never reached.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: USING values 'are made available to the called program at the time the CALL statement is executed'. §2023:14.9.4.4 GR3 a): the values 'are made available to the called program at the time control is transferred to that program'; §2023:14.2.3 GR2 names 'the arguments specified in the USING phrase of a CALL statement'. The requirement holds for every 2023 argument form; the 'If an exception condition exists, no program is called' proviso is the no-call case. GR-14.2.3-9 is the BY CONTENT mechanism (a separate 1985 rule), not this one.",
+  "source": "adjudicate-712-r2/slice-10"
  }
 }

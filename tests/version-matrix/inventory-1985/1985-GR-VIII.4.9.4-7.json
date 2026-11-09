@@ -8,7 +8,7 @@
    "GR-14.9.51.4-12"
   ],
   "bridge": true,
-  "reason": "Both say a WRITE releases a logical record. 'Operating environment' is a term change. 'Successful' only states that a failed write does not take place; NOTE 3 is informative.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The execution of the WRITE statement releases a logical record to the operating system.' §2023:14.9.51.4 GR12: 'The successful execution of a WRITE statement releases a logical record to the operating environment'. 'Successful' only spells out 1985 GR2/GR15 (a failed WRITE does not take place); the rest is wording. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

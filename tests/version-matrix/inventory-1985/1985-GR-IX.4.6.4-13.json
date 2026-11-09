@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.35.4-22",
-   "GR-14.9.35.4-25"
+   "GR-14.9.35.4-25",
+   "GR-9.1.13.5-1"
   ],
   "bridge": true,
-  "reason": "2023 GR22 restates the rule: for sequential access the prime key identifies the record and must equal the key of the last record read. The '21' result belongs to the separate invalid key rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: in sequential access the record replaced is specified by the prime key, which 'must be equal to the value of the prime record key of the last record read from this file'. §2023:14.9.35.4 GR22 'shall be equal to the value of the prime record key of the last record read using this file connector', status 21 as 1985 GR16a/GR17; §2023:14.9.35.4 GR25 a) and §2023:9.1.13.5 GR1 'The prime record key value has been changed by the runtime element between the successful execution of a READ statement' and the REWRITE restate the violation. Run-time in both; file vs file connector is terminology.",
+  "source": "adjudicate-712-r2/slice-02"
  }
 }

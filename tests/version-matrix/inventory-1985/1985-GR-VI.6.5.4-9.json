@@ -5,10 +5,13 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.1.4-11"
+   "GR-14.9.1.4-11",
+   "GR-7.3.17.4-1",
+   "GR-7.3.17.4-2",
+   "GR-7.3.17.4-3"
   ],
   "bridge": true,
-  "reason": "1985: \"The minimum value of TIME is 00000000; the maximum value of TIME is 23595999.\"; 2023: \"00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect\". Same 8-digit hhmmsscc layout, 24-hour basis and zero for missing fractions. Under LEAP-SECOND ON, 2023 adds a case: seconds may exceed 59 up to an implementor-defined limit.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The minimum value of TIME is 00000000; the maximum value of TIME is 23595999.' §2023:14.9.1.4 GR11 keeps the 8-digit hhmmsscc layout, the 24-hour basis and zero for unavailable fractions, but makes the seconds range '00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect' or '00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect'; under ON 'the implementor defines whether a value greater than 59 may be reported' (§2023:7.3.17.4 GR2). The implied OFF default (§2023:7.3.17.4 GR1, GR3) keeps 1985 programs at 23595999, but a program 2023 accepts (with >>LEAP-SECOND ON) gets an implementor-defined maximum: a case added, the fixed maximum made implementor-defined.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

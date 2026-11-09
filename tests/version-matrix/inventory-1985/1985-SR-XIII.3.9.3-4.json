@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "SR-13.15.3-3",
-   "SR-13.15.3-4"
+   "SR-13.15.3-4",
+   "SR-13.15.3-11",
+   "GR-13.15.4-1"
   ],
   "bridge": true,
-  "reason": "1985: \"A description of a report group may consist of one, two, or three hierarchic levels\"; 2023: \"Level-number shall be any integer from 1 through 49.\". Both require the first entry to be level 1. 2023 allows level-numbers 1-49, so report groups nested deeper than three levels, refused in 1985, are accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 limits a report group to 'one, two, or three hierarchic levels' (format 1 at 01, format 2 at 02-48 over format 3 elementary entries). 2023 keeps the level-1 first entry (§2023:13.15.3 SR4, §2023:13.15.4 GR1) and elementary-only PICTURE/COLUMN/SOURCE/VALUE/SUM (§2023:13.15.3 SR11) but allows 'any integer from 1 through 49' with no depth cap (§2023:13.15.3 SR3), so deeper nesting refused in 1985 is accepted. Looser; no exception condition involved.",
+  "source": "adjudicate-712/slice-35"
  }
 }
