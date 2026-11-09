@@ -15446,6 +15446,57 @@
    "opens": [
     "║or rewrite║ a record that would create a duplicate prime rec"
    ]
+  },
+  {
+   "page": 519,
+   "n": 723,
+   "region": "paragraph",
+   "where": "1.3.8 Scope of Names, second paragraph: 'either' and 'which contains ... that program', boxed by Amendment 1, Addendum 1, row X-5 (T) (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 2,
+   "opens": [
+    "║either║ in that program",
+    "║which contains a Configuration Section or in any program con"
+   ]
+  },
+  {
+   "page": 520,
+   "n": 724,
+   "region": "rule",
+   "where": "1.3.8.1 rule 3, boxed by Amendment 1, Addendum 1, row X-6 (T) (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║except programs it directly or indirectly contains║"
+   ]
+  },
+  {
+   "page": 524,
+   "n": 725,
+   "region": "rule",
+   "where": "2.4.2 Programs in the Initial State, items 3 and 4, boxed by Amendment 1, Addendum 1, row X-10 (T) (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 2,
+   "opens": [
+    "║(3) Every time the program is called",
+    "║(4) The first time the program is called after the execution"
+   ]
+  },
+  {
+   "page": 535,
+   "n": 726,
+   "region": "paragraph",
+   "where": "4.3.1 Function, 'or global names' and 'or external', boxed by Amendment 1, Addendum 1, row X-19 (T) (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 2,
+   "opens": [
+    "║or global names║",
+    "║or external║ attribute"
+   ]
   }
  ]
 }

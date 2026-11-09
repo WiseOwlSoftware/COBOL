@@ -19545,7 +19545,9 @@ Inter-Program Communication - Introduction
 
 ### 1.1 FUNCTION
 
-The Inter-Program Communication module provides a facility by which a program can communicate with one or more programs. This communication is provided by: (a) the ability to transfer control from one program to another within a run unit and (b) the ability to pass parameters between programs to make certain data value available to a called program. ║The Inter-Program Communication module also permits communication between two programs by the sharing of data and the sharing of files.║
+The Inter-Program Communication module provides a facility by which a program can communicate with one or more programs. This communication is provided by: (a) the ability to transfer control from one program to another within a run unit and (b) the ability to pass parameters between programs to make certain data values available to a called program. ║The Inter-Program Communication module also permits communication between two programs by the sharing of data and the sharing of files.║
+
+> ⚠ **CORRECTED — see the Errata (C143).** The standard prints `to make certain data value available to a called program` (page 515, folio X-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-1 (T) (page 850, folio A-20), applied in place: "Paragraph 1.1, Function for Inter-Program Communication module, fifth line, change 'data value available' to 'data values available'", a typographical error (kb/Work PB5045). Corrected to `to make certain data values available to a called program`.
 
 ### 1.2 LEVEL CHARACTERISTICS
 
@@ -19591,7 +19593,9 @@ If a data-name, a file-name, or a condition-name declared in a data description 
 
 Accessible data items usually require that certain representations of data be stored. File connectors usually require that certain information concerning files be stored. The storage associated with a data item or a file connector may be ║external or║ internal to the program in which the object is declared.
 
-║A data item or file connector is external if the storage associated with that object is associated with the run unit rather than with any particular program within the run unit. An external object may be referenced by any program in the run unit which describes the object. References to an external object from different programs using separate descriptions of the object are always to the same object. In a run unit, there is only one representative of an external object.║
+║A data item or file connector is external if the storage associated with that object is associated with the run unit rather than with any particular program within the run unit. An external object may be referenced by any program in the run unit which describes the object. References to an external object from different programs using separate descriptions of the object are always to the same object. In a run unit, there is only one representation of an external object.║
+
+> ⚠ **CORRECTED — see the Errata (C144).** The standard prints `there is only one representative of an external object.` (page 516, folio X-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-2 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.4, entitled 'External Objects and Internal Objects', second paragraph, last sentence, change 'representative' to 'representation'", a typographical error (kb/Work PB5045). Corrected to `there is only one representation of an external object.`.
 
 An object is internal if the storage associated with that object is associated only with the program which describes the object.
 
@@ -19670,7 +19674,9 @@ The following types of user-defined words when they are declared in a Communicat
 2. data-name
 3. record-name
 
-The following types of names, when they are declared within a Configuration Section, may be referenced only by statements and entries either in that program which contains a Configuration Section or in any program contained within that program:
+The following types of names, when they are declared within a Configuration Section, may be referenced only by statements and entries ║either║ in that program ║which contains a Configuration Section or in any program contained within that program║:
+
+> ⚠ **CORRECTED — see the Errata (C145).** The standard prints `statements and entries either in that program which contains a Configuration Section or in any program contained within that program:` (page 519, folio X-5). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-5 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.8, entitled 'Scope of Names', second paragraph on page X-5, second line, box the word 'either'. In the same paragraph, third and fourth lines, box 'which contains a Configuration Section or in any program contained within that program'", a typographical error (kb/Work PB5045). Corrected to `statements and entries ║either║ in that program ║which contains a Configuration Section or in any program contained within that program║:`.
 
 1. alphabet-name
 2. class-name
@@ -19704,7 +19710,9 @@ X-5
 
 Inter-Program Communication - Introduction
 
-(3) If the program-name is that of a program which is separately compiled, that program-name may be referenced by statements included in any other program in the run unit, except programs it directly or indirectly contains.
+(3) If the program-name is that of a program which is separately compiled, that program-name may be referenced by statements included in any other program in the run unit, ║except programs it directly or indirectly contains║.
+
+> ⚠ **CORRECTED — see the Errata (C146).** The standard prints `in the run unit, except programs it directly or indirectly contains.` (page 520, folio X-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-6 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.8.1, entitled 'Conventions for Program-Names', rule 3, box 'except programs it directly or indirectly contains'", a typographical error (kb/Work PB5045). Corrected to `in the run unit, ║except programs it directly or indirectly contains║.`.
 
 ### 1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names
 
@@ -19838,9 +19846,11 @@ A program is in the initial state:
 
 ║(2) The first time the program is called after the execution of a CANCEL statement referencing the program or a CANCEL statement referencing a program that directly or indirectly contains the program.║
 
-(3) Every time the program is called, if it possesses the initial attribute.
+║(3) Every time the program is called, if it possesses the initial attribute.║
 
-(4) The first time the program is called after the execution of a CALL statement referencing a program that possesses the initial attribute, and that directly or indirectly contains the program.
+║(4) The first time the program is called after the execution of a CALL statement referencing a program that possesses the initial attribute, and that directly or indirectly contains the program.║
+
+> ⚠ **CORRECTED — see the Errata (C147).** The standard prints `(3) Every time the program is called ... (4) The first time the program is called after the execution of a CALL statement ... (not boxed)` (page 524, folio X-10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-10 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4.2, entitled 'Programs in the Initial State', box numbered paragraphs 3 and 4", a typographical error (kb/Work PB5045). Corrected to `║(3) ...║ ║(4) ...║`.
 
 X-10
 
@@ -20211,9 +20221,13 @@ Inter-Program Communication - Data Description Entry
 
 ### 4.3.1 Function
 
-Within the Inter-Program Communication module, a level 01 data description entry within the Working-Storage Section or File Section determines whether the data record and its subordinate data items have local names or global names.
+Within the Inter-Program Communication module, a level 01 data description entry within the Working-Storage Section or File Section determines whether the data record and its subordinate data items have local names ║or global names║.
 
-Within the Inter-Program Communication module, a level 01 data description entry in the Working-Storage Section determines the internal or external attribute of the data record and its subordinate data items.
+> ⚠ **CORRECTED — see the Errata (C148).** The standard prints `have local names or global names.` (page 535, folio X-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-19 (T) (page 850, folio A-20), applied in place: "Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, first paragraph, last line, box 'or global names'", a typographical error (kb/Work PB5045). Corrected to `have local names ║or global names║.`.
+
+Within the Inter-Program Communication module, a level 01 data description entry in the Working-Storage Section determines the internal ║or external║ attribute of the data record and its subordinate data items.
+
+> ⚠ **CORRECTED — see the Errata (C149).** The standard prints `determines the internal or external attribute of the data record` (page 535, folio X-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-19 (T) (page 850, folio A-20), applied in place: "Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, second paragraph, second line, box 'or external'", a typographical error (kb/Work PB5045). Corrected to `determines the internal ║or external║ attribute of the data record`.
 
 X-19
 
@@ -20514,6 +20528,10 @@ The CALL statement causes control to be transferred from one object program to a
 
 (3) Each of the operands in the USING phrase must have been defined as a data item in the File Section, Working-Storage Section, Communication Section, or Linkage Section, and must be a level 01 data item, a level 77 data item, or an elementary data item.
 
+(4) Identifier-2 must not be a function-identifier.
+
+> ⚠ **CORRECTED — see the Errata (C150).** The standard prints `(3) Each of the operands in the USING phrase ... or an elementary data item.` (page 543, folio X-27). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-27 (page 850, folio A-20), applied in place: "Paragraph 5.2.3, add new syntax rule 4 as follows" (kb/Work PB5045). Corrected to `(4) Identifier-2 must not be a function-identifier.`.
+
 5.2.4 General Rules
 
 (1) Literal-1 ║or the content of the data item referenced by identifier-1║ is the name of the called program. The program in which the CALL statement appears is the calling program. If the program being called is a COBOL program, literal-1 ║or the content of the data item referenced by identifier-1║ must contain the program-name contained in the PROGRAM-ID paragraph of the called program. If the program being called is not a COBOL program, the rules for formation of the program-name are defined by the implementor.
@@ -20574,7 +20592,9 @@ On all other entries into the called program, the states and positioning of all 
 
 (9) If the program being called is a COBOL program, the USING phrase is included in the CALL statement only if there is a USING phrase in the Procedure Division header of the called program, in which case the number of operands in each USING phrase must be identical. If the program being called is other than a COBOL program, the use of the USING phrase is defined by the implementor.
 
-(10) The sequence of appearance of the data-names in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the data-names used by the calling and called programs. This correspondence is positional and not by name equivalence; the first data-name in one USING phrase corresponds to the first data-name in the other, the second to the second, etc.
+(10) The sequence of appearance of the parameters in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the parameters used by the calling and called programs. This correspondence is positional and not by name equivalence; the first parameter in one USING phrase corresponds to the first parameter in the other, the second to the second, etc.
+
+> ⚠ **CORRECTED — see the Errata (C151).** The standard prints `(10) The sequence of appearance of the data-names in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the data-names used by the calling and called programs. This correspondence is positional and not by name equivalence; the first data-name in one USING phrase corresponds to the first data-name in the other` (page 545, folio X-29). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-29 (T) (page 850, folio A-20), applied in place: "Paragraph 5.2.4 of the CALL statement, general rule 10, change two occurrences of 'data-names' to 'parameters'; also change two occurrences of 'data-name' to 'parameter'", a typographical error (kb/Work PB5045). Corrected to the text above.
 
 (11) The values of the parameters referenced in the USING phrase of the CALL statement are made available to the called program at the time the CALL statement is executed.
 
@@ -21040,7 +21060,9 @@ The MERGE statement combines two or more identically sequenced files on a set of
 
 (2) File-name-1 must be described in a sort-merge file description entry in the Data Division.
 
-(3) If the file referenced by file-name-1 contains variable length records, the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be less than the smallest record nor greater than the largest record described for file-name-1. If the file referenced by file-name-1 contains fixed length records, the size of the records contained in the file referenced by file-name-2 and file-name-3 must not be greater than the largest record described for file-name-1.
+(3) If the file referenced by file-name-1 contains variable length records, the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be less than the smallest record nor greater than the largest record described for file-name-1. If the file referenced by file-name-1 contains fixed length records, the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be greater than the largest record described for file-name-1.
+
+> ⚠ **CORRECTED — see the Errata (C152).** The standard prints `the size of the records contained in the file referenced by file-name-2 and file-name-3 must not be greater` (page 560, folio XI-8). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XI-8 (T) (page 850, folio A-20), applied in place: "Paragraph 4.1.3 of the MERGE statement, syntax rule 3, fifth line, change 'in the file' to 'in the files'", a typographical error (kb/Work PB5045). Corrected to `the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be greater`.
 
 (4) Data-name-1 is a key data-name. Key data-names are subject to the following rules:
 
@@ -21188,7 +21210,9 @@ The RELEASE statement transfers records to the initial phase of a sort operation
 
 (2) A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement for the file-name whose sort-merge file description entry contains record-name-1.
 
-(3) Record-name-1 and identifier-1 must not refer to the same storage area.
+(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C153).** The standard prints `(3) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 565, folio XI-13). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XI-13 (page 850, folio A-20), applied in place: "Paragraph 4.2.3, change syntax rule 3 to read" (kb/Work PB5045). Corrected to `(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
 
 ### 4.2.4 General Rules
 
@@ -21568,7 +21592,9 @@ Source Text Manipulation - COPY
 
 ║(6) Comment lines or blank lines occurring in the library text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the library text, if any, and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines appearing in pseudo-text-2 are copied into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement.║ Comment lines or blank lines appearing in library text are copied into the resultant source program unchanged ║with the following exception: a comment line or blank line in library text is not copied if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.║
 
-(7) Debugging lines are permitted within library text ║and pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area. A debugging line is specified within pseudo-text if the debugging line begins in the source program after the opening pseudo-text-delimiter but before the matching closing pseudo-text-delimiter.║
+(7) Debugging lines are permitted within library text ║and pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area. A debugging line is specified within pseudo-text if the debugging line begins in the source program after the opening pseudo-text delimiter but before the matching closing pseudo-text delimiter.║
+
+> ⚠ **CORRECTED — see the Errata (C154).** The standard prints `after the opening pseudo-text-delimiter but before the matching closing pseudo-text-delimiter.` (page 578, folio XII-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4 of the COPY statement, general rule 7, fifth and sixth lines, change two occurrences of 'pseudo-text-delimiter' to 'pseudo-text delimiter'", a typographical error (kb/Work PB5045). Corrected to `after the opening pseudo-text delimiter but before the matching closing pseudo-text delimiter.`.
 
 (8) The syntactic correctness of the library text cannot be independently determined. Except for COPY ║and REPLACE║ statements, the syntactic correctness of the entire COBOL source program cannot be determined until all COPY ║and REPLACE║ statements have been completely processed.
 
@@ -21576,7 +21602,9 @@ Source Text Manipulation - COPY
 
 Library text must conform to the rules for COBOL reference format.
 
-If additional lines are introduced into the source program as a result of a COPY statement, each text word introduced appears on a debugging line if the COPY statement begins on a debugging line or if the text word being introduced appears on a debugging line in library text. ║When a text word║
+If additional lines are introduced into the source program as a result of a COPY statement, each text word introduced appears on a debugging line if the COPY statement begins on a debugging line or if the text word being introduced appears on a debugging line in library text. ║When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except║
+
+> ⚠ **CORRECTED — see the Errata (C155).** The standard prints `║When a text word║` (page 578, folio XII-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4 of the COPY statement, general rule 9, third paragraph, fourth line, change 'When a text word' to 'When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except'", a typographical error (kb/Work PB5045). Corrected to `║When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except║`.
 
 XII-4
 
@@ -37595,6 +37623,19 @@ it is taken as the rule of 1985.
 | [C140](#errata-c140) | 503 | IX-33 | Section IX, paragraph 4.6.3 (REWRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
 | [C141](#errata-c141) | 503 | IX-33 | Section IX, paragraph 4.6.3 (REWRITE), syntax rule 3 | `(3) The INVALID KEY and the NOT INVALID KEY phrases must be…` | `(3) The INVALID KEY phrase must be specified in the REWRITE…` | amendment-1 |
 | [C142](#errata-c142) | 511 | IX-41 | Section IX, paragraph 4.9.3 (WRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C143](#errata-c143) | 515 | X-1 | Section X, paragraph 1.1 (Function) | `data value available` | `data values available` | amendment-1 |
+| [C144](#errata-c144) | 516 | X-2 | Section X, paragraph 1.3.4 (External Objects and Internal Objects), second paragraph | `representative` | `representation` | amendment-1 |
+| [C145](#errata-c145) | 519 | X-5 | Section X, paragraph 1.3.8 (Scope of Names), the second paragraph on page X-5 | `either ... which contains a Configuration Section ...` | `║either║ ... ║which contains ... that program║` | amendment-1 |
+| [C146](#errata-c146) | 520 | X-6 | Section X, paragraph 1.3.8.1 (Conventions for Program-Names), rule 3 | `except programs it directly or indirectly contains` | `║except programs ... contains║` | amendment-1 |
+| [C147](#errata-c147) | 524 | X-10 | Section X, paragraph 2.4.2 (Programs in the Initial State), items 3 and 4 | `(3), (4) not boxed` | `(3), (4) boxed` | amendment-1 |
+| [C148](#errata-c148) | 535 | X-19 | Section X, paragraph 4.3.1 (Function), first paragraph | `or global names` | `║or global names║` | amendment-1 |
+| [C149](#errata-c149) | 535 | X-19 | Section X, paragraph 4.3.1 (Function), second paragraph | `or external` | `║or external║` | amendment-1 |
+| [C150](#errata-c150) | 543 | X-27 | Section X, paragraph 5.2.3 (CALL), a new syntax rule 4 | `(no rule 4)` | `(4) Identifier-2 must not be a function-identifier.` | amendment-1 |
+| [C151](#errata-c151) | 545 | X-29 | Section X, paragraph 5.2.4 (CALL), general rule 10 | `data-names, data-name` | `parameters, parameter` | amendment-1 |
+| [C152](#errata-c152) | 560 | XI-8 | Section XI, paragraph 4.1.3 (MERGE), syntax rule 3 | `in the file` | `in the files` | amendment-1 |
+| [C153](#errata-c153) | 565 | XI-13 | Section XI, paragraph 4.2.3 (RELEASE), syntax rule 3 | `(3) Record-name-1 and identifier-1 must not refer to the sa…` | `(3) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C154](#errata-c154) | 578 | XII-4 | Section XII, paragraph 2.4 (COPY), general rule 7 | `pseudo-text-delimiter (twice)` | `pseudo-text delimiter` | amendment-1 |
+| [C155](#errata-c155) | 578 | XII-4 | Section XII, paragraph 2.4 (COPY), general rule 9, third paragraph | `When a text word` | `When a text word specified in the BY phrase is introduced,…` | amendment-1 |
 
 <a id="errata-c1"></a>
 
@@ -39157,6 +39198,149 @@ Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (T) (page 
 | **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
 
 Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-41 (page 850, folio A-20), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c143"></a>
+
+### C143 · page 515 (folio X-1) · Section X, paragraph 1.1 (Function) · `data value available` → `data values available`
+
+| | |
+|---|---|
+| **Printed** | `to make certain data value available to a called program` |
+| **This transcription** | `to make certain data values available to a called program` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-1 (T) (page 850, folio A-20), applied in place: "Paragraph 1.1, Function for Inter-Program Communication module, fifth line, change 'data value available' to 'data values available'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c144"></a>
+
+### C144 · page 516 (folio X-2) · Section X, paragraph 1.3.4 (External Objects and Internal Objects), second paragraph · `representative` → `representation`
+
+| | |
+|---|---|
+| **Printed** | `there is only one representative of an external object.` |
+| **This transcription** | `there is only one representation of an external object.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-2 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.4, entitled 'External Objects and Internal Objects', second paragraph, last sentence, change 'representative' to 'representation'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c145"></a>
+
+### C145 · page 519 (folio X-5) · Section X, paragraph 1.3.8 (Scope of Names), the second paragraph on page X-5 · `either ... which contains a Configuration Section…` → `║either║ ... ║which contains ... that program║`
+
+| | |
+|---|---|
+| **Printed** | `statements and entries either in that program which contains a Configuration Section or in any program contained within that program:` |
+| **This transcription** | `statements and entries ║either║ in that program ║which contains a Configuration Section or in any program contained within that program║:` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-5 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.8, entitled 'Scope of Names', second paragraph on page X-5, second line, box the word 'either'. In the same paragraph, third and fourth lines, box 'which contains a Configuration Section or in any program contained within that program'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c146"></a>
+
+### C146 · page 520 (folio X-6) · Section X, paragraph 1.3.8.1 (Conventions for Program-Names), rule 3 · `except programs it directly or indirectly contains` → `║except programs ... contains║`
+
+| | |
+|---|---|
+| **Printed** | `in the run unit, except programs it directly or indirectly contains.` |
+| **This transcription** | `in the run unit, ║except programs it directly or indirectly contains║.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-6 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.8.1, entitled 'Conventions for Program-Names', rule 3, box 'except programs it directly or indirectly contains'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c147"></a>
+
+### C147 · page 524 (folio X-10) · Section X, paragraph 2.4.2 (Programs in the Initial State), items 3 and 4 · `(3), (4) not boxed` → `(3), (4) boxed`
+
+| | |
+|---|---|
+| **Printed** | `(3) Every time the program is called ... (4) The first time the program is called after the execution of a CALL statement ... (not boxed)` |
+| **This transcription** | `║(3) ...║ ║(4) ...║` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-10 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4.2, entitled 'Programs in the Initial State', box numbered paragraphs 3 and 4", a typographical error (kb/Work PB5045).
+
+<a id="errata-c148"></a>
+
+### C148 · page 535 (folio X-19) · Section X, paragraph 4.3.1 (Function), first paragraph · `or global names` → `║or global names║`
+
+| | |
+|---|---|
+| **Printed** | `have local names or global names.` |
+| **This transcription** | `have local names ║or global names║.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-19 (T) (page 850, folio A-20), applied in place: "Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, first paragraph, last line, box 'or global names'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c149"></a>
+
+### C149 · page 535 (folio X-19) · Section X, paragraph 4.3.1 (Function), second paragraph · `or external` → `║or external║`
+
+| | |
+|---|---|
+| **Printed** | `determines the internal or external attribute of the data record` |
+| **This transcription** | `determines the internal ║or external║ attribute of the data record` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-19 (T) (page 850, folio A-20), applied in place: "Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, second paragraph, second line, box 'or external'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c150"></a>
+
+### C150 · page 543 (folio X-27) · Section X, paragraph 5.2.3 (CALL), a new syntax rule 4 · `(no rule 4)` → `(4) Identifier-2 must not be a function-identifie…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Each of the operands in the USING phrase ... or an elementary data item.` |
+| **This transcription** | `(4) Identifier-2 must not be a function-identifier.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-27 (page 850, folio A-20), applied in place: "Paragraph 5.2.3, add new syntax rule 4 as follows" (kb/Work PB5045).
+
+<a id="errata-c151"></a>
+
+### C151 · page 545 (folio X-29) · Section X, paragraph 5.2.4 (CALL), general rule 10 · `data-names, data-name` → `parameters, parameter`
+
+| | |
+|---|---|
+| **Printed** | `(10) The sequence of appearance of the data-names in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the data-names used by the calling and called programs. This correspondence is positional and not by name equivalence; the first data-name in one USING phrase corresponds to the first data-name in the other` |
+| **This transcription** | `(10) The sequence of appearance of the parameters in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the parameters used by the calling and called programs. This correspondence is positional and not by name equivalence; the first parameter in one USING phrase corresponds to the first parameter in the other` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-29 (T) (page 850, folio A-20), applied in place: "Paragraph 5.2.4 of the CALL statement, general rule 10, change two occurrences of 'data-names' to 'parameters'; also change two occurrences of 'data-name' to 'parameter'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c152"></a>
+
+### C152 · page 560 (folio XI-8) · Section XI, paragraph 4.1.3 (MERGE), syntax rule 3 · `in the file` → `in the files`
+
+| | |
+|---|---|
+| **Printed** | `the size of the records contained in the file referenced by file-name-2 and file-name-3 must not be greater` |
+| **This transcription** | `the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be greater` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XI-8 (T) (page 850, folio A-20), applied in place: "Paragraph 4.1.3 of the MERGE statement, syntax rule 3, fifth line, change 'in the file' to 'in the files'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c153"></a>
+
+### C153 · page 565 (folio XI-13) · Section XI, paragraph 4.2.3 (RELEASE), syntax rule 3 · `(3) Record-name-1 and identifier-1 must not refer…` → `(3) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XI-13 (page 850, folio A-20), applied in place: "Paragraph 4.2.3, change syntax rule 3 to read" (kb/Work PB5045).
+
+<a id="errata-c154"></a>
+
+### C154 · page 578 (folio XII-4) · Section XII, paragraph 2.4 (COPY), general rule 7 · `pseudo-text-delimiter (twice)` → `pseudo-text delimiter`
+
+| | |
+|---|---|
+| **Printed** | `after the opening pseudo-text-delimiter but before the matching closing pseudo-text-delimiter.` |
+| **This transcription** | `after the opening pseudo-text delimiter but before the matching closing pseudo-text delimiter.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4 of the COPY statement, general rule 7, fifth and sixth lines, change two occurrences of 'pseudo-text-delimiter' to 'pseudo-text delimiter'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c155"></a>
+
+### C155 · page 578 (folio XII-4) · Section XII, paragraph 2.4 (COPY), general rule 9, third paragraph · `When a text word` → `When a text word specified in the BY phrase is in…`
+
+| | |
+|---|---|
+| **Printed** | `║When a text word║` |
+| **This transcription** | `║When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except║` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4 of the COPY statement, general rule 9, third paragraph, fourth line, change 'When a text word' to 'When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except'", a typographical error (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
