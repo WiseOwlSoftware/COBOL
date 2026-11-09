@@ -94,12 +94,7 @@ _FORMAT_KIND = "FMT"
 #: docstring); each was searched for a rule of its own (branch review R2-1, wave 20261935 C). The fix is a catalog that
 #: numbers each format's alternatives, which no note carries yet (the report's lead names it for the registrar).
 FORMAT_ONLY = "the catalog holds the general format as one rule and no SR or GR names this construct (lead R2-1, w20261935 C)"
-HELD_OPEN: dict[str, str] = {
-    # ANSI X3.23-1985 deleted REMARKS (§1985:A, its history of COBOL, item 8: "The deletion of NOTE and REMARKS in
-    # favor of a general comment capability for all divisions"), so the window that accepts the REMARKS paragraph at
-    # --std 85 accepts what the 1985 text does not have (the open question of kb/Work PB1802 item 2, answered by the text).
-    "constructs.json remarks-removed-2002": "kb/Work PB4996 lead: REMARKS accepted at --std 85, a leniency for CCVS",
-} | {f"constructs.json {c}": FORMAT_ONLY for c in (
+HELD_OPEN: dict[str, str] = {f"constructs.json {c}": FORMAT_ONLY for c in (
     "end-accept-2002", "end-display-2002",                   # a scope terminator; §2023:14.5.3.2 GR1 is KEPT
     "identification-header-optional-2002",                   # the bracketed header of §2023:11.2.1
     "computer-name-optional-2002",                           # §2023:12.3.6.2

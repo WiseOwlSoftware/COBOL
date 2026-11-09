@@ -318,8 +318,7 @@ public static class WordCharacterScreen
             var node = pending.Pop();
             if (node is CobolParserCore.CommentEntryContext entry)
             {
-                if (entry.Stop is not null)
-                    for (int i = entry.Start.TokenIndex; i <= entry.Stop.TokenIndex; i++) commentEntries.Add(i);
+                CommentEntryTokens.AddTo(entry, commentEntries);
                 continue;
             }
             if (node is ITerminalNode t)

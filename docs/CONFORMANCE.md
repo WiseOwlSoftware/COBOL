@@ -2385,10 +2385,10 @@ of an unsupported facility.
   Witness: `conformance:cases/_unassigned/pb4810-debug-contents-and-sub-values`.
 
 - **D-CE1 — where a FREE-form comment-entry ends** (kb/Work PB3245, review finding R1-1; PB1494, PB1758). The
-  comment-entry paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY, REMARKS) are COBOL-85's,
-  removed by COBOL-2002, the edition that introduced free form, so no edition of the standard says where a free-form
-  comment-entry ends: it is accepted only at `--std 85 --source-format free` (WiseOwl's free form at 85) and under
-  `--permissive`. **Determination (CLAUDE.md rule 1: the standard is silent, so GnuCOBOL decides):** GnuCOBOL 3.2's
+  comment-entry paragraphs (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY) are COBOL-85's,
+  removed by COBOL-2002, the edition that introduced free form, and REMARKS is in no held edition (§1985:VI.3.2.1.1,
+  kb/Work PB5026), so no edition of the standard says where a free-form comment-entry ends: it is accepted only at
+  `--std 85 --source-format free` (WiseOwl's free form at 85; REMARKS not even there) and under `--permissive`. **Determination (CLAUDE.md rule 1: the standard is silent, so GnuCOBOL decides):** GnuCOBOL 3.2's
   `-free` reading. Inside an IDENTIFICATION DIVISION, a line whose FIRST word is one of those paragraph words opens the
   paragraph, its period optional, and the entry is the rest of that line; the next line is program text again. GnuCOBOL
   3.2 measured: `AUTHOR. Pat O'Brien.`, `AUTHOR Pat O'Brien.` and `SECURITY. J. Smith.` are accepted, the paragraph

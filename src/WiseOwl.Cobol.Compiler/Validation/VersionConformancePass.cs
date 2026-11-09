@@ -684,6 +684,17 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>APPLY COMMIT (I-O-CONTROL, ISO §2023:12.4.6.3) — the commit-and-rollback facility, a COBOL-2023
+        /// introduction (§2023:E.3.2 item 2), gated on RECOGNITION (kb/Work PB5025). The arm is the union grammar, so at
+        /// --std 2014 <c>APPLY COMMIT ON F.</c> reaches here and names the edition where the {is2023()}? construct gate
+        /// made it the closed-format refusal (COBOL1970). The §2023:12.4.6.3.3 syntax rules stay in the binder
+        /// (<c>FileControlBinder.BindApplyCommitClause</c>); this arm only names the edition.</summary>
+        public override object? VisitApplyCommitClause(CobolParserCore.ApplyCommitClauseContext ctx)
+        {
+            _p.Check(Constructs.ApplyCommitClause2023, "the I-O-CONTROL APPLY COMMIT clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>PADDING CHARACTER (file control entry) — the ANSI X3.23-1985 Sequential I-O block-fill
         /// character, DELETED from the standard: the 2023 file control entry's clauses are §2023:12.4.5.4–§2023:12.4.5.15
         /// and none is PADDING, and the word appears nowhere in the 2023 text (§2023:8.9's list runs PACKED-DECIMAL →
@@ -739,10 +750,12 @@ internal sealed class VersionConformancePass
         public override object? VisitSecurityParagraph(CobolParserCore.SecurityParagraphContext ctx)
         { _p.Check(Constructs.IdentificationCommentsRemoved2002, "the SECURITY paragraph"); return base.VisitChildren(ctx); }
 
-        /// <summary>REMARKS — a '74 carryover the grammar accepts for CCVS; flagged ≥2002 ONLY (never at 85 —
-        /// CCVS-85 programs write it; the 85 FIPS flagger is future strictness work, P2.6).</summary>
+        /// <summary>REMARKS — in no held edition: the X3.23-1985 Identification Division general format
+        /// (§1985:VI.3.2.1.1) prints only PROGRAM-ID and the five comment paragraphs above, the CODASYL Journal of
+        /// Development 1968 having deleted REMARKS (§1985:A.2.5). The grammar recognizes it only so every edition
+        /// refuses it by name, and <c>--permissive</c> warns instead (kb/Work PB5026).</summary>
         public override object? VisitRemarksParagraph(CobolParserCore.RemarksParagraphContext ctx)
-        { _p.Check(Constructs.RemarksRemoved2002, "the REMARKS paragraph"); return base.VisitChildren(ctx); }
+        { _p.Check(Constructs.RemarksRemoved85, "the REMARKS paragraph"); return base.VisitChildren(ctx); }
 
         /// <summary>STOP literal (Format 2) — obsolete '85 element deleted 2002 (P2.6). The STOP RUN … WITH
         /// STATUS phrase (Format 1, a 2002 INTRODUCTION) is the disjoint alternative, gated in the same
@@ -2454,7 +2467,7 @@ internal sealed class VersionConformancePass
         { _p.Check(Constructs.CommunicationKeyPhraseRemoved2002, "the KEY phrase"); return base.VisitChildren(ctx); }
 
         /// <summary>The asynchronous messaging statements, RECEIVE (ISO §2023:14.9.31) and SEND (§2023:14.9.38) — a COBOL-2023
-        /// introduction (Annex E.3.2 item 1), gated on RECOGNITION (kb/Work PB374). Both arms are the union grammar:
+        /// introduction (§2023:E.3.2 item 1), gated on RECOGNITION (kb/Work PB374). Both arms are the union grammar:
         /// they parse at every edition, because §2023:8.9 reserves the two verbs at COBOL-85 for the '85 communication
         /// module and at 2023 for this facility with a user-word gap between, so the reservation predicate they used to
         /// carry recognized the 2023 formats at --std 85 and compiled them under a warning naming the 2023 facility.

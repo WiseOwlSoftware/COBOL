@@ -44,7 +44,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | segment-limit-removed-2002 | OBJECT-COMPUTER SEGMENT-LIMIT (deleted 2002) | VCR Table 7 | 85 | 2002 | 0902 | active |
 | debugging-mode-removed-2014 | SOURCE-COMPUTER WITH DEBUGGING MODE (obsolete 2002, removed 2014) | VCR Table 7 row 7.9; kb/Work R61 | 85 | 2014 | 0902 | active |
 | identification-comments-removed-2002 | AUTHOR/INSTALLATION/DATE-*/SECURITY paragraphs (deleted 2002) | VCR Table 7 | 85 | 2002 | 0902 | active |
-| remarks-removed-2002 | REMARKS paragraph ('74 carryover; deleted 2002) | VCR Table 7 | 85 | 2002 | 0902 | active |
+| remarks-removed-85 | REMARKS paragraph (in no held edition; §1985:VI.3.2.1.1 prints none) | VCR Table 7 | 85 | 85 | 0902 | active |
 
 ## 2. Data Division — items, PICTURE, USAGE, clauses
 | Construct id | Summary | ISO § | Intro | Removed | Diag | Status |
