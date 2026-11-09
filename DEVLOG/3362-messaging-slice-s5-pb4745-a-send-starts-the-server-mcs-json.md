@@ -1,4 +1,4 @@
-## Messaging slice S5 (PB4745): a SEND starts the server mcs.json defines, and a test can start servers beside itself
+## Entry 3362 — 2026-11-08 22:01 PST — Messaging slice S5 (PB4745): a SEND starts the server mcs.json defines, and a test can start servers beside itself
 
 The last slice of `DESIGN-message-control.md` (§5.4.5 and Q9). Before it, `MessagingSettings.Definitions` was a `static _ => null` that only a unit test replaced, the peer answered
 every `Activate` with "a server cannot be started from this run unit yet", and `mcs.json`'s `servers` member was read by nobody, so neither `start` nor `maxLength` could ever
@@ -29,3 +29,4 @@ the user guide's messaging section, the conformance-suite README. Gate 000002 wa
 ### Review round 1 (finisher)
 
 R1-1 (blocking): FileMode.Append seeks once at open and then writes at the stream own offset, so the two pipe drains and the started server console overwrote each other in servers/N.r.log. New ServerLog (write-only, seeks to the end before every write under one lock) is opened once per launch and shared by both drains; the started process console uses it too. Test: TwoWritersOfOneServerLog_KeepEachOthersLines. R1-2: AProcessStartedWithAServerLog_WritesItsConsoleToTheLog_NotToItsOwnStandardOutput starts a server with the log variable and no requestor. R1-3: Launch returns the drain task; Run disposes the process, and the log disposes, when the pipes end.
+
