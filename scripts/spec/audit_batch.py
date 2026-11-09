@@ -650,15 +650,19 @@ def final_dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
 
 
 def plan_drafts(state: pathlib.Path) -> list[dict[str, Any]]:
-    """Each rule that may hold a verdict of its own at its edition: an OWN-ROW rule, and a rule the adjudication decided
-    CHANGED or REMOVED (a DISPUTED SAME can be either; kb/Work PB4995). Planned again after the adjudication, the plan
-    grows by those (`write_plan`)."""
+    """Each rule that may hold a verdict of its own at its edition: an OWN-ROW rule, and a rule any recording pass's
+    answer (the adjudication's, the recheck's) reads as anything but the chained kind: CHANGED, REMOVED, or OPEN, which
+    the fleet decides (a DISPUTED SAME can be any; kb/Work PB4995). Read from the ANSWERS, never from the upheld
+    `change`: answers are only ever added, so the set only grows, and the plan planned again after the adjudication, the
+    recheck or a later check grows by the new ones (`write_plan`) and never loses a planned draft because a check now
+    withholds or disputes its decision (review w20261935a R1-1)."""
     disp = final_dispositions(state)
     items = Pass(state, "map").items()
-    kinds = change_kinds().kinds
+    chained = change_kinds().chained.name
+    read = [answers_by_id(state, n) for n in RECORDING]
     return [{"id": it["id"], "rule": it["rule"]} for it in items.values()
             if disp[it["id"]]["disposition"] == OWN_ROW
-            or ((c := disp[it["id"]].get("change")) and not kinds[c["kind"]].chained)]
+            or any((got := by_id.get(it["id"])) is not None and got["verdict"] != chained for by_id in read)]
 
 
 def plan_adjudicate(state: pathlib.Path) -> list[dict[str, Any]]:

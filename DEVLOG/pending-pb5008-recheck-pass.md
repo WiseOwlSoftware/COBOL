@@ -35,6 +35,12 @@ name it, and the record stays as it is until the catalog holds the list.
 owns the full submit and the adjudication of what the recheck disputes. Until then the store keeps the earlier records,
 but the run counts them as decided only once their recheck answers.
 
+**The drafts plan reads answers (review R1-1).** Withholding `change` until the recheck answers shrank `plan_drafts`,
+which read `change`: the run's held 965 drafts re-derived as 930, and `write_plan` would have refused every later
+re-plan. `plan_drafts` now takes an OWN-ROW rule and every rule an adjudicate or recheck answer reads as CHANGED,
+REMOVED or OPEN. Answers are only ever added, so the plan only grows. On `state-route` it re-plans to 989 and keeps all
+965 held items.
+
 **Self-test.** `test_audit_batch.py` covers:
 - which check each kind takes;
 - the recheck plan's 1985 and 2023 context and its cache layers;

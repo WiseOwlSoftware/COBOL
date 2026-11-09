@@ -522,6 +522,13 @@ def main() -> int:
         check("a check that answered and disputes the decision makes it contested, though its own check upheld it (a run "
               "whose refuter also read KEPT and CHANGED decisions)",
               disputed.get("contested") is True and "change" not in disputed and disputed["refute"] == "UNSURE")
+        code, out = run(["plan", "--pass", "drafts", *base], fake)
+        regrown = {it["id"] for it in json.loads((state / "drafts" / "items.json").read_text(encoding="utf-8")).values()}
+        check("the drafts plan, planned again after the adjudication and its checks, keeps every planned draft and grows "
+              "by each rule an answer reads as other than KEPT, though no check upheld it (a contested OPEN SAME): it "
+              "reads the answers, never the withheld change (review w20261935a R1-1)",
+              code == 0 and "grew by 1" in out and regrown == {it["id"] for it in ditems.values()} | {same_rule}
+              and "change" not in final[same_rule])
         batch = root / "change-batch.json"
         empty_repo = root / "repo-none"
         code, out = run(["change-batch", *base, "--out", str(batch), "--source", "planted", "--repo", str(empty_repo)], fake)
