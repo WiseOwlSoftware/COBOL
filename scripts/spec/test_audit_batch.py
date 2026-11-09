@@ -854,6 +854,12 @@ def main() -> int:
         unrouted(state5, good_cat, cat23, FakeBatches())
         check("a catalog row of every rule kind, an argument rule too, is quoted by its citation",
               [i["rule"]["citation"] for i in A.plan_map(good_cat, cat23, 1, state5)][-1] == "§1989:A.2.5.3 AR1")
+        provisional = dict(ar, provisional="whole")
+        check("a provisional rule (a reconstruction's text, kb/Work PB4952) is quoted and prompted as one; a printed one "
+              "is quoted as before",
+              A.quoted_rule(provisional)["provisional"] == "whole" and "provisional" not in A.quoted_rule(ar)
+              and "PROVISIONAL (whole)" in A.rule_block(A.quoted_rule(provisional))
+              and "PROVISIONAL" not in A.rule_block(A.quoted_rule(ar)))
         try:
             A.plan_map(bad_cat, cat23, 1, state5)
             refused_plan = False

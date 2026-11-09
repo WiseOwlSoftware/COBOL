@@ -303,8 +303,9 @@ def regions_1985(lines: list[str]):
     """Every citable region of the 1985 transcription. A section's paragraph runs to the next paragraph of the SAME
     section (its region nests nothing: `VI.5.3` ends where `VI.5.3.1` begins, the clause-region convention of the ISO
     transcription); a section or an appendix runs to the next one; a printed page runs from the page break above its
-    folio to the folio. A page the scan prints twice (SCAN_REPEAT_85) is no region: the first copy is the one cited. The
-    text after a scan gap (SCAN_GAP_85) is in no paragraph of the page before the gap: its heading is on a missing page."""
+    folio to the folio. A page the scan prints twice (SCAN_REPEAT_85) is no region: the first copy is the one cited. A
+    reconstruction of printed pages the scan lacks (cite.RECONSTRUCTED, kb/Work PB4952) is read as text: its headings
+    open their regions, and `cite.py --check` marks a quotation it finds there."""
     out = []
     owner, owner_start, para, para_start, title, page_start = None, 0, None, 0, "", 0
     repeat = False
@@ -322,9 +323,6 @@ def regions_1985(lines: list[str]):
             if para_start != page_start:  # (a paragraph resumed at this page's top holds nothing yet: no region)
                 close_para(i)
             repeat = True
-        elif line.startswith(SCAN_GAP_85):
-            close_para(i)
-            para = None
         if repeat:
             continue
         if (f := FOLIO_85.match(line)) is not None:
@@ -704,12 +702,13 @@ def _real_1985_heads() -> list[tuple[str, bool]]:
     known = {r[0] for r in regs}
     body = min(s for loc, _t, s, _e in regs if loc == "I")
     early = sorted({loc for loc, _t, s, _e in regs if loc in SECTIONS_85 and s < body})
-    orphans = _orphan_paragraphs_85(lines, regs)
+    orphans = _orphan_paragraphs_85(regs)
     repeated = sorted(loc for loc, _t, _s, _e in regs if loc in ("X.2.5.4", "X.3.1.2"))
     sum_rules = "".join(lines[s] for loc, _t, s0, e in regs if loc == "XIII.3.19.4" for s in range(s0, e))
     return [(f"1985: a page the scan prints twice opens no second region (X.2.5.4 and X.3.1.2 once each: {repeated})",
              repeated == ["X.2.5.4", "X.3.1.2"]),
-            ("1985: a scan gap ends the paragraph before it (SUM's general rules hold no TYPE syntax rule, PDF page 634)",
+            ("1985: a reconstruction's heading opens its paragraph (SUM's general rules hold no TYPE syntax rule, PDF "
+             "page 634; kb/Work PB4952)",
              bool(sum_rules) and "SOURCE clauses and associated USE statements" not in sum_rules),
 (f"1985: every appendix the document names ({', '.join(letters)}) is a region with its first paragraph",
              bool(letters) and all(x in known and f"{x}.1" in known for x in letters)),
@@ -719,30 +718,21 @@ def _real_1985_heads() -> list[tuple[str, bool]]:
              " (kb/Work PB4886 review R1-1)", not orphans)]
 
 
-#: The comment the transcription writes where the scan lacks printed pages (kb/Work PB4850): a paragraph whose parent
-#: heading fell into that gap is no markup defect.
-SCAN_GAP_85 = "<!-- The scan lacks the printed pages"
 #: The comment that opens a PDF page the scan prints twice (PDF pages 527-528 repeat 525-526, folios X-11 and X-12;
 #: kb/Work PB4850): the transcription keeps both copies, as the scan has them, and a reader of the text cites the first,
 #: so the rule catalog reads no rule from the repeat (kb/Work PB4886).
 SCAN_REPEAT_85 = re.compile(r"^<!-- PDF page (\d+) repeats PDF page (\d+)\b")
 
 
-def _orphan_paragraphs_85(lines: list[str], regs) -> list[str]:
+def _orphan_paragraphs_85(regs) -> list[str]:
     """The paragraph regions (`VI.5.3.1`, never a page) whose parent paragraph (`VI.5.3`) is no region: a heading the
     transcription left as plain text, so the parent's text falls into its preceding sibling (kb/Work PB4886 review
-    R1-1, `2. FILES` and the boxed `3. THE REPLACE STATEMENT`). A paragraph on a page that opens at a scan gap
-    (SCAN_GAP_85) is excused: its parent heading is on a printed page the PDF lacks."""
+    R1-1, `2. FILES` and the boxed `3. THE REPLACE STATEMENT`). A paragraph whose parent heading is on a printed page the
+    scan lacks has its parent too: the reconstruction of that page carries the heading (kb/Work PB4952)."""
     known = {loc for loc, _t, _s, _e in regs}
-    out = []
-    for loc, _t, start, _e in regs:
-        parent = loc.rpartition(".")[0]
-        if loc.startswith("p.") or parent.count(".") < 1 or parent in known:
-            continue
-        page = next((i for i in range(start, -1, -1) if PAGE_85.match(lines[i])), 0)
-        if not any(line.startswith(SCAN_GAP_85) for line in lines[page:start]):
-            out.append(loc)
-    return sorted(set(out))
+    return sorted({loc for loc, _t, _s, _e in regs
+                   if not loc.startswith("p.") and (parent := loc.rpartition(".")[0]).count(".") >= 1
+                   and parent not in known})
 
 
 def _bare_in(line: str, prev: str = "") -> bool:

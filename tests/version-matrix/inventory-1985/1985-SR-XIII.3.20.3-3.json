@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.20.3-3",
+ "rule-digest": "a2ba9ff0a907",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.57.3-12"
+  ],
+  "bridge": true,
+  "reason": "PROVISIONAL (a reconstruction of folio XIII-55, kb/Work PB4952). PAGE HEADING and PAGE FOOTING need a PAGE clause; 2023 SR12 states it, and adds the OR PAGE phrase to the same condition.",
+  "source": "adjudication kb/Work PB4952"
+ }
+}
