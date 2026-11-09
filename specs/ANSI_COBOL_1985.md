@@ -10052,7 +10052,9 @@ Nucleus level 1 provides limited capabilities for the SPECIAL-NAMES paragraph an
 
 ║Nucleus level 2 provides full capabilities for the SPECIAL-NAMES paragraph and the data description entry. Within the Procedure Division, the Nucleus level 2 provides full capabilities for the ACCEPT, ADD, ALTER, COMPUTE, DISPLAY, DIVIDE, EVALUATE, IF, INITIALIZE, INSPECT, MOVE, MULTIPLY, PERFORM, SEARCH, SET, STRING, SUBTRACT, and UNSTRING statements. Nucleus level 2 provides full capabilities for qualification, data-name formation, and figurative constants. Nucleus level 2 provides a capability for accessing items in up to seven-dimensional tables.║
 
-### 1.3 LEVEL RESTRICTIONS ON OVERALL LANGUAGE
+### 1.3 RESTRICTIONS ON OVERALL LANGUAGE
+
+> ⚠ **CORRECTED — see the Errata (C121).** The standard prints `### 1.3 LEVEL RESTRICTIONS ON OVERALL LANGUAGE` (page 233, folio VI-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-1 (page 848, folio A-18), applied in place: "Paragraph 1.3, change title to read: 'RESTRICTIONS ON OVERALL LANGUAGE'" (kb/Work PB5045). Corrected to `### 1.3 RESTRICTIONS ON OVERALL LANGUAGE`.
 
 #### 1.3.1 Character Set
 
@@ -10076,11 +10078,19 @@ The figurative constants that may be used in level 1 are: ZERO, ZEROS, ZEROES, S
 
 One, two or three subscripts are permitted in level 1. ║One through seven subscripts are permitted in level 2.║
 
-### ║1.3.5 Reference Modification║
+### 1.3.5 Function-Identifier
+
+The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.
+
+> ⚠ **CORRECTED — see the Errata (C123).** The standard prints `1.3.6 Reference Modification (the paragraph it precedes)` (page 234, folio VI-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "add new paragraph 1.3.5 without boxing as follows: 1.3.5 Function-Identifier" (kb/Work PB5045). Corrected to `1.3.5 Function-Identifier. The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.`.
+
+### ║1.3.6 Reference Modification║
 
 ║Reference modification is permitted in level 2 only.║
 
-### 1.3.6 Reference Format
+### 1.3.7 Reference Format
+
+> ⚠ **CORRECTED — see the Errata (C122).** The standard prints `1.3.5 Reference Modification, 1.3.6 Reference Format` (page 234, folio VI-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "Renumber paragraphs 1.3.5 and 1.3.6 to 1.3.6 and 1.3.7, respectively" (kb/Work PB5045). Corrected to `1.3.6 Reference Modification, 1.3.7 Reference Format`.
 
 In level 1 a word, numeric literal, or PICTURE character-string cannot be broken in such a way that part of it appears in a continuation line. ║In level 2 a word, numeric literal, or PICTURE character-string can be broken in such a way that part of it appears on a continuation line.║
 
@@ -10432,10 +10442,10 @@ The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; c
     │║ ┤literal-1│╰<u>THRU</u>   ╯           │├ …  ║││
     ╰╚ ╰         └{<u>ALSO</u> literal-3} …  ┘╯    ╝╯┘
 
-  ╔┌<u>SYMBOLIC</u> CHARACTERS ╭╭{symbolic-character-1} …   ╭IS ╮ {integer-1} …   ╮ …  ╮┐  ╗
-  ║│                    │┤                           ┤   ├                 ├    ││  ║
-  ║│                    ┤╰                           ╰ARE╯                 ╯    ├│  ║
-  ╚└                    ╰ [<u>IN</u> alphabet-name-2]                                  ╯┘ …╝
+  ╔┌<u>SYMBOLIC</u> CHARACTERS  ╭{symbolic-character-1} …   ╭IS ╮ {integer-1} …   ╮ …   ┐  ╗
+  ║│                     ┤                           ┤   ├                 ├     │  ║
+  ║│                     ╰                           ╰ARE╯                 ╯     │  ║
+  ╚└                      [<u>IN</u> alphabet-name-2]                                   ┘ …╝
 
   ┌<u>CLASS</u> class-name-1 IS ╭literal-4 ┌╭<u>THROUGH</u>╮ literal-5┐╮ …  ┐ …
   │                      ┤          │┤       ├          │├    │
@@ -10445,6 +10455,8 @@ The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; c
 
   [<u>DECIMAL-POINT</u> IS <u>COMMA</u>].]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C124).** The standard prints `SYMBOLIC CHARACTERS { {symbolic-character-1} ... {IS|ARE} {integer-1} ... } ... [IN alphabet-name-2] } ... (two sets of braces)` (page 245, folio VI-13). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-13 (T) (page 848, folio A-18), applied in place: "Paragraph 4.5.2, SYMBOLIC CHARACTERS clause, delete outermost set of braces", a typographical error (kb/Work PB5045). Corrected to `the format above, its outermost braces deleted`.
 
 ## 4.5.3 Syntax Rules
 
@@ -10669,11 +10681,11 @@ level-number ┌data-name-1┐
     ┌ <u>OCCURS</u> integer-2 TIMES                                        ┐
     │╔      ┌╭<u>ASCENDING</u> ╮                         ┐                ╗│
     │║      │┤          ├                         │                ║│
-    │║      └╰<u>DESCENDING</u>╯ KEY IS {data-name-3} …  ┘ …              ║│
-    │║                                                             ║│
-    │║       [<u>INDEXED</u> BY {index-name-1} …   ]                      ║│
-    │║                                                             ║│
-    │║<u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-4 ║│
+    │╚      └╰<u>DESCENDING</u>╯ KEY IS {data-name-3} …  ┘ …              ╝│
+    │                                                               │
+    │        [<u>INDEXED</u> BY {index-name-1} …   ]                       │
+    │                                                               │
+    │╔<u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-4 ╗│
     │║      ┌╭<u>ASCENDING</u> ╮                         ┐                ║│
     │║      │┤          ├                         │                ║│
     │║      └╰<u>DESCENDING</u>╯ KEY IS {data-name-3} …  ┘ …              ║│
@@ -10692,6 +10704,8 @@ level-number ┌data-name-1┐
 
     [<u>VALUE</u> IS literal-1].
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C125).** The standard prints `the OCCURS clause with one box from ASCENDING through the second INDEXED BY` (page 252, folio VI-20). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-20 (T) (page 848, folio A-18), applied in place: "Paragraph 5.3.2 of the OCCURS clause, delete the box around the first occurrence of '[INDEXED BY {index-name-1} ...]'", a typographical error (kb/Work PB5045). Corrected to `the box split: ASCENDING ... KEY, then (unboxed) INDEXED BY, then the DEPENDING ON format boxed`.
 
 VI-20
 
@@ -11937,7 +11951,9 @@ identifier-1 IS [<u>NOT</u>]   ┤ <u>ALPHABETIC-LOWER</u> ├
                          ╰ class-name-1     ╯
 </pre>
 
-The usage of the operand being tested must be described as DISPLAY.
+Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function.
+
+> ⚠ **CORRECTED — see the Errata (C126).** The standard prints `The usage of the operand being tested must be described as DISPLAY.` (page 289, folio VI-57). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-57 (page 848, folio A-18), applied in place: "Paragraph 6.3.1.2, replace the first paragraph after the general format beginning with 'The usage of the operand...'" (kb/Work PB5045). Corrected to `Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function.`.
 
 When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g., NOT NUMERIC is a truth test for determining that an operand is nonnumeric.
 
@@ -12115,7 +12131,9 @@ Nucleus - Order of Evaluation of Conditions
 
 ║(1) The constituent connected conditions within a hierarchical level are evaluated in order from left to right, and evaluation of that hierarchical level terminates as soon as a truth value for it is determined regardless of whether all the constituent connected conditions within that hierarchical level have been evaluated.║
 
-║Values are established for arithmetic expressions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent. (See page VI-52, Formation and Evaluation Rules.)║
+║(2) Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent. (See page VI-52, Formation and Evaluation Rules.)║
+
+> ⚠ **CORRECTED — see the Errata (C127).** The standard prints `║Values are established for arithmetic expressions if and when` (page 294, folio VI-62). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-62 (page 848, folio A-18), applied in place: "Paragraph 6.3.4, penultimate paragraph: a. Insert '(2)' at the beginning of the paragraph and indent 3 spaces. b. Change the first sentence in part to read: 'Values are established for arithmetic expressions and functions if and when...'" (kb/Work PB5045). Corrected to `║(2) Values are established for arithmetic expressions and functions if and when`.
 
 ║Application of the above rules is shown in figures 1 through 4 located on the following pages. These figures are not intended to dictate implementation.║
 
@@ -12401,7 +12419,9 @@ in both cases, 'temp' is an intermediate result item provided by the implementor
 
 ### 6.4.7 Incompatible Data
 
-Except for the class condition, when the content of a data item is referenced in the Procedure Division and the content of that data item is not compatible with the class specified for that data item by its PICTURE clause, then the result of such a reference is undefined. (See page VI-56, Class Condition.)
+Except for the class condition, when the content of a data item is referenced in the Procedure Division and the content of that data item is not compatible with the class specified for that data item by its PICTURE clause or function definition, then the result of such a reference is undefined. (See page VI-56, Class Condition.)
+
+> ⚠ **CORRECTED — see the Errata (C128).** The standard prints `specified for that data item by its PICTURE clause, then the result` (page 302, folio VI-70). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-70 (page 848, folio A-18), applied in place: "Paragraph 6.4.7, change in part to read: '...PICTURE clause or function definition, then the result...'" (kb/Work PB5045). Corrected to `specified for that data item by its PICTURE clause or function definition, then the result`.
 
 VI-70
 
@@ -13351,7 +13371,9 @@ c. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-
 
 (3) In general rules 5 through 17, all references to literal-1, literal-2, literal-3, literal-4, or literal-5 apply equally to the content of the data item referenced by identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 respectively.
 
-(4) Subscripting associated with any identifier is evaluated only once as the first operation in the execution of the INSPECT statement.
+(4) If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated only once as the first operation in the execution of the INSPECT statement.
+
+> ⚠ **CORRECTED — see the Errata (C129).** The standard prints `(4) Subscripting associated with any identifier is evaluated only once` (page 328, folio VI-96). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-96 (page 848, folio A-18), applied in place: "Paragraph 6.18.4, general rule 4, change in part to read: 'If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated...'" (kb/Work PB5045). Corrected to `(4) If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated only once`.
 
 <u>FORMATS 1 AND 2</u>:
 
@@ -13628,7 +13650,9 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 
 (2) Literal-1 or the content of the data item referenced by identifier-1 is moved to the data item referenced by each identifier-2 ║in the order in which it is specified. The rules referring to identifier-2 also apply to the other receiving areas.║ Any length evaluation or subscripting associated with identifier-2 is evaluated immediately before the data is moved to the respective data item.
 
-Any subscripting associated with identifier-1 is evaluated only once, immediately before data is moved to the first of the receiving operands. The length of the data item referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of the receiving operands.
+If identifier-1 is reference modified, subscripted, or is a function-identifier, the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is moved to the first of the receiving operands. The length of the data item referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of the receiving operands.
+
+> ⚠ **CORRECTED — see the Errata (C130).** The standard prints `Any subscripting associated with identifier-1 is evaluated only once, immediately before data is moved to the first of the receiving operands.` (page 335, folio VI-103). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-103 (page 848, folio A-18), applied in place: "Paragraph 6.19.4, general rule 2, second paragraph, change the first sentence to read" (kb/Work PB5045). Corrected to `If identifier-1 is reference modified, subscripted, or is a function-identifier, the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is moved to the first of the receiving operands.`.
 
 VI-103
 
@@ -13654,7 +13678,9 @@ MOVE temp to c (b)
 
 where 'temp' is an intermediate result item provided by the implementor.
 
-(3) Any move in which the receiving operand is an elementary item and the sending operand is either a literal or an elementary item is an elementary move. Every elementary item belongs to one of the following categories: numeric, alphabetic, numeric edited, alphanumeric edited. (See page VI-29, The PICTURE Clause.) Numeric literals belong to the category numeric and nonnumeric literals belong to the category alphanumeric. The figurative constant ZERO (ZEROS, ZEROES), when moved to a numeric or numeric edited item, belongs to the category numeric. In all other cases, it belongs to the category alphanumeric. The figurative constant SPACE (SPACES) belongs to the category alphabetic. All other figurative constants belong to the category alphanumeric.
+(3) Any move in which the receiving operand is an elementary item and the sending operand is either a literal or an elementary item is an elementary move. Every elementary item belongs to one of the following categories: numeric, alphabetic, alphanumeric, numeric edited, alphanumeric edited. (See page VI-29, The PICTURE Clause.) Numeric literals belong to the category numeric and nonnumeric literals belong to the category alphanumeric. The figurative constant ZERO (ZEROS, ZEROES), when moved to a numeric or numeric edited item, belongs to the category numeric. In all other cases, it belongs to the category alphanumeric. The figurative constant SPACE (SPACES) belongs to the category alphabetic. All other figurative constants belong to the category alphanumeric.
+
+> ⚠ **CORRECTED — see the Errata (C131).** The standard prints `categories: numeric, alphabetic, numeric edited, alphanumeric edited.` (page 336, folio VI-104). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-104 (T) (page 848, folio A-18), applied in place: "Paragraph 6.19.4 of the MOVE statement, general rule 3, fourth line, change 'alphabetic, numeric edited,' to 'alphabetic, alphanumeric, numeric edited,'", a typographical error (the category list without alphanumeric, a lead of kb/Work PB4984) (kb/Work PB5045). Corrected to `categories: numeric, alphabetic, alphanumeric, numeric edited, alphanumeric edited.`.
 
 The following rules apply to an elementary move between these categories:
 
@@ -15100,8 +15126,10 @@ The general format of the Input-Output Section is shown below.
 <pre style="line-height:1">
 <u>INPUT-OUTPUT</u> <u>SECTION</u>.
 <u>FILE-CONTROL</u>. { file-control-entry } …
-║ [ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ] ║
+[ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C132).** The standard prints `║ [ I-O-CONTROL. [ input-output-control-entry ] ] ║` (page 380, folio VII-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-6 (T) (page 849, folio A-19), applied in place: "Paragraph 2.1, in the Input-Output Section of the Sequential I-O module, delete the box around the general format", a typographical error (kb/Work PB5045). Corrected to `[ I-O-CONTROL. [ input-output-control-entry ] ]`.
 
 VII-6
 
@@ -16556,7 +16584,9 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.5.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C133).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 422, folio VII-48). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-48 (page 849, folio A-19), applied in place: "Paragraph 4.5.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -16705,7 +16735,9 @@ The WRITE statement releases a logical record for an output file. It can also be
 
 ### 4.7.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C134).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 426, folio VII-52). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-52 (page 849, folio A-19), applied in place: "Paragraph 4.7.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -17779,13 +17811,17 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.6.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C135).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 460, folio VIII-30). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
 (3) The INVALID KEY and the NOT INVALID KEY phrases must not be specified for a REWRITE statement which references a relative file in sequential access mode.
 
-(4) The INVALID KEY phrase must be specified in the REWRITE statement for relative files in the random ║or dynamic║ access mode, and for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.
+(4) The INVALID KEY phrase must be specified in the REWRITE statement for relative files in the random ║or dynamic║ access mode for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.
+
+> ⚠ **CORRECTED — see the Errata (C136).** The standard prints `access mode, and for which an appropriate USE AFTER STANDARD EXCEPTION procedure` (page 460, folio VIII-30). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 4 in part to read: '...mode for which...'", a typographical error (kb/Work PB5045). Corrected to `access mode for which an appropriate USE AFTER STANDARD EXCEPTION procedure`.
 
 ### 4.6.4 General Rules
 
@@ -18005,7 +18041,9 @@ The WRITE statement releases a logical record for an output or input-output file
 
 ### 4.9.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C137).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 467, folio VIII-37). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-37 (page 849, folio A-19), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -18193,7 +18231,9 @@ a. I-O Status = 10. A sequential READ statement is attempted and no next logical
 
 a. I-O Status = 21. A sequence error exists for a sequentially accessed indexed file. The prime record key value has been changed by the program between the successful execution of a READ statement and the execution of the next REWRITE statement for that file, or the ascending sequence requirements for successive record key values are violated. (See page IX-41, The WRITE Statement.)
 
-b. I-O Status = 22. An attempt is made to write or rewrite a record that would create a duplicate prime record key ║or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.║
+b. I-O Status = 22. An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key ║or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.║
+
+> ⚠ **CORRECTED — see the Errata (C138).** The standard prints `An attempt is made to write or rewrite a record that would create a duplicate prime record key` (page 474, folio IX-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-4 (T) (page 849, folio A-19), applied in place: "Paragraph 1.3.4, entitled 'I-O Status', second occurrence of a paragraph numbered (3), subparagraph b, first line, box 'or rewrite'", a typographical error (kb/Work PB5045). Corrected to `An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key`.
 
 c. I-O Status = 23. This condition exists because:
 
@@ -18299,7 +18339,9 @@ The at end condition can occur as a result of the execution of a READ statement.
 
 ### 1.3.7 The File Attribute Conflict Condition
 
-The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page IX-23, The OPEN Statement; page IX-33, The REWRITE Statement; an page IX-41, The WRITE Statement.)
+The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page IX-23, The OPEN Statement; page IX-33, The REWRITE Statement; and page IX-41, The WRITE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C139).** The standard prints `page IX-33, The REWRITE Statement; an page IX-41` (page 477, folio IX-7). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-7 (T) (page 849, folio A-19), applied in place: "Paragraph 1.3.7, first paragraph, last line, change 'an' to 'and'", a typographical error (kb/Work PB5045). Corrected to `page IX-33, The REWRITE Statement; and page IX-41`.
 
 When the file attribute conflict condition is recognized, these actions take place in the following order:
 
@@ -19136,11 +19178,15 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.6.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C140).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 503, folio IX-33). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
-(3) The INVALID KEY and the NOT INVALID KEY phrases must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name.
+(3) The INVALID KEY phrase must be specified in the REWRITE statement for indexed files for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.
+
+> ⚠ **CORRECTED — see the Errata (C141).** The standard prints `(3) The INVALID KEY and the NOT INVALID KEY phrases must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name.` (page 503, folio IX-33). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Indexed I-O module, syntax rule 3, change to read", a typographical error (kb/Work PB5045). Corrected to `(3) The INVALID KEY phrase must be specified in the REWRITE statement for indexed files for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.`.
 
 ### 4.6.4 General Rules
 
@@ -19399,7 +19445,9 @@ The WRITE statement releases a logical record for an output or input-output file
 
 ### 4.9.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C142).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 511, folio IX-41). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-41 (page 850, folio A-20), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -37525,6 +37573,28 @@ it is taken as the rule of 1985.
 | [C118](#errata-c118) | 230 | V-38 | Section V, the miscellaneous formats, REFERENCE MODIFICATION | `(1985 format)` | `(format with FUNCTION)` | amendment-1 |
 | [C119](#errata-c119) | 230 | V-38 | Section V, the miscellaneous formats, IDENTIFIER | `(1985 format)` | `(formats 1 and 2)` | amendment-1 |
 | [C120](#errata-c120) | 230 | V-38 | Section V, after page V-38, the general format for intrinsic functions | `(no format)` | `GENERAL FORMAT FOR INTRINSIC FUNCTIONS` | amendment-1 |
+| [C121](#errata-c121) | 233 | VI-1 | Section VI, paragraph 1.3, its title | `LEVEL RESTRICTIONS ON OVERALL LANGUAGE` | `RESTRICTIONS ON OVERALL LANGUAGE` | amendment-1 |
+| [C122](#errata-c122) | 234 | VI-2 | Section VI, paragraphs 1.3.5 and 1.3.6, renumbered | `1.3.5, 1.3.6` | `1.3.6, 1.3.7` | amendment-1 |
+| [C123](#errata-c123) | 234 | VI-2 | Section VI, a new paragraph 1.3.5 (Function-Identifier), not boxed | `(no paragraph 1.3.5)` | `1.3.5 Function-Identifier` | amendment-1 |
+| [C124](#errata-c124) | 245 | VI-13 | Section VI, paragraph 4.5.2, the SYMBOLIC CHARACTERS clause | `two sets of braces` | `outermost set deleted` | amendment-1 |
+| [C125](#errata-c125) | 252 | VI-20 | Section VI, paragraph 5.3.2, the OCCURS clause, the first INDEXED BY phrase | `INDEXED BY boxed` | `INDEXED BY not boxed` | amendment-1 |
+| [C126](#errata-c126) | 289 | VI-57 | Section VI, paragraph 6.3.1.2 (Class Condition), the first paragraph after the general format | `The usage of the operand being tested must be described as…` | `Identifier-1 must reference a data item whose usage is expl…` | amendment-1 |
+| [C127](#errata-c127) | 294 | VI-62 | Section VI, paragraph 6.3.4, the penultimate paragraph | `Values are established for arithmetic expressions if and wh…` | `(2) Values are established for arithmetic expressions and f…` | amendment-1 |
+| [C128](#errata-c128) | 302 | VI-70 | Section VI, paragraph 6.4.7 | `PICTURE clause, then the result` | `PICTURE clause or function definition, then the result` | amendment-1 |
+| [C129](#errata-c129) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), general rule 4 | `Subscripting associated with any identifier is evaluated` | `If any identifier is subscripted or is a function-identifie…` | amendment-1 |
+| [C130](#errata-c130) | 335 | VI-103 | Section VI, paragraph 6.19.4 (MOVE), general rule 2, second paragraph, first sentence | `Any subscripting associated with identifier-1 is evaluated…` | `If identifier-1 is reference modified, subscripted, or is a…` | amendment-1 |
+| [C131](#errata-c131) | 336 | VI-104 | Section VI, paragraph 6.19.4 (MOVE), general rule 3 | `alphabetic, numeric edited,` | `alphabetic, alphanumeric, numeric edited,` | amendment-1 |
+| [C132](#errata-c132) | 380 | VII-6 | Section VII, paragraph 2.1, the general format of the Input-Output Section | `║ [ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ] ║` | `[ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ]` | amendment-1 |
+| [C133](#errata-c133) | 422 | VII-48 | Section VII, paragraph 4.5.3 (REWRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C134](#errata-c134) | 426 | VII-52 | Section VII, paragraph 4.7.3 (WRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C135](#errata-c135) | 460 | VIII-30 | Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C136](#errata-c136) | 460 | VIII-30 | Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 4 | `access mode, and for which` | `access mode for which` | amendment-1 |
+| [C137](#errata-c137) | 467 | VIII-37 | Section VIII, paragraph 4.9.3 (WRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C138](#errata-c138) | 474 | IX-4 | Section IX, paragraph 1.3.4 (I-O Status), the second (3), item b | `write or rewrite` | `write ║or rewrite║` | amendment-1 |
+| [C139](#errata-c139) | 477 | IX-7 | Section IX, paragraph 1.3.7, first paragraph, last line | `; an page` | `; and page` | amendment-1 |
+| [C140](#errata-c140) | 503 | IX-33 | Section IX, paragraph 4.6.3 (REWRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C141](#errata-c141) | 503 | IX-33 | Section IX, paragraph 4.6.3 (REWRITE), syntax rule 3 | `(3) The INVALID KEY and the NOT INVALID KEY phrases must be…` | `(3) The INVALID KEY phrase must be specified in the REWRITE…` | amendment-1 |
+| [C142](#errata-c142) | 511 | IX-41 | Section IX, paragraph 4.9.3 (WRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
 
 <a id="errata-c1"></a>
 
@@ -38845,6 +38915,248 @@ Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, 
 | **This transcription** | `GENERAL FORMAT FOR INTRINSIC FUNCTIONS: FUNCTION ACOS (argument-1) ... FUNCTION WHEN-COMPILED` |
 
 Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, folio A-15), applied in place: "Insert after page V-38 the contents of pages A-16 and A-17 which contain the general format for functions" (pages 846 and 847) (kb/Work PB5045).
+
+<a id="errata-c121"></a>
+
+### C121 · page 233 (folio VI-1) · Section VI, paragraph 1.3, its title · `LEVEL RESTRICTIONS ON OVERALL LANGUAGE` → `RESTRICTIONS ON OVERALL LANGUAGE`
+
+| | |
+|---|---|
+| **Printed** | `### 1.3 LEVEL RESTRICTIONS ON OVERALL LANGUAGE` |
+| **This transcription** | `### 1.3 RESTRICTIONS ON OVERALL LANGUAGE` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-1 (page 848, folio A-18), applied in place: "Paragraph 1.3, change title to read: 'RESTRICTIONS ON OVERALL LANGUAGE'" (kb/Work PB5045).
+
+<a id="errata-c122"></a>
+
+### C122 · page 234 (folio VI-2) · Section VI, paragraphs 1.3.5 and 1.3.6, renumbered · `1.3.5, 1.3.6` → `1.3.6, 1.3.7`
+
+| | |
+|---|---|
+| **Printed** | `1.3.5 Reference Modification, 1.3.6 Reference Format` |
+| **This transcription** | `1.3.6 Reference Modification, 1.3.7 Reference Format` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "Renumber paragraphs 1.3.5 and 1.3.6 to 1.3.6 and 1.3.7, respectively" (kb/Work PB5045).
+
+<a id="errata-c123"></a>
+
+### C123 · page 234 (folio VI-2) · Section VI, a new paragraph 1.3.5 (Function-Identifier), not boxed · `(no paragraph 1.3.5)` → `1.3.5 Function-Identifier`
+
+| | |
+|---|---|
+| **Printed** | `1.3.6 Reference Modification (the paragraph it precedes)` |
+| **This transcription** | `1.3.5 Function-Identifier. The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "add new paragraph 1.3.5 without boxing as follows: 1.3.5 Function-Identifier" (kb/Work PB5045).
+
+<a id="errata-c124"></a>
+
+### C124 · page 245 (folio VI-13) · Section VI, paragraph 4.5.2, the SYMBOLIC CHARACTERS clause · `two sets of braces` → `outermost set deleted`
+
+| | |
+|---|---|
+| **Printed** | `SYMBOLIC CHARACTERS { {symbolic-character-1} ... {ISARE} {integer-1} ... } ... [IN alphabet-name-2] } ... (two sets of braces)` |
+| **This transcription** | `the format above, its outermost braces deleted` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-13 (T) (page 848, folio A-18), applied in place: "Paragraph 4.5.2, SYMBOLIC CHARACTERS clause, delete outermost set of braces", a typographical error (kb/Work PB5045).
+
+<a id="errata-c125"></a>
+
+### C125 · page 252 (folio VI-20) · Section VI, paragraph 5.3.2, the OCCURS clause, the first INDEXED BY phrase · `INDEXED BY boxed` → `INDEXED BY not boxed`
+
+| | |
+|---|---|
+| **Printed** | `the OCCURS clause with one box from ASCENDING through the second INDEXED BY` |
+| **This transcription** | `the box split: ASCENDING ... KEY, then (unboxed) INDEXED BY, then the DEPENDING ON format boxed` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-20 (T) (page 848, folio A-18), applied in place: "Paragraph 5.3.2 of the OCCURS clause, delete the box around the first occurrence of '[INDEXED BY {index-name-1} ...]'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c126"></a>
+
+### C126 · page 289 (folio VI-57) · Section VI, paragraph 6.3.1.2 (Class Condition), the first paragraph after the general format · `The usage of the operand being tested must be des…` → `Identifier-1 must reference a data item whose usa…`
+
+| | |
+|---|---|
+| **Printed** | `The usage of the operand being tested must be described as DISPLAY.` |
+| **This transcription** | `Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-57 (page 848, folio A-18), applied in place: "Paragraph 6.3.1.2, replace the first paragraph after the general format beginning with 'The usage of the operand...'" (kb/Work PB5045).
+
+<a id="errata-c127"></a>
+
+### C127 · page 294 (folio VI-62) · Section VI, paragraph 6.3.4, the penultimate paragraph · `Values are established for arithmetic expressions…` → `(2) Values are established for arithmetic express…`
+
+| | |
+|---|---|
+| **Printed** | `║Values are established for arithmetic expressions if and when` |
+| **This transcription** | `║(2) Values are established for arithmetic expressions and functions if and when` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-62 (page 848, folio A-18), applied in place: "Paragraph 6.3.4, penultimate paragraph: a. Insert '(2)' at the beginning of the paragraph and indent 3 spaces. b. Change the first sentence in part to read: 'Values are established for arithmetic expressions and functions if and when...'" (kb/Work PB5045).
+
+<a id="errata-c128"></a>
+
+### C128 · page 302 (folio VI-70) · Section VI, paragraph 6.4.7 · `PICTURE clause, then the result` → `PICTURE clause or function definition, then the r…`
+
+| | |
+|---|---|
+| **Printed** | `specified for that data item by its PICTURE clause, then the result` |
+| **This transcription** | `specified for that data item by its PICTURE clause or function definition, then the result` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-70 (page 848, folio A-18), applied in place: "Paragraph 6.4.7, change in part to read: '...PICTURE clause or function definition, then the result...'" (kb/Work PB5045).
+
+<a id="errata-c129"></a>
+
+### C129 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), general rule 4 · `Subscripting associated with any identifier is ev…` → `If any identifier is subscripted or is a function…`
+
+| | |
+|---|---|
+| **Printed** | `(4) Subscripting associated with any identifier is evaluated only once` |
+| **This transcription** | `(4) If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated only once` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-96 (page 848, folio A-18), applied in place: "Paragraph 6.18.4, general rule 4, change in part to read: 'If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated...'" (kb/Work PB5045).
+
+<a id="errata-c130"></a>
+
+### C130 · page 335 (folio VI-103) · Section VI, paragraph 6.19.4 (MOVE), general rule 2, second paragraph, first sentence · `Any subscripting associated with identifier-1 is…` → `If identifier-1 is reference modified, subscripte…`
+
+| | |
+|---|---|
+| **Printed** | `Any subscripting associated with identifier-1 is evaluated only once, immediately before data is moved to the first of the receiving operands.` |
+| **This transcription** | `If identifier-1 is reference modified, subscripted, or is a function-identifier, the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is moved to the first of the receiving operands.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-103 (page 848, folio A-18), applied in place: "Paragraph 6.19.4, general rule 2, second paragraph, change the first sentence to read" (kb/Work PB5045).
+
+<a id="errata-c131"></a>
+
+### C131 · page 336 (folio VI-104) · Section VI, paragraph 6.19.4 (MOVE), general rule 3 · `alphabetic, numeric edited,` → `alphabetic, alphanumeric, numeric edited,`
+
+| | |
+|---|---|
+| **Printed** | `categories: numeric, alphabetic, numeric edited, alphanumeric edited.` |
+| **This transcription** | `categories: numeric, alphabetic, alphanumeric, numeric edited, alphanumeric edited.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-104 (T) (page 848, folio A-18), applied in place: "Paragraph 6.19.4 of the MOVE statement, general rule 3, fourth line, change 'alphabetic, numeric edited,' to 'alphabetic, alphanumeric, numeric edited,'", a typographical error (the category list without alphanumeric, a lead of kb/Work PB4984) (kb/Work PB5045).
+
+<a id="errata-c132"></a>
+
+### C132 · page 380 (folio VII-6) · Section VII, paragraph 2.1, the general format of the Input-Output Section · `║ [ <u>I-O-CONTROL</u>. [ input-output-control-en…` → `[ <u>I-O-CONTROL</u>. [ input-output-control-entr…`
+
+| | |
+|---|---|
+| **Printed** | `║ [ I-O-CONTROL. [ input-output-control-entry ] ] ║` |
+| **This transcription** | `[ I-O-CONTROL. [ input-output-control-entry ] ]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-6 (T) (page 849, folio A-19), applied in place: "Paragraph 2.1, in the Input-Output Section of the Sequential I-O module, delete the box around the general format", a typographical error (kb/Work PB5045).
+
+<a id="errata-c133"></a>
+
+### C133 · page 422 (folio VII-48) · Section VII, paragraph 4.5.3 (REWRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-48 (page 849, folio A-19), applied in place: "Paragraph 4.5.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c134"></a>
+
+### C134 · page 426 (folio VII-52) · Section VII, paragraph 4.7.3 (WRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-52 (page 849, folio A-19), applied in place: "Paragraph 4.7.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c135"></a>
+
+### C135 · page 460 (folio VIII-30) · Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c136"></a>
+
+### C136 · page 460 (folio VIII-30) · Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 4 · `access mode, and for which` → `access mode for which`
+
+| | |
+|---|---|
+| **Printed** | `access mode, and for which an appropriate USE AFTER STANDARD EXCEPTION procedure` |
+| **This transcription** | `access mode for which an appropriate USE AFTER STANDARD EXCEPTION procedure` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 4 in part to read: '...mode for which...'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c137"></a>
+
+### C137 · page 467 (folio VIII-37) · Section VIII, paragraph 4.9.3 (WRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-37 (page 849, folio A-19), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c138"></a>
+
+### C138 · page 474 (folio IX-4) · Section IX, paragraph 1.3.4 (I-O Status), the second (3), item b · `write or rewrite` → `write ║or rewrite║`
+
+| | |
+|---|---|
+| **Printed** | `An attempt is made to write or rewrite a record that would create a duplicate prime record key` |
+| **This transcription** | `An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-4 (T) (page 849, folio A-19), applied in place: "Paragraph 1.3.4, entitled 'I-O Status', second occurrence of a paragraph numbered (3), subparagraph b, first line, box 'or rewrite'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c139"></a>
+
+### C139 · page 477 (folio IX-7) · Section IX, paragraph 1.3.7, first paragraph, last line · `; an page` → `; and page`
+
+| | |
+|---|---|
+| **Printed** | `page IX-33, The REWRITE Statement; an page IX-41` |
+| **This transcription** | `page IX-33, The REWRITE Statement; and page IX-41` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-7 (T) (page 849, folio A-19), applied in place: "Paragraph 1.3.7, first paragraph, last line, change 'an' to 'and'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c140"></a>
+
+### C140 · page 503 (folio IX-33) · Section IX, paragraph 4.6.3 (REWRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c141"></a>
+
+### C141 · page 503 (folio IX-33) · Section IX, paragraph 4.6.3 (REWRITE), syntax rule 3 · `(3) The INVALID KEY and the NOT INVALID KEY phras…` → `(3) The INVALID KEY phrase must be specified in t…`
+
+| | |
+|---|---|
+| **Printed** | `(3) The INVALID KEY and the NOT INVALID KEY phrases must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name.` |
+| **This transcription** | `(3) The INVALID KEY phrase must be specified in the REWRITE statement for indexed files for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Indexed I-O module, syntax rule 3, change to read", a typographical error (kb/Work PB5045).
+
+<a id="errata-c142"></a>
+
+### C142 · page 511 (folio IX-41) · Section IX, paragraph 4.9.3 (WRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-41 (page 850, folio A-20), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 

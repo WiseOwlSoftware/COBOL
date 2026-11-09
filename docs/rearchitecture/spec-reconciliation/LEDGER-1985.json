@@ -11271,7 +11271,7 @@
    "decision": "MARKED",
    "blocks": 1,
    "opens": [
-    "║or dynamic║ access mode, and for which an appropriate USE A"
+    "║or dynamic║ access mode for which an appropriate USE AFTER"
    ]
   },
   {
@@ -15433,6 +15433,18 @@
    "blocks": 1,
    "opens": [
     "║A comment line or blank line in source program text is not"
+   ]
+  },
+  {
+   "page": 474,
+   "n": 722,
+   "region": "rule",
+   "where": "(3) Invalid Key Condition With Unsuccessful Completion, b. I-O Status = 22: 'or rewrite', boxed by Amendment 1, Addendum 1, row IX-4 (T) (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║or rewrite║ a record that would create a duplicate prime rec"
    ]
   }
  ]
