@@ -2,14 +2,15 @@
  "rule-id": "1985-GR-VIII.4.8.4-1",
  "rule-digest": "0af3d17d273e",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.49.4-4",
-   "GR-14.9.49.4-3"
+   "GR-14.9.49.4-1",
+   "GR-14.9.49.4-3",
+   "GR-14.9.49.4-4"
   ],
   "bridge": true,
-  "reason": "1985: \"Only a declarative within the separately compiled program that contains the statement which caused the qualifying condition is invoked\"; 2023: \"a) the qualifying declarative in the source element that contains the statement ... b) a qualifying declarative with the GLOBAL attribute\". 1985 admits any qualifying declarative in the separately compiled program. 2023 confines it to the statement's own source element, plus only GLOBAL declaratives of containing elements.",
-  "source": "audit-1985/state-route"
+  "reason": "For nested programs 1985 already selects as 2023 does: §1985:X.5.5.4 GR1 picks 'The declarative within the program that contains the statement which caused the qualifying condition', then GLOBAL declaratives of each containing program up to the outermost, else none. §2023:14.9.49.4 GR4 restates that order ('a qualifying declarative with the GLOBAL attribute in the next inclusive directly containing source element'), §2023:14.9.49.4 GR3 selects at most one, §2023:14.9.49.4 GR1 ties invocation to the USE conditions. Neither searches outside the compilation unit.",
+  "source": "adjudicate-712/slice-19"
  }
 }

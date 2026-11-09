@@ -3,12 +3,14 @@
  "rule-digest": "f830a3280a89",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "GR-12.4.5.3-1"
+   "GR-12.4.5.3-1",
+   "DOC-A.1-72",
+   "DOC-A.1-149"
   ],
+  "reason": "1985 lists a-g for every file control entry of an external file connector: OPTIONAL, consistent ASSIGN, consistent RECORD DELIMITER, RESERVE, organization, access mode, and 'g. The same specification for the PADDING CHARACTER clause.' §2023:12.4.5.3 GR1 keeps a)-f) (c) now 'Either the STANDARD-1 phrase or a consistent value of feature-name-1') with the implementor's consistency rules documented (§2023:A.1 'FILE-CONTROL entry, ASSIGN clause (consistency rules for external file connectors)' and the RECORD DELIMITER item), drops the PADDING CHARACTER item (the clause is gone from 2023), and adds items no 1985 rule required, among them i) 'The same specification of the FILE STATUS clause, where data-name-4 shall reference the same corresponding external data item'. A 1985 run unit whose sequential entries for one external file name different FILE STATUS items no longer conforms: stricter.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"g. The same specification for the PADDING CHARACTER clause.\"; 2023: \"g) The same specification of COLLATING SEQUENCE clauses. ... i) The same specification of the FILE STATUS clause\". 2023 keeps items a-f (OPTIONAL, ASSIGN, RECORD DELIMITER, RESERVE, organization, access mode) but drops the PADDING CHARACTER item and adds new ones, e.g. FILE STATUS.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-15"
  }
 }

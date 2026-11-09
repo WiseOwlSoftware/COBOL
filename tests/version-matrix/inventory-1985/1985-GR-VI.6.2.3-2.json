@@ -3,12 +3,12 @@
  "rule-digest": "ec3451df8d01",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-8.8.1.2-3"
   ],
+  "reason": "The normative sentence of 1985 GR2, 'When the sequence of execution is not specified by parentheses, the order of execution of consecutive operations of the same hierarchical level is from left to right', is word for word §2023:8.8.1.2 GR3. The descriptive sentence on why parentheses are used is now NOTE 1 of that rule, which adds 'or to emphasize the normal sequence for the sake of clarity'; a note refuses nothing, and redundant parentheses were already legal in 1985. The effect of parentheses itself is 1985 GR1's subject (2023 GR1), judged there.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "Left-to-right order for same-level operations without parentheses is kept verbatim. The purpose of parentheses was descriptive and is now a NOTE; the added 'emphasize' purpose refuses no program.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-12"
  }
 }

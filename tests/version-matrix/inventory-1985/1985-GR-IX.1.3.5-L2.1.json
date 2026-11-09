@@ -5,10 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-9.1.14-L2.1"
+   "GR-9.1.14-L2.1",
+   "GR-9.1.12-2",
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-7"
   ],
   "bridge": true,
-  "reason": "Both send control for a non-invalid-key exception to the applicable exception procedure. Return to the statement's end matches 1985 USE return-to-invoker; PERFORM WHEN is a new feature.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a non-invalid-key exception transfers control 'according to the rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure'. §2023:9.1.14 'If the I-O status indicates an unsuccessful completion that is not an invalid key condition' (item 1 of the list after GR4) sends control to applicable exception processing statements, which include the USE declarative (§2023:9.1.12 GR2); §2023:14.9.49.4 GR6 runs the file's USE procedure 'upon the unsuccessful execution of an input-output operation', and after it §2023:14.9.49.4 GR7 returns control after the statement or, for a fatal status, 'the implementor determines what action is taken', exactly as 1985 USE GR6 (critical error: implementor determines). PERFORM WHEN routing needs 2023-only syntax.",
+  "source": "adjudicate-712/slice-06"
  }
 }

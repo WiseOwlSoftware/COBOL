@@ -9,7 +9,7 @@
    "GR-14.9.41.4-16"
   ],
   "bridge": true,
-  "reason": "GR15 makes the prime key apply when KEY is omitted. GR16 makes the named or leftmost-matching key the key of reference, used to order this START and later sequential READs.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR10: without KEY 'the prime record key ... becomes the key of reference'; with KEY, the named record key or 'the record key whose leftmost character position corresponds to the leftmost character position of' data-name-1; it orders this START and, if successful, later sequential READs. 2023 §2023:14.9.41.4 GR15 treats an omitted KEY as KEY IS EQUAL TO the prime record key, and §2023:14.9.41.4 GR16: the key specified 'or that shares a leftmost character with the data item specified in the KEY phrase, becomes the key of reference', used to order this START and, 'If the execution of the START statement is successful', subsequent sequential READs. Same rule.",
+  "source": "adjudicate-712/slice-08"
  }
 }

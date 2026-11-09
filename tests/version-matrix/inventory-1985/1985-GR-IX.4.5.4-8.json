@@ -9,7 +9,7 @@
    "GR-14.9.30.4-5"
   ],
   "bridge": true,
-  "reason": "Same READ-then-implicit-MOVE equivalence, VARYING group move and identification just before the move; no move on failure. The undefined-MOVE note follows from the MOVE rules already applying.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: READ INTO equals the READ then an implicit MOVE per MOVE rules, size per RECORD clause, a group move for RECORD IS VARYING, identifier-1 subscripts evaluated just before the move, no move on failure. §2023:14.9.30.4 GR4 states the same ('the implied move is an alphanumeric group move') and §2023:14.9.30.4 GR5 'the content of the data item referenced by identifier-1 is unchanged' on failure. The overlap NOTE concerns 1985 SR1's own change.",
+  "source": "adjudicate-712/slice-07"
  }
 }

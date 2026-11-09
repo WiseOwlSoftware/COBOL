@@ -10,7 +10,7 @@
    "GR-9.1.13.2-4"
   ],
   "bridge": true,
-  "reason": "Statuses 00, 04 and 05 (optional file absent at OPEN, created for I-O/extend) carry over. The DELETE FILE case of 05 covers a statement 1985 lacks; 1985 OPEN results are unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:9.1.13.2 GR1 (00 'successfully executed and no further information is available'), §2023:9.1.13.2 GR3 (04, record length not conforming to the fixed file attributes, restated as 'shorter than or longer than the minimum or maximum length') and §2023:9.1.13.2 GR4 a) (05, optional file not present at OPEN; 'If the open mode is I-O or extend, the physical file has been created'). 05 b) covers DELETE FILE, a 2023-only statement.",
+  "source": "adjudicate-712/slice-17"
  }
 }

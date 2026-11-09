@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XI.2.5.4-2",
+ "rule-digest": "2e4d75313c25",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.6.4.3-8",
+   "GR-12.4.6.4.4-4",
+   "GR-12.4.6.4.4-5"
+  ],
+  "bridge": true,
+  "reason": "The 1985 'at least one of the file-names must represent a sort or merge file' is §2023:12.4.6.4.3 SR8 ('At least one file-name specified in a sort-merge-area format SAME clause shall represent a sort or merge file'). Items a-c are §2023:12.4.6.4.4 GR4 a-c, with the implementor still setting the extent of allocation. Item d is §2023:12.4.6.4.4 GR5 ('shall not be in the open mode'), with no exception condition added. The 1985 note on how non-sort files share storage (a SAME AREA or SAME RECORD AREA clause) follows from GR1-2.",
+  "source": "adjudicate-712/slice-22"
+ }
+}

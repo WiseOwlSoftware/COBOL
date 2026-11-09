@@ -2,13 +2,14 @@
  "rule-id": "1985-FMT-VI.6.16.2",
  "rule-digest": "bc372c1a905b",
  "next": {
-  "kind": "CHANGED",
-  "edition": 2023,
+  "kind": "KEPT",
   "to": [
-   "FMT-14.9.19.2"
+   "FMT-14.9.19.2",
+   "SR-14.9.19.3-1"
   ],
+  "reason": "The 1985 diagram (§1985:VI.6.16.2) appears to let NEXT SENTENCE be closed by END-IF, but §1985:VI.6.16.3 SR3 forbids it ('If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified'), so the 1985 programs are IF with statements and an optional ELSE closed by END-IF, or IF with statements or NEXT SENTENCE and an optional ELSE (statements or NEXT SENTENCE) with no END-IF. §2023:14.9.19.2 states exactly those two shapes, 'Format 1 (delimited)' with END-IF and 'Format 2 (historic)' with NEXT SENTENCE and no END-IF, and the 1985 ellipsis on statement-1 and statement-2 is stated in §2023:14.9.19.3 SR1 ('one or more imperative statements or a conditional statement optionally preceded by one or more imperative statements'). Same programs accepted, same meaning: KEPT (NEXT SENTENCE is archaic in 2023, a standing, not a change). The refusal of NEXT SENTENCE with END-IF stays a compile-time refusal.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"IF condition-1 THEN NEXT SENTENCE ... ELSE {statement-2} … [END-IF] | END-IF\"; 2023: \"Format 1 (delimited): IF condition-1 THEN statement-1 [ ELSE statement-2 ] END-IF; Format 2 (historic) ... NEXT SENTENCE (no END-IF)\". 1985 lets THEN NEXT SENTENCE be ended by END-IF. In 2023 END-IF exists only in Format 1, which has no NEXT SENTENCE, so IF c NEXT SENTENCE ... END-IF is now refused.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-02"
  }
 }

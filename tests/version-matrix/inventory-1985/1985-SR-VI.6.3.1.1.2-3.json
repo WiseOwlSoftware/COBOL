@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.3.1.1.2-3",
+ "rule-digest": "584d1d7e86fa",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.2.1-6"
+  ],
+  "bridge": true,
+  "reason": "1985 VI.6.3.1.1.2 (3): 'A noninteger numeric operand cannot be compared to a nonnumeric operand' and numeric/nonnumeric operands 'may be compared only when their usage is the same' (nonnumeric is display). §2023:8.8.4.2.1 GR6 defines a numeric/alphanumeric comparison only where 'one is a numeric integer', and §2023:8.8.4.2.5 (unnumbered prose, no catalog id) requires 'an integer literal or an integer numeric data item of usage display or national'. For 1985 operands (no national) the permitted pairs are identical: only display integers compare with alphanumeric operands, so a conforming 1985 program means the same. The size definition and equal/unequal-size cases are carried by the sibling 1985 rules L2.1/L2.2.",
+  "source": "adjudicate-712/slice-31"
+ }
+}

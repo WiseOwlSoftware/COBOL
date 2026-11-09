@@ -8,7 +8,7 @@
    "GR-8.3.3.6.4-3"
   ],
   "bridge": true,
-  "reason": "2023 rule b) still makes a non-ALL figurative constant one character when context gives no length, citing the same statements. The ALL and concatenation rules lie outside the 1985 rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'When a figurative constant, other than ALL literal, is not associated with another data item as when the figurative constant appears in a DISPLAY, STOP, STRING, or UNSTRING statement, the length of the string is one character' (§1985:IV.4.2.2.2.3). 2023: 'When a figurative constant is other than ALL literal-1, the length of the string is one character', with NOTE 2 naming DISPLAY, STOP, STRING and UNSTRING (§2023:8.3.3.6.4 GR3 b). Rule a) of the same GR (concatenation expressions) applies only to a construct 1985 lacks. Same result for every 1985 program.",
+  "source": "adjudicate-712/slice-04"
  }
 }

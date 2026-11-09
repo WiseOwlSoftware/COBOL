@@ -9,7 +9,7 @@
    "GR-14.9.30.4-5"
   ],
   "bridge": true,
-  "reason": "Same two-step equivalence, RECORD-clause sizing and group move for VARYING; no move if the READ fails. Subscripting is restated as item identification after the read.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 READ GR8: READ INTO = READ without INTO, then MOVE per MOVE rules, size per RECORD clause, group move for RECORD IS VARYING, no move if unsuccessful, subscripts evaluated after the read. §2023:14.9.30.4 GR4 restates the two steps, the RECORD-clause size, 'the implied move is an alphanumeric group move' and item identification after the read; §2023:14.9.30.4 GR5: if unsuccessful 'the content of the data item referenced by identifier-1 is unchanged'. Same result.",
+  "source": "adjudicate-712/slice-16"
  }
 }

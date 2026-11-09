@@ -2,13 +2,13 @@
  "rule-id": "1985-GR-VI.6.3.1.2-1",
  "rule-digest": "14a4acac014a",
  "next": {
-  "kind": "CHANGED",
-  "edition": 2023,
+  "kind": "KEPT",
   "to": [
    "GR-8.8.4.4.4-3"
   ],
+  "reason": "1985: 'An operand is numeric if it consists entirely of the characters 0, 1, 2, 3, ... , 9, with or without an operational sign', refined in the same clause: with no sign in the data description the content must be digits with no sign; with one, digits and a valid sign. §2023:8.8.4.4.4 GR3 n) gives the same test for every 1985 operand: for a numeric display item 'the condition is true if the presence or absence of an operational sign in the content of the data item referenced by identifier-1 is in agreement with the data description of identifier-1' and the rest is digits; for a non-numeric item 'the condition is true if the content ... consists entirely of the characters 0, 1, 2, 3, ..., 9' (1985's unsigned case). The floating-point and other-usage branches cover operands 1985 refused (its DISPLAY-only rule); that widening belongs to the operand rule, not this definition. Same meaning.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"consists entirely of the characters 0, 1, 2, 3, ... , 9, with or without an operational sign\"; 2023: \"presence or absence of an operational sign ... is in agreement with the data description of identifier-1\". Unlike 1985, 2023 requires a sign to match the data description, takes only digits for non-numeric items, and adds rules by usage (floating-point, others), as far as these texts show.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-13"
  }
 }

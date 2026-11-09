@@ -2,13 +2,14 @@
  "rule-id": "1985-GR-XIII.3.11.4-2",
  "rule-digest": "00882fa9e09a",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.14.4-6"
+   "GR-13.18.14.4-6",
+   "SR-13.18.14.3-9"
   ],
   "bridge": true,
-  "reason": "1985: \"Integer-1 specifies the column number of the leftmost character position of the printable item.\"; 2023: \"b) If LEFT is specified, integer-1 is the leftmost column ... c) If RIGHT is specified, integer-1 is the rightmost column\". 2023 makes integer-1 the leftmost column only with LEFT. New RIGHT and CENTER phrases make it the rightmost or center column, and the quoted rules state no default.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: integer-1 is the leftmost column of the printable item (the only form). 2023 §2023:13.18.14.4 GR6 b) 'If LEFT is specified, integer-1 is the leftmost column of the printable item', and §2023:13.18.14.3 SR9 'If any of the operands is absolute and neither LEFT, CENTER, nor RIGHT is specified, LEFT is assumed'. Every 1985 COLUMN clause means the same; RIGHT and CENTER are syntax 1985 lacks.",
+  "source": "adjudicate-712/slice-24"
  }
 }

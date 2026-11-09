@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.2.3.4-4",
+ "rule-digest": "2a4d618f0ea9",
+ "next": {
+  "kind": "REMOVED",
+  "to": [],
+  "reason": "1985 GR4 only says the ACCESS MODE, FILE STATUS, ORGANIZATION, PADDING CHARACTER, RECORD DELIMITER and RESERVE clauses 'are presented in alphabetical order on the following pages': a note on the document's layout, with no requirement on a program or implementation. 2023 has no rule stating presentation order (the word 'alphabetical' does not occur in specs/ISO_COBOL_2023.md), and its file control clauses are each a subclause of §2023:12.4.5. No rule carries it; no program's meaning depends on it.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-15"
+ }
+}

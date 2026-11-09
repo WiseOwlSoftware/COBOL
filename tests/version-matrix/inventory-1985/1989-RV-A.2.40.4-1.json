@@ -3,12 +3,12 @@
  "rule-digest": "2e86181c13ca",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "RV-15.84.4-4"
   ],
+  "reason": "1985: 'The returned value is the absolute value of the approximation of the square root of argument-1.' §2023:15.84.4 RV4 says the same words under native arithmetic. A 1985 program has no ARITHMETIC clause, so by §2023:11.9.5.2 GR4 it is treated as NATIVE. §2023:15.84.4 RV2/RV3 (standard-decimal and standard-binary results) apply only to modes a 1985 program cannot select, so they state no part of this requirement.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "Under native arithmetic, 2023 returns the same absolute value of the approximated square root. Standard-binary and standard-decimal modes are new 2023 features a 1985 program cannot select.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-36"
  }
 }

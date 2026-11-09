@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-IX.4.5.3-4",
+ "rule-digest": "26afad2a3e91",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-8",
+   "GR-14.9.30.4-19"
+  ],
+  "bridge": true,
+  "reason": "1985: 'Format 1 must be used for all files in sequential access mode.' 2023 reaches the same result by implication: §2023:14.9.30.3 SR8 'If neither the NEXT phrase nor the PREVIOUS phrase is specified and ACCESS MODE SEQUENTIAL is specified ... the NEXT phrase is implied', and §2023:14.9.30.4 GR19 'An implicit or explicit NEXT phrase or a PREVIOUS phrase results in a sequential read'. Every READ on a sequential-access file is therefore a format 1 (sequential) READ, and the format 2 KEY and INVALID KEY phrases have no place in it. A conforming 1985 program means the same.",
+  "source": "adjudicate-712/slice-29"
+ }
+}

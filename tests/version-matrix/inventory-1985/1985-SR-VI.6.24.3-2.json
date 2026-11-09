@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.24.3-2",
+ "rule-digest": "fa4b4a5b0110",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.42.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: STOP RUN 'in a consecutive sequence of imperative statements within a sentence ... must appear as the last statement in that sequence'. §2023:14.9.42.3 SR1: 'The STOP statement shall be specified only as the last statement in any discreet block of code'. 2023 leaves 'discreet block of code' undefined. The project settled that implementor latitude under CLAUDE.md rule 1 (docs/CONFORMANCE.md D-SEQ, kb/Work PB397): the block is the same consecutive imperative sequence that §2023:14.9.17.3 SR2 names. Every 2023 STOP is STOP RUN, so the scope matches, and both refuse at compile time.",
+  "source": "adjudicate-712/slice-30"
+ }
+}

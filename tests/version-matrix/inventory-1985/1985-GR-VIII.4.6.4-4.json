@@ -8,7 +8,7 @@
    "GR-14.9.35.4-6"
   ],
   "bridge": true,
-  "reason": "Same rule: the released record leaves the record area unless the file is in SAME RECORD AREA, then is shared with those files. file-name-1 only covers the new FILE format; the level-2 box is no difference.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.35.4 GR6: the released record 'is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause', and is then a record of the other files in that clause. file-name-1 only serves the 2023 FILE format. Same.",
+  "source": "adjudicate-712/slice-19"
  }
 }

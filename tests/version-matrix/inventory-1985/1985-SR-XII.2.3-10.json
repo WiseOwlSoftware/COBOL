@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XII.2.3-10",
+ "rule-digest": "031ef3e2e39c",
+ "next": {
+  "kind": "REMOVED",
+  "to": [],
+  "reason": "1985 makes the word COPY inside a comment-entry (AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED, SECURITY paragraphs) part of the comment-entry. 2023 has no comment-entries at all: the term and those paragraphs do not occur anywhere in ISO 1989:2023, and §2023:7.2.3.3 SR1 places COPY only where a character-string or separator may appear in source or library text. No 2023 rule carries this requirement.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-33"
+ }
+}

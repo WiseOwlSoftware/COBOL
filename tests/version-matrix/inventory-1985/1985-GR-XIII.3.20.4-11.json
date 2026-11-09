@@ -1,0 +1,20 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-11",
+ "rule-digest": "7816ba8c29bd",
+ "next": {
+  "kind": "KEPT",
+  "to": [
+   "GR-14.9.16.4-1",
+   "GR-14.9.16.4-2",
+   "GR-13.18.54.4-7",
+   "GR-14.9.49.4-9",
+   "GR-14.9.45.4-3",
+   "GR-8.4.3.15.4-5",
+   "GR-13.18.57.4-6"
+  ],
+  "reason": "1985 GR11 steps for a detail: a) subtotalling, b) USE BEFORE REPORTING, c) stop if suppressed or not printable, d) stop under GENERATE report-name, e) present. 2023 carries each: a) §2023:13.18.54.4 GR7 c) adds identifier/expression addends 'whenever any GENERATE statement is executed for the current report or any detail defined for the current report' (or for the UPON details), which also covers a report with no detail; b) §2023:14.9.49.4 GR9 runs the USE 'After any control break processing, if the associated report group is a detail' and 'After incrementing sum counters', before page fit and LINE processing; c) §2023:14.9.45.4 GR3 inhibits printing, page advance, NEXT GROUP and LINE-COUNTER changes for a suppressed group, and §2023:8.4.3.15.4 GR5 leaves the counters untouched by a dummy (non-printable) group; d) §2023:14.9.16.4 GR2 'the same processing as for a GENERATE data-name statement ... except that no detail is printed'; e) §2023:14.9.16.4 GR1 and §2023:13.18.57.4 GR6 d) 'A detail is printed as the result of the execution of an explicit GENERATE statement that references it'. Same processing for a conforming 1985 program.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
+ }
+}

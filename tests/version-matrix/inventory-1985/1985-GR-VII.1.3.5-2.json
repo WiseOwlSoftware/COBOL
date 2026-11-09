@@ -9,7 +9,7 @@
    "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "Both say a sequential READ that meets the at end condition is unsuccessful, with I-O status 1x/10. The PREVIOUS case only covers syntax new in 2023, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "The definition is repeated word for word in §2023:9.1.13.1 ('At end. A sequential READ statement was unsuccessfully executed as a result of an at end condition'); that prose has no catalog rule. The catalogued rules that carry it are the status-10 cases (§2023:9.1.13.4 GR1 'NEXT was specified or implied and the end of the physical file has been reached') and the READ at-end processing ('The I-O status of the file connector associated with file-name-1 is set to '10' to indicate the at end condition', §2023:14.9.30.4 GR24). The PREVIOUS case needs syntax 1985 lacks.",
+  "source": "adjudicate-712/slice-14"
  }
 }

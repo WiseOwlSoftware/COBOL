@@ -5,12 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "GR-13.18.63.4-9",
    "SR-13.18.63.3-18",
    "SR-13.18.63.3-20",
-   "SR-13.18.63.3-21"
+   "GR-13.18.63.4-12"
   ],
   "bridge": true,
-  "reason": "1985 only permits VALUE clauses to give values to selected table elements. 2023 still permits this via the table-format VALUE clause; its FROM/TO rules are format syntax, not a loss of the permission.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 permits giving 'selected table elements' values with VALUE clauses; by 1985 VI.5.15.6 GR6 a VALUE on an OCCURS entry or its subordinates sets every occurrence. 2023 keeps that: such a VALUE clause 'causes every occurrence of the associated data item to be assigned the specified value' (§2023:13.18.63.4 GR9), and adds the table-format VALUE, whose entry has an OCCURS (§2023:13.18.63.3 SR18) and whose FROM subscripts pick the element (§2023:13.18.63.3 SR20): 'The table element initialized is identified by subscript-1' (§2023:13.18.63.4 GR12). The permission is unchanged for a 1985 program.",
+  "source": "adjudicate-712/slice-27"
  }
 }

@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.41.4-1"
+   "GR-14.9.41.4-1",
+   "GR-14.9.27.4-8",
+   "GR-9.1.13.7-7"
   ],
   "bridge": true,
-  "reason": "Both require the file to be open in input or I-O mode when START executes. Status 47 sits in a separate I-O status rule and does not change which programs this rule accepts.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR1: the file 'must be open in the input or I-O mode at the time that the START statement is executed'. 2023 §2023:14.9.41.4 GR1: 'The open mode of the file connector referenced by file-name-1 shall be input or I-O'; Table 20 of §2023:14.9.27.4 GR8 restates it (START: Input and I-O only), and §2023:9.1.13.7 GR7 defines status 47 for 'a READ or START statement ... not open in the input or I-O mode', the same status 1985 already defined (Indexed I-O status 47). A run-time requirement in both; no compile-time refusal became an exception. Same meaning for a conforming 1985 program.",
+  "source": "adjudicate-712/slice-08"
  }
 }

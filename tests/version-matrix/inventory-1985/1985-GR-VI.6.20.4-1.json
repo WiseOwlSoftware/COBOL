@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.20.4-1",
+ "rule-digest": "0674ff816120",
+ "next": {
+  "kind": "KEPT",
+  "to": [
+   "GR-14.9.26.4-1",
+   "GR-14.7.7-4"
+  ],
+  "reason": "1985 GR1 stores literal-1 or identifier-1 in a temporary, multiplies it by identifier-2 and replaces identifier-2 with the product, repeating for each identifier-2 left to right. §2023:14.9.26.4 GR1 makes literal-1 or identifier-1 the multiplier determined once in the initial evaluation and 'The product of the multiplier and the multiplicand is stored as the new value of the data item referenced by identifier-2'; §2023:14.7.7 GR4 b) stores in each resulting item 'in the left-to-right order in which the receiving data items are specified'. The swap of the names multiplier/multiplicand is terminology only. GR3 governs standard arithmetic, which a 1985 program never selects; GR4 is the pointer rule, the counterpart of 1985 GR3.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-12"
+ }
+}

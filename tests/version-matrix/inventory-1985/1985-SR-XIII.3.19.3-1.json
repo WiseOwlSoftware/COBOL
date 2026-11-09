@@ -3,14 +3,14 @@
  "rule-digest": "9e280a9ed643",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "SR-13.18.54.3-2",
    "SR-13.18.54.3-4",
    "SR-13.18.54.3-5"
   ],
+  "reason": "Kept: subject not alphabetic (§2023:13.18.54.3 SR2 'shall be valid as the category of a receiving operand in a MOVE statement for a sending operand of the category numeric'), non-report addend numeric (§2023:13.18.54.3 SR5), and no UPON with a report-section addend (§2023:13.18.54.3 SR4 a). Changed: 1985 requires a Report Section addend to be a sum counter, in the same group or a lower-level control footing; §2023:13.18.54.3 SR4 accepts any 'numeric data item in the report section' and adds pairings ('The current report group may be a detail and data-name-1 may be defined in a different detail', report and page footings, other reports), while a same-group addend now 'shall be a repeating item' with more levels of repetition, so a 1985 non-repeating crossfoot within one control footing is refused. Both looser and stricter; compile-time throughout.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"If identifier-1 is defined in the Report Section, identifier-1 must reference a sum counter. ... or in a report group which is at a lower level\"; 2023: \"Data-name-1 shall be the name of a numeric data item in the report section. ... The current report group may be a page footing\". 2023 lets the report-section addend be any numeric item, not only a sum counter, and allows more group pairings: detail to detail, page/report footing, other reports.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-34"
  }
 }

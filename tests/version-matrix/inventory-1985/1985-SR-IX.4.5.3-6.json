@@ -10,7 +10,7 @@
    "SR-14.9.30.3-9"
   ],
   "bridge": true,
-  "reason": "2023 still makes random-mode READs, and dynamic-mode READs with no implied or explicit NEXT/PREVIOUS, random reads under format 2. The implied-NEXT default bears on 1985's NEXT rule, not this one.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: format 2 is used for random access mode, or for dynamic access mode when records are retrieved randomly. 2023 §2023:14.9.30.4 GR19: without an explicit or implied NEXT or PREVIOUS 'the read is a random read and the rules for format 2 apply'; §2023:14.9.30.3 SR6 bars NEXT, PREVIOUS and AT END in random mode; §2023:14.9.30.3 SR9 implies NEXT in dynamic mode only when ADVANCING, AT END or NOT AT END is written, so other dynamic-mode READs stay random. The same READs are random under both editions.",
+  "source": "adjudicate-712/slice-29"
  }
 }

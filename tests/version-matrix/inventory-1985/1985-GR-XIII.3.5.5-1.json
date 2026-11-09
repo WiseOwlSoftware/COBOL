@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-8.4.3.15.4-1"
+   "GR-8.4.3.15.4-1",
+   "FMT-8.4.3.15.2"
   ],
   "bridge": true,
-  "reason": "Both make PAGE-COUNTER a reserved word for a counter item kept for each report. 2023's added numeric detail matches what 1985 defers to the special-register pages; LINE-COUNTER is extra.",
-  "source": "audit-1985/state-route"
+  "reason": "Same. 1985: PAGE-COUNTER is the reserved word referencing a special register 'automatically created for each report'. 2023 §2023:8.4.3.15.1 'The PAGE-COUNTER and LINE-COUNTER identifiers are generated automatically and exist independently for each report'; §2023:8.4.3.15.4 GR1 'PAGE-COUNTER and LINE-COUNTER reference temporary unsigned integer data items of class and category numeric, which are maintained for each report'; the format §2023:8.4.3.15.2 keeps the word, qualifiable by report-name. 'Temporary data item' for 'special register' is terminology; the attributes match what 1985 defers to its special-register pages.",
+  "source": "adjudicate-712/slice-26"
  }
 }

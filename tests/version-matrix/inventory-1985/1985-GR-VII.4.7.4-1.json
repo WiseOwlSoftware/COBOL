@@ -10,7 +10,7 @@
    "GR-9.1.13.7-8"
   ],
   "bridge": true,
-  "reason": "For sequential access, 2023 still requires the write file connector to be open in extend or output mode. Status '48' only reports a violation; the requirement itself is unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 'must be open in the output or extend mode'; §2023:14.9.51.4 GR3 'If the access mode of the write file is sequential, the open mode of the write file connector shall be extend or output', violation gives status '48' (§2023:9.1.13.7 GR8, as 1985 status 48); §2023:14.9.27.4 GR8 and its Table 20 require the open mode at execution time. Run-time requirement in both; no refusal became an exception.",
+  "source": "adjudicate-712/slice-17"
  }
 }

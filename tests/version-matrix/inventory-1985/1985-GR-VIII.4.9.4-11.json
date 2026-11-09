@@ -8,7 +8,7 @@
    "GR-14.9.51.4-29"
   ],
   "bridge": true,
-  "reason": "Output-mode sequential WRITE still numbers records 1,2,3… and moves the number to the relative key; random/dynamic needs the key preset. Error statuses are separate invalid-key rules (cf. GR-33).",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR11, output mode: sequential access numbers released records 1, 2, 3, ... and moves the number into the relative key per MOVE; random or dynamic access requires the program to set the relative key before the WRITE, and the record is then released. §2023:14.9.51.4 GR29 states both: 'If the open mode of the write file connector is output, the first record released after the OPEN is 1', subsequent numbers consecutive, the key moved 'according to the rules for the MOVE statement'; and 'prior to the execution of the WRITE statement the value of the relative key data item shall be initialized by the runtime element with the relative record number'. GR29's failure statuses ('22', '24', and '34' for a key below 1 or above the highest permitted number) govern when the WRITE fails, which 1985 states in GR14 (invalid key); the difference there is recorded on 1985-GR-VIII.4.9.4-14. For the placement this rule states, same.",
+  "source": "adjudicate-712/slice-20"
  }
 }

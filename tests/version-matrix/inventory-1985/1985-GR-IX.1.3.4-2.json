@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-9.1.13.4-1",
+   "GR-9.1.13.4-2",
    "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "2023 still treats at end as a failed sequential READ (status 10, 'execution of the READ statement is unsuccessful'). PREVIOUS is a new phrase; EC-I-O-AT-END is set only if enabled.",
-  "source": "audit-1985/state-route"
+  "reason": "KEPT: 1985 \"At End. A sequential READ statement was unsuccessfully executed as a result of an at end condition\" = §2023:9.1.13.1 \"At end. A sequential READ statement was unsuccessfully executed as a result of an at end condition\"; the class-1 values 10 and 14 (§2023:9.1.13.4 GR1, GR2) are sequential-READ at end cases, and §2023:14.9.30.4 GR24 makes the READ unsuccessful when \"the at end condition exists\". EC-I-O-AT-END is set only if enabled and changes no 1985 outcome. 2023 restates the 1985 class definition word for word in §2023:9.1.13.1 prose, which has no catalog rule; the catalog ids named are the class's status values, each restating it.",
+  "source": "adjudicate-712/slice-05"
  }
 }

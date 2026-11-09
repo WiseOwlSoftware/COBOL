@@ -8,7 +8,7 @@
    "SR-8.3.5-8"
   ],
   "bridge": true,
-  "reason": "Exceptions a-c kept. New d only states that a comma or period followed by a space is a separator, not the end of the picture string (cf. SR-13.18.40.3-7), so the same programs pass.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:8.3.5 SR8 keeps exceptions a) to c) (b now reads 'closing delimiter of a literal', which for a 1985 nonnumeric literal is the closing quotation mark). New item d) ('The terminating period of a data description entry that ends with a PICTURE clause') adds nothing for 1985: §1985:VI.5.9.5 GR4 and GR5 already require a final ',' or '.' to be 'immediately followed by the separator period'. So 'PIC 999, .' was already illegal in 1985. The recheck's claim that it passed is wrong.",
+  "source": "adjudicate-712/slice-28"
  }
 }

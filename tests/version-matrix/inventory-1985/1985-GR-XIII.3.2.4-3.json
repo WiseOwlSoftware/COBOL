@@ -3,15 +3,16 @@
  "rule-digest": "975a933dc786",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
+   "FMT-13.4.5.2",
    "SR-13.4.5.3-8",
    "GR-13.18.10.4-1",
    "GR-13.18.13.4-1",
    "GR-13.18.43.4-1"
   ],
-  "bridge": true,
-  "reason": "1985 rule only says the non-REPORT clauses of a report FD follow the sequential file specs. In 2023 the 13.18 clause rules apply to report FDs too; no change in effect.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR3 is a presentation pointer: 'With the exception of the REPORT clause, all clauses within the file description entry for a report file' are those of the Sequential I-O module, i.e. they mean what they mean in a sequential FD. 2023 keeps that sharing: §2023:13.4.5.2 'Format 3 (report)' (§2023:13.4.5.3 SR8 'Format 3 is the file description entry for a report file') lists BLOCK CONTAINS, record-clause and CODE-SET, the same clauses of Format 1 (sequential), each defined once for every FD: §2023:13.18.10.4 GR1 (BLOCK CONTAINS), §2023:13.18.43.4 GR1 (RECORD), §2023:13.18.13.4 GR1 (CODE-SET). The loss of LABEL RECORDS/VALUE OF is a general-format matter carried by the FD format records, not by this pointer; a clause written in a 1985 report FD that 2023 still has means the same.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

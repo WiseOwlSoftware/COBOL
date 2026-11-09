@@ -6,11 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-13.18.40.4-4",
+   "GR-13.18.40.4-14",
    "SR-13.18.40.3-6",
    "SR-13.18.40.3-12"
   ],
   "bridge": true,
-  "reason": "2023 also counts size from position symbols, takes a parenthesized nonzero integer as a repeat count, and allows S, V, ., CR, DB once. Constant-name and 'E' only extend; 1985 programs act the same.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: size is 'determined by the number of allowable symbols that represent character positions'; a parenthesized unsigned nonzero integer after a symbol 'indicates the number of consecutive occurrences'; 'S', 'V', '.', 'CR', 'DB' appear only once. 2023: §2023:13.18.40.4 GR4 (size 'determined by the number of symbols in character-string-1 that represent ... character positions', each symbol's count in §2023:13.18.40.4 GR14); §2023:13.18.40.3 SR6 'An unsigned nonzero integer that is enclosed in parentheses indicates the number of consecutive occurrences'; §2023:13.18.40.3 SR12 'Each of the symbols from the set CR, DB, E, S, V . may appear only once'. Constant-name repeat counts, 'E' and multi-character currency strings reach no 1985 program.",
+  "source": "adjudicate-712/slice-10"
  }
 }

@@ -8,7 +8,7 @@
    "GR-14.9.30.4-18"
   ],
   "bridge": true,
-  "reason": "Both leave the record area undefined and the position invalid after an unsuccessful READ. The 'otherwise specified' exceptions cover locking or at-end cases, where the next READ still gets '46'.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 READ GR12: after an unsuccessful READ 'the content of the associated record area is undefined and the file position indicator is set to indicate that no valid next record has been established'. §2023:14.9.30.4 GR18: 'the content of the associated record area is undefined ... and the file position indicator is set to indicate that no valid record position has been established'. Its 'unless otherwise specified' cases (at end per GR24, locking) do not change a 1985 program: the next READ fails with '46' under §2023:14.9.30.4 GR21 as under 1985 GR4a.",
+  "source": "adjudicate-712/slice-16"
  }
 }

@@ -5,11 +5,10 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.49.4-12",
    "GR-14.9.49.4-7"
   ],
   "bridge": true,
-  "reason": "Same rule: control goes to the I-O control system, then to the statement after the I-O statement unless fatal (implementor-defined). The SORT/MERGE case only cross-refers to those statements' rules.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.49.4 GR7 b) 'If the I-O status value does not indicate a fatal EC-I-O exception condition, control is returned to an implicit CONTINUE statement following the input-output statement' (1985 'returns control to the next executable statement following the input-output statement'); GR7 c) 'the implementor determines what action is taken' (1985 the same for a critical error). 1985 critical = 3x, 4x and implementor 9x; §2023:9.1.13.1 makes 3x, 4x, 7x and implementor 9x fatal, and 7x arises only from 2023-only line sequential and record content rules. GR7 a) only defers to SORT/MERGE. §2023:14.9.49.4 GR12 restates this for format 3 (EC-I-O exception-names) and does not govern this format-1 rule, so it is not listed.",
+  "source": "adjudicate-712/slice-17"
  }
 }

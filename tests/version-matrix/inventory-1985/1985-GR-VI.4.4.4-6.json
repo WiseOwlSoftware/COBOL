@@ -8,7 +8,7 @@
    "GR-12.3.6.4-10"
   ],
   "bridge": true,
-  "reason": "With the clause absent, both default to the native collating sequence. The added national sequence and the containment condition only cover nesting and national features; the alphanumeric default is unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: clause absent -> 'the program collating sequence is the native collating sequence'. §2023:12.3.6.4 GR10: clause absent and not inherited from a containing unit -> 'the initial program collating sequences are the native alphanumeric collating sequence and the native national collating sequence'. The containment proviso restates 1985 GR2 (clauses apply to contained programs); the national sequence serves new data only.",
+  "source": "adjudicate-712/slice-09"
  }
 }

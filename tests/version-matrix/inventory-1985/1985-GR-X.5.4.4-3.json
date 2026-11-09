@@ -9,7 +9,7 @@
    "GR-14.9.18.4-2"
   ],
   "bridge": true,
-  "reason": "EXIT PROGRAM in a called program follows GOBACK rules, which run an implicit CANCEL for an initial program on return. 8.5.1.11.3 GR2 confirms reset on EXIT PROGRAM.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: EXIT PROGRAM in a called initial program 'is equivalent also to executing a CANCEL statement referencing that program'. 2023: EXIT PROGRAM in a called program follows GOBACK (§2023:14.9.14.4 GR3, read as GOBACK GR1-2, see X.5.4.4-2), and for an initial program 'an implicit CANCEL statement referencing that program is executed upon return to the calling runtime element' (§2023:14.9.18.4 GR2). Same effect. GR-8.5.1.11.3-2 covers only freeing variable-length storage.",
+  "source": "adjudicate-712/slice-22"
  }
 }

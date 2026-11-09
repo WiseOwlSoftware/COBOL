@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.13.3-1",
+ "rule-digest": "366353d14428",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.13.2"
+  ],
+  "bridge": true,
+  "reason": "1985 defines selection subjects as 'The operands or the words TRUE and FALSE which appear before the first WHEN phrase', collectively 'the set of selection subjects'. 2023 states the same thing in the format itself. §2023:14.9.13.2 writes 'EVALUATE selection-subject [ ALSO selection-subject ] ...' and lists identifier-1, literal-1, arithmetic-expression-1, boolean-expression-1, condition-1, TRUE and FALSE. The added boolean-expression operand is a construct 1985 lacks, so the term means the same for a 1985 program.",
+  "source": "adjudicate-712/slice-30"
+ }
+}

@@ -3,14 +3,17 @@
  "rule-digest": "865e6613f710",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-13.18.37.4-2",
+   "GR-13.18.37.4-3",
    "GR-13.18.37.4-4",
-   "GR-8.4.3.15.4-4"
+   "GR-13.18.37.4-5",
+   "GR-8.4.3.15.4-4",
+   "GR-13.18.35.4-8"
   ],
-  "bridge": true,
-  "reason": "Both say NEXT GROUP yields a new LINE-COUNTER value by group type. 2023 rules still use PAGE clause values (FOOTING integer) and LINE-COUNTER, so no change in substance.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: the RWCS 'uses the vertical positioning information supplied by the NEXT GROUP clause along with information from the TYPE and PAGE clauses, and the value in LINE-COUNTER, to determine a new value for LINE-COUNTER'. 2023 states the same: §2023:13.18.37.4 GR2 'The NEXT GROUP clause modifies the value of the current report's LINE-COUNTER after the printing of the last line ... The effect of this clause depends on the type of report group'; GR3 (report heading), GR4 (body group, using LINE-COUNTER and 'the FOOTING integer') and GR5 (page footing) give the per-type computation; §2023:8.4.3.15.4 GR4 and §2023:13.18.35.4 GR8 restate that the final LINE-COUNTER is the one the NEXT GROUP rules define. A pure run-time positioning rule, unchanged in substance.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

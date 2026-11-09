@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-9.1.13.4-1"
+   "GR-9.1.13.4-1",
+   "GR-14.9.30.4-21",
+   "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "2023 status 10 keeps both 1985 cases: end of file reached, and first sequential READ of an absent optional file. The added PREVIOUS case covers only new syntax, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "Status 10 keeps both 1985 cases: 'NEXT was specified or implied and the end of the physical file has been reached', and 'a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present' (§2023:9.1.13.4 GR1). The READ rules restate them (§2023:14.9.30.4 GR21 for the position indicator and GR24 'set to '10' to indicate the at end condition'). The PREVIOUS case needs syntax 1985 lacks.",
+  "source": "adjudicate-712/slice-14"
  }
 }

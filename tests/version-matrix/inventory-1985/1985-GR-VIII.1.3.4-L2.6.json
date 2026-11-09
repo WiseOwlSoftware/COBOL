@@ -8,7 +8,7 @@
    "GR-9.1.13.11-1"
   ],
   "bridge": true,
-  "reason": "Both define 9x as an implementor-defined failure whose x is set by the implementor. 1985's 00-49 range was every other status then; 2023's 'another I-O status value' says the same.",
-  "source": "audit-1985/state-route"
+  "reason": "Both make 9x an implementor-defined unsuccessful condition with x set by the implementor; 1985 'must not duplicate any condition specified for the I-O status values 00 through 49' and §2023:9.1.13.11 GR1 'shall not duplicate any other condition specified by another I-O status value' bound it the same way for a program. The A.1 documentation item is an implementor obligation, not part of this rule.",
+  "source": "adjudicate-712/slice-18"
  }
 }

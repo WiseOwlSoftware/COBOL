@@ -9,7 +9,7 @@
    "GR-14.9.51.4-15"
   ],
   "bridge": true,
-  "reason": "1985: \"b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status ... and after executing the procedure\"; 2023: \"If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur\". 1985 runs imperative-statement-2 even after an unsuccessful WRITE, once the USE procedure has run. 2023 reaches NOT END-OF-PAGE only on successful execution.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR9 b. transfers control to imperative-statement-2 of NOT END-OF-PAGE even when 'the execution of the WRITE statement is unsuccessful', after the USE procedure. §2023:14.9.51.4 GR28 reaches NOT END-OF-PAGE only 'during the successful execution of a WRITE statement', and §2023:14.9.51.4 GR15 routes an unsuccessful WRITE through 9.1.12/9.1.13 instead. Different control flow for a failed WRITE.",
+  "source": "adjudicate-712/slice-17"
  }
 }

@@ -2,13 +2,16 @@
  "rule-id": "1985-SR-XIII.3.9.3-3",
  "rule-digest": "907bbf4a44d4",
  "next": {
-  "kind": "KEPT",
-  "edition": 2023,
+  "kind": "CHANGED",
   "to": [
-   "SR-13.15.3-3"
+   "SR-13.15.3-3",
+   "SR-13.15.3-5",
+   "SR-13.15.3-11",
+   "GR-13.15.4-1"
   ],
+  "reason": "1985 confines group entries (format 2) to 02-48 and elementary entries (format 3) to 02-49; level 01 is format 1, which carries no PICTURE, COLUMN, SOURCE, SUM or VALUE. 2023: 'Level-number shall be any integer from 1 through 49' for every entry (§2023:13.15.3 SR3); a level 1 entry carries TYPE (§2023:13.15.3 SR5) and 'Each level 1 entry identifies a report group' defined by it and its subordinates (§2023:13.15.4 GR1), and the elementary-only clauses may be written in any elementary entry (§2023:13.15.3 SR11), so a level 1 entry with no subordinates may be elementary and printable. An elementary 01 report group, refused in 1985, is accepted: looser. Groups still stop at 48 because a level 49 entry can have no subordinate.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "2023's 1-49 merges the 1985 formats: level 1 is the report group entry (1985 format 1, 01). A level-49 entry can have no subordinates, so group entries still stop at 48.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-34"
  }
 }

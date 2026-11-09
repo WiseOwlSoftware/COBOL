@@ -5,12 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.12.4-6",
+   "GR-14.9.12.4-1",
    "GR-14.9.12.4-2",
+   "GR-14.9.12.4-6",
    "GR-14.9.12.4-7"
   ],
   "bridge": true,
-  "reason": "Both divide identifier-2/literal-2 by identifier-1/literal-1, store in identifier-3, then store the remainder in identifier-4, identified after the quotient. The size-error proviso is a separate rule.",
-  "source": "audit-1985/state-route"
+  "reason": "Both divide identifier-2/literal-2 by identifier-1/literal-1 (§2023:14.9.12.4 GR1, GR2), store the quotient in identifier-3, then calculate the remainder (§2023:14.9.12.4 GR7) and store it in identifier-4; 1985 'the subscript is evaluated immediately before the remainder is stored' matches §2023:14.9.12.4 GR6 'Item identification of the data item referenced by identifier-4 is done after the quotient is stored'. The size-error proviso restates 1985 GR8.",
+  "source": "adjudicate-712/slice-11"
  }
 }

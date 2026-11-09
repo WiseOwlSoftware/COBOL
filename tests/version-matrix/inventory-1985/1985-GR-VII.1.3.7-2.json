@@ -3,12 +3,13 @@
  "rule-digest": "ea2a4d0daabf",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
+   "GR-14.9.27.4-25",
    "GR-14.9.49.4-6"
   ],
+  "reason": "1985 file attribute conflict (an unsuccessful OPEN): 'A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.' 2023 states the same for the OPEN that fails on a file attribute conflict (§2023:14.9.27.4 GR10 'a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful'): §2023:14.9.27.4 GR25 d) 'Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed', with §2023:14.9.49.4 GR6 a) 'If file-name-1 is specified, the associated procedure is executed when the condition described in the USE statement occurs'. The exception-checking PERFORM precedence and EC-I-O checking need 2023-only syntax or directives, so a 1985 program behaves the same.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "2023 still runs the file's USE procedure on an I-O exception, AT END/INVALID KEY aside. The PERFORM WHEN precedence needs 2023-only syntax, so 1985 programs behave alike.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-15"
  }
 }

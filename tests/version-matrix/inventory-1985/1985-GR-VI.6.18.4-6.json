@@ -8,7 +8,7 @@
    "GR-14.9.22.4-8"
   ],
   "bridge": true,
-  "reason": "GR8 a-e repeat the 1985 comparison cycle; only BACKWARD alternatives and renumbered cross-references are added. Programs valid in 1985 (no BACKWARD) get the same effect.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.22.4 GR8 a) to e) repeat the 1985 comparison cycle (order of operands, leftmost start, advance on no match and on match, termination, implied CHARACTERS operand) with cross-references renumbered; each change is an 'if BACKWARD is specified' alternative, a phrase the 1985 format lacks.",
+  "source": "adjudicate-712/slice-11"
  }
 }

@@ -7,10 +7,12 @@
   "to": [
    "GR-9.1.13.5-2",
    "GR-9.1.13.5-3",
-   "GR-9.1.13.5-4"
+   "GR-9.1.13.5-4",
+   "GR-14.9.51.4-33",
+   "GR-14.9.35.4-21"
   ],
   "bridge": true,
-  "reason": "Statuses 22, 23 a)-b) and 24 carry the same relative-file cases. Added 23 c)-d) concern START key length and sequential files, not 1985 relative-file programs.",
-  "source": "audit-1985/state-route"
+  "reason": "Statuses 22, 23 and 24 keep the 1985 relative-file cases: §2023:9.1.13.5 GR2 'to write a record that would create a duplicate key in a physical relative file', §2023:9.1.13.5 GR3 'randomly access a record that does not exist' and the optional file not present on START or random READ, §2023:9.1.13.5 GR4 the boundaries and 'a sequential WRITE statement is attempted for a relative file and the number of significant digits ... is larger'. The statement rules naming these values restate them: §2023:14.9.51.4 GR33 ('22'/'24' on relative WRITE), §2023:14.9.35.4 GR21 ('23' on REWRITE). 23 c)-d) cover START key length and sequential files only, so no conforming 1985 relative program changes.",
+  "source": "adjudicate-712/slice-18"
  }
 }

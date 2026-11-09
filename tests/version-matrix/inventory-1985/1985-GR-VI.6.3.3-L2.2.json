@@ -2,13 +2,14 @@
  "rule-id": "1985-GR-VI.6.3.3-L2.2",
  "rule-digest": "12849583386a",
  "next": {
-  "kind": "KEPT",
-  "edition": 2023,
+  "kind": "CHANGED",
   "to": [
+   "FMT-8.8.4.12.2",
    "GR-8.8.4.12.4-1"
   ],
+  "reason": "1985: otherwise 'The NOT is interpreted as a logical operator and, therefore, the implied insertion of subject or relational operator results in a negated relation condition', under the format '[NOT] [relational-operator] object' (§1985:VI.6.3.3), so a logical NOT may precede a stated operator that does not begin with the six words, e.g. 'a > b AND NOT >= c' (>= is a 1985 operator, §1985:VI.6.3.1.1 'IS NOT LESS THAN is equivalent to IS GREATER THAN OR EQUAL TO') meaning NOT (a >= c). 2023 keeps logical NOT before a bare object with the same five expansions (§2023:8.8.4.12.4 GR1), but the format makes NOT an alternative to the relational operator, not a prefix to it (§2023:8.8.4.12.2, rendered page 233), and the note states 'However, NOT cannot immediately precede an extended-relational operator'. A valid 1985 abbreviation with a logical NOT followed by a stated operator is refused in 2023.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "2023 gives NOT standing alone as a logical operator, which yields a negated relation condition, with identical expansions of all five 1985 examples. The added XOR example is new syntax, not a change.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-13"
  }
 }

@@ -3,13 +3,14 @@
  "rule-digest": "a43605fb542f",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "SR-7.2.3.3-1",
-   "GR-7.2.3.4-10"
+   "GR-7.2.3.4-10",
+   "GR-7.2.3.4-12"
   ],
+  "reason": "1985 allows COPY 'in the source program' wherever a character-string or separator other than the closing quotation mark may occur, never within a COPY statement, and its amended GR12 says the text produced by COPY 'must not contain a COPY statement'. §2023:7.2.3.3 SR1 allows COPY 'anywhere in source text or in library text' (closing delimiter of a literal is the newer term); §2023:7.2.3.4 GR12 lets library text contain a COPY without REPLACING (nesting of at least 5 levels) and GR10 bars it when REPLACING is specified. Nested COPY, refused in 1985, is accepted. Looser.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"may be specified in the source program anywhere a character-string or a separator\"; 2023: \"may be specified anywhere in source text or in library text that a character-string or a separator\". 2023 adds COPY in library text, barred only when REPLACING is used (GR-7.2.3.4-10); 1985 allows source program only. 'Closing delimiter of a literal' is just a newer term.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-33"
  }
 }

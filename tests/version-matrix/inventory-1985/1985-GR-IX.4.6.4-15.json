@@ -8,7 +8,7 @@
    "GR-14.9.35.4-24"
   ],
   "bridge": true,
-  "reason": "GR24 restates a) and b): unchanged key keeps retrieval order, changed key may reorder, duplicates go last. The suppression text needs the new SUPPRESS WHEN phrase, so 1985 programs behave alike.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 a) an unchanged alternate key keeps retrieval order; b) a changed one may reorder and, with duplicates, the record is positioned last. §2023:14.9.35.4 GR24 a) and b) restate both ('the record is logically positioned last within the set of duplicate records'). The collating-sequence words make the comparison explicit; the suppression text needs the new SUPPRESS WHEN phrase.",
+  "source": "adjudicate-712/slice-07"
  }
 }

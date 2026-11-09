@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-1",
+ "rule-digest": "6e29ba7763ae",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-3",
+   "GR-14.9.27.4-8",
+   "GR-9.1.13.7-8"
+  ],
+  "bridge": true,
+  "reason": "1985 GR1: the file 'must be open in the output, I-O, or extend mode' at WRITE, referring to OPEN (page IX-23), whose GR4 Table 2 already splits by access mode: sequential WRITE in Output or Extend, random and dynamic WRITE in Output or I-O (error mode a: 1985 already had the split). 2023 §2023:14.9.51.4 GR3: sequential access 'shall be extend or output', otherwise 'I-O or output', else unsuccessful with status '48'; Table 20 of §2023:14.9.27.4 GR8 and §2023:9.1.13.7 GR8 restate it. 2023 gives status 48 where 1985 left a table violation (file open in I-O under sequential access) undefined, but that is a run-time result for a program 1985 already forbade, not a refusal turned into an exception. Same for conforming programs.",
+  "source": "adjudicate-712/slice-08"
+ }
+}

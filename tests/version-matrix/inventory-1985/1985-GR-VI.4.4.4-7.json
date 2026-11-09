@@ -8,7 +8,7 @@
    "GR-12.3.6.4-11"
   ],
   "bridge": true,
-  "reason": "The program collating sequence still governs alphanumeric comparisons in relation conditions, condition-name conditions and CONTROL clauses. National and locale cases are additions only.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: the program collating sequence decides nonnumeric comparisons in relation conditions, condition-name conditions and those implied by a CONTROL clause. §2023:12.3.6.4 GR11 lists the same three contexts for 'alphanumeric comparisons' (1985 'nonnumeric'). National comparisons and the LC_COLLATE case need national data or locale alphabets, which 1985 cannot write.",
+  "source": "adjudicate-712/slice-09"
  }
 }

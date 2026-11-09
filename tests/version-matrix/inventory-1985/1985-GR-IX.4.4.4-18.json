@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-18",
+ "rule-digest": "b8fce584c65f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-10"
+  ],
+  "bridge": true,
+  "reason": "1985: 'The minimum and maximum record sizes for a file are established at the time the file is created and must not subsequently be changed.' 2023 states the same in prose, §2023:9.1.6: fixed attributes 'apply to the file at the time it is created and cannot be changed throughout the lifetime of the file', listing 'the minimum and maximum logical record size in bytes'. That clause has no catalog rule id (catalog gap); the cataloged rule that carries it is §2023:14.9.27.4 GR10, which compares the connector's attributes 'with the fixed file attributes of the file' (see 9.1.6) and fails the OPEN with 39 on a mismatch, as a 1985 conflict did (1985 IX.4.4.4 GR8).",
+  "source": "adjudicate-712/slice-06"
+ }
+}

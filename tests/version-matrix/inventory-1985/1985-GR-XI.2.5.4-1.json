@@ -8,7 +8,7 @@
    "GR-12.4.6.4.4-2"
   ],
   "bridge": true,
-  "reason": "Same shared record area, simultaneous opens, output/most-recently-read semantics and leftmost alignment. The file-area exception only restates the separate SAME AREA open limit (GR-1).",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:12.4.6.4.4 GR2 restates the shared record area, simultaneous opens, the output/most-recently-read record, and 'an implicit redefinition of the area with records aligned on the leftmost byte position'. Its 'except that only one file that is also specified in a file-area format SAME clause may be open' is already 1985 (VII.2.13.3 SR3c: the SAME AREA rule 'takes precedence'). Its availability sentence ('When none of the file connectors is open, the record area is not available', echoed by §2023:14.9.6.4 GR7) follows from 1985: OPEN makes a record area available, CLOSE makes it unavailable, and the shared area is the record of each file still open.",
+  "source": "adjudicate-712/slice-22"
  }
 }

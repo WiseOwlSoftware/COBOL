@@ -3,12 +3,12 @@
  "rule-digest": "ce959e42745d",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-13.18.34.4-6"
   ],
+  "reason": "1985: data-name-2's value 'at the time an OPEN statement with the OUTPUT phrase is executed' defines the footing area of the first logical page, and its value when 'a WRITE statement with the ADVANCING PAGE phrase is executed or a page overflow condition occurs' that of the next. §2023:13.18.34.4 GR6 b) determines the footing start from the data item's content 'At the completion of an OPEN statement with the OUTPUT phrase', during a WRITE with ADVANCING PAGE and during a WRITE causing page overflow, and 'the value applies to the next logical page'. The EC-I-O-LINAGE check in that rule carries 1985 GR3's value limits, not this rule. Same meaning.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "Like 1985, 2023 GR6 reads data-name-2 at OPEN OUTPUT, at WRITE ADVANCING PAGE and at page overflow, for the next logical page. The validity check restates a separate rule.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-15"
  }
 }

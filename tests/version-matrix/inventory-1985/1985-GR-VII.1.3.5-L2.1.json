@@ -8,10 +8,14 @@
    "GR-9.1.13.2-1",
    "GR-9.1.13.2-3",
    "GR-9.1.13.2-4",
-   "GR-9.1.13.2-6"
+   "GR-9.1.13.2-6",
+   "GR-14.9.30.4-14",
+   "GR-14.9.27.4-17",
+   "GR-14.9.27.4-11",
+   "GR-14.9.6.4-3"
   ],
   "bridge": true,
-  "reason": "Statuses 00, 04, 05 (OPEN of an absent optional file, created for I-O/extend) and 07 match in substance. The added 05 case covers DELETE FILE, a statement new since 1985.",
-  "source": "audit-1985/state-route"
+  "reason": "00 is identical (§2023:9.1.13.2 GR1). 04: a READ succeeds but 'the physical record from the file is shorter than or longer than the minimum or maximum length of records allowed for the fixed file attributes' (§2023:9.1.13.2 GR3; set by READ §2023:14.9.30.4 GR14). 05: OPEN succeeds when 'the file is described as optional and the physical file is not present at the time the OPEN statement is executed', created for I-O/extend (§2023:9.1.13.2 GR4; OPEN GR17). 07: NO REWIND, REEL/UNIT or FOR REMOVAL 'references a physical file on a non-reel/unit medium' (§2023:9.1.13.2 GR6; OPEN GR11, CLOSE GR3). The added 05 case for DELETE FILE needs a statement 1985 lacks.",
+  "source": "adjudicate-712/slice-14"
  }
 }

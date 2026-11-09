@@ -3,14 +3,15 @@
  "rule-digest": "0d4a9d07155a",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
+   "FMT-12.4.6.2",
    "SR-12.4.6.4.3-6",
    "SR-12.4.6.4.3-7",
    "SR-12.4.6.4.3-10"
   ],
+  "reason": "1985 allows several SAME clauses (§2023:12.4.6.2 '{ same-clause }...') with (a) a file in at most one SAME RECORD AREA, (b) a sort/merge file in at most one SAME SORT/SORT-MERGE AREA, (c) a non-sort file named in a SAME (AREA) clause and in sort-area clauses requires all that clause's files in those sort-area clauses. §2023:12.4.6.4.3 SR6 and SR7 limit a sort file and an ordinary file to one record-area clause and a sort file to one sort-merge-area clause; SR10 restates (c) for the file-area format. Report files were already barred from SAME RECORD (1985 XIII.2.4.3 SR2), matching SR5. Same refusals.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "a and b match the single record-area and single sort-merge-area limits in SR-6/7. In c, 'a SAME clause' beside the RECORD/SORT formats reads as SAME AREA, the file-area format of SR-10.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-33"
  }
 }

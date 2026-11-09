@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.2.3.3-2",
+ "rule-digest": "0e350e6bebf9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-10.7.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: 'All separately compiled source programs in a sequence of programs must be terminated by an end program header except for the last program in the sequence.' §2023:10.7.3 SR1: 'An end marker shall be present in every source unit that contains, is contained in, or precedes another source unit.' A source unit that precedes another is every one but the last; both are compile-time requirements and a 1985 sequence of programs is accepted and refused alike.",
+  "source": "adjudicate-712/slice-09"
+ }
+}

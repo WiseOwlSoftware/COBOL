@@ -2,13 +2,13 @@
  "rule-id": "1985-GR-IX.4.9.4-3",
  "rule-digest": "87453efb891f",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "GR-14.9.51.4-5"
   ],
   "bridge": true,
-  "reason": "1985: \"MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE statement.\"; 2023: \"`MOVE identifier-1 TO record-name-1` or `MOVE literal-1 TO record-name-1` according to the rules specified for the MOVE statement.\". Same MOVE-then-WRITE equivalence for identifier-1, but 2023 adds a FROM literal-1 case that the 1985 rule does not have.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR3: WRITE ... FROM is equivalent to 'MOVE identifier-1 TO record-name-1' then the WRITE without FROM. 2023 §2023:14.9.51.4 GR5 keeps the identical equivalence for identifier-1. Its additions do not touch a conforming 1985 program: FROM literal-1 is syntax 1985's format refuses, and the undefined result when the implicit MOVE overlaps applies only where identifier-1 and record-name-1 share storage, which 1985 SR1 forbids ('must not refer to the same storage area'). New syntax is not a change of meaning, so KEPT rather than CHANGED.",
+  "source": "adjudicate-712/slice-08"
  }
 }

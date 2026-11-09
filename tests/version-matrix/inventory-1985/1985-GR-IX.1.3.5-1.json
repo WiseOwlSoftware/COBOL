@@ -8,7 +8,7 @@
    "GR-9.1.14-1"
   ],
   "bridge": true,
-  "reason": "2023 still sets the I-O status to an invalid key value (9.1.13.5). The EC-I-O-INVALID-KEY part applies only when checking is enabled, a new feature; 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 'The I-O status of the file connector associated with the statement is set to a value indicating the invalid key condition' is restated in §2023:9.1.14 GR1 'is set to a value indicating the invalid key condition as described in 9.1.13.5'. The added 'if enabled, the EC-I-O-INVALID-KEY exception condition is set to exist' needs checking a 1985 program cannot turn on, and that condition is nonfatal; the status setting is unchanged.",
+  "source": "adjudicate-712/slice-06"
  }
 }

@@ -5,12 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.4.4-11",
-   "GR-14.9.4.4-2",
-   "GR-14.9.4.4-3"
+   "GR-14.9.4.4-3",
+   "SR-14.9.4.3-25",
+   "GR-14.9.4.4-11"
   ],
   "bridge": true,
-  "reason": "1985: \"in which case the number of operands in each USING phrase must be identical\"; 2023: \"If an OMITTED phrase is specified or a trailing argument is omitted, the omitted-argument condition for that parameter evaluates to true\". 1985 requires equal operand counts in both USING phrases. 2023 allows trailing arguments to be omitted, so the CALL may have fewer arguments than the called program has formal parameters.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 requires 'the number of operands in each USING phrase must be identical' for a COBOL callee. 2023 reaches the count rule through §2023:14.9.4.3 SR25 and §2023:14.9.4.4 GR3 ('the rules for conformance specified in 14.8.2, Parameters ... apply'), and §2023:14.8.2.1 (uncatalogued prose) makes the counts equal 'with the exception of trailing formal parameters that are specified with an OPTIONAL phrase' and omitted; §2023:14.9.4.4 GR11 gives the omitted-argument condition for them. Looser: fewer arguments are allowed. A detected mismatch now sets EC-PROGRAM-ARG-MISMATCH when checking is enabled (§2023:14.9.4.4 GR3 d). The non-COBOL case stays implementor-defined (GR3 b, g). GR2 (positional correspondence) restates 1985 GR10, not this rule.",
+  "source": "adjudicate-712/slice-22"
  }
 }

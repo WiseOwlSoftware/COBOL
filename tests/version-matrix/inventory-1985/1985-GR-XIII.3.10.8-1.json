@@ -9,7 +9,7 @@
    "GR-13.18.39.4-2"
   ],
   "bridge": true,
-  "reason": "Without OR PAGE, 2023 sets a body group's upper limit at the FIRST DETAIL integer, as in 1985. OR PAGE is new since 1985, so 1985 programs behave identically.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: body group upper limit is the FIRST DETAIL line. 2023 §2023:13.18.57.4 GR7 c) 'The upper limit for a body group, if there is no control heading defined in the report with the OR PAGE phrase, is the line given by the FIRST DETAIL integer'; §2023:13.18.39.4 GR2 d). OR PAGE is syntax 1985 lacks, so a 1985 program means the same.",
+  "source": "adjudicate-712/slice-24"
  }
 }

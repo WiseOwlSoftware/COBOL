@@ -8,7 +8,7 @@
    "GR-14.9.6.4-10"
   ],
   "bridge": true,
-  "reason": "No 2023 CLOSE rule restricts mixing organizations. GR-10 treats a multi-file CLOSE as separate CLOSEs per file, so mixed files are accepted with the same effect.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: the files of one CLOSE 'need not all have the same organization or access'. 2023 states no rule requiring them to match, and §2023:14.9.6.4 GR10 makes a multi-file CLOSE 'the same as if a separate CLOSE statement had been written for each file-name-1', so a mixed CLOSE is valid with the same effect. (The per-file phrase limits of §2023:14.9.6.3 SR1 are separate 1985 rules.)",
+  "source": "adjudicate-712/slice-35"
  }
 }

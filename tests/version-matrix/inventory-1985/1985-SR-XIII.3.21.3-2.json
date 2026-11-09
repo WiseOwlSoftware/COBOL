@@ -2,13 +2,14 @@
  "rule-id": "1985-SR-XIII.3.21.3-2",
  "rule-digest": "250d93d08ed6",
  "next": {
-  "kind": "CHANGED",
-  "edition": 2023,
+  "kind": "KEPT",
   "to": [
-   "SR-13.18.60.3-2"
+   "SR-13.18.60.3-2",
+   "GR-13.15.4-2"
   ],
+  "reason": "§1985:XIII.3.21.3 SR2 lets USAGE be written on a group and on its subordinates. §2023:13.18.60.3 SR2, applied to report entries by §2023:13.15.4 GR2, permits the same 'but the same usage shall be specified in both entries'. That added condition refuses no 1985 program: 1985 report USAGE can only be DISPLAY (§1985:XIII.3.21.2 '[ USAGE IS ] DISPLAY'), so group and subordinate usages never differ, and §1985:VI.5.14.3 SR2 already required 'the same usage must be specified in both entries'.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"it may also be written in the data description entry for a subordinate elementary item or group item.\"; 2023: \"but the same usage shall be specified in both entries.\". Both allow USAGE on a group and on its subordinates. 2023 also requires the same usage in both entries, refusing mismatches that the 1985 rule as given does not restrict.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-34"
  }
 }

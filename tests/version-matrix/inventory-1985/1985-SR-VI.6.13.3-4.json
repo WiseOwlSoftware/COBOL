@@ -6,10 +6,10 @@
   "edition": 2023,
   "to": [
    "SR-14.9.13.3-4",
-   "SR-14.9.13.3-10"
+   "FMT-14.9.13.2"
   ],
   "bridge": true,
-  "reason": "2023 still requires both THROUGH operands to be of the same class. The added exclusions name classes absent from 1985. Table 15 treats a range-expression as one selection object.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'Two operands connected by a THROUGH phrase must be of the same class. The two operands thus connected constitute a single selection object.' §2023:14.9.13.3 SR4: 'The two operands in a range-expression shall be of the same class and shall not be of class boolean, message-tag, object, or pointer'. Those excluded classes have no 1985 operand. §2023:14.9.13.2 makes '[ NOT ] range-expression' a single selection-object alternative. Both are compile-time rules.",
+  "source": "adjudicate-712/slice-30"
  }
 }

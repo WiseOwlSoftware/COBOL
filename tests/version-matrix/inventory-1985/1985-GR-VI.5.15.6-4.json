@@ -8,7 +8,7 @@
    "SR-13.18.63.3-14"
   ],
   "bridge": true,
-  "reason": "Both bar group VALUE over JUSTIFIED, SYNCHRONIZED or non-DISPLAY subordinates. Every 1985 group is an alphanumeric group; only the new national/bit groups fall outside.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: VALUE 'must not be specified for a group item containing items subordinate to it with descriptions including JUSTIFIED, SYNCHRONIZED or USAGE (other than USAGE IS DISPLAY).' §2023:13.18.63.3 SR14: 'subordinate items within that group shall not be described with a JUSTIFIED or SYNCHRONIZED clause, and all data items subordinate to an alphanumeric group item shall be explicitly or implicitly described with usage DISPLAY.' Every 1985 group is alphanumeric, so the same programs are refused at compile time.",
+  "source": "adjudicate-712/slice-10"
  }
 }

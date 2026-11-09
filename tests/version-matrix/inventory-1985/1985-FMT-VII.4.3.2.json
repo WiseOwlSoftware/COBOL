@@ -3,13 +3,14 @@
  "rule-digest": "a2e2e686c54b",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "FMT-14.9.27.2",
+   "SR-14.9.27.3-5",
    "SR-14.9.27.3-6"
   ],
+  "reason": "§1985:VII.4.3.2 opens sequential files INPUT with an optional REVERSED or WITH NO REWIND per file, OUTPUT with an optional WITH NO REWIND, and I-O and EXTEND with none. §2023:14.9.27.2 keeps the four modes, the repeated mode groups and '[ WITH NO REWIND ]' per file, and §2023:14.9.27.3 SR5 ('The NO REWIND phrase may be specified only for sequential files') and SR6 ('The NO REWIND phrase may be specified only when the INPUT or OUTPUT phrase is specified') keep it where the 1985 format put it. But there is no REVERSED phrase (in 1985 obsolete, §1985:VII.4.3.3 SR1 'The REVERSED phrase can only be used with sequential files'), so OPEN INPUT f REVERSED is refused at compile time; and the sharing-phrase and retry-phrase are added. Narrower and wider: CHANGED.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"INPUT file-name-1 [ REVERSED | WITH NO REWIND ] …\"; 2023: \"{ file-name-1 [ WITH NO REWIND ] } … (no REVERSED phrase; sharing-phrase and retry-phrase added)\". The 2023 OPEN format keeps the four modes and NO REWIND for INPUT/OUTPUT only, but drops REVERSED, so OPEN INPUT f REVERSED is refused. It also adds the SHARING and RETRY phrases.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-02"
  }
 }

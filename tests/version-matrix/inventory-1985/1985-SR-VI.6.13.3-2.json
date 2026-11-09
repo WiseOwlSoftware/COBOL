@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.6.13.3-2",
+ "rule-digest": "c311cebe7d6d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.13.2",
+   "GR-14.9.13.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985 defines selection objects as the operands or TRUE, FALSE and ANY in a WHEN phrase, collectively 'for all those specified in a single WHEN phrase, ... the set of selection objects'. §2023:14.9.13.2 carries the definition in the format, 'WHEN selection-object [ ALSO selection-object ] ...', with ANY, TRUE and FALSE among the alternatives. §2023:14.9.13.4 GR4 groups them per phrase: 'Each selection object within the set of selection objects for each WHEN phrase is paired with the selection subject'. The new alternatives (partial-expression, boolean-expression) are constructs 1985 lacks.",
+  "source": "adjudicate-712/slice-30"
+ }
+}

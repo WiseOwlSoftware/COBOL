@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-8",
+ "rule-digest": "a291b779b1d8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.25.4-4",
+   "GR-14.9.30.4-4",
+   "GR-14.9.32.4-4",
+   "GR-14.9.34.4-5",
+   "GR-14.9.35.4-7",
+   "GR-14.9.51.4-5"
+  ],
+  "bridge": true,
+  "reason": "1985: a MOVE or input-output statement referencing a group item that contains an index data item performs no conversion of it. §2023:14.9.25.4 GR4: a move that is not elementary 'is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion of data from one form of internal representation to another'. The input-output statements that reference a group item move it by the MOVE rules: READ INTO (§2023:14.9.30.4 GR4), RELEASE FROM (§2023:14.9.32.4 GR4), RETURN INTO (§2023:14.9.34.4 GR5), REWRITE FROM (§2023:14.9.35.4 GR7), WRITE FROM (§2023:14.9.51.4 GR5). Same result.",
+  "source": "adjudicate-712/slice-09"
+ }
+}

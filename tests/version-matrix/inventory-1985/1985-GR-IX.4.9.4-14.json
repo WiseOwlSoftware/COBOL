@@ -8,7 +8,7 @@
    "GR-14.9.51.4-38"
   ],
   "bridge": true,
-  "reason": "Both require ascending prime key order in sequential access, and in extend mode a first key above the highest existing key. The '21' consequence is stated elsewhere and is not a change to this rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR14: in sequential access records 'must be released ... in ascending order of prime record key values according to the collating sequence of the file'; in extend mode the first record must have a prime key 'greater than the highest prime record key value existing in the file'. 2023 §2023:14.9.51.4 GR38 states both, adds that later extend records exceed the highest written (the ascending-order duty already implies it) and states the result (unsuccessful, invalid key, status '21'), which 1985 gave in GR17a and GR18. Same.",
+  "source": "adjudicate-712/slice-08"
  }
 }

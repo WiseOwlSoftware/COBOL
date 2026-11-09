@@ -3,12 +3,13 @@
  "rule-digest": "217c9bb7de38",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "GR-14.9.32.4-1"
+   "GR-14.9.32.4-1",
+   "GR-14.9.40.4-13"
   ],
+  "reason": "1985 states as a syntax rule that 'A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement' for its file, so a violating program is refused. 2023 has no such syntax rule (14.9.32.3 SR1-4 carry none); §2023:14.9.32.4 GR1 says it 'may be executed only' there and 'If it is executed at any other time, the EC-FLOW-RELEASE exception condition is set to exist', and §2023:14.9.40.4 GR13 sets EC-SORT-MERGE-ACTIVE when an output procedure's range executes a RELEASE. A compile-time refusal became a run-time exception condition.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement\"; 2023: \"may be executed only when it is within the range of an input procedure ... If it is executed at any other time, the EC-FLOW-RELEASE\". 1985 states a syntax rule restricting where RELEASE may appear. 2023 makes it an execution-time condition: outside an input procedure, execution sets EC-FLOW-RELEASE.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-33"
  }
 }

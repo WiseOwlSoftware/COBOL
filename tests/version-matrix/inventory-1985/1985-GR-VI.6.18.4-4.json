@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.22.4-6"
+   "GR-14.9.22.4-6",
+   "GR-14.6.4-4",
+   "GR-14.6.4-7"
   ],
   "bridge": true,
-  "reason": "2023 still evaluates subscripts once, first, under 'item identification'. It may also cover reference modification, which this 1985 rule does not address, but the subscript rule itself is unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.22.4 GR6 'Item identification for any identifier is done only once as the first operation in the execution of the INSPECT statement'; §2023:14.6.4 puts subscript evaluation in item identification, and the reference modification it adds was already tied to subscript time by §1985:IV.4.3.8.3.4 GR3.",
+  "source": "adjudicate-712/slice-11"
  }
 }

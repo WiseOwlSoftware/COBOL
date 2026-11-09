@@ -9,7 +9,7 @@
    "GR-14.9.27.4-18"
   ],
   "bridge": true,
-  "reason": "Both keep creating an unavailable optional file on OPEN EXTEND as if OPEN OUTPUT then CLOSE, then the OPEN, and OPEN OUTPUT creating an empty file. The I-O case does not apply to report files.",
-  "source": "audit-1985/state-route"
+  "reason": "Same. 1985: OPEN EXTEND of an unavailable optional file creates it as if OPEN OUTPUT, CLOSE, then the OPEN; OPEN OUTPUT creates a file with no data records. 2023 §2023:14.9.27.4 GR17 'the OPEN statement creates the file' by the same OPEN OUTPUT/CLOSE sequence; §2023:14.9.27.4 GR18 'After the creation of the file, the file contains no records'. The I-O case is barred for report files in both; the '05' status matches 1985 I-O status 05, which 1985 GR16 already requires to be set.",
+  "source": "adjudicate-712/slice-26"
  }
 }

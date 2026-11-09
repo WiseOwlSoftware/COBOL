@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "AR-15.68.3-1",
+   "AR-15.68.3-2",
    "AR-15.68.3-4"
   ],
   "bridge": true,
-  "reason": "1985: \"Argument-1 must be a nonnumeric literal or alphanumeric data item whose content has one of the following two formats\"; 2023: \"Argument-1 shall be of category alphanumeric or national.\". The content formats match in substance (optional spaces, sign, currency, digits, CR/DB). 2023 also accepts national arguments, which 1985 refused, and adds a LOCALE alternative.",
-  "source": "audit-1985/state-route"
+  "reason": "The two content formats (spaces, sign, currency string, digits with grouping and decimal separators, trailing +/-/CR/DB) match §2023:15.68.3 AR4, and §2023:15.68.3 AR2 restates cs as argument-2's currency string. But 1989 allows only 'a nonnumeric literal or alphanumeric data item' with uppercase CR/DB, while 2023 allows 'category alphanumeric or national' (§2023:15.68.3 AR1) and CR/DB 'in uppercase or lowercase' (§2023:15.68.3 AR4), plus a LOCALE form (§2023:15.68.3 AR5). Looser.",
+  "source": "adjudicate-712/slice-35"
  }
 }

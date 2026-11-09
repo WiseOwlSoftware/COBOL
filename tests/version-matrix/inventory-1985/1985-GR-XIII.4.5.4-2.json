@@ -5,10 +5,13 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.27.4-6"
+   "GR-14.9.27.4-6",
+   "GR-14.9.27.4-8",
+   "GR-14.9.21.4-3",
+   "SR-13.18.46.3-3"
   ],
   "bridge": true,
-  "reason": "1985: \"no statement may be executed which references the file, either explicitly or implicitly, except for an OPEN statement\"; 2023: \"except for a MERGE or SORT statement with the USING or GIVING phrase, the COMMIT and ROLLBACK statements, a DELETE FILE statement, or an OPEN statement\". Both forbid statements referencing a file that is not open, but 2023 adds exceptions beyond OPEN: SORT/MERGE USING/GIVING, COMMIT, ROLLBACK and DELETE FILE.",
-  "source": "audit-1985/state-route"
+  "reason": "The ban is the same for report files. 2023 §2023:14.9.27.4 GR6 adds exceptions ('except for a MERGE or SORT statement with the USING or GIVING phrase, the COMMIT and ROLLBACK statements, a DELETE FILE statement, or an OPEN statement'), but SORT, MERGE and DELETE FILE cannot name a report file (§2023:13.18.46.3 SR3; 1985 XIII.3.3.3 SR3 likewise) and COMMIT/ROLLBACK are not 1985 statements, so the store's reason does not change a 1985 program; §2023:14.9.27.4 GR8 restates the open-mode requirement. What changed: 1985 leaves undefined an INITIATE that implicitly references a report file not in an open mode; 2023 §2023:14.9.21.4 GR3 sets EC-REPORT-FILE-MODE and takes no action on the report.",
+  "source": "adjudicate-712/slice-26"
  }
 }

@@ -9,7 +9,7 @@
    "GR-13.18.40.4-14"
   ],
   "bridge": true,
-  "reason": "1985: \"the item is treated as if the character-string contained all 'X's.\"; 2023: \"The symbol 'A' is equivalent to the symbol 'X' except within the execution of a VALIDATE statement.\". The A/X/9 combination rule matches 1985's all-A/all-9 exclusion. But 2023 drops 'treated as all X's': A and 9 keep their own meaning (VALIDATE checks; 9 must hold a numeral).",
-  "source": "audit-1985/state-route"
+  "reason": "1985: an alphanumeric PICTURE uses combinations of 'A', 'X', '9' 'and the item is treated as if the character-string contained all X's' (all-A and all-9 excluded); content any characters. §2023:13.18.40.4 GR6 accepts the same strings ('at least one symbol X, or at least two different symbols from this set'), but no 2023 rule treats the item as all X's: §2023:13.18.40.4 GR14 makes 'A' equivalent to 'X' only outside VALIDATE, and each '9' of a display item 'shall contain a numeric character in the range 0 through 9'. The content requirement for '9' positions in an alphanumeric item is stricter.",
+  "source": "adjudicate-712/slice-10"
  }
 }

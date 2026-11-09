@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XII.2.4-4",
+ "rule-digest": "3d5c6f14e5bf",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985 GR4 treats identifier-1, word-1 and literal-1 REPLACING operands as pseudo-text for matching. The 2023 COPY format (§2023:7.2.3.2, rendered PDF p.76) has no identifier, word or literal operand, and §2023:7.2.3.4 GR8 replaces only pseudo-text-1 or partial-word-1, so no 2023 rule carries this. The stray 'word-2, or literal-4' in §2023:7.2.3.4 GR9 has no syntax behind it.",
+  "source": "adjudicate-712/slice-23"
+ }
+}

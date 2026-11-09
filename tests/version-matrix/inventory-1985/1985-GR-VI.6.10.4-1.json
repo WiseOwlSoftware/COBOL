@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.11.4-1"
+   "GR-14.9.11.4-1",
+   "GR-14.9.11.4-6"
   ],
   "bridge": true,
-  "reason": "2023 still transfers each operand in the order listed, with implementor-defined conversion. The zero-length clause covers items 1985 lacks, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.11.4 GR1: 'causes the content of each operand to be transferred to the device in the order listed', conversion 'defined by the implementor', as in 1985; §2023:14.9.11.4 GR6 restates the order. The zero-length sentence concerns items 1985 cannot declare.",
+  "source": "adjudicate-712/slice-11"
  }
 }

@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.5.4-3"
+   "GR-14.9.5.4-3",
+   "GR-14.6.2.3.2-3"
   ],
   "bridge": true,
-  "reason": "Same rule: no logical relationship after CANCEL; initial state if called again. 2023 implicit CANCELs (GOBACK of initial program, contained programs) are CANCEL statements, so coverage is the same.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.5.4 GR3 repeats both sentences: the program 'ceases to have any logical relationship to the run unit in which the CANCEL statement appears' and is in its initial state when called again; §2023:14.6.2.3.2 rule 3 places static data in the initial state on the first activation 'after the execution of a CANCEL statement referencing the program'. Dropping 'explicit or implicit' changes nothing: 2023's implicit cancels are CANCEL statements (§2023:14.9.18.4 GR2 'an implicit CANCEL statement').",
+  "source": "adjudicate-712/slice-22"
  }
 }

@@ -5,12 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "SR-13.18.46.3-3",
    "GR-14.9.27.4-2",
    "GR-14.9.6.4-8",
-   "SR-13.18.46.3-3"
+   "SR-14.9.6.3-2"
   ],
   "bridge": true,
-  "reason": "2023 allows OPEN OUTPUT/EXTEND on report files and needs the connector closed (CLOSE without UNIT, REEL being its synonym) before reopening. Status '41' restates the shall-not-be-open rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 lets a report file be opened OUTPUT and EXTEND in one run unit, each reopen preceded by a CLOSE 'without the REEL, UNIT, or LOCK phrase'. 2023 allows a report file in 'the OPEN statement with the OUTPUT or EXTEND phrase' (§2023:13.18.46.3 SR3); OPEN requires 'The file connector referenced by file-name-1 shall not be open' (§2023:14.9.27.4 GR2) and only 'a CLOSE statement without the UNIT phrase' ends the open mode (§2023:14.9.6.4 GR8), REEL and UNIT being equivalent (§2023:14.9.6.3 SR2). 2023 CLOSE has no LOCK phrase, so that exclusion is moot. Same requirement, run-time in both.",
+  "source": "adjudicate-712/slice-27"
  }
 }

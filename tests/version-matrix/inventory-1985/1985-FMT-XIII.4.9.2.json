@@ -2,13 +2,13 @@
  "rule-id": "1985-FMT-XIII.4.9.2",
  "rule-digest": "1b032bdfc112",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "FMT-14.9.49.2"
   ],
   "bridge": true,
-  "reason": "1985: \"USE BEFORE REPORTING identifier-1\"; 2023: \"USE [ GLOBAL ] BEFORE REPORTING identifier-1\". 2023 Format 2 keeps USE BEFORE REPORTING identifier-1 but adds an optional GLOBAL phrase absent from the 1985 format, so it accepts statements the 1985 format refuses.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 Report Writer format 'USE BEFORE REPORTING identifier-1' (§1985:XIII.4.9.2) is extended in the same 1985 standard by the Inter-Program Communication module to 'USE [GLOBAL] BEFORE REPORTING identifier-1' (§1985:X.5.6.2). 2023 Format 2 (reporting) is 'USE [GLOBAL] BEFORE REPORTING identifier-1' (§2023:14.9.49.2). The optional GLOBAL is therefore not new; the same statements are accepted and mean the same.",
+  "source": "adjudicate-712/slice-04"
  }
 }

@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-GR-VI.6.4.3-4",
+ "rule-digest": "78634acfc4eb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.7.6-4",
+   "GR-14.7.6-5",
+   "SR-14.9.25.3-12",
+   "SR-14.9.2.3-6",
+   "SR-14.9.44.3-6",
+   "GR-8.4.3.3.4-6"
+  ],
+  "bridge": true,
+  "reason": "Exclusion kept: 'Neither data item contains an OCCURS, REDEFINES, or RENAMES clause or is of class index' (§2023:14.7.6 GR4) and 'Neither data item is subordinate to a group item that is subordinate to D1 or D2 when the group item contains an OCCURS or REDEFINES clause' (§2023:14.7.6 GR5); items under a USAGE INDEX group are themselves of class index. The ban on reference-modifying D1/D2 is kept: MOVE states it directly (§2023:14.9.25.3 SR12 'shall not be reference-modified'), and for ADD/SUBTRACT a reference-modified operand 'is considered to be an elementary data item' (§2023:8.4.3.3.4 GR6), so it fails the group-item requirement of §2023:14.9.2.3 SR6 and §2023:14.9.44.3 SR6. The added classes (message-tag, object, pointer) need features 1985 lacks.",
+  "source": "adjudicate-712/slice-14"
+ }
+}

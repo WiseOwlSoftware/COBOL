@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.3.6-3",
+ "rule-digest": "509f02bb909d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.32.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: alphanumeric, alphanumeric edited or alphabetic receiving data 'is moved to the receiving character positions and aligned at the leftmost character position in the data item with space fill or truncation to the right', modified by JUSTIFIED (§1985:IV.4.3.6 GR3). 2023 §2023:14.6.8.5 says the data 'is transferred, after any necessary conversion, to the receiving character positions and aligned at the leftmost character position in the data item with space fill or truncation to the right, as required. If the JUSTIFIED clause is specified for the receiving item, alignment differs as specified in 13.18.32'; and 'When the JUSTIFIED clause is omitted, the standard rules for aligning data within an elementary item apply' (§2023:13.18.32.4 GR3). Same result. CATALOG GAP: §2023:14.6.8.5 is one prose paragraph with no rule id in spec-rule-catalog.json, so 'to' can name only GR-13.18.32.4-3; the main statement of the requirement is §2023:14.6.8.5 and wants an id.",
+  "source": "adjudicate-712/slice-04"
+ }
+}

@@ -3,12 +3,13 @@
  "rule-digest": "f205de3fbd6d",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
-   "GR-14.9.16.4-6"
+   "GR-14.9.16.4-6",
+   "GR-13.18.35.4-4"
   ],
-  "bridge": true,
-  "reason": "2023 precedes each later body group with a page fit test; on failure the page footing, page advance and page heading come before the group prints, as the 1985 rule says.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: when processing a control heading, control footing or detail, the RWCS 'may have to interrupt the processing of that body group after determining that the body group is to be presented, and execute a page advance (and process page footing and page heading report groups) before actually presenting the body group'. 2023: §2023:14.9.16.4 GR6 'the printing of any subsequent body groups is preceded by a page fit test that, if unsuccessful, results in a page advance' consisting of page footing, page feed, counters and page heading in that order; §2023:13.18.35.4 GR4 'otherwise, a page advance takes place before the body group is printed and the body group becomes the first body group on the new page'. The USE procedure still runs before page fit (14.9.49.4 GR9 c), as the 1985 step order puts it before presentation. Same run-time behavior.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

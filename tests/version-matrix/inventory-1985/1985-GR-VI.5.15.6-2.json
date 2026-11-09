@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.18.63.3-12"
+   "SR-13.18.63.3-12",
+   "SR-13.18.63.3-24"
   ],
   "bridge": true,
-  "reason": "2023 rules are format-specific: SR-18 reads as general but fits only format 2. So SR-12 binds the data-value format, not format 3 condition-name entries, which matches the 1985 exemption.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: VALUE 'must not be stated in a data description entry that contains a REDEFINES clause, or in an entry that is subordinate to' one, and 'This rule does not apply to condition-name entries.' §2023:13.18.63.3 SR12 states the same ban word for word, under FORMAT 1 (data-item). The condition-name exemption is kept by format scoping: the condition-name format imports only 'Syntax rules 10 and 17 above apply' (§2023:13.18.63.3 SR24), not SR12. Same programs accepted and refused; both compile-time.",
+  "source": "adjudicate-712/slice-10"
  }
 }

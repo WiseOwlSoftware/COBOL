@@ -5,11 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-12.4.6.4.2",
+   "SR-12.4.6.4.3-4",
    "GR-12.4.6.4.4-1",
    "GR-12.4.6.4.4-2"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only makes the indexed SAME clause the same as the sequential one. 2023 has one SAME clause for files of any organization, so indexed and sequential files still share its rules.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 only makes the indexed SAME clause the sequential one. 2023 has one SAME clause for all files: §2023:12.4.6.4.3 SR4 'The files specified in a given SAME clause need not all have the same organization or access', and §2023:12.4.6.4.4 GR1 'are to use the same memory area during processing' and §2023:12.4.6.4.4 GR2 'are to share a memory area for processing the current logical record' make no organization distinction.",
+  "source": "adjudicate-712/slice-06"
  }
 }

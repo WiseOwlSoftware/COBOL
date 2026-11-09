@@ -3,12 +3,12 @@
  "rule-digest": "458883fe73aa",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-12.4.5.10.3-3"
   ],
+  "reason": "1985: 'Sequential organization is a permanent logical file structure in which a record is identified by a predecessor-successor relationship established when the record is placed into the file.' A 1985 ORGANIZATION IS SEQUENTIAL (or an omitted clause) is RECORD SEQUENTIAL in 2023 (RECORD is an optional word; §2023:12.4.5.10.3 GR6 'sequential organization with the RECORD SEQUENTIAL phrase is implied'), and §2023:12.4.5.10.3 GR3 repeats the definition word for word: 'Record sequential organization is a permanent logical file structure in which a record is identified by a predecessor-successor relationship established when the record is placed into the file.' The LINE SEQUENTIAL definition needs 2023-only syntax, so it is not part of this requirement for a 1985 program.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "2023 states the 1985 sequential organization as record sequential organization, in the same words (a permanent logical file structure, records identified by a predecessor-successor relationship established as they are placed in the file). Line sequential organization (GR-12.4.5.10.3-2) is a new organization 2023 added, not this rule's requirement: the EDITION GATES audit found the file-organization-line-sequential-2023 gate contradicted by a KEPT link into it (kb/Work PB4996).",
-  "source": "kb/Work PB4996 (edition-gate audit re-adjudication of audit-1985/state-route)"
+  "source": "adjudicate-712/slice-15"
  }
 }

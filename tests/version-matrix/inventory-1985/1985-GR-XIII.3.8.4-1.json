@@ -2,14 +2,16 @@
  "rule-id": "1985-GR-XIII.3.8.4-1",
  "rule-digest": "835e714bc3cd",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "GR-13.18.39.4-1",
    "GR-13.18.39.4-2",
-   "GR-13.18.39.4-3"
+   "GR-13.18.39.4-3",
+   "GR-13.18.39.4-4"
   ],
   "bridge": true,
-  "reason": "1985: \"LAST DETAIL integer-4 defines the last line number on which a control heading or detail report group may be presented.\"; 2023: \"Integer-5 is the LAST CONTROL HEADING integer. It defines the last line position on which any line of a control heading may be printed.\". 2023 adds a separate LAST CONTROL HEADING limit for control headings, so LAST DETAIL limits only details. When it is omitted it defaults to LAST DETAIL. The other regions match.",
-  "source": "audit-1985/state-route"
+  "reason": "A 1985 PAGE clause means the same. 1985: integer-1 page size, HEADING first line for RH/PH, FIRST DETAIL first body line (RH without NEXT PAGE and PH end before it), LAST DETAIL last line for control headings and details, FOOTING last line for control footings (PF and RF not on a page by itself follow it). 2023 §2023:13.18.39.4 GR2 states the same regions, adding 'Integer-5 is the LAST CONTROL HEADING integer' for control headings; when it is omitted, as in every 1985 program, §2023:13.18.39.4 GR3 c) sets it 'equal to integer-6, if LAST DETAIL is specified, or equal to integer-7, if FOOTING is specified, or otherwise equal to the page limit', which is exactly the 1985 control-heading limit (1985 XIII.3.8.4 GR2 defaults for LAST DETAIL). §2023:13.18.39.4 GR4 keeps RH/RF on a page by itself; §2023:13.18.39.4 GR1 confines groups to their regions. The new phrase is an opt-in addition, not a different requirement, so the three CHANGED answers are rejected.",
+  "source": "adjudicate-712/slice-26"
  }
 }

@@ -8,7 +8,7 @@
    "GR-14.9.35.4-23"
   ],
   "bridge": true,
-  "reason": "In random or dynamic access mode the record to be replaced is specified by the prime record key, in both. The '23' result is a separate invalid-key rule; the level-2 box is no difference.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: in random or dynamic access 'the record to be replaced is specified by the prime record key'. §2023:14.9.35.4 GR23 states the same; its status 23 sentence matches 1985 GR16b/GR17.",
+  "source": "adjudicate-712/slice-07"
  }
 }

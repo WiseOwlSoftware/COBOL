@@ -10,7 +10,7 @@
    "FMT-13.18.43.2"
   ],
   "bridge": true,
-  "reason": "1985: \"LABEL {RECORD IS|RECORDS ARE} {STANDARD|OMITTED} ... VALUE OF implementor-name-1 IS ... DATA {RECORD IS|RECORDS ARE} {data-name-3} ...\"; 2023: \"Format 2 (relative-or-indexed): FD file-name-1 [IS EXTERNAL [AS literal-1]] [IS GLOBAL] [BLOCK CONTAINS ...] [record-clause] .\". The indexed FD entry survives with BLOCK and RECORD clauses intact, but LABEL RECORDS, VALUE OF and DATA RECORDS are gone, so programs using them are refused. EXTERNAL and GLOBAL are added.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 indexed FD: BLOCK CONTAINS, RECORD (CONTAINS / VARYING / integer-6 TO integer-7), LABEL RECORDS, VALUE OF, DATA RECORDS. §2023:13.4.5.2 Format 2 (relative-or-indexed) keeps FD file-name-1, BLOCK CONTAINS (restated in §2023:13.18.10.2) and record-clause (§2023:13.18.43.2, which also admits BYTES), but carries no LABEL RECORDS, VALUE OF or DATA RECORDS clause: a 1985 program using them (obsolete in 1985) is refused under 2023. EXTERNAL and GLOBAL are not new, 1985 X.4.2.2 already had them; only EXTERNAL AS literal-1 is. Compile-time only.",
+  "source": "adjudicate-712/slice-01"
  }
 }

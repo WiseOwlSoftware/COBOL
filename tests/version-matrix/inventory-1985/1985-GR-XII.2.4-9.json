@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-7.2.3.4-11"
+   "GR-7.2.3.4-11",
+   "GR-6.1-1"
   ],
   "bridge": true,
-  "reason": "1985: \"is copied so as to start in the same area of the line in the resultant program as it begins in the line within the library.\"; 2023: \"The resultant text after replacement shall be in logical free-form reference format.\". Both govern the layout of COPY resultant text. 1985 fixes area A/B placement, debugging lines and literal continuation; 2023 requires logical free-form text, with no area rules.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 puts each copied word in area A or B as in the library, places identifier-2/word-2/literal-2 where the matched word stood, marks debugging lines and adds continuation lines for long literals. §2023:7.2.3.4 GR11 instead: 'The resultant text after replacement shall be in logical free-form reference format', with no area or debugging-line rules. 'Library text must conform to the rules for COBOL reference format' survives as §2023:6.1 GR1 b 'A COBOL compiler shall accept source text and library text written in reference format'.",
+  "source": "adjudicate-712/slice-23"
  }
 }

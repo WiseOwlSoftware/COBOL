@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.5.5-6",
+ "rule-digest": "5c3c6c75a2e0",
+ "next": {
+  "kind": "KEPT",
+  "to": [
+   "SR-8.4.3.15.3-1"
+  ],
+  "reason": "§1985:XIII.3.5.5 SR6: 'PAGE-COUNTER may be altered by Procedure Division statements.' §2023:8.4.3.15.3 SR1: 'In the procedure division, PAGE-COUNTER and LINE-COUNTER may be referenced in any context where an integer data item may appear', which includes a receiving operand; only LINE-COUNTER is barred from that role (§2023:8.4.3.15.3 SR3), and the NOTE after SR2 leaves assigning page numbers to the programmer. Same permission.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-34"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XII.3.4-8",
+ "rule-digest": "ca0865c4f804",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "2023 has no debugging lines: the fixed indicators of §2023:6.2.2 are comment, continuation and the space 'source indicator' only, and §2023:6.5 GR5 copies only a line that 'contains a source indicator'. No 2023 rule permits 'D' lines in REPLACE pseudo-text or makes their words match 'as if the D did not appear'.",
+  "source": "adjudicate-712/slice-23"
+ }
+}

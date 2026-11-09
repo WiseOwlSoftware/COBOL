@@ -9,7 +9,7 @@
    "GR-13.18.33.4-2"
   ],
   "bridge": true,
-  "reason": "Same rule: noncontiguous working-storage and linkage items are special entries (level 77). Local storage is only an extension to a section that 1985 lacks; no 1985 program changes.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 lists among special entries 'Entries that specify noncontiguous working storage and linkage data items' (§1985:IV.4.3.2.1 GR2). 2023: 'Entries that specify noncontiguous working-storage, local storage, and linkage data items' (§2023:8.5.1.3.2 GR2), and 'Level-number 77 is assigned to identify noncontiguous working storage data items, noncontiguous local storage data items, and noncontiguous linkage data items' (§2023:13.18.33.4 GR2 a). Local storage is a section 1985 does not have; a 1985 program is refused for writing a LOCAL-STORAGE SECTION, not by this rule, so working-storage and linkage entries mean the same.",
+  "source": "adjudicate-712/slice-04"
  }
 }

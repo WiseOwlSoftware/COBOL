@@ -8,7 +8,7 @@
    "GR-14.9.30.4-13"
   ],
   "bridge": true,
-  "reason": "Same flow: phrases ignored, status/position updated, other exceptions via exception processing, record made available, NOT phrase then end. Conflict caveat only concerns 2023-new locking.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.30.4 GR13 restates the rule: 'the AT END phrase or the INVALID KEY phrase is ignored, if specified', I-O status updated and file position indicator set, other exception conditions handled per 9.1.12 (USE declaratives) then end of READ, record made available with the INTO move, then end of READ or imperative-statement-2. The record-lock caveat applies only to 2023 locking; no 1985 program changes.",
+  "source": "adjudicate-712/slice-19"
  }
 }

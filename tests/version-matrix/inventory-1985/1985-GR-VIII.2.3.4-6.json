@@ -5,10 +5,14 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-12.4.5.1",
+   "SR-12.4.5.2-9",
+   "SR-12.4.5.2-11",
+   "FMT-12.4.5.8.2",
    "GR-12.4.5.8.4-1"
   ],
   "bridge": true,
-  "reason": "1985 makes relative FILE STATUS identical to sequential's, values per I-O Status. 2023 has one FILE STATUS clause for every file connector, values per 9.1.13 I-O status.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 makes the relative FILE STATUS clause the sequential one, its content per I-O Status. 2023 writes one FILE STATUS clause (12.4.5.8) into the relative and sequential formats (§2023:12.4.5.2 SR9, SR11), and §2023:12.4.5.8.4 GR1 updates the item to the I-O status: 'A list of the possible I-O status values is contained in 9.1.13, I-O status'.",
+  "source": "adjudicate-712/slice-18"
  }
 }

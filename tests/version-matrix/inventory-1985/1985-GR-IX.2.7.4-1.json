@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.4.5.12.4-1"
+   "GR-12.4.5.12.4-1",
+   "GR-14.9.51.4-36"
   ],
   "bridge": true,
-  "reason": "Both say the clause names the prime record key and forbid equal key values across records. The collating-sequence sentence only defines equality; ALSO-type cases rest on 2023-only features.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The RECORD KEY clause specifies the prime record key ... The values of the prime record key must be unique among records of the file.' §2023:12.4.5.12.4 GR1 'The RECORD KEY clause specifies the prime record key for the file that is the subject of the entry', with equal values forbidden on the file's collating sequence (1985 compared keys on the same sequence); §2023:14.9.51.4 GR36 'The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file' restates the uniqueness for WRITE.",
+  "source": "adjudicate-712/slice-06"
  }
 }

@@ -8,7 +8,7 @@
    "RV-15.59.4-3"
   ],
   "bridge": true,
-  "reason": "The alphanumeric case is unchanged: the size equals that of the selected argument-1. Adding the national type extends a class absent in 1985; 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:15.59.4 RV3 keeps the 1989 rule word for word for the alphanumeric type: 'the size of the returned value is the same as the size of the selected argument-1', adding 'or national', a type no 1985 program can produce. A conforming 1985 program means the same.",
+  "source": "adjudicate-712/slice-35"
  }
 }

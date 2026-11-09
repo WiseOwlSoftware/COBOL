@@ -3,13 +3,14 @@
  "rule-digest": "082324a429b8",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-13.18.35.4-4",
-   "GR-13.18.35.4-5"
+   "GR-13.18.35.4-5",
+   "GR-13.18.37.4-4"
   ],
-  "bridge": true,
-  "reason": "NEXT PAGE fails the page fit, forcing a page advance; report footings start a new page; first line at integer-1. The first body group after INITIATE is already on a fresh first page.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The NEXT PAGE phrase specifies that the report group is to be presented beginning on the indicated line number on a new page' (body groups and report footing only, per its SR7; the body-group table rule 3c presents the first body group of the report on the current page). 2023 keeps it: §2023:13.18.35.4 GR4 'If the first LINE clause has a NEXT PAGE phrase, no page fit test takes place and the page fit is declared unsuccessful' (so a page advance precedes every body group but the chronologically first since INITIATE, which 1985 3c also leaves on the current page); §2023:13.18.35.4 GR5 puts the first line at integer-1 and 'If in addition the NEXT PAGE phrase is present and the report group is a report footing, the first line is printed beginning on a new page'; §2023:13.18.37.4 GR4 a)2 keeps 1985 rule 3c's handling after an absolute NEXT GROUP ('a page advance takes place, the save location is moved to LINE-COUNTER'). Same presentation for every conforming 1985 program.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

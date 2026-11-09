@@ -5,11 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.4.6.4.4-1",
-   "GR-12.4.6.4.4-2"
+   "FMT-12.4.6.2",
+   "FMT-12.4.6.4.2",
+   "SR-12.4.6.4.3-4"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only makes the relative SAME clause identical to the sequential one. 2023 has one SAME clause for all files, whatever their organization, so the equivalence holds.",
-  "source": "audit-1985/state-route"
+  "reason": "The 1985 rule only makes the relative SAME clause the sequential one. 2023 has one SAME clause for every file in I-O-CONTROL, and §2023:12.4.6.4.3 SR4 'The files specified in a given SAME clause need not all have the same organization or access', so a relative file uses the same clause; its content is carried by the sequential SAME rule's record.",
+  "source": "adjudicate-712/slice-18"
  }
 }

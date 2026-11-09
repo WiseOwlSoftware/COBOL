@@ -3,12 +3,14 @@
  "rule-digest": "2705fecd6821",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
+   "FMT-8.8.4.12.2",
+   "FMT-8.7.5.1",
    "GR-8.8.4.12.4-1"
   ],
+  "reason": "1985 (§1985:VI.6.3.3): 'If the word immediately following NOT is GREATER, >, LESS, <, EQUAL, =, then the NOT participates as part of the relational operator'. In 2023 the NOT forms of those six operators (IS NOT GREATER THAN, IS NOT >, IS NOT LESS THAN, IS NOT <, IS NOT EQUAL TO, IS NOT =) are extended-relational-operators (§2023:8.7.5.1, rendered page 233 checked for 8.8.4.12.2), which the abbreviated format accepts before object-1 (§2023:8.8.4.12.2), and §2023:8.8.4.12.4 GR1's note says NOT 'could be as a part of an extended-relational-operator', expanding 'a > b AND NOT < c OR d' to '((a > b) AND (a NOT < c)) OR (a NOT < d)' exactly as 1985 does. Every case this rule covers (NOT followed by one of the six words) means the same; the 'otherwise' branch is 1985-GR-VI.6.3.3-L2.2.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "2023 examples resolve NOT the 1985 way: NOT before < joins the operator (a NOT < c); NOT before an object is a logical NOT (NOT (a NOT > d)). No case differs.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-13"
  }
 }

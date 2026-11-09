@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.51.4-17"
+   "GR-14.9.51.4-17",
+   "GR-12.4.5.5.3-2"
   ],
   "bridge": true,
-  "reason": "GR17 restates the rule: successor relationship set by WRITE order at creation, unchanged except when records are added to the end. Level-2 box and 'physical file' are no difference.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.51.4 GR17 restates both sentences ('established by the order of execution of WRITE statements when the physical file is created. The relationship does not change except when records are added to the end of a physical file'); §2023:12.4.5.5.3 GR2 a) restates the relationship 'established by the execution of WRITE statements when the physical file is created or extended'. 'Physical file' is terminology.",
+  "source": "adjudicate-712/slice-17"
  }
 }

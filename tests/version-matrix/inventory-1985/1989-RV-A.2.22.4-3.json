@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "RV-15.57.4-1",
    "RV-15.57.4-6"
   ],
   "bridge": true,
-  "reason": "A character set without lowercase letters gives no uppercase letter a lowercase counterpart. 2023 then leaves each letter unchanged, so the string is unchanged, as in 1985.",
-  "source": "audit-1985/state-route"
+  "reason": "1989: with no lowercase letters in the character set 'no changes take place'. 2023 returns argument-1's content 'with any uppercase letters replaced by their corresponding lowercase letters' (§2023:15.57.4 RV1) and 'If there is no corresponding lowercase letter for a given uppercase letter, that letter is unchanged' (§2023:15.57.4 RV6), so the string is unchanged. Same.",
+  "source": "adjudicate-712/slice-35"
  }
 }

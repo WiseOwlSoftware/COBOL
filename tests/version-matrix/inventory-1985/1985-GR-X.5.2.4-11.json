@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.4.4-3"
+   "GR-14.9.4.4-3",
+   "GR-14.2.3-2"
   ],
+  "reason": "1985: 'The values of the parameters referenced in the USING phrase of the CALL statement are made available to the called program at the time the CALL statement is executed.' §2023:14.9.4.4 GR3a evaluates identifier-2 'at the beginning of the execution of the CALL statement' and its values 'are made available to the called program at the time control is transferred to that program'; §2023:14.2.3 GR2 names 'the arguments specified in the USING phrase of a CALL statement' as the arguments passed. The 2023 proviso that no program is called when an exception condition exists concerns only the case where no call happens (cf. 1985 GR3). Same meaning.",
   "bridge": true,
-  "reason": "2023 still makes the USING argument values available to the called program when control passes to it. The no-exception condition only covers cases where no program is called, which 1985 also never reached.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-21"
  }
 }

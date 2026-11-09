@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-5",
+ "rule-digest": "67bf965ae2f7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.5-4",
+   "GR-13.18.40.4-14",
+   "SR-13.18.40.3-20",
+   "SR-13.18.40.3-7",
+   "SR-8.3.5-8",
+   "SR-13.18.40.3-13"
+  ],
+  "bridge": true,
+  "reason": "1985: '.' is the insertion character and the decimal point for alignment, counted in the size; 'V' with '.' is disallowed; a final '.' ends the entry; same position in the item. §2023:13.18.40.5 GR4 (same position), §2023:13.18.40.4 GR14 ('counted in the size', 'decimal point position for alignment'), §2023:13.18.40.3 SR20 ('V' and '.' 'mutually exclusive'), §2023:13.18.40.3 SR7 with §2023:8.3.5 SR8, and §2023:13.18.40.3 SR13 (DECIMAL-POINT IS COMMA) state every part.",
+  "source": "adjudicate-712/slice-11"
+ }
+}

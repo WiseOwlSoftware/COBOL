@@ -3,12 +3,12 @@
  "rule-digest": "cf5941430cfb",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-14.9.26.4-4"
   ],
+  "reason": "Both are pointer rules that impose no requirement of their own. 1985 GR3 points to Scope of Statements, ROUNDED, ON SIZE ERROR, the Arithmetic Statements, Overlapping Operands and Multiple Results; §2023:14.9.26.4 GR4 'Additional rules and explanations relative to this statement are given in 14.6.13.2, Incompatible data; 14.7.4, ROUNDED phrase; 14.7.5, SIZE ERROR phrase and size error condition; and 14.7.7, Arithmetic statements', where 14.7.7 GR4 now carries multiple results and overlapping operands. Any difference in the referenced material is judged with those clauses' own records.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "Both are pointer rules for MULTIPLY that set no requirement of their own. 2023 folds multiple results and overlapping operands into 14.7.7; the cited rules are judged separately.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-12"
  }
 }

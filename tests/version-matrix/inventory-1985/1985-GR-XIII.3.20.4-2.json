@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-2",
+ "rule-digest": "40a2b610bcdc",
+ "next": {
+  "kind": "KEPT",
+  "to": [
+   "GR-13.18.57.4-6",
+   "GR-14.9.16.4-4"
+  ],
+  "reason": "1985: the report heading is 'processed ... only once, per report, as the first report group of that report ... during the execution of the chronologically first GENERATE statement for that report'. 2023 repeats the words: §2023:13.18.57.4 GR6 a) 'The report heading, if defined, is printed as the first report group in the report, when the chronologically first GENERATE statement for the report, if any, is executed', and §2023:14.9.16.4 GR4 'Execution of the chronologically first GENERATE statement following an INITIATE causes the following actions to take place in order', a) the report heading. The 'following an INITIATE' wording does not change a 1985 program: 1985 allows a report to be re-initiated only after a TERMINATE (§1985:XIII.4.4.4 GR3 'A subsequent INITIATE statement for report-name-1 must not be executed unless an intervening TERMINATE statement has been executed'), INITIATE restarts the counters, and 1985 TERMINATE and GENERATE already count by that INITIATE-TERMINATE interval. Same behavior.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
+ }
+}

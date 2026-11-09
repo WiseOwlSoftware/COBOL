@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.22.4-10",
+ "rule-digest": "70c6aa1452d3",
+ "next": {
+  "kind": "CHANGED",
+  "to": [
+   "GR-14.9.37.4-1",
+   "GR-14.9.37.4-3",
+   "GR-14.9.37.4-4"
+  ],
+  "reason": "The 1985 figure (illustrative, like its 2023 copy in informative Annex §2023:D.3.5.4, which has no catalog rule) routes a starting index 'greater than' the highest occurrence to AT END and any index '≤' it to condition-1. 2023's normative flow is §2023:14.9.37.4 GR1 (success/AT END transfers), GR3 (which index and VARYING item are incremented) and GR4, which differs: an index that 'corresponds to an occurrence number that is negative, zero, or greater than the highest permissible occurrence number for identifier-1, the search operation is unsuccessful', setting EC-RANGE-SEARCH-INDEX (the Annex figure now reads 'exceeds highest permissible occurrence, or is zero or negative'). 1985 lets an index stand at 0 after PERFORM VARYING ... BY -1 ('outside the range of the associated table by one increment or decrement value'); a following SEARCH whose WHEN does not reference the table evaluates its conditions in 1985 but takes AT END in 2023.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-12"
+ }
+}

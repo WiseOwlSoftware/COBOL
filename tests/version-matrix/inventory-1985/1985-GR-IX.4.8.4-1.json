@@ -5,11 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "GR-14.9.49.4-3",
    "GR-14.9.49.4-4",
-   "GR-14.9.49.4-3"
+   "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "Both look only in the source element holding the causing statement, then its containers (GLOBAL), never another compiled unit; if none qualifies, none runs. Order rules don't change this.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR1: a declarative is invoked when its USE condition occurs; 'Only a declarative within the separately compiled program that contains the statement which caused the qualifying condition is invoked'; 'If no qualifying declarative exists ..., no declarative is executed' (1985 X.5.5.4 GR1 adds GLOBAL declaratives of containing programs). 2023 §2023:14.9.49.4 GR4 selects the declarative in the source element containing the causing statement, then GLOBAL ones in containing source elements up to 'the outermost source element'; §2023:14.9.49.4 GR3: 'If no declarative is identified, no declarative is executed'; §2023:14.9.49.4 GR6 a): 'the associated procedure is executed when the condition described in the USE statement occurs'. Propagation needs the PROPAGATE directive, absent from 1985 programs. Same.",
+  "source": "adjudicate-712/slice-08"
  }
 }

@@ -9,7 +9,7 @@
    "GR-14.9.30.4-5"
   ],
   "bridge": true,
-  "reason": "Same equivalence: READ without INTO, then MOVE; VARYING gives a group move; target identified after the read; no move if unsuccessful. The undefined-MOVE sentence follows from MOVE rules.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.30.4 GR4 keeps the equivalence: READ without INTO, then MOVE per MOVE rules, size from the RECORD clause, RECORD IS VARYING gives 'an alphanumeric group move', identifier-1 identified after the read; §2023:14.9.30.4 GR5: an unsuccessful READ leaves identifier-1 'unchanged' (no implied move). Same requirement.",
+  "source": "adjudicate-712/slice-19"
  }
 }

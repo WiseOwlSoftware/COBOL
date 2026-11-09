@@ -3,17 +3,19 @@
  "rule-digest": "36ce5d399b31",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "SR-13.15.3-10",
+   "SR-13.15.3-11",
    "SR-13.15.3-12",
    "SR-13.15.3-13",
    "SR-13.15.3-14",
    "SR-13.15.3-15",
-   "SR-13.18.28.3-1"
+   "SR-13.18.28.3-1",
+   "FMT-13.15.2"
   ],
+  "reason": "1985 Table 1 makes PICTURE mandatory in every format 3 row and permits JUSTIFIED, BLANK WHEN ZERO and GROUP INDICATE with SOURCE while COLUMN is optional; USAGE is not permitted on an unprintable SUM entry. 2023: 'The PICTURE clause may be omitted ... when an alphanumeric, boolean or national literal ... is specified in the VALUE clause' (§2023:13.15.3 SR14) - looser; 'If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified' (§2023:13.15.3 SR15) and GROUP INDICATE needs 'a COLUMN clause and a SOURCE or VALUE clause' (§2023:13.18.28.3 SR1) - stricter; USAGE is offered in every entry (§2023:13.15.2). Kept: PICTURE with SOURCE or SUM (§2023:13.15.3 SR12), COLUMN with VALUE (SR13), COLUMN needs SOURCE, VALUE or SUM (SR10), these clauses only in elementary entries (SR11). All compile-time.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"| M | M | | | M | P | | P | P | P | P | (PIC is M in every row, including the VALUE row)\"; 2023: \"The PICTURE clause may be omitted for an elementary item when an alphanumeric, boolean or national literal ... in the VALUE clause\". 1985 requires PICTURE in every format 3 entry; 2023 implies PICTURE from a VALUE literal. 2023 also requires COLUMN with JUSTIFIED and no longer bars JUSTIFIED with SUM.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-34"
  }
 }

@@ -3,13 +3,15 @@
  "rule-digest": "9634a2d4675f",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-14.9.51.4-15",
-   "GR-14.9.51.4-1"
+   "GR-9.1.12-2",
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-7"
   ],
+  "reason": "1985 (1993 amendment): on an unsuccessful WRITE the I-O status is updated, any applicable USE AFTER EXCEPTION procedure runs, and control then follows the USE rules. §2023:14.9.51.4 GR15 sets 'the I-O status of the write file connector' and sends control through 9.1.12. §2023:9.1.12 counts as an applicable exception processing statement the 'Statements in a file-exception or exception-name format of a USE declarative'. §2023:14.9.49.4 GR6 runs that procedure when the statement is outside any exception-checking PERFORM, as every 1985 statement is. §2023:14.9.49.4 GR7 then returns control 'to an implicit CONTINUE statement following the input-output statement'. GR15's added words ('the write operation does not take place, the content of the record area is unaffected') match what 1985 already implies, since 1985 GR2 releases the record only on success. A 1985 program behaves the same.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "Both say an unsuccessful WRITE updates the I-O status and passes control per exception processing (USE declaratives). The record-area words add detail, not a different effect.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-36"
  }
 }

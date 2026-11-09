@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.63.4-22"
+   "GR-13.18.63.4-22",
+   "GR-13.18.28.4-1",
+   "GR-13.18.41.4-2"
   ],
   "bridge": true,
-  "reason": "2023 still prints literal-1 each time the item prints, with GROUP INDICATE suppression. The extra exceptions name clauses a 1985 report item cannot use, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "Same. 1985: the item 'will assume the specified value each time its report group is printed', GROUP INDICATE limiting it to certain object-time conditions. 2023 §2023:13.18.63.4 GR22: 'The value of literal-1 is used for the content of the printable item whenever it is printed', except that GROUP INDICATE may suppress it; §2023:13.18.28.4 GR1 gives the GROUP INDICATE conditions (first GENERATE after INITIATE, page advance, control break) as a PRESENT WHEN, whose false case omits the item (§2023:13.18.41.4 GR2). PRESENT WHEN and OCCURS DEPENDING suppression apply to clauses a 1985 report item cannot carry.",
+  "source": "adjudicate-712/slice-26"
  }
 }

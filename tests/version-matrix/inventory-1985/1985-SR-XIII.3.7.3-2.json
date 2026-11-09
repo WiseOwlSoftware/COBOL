@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.7.3-2",
+ "rule-digest": "f578c5587023",
+ "next": {
+  "kind": "KEPT",
+  "to": [
+   "SR-13.18.16.3-6"
+  ],
+  "reason": "§1985:XIII.3.7.3 SR2: 'Each recurrence of data-name-1 must identify a different data item.' §2023:13.18.16.3 SR6: 'Data-name-1 shall be unique in any given CONTROL clause', adding that instances 'may, however, refer to the same physical data item or to overlapping data items'. Naming one item twice is refused by both; the overlap allowance covers distinct data items sharing storage (REDEFINES, subordinate items, reference modification new in 2023), which 1985 already treats as different data items. Compile-time in both.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-34"
+ }
+}

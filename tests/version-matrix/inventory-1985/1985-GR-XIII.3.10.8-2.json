@@ -2,14 +2,15 @@
  "rule-id": "1985-GR-XIII.3.10.8-2",
  "rule-digest": "af2c870293cc",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "GR-13.18.57.4-8",
+   "GR-13.18.39.4-2",
    "GR-13.18.39.4-3"
   ],
   "bridge": true,
-  "reason": "1985: \"The last line number on which a control heading report group or detail report group can be presented is ... LAST DETAIL\"; 2023: \"d) The lower limit for a control heading is the line given by the LAST CONTROL HEADING integer.\". Detail and control footing limits are unchanged. Control heading limit is now LAST CONTROL HEADING, which may differ from LAST DETAIL; it equals it only by default.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: CH and DE lower limit LAST DETAIL, CF lower limit FOOTING. 2023 §2023:13.18.57.4 GR8 d) CH -> LAST CONTROL HEADING, e) DE -> LAST DETAIL, f) CF -> FOOTING (§2023:13.18.39.4 GR2). A 1985 program cannot write LAST CONTROL HEADING, and §2023:13.18.39.4 GR3 c) 'If LAST CONTROL HEADING is omitted, integer-5 will be equal to integer-6, if LAST DETAIL is specified', else FOOTING, else page limit: exactly the 1985 LAST DETAIL value (1985 PAGE GR2c,d). Same for every 1985 program; the explicit LAST CH phrase is new syntax only.",
+  "source": "adjudicate-712/slice-24"
  }
 }

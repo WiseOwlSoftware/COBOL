@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.2.3.4-2",
+ "rule-digest": "ed605827b234",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.3-2",
+   "SR-13.18.46.3-3"
+  ],
+  "bridge": true,
+  "reason": "§2023:12.4.5.3 GR2: 'The OPTIONAL phrase applies only to files opened in the input, I-O, or extend mode' and is required for files not always present. A report file may be opened only 'with the OUTPUT or EXTEND phrase' (§2023:13.18.46.3 SR3), so OPTIONAL still applies to a report file only in extend mode, as 1985 says.",
+  "source": "adjudicate-712/slice-23"
+ }
+}

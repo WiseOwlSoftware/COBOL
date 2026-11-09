@@ -8,7 +8,7 @@
    "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "2023 keeps USE after the standard I-O exception routine, and the file-name-1, OUTPUT and EXTEND rules. The PERFORM WHEN, INPUT/I-O and INVALID KEY additions cannot affect 1985 Report Writer programs.",
-  "source": "audit-1985/state-route"
+  "reason": "2023 restates the rule: 'the procedures associated with a USE statement are executed after completion of the standard input-output exception routine upon the unsuccessful execution of an input-output operation unless an AT END or INVALID KEY phrase takes precedence', with the same file-name-1, OUTPUT and EXTEND cases and the same exclusion of files named by file-name-1 in another USE (§2023:14.9.49.4 GR6). The exception-checking PERFORM preamble cannot apply to a 1985 program; INVALID KEY and the INPUT/I-O cases do not reach report files, which open only OUTPUT or EXTEND. Same effect.",
+  "source": "adjudicate-712/slice-27"
  }
 }

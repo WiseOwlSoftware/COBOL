@@ -5,12 +5,14 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-13.4.5.2",
+   "SR-13.18.22.3-1",
    "GR-13.18.22.4-4",
-   "GR-13.18.27.4-1",
-   "GR-13.4.5.4-3"
+   "SR-13.18.27.3-1",
+   "GR-13.18.27.4-1"
   ],
+  "reason": "1985 GR2 is a pointer: 'The EXTERNAL clause is presented on page X-23. The GLOBAL clause is presented on page X-24. All other clauses in the file description entry are presented in the appropriate module'. It refuses nothing. 2023 keeps both clauses in the FD: §2023:13.4.5.2 lists '[ IS EXTERNAL [ AS literal-1 ] ]' and '[ IS GLOBAL ]' and refers its other clauses to their subclauses; §2023:13.18.22.3 SR1 ('may be specified only in file description entries' ...), §2023:13.18.22.4 GR4 ('the file connector associated with this file description entry is an external file connector'), §2023:13.18.27.3 SR1 d) ('A file description entry') and §2023:13.18.27.4 GR1 (a file-name described with GLOBAL 'is a global name') present them. GR-13.4.5.4-3 is the LINAGE-COUNTER rule, not this one. The module split is editorial.",
   "bridge": true,
-  "reason": "The 1985 rule only points to where the EXTERNAL and GLOBAL clauses of the file description entry are given. 2023 still allows both clauses in file description entries, with their own clause rules.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-21"
  }
 }

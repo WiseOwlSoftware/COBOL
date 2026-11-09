@@ -2,14 +2,15 @@
  "rule-id": "1985-GR-XIII.3.10.9-4",
  "rule-digest": "f344a870f0f8",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "SR-13.18.37.3-1",
    "SR-13.18.37.3-6",
    "SR-13.18.37.3-7"
   ],
   "bridge": true,
-  "reason": "1985: \"In addition, the NEXT GROUP integer must not be greater than the line number specified by integer-1 of the PAGE clause.\"; 2023: \"c) If the current report group is a page footing, integer-1 shall be greater than the minimum last line number of the report group.\". The relative-form limit, sum not over the page limit, is kept in SR 7b. For the absolute form in a page footing, 2023 keeps only the lower bound and drops the page-limit upper bound.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 PF NEXT GROUP: absolute integer > final print line and not > page limit; relative sum not > page limit. 2023 §2023:13.18.37.3 SR6 c) integer-1 greater than the minimum last line, §2023:13.18.37.3 SR1 'Integer-1 and integer-2 shall not exceed the page limit' (the absolute upper bound the adjudicate answer missed), SR7 b) minimum last line + integer-2 not exceeding the page limit. A 1985 group's last line is fixed, so the minimum equals it. Same.",
+  "source": "adjudicate-712/slice-24"
  }
 }

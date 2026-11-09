@@ -8,7 +8,7 @@
    "GR-14.9.30.4-26"
   ],
   "bridge": true,
-  "reason": "Duplicate alternate-key records are still returned in WRITE/REWRITE release order. The reverse-order wording covers only PREVIOUS, a new phrase, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: duplicates of an alternate key of reference are returned in the order WRITE or REWRITE released them. §2023:14.9.30.4 GR26 states the same order; its 'in the case of PREVIOUS, in the reverse order' applies only to the PREVIOUS phrase, which 1985 lacks.",
+  "source": "adjudicate-712/slice-07"
  }
 }

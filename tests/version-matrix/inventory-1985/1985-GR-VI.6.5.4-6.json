@@ -8,7 +8,7 @@
    "GR-14.9.1.4-6"
   ],
   "bridge": true,
-  "reason": "Same transfer by MOVE rules and same conceptual items. The added current-date/time sentence only says what the 1985 rules for DATE/TIME already give. The level-2 box is no difference.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.1.4 GR6 repeats the 1985 rule: transfer 'according to the rules for the MOVE statement', and 'DATE, DAY, DAY-OF-WEEK, and TIME are conceptual data items and, therefore, are not described in the COBOL source unit'. Its added sentence that they 'reference the current date and time provided by the system' states what 1985 GR7-GR10 already give; 'source unit' for 'program' is terminology.",
+  "source": "adjudicate-712/slice-14"
  }
 }

@@ -3,14 +3,14 @@
  "rule-digest": "91be89774624",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-13.18.57.4-6",
-   "GR-14.9.46.4-3",
-   "GR-14.9.46.4-2"
+   "GR-14.9.46.4-2",
+   "GR-14.9.46.4-3"
   ],
-  "bridge": true,
-  "reason": "Both: report footing printed once, last in the report, during TERMINATE if a GENERATE ran. The 1985 rule defers to TERMINATE, which counts the INITIATE-TERMINATE interval.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: the report footing is processed 'only once per report and as the last report group of that report ... during the execution of a corresponding TERMINATE statement, if there has been at least one GENERATE statement executed for that report'. 2023: §2023:13.18.57.4 GR6 g) 'The report footing, if defined, is printed, as the very last report group in the report, when a TERMINATE for the report is executed, provided that at least one GENERATE statement has been executed for the report since the chronologically last INITIATE'; §2023:14.9.46.4 GR3 c) prints it after the control footings; §2023:14.9.46.4 GR2 'the TERMINATE statement causes no processing of any kind to take place for any report groups' without a GENERATE. The INITIATE-to-TERMINATE interval is already 1985's (§1985:XIII.4.7.4 GR2). Same behavior.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

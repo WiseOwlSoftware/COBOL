@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-3",
+ "rule-digest": "abcddce776d5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.40.3-27",
+   "SR-13.18.40.3-21"
+  ],
+  "bridge": true,
+  "reason": "1985: floating insertion and zero suppression are 'mutually exclusive', and 'only one type of replacement' (Z or *). §2023:13.18.40.3 SR27 allows no more than one of a floating '+', '-' or currency string, a '*' string or a 'Z' string, and §2023:13.18.40.3 SR21 makes 'Z' and '*' mutually exclusive. The same pictures are refused.",
+  "source": "adjudicate-712/slice-11"
+ }
+}

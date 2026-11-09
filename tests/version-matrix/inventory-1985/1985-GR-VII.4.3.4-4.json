@@ -5,10 +5,17 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.27.4-8"
+   "GR-14.9.27.4-8",
+   "GR-14.9.27.4-4",
+   "GR-14.9.30.4-2",
+   "GR-14.9.51.4-3",
+   "GR-14.9.35.4-3",
+   "GR-9.1.13.7-7",
+   "GR-9.1.13.7-8",
+   "GR-9.1.13.7-9"
   ],
   "bridge": true,
-  "reason": "Both require a prior successful OPEN before permissible I-O statements. Table 20 matches 1985 for READ/WRITE/REWRITE; the START row is a new statement, not a change to this rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR4: an OPEN must succeed before any permissible I-O statement; Table 2: READ input/I-O, WRITE output/extend, REWRITE I-O. §2023:14.9.27.4 GR8 'an OPEN statement shall previously be successfully executed', with Table 20's sequential rows identical for READ, WRITE, REWRITE (START is a statement 1985 sequential I-O lacks); §2023:14.9.27.4 GR4 ties open mode to Table 20; the per-statement rules §2023:14.9.30.4 GR2, §2023:14.9.51.4 GR3, §2023:14.9.35.4 GR3 and statuses §2023:9.1.13.7 GR7, GR8, GR9 restate each row (1985 had statuses 47, 48, 49). Same permitted set.",
+  "source": "adjudicate-712/slice-16"
  }
 }

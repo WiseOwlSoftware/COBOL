@@ -6,9 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-13.18.35.4-5",
-   "GR-13.18.37.4-4"
+   "GR-13.18.37.4-4",
+   "GR-13.18.35.4-1",
+   "GR-13.18.35.4-6"
   ],
   "bridge": true,
-  "source": "adjudication kb/Work PB5008"
+  "reason": "1985: absolute -> integer; relative paged: first body group on the page with LINE-COUNTER >= FIRST DETAIL -> LINE-COUNTER + 1, later groups LINE-COUNTER + integer, LINE-COUNTER < FIRST DETAIL -> FIRST DETAIL line; unpaged LINE-COUNTER + integer; no LINE not presented. 2023 §2023:13.18.35.4 GR5 a), b)3, c). The LINE-COUNTER+1 case arises only after fit test 3b moves the saved NEXT GROUP integer into LINE-COUNTER on a new page, which 2023 covers in §2023:13.18.37.4 GR4 a)3 (first line 'on the next line following the line number in the save location'); §2023:13.18.35.4 GR1/GR6 cover the no-LINE case. Same.",
+  "source": "adjudicate-712/slice-24"
  }
 }

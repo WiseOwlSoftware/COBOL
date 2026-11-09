@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.30.4-13"
+   "GR-14.9.30.4-13",
+   "GR-14.9.49.4-7"
   ],
   "bridge": true,
-  "reason": "Same three actions: status and position set, non-at-end exceptions to exception processing, else record and INTO move then end or NOT AT END. Lock-conflict proviso is 2023-only.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 READ GR11: AT END ignored; FPI set and status updated; a non-at-end exception transfers control per the USE rules after any USE procedure; else record made available, INTO move, then end of READ or NOT AT END. §2023:14.9.30.4 GR13 restates all three actions ('the AT END phrase or the INVALID KEY phrase is ignored, if specified'; other exceptions per 9.1.12; else record, INTO move, imperative-statement-2); §2023:14.9.49.4 GR7 states the return after a USE procedure. The record-operation-conflict proviso concerns locking, absent from 1985.",
+  "source": "adjudicate-712/slice-16"
  }
 }

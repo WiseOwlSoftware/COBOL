@@ -2,13 +2,14 @@
  "rule-id": "1993-GR-IX.4.4.4-19",
  "rule-digest": "9d01f171a2ef",
  "next": {
-  "kind": "CHANGED",
-  "edition": 2023,
+  "kind": "KEPT",
   "to": [
-   "GR-14.9.27.4-25"
+   "GR-14.9.27.4-25",
+   "GR-14.9.49.4-6"
   ],
+  "reason": "The OPEN rule: 1985 (1993 amendment) says 'the physical file is not affected', then a. the I-O status is set, then b. 'Any applicable USE AFTER EXCEPTION procedure is executed.' §2023:14.9.27.4 GR25 keeps that order: 'the file is not affected', a) I-O status set, d) the applicable USE procedure executed. Its new steps reach no 1985 program. Step b) applies only 'If it is enabled', and §2023:14.6.13.1.1 says 'By default, checking is not enabled for any exception condition'. Step c) needs an exception-checking PERFORM. §2023:14.9.49.4 GR6 runs the USE procedures when the statement 'was not specified within the scope of an exception-checking PERFORM statement'. This record matches the KEPT records for the identical VII and VIII rows. Catalog defect: this row's text also carries 1993 erratum text for READ GR10b, GR10c and GR11b (IX-30/IX-31). That text belongs to the READ statement, has no row of its own, and is not decided here.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"b. Any applicable USE AFTER EXCEPTION procedure is executed.\"; 2023: \"c) If the OPEN statement is specified in imperative-statement-1 in an exception-checking PERFORM ... No applicable USE declarative is executed.\". Same order (file unaffected, I-O status set, then USE). 2023 adds raising EC-I-O if enabled, and a case where a PERFORM WHEN phrase applies and no USE declarative runs.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-36"
  }
 }

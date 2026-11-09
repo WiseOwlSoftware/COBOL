@@ -12,10 +12,22 @@
    "GR-9.1.13.7-6",
    "GR-9.1.13.7-7",
    "GR-9.1.13.7-8",
-   "GR-9.1.13.7-9"
+   "GR-9.1.13.7-9",
+   "GR-13.18.43.4-14",
+   "GR-13.18.43.4-19",
+   "GR-14.9.27.4-2",
+   "GR-14.9.6.4-1",
+   "GR-14.9.35.4-5",
+   "GR-14.9.35.4-16",
+   "GR-14.9.35.4-20",
+   "GR-14.9.51.4-14",
+   "GR-14.9.30.4-21",
+   "GR-14.9.30.4-2",
+   "GR-14.9.51.4-3",
+   "GR-14.9.35.4-3"
   ],
   "bridge": true,
-  "reason": "1985: \"1) ...allowed by the RECORD IS VARYING clause of the associated file-name, or 2) ...not the same size as the record being replaced.\"; 2023: \"c) ...allowed by the fixed-or-variable-length format of the RECORD clause when the implementor has specified that variable-length records\". Statuses 41-49 carry over, but status 44 gains cases c) (RECORD clause variable format) and d) (line sequential rewrite after 06), which make more I-O statements fail.",
-  "source": "audit-1985/state-route"
+  "reason": "41, 42, 43, 46, 47, 48 and 49 carry over for sequential files; 46's two 1985 causes fall under 'The preceding READ statement referencing that file connector was unsuccessful' (§2023:9.1.13.7 GR6), since an at-end READ is unsuccessful. The added DELETE FILE, UNLOCK, START and DELETE RECORD cases need statements 1985's sequential module lacks. Status 44 differs: 2023 adds a failure when a record falls outside the range 'allowed by the fixed-or-variable-length format of the RECORD clause when the implementor has specified that variable-length records are produced' (§2023:9.1.13.7 GR4c), driven by 'If the number of bytes in the logical record to be written is less than integer-4 or greater than integer-5' the WRITE/REWRITE is unsuccessful (§2023:13.18.43.4 GR19). 1985 RECORD CONTAINS integer-4 TO integer-5 sets no such check ('the size of each data record is completely defined in the record description entry', §1985:VII.3.8.4 GR13), so such a 1985 WRITE that succeeded can now fail with 44. The line sequential case d) is new syntax.",
+  "source": "adjudicate-712/slice-14"
  }
 }

@@ -2,14 +2,13 @@
  "rule-id": "1985-GR-VI.6.19.4-5",
  "rule-digest": "7056d0d6937a",
  "next": {
-  "kind": "CHANGED",
-  "edition": 2023,
+  "kind": "KEPT",
   "to": [
-   "GR-14.9.25.4-4",
-   "GR-14.9.25.4-9"
+   "GR-14.9.25.4-4"
   ],
+  "reason": "§2023:14.9.25.4 GR4 restates 1985 GR5: a non-elementary move 'is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion', filling the receiving area without regard to subordinate items, with the OCCURS exception now named as General rule 8 of the OCCURS clause. Its carve-out ('and does not reference a variable-length group') and GR9 reach only 2023 dynamic items: §2023:8.5.1.12.1 defines 'A variable-length group is a group item whose data description has at least one dynamic-length elementary item or dynamic-capacity table', so occurs-depending groups, the only variable groups 1985 has, stay under GR4. Bit/national groups and message-tag/object/pointer items do not exist in 1985. The OCCURS exception itself is judged with the 1985 OCCURS clause.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"Any move that is not an elementary move is treated exactly as if it were an alphanumeric to alphanumeric elementary move\"; 2023: \"Any move that is not an elementary move, and does not reference a variable-length group, is treated exactly as if\". 2023 drops the alphanumeric-move treatment for variable-length groups (incl. occurs-depending); GR 9 moves corresponding tables separately and space-fills excess.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-12"
  }
 }

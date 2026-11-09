@@ -8,7 +8,7 @@
    "GR-14.9.27.4-6"
   ],
   "bridge": true,
-  "reason": "Same bar on statements referencing a non-open file, except OPEN and SORT/MERGE USING/GIVING. COMMIT, ROLLBACK and DELETE FILE are new 2023 statements, so no 1985 program changes.",
-  "source": "audit-1985/state-route"
+  "reason": "Same bar: no statement may reference a file not in an open mode except OPEN and SORT/MERGE USING/GIVING. §2023:14.9.27.4 GR6 adds 'the COMMIT and ROLLBACK statements, a DELETE FILE statement', all statements a 1985 program cannot contain, so no 1985 program changes. Run-time rule in both.",
+  "source": "adjudicate-712/slice-19"
  }
 }

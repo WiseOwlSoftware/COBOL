@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.4.6.3-2",
+ "rule-digest": "5d89c2295e25",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.27.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985 SR2: two same-named data items in one Data Division must not both include GLOBAL; §1985:IV.4.3.8.1 already states the broader rule 'The same data-name must not be used as the name of an item possessing the global attribute and as the name of any other data item described in the program'. 2023 §2023:8.4.2.1 states that broader rule ('The same name shall not be used both as the name of an item possessing the global attribute and as the name of any other data item described in the source element that describes that global data item'), and §2023:13.18.27.4 GR1 says which names a GLOBAL clause makes global. Same refusal. Catalog note: the 8.4.2.1 paragraph has no catalog id, so 'to' names only GR-13.18.27.4-1.",
+  "source": "adjudicate-712/slice-32"
+ }
+}

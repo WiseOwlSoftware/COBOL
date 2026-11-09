@@ -8,7 +8,7 @@
    "GR-9.1.13.11-1"
   ],
   "bridge": true,
-  "reason": "In 1985, 00-49 were all the non-9x statuses. 2023 bars 9x from duplicating any other status: the same rule, its reach growing only with statuses added elsewhere.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 'must not duplicate any condition specified for the I-O status values 00 through 49' and §2023:9.1.13.11 GR1 'This condition shall not duplicate any other condition specified by another I-O status value' bar the same set for every status a 1985 program can receive (00-49 were all the non-9x values in 1985); x stays implementor-defined. The wider reach (5x, 6x, 7x) arises only from features 1985 lacks.",
+  "source": "adjudicate-712/slice-06"
  }
 }

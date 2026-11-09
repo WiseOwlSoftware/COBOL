@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-8",
+ "rule-digest": "720099307ec9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.22.4-4",
+   "GR-9.1.5-1"
+  ],
+  "reason": "1985: 'The process of calling a program or exiting from a called program does not alter the status or positioning of a file associated with any external file connector.' §2023:13.18.22.4 GR4 a) makes the FD's connector 'an external file connector', and §2023:9.1.5 GR1 lets it be referenced 'from any runtime element that describes that file connector'. The persistence is §2023:8.6.3 prose with no catalog id: 'the storage associated with that item is associated with the run unit rather than with any particular runtime element within the run unit'. The implicit CLOSE on GOBACK or EXIT PROGRAM in §2023:9.1.4 applies only 'For initial file connectors described in a program', which are internal (§2023:8.6.4). Same meaning; the catalog lacks an id for 8.6.3.",
+  "bridge": true,
+  "source": "adjudicate-712/slice-21"
+ }
+}

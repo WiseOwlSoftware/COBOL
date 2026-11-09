@@ -10,7 +10,7 @@
    "GR-9.1.13.7-8"
   ],
   "bridge": true,
-  "reason": "Both require WRITE's file to be open in output, I-O or extend. 1985 defers per-access-mode limits to the OPEN statement's table, which 2023 restates in GR3 and Table 20.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR1: the file 'must be open in the output, I-O, or extend mode' at WRITE, referring to OPEN, whose Table 2 (§1985:VIII.4.4.4 GR4, 'may be used with the open mode given at the top of the column') already allows sequential WRITE only in Output or Extend and random/dynamic WRITE only in Output or I-O (error mode a). 2023: 'If the access mode of the write file is sequential, the open mode of the write file connector shall be extend or output', otherwise I-O or output, else unsuccessful with status '48' (§2023:14.9.51.4 GR3); Table 20 of §2023:14.9.27.4 GR8 and §2023:9.1.13.7 GR8 restate it. 2023 defines status 48 for a sequential WRITE in I-O mode, which 1985 status 48 did not cover, but such a program already broke 1985's OPEN table. Same for conforming programs.",
+  "source": "adjudicate-712/slice-20"
  }
 }

@@ -8,7 +8,7 @@
    "GR-8.4.2.3.4-2"
   ],
   "bridge": true,
-  "reason": "Same rule: positive integer, lowest 1, maximum from OCCURS. Dynamic-capacity tables are a new 2023 feature, and EC-BOUND-SUBSCRIPT is the general check for an existing violation.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The value of the subscript must be a positive integer. The lowest possible occurrence number ... is 1 ... The highest permissible occurrence number ... is the maximum number of occurrences ... in the associated OCCURS clause' (§1985:IV.4.3.8.2.4 GR1). 2023: 'The value of a subscript shall be a positive integer. The lowest possible occurrence number represented by a subscript is 1 ... The highest permissible occurrence number for any given dimension of a fixed-capacity or occurs-depending table is the maximum number of occurrences ... in the associated OCCURS clause' (§2023:8.4.2.3.4 GR2). The added sentence setting EC-BOUND-SUBSCRIPT reports a violation of a requirement a conforming 1985 program already meets; the 1985 rule is a general (run-time) rule, not a compile-time refusal, so no refusal became an exception. A non-integer or negative literal subscript is governed by separate 1985 syntax rules (§1985:IV.4.3.8.2.3 SR5, SR6) with their own records. Dynamic-capacity tables are new.",
+  "source": "adjudicate-712/slice-04"
  }
 }

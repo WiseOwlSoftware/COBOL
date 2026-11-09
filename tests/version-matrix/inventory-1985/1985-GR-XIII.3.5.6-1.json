@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-8.4.3.15.4-1"
+   "GR-8.4.3.15.4-1",
+   "FMT-8.4.3.15.2"
   ],
   "bridge": true,
-  "reason": "Both make LINE-COUNTER reference a counter provided automatically for each report. 1985 refers its attributes to other pages, so the 2023 unsigned-integer wording adds no new requirement.",
-  "source": "audit-1985/state-route"
+  "reason": "Same. 1985: LINE-COUNTER is the reserved word referencing a special register 'automatically created for each report'. 2023 §2023:8.4.3.15.1 'generated automatically and exist independently for each report'; §2023:8.4.3.15.4 GR1 '... maintained for each report'; format §2023:8.4.3.15.2 keeps the word, qualifiable by report-name. 1985 XIII.1.2.3 already describes it as an unsigned integer maintained by the RWCS, so the 2023 attributes add nothing for a 1985 program.",
+  "source": "adjudicate-712/slice-26"
  }
 }

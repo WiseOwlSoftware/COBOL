@@ -9,7 +9,7 @@
    "GR-14.9.24.4-11"
   ],
   "bridge": true,
-  "reason": "Both prohibitions carry over. The USE procedures a MERGE invokes implicitly are its exception declaratives, so dropping 'AFTER EXCEPTION' does not change which programs are affected.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.24.4 GR10 restates the output-procedure ban on file-name-2/3. §2023:14.9.24.4 GR11 restates the ban 'During the execution of any USE procedure implicitly invoked while executing the MERGE statement' for file-name-2, -3, -4. 1985 says 'USE AFTER EXCEPTION'; the only USE procedures a 1985 MERGE invokes implicitly are its exception/error declaratives, so the same programs are affected. Neither edition adds an exception condition.",
+  "source": "adjudicate-712/slice-22"
  }
 }

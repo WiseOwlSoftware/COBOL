@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-14.9.16.4-1",
-   "GR-13.18.57.4-5"
+   "GR-13.18.57.4-5",
+   "GR-13.18.57.4-6",
+   "GR-14.9.45.4-3"
   ],
   "bridge": true,
-  "reason": "Both: GENERATE data-name does detail processing and prints the named detail. 1985 'Normally' covers suppression, which 2023 provides via SUPPRESS and PRESENT WHEN.",
-  "source": "audit-1985/state-route"
+  "reason": "Same. 1985: GENERATE data-name-1 performs detail processing and 'Normally' presents the designated detail. 2023 §2023:14.9.16.4 GR1 'Execution of a GENERATE data-name statement causes one instance of the specified detail to be printed, following any necessary control break and page fit processing'; §2023:13.18.57.4 GR5 and GR6 d) print a detail when a GENERATE references it. The 1985 'Normally' is SUPPRESS in a USE BEFORE REPORTING procedure, kept by §2023:14.9.45.4 GR3 a). No refusal or exception changes.",
+  "source": "adjudicate-712/slice-26"
  }
 }

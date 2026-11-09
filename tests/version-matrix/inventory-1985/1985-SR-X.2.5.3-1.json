@@ -5,10 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-10.7.3-2"
+   "FMT-10.7.2",
+   "SR-10.7.3-2",
+   "SR-8.3.2.1-1",
+   "SR-8.3.2.2-3"
   ],
   "bridge": true,
-  "reason": "END PROGRAM's name must equal the PROGRAM-ID program-name. 8.3.2.2 treats program-name as a user-defined word, so the same END PROGRAM names are accepted or refused.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: the END PROGRAM program-name 'must conform to the rules for forming a user-defined word'. 2023 format §2023:10.7.2 takes program-name-1, which §2023:10.7.3 SR2 makes 'identical to the program-name declared in a preceding PROGRAM-ID paragraph'; program-name is listed among the user-defined words of §2023:8.3.2.2, whose formation rules include §2023:8.3.2.1 SR1 (no reserved words) and §2023:8.3.2.2 SR3 (at least one letter). Formation details (63 characters, underscore) belong to the 1985 word-formation rule, not this one. Same requirement. Catalog note: the 8.3.2.1 general paragraph and the 8.3.2.2 type list carry no catalog id.",
+  "source": "adjudicate-712/slice-32"
  }
 }

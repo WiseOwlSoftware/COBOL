@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-X.5.4.4-2",
+ "rule-digest": "e7bd22392c88",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.14.4-3",
+   "GR-14.9.18.4-2",
+   "GR-14.9.4.4-3"
+  ],
+  "bridge": true,
+  "reason": "EXIT PROGRAM in a called program follows the GOBACK rules (§2023:14.9.14.4 GR3; its text says 'General rules 3 and 4', but GOBACK GR3 is the not-called case and GR4 is methods, so only GR1-2 can apply). §2023:14.9.18.4 GR2 returns control, 'Execution continues in the calling element as specified in the rules for the CALL statement' (§2023:14.9.4.4 GR3 i), and 'The state of the calling runtime element is not altered' apart from shared data and files, as in 1985. The called program keeps its last-used state (§2023:14.6.2.3.3), and on the next activation 'the control mechanisms for all PERFORM statements ... are set to their initial states' (§2023:14.6.2.2, uncatalogued prose), which has the same effect as the 1985 'ends of the ranges of all PERFORM statements ... considered to have been reached'.",
+  "source": "adjudicate-712/slice-22"
+ }
+}

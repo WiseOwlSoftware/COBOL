@@ -2,16 +2,18 @@
  "rule-id": "1985-GR-XIII.3.10.8-6",
  "rule-digest": "3c9a33e20ca7",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.37.4-4",
    "GR-13.18.37.4-1",
    "GR-13.18.37.4-2",
-   "GR-8.4.3.15.4-4"
+   "GR-13.18.37.4-4",
+   "GR-8.4.3.15.4-4",
+   "GR-8.4.3.15.4-5",
+   "GR-13.18.35.4-8"
   ],
   "bridge": true,
-  "reason": "1985: \"the RWCS places the sum of the line number on which the final print line was presented and the NEXT GROUP integer into LINE-COUNTER\"; 2023: \"If the NEXT GROUP clause is relative and if the sum of integer-2 and LINE-COUNTER is less than the FOOTING integer, ... otherwise the FOOTING integer\". Cases a-d match 2023. But 1985 f sets an uncapped sum, while 2023 applies one FOOTING-capped rule to every body group. 2023 states no nonprintable-group exemption (e); it says 'last line, if any'.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 a-c,f: a CF below the highest break level ends at its last line; §2023:13.18.37.4 GR1 'The NEXT GROUP clause has no effect when it is specified in a control footing that is at a level other than the highest level'. a) absolute -> integer or FOOTING plus save, b) relative capped at FOOTING, c) NEXT PAGE -> FOOTING: §2023:13.18.37.4 GR4 a)-c). d) last line: §2023:8.4.3.15.4 GR4, §2023:13.18.35.4 GR8. e) nonprintable unaffected: §2023:8.4.3.15.4 GR5. f) applies only with the PAGE clause omitted (Table 3), where 2023 has no FOOTING integer (§2023:13.18.39.4 GR3 defaults apply only 'If integer-1 is specified'), so GR4 b)'s cap cannot apply and integer-2 is simply added. Same.",
+  "source": "adjudicate-712/slice-24"
  }
 }

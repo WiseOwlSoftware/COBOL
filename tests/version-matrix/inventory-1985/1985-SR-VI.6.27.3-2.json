@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-14.9.48.3-2"
+   "SR-14.9.48.3-2",
+   "SR-14.9.48.3-3"
   ],
   "bridge": true,
-  "reason": "1985: \"must reference data items described, implicitly or explicitly, as category alphanumeric.\"; 2023: \"shall reference data items of category alphanumeric or national.\". Same operands and the same restriction, but 2023 adds category national as an allowed case (constrained by SR-3), so operands refused in 1985 are accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 VI.6.27.3 SR2: identifiers 1, 2, 3 and 5 'must reference data items described ... as category alphanumeric'. §2023:14.9.48.3 SR2: they 'shall reference data items of category alphanumeric or national', and §2023:14.9.48.3 SR3 requires all operands national if any is. Every conforming 1985 UNSTRING is still accepted with the same meaning, but 2023 accepts national operands the 1985 rule refuses: a compile-time relaxation, no exception condition.",
+  "source": "adjudicate-712/slice-31"
  }
 }

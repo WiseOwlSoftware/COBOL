@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-8.3.3.2.3-3"
+   "SR-8.3.3.2.3-3",
+   "SR-8.3.3.2.3-4"
   ],
   "bridge": true,
-  "reason": "In a quote-delimited literal two contiguous quotation marks still stand for one. Apostrophe delimiters are a new feature from 8.3.5, not a change to this doubling rule.",
-  "source": "audit-1985/state-route"
+  "reason": "A 1985 nonnumeric literal is quotation-mark delimited. §2023:8.3.3.2.3 SR3, 'Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter', still makes a doubled quotation mark stand for one there. Apostrophe-delimited literals are new syntax that no 1985 program uses, so the recheck's 'apostrophe literal' difference concerns no 1985 source. §2023:8.3.3.2.3 SR4 ('shall be in the same coded character set representation as the opening quotation symbol') constrains the same pair, and single-repertoire 1985 source meets it.",
+  "source": "adjudicate-712/slice-28"
  }
 }

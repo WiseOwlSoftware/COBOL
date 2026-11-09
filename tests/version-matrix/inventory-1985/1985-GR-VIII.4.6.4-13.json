@@ -9,7 +9,7 @@
    "GR-14.9.35.4-14"
   ],
   "bridge": true,
-  "reason": "GR21 keeps random/dynamic replacement by relative key and invalid key if no record; '23' is that cause's status. GR14 keeps no update, record area unaffected.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.35.4 GR21: in random or dynamic access the record identified by the relative key is replaced; if absent 'the invalid key condition exists', unsuccessful, status '23'. §2023:14.9.35.4 GR14 adds no updating and record area unaffected, as 1985. Same.",
+  "source": "adjudicate-712/slice-19"
  }
 }

@@ -5,11 +5,10 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.49.4-12",
    "GR-14.9.49.4-7"
   ],
   "bridge": true,
-  "reason": "Same rule: control goes back to the I-O control system, then to the point after the I-O statement unless fatal (critical), else implementor-defined. The SORT/MERGE item defers to those statements.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR6: after the USE procedure, if the I-O status 'does not indicate a critical input-output error', control returns 'to the next executable statement following the input-output statement'; if critical, 'the implementor determines what action is taken'. §2023:14.9.49.4 GR7, the rule for format 1 USE (the only format a 1985 program writes): 'control is returned to an implicit CONTINUE statement following the input-output statement whose execution caused the exception' unless the status indicates a fatal EC-I-O condition, when 'the implementor determines what action is taken as described in 9.1.13, I-O status'. 1985 'critical' (status 3x, 4x, implementor 9x) and 2023 'fatal' name the same class for every 1985 status. GR12 applies only when exception-name-1 or -2 begins with EC-I-O (format 3), so it carries no part of this rule. Same.",
+  "source": "adjudicate-712/slice-20"
  }
 }

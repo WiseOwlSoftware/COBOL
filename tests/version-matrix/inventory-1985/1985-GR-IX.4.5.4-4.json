@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-4",
+ "rule-digest": "e3629f4f1fcb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-21",
+   "GR-14.9.30.4-24"
+  ],
+  "bridge": true,
+  "reason": "1985 selects by the current key of reference in the file's collating sequence: >= after OPEN or START, > after READ, the next duplicate for an alternate key with duplicates, at end when none is found, FPI set to the record's key. §2023:14.9.30.4 GR21 a), d), e), f), g) state the same, and route the not-found and optional-file cases to §2023:14.9.30.4 GR24 as 1985 routed them to GR10. 2023 words the cases as 'the previous operation on the file'; WRITE, REWRITE and DELETE leave the file position indicator unchanged (§2023:14.9.35.4 GR13), and the transcription's correction note C12 reads d) and e) as reading the FPI, so intervening non-positioning statements select as in 1985. Case a (no valid next record): unsuccessful in both; GR24 applies only when the at end condition exists, so a status 46 goes through GR13 as 1985 GR11. That status's fatal handling is recorded on 1985-GR-IX.4.5.4-11.",
+  "source": "adjudicate-712/slice-07"
+ }
+}

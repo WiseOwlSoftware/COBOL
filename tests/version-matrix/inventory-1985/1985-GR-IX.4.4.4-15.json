@@ -9,7 +9,7 @@
    "GR-14.9.27.4-18"
   ],
   "bridge": true,
-  "reason": "Both create an absent optional file on OPEN EXTEND/I-O as if OPEN OUTPUT then CLOSE, then the OPEN; OPEN OUTPUT creates an empty file. The '05' status adds no conflicting requirement.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: an unavailable optional file opened EXTEND or I-O is created as if by OPEN OUTPUT, CLOSE, then the program's OPEN; OPEN OUTPUT creates an empty file. §2023:14.9.27.4 GR17 'This creation takes place as if the following statements were executed in the order shown' (OPEN OUTPUT; CLOSE) and §2023:14.9.27.4 GR18 'After the creation of the file, the file contains no records'. GR17's status '05' is the update 1985 GR16 already requires.",
+  "source": "adjudicate-712/slice-06"
  }
 }

@@ -2,13 +2,15 @@
  "rule-id": "1985-GR-XIII.3.10.9-3",
  "rule-digest": "aa6ecfacbded",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.35.4-5"
+   "GR-13.18.35.4-5",
+   "GR-13.18.35.4-1",
+   "GR-13.18.35.4-6"
   ],
   "bridge": true,
-  "reason": "1985: \"a. The first print line of the page footing report group is presented on the line specified by the integer of its LINE NUMBER clause.\"; 2023: \"If the report group is a page footing, the line number is given by (FOOTING integer + integer-2).\". The absolute first LINE still gives integer-1. 2023 adds a relative first-line case for page footings that the 1985 rule lacks. A group with no LINE clause has no lines, so case b stands only by inference.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 PF first line: a) absolute -> its integer; b) no LINE -> not presented (1985 LINE SR9 forbids a relative first LINE in a PF, so this rule has no relative case). 2023 §2023:13.18.35.4 GR5 a) integer-1; §2023:13.18.35.4 GR1/GR6: only LINE clauses define lines. Same for every 1985 program. 2023's acceptance of a relative first PF line (GR5 b)4) is the change of 1985 LINE SR9, not of this rule.",
+  "source": "adjudicate-712/slice-24"
  }
 }

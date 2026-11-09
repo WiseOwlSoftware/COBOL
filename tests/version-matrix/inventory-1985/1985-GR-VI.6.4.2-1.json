@@ -3,14 +3,15 @@
  "rule-digest": "7dd411cfab11",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-14.7.5-1",
    "GR-8.8.1.2-6",
-   "GR-14.7.5-L2.1"
+   "GR-14.7.5-L2.1",
+   "GR-14.7.7-4"
   ],
+  "reason": "1985: 'Violation of the rules for evaluation of exponentiation always terminates the arithmetic operation and always causes a size error condition.' 2023: the size error condition exists 'if the rules for evaluation of exponentiation are violated' (§2023:14.7.5 GR1), and §2023:8.8.1.2 GR6 says on each violation 'the EC-SIZE-EXPONENTIATION exception condition is set to exist and the size error condition is raised'. The operation is abandoned: with the SIZE ERROR phrase 'the values of all of the resultant data items remain unchanged' (§2023:14.7.5, catalog GR-14.7.5-L2.1), and 'If the size error condition is raised during the initial evaluation, none of the resultant data items are changed' (§2023:14.7.7 GR4). Both effects are kept. Which values violate the rules (VI.6.2.3) and what happens without the phrase (the fatal EC-SIZE handling replacing 1985's 'undefined' resultants) belong to other 1985 rules.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "2023 still makes an exponentiation-rule violation a size error. Resultant items stay unchanged, ending the operation. EC-SIZE-EXPONENTIATION is the 2023 exception framework, not a new requirement.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-13"
  }
 }

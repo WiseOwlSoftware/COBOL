@@ -5,12 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "FMT-12.4.6.2",
-   "GR-12.4.6.4.4-1",
-   "GR-12.4.6.4.4-2"
+   "FMT-12.4.6.4.2",
+   "SR-12.4.6.4.3-5",
+   "GR-12.4.6.4.4-1"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only cross-refers to the SAME clause. 2023 keeps same-clause in the single I-O-CONTROL format, with its rules given in 12.4.6.4.4.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 only points the report file's SAME clause to the Sequential I-O SAME clause; its format allows SAME AREA (no RECORD phrase) for a report file (SR XIII.2.4.3-2). 2023 keeps the file-area format (FMT 12.4.6.4.2), §2023:12.4.6.4.3 SR5 'A given file-name that represents a report file may be specified in one file-area format SAME clause' and §2023:12.4.6.4.4 GR1 'are to use the same memory area during processing'. Record-area GR2 does not apply to a report file.",
+  "source": "adjudicate-712/slice-24"
  }
 }

@@ -9,7 +9,7 @@
    "GR-7.2.3.4-8"
   ],
   "bridge": true,
-  "reason": "2023 copies library text into the compilation group, replacing the COPY, while building the structured compilation group; syntax is judged only after all text manipulation.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: compiling a program with COPY is logically equivalent to processing all COPY statements before the resultant program. 2023 keeps that order: §2023:7.2.1 (uncatalogued prose) puts COPY incorporation in the text-manipulation stage that produces the structured compilation group used by the compilation stage; §2023:7.2.3.4 GR6 replaces the COPY statement by library text; §2023:7.2.3.4 GR8 places REPLACING 'during creation of the structured compilation group'. Same meaning for a 1985 program.",
+  "source": "adjudicate-712/slice-23"
  }
 }

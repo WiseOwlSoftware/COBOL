@@ -3,12 +3,14 @@
  "rule-digest": "2133f024d904",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
-   "GR-13.18.57.4-5"
+   "GR-13.18.57.4-5",
+   "GR-14.9.16.4-1",
+   "GR-14.9.16.4-2"
   ],
-  "bridge": true,
-  "reason": "Both say detail groups are produced by explicit GENERATE and all other group types are processed automatically. The timing details in -6 elaborate other rules and leave this one unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'Detail report groups are processed by the report writer control system as a direct result of GENERATE statements. If a report group is other than TYPE DETAIL, its processing is an automatic report writer control system function.' 2023: §2023:13.18.57.4 GR5 'Detail report groups are printed when referenced explicitly in a GENERATE statement. All other report groups are printed implicitly'; §2023:14.9.16.4 GR1 (GENERATE data-name prints the detail) and §2023:14.9.16.4 GR2 (GENERATE report-name-1 gives 'the same processing ... except that no detail is printed', as 1985 GR11d). 'Only during the execution of a GENERATE or a TERMINATE statement' matches the 1985 GENERATE/TERMINATE rules. Same meaning.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

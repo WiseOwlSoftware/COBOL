@@ -3,14 +3,15 @@
  "rule-digest": "3fed873f27a8",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "GR-14.9.37.4-5",
    "GR-14.9.37.4-6",
-   "GR-14.9.37.4-7"
+   "GR-14.9.37.4-7",
+   "GR-13.18.38.4-3"
   ],
+  "reason": "1985 GR3: SEARCH ALL results 'are predictable only when' the table is ordered per the KEY phrase and 'the contents of the key(s) referenced in the WHEN phrase are sufficient to identify a unique table element'. 2023 keeps the ordering precondition (§2023:14.9.37.4 GR5 a), §2023:13.18.38.4 GR3 'shall be ordered when a SEARCH statement with the ALL phrase is executed') but defines both cases 1985 left unpredictable: with non-unique keys §2023:14.9.37.4 GR7 says 'the search operation is successful' with the index at one of the matches; with GR5 unmet §2023:14.9.37.4 GR6 limits the outcome to a match or an unsuccessful search with EC-RANGE-SEARCH-NO-MATCH. GR5 b) adds a subscript condition for nested tables. The requirement is looser: a 1985 program with duplicate keys now has a defined result.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"results of the SEARCH ALL operation are predictable only when: ... b. The contents of the key(s) ... identify a unique table element\"; 2023: \"more than one setting ... the search operation is successful. The final setting of the search index is equal to one of them\". 1985 leaves results unpredictable for non-unique keys or unordered data. 2023 makes non-unique matches succeed and limits unordered data to two stated outcomes.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-12"
  }
 }

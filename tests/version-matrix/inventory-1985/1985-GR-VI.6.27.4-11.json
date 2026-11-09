@@ -3,12 +3,12 @@
  "rule-digest": "8598c82ef83b",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-14.9.48.4-9"
   ],
+  "reason": "1985: 'Each literal-1 or the data item referenced by identifier-2 represents one delimiter. When a delimiter contains two or more characters, all of the characters must be present in contiguous positions of the sending item, and in the order given, to be recognized as a delimiter.' §2023:14.9.48.4 GR9 repeats both sentences ('must' becoming 'shall'). Its added sentences cover zero-length delimiters, which reach no 1985 program 2023 accepts: §2023:14.9.48.3 SR1 bars a zero-length literal and §2023:14.9.48.3 SR10 bars a variable-length group as identifier-2 (the latter refusal belongs to the operand rule, not this one). Same recognition of delimiters.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "GR-9 restates the 1985 rule nearly word for word. The added zero-length delimiter sentences cover items 1985 programs cannot have, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-13"
  }
 }

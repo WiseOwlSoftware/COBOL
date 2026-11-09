@@ -2,13 +2,17 @@
  "rule-id": "1985-GR-XIII.3.12.4-1",
  "rule-digest": "a8137d3daede",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.15.3-7"
+   "SR-13.15.3-7",
+   "SR-13.8.6.2.3-1",
+   "SR-13.18.53.3-4",
+   "GR-13.18.54.4-5",
+   "GR-13.18.20.4-1"
   ],
   "bridge": true,
-  "reason": "1985: \"When reference is to be made to the sum counter in the Procedure Division or Report Section.\"; 2023: \"as a qualifier for a SUM counter, in the UPON phrase of the SUM clause, or as an operand in a SUM clause. The data-name shall not be referenced in any other way.\". Same subject, but 2023's list omits naming a sum counter for Procedure Division reference. It also adds a ban on any other reference to the data-name, which 1985 did not state.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: data-name-1 required for GENERATE/USE reference, sum counter reference (Procedure Division or Report Section), UPON detail, sum counter qualification. 2023 §2023:13.15.3 SR7 lists GENERATE, USE BEFORE REPORTING, qualifier, UPON, SUM operand; 'The data-name shall not be referenced in any other way' is not new (1985 SR XIII.3.9.3-5 'may be referenced only by'). Sum counter references keep a name: §2023:13.8.6.2.3 SR1 'Sum counters may be inspected or altered in the procedure division', §2023:13.18.53.3 SR4 SOURCE may name 'a sum counter defined in the current report', §2023:13.18.54.4 GR5 the data-name 'is the name of the sum counter', and an unnamed entry is FILLER that §2023:13.18.20.4 GR1 says 'Under no circumstances shall ... be referred to explicitly'. Same.",
+  "source": "adjudicate-712/slice-24"
  }
 }

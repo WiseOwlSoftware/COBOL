@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-7",
+ "rule-digest": "b798ba4c49b4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.6.2.3.2-L2.3"
+  ],
+  "reason": "1985: files with a called program's internal file connectors 'are not in the open mode when the program is in an initial state'; on other entries 'the states and positioning of all such files is the same as when the called program was last exited'. §2023:14.6.2.3.2 (second list, item 3): 'The function, method, or program's internal file connectors are initialized by setting them to not be in any open mode.' The other half is §2023:8.6.4 prose with no catalog id: 'Data items and file connectors defined in the working-storage or file section of a source element that is not an initial program are static items', and 'Last-used state means that the content of the data item, file connector, or screen item attribute is that of the last time it was modified'. Same meaning; the catalog lacks an id for 8.6.4.",
+  "bridge": true,
+  "source": "adjudicate-712/slice-21"
+ }
+}

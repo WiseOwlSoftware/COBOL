@@ -9,7 +9,7 @@
    "GR-14.9.35.4-2"
   ],
   "bridge": true,
-  "reason": "Both require REWRITE to update the I-O status of the file associated with record-name-1. The file-name-1 form is new 2023 syntax and leaves the 1985 case unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: REWRITE updates the I-O status of the file associated with record-name-1. §2023:14.9.35.4 GR1 'causes the I-O status value in the rewrite file connector to be updated', and §2023:14.9.35.4 GR2 defines that connector as 'the file-name associated with record-name-1' (or file-name-1 of the new FILE form).",
+  "source": "adjudicate-712/slice-07"
  }
 }

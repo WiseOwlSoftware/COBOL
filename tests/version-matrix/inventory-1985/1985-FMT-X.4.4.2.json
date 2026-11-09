@@ -6,11 +6,15 @@
   "edition": 2023,
   "to": [
    "FMT-13.14.2",
+   "FMT-13.18.27.2",
+   "FMT-13.18.12.2",
+   "FMT-13.18.16.2",
    "FMT-13.18.39.2",
-   "GR-13.18.39.4-2"
+   "SR-13.18.39.3-1",
+   "SR-13.18.39.3-2"
   ],
   "bridge": true,
-  "reason": "1985: \"PAGE [LIMIT IS] integer-1 [LINE] [HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]\"; 2023: \"integer-2 [COLS|COLUMNS] ... LAST {CONTROL HEADING|CH} IS integer-5; If integer-1 is not specified, the report consists of a single page\". RD with IS GLOBAL is kept, but the PAGE clause now accepts more programs: a page width (COLS), LAST CONTROL HEADING, and omission of the page limit integer-1.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 IPC RD: 'RD report-name-1 [IS GLOBAL] [CODE literal-1] [CONTROL ...] [PAGE LIMIT integer-1 LINES [HEADING] [FIRST DETAIL] [LAST DETAIL] [FOOTING]]', integer-1 required. §2023:13.14.2 keeps RD with [IS GLOBAL] (§2023:13.18.27.2) and the CONTROL clause unchanged (§2023:13.18.16.2), but CODE also takes identifier-1 (§2023:13.18.12.2) and the PAGE clause (§2023:13.18.39.2) adds a page width 'integer-2 COLUMNS', LAST CONTROL HEADING and the DE/CH abbreviations (§2023:13.18.39.3 SR1), and lets integer-1 be omitted ('Either integer-1 or integer-2 or both shall be specified', §2023:13.18.39.3 SR2). More RDs accepted. CHANGED (looser).",
+  "source": "adjudicate-712/slice-03"
  }
 }

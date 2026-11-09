@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-10",
+ "rule-digest": "d38ada9d6ff8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-12",
+   "SR-12.3.7.3-17"
+  ],
+  "bridge": true,
+  "reason": "§2023:12.3.7.4 GR12 restates the exclusive character set, numeric literal = ordinal number, nonnumeric literal = the characters (each of a multi-character literal), and THROUGH in either order; §2023:12.3.7.3 SR17 bounds the ordinal by the size of the character set. 1985's 'Class-name-1 can be referenced only in a class condition' is not restated: 2023 also admits class-name-1 in the data-division CLASS clause (§2023:13.18.11.4 GR1, VALIDATE only), syntax that does not exist in 1985, and no other 1985 format can hold a class-name, so a conforming 1985 program is accepted and means the same.",
+  "source": "adjudicate-712/slice-09"
+ }
+}

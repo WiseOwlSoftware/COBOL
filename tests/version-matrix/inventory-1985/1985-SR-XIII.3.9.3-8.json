@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-8",
+ "rule-digest": "d13b7abdaf8c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.60.3-7"
+  ],
+  "bridge": true,
+  "reason": "1985: in the Report Section USAGE (DISPLAY only) may appear only on an entry that defines, or has a subordinate that defines, a printable item. 2023 §2023:13.18.60.3 SR7 says only 'Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item'; no 2023 rule ties USAGE to a printable item (one with a COLUMN clause, §2023:13.18.14.4 GR1). So USAGE DISPLAY on an unprintable entry, refused in 1985, is accepted, and NATIONAL is added. Looser.",
+  "source": "adjudicate-712/slice-35"
+ }
+}

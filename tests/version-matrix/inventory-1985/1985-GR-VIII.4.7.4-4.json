@@ -2,13 +2,13 @@
  "rule-id": "1985-GR-VIII.4.7.4-4",
  "rule-digest": "ec255f50a9b9",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "GR-14.9.41.4-9"
   ],
   "bridge": true,
-  "reason": "1985: \"a. The file position indicator is set to the relative record number of the first logical record in the file whose key satisfies the comparison.\"; 2023: \"b) If the relational operator is LESS, NOT GREATER, or LESS OR EQUAL, ... first logical record ... searching the file in reverse order.\". Comparison, numeric rules and invalid key are the same. 2023 adds the LESS-type operators with a reverse-order search, a case 1985's single forward rule lacks.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 allows only EQUAL, GREATER, NOT LESS, GREATER OR EQUAL (§1985:VIII.4.7.2). For those §2023:14.9.41.4 GR9 a) sets the FPI to 'the first logical record in the file whose key satisfies the comparison searching the file sequentially', numeric comparison applies, and c) gives invalid key if none. GR9 b) (reverse search) serves only the LESS-type operators 1985 cannot write, so no 1985 program changes.",
+  "source": "adjudicate-712/slice-19"
  }
 }

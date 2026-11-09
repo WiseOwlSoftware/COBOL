@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.27.4-10",
+   "GR-14.9.27.4-25",
    "GR-9.1.13.6-7"
   ],
   "bridge": true,
-  "reason": "Both editions place a value in the I-O status to signal the file attribute conflict condition; 2023 names it '39'. DELETE FILE is a new statement and leaves this 1985 requirement unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 'A value is placed in the I-O status ... to indicate the file attribute conflict condition'; §2023:14.9.27.4 GR10 sets '39' on a file attribute conflict, §2023:14.9.27.4 GR25 a) 'A value is placed in the I-O status associated with file-name to indicate the condition', and §2023:9.1.13.6 GR7 defines 39. DELETE FILE is new syntax, so no 1985 program differs.",
+  "source": "adjudicate-712/slice-18"
  }
 }

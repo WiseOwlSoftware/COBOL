@@ -5,14 +5,14 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-9.1.14-1",
    "GR-9.1.13.5-1",
    "GR-9.1.13.5-2",
    "GR-9.1.13.5-3",
-   "GR-9.1.13.5-4"
+   "GR-9.1.13.5-4",
+   "GR-9.1.14-1"
   ],
   "bridge": true,
-  "reason": "Status class 2 still means an unsuccessful statement due to an invalid key (9.1.13.5, statuses 21-24). The added EC-I-O-INVALID-KEY exception is a new feature, not a change to this meaning.",
-  "source": "audit-1985/state-route"
+  "reason": "KEPT: 1985 \"Invalid Key. The input-output statement was unsuccessfully executed as a result of an invalid key condition\" = §2023:9.1.13.1 \"Invalid key. The input-output statement was unsuccessfully executed as a result of an invalid key condition\"; §2023:9.1.14 GR1 sets the status \"to a value indicating the invalid key condition as described in 9.1.13.5\" (21-24, e.g. §2023:9.1.13.5 GR3 \"an attempt is made to randomly access a record that does not exist in the physical file\"). 2023 restates the 1985 class definition word for word in §2023:9.1.13.1 prose, which has no catalog rule; the catalog ids named are the class's status values, each restating it.",
+  "source": "adjudicate-712/slice-05"
  }
 }

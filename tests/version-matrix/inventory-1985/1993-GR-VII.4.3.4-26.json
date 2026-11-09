@@ -3,12 +3,13 @@
  "rule-digest": "c54999be72f1",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
-   "GR-14.9.27.4-25"
+   "GR-14.9.27.4-25",
+   "GR-14.9.49.4-6"
   ],
+  "reason": "1985 (1993 amendment): an unsuccessful OPEN leaves 'the physical file' unaffected, then a. sets the I-O status, then b. executes 'Any applicable USE AFTER EXCEPTION procedure'. §2023:14.9.27.4 GR25 keeps the same order: 'the file is not affected', a) the I-O status is set, d) the applicable USE procedure is executed. The new step b) applies only 'If it is enabled', and §2023:14.6.13.1.1 says 'By default, checking is not enabled for any exception condition'. The new step c) needs an exception-checking PERFORM. §2023:14.9.49.4 GR6 runs the USE procedures when the statement 'was not specified within the scope of an exception-checking PERFORM statement'. A 1985 program behaves the same.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "Same order: file not affected, I-O status set, then applicable USE procedure runs. Added EC-I-O and PERFORM WHEN steps reach only new features, so 1985 programs behave alike.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-36"
  }
 }

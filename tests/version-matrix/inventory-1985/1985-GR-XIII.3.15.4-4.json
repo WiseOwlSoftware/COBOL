@@ -6,12 +6,13 @@
   "edition": 2023,
   "to": [
    "GR-13.18.35.4-7",
-   "GR-13.18.35.4-5",
+   "GR-13.18.35.4-1",
+   "GR-13.18.35.4-6",
    "GR-13.18.35.4-3",
-   "SR-13.18.35.3-3"
+   "GR-13.18.35.4-5"
   ],
   "bridge": true,
-  "reason": "A later relative line prints at LINE-COUNTER (the previous line) plus integer-2. Zero reuses that line, with overwrite exempt from the overlap rule. GR5 places the first relative line.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a non-first relative line prints at previous print line + integer-2; zero means the same line; the first relative line follows the presentation tables. 2023 §2023:13.18.35.4 GR7 b) 'If the LINE clause is relative, the new line number is determined by adding integer-2 to the report's LINE-COUNTER', which holds the most recent line (GR1, GR6); §2023:13.18.35.4 GR3 a zero integer-2 'will overwrite' the preceding line, exempt from the overlap rule; GR5 places the first line. Same.",
+  "source": "adjudicate-712/slice-24"
  }
 }

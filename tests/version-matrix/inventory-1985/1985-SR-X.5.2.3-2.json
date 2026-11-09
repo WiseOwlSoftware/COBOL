@@ -3,12 +3,13 @@
  "rule-digest": "48a47c5ade73",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "SR-14.9.4.3-1"
+   "SR-14.9.4.3-1",
+   "GR-14.9.4.4-3"
   ],
+  "reason": "1985 requires identifier-1 to be 'an alphanumeric data item such that its value can be a program-name'. §2023:14.9.4.3 SR1 allows 'an alphanumeric, national, or program-pointer data item', and §2023:14.9.4.4 GR3 gives each its meaning (alphanumeric or national content 'is the program-name of the program being called'; a program-pointer holds its location). No 1985 rule admits another class (1985 X.5.2.4 GR1 only gives the content's meaning), so 2023 accepts programs 1985 refused; an alphanumeric identifier-1 means the same. Looser, no exception condition introduced for the 1985 case.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"Identifier-1 must be defined as an alphanumeric data item such that its value can be a program-name.\"; 2023: \"Identifier-1 shall be defined as an alphanumeric, national, or program-pointer data item.\". 2023 extends identifier-1 of CALL to national and program-pointer data items, so it accepts programs that 1985 refused, where only alphanumeric items were allowed.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-33"
  }
 }

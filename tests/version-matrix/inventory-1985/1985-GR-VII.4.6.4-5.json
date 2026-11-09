@@ -8,7 +8,7 @@
    "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "Items a-e match the 1985 text. The added PERFORM WHEN case is a new 2023 construct, and sequential files have no INVALID KEY, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.49.4 GR6 restates 'the procedures associated with a USE statement are executed after completion of the standard input-output exception routine upon the unsuccessful execution of an input-output operation unless an AT END or INVALID KEY phrase takes precedence' and items a)-e) word for word. The added preconditions concern an exception-checking PERFORM (2023-only syntax); INVALID KEY does not arise for a sequential file. Dropping 'by the input-output control system' is wording only.",
+  "source": "adjudicate-712/slice-17"
  }
 }

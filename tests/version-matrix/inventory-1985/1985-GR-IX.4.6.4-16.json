@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.35.4-25"
+   "GR-14.9.35.4-25",
+   "GR-14.9.35.4-22",
+   "GR-14.9.35.4-23"
   ],
   "bridge": true,
-  "reason": "GR-14.9.35.4-25 a-c restate the three 1985 cases: sequential prime key mismatch, random/dynamic record absent, duplicate non-duplicate alternate key. Status codes only add detail.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 lists three invalid key cases: sequential key mismatch with the last record read, random/dynamic key absent, duplicate of a no-duplicates alternate key. §2023:14.9.35.4 GR25 a)-c) states all three ('The invalid key condition exists under the following circumstances'), with §2023:14.9.35.4 GR22 and §2023:14.9.35.4 GR23 restating a) and b). Statuses 21/23/22 match 1985's I-O status list. Run-time in both.",
+  "source": "adjudicate-712/slice-07"
  }
 }

@@ -2,13 +2,14 @@
  "rule-id": "1985-GR-VI.5.5.4-2",
  "rule-digest": "aab15c7bb52b",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.20.4-1"
+   "GR-13.18.20.4-1",
+   "SR-13.16.3-24"
   ],
   "bridge": true,
-  "reason": "1985: the key word FILLER may be used to name a data item. 2023: the word FILLER may be used to name a data, report, or screen item. The ban on an explicit reference is the same, but the items FILLER may name widened (report items from 2002, Annex F.2 item 53), so the record is CHANGED: the EDITION GATES audit found the report-filler-2002 gate contradicted by a KEPT link (kb/Work PB4996).",
-  "source": "kb/Work PB4996 (edition-gate audit re-adjudication of audit-1985/state-route)"
+  "reason": "1985: 'The key word FILLER may be used to name a data item. Under no circumstances can a FILLER item be referred to explicitly', and FILLER may name a conditional variable. §2023:13.18.20.4 GR1: 'The word FILLER may be used to name a data, report, or screen item. Under no circumstances shall a FILLER item be referred to explicitly.' The conditional-variable allowance survives: §2023:13.16.3 SR24 lets a condition-name be associated with 'any data description entry that contains a level-number' except a list that does not name FILLER items. Same programs, same meaning.",
+  "source": "adjudicate-712/slice-10"
  }
 }

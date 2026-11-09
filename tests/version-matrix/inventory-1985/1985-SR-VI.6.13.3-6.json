@@ -9,7 +9,7 @@
    "SR-14.9.13.3-10"
   ],
   "bridge": true,
-  "reason": "1985: \"a. Identifiers, literals, or arithmetic expressions appearing within a selection object must be valid operands for comparison\"; 2023: \"a) Identifiers, literals, or expressions ... d) Partial-expression-1 shall correspond to a selection subject that is an identifier\". Rules a-c carry over, but 2023 adds selection-object cases 1985 lacks: any expression (boolean too) in rule a, and partial-expressions in d. Table 15 sets the allowed combinations.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.13.3 SR7 a-c restate 1985 a-c: objects 'shall be valid operands for comparison', condition-2, TRUE or FALSE 'shall correspond to condition-1 or the words TRUE or FALSE', and 'ANY may correspond to a selection subject of any type'. §2023:14.9.13.3 SR10 (Table 15) states the same pairings; its blank literal/literal cell matches the 1985 relation-condition rule 'must contain at least one reference to a variable'. But SR7 widens a) from 'arithmetic expressions' to 'expressions' (boolean too), and its d) admits partial-expression-1 for identifier, literal, arithmetic or boolean subjects. 1985 refuses an object such as '> 5', which 2023 accepts. Compile-time rules both.",
+  "source": "adjudicate-712/slice-30"
  }
 }

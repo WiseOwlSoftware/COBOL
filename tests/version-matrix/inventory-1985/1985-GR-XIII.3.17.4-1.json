@@ -3,14 +3,14 @@
  "rule-digest": "41fe54f47486",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-13.18.52.4-1",
    "GR-13.18.52.4-4",
    "GR-13.18.40.4-14"
   ],
-  "bridge": true,
-  "reason": "2023 also says SIGN gives sign position and representation, applies only to numeric items with 'S', and 'S' fixes neither. The group wording adds nothing this rule forbade.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 (report writer SIGN): the clause 'specifies the position and the mode of representation of the operational sign', 'applies only to numeric data description entries whose PICTURE contains the character 'S'', and 'S' fixes neither representation nor position. 2023: §2023:13.18.52.4 GR1 'The SIGN clause specifies the position and the mode of representation of the operational sign ... The SIGN clause applies only to numeric items whose picture character-string contains the symbol 'S''; §2023:13.18.52.4 GR4 'Neither the representation nor the position of that operational sign is specified by the symbol 'S''; §2023:13.18.40.4 GR14 'The symbol 'S' indicates the presence, but neither the representation nor, necessarily, the position of an operational sign'. The group-level wording of GR1 only adds a case (already 1985 VI.5.12.4 GR1); same meaning for a report group entry.",
+  "source": "adjudicate-712/slice-25",
+  "edition": 2023,
+  "bridge": true
  }
 }

@@ -2,14 +2,15 @@
  "rule-id": "1985-GR-XIII.3.15.4-1",
  "rule-digest": "b1268e3fa3d0",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "GR-13.18.35.4-1",
+   "SR-13.15.3-9",
    "GR-13.18.35.4-9"
   ],
   "bridge": true,
-  "reason": "1985: \"A LINE NUMBER clause must be specified to establish each print line of a report group.\"; 2023: \"Each LINE clause in a given report group description defines a report line, or set of report lines\". Report lines still come from LINE clauses, but in 2023 one clause may define several lines (multiple operands or OCCURS). A LINE clause is no longer needed for each print line.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'A LINE NUMBER clause must be specified to establish each print line'. 2023 §2023:13.18.35.4 GR1 'Each LINE clause in a given report group description defines a report line, or set of report lines'; §2023:13.15.3 SR9 a COLUMN entry without LINE is subordinate to one with LINE. A set of lines from one clause needs a multiple LINE clause (§2023:13.18.35.4 GR9) or OCCURS, neither of which a 1985 report group can write (1985 format 3 table admits no OCCURS). Every 1985 program means the same.",
+  "source": "adjudicate-712/slice-24"
  }
 }

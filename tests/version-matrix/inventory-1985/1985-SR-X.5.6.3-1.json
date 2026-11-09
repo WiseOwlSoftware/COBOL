@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.5.6.3-1",
+ "rule-digest": "25268802746c",
+ "next": {
+  "kind": "KEPT",
+  "to": [
+   "SR-14.9.49.3-9"
+  ],
+  "reason": "1985 makes USE BEFORE REPORTING available only where the Report Writer module is supported. In 2023 identifier-1 of USE BEFORE REPORTING 'shall reference a report group' (§2023:14.9.49.3 SR9), and report groups, the report section and the report writer statements are an optional language element (§2023:A.4.11 items 3-5, 21-24; §2023:4.2.7: an implementor need not implement them). So USE BEFORE REPORTING still exists only where report writer is supported; a conforming 1985 program means the same. A.4.11 and 4.2.7 carry no catalog id, so 'to' names only SR9.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-33"
+ }
+}

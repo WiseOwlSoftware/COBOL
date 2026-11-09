@@ -9,7 +9,7 @@
    "GR-9.1.13.6-6"
   ],
   "bridge": true,
-  "reason": "Both require a file opened I-O to support the I-O-mode operations of its organization, and a successful OPEN I-O sets I-O mode. Status '37' only names the failure result of that same rule.",
-  "source": "audit-1985/state-route"
+  "reason": "Both require a file opened I-O to support the input and output operations permitted for its organization in I-O mode, and a successful OPEN I-O sets I-O mode (§2023:14.9.27.4 GR16, which sets '37' otherwise, as §2023:9.1.13.6 GR6 a) 2. defines). 1985 already gave 37 for this (§1985:VIII.1.3.4 GR4 c.2), so the failure result is not new; it is a run-time check in both.",
+  "source": "adjudicate-712/slice-18"
  }
 }

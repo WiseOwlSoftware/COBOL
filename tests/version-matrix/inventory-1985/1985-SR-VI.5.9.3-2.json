@@ -9,6 +9,7 @@
    "GR-13.18.40.4-3"
   ],
   "bridge": true,
-  "source": "adjudication kb/Work PB5008"
+  "reason": "1985: 'allowable combinations of characters in the COBOL character set used as symbols. The allowable combinations determine the category'. §2023:13.18.40.3 SR2 keeps 'an allowable combination of characters used as picture symbols', and its NOTE 1 says that every symbol other than the currency symbol is 'from the COBOL character repertoire'. §2023:13.18.40.4 GR3 keeps 'A PICTURE clause defines the subject of the entry to fall into one of the following categories'. The currency-symbol carve-out is not new. §1985:VI.4.5.4 GR11 already lets the CURRENCY SIGN literal 'be any character from the computer's character set' (error mode a), so a 1985 program means the same.",
+  "source": "adjudicate-712/slice-30"
  }
 }

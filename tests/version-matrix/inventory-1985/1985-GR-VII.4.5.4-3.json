@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.35.4-6"
+   "GR-14.9.35.4-6",
+   "GR-12.4.6.4.4-2"
   ],
   "bridge": true,
-  "reason": "Same rule: the record leaves the record area unless its file is in SAME RECORD AREA, then it is shared. file-name-1 only covers the new REWRITE FILE format; 1985 programs act the same.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 REWRITE GR3: the released record is no longer in the record area unless the file is in a SAME RECORD AREA clause, and is then also a record of the other files in that clause. §2023:14.9.35.4 GR6 restates it nearly verbatim ('is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause'); §2023:12.4.6.4.4 GR2 states the sharing ('a logical record of each file open in the output mode'). file-name-1 serves only the new REWRITE FILE form.",
+  "source": "adjudicate-712/slice-16"
  }
 }
