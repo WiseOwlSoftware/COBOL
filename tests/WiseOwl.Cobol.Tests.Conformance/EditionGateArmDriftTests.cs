@@ -238,7 +238,7 @@ public sealed class EditionGateArmDriftTests
         var (ok, diagnostics) = EditionHarness.Compile(mutant, edition);
         Assert.False(ok, $"[{constructId}] every name it references is undefined and it compiled at COBOL-{edition}");
 
-        string code = (c.ExpectDiagnosticBelow ?? c.ExpectDiagnostic)!;
+        string code = VersionMatrixCatalogue.ExpectedRejection(c, edition)!;
         Assert.True(diagnostics.Any(d => d.Contains(code, StringComparison.Ordinal)),
             $"[{constructId}] is a COBOL-{c.IntroducedIn} introduction and its own catalogue program named "
             + $"{code} at COBOL-{edition} — but with its operands broken so the bind bails, the edition went "

@@ -1,0 +1,1 @@
+{"refuse-at": ["85"], "expect": "COBOL0900: a data description clause of the VALIDATE facility requires COBOL-2002 (targeting COBOL-85) — the DEFAULT clause"}
