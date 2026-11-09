@@ -47,6 +47,8 @@ held edition (kb/Work PB4995, PB5008), and the fleet decides only what they leav
     python scripts/spec/audit_batch.py status  --pass P --state DIR [--api-key-file KEY]
     python scripts/spec/audit_batch.py collect --pass P --state DIR --api-key-file KEY
     python scripts/spec/audit_batch.py retry   --pass P --state DIR --api-key-file KEY --max-usd N
+    python scripts/spec/audit_batch.py withdraw --pass P --state DIR             # each stored answer the shape now
+                                                                                   # refuses, to raw/; retry asks again
     python scripts/spec/audit_batch.py results --state DIR                        # DIR/results.json: each rule's disposition
     python scripts/spec/audit_batch.py change-batch --state DIR --out FILE        # every DECIDED change record (KEPT,
                                                                                    # CHANGED, REMOVED; record_verdicts.py
@@ -58,7 +60,8 @@ RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written by `plan`: cus
 needs, so a prompt is rebuilt from the run alone; a re-plan keeps it when it is the same, GROWS it when the new plan keeps
 every planned item unchanged and adds others, and is refused otherwise: `write_plan`), `state.json` (message_batches.BatchRun, THE restartable batch state
 transcribe_pdf.py shares: an intent before every create, the batch after, a crash adopted on the next run) and
-`answers/<custom id>.json`, each written once, atomically. A reply that does not parse into the pass's answer shape is kept in
+`answers/<custom id>.json`, each written once, atomically, and moved to `raw/` only by `withdraw`, when the pass's answer
+shape has grown past it. A reply that does not parse into the pass's answer shape is kept in
 `raw/` and its item stays unanswered, so `retry` resubmits it. Every command can be re-run at any time.
 
 A CANARY BEFORE EACH FULL SUBMIT. `submit --canary N` sends the first N unanswered items as a batch of their own; a submit
@@ -242,13 +245,14 @@ names only 1985 ids shown below, and is empty when no other rule bears on it; "e
 "differs" is empty for KEPT and OPEN.""",
 }
 #: The output tokens of one reply, for the estimate before a canary has measured them (thinking included).
+#: The recheck's is its canary's measured mean (22,300 over 20 replies on state-route, kb/Work PB4995).
 EST_OUTPUT_TOKENS = {"route": 1200, "map": 1500, "verify": 1500, "claims": 1200, "drafts": 2500, "adjudicate": 2500,
-                     "refute": 2000, "recheck": 8000}
+                     "refute": 2000, "recheck": 22000}
 EFFORT = {"route": "high", "map": "medium", "verify": "high", "claims": "medium", "drafts": "medium", "adjudicate": "high",
           "refute": "high", "recheck": "max"}
 #: The most output tokens one reply may spend, thinking included: the recheck thinks at the highest effort over whole
-#: clauses, and a reply cut off at the limit is no answer.
-MAX_OUTPUT_TOKENS = {**dict.fromkeys(EFFORT, 8000), "recheck": 32000}
+#: clauses, and a reply cut off at the limit is no answer (4 of its canary's 20 replies stopped at 32,000, kb/Work PB4995).
+MAX_OUTPUT_TOKENS = {**dict.fromkeys(EFFORT, 8000), "recheck": 64000}
 ROUTED = "ROUTED"
 #: The most 2023 clauses one route answer may name: a 1985 clause spread over more than this is no single feature.
 MAX_ROUTES = 8
@@ -930,6 +934,27 @@ def collect(p: Pass, st: dict[str, Any], client: Any) -> None:
     p.batches.collect(st, client, take)
 
 
+def withdraw(p: Pass) -> list[str]:
+    """Withdraw each stored answer that the pass's answer shape (`parse_answer`) now refuses, and return their custom ids.
+    An answer stored before the shape asked for more (a refused draft's violating line and control, review w20261931a
+    R1-1) is one no reader that trusts the shape can judge. Its file moves to `raw/` as `<custom id>.withdrawn[-n].json`,
+    the record of what was answered, and its item is unanswered again, so `retry` asks for it under the current prompt
+    (kb/Work PB4995). The shape stays the one rule of what an answer is: no reader carries an arm for an older one."""
+    items = p.items()
+    gone = []
+    for cid, stored in p.answers().items():
+        if parse_answer(p.name, items[cid], json.dumps(stored["answer"], ensure_ascii=False))[0] is not None:
+            continue
+        p.raw_dir.mkdir(parents=True, exist_ok=True)
+        kept, n = p.raw_dir / f"{cid}.withdrawn.json", 1
+        while kept.exists():
+            n += 1
+            kept = p.raw_dir / f"{cid}.withdrawn-{n}.json"
+        p.answer_file(cid).replace(kept)
+        gone.append(cid)
+    return gone
+
+
 # -- cost -----------------------------------------------------------------------------------------------------------------
 
 def per_request_usd(p: Pass, st: dict[str, Any], sample: Iterable[str]) -> tuple[float, str]:
@@ -1011,6 +1036,8 @@ def build_parser() -> argparse.ArgumentParser:
             s.add_argument("--canary", type=int, metavar="N", help="submit only the first N, as the pass's canary")
     common(sub.add_parser("status", help="items, answers, verdicts and cost; with a key, each batch's state too"))
     common(sub.add_parser("collect", help="store the answers of every ended batch"))
+    common(sub.add_parser("withdraw", help="move each stored answer the pass's answer shape now refuses to raw/, so "
+                                           "retry asks again"), key=False)
     common(sub.add_parser("results", help="write DIR/results.json: each mapped rule's disposition and decided change"),
            key=False, pass_arg=False)
     cb = sub.add_parser("change-batch", help="write every decided change record as a record_verdicts batch")
@@ -1069,6 +1096,11 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
             "recheck": lambda: plan_recheck(pathlib.Path(a.catalog), pathlib.Path(a.catalog_2023), a.near_1985, state),
         }
         return write_plan(p, planners[a.pass_name]())
+    if a.cmd == "withdraw":
+        gone = withdraw(p)
+        print(f"{p.name}: withdrew {len(gone)} answer(s) the answer shape refuses; {len(p.unanswered())} item(s) "
+              f"unanswered (retry asks for them)", flush=True)
+        return 0
     st = p.batches.load(model=getattr(a, "model", DEFAULT_MODEL))
     if a.api_account and not a.api_key_file:
         raise SystemExit(f"{TOOL}: --api-account names which key of --api-key-file to bill; give the key file")
