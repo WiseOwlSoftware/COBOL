@@ -27,6 +27,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// root page, survive CLOSE and OPEN, a process death or a refusal at every write of the statement that raises them, a
 /// refused read at every read of the search, and another run unit's statement adopted between two of this one's.</para>
 /// </summary>
+[Collection("process-globals")]   // resolves locales, which read COBOL_CLDR_DIR / COBOL_COLLATION_DIR; LocaleCollationFailureTests sets them (kb/Work PB3947)
 public sealed class LocalePartialStartTests
 {
     // ── The prefix shape: what a truncation can lose (Collator.PrefixShapeOf, LocaleCollation's operand rule) ─────────

@@ -23,6 +23,7 @@ namespace WiseOwl.Cobol.Tests.Unit.Store;
 /// START prefix is the sequential search of §2023:14.9.41.4 GR17 c) and d) — the model's own <c>FindIndex</c> and
 /// <c>FindLastIndex</c>) and COMPOSITE (an alternate key with duplicates, then its release ordinal).</para>
 /// </summary>
+[Collection("process-globals")]
 public sealed class BTreeModelTests
 {
     /// <summary>The key orders the model runs under.</summary>
