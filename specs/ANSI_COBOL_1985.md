@@ -26849,9 +26849,21 @@ In January 1987 X3J4 approved the content and format for the first draft propose
 In October 1988 X3J4 approved the final version of the draft proposed Addendum 1 to American National Standard COBOL X3.23-1985 and forwarded the document to the X3 committee for processing. The X3 committee then voted in favor of the acceptability of the draft proposed Addendum 1 to American National Standard COBOL X3.23-1985. This X3 vote also forwarded the proposed Addendum 1 for American National Standard COBOL X3.23-1985 to the American National Standards Institute for final approval.
 
 Addendum 1 to American National Standard COBOL X3.23-1985 proposed by X3 was approved by the American National Standards Institute on September 13, 1989 as an
- addendum to American National Standard COBOL X3.23-1985. The specifications of this approved Addendum 1 are published in the American National Standards Institute document X3.23A-1989.
+ addendum to American National Standard COBOL X3.23-1985. The specifications of this approved Addendum 1 are published in the American National Standards Institute document X3.23a-1989.
+
+## 3.6 AMERICAN NATIONAL STANDARD COBOL 1985, AMENDMENT 2
+
+The X3J4 COBOL Technical Committee of the Accredited Standards Committee X3 was charged with the responsibility of developing an amendment to ANSI X3.23-1985 as a means of resolving ambiguities and correcting errors found therein. In December 1987, X3J4 began the task of preparing an amendment to ANSI X3.23-1985. Errors were corrected which were found during the interpretation of ANSI X3.23-1985.
+
+In January 1990 X3J4 approved the content and format for the draft proposed Amendment 2 to ANSI X3.23-1985 and recommended to X3 that it be published for public review and comment. X3J4 held this public review and comment period during which comments were received from the data processing community on the content of the draft proposed Amendment 2 to ANSI X3.23-1985. X3J4 reviewed and responded to all comments received during this public review period.
+
+Additional errors in X3.23-1985 and X3.23a-1989 (the Intrinsic Function Amendment) were identified and corrections were included in the draft proposed Correction Amendment as a result of public review comments. X3J4 agreed that only ambiguities and errors which were identified by October 17, 1990 would be considered for inclusion in the amendment.
 
 > ⚠ **CORRECTED — see the Errata (C162).** The standard prints `The revised X3.23 American National Standard COBOL proposed by X3 was approved b ... (the last paragraph of 3.4)` (page 721, folio XVII-13). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-13 (page 851, folio A-21), applied in place: "Add the following after paragraph 3.4: 3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1", which runs on to page 852 (folio A-22) (kb/Work PB5045). Corrected to `3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1 (the four paragraphs above)`.
+
+> ⚠ **CORRECTED — see the Errata (C318).** The standard prints `X3.23A-1989.` (page 721, folio XVII-13). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-13 (A-22) (page 938, folio B-26), applied in place: "Paragraph 3.5, last paragraph, last line, change 'X3.23A-1989' to 'X3.23a-1989'" (paragraph 3.5 is Amendment 1's, C162) (kb/Work PB5045). Corrected to `X3.23a-1989.`.
+
+> ⚠ **CORRECTED — see the Errata (C319).** The standard prints `(paragraph 3.5 ends the subsection)` (page 721, folio XVII-13). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-13 (A-22) (page 938, folio B-26), applied in place: "Add the following after paragraph 3.5" (kb/Work PB5045). Corrected to `3.6 AMERICAN NATIONAL STANDARD COBOL 1985, AMENDMENT 2 (the three paragraphs above)`.
 
 XVII-13
 
@@ -26887,13 +26899,23 @@ During X3J4's work on the revision of American National Standard COBOL X3.23-197
 
 The draft revision of ISO Standard 1989 for COBOL was circulated to all the ISO member bodies for inquiry. This revised ISO Standard 1989 was accepted by the ISO Council in 1985. The resulting ISO Standard was called ISO Standard 1989-1985 for COBOL.
 
-4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1
+4.4 ISO 1989:1985/Amd.1:1992
+
+> ⚠ **CORRECTED — see the Errata (C320).** The standard prints `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1` (page 723, folio XVII-15). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-15 (A-22) (page 938, folio B-26), applied in place: "Paragraph 4.4, change the heading to read" (paragraph 4.4 is Amendment 1's, C163) (kb/Work PB5045). Corrected to `4.4 ISO 1989:1985/Amd.1:1992`.
 
 At its meeting in Vienna, Austria, in February 1984, ISO Technical Committee 97, Subcommittee 22, Working Group 4 on COBOL resolved to propose addenda for upward compatible language extensions to ISO Standard 1989-1985 for COBOL. The purpose of proposing addenda of upward compatible language extensions instead of embarking immediately on a revision to Standard COBOL was to provide the language enhancements in a more timely manner, e.g., in a two to five year time frame rather than a five to ten year, or longer, time frame. At this same meeting ISO/TC97/SC22 Working Group 4 recommended that the United States be requested to provide draft documents for the addenda. The recommendations of ISO/TC97/SC22 Working Group 4 were approved and the work of developing the addenda was assigned to X3J4.
 
 During X3J4's work on Addendum 1 for Standard COBOL, close and continuous liaison was maintained with the international community through ISO/IEC JTC1/SC22 Working Group 4. The draft document was presented for review and comment to ISO/IEC JTC1/SC22 in March 1987 as a draft proposed Addendum 1 to ISO Standard 1989-1985 for COBOL. ISO/IEC JTC1/SC22 unanimously approved a resolution to send the proposed Addendum 1 to ISO Standard 1989-1985 for COBOL to the Central Secretariat for registration as a draft international standard (DIS). The DIS Addendum 1 to ISO Standard 1989-1985 for COBOL was circulated to all the ISO member bodies for inquiry. Addendum 1 to ISO Standard 1989-1985 for COBOL was accepted by the ISO Council.
 
+4.5 ISO 1989:1985/Amd.2:1994
+
+In February 1987, the convenor of ISO Technical Committee 97, Subcommittee 22, Working Group 4 on COBOL, forwarded to the SC22 Secretariat the results of a letter ballot to subdivide the COBOL project and produce an amendment to ISO 1989:1985 to resolve identified ambiguities and correct identified errors. At the same time ISO/TC97/SC22 Working Group 4 recommended that the United States be requested to provide draft documents for the amendment. The recommendations of ISO/TC97/SC22 Working Group 4 were approved and the work of developing the amendment was assigned to X3J4.
+
+During X3J4's work on Amendment 2, close and continuous liaison was maintained with the international community through ISO/IEC JTC1/SC22 Working Group 4. The draft document was presented for review and comment to ISO/IEC JTC1/SC22 in March 1990 as a draft proposed Amendment 2 to ISO 1989:1985 for COBOL. In October 1990, ISO/IEC JTC1/SC22 Working Group 4 for COBOL approved a resolution to revise the draft document in response to international comments. Working Group 4 for COBOL agreed that only ambiguities and errors which were identified by October 17, 1990 would be considered for inclusion in the amendment.
+
 > ⚠ **CORRECTED — see the Errata (C163).** The standard prints `The draft revision of ISO Standard 1989 for COBOL was circulated to all the ISO ... (the last paragraph of 4.3)` (page 723, folio XVII-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-15 (page 852, folio A-22), applied in place: "Add the following after paragraph 4.3: 4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1" (kb/Work PB5045). Corrected to `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1 (the two paragraphs above)`.
+
+> ⚠ **CORRECTED — see the Errata (C321).** The standard prints `(paragraph 4.4 ends the subsection)` (page 723, folio XVII-15). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-15 (A-22) (page 939, folio B-27), applied in place: "Add the following after paragraph 4.4" (kb/Work PB5045). Corrected to `4.5 ISO 1989:1985/Amd.2:1994 (the two paragraphs above)`.
 
 XVII-15
 
@@ -27076,7 +27098,7 @@ Language Concepts Difference Summary
 | Relative subscripting ........................................... | N | 1 NUC |
 | Relative indexing ............................................... | 1 TBL | 1 NUC |
 | Function-identifier ............................................. | N | 1 ITR |
-| Reference-modifier .............................................. | N | 2 NUC |
+| Reference modification ............................................ | N | 2 NUC |
 | <u>Reference Format</u> | | |
 | Sequence number ................................................. | 1 NUC | 1 NUC |
 | Must be digits .................................................. | 1 NUC | N |
@@ -27105,6 +27127,8 @@ Language Concepts Difference Summary
 > ⚠ **CORRECTED — see the Errata (C167).** The standard prints `Reference-modifier (the entry it precedes)` (page 727, folio XVII-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (page 852, folio A-22), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier'" (kb/Work PB5045). Corrected to `Function-identifier ... N 1 ITR`.
 
 > ⚠ **CORRECTED — see the Errata (C168).** The standard prints `Continuation of COBOL word, numeric literal ... 2 NUC 1 NUC` (page 727, folio XVII-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (T) (page 852, folio A-22), applied in place: "Under 'Reference Format', change entry in 3RD STD column for 'Continuation of COBOL word, numeric literal' from '1 NUC' to '2 NUC'", a typographical error (kb/Work PB5045). Corrected to `... 2 NUC 2 NUC`.
+
+> ⚠ **CORRECTED — see the Errata (C322).** The standard prints `| Reference-modifier .............................................. | N | 2 NUC |` (page 727, folio XVII-19). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-19 (A-22) (page 939, folio B-27), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'" (the entry is Amendment 1's, C166) (kb/Work PB5045). Corrected to `| Reference modification ............................................ | N | 2 NUC |`.
 
 XVII-19
 
@@ -28222,7 +28246,9 @@ Substantive Changes (Not Affecting)
 
 ## 2. <u>SUBSTANTIVE CHANGES</u>
 
-### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS
+### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)
+
+> ⚠ **CORRECTED — see the Errata (C323).** The standard prints `### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS` (page 750, folio XVII-42). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-42 (page 939, folio B-27), applied in place: "Change the title of paragraph 2.1 to" (kb/Work PB5045). Corrected to `### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)`.
 
 The following is a list of the changes of substance included in third Standard COBOL that are new features not impacting existing programs; for example, a new verb or an additional capability for an old verb.
 
@@ -28488,9 +28514,35 @@ Substantive Changes (Not Affecting)
 
 (107) <u>NOT INVALID KEY phrase of WRITE statement (1 REL, 1 INX)</u>. The NOT INVALID KEY phrase provides the programmer with the capability to specify procedures to be executed when an invalid key condition does not exist for the WRITE statement.
 
-(108) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.
+### 2.1A SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT)
+
+The following is a list of the changes of substance introduced by the Intrinsic Function Amendment that are new features not impacting existing programs.
+
+> ⚠ **CORRECTED — see the Errata (C324).** The standard prints `(item 107 is followed by item 108)` (page 758, folio XVII-50). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (page 939, folio B-27), applied in place: "Insert the following as the new paragraph 2.1A following item 107 of paragraph 2.1" (kb/Work PB5045). Corrected to `2.1A SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT) (its heading and first paragraph)`.
+
+(1) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.
+
+### 2.1B SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT)
+
+The following is a list of the changes of substance introduced by the Correction Amendment that are new features not impacting existing programs.
+
+(1) **INSPECT statement (1 NUC).** For Format 1 of the INSPECT statement, identifier-1 is a sending data item.
+
+(2) **INSPECT statement (2 NUC).** The item in the BEFORE or AFTER phrase of an INSPECT statement with the REPLACING CHARACTERS phrase may be longer than one character.
+
+(3) **MAX function (1 ITR).** If more than one argument is specified, a mixture of alphabetic and alphanumeric arguments is permitted.
+
+(4) **MIN function (1 ITR).** If more than one argument is specified, a mixture of alphabetic and alphanumeric arguments is permitted.
+
+(5) **ORD-MAX function (1 ITR).** If more than one argument is specified, a mixture of alphabetic and alphanumeric arguments is permitted.
+
+(6) **ORD-MIN function (1 ITR).** If more than one argument is specified, a mixture of alphabetic and alphanumeric arguments is permitted.
 
 > ⚠ **CORRECTED — see the Errata (C170).** The standard prints `(107) NOT INVALID KEY phrase of WRITE statement (1 REL, 1 INX) ... (the item it follows)` (page 758, folio XVII-50). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-50 (page 853, folio A-23), applied in place: "Add the following after item 107" (kb/Work PB5045). Corrected to `(108) Intrinsic Function Module (1 ITR). The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.`.
+
+> ⚠ **CORRECTED — see the Errata (C325).** The standard prints `(108) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.` (page 758, folio XVII-50). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (A-23) (page 940, folio B-28), applied in place: "Renumber item 108 as the new item 1 under paragraph 2.1A" (item 108 is Amendment 1's) (kb/Work PB5045). Corrected to `(1) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.`.
+
+> ⚠ **CORRECTED — see the Errata (C326).** The standard prints `(paragraph 2.1A ends with its item 1)` (page 758, folio XVII-50). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (page 940, folio B-28), applied in place: "Insert the following as the new paragraph 2.1B following item 1 of paragraph 2.1A" (kb/Work PB5045). Corrected to `2.1B SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT) (its heading, first paragraph and items 1 to 6)`.
 
 XVII-50
 
@@ -28498,7 +28550,9 @@ XVII-50
 
 Substantive Changes (Potentially Affecting)
 
-## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS
+## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)
+
+> ⚠ **CORRECTED — see the Errata (C327).** The standard prints `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS` (page 759, folio XVII-51). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-51 (page 940, folio B-28), applied in place: "Change the title of paragraph 2.2 to" (kb/Work PB5045). Corrected to `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)`.
 
 This section contains a list of the changes of substance included in third Standard COBOL that are new features or changes that could impact existing programs; for example, the addition of a rule for a previously undefined situation or the change of a rule for an existing verb. Associated with each item in this list is a justification for the presence of that change in third Standard COBOL. See the preface to this document for the definition of the terms "first Standard COBOL", "second Standard COBOL", and "third Standard COBOL" as they are used in this section.
 
@@ -29214,23 +29268,25 @@ Second Standard COBOL semantics for this situation were the subject of a request
 |---|---|---|
 | ALPHABET | END-DIVIDE | EXTERNAL |
 | ALPHABETIC-LOWER | END-EVALUATE | FALSE |
-| ALPHABETIC-UPPER | END-IF | FUNCTION |
-| ALPHANUMERIC | END-MULTIPLY | GLOBAL |
-| ALPHANUMERIC-EDITED | END-PERFORM | INITIALIZE |
-| ANY | END-READ | NUMERIC-EDITED |
-| BINARY | END-RECEIVE | ORDER |
-| CLASS | END-RETURN | OTHER |
-| COMMON | END-REWRITE | PACKED-DECIMAL |
-| CONTENT | END-SEARCH | PADDING |
-| CONTINUE | END-START | PURGE |
-| CONVERTING | END-STRING | REFERENCE |
-| DAY-OF-WEEK | END-SUBTRACT | REPLACE |
-| END-ADD | END-UNSTRING | STANDARD-2 |
-| END-CALL | END-WRITE | TEST |
-| END-COMPUTE | EVALUATE | THEN |
-| END-DELETE | | TRUE |
+| ALPHABETIC-UPPER | END-IF | GLOBAL |
+| ALPHANUMERIC | END-MULTIPLY | INITIALIZE |
+| ALPHANUMERIC-EDITED | END-PERFORM | NUMERIC-EDITED |
+| ANY | END-READ | ORDER |
+| BINARY | END-RECEIVE | OTHER |
+| CLASS | END-RETURN | PACKED-DECIMAL |
+| COMMON | END-REWRITE | PADDING |
+| CONTENT | END-SEARCH | PURGE |
+| CONTINUE | END-START | REFERENCE |
+| CONVERTING | END-STRING | REPLACE |
+| DAY-OF-WEEK | END-SUBTRACT | STANDARD-2 |
+| END-ADD | END-UNSTRING | TEST |
+| END-CALL | END-WRITE | THEN |
+| END-COMPUTE | EVALUATE | TRUE |
+| END-DELETE | |  |
 
 > ⚠ **CORRECTED — see the Errata (C173).** The standard prints `the reserved words added in item 39, without FUNCTION` (page 779, folio XVII-71). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-71 (page 854, folio A-24), applied in place: "Add the word FUNCTION to the list of reserved words in item 39" (kb/Work PB5045). Corrected to `the list with FUNCTION after FALSE`.
+
+> ⚠ **CORRECTED — see the Errata (C328).** The standard prints `the list with FUNCTION after FALSE (Amendment 1, C173)` (page 779, folio XVII-71). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-71 (A-24) (page 940, folio B-28), applied in place: "Substantive change 39, entitled Reserved words, delete the word FUNCTION" (the word Amendment 1 added, C173) (kb/Work PB5045). Corrected to `the list without FUNCTION`.
 
 <u>Justification</u>:
 
@@ -29340,7 +29396,9 @@ f. <u>I-O status = 35</u>. An OPEN statement with the INPUT phrase is attempted 
 
 Second Standard COBOL requires that the OPTIONAL phrase must be specified for input files that are not necessarily present each time the object program is executed. It does not specify what happens when a file which is not declared as optional is absent. The new I-O status value of 35 allows the user to test for this condition.
 
-g. <u>I-O status = 37</u>. An OPEN statement is attempted on a file which is required to be a mass storage file but is not.
+g. **I-O status = 37.** A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. (See paragraph 2.2B, item 22, for further explanation.)
+
+> ⚠ **CORRECTED — see the Errata (C329).** The standard prints `g. <u>I-O status = 37</u>. An OPEN statement is attempted on a file which is required to be a mass storage file but is not.` (page 783, folio XVII-75). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-75 (page 940, folio B-28), applied in place: "Change item 40g concerning I-O status 37 to read" (kb/Work PB5045). Corrected to `g. **I-O status = 37.** A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. (See paragraph 2.2B, item 22, for further explanation.)`.
 
 <u>Justification</u>:
 
@@ -29523,6 +29581,34 @@ d. <u>Communication error key value = A through Z</u>. Implementor-defined condi
 <u>Justification</u>:
 
 The MCS has detected an implementor-defined error condition not covered by an existing communication error key value. In second Standard COBOL, the implementor could not provide such information to the user.
+
+(43) **RECORD clause (1 SEQ, 1 REL, 1 INX, 1 RPW).** Files specified using the RECORD CONTAINS integer-1 CHARACTERS clause are always fixed format files that contain only fixed length records. (See paragraph 2.2B, item 3, for further explanation.)
+
+(44) **Floating insertion editing (1 NUC).** If all numeric character positions in the PICTURE character-string are represented by a floating insertion character, at least one of the insertion characters must be to the left of the decimal point. (See paragraph 2.2B, item 4, for further explanation.)
+
+(45) **Size error condition without ON SIZE ERROR phrase (1 NUC).** If a size error condition occurs and an ON SIZE ERROR phrase has not been specified, the program will continue and the value of any affected resultant identifier is undefined. (See paragraph 2.2B, item 8, for further explanation.)
+
+(46) **Multiple results in arithmetic statements (1 NUC).** A temporary data item is always used in evaluating arithmetic statements with multiple receiving fields. (See paragraph 2.2B, item 9, for further explanation.)
+
+(47) **COPY REPLACING statement (2 STM).** The characters right and left parentheses are always text words in third Standard COBOL even when they are not separators. Therefore, they will be processed as individual text words by a COPY REPLACING statement. (See paragraph 2.2B, item 12, for further explanation.)
+
+### 2.2A SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT)
+
+The following is a list of the changes of substance introduced by the Intrinsic Function Amendment that are changes that could impact existing programs.
+
+(1) **Reserved word FUNCTION (1 NUC).** The word FUNCTION must be recognized as a reserved word if the Intrinsic Function module is included in an implementation. (This change was subsequently modified; see paragraph 2.2B, item 1.)
+
+**Justification:**
+
+The benefits to be derived from the additional facility provided through the addition of the reserved word FUNCTION were considered to outweigh the inconvenience caused by removing this word from the set of user-defined words.
+
+The X3J4 COBOL Technical Committee believes that any one-time difficulties caused by this change ultimately will be more than offset by the facility provided by this change.
+
+> ⚠ **CORRECTED — see the Errata (C330).** The standard prints `(paragraph 2.2 ends with item 42)` (page 788, folio XVII-80). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 941, folio B-29), applied in place: "Paragraph 2.2, insert the following items after item 42d" (kb/Work PB5045). Corrected to `(43) RECORD clause ... (44) ... (45) ... (46) ... (47) COPY REPLACING statement ... (above)`.
+
+> ⚠ **CORRECTED — see the Errata (C331).** The standard prints `(paragraph 2.2 ends with item 47)` (page 788, folio XVII-80). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 941, folio B-29), applied in place: "Insert the following as the new paragraph 2.2A following the last new item at the end of paragraph 2.2", its item 1 printed on page 942 (folio B-30) (kb/Work PB5045). Corrected to `2.2A SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT) (its heading, first paragraph and item 1 with its justification)`.
+
+> ⚠ **CORRECTED — see the Errata (C332).** The standard prints `(paragraph 2.2A ends with its item 1)` (page 788, folio XVII-80). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 942, folio B-30), applied in place: "Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A". Paragraph 2.2B runs over seventeen pages of Amendment 2, with its examples; this transcription holds it once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2): it stands here, after 2.2A, in the amended standard (kb/Work PB5045). Corrected to the text above.
 
 XVII-80
 
@@ -33163,7 +33249,9 @@ Arguments may be required to have a certain class or a subset of a certain class
 
 (4) Integer. An arithmetic expression which will always result in an integer value must be specified. The value of the arithmetic expression, including operational sign, is used in determining the value of the function.
 
-The rules for a function may place constraints on the permissible values for arguments in order to permit meaningful determination of the function's value. If, at the time a function is referenced, the arguments specified for that reference do not have values within the permissible range, the returned value for the function is undefined.
+The rules for a function may place constraints on the permissible values for arguments in order to permit meaningful determination of the function's value. If, at the time a function is referenced, the arguments specified for that reference do not have values within the permissible range, then the result of such a reference is undefined.
+
+> ⚠ **CORRECTED — see the Errata (C312).** The standard prints `do not have values within the permissible range, the returned value for the function is undefined.` (page 858, folio A-28). Amendment 2 (ANSI X3.23b-1993), its change for page (A-28) (page 937, folio B-25), applied in place: "Paragraph 2.2 entitled Arguments, first paragraph after the numbered item 4, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `do not have values within the permissible range, then the result of such a reference is undefined.`.
 
 When the definition of a function permits an argument to be repeated a variable number of times, a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL.
 
@@ -33175,7 +33263,9 @@ A-28
 
 Intrinsic Function - Types of Functions
 
-the ALL subscript is associated with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause. The evaluation of an ALL subscript must result in at least one argument, otherwise the returned value is undefined.
+the ALL subscript is associated with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause. The evaluation of an ALL subscript must result in at least one argument, otherwise the result of the reference to the function-identifier is undefined.
+
+> ⚠ **CORRECTED — see the Errata (C313).** The standard prints `otherwise the returned value is undefined.` (page 859, folio A-29). Amendment 2 (ANSI X3.23b-1993), its change for page (A-29) (page 937, folio B-25), applied in place: "Paragraph 2.2 entitled Arguments, last paragraph, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `otherwise the result of the reference to the function-identifier is undefined.`.
 
 ## 2.3 TYPES OF FUNCTIONS
 
@@ -33860,7 +33950,9 @@ The MAX function returns the content of the argument-1 that contains the maximum
 
 ### 2.23.3 Arguments
 
-(1) If more than one argument-1 is specified, all arguments must be of the same class.
+(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
+
+> ⚠ **CORRECTED — see the Errata (C314).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 882, folio A-52). Amendment 2 (ANSI X3.23b-1993), its change for page (A-52) (page 937, folio B-25), applied in place: "Paragraph 2.23.3 of the MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
 ### 2.23.4 Returned Values
 
@@ -33981,7 +34073,9 @@ The MIN function returns the content of the argument-1 that contains the minimum
 
 ### 2.27.3 Arguments
 
-(1) If more than one argument-1 is specified, all arguments must be of the same class.
+(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
+
+> ⚠ **CORRECTED — see the Errata (C315).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 886, folio A-56). Amendment 2 (ANSI X3.23b-1993), its change for page (A-56) (page 937, folio B-25), applied in place: "Paragraph 2.27.3 of the MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
 ### 2.27.4 Returned Values
 
@@ -34184,7 +34278,9 @@ The ORD-MAX function returns a value that is the ordinal number of the argument-
 
 ### 2.32.3 Arguments
 
-(1) If more than one argument-1 is specified, all arguments must be of the same class.
+(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
+
+> ⚠ **CORRECTED — see the Errata (C316).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 891, folio A-61). Amendment 2 (ANSI X3.23b-1993), its change for page (A-61) (page 937, folio B-25), applied in place: "Paragraph 2.32.3 of the ORD-MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
 ### 2.32.4 Returned Values
 
@@ -34214,7 +34310,9 @@ The ORD-MIN function returns a value that is the ordinal number of the argument 
 
 ### 2.33.3 Arguments
 
-(1) If more than one argument-1 is specified, all arguments must be of the same class.
+(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
+
+> ⚠ **CORRECTED — see the Errata (C317).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 892, folio A-62). Amendment 2 (ANSI X3.23b-1993), its change for page (A-62) (page 937, folio B-25), applied in place: "Paragraph 2.33.3 of the ORD-MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
 ### 2.33.4 Returned Values
 
@@ -38288,6 +38386,27 @@ it is taken as the rule of 1985.
 | [C309](#errata-c309) | 649 | XIII-71 | Section XIII, paragraph 4.5.4 (OPEN), general rule 6 | `(See page VII-5, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
 | [C310](#errata-c310) | 656 | XIII-78 | Section XIII, paragraph 4.9.3 (USE BEFORE REPORTING), syntax rule 2 | `Identifier-1 must not appear in more than one USE BEFORE RE…` | `The same identifier-1 must not appear in more than one USE…` | amendment-2 |
 | [C311](#errata-c311) | 857 | A-27 | Section A, paragraph 1.2.2 (Value Returned by a Function), last sentence | `the returned value for the function is undefined.` | `then the result of such a reference is undefined.` | amendment-2 |
+| [C312](#errata-c312) | 858 | A-28 | Section A, paragraph 2.2 (Arguments), the first paragraph after item 4, last sentence | `the returned value for the function is undefined.` | `then the result of such a reference is undefined.` | amendment-2 |
+| [C313](#errata-c313) | 859 | A-29 | Section A, paragraph 2.2 (Arguments), the last paragraph, last sentence | `otherwise the returned value is undefined.` | `otherwise the result of the reference to the function-ident…` | amendment-2 |
+| [C314](#errata-c314) | 882 | A-52 | Section A, paragraph 2.23.3 (MAX function), argument rule 1 | `... must be of the same class.` | `... of the same class with the exception that mixing of ...…` | amendment-2 |
+| [C315](#errata-c315) | 886 | A-56 | Section A, paragraph 2.27.3 (MIN function), argument rule 1 | `... must be of the same class.` | `... of the same class with the exception that mixing of ...…` | amendment-2 |
+| [C316](#errata-c316) | 891 | A-61 | Section A, paragraph 2.32.3 (ORD-MAX function), argument rule 1 | `... must be of the same class.` | `... of the same class with the exception that mixing of ...…` | amendment-2 |
+| [C317](#errata-c317) | 892 | A-62 | Section A, paragraph 2.33.3 (ORD-MIN function), argument rule 1 | `... must be of the same class.` | `... of the same class with the exception that mixing of ...…` | amendment-2 |
+| [C318](#errata-c318) | 721 | XVII-13 | Appendix A of Section XVII, paragraph 3.5, last paragraph, last line | `X3.23A-1989.` | `X3.23a-1989.` | amendment-2 |
+| [C319](#errata-c319) | 721 | XVII-13 | Appendix A of Section XVII, a new paragraph 3.6 | `(no paragraph 3.6)` | `3.6 American National Standard COBOL 1985, Amendment 2` | amendment-2 |
+| [C320](#errata-c320) | 723 | XVII-15 | Appendix A of Section XVII, paragraph 4.4, its heading | `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1` | `4.4 ISO 1989:1985/Amd.1:1992` | amendment-2 |
+| [C321](#errata-c321) | 723 | XVII-15 | Appendix A of Section XVII, a new paragraph 4.5 | `(no paragraph 4.5)` | `4.5 ISO 1989:1985/Amd.2:1994` | amendment-2 |
+| [C322](#errata-c322) | 727 | XVII-19 | Appendix B of Section XVII, the summary of elements, the entry Reference-modifier | `Reference-modifier` | `Reference modification` | amendment-2 |
+| [C323](#errata-c323) | 750 | XVII-42 | Appendix B of Section XVII, the title of paragraph 2.1 | `2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS` | `... (THIRD STANDARD COBOL)` | amendment-2 |
+| [C324](#errata-c324) | 758 | XVII-50 | Appendix B of Section XVII, a new paragraph 2.1A after item 107 | `(no paragraph 2.1A)` | `2.1A ... (INTRINSIC FUNCTION AMENDMENT)` | amendment-2 |
+| [C325](#errata-c325) | 758 | XVII-50 | Appendix B of Section XVII, item 108, renumbered item 1 of paragraph 2.1A | `(108)` | `(1)` | amendment-2 |
+| [C326](#errata-c326) | 758 | XVII-50 | Appendix B of Section XVII, a new paragraph 2.1B after item 1 of paragraph 2.1A | `(no paragraph 2.1B)` | `2.1B ... (CORRECTION AMENDMENT), items 1-6` | amendment-2 |
+| [C327](#errata-c327) | 759 | XVII-51 | Appendix B of Section XVII, the title of paragraph 2.2 | `2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROG…` | `... (THIRD STANDARD COBOL)` | amendment-2 |
+| [C328](#errata-c328) | 779 | XVII-71 | Appendix B of Section XVII, substantive change 39 (Reserved words), its list | `FUNCTION` | `(deleted)` | amendment-2 |
+| [C329](#errata-c329) | 783 | XVII-75 | Appendix B of Section XVII, substantive change 40g (I-O status 37) | `g. I-O status = 37. An OPEN statement is attempted on a fil…` | `g. I-O status = 37. ... will not support the open mode spec…` | amendment-2 |
+| [C330](#errata-c330) | 788 | XVII-80 | Appendix B of Section XVII, paragraph 2.2, new items 43 to 47 after item 42d | `(no items 43-47)` | `(43) ... (47)` | amendment-2 |
+| [C331](#errata-c331) | 788 | XVII-80 | Appendix B of Section XVII, a new paragraph 2.2A at the end of paragraph 2.2 | `(no paragraph 2.2A)` | `2.2A ... (INTRINSIC FUNCTION AMENDMENT), item 1` | amendment-2 |
+| [C332](#errata-c332) | 788 | XVII-80 | Appendix B of Section XVII, a new paragraph 2.2B after paragraph 2.2A | `(paragraph 2.2A ends)` | `2.2B follows (held under Amendment 2, pages 942-958)` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -41709,6 +41828,237 @@ Amendment 2 (ANSI X3.23b-1993), its change for page XIII-78 (page 936, folio B-2
 | **This transcription** | `If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined.` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page (A-27) (page 936, folio B-24), applied in place: "Paragraph 1.2.2 entitled Value Returned by a Function, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c312"></a>
+
+### C312 · page 858 (folio A-28) · Section A, paragraph 2.2 (Arguments), the first paragraph after item 4, last sentence · `the returned value for the function is undefined.` → `then the result of such a reference is undefined.`
+
+| | |
+|---|---|
+| **Printed** | `do not have values within the permissible range, the returned value for the function is undefined.` |
+| **This transcription** | `do not have values within the permissible range, then the result of such a reference is undefined.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-28) (page 937, folio B-25), applied in place: "Paragraph 2.2 entitled Arguments, first paragraph after the numbered item 4, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c313"></a>
+
+### C313 · page 859 (folio A-29) · Section A, paragraph 2.2 (Arguments), the last paragraph, last sentence · `otherwise the returned value is undefined.` → `otherwise the result of the reference to the func…`
+
+| | |
+|---|---|
+| **Printed** | `otherwise the returned value is undefined.` |
+| **This transcription** | `otherwise the result of the reference to the function-identifier is undefined.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-29) (page 937, folio B-25), applied in place: "Paragraph 2.2 entitled Arguments, last paragraph, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c314"></a>
+
+### C314 · page 882 (folio A-52) · Section A, paragraph 2.23.3 (MAX function), argument rule 1 · `... must be of the same class.` → `... of the same class with the exception that mix…`
+
+| | |
+|---|---|
+| **Printed** | `(1) If more than one argument-1 is specified, all arguments must be of the same class.` |
+| **This transcription** | `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-52) (page 937, folio B-25), applied in place: "Paragraph 2.23.3 of the MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c315"></a>
+
+### C315 · page 886 (folio A-56) · Section A, paragraph 2.27.3 (MIN function), argument rule 1 · `... must be of the same class.` → `... of the same class with the exception that mix…`
+
+| | |
+|---|---|
+| **Printed** | `(1) If more than one argument-1 is specified, all arguments must be of the same class.` |
+| **This transcription** | `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-56) (page 937, folio B-25), applied in place: "Paragraph 2.27.3 of the MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c316"></a>
+
+### C316 · page 891 (folio A-61) · Section A, paragraph 2.32.3 (ORD-MAX function), argument rule 1 · `... must be of the same class.` → `... of the same class with the exception that mix…`
+
+| | |
+|---|---|
+| **Printed** | `(1) If more than one argument-1 is specified, all arguments must be of the same class.` |
+| **This transcription** | `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-61) (page 937, folio B-25), applied in place: "Paragraph 2.32.3 of the ORD-MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c317"></a>
+
+### C317 · page 892 (folio A-62) · Section A, paragraph 2.33.3 (ORD-MIN function), argument rule 1 · `... must be of the same class.` → `... of the same class with the exception that mix…`
+
+| | |
+|---|---|
+| **Printed** | `(1) If more than one argument-1 is specified, all arguments must be of the same class.` |
+| **This transcription** | `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-62) (page 937, folio B-25), applied in place: "Paragraph 2.33.3 of the ORD-MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c318"></a>
+
+### C318 · page 721 (folio XVII-13) · Appendix A of Section XVII, paragraph 3.5, last paragraph, last line · `X3.23A-1989.` → `X3.23a-1989.`
+
+| | |
+|---|---|
+| **Printed** | `X3.23A-1989.` |
+| **This transcription** | `X3.23a-1989.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-13 (A-22) (page 938, folio B-26), applied in place: "Paragraph 3.5, last paragraph, last line, change 'X3.23A-1989' to 'X3.23a-1989'" (paragraph 3.5 is Amendment 1's, C162) (kb/Work PB5045).
+
+<a id="errata-c319"></a>
+
+### C319 · page 721 (folio XVII-13) · Appendix A of Section XVII, a new paragraph 3.6 · `(no paragraph 3.6)` → `3.6 American National Standard COBOL 1985, Amendm…`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 3.5 ends the subsection)` |
+| **This transcription** | `3.6 AMERICAN NATIONAL STANDARD COBOL 1985, AMENDMENT 2 (the three paragraphs above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-13 (A-22) (page 938, folio B-26), applied in place: "Add the following after paragraph 3.5" (kb/Work PB5045).
+
+<a id="errata-c320"></a>
+
+### C320 · page 723 (folio XVII-15) · Appendix A of Section XVII, paragraph 4.4, its heading · `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1` → `4.4 ISO 1989:1985/Amd.1:1992`
+
+| | |
+|---|---|
+| **Printed** | `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1` |
+| **This transcription** | `4.4 ISO 1989:1985/Amd.1:1992` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-15 (A-22) (page 938, folio B-26), applied in place: "Paragraph 4.4, change the heading to read" (paragraph 4.4 is Amendment 1's, C163) (kb/Work PB5045).
+
+<a id="errata-c321"></a>
+
+### C321 · page 723 (folio XVII-15) · Appendix A of Section XVII, a new paragraph 4.5 · `(no paragraph 4.5)` → `4.5 ISO 1989:1985/Amd.2:1994`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 4.4 ends the subsection)` |
+| **This transcription** | `4.5 ISO 1989:1985/Amd.2:1994 (the two paragraphs above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-15 (A-22) (page 939, folio B-27), applied in place: "Add the following after paragraph 4.4" (kb/Work PB5045).
+
+<a id="errata-c322"></a>
+
+### C322 · page 727 (folio XVII-19) · Appendix B of Section XVII, the summary of elements, the entry Reference-modifier · `Reference-modifier` → `Reference modification`
+
+| | |
+|---|---|
+| **Printed** | `Reference-modifier .............................................. N 2 NUC` |
+| **This transcription** | `Reference modification ............................................ N 2 NUC` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-19 (A-22) (page 939, folio B-27), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'" (the entry is Amendment 1's, C166) (kb/Work PB5045).
+
+<a id="errata-c323"></a>
+
+### C323 · page 750 (folio XVII-42) · Appendix B of Section XVII, the title of paragraph 2.1 · `2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PR…` → `... (THIRD STANDARD COBOL)`
+
+| | |
+|---|---|
+| **Printed** | `### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS` |
+| **This transcription** | `### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-42 (page 939, folio B-27), applied in place: "Change the title of paragraph 2.1 to" (kb/Work PB5045).
+
+<a id="errata-c324"></a>
+
+### C324 · page 758 (folio XVII-50) · Appendix B of Section XVII, a new paragraph 2.1A after item 107 · `(no paragraph 2.1A)` → `2.1A ... (INTRINSIC FUNCTION AMENDMENT)`
+
+| | |
+|---|---|
+| **Printed** | `(item 107 is followed by item 108)` |
+| **This transcription** | `2.1A SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT) (its heading and first paragraph)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (page 939, folio B-27), applied in place: "Insert the following as the new paragraph 2.1A following item 107 of paragraph 2.1" (kb/Work PB5045).
+
+<a id="errata-c325"></a>
+
+### C325 · page 758 (folio XVII-50) · Appendix B of Section XVII, item 108, renumbered item 1 of paragraph 2.1A · `(108)` → `(1)`
+
+| | |
+|---|---|
+| **Printed** | `(108) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.` |
+| **This transcription** | `(1) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (A-23) (page 940, folio B-28), applied in place: "Renumber item 108 as the new item 1 under paragraph 2.1A" (item 108 is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c326"></a>
+
+### C326 · page 758 (folio XVII-50) · Appendix B of Section XVII, a new paragraph 2.1B after item 1 of paragraph 2.1A · `(no paragraph 2.1B)` → `2.1B ... (CORRECTION AMENDMENT), items 1-6`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 2.1A ends with its item 1)` |
+| **This transcription** | `2.1B SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT) (its heading, first paragraph and items 1 to 6)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (page 940, folio B-28), applied in place: "Insert the following as the new paragraph 2.1B following item 1 of paragraph 2.1A" (kb/Work PB5045).
+
+<a id="errata-c327"></a>
+
+### C327 · page 759 (folio XVII-51) · Appendix B of Section XVII, the title of paragraph 2.2 · `2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXI…` → `... (THIRD STANDARD COBOL)`
+
+| | |
+|---|---|
+| **Printed** | `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS` |
+| **This transcription** | `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-51 (page 940, folio B-28), applied in place: "Change the title of paragraph 2.2 to" (kb/Work PB5045).
+
+<a id="errata-c328"></a>
+
+### C328 · page 779 (folio XVII-71) · Appendix B of Section XVII, substantive change 39 (Reserved words), its list · `FUNCTION` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `the list with FUNCTION after FALSE (Amendment 1, C173)` |
+| **This transcription** | `the list without FUNCTION` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-71 (A-24) (page 940, folio B-28), applied in place: "Substantive change 39, entitled Reserved words, delete the word FUNCTION" (the word Amendment 1 added, C173) (kb/Work PB5045).
+
+<a id="errata-c329"></a>
+
+### C329 · page 783 (folio XVII-75) · Appendix B of Section XVII, substantive change 40g (I-O status 37) · `g. I-O status = 37. An OPEN statement is attempte…` → `g. I-O status = 37. ... will not support the open…`
+
+| | |
+|---|---|
+| **Printed** | `g. <u>I-O status = 37</u>. An OPEN statement is attempted on a file which is required to be a mass storage file but is not.` |
+| **This transcription** | `g. **I-O status = 37.** A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. (See paragraph 2.2B, item 22, for further explanation.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-75 (page 940, folio B-28), applied in place: "Change item 40g concerning I-O status 37 to read" (kb/Work PB5045).
+
+<a id="errata-c330"></a>
+
+### C330 · page 788 (folio XVII-80) · Appendix B of Section XVII, paragraph 2.2, new items 43 to 47 after item 42d · `(no items 43-47)` → `(43) ... (47)`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 2.2 ends with item 42)` |
+| **This transcription** | `(43) RECORD clause ... (44) ... (45) ... (46) ... (47) COPY REPLACING statement ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 941, folio B-29), applied in place: "Paragraph 2.2, insert the following items after item 42d" (kb/Work PB5045).
+
+<a id="errata-c331"></a>
+
+### C331 · page 788 (folio XVII-80) · Appendix B of Section XVII, a new paragraph 2.2A at the end of paragraph 2.2 · `(no paragraph 2.2A)` → `2.2A ... (INTRINSIC FUNCTION AMENDMENT), item 1`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 2.2 ends with item 47)` |
+| **This transcription** | `2.2A SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT) (its heading, first paragraph and item 1 with its justification)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 941, folio B-29), applied in place: "Insert the following as the new paragraph 2.2A following the last new item at the end of paragraph 2.2", its item 1 printed on page 942 (folio B-30) (kb/Work PB5045).
+
+<a id="errata-c332"></a>
+
+### C332 · page 788 (folio XVII-80) · Appendix B of Section XVII, a new paragraph 2.2B after paragraph 2.2A · `(paragraph 2.2A ends)` → `2.2B follows (held under Amendment 2, pages 942-9…`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 2.2A ends with its item 1)` |
+| **This transcription** | `paragraph 2.2B, SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT), follows: its first paragraph and items 1 to 23 are held once, where Amendment 2 prints them (under AMENDMENT 2, pages 942 to 958, folios B-30 to B-46)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 942, folio B-30), applied in place: "Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A". Paragraph 2.2B runs over seventeen pages of Amendment 2, with its examples; this transcription holds it once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2): it stands here, after 2.2A, in the amended standard (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
