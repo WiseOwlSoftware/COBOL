@@ -1310,6 +1310,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"{where} writes its SUM clause in more than one "
                     + "piece: the RESET phrase and the rounded-phrase come once, after the whole repeated SUM … UPON "
                     + "group, so neither of them, nor any other clause, may be written between two SUM groups (ISO §2023:13.18.54.2)");
+            // §1985:XIII.3.19.3 SR3 — "A SUM clause can appear only in the description of a control footing report group."
+            // COBOL-2002 lifts it (§2023:13.18.54.3 SR4 f) names a detail, report footing and page footing as SUM groups).
+            if (sum && Edition.DialectLevel < 2002 && groupKind != ReportGroupKindModel.ControlFooting)
+                Edition.Error(DiagnosticCatalog.ReportSumNotInControlFooting, $"{where} writes a SUM clause in a "
+                    + $"{ReportGroupTypeWords(groupKind)} report group; a SUM clause can appear only in the description of a "
+                    + "control footing report group (ISO §1985:XIII.3.19.3 SR3)");
             if (!elementary)
             {
                 var written = new List<string>();
@@ -3695,6 +3701,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} names the entry '{data.Name}', whose PICTURE is "
                 + $"{(source.Category is { } cat ? $"of category {cat.ToString().ToLowerInvariant()}" : "absent")}: "
                 + "data-name-1 shall be the name of a numeric data item in the report section (ISO §2023:13.18.54.3 SR4).");
+            return null;
+        }
+        // §1985:XIII.3.19.3 SR1 — "If identifier-1 is defined in the Report Section, identifier-1 must reference a sum
+        // counter." The 2002 SUM clause adds the operand of a SOURCE or VALUE entry (§2023:13.18.54.4 GR6).
+        if (Edition.DialectLevel < 2002 && data is not ReportSumFamily)
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumAddendNotSumCounter, $"{where} names the entry '{data.Name}', a SOURCE or "
+                + "VALUE entry of the report section; if identifier-1 is defined in the Report Section, it must reference a "
+                + "sum counter (ISO §1985:XIII.3.19.3 SR1)");
             return null;
         }
         // SR4 — "If it is associated with an OCCURS clause, it shall be specified without the subscripting normally

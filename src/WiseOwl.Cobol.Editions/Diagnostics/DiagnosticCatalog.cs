@@ -9241,6 +9241,28 @@ public static class DiagnosticCatalog
         + "(ISO §2023:14.9.38.3 SR3; §2023:14.9.31.3 SR2).",
         "ISO §2023:14.9.38.3 SR3; §2023:14.9.31.3 SR2");
 
+    /// <summary>COBOL6763 — a SUM clause is written in a report group that is not a control footing, at a dialect that admits it
+    /// only there (kb/Work PB5046). §1985:XIII.3.19.3 SR3: "A SUM clause can appear only in the description of a control footing
+    /// report group." COBOL-2002 and later give a SUM entry a detail, report footing or page footing too (§2023:13.18.54.3
+    /// SR4 f)), so the rule is the 1985 dialect's alone.</summary>
+    public static readonly DiagnosticDescriptor ReportSumNotInControlFooting = new(
+        "COBOL6763", "report-sum-not-in-control-footing", EditionSeverity.Error,
+        "§1985:XIII.3.19.3 SR3: \"A SUM clause can appear only in the description of a control footing report group.\" "
+        + "The entry is in a report group of another TYPE. (COBOL-2002 and later admit a SUM entry in a detail, a report "
+        + "footing and a page footing, §2023:13.18.54.3 SR4 f).)",
+        "ISO §1985:XIII.3.19.3 SR3");
+
+    /// <summary>COBOL6764 — a SUM identifier-1 that names a SOURCE or VALUE entry of the report section, at a dialect whose
+    /// identifier-1 of the report section shall be a sum counter (kb/Work PB5047). §1985:XIII.3.19.3 SR1: "If identifier-1
+    /// is defined in the Report Section, identifier-1 must reference a sum counter." From COBOL-2002 a report-section
+    /// data-name-1 may name a SOURCE or VALUE entry too (§2023:13.18.54.4 GR6).</summary>
+    public static readonly DiagnosticDescriptor ReportSumAddendNotSumCounter = new(
+        "COBOL6764", "report-sum-addend-not-sum-counter", EditionSeverity.Error,
+        "§1985:XIII.3.19.3 SR1: \"If identifier-1 is defined in the Report Section, identifier-1 must reference a sum "
+        + "counter.\" The identifier names a SOURCE or VALUE entry. (COBOL-2002 and later add the operand of such an entry, "
+        + "§2023:13.18.54.4 GR6.)",
+        "ISO §1985:XIII.3.19.3 SR1");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
