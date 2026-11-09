@@ -5133,7 +5133,15 @@ These definitions are also intended as either reference or introductory material
 
 <u>Alphanumeric Character</u>. Any character in the computer's character set.
 
+<u>Alphanumeric Function</u>. A function whose value is composed of a string of one or more characters from the computer's character set.
+
+> ⚠ **CORRECTED — see the Errata (C68).** The standard prints `Alphanumeric Character (the entry it follows)` (page 121, folio III-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Alphanumeric Function. A function whose value is composed of a string of one or more characters from the computer's character set.`.
+
 <u>Alternate Record Key</u>. A key, other than the prime record key, whose contents identify a record within an indexed file.
+
+<u>Argument</u>. An identifier, a literal, or an arithmetic expression that specifies a value to be used in the evaluation of a function.
+
+> ⚠ **CORRECTED — see the Errata (C69).** The standard prints `Alternate Record Key (the entry it follows)` (page 121, folio III-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Argument. An identifier, a literal, or an arithmetic expression that specifies a value to be used in the evaluation of a function.`.
 
 <u>Arithmetic Expression</u>. An identifier of a numeric elementary item, a numeric literal, such identifiers and literals separated by arithmetic operators, two arithmetic expressions separated by an arithmetic operator, or an arithmetic expression enclosed in parentheses.
 
@@ -5329,7 +5337,9 @@ Glossary
 
 <u>Data Description Entry</u>. An entry, in the Data Division of a COBOL program, that is composed of a level-number followed by a data-name, if required, and then followed by a set of data clauses, as required.
 
-<u>Data Item</u>. A unit of data (excluding literals) defined by the COBOL program.
+<u>Data Item</u>. A unit of data (excluding literals) defined by a COBOL program or by the rules for function evaluation.
+
+> ⚠ **CORRECTED — see the Errata (C74).** The standard prints `Data Item. A unit of data (excluding literals) defined by the COBOL program.` (page 127, folio III-7). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to `Data Item. A unit of data (excluding literals) defined by a COBOL program or by the rules for function evaluation.`.
 
 <u>Data-Name</u>. A user-defined word that names a data item described in a data description entry. When used in the general formats, 'data-name' represents a word which must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of the format.
 
@@ -5465,6 +5475,16 @@ Glossary
 
 <u>Format</u>. A specific arrangement of a set of data.
 
+<u>Function</u>. A temporary data item whose value is determined by invoking a mechanism provided by the implementor at the time the function is referenced during the execution of a statement.
+
+<u>Function-Identifier</u>. A syntactically correct combination of character-strings and separators that references a function. The data item represented by a function is uniquely identified by a function-name with its arguments, if any. A function-identifier may include a reference-modifier. A function-identifier that references an alphanumeric function may be specified anywhere in the general formats that an identifier may be specified, subject to certain restrictions. A function-identifier that references an integer or numeric function may be referenced anywhere in the general formats that an arithmetic expression may be specified. (See page IV-22, Function-Identifier.)
+
+<u>Function-Name</u>. A word that names a mechanism provided by the implementor to determine the value of a function.
+
+> ⚠ **CORRECTED — see the Errata (C70).** The standard prints `Format (the entry it follows)` (page 130, folio III-10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Function. A temporary data item whose value is determined by invoking a mechanism provided by the implementor at the time the function is referenced during the execution of a statement.`.
+
+> ⚠ **CORRECTED — see the Errata (C71).** The standard prints `Function (the entry they follow)` (page 130, folio III-10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Function-Identifier. ... (See page IV-22, Function-Identifier.) ¶ Function-Name. A word that names a mechanism provided by the implementor to determine the value of a function.`.
+
 <u>Global Name</u>. A name which is declared in only one program but which may be referenced from that program and from any program contained within that program. Condition-names, data-names, file-names, record-names, report-names, and some special registers may be global names. (See page X-6, Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names; page X-18, general rule 1 concerning LINAGE-COUNTER; and page X-22, general rule 1 concerning LINE-COUNTER and PAGE-COUNTER.)
 
 <u>Group Item</u>. A data item that is composed of subordinate data items.
@@ -5485,7 +5505,9 @@ Glossary
 
 <u>I-O Status</u>. A conceptual entity which contains the two-character value indicating the resulting status of an input-output operation. This value is made available to the program through the use of the FILE STATUS clause in the file control entry for the file.
 
-<u>Identifier</u>. A syntactically correct combination of a data-name, with its qualifiers, subscripts, and reference modifiers, as required for uniqueness of reference, that names a data item. The rules for 'identifier' associated with the general formats may, however, specifically prohibit qualification, subscripting, or reference modification.
+<u>Identifier</u>. A syntactically correct combination of character-strings and separators that names a data item. When referencing a data item which is not a function, an identifier consists of a data-name, together with its qualifiers, subscripts, and reference-modifier, as required for uniqueness of reference. When referencing a data item which is a function, a function-identifier is used. The rules for 'identifier' associated with general formats may, however, specifically prohibit reference to functions, qualification, subscripting, or reference modification.
+
+> ⚠ **CORRECTED — see the Errata (C75).** The standard prints `Identifier. A syntactically correct combination of a data-name, with its qualifiers, subscripts, and reference modifiers, as required for uniqueness of reference, that names a data item. The rules for 'identifier' associated with the general formats may, however, specifically prohibit qualification, subscripting, or reference modification.` (page 131, folio III-11). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to the text above.
 
 <u>Imperative Statement</u>. A statement that either begins with an imperative verb and specifies an unconditional action to be taken or is a conditional statement that is delimited by its explicit scope terminator (delimited scope statement). An imperative statement may consist of a sequence of imperative statements.
 
@@ -5525,7 +5547,19 @@ Glossary
 
 <u>Input Procedure</u>. A set of statements, to which control is given during the execution of a SORT statement, for the purpose of controlling the release of specified records to be sorted.
 
-<u>Integer</u>. A numeric literal or a numeric data item that does not include any digit position to the right of the assumed decimal point. When the term 'integer' appears in general formats, integer must not be a numeric data item, and must not be signed, nor zero unless explicitly allowed by the rules of that format.
+<u>Integer</u>. (1) A numeric literal that does not include any digit positions to the right of the decimal point.
+
+(2) A numeric data item defined in the Data Division that does not include any digit positions to the right of the decimal point.
+
+(3) A numeric function whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.
+
+Where the term 'integer' appears in the general formats, integer must be a numeric literal which is an integer, and it must be neither signed nor zero unless explicitly allowed by the rules for that format.
+
+> ⚠ **CORRECTED — see the Errata (C76).** The standard prints `Integer. A numeric literal or a numeric data item that does not include any digit position to the right of the assumed decimal point. When the term 'integer' appears in general formats, integer must not be a numeric data item, and must not be signed, nor zero unless explicitly allowed by the rules of that format.` (page 132, folio III-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (the definition continues on page 839, folio A-9) (kb/Work PB5045). Corrected to `Integer. (1) ... (2) ... (3) ... (the definition above)`.
+
+<u>Integer Function</u>. A function whose category is numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.
+
+> ⚠ **CORRECTED — see the Errata (C72).** The standard prints `Integer (the entry it follows)` (page 132, folio III-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Integer Function. A function whose category is numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.`.
 
 <u>Internal Data</u>. The data described in a program excluding all external data items and external file connectors. Items described in the Linkage Section of a program are treated as internal data.
 
@@ -5541,7 +5575,9 @@ Glossary
 
 <u>Key of Reference</u>. The key, either prime or alternate, currently being used to access records within an indexed file.
 
-<u>Key Word</u>. A reserved word whose presence is required when the format in which the word appears is used in a source program.
+<u>Key Word</u>. A reserved word or function-name whose presence is required when the format in which the word appears is used in a source program.
+
+> ⚠ **CORRECTED — see the Errata (C77).** The standard prints `Key Word. A reserved word whose presence is required when the format in which the word appears is used in a source program.` (page 132, folio III-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to `Key Word. A reserved word or function-name whose presence is required when the format in which the word appears is used in a source program.`.
 
 III-12
 
@@ -5636,6 +5672,10 @@ Glossary
 <u>Nonnumeric Literal</u>. A literal bounded by quotation marks. The string of characters may include any character in the computer's character set.
 
 <u>Numeric Character</u>. A character that belongs to the following set of digits: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9.
+
+<u>Numeric Function</u>. A function whose class and category are numeric but which for some possible evaluation does not satisfy the requirements of an integer function.
+
+> ⚠ **CORRECTED — see the Errata (C73).** The standard prints `Numeric Character (the entry it follows)` (page 135, folio III-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Numeric Function. A function whose class and category are numeric but which for some possible evaluation does not satisfy the requirements of an integer function.`.
 
 <u>Numeric Item</u>. A data item whose description restricts its content to a value represented by characters chosen from the digits '0' through '9'; if signed, the item may also contain a '+', '-', or other representation of an operational sign. (See VI-42, The SIGN Clause.)
 
@@ -5798,7 +5838,9 @@ Glossary
 
 <u>Reference Format</u>. A format that provides a standard method for describing COBOL source programs.
 
-<u>Reference Modifier</u>. The leftmost-character-position and length used to establish and reference a data item. (See page IV-22, Reference Modification.)
+<u>Reference-Modifier</u>. A syntactically correct combination of character-strings and separators that defines a unique data item. It includes a delimiting left parenthesis separator, the leftmost character position, a colon separator, optionally a length, and a delimiting right parenthesis separator. (See page IV-22, Reference-Modifier.)
+
+> ⚠ **CORRECTED — see the Errata (C80).** The standard prints `Reference Modifier. The leftmost-character-position and length used to establish and reference a data item. (See page IV-22, Reference Modification.)` (page 139, folio III-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-19 (page 839, folio A-9), applied in place: "Replace the definition for Reference Modifier with the following" (kb/Work PB5045). Corrected to `Reference-Modifier. A syntactically correct combination of character-strings and separators that defines a unique data item. ... (See page IV-22, Reference-Modifier.)`.
 
 <u>Relation</u>. The term is synonymous with relational operator.
 
@@ -5992,7 +6034,9 @@ Glossary
 
 <u>Subprogram</u>. A program which is the object of a CALL statement combined at object time with the calling program to produce a run unit. The term is synonymous with called program.
 
-<u>Subscript</u>. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, which identifies a particular element in a table.
+<u>Subscript</u>. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, that identifies a particular element in a table. A subscript may be the word ALL when the subscripted identifier is used as a function argument. (See page A-28, Arguments.)
+
+> ⚠ **CORRECTED — see the Errata (C78).** The standard prints `Subscript. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, which identifies a particular element in a table.` (page 144, folio III-24). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to the text above.
 
 <u>Subscripted Data-Name</u>. An identifier that is composed of a data-name followed by one or more subscripts enclosed in parentheses.
 
@@ -6054,7 +6098,9 @@ Glossary
 
 <u>Volume</u>. A discrete portion of a storage medium, the dimensions of which are determined by each implementor, that contains part of a file, all of a file, or any number of files. The term is synonymous with reel and unit.
 
-<u>Word</u>. A character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. (See page IV-5, COBOL Words.)
+<u>Word</u>. A character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. (See page IV-5, COBOL Words.)
+
+> ⚠ **CORRECTED — see the Errata (C79).** The standard prints `Word. A character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. (See page IV-5, COBOL Words.)` (page 146, folio III-26). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to `Word. A character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. (See page IV-5, COBOL Words.)`.
 
 <u>Working-Storage Section</u>. The section of the Data Division that describes working storage data items, composed either of noncontiguous items or working storage records or of both.
 
@@ -6118,7 +6164,9 @@ Options are indicated in a general format or a portion of a general format by ve
 
 In text, other than general formats, the ellipsis (...) shows omission of a word or words when such omission does not impair comprehension. This is the conventional meaning of the ellipsis, and the use becomes apparent in context.
 
-In the general format, the ellipsis (...) represents the position at which the user elects repetition of a portion of a format. The portion of the format that may be repeated is determined as follows:
+In the general formats, the ellipsis (...) represents the position at which the user elects repetition of a portion of a format. The portion of the format that may be repeated is determined as follows:
+
+> ⚠ **CORRECTED — see the Errata (C81).** The standard prints `In the general format, the ellipsis (...) represents` (page 148, folio IV-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-2 (T) (page 839, folio A-9), applied in place: "Paragraph 2.1.5 entitled 'Ellipses', second paragraph, first line, change 'In the general format,' to 'In the general formats,'", a typographical error (kb/Work PB5045). Corrected to `In the general formats, the ellipsis (...) represents`.
 
 Given ... (the ellipsis) in a format, scanning right to left, determine the ] (right bracket) or } (right brace) delimiter immediately to the left of the ... (ellipsis); continue scanning right to left and determine the logically matching [ (left bracket) or { (left brace) delimiter; the ... (ellipsis) applies to the portion of the format between the determined pair of delimiters.
 
@@ -6164,7 +6212,9 @@ The most basic and indivisible unit of the language is the character. The set of
 
 Certain of the characters comprising the COBOL character set may not be graphically represented in definitions of national and international standard character sets. In these instances, a substitute graphic may be specified to replace the character(s) not represented.
 
-When a character set contains fewer than 51 characters, double characters must be substituted for the single characters. This double character substitution is an obsolete feature in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+When a character set contains fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double characters must be substituted for the single characters. This double character substitution is an obsolete feature in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C82).** The standard prints `When a character set contains fewer than 51 characters, double characters` (page 150, folio IV-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (T) (page 839, folio A-9), applied in place: "Paragraph 4.1, entitled 'Character Set', third paragraph, first line, change 'fewer than 51 characters, double' to 'fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double'", a typographical error (kb/Work PB5045). Corrected to `When a character set contains fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double characters`.
 
 4.2 LANGUAGE STRUCTURE
 
@@ -6180,7 +6230,9 @@ A separator is a character or two contiguous characters formed according to the 
 
 (3) The punctuation character period, when followed by a space is a separator. It must be used only to indicate the end of a sentence, or as shown in formats.
 
-(4) The punctuation characters right and left parentheses are separators. Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, reference modifiers, arithmetic expressions, or conditions.
+(4) The punctuation characters right and left parentheses are separators. Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions.
+
+> ⚠ **CORRECTED — see the Errata (C83).** The standard prints `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, reference modifiers, arithmetic expressions, or conditions.` (page 150, folio IV-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (page 839, folio A-9), applied in place: "Paragraph 4.2.1, rule (4), change second sentence to read" (kb/Work PB5045). Corrected to `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions.`.
 
 IV-4
 
@@ -6216,7 +6268,9 @@ A character-string is a character or a sequence of contiguous characters which f
 
 #### 4.2.2.1 COBOL Words
 
-A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. Each character of a COBOL word is selected from the set of letters, digits, and the hyphen. The hyphen may not appear as the first or last character. Each lowercase letter is
+A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word is selected from the set of letters, digits, and the hyphen. The hyphen may not appear as the first or last character. Each lowercase letter is
+
+> ⚠ **CORRECTED — see the Errata (C84).** The standard prints `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word.` (page 151, folio IV-5). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the paragraph as Amendment 1 prints it; it runs on to page 152 (kb/Work PB5045). Corrected to `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name.`.
 
 IV-5
 
@@ -6224,7 +6278,9 @@ IV-5
 
 User-Defined Words
 
-considered to be equivalent to its corresponding uppercase letter. Within a source program, reserved words and user-defined words form disjoint sets; reserved words and system-names form disjoint sets; system-names and user-defined words form intersecting sets. The same COBOL word may be used as a system-name and as a user-defined word within a source program; and the class of a specific occurrence of this COBOL word is determined by the context of the clause or phrase in which it occurs.
+considered to be equivalent to its corresponding uppercase letter. Within a source program, reserved words and user-defined words form disjoint sets; reserved words and system-names form disjoint sets; reserved words and function-names form disjoint sets; function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word within a source program; and the class of a specific occurrence of the COBOL word is determined by the context of the clause or phrase in which it occurs.
+
+> ⚠ **CORRECTED — see the Errata (C85).** The standard prints `reserved words and system-names form disjoint sets; system-names and user-defined words form intersecting sets. The same COBOL word may be used as a system-name and as a user-defined word within a source program; and the class of a specific occurrence of this COBOL word is determined` (page 152, folio IV-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the rest of the paragraph as Amendment 1 prints it (kb/Work PB5045). Corrected to the text above.
 
 #### 4.2.2.1.1 User-Defined Words
 
@@ -6383,6 +6439,12 @@ There are four special registers:
 #### 4.2.2.1.3.3.2 Figurative Constants
 
 Certain reserved words are used to name and reference specific constant values. These reserved words are specified on page IV-10, Figurative Constant Values.
+
+#### 4.2.2.1.4 Function-Names
+
+A function-name is a word that is one of a specified list of words which may be used in COBOL source programs. The same word, in a different context, may appear in a program as a user-defined word or a system-name. (See page A-29, Definitions of Functions.)
+
+> ⚠ **CORRECTED — see the Errata (C86).** The standard prints `4.2.2.2 Literals (the paragraph it precedes)` (page 155, folio IV-9). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-9 (page 840, folio A-10), applied in place: "Add the following before paragraph 4.2.2.2: 4.2.2.1.4 Function-Names" (kb/Work PB5045). Corrected to `4.2.2.1.4 Function-Names. A function-name is a word that is one of a specified list of words ...`.
 
 ### 4.2.2.2 Literals
 
@@ -6578,7 +6640,13 @@ Entries that specify condition-names, to be associated with particular values of
 
 ### 4.3.3 Concept of Classes of Data
 
-There are five categories of data items. (See page VI-29, The PICTURE Clause.) These are grouped into three classes: alphabetic, numeric, and alphanumeric. For alphabetic and numeric, the classes and categories are synonymous. The alphanumeric class includes the categories of alphanumeric edited, numeric edited, and alphanumeric (without editing). Every elementary item belongs to one of the classes and further to one of the categories. The class of a group item is treated at object time as alphanumeric regardless of the class of elementary items subordinate to that group item. The following table depicts the relationship of the class and categories of data items.
+There are five categories of data items. (See page VI-29, The PICTURE Clause.) These are grouped into three classes: alphabetic, numeric, and alphanumeric. For alphabetic and numeric, the classes and categories are synonymous. The alphanumeric class includes the categories of alphanumeric edited, numeric edited, and alphanumeric (without editing). Every elementary item belongs to one of the classes and further to one of the categories. The class of a group item is treated at object time as alphanumeric regardless of the class of elementary items subordinate to that group item.
+
+Every data item which is a function is an elementary item, and belongs to one of the categories alphanumeric or numeric, and to the corresponding class; the category of each function is determined by the definition of the function. This definition is made in these specifications. (See page A-27, Intrinsic Function Module.)
+
+The following table depicts the relationship of the class and categories of data items.
+
+> ⚠ **CORRECTED — see the Errata (C87).** The standard prints `The following table depicts the relationship of the class and categories of data items.` (page 161, folio IV-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-15 (page 840, folio A-10), applied in place: "Paragraph 4.3.3, delete the last sentence and add the following new paragraphs"; the deleted sentence is the second new paragraph (kb/Work PB5045). Corrected to `Every data item which is a function is an elementary item, ... (See page A-27, Intrinsic Function Module.) ¶ The following table depicts the relationship of the class and categories of data items.`.
 
 | LEVEL OF ITEM | CLASS | CATEGORY |
 |---|---|---|
@@ -6597,7 +6665,13 @@ Character Representation and Radix
 
 The value of a numeric item may be represented in either binary or decimal form depending on the equipment. In addition there are several ways of expressing decimal. Since these representations are actually combinations of bits, they are commonly called binary-coded decimal forms. The selection of radix is generally dependent upon the arithmetic capability of the computer. If more than one arithmetic radix is provided, the selection is dependent upon the specification of the USAGE clause. The binary-coded decimal form is also used to represent characters and symbols that are alphanumeric items. The selection of the proper binary-coded alphanumeric or binary-coded decimal form is dependent upon the capability of the computer and its external media.
 
-When a computer provides more than one means of representing data, the standard data format must be used if not otherwise specified by the data description. If both the external medium and the computer are capable of handling more than one form of data representation, or if there is no external medium associated with the data, the selection is dependent on factors included in USAGE, PICTURE, etc., clauses. Each implementor provides a complete explanation of the possible forms on the computer for which COBOL is implemented. The method used in selecting the proper data form is also provided to allow the programmer to anticipate and/or control the selection.
+When a computer provides more than one means of representing data, the standard data format must be used for data items other than integer and numeric functions, if not otherwise specified by the data description. If both the external medium and the computer are capable of handling more than one form of data representation, or if there is no external medium associated with the data, the selection is dependent on factors included in USAGE, PICTURE, etc., clauses. Each implementor provides a complete explanation of the possible forms on the computer for which COBOL is implemented. The method used in selecting the proper data form is also provided to allow the programmer to anticipate and/or control the selection.
+
+> ⚠ **CORRECTED — see the Errata (C88).** The standard prints `the standard data format must be used if not otherwise specified by the data description.` (page 162, folio IV-16). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-16 (page 840, folio A-10), applied in place: "Paragraph 4.3.4, second paragraph, replace first sentence with the following" (kb/Work PB5045). Corrected to `the standard data format must be used for data items other than integer and numeric functions, if not otherwise specified by the data description.`.
+
+An alphanumeric function is always represented in the standard data format. The size of an alphanumeric function in standard data format characters is determined by the definition of the function. The implementor specifies the representation of integer and numeric functions, and this representation need not be the standard data format. Integer and numeric functions may be used only in arithmetic expressions. An integer or numeric function represents the value resulting from the evaluation of the function without the restriction on composite of operands and/or receiving data items. Each implementor will indicate the techniques used in evaluating integer and numeric functions.
+
+> ⚠ **CORRECTED — see the Errata (C89).** The standard prints `The size of an elementary data item or a group item is the number of characters in standard data format of the item. (the paragraph it precedes)` (page 162, folio IV-16). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-16 (page 840, folio A-10), applied in place: "Paragraph 4.3.4, add the following new paragraph preceding the last paragraph" (kb/Work PB5045). Corrected to the text above.
 
 The size of an elementary data item or a group item is the number of characters in standard data format of the item. Synchronization and usage may cause a difference between this size and that required for internal representation.
 
@@ -6660,6 +6734,10 @@ IV-17
 Qualification
 
 not allow the reference in one of those programs to differentiate between the two identically named resources, then certain conventions which limit the scope of names apply. These conventions ensure that the resource identified is that described in the program containing the reference. (See page X-4, Scope of Names.)
+
+When the resource named is a function, the function definition may require the user to specify in the reference to the function a value or set of values for one or more parameters which determine the value of the function for that particular reference. This is accomplished through the specification of arguments as described in the following paragraphs.
+
+> ⚠ **CORRECTED — see the Errata (C90).** The standard prints `Unless otherwise specified by the rules for a statement, any subscripting and reference modification are evaluated only once (the paragraph it precedes)` (page 164, folio IV-18). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-18 (page 840, folio A-10), applied in place: "Paragraph 4.3.8, add the following new paragraph preceding the last paragraph" (kb/Work PB5045). Corrected to the text above.
 
 Unless otherwise specified by the rules for a statement, any subscripting and reference modification are evaluated only once as the first operation of the execution of that statement.
 
@@ -37149,6 +37227,29 @@ it is taken as the rule of 1985.
 | [C65](#errata-c65) | 107 | II-23 | Section II, paragraph 6.4.1.1 (Names of Programs), second paragraph | `compiled program` | `compiled programs` | amendment-1 |
 | [C66](#errata-c66) | 109 | II-25 | Section II, paragraph 6.4.2.2 (Value of Parameters), second paragraph | `to return to the` | `to return a result to the` | amendment-1 |
 | [C67](#errata-c67) | 120 | — | Section II, a new paragraph 8 on page II-36, after paragraph 7.6 | `(blank page)` | `8. INTRINSIC FUNCTION FACILITY` | amendment-1 |
+| [C68](#errata-c68) | 121 | III-1 | Section III, the glossary, the new entry Alphanumeric Function | `(no entry)` | `Alphanumeric Function` | amendment-1 |
+| [C69](#errata-c69) | 121 | III-1 | Section III, the glossary, the new entry Argument | `(no entry)` | `Argument` | amendment-1 |
+| [C70](#errata-c70) | 130 | III-10 | Section III, the glossary, the new entry Function | `(no entry)` | `Function` | amendment-1 |
+| [C71](#errata-c71) | 130 | III-10 | Section III, the glossary, the new entries Function-Identifier and Function-Name | `(no entries)` | `Function-Identifier, Function-Name` | amendment-1 |
+| [C72](#errata-c72) | 132 | III-12 | Section III, the glossary, the new entry Integer Function | `(no entry)` | `Integer Function` | amendment-1 |
+| [C73](#errata-c73) | 135 | III-15 | Section III, the glossary, the new entry Numeric Function | `(no entry)` | `Numeric Function` | amendment-1 |
+| [C74](#errata-c74) | 127 | III-7 | Section III, the glossary, the entry Data Item | `Data Item (1985 definition)` | `Data Item (amended)` | amendment-1 |
+| [C75](#errata-c75) | 131 | III-11 | Section III, the glossary, the entry Identifier | `Identifier (1985 definition)` | `Identifier (amended)` | amendment-1 |
+| [C76](#errata-c76) | 132 | III-12 | Section III, the glossary, the entry Integer | `Integer (1985 definition)` | `Integer (amended)` | amendment-1 |
+| [C77](#errata-c77) | 132 | III-12 | Section III, the glossary, the entry Key Word | `Key Word (1985 definition)` | `Key Word (amended)` | amendment-1 |
+| [C78](#errata-c78) | 144 | III-24 | Section III, the glossary, the entry Subscript | `Subscript (1985 definition)` | `Subscript (amended)` | amendment-1 |
+| [C79](#errata-c79) | 146 | III-26 | Section III, the glossary, the entry Word | `Word (1985 definition)` | `Word (amended)` | amendment-1 |
+| [C80](#errata-c80) | 139 | III-19 | Section III, the glossary, the entry Reference Modifier | `Reference Modifier (1985 definition)` | `Reference-Modifier (amended)` | amendment-1 |
+| [C81](#errata-c81) | 148 | IV-2 | Section IV, paragraph 2.1.5 (Ellipses), second paragraph | `In the general format,` | `In the general formats,` | amendment-1 |
+| [C82](#errata-c82) | 150 | IV-4 | Section IV, paragraph 4.1 (Character Set), third paragraph | `fewer than 51 characters, double` | `fewer than 52 characters (...), double` | amendment-1 |
+| [C83](#errata-c83) | 150 | IV-4 | Section IV, paragraph 4.2.1 (Separators), rule 4, second sentence | `delimiting subscripts, reference modifiers` | `delimiting subscripts, a list of function arguments, refere…` | amendment-1 |
+| [C84](#errata-c84) | 151 | IV-5 | Section IV, paragraph 4.2.2.1 (COBOL Words), its first sentence | `a system-name, or a reserved word.` | `a system-name, a reserved word, or a function-name.` | amendment-1 |
+| [C85](#errata-c85) | 152 | IV-6 | Section IV, paragraph 4.2.2.1 (COBOL Words), the rest of the paragraph | `system-names and user-defined words form intersecting sets` | `function-names, system-names, and user-defined words ...` | amendment-1 |
+| [C86](#errata-c86) | 155 | IV-9 | Section IV, a new paragraph 4.2.2.1.4 (Function-Names) | `(no paragraph 4.2.2.1.4)` | `4.2.2.1.4 Function-Names` | amendment-1 |
+| [C87](#errata-c87) | 161 | IV-15 | Section IV, paragraph 4.3.3 (Concept of Classes of Data) | `(the last sentence)` | `two new paragraphs` | amendment-1 |
+| [C88](#errata-c88) | 162 | IV-16 | Section IV, paragraph 4.3.4, second paragraph, first sentence | `must be used if not otherwise` | `must be used for data items other than integer and numeric…` | amendment-1 |
+| [C89](#errata-c89) | 162 | IV-16 | Section IV, paragraph 4.3.4, a new paragraph before the last | `(no paragraph)` | `An alphanumeric function is always represented ...` | amendment-1 |
+| [C90](#errata-c90) | 164 | IV-18 | Section IV, paragraph 4.3.8, a new paragraph before the last | `(no paragraph)` | `When the resource named is a function, ...` | amendment-1 |
 
 <a id="errata-c1"></a>
 
@@ -37886,6 +37987,259 @@ Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-25 (T) (page 
 | **This transcription** | `8. INTRINSIC FUNCTION FACILITY (the two paragraphs above)` |
 
 Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-35 (page 837, folio A-7), applied in place: "Add the following on page II-36 after paragraph 7.6: 8. INTRINSIC FUNCTION FACILITY" and its two paragraphs; page II-36 is printed blank (kb/Work PB5045).
+
+<a id="errata-c68"></a>
+
+### C68 · page 121 (folio III-1) · Section III, the glossary, the new entry Alphanumeric Function · `(no entry)` → `Alphanumeric Function`
+
+| | |
+|---|---|
+| **Printed** | `Alphanumeric Character (the entry it follows)` |
+| **This transcription** | `Alphanumeric Function. A function whose value is composed of a string of one or more characters from the computer's character set.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c69"></a>
+
+### C69 · page 121 (folio III-1) · Section III, the glossary, the new entry Argument · `(no entry)` → `Argument`
+
+| | |
+|---|---|
+| **Printed** | `Alternate Record Key (the entry it follows)` |
+| **This transcription** | `Argument. An identifier, a literal, or an arithmetic expression that specifies a value to be used in the evaluation of a function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c70"></a>
+
+### C70 · page 130 (folio III-10) · Section III, the glossary, the new entry Function · `(no entry)` → `Function`
+
+| | |
+|---|---|
+| **Printed** | `Format (the entry it follows)` |
+| **This transcription** | `Function. A temporary data item whose value is determined by invoking a mechanism provided by the implementor at the time the function is referenced during the execution of a statement.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c71"></a>
+
+### C71 · page 130 (folio III-10) · Section III, the glossary, the new entries Function-Identifier and Function-Name · `(no entries)` → `Function-Identifier, Function-Name`
+
+| | |
+|---|---|
+| **Printed** | `Function (the entry they follow)` |
+| **This transcription** | `Function-Identifier. ... (See page IV-22, Function-Identifier.) ¶ Function-Name. A word that names a mechanism provided by the implementor to determine the value of a function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c72"></a>
+
+### C72 · page 132 (folio III-12) · Section III, the glossary, the new entry Integer Function · `(no entry)` → `Integer Function`
+
+| | |
+|---|---|
+| **Printed** | `Integer (the entry it follows)` |
+| **This transcription** | `Integer Function. A function whose category is numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c73"></a>
+
+### C73 · page 135 (folio III-15) · Section III, the glossary, the new entry Numeric Function · `(no entry)` → `Numeric Function`
+
+| | |
+|---|---|
+| **Printed** | `Numeric Character (the entry it follows)` |
+| **This transcription** | `Numeric Function. A function whose class and category are numeric but which for some possible evaluation does not satisfy the requirements of an integer function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c74"></a>
+
+### C74 · page 127 (folio III-7) · Section III, the glossary, the entry Data Item · `Data Item (1985 definition)` → `Data Item (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Data Item. A unit of data (excluding literals) defined by the COBOL program.` |
+| **This transcription** | `Data Item. A unit of data (excluding literals) defined by a COBOL program or by the rules for function evaluation.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c75"></a>
+
+### C75 · page 131 (folio III-11) · Section III, the glossary, the entry Identifier · `Identifier (1985 definition)` → `Identifier (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Identifier. A syntactically correct combination of a data-name, with its qualifiers, subscripts, and reference modifiers, as required for uniqueness of reference, that names a data item. The rules for 'identifier' associated with the general formats may, however, specifically prohibit qualification, subscripting, or reference modification.` |
+| **This transcription** | `Identifier. A syntactically correct combination of character-strings and separators that names a data item. When referencing a data item which is not a function, an identifier consists of a data-name, together with its qualifiers, subscripts, and reference-modifier, as required for uniqueness of reference. When referencing a data item which is a function, a function-identifier is used. The rules for 'identifier' associated with general formats may, however, specifically prohibit reference to functions, qualification, subscripting, or reference modification.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c76"></a>
+
+### C76 · page 132 (folio III-12) · Section III, the glossary, the entry Integer · `Integer (1985 definition)` → `Integer (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Integer. A numeric literal or a numeric data item that does not include any digit position to the right of the assumed decimal point. When the term 'integer' appears in general formats, integer must not be a numeric data item, and must not be signed, nor zero unless explicitly allowed by the rules of that format.` |
+| **This transcription** | `Integer. (1) ... (2) ... (3) ... (the definition above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (the definition continues on page 839, folio A-9) (kb/Work PB5045).
+
+<a id="errata-c77"></a>
+
+### C77 · page 132 (folio III-12) · Section III, the glossary, the entry Key Word · `Key Word (1985 definition)` → `Key Word (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Key Word. A reserved word whose presence is required when the format in which the word appears is used in a source program.` |
+| **This transcription** | `Key Word. A reserved word or function-name whose presence is required when the format in which the word appears is used in a source program.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c78"></a>
+
+### C78 · page 144 (folio III-24) · Section III, the glossary, the entry Subscript · `Subscript (1985 definition)` → `Subscript (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Subscript. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, which identifies a particular element in a table.` |
+| **This transcription** | `Subscript. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, that identifies a particular element in a table. A subscript may be the word ALL when the subscripted identifier is used as a function argument. (See page A-28, Arguments.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c79"></a>
+
+### C79 · page 146 (folio III-26) · Section III, the glossary, the entry Word · `Word (1985 definition)` → `Word (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Word. A character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. (See page IV-5, COBOL Words.)` |
+| **This transcription** | `Word. A character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. (See page IV-5, COBOL Words.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c80"></a>
+
+### C80 · page 139 (folio III-19) · Section III, the glossary, the entry Reference Modifier · `Reference Modifier (1985 definition)` → `Reference-Modifier (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Reference Modifier. The leftmost-character-position and length used to establish and reference a data item. (See page IV-22, Reference Modification.)` |
+| **This transcription** | `Reference-Modifier. A syntactically correct combination of character-strings and separators that defines a unique data item. ... (See page IV-22, Reference-Modifier.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-19 (page 839, folio A-9), applied in place: "Replace the definition for Reference Modifier with the following" (kb/Work PB5045).
+
+<a id="errata-c81"></a>
+
+### C81 · page 148 (folio IV-2) · Section IV, paragraph 2.1.5 (Ellipses), second paragraph · `In the general format,` → `In the general formats,`
+
+| | |
+|---|---|
+| **Printed** | `In the general format, the ellipsis (...) represents` |
+| **This transcription** | `In the general formats, the ellipsis (...) represents` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-2 (T) (page 839, folio A-9), applied in place: "Paragraph 2.1.5 entitled 'Ellipses', second paragraph, first line, change 'In the general format,' to 'In the general formats,'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c82"></a>
+
+### C82 · page 150 (folio IV-4) · Section IV, paragraph 4.1 (Character Set), third paragraph · `fewer than 51 characters, double` → `fewer than 52 characters (...), double`
+
+| | |
+|---|---|
+| **Printed** | `When a character set contains fewer than 51 characters, double characters` |
+| **This transcription** | `When a character set contains fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double characters` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (T) (page 839, folio A-9), applied in place: "Paragraph 4.1, entitled 'Character Set', third paragraph, first line, change 'fewer than 51 characters, double' to 'fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c83"></a>
+
+### C83 · page 150 (folio IV-4) · Section IV, paragraph 4.2.1 (Separators), rule 4, second sentence · `delimiting subscripts, reference modifiers` → `delimiting subscripts, a list of function argumen…`
+
+| | |
+|---|---|
+| **Printed** | `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, reference modifiers, arithmetic expressions, or conditions.` |
+| **This transcription** | `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (page 839, folio A-9), applied in place: "Paragraph 4.2.1, rule (4), change second sentence to read" (kb/Work PB5045).
+
+<a id="errata-c84"></a>
+
+### C84 · page 151 (folio IV-5) · Section IV, paragraph 4.2.2.1 (COBOL Words), its first sentence · `a system-name, or a reserved word.` → `a system-name, a reserved word, or a function-nam…`
+
+| | |
+|---|---|
+| **Printed** | `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word.` |
+| **This transcription** | `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the paragraph as Amendment 1 prints it; it runs on to page 152 (kb/Work PB5045).
+
+<a id="errata-c85"></a>
+
+### C85 · page 152 (folio IV-6) · Section IV, paragraph 4.2.2.1 (COBOL Words), the rest of the paragraph · `system-names and user-defined words form intersec…` → `function-names, system-names, and user-defined wo…`
+
+| | |
+|---|---|
+| **Printed** | `reserved words and system-names form disjoint sets; system-names and user-defined words form intersecting sets. The same COBOL word may be used as a system-name and as a user-defined word within a source program; and the class of a specific occurrence of this COBOL word is determined` |
+| **This transcription** | `reserved words and system-names form disjoint sets; reserved words and function-names form disjoint sets; function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word within a source program; and the class of a specific occurrence of the COBOL word is determined` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the rest of the paragraph as Amendment 1 prints it (kb/Work PB5045).
+
+<a id="errata-c86"></a>
+
+### C86 · page 155 (folio IV-9) · Section IV, a new paragraph 4.2.2.1.4 (Function-Names) · `(no paragraph 4.2.2.1.4)` → `4.2.2.1.4 Function-Names`
+
+| | |
+|---|---|
+| **Printed** | `4.2.2.2 Literals (the paragraph it precedes)` |
+| **This transcription** | `4.2.2.1.4 Function-Names. A function-name is a word that is one of a specified list of words ...` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-9 (page 840, folio A-10), applied in place: "Add the following before paragraph 4.2.2.2: 4.2.2.1.4 Function-Names" (kb/Work PB5045).
+
+<a id="errata-c87"></a>
+
+### C87 · page 161 (folio IV-15) · Section IV, paragraph 4.3.3 (Concept of Classes of Data) · `(the last sentence)` → `two new paragraphs`
+
+| | |
+|---|---|
+| **Printed** | `The following table depicts the relationship of the class and categories of data items.` |
+| **This transcription** | `Every data item which is a function is an elementary item, ... (See page A-27, Intrinsic Function Module.) ¶ The following table depicts the relationship of the class and categories of data items.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-15 (page 840, folio A-10), applied in place: "Paragraph 4.3.3, delete the last sentence and add the following new paragraphs"; the deleted sentence is the second new paragraph (kb/Work PB5045).
+
+<a id="errata-c88"></a>
+
+### C88 · page 162 (folio IV-16) · Section IV, paragraph 4.3.4, second paragraph, first sentence · `must be used if not otherwise` → `must be used for data items other than integer an…`
+
+| | |
+|---|---|
+| **Printed** | `the standard data format must be used if not otherwise specified by the data description.` |
+| **This transcription** | `the standard data format must be used for data items other than integer and numeric functions, if not otherwise specified by the data description.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-16 (page 840, folio A-10), applied in place: "Paragraph 4.3.4, second paragraph, replace first sentence with the following" (kb/Work PB5045).
+
+<a id="errata-c89"></a>
+
+### C89 · page 162 (folio IV-16) · Section IV, paragraph 4.3.4, a new paragraph before the last · `(no paragraph)` → `An alphanumeric function is always represented ...`
+
+| | |
+|---|---|
+| **Printed** | `The size of an elementary data item or a group item is the number of characters in standard data format of the item. (the paragraph it precedes)` |
+| **This transcription** | `An alphanumeric function is always represented in the standard data format. The size of an alphanumeric function in standard data format characters is determined by the definition of the function. The implementor specifies the representation of integer and numeric functions, and this representation need not be the standard data format. Integer and numeric functions may be used only in arithmetic expressions. An integer or numeric function represents the value resulting from the evaluation of the function without the restriction on composite of operands and/or receiving data items. Each implementor will indicate the techniques used in evaluating integer and numeric functions.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-16 (page 840, folio A-10), applied in place: "Paragraph 4.3.4, add the following new paragraph preceding the last paragraph" (kb/Work PB5045).
+
+<a id="errata-c90"></a>
+
+### C90 · page 164 (folio IV-18) · Section IV, paragraph 4.3.8, a new paragraph before the last · `(no paragraph)` → `When the resource named is a function, ...`
+
+| | |
+|---|---|
+| **Printed** | `Unless otherwise specified by the rules for a statement, any subscripting and reference modification are evaluated only once (the paragraph it precedes)` |
+| **This transcription** | `When the resource named is a function, the function definition may require the user to specify in the reference to the function a value or set of values for one or more parameters which determine the value of the function for that particular reference. This is accomplished through the specification of arguments as described in the following paragraphs.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-18 (page 840, folio A-10), applied in place: "Paragraph 4.3.8, add the following new paragraph preceding the last paragraph" (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
