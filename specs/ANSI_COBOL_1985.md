@@ -4115,7 +4115,9 @@ When describing the capabilities of COBOL programs to manipulate files, the foll
 
 2.1 FILE ATTRIBUTES
 
-A file has several attributes which apply to the file at the time it is created and cannot be changed throughout the lifetime of the file. The primary attribute is the organization of the file, which describes its logical structure. There are three organizations: sequential, relative, and indexed. Other fixed attributes of the file provided by the COBOL program are prime record key, alternate record keys, code set, the minimum and maximum logical record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the blocking factor, the padding character, and the record delimiter.
+A file has several attributes which apply to the file at the time it is created and cannot be changed throughout the lifetime of the file. The primary attribute is the organization of the file, which describes its logical structure. There are three organizations: sequential, relative, and indexed. Other fixed attributes of the file provided by the COBOL program are prime record key, alternate record keys, code set, the minimum and maximum logical record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.
+
+> ⚠ **CORRECTED — see the Errata (C186).** The standard prints `sequence of the keys for indexed files, the blocking factor, the padding character` (page 85, folio II-1). Amendment 2 (ANSI X3.23b-1993), its change for page II-1 (page 916, folio B-4), applied in place: "Paragraph 2.1 entitled File Attributes, change a portion of the last sentence from 'sequence of the keys for indexed files, the blocking factor, the padding character' to 'sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character'" (kb/Work PB5045). Corrected to `sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character`.
 
 2.1.1 Sequential Organization
 
@@ -4486,7 +4488,9 @@ II-13
 
 Concepts - Table Handling
 
-(3) The value of selected table elements may be specified using VALUE clauses.
+(3) Every occurrence of an element in a table can be assigned the same initial value using the VALUE clause.
+
+> ⚠ **CORRECTED — see the Errata (C187).** The standard prints `(3) The value of selected table elements may be specified using VALUE clauses.` (page 98, folio II-14). Amendment 2 (ANSI X3.23b-1993), its change for page II-14 (page 916, folio B-4), applied in place: "Paragraph 4.2 entitled Initial Values of Tables, change numbered item 3 at the top of page II-14 to read" (kb/Work PB5045). Corrected to `(3) Every occurrence of an element in a table can be assigned the same initial value using the VALUE clause.`.
 
 ### 4.3 REFERENCES TO TABLE ITEMS
 
@@ -5203,9 +5207,11 @@ II-35
 
 Data processing problems frequently require the use of values which are not directly accessible in the data storage associated with the object program. These data values must be derived through performing some operations on other data. A function represents a temporary data item whose value is derived automatically at the time of reference during the execution of the object program.
 
-The value returned by a function is considered to be a data value. A mechanism is provided at object time to assign a data value to a function when it is referenced. In order to determine the value of a function, the evaluation mechanism may require access to data values provided by the referencing program. These data values are provided by specifying parameters, known as arguments, when referencing the function. Specific functions may place constraints on these arguments such as range, data types, or size, etc. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined.
+The value returned by a function is considered to be a data value. A mechanism is provided at object time to assign a data value to a function when it is referenced. In order to determine the value of a function, the evaluation mechanism may require access to data values provided by the referencing program. These data values are provided by specifying parameters, known as arguments, when referencing the function. Specific functions may place constraints on these arguments such as range, data types, or size, etc. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined.
 
 > ⚠ **CORRECTED — see the Errata (C67).** The standard prints `(page II-36, a blank page)` (page 120). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-35 (page 837, folio A-7), applied in place: "Add the following on page II-36 after paragraph 7.6: 8. INTRINSIC FUNCTION FACILITY" and its two paragraphs; page II-36 is printed blank (kb/Work PB5045). Corrected to `8. INTRINSIC FUNCTION FACILITY (the two paragraphs above)`.
+
+> ⚠ **CORRECTED — see the Errata (C188).** The standard prints `If, at the time a function is referenced, ... the returned value for the function is undefined. (Amendment 1's sentence, C67)` (page 120). Amendment 2 (ANSI X3.23b-1993), its change for page II-35 (A-7) (page 916, folio B-4), applied in place: "Paragraph 8 entitled Intrinsic Function Facility, second paragraph, replace the last sentence with the following" (kb/Work PB5045). Corrected to `..., then the result of such a reference is undefined.`.
 
 # SECTION III: GLOSSARY
 
@@ -5219,7 +5225,9 @@ Glossary
 
 The terms in this section are defined in accordance with their meaning in COBOL, and may not have the same meaning for other languages.
 
-These definitions are also intended as either reference or introductory material to be reviewed prior to reading the detailed language specifications that follow. For this reason, these definitions are, in most instances, brief and do not include detailed syntactical rules. Complete specifications for elements defined in this section can be located in Sections IV through XVI of this document.
+These definitions are also intended as either reference or introductory material to be reviewed prior to reading the detailed language specifications that follow. For this reason, these definitions are, in most instances, brief and do not include detailed syntactical rules. Complete specifications for elements defined in this section can be located in Sections IV through XVI and Section A of this document.
+
+> ⚠ **CORRECTED — see the Errata (C189).** The standard prints `Complete specifications for elements defined in this section can be located in Sections IV through XVI of this document.` (page 121, folio III-1). Amendment 2 (ANSI X3.23b-1993), its change for page III-1 (page 916, folio B-4), applied in place: "Paragraph 1 entitled Introduction, second paragraph, change the last sentence to read" (kb/Work PB5045). Corrected to `Complete specifications for elements defined in this section can be located in Sections IV through XVI and Section A of this document.`.
 
 ### 2. <u>DEFINITIONS</u>
 
@@ -5341,7 +5349,9 @@ Glossary
 
 NOTE 1: In the cases where an implementation does not provide all of the COBOL character set to be graphically represented, substitute graphics may be specified by the implementor to replace the characters not represented. The COBOL character set graphics are a subset of American National Standard X3.4-1977, Code for Information Interchange. With the exception of '$', they are also a subset of the graphics defined for the International Reference Version of International Standard ISO 646-1973, 7-Bit Coded Character Set for Information Processing Interchange.
 
-NOTE 2: When the computer character set includes lowercase letters, they may be used in character-strings. Except when used in nonnumeric literals and some PICTURE symbols, each lowercase letter is equivalent to the corresponding uppercase letter.
+NOTE 2: When the computer character set includes lowercase letters, they may be used in character-strings and text words. Except when used in nonnumeric literals and some PICTURE symbols, each lowercase letter is equivalent to the corresponding uppercase letter.
+
+> ⚠ **CORRECTED — see the Errata (C190).** The standard prints `they may be used in character-strings. Except when used in nonnumeric literals and some PICTURE symbols` (page 124, folio III-4). Amendment 2 (ANSI X3.23b-1993), its change for page III-4 (page 916, folio B-4), applied in place: "Definition of COBOL Character Set, NOTE 2, first sentence, change 'they may be used in character-strings.' to 'they may be used in character-strings and text words.'" (kb/Work PB5045). Corrected to `they may be used in character-strings and text words. Except when used in nonnumeric literals and some PICTURE symbols`.
 
 <u>COBOL Word</u>. A character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. (See page IV-5, COBOL Words.)
 
@@ -5569,7 +5579,9 @@ Glossary
 
 <u>File Section</u>. The section of the Data Division that contains file description entries and sort-merge file description entries together with their associated record descriptions.
 
-<u>Fixed File Attributes</u>. Information about a file which is established when a file is created and cannot subsequently be changed during the existence of the file. These attributes include the organization of the file (sequential, relative, or indexed), the prime record key, the alternate record keys, the code set, the minimum and maximum record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the blocking factor, the padding character, and the record delimiter.
+<u>Fixed File Attributes</u>. Information about a file which is established when a file is created and cannot subsequently be changed during the existence of the file. These attributes include the organization of the file (sequential, relative, or indexed), the prime record key, the alternate record keys, the code set, the minimum and maximum record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.
+
+> ⚠ **CORRECTED — see the Errata (C191).** The standard prints `the collating sequence of the keys for indexed files, the blocking factor, the padding character, and the record delimiter.` (page 130, folio III-10). Amendment 2 (ANSI X3.23b-1993), its change for page III-10 (page 916, folio B-4), applied in place: "Definition of Fixed File Attributes, sixth line, change 'the blocking factor' to 'the minimum and maximum physical record size'" (kb/Work PB5045). Corrected to `the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.`.
 
 <u>Fixed Length Record</u>. A record associated with a file whose file description or sort-merge description entry requires that all records contain the same number of character positions.
 
@@ -5653,15 +5665,19 @@ Glossary
 
 (2) A numeric data item defined in the Data Division that does not include any digit positions to the right of the decimal point.
 
-(3) A numeric function whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.
+(3) An integer function.
+
+> ⚠ **CORRECTED — see the Errata (C192).** The standard prints `(3) A numeric function whose definition provides that all digits ... (Amendment 1's item, C76)` (page 132, folio III-12). Amendment 2 (ANSI X3.23b-1993), its change for page III-12 (A-9) (page 916, folio B-4), applied in place: "Definition of Integer, item 3, change to read: 'An integer function.'" (kb/Work PB5045). Corrected to `(3) An integer function.`.
 
 Where the term 'integer' appears in the general formats, integer must be a numeric literal which is an integer, and it must be neither signed nor zero unless explicitly allowed by the rules for that format.
 
 > ⚠ **CORRECTED — see the Errata (C76).** The standard prints `Integer. A numeric literal or a numeric data item that does not include any digit position to the right of the assumed decimal point. When the term 'integer' appears in general formats, integer must not be a numeric data item, and must not be signed, nor zero unless explicitly allowed by the rules of that format.` (page 132, folio III-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (the definition continues on page 839, folio A-9) (kb/Work PB5045). Corrected to `Integer. (1) ... (2) ... (3) ... (the definition above)`.
 
-<u>Integer Function</u>. A function whose category is numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.
+<u>Integer Function</u>. A function whose class and category are numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.
 
 > ⚠ **CORRECTED — see the Errata (C72).** The standard prints `Integer (the entry it follows)` (page 132, folio III-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Integer Function. A function whose category is numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.`.
+
+> ⚠ **CORRECTED — see the Errata (C193).** The standard prints `Integer Function. A function whose category is numeric ... (Amendment 1's entry, C72)` (page 132, folio III-12). Amendment 2 (ANSI X3.23b-1993), its change for page III-12 (A-8) (page 916, folio B-4), applied in place: "Definition of Integer Function, change 'A function whose category is numeric ...' to 'A function whose class and category are numeric ...'" (kb/Work PB5045). Corrected to `Integer Function. A function whose class and category are numeric ...`.
 
 <u>Internal Data</u>. The data described in a program excluding all external data items and external file connectors. Items described in the Linkage Section of a program are treated as internal data.
 
@@ -6170,7 +6186,9 @@ Glossary
 
 (2) A literal including, in the case of nonnumeric literals, the opening quotation mark and the closing quotation mark which bound the literal.
 
-(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal.
+(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal. One or both of the bounding separators may be a pseudo-text delimiter.
+
+> ⚠ **CORRECTED — see the Errata (C194).** The standard prints `(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal.` (page 145, folio III-25). Amendment 2 (ANSI X3.23b-1993), its change for page III-25 (page 916, folio B-4), applied in place: "Definition of Text Word, item 3, add the following as a new last sentence" (kb/Work PB5045). Corrected to `(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal. One or both of the bounding separators may be a pseudo-text delimiter.`.
 
 <u>Top Margin</u>. An empty area which precedes the page body.
 
@@ -6332,9 +6350,11 @@ A separator is a character or two contiguous characters formed according to the 
 
 (3) The punctuation character period, when followed by a space is a separator. It must be used only to indicate the end of a sentence, or as shown in formats.
 
-(4) The punctuation characters right and left parentheses are separators. Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions.
+(4) The punctuation characters right and left parentheses are separators. Except in pseudo-text, parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions.
 
 > ⚠ **CORRECTED — see the Errata (C83).** The standard prints `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, reference modifiers, arithmetic expressions, or conditions.` (page 150, folio IV-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (page 839, folio A-9), applied in place: "Paragraph 4.2.1, rule (4), change second sentence to read" (kb/Work PB5045). Corrected to `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions.`.
+
+> ⚠ **CORRECTED — see the Errata (C195).** The standard prints `Parentheses may appear only in balanced pairs` (page 150, folio IV-4). Amendment 2 (ANSI X3.23b-1993), its change for page IV-4 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.1 entitled Separators, rule 4, change second sentence from: 'Parentheses may appear only ...' to 'Except in pseudo-text, parentheses may appear only ...'" (kb/Work PB5045). Corrected to `Except in pseudo-text, parentheses may appear only in balanced pairs`.
 
 IV-4
 
@@ -6342,7 +6362,9 @@ IV-4
 
 Character-Strings
 
-(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space or left parenthesis; a closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, or right parenthesis.
+(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter. A closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, right parenthesis, or closing pseudo-text delimiter. Separators immediately preceding the opening quotation mark are not part of the opening separator quotation mark. Separators immediately following the closing quotation mark are not part of the closing separator quotation mark.
+
+> ⚠ **CORRECTED — see the Errata (C196).** The standard prints `(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space or left parenthesis; a closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, or right parenthesis.` (page 151, folio IV-5). Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (page 917, folio B-5), applied in place: "Paragraph 4.2.1 entitled Separators, change rule 5 to read" (kb/Work PB5045). Corrected to the text above.
 
 (6) Pseudo-text delimiters are separators. An opening pseudo-text delimiter must be immediately preceded by a space; a closing pseudo-text delimiter must be immediately followed by one of the separators space, comma, semicolon, or period.
 
@@ -6370,9 +6392,11 @@ A character-string is a character or a sequence of contiguous characters which f
 
 #### 4.2.2.1 COBOL Words
 
-A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word is selected from the set of letters, digits, and the hyphen. The hyphen may not appear as the first or last character. Each lowercase letter is
+A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word that is not a special character word is selected from the set of letters, digits, and the hyphen; the hyphen may not appear as the first or last character in such words. Each lowercase letter is
 
 > ⚠ **CORRECTED — see the Errata (C84).** The standard prints `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word.` (page 151, folio IV-5). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the paragraph as Amendment 1 prints it; it runs on to page 152 (kb/Work PB5045). Corrected to `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name.`.
+
+> ⚠ **CORRECTED — see the Errata (C197).** The standard prints `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word is selected from the set of letters, digits, and the hyphen. The hyphen may not appear as the first or last character. Each lowercase letter is (Amendment 1's text, C84)` (page 151, folio IV-5). Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.2.1, entitled COBOL Words, replace the paragraph with the following", which continues on page 152 (kb/Work PB5045). Corrected to the text above.
 
 IV-5
 
@@ -6380,9 +6404,25 @@ IV-5
 
 User-Defined Words
 
-considered to be equivalent to its corresponding uppercase letter. Within a source program, reserved words and user-defined words form disjoint sets; reserved words and system-names form disjoint sets; reserved words and function-names form disjoint sets; function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word within a source program; and the class of a specific occurrence of the COBOL word is determined by the context of the clause or phrase in which it occurs.
+considered to be equivalent to its corresponding uppercase letter.
+
+Within a source program the following apply:
+
+(1) For all COBOL words excluding the words LENGTH, RANDOM, and SUM:
+
+a. Reserved words form disjoint sets with user-defined words, system-names, and function-names.
+
+b. Function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word. The classification of a specific occurrence of such COBOL words is determined by the context of the clause or phrase in which it occurs.
+
+(2) For the COBOL words LENGTH, RANDOM, and SUM:
+
+a. The reserved words LENGTH, RANDOM, and SUM form an identical set with the function-names LENGTH, RANDOM, and SUM. The same COBOL word LENGTH, RANDOM, or SUM may be used as a function-name and as a reserved word. The classification of a specific occurrence of such COBOL words is determined by the context in which it occurs.
+
+b. The COBOL words LENGTH, RANDOM, and SUM form disjoint sets with user-defined words and system-names. The COBOL words LENGTH, RANDOM, and SUM may not be used as a system-name or as a user-defined word regardless of context.
 
 > ⚠ **CORRECTED — see the Errata (C85).** The standard prints `reserved words and system-names form disjoint sets; system-names and user-defined words form intersecting sets. The same COBOL word may be used as a system-name and as a user-defined word within a source program; and the class of a specific occurrence of this COBOL word is determined` (page 152, folio IV-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the rest of the paragraph as Amendment 1 prints it (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C198).** The standard prints `considered to be equivalent to its corresponding uppercase letter. Within a source program, reserved words and user-defined words form disjoint sets; reserved words and system-names form disjoint sets; reserved words and function-names form disjoint sets; function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word within a source program; and the class of a specific occurrence of the COBOL word is determined by the context of the clause or phrase in which it occurs. (Amendment 1's text, C85)` (page 152, folio IV-6). Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.2.1, entitled COBOL Words, replace the paragraph with the following", its text on page 917 (folio B-5) and page 918 (folio B-6) (kb/Work PB5045). Corrected to `considered to be equivalent to its corresponding uppercase letter. ¶ Within a source program the following apply: (1) a. b. (2) a. b. (above)`.
 
 #### 4.2.2.1.1 User-Defined Words
 
@@ -6544,9 +6584,11 @@ Certain reserved words are used to name and reference specific constant values. 
 
 #### 4.2.2.1.4 Function-Names
 
-A function-name is a word that is one of a specified list of words which may be used in COBOL source programs. The same word, in a different context, may appear in a program as a user-defined word or a system-name. (See page A-29, Definitions of Functions.)
+A function-name is a word that is one of a specified list of words which may be used in COBOL source programs. With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word. (See page A-29, Definitions of Functions.)
 
 > ⚠ **CORRECTED — see the Errata (C86).** The standard prints `4.2.2.2 Literals (the paragraph it precedes)` (page 155, folio IV-9). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-9 (page 840, folio A-10), applied in place: "Add the following before paragraph 4.2.2.2: 4.2.2.1.4 Function-Names" (kb/Work PB5045). Corrected to `4.2.2.1.4 Function-Names. A function-name is a word that is one of a specified list of words ...`.
+
+> ⚠ **CORRECTED — see the Errata (C199).** The standard prints `The same word, in a different context, may appear in a program as a user-defined word or a system-name. (Amendment 1's sentence, C86)` (page 155, folio IV-9). Amendment 2 (ANSI X3.23b-1993), its change for page IV-9 (A-10) (page 918, folio B-6), applied in place: "Paragraph 4.2.2.1.4 entitled Function-Names, change the second sentence to read" (kb/Work PB5045). Corrected to `With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word.`.
 
 ### 4.2.2.2 Literals
 
@@ -6626,7 +6668,9 @@ The figurative constant value and the reserved words used to reference them are 
 
 When a figurative constant represents a string of one or more characters, the length of the string is determined by the compiler from context according to the following rules:
 
-(1) When a figurative constant is specified in a VALUE clause, or when a figurative constant is associated with another data item (e.g., when the figurative constant is moved to or compared with another data item), the string of characters specified by the figurative constant is repeated character by character on the right until the size of the resultant string is greater than or equal to the number of character positions in the associated data item. This resultant string is then truncated from the right until it is equal to the number of character positions in the associated data item. This is done prior to and independent of the application of any JUSTIFIED clause that may be associated with the data item.
+(1) When a figurative constant is specified in a VALUE clause, or when a figurative constant is associated with another data item (e.g., when the figurative constant is moved to or compared with another data item), the string of characters specified by the figurative constant is repeated character by character on the right until the size of the resultant string is greater than or equal to the number of character positions in the associated data item. This resultant string is then truncated from the right until the number of character positions remaining is equal either to 1 or to the number of character positions in the associated data item, whichever is greater. This is done prior to and independent of the application of any JUSTIFIED clause that may be associated with the data item.
+
+> ⚠ **CORRECTED — see the Errata (C200).** The standard prints `This resultant string is then truncated from the right until it is equal to the number of character positions in the associated data item.` (page 157, folio IV-11). Amendment 2 (ANSI X3.23b-1993), its change for page IV-11 (page 918, folio B-6), applied in place: "Paragraph 4.2.2.2.3 entitled Figurative Constant Values, second occurrence of a paragraph numbered (1), penultimate sentence, change in part" (kb/Work PB5045). Corrected to `This resultant string is then truncated from the right until the number of character positions remaining is equal either to 1 or to the number of character positions in the associated data item, whichever is greater.`.
 
 (2) When a figurative constant, other than ALL literal, is not associated with another data item as when the figurative constant appears in a DISPLAY, STOP, STRING, or UNSTRING statement, the length of the string is one character.
 
@@ -7025,7 +7069,9 @@ any given dimension of the table is the maximum number of occurrences of the ite
 
 #### 4.3.8.3 Function-Identifier
 
-##### 4.3.8.3.1 Purpose of a Function-Identifier
+##### 4.3.8.3.1 Function
+
+> ⚠ **CORRECTED — see the Errata (C201).** The standard prints `4.3.8.3.1 Purpose of a Function-Identifier (Amendment 1's title, C95)` (page 168, folio IV-22). Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-11) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.3.1 change the title from Purpose of a Function-Identifier to Function" (kb/Work PB5045). Corrected to `4.3.8.3.1 Function`.
 
 A function-identifier is a syntactically correct combination of character-strings and separators that uniquely references the data item resulting from the evaluation of a function.
 
@@ -7058,9 +7104,11 @@ b. Where the rules associated with the general formats require the data item bei
 
 > ⚠ **CORRECTED — see the Errata (C95).** The standard prints `4.3.8.3 Reference Modification (the paragraph now numbered 4.3.8.4)` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 841, folio A-11), applied in place: "Add the following as new paragraph 4.3.8.3: 4.3.8.3 Function-Identifier", which runs on to page 842 (folio A-12) (kb/Work PB5045). Corrected to `4.3.8.3 Function-Identifier, its Purpose, General Format, Syntax Rules (1) to (4) and General Rules (1) and (2), above`.
 
-#### 4.3.8.4 Reference-Modifier
+#### 4.3.8.4 Reference Modification
 
 > ⚠ **CORRECTED — see the Errata (C96).** The standard prints `4.3.8.3 Reference Modification` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4, change the title to 'Reference-Modifier'" (kb/Work PB5045). Corrected to `4.3.8.4 Reference-Modifier`.
+
+> ⚠ **CORRECTED — see the Errata (C202).** The standard prints `4.3.8.3 Reference Modification (Amendment 1 renumbered it 4.3.8.4 and retitled it Reference-Modifier, C93, C96)` (page 168, folio IV-22). Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-12) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.4, change the title from Reference-Modifier to Reference Modification" (kb/Work PB5045). Corrected to `4.3.8.4 Reference Modification`.
 
 ##### 4.3.8.4.1 Function
 
@@ -7280,7 +7328,9 @@ The implicit scope terminators are the following:
 
 (1) At the end of any sentence, the separator period which terminates the scope of all previous statements not yet terminated.
 
-(2) Within any statement containing another statement, the next phrase of the containing statement following the contained statement terminates the scope of any unterminated contained statement. Examples of such phrases are ELSE, WHEN, NOT AT END, etc.
+(2) Within any statement containing another statement, the next phrase of the containing statement following the contained statement terminates the scope of any unterminated contained statement.
+
+> ⚠ **CORRECTED — see the Errata (C203).** The standard prints `Examples of such phrases are ELSE, WHEN, NOT AT END, etc.` (page 173, folio IV-27). Amendment 2 (ANSI X3.23b-1993), its change for page IV-27 (page 918, folio B-6), applied in place: "Paragraph 4.4.4 entitled Explicit and Implicit Scope Terminators, last paragraph, item 2, delete the last sentence that reads: 'Examples of such phrases are ELSE, WHEN, NOT AT END, etc.'" (kb/Work PB5045). Corrected to `(deleted)`.
 
 IV-27
 
@@ -37899,6 +37949,24 @@ it is taken as the rule of 1985.
 | [C183](#errata-c183) | 28 | I-8 | Section I, paragraph 1.5.2.5.3 (Reserved Words) | `An implementation of Standard COBOL must recognize as reser…` | `An implementation of Standard COBOL must recognize as reser…` | amendment-2 |
 | [C184](#errata-c184) | 32 | I-12 | Section I, the Nucleus module summary, Language Concepts | `Reference-modifier` | `Reference modification` | amendment-2 |
 | [C185](#errata-c185) | 62 | I-42 | Section I, the division summary, Uniqueness of Reference | `Reference-modifier` | `Reference modification` | amendment-2 |
+| [C186](#errata-c186) | 85 | II-1 | Section II, paragraph 2.1 (File Attributes), the last sentence | `the blocking factor` | `the minimum and maximum physical record size` | amendment-2 |
+| [C187](#errata-c187) | 98 | II-14 | Section II, paragraph 4.2 (Initial Values of Tables), item 3 | `(3) The value of selected table elements may be specified u…` | `(3) Every occurrence of an element in a table can be assign…` | amendment-2 |
+| [C188](#errata-c188) | 120 | — | Section II, paragraph 8 (Intrinsic Function Facility), second paragraph, last sentence | `the returned value for the function is undefined` | `then the result of such a reference is undefined` | amendment-2 |
+| [C189](#errata-c189) | 121 | III-1 | Section III, paragraph 1 (Introduction), second paragraph, last sentence | `Sections IV through XVI of` | `Sections IV through XVI and Section A of` | amendment-2 |
+| [C190](#errata-c190) | 124 | III-4 | Section III, the glossary, COBOL Character Set, NOTE 2, first sentence | `used in character-strings.` | `used in character-strings and text words.` | amendment-2 |
+| [C191](#errata-c191) | 130 | III-10 | Section III, the glossary, Fixed File Attributes | `the blocking factor` | `the minimum and maximum physical record size` | amendment-2 |
+| [C192](#errata-c192) | 132 | III-12 | Section III, the glossary, Integer, item 3 | `(3) A numeric function whose definition provides that all d…` | `(3) An integer function.` | amendment-2 |
+| [C193](#errata-c193) | 132 | III-12 | Section III, the glossary, Integer Function | `whose category is numeric` | `whose class and category are numeric` | amendment-2 |
+| [C194](#errata-c194) | 145 | III-25 | Section III, the glossary, Text Word, item 3 | `(no last sentence)` | `One or both of the bounding separators may be a pseudo-text…` | amendment-2 |
+| [C195](#errata-c195) | 150 | IV-4 | Section IV, paragraph 4.2.1 (Separators), rule 4, second sentence | `Parentheses may appear only` | `Except in pseudo-text, parentheses may appear only` | amendment-2 |
+| [C196](#errata-c196) | 151 | IV-5 | Section IV, paragraph 4.2.1 (Separators), rule 5 | `(5) The punctuation character quotation mark is a separator…` | `(5) The punctuation character quotation mark is a separator…` | amendment-2 |
+| [C197](#errata-c197) | 151 | IV-5 | Section IV, paragraph 4.2.2.1 (COBOL Words), the paragraph as far as page IV-5 prints it | `Each character of a COBOL word is selected` | `... that is not a special character word is selected ...` | amendment-2 |
+| [C198](#errata-c198) | 152 | IV-6 | Section IV, paragraph 4.2.2.1 (COBOL Words), the rest of the paragraph | `Within a source program, reserved words ... form disjoint s…` | `Within a source program the following apply: (1) ... (2) ...` | amendment-2 |
+| [C199](#errata-c199) | 155 | IV-9 | Section IV, paragraph 4.2.2.1.4 (Function-Names), second sentence | `The same word, in a different context, may appear in a prog…` | `With the exception of the words LENGTH, RANDOM, and SUM, a…` | amendment-2 |
+| [C200](#errata-c200) | 157 | IV-11 | Section IV, paragraph 4.2.2.2.3 (Figurative Constant Values), the second (1), penultimate sentence | `until it is equal to the number of character positions` | `until the number of character positions remaining is equal…` | amendment-2 |
+| [C201](#errata-c201) | 168 | IV-22 | Section IV, paragraph 4.3.8.3.1, its title | `Purpose of a Function-Identifier` | `Function` | amendment-2 |
+| [C202](#errata-c202) | 168 | IV-22 | Section IV, paragraph 4.3.8.4, its title | `Reference-Modifier` | `Reference Modification` | amendment-2 |
+| [C203](#errata-c203) | 173 | IV-27 | Section IV, paragraph 4.4.4 (Explicit and Implicit Scope Terminators), last paragraph, item 2 | `Examples of such phrases are ELSE, WHEN, NOT AT END, etc.` | `(deleted)` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -39934,6 +40002,204 @@ Amendment 2 (ANSI X3.23b-1993), its change for page I-12 (A-4) (page 915, folio 
 | **This transcription** | `Reference modification` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page I-42 (A-6) (page 915, folio B-3), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'": Amendment 2 restores the printed entry Amendment 1 changed (C59) (kb/Work PB5045).
+
+<a id="errata-c186"></a>
+
+### C186 · page 85 (folio II-1) · Section II, paragraph 2.1 (File Attributes), the last sentence · `the blocking factor` → `the minimum and maximum physical record size`
+
+| | |
+|---|---|
+| **Printed** | `sequence of the keys for indexed files, the blocking factor, the padding character` |
+| **This transcription** | `sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page II-1 (page 916, folio B-4), applied in place: "Paragraph 2.1 entitled File Attributes, change a portion of the last sentence from 'sequence of the keys for indexed files, the blocking factor, the padding character' to 'sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character'" (kb/Work PB5045).
+
+<a id="errata-c187"></a>
+
+### C187 · page 98 (folio II-14) · Section II, paragraph 4.2 (Initial Values of Tables), item 3 · `(3) The value of selected table elements may be s…` → `(3) Every occurrence of an element in a table can…`
+
+| | |
+|---|---|
+| **Printed** | `(3) The value of selected table elements may be specified using VALUE clauses.` |
+| **This transcription** | `(3) Every occurrence of an element in a table can be assigned the same initial value using the VALUE clause.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page II-14 (page 916, folio B-4), applied in place: "Paragraph 4.2 entitled Initial Values of Tables, change numbered item 3 at the top of page II-14 to read" (kb/Work PB5045).
+
+<a id="errata-c188"></a>
+
+### C188 · page 120 · Section II, paragraph 8 (Intrinsic Function Facility), second paragraph, last sentence · `the returned value for the function is undefined` → `then the result of such a reference is undefined`
+
+| | |
+|---|---|
+| **Printed** | `If, at the time a function is referenced, ... the returned value for the function is undefined. (Amendment 1's sentence, C67)` |
+| **This transcription** | `..., then the result of such a reference is undefined.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page II-35 (A-7) (page 916, folio B-4), applied in place: "Paragraph 8 entitled Intrinsic Function Facility, second paragraph, replace the last sentence with the following" (kb/Work PB5045).
+
+<a id="errata-c189"></a>
+
+### C189 · page 121 (folio III-1) · Section III, paragraph 1 (Introduction), second paragraph, last sentence · `Sections IV through XVI of` → `Sections IV through XVI and Section A of`
+
+| | |
+|---|---|
+| **Printed** | `Complete specifications for elements defined in this section can be located in Sections IV through XVI of this document.` |
+| **This transcription** | `Complete specifications for elements defined in this section can be located in Sections IV through XVI and Section A of this document.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-1 (page 916, folio B-4), applied in place: "Paragraph 1 entitled Introduction, second paragraph, change the last sentence to read" (kb/Work PB5045).
+
+<a id="errata-c190"></a>
+
+### C190 · page 124 (folio III-4) · Section III, the glossary, COBOL Character Set, NOTE 2, first sentence · `used in character-strings.` → `used in character-strings and text words.`
+
+| | |
+|---|---|
+| **Printed** | `they may be used in character-strings. Except when used in nonnumeric literals and some PICTURE symbols` |
+| **This transcription** | `they may be used in character-strings and text words. Except when used in nonnumeric literals and some PICTURE symbols` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-4 (page 916, folio B-4), applied in place: "Definition of COBOL Character Set, NOTE 2, first sentence, change 'they may be used in character-strings.' to 'they may be used in character-strings and text words.'" (kb/Work PB5045).
+
+<a id="errata-c191"></a>
+
+### C191 · page 130 (folio III-10) · Section III, the glossary, Fixed File Attributes · `the blocking factor` → `the minimum and maximum physical record size`
+
+| | |
+|---|---|
+| **Printed** | `the collating sequence of the keys for indexed files, the blocking factor, the padding character, and the record delimiter.` |
+| **This transcription** | `the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-10 (page 916, folio B-4), applied in place: "Definition of Fixed File Attributes, sixth line, change 'the blocking factor' to 'the minimum and maximum physical record size'" (kb/Work PB5045).
+
+<a id="errata-c192"></a>
+
+### C192 · page 132 (folio III-12) · Section III, the glossary, Integer, item 3 · `(3) A numeric function whose definition provides…` → `(3) An integer function.`
+
+| | |
+|---|---|
+| **Printed** | `(3) A numeric function whose definition provides that all digits ... (Amendment 1's item, C76)` |
+| **This transcription** | `(3) An integer function.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-12 (A-9) (page 916, folio B-4), applied in place: "Definition of Integer, item 3, change to read: 'An integer function.'" (kb/Work PB5045).
+
+<a id="errata-c193"></a>
+
+### C193 · page 132 (folio III-12) · Section III, the glossary, Integer Function · `whose category is numeric` → `whose class and category are numeric`
+
+| | |
+|---|---|
+| **Printed** | `Integer Function. A function whose category is numeric ... (Amendment 1's entry, C72)` |
+| **This transcription** | `Integer Function. A function whose class and category are numeric ...` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-12 (A-8) (page 916, folio B-4), applied in place: "Definition of Integer Function, change 'A function whose category is numeric ...' to 'A function whose class and category are numeric ...'" (kb/Work PB5045).
+
+<a id="errata-c194"></a>
+
+### C194 · page 145 (folio III-25) · Section III, the glossary, Text Word, item 3 · `(no last sentence)` → `One or both of the bounding separators may be a p…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal.` |
+| **This transcription** | `(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal. One or both of the bounding separators may be a pseudo-text delimiter.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-25 (page 916, folio B-4), applied in place: "Definition of Text Word, item 3, add the following as a new last sentence" (kb/Work PB5045).
+
+<a id="errata-c195"></a>
+
+### C195 · page 150 (folio IV-4) · Section IV, paragraph 4.2.1 (Separators), rule 4, second sentence · `Parentheses may appear only` → `Except in pseudo-text, parentheses may appear only`
+
+| | |
+|---|---|
+| **Printed** | `Parentheses may appear only in balanced pairs` |
+| **This transcription** | `Except in pseudo-text, parentheses may appear only in balanced pairs` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-4 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.1 entitled Separators, rule 4, change second sentence from: 'Parentheses may appear only ...' to 'Except in pseudo-text, parentheses may appear only ...'" (kb/Work PB5045).
+
+<a id="errata-c196"></a>
+
+### C196 · page 151 (folio IV-5) · Section IV, paragraph 4.2.1 (Separators), rule 5 · `(5) The punctuation character quotation mark is a…` → `(5) The punctuation character quotation mark is a…`
+
+| | |
+|---|---|
+| **Printed** | `(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space or left parenthesis; a closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, or right parenthesis.` |
+| **This transcription** | `(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter. A closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, right parenthesis, or closing pseudo-text delimiter. Separators immediately preceding the opening quotation mark are not part of the opening separator quotation mark. Separators immediately following the closing quotation mark are not part of the closing separator quotation mark.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (page 917, folio B-5), applied in place: "Paragraph 4.2.1 entitled Separators, change rule 5 to read" (kb/Work PB5045).
+
+<a id="errata-c197"></a>
+
+### C197 · page 151 (folio IV-5) · Section IV, paragraph 4.2.2.1 (COBOL Words), the paragraph as far as page IV-5 prints it · `Each character of a COBOL word is selected` → `... that is not a special character word is selec…`
+
+| | |
+|---|---|
+| **Printed** | `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word is selected from the set of letters, digits, and the hyphen. The hyphen may not appear as the first or last character. Each lowercase letter is (Amendment 1's text, C84)` |
+| **This transcription** | `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word that is not a special character word is selected from the set of letters, digits, and the hyphen; the hyphen may not appear as the first or last character in such words. Each lowercase letter is` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.2.1, entitled COBOL Words, replace the paragraph with the following", which continues on page 152 (kb/Work PB5045).
+
+<a id="errata-c198"></a>
+
+### C198 · page 152 (folio IV-6) · Section IV, paragraph 4.2.2.1 (COBOL Words), the rest of the paragraph · `Within a source program, reserved words ... form…` → `Within a source program the following apply: (1)…`
+
+| | |
+|---|---|
+| **Printed** | `considered to be equivalent to its corresponding uppercase letter. Within a source program, reserved words and user-defined words form disjoint sets; reserved words and system-names form disjoint sets; reserved words and function-names form disjoint sets; function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word within a source program; and the class of a specific occurrence of the COBOL word is determined by the context of the clause or phrase in which it occurs. (Amendment 1's text, C85)` |
+| **This transcription** | `considered to be equivalent to its corresponding uppercase letter. ¶ Within a source program the following apply: (1) a. b. (2) a. b. (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.2.1, entitled COBOL Words, replace the paragraph with the following", its text on page 917 (folio B-5) and page 918 (folio B-6) (kb/Work PB5045).
+
+<a id="errata-c199"></a>
+
+### C199 · page 155 (folio IV-9) · Section IV, paragraph 4.2.2.1.4 (Function-Names), second sentence · `The same word, in a different context, may appear…` → `With the exception of the words LENGTH, RANDOM, a…`
+
+| | |
+|---|---|
+| **Printed** | `The same word, in a different context, may appear in a program as a user-defined word or a system-name. (Amendment 1's sentence, C86)` |
+| **This transcription** | `With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-9 (A-10) (page 918, folio B-6), applied in place: "Paragraph 4.2.2.1.4 entitled Function-Names, change the second sentence to read" (kb/Work PB5045).
+
+<a id="errata-c200"></a>
+
+### C200 · page 157 (folio IV-11) · Section IV, paragraph 4.2.2.2.3 (Figurative Constant Values), the second (1), penultimate sentence · `until it is equal to the number of character posi…` → `until the number of character positions remaining…`
+
+| | |
+|---|---|
+| **Printed** | `This resultant string is then truncated from the right until it is equal to the number of character positions in the associated data item.` |
+| **This transcription** | `This resultant string is then truncated from the right until the number of character positions remaining is equal either to 1 or to the number of character positions in the associated data item, whichever is greater.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-11 (page 918, folio B-6), applied in place: "Paragraph 4.2.2.2.3 entitled Figurative Constant Values, second occurrence of a paragraph numbered (1), penultimate sentence, change in part" (kb/Work PB5045).
+
+<a id="errata-c201"></a>
+
+### C201 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.3.1, its title · `Purpose of a Function-Identifier` → `Function`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3.1 Purpose of a Function-Identifier (Amendment 1's title, C95)` |
+| **This transcription** | `4.3.8.3.1 Function` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-11) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.3.1 change the title from Purpose of a Function-Identifier to Function" (kb/Work PB5045).
+
+<a id="errata-c202"></a>
+
+### C202 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4, its title · `Reference-Modifier` → `Reference Modification`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3 Reference Modification (Amendment 1 renumbered it 4.3.8.4 and retitled it Reference-Modifier, C93, C96)` |
+| **This transcription** | `4.3.8.4 Reference Modification` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-12) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.4, change the title from Reference-Modifier to Reference Modification" (kb/Work PB5045).
+
+<a id="errata-c203"></a>
+
+### C203 · page 173 (folio IV-27) · Section IV, paragraph 4.4.4 (Explicit and Implicit Scope Terminators), last paragraph, item 2 · `Examples of such phrases are ELSE, WHEN, NOT AT E…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `Examples of such phrases are ELSE, WHEN, NOT AT END, etc.` |
+| **This transcription** | `(deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-27 (page 918, folio B-6), applied in place: "Paragraph 4.4.4 entitled Explicit and Implicit Scope Terminators, last paragraph, item 2, delete the last sentence that reads: 'Examples of such phrases are ELSE, WHEN, NOT AT END, etc.'" (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
