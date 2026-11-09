@@ -200,10 +200,20 @@ indented row is its first cell prefixed with one `&nbsp;` per printed character 
 leftmost row of its block (a block opens at a heading row such as `<u>PROCEDURE DIVISION</u>`), and a group label the
 page underlines is `<u>…</u>` around the label alone, never the dotted leader after it. The indentation was measured
 from the scanned page (a row's left edge, 8.4 pixels to the character at 100 dpi) and the rows were matched to the
-table by order; pages 60 and 84 are not tables, and page 71's opening paragraph is not a table row. The row repairs
-are in the ledger under the sweep `summary-rows(PB4953)`. A top-level body heading the page underlines (`4. <u>TABLE
+table by order; pages 60 and 84 are not tables. The row repairs are in the ledger under the sweep `summary-rows(PB4953)`.
+The module-column cells of pages 58-83 were compared with the PDF's text layer (each column's cells in reading order against
+the table's, OCR misreads of the module letters aside) and read by eye where they differed; every cell agrees with the page
+(kb/Work PB5028). A paragraph the page sets inside a table body (page 71's opening "The following clauses appear in ...",
+and page 736's) is one cell whose printed lines are `<br>`-separated, each prefixed with its own `&nbsp;` run; the ledger
+sweep is `table-body-paragraph(PB5028)`. A top-level body heading the page underlines (`4. <u>TABLE
 HANDLING</u>`, `<u>SECTION IV: …</u>`, a `GENERAL FORMAT FOR …` title, a condition-format label) carries `<u>` over its
-words and not its number; the ledger sweep is `heading-underlines(PB4953)`.
+words and not its number; the ledger sweeps are `heading-underlines(PB4953)` and `heading-underlines(PB5028)`. The second pass
+found 30 more (every `N. TITLE` the first left bare, 14 `GENERAL FORMAT FOR ...` titles, `SECTION VII`, `VIII` and `XIV` on
+their opening pages, `CONDITION-NAME CONDITION:`) and read all 212 underlined lines the text-layer measure could not confirm
+against the page: all 212 are underlined in print. A `# SECTION ...` line placed after a folio or on a blank divider page is
+an editorial divider the page does not print, so it carries no underline. The OCR word boxes alone cannot measure an
+underline (a box rule or a skewed scan fools it), so the unmarked headings are found by the heading-shape pattern and then
+read on the page.
 
 **The running head of Amendment 1's change list** (PDF pages 831-856: `Page No.` and `Change to ANSI X3.23-1985 and
 ISO 1989-1985`) has two shapes: the table header row `| <u>Page No.</u> | <u>Change to …</u> |` where a change table

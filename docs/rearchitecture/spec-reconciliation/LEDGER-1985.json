@@ -6858,6 +6858,198 @@
    "sweep": "amendment-1-heads(PB4953)",
    "was": "**<u>Page No.</u>** **<u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>**",
    "now": "<u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>"
+  },
+  {
+   "page": 101,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## 5. SHARED MEMORY AREA",
+   "now": "## 5. <u>SHARED MEMORY AREA</u>"
+  },
+  {
+   "page": 121,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "### 2. DEFINITIONS",
+   "now": "### 2. <u>DEFINITIONS</u>"
+  },
+  {
+   "page": 194,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR IDENTIFICATION DIVISION",
+   "now": "## <u>GENERAL FORMAT FOR IDENTIFICATION DIVISION</u>"
+  },
+  {
+   "page": 196,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR ENVIRONMENT DIVISION",
+   "now": "## <u>GENERAL FORMAT FOR ENVIRONMENT DIVISION</u>"
+  },
+  {
+   "page": 198,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR FILE CONTROL ENTRY",
+   "now": "## <u>GENERAL FORMAT FOR FILE CONTROL ENTRY</u>"
+  },
+  {
+   "page": 200,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "                         GENERAL FORMAT FOR DATA DIVISION",
+   "now": "                         <u>GENERAL FORMAT FOR DATA DIVISION</u>"
+  },
+  {
+   "page": 204,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR FILE DESCRIPTION ENTRY",
+   "now": "## <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>"
+  },
+  {
+   "page": 206,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR DATA DESCRIPTION ENTRY",
+   "now": "## <u>GENERAL FORMAT FOR DATA DESCRIPTION ENTRY</u>"
+  },
+  {
+   "page": 209,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR REPORT GROUP DESCRIPTION ENTRY",
+   "now": "## <u>GENERAL FORMAT FOR REPORT GROUP DESCRIPTION ENTRY</u>"
+  },
+  {
+   "page": 212,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR COBOL VERBS",
+   "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+  },
+  {
+   "page": 216,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR COBOL VERBS",
+   "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+  },
+  {
+   "page": 218,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR COBOL VERBS",
+   "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+  },
+  {
+   "page": 219,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR COBOL VERBS",
+   "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+  },
+  {
+   "page": 220,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR COBOL VERBS",
+   "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+  },
+  {
+   "page": 221,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR COBOL VERBS",
+   "now": "## <u>GENERAL FORMAT FOR COBOL VERBS</u>"
+  },
+  {
+   "page": 226,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR COPY AND REPLACE STATEMENTS",
+   "now": "## <u>GENERAL FORMAT FOR COPY AND REPLACE STATEMENTS</u>"
+  },
+  {
+   "page": 227,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "**GENERAL FORMAT FOR CONDITIONS**",
+   "now": "**<u>GENERAL FORMAT FOR CONDITIONS</u>**"
+  },
+  {
+   "page": 227,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "CONDITION-NAME CONDITION:",
+   "now": "<u>CONDITION-NAME CONDITION</u>:"
+  },
+  {
+   "page": 228,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## GENERAL FORMAT FOR CONDITIONS",
+   "now": "## <u>GENERAL FORMAT FOR CONDITIONS</u>"
+  },
+  {
+   "page": 283,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "# 6. PROCEDURE DIVISION IN THE NUCLEUS MODULE",
+   "now": "# 6. <u>PROCEDURE DIVISION IN THE NUCLEUS MODULE</u>"
+  },
+  {
+   "page": 375,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## SECTION VII: SEQUENTIAL I-O MODULE",
+   "now": "## <u>SECTION VII: SEQUENTIAL I-O MODULE</u>"
+  },
+  {
+   "page": 375,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## 1. INTRODUCTION TO THE SEQUENTIAL I-O MODULE",
+   "now": "## 1. <u>INTRODUCTION TO THE SEQUENTIAL I-O MODULE</u>"
+  },
+  {
+   "page": 431,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## SECTION VIII: RELATIVE I-O MODULE",
+   "now": "## <u>SECTION VIII: RELATIVE I-O MODULE</u>"
+  },
+  {
+   "page": 558,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## 3. DATA DIVISION IN THE SORT-MERGE MODULE",
+   "now": "## 3. <u>DATA DIVISION IN THE SORT-MERGE MODULE</u>"
+  },
+  {
+   "page": 560,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "# 4. PROCEDURE DIVISION IN THE SORT-MERGE MODULE",
+   "now": "# 4. <u>PROCEDURE DIVISION IN THE SORT-MERGE MODULE</u>"
+  },
+  {
+   "page": 576,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## 2. THE COPY STATEMENT",
+   "now": "## 2. <u>THE COPY STATEMENT</u>"
+  },
+  {
+   "page": 585,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## 2. ENVIRONMENT DIVISION IN THE REPORT WRITER MODULE",
+   "now": "## 2. <u>ENVIRONMENT DIVISION IN THE REPORT WRITER MODULE</u>"
+  },
+  {
+   "page": 659,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "# SECTION XIV: COMMUNICATION MODULE",
+   "now": "# <u>SECTION XIV: COMMUNICATION MODULE</u>"
+  },
+  {
+   "page": 660,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## 2. DATA DIVISION IN THE COMMUNICATION MODULE",
+   "now": "## 2. <u>DATA DIVISION IN THE COMMUNICATION MODULE</u>"
+  },
+  {
+   "page": 699,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## 1. INTRODUCTION TO THE SEGMENTATION MODULE",
+   "now": "## 1. <u>INTRODUCTION TO THE SEGMENTATION MODULE</u>"
+  },
+  {
+   "page": 71,
+   "sweep": "table-body-paragraph(PB5028)",
+   "was": "| The following clauses appear in record description entry, data description entry, 77 level description entry, or report group description entry: |",
+   "now": "| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The following clauses appear in record description entry,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data description entry, 77 level description entry, or<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;report group description entry: |"
+  },
+  {
+   "page": 736,
+   "sweep": "table-body-paragraph(PB5028)",
+   "was": "| The following clauses appear in record description entry, data description entry, 77 level description entry, or report group description entry: |",
+   "now": "| The following clauses appear in record description entry, data description<br>&nbsp;&nbsp;&nbsp;entry, 77 level description entry, or report group description entry: |"
   }
  ],
  "boxes": [

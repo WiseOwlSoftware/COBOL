@@ -3169,7 +3169,7 @@ Data Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| The following clauses appear in record description entry, data description entry, 77 level description entry, or report group description entry: | |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The following clauses appear in record description entry,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data description entry, 77 level description entry, or<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;report group description entry: | |
 | BLANK WHEN ZERO clause | 1 NUC<br>1 RPW |
 | COLUMN NUMBER clause | 1 RPW |
 | Data-name clause | 1 NUC<br>1 RPW |
@@ -4296,7 +4296,7 @@ II-16
 
 Concepts - Shared Memory Area
 
-## 5. SHARED MEMORY AREA
+## 5. <u>SHARED MEMORY AREA</u>
 
 This feature is basically oriented toward saving memory space in the object program as it allows more than one file to share the same file area and input-output areas.
 
@@ -4939,7 +4939,7 @@ The terms in this section are defined in accordance with their meaning in COBOL,
 
 These definitions are also intended as either reference or introductory material to be reviewed prior to reading the detailed language specifications that follow. For this reason, these definitions are, in most instances, brief and do not include detailed syntactical rules. Complete specifications for elements defined in this section can be located in Sections IV through XVI of this document.
 
-### 2. DEFINITIONS
+### 2. <u>DEFINITIONS</u>
 
 <u>Abbreviated Combined Relation Condition</u>. The combined condition that results from the explicit omission of a common subject or a common subject and common relational operator in a consecutive sequence of relation conditions.
 
@@ -7550,7 +7550,7 @@ V-1
 
 Identification Division
 
-## GENERAL FORMAT FOR IDENTIFICATION DIVISION
+## <u>GENERAL FORMAT FOR IDENTIFICATION DIVISION</u>
 
 <pre style="line-height:1">
 <u>IDENTIFICATION</u> <u>DIVISION</u>.
@@ -7630,7 +7630,7 @@ V-3
 
 Environment Division
 
-## GENERAL FORMAT FOR ENVIRONMENT DIVISION
+## <u>GENERAL FORMAT FOR ENVIRONMENT DIVISION</u>
 
 <pre style="line-height:1">
 [<u>INPUT-OUTPUT</u> <u>SECTION</u>.
@@ -7722,7 +7722,7 @@ V-5
 
 Environment Division - File Control Entry
 
-## GENERAL FORMAT FOR FILE CONTROL ENTRY
+## <u>GENERAL FORMAT FOR FILE CONTROL ENTRY</u>
 
 <u>INDEXED FILE</u>:
 
@@ -7801,7 +7801,7 @@ V-7
 <pre style="line-height:1">
 Data Division
 
-                         GENERAL FORMAT FOR DATA DIVISION
+                         <u>GENERAL FORMAT FOR DATA DIVISION</u>
 </pre>
 
 <pre style="line-height:1">
@@ -7973,7 +7973,7 @@ V-11
 
 Data Division - File Description Entry
 
-## GENERAL FORMAT FOR FILE DESCRIPTION ENTRY
+## <u>GENERAL FORMAT FOR FILE DESCRIPTION ENTRY</u>
 
 <u>SORT-MERGE FILE</u>:
 
@@ -8091,7 +8091,7 @@ V-13
 
 Data Division - Data Description Entry
 
-## GENERAL FORMAT FOR DATA DESCRIPTION ENTRY
+## <u>GENERAL FORMAT FOR DATA DESCRIPTION ENTRY</u>
 
 <u>FORMAT 2</u>:
 
@@ -8210,7 +8210,7 @@ Data Division - Report Description Entry
     └      [ <u>FOOTING</u> integer-5 ]                                       ┘ .
 </pre>
 
-## GENERAL FORMAT FOR REPORT GROUP DESCRIPTION ENTRY
+## <u>GENERAL FORMAT FOR REPORT GROUP DESCRIPTION ENTRY</u>
 
 <u>FORMAT 1</u>:
 
@@ -8359,7 +8359,7 @@ USE statement.
 
 Verb Formats (ACCEPT - CALL)
 
-## GENERAL FORMAT FOR COBOL VERBS
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
 <u>ACCEPT</u> identifier-1 [ <u>FROM</u> mnemonic-name-1 ]
@@ -8616,7 +8616,7 @@ V-23
 
 Verb Formats (EXIT - INSPECT)
 
-## GENERAL FORMAT FOR COBOL VERBS
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
 <u>EXIT</u>
@@ -8773,7 +8773,7 @@ V-25
 Verb Formats (MULTIPLY - PERFORM)
 </pre>
 
-## GENERAL FORMAT FOR COBOL VERBS
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
          ╭ identifier-1 ╮    ╭ identifier-2 ╮
@@ -8844,7 +8844,7 @@ V-26
 
 Verb Formats (PERFORM - READ)
 
-## GENERAL FORMAT FOR COBOL VERBS
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
         ┌                  ┌ ╭ <u>THROUGH</u> ╮                  ┐ ┐
@@ -8898,7 +8898,7 @@ V-27
 
 Verb Formats (READ - REWRITE)
 
-## GENERAL FORMAT FOR COBOL VERBS
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
 I <u>READ</u> file-name-1 RECORD [ <u>INTO</u> identifier-1 ]
@@ -8948,7 +8948,7 @@ V-28
 
 Verb Formats (SEARCH - SET)
 
-## GENERAL FORMAT FOR COBOL VERBS
+## <u>GENERAL FORMAT FOR COBOL VERBS</u>
 
 <pre style="line-height:1">
                     ┌         ╭ identifier-2 ╮ ┐
@@ -9246,7 +9246,7 @@ V-33
 
 COPY & REPLACE Statements
 
-## GENERAL FORMAT FOR COPY AND REPLACE STATEMENTS
+## <u>GENERAL FORMAT FOR COPY AND REPLACE STATEMENTS</u>
 
 <pre style="line-height:1">
                  ┌ ╭ <u>OF</u> ╮                ┐
@@ -9273,7 +9273,7 @@ V-34
 
 Condition Formats
 
-**GENERAL FORMAT FOR CONDITIONS**
+**<u>GENERAL FORMAT FOR CONDITIONS</u>**
 
 <u>RELATION CONDITION</u>:
 
@@ -9300,7 +9300,7 @@ identifier-1 IS [<u>NOT</u>] ┤ <u>ALPHABETIC-LOWER</u> ├
                       ╰ class-name-1     ╯
 </pre>
 
-CONDITION-NAME CONDITION:
+<u>CONDITION-NAME CONDITION</u>:
 
 <pre style="line-height:1">
 condition-name-1
@@ -9332,7 +9332,7 @@ V-35
 
 Condition Formats
 
-## GENERAL FORMAT FOR CONDITIONS
+## <u>GENERAL FORMAT FOR CONDITIONS</u>
 
 <u>COMBINED CONDITION</u>:
 
@@ -11189,7 +11189,7 @@ VI-50
 
 Nucleus - Arithmetic Expressions
 
-# 6. PROCEDURE DIVISION IN THE NUCLEUS MODULE
+# 6. <u>PROCEDURE DIVISION IN THE NUCLEUS MODULE</u>
 
 ## 6.1 GENERAL DESCRIPTION
 
@@ -14408,9 +14408,9 @@ VI-141
 
 Sequential I-O - Introduction
 
-## SECTION VII: SEQUENTIAL I-O MODULE
+## <u>SECTION VII: SEQUENTIAL I-O MODULE</u>
 
-## 1. INTRODUCTION TO THE SEQUENTIAL I-O MODULE
+## 1. <u>INTRODUCTION TO THE SEQUENTIAL I-O MODULE</u>
 
 ### 1.1 FUNCTION
 
@@ -16330,7 +16330,7 @@ VII-56
 
 Relative I-O - Introduction
 
-## SECTION VIII: RELATIVE I-O MODULE
+## <u>SECTION VIII: RELATIVE I-O MODULE</u>
 
 ## 1. <u>INTRODUCTION TO THE RELATIVE I-O MODULE</u>
 
@@ -20369,7 +20369,7 @@ XI-5
 
 Sort-Merge - File Section
 
-## 3. DATA DIVISION IN THE SORT-MERGE MODULE
+## 3. <u>DATA DIVISION IN THE SORT-MERGE MODULE</u>
 
 ### 3.1 FILE SECTION
 
@@ -20447,7 +20447,7 @@ XI-7
 
 Sort-Merge - MERGE
 
-# 4. PROCEDURE DIVISION IN THE SORT-MERGE MODULE
+# 4. <u>PROCEDURE DIVISION IN THE SORT-MERGE MODULE</u>
 
 ## 4.1 THE MERGE STATEMENT
 
@@ -20924,7 +20924,7 @@ XII-1
 
 Source Text Manipulation - COPY
 
-## 2. THE COPY STATEMENT
+## 2. <u>THE COPY STATEMENT</u>
 
 ### 2.1 Function
 
@@ -21175,7 +21175,7 @@ XIII-2
 
 Report Writer - File Control Entry
 
-## 2. ENVIRONMENT DIVISION IN THE REPORT WRITER MODULE
+## 2. <u>ENVIRONMENT DIVISION IN THE REPORT WRITER MODULE</u>
 
 ### 2.1 INPUT-OUTPUT SECTION
 
@@ -23639,7 +23639,7 @@ XIII-79
 
 Communication - Introduction
 
-# SECTION XIV: COMMUNICATION MODULE
+# <u>SECTION XIV: COMMUNICATION MODULE</u>
 
 ## 1. <u>INTRODUCTION TO THE COMMUNICATION MODULE</u>
 
@@ -23659,7 +23659,7 @@ XIV-1
 
 Communication - Communication Section
 
-## 2. DATA DIVISION IN THE COMMUNICATION MODULE
+## 2. <u>DATA DIVISION IN THE COMMUNICATION MODULE</u>
 
 ### 2.1 COMMUNICATION SECTION
 
@@ -24970,7 +24970,7 @@ Segmentation - Introduction
 
 # <u>SECTION XVI: SEGMENTATION MODULE</u>
 
-## 1. INTRODUCTION TO THE SEGMENTATION MODULE
+## 1. <u>INTRODUCTION TO THE SEGMENTATION MODULE</u>
 
 ### 1.1 FUNCTION
 
@@ -26336,7 +26336,7 @@ Data Division Difference Summary
 
 | ELEMENT | 2ND STD | 3RD STD |
 |---|---|---|
-| The following clauses appear in record description entry, data description entry, 77 level description entry, or report group description entry: | | |
+| The following clauses appear in record description entry, data description<br>&nbsp;&nbsp;&nbsp;entry, 77 level description entry, or report group description entry: | | |
 | BLANK WHEN ZERO clause | 1 NUC | 1 NUC |
 | | 1 RPW | 1 RPW |
 | COLUMN NUMBER clause | 1 RPW | 1 RPW |
