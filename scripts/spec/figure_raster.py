@@ -137,7 +137,13 @@ PAIR_W_LEN, PAIR_W_ROW, PAIR_W_COL, PAIR_W_HINT = 1.0, 4.0, 1.0, 2.0
 PAIR_ACCEPT = 2.5
 PITCH_BEARING = 0.2            # a word's ink is its letters' cells less one glyph's side bearings, in pitches (page 305)
 PAIR_W_NEIGHBOUR = 1.5         # a typed delimiter whose word beside it is not the converted word beside it
-HINT_DY = 5.0                  # an OCR word overlaps a box when their middles are this close in height
+TEXT_RULE_BELOW = 0.27         # a proportional line's underline lies at or below this share of its OCR box's height above the box's bottom (the baseline is 0.29 above it)
+TEXT_RULE_COVER = 0.96         # ... and inks this share of the word's width in every row of its thickness: 1.00 for a rule on PDF pages 842 and 853, at most 0.94 for the baseline feet of bold Times ("and", "last"; kb/Work PB5041)
+TEXT_RULE_ROWS = 3             # ... for at least this many pixel rows (0.54 pt at 400 dpi)
+TEXT_RULE_MIN_W = 14.0         # a proportional word narrower than this (in, is, the) is judged by no run: its letters' feet cover it whole
+MONO_BOX_H = 10.0              # an OCR box shorter than this is the monospaced general-format face (8 pt Courier; the proportional text is 12 pt)
+MONO_RULE_COVER = 0.85         # its underline is ragged: 0.91 on PDF page 863
+HINT_DY = 5.0                 # an OCR word overlaps a box when their middles are this close in height
 HINT_LINE_DY = 3.0             # OCR words this close in height are one printed line
 LOCATE_MATCH = 0.7             # an OCR word matches a converted word this alike (`_similarity`)
 LOCATE_MIN_WORD = 3            # ... and an OCR word shorter than this is not counted (see `locate`)
@@ -1413,6 +1419,42 @@ def locate(figures: list, hints: list) -> list:
 
 # ---------------------------------------------------------------- the entry points
 
+def underlined_hints(ink: np.ndarray, hints: list, scale: float) -> list:
+    """The OCR words (`text_layer_hints`, in the deskewed frame of `ink`, the UNCLOSED deskewed ink) that carry an
+    underline beneath them (kb/Work PB5041). `find_rules` reads the monospaced general-format band and takes a serif
+    chain of Times text for a rule; a word of running text is judged instead by the rows below its baseline: a printed
+    rule inks nearly the whole width of the word for `TEXT_RULE_ROWS` rows, where the feet of the letters reach 0.94 at
+    most and a word that is not underlined has ink below its baseline only in its descenders. A table's border is as
+    long as its cell and is not told from a rule here: read the page."""
+    out = []
+    for x0, y0, x1, y1, text in hints:
+        a, b = int(x0 * scale), int(x1 * scale)
+        h = y1 - y0
+        mono = h < MONO_BOX_H
+        if len(text) < 2 or b - a < (6.0 if mono else TEXT_RULE_MIN_W) * scale:
+            continue
+        cover = MONO_RULE_COVER if mono else TEXT_RULE_COVER
+        top, bottom = int((y1 - TEXT_RULE_BELOW * h) * scale), min(int((y1 + 2.5) * scale), ink.shape[0])
+        run = 0
+        for r in range(max(top, 0), bottom):
+            run = run + 1 if ink[r, a:b].mean() >= cover else 0
+            if run >= TEXT_RULE_ROWS:
+                out.append((x0, y0, x1, y1, text))
+                break
+    return out
+
+
+def underlined_words(edition: int, page: int, dpi: int = DPI) -> list:
+    """The OCR words of one scanned page that carry an underline (`underlined_hints`): (x0, y0, x1, y1, text), in points."""
+    import pymupdf
+    scale = dpi / 72
+    ink = binarize(render(edition, page, dpi))
+    top, bottom = int(SKEW_BODY[0] * scale), int(SKEW_BODY[1] * scale)
+    skew = estimate_skew(ink[top:bottom])
+    doc = pymupdf.open(spec_pdf.require(edition))
+    return underlined_hints(deskew(ink, skew), text_layer_hints(doc[page - 1], skew), scale)
+
+
 def measure_image(gray: np.ndarray, dpi: int = DPI, tokens: list | None = None, skew: float | None = None,
                   hints: list | None = None) -> RasterPage:
     """Measure a grayscale page image. `tokens` and `hints` as for `align`, the whole image being one figure (`read`
@@ -1599,11 +1641,21 @@ def calibrate(edition: int, pages: list, out: pathlib.Path) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--calibrate", nargs="+", type=int, metavar="PAGE", required=True,
-                    help="PDF pages to write side-by-side check images for")
+    what = ap.add_mutually_exclusive_group(required=True)
+    what.add_argument("--calibrate", nargs="+", type=int, metavar="PAGE",
+                      help="PDF pages to write side-by-side check images for")
+    what.add_argument("--underlined", nargs="+", type=int, metavar="PAGE",
+                      help="PDF pages whose underlined OCR words to print (prose pages too: kb/Work PB5041)")
     ap.add_argument("--edition", type=int, default=1985, choices=sorted(spec_pdf.EDITIONS))
-    ap.add_argument("--out", type=pathlib.Path, required=True, help="directory for the images")
+    ap.add_argument("--out", type=pathlib.Path, help="directory for the images (--calibrate)")
     args = ap.parse_args()
+    if args.underlined:
+        for p in args.underlined:
+            for x0, y0, x1, y1, text in underlined_words(args.edition, p):
+                print(f"page {p}: x {x0:.0f} y {y1:.0f}  {text}")
+        return 0
+    if args.out is None:
+        ap.error("--calibrate needs --out")
     calibrate(args.edition, args.calibrate, args.out)
     return 0
 
