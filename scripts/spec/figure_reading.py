@@ -217,6 +217,47 @@ def strays(lines: list[str]) -> list[tuple[str, str | None, int, int]]:
     return [(fam, side, r0, r1) for fam, side, _, r0, r1 in sorted(left, key=lambda d: (d[3], d[2]))]
 
 
+class Span(NamedTuple):
+    """A bracket or brace whose two delimiters stand on different lines, holding the text BETWEEN them in reading order
+    (`spans`): from just after its opener to just before its closer, every whole line in between."""
+    family: str                     # bracket or brace
+    open_top: int                   # the opener's first and last row, and its column
+    open_bottom: int
+    open_col: int
+    close_top: int                  # the closer's first and last row, and its column
+    close_bottom: int
+    close_col: int
+
+
+#: The families a delimiter pair across lines can be: a parenthesis across lines is no notation the standard sets, and a
+#: bar or a box side has no hand to pair by.
+_SPANNING = ("bracket", "brace")
+
+
+def spans(lines: list[str]) -> list[Span]:
+    """The strays (`strays`) that pair ACROSS LINES, in reading order (kb/Work PB4929). The 1985 page sets some of its
+    delimiters as a typed glyph at the head of a line whose partner closes a later line: page 316's EVALUATE prints
+    `{{WHEN` and `[ALSO` typed, and closes the bracket and the inner brace with tall drawn strokes below them and the
+    outer brace with a typed `}` after `imperative-statement-1`. No row pairs them (`_pair`), so the audit read the
+    underlined ALSO as held by nothing, a word the format demands. Read in order, they nest like any text: an opener
+    is pushed when it starts, a closer (reached at its last row) pairs the nearest open delimiter of its family."""
+    left = [d for d in _pair(_delimiters(lines))[1] if d[0] in _SPANNING]
+    events = sorted([(d[3], d[2], 0, d) for d in left if d[1] == "L"] + [(d[4], d[2], 1, d) for d in left if d[1] == "R"],
+                    key=lambda e: e[:3])
+    out: list[Span] = []
+    open_: list[tuple] = []
+    for _, _, closing, d in events:
+        if not closing:
+            open_.append(d)
+            continue
+        k = next((i for i in range(len(open_) - 1, -1, -1) if open_[i][0] == d[0]), None)
+        if k is None:
+            continue
+        o = open_.pop(k)
+        out.append(Span(d[0], o[3], o[4], o[2], d[3], d[4], d[2]))
+    return out
+
+
 def read(lines: list[str]) -> list[Word]:
     """The words of a drawn figure in reading order (row, then column), each with what holds it."""
     rows = [plain_row(line) for line in lines]
@@ -583,6 +624,12 @@ def self_test() -> int:
     house_across = ["[ report-description-entry", "{ report-group-description-entry } … ] …"]
     check("a bracket set across two lines, unpaired in both drawings, is no difference",
           not compare(across, house_across)["grouping"] and len(strays(across)) == 2, str(compare(across, house_across)))
+    check("…and `spans` pairs it across the lines", spans(across) == [Span("bracket", 0, 0, 0, 2, 2, 37)],
+          str(spans(across)))
+    evaluate = ["{WHEN", " [ALSO", "   B     ┐", "         ┘ …", "  C} …"]
+    check("PB4929: a typed opener pairs the drawn or typed closer that ends its portion, nested in reading order "
+          "(1985 EVALUATE's `{{WHEN` and `[ALSO`, PDF page 316)",
+          spans(evaluate) == [Span("bracket", 1, 1, 1, 2, 3, 9), Span("brace", 0, 0, 0, 4, 4, 3)], str(spans(evaluate)))
     check("a house-style ellipsis is read as printed", token_rows(["<u>ADD</u> x … TO"]) == [[("ADD", 0), ("x", 4),
           ("...", 6), ("TO", 8)]], str(token_rows(["<u>ADD</u> x … TO"])))
     check("the spaces round a typed delimiter stay as drawn", token_rows(["{a} ... ] ..."]) == [[("{a}", 0), ("...", 4),

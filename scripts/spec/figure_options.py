@@ -85,9 +85,19 @@ class Holder(NamedTuple):
     top: float                      # a text pair: its line; a vector or glyph pair: `Enclosure.top`
     bottom: float                   # a text pair: its line; a vector pair: `Enclosure.bottom`; a glyph pair: `low`
     text: bool                      # set as text on one line (then `top` and `bottom` are that line)
+    # A pair whose delimiters stand on different lines (`figure_reading.spans`, kb/Work PB4929) holds the text between
+    # them in READING ORDER: past the opener only on the opener's own lines, before the closer only on the closer's.
+    # None for every other pair, whose two delimiters face each other over the same lines (a rectangle).
+    open_bottom: float | None = None   # the opener's last line
+    close_top: float | None = None     # the closer's first line
 
     def holds(self, page: int, x0: float, y0: float, row: float) -> bool:
-        if page != self.page or not self.x_open < x0 < self.x_close:
+        if page != self.page:
+            return False
+        if self.open_bottom is not None and self.close_top is not None:
+            return (self.top <= y0 <= self.bottom and (y0 > self.open_bottom or x0 > self.x_open)
+                    and (y0 < self.close_top or x0 < self.x_close))
+        if not self.x_open < x0 < self.x_close:
             return False
         if self.text:
             return row == self.top
@@ -230,7 +240,11 @@ def read_drawn(blocks: Iterable[list[str]]) -> Reading:
                           e.bottom * DRAWN_ROW, e.top == e.bottom)
                    for e in figure_reading.enclosures(lines)
                    if e.family != "box" and not (e.family == "paren" and e.top == e.bottom)]
-        unpaired += sum(1 for fam, *_ in figure_reading.strays(lines) if fam != "box")
+        across = figure_reading.spans(lines)
+        holders += [Holder(s.family, page, s.open_col * DRAWN_COLUMN, s.close_col * DRAWN_COLUMN, s.open_top * DRAWN_ROW,
+                           s.close_bottom * DRAWN_ROW, False, s.open_bottom * DRAWN_ROW, s.close_top * DRAWN_ROW)
+                    for s in across]
+        unpaired += sum(1 for fam, *_ in figure_reading.strays(lines) if fam != "box") - 2 * len(across)
         diagram = _held_words(page, pieces, holders, {p["y0"]: p["y0"] for p in pieces}, diagram, out,
                               prose=False) + 1
     return Reading(out, unpaired)
@@ -245,8 +259,12 @@ def _held_words(page: int, pieces: list[dict], holders: list[Holder], rowof: dic
     only, whose lowercase metavariables (`[ length ]` in 1985's reference modification, PDF page 168) `prose_row` would
     read as prose."""
     def held(p: dict) -> tuple[Holder, ...]:
+        # Outermost first: of two pairs facing each other over the same lines the outer is the wider; a pair across lines
+        # (`Holder.open_bottom`) opens at the head of a line around the lines below, so it holds them all and is ordered
+        # outside them, the earlier opener outermost (kb/Work PB4929).
         hs = [h for h in holders if h.holds(page, p["x0"], p["y0"], rowof[p["y0"]])]
-        return tuple(sorted(hs, key=lambda h: (-(h.x_close - h.x_open), h.top)))
+        return tuple(sorted(hs, key=lambda h: (0, h.top, h.x_open) if h.open_bottom is not None
+                            else (1, -(h.x_close - h.x_open), h.top)))
 
     # §2023:5.2.7: the portion an ellipsis repeats is the bracket or brace whose closer stands immediately to its
     # left; a word standing nearer than any such closer is repeated alone (`identifier-1 …`).
@@ -501,6 +519,17 @@ def self_test() -> int:
                                  ("length", False, ("bracket",), False, 0), ("WRITE", True, (), False, 1),
                                  ("x", False, (), False, 1)]
           and boxed.unpaired == 0, (shape(boxed.words), boxed.unpaired))
+    # kb/Work PB4929: 1985 EVALUATE (PDF page 316) types `{WHEN` and `[ALSO` at the head of a line and closes them lines
+    # later, the bracket with a drawn stroke; read unpaired, the underlined ALSO was held by nothing and so demanded.
+    evaluate = read_drawn([_underline(["E {WHEN", "   [ALSO", "     B     ┐", "           ┘ …", "    C} … D"],
+                                      {"ALSO", "WHEN"})])
+    got = shape(evaluate.words)
+    check("read_drawn: a delimiter pair across lines holds the text between them in reading order, outermost first "
+          "(the WHEN brace around the ALSO bracket), and its ellipsis repeats it",
+          got == [("E", False, (), False, 0), ("WHEN", True, ("brace",), True, 0),
+                  ("ALSO", True, ("brace", "bracket"), True, 0), ("B", False, ("brace", "bracket"), True, 0),
+                  ("C", False, ("brace",), True, 0), ("D", False, (), False, 0)]
+          and evaluate.unpaired == 0, (got, evaluate.unpaired))
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 

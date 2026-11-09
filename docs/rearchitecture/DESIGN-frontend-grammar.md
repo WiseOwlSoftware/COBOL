@@ -842,6 +842,22 @@ FINAL and the PAGE clause's phrases (`ReportSectionBinder.BindReportDescriptionC
 PB756 (`ALTERNATE RECORD?`) and PB1183's shape (`unstringIntoPhrase+`). A compiler directive's format (§2023:7.3, "IF
 directive") is the preprocessor's and is never joined to a parser rule that shares its keyword.
 
+The audit runs on the scanned 1985 standard too (`--edition 1985`, its formats read from the transcription's decided
+drawings), and three things it learned there (kb/Work PB4929) hold for every edition. **A required choice is one
+slot**: what an alternative demands is the sequence of slots it fills (`_slots`), a required `( A | B )` deleted
+whole, and a choice with an arm that writes no word (`(cobolWord | literal | IS)+`) fills none, so VALUE OF's IS, PAGE's
+`LINE`/`LINES` and SYMBOLIC CHARACTERS' `IS`/`ARE` are no longer reported where a sibling alternative already spells
+the omission. **A construct is all of its printings**: §1985:VIII.2.6.3 GR1 prints the Relative I-O RERUN clause as "a
+subset of the RERUN clause for the Sequential I-O module", so a scan's format is read together with every printing
+of its construct (`construct_of`: a statement by its verb, anything else by its whole title), as one band of a vector
+edition holds every format of its clause. **An edition gate is a later phase that decides one edition's format**: the
+marker takes the editions after the member, `// audit:required-word AFTER PROCEDURE decided-by
+VersionConformancePass.VisitUseStatement at 1985`, decides that edition's candidates alone and is found dead by a full
+run of that edition (USE's AFTER and PROCEDURE, PERFORM's BY, SET Format 4's repetition). And the drawing reader pairs a
+delimiter typed at the head of one line with the closer that ends its portion lines later (`figure_reading.spans`,
+1985 EVALUATE's `{{WHEN` and `[ALSO`): such a pair holds the text between its delimiters in reading order. The 1985 run
+reports no candidate.
+
 ⛔ **Why this is generated and not written by hand (kb/Work PB300, CLAUDE.md rule 5).** The second half used to be
 a hand-written list of two words inside `CobolData.g4`'s `dataName`, paired with a hand-written
 `ctx.COMMIT() ?? ctx.ROLLBACK()` extraction in the funnel — three places naming the same set. It had already

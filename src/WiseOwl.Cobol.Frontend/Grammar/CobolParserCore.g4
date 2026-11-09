@@ -1756,6 +1756,9 @@ setToSender
 // arm is a COBOL-2002 addition, gated recognition-first on the FALSE_ token by VersionConformancePass).
 // The outer repetition and the phrase rule are the Format-3 twin's, for the reason written above setSwitchStatement.
 setBooleanStatement
+    // §1985:VI.6.23.2 prints Format 4 with no outer ellipsis; the version pass refuses a second phrase at --std 85
+    // (set-condition-repeated-2002; kb/Work PB4919):
+    // audit:repeated-word TRUE decided-by VersionConformancePass.VisitSetBooleanStatement at 1985
     : SET setConditionPhrase+
     ;
 

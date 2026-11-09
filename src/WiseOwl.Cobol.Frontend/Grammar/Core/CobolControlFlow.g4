@@ -167,6 +167,8 @@ performUntilTarget
 // rule (COBOL2119 for a shape outside the group, COBOL2120 for §2023:14.9.28.3 SR4/SR5/SR6). Superset parse,
 // bind narrow: the project's standing posture for a general-format shape violation.
 performVarying
+    // §1985:VI.6.21.2 underlines BY; the version pass refuses its omission at --std 85 (perform-varying-by-omitted-2002):
+    // audit:required-word BY decided-by VersionConformancePass.VisitPerformVarying at 1985
     : (WITH? TEST (BEFORE | AFTER))?
       VARYING receivingIdentifier FROM valueOperand
       (BY valueOperand)?    // §2023:14.9.28.4 GR12: an omitted BY augments by 1; a post-85 form, VCR row 7.42 (ParseArm gate)
@@ -175,6 +177,7 @@ performVarying
     ;
 
 performVaryingAfter
+    // audit:required-word BY decided-by VersionConformancePass.VisitPerformVaryingAfter at 1985
     : AFTER receivingIdentifier FROM valueOperand
       (BY valueOperand)?    // §2023:14.9.28.4 GR12: an omitted BY augments by 1; a post-85 form, VCR row 7.42 (ParseArm gate)
       UNTIL performUntilTarget    // EXIT is the superset spelling §2023:14.9.28.3 SR8 refuses at bind
@@ -485,6 +488,9 @@ useStatement
     // [ IN/OF report-name-1 ]`), NOT `procedureName`. The two spell the same tokens, but naming the rule after
     // the thing it references is what lets ONE funnel (ReportGroupResolution) bind this operand and GENERATE's
     // — the qualified spelling and the ambiguity rule are then the same code (kb/Work PB365).
+    // §1985:VII.4.6.2 underlines AFTER and PROCEDURE in Format 1; the version pass refuses each omission at --std 85
+    // (use-without-after-2002, use-without-procedure-2002; kb/Work PB4919):
+    // audit:required-word AFTER PROCEDURE decided-by VersionConformancePass.VisitUseStatement at 1985
     : USE GLOBAL? BEFORE REPORTING reportGroupReference
     // Format 3 (exception-name, EC model 2002+ — binder-gated): USE [AFTER] {EXCEPTION CONDITION | EC}
     // {exception-name-1 | exception-name-2 {FILE file-name-2}…}… (ISO §2023:14.9.49.2; SR12: EC ≡ EXCEPTION
