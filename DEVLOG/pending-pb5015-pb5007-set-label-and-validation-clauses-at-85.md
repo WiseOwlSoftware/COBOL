@@ -42,3 +42,9 @@ Goldens: `cases/13.18.17-DEFAULT/pb5007-default-clause-below-2002` and
 and VALID/INVALID, each a single COBOL0900. Inventory: SR-13.18.11.3-1 keeps DOCUMENTED-NON-SUPPORT. A record_verdicts
 batch retired its renamed witness and corrected its 85 note. No row is re-verdicted. Docs updated: CobolDeclined.g4's
 header, DESIGN.md D7, VERSION_TEST_MATRIX_DESIGN.md, CONFORMANCE.md row A.4.14, and the COBOL1708 catalog text.
+
+Self-review (architecture, code, performance, duplication): one gate per construct row, read once by the decline's
+skip (`ConstructRegistry.IsAvailable`), so the gate and the skip cannot name different editions. The reject-code
+choice the matrix theories each wrote is now one function. No hot path changed. Gate: run 000001 RED on the CITATIONS
+audit (a comment's "from 2002" read as the FROM clause; reworded); run 000002-20261109T022839Z
+`=== BUILD-LOCAL GATE: GREEN — Conformance 22,731/22,731 · Unit 40,573/40,573 · Characterization 37/37 cases ran (skipped 0) ===`.
