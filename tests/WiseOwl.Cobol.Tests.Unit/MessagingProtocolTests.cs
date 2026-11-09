@@ -200,7 +200,7 @@ public sealed class MessagingProtocolTests
         Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, badParty));
         // A slot's token is the 8 positions a message tag occupies (DOC-A.1-212), on the way out and on the way in (kb/Work PB4957).
         Assert.Throws<ArgumentException>(() => PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("", null, [new MessageSlot("SHORT", MessageTag.Null)]))));
-        var shortToken = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("TOKEN-01", null, [new MessageSlot("TOKEN-01", MessageTag.Null)])));
+        var shortToken = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("abcdefgh", null, [new MessageSlot("TOKEN-01", MessageTag.Null)])));   // the image holds no 'T': the first one is the slot token's
         int tokenCount = Array.IndexOf(shortToken, (byte)'T', 0) - 4;                                                    // the token's count precedes its first unit
         shortToken[tokenCount] = 7;
         Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, shortToken));

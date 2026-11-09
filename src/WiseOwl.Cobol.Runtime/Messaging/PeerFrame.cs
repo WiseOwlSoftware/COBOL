@@ -17,7 +17,7 @@ internal sealed record MessageBody(string Image, RecordExtents? Extents, Message
     /// the image does not hold stands for nothing the receiver gets - a tag of an occurrence past an OCCURS DEPENDING ON count the current-extent image leaves out,
     /// or one a cut to the receiver's capacity removed (<see cref="Truncated"/>) - and it is dropped here rather than carried.</summary>
     internal static MessageBody Carrying(string image, RecordExtents? extents, MessageSlot[] slots) =>
-        new(image, extents, Array.FindAll(slots, slot => image.Contains(slot.Token, StringComparison.Ordinal)));
+        new(image, extents, Array.FindAll(slots, slot => slot.IsHeldBy(image)));
 
     /// <summary>The same message cut to its first <paramref name="capacity"/> character positions (§0 Q7; §2023:14.9.31.4 GR3), with the slots those positions
     /// still hold (<see cref="Carrying"/>): a tag that lay past the capacity is no part of what identifier-1 receives.</summary>
@@ -255,7 +255,7 @@ internal static class PeerFrameCodec
             }
             // A slot stands for the positions that hold its token (MessageBody.Carrying, kb/Work PB4957, PB5004): a peer that announces one its image lacks is malformed.
             foreach (var slot in slots)
-                if (!image.Contains(slot.Token, StringComparison.Ordinal)) throw new InvalidDataException($"a message slot's token {slot.Token} is not in the message image");
+                if (!slot.IsHeldBy(image)) throw new InvalidDataException($"a message slot's token {slot.Token} is not in the message image");
             return MessageBody.Carrying(image, extents, slots);
         }
 

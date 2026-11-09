@@ -26,4 +26,8 @@ public readonly struct MessageSlot
 
     /// <summary>The message tag those positions name.</summary>
     public MessageTag Tag { get; }
+
+    /// <summary>Whether <paramref name="image"/> holds <see cref="Token"/>: the ONE test of whether this slot stands for any position of a message
+    /// (<see cref="MessageBody.Carrying"/> drops a slot that fails it; the frame decoder refuses one, kb/Work PB5004).</summary>
+    internal bool IsHeldBy(string image) => image.Contains(Token, StringComparison.Ordinal);
 }
