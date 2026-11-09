@@ -304,24 +304,33 @@ values one two all being been have has such only also other there their them the
 
 #: A run seeded from another (`seed`) names that run and the passes it reads from it; every other pass is its own.
 UPSTREAM = "upstream.json"
+#: The passes a seeded run may read from its upstream run: the inputs of an adjudication, which nothing in the seeded run
+#: writes (the drafts pass is not one: `run_drafts.py` writes beside its answers).
+INHERITABLE = ("route", "map", "verify", "claims")
+#: A seeded run's own pass whose answers are the decisions it checks, recorded by `seed`, never asked of the model.
+SEEDED = "adjudicate"
+
+
+def upstream_of(state: pathlib.Path) -> dict[str, Any] | None:
+    """The seeded run's `upstream.json` ({run, passes}), or None for a run of its own."""
+    up = state / UPSTREAM
+    return json.loads(up.read_text(encoding="utf-8")) if up.exists() else None
 
 
 def pass_dir(state: pathlib.Path, name: str) -> pathlib.Path:
     """The directory of `state`'s pass `name`: its own, or its upstream run's when `state` inherits that pass (`seed`)."""
-    up = state / UPSTREAM
-    if up.exists():
-        u = json.loads(up.read_text(encoding="utf-8"))
-        if name in u["passes"]:
-            return pass_dir(pathlib.Path(u["run"]), name)
-    return state / name
+    u = upstream_of(state)
+    return pass_dir(pathlib.Path(u["run"]), name) if u and name in u["passes"] else state / name
 
 
 class Pass:
-    """`DIR/<name>/`: items.json, state.json, answers/, raw/; an inherited pass is its upstream run's, read only."""
+    """`DIR/<name>/`: items.json, state.json, answers/, raw/. In a seeded run an inherited pass is its upstream run's and
+    the seeded pass holds the decisions `seed` recorded: both are read only."""
 
     def __init__(self, state: pathlib.Path, name: str):
         self.name, self.dir = name, pass_dir(state, name)
         self.inherited = self.dir != state / name
+        self.seeded = name == SEEDED and upstream_of(state) is not None
         self.items_file, self.answers_dir, self.raw_dir = self.dir / "items.json", self.dir / "answers", self.dir / "raw"
         self.batches: BatchRun[str] = BatchRun(self.dir / "state.json", "items", str, str, TOOL)
 
@@ -600,7 +609,8 @@ def change_of(adjudicated: dict[str, Any]) -> dict[str, Any]:
     differs = adjudicated.get("differs") or {}
     words = "; ".join(f'{ed}: "{differs[ed]}"' for ed in ("1985", "2023") if differs.get(ed))   # the words, as written
     reason = (f"{words}. {adjudicated['reason']}" if words else adjudicated["reason"]).strip()
-    return {"kind": adjudicated["verdict"], "to": adjudicated["rules_2023"], **({"reason": reason} if reason else {})}
+    return {"kind": adjudicated["verdict"], "to": adjudicated["rules_2023"], **({"reason": reason} if reason else {}),
+            **({"source": adjudicated["source"]} if "source" in adjudicated else {})}   # a seeded decision's own
 
 
 def dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
@@ -652,16 +662,17 @@ def change_records(disp: dict[str, dict[str, Any]], source: str,
     """Every DECIDED change record of the run (each rule's `change`: the chained kind, KEPT, for a CARRIES rule, and the
     adjudicate pass's decision once its check upheld it) as record_verdicts records of the 1985 edition's change record
     (the schema's `next`): into the 2023 rules it names, its reason only when it states one (one stored form,
-    lineage.next_errors), the run as its source (kb/Work PB4993, PB4995; DESIGN-spec-conformance-review.md section 10.2).
-    A contested or unadjudicated rule is the fleet's, and not in it; nor is a rule whose record in the store (`held`, by
-    rule id) another source decided: a fleet adjudication outranks the audit's detection, so re-running the batch never
-    reverts one (kb/Work PB5008)."""
+    lineage.next_errors), the run as its source, or a seeded decision's own (kb/Work PB4993, PB4995;
+    DESIGN-spec-conformance-review.md section 10.2). A contested or unadjudicated rule is the fleet's, and not in it; nor
+    is a rule whose record in the store (`held`, by rule id) another source decided: a fleet adjudication outranks the
+    audit's detection, so re-running the batch never reverts one (kb/Work PB5008)."""
     ed = edition(1985)
     held = held or {}
     return [{"rule-id": rid, "next": {"kind": c["kind"], "edition": ed.next_held, "to": c["to"], "bridge": ed.bridged,
-                                      **({"reason": c["reason"]} if c.get("reason") else {}), "source": source}}
+                                      **({"reason": c["reason"]} if c.get("reason") else {}), "source": own}}
             for rid, d in sorted(disp.items())
-            if (c := d.get("change")) and (held.get(rid, {}).get("next") or {}).get("source", source) == source]
+            if (c := d.get("change")) and (own := c.get("source", source))
+            and (held.get(rid, {}).get("next") or {}).get("source", own) == own]
 
 
 def final_dispositions(state: pathlib.Path) -> dict[str, dict[str, Any]]:
@@ -1024,22 +1035,26 @@ def seed(state: pathlib.Path, upstream: pathlib.Path, decisions: pathlib.Path, i
     and `results` contests each decision a check disputes."""
     if state.exists() and any(state.iterdir()):
         raise SystemExit(f"{TOOL}: {state} is not empty: a seeded run starts empty")
-    if "adjudicate" in inherit or not (upstream / "adjudicate").is_dir():
-        raise SystemExit(f"{TOOL}: a seeded run's adjudicate pass is its own, and {upstream} needs one")
+    if stray := sorted(set(inherit) - set(INHERITABLE)):
+        raise SystemExit(f"{TOOL}: a seeded run inherits only {', '.join(INHERITABLE)}, not {', '.join(stray)}")
+    if not (upstream / SEEDED).is_dir():
+        raise SystemExit(f"{TOOL}: {upstream} has no {SEEDED} pass whose items the decisions answer")
     records = json.loads(decisions.read_text(encoding="utf-8"))["records"]
-    up_items = {it["id"]: (cid, it) for cid, it in Pass(upstream, "adjudicate").items().items()}
+    up_items = {it["id"]: (cid, it) for cid, it in Pass(upstream, SEEDED).items().items()}
     if missing := [r["rule-id"] for r in records if r["rule-id"] not in up_items]:
-        raise SystemExit(f"{TOOL}: {len(missing)} decided rule(s) have no adjudicate item in {upstream}: {missing[:5]}")
-    state.mkdir(parents=True, exist_ok=True)
-    write_atomic(state / UPSTREAM, json.dumps({"run": str(upstream), "passes": inherit}, indent=1) + "\n")
-    p = Pass(state, "adjudicate")
+        raise SystemExit(f"{TOOL}: {len(missing)} decided rule(s) have no {SEEDED} item in {upstream}: {missing[:5]}")
+    if twice := sorted(k for k, n in collections.Counter(r["rule-id"] for r in records).items() if n > 1):
+        raise SystemExit(f"{TOOL}: {decisions} decides a rule twice: {twice[:5]}")
+    state.mkdir(parents=True, exist_ok=True)       # every refusal is above: nothing is written until all are passed
+    write_atomic(state / UPSTREAM, json.dumps({"run": str(upstream.resolve()), "passes": inherit}, indent=1) + "\n")
+    p = Pass(state, SEEDED)
     write_plan(p, [up_items[r["rule-id"]][1] for r in records])
     p.answers_dir.mkdir(parents=True, exist_ok=True)
     for r in records:
         nxt = r["next"]
         write_atomic(p.answer_file(up_items[r["rule-id"]][0]), json.dumps(
             {"id": r["rule-id"], "answer": {"verdict": nxt["kind"], "rules_2023": nxt["to"], "differs": {},
-                                            "reason": nxt["reason"]}, "source": nxt["source"]},
+                                            "reason": nxt.get("reason", ""), "source": nxt["source"]}},
             indent=1, ensure_ascii=False))
     kinds = collections.Counter(r["next"]["kind"] for r in records)
     print(f"seed: {state} holds {len(records)} decision(s) {dict(sorted(kinds.items()))} from {decisions}; it reads "
@@ -1143,6 +1158,8 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
     p = Pass(state, a.pass_name)
     if p.inherited and a.cmd != "status":
         raise SystemExit(f"{TOOL}: {state} reads its {p.name} pass from {p.dir.parent} ({UPSTREAM}): {a.cmd} it there")
+    if p.seeded and a.cmd != "status":
+        raise SystemExit(f"{TOOL}: {state}'s {p.name} pass holds the decisions `seed` recorded, which no model answers")
     if a.cmd == "plan":
         if a.pass_name == "claims" and not a.claims:
             raise SystemExit(f"{TOOL}: plan --pass claims needs --claims")
