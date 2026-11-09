@@ -186,6 +186,15 @@ def main() -> int:
         check("status prints each account's spend", "the account account1 $" in out and "the account account2 $" in out)
         code, out = run(["collect", *acct, "--api-account", "account2"], fake5, pdf, key_wanted=KEY2)
         check("with every batch collected, the earlier account may bill again", code == 0)
+        crashed = root / "crashed"
+        fake6 = FakeBatches()
+        fake6.crash_after_create = True
+        cacct = ["--edition", "1985", "--state", str(crashed), "--api-key-file", str(pair)]
+        code, out = run(["submit", *cacct, "--api-account", "account2"], fake6, pdf, key_wanted=KEY2)
+        code, out = run(["collect", *cacct], fake6, pdf, key_wanted=KEY2)
+        st = json.loads((crashed / "state.json").read_text(encoding="utf-8"))
+        check("a first submit that died before its batch was recorded: a later command with no --api-account bills the "
+              "intent's account and adopts the batch", code == 0 and [b["api_account"] for b in st["batches"]] == ["account2"])
         code, out = run(["status", "--edition", "1985", "--state", str(billed), "--api-account", "account2"], fake4, pdf)
         check("--api-account without --api-key-file is refused", code not in (0, None) and "give the key file" in str(code))
         check("the estimate is pages x the measured tokens at the batch rate", abs(T.estimate_usd(976, "claude-opus-5-5") - 976 * 0.02104) < 0.5)

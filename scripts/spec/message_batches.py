@@ -131,12 +131,14 @@ class BatchRun(Generic[M]):
         return next((b["api_account"] for b in unread), None)
 
     def load_key(self, key_file: str, account: str | None, st: dict[str, Any]) -> ApiKey:
-        """The key of `account` in `key_file` (unnamed: the account of the run's newest batch), kept to `pinned_account`
-        (`read_run_key`); a file with no such key, or another account while a batch is uncollected, exits naming the path
-        (never a key). The account chosen bills every batch this command creates."""
+        """The key of `account` in `key_file` (unnamed: the pinned account, else the account of the run's newest batch),
+        kept to `pinned_account` (`read_run_key`); a file with no such key, or another account while a batch or a
+        create's intent is uncollected, exits naming the path (never a key). The account chosen bills every batch this
+        command creates."""
+        pinned = self.pinned_account(st)
         newest = st["batches"][-1]["api_account"] if st["batches"] else None
         try:
-            chosen = read_run_key(key_file, account if account is not None else newest, self.pinned_account(st),
+            chosen = read_run_key(key_file, account if account is not None else (pinned or newest), pinned,
                                   self.state_file)
         except RuntimeError as e:
             raise SystemExit(f"{self.tool}: {e}") from None
