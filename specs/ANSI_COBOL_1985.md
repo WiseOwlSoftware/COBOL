@@ -10812,7 +10812,9 @@ NOTE: Level-number, data-name-1, and FILLER are shown in the above format to imp
 
 (5) The data description entry for data-name-2 cannot contain an OCCURS clause. ║However, data-name-2 may be subordinate to an item whose data description entry contains an OCCURS clause. In this case, the reference to data-name-2 in the REDEFINES clause may not be subscripted. Neither the original definition nor the redefinition can include a variable occurrence data item.║
 
-(6) If the data item referenced by data-name-2 is either declared to be an external data record or is specified with a level-number other than 01, the number of character positions it contains must be greater than or equal to the number of character positions in the data item referenced by the subject of this entry. If the data-name referenced by data-name-2 is specified with a level-number of 01 and is not declared to be an external data record, there is no such constraint.
+(6) If the data item referenced by data-name-2 is either declared to be an external data record or is specified with a level-number other than 01, the number of character positions it contains must be greater than or equal to the number of character positions in the data item referenced by the subject of this entry. If the data item referenced by data-name-2 is specified with a level-number of 01 and is not declared to be an external data record, there is no such constraint.
+
+> ⚠ **CORRECTED — see the Errata (C31).** The standard prints `If the data-name referenced by data-name-2 is specified` (page 270, folio VI-38). A real word printed for another: a data-name references no data-name, and the rule's own first sentence prints `the data item referenced by data-name-2`, the item its second sentence speaks of (kb/Work PB5045). Corrected to `If the data item referenced by data-name-2 is specified`.
 
 ║(7) Data-name-2 must not be qualified even if it is not unique since no ambiguity of reference exists in this case because of the required placement of the REDEFINES clause within the source program.║
 
@@ -13937,7 +13939,9 @@ Nucleus - SET
 
 (2) If index-name-1 is specified, the value of the index after the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-1. The value of the index associated with an index-name after the execution of a PERFORM or SEARCH statement may be set to an occurrence number that is outside the range of its associated table. (See page VI-109, The PERFORM Statement, and page VI-122, The SEARCH Statement.)
 
-If index-name-2 is specified, the value of the index before the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-1.
+If index-name-2 is specified, the value of the index before the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-2.
+
+> ⚠ **CORRECTED — see the Errata (C32).** The standard prints `must correspond to an occurrence number of an element in the table associated with index-name-1.` (page 360, folio VI-128). An operand misprinted: the sentence is about index-name-2, whose value must index its own table. General rule 3a provides for index-name-2 being related to a different table than index-name-1 (§1985:VI.6.23.4 GR3), which the printed operand would make unreachable, and §2023:14.9.39.4 GR2 b) speaks of the table element associated with index-name-2 (kb/Work PB5031, PB5045). Corrected to `must correspond to an occurrence number of an element in the table associated with index-name-2.`.
 
 If index-name-3 is specified, the value of the index both before and after the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-3.
 
@@ -16061,7 +16065,9 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 (2) The last input-output statement executed for the associated file prior to the execution of the REWRITE statement must have been a successfully executed READ statement. The mass storage control system (MSCS) logically replaces the record that was accessed by the READ statement.
 
-(3) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
+(3) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated I-O file, as well as the file associated with record-name-1.║
+
+> ⚠ **CORRECTED — see the Errata (C33).** The standard prints `as the associated output file, as well as the file associated with record-name-1` (page 422, folio VII-48). A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:VII.4.5.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045). Corrected to `as the associated I-O file, as well as the file associated with record-name-1`.
 
 (4) The result of the execution of a REWRITE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified:
 
@@ -17296,7 +17302,9 @@ VIII-30
 
 Relative I-O - REWRITE
 
-║referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
+║referenced in the same SAME RECORD AREA clause as the associated I-O file, as well as the file associated with record-name-1.║
+
+> ⚠ **CORRECTED — see the Errata (C34).** The standard prints `as the associated output file, as well as the file associated with record-name-1` (page 461, folio VIII-31). A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:VIII.4.6.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045). Corrected to `as the associated I-O file, as well as the file associated with record-name-1`.
 
 (5) The result of the execution of a REWRITE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified:
 
@@ -18641,7 +18649,9 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 (3) In level 1, the number of character positions in the record referenced by record-name-1 must be equal to the number of character positions in the record being replaced. ║In level 2, the number of character positions in the record referenced by record-name-1 may or may not be equal to the number of character positions in the record being replaced.║
 
-(4) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is available to the program as a record of other files referenced in the SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
+(4) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is available to the program as a record of other files referenced in the SAME RECORD AREA clause as the associated I-O file, as well as the file associated with record-name-1.║
+
+> ⚠ **CORRECTED — see the Errata (C35).** The standard prints `as the associated output file, as well as the file associated with record-name-1` (page 503, folio IX-33). A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:IX.4.6.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045). Corrected to `as the associated I-O file, as well as the file associated with record-name-1`.
 
 IX-33
 
@@ -36924,6 +36934,11 @@ it is taken as the rule of 1985.
 | [C28](#errata-c28) | 476 | IX-6 | Section IX, the invalid key condition, the second rule 2 | `not` | `no` | word |
 | [C29](#errata-c29) | 586 | XIII-4 | Section XIII, the file control entry, general rule 3 | `reference` | `referenced` | word |
 | [C30](#errata-c30) | 614 | XIII-34 | Section XIII, the body group presentation rules, rule 4, item b | `printer line` | `print line` | word |
+| [C31](#errata-c31) | 270 | VI-38 | Section VI, the REDEFINES clause, syntax rule 6 | `the data-name referenced` | `the data item referenced` | word |
+| [C32](#errata-c32) | 360 | VI-128 | Section VI, the SET statement, general rule 2, its second paragraph | `associated with index-name-1` | `associated with index-name-2` | sense |
+| [C33](#errata-c33) | 422 | VII-48 | Section VII, the REWRITE statement, general rule 3 | `the associated output file` | `the associated I-O file` | sense |
+| [C34](#errata-c34) | 461 | VIII-31 | Section VIII, the REWRITE statement, general rule 4 | `the associated output file` | `the associated I-O file` | sense |
+| [C35](#errata-c35) | 503 | IX-33 | Section IX, the REWRITE statement, general rule 4 | `the associated output file` | `the associated I-O file` | sense |
 
 <a id="errata-c1"></a>
 
@@ -37254,6 +37269,61 @@ A real word printed for another, which no spelling check sees: found by the misp
 | **This transcription** | `the first print line of` |
 
 A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c31"></a>
+
+### C31 · page 270 (folio VI-38) · Section VI, the REDEFINES clause, syntax rule 6 · `the data-name referenced` → `the data item referenced`
+
+| | |
+|---|---|
+| **Printed** | `If the data-name referenced by data-name-2 is specified` |
+| **This transcription** | `If the data item referenced by data-name-2 is specified` |
+
+A real word printed for another: a data-name references no data-name, and the rule's own first sentence prints `the data item referenced by data-name-2`, the item its second sentence speaks of (kb/Work PB5045).
+
+<a id="errata-c32"></a>
+
+### C32 · page 360 (folio VI-128) · Section VI, the SET statement, general rule 2, its second paragraph · `associated with index-name-1` → `associated with index-name-2`
+
+| | |
+|---|---|
+| **Printed** | `must correspond to an occurrence number of an element in the table associated with index-name-1.` |
+| **This transcription** | `must correspond to an occurrence number of an element in the table associated with index-name-2.` |
+
+An operand misprinted: the sentence is about index-name-2, whose value must index its own table. General rule 3a provides for index-name-2 being related to a different table than index-name-1 (§1985:VI.6.23.4 GR3), which the printed operand would make unreachable, and §2023:14.9.39.4 GR2 b) speaks of the table element associated with index-name-2 (kb/Work PB5031, PB5045).
+
+<a id="errata-c33"></a>
+
+### C33 · page 422 (folio VII-48) · Section VII, the REWRITE statement, general rule 3 · `the associated output file` → `the associated I-O file`
+
+| | |
+|---|---|
+| **Printed** | `as the associated output file, as well as the file associated with record-name-1` |
+| **This transcription** | `as the associated I-O file, as well as the file associated with record-name-1` |
+
+A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:VII.4.5.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045).
+
+<a id="errata-c34"></a>
+
+### C34 · page 461 (folio VIII-31) · Section VIII, the REWRITE statement, general rule 4 · `the associated output file` → `the associated I-O file`
+
+| | |
+|---|---|
+| **Printed** | `as the associated output file, as well as the file associated with record-name-1` |
+| **This transcription** | `as the associated I-O file, as well as the file associated with record-name-1` |
+
+A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:VIII.4.6.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045).
+
+<a id="errata-c35"></a>
+
+### C35 · page 503 (folio IX-33) · Section IX, the REWRITE statement, general rule 4 · `the associated output file` → `the associated I-O file`
+
+| | |
+|---|---|
+| **Printed** | `as the associated output file, as well as the file associated with record-name-1` |
+| **This transcription** | `as the associated I-O file, as well as the file associated with record-name-1` |
+
+A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:IX.4.6.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
