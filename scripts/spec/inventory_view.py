@@ -234,7 +234,7 @@ def check() -> int:
         ed = schema.edition(year)
         v = view(year, schema)
         findings += [f"{year}: {p}" for p in v.problems]
-        line = f"inventory {year}: {len(v.rows)} rules, {_gaps(v.rows)} GAP"
+        line = f"inventory {year}: {len(v.rows)} rules, {gaps(v.rows)} GAP"
         if not ed.newest:
             targets = {r["rule-id"]: r for r in inventory(ed.next_held, schema)}
             findings += [f"{year}: {r['rule-id']}: {e}" for r in v.rows for e in lineage.next_errors(r, ed, schema, targets)]
@@ -254,16 +254,23 @@ def check() -> int:
     return 1 if findings else 0
 
 
-def _gaps(rows: list[Row]) -> int:
+def gaps(rows: list[Row]) -> int:
+    """How many of `rows` are a GAP: the burn-down metric, which the session probe and the ledger report per edition."""
     return sum(1 for r in rows if r["state"] == "GAP")
+
+
+def edition_views(schema: Schema | None = None) -> dict[int, list[Row]]:
+    """Every held edition's rows by year, newest first: each older edition's state is its chain's, evaluated at its own
+    edition (DESIGN-spec-conformance-review.md section 10.2, kb/Work PB4994). The one read behind every per-edition report."""
+    schema = schema or load_schema()
+    return {year: inventory(year, schema) for year in sorted(HELD, reverse=True)}
 
 
 def summary() -> list[str]:
     """The session probe's lines: each held edition's rules and GAP count side by side (the burn-down metric), then each
     edition's adjudicated verdicts, and the CONFORMS rows a spec-derived test would close."""
-    schema = load_schema()
-    views = {year: inventory(year, schema) for year in sorted(HELD, reverse=True)}
-    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules · {_gaps(rows)} GAP" for year, rows in views.items())
+    views = edition_views()
+    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules · {gaps(rows)} GAP" for year, rows in views.items())
              + " (v1.0 = zero GAP)"]
     for year, rows in views.items():
         adjudicated = [r for r in rows if r["verdict"]]
