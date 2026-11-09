@@ -1,4 +1,4 @@
-## PB4995: a Message Batches run records its billing account on each batch, so one pass can spend two accounts' credit
+## Entry 3367 — 2026-11-09 00:41 PST — PB4995: a Message Batches run records its billing account on each batch, so one pass can spend two accounts' credit
 
 The owner chose to run the whole 1985 recheck pass (1,040 requests at effort `max`, about $255) on account2's API credit.
 Its canary had been billed to account1, and `message_batches.BatchRun` kept ONE account per run in `state.json`:
@@ -17,3 +17,4 @@ takes an id prefix, as two accounts' batch ids never collide).
 The 23 run state files under `E:/COBOL-coord/scratch` were moved to the new shape once (the run account copied onto each
 batch, and the older bare-page usage keys keyed under the batch holding the page); every run's recorded cost is the same
 to the cent. The recheck was then submitted on account2 (`msgbatch_018ansVms2yKV3PJYVWHXWZR`, $320 cap).
+
