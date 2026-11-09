@@ -208,8 +208,8 @@ and page 736's) is one cell whose printed lines are `<br>`-separated, each prefi
 sweep is `table-body-paragraph(PB5028)`. A top-level body heading the page underlines (`4. <u>TABLE
 HANDLING</u>`, `<u>SECTION IV: …</u>`, a `GENERAL FORMAT FOR …` title, a condition-format label) carries `<u>` over its
 words and not its number; the ledger sweeps are `heading-underlines(PB4953)` and `heading-underlines(PB5028)`. The second pass
-found 30 more (every `N. TITLE` the first left bare, 14 `GENERAL FORMAT FOR ...` titles, `SECTION VII`, `VIII` and `XIV` on
-their opening pages, `CONDITION-NAME CONDITION:`) and read all 212 underlined lines the text-layer measure could not confirm
+found 33 more (every `N. TITLE` the first left bare, including page 21's, 14 `GENERAL FORMAT FOR ...` titles, `SECTION VII`, `VIII` and `XIV` on
+their opening pages, `CONDITION-NAME CONDITION:`, `SECTION I` on page 21, `MISCELLANEOUS FORMATS`) and read all 212 underlined lines the text-layer measure could not confirm
 against the page: all 212 are underlined in print. A `# SECTION ...` line placed after a folio or on a blank divider page is
 an editorial divider the page does not print, so it carries no underline. The OCR word boxes alone cannot measure an
 underline (a box rule or a skewed scan fools it), so the unmarked headings are found by the heading-shape pattern and then

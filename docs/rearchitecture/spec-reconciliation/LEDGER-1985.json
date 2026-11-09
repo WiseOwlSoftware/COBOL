@@ -7040,6 +7040,24 @@
    "now": "## 1. <u>INTRODUCTION TO THE SEGMENTATION MODULE</u>"
   },
   {
+   "page": 21,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## SECTION I: INTRODUCTORY INFORMATION",
+   "now": "## <u>SECTION I: INTRODUCTORY INFORMATION</u>"
+  },
+  {
+   "page": 21,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## 1. INTRODUCTION TO THE STANDARD",
+   "now": "## 1. <u>INTRODUCTION TO THE STANDARD</u>"
+  },
+  {
+   "page": 230,
+   "sweep": "heading-underlines(PB5028)",
+   "was": "## MISCELLANEOUS FORMATS",
+   "now": "## <u>MISCELLANEOUS FORMATS</u>"
+  },
+  {
    "page": 71,
    "sweep": "table-body-paragraph(PB5028)",
    "was": "| The following clauses appear in record description entry, data description entry, 77 level description entry, or report group description entry: |",
