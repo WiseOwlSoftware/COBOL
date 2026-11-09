@@ -15521,6 +15521,19 @@
    "opens": [
     "║c. A MOVE statement where the sending operand is numeric edited"
    ]
+  },
+  {
+   "page": 323,
+   "n": 729,
+   "region": "rule",
+   "where": "6.16.4 GR 3, second paragraph: the two phrases implicitly or, shaded by Amendment 2 row VI-91 (Errata C223, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 2,
+   "opens": [
+    "║implicitly or║ explicitly terminated. Any END-IF",
+    "║implicitly or║ explicitly terminated."
+   ]
   }
  ]
 }

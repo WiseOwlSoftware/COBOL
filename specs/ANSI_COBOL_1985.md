@@ -13350,11 +13350,15 @@ c. If the condition is false and statement-2 is specified, statement-1 or its su
 
 d. If the condition is false and the ELSE phrase is not specified, statement-1 is ignored and control passes to the end of the IF statement.
 
-e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence.
+e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence. This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.
+
+> ⚠ **CORRECTED — see the Errata (C222).** The standard prints `e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence.` (page 323, folio VI-91). Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 922, folio B-10), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 2e, add the following as the new last sentence" (kb/Work PB5045). Corrected to the text above.
 
 (3) Statement-1 and/or statement-2 may contain an IF statement. In this case, the IF statement is said to be nested. More detailed rules on nesting are given in the appropriate paragraph. (See page IV-40, Scope of Statements.)
 
-IF statements within IF statements may be considered as paired IF, ELSE, and END-IF combinations, proceeding from left to right. Thus, any ELSE or END-IF encountered is considered to apply to the immediately preceding IF that has not been already paired with an ELSE or END-IF.
+IF statements within IF statements are considered matched IF, ELSE, and END-IF ordered combinations, proceeding from left to right. Thus, any ELSE encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE or has not been ║implicitly or║ explicitly terminated. Any END-IF encountered is matched with the nearest preceding IF that has not been ║implicitly or║ explicitly terminated.
+
+> ⚠ **CORRECTED — see the Errata (C223).** The standard prints `IF statements within IF statements may be considered as paired IF, ELSE, and END-IF combinations, proceeding from left to right. Thus, any ELSE or END-IF encountered is considered to apply to the immediately preceding IF that has not been already paired with an ELSE or END-IF.` (page 323, folio VI-91). Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 922, folio B-10), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 3, second paragraph, replace with the following" (its two shaded phrases boxed) (kb/Work PB5045). Corrected to `IF statements within IF statements are considered matched IF, ELSE, and END-IF ordered combinations, ... (above)`.
 
 VI-91
 
@@ -13527,7 +13531,9 @@ Nucleus - INSPECT
 
 (7) The size of literal-3 or the data item referenced by identifier-5 must be equal to the size of literal-1 or the data item referenced by identifier-3. When a figurative constant is used as literal-3, the size of the figurative constant is equal to the size of literal-1 or the size of the data item referenced by identifier-3.
 
-(8) When the CHARACTERS phrase is used, literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length.
+(8) When the CHARACTERS phrase is used, literal-3 or the size of the data item referenced by identifier-5 must be one character in length.
+
+> ⚠ **CORRECTED — see the Errata (C224).** The standard prints `(8) When the CHARACTERS phrase is used, literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length.` (page 327, folio VI-95). Amendment 2 (ANSI X3.23b-1993), its change for page VI-95 (page 922, folio B-10), applied in place: "Paragraph 6.18.3 of the INSPECT statement, change syntax rule 8 to read" (kb/Work PB5045). Corrected to `(8) When the CHARACTERS phrase is used, literal-3 or the size of the data item referenced by identifier-5 must be one character in length.`.
 
 ║<u>FORMAT 4</u>:║
 
@@ -13545,27 +13551,41 @@ Nucleus - INSPECT
 
 <u>ALL FORMATS</u>:
 
-(1) Inspection (which includes the comparison cycle, the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/or replacing) begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right to the rightmost character position as described in general rules 5 through 7.
+(1) For the purpose of determining its length, identifier-1 is treated as if it were a sending data item. (See page VI-26, The OCCURS Clause).
 
-(2) For use in the INSPECT statement, the content of the data item referenced by identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 will be treated as follows:
+> ⚠ **CORRECTED — see the Errata (C230).** The standard prints `(no rule before the old general rule 1)` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: the same change: its new general rule 1 (kb/Work PB5045). Corrected to `(1) For the purpose of determining its length, identifier-1 is treated as if it were a sending data item. (See page VI-26, The OCCURS Clause).`.
+
+(2) Inspection (which includes the comparison cycle, the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/or replacing) begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right to the rightmost character position as described in general rules 6 through 8.
+
+> ⚠ **CORRECTED — see the Errata (C231).** The standard prints `general rules 5 through 7.` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 2, last line, change 'general rules 5 through 7.' to 'general rules 6 through 8.'" (kb/Work PB5045). Corrected to `general rules 6 through 8.`.
+
+(3) For use in the INSPECT statement, the content of the data item referenced by identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 will be treated as follows:
 
 a. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference an alphabetic or alphanumeric data item, the INSPECT statement treats the contents of each such identifier as a character-string.
 
-b. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference alphanumeric edited, numeric edited, or unsigned numeric data items, the data item is inspected as though it had been redefined as alphanumeric (see general rule 2a) and the INSPECT statement had been written to reference the redefined data item.
+b. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference alphanumeric edited, numeric edited, or unsigned numeric data items, the data item is inspected as though it had been redefined as alphanumeric (see general rule 3a) and the INSPECT statement had been written to reference the redefined data item.
 
-c. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference a signed numeric data item, the data item is inspected as though it had been moved to an unsigned numeric data item with length equal to the length of the signed item excluding any separate sign position, and then the rules in general rule 2b had been applied. (See page VI-103, The MOVE Statement.) If identifier-1 is a signed numeric item, the original value of the sign is retained upon completion of the INSPECT statement.
+> ⚠ **CORRECTED — see the Errata (C232).** The standard prints `(see general rule 2a)` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 3b, fourth line, change '(see general rule 2a)' to '(see general rule 3a)'" (kb/Work PB5045). Corrected to `(see general rule 3a)`.
 
-(3) In general rules 5 through 17, all references to literal-1, literal-2, literal-3, literal-4, or literal-5 apply equally to the content of the data item referenced by identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 respectively.
+c. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference a signed numeric data item, the data item is inspected as though it had been moved to an unsigned numeric data item with length equal to the length of the signed item excluding any separate sign position, and then the rules in general rule 3b had been applied. (See page VI-103, The MOVE Statement.) If identifier-1 is a signed numeric item, the original value of the sign is retained upon completion of the INSPECT statement.
 
-(4) If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated only once as the first operation in the execution of the INSPECT statement.
+> ⚠ **CORRECTED — see the Errata (C233).** The standard prints `in general rule 2b` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 3c, fifth line, change 'in general rule 2b' to 'in general rule 3b'" (kb/Work PB5045). Corrected to `in general rule 3b`.
+
+(4) in general rules 6 through 19, all references to literal-1, literal-2, literal-3, literal-4, or literal-5 apply equally to the content of the data item referenced by identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 respectively.
+
+> ⚠ **CORRECTED — see the Errata (C234).** The standard prints `In general rules 5 through 17,` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 4, first line, change 'In general rules 5 through 17' to 'in general rules 6 through 19'" (the amendment prints the lowercase 'in') (kb/Work PB5045). Corrected to `in general rules 6 through 19,`.
+
+(5) If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated only once as the first operation in the execution of the INSPECT statement.
 
 > ⚠ **CORRECTED — see the Errata (C129).** The standard prints `(4) Subscripting associated with any identifier is evaluated only once` (page 328, folio VI-96). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-96 (page 848, folio A-18), applied in place: "Paragraph 6.18.4, general rule 4, change in part to read: 'If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated...'" (kb/Work PB5045). Corrected to `(4) If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated only once`.
 
 <u>FORMATS 1 AND 2</u>:
 
-(5) During inspection of the content of the data item referenced by identifier-1, each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2).
+(6) During inspection of the content of the data item referenced by identifier-1, each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2).
 
-(6) The comparison operation to determine the occurrence of literal-1 to be tallied or to be replaced, occurs as follows:
+(7) The comparison operation to determine the occurrence of literal-1 to be tallied or to be replaced, occurs as follows:
+
+> ⚠ **CORRECTED — see the Errata (C225).** The standard prints `general rules (1) to (6) as printed` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
 VI-96
 
@@ -13589,7 +13609,9 @@ d. The comparison operation continues until the rightmost character position of 
 
 e. If the CHARACTERS phrase is specified, an implied one character operand participates in the cycle described in paragraphs 6a through 6d above as if it had been specified by literal-1, except that no comparison to the content of the data item referenced by identifier-1 takes place. This implied character is considered always to match the leftmost character of the content of the data item referenced by identifier-1 participating in the current comparison cycle.
 
-(7) The comparison operation defined in general rule 6 is restricted by the BEFORE and AFTER phrase as follows:
+(8) The comparison operation defined in general rule 6 is restricted by the BEFORE and AFTER phrase as follows:
+
+> ⚠ **CORRECTED — see the Errata (C226).** The standard prints `general rules (7) to (7) as printed` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
 a. If neither the BEFORE nor AFTER phrase is specified, literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as described in general rule 6. Literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching at the leftmost character position of identifier-1.
 
@@ -13609,11 +13631,13 @@ c. If the AFTER phrase is specified, the associated literal-1 or the implied ope
 
 <u>FORMAT 1</u>:
 
-(8) The required words ALL and LEADING are adjectives that apply to each succeeding literal-1 until the next adjective appears.
+(10) The required words ALL and LEADING are adjectives that apply to each succeeding literal-1 until the next adjective appears.
 
-(9) The content of the data item referenced by identifier-2 is not initialized by the execution of the INSPECT statement.
+(11) The content of the data item referenced by identifier-2 is not initialized by the execution of the INSPECT statement.
 
-(10) The rules for tallying are as follows:
+(12) The rules for tallying are as follows:
+
+> ⚠ **CORRECTED — see the Errata (C227).** The standard prints `general rules (8) to (10) as printed` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
 a. If the ALL phrase is specified, the content of the data item referenced by identifier-2 is incremented by one for each occurrence of literal-1 matched within the content of the data item referenced by identifier-1.
 
@@ -13627,13 +13651,13 @@ VI-98
 
 Nucleus - INSPECT
 
-(11) If identifier-1, identifier-3, or identifier-4 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
+(13) If identifier-1, identifier-3, or identifier-4 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
 
 <u>FORMAT 2</u>:
 
-(12) The required words ALL, LEADING, and FIRST are adjectives that apply to each succeeding BY phrase until the next adjective appears.
+(14) The required words ALL, LEADING, and FIRST are adjectives that apply to each succeeding BY phrase until the next adjective appears.
 
-(13) The rules for replacement are as follows:
+(15) The rules for replacement are as follows:
 
 a. When the CHARACTERS phrase is specified, each character matched, in the sense of general rule 6e, in the content of the data item referenced by identifier-1 is replaced by literal-3.
 
@@ -13643,15 +13667,17 @@ c. When the adjective LEADING is specified, the first and each successive contig
 
 d. When the adjective FIRST is specified, the leftmost occurrence of literal-1 matched within the content of the data item referenced by identifier-1 is replaced by literal-3. This rule applies to each successive specification of the FIRST phrase regardless of the value of literal-1.
 
-(14) If identifier-3, identifier-4, or identifier-5 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
+(16) If identifier-3, identifier-4, or identifier-5 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
 
 <u>FORMAT 3</u>:
 
-(15) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements specifying the same identifier-1 had been written with one statement being a format 1 statement with TALLYING phrases identical to those specified in the format 3 statement, and the other statement being a format 2 statement with REPLACING phrases identical to those specified in the format 3 statement. The general rules given for matching and counting apply to the format 1 statement and the general rules given for matching and replacing apply to the format 2 statement. Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement.
+(17) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements specifying the same identifier-1 had been written with one statement being a format 1 statement with TALLYING phrases identical to those specified in the format 3 statement, and the other statement being a format 2 statement with REPLACING phrases identical to those specified in the format 3 statement. The general rules given for matching and counting apply to the format 1 statement and the general rules given for matching and replacing apply to the format 2 statement. Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement.
 
 ║<u>FORMAT 4</u>:║
 
-║(16) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement specifying the same identifier-1 had been written with a series of ALL phrases, one for each character of literal-4. The effect is as if each of these ALL phrases referenced, as literal-1, a single character║
+║(18) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement specifying the same identifier-1 had been written with a series of ALL phrases, one for each character of literal-4. The effect is as if each of these ALL phrases referenced, as literal-1, a single character║
+
+> ⚠ **CORRECTED — see the Errata (C228).** The standard prints `general rules (11) to (16) as printed` (page 331, folio VI-99). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
 VI-99
 
@@ -13661,7 +13687,9 @@ Nucleus - INSPECT
 
 ║of literal-4 and referenced, as literal-3, the corresponding single character of literal-5. Correspondence between the characters of literal-4 and the characters of literal-5 is by ordinal position within the data item.║
 
-║(17) If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)║
+║(19) If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)║
+
+> ⚠ **CORRECTED — see the Errata (C229).** The standard prints `general rules (17) to (17) as printed` (page 332, folio VI-100). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
 ### 6.18.5 Examples
 
@@ -38019,6 +38047,19 @@ it is taken as the rule of 1985.
 | [C219](#errata-c219) | 289 | VI-57 | Section VI, paragraph 6.3.1.2 (Class Condition), the second paragraph after the general format | `(no zero-length sentence)` | `... zero-length group item ... always true.` | amendment-2 |
 | [C220](#errata-c220) | 322 | VI-90 | Section VI, paragraph 6.16.2, the general format of the IF statement | `{statement-1} …, {statement-2} …` | `statement-1, statement-2` | amendment-2 |
 | [C221](#errata-c221) | 323 | VI-91 | Section VI, paragraph 6.16.4 (IF), general rule 2b | `(no last sentence)` | `This has the effect of causing a transfer of control to an…` | amendment-2 |
+| [C222](#errata-c222) | 323 | VI-91 | Section VI, paragraph 6.16.4 (IF), general rule 2e | `(no last sentence)` | `This has the effect of causing a transfer of control ...` | amendment-2 |
+| [C223](#errata-c223) | 323 | VI-91 | Section VI, paragraph 6.16.4 (IF), general rule 3, second paragraph | `may be considered as paired ...` | `are considered matched ... ordered combinations ...` | amendment-2 |
+| [C224](#errata-c224) | 327 | VI-95 | Section VI, paragraph 6.18.3 (INSPECT), syntax rule 8 | `(8) When the CHARACTERS phrase is used, literal-2, literal-…` | `(8) When the CHARACTERS phrase is used, literal-3 or the si…` | amendment-2 |
+| [C225](#errata-c225) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), general rules 1 to 6, renumbered | `(1) ... (6)` | `renumbered` | amendment-2 |
+| [C226](#errata-c226) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), general rules 7 to 7, renumbered | `(7) ... (7)` | `renumbered` | amendment-2 |
+| [C227](#errata-c227) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), general rules 8 to 10, renumbered | `(8) ... (10)` | `renumbered` | amendment-2 |
+| [C228](#errata-c228) | 331 | VI-99 | Section VI, paragraph 6.18.4 (INSPECT), general rules 11 to 16, renumbered | `(11) ... (16)` | `renumbered` | amendment-2 |
+| [C229](#errata-c229) | 332 | VI-100 | Section VI, paragraph 6.18.4 (INSPECT), general rules 17 to 17, renumbered | `(17) ... (17)` | `renumbered` | amendment-2 |
+| [C230](#errata-c230) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), a new general rule 1 | `(no rule 1)` | `(1) For the purpose of determining its length, ...` | amendment-2 |
+| [C231](#errata-c231) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 2, last line | `general rules 5 through 7.` | `general rules 6 through 8.` | amendment-2 |
+| [C232](#errata-c232) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 3b | `(see general rule 2a)` | `(see general rule 3a)` | amendment-2 |
+| [C233](#errata-c233) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 3c | `in general rule 2b` | `in general rule 3b` | amendment-2 |
+| [C234](#errata-c234) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 4, first line | `In general rules 5 through 17` | `in general rules 6 through 19` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -40450,6 +40491,149 @@ Amendment 2 (ANSI X3.23b-1993), its change for page VI-90 (page 921, folio B-9),
 | **This transcription** | `b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence. This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 921, folio B-9), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 2b, add the following as the new last sentence" (kb/Work PB5045).
+
+<a id="errata-c222"></a>
+
+### C222 · page 323 (folio VI-91) · Section VI, paragraph 6.16.4 (IF), general rule 2e · `(no last sentence)` → `This has the effect of causing a transfer of cont…`
+
+| | |
+|---|---|
+| **Printed** | `e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence.` |
+| **This transcription** | `e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence. This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 922, folio B-10), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 2e, add the following as the new last sentence" (kb/Work PB5045).
+
+<a id="errata-c223"></a>
+
+### C223 · page 323 (folio VI-91) · Section VI, paragraph 6.16.4 (IF), general rule 3, second paragraph · `may be considered as paired ...` → `are considered matched ... ordered combinations .…`
+
+| | |
+|---|---|
+| **Printed** | `IF statements within IF statements may be considered as paired IF, ELSE, and END-IF combinations, proceeding from left to right. Thus, any ELSE or END-IF encountered is considered to apply to the immediately preceding IF that has not been already paired with an ELSE or END-IF.` |
+| **This transcription** | `IF statements within IF statements are considered matched IF, ELSE, and END-IF ordered combinations, ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 922, folio B-10), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 3, second paragraph, replace with the following" (its two shaded phrases boxed) (kb/Work PB5045).
+
+<a id="errata-c224"></a>
+
+### C224 · page 327 (folio VI-95) · Section VI, paragraph 6.18.3 (INSPECT), syntax rule 8 · `(8) When the CHARACTERS phrase is used, literal-2…` → `(8) When the CHARACTERS phrase is used, literal-3…`
+
+| | |
+|---|---|
+| **Printed** | `(8) When the CHARACTERS phrase is used, literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length.` |
+| **This transcription** | `(8) When the CHARACTERS phrase is used, literal-3 or the size of the data item referenced by identifier-5 must be one character in length.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-95 (page 922, folio B-10), applied in place: "Paragraph 6.18.3 of the INSPECT statement, change syntax rule 8 to read" (kb/Work PB5045).
+
+<a id="errata-c225"></a>
+
+### C225 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), general rules 1 to 6, renumbered · `(1) ... (6)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (1) to (6) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c226"></a>
+
+### C226 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), general rules 7 to 7, renumbered · `(7) ... (7)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (7) to (7) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c227"></a>
+
+### C227 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), general rules 8 to 10, renumbered · `(8) ... (10)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (8) to (10) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c228"></a>
+
+### C228 · page 331 (folio VI-99) · Section VI, paragraph 6.18.4 (INSPECT), general rules 11 to 16, renumbered · `(11) ... (16)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (11) to (16) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c229"></a>
+
+### C229 · page 332 (folio VI-100) · Section VI, paragraph 6.18.4 (INSPECT), general rules 17 to 17, renumbered · `(17) ... (17)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (17) to (17) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c230"></a>
+
+### C230 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), a new general rule 1 · `(no rule 1)` → `(1) For the purpose of determining its length, ...`
+
+| | |
+|---|---|
+| **Printed** | `(no rule before the old general rule 1)` |
+| **This transcription** | `(1) For the purpose of determining its length, identifier-1 is treated as if it were a sending data item. (See page VI-26, The OCCURS Clause).` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: the same change: its new general rule 1 (kb/Work PB5045).
+
+<a id="errata-c231"></a>
+
+### C231 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 2, last line · `general rules 5 through 7.` → `general rules 6 through 8.`
+
+| | |
+|---|---|
+| **Printed** | `general rules 5 through 7.` |
+| **This transcription** | `general rules 6 through 8.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 2, last line, change 'general rules 5 through 7.' to 'general rules 6 through 8.'" (kb/Work PB5045).
+
+<a id="errata-c232"></a>
+
+### C232 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 3b · `(see general rule 2a)` → `(see general rule 3a)`
+
+| | |
+|---|---|
+| **Printed** | `(see general rule 2a)` |
+| **This transcription** | `(see general rule 3a)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 3b, fourth line, change '(see general rule 2a)' to '(see general rule 3a)'" (kb/Work PB5045).
+
+<a id="errata-c233"></a>
+
+### C233 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 3c · `in general rule 2b` → `in general rule 3b`
+
+| | |
+|---|---|
+| **Printed** | `in general rule 2b` |
+| **This transcription** | `in general rule 3b` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 3c, fifth line, change 'in general rule 2b' to 'in general rule 3b'" (kb/Work PB5045).
+
+<a id="errata-c234"></a>
+
+### C234 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 4, first line · `In general rules 5 through 17` → `in general rules 6 through 19`
+
+| | |
+|---|---|
+| **Printed** | `In general rules 5 through 17,` |
+| **This transcription** | `in general rules 6 through 19,` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 4, first line, change 'In general rules 5 through 17' to 'in general rules 6 through 19'" (the amendment prints the lowercase 'in') (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
