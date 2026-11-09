@@ -761,7 +761,7 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
   FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). A CITATION NAMES ONE RULE (kb/Work PB4969): a rule of a
   restarted list is cited by its list, `GRL2.1` for the id's `-L2.1` (`citation.rule_designator`, the one writer; the format's
   `SUBLIST_RULE`), so `§1985:IV.4.2.2.2.3 GR1` is the first list's rule 1 alone, and the extractor's `--check` fails on two
-  rows that share a citation (a row cited by a printed page, `§1985:p.XIII-56`, is exempt: the page is no rule's citation).
+  rows that share a citation (a row cited by a printed page, `§1993:p.B-16`, the two rules an amendment adds on that page, is exempt: the page is no rule's citation).
   The 2023 catalog carries no `citation` field. The year prefix names the edition (or amendment) the
   rule is from, in the 1985 store (§10.2).
 - **The conformance requirements are the FRAME, not rows** (kb/Work PB4968). Paragraph 1.5 of Section I (§1985:I.1.5: what a
@@ -785,8 +785,8 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
   the base rules keep their 1985 numbers, which are the ones 1985 citations use.
 - **Completeness** is held as for 2023: a rule-shaped heading no kind resolves, a recognised block that yields no rule,
   an ordinal that neither continues nor restarts its list, a box in a one-level module, an amendment change naming a rule
-  the catalog cannot find (read from the change's directive, never from the new text it carries), a rule after a scan gap
-  that no entry places, an adjudication the transcription no longer has, a duplicate id, a rule of an admitted paragraph
+  the catalog cannot find (read from the change's directive, never from the new text it carries), an adjudication the
+  transcription no longer has, a duplicate id, a rule of an admitted paragraph
   its kind map does not name, and a row whose citation `cite.py --check` would refuse (`rule_catalog_1985.cite_check`,
   `citation.validate` on every row) are each reported, and `--check` fails on them. The paragraphs that DEFINE the rule
   kinds (§1985:IV.3) are outside the denominator, as §2023:5.3 is. **The kind table is ONE**: `extract_rule_catalog.KINDS`
@@ -810,17 +810,29 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
   `EXCLUDED_BLOCKS` (IV.3, VI.6.4, XIII.3.10) and `KNOWN_EMPTY_BLOCKS` (VI.5.9.6) stay, as in the 2023 arm. The Index and
   the appendices open no rule block: a rule-block heading there is reported.
 - **The scan's own defects.** The scan prints folios X-11 and X-12 twice (PDF pages 527-528); the transcription keeps
-  both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat. Where the scan
-  lacks printed pages (`citation.SCAN_GAP_85`), the text after the gap is never the block before it; a page that resumes a
-  paragraph whose heading is on a missing page names it in `rule_catalog_1985.GAP_RESUMES` (PDF page 634: the TYPE
-  clause's syntax rules 5-7, rows `1985-SR-XIII.3.20.3-5` to `-7`: paragraph 3.20.3 of Section XIII). That paragraph has
-  no region in the transcription, since its heading is on a missing page, so its rows cite the printed page that owns
-  them (`§1985:p.XIII-56`), as an amendment's added rule cites its own page.
+  both copies under `citation.SCAN_REPEAT_85`'s comment, and the catalog reads no rule from the repeat.
+- **A reconstruction fills a scan gap, and its rows are provisional** (owner 2026-11-09, kb/Work PB4952). The scan lacks
+  printed pages XIII-30, XIII-31 (paragraph 3.10.7, the page heading group presentation rules), XIII-54 (the SUM clause's
+  general rules after 9 a) and XIII-55 (the TYPE clause's heading, format and syntax rules 1 to 4). Until the printed
+  pages are obtained, each gap holds a RECONSTRUCTION: editorial text between a `cite.RECONSTRUCTED` note, which names
+  the folios, the sources and the confidence, and a `cite.RECONSTRUCTED_END` note. The catalog reads it as text, so its
+  headings open their blocks and a rule continues across it as across a page break (the TYPE clause's printed syntax rules
+  5 to 7 on folio XIII-56 are `§1985:XIII.3.20.3 SR5` to `SR7`), and every row carries `provisional`: `none`, `part`
+  (SUM GR9, whose items b and c are reconstructed) or `whole`, with the folio it reconstructs. The mark travels to the
+  inventory row (`inventory_view.py --check` counts them), to the audit's requests (`audit_batch.quoted_rule` and
+  `rule_block`), and to `cite.py --check`, which marks a quotation it verifies inside a reconstruction; the figure sweep
+  draws no format from one (`sweep_figures.drawn_figures`). `verify_publishable.check_reconstructions` (the SPEC
+  CORRECTIONS 1985 audit) accepts the reconstructions as editorial and holds them to the folios: each is closed and
+  sourced, and the folios it names are exactly those the transcription's printed folios skip where it stands, so a gap
+  nobody filled is refused and so is a reconstruction whose printed page has since been transcribed. That replacement
+  changes the rows' text, and the store records adjudicated against the reconstruction are refused by their
+  `rule-digest` until they are decided again against the printed text.
 
 The catalog is written to `docs/rearchitecture/spec-rule-catalog-1985.json` and held by the gate's RULE CATALOG 1985
 audit (`--edition 1985 --check`: no finding, and the committed catalog is this run's). On the reconciled file it counts
-2,253 rows from 664 blocks (SR 645, GR 1,253, AR 65, RV 80, FMT 210) and no finding; the content-keyed scan measures 90
-paragraphs (756 ordinals, an upper bound), of which the manifest admits 53 (254 rows) and records 37 as not rules.
+2,266 rows from 666 blocks (SR 651, GR 1,259, AR 65, RV 80, FMT 211), 12 of them provisional, and no finding; the
+content-keyed scan measures 91 paragraphs (760 ordinals, an upper bound), of which the manifest admits 54 (258 rows) and
+records 37 as not rules.
 
 ### 10.2 Rule lineage: one rule list per edition, one change record per adjacent pair (owner 2026-11-08, kb/Work PB4991)
 

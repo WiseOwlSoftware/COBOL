@@ -26,12 +26,15 @@ citation (`§1985:VI.5.7.3 SR1`), section, paragraph, module, subject (the enclo
 RV, FMT for a general format), ordinal, `box` (none, part, whole: how much of the rule the level-2 box covers), `level`
 (1 or 2: 2 only when the WHOLE rule is boxed; None outside a module), `document` (the base standard or Amendment 1),
 `amended_by`, its `status` (normal, or obsolete naming its §1985:C.1 entry: element_standing.py, kb/Work PB4993), the
-PDF page and printed folio it starts on, the printed band in effect, and its text.
+PDF page and printed folio it starts on, the printed band in effect, its text, and `provisional` (none, part, whole:
+how much of its text is a RECONSTRUCTION of a printed page the scan lacks, cite.RECONSTRUCTED, kb/Work PB4952; a
+provisional rule's text is the transcription's, not the standard's, and the inventory row and every verdict built on it
+carry the mark until the printed page's verbatim text replaces the reconstruction).
 
 COMPLETENESS (design §7) is held the 2023 way: a rule-shaped heading no kind resolves, a recognised block that yields no
 rule, an ordinal that neither continues its list nor restarts it, a box inside a one-level module, an amendment change
-that names a rule this catalog cannot find, a rule after a scan gap that no GAP_RESUMES entry places, an adjudication
-(EXCLUDED_BLOCKS, KNOWN_EMPTY_BLOCKS, GAP_RESUMES) the transcription no longer has, a paragraph carrying a numbered list
+that names a rule this catalog cannot find, an adjudication
+(EXCLUDED_BLOCKS, KNOWN_EMPTY_BLOCKS) the transcription no longer has, a paragraph carrying a numbered list
 that the content-keyed scan's manifest does not record as measured (the 2023 arm's PB29 check), a rule of an admitted
 paragraph its kind map does not name, a row whose citation names no region of the transcription, and a disagreement
 between the standing lists' data and the text (`element_standing.findings`) are each REPORTED,
@@ -49,10 +52,12 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from citation import (AMENDMENT_85, APPENDIX_85, FOLIO_85, MARK_85, PAGE_85, PARAGRAPH_85, SCAN_GAP_85,  # noqa: E402
+from citation import (AMENDMENT_85, APPENDIX_85, FOLIO_85, MARK_85, PAGE_85, PARAGRAPH_85,  # noqa: E402
                       SCAN_REPEAT_85, SECTION_85, SECTIONS_85)  # (THE readers of the 1985 structure, kb/Work PB4887)
 from spec_pdf import BOX_SIDE  # noqa: E402  (THE side of a level-2 box, kb/Work PB4850)
-from cite import CORRECTION_NOTE  # noqa: E402  (THE shape of an editorial correction note: never rule text, R66)
+# THE shapes of an editorial note (a correction, R66; a reconstruction's opening and closing, kb/Work PB4952): never rule
+# text. A reconstruction's own text IS read, its rows marked provisional (`reconstructed`).
+from cite import EDITORIAL_NOTE, RECONSTRUCTED, RECONSTRUCTED_END, reconstructed  # noqa: E402
 from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  (THE spelling of a general-format heading, kb/Work PB284)
 # THE singular form of a block title, THE kind table, any Markdown heading, and a printed band inside a rule list
 # ("FORMAT 2", "SEQUENTIAL FILES"): the 2023 arm's, one definition each.
@@ -114,15 +119,9 @@ KNOWN_EMPTY_BLOCKS = {
     "VI.5.9.6": "the PICTURE precedence rules are unnumbered prose and the chart on page VI-37 (§1985:VI.5.9.6 'The "
                 "chart on page VI-37 shows the order of precedence'): typed SR by KINDS, as 2023's, with no row",
 }
-#: A PAGE THAT OPENS AT A SCAN GAP (citation.SCAN_GAP_85) and continues a paragraph whose heading is on a printed page the
-#: scan lacks: the PDF page, and the paragraph its rules belong to. A rule after a gap is never the block before the gap.
-GAP_RESUMES: dict[int, dict] = {
-    634: {"paragraph": "3.20.3", "title": "Syntax Rules", "subject": "THE TYPE CLAUSE",
-          "why": "the scan lacks XIII-54 and XIII-55, where the TYPE clause (XIII.3.20, 'The TYPE Clause ... XIII-55' "
-                 "in the contents) opens; PDF page 634 runs under the header 'Report Writer - TYPE' with rules (5) to "
-                 "(7) and then '3.20.4 General Rules', so they are its syntax rules 5 to 7. The locator is the "
-                 "standard's; the transcription has no region for it, since its heading is on a missing page"},
-}
+#: How much of a rule's text a reconstruction holds (`provisional`), by whether its lines came from inside one.
+PROVISIONAL = {frozenset(): "none", frozenset({False}): "none", frozenset({True}): "whole",
+               frozenset({False, True}): "part"}
 #: A top-level rule: `(1)` at column 0 (the transcription may escape the parentheses).
 #: A boxed rule opens with the box's side (`║(1) …║`), which stays with the rule's text so `box_of` sees the whole box.
 ORDINAL = re.compile(rf"^(?P<box>{BOX_SIDE}?)\\?\((?P<n>\d+)\\?\)\s+(?P<text>.*)$")
@@ -175,7 +174,6 @@ class Catalog:
     one_level_boxes: list[str] = dataclasses.field(default_factory=list)     # a box in a module with one level
     changes: int = 0                                                          # amendment change rows read
     unresolved: list[tuple[str, str, str]] = dataclasses.field(default_factory=list)  # (document, page, change)
-    unattributed: list[tuple[int, int]] = dataclasses.field(default_factory=list)  # (PDF page, ordinal) after a scan gap
     stale: list[str] = dataclasses.field(default_factory=list)   # an adjudication the transcription no longer needs
     #: THE CONTENT-KEYED SCAN (kb/Work PB29): every paragraph whose heading names no rule block and whose body carries a
     #: numbered list, by citation ⇒ {title, ordinals, lists, longest}; and the manifest's record of them (`declared`).
@@ -196,14 +194,14 @@ class Catalog:
 
     def shared_citations(self) -> list[str]:
         """Every citation more than one row carries: a citation names ONE rule (kb/Work PB4969), so a rule of a restarted
-        list is cited by its list (citation.rule_designator). The rows cited by a printed page (`§1985:p.XIII-56`: a
-        paragraph the scan lacks, an added rule) are exempt, the page being no rule's citation."""
+        list is cited by its list (citation.rule_designator). The rows cited by a printed page (`§1993:p.B-16`: the rules an
+        amendment adds) are exempt, the page being no rule's citation."""
         counts = collections.Counter(r["citation"] for r in self.rules if ":p." not in r["citation"])
         return sorted(c for c, n in counts.items() if n > 1)
 
     def findings(self) -> int:
         return (len(self.empty) + len(self.unrecognised) + len(self.unexplained) + len(self.one_level_boxes)
-                + len(self.unresolved) + len(self.unattributed) + len(self.stale) + len(self.duplicates())
+                + len(self.unresolved) + len(self.stale) + len(self.duplicates())
                 + len(self.shared_citations())
                 + self.drift()[1] + len(self.untyped) + len(self.uncitable) + len(self.standing))
 
@@ -252,23 +250,21 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     open_change = False                # the last change row's new text follows the table row as prose
 
     def flush() -> None:
-        nonlocal buf
+        nonlocal buf, drawn_from
         if not buf or block is None:
-            buf = []
+            buf, drawn_from = [], set()
             return
         loc, kind, para = block
         kind = start.get("kind", kind)   # a rule an admitted paragraph types by its ordinal (rule_kind)
         text = re.sub(r"[ \t]+", " ", "\n".join(buf)).strip() if kind != "FMT" else "\n".join(buf).strip()
-        year, folio = YEAR_OF[document], folio_of.get(start["page"], "")
-        # A paragraph whose heading is on a page the scan lacks (GAP_RESUMES) is no region of the transcription, so its
-        # rules are cited by the printed page that owns them (kb/Work PB4886), as an amendment's added rule is.
+        year, folio = YEAR_OF[document], start["folio"] or folio_of.get(start["page"], "")
         add_row(cat, document=document, section=section, paragraph=para, kind=kind, n=start["n"],
                 sublist=start["sublist"], text=text, page=start["page"], folio=folio,
                 band=start["band"], subject=titles.get(para.rsplit(".", 1)[0], ""),
-                citation=f"§{year}:p.{folio}" if cite_page else
-                f"§{year}:{loc}" + ("" if kind == "FMT" else
-                                    f" {citation.rule_designator(kind, start['n'], start['sublist'])}"))
-        buf = []
+                citation=f"§{year}:{loc}" + ("" if kind == "FMT" else
+                                             f" {citation.rule_designator(kind, start['n'], start['sublist'])}"),
+                provisional=PROVISIONAL[frozenset(drawn_from)])
+        buf, drawn_from = [], set()
 
     def close_block() -> None:
         nonlocal block, block_rules
@@ -277,10 +273,10 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             cat.empty.append(f"{block[1]} {block[0]}")
         block, block_rules = None, 0
 
-    def open_block(loc: str, kind: str, num: str, admitted_as: str | dict | None = None, by_page: bool = False) -> None:
-        nonlocal block, block_rules, sublist, last, band, spec, cite_page
+    def open_block(loc: str, kind: str, num: str, admitted_as: str | dict | None = None) -> None:
+        nonlocal block, block_rules, sublist, last, band, spec
         block, block_rules, sublist, last, band = (loc, kind, num), 0, 1, 0, ""
-        spec, cite_page = admitted_as, by_page
+        spec = admitted_as
         cat.blocks.append((loc, kind))
 
     def close_scan() -> None:
@@ -291,42 +287,39 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
         scan, scan_body = None, []
 
     spec: str | dict | None = None  # the open block's kind as the manifest admits it (rule_kind), or None
-    cite_page = False              # the open block is cited by its page (a GAP_RESUMES paragraph)
     scan: tuple[str, str] | None = None   # (citation, title) of the paragraph the content-keyed scan reads
     scan_body: list[str] = []
     repeat = False                 # on a page the scan prints twice (SCAN_REPEAT_85): no rule is read from it
-    in_note = False                # inside a correction note's blockquote paragraph (CORRECTION_NOTE)
-    after_gap = False              # between a scan gap and the next heading: a rule here belongs to no known block
-    met: set[str] = set()          # every adjudicated locator and gap page the transcription still has
-    for line in lines:
+    in_note = False                # inside an editorial note's blockquote paragraph (EDITORIAL_NOTE)
+    met: set[str] = set()          # every adjudicated locator the transcription still has
+    # ⛔ A RECONSTRUCTION IS READ AS TEXT, ITS ROWS MARKED (kb/Work PB4952): it stands where the scan lacks printed pages
+    # and carries their headings and rules, so a rule continues across it as across a page break; `drawn_from` records
+    # whether the open rule's lines came from inside one (True), from the printed text (False), or both, and a rule
+    # that opens inside one is on the folio it reconstructs.
+    recon_folio = reconstructed(lines)
+    inside = [f is not None for f in recon_folio]
+    drawn_from: set[bool] = set()
+    for at, line in enumerate(lines):
         if PAGE_85.match(line):
             page, page_top, repeat = int(line.split()[-1]), True, False
             continue
         if repeat or not line.strip():
             in_note = False
             continue
-        # ⛔ AN EDITORIAL CORRECTION NOTE IS NOT RULE TEXT (R66, kb/Work PB4972): `> ⚠ **CORRECTED — see the Errata (Cn).**`
-        # flags a correction where it was made and quotes the printed form; the rule's text is the corrected line above it.
-        if CORRECTION_NOTE.match(line) or (in_note and line.startswith(">")):
+        # ⛔ AN EDITORIAL NOTE IS NOT RULE TEXT (R66, kb/Work PB4972, PB4952): `> ⚠ **CORRECTED — see the Errata (Cn).**`
+        # flags a correction where it was made and quotes the printed form, the rule's text being the corrected line above
+        # it; a reconstruction's opening and closing notes name its folios, sources and confidence.
+        if EDITORIAL_NOTE.match(line) or (in_note and line.startswith(">")):
             in_note = True
+            if RECONSTRUCTED.match(line):
+                page_top = False           # the reconstruction is no printed page: it carries no running header
+            elif RECONSTRUCTED_END.match(line):
+                page_top = True            # the printed page resumes with its running header
             continue
         in_note = False
         if SCAN_REPEAT_85.match(line):
             repeat = True
             continue
-        if line.startswith(SCAN_GAP_85):
-            # The text after a gap is never the block before it (kb/Work PB4886: SUM's general rules 9, 5, 6, 7).
-            close_block()
-            close_scan()
-            if (resume := GAP_RESUMES.get(page)) is not None and section is not None:
-                met.add(f"p{page}")
-                num = resume["paragraph"]
-                titles[num.rsplit(".", 1)[0]] = resume["subject"]
-                open_block(f"{section}.{num}", KINDS[canonical_title(resume["title"])], num, by_page=True)
-                last = -1                  # its first rules are on the missing pages: the list resumes anywhere
-            else:
-                after_gap = True
-            continue                       # the page's running header still follows
         if FOLIO_85.match(line):
             continue
         if page_top:
@@ -378,7 +371,6 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             title = re.sub(rf"</?u>|\*\*|{BOX_SIDE}", "", title).strip()
             loc = f"{appendix or section}.{num}"
             titles[num] = title
-            after_gap = False
             kind = kind_of(title)
             if kind is None:
                 # THE CONTENT-KEYED SCAN reads every paragraph a heading does not type, in every section and appendix:
@@ -401,8 +393,8 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             if kind is not None:
                 open_block(loc, kind, num, admitted_as)
                 if kind == "FMT":
-                    start = {"n": 0, "sublist": 1, "page": page, "band": ""}
-                    buf = []
+                    start = {"n": 0, "sublist": 1, "page": page, "band": "", "folio": recon_folio[at]}
+                    buf, drawn_from = [], set()
                     block_rules = 1
             elif RULE_SHAPED.search(title):
                 cat.unrecognised.append((loc, title))
@@ -415,11 +407,10 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
         if section in NO_RULES or appendix is not None:
             continue
         if block is None:
-            if after_gap and (m := ORDINAL.match(line)) is not None:
-                cat.unattributed.append((page, int(m.group("n"))))
             continue
         if block[1] == "FMT":
             buf.append(line)
+            drawn_from.add(inside[at])
             continue
         if ANY_HEADING.match(line) and GROUP_LABEL.match(line) is None:
             close_block()
@@ -442,13 +433,14 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
             if kind is None:   # the manifest's map does not name this rule: reported, never guessed
                 cat.untyped.append((f"§{YEAR_OF[document]}:{block[0]}", sublist, n))
                 kind = block[1]
-            start = {"n": n, "sublist": sublist, "page": page, "band": band, "kind": kind}
-            buf = [m.group("box") + m.group("text")]
+            start = {"n": n, "sublist": sublist, "page": page, "band": band, "kind": kind, "folio": recon_folio[at]}
+            buf, drawn_from = [m.group("box") + m.group("text")], {inside[at]}
         elif buf:
             buf.append(line.strip())
+            drawn_from.add(inside[at])
     close_block()
     close_scan()
-    for declared in (*EXCLUDED_BLOCKS, *KNOWN_EMPTY_BLOCKS, *(f"p{p}" for p in GAP_RESUMES)):
+    for declared in (*EXCLUDED_BLOCKS, *KNOWN_EMPTY_BLOCKS):
         if declared not in met:
             cat.stale.append(f"{declared}: adjudicated here, but the transcription no longer has it")
     cat.changes = len(change_rows)
@@ -458,9 +450,9 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
 
 
 def add_row(cat: Catalog, *, document: str, section: str | None, paragraph: str, kind: str, n: int, sublist: int,
-            text: str, page: int, folio: str, band: str, subject: str, citation: str) -> dict:
+            text: str, page: int, folio: str, band: str, subject: str, citation: str, provisional: str = "none") -> dict:
     """THE one constructor of a catalog row (module docstring: THE ROW), for a rule of the base text, of Section A, or one
-    an amendment adds."""
+    an amendment adds (an amendment's change table is printed whole: its rows are never provisional)."""
     loc = f"{section}.{paragraph}"
     rid = f"{YEAR_OF[document]}-{kind}-{loc}" + ("" if kind == "FMT" else f"-{n}" if sublist == 1 else f"-L{sublist}.{n}")
     module, levels = MODULES.get(section or "", (None, 0))
@@ -470,7 +462,8 @@ def add_row(cat: Catalog, *, document: str, section: str | None, paragraph: str,
     row = {"id": rid, "citation": citation, "document": document, "section": section, "paragraph": paragraph,
            "locator": loc, "module": module, "subject": subject, "kind": kind, "ordinal": None if kind == "FMT" else n,
            "sublist": sublist, "box": box, "level": None if module is None else (2 if box == "whole" and levels == 2 else 1),
-           "amended_by": [], "status": element_standing.NORMAL, "page": page, "folio": folio, "band": band, "text": text}
+           "amended_by": [], "status": element_standing.NORMAL, "page": page, "folio": folio, "band": band, "text": text,
+           "provisional": provisional}
     cat.rules.append(row)
     return row
 
@@ -554,8 +547,6 @@ def summary(cat: Catalog) -> list[str]:
                          ("ordinal(s) that neither continue nor restart their list", cat.unexplained),
                          ("box(es) inside a module that has one level", cat.one_level_boxes),
                          ("amendment change(s) naming a rule this catalog cannot find", cat.unresolved),
-                         ("rule(s) after a scan gap that no GAP_RESUMES entry places (PDF page, ordinal)",
-                          cat.unattributed),
                          ("adjudication(s) the transcription no longer supports", cat.stale),
                          ("DUPLICATE id(s): the inventory key is not unique (a paragraph transcribed twice, or a "
                           "list the ordinals above broke)", cat.duplicates()),
@@ -572,6 +563,11 @@ def summary(cat: Catalog) -> list[str]:
             if len(items) > 12:
                 out.append(f"      ... and {len(items) - 12} more")
     out.extend(element_standing.tally(cat.rules))
+    provisional = collections.Counter(r["provisional"] for r in cat.rules if r["provisional"] != "none")
+    if provisional:
+        out.append(f"   PROVISIONAL rules (text from a reconstruction of a printed page the scan lacks, kb/Work PB4952): "
+                   + ", ".join(f"{k} {provisional[k]}" for k in sorted(provisional)) + "; "
+                   + ", ".join(r["id"] for r in cat.rules if r["provisional"] != "none"))
     dispositions = collections.Counter(v.get("disposition") for v in cat.declared.values())
     admitted = {k for k, v in cat.declared.items() if v.get("disposition") == "rules"}
     out.append(f"   content-keyed scan manifest: {dispositions['rules']} paragraph(s) admitted as rules "
@@ -729,31 +725,46 @@ XI-3
 
 (1) A planted SUM rule.
 
+a. Its printed item.
+
 XIII-53
 
 ## Page 634
 
-<!-- The scan lacks the printed pages XIII-54 and XIII-55: planted. -->
+> ⚠ **RECONSTRUCTED — not printed in our copy (folio XIII-54).** Planted: the rest of the SUM rules.
+
+b. Its reconstructed item.
+
+(2) A planted reconstructed SUM rule.
+
+> ⚠ **END RECONSTRUCTED (folio XIII-54).** Planted.
+
+> ⚠ **RECONSTRUCTED — not printed in our copy (folio XIII-55).** Planted: the TYPE clause's heading
+> and its first syntax rules.
+
+### 3.20 THE TYPE CLAUSE
+
+#### 3.20.2 General Format
+
+<pre>
+<u>TYPE</u> IS DETAIL
+</pre>
+
+#### 3.20.3 Syntax Rules
+
+(1) A planted reconstructed TYPE rule.
+
+> ⚠ **END RECONSTRUCTED (folio XIII-55).** Planted.
 
 Report Writer - TYPE
 
-(5) A planted rule whose heading the scan lacks.
+(2) A planted printed rule whose heading is reconstructed.
 
 ### 3.20.4 General Rules
 
 (1) A planted TYPE rule.
 
 XIII-56
-
-## Page 700
-
-<!-- The scan lacks the printed pages XIII-99 and XIII-100: planted. -->
-
-Report Writer - Nothing
-
-(2) A planted rule after a gap no entry resumes.
-
-XIII-101
 
 # SECTION XVII: APPENDICES
 
@@ -914,17 +925,27 @@ def self_test() -> int:
     check("an appendix paragraph is measured under its appendix's locator, and no appendix heading opens a rule block",
           "§1985:C.2" in cat.unharvested and ("C.3.1", "Syntax Rules") in cat.unrecognised
           and not any(r["section"] in ("XVII", "C") for r in cat.rules))
-    check("a scan gap closes the block before it, and the resumed paragraph takes the rules after it",
-          [r["id"] for r in cat.rules if r["paragraph"] == "3.19.4"] == ["1985-GR-XIII.3.19.4-1"]
-          and by.get("1985-SR-XIII.3.20.3-5", {}).get("subject") == "THE TYPE CLAUSE"
+    # kb/Work PB4952: a reconstruction is read as text, a rule continuing across it as across a page break, and every row
+    # that takes text from it is marked provisional: part, whole, or none for the printed rule after it.
+    sums = {r["id"]: r for r in cat.rules if r["paragraph"] == "3.19.4"}
+    check("a rule continues into a reconstruction (part), and a rule inside one is whole, on the folio it reconstructs",
+          list(sums) == ["1985-GR-XIII.3.19.4-1", "1985-GR-XIII.3.19.4-2"]
+          and sums["1985-GR-XIII.3.19.4-1"]["text"].endswith("a. Its printed item.\nb. Its reconstructed item.")
+          and (sums["1985-GR-XIII.3.19.4-1"]["provisional"], sums["1985-GR-XIII.3.19.4-1"]["folio"]) == ("part", "XIII-53")
+          and (sums["1985-GR-XIII.3.19.4-2"]["provisional"], sums["1985-GR-XIII.3.19.4-2"]["folio"]) == ("whole", "XIII-54")
+          and not any("Planted" in r["text"] for r in sums.values()))
+    check("a reconstruction's heading opens its block: its format and rule are whole, and the printed rule after it is "
+          "none, cited by the standard's locator, the running header skipped",
+          (by["1985-FMT-XIII.3.20.2"]["provisional"], by["1985-SR-XIII.3.20.3-1"]["provisional"]) == ("whole", "whole")
+          and by["1985-SR-XIII.3.20.3-1"]["folio"] == "XIII-55"
+          and by["1985-SR-XIII.3.20.3-2"]["provisional"] == "none"
+          and by["1985-SR-XIII.3.20.3-2"]["citation"] == "§1985:XIII.3.20.3 SR2"
+          and by["1985-SR-XIII.3.20.3-2"]["text"] == "A planted printed rule whose heading is reconstructed."
+          and by["1985-SR-XIII.3.20.3-1"]["text"] == "A planted reconstructed TYPE rule."
+          and by["1985-GR-XIII.3.20.4-1"]["provisional"] == "none"
           and not any(loc.startswith("XIII") for loc, _n, _l in cat.unexplained))
-    check("a resumed paragraph has no region (its heading is on a missing page): its rules cite the printed page",
-          by["1985-SR-XIII.3.20.3-5"]["citation"] == "§1985:p.XIII-56"
-          and by["1985-GR-XIII.3.20.4-1"]["citation"] == "§1985:XIII.3.20.4 GR1")
-    check("a rule after a gap that no entry resumes is reported", cat.unattributed == [(700, 2)])
     check("an adjudication the text no longer has is reported, one it has is not",
-          any(s.startswith("XIII.3.10:") for s in cat.stale) and not any(s.startswith("IV.3:") for s in cat.stale)
-          and not any(s.startswith("p634:") for s in cat.stale))
+          any(s.startswith("XIII.3.10:") for s in cat.stale) and not any(s.startswith("IV.3:") for s in cat.stale))
     check("THE shared measure counts lists, ascending items and the longest run, and no stray ordinal",
           ordinal_shape(["(1) a", "(2) b", "x (9) not", "(1) c", "(7) stray", "(2) d", "(3) e"], ORDINAL)
           == {"ordinals": 5, "lists": 2, "longest": 3} and ordinal_shape(["prose"], ORDINAL) is None)
@@ -936,7 +957,7 @@ def self_test() -> int:
           by.get("1993-SR-VI.5.7.3-3", {}).get("text") == "A planted rule printed below its row: a. its item.")
     check("every id is unique", not cat.duplicates())
     twin = Catalog(rules=[{"citation": "§1985:IV.4.4.2 GR1"}, {"citation": "§1985:IV.4.4.2 GR1"},
-                          {"citation": "§1985:p.XIII-56"}, {"citation": "§1985:p.XIII-56"},
+                          {"citation": "§1993:p.B-1"}, {"citation": "§1993:p.B-1"},
                           {"citation": f"§1985:IV.4.4.2 {citation.rule_designator('GR', 1, 2)}"}])
     check("no two rows share a citation, a sub-list's rule naming its list; a page-cited row is exempt (kb/Work PB4969)",
           not cat.shared_citations() and twin.shared_citations() == ["§1985:IV.4.4.2 GR1"])

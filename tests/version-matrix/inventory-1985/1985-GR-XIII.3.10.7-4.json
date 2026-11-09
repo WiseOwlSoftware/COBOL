@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.7-4",
+ "rule-digest": "667dde8a8f86",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-4",
+   "GR-8.4.3.15.4-5"
+  ],
+  "bridge": true,
+  "reason": "PROVISIONAL (a reconstruction of folio XIII-30, kb/Work PB4952). A page heading has no NEXT GROUP clause (§1985:XIII.3.16.3 SR5), so LINE-COUNTER ends at its last line printed, and a nonprintable group leaves it unchanged; 2023 states both for LINE-COUNTER.",
+  "source": "adjudication kb/Work PB4952"
+ }
+}

@@ -22,6 +22,11 @@ and the acknowledgment's wording, is keyed by edition below, and an edition with
      every repair on its page, every claim decided, and each page's prose carrying exactly the level-2 box sides its
      marked boxes account for (`check_ledger`).
 
+  4. **Every gap in the printed folios holds a reconstruction, and every reconstruction stands in one** (owner
+     2026-11-09, kb/Work PB4952): editorial text between two notes that name the folios, the opening one its sources
+     and confidence, accepted as editorial, and refused once its printed page is transcribed (`check_reconstructions`).
+     No tool-harness markup leaked into the text (`HARNESS_TAG`).
+
 THE WHOLE TRACKED TREE, TOO (owner 2026-11-05: redact the stamp everywhere, history included). The repository is
 public, and a reconciliation agent once quoted the stamp, purchaser's name and order number included, into its ledger.
 `check_tree` therefore reads EVERY tracked file, as the index holds it, for the personally identifying pieces of a stamp:
@@ -48,6 +53,8 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from cite import CORRECTION_NOTE  # noqa: E402  — ONE definition of what an editorial correction note looks like
+import cite  # noqa: E402  (THE reconstruction notes and their reader, kb/Work PB4952)
+import citation  # noqa: E402  (THE printed folio of the 1985 structure)
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -392,6 +399,85 @@ def check_ledger(text: str, ledger: dict) -> list[str]:
     return failures
 
 
+#: The printed folio of a transcription that keeps its pages, by edition: a folio set alone on its line (`XIII-29`), or
+#: indented inside a figure (page 202's `V-10`).
+FOLIOS: dict[int, re.Pattern] = {1985: citation.FOLIO_85}
+
+
+def check_reconstructions(lines: list[str], edition: int) -> list[str]:
+    """⛔ EVERY GAP IN THE PRINTED FOLIOS HOLDS A RECONSTRUCTION, AND EVERY RECONSTRUCTION STANDS IN A GAP (owner
+    2026-11-09, kb/Work PB4952). Where the scan lacks printed pages the transcription holds editorial text between a
+    `cite.RECONSTRUCTED` note and a `cite.RECONSTRUCTED_END` note naming the same folios; the opening note names its
+    **Sources:** and its **Confidence:**, and each note stands alone (a line after it would render inside it). The folios
+    a reconstruction names are exactly those the transcription's folio sequence skips where it stands, so a scan gap
+    nobody filled is refused, and so is a reconstruction whose printed page has since been transcribed: its verbatim
+    text replaces the reconstruction, and the rule catalog's provisional rows go with it."""
+    failures: list[str] = []
+    print("\nreconstructions — each fills exactly the printed folios the scan lacks where it stands:")
+    recons = cite.reconstructions(lines)
+    for r in recons:
+        if r.start < 0:
+            failures.append(f"line {r.end + 1}: a closing note (folios {r.closing}) with no opening note")
+            continue
+        if r.end is None:
+            failures.append(f"line {r.start + 1}: the reconstruction of {r.folios} is never closed")
+        elif cite.folios_of(r.closing) != cite.folios_of(r.folios):
+            failures.append(f"line {r.start + 1}: the reconstruction of {r.folios} closes as {r.closing}")
+        note = " ".join(ln for ln in lines[r.start:r.start + 40] if ln.startswith(">"))
+        if "**Sources:**" not in note or "**Confidence:" not in note:
+            failures.append(f"line {r.start + 1}: the reconstruction of {r.folios} names no **Sources:** or no "
+                            "**Confidence:**")
+        for at in (r.start, r.end):
+            if at is None:
+                continue
+            j = at
+            while j + 1 < len(lines) and lines[j + 1].startswith(">"):
+                j += 1
+            if j + 1 < len(lines) and lines[j + 1].strip():
+                failures.append(f"the note at line {at + 1} is followed by text with no blank line: Markdown reads "
+                                f"{lines[j + 1].strip()[:40]!r} as part of the note")
+    folio = FOLIOS.get(edition)
+    if folio is not None:
+        # A page's folio is the LAST folio-shaped line of the page (`## Page N`): an Index entry's continuation line
+        # (`      VI-73`) is folio-shaped too, and every page that prints a folio prints it last.
+        printed: list[tuple[int, str]] = []
+        last: tuple[int, str] | None = None
+        for i, ln in enumerate(lines + ["## Page 0"]):
+            if PAGE_HEADING.match(ln):
+                if last is not None:
+                    printed.append(last)
+                last = None
+            elif (m := folio.match(ln.strip())) is not None:
+                last = (i, m.group(1))
+        placed: set[int] = set()
+        for (i, a), (j, b) in zip(printed, printed[1:]):
+            (sa, na), (sb, nb) = a.rsplit("-", 1), b.rsplit("-", 1)
+            between = [r for r in recons if i < r.start < j]
+            placed.update(r.start for r in between)
+            missing = [f"{sa}-{k}" for k in range(int(na) + 1, int(nb))] if sa == sb and int(nb) > int(na) else []
+            named = [f for r in between for f in cite.folios_of(r.folios)]
+            if missing != named:
+                failures.append(f"between folios {a} (line {i + 1}) and {b} (line {j + 1}) the printed folios "
+                                f"{missing or 'none'} are missing and the reconstructions there stand for "
+                                f"{named or 'none'}" + (" (the printed page is transcribed: replace the reconstruction "
+                                                        "with it)" if named and not missing else ""))
+        for r in recons:
+            if r.start >= 0 and r.start not in placed:
+                failures.append(f"line {r.start + 1}: the reconstruction of {r.folios} stands between no two folios")
+    for f in failures:
+        print(f"  ✗ {f}")
+    if not failures:
+        print(f"  ✓ {len(recons)} reconstruction(s), each closed, sourced and filling the folios the scan lacks"
+              + ("" if folio is not None else " (this edition keeps no folios)"))
+    return failures
+
+
+#: Markup of an agent's tool harness that leaked into a transcription (page 894 of the 1985 file carried an
+#: `<invoking-skill>` pair around the RANDOM function, which two catalog rows read as rule text): a tag whose name joins
+#: words with a hyphen or an underscore. Neither standard's own notation (`<storage location>`) nor HTML has one.
+HARNESS_TAG = re.compile(r"</?[a-z]+(?:[-_][a-z]+)+>")
+
+
 def check_stamp(lines: list[str], edition: int) -> list[str]:
     """The stamp shapes of `edition` must be absent from `lines`; an edition the table lacks exits naming the table."""
     forbidden = spec_pdf.edition_data(FORBIDDEN, edition, "per-copy stamp shapes (verify_publishable.FORBIDDEN)")
@@ -412,6 +498,9 @@ def check_text(text: str, edition: int) -> list[str]:
     acknowledgment and Preface present, and the acknowledgment before the body. Each row is keyed by edition; an
     edition the table lacks exits naming the table (spec_pdf.edition_data)."""
     failures = check_stamp(text.splitlines(), edition)
+    if leaked := [i + 1 for i, line in enumerate(text.splitlines()) if HARNESS_TAG.search(line)]:
+        failures.append(f"tool-harness markup (a hyphenated or underscored tag) at line(s) {leaked[:5]}")
+        print(f"  ✗ tool-harness markup FOUND at {leaked[:5]}")
     required = spec_pdf.edition_data(REQUIRED, edition, "acknowledgment and Preface patterns (verify_publishable.REQUIRED)")
     opening = spec_pdf.edition_data(ACKNOWLEDGMENT_OPENING, edition,
                                     "acknowledgment opening (verify_publishable.ACKNOWLEDGMENT_OPENING)")
@@ -448,6 +537,7 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
 
     failures = check_text(text, edition)
     failures.extend(check_corrections(text, edition))
+    failures.extend(check_reconstructions(text.splitlines(), edition))
     if edition in LEDGER:
         failures.extend(check_ledger(text, json.loads((REPO / LEDGER[edition]).read_text(encoding="utf-8"))))
     failures.extend(check_tree())
@@ -565,6 +655,34 @@ def self_test() -> int:
                                                   planted_ledger)) == 1)
     undecided = dict(planted_ledger, claims=planted_ledger["claims"] + [{"page": 2, "i": 1, "decision": "REFUTED"}])
     check("a claim decided with no reason is refused", len(quietly(check_ledger, planted_pages, undecided)) == 1)
+    # kb/Work PB4952: a gap in the printed folios holds a reconstruction, and a reconstruction stands only in a gap.
+    opening = ("> ⚠ **RECONSTRUCTED — not printed in our copy (folios XIII-30 and XIII-31).** Planted. **Sources:** the "
+               "siblings. **Confidence: low.**")
+    closing = "> ⚠ **END RECONSTRUCTED (folios XIII-30 and XIII-31).** Printed again."
+    filled = ["## Page 1", "", "text", "", "XIII-29", "", "## Page 2", "", opening, "", "(1) A rule.", "", closing, "",
+              "Report Writer - Body", "", "XIII-32", ""]
+    check("a reconstruction that fills the folios the scan lacks passes",
+          quietly(check_reconstructions, filled, 1985) == [])
+    check("a gap in the printed folios with no reconstruction is refused",
+          any("['XIII-30', 'XIII-31'] are missing" in f
+              for f in quietly(check_reconstructions, [ln for ln in filled if ln not in (opening, closing)], 1985)))
+    transcribed = filled[:6] + ["## Page 3", "", "XIII-30", "", "## Page 4", "", "XIII-31", ""] + filled[6:]
+    check("a reconstruction whose printed page is transcribed is refused",
+          any("the printed page is transcribed" in f for f in quietly(check_reconstructions, transcribed, 1985)))
+    check("an unclosed reconstruction, a closing that names other folios, and an unsourced one are refused",
+          any("never closed" in f for f in quietly(check_reconstructions, [ln for ln in filled if ln != closing], 1985))
+          and any("closes as XIII-30" in f for f in quietly(
+              check_reconstructions, [closing.replace("folios XIII-30 and XIII-31", "folio XIII-30") if ln == closing
+                                      else ln for ln in filled], 1985))
+          and any("no **Sources:**" in f for f in quietly(
+              check_reconstructions, [opening.split(" **Sources:**")[0] if ln == opening else ln for ln in filled], 1985)))
+    check("a reconstruction note followed by text with no blank line is refused",
+          any("followed by text" in f for f in quietly(
+              check_reconstructions, [ln for k, ln in enumerate(filled) if k != 9], 1985)))
+    check("tool-harness markup in a transcription is refused (page 894's `<invoking-skill>`), a notation's tag is not",
+          any("tool-harness markup" in f for f in quietly(
+              check_text, good.replace("# Preface\n", "# Preface\n\n<invoking-skill>x</invoking-skill>\n", 1), 2023))
+          and not any("tool-harness" in f for f in quietly(check_text, good + "\n<storage location>\n", 2023)))
     check("the tree shapes of every edition are searched on every run",
           (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number") in tree_shapes()
           and (r"\bX_\d{6}\b", "reseller order number") in tree_shapes())

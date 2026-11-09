@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.7-1",
+ "rule-digest": "a52c43ec04db",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.57.4-7"
+  ],
+  "bridge": true,
+  "reason": "PROVISIONAL (a reconstruction of folio XIII-30, kb/Work PB4952). The page heading's upper limit is the HEADING line, or the line after a report heading presented on the same page; 2023 GR7 a) and b) state the same.",
+  "source": "adjudication kb/Work PB4952"
+ }
+}

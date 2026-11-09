@@ -49,6 +49,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (THE flag of a documented correction, kb/Work PB4972)
+import cite  # noqa: E402  (THE reconstruction of a printed page the scan lacks, kb/Work PB4952)
 
 PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>\s*$')
 #: A clause heading, read through its bold and a level-2 box's sides (spec_pdf.BOX_SIDE).
@@ -405,7 +406,9 @@ CLAUSE_LINE = re.compile(rf"^\s*#*\s*[*{spec_pdf.BOX_SIDE}]*((?:\d+|[A-Z])(?:\.\
 
 def drawn_figures(lines: list[str], furniture: re.Pattern) -> list[Drawn]:
     """Every `<pre>` block of a transcription assembled page by page (`## Page N`, kb/Work PB4816), in order;
-    `furniture` is the edition's `page_furniture`."""
+    `furniture` is the edition's `page_furniture`. A block inside a reconstruction (cite.RECONSTRUCTED, kb/Work PB4952)
+    is none: its printed page is missing from the scan, so there is no drawing to regenerate it from."""
+    inside = cite.reconstructed(lines)
     out, page, clause, label, heading, lead, start = [], None, None, None, "", "", None
     for i, line in enumerate(lines):
         if start is not None:
@@ -430,7 +433,7 @@ def drawn_figures(lines: list[str], furniture: re.Pattern) -> list[Drawn]:
             label, heading = None, re.sub(r"</?u>", "", line)
         elif FORMAT_LABEL.match(re.sub(r"</?u>", "", line)):
             label = re.sub(r"</?u>", "", line).strip()
-    return [d for d in out if d.page is not None]
+    return [d for d in out if d.page is not None and inside[d.start] is None]
 
 
 def regenerated(edition: int, doc, drawn: list[Drawn], R) -> list[tuple]:
@@ -713,6 +716,11 @@ def self_test() -> int:
           "</pre>", "## GENERAL FORMAT FOR COBOL VERBS", "<pre>", "<u>ACCEPT</u> x", "</pre>"]
     furniture = page_furniture(1985)
     got = drawn_figures(md, furniture)
+    # kb/Work PB4952: a format inside a reconstruction has no printed drawing, so it is no drawn block.
+    reconstructed_md = md + ["> ⚠ **RECONSTRUCTED — not printed in our copy (folio XIII-55).** Planted.", "",
+                             "### 3.20.2 General Format", "", "<pre>", "<u>TYPE</u> IS DETAIL", "</pre>", "",
+                             "> ⚠ **END RECONSTRUCTED (folio XIII-55).** Planted."]
+    check("a <pre> block inside a reconstruction is no drawn block", drawn_figures(reconstructed_md, furniture) == got)
     want = [Drawn(304, 6, 8, ["<u>ADD</u> x"], "6.6.2 General Format", "Format 1:", True),
             Drawn(305, 14, 18, ["ADD y", "", "    GIVING z"], "6.6.2 General Format", "Format 2:", True),
             Drawn(305, 22, 24, ["ALTER"], "6.7.2 General Format", None, True),

@@ -1,6 +1,6 @@
 {
  "rule-id": "1985-GR-XIII.3.19.4-9",
- "rule-digest": "4f74d47da5ca",
+ "rule-digest": "c24c30935061",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
@@ -9,7 +9,7 @@
    "GR-13.18.54.4-6"
   ],
   "bridge": true,
-  "reason": "A sum counter in the same control footing is added while that footing is processed, i.e. at the control break, as in 1985 crossfooting. Wider 2023 operand scope leaves this case unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "Item a is printed; items b and c are PROVISIONAL (a reconstruction of folio XIII-54, kb/Work PB4952). A sum counter of the same footing is added when that footing is processed (crossfooting), one of a lower footing when that footing is processed (rolling forward), and any other addend at each GENERATE, or each GENERATE of a detail the UPON phrase names (subtotalling). 2023 GR7 a), b) and c) state the same times.",
+  "source": "adjudication kb/Work PB4952"
  }
 }
