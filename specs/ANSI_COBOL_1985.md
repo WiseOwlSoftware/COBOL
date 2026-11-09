@@ -18036,9 +18036,13 @@ b. The current record is moved from the record area to the area specified by ide
 
 a. A value, derived from the setting of the file position indicator, is placed into the I-O status associated with file-name-1 to indicate the at end condition. (See page VIII-2, I-O Status.)
 
-b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.
+b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.
 
-c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+> ⚠ **CORRECTED — see the Errata (C271).** The standard prints `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` (page 458, folio VIII-28). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-28 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, general rule 10b, change to read" (kb/Work PB5045). Corrected to the text above.
+
+c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+
+> ⚠ **CORRECTED — see the Errata (C272).** The standard prints `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed.` (page 458, folio VIII-28). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-28 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, general rule 10c, change the first sentence to read" (kb/Work PB5045). Corrected to `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.`.
 
 When the at end condition occurs, execution of the READ statement is unsuccessful.
 
@@ -18052,7 +18056,9 @@ VIII-28
 
 Relative I-O - READ
 
-b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page VIII-35, The USE Statement.)
+b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page VIII-35, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C273).** The standard prints `b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page VIII-35, The USE Statement.)` (page 459, folio VIII-29). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-29 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, replace general rule 11b with the following" (kb/Work PB5045). Corrected to the text above.
 
 c. If no exception condition exists, the record is made available in the record area and any implicit move resulting from the presence of an INTO phrase is executed. Control is transferred to the end of the READ statement or to imperative-statement-2, if specified. In the latter case, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the READ statement.
 
@@ -18091,9 +18097,11 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.6.3 Syntax Rules
 
-(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
 > ⚠ **CORRECTED — see the Errata (C135).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 460, folio VIII-30). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C274).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 460, folio VIII-30). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-30 (A-19) (page 929, folio B-17), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Relative I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -18256,7 +18264,9 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (2) The USE statement is never executed; it merely defines the conditions calling for the execution of the USE procedures.
 
-(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.
+(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.
+
+> ⚠ **CORRECTED — see the Errata (C275).** The standard prints `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` (page 465, folio VIII-35). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-35 (page 929, folio B-17), applied in place: "Paragraph 4.8.3 of the USE statement in the Relative I-O module, syntax rule 3, change to read" (kb/Work PB5045). Corrected to `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.`.
 
 (4) The words ERROR and EXCEPTION are synonymous and may be used interchangeably.
 
@@ -18321,9 +18331,11 @@ The WRITE statement releases a logical record for an output or input-output file
 
 ### 4.9.3 Syntax Rules
 
-(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
 > ⚠ **CORRECTED — see the Errata (C137).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 467, folio VIII-37). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-37 (page 849, folio A-19), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C276).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 467, folio VIII-37). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-37 (A-19) (page 930, folio B-18), applied in place: "Paragraph 4.9.3 of the WRITE statement in the Relative I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -18361,11 +18373,9 @@ Relative I-O - WRITE
 
 ║(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)║
 
-(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, the invalid key condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:
+(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page VIII-5, The Invalid Key Condition.)
 
-a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.
-
-b. If the execution of the WRITE statement is unsuccessful for a reason other than an invalid key condition, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.
+> ⚠ **CORRECTED — see the Errata (C277).** The standard prints `(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, ... as follows: a. ... b. ...` (page 468, folio VIII-38). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-38 (page 930, folio B-18), applied in place: "Paragraph 4.9.4 of the WRITE statement in the Relative I-O module, replace general rule 9, including subparagraphs a and b, with the following" (kb/Work PB5045). Corrected to `(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page VIII-5, The Invalid Key Condition.)`.
 
 (10) The END-WRITE phrase delimits the scope of the WRITE statement. (See page IV-40, Scope of Statements.)
 
@@ -18511,9 +18521,15 @@ a. I-O Status = 10. A sequential READ statement is attempted and no next logical
 
 a. I-O Status = 21. A sequence error exists for a sequentially accessed indexed file. The prime record key value has been changed by the program between the successful execution of a READ statement and the execution of the next REWRITE statement for that file, or the ascending sequence requirements for successive record key values are violated. (See page IX-41, The WRITE Statement.)
 
-b. I-O Status = 22. An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key ║or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.║
+b. I-O Status = 22. An attempt is made ║either:║
+
+║1)║ to write a record that would create a duplicate prime record key║; or║
+
+║2) to write or rewrite a record that would create a duplicate alternate record key when the DUPLICATES phrase is not specified for that alternate record key║.
 
 > ⚠ **CORRECTED — see the Errata (C138).** The standard prints `An attempt is made to write or rewrite a record that would create a duplicate prime record key` (page 474, folio IX-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-4 (T) (page 849, folio A-19), applied in place: "Paragraph 1.3.4, entitled 'I-O Status', second occurrence of a paragraph numbered (3), subparagraph b, first line, box 'or rewrite'", a typographical error (kb/Work PB5045). Corrected to `An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key`.
+
+> ⚠ **CORRECTED — see the Errata (C278).** The standard prints `b. I-O Status = 22. An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key ║or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.║` (page 474, folio IX-4). Amendment 2 (ANSI X3.23b-1993), its change for page IX-4 (page 930, folio B-18), applied in place: "Paragraph 1.3.4, I-O status in the Indexed I-O module, item 3b for I-O status 22, change to read" (its shaded words boxed: level 2) (kb/Work PB5045). Corrected to the text above.
 
 c. I-O Status = 23. This condition exists because:
 
@@ -18617,17 +18633,10 @@ causes explicit transfer of control is executed, control is transferred in accor
 
 The at end condition can occur as a result of the execution of a READ statement. (See page IX-28, The READ Statement.)
 
-### 1.3.7 The File Attribute Conflict Condition
 
-The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page IX-23, The OPEN Statement; page IX-33, The REWRITE Statement; and page IX-41, The WRITE Statement.)
+> ⚠ **CORRECTED — see the Errata (C279).** The standard prints `1.3.7 The File Attribute Conflict Condition (its three paragraphs and two numbered items, the first paragraph as Amendment 1 corrected it, C139)` (page 477, folio IX-7). Amendment 2 (ANSI X3.23b-1993), its change for page IX-7 (page 930, folio B-18), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition." Amendment 1's correction of its first paragraph goes with it (C139) (kb/Work PB5045). Corrected to `(paragraph 1.3.7 deleted)`.
 
-> ⚠ **CORRECTED — see the Errata (C139).** The standard prints `page IX-33, The REWRITE Statement; an page IX-41` (page 477, folio IX-7). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-7 (T) (page 849, folio A-19), applied in place: "Paragraph 1.3.7, first paragraph, last line, change 'an' to 'and'", a typographical error (kb/Work PB5045). Corrected to `page IX-33, The REWRITE Statement; and page IX-41`.
-
-When the file attribute conflict condition is recognized, these actions take place in the following order:
-
-(1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page IX-2, I-O Status.)
-
-(2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.
+> ⚠ **CORRECTED — see the Errata (C139).** Amendment 1 corrected the last line of this paragraph 1.3.7's first paragraph (`; an page` to `; and page`, page 477, folio IX-7); Amendment 2 then deleted the whole paragraph (C279), so the corrected text no longer stands here.
 
 IX-7
 
@@ -19234,7 +19243,9 @@ Indexed I-O - OPEN
 
 The behavior of the OPEN statement when label records are specified but not present, or when label records are not specified but are present, is undefined.
 
-(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page IX-7, The File Attribute Conflict Condition.)
+(8) If during the execution of the OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)
+
+> ⚠ **CORRECTED — see the Errata (C280).** The standard prints `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page IX-7, The File Attribute Conflict Condition.)` (page 496, folio IX-26). Amendment 2 (ANSI X3.23b-1993), its change for page IX-26 (page 930, folio B-18), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, general rule 8, change to read" (kb/Work PB5045). Corrected to the text above.
 
 ║(9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.║
 
@@ -38162,6 +38173,16 @@ it is taken as the rule of 1985.
 | [C268](#errata-c268) | 437 | VIII-7 | Section VIII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, its page VIII-7 part | `When the file attribute conflict condition is recognized, .…` | `(deleted)` | amendment-2 |
 | [C269](#errata-c269) | 454 | VIII-24 | Section VIII, paragraph 4.4.4 (OPEN), general rule 8 | `(See page VIII-6, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
 | [C270](#errata-c270) | 455 | VIII-25 | Section VIII, paragraph 4.4.4 (OPEN), a new general rule 19 | `(no rule 19)` | `(19) If the execution of the OPEN statement is unsuccessful…` | amendment-2 |
+| [C271](#errata-c271) | 458 | VIII-28 | Section VIII, paragraph 4.5.4 (READ), general rule 10b | `b. If the AT END phrase is specified ... USE AFTER STANDARD…` | `b. ... the AT END imperative-statement-1. ... NOT AT END ph…` | amendment-2 |
+| [C272](#errata-c272) | 458 | VIII-28 | Section VIII, paragraph 4.5.4 (READ), general rule 10c, first sentence | `a USE AFTER STANDARD EXCEPTION procedure must be associated…` | `a USE AFTER EXCEPTION procedure must be associated with the…` | amendment-2 |
+| [C273](#errata-c273) | 459 | VIII-29 | Section VIII, paragraph 4.5.4 (READ), general rule 11b | `b. If an exception condition which is not ... applicable to…` | `b. If an exception condition that is not ... referenced by…` | amendment-2 |
+| [C274](#errata-c274) | 460 | VIII-30 | Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C275](#errata-c275) | 465 | VIII-35 | Section VIII, paragraph 4.8.3 (USE), syntax rule 3 | `(3) Appearance of file-name-1 in a USE statement must not c…` | `(3) The same file-name must not appear in more than one USE…` | amendment-2 |
+| [C276](#errata-c276) | 467 | VIII-37 | Section VIII, paragraph 4.9.3 (WRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C277](#errata-c277) | 468 | VIII-38 | Section VIII, paragraph 4.9.4 (WRITE), general rule 9 and its subparagraphs a and b | `(9) ... at the appropriate time as follows: a. ... b. ...` | `(9) Transfer of control following the successful or unsucce…` | amendment-2 |
+| [C278](#errata-c278) | 474 | IX-4 | Section IX, paragraph 1.3.4 (I-O Status), item 3b, I-O status 22 | `b. I-O Status = 22. An attempt is made to write ║or rewrite…` | `b. I-O Status = 22. An attempt is made ║either:║ ║1)║ ... ║…` | amendment-2 |
+| [C279](#errata-c279) | 477 | IX-7 | Section IX, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted | `1.3.7 The File Attribute Conflict Condition ...` | `(deleted)` | amendment-2 |
+| [C280](#errata-c280) | 496 | IX-26 | Section IX, paragraph 4.4.4 (OPEN), general rule 8 | `(See page IX-7, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -41132,6 +41153,116 @@ Amendment 2 (ANSI X3.23b-1993), its change for page VIII-24 (page 928, folio B-1
 | **This transcription** | `(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order: ¶ a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful. ¶ b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page VIII-35, The USE Statement.)` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page VIII-25 (page 928, folio B-16), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Relative I-O module, add the following as the new general rule 19" (kb/Work PB5045).
+
+<a id="errata-c271"></a>
+
+### C271 · page 458 (folio VIII-28) · Section VIII, paragraph 4.5.4 (READ), general rule 10b · `b. If the AT END phrase is specified ... USE AFTE…` → `b. ... the AT END imperative-statement-1. ... NOT…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` |
+| **This transcription** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-28 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, general rule 10b, change to read" (kb/Work PB5045).
+
+<a id="errata-c272"></a>
+
+### C272 · page 458 (folio VIII-28) · Section VIII, paragraph 4.5.4 (READ), general rule 10c, first sentence · `a USE AFTER STANDARD EXCEPTION procedure must be…` → `a USE AFTER EXCEPTION procedure must be associate…`
+
+| | |
+|---|---|
+| **Printed** | `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed.` |
+| **This transcription** | `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-28 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, general rule 10c, change the first sentence to read" (kb/Work PB5045).
+
+<a id="errata-c273"></a>
+
+### C273 · page 459 (folio VIII-29) · Section VIII, paragraph 4.5.4 (READ), general rule 11b · `b. If an exception condition which is not ... app…` → `b. If an exception condition that is not ... refe…`
+
+| | |
+|---|---|
+| **Printed** | `b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page VIII-35, The USE Statement.)` |
+| **This transcription** | `b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page VIII-35, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-29 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, replace general rule 11b with the following" (kb/Work PB5045).
+
+<a id="errata-c274"></a>
+
+### C274 · page 460 (folio VIII-30) · Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-30 (A-19) (page 929, folio B-17), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Relative I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c275"></a>
+
+### C275 · page 465 (folio VIII-35) · Section VIII, paragraph 4.8.3 (USE), syntax rule 3 · `(3) Appearance of file-name-1 in a USE statement…` → `(3) The same file-name must not appear in more th…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` |
+| **This transcription** | `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-35 (page 929, folio B-17), applied in place: "Paragraph 4.8.3 of the USE statement in the Relative I-O module, syntax rule 3, change to read" (kb/Work PB5045).
+
+<a id="errata-c276"></a>
+
+### C276 · page 467 (folio VIII-37) · Section VIII, paragraph 4.9.3 (WRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-37 (A-19) (page 930, folio B-18), applied in place: "Paragraph 4.9.3 of the WRITE statement in the Relative I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c277"></a>
+
+### C277 · page 468 (folio VIII-38) · Section VIII, paragraph 4.9.4 (WRITE), general rule 9 and its subparagraphs a and b · `(9) ... at the appropriate time as follows: a. ..…` → `(9) Transfer of control following the successful…`
+
+| | |
+|---|---|
+| **Printed** | `(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, ... as follows: a. ... b. ...` |
+| **This transcription** | `(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page VIII-5, The Invalid Key Condition.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-38 (page 930, folio B-18), applied in place: "Paragraph 4.9.4 of the WRITE statement in the Relative I-O module, replace general rule 9, including subparagraphs a and b, with the following" (kb/Work PB5045).
+
+<a id="errata-c278"></a>
+
+### C278 · page 474 (folio IX-4) · Section IX, paragraph 1.3.4 (I-O Status), item 3b, I-O status 22 · `b. I-O Status = 22. An attempt is made to write ║…` → `b. I-O Status = 22. An attempt is made ║either:║…`
+
+| | |
+|---|---|
+| **Printed** | `b. I-O Status = 22. An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key ║or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.║` |
+| **This transcription** | `b. I-O Status = 22. An attempt is made ║either:║ ¶ ║1)║ to write a record that would create a duplicate prime record key║; or║ ¶ ║2) to write or rewrite a record that would create a duplicate alternate record key when the DUPLICATES phrase is not specified for that alternate record key║.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-4 (page 930, folio B-18), applied in place: "Paragraph 1.3.4, I-O status in the Indexed I-O module, item 3b for I-O status 22, change to read" (its shaded words boxed: level 2) (kb/Work PB5045).
+
+<a id="errata-c279"></a>
+
+### C279 · page 477 (folio IX-7) · Section IX, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted · `1.3.7 The File Attribute Conflict Condition ...` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `1.3.7 The File Attribute Conflict Condition (its three paragraphs and two numbered items, the first paragraph as Amendment 1 corrected it, C139)` |
+| **This transcription** | `(paragraph 1.3.7 deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-7 (page 930, folio B-18), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition." Amendment 1's correction of its first paragraph goes with it (C139) (kb/Work PB5045).
+
+<a id="errata-c280"></a>
+
+### C280 · page 496 (folio IX-26) · Section IX, paragraph 4.4.4 (OPEN), general rule 8 · `(See page IX-7, The File Attribute Conflict Condi…` → `The implementor defines which ... (See page II-1,…`
+
+| | |
+|---|---|
+| **Printed** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page IX-7, The File Attribute Conflict Condition.)` |
+| **This transcription** | `(8) If during the execution of the OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-26 (page 930, folio B-18), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, general rule 8, change to read" (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 

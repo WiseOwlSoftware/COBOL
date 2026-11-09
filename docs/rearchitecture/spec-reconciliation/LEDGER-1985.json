@@ -11630,18 +11630,6 @@
   },
   {
    "page": 474,
-   "n": 396,
-   "region": "rule",
-   "where": "(3) Invalid Key Condition With Unsuccessful Completion, b. I-O Status = 22",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 1,
-   "opens": [
-    "║or a duplicate alternate record key without the DUPLICATES"
-   ]
-  },
-  {
-   "page": 474,
    "n": 397,
    "region": "rule",
    "where": "(3) Invalid Key Condition With Unsuccessful Completion, c. I-O Status = 23, item 2)",
@@ -15424,18 +15412,6 @@
    ]
   },
   {
-   "page": 474,
-   "n": 722,
-   "region": "rule",
-   "where": "(3) Invalid Key Condition With Unsuccessful Completion, b. I-O Status = 22: 'or rewrite', boxed by Amendment 1, Addendum 1, row IX-4 (T) (Errata, kb/Work PB5045)",
-   "certainty": "high",
-   "decision": "MARKED",
-   "blocks": 1,
-   "opens": [
-    "║or rewrite║ a record that would create a duplicate prime rec"
-   ]
-  },
-  {
    "page": 519,
    "n": 723,
    "region": "paragraph",
@@ -15533,6 +15509,20 @@
    "blocks": 1,
    "opens": [
     "║If the number of character positions in the logical record to be written"
+   ]
+  },
+  {
+   "page": 474,
+   "n": 731,
+   "region": "rule",
+   "where": "1.3.4 item 3b, I-O status 22: its shaded words, as Amendment 2 row IX-4 rewrote the item (Errata C278, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 4,
+   "opens": [
+    "║either:║",
+    "║1)║ to write a record that would create a duplicate prime record key║; or║",
+    "║2) to write or rewrite a record that would create a duplicate alternate record key"
    ]
   }
  ]
