@@ -1,4 +1,4 @@
-## PB5008: the 1985 audit rechecks its KEPT and CHANGED decisions; the refuter keeps REMOVED
+## Entry 3355 — 2026-11-08 19:50 PST — PB5008: the 1985 audit rechecks its KEPT and CHANGED decisions; the refuter keeps REMOVED
 
 kb/Work PB5008 asked whether the 1985 audit's refute pass is an independent check. It upheld 1,345 of the 1,371
 adjudications it read. A sample audit by four `cobol-adjudicator`s found 5 of 18 upheld CHANGED decisions and 3 of 15
@@ -48,3 +48,4 @@ REMOVED or OPEN. Answers are only ever added, so the plan only grows. On `state-
 - what `upholds` compares;
 - a disputing check that answered;
 - a fleet adjudication the run's batch does not overwrite.
+
