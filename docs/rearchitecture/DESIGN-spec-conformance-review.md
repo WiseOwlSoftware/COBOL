@@ -758,8 +758,18 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
   column-0 `(n)`, and its lettered `a.` items and their `1)` items are its text (THE RULE IS THE UNIT, §3). A General
   Format paragraph is an FMT row. The page-break furniture (the folio, the page's running header) is never rule text.
 - **The row key** is `<year>-<kind>-<locator>-<n>` (`1985-SR-VI.5.7.3-1`; a list restarted inside a block `-L<k>.<n>`, an
-  FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). The year prefix names the edition (or amendment) the
+  FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). A CITATION NAMES ONE RULE (kb/Work PB4969): a rule of a
+  restarted list is cited by its list, `GRL2.1` for the id's `-L2.1` (`citation.rule_designator`, the one writer; the format's
+  `SUBLIST_RULE`), so `§1985:IV.4.2.2.2.3 GR1` is the first list's rule 1 alone, and the extractor's `--check` fails on two
+  rows that share a citation (a row cited by a printed page, `§1985:p.XIII-56`, is exempt: the page is no rule's citation).
+  The 2023 catalog carries no `citation` field. The year prefix names the edition (or amendment) the
   rule is from, in the 1985 store (§10.2).
+- **The conformance requirements are the FRAME, not rows** (kb/Work PB4968). Paragraph 1.5 of Section I (§1985:I.1.5: what a
+  conforming implementation must support, the subsets, the optional modules, the obsolete elements of §1985:I.1.5.2.3) is
+  unnumbered prose, and the 2023 audit treats its conformance clause the same way: §2023:4.2 enters the definition of DONE
+  (§1) and docs/CONFORMANCE.md by direct citation, and only its numbered lists (§2023:4.2.10) are catalog rows. So the 1985
+  conformance statement (kb/Work PB4885) cites §1985:I.1.5 and its sub-paragraphs directly as its frame, each requirement
+  answered in docs/CONFORMANCE.md, and the catalog gains no row.
 - **Module and level.** Sections VI to XVI are the eleven modules and Section A the twelfth. Every module but Sort-Merge,
   Report Writer and Intrinsic Function has two levels (§1985:I.1.2; Amendment 1 adds the third one-level module), and the
   standard boxes every specification unique to level 2. A row's `box` is `none`, `part` or `whole` (the prose box is the
