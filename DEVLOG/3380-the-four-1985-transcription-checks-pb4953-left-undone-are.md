@@ -1,4 +1,4 @@
-## The four 1985 transcription checks PB4953 left undone are made (PB5028)
+## Entry 3380 — 2026-11-09 10:53 PST — The four 1985 transcription checks PB4953 left undone are made (PB5028)
 
 PB5028 named four checks over `specs/ANSI_COBOL_1985.md`. Each was read against the rendered page
 (`render-spec-page.py --edition 1985`) and the PDF text layer.
@@ -28,3 +28,4 @@ The ledger gained 35 sweep entries (`heading-underlines(PB5028)`, `table-body-pa
 PUBLISHABLE; `lint_rendering.py --edition 1985` and `extract_rule_catalog.py --edition 1985 --check`: clean. The notes' closes_rows stay empty:
 a transcription residue closes no inventory row. Self-review: no code changed; the one rule (the underline and indentation conventions)
 stays in TRANSCRIPTION-STATE.md.
+
