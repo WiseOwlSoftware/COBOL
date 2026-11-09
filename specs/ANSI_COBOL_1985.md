@@ -10568,7 +10568,9 @@ VI-30
 
 Nucleus - PICTURE
 
-(8) The functions of the symbols used to describe an elementary item are explain as follows:
+(8) The functions of the symbols used to describe an elementary item are explained as follows:
+
+> ⚠ **CORRECTED — see the Errata (C20).** The standard prints `explain as follows` (page 263, folio VI-31): a real word printed for another on the printed page. Corrected to `explained`.
 
 A Each 'A' in the character-string represents a character position which can contain only an alphabetic character and is counted in the size of the item.
 
@@ -11177,7 +11179,9 @@ Nucleus - VALUE
 
 ║If a VALUE clause is associated with the data item referenced by a DEPENDING ON phrase, that value is considered to be placed in the data item after the variable occurrence data item is initialized. (See page VI-26, The OCCURS Clause.)║
 
-(6) A format 1 VALUE clause specified in a data description entry that contains an OCCURS clause or in a entry that is subordinate to an OCCURS clause causes every occurrence of the associated data item to be assigned the specified value.
+(6) A format 1 VALUE clause specified in a data description entry that contains an OCCURS clause or in an entry that is subordinate to an OCCURS clause causes every occurrence of the associated data item to be assigned the specified value.
+
+> ⚠ **CORRECTED — see the Errata (C21).** The standard prints `or in a entry that is subordinate` (page 282, folio VI-50): a real word printed for another on the printed page. Corrected to `an entry`.
 
 VI-50
 
@@ -11821,7 +11825,9 @@ If the size error condition does not exist after the execution of the arithmetic
 
 ║(3) The description of D1 and D2 must not contain level-number 66, 77, or 88 or the USAGE IS INDEX clause.║
 
-║(4) A data item that is subordinate to D1 or D2 and contains a REDEFINES, RENAMES, OCCURS, or USAGE IS INDEX clause is ignored, as well as those data items subordinate to the data item that contains the REDEFINES, OCCURS, or USAGE IS INDEX clause. Neither D1 nor D2 may be referenced modified.║
+║(4) A data item that is subordinate to D1 or D2 and contains a REDEFINES, RENAMES, OCCURS, or USAGE IS INDEX clause is ignored, as well as those data items subordinate to the data item that contains the REDEFINES, OCCURS, or USAGE IS INDEX clause. Neither D1 nor D2 may be reference modified.║
+
+> ⚠ **CORRECTED — see the Errata (C22).** The standard prints `Neither D1 nor D2 may be referenced modified` (page 300, folio VI-68): a real word printed for another on the printed page. Corrected to `reference modified`.
 
 ║(5) The name of each data item which satisfies the above conditions must be unique after application of the implied qualifiers.║
 
@@ -12884,7 +12890,9 @@ Nucleus - INSPECT
 
 first occurrence of literal-2 within the content of the data item referenced by identifier-1. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 6 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as though the BEFORE phrase had not been specified.
 
-c. If the AFTER phrase is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participate only in those comparison cycles which involve that portion of the content of the data item referenced by identifier-1 from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2 within the content of the data item referenced by identifier-1 to the rightmost character position of the data item referenced by identifier-1. This is the character position at which literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 6 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase is never eligible to participate in the comparison operation.
+c. If the AFTER phrase is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles which involve that portion of the content of the data item referenced by identifier-1 from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2 within the content of the data item referenced by identifier-1 to the rightmost character position of the data item referenced by identifier-1. This is the character position at which literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 6 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase is never eligible to participate in the comparison operation.
+
+> ⚠ **CORRECTED — see the Errata (C23).** The standard prints `CHARACTERS phrase participate only` (page 330, folio VI-98): a real word printed for another on the printed page. Corrected to `participates`.
 
 <u>FORMAT 1</u>:
 
@@ -14061,7 +14069,9 @@ Nucleus - STRING
 
 ║(2) All literals must be described as nonnumeric literals, and all identifiers, except identifier-4, must be described implicitly or explicitly as USAGE IS DISPLAY.║
 
-║(3) Identifier-3 must not be referenced modified.║
+║(3) Identifier-3 must not be reference modified.║
+
+> ⚠ **CORRECTED — see the Errata (C24).** The standard prints `Identifier-3 must not be referenced modified` (page 363, folio VI-131): a real word printed for another on the printed page. Corrected to `reference modified`.
 
 ║(4) Identifier-3 must not represent an edited data item and must not be described with the JUSTIFIED clause.║
 
@@ -14989,7 +14999,9 @@ e. When the integer-2 CLOCK-UNITS phrase is used. In this case the rerun informa
 
 f. When the condition-name-1 phrase is used and implementor-name-1 is specified in the ON phrase. In this case, the rerun information is written on the device specified by implementor-name-1 whenever a switch assumes a particular status as specified by condition-name-1. In this case, the associated switch must be defined in the SPECIAL-NAMES paragraph of the Configuration Section of the Environment Division. The implementor specifies when the switch status is interrogated.
 
-g. When the condition-name-1 phrase is used and file-name-1 is specified in the ON phrase. In this case, the rerun information is written on file-name-1, which must be an output file, whenever a switch assumed a particular status as specified by condition-name-1. In this case, as in paragraph f above, the associated switch must be defined in the SPECIAL-NAMES paragraph of the Configuration Section of the Environment Division. The implementor specifies when the switch status is interrogated.
+g. When the condition-name-1 phrase is used and file-name-1 is specified in the ON phrase. In this case, the rerun information is written on file-name-1, which must be an output file, whenever a switch assumes a particular status as specified by condition-name-1. In this case, as in paragraph f above, the associated switch must be defined in the SPECIAL-NAMES paragraph of the Configuration Section of the Environment Division. The implementor specifies when the switch status is interrogated.
+
+> ⚠ **CORRECTED — see the Errata (C25).** The standard prints `whenever a switch assumed a particular status` (page 392, folio VII-18): a real word printed for another on the printed page. Corrected to `assumes`.
 
 VII-18
 
@@ -16011,7 +16023,9 @@ VII-46
 
 Sequential I-O - READ
 
-║(13) If the number of character positions in the record that is read is less than the minimum size specified by the record description entries for file-name-1, the portion of the record area which is to be right of the last valid character read is undefined. If the number of character positions in the record that is read is greater than the maximum size specified by the record description entries for file-name-1, the record is truncated on the right to the maximum size. In either of these cases, the READ statement is successful and an I-O status is set indicating a record length conflict has occurred. (See page VII-2, I-O Status.)║
+║(13) If the number of character positions in the record that is read is less than the minimum size specified by the record description entries for file-name-1, the portion of the record area which is to the right of the last valid character read is undefined. If the number of character positions in the record that is read is greater than the maximum size specified by the record description entries for file-name-1, the record is truncated on the right to the maximum size. In either of these cases, the READ statement is successful and an I-O status is set indicating a record length conflict has occurred. (See page VII-2, I-O Status.)║
+
+> ⚠ **CORRECTED — see the Errata (C26).** The standard prints `which is to be right of the last` (page 421, folio VII-47): a real word printed for another on the printed page. Corrected to `to the right`.
 
 (14) The END-READ phrase delimits the scope of the READ statement. (See page IV-40, Scope of Statements.)
 
@@ -16789,7 +16803,9 @@ VIII-14
 
 Relative I-O - File Description Entry
 
-(3) The DATA RECORDS clause for the Relative I-O modules is the same as the DATA RECORDS clause for the Sequential I-O module. Thus the specifications for the DATA RECORDS clause are located on page VII-25. The DATA RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+(3) The DATA RECORDS clause for the Relative I-O module is the same as the DATA RECORDS clause for the Sequential I-O module. Thus the specifications for the DATA RECORDS clause are located on page VII-25. The DATA RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C27).** The standard prints `for the Relative I-O modules is` (page 445, folio VIII-15): a real word printed for another on the printed page. Corrected to `module`.
 
 (4) The LABEL RECORDS clause for the Relative I-O module is the same as the LABEL RECORDS clause for the Sequential I-O module. Thus the specifications for the LABEL RECORDS clause are located on page VII-26. The LABEL RECORDS clause is an obsolete element in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
 
@@ -17754,7 +17770,9 @@ If the invalid key condition does not exist after the execution of the input-out
 
 (1) If an exception condition which is not an invalid key condition exists, control is transferred according to the rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector. (See page IX-39, The USE Statement.)
 
-(2) If not exception condition exists, control is transferred to the end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified. In the latter case, execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which
+(2) If no exception condition exists, control is transferred to the end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified. In the latter case, execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which
+
+> ⚠ **CORRECTED — see the Errata (C28).** The standard prints `If not exception condition exists` (page 476, folio IX-6): a real word printed for another on the printed page. Corrected to `no`.
 
 IX-6
 
@@ -21236,7 +21254,9 @@ g. The same specification for the PADDING CHARACTER clause.
 
 (2) The OPTIONAL phrase applies only to a report file opened in the extend mode. Its specification is required for a report file that is not necessarily present each time the object program is executed.
 
-(3) The ASSIGN clause specifies the association of the report file referenced by file-name-1 to a storage medium reference by implementor-name-1 or literal-1.
+(3) The ASSIGN clause specifies the association of the report file referenced by file-name-1 to a storage medium referenced by implementor-name-1 or literal-1.
+
+> ⚠ **CORRECTED — see the Errata (C29).** The standard prints `storage medium reference by` (page 586, folio XIII-4): a real word printed for another on the printed page. Corrected to `referenced`.
 
 (4) A report file has sequential organization. Thus all clauses within the file control entry for a report file shown in the general format on page XIII-3 are present within the Sequential I-O module beginning on page VII-7.
 
@@ -22215,7 +22235,9 @@ b. If the value in LINE-COUNTER is equal to or greater than the line number spec
 
 If the value in LINE-COUNTER is equal to or greater than the line number specified by the FIRST DETAIL phrase of the PAGE clause, and if a body group has previously been presented on the page to which the report is currently positioned, then the first print line of the current page group is presented on the line that is obtained by adding the content of LINE-COUNTER and the integer of the first LINE NUMBER clause of the current body group.
 
-If the value in LINE-COUNTER is less than the line number specified by the FIRST DETAIL phrase of the PAGE clause, then the first printer line of the body group is presented on the line specified by the FIRST DETAIL phrase.
+If the value in LINE-COUNTER is less than the line number specified by the FIRST DETAIL phrase of the PAGE clause, then the first print line of the body group is presented on the line specified by the FIRST DETAIL phrase.
+
+> ⚠ **CORRECTED — see the Errata (C30).** The standard prints `the first printer line of` (page 614, folio XIII-34): a real word printed for another on the printed page. Corrected to `print line`.
 
 c. The body group is not presented.
 
@@ -36718,17 +36740,28 @@ printed form or page each fail it.
 > **Page numbers here are PDF pages**, the `## Page N` headings of this transcription, because the scanned
 > standard numbers its pages per section (`XIII-56`). The printed folio follows where the page prints one.
 
-Every correction was found by a scan of the transcription for rare words one letter from a common word, and by a
+C1 to C19 were found by a scan of the transcription for rare words one letter from a common word, and by a
 sweep of the body for every accented or foreign letter (U+00C0 to U+024F, and the dotless i), and each was read on the rendered page before it was corrected (kb/Work
 PB4972). A damaged letter the transcription reproduced is listed here too: the printed page shows it, so the
 correction is a departure from the page.
 
-**This list is not known to be complete.** Both finders see only a misprint that makes a word the language does not
-have (`BEFCRE`) or a letter outside the ASCII range. A misprint that turns one real word into another passes both,
-and no scan can see it: only a reader can, comparing the sentence's sense with its 2023 counterpart clause. That read
-has not been done. A normative sentence of this transcription whose wording disagrees with its 2023 counterpart is
-therefore checked against the rendered page before it is taken as the rule of 1985, and so is a sentence with no 2023
-counterpart (a rule of a module 2023 dropped), which the comparison cannot reach at all (kb/Work PB4984).
+C20 to C30 (kind `word`) are misprints that turn one real word into another, which no scan can see. A reader found
+them: the `misprints` pass of `scripts/spec/audit_batch.py` proofread every one of the 2,255 rules of the 1985 rule
+catalog, 1,863 of them beside the 2023 rules an earlier reader had paired with them and 392 (a rule of a module 2023
+dropped, or one no 2023 rule states) for their own sense alone. It reported 26 candidates. Each was read on the rendered
+page, and a candidate was corrected only when the page prints it and the sentence's own sense (or the same paragraph's
+other uses of the word) shows which word was meant. A candidate that is the standard's own requirement, however odd,
+stays as printed: an operand the sense seems to want changed (`index-name-1` where `index-name-2` reads better), a
+category list that omits one, a term the editions use differently. So do two candidates that Amendment 2 corrects in
+its own list of changes (page 934, folio XI-20, `had been execution`; page 936, folio XIII-34, `current page group`):
+the amendment is the standard's correction, and its text is the rule (kb/Work PB4984).
+
+**This list is still not known to be complete.** The reader read the catalog only (its syntax, general, argument and
+returned-value rules and 210 general formats): the prose outside them (the introductions, the Function paragraphs, the
+appendices) and the index have had no such read, and a rule read without a 2023 counterpart was checked against its
+sense alone. A wording
+of this transcription that disagrees with its 2023 counterpart is therefore checked against the rendered page before
+it is taken as the rule of 1985.
 
 ## Corrections applied
 
@@ -36753,6 +36786,17 @@ counterpart (a rule of a module 2023 dropped), which the comparison cannot reach
 | [C17](#errata-c17) | 889 | A-59 | Amendment 1, Addendum 1, the NUMVAL-C function, its description | `ıeturns` | `returns` | damage |
 | [C18](#errata-c18) | 634 | XIII-56 | Section XIII, the TYPE clause, general rule 3, item a | `rêport` | `report` | damage |
 | [C19](#errata-c19) | 813 | XVIII-7 | Section XVIII, the index, under JUSTIFIED (JUST) clause | `desçription` | `description` | damage |
+| [C20](#errata-c20) | 263 | VI-31 | Section VI, the PICTURE clause, general rule 8 | `explain` | `explained` | word |
+| [C21](#errata-c21) | 282 | VI-50 | Section VI, the VALUE clause, general rule 6 | `a entry` | `an entry` | word |
+| [C22](#errata-c22) | 300 | VI-68 | Section VI, the CORRESPONDING phrase, rule 4 | `referenced modified` | `reference modified` | word |
+| [C23](#errata-c23) | 330 | VI-98 | Section VI, the INSPECT statement, general rule 7, item c | `participate` | `participates` | word |
+| [C24](#errata-c24) | 363 | VI-131 | Section VI, the STRING statement, syntax rule 3 | `referenced modified` | `reference modified` | word |
+| [C25](#errata-c25) | 392 | VII-18 | Section VII, the RERUN clause, general rule 2, item g | `assumed` | `assumes` | word |
+| [C26](#errata-c26) | 421 | VII-47 | Section VII, the READ statement, general rule 13 | `to be right` | `to the right` | word |
+| [C27](#errata-c27) | 445 | VIII-15 | Section VIII, the file description entry, general rule 3 (the DATA RECORDS clause) | `modules` | `module` | word |
+| [C28](#errata-c28) | 476 | IX-6 | Section IX, the invalid key condition, the second rule 2 | `not` | `no` | word |
+| [C29](#errata-c29) | 586 | XIII-4 | Section XIII, the file control entry, general rule 3 | `reference` | `referenced` | word |
+| [C30](#errata-c30) | 614 | XIII-34 | Section XIII, the body group presentation rules, rule 4, item b | `printer line` | `print line` | word |
 
 <a id="errata-c1"></a>
 
@@ -36962,6 +37006,127 @@ A damaged letter on the printed page, which the transcription had reproduced, re
 | **This transcription** | `Report group description entry` |
 
 A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+
+<a id="errata-c20"></a>
+
+### C20 · page 263 (folio VI-31) · Section VI, the PICTURE clause, general rule 8 · `explain` → `explained`
+
+| | |
+|---|---|
+| **Printed** | `explain as follows` |
+| **This transcription** | `explained as follows` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c21"></a>
+
+### C21 · page 282 (folio VI-50) · Section VI, the VALUE clause, general rule 6 · `a entry` → `an entry`
+
+| | |
+|---|---|
+| **Printed** | `or in a entry that is subordinate` |
+| **This transcription** | `or in an entry that is subordinate` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c22"></a>
+
+### C22 · page 300 (folio VI-68) · Section VI, the CORRESPONDING phrase, rule 4 · `referenced modified` → `reference modified`
+
+| | |
+|---|---|
+| **Printed** | `Neither D1 nor D2 may be referenced modified` |
+| **This transcription** | `Neither D1 nor D2 may be reference modified` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c23"></a>
+
+### C23 · page 330 (folio VI-98) · Section VI, the INSPECT statement, general rule 7, item c · `participate` → `participates`
+
+| | |
+|---|---|
+| **Printed** | `CHARACTERS phrase participate only` |
+| **This transcription** | `CHARACTERS phrase participates only` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c24"></a>
+
+### C24 · page 363 (folio VI-131) · Section VI, the STRING statement, syntax rule 3 · `referenced modified` → `reference modified`
+
+| | |
+|---|---|
+| **Printed** | `Identifier-3 must not be referenced modified` |
+| **This transcription** | `Identifier-3 must not be reference modified` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c25"></a>
+
+### C25 · page 392 (folio VII-18) · Section VII, the RERUN clause, general rule 2, item g · `assumed` → `assumes`
+
+| | |
+|---|---|
+| **Printed** | `whenever a switch assumed a particular status` |
+| **This transcription** | `whenever a switch assumes a particular status` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c26"></a>
+
+### C26 · page 421 (folio VII-47) · Section VII, the READ statement, general rule 13 · `to be right` → `to the right`
+
+| | |
+|---|---|
+| **Printed** | `which is to be right of the last` |
+| **This transcription** | `which is to the right of the last` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c27"></a>
+
+### C27 · page 445 (folio VIII-15) · Section VIII, the file description entry, general rule 3 (the DATA RECORDS clause) · `modules` → `module`
+
+| | |
+|---|---|
+| **Printed** | `for the Relative I-O modules is` |
+| **This transcription** | `for the Relative I-O module is` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c28"></a>
+
+### C28 · page 476 (folio IX-6) · Section IX, the invalid key condition, the second rule 2 · `not` → `no`
+
+| | |
+|---|---|
+| **Printed** | `If not exception condition exists` |
+| **This transcription** | `If no exception condition exists` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c29"></a>
+
+### C29 · page 586 (folio XIII-4) · Section XIII, the file control entry, general rule 3 · `reference` → `referenced`
+
+| | |
+|---|---|
+| **Printed** | `storage medium reference by` |
+| **This transcription** | `storage medium referenced by` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c30"></a>
+
+### C30 · page 614 (folio XIII-34) · Section XIII, the body group presentation rules, rule 4, item b · `printer line` → `print line`
+
+| | |
+|---|---|
+| **Printed** | `the first printer line of` |
+| **This transcription** | `the first print line of` |
+
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
 
 ## Defects recorded but NOT corrected
 

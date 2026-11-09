@@ -11,7 +11,8 @@ past --max-usd; an answer never overwritten; the cost so far counting every bill
 cut-off first reply too, and each reply once when a collect is repeated); the verify plan from the SAME answers, and the
 dispositions; the drafts plan; the adjudicate, refute and recheck plans (each decided kind's one check, kb/Work PB5008),
 their answer shapes and the decided or contested change records they give (and the change batch that records them, never
-over a fleet adjudication, kb/Work PB4995, PB5008); the claims plan from the 1985 text and its
+over a fleet adjudication, kb/Work PB4995, PB5008); the misprints plan, its answer shape and its leads (kb/Work PB4984);
+the claims plan from the 1985 text and its
 citation check; a stamp in a prompt refused before any batch; the key never
 printed or stored, and the account recorded.
 """
@@ -666,6 +667,60 @@ def main() -> int:
                   "citation": word_item["rule"]["citation"], "map": "SAME", "rules_2023": [c_b["id"]], "verify": "UPHELD",
                   "disposition": "CARRIES", "change": {"kind": "KEPT", "to": [c_b["id"]]}})
 
+        print("misprints: the reader of a real word printed for another (kb/Work PB4984)")
+        # The catalog as it now reads: a rule repaired since the map was planned, and a rule the map never saw.
+        repaired = dict(RULES_1985[1], text=RULES_1985[1]["text"].replace("leftmost", "leftmost (repaired)"))
+        added = dict(RULES_1985[0], id="1985-SR-VI.5.8.3-2", citation="§1985:VI.5.8.3 SR2", text="A planted added rule.")
+        now85 = root / "c85now.json"
+        now85.write_text(json.dumps({"rules": [RULES_1985[0], repaired, RULES_1985[2], added]}), encoding="utf-8",
+                         newline="\n")
+        code, out = run(["plan", "--pass", "misprints", *base, "--catalog", str(now85), "--catalog-2023", str(cat23)], fake)
+        mitems = json.loads((state / "misprints" / "items.json").read_text(encoding="utf-8"))
+        mby = {it["id"]: (c, it) for c, it in mitems.items()}
+        maps = {a["id"]: a["answer"] for a in A.Pass(state, "map").answers().values()}
+        check("the misprints plan holds every rule of the catalog as it now reads, with the 2023 rules its map answer "
+              "named (none for a NONE or a rule the map never saw)",
+              code == 0 and sorted(mby) == sorted([*(r["id"] for r in RULES_1985), added["id"]])
+              and mby[repaired["id"]][1]["rule"]["text"] == repaired["text"] and not mby[added["id"]][1]["counterparts"]
+              and all([c["id"] for c in it["counterparts"]] == maps[i]["rules_2023"] for i, (_c, it) in mby.items()
+                      if i in maps)
+              and any(not it["counterparts"] for i, (_c, it) in mby.items() if i in maps))
+        occurs = mby["1985-SR-VI.5.8.3-1"][1]
+        unpaired = next(it for _c, it in mby.values() if not it["counterparts"])
+        check("a misprints prompt quotes the rule and its counterparts, and says when there is none",
+              occurs["rule"]["text"] in A.prompt_text("misprints", occurs) and "SR-13.18.38.3-1" in A.prompt_text(
+                  "misprints", occurs) and "read the 1985 rule for its own sense" in A.prompt_text("misprints", unpaired))
+        def proofread(verdict: str, *found: dict[str, str]) -> tuple[Any, str]:
+            return A.parse_answer("misprints", occurs, json.dumps({"verdict": verdict, "misprints": list(found),
+                                                                   "reason": "r"}))
+        lead = {"printed": "77", "intended": "78", "context": "a level-number of 01, 66, 77, or 88"}
+        ok, _ = proofread("MISPRINT", lead)
+        clean, _ = proofread("CLEAN")
+        broken = dict(occurs, rule=dict(occurs["rule"], text="<u>The OCCURS</u> clause must not be\nspecified in a data"))
+        tagged, _ = A.parse_answer("misprints", broken, json.dumps({"verdict": "MISPRINT", "reason": "r", "misprints": [
+            {"printed": "be", "intended": "by", "context": "The OCCURS clause must not be specified"}]}))
+        check("a misprint the rule prints is an answer, quoted as a reply quotes it (no tag, one space), and CLEAN has none",
+              ok is not None and clean is not None and tagged is not None)
+        refused = {"CLEAN with a misprint": proofread("CLEAN", lead), "MISPRINT with none": proofread("MISPRINT"),
+                   "a context the rule lacks": proofread("MISPRINT", dict(lead, context="a level-number of 01 or 77")),
+                   "printed words outside the context": proofread("MISPRINT", dict(lead, printed="88 or")),
+                   "printed words only part of a word": proofread("MISPRINT", dict(lead, printed="7")),
+                   "the intended words the printed ones": proofread("MISPRINT", dict(lead, intended=" 77")),
+                   "a misprint missing a field": proofread("MISPRINT", {"printed": "77", "intended": "78"})}
+        check("a misprint that points at nothing the rule prints is a reply to retry: " + ", ".join(refused),
+              all(a is None and w for a, w in refused.values()))
+        run(["submit", "--pass", "misprints", *base, *key, "--max-usd", "50", "--canary", "5"], fake)
+        answer(fake, fake.created[-1]["id"], {c: json.dumps({"verdict": "MISPRINT", "misprints": [lead], "reason": "r"})
+                                              if c == mby["1985-SR-VI.5.8.3-1"][0] else
+                                              json.dumps({"verdict": "CLEAN", "misprints": [], "reason": "r"})
+                                              for c in fake.created[-1]["ids"]})
+        run(["collect", "--pass", "misprints", *base, *key], fake)
+        code, out = run(["misprint-leads", *base], fake)
+        leads = json.loads((state / "misprint-leads.json").read_text(encoding="utf-8"))
+        check("misprint-leads lists each reported misprint with its rule's citation and whether a counterpart was read",
+              code == 0 and leads == [{"rule-id": "1985-SR-VI.5.8.3-1", "citation": "§1985:VI.5.8.3 SR1", "paired": True,
+                                       **lead}] and "1 lead(s) in 1 rule(s), 0 read without" in out)
+
         print("claims: the 1985 text and the citation check")
         planted = root / "repo"
         md = spec_pdf.markdown(1985, planted)
@@ -731,7 +786,7 @@ def main() -> int:
         side = spec_pdf.BOX_SIDE
         boxed = dict(RULES_1985[0], box="whole", level=2, text=f"{side}(1) A planted rule boxed whole.{side}")
         texts = {p: A.prompt_text(p, {"rule": boxed, "candidates": RULES_2023[:1], "clause_candidates": RULES_2023[:1],
-                                      "word_candidates": [], "id": "c1", "claim": "planted", "readers": {"map": None},
+                                      "word_candidates": [], "counterparts": RULES_2023[:1], "id": "c1", "claim": "planted", "readers": {"map": None},
                                       "clause_1985": [dict(boxed, id="c1")], "near_1985": [],
                                       "feature_2023": RULES_2023[:1], "decided_2023": [],
                                       "adjudication": {"verdict": "REMOVED"},

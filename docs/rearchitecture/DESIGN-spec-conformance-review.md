@@ -1007,6 +1007,20 @@ each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
 | `refute` | REMOVED adjudication, with every candidate the adjudicator saw | the strongest reading on which the requirement survives, first; then UPHELD, REFUTED or UNSURE |
 | `recheck` | KEPT or CHANGED adjudication (kb/Work PB5008), at the highest effort, with its whole 1985 clause and the 1985 rules most like it by wording, every rule of every kind of the 2023 clauses that hold its feature and of each clause a decided rule lies in, and the map's worded candidates beyond them | framed to DISPROVE the decision: (a) another 1985 rule bearing on the element, (b) every 2023 rule that states any part of the requirement, (c) a refusal made a run-time exception condition; then the change record the texts support, with `rules_1985` and `exception` |
 
+A ninth pass serves the 1985 TRANSCRIPTION, not the change records (kb/Work PB4984):
+
+| pass | one request per | answer |
+|---|---|---|
+| `misprints` | rule of the 1985 catalog as it now reads (repairs since the map included), with the 2023 rules its map answer named (SAME or DIFFERS), or none (NONE, or a rule the map never saw: read for its own sense alone) | MISPRINT, with each misprint's printed words, the words the sense requires and the rule's words around them, or CLEAN |
+
+It finds what no spelling scan can: a misprint that makes another real word (`form` for `from`). The answer shape holds
+each misprint to the rule's text (`audit_batch.misprints_error`: the context is the rule's own words once tags, escapes,
+box sides and line breaks are dropped, and it holds the printed words whole), so a lead always points at words the page
+prints. `misprint-leads` writes `DIR/misprint-leads.json`, each lead with its rule's citation and whether a counterpart was
+read beside it. A lead is never a correction: a reader confirms it on the rendered page before the Errata of
+`specs/ANSI_COBOL_1985.md` lists it (kb/Work PB4972's convention). The pass reads catalog rules only; the prose outside
+the catalog, the general formats and the index stay unread by it, and the Errata says so.
+
 **A rule's candidates are drawn from the strongest signal down** (`audit_batch.candidates`, kb/Work PB4971, owner
 2026-11-08: "Use the strongest appropriate signals"):
 1. every 2023 rule of the SAME KIND in the clauses its clause was ROUTED to, or shares a heading with (`subject_key`:
