@@ -11457,15 +11457,17 @@ Nucleus - PICTURE
 | Floating Insertion Symbols | {Z \*} | x | x | x | x | | x | | | x | x | | | | | | | | | | | |
 | | {Z \*} | x | x | x | x | x | x | | | x | x | x | | | | | | | | x | | x |
 | | {+ –} | x | x | x | x | | | | | x | | | x | | | | | | | | | |
-| | {+ –} | x | x | x | x | x | | | | x | | | x | x | | | | | | x | | x |
+| | {+ –} | x | x | x | x | x | | | | x | | | x | x | | | | | | x | |  |
 | | cs | x | x | x | x | | x | | | | | | | | x | | | | | | | |
-| | cs | x | x | x | x | x | x | | | | | | | | x | x | | | | x | | x |
+| | cs | x | x | x | x | x | x | | | | | | | | x | x | | | | x | |  |
 | Other Symbols | 9 | x | x | x | x | x | x | | | x | x | | x | | x | | x | x | x | x | | x |
 | | A X | x | x | x | | | | | | | | | | | | | x | x | | | | |
 | | S | | | | | | | | | | | | | | | | | | | | | |
 | | V | x | x | x | x | | x | | | x | x | | x | | x | | x | | x | | x | |
 | | P | x | x | x | x | | x | | | x | x | | x | | x | | x | | x | | x | |
 | | P | | | | | | x | | | x | | | | | | | | | x | x | | x |
+
+> ⚠ **CORRECTED — see the Errata (C216).** The standard prints `x at (P, the lower floating {+ –}) and at (P, the lower floating cs)` (page 269, folio VI-37). Amendment 2 (ANSI X3.23b-1993), its change for page VI-37 (page 921, folio B-9), applied in place: "Paragraph 5.9.6, PICTURE precedence chart, delete the symbol 'X' at the following two intersections": the right-most P under Other Symbols (top) with the lower {±} and with the lower cs for Floating Insertion Symbols (side) (kb/Work PB5045). Corrected to `the two x deleted`.
 
 VI-37
 
@@ -12089,7 +12091,9 @@ Relation tests may be made only between:
 
 (1) Two index-names. The result is the same as if the corresponding occurrence numbers were compared.
 
-(2) An index-name and a data item (other than an index data item) or literal. The occurrence number that corresponds to the value of the index-name is compared to the data item or literal.
+(2) An index-name and a numeric data item or numeric literal. The occurrence number that corresponds to the value of the index-name is compared to the data item or literal.
+
+> ⚠ **CORRECTED — see the Errata (C217).** The standard prints `(2) An index-name and a data item (other than an index data item) or literal.` (page 288, folio VI-56). Amendment 2 (ANSI X3.23b-1993), its change for page VI-56 (page 921, folio B-9), applied in place: "Paragraph 6.3.1.1.3 entitled Comparisons Involving Index-Names and/or Index Data Items, change the first sentence of subparagraph 2 to read" (kb/Work PB5045). Corrected to `(2) An index-name and a numeric data item or numeric literal.`.
 
 (3) An index data item and an index-name or another index data item. The actual values are compared without conversion.
 
@@ -12125,11 +12129,15 @@ identifier-1 IS [<u>NOT</u>]   ┤ <u>ALPHABETIC-LOWER</u> ├
                          ╰ class-name-1     ╯
 </pre>
 
-Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function.
+Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.
 
 > ⚠ **CORRECTED — see the Errata (C126).** The standard prints `The usage of the operand being tested must be described as DISPLAY.` (page 289, folio VI-57). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-57 (page 848, folio A-18), applied in place: "Paragraph 6.3.1.2, replace the first paragraph after the general format beginning with 'The usage of the operand...'" (kb/Work PB5045). Corrected to `Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function.`.
 
-When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g., NOT NUMERIC is a truth test for determining that an operand is nonnumeric.
+> ⚠ **CORRECTED — see the Errata (C218).** The standard prints `Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. (Amendment 1's paragraph, C126)` (page 289, folio VI-57). Amendment 2 (ANSI X3.23b-1993), its change for page VI-57 (A-18) (page 921, folio B-9), applied in place: "Paragraph 6.3.1.2 entitled Class Condition, replace the first paragraph after the general format beginning with 'Identifier-1 must reference' and the second paragraph after the general format beginning with 'When used, NOT and' with the following": the first paragraph (kb/Work PB5045). Corrected to `... When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.`.
+
+When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g. NOT NUMERIC is a truth test for determining that an operand is nonnumeric. When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.
+
+> ⚠ **CORRECTED — see the Errata (C219).** The standard prints `When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g., NOT NUMERIC is a truth test for determining that an operand is nonnumeric.` (page 289, folio VI-57). Amendment 2 (ANSI X3.23b-1993), its change for page VI-57 (A-18) (page 921, folio B-9), applied in place: the same change, its second paragraph (kb/Work PB5045). Corrected to `... When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.`.
 
 The NUMERIC test cannot be used with an item whose data description describes the item as alphabetic or as a group item composed of elementary items whose data description indicates the presence of operational sign(s). If the data description of the item being tested does not indicate the presence of an operational sign, the item being tested is determined to be numeric only if the content is numeric and an operational sign is not present. If the data description of the item does indicate the presence of an operational sign, the item being tested is determined to be numeric only if the content is numeric and a valid operational sign is present. Valid operational signs for data items described with the SIGN IS SEPARATE clause are the standard data format characters + and -; the implementor defines what constitutes valid sign(s) for data items not described with the SIGN IS SEPARATE clause.
 
@@ -13296,11 +13304,13 @@ The IF statement causes a condition (see page VI-54, Conditional Expressions) to
 ### 6.16.2 General Format
 
 <pre style="line-height:1">
-                    ╭ {statement-1} …   ╮ ╭ <u>ELSE</u> {statement-2} …     [<u>END-IF</u>] ╮
+                    ╭ statement-1       ╮ ╭ <u>ELSE</u> statement-2         [<u>END-IF</u>] ╮
                     ┤                   ├ │                                   │
 <u>IF</u> condition-1 THEN ╰ <u>NEXT</u> <u>SENTENCE</u>     ╯ ┤ <u>ELSE</u> <u>NEXT</u> <u>SENTENCE</u>                ├
                                           ╰ <u>END-IF</u>                            ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C220).** The standard prints `IF condition-1 THEN { {statement-1} ... | NEXT SENTENCE } { ELSE {statement-2} ... [END-IF] | ... }` (page 322, folio VI-90). Amendment 2 (ANSI X3.23b-1993), its change for page VI-90 (page 921, folio B-9), applied in place: "Paragraph 6.16.2, general format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2" (kb/Work PB5045). Corrected to `IF condition-1 THEN { statement-1 | NEXT SENTENCE } { ELSE statement-2 [END-IF] | ... }`.
 
 ### 6.16.3 Syntax Rules
 
@@ -13332,7 +13342,9 @@ VI-90
 
 Nucleus - IF
 
-b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence.
+b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence. This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.
+
+> ⚠ **CORRECTED — see the Errata (C221).** The standard prints `b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence.` (page 323, folio VI-91). Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 921, folio B-9), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 2b, add the following as the new last sentence" (kb/Work PB5045). Corrected to the text above.
 
 c. If the condition is false and statement-2 is specified, statement-1 or its surrogate NEXT SENTENCE is ignored, control is transferred to the first statement of statement-2, and execution continues according to the rules for each statement specified in statement-2. If a procedure branching ║or conditional statement║ is executed which causes an explicit transfer of control, control is explicitly transferred in accordance with the rules of that statement. Upon completion of the execution of statement-2, control passes to the end of the IF statement.
 
@@ -38001,6 +38013,12 @@ it is taken as the rule of 1985.
 | [C213](#errata-c213) | 263 | VI-31 | Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item b | `b. A MOVE statement` | `b. An elementary MOVE statement` | amendment-2 |
 | [C214](#errata-c214) | 263 | VI-31 | Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item c | `c. (not boxed)` | `c. (boxed)` | amendment-2 |
 | [C215](#errata-c215) | 266 | VI-34 | Section VI, paragraph 5.9.5 (PICTURE editing rules), editing rule 7, second paragraph, last sentence | `the fixed insertion characters 'CR' and 'DB'` | `one of the editing sign control symbols '+', '-', 'CR', or…` | amendment-2 |
+| [C216](#errata-c216) | 269 | VI-37 | Section VI, paragraph 5.9.6, the PICTURE precedence chart | `x, x` | `(deleted)` | amendment-2 |
+| [C217](#errata-c217) | 288 | VI-56 | Section VI, paragraph 6.3.1.1.3, item 2, first sentence | `a data item (other than an index data item) or literal` | `a numeric data item or numeric literal` | amendment-2 |
+| [C218](#errata-c218) | 289 | VI-57 | Section VI, paragraph 6.3.1.2 (Class Condition), the first paragraph after the general format | `(no zero-length sentence)` | `... zero-length group item ... always false.` | amendment-2 |
+| [C219](#errata-c219) | 289 | VI-57 | Section VI, paragraph 6.3.1.2 (Class Condition), the second paragraph after the general format | `(no zero-length sentence)` | `... zero-length group item ... always true.` | amendment-2 |
+| [C220](#errata-c220) | 322 | VI-90 | Section VI, paragraph 6.16.2, the general format of the IF statement | `{statement-1} …, {statement-2} …` | `statement-1, statement-2` | amendment-2 |
+| [C221](#errata-c221) | 323 | VI-91 | Section VI, paragraph 6.16.4 (IF), general rule 2b | `(no last sentence)` | `This has the effect of causing a transfer of control to an…` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -40366,6 +40384,72 @@ Amendment 2 (ANSI X3.23b-1993), its change for page VI-31 (page 920, folio B-8),
 | **This transcription** | `this string of floating insertion characters may have one of the editing sign control symbols '+', '-', 'CR', or 'DB' immediately to the right of this string.` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page VI-34 (page 920, folio B-8), applied in place: "Paragraph 5.9.5, editing rules of the PICTURE clause, editing rule 7, second paragraph, change last sentence" (kb/Work PB5045).
+
+<a id="errata-c216"></a>
+
+### C216 · page 269 (folio VI-37) · Section VI, paragraph 5.9.6, the PICTURE precedence chart · `x, x` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `x at (P, the lower floating {+ –}) and at (P, the lower floating cs)` |
+| **This transcription** | `the two x deleted` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-37 (page 921, folio B-9), applied in place: "Paragraph 5.9.6, PICTURE precedence chart, delete the symbol 'X' at the following two intersections": the right-most P under Other Symbols (top) with the lower {±} and with the lower cs for Floating Insertion Symbols (side) (kb/Work PB5045).
+
+<a id="errata-c217"></a>
+
+### C217 · page 288 (folio VI-56) · Section VI, paragraph 6.3.1.1.3, item 2, first sentence · `a data item (other than an index data item) or li…` → `a numeric data item or numeric literal`
+
+| | |
+|---|---|
+| **Printed** | `(2) An index-name and a data item (other than an index data item) or literal.` |
+| **This transcription** | `(2) An index-name and a numeric data item or numeric literal.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-56 (page 921, folio B-9), applied in place: "Paragraph 6.3.1.1.3 entitled Comparisons Involving Index-Names and/or Index Data Items, change the first sentence of subparagraph 2 to read" (kb/Work PB5045).
+
+<a id="errata-c218"></a>
+
+### C218 · page 289 (folio VI-57) · Section VI, paragraph 6.3.1.2 (Class Condition), the first paragraph after the general format · `(no zero-length sentence)` → `... zero-length group item ... always false.`
+
+| | |
+|---|---|
+| **Printed** | `Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. (Amendment 1's paragraph, C126)` |
+| **This transcription** | `... When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-57 (A-18) (page 921, folio B-9), applied in place: "Paragraph 6.3.1.2 entitled Class Condition, replace the first paragraph after the general format beginning with 'Identifier-1 must reference' and the second paragraph after the general format beginning with 'When used, NOT and' with the following": the first paragraph (kb/Work PB5045).
+
+<a id="errata-c219"></a>
+
+### C219 · page 289 (folio VI-57) · Section VI, paragraph 6.3.1.2 (Class Condition), the second paragraph after the general format · `(no zero-length sentence)` → `... zero-length group item ... always true.`
+
+| | |
+|---|---|
+| **Printed** | `When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g., NOT NUMERIC is a truth test for determining that an operand is nonnumeric.` |
+| **This transcription** | `... When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-57 (A-18) (page 921, folio B-9), applied in place: the same change, its second paragraph (kb/Work PB5045).
+
+<a id="errata-c220"></a>
+
+### C220 · page 322 (folio VI-90) · Section VI, paragraph 6.16.2, the general format of the IF statement · `{statement-1} …, {statement-2} …` → `statement-1, statement-2`
+
+| | |
+|---|---|
+| **Printed** | `IF condition-1 THEN { {statement-1} ... NEXT SENTENCE } { ELSE {statement-2} ... [END-IF] ... }` |
+| **This transcription** | `IF condition-1 THEN { statement-1 NEXT SENTENCE } { ELSE statement-2 [END-IF] ... }` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-90 (page 921, folio B-9), applied in place: "Paragraph 6.16.2, general format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2" (kb/Work PB5045).
+
+<a id="errata-c221"></a>
+
+### C221 · page 323 (folio VI-91) · Section VI, paragraph 6.16.4 (IF), general rule 2b · `(no last sentence)` → `This has the effect of causing a transfer of cont…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence.` |
+| **This transcription** | `b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence. This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 921, folio B-9), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 2b, add the following as the new last sentence" (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
