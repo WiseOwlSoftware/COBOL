@@ -1,4 +1,4 @@
-## PB4995: the 1985 recheck's 712 contested change records decided by cobol-adjudicators in two rounds and recorded
+## Entry 3383 — 2026-11-09 12:00 PST — PB4995: the 1985 recheck's 712 contested change records decided by cobol-adjudicators in two rounds and recorded
 
 The max-effort 1985 recheck (account2, $229.66) upheld 1,538 change records, every one already the stored record, and
 contested 712. The owner chose a `cobol-adjudicator` decision for each (2026-11-09: not the recheck's own record for the
@@ -22,3 +22,4 @@ needs a verdict of its own at 85). 21 are held: their 2023 carrier is unnumbered
 no row for, listed in PB479, which owns the class. Filed from the fleet's findings: PB5021 (the KEPT definition and its cause), PB5022 (a 2023
 SUM refusal of 1985-legal source to probe at `--std=85`) and PB5023 (catalog rows cut at 4,000 characters, a merged
 errata row, an ambiguous citation).
+
