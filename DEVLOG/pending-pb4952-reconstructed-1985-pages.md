@@ -49,7 +49,8 @@ Duplication: the four readers share `cite.reconstructed`.
 
 **Also in this landing (register only).** The merge with #1413 conflicted on SUM GR9's record: #1413's CHANGED
 adjudication stays, with this branch's digest and the provisional marker (review round 3 CLEAN). PB5031: SET GR2
-(page 360, VI-128) was read on the rendered page; it prints `index-name-1`, as transcribed, and the Errata policy keeps
-it, so no erratum is owed and the rule's `--std=85` verdict stays owed.
+(page 360, VI-128) was read on the rendered page; it prints `index-name-1`, as transcribed. The owner overruled the
+Errata's keep-as-printed policy: the transcription is the most accurate version of the standard, so evident misprints and
+a later revision's corrections are applied with attribution; PB5045 (filed here) owns that correction sweep.
 
 **Gate:** see the branch's gate record.
