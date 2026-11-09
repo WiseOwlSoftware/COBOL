@@ -13,16 +13,18 @@ or ends. The lineage (`lineage.py`) records, between each pair of adjacent held 
 KEPT, CHANGED or REMOVED (`inventory_schema.ChangeRecord`), and a newer rule no record names is NEW. So an edge between two
 held editions is a fact the lineage can prove or refute, from the rules the gate's `citation` names:
 
-- a START inside the pair (the gate refuses at the older edition and accepts at the newer one) rests on a cited rule of the
-  newer edition that is NEW, or that a record of a kind whose verdict is its own (`chained` false: CHANGED) names: the
-  construct is new, or is the change a kept subject underwent (an alternative added to a format the older text has);
-- an END inside the pair (the gate accepts at the older edition and refuses at the newer one) rests on a cited rule of the
-  older edition whose record is of such a kind (REMOVED, or CHANGED: an alternative the newer format dropped).
+an edge inside the pair (a START: the gate refuses at the older edition and accepts at the newer one; an END: the
+reverse) rests on a cited rule that CHANGES between them: a rule of the newer edition that is NEW or that a record of a
+kind whose verdict is its own (`chained` false: CHANGED) names, or a rule of the older edition whose record is of such a
+kind (REMOVED, or CHANGED). Either side carries either edge: a start is a construct the newer text adds (a NEW rule, an
+alternative added to a format the older text has) or a restriction the older text had and the newer one lifts (the 1985
+rule "Identifier-1 must not be reference modified", REMOVED); an end is a construct the newer text drops or a restriction
+it adds.
 
 A gate whose cited rules are all KEPT contradicts its chain (the same requirement holds at both editions, yet the gate
-refuses one of them) and is refused; so is a gate that cites no rule of the edition its edge needs, and an end resting on
-an older rule the lineage has not classified yet. A gate whose window lies wholly between two held editions (2002 to 2014
-while only 1985 and 2023 are held) has no edge the lineage spans, and waits for the edition between them (kb/Work PB4813).
+refuses one of them) and is refused; so is a gate that cites no rule of either edition, and one resting on an older rule
+the lineage has not classified yet. A gate whose window lies wholly between two held editions (2002 to 2014 while only
+1985 and 2023 are held) has no edge the lineage spans, and waits for the edition between them (kb/Work PB4813).
 
 A GATE ON A WORD'S RESERVATION is not a rule's edge. A construct whose every citation names a reserved or context-sensitive
 word list (§2023:8.9, §2023:8.10: `WORD_LISTS`) is a word becoming or ceasing to be reserved, whose edges are the word
@@ -30,8 +32,15 @@ lists' (`reserved-words.json`, `context-sensitive-words.json`, held by CobolWord
 ContextSensitiveWordsDriftTests), and this audit leaves it to them.
 
 The cited rules are read through the one citation parser (`citation.scan`); a clause names every rule under it, a rule
-designator (`SR4`, `GR12`) the rule of that kind and ordinal, and a `Format n` or `Table n` every rule of the clause (the
-catalog does not number formats). What a kind means is the schema's (`ChangeRecord`): no code here spells one.
+designator (`SR4`, `GR12`) the rule of that kind and ordinal, a `Format n` the clause's general format (its FMT rule: the
+catalog does not number formats) and a `Table n` every rule of the clause. What a kind means is the schema's
+(`ChangeRecord`): no code here spells one.
+
+A CITATION PROVES AN EDGE ONLY WHEN EVERY RULE IT NAMES PROVES IT. A clause that gained anything after 1985 holds NEW or
+CHANGED rules beside KEPT ones, so a gate citing the whole clause would pass whichever of its constructs it moved: a window
+that wrongly started CALL ... USING at 2002 citing `§2023:14.9.4` would be proven by CALL's BY VALUE rules. So a gate is
+proven by one of its citations whose every named rule changes, and a gate whose citations each mix changing rules with
+KEPT ones is refused until it names the rule its edge rests on (the general format's subclause, or the SR or GR).
 """
 from __future__ import annotations
 
@@ -42,7 +51,7 @@ import pathlib
 import re
 import sys
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from typing import Any, NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -60,6 +69,9 @@ WORD_LISTS = frozenset({"§2023:8.9", "§2023:8.10"})
 #: A version predicate of the grammar: `{is2002()}?`, alone or in a disjunction (`{is2002() || retryPhraseAhead()}?`).
 _PREDICATE = re.compile(r"\{[^{}]*\bis(\d+)\(\)[^{}]*\}\?")
 _RULE = re.compile(r"(SR|GR|AR|RV)(\d+)")
+#: A citation of a clause's general format (`Format 2`), which names the clause's rule of the catalog kind FMT.
+_FORMAT = re.compile(r"Format\b")
+_FORMAT_KIND = "FMT"
 #: THE FINDINGS A KNOWN DEFECT HOLDS OPEN, each with the work-register note that carries its fix; checked both ways
 #: (`held_open`): an entry whose gate the audit no longer finds anything at is itself a finding. A gate lands here only
 #: when the audit has found a compiler defect whose fix is another note's, never to quiet a finding this audit got wrong.
@@ -96,9 +108,14 @@ class Pair(NamedTuple):
 
 # -- the gates ----------------------------------------------------------------------------------------------------------
 
-def construct_gates(raw: Mapping[str, Any]) -> list[Gate]:
-    """Every window of the construct catalogue `raw` (constructs.json) as a gate."""
-    return [Gate(f"constructs.json {c['id']}", int(c["introducedIn"]), int(c["removedIn"]) if c.get("removedIn") else None,
+def construct_gates(raw: Mapping[str, Any], year_of: Mapping[str, int]) -> list[Gate]:
+    """Every window of the construct catalogue `raw` (constructs.json) as a gate, its edges as years: `year_of` maps the
+    catalogue's edition spelling (`85`, `2002`) to its edition's year, as a grammar predicate's (`grammar_gates`)."""
+    def year(spelling: Any) -> int:
+        if str(spelling) not in year_of:
+            raise SystemExit(f"{CONSTRUCTS_REL}: edition {spelling!r} names no edition of the schema")
+        return year_of[str(spelling)]
+    return [Gate(f"constructs.json {c['id']}", year(c["introducedIn"]), year(c["removedIn"]) if c.get("removedIn") else None,
                  tuple(x for x in citation.scan(c.get("citation") or "") if x.error is None))
             for c in raw["constructs"]]
 
@@ -147,17 +164,21 @@ def document_year(rule: Row, ed: Edition) -> int:
     return int(head) if head.isdigit() else ed.year
 
 
+def named_rules(c: citation.Citation, rules: Iterable[Row], ed: Edition) -> list[str]:
+    """The ids of `rules` (one held edition's catalog) that the citation `c` names: a clause every rule under it, a rule
+    designator the rule of that kind and ordinal there, a `Format n` the clause's FMT rule (the module docstring)."""
+    under = [r for r in rules if document_year(r, ed) == c.edition
+             and (r["section"] == c.locator or r["section"].startswith(c.locator + "."))]
+    if c.rule and _FORMAT.match(c.rule):
+        return [r["rule-id"] for r in under if r["kind"] == _FORMAT_KIND]
+    m = _RULE.match(c.rule) if c.rule else None
+    return [r["rule-id"] for r in under if m is None or (r["kind"] == m[1] and r["ordinal"] == int(m[2]))]
+
+
 def cited_rules(cites: Iterable[citation.Citation], rules: Iterable[Row], ed: Edition) -> list[str]:
-    """The ids of `rules` (one held edition's catalog) that `cites` name: a clause every rule under it, a rule designator
-    the rule of that kind and ordinal there."""
+    """The ids of `rules` that any of `cites` names (`named_rules`), each once."""
     rules = list(rules)
-    out: list[str] = []
-    for c in cites:
-        under = [r for r in rules if document_year(r, ed) == c.edition
-                 and (r["section"] == c.locator or r["section"].startswith(c.locator + "."))]
-        m = _RULE.match(c.rule) if c.rule else None
-        out += [r["rule-id"] for r in under if m is None or (r["kind"] == m[1] and r["ordinal"] == int(m[2]))]
-    return list(dict.fromkeys(out))
+    return list(dict.fromkeys(t for c in cites for t in named_rules(c, rules, ed)))
 
 
 def word_gate(g: Gate) -> bool:
@@ -177,7 +198,8 @@ class Finding(NamedTuple):
 
 def edge_findings(g: Gate, p: Pair, schema: Schema) -> tuple[list[Finding], str | None]:
     """What the lineage `p` says of gate `g`'s edges inside it: the findings, and how the edge is proven (None when `g`
-    has no edge inside the pair)."""
+    has no edge inside the pair). A citation proves the edge when every rule it names changes between the pair, on
+    either side (the module docstring)."""
     lo, hi = p.older.year, p.newer.year
     chained = schema.next.chained.name
     starts = lo < g.start <= hi and (g.end is None or g.end > hi)
@@ -186,34 +208,54 @@ def edge_findings(g: Gate, p: Pair, schema: Schema) -> tuple[list[Finding], str 
         return [], None
     if word_gate(g):
         return [], "a word's reservation (the word lists hold it)"
-    ed, rules = (p.newer, p.newer_rules) if starts else (p.older, p.older_rules)
     edge = f"start {g.start}" if starts else f"end {g.end}"
-    years = {document_year(r, ed) for r in rules}
-    cites = [c for c in g.cites if c.edition in years]
+    side_of = {document_year(r, ed): (ed, rules, how)
+               for ed, rules, how in ((p.older, p.older_rules, older_change(p, chained)),
+                                      (p.newer, p.newer_rules, newer_change(p, chained)))
+               for r in rules}
+    cites = [c for c in g.cites if c.edition in side_of]
     if not cites:
-        owed = "the construct is NEW or CHANGED in" if starts else "whose change record removes or changes the construct"
-        return [Finding(g.where, f"{edge}, between {lo} and {hi}, cites nothing of {ed.year}: name the {ed.year} rule "
-                                 f"{owed} (§{ed.year}:<locator> <rule>)")], None
-    cited = cited_rules(cites, rules, ed)
-    if not cited:
-        return [], f"{edge}: prose the {ed.year} catalog holds no rule of (" + ", ".join(
+        return [Finding(g.where, f"{edge}, between {lo} and {hi}, cites nothing of {lo} or {hi}: name the rule that "
+                                 f"changes at the edge (§<edition>:<locator> <rule>)")], None
+    named: dict[str, tuple[list[str], Callable[[str], str | None]]] = {}
+    for c in cites:
+        ed, rules, how = side_of[c.edition]
+        if ids := named_rules(c, rules, ed):
+            named[citation.render(c)] = (ids, how)
+    if not named:
+        return [], f"{edge}: prose the catalogs hold no rule of (" + ", ".join(
             citation.render(c) for c in cites[:3]) + "), outside the lineage"
-    if starts:
-        proof = [t for t in cited if t not in p.reached_by or p.reached_by[t] - {chained}]
-        if not proof:
-            return [Finding(g.where, f"{edge}, yet every {hi} rule it cites is {chained} from {lo} "
-                                     f"({', '.join(cited[:6])}): the same requirement holds at {lo}, so either the gate "
-                                     f"or the change record is wrong")], None
-        return [], f"{edge}: " + ", ".join(
-            f"{t} {'NEW' if t not in p.reached_by else '/'.join(sorted(p.reached_by[t] - {chained}))}" for t in proof[:4])
-    proof = [t for t in cited if p.kind_of.get(t) not in (None, chained)]
-    if proof:
-        return [], f"{edge}: " + ", ".join(f"{t} {p.kind_of[t]}" for t in proof[:4])
-    if pending := [t for t in cited if p.kind_of.get(t) is None]:
+    if proofs := [cite for cite, (ids, how) in named.items() if all(how(t) for t in ids)]:
+        ids, how = named[proofs[0]]
+        return [], f"{edge}: {proofs[0]}: " + ", ".join(f"{t} {how(t)}" for t in ids[:4])
+    cited = [t for ids, _ in named.values() for t in ids]
+    if broad := [t for ids, how in named.values() for t in ids if how(t)]:
+        return [Finding(g.where, f"{edge}, between {lo} and {hi}, is proven by no citation alone: each it makes "
+                                 f"({'; '.join(named)}) names {chained} or unclassified rules beside the changing ones, so it "
+                                 f"would prove any construct of its clause; name the rule the edge rests on (the "
+                                 f"general format's subclause, or the SR or GR; candidates {', '.join(broad[:6])})")], None
+    if pending := [t for t in cited if t in p.kind_of and p.kind_of[t] is None]:
         return [Finding(g.where, f"{edge}, resting on {lo} rule(s) the lineage has not classified "
                                  f"({', '.join(pending[:6])}): classify them (record_verdicts.py --edition {lo})")], None
-    return [Finding(g.where, f"{edge}, yet every {lo} rule it cites is {chained} into {hi} "
-                             f"({', '.join(cited[:6])}): either the gate or the change record is wrong")], None
+    return [Finding(g.where, f"{edge}, yet every rule it cites is {chained} between {lo} and {hi} "
+                             f"({', '.join(cited[:6])}): the same requirement holds at both, so either the gate or the "
+                             f"change record is wrong")], None
+
+
+def newer_change(p: Pair, chained: str) -> Callable[[str], str | None]:
+    """How a newer rule of `p` changes: NEW (no record names it), or the kinds of the records naming it whose verdict is
+    their own; None when only `chained` records name it."""
+    def how(t: str) -> str | None:
+        return "NEW" if t not in p.reached_by else "/".join(sorted(p.reached_by[t] - {chained})) or None
+    return how
+
+
+def older_change(p: Pair, chained: str) -> Callable[[str], str | None]:
+    """How an older rule of `p` changes: its record's kind, when it is classified and not `chained`."""
+    def how(t: str) -> str | None:
+        kind = p.kind_of.get(t)
+        return kind if kind not in (None, chained) else None
+    return how
 
 
 def audit(gates: Iterable[Gate], pairs: Iterable[Pair], schema: Schema) -> tuple[list[Finding], dict[str, list[str]]]:
@@ -236,7 +278,8 @@ def repository_inputs(schema: Schema, root: pathlib.Path = REPO) -> tuple[list[G
     year_of = {e.spelling: e.year for e in schema.all_editions}
     grammar = {p.relative_to(root).as_posix(): p.read_text(encoding="utf-8")
                for p in sorted((root / GRAMMAR_REL).rglob("*.g4"))}
-    gates = construct_gates(json.loads((root / CONSTRUCTS_REL).read_text(encoding="utf-8"))) + grammar_gates(grammar, year_of)
+    gates = (construct_gates(json.loads((root / CONSTRUCTS_REL).read_text(encoding="utf-8")), year_of)
+             + grammar_gates(grammar, year_of))
     held = [e for e in schema.all_editions if e.held]
     views = {e.year: inventory_view.inventory(e.year, schema) for e in held}
     pairs = [pair_of(e, schema.edition(e.next_held), views[e.year], views[e.next_held], schema)
@@ -324,30 +367,42 @@ def self_test() -> int:
        and cited_rules(citation.scan("§1989:A.2.7.3"), old, e85) == ["1989-AR-A.2.7.3-1"]
        and cited_rules(citation.scan("§1985:A.2.7.3"), old, e85) == [],
        "a clause names every rule under it, a designator its kind and ordinal, each in its own document's numbering")
+    ok(cited_rules(citation.scan("§2023:14.9.2 Format 1"), new, e23) == ["FMT-14.9.2.2"],
+       "a Format n names the clause's general format, its FMT rule")
     ok(finds(gate(2002, None, "§2023:14.9.3.4 GR1")) == [] and finds(gate(2014, None, "§2023:14.9.2.2")) == []
-       and edge_findings(gate(2002, None, "§2023:14.9.3.4 GR1"), p, schema)[1] == "start 2002: GR-14.9.3.4-1 NEW",
+       and finds(gate(2014, None, "§2023:14.9.2 Format 1")) == []
+       and edge_findings(gate(2002, None, "§2023:14.9.3.4 GR1"), p, schema)[1]
+       == "start 2002: §2023:14.9.3.4 GR1: GR-14.9.3.4-1 NEW",
        "a start rests on a NEW rule, or on one a CHANGED record names")
-    ok(any("KEPT from 1985" in f for f in finds(gate(2002, None, "§2023:14.9.1.3 SR1"))),
-       "a start whose every cited rule is KEPT contradicts its chain")
-    ok(any("cites nothing of 2023" in f for f in finds(gate(2002, None, "ISO 14.9.3"))),
-       "a start citing nothing of the newer edition is refused (a bare clause number is no citation)")
+    ok(any("proven by no citation alone" in f for f in finds(gate(2002, None, "§2023:14.9")))
+       and any("proven by no citation alone" in f for f in finds(gate(1985, 2023, "§1985:VI.6")))
+       and finds(gate(2002, None, "§2023:14.9; §2023:14.9.3.4 GR1")) == [],
+       "a citation naming KEPT rules beside the changing ones proves nothing (it would prove any construct of its clause); one "
+       "citation whose every rule proves the edge does")
+    ok(any("every rule it cites is KEPT" in f for f in finds(gate(2002, None, "§2023:14.9.1.3 SR1")))
+       and any("every rule it cites is KEPT" in f for f in finds(gate(2002, None, "§1985:VI.6.19.3 SR1"))),
+       "a start whose every cited rule, of either edition, is KEPT contradicts its chain")
+    ok(any("cites nothing of 1985 or 2023" in f for f in finds(gate(2002, None, "ISO 14.9.3")))
+       and any("cites nothing of 1985 or 2023" in f for f in finds(gate(1985, 2002, "ISO 14.9.3"))),
+       "an edge citing nothing of either held edition is refused (a bare clause number is no citation)")
     ok(edge_findings(gate(2002, None, "§2023:6.2.3.1"), p, schema)
-       == ([], "start 2002: prose the 2023 catalog holds no rule of (§2023:6.2.3.1), outside the lineage"),
+       == ([], "start 2002: prose the catalogs hold no rule of (§2023:6.2.3.1), outside the lineage"),
        "a start citing only prose the catalog holds no rule of rests on its citation (the CITATIONS audit checks it)")
-    ok(finds(gate(85, 2002, "§1985:VI.6.24.4 GR4")) == [] and finds(gate(85, 2023, "§1985:VI.6.15.2")) == [],
-       "an end rests on an older rule REMOVED, or CHANGED")
-    ok(any("KEPT into 2023" in f for f in finds(gate(85, 2014, "§1985:VI.6.19.3 SR1"))),
+    ok(finds(gate(2002, None, "§1985:VI.6.24.4 GR4")) == [] and finds(gate(2002, None, "§1985:VI.6.15.2")) == [],
+       "a start rests on an older rule REMOVED or CHANGED too: a restriction the newer text lifts")
+    ok(finds(gate(1985, 2002, "§1985:VI.6.24.4 GR4")) == [] and finds(gate(1985, 2023, "§1985:VI.6.15.2")) == []
+       and finds(gate(1985, 2002, "§2023:14.9.3.4 GR1")) == [],
+       "an end rests on an older rule REMOVED, or CHANGED, or on a NEW rule: a restriction the newer text adds")
+    ok(any("every rule it cites is KEPT" in f for f in finds(gate(1985, 2014, "§1985:VI.6.19.3 SR1"))),
        "an end whose every cited rule is KEPT contradicts its chain")
-    ok(any("has not classified" in f for f in finds(gate(85, 2002, "§1985:VI.6.9.4 GR1"))),
-       "an end resting on an unclassified rule waits for its classification, refused")
-    ok(any("cites nothing of 1985" in f for f in finds(gate(85, 2002, "§2023:14.9.3.4 GR1"))),
-       "an end citing nothing of the older edition is refused")
+    ok(any("has not classified" in f for f in finds(gate(1985, 2002, "§1985:VI.6.9.4 GR1"))),
+       "an edge resting on an unclassified rule waits for its classification, refused")
     ok(edge_findings(gate(2002, 2014, "nothing"), p, schema) == ([], None)
-       and edge_findings(gate(85, None, "nothing"), p, schema) == ([], None)
+       and edge_findings(gate(1985, None, "nothing"), p, schema) == ([], None)
        and edge_findings(gate(2023, None, "§2023:14.9.3.4 GR1"), p, schema)[1] is not None,
        "a window wholly between held editions, or open at both ends, has no edge the pair spans")
-    ok(edge_findings(gate(85, 2002, "§2023:8.9 interval"), p, schema) == ([], "a word's reservation (the word lists hold it)")
-       and not word_gate(gate(85, 2002, "§2023:8.9; §2023:14.9.3")),
+    ok(edge_findings(gate(1985, 2002, "§2023:8.9 interval"), p, schema) == ([], "a word's reservation (the word lists hold it)")
+       and not word_gate(gate(1985, 2002, "§2023:8.9; §2023:14.9.3")),
        "a gate citing only the word lists is a word's reservation, left to them")
     found = [Finding("a", "x"), Finding("b", "y")]
     kept, rest = held_open(found, {"a": "PB1", "c": "PB2"})
@@ -370,10 +425,13 @@ def self_test() -> int:
     gg = grammar_gates(grammar, {"2014": 2014})
     ok([(g.where, g.start, [c.locator for c in g.cites]) for g in gg] == [("g/B.g4:4", 2014, ["14.9.2.2"])],
        "a predicate on a later alternative reads its rule's leading comment, across the header and the alternatives")
-    construct = construct_gates({"constructs": [{"id": "c", "introducedIn": 2002, "removedIn": None,
-                                                 "citation": "§2023:14.9.3.4 GR1; §5000:1 malformed"}]})  # citation-audit: example
-    ok(construct == [Gate("constructs.json c", 2002, None, construct[0].cites)] and len(construct[0].cites) == 1,
-       "a construct's window is a gate citing what its citation names, a malformed citation dropped (CITATIONS refuses it)")
+    year_of = {e.spelling: e.year for e in schema.all_editions}
+    construct = construct_gates({"constructs": [{"id": "c", "introducedIn": 85, "removedIn": 2002,
+                                                 "citation": "§2023:14.9.3.4 GR1; §5000:1 malformed"}]},  # citation-audit: example
+                                year_of)
+    ok(construct == [Gate("constructs.json c", 1985, 2002, construct[0].cites)] and len(construct[0].cites) == 1,
+       "a construct's window is a gate in years (85 is 1985) citing what its citation names, a malformed citation "
+       "dropped (CITATIONS refuses it)")
     print(f"=== EDITION GATES SELF-TEST: {'PASS' if not fails else 'FAIL - ' + str(len(fails))} ===")
     return 1 if fails else 0
 

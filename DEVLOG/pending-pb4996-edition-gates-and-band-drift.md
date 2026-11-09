@@ -32,6 +32,21 @@ reaches lack 85 in their stored band, 1026 name 85 with no KEPT chain behind it,
 rules KEPT from "The CONTINUE statement has no effect"). A script decides neither, so the stored `85` token stays until
 the sets are adjudicated and empty. PB4996 stays open for that step.
 
+**Branch review round 1.** The reviewer found the audit too lenient: a whole-clause citation proved an edge when ANY rule
+under the clause changed, so a window wrongly starting CALL ... USING at 2002 and citing `§2023:14.9.4` passed on BY
+VALUE's rules (58 of the proven gates rested on such breadth). A citation now proves an edge only when every rule it
+names changes; a `Format n` names the clause's FMT rule; and either edition's rule carries either edge, so a start can
+rest on a 1985 restriction the newer text deleted (UNSTRING's "Identifier-1 must not be reference modified", REMOVED).
+The rule refused 27 windows, each re-cited to the rule its edge rests on: the general format's subclause where the
+construct is one of its alternatives (START FIRST/LAST, STOP RUN WITH STATUS, the INITIALIZE phrases, the LOCK phrases),
+else the SR or GR (`§2023:13.18.40.3 SR14` for the 19-digit picture, `§2023:14.9.4.3 SR21` for BY VALUE,
+`§2023:13.18.55.3 SR1` for SYNCHRONIZED on a group), each `cite.py --check`ed. The construct windows are now read in years
+through the schema, as the grammar's predicates already were. The reviewer also found the band rule had no reader-facing
+definition, only the drift: `lineage.chain_bands` is now its one definition (each rule a KEPT chain reaches and the
+positions it proves), `band_drift` is built on it, and S5's band reader (PB4683) takes the 85 position from it. The
+stored `85` stays: it is the only 85 position the 1026 unproven rules have until PB4995's fleet adjudication and PB5008's
+refutation close the drift, so PB4996 is now blocked by both.
+
 Self-review: one reader of the change-record kinds (the schema's `chained` flag, no kind spelled in either module), the
 citation parser reused, the word lists held as citations rather than an edition branch, a rule designator read by its prefix (`GR25e-f` is GR25), the views read once per audit, the planted self-test citations real locators of the 1985 text.
 Gate: `=== BUILD-LOCAL GATE: GREEN — Conformance 22,713/22,713 · Unit 40,567/40,567 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261109T014218Z, at the first checkpoint; the branch head is re-gated after the self-review fixes).

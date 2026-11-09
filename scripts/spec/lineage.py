@@ -118,10 +118,9 @@ def new_rules(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, di
 
 
 class BandDrift(NamedTuple):
-    """How far the stored bands of the next held edition's rules are from the bands the chains of edition `ed` derive
-    (DESIGN-spec-conformance-review.md section 10.2, kb/Work PB4996): a rule exists at `ed` exactly when a chained (KEPT)
-    record of `ed` carries into it, and a bridged record carries it through every edition the bridge spans. The stored
-    `ed` token leaves the bands, and the band at `ed` is read from the chains alone, when all three are empty."""
+    """How far the stored bands of the next held edition's rules are from the positions the chains of edition `ed`
+    derive (`chain_bands`, DESIGN-spec-conformance-review.md section 10.2, kb/Work PB4996). The stored `ed` token leaves
+    the bands, and every reader takes the positions at `ed` from `chain_bands` alone, when all three are empty."""
     unstored: list[str]      # rules a chained record reaches whose stored band lacks `ed` or an edition the bridge spans
     unproven: list[str]      # rules whose stored band names `ed` that no chained record reaches
     unclassified: list[str]  # rules of `ed` with no change record yet: until each is classified, `unproven` is provisional
@@ -134,20 +133,31 @@ def spanned(ed: Edition, schema: Schema) -> list[str]:
     return [e.spelling for e in schema.all_editions[years.index(ed.year):years.index(ed.next_held)]]
 
 
+def chain_bands(ed: Edition, rows: Iterable[dict[str, Any]], schema: Schema) -> dict[str, tuple[str, ...]]:
+    """THE BAND RULE, its one definition (DESIGN-spec-conformance-review.md section 10.2, kb/Work PB4996): the band
+    positions edition `ed`'s chains derive for the rules of the next held edition. A rule exists at `ed` exactly when a
+    chained (KEPT) record of `rows` (edition `ed`'s) carries into it, and then at every edition the bridge spans as well
+    (`spanned`); a CHANGED record proves no band (the newer rule's requirement is not the older one's). Each rule a
+    chain reaches maps to those spellings; a rule absent from the result has no position at `ed` or between `ed` and
+    the next held edition. The conformance suite's band reader (S5, kb/Work PB4683) reads the positions below the next
+    held edition from here, and `band_drift` measures the stored bands against it."""
+    proved = tuple(spanned(ed, schema))
+    return {t: proved for r in rows if chained(r, schema) for t in (r["next"].get("to") or [])}
+
+
 def band_drift(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, dict[str, Any]],
                schema: Schema) -> BandDrift:
-    """The drift between the stored bands of `targets` (the next held edition's rows, which carry `editions`) and what
-    `rows`' chains (edition `ed`'s) derive of them; see `BandDrift`."""
+    """The drift between the stored bands of `targets` (the next held edition's rows, which carry `editions`) and the
+    positions `rows`' chains (edition `ed`'s) derive of them (`chain_bands`); see `BandDrift`."""
     rows = list(rows)
-    reached = {t for r in rows if chained(r, schema) for t in (r["next"].get("to") or [])}
-    proved = spanned(ed, schema)
+    derived = chain_bands(ed, rows, schema)
 
     def band(t: str) -> list[str]:
         return schema.split(targets[t].get("editions", "") or "", schema.editions_sep)
 
     return BandDrift(
-        unstored=[t for t in targets if t in reached and not set(proved) <= set(band(t))],
-        unproven=[t for t in targets if t not in reached and ed.spelling in band(t)],
+        unstored=[t for t in targets if t in derived and not set(derived[t]) <= set(band(t))],
+        unproven=[t for t in targets if t not in derived and ed.spelling in band(t)],
         unclassified=[r["rule-id"] for r in rows if not (r.get("next") or {}).get("kind")])
 
 
@@ -239,6 +249,10 @@ def self_test() -> int:
     ok(new_rules(ed, [row()], targets) == ["SR-13.18.38.3-2", "GR-14.9.21.4-2"],
        "a rule of the next edition no record reaches is NEW")
     ok(spanned(ed, schema) == ["85", "2002", "2014"], "a bridged 1985 chain proves 85 and every edition the bridge spans")
+    ok(chain_bands(ed, [row(), row(kind="CHANGED", to=["SR-13.18.38.3-2"], reason="x"), dict(row(), next={})], schema)
+       == {"SR-13.18.38.3-1": ("85", "2002", "2014")},
+       "the band rule: a KEPT chain places its rule at 85 and through the bridge; a CHANGED or unclassified record places "
+       "nothing")
     drift = band_drift(ed, [row(), row(to=["SR-13.18.38.3-2"]), dict(row(), next={})], targets, schema)
     ok(drift == BandDrift(unstored=["SR-13.18.38.3-2"], unproven=["GR-14.9.21.4-2"], unclassified=["1985-SR-VI.5.8.3-1"]),
        "the band drift: a chained rule whose stored band lacks 85, a stored 85 no chain reaches, an unclassified rule")
