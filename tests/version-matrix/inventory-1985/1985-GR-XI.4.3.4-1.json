@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.3.4-1",
+ "rule-digest": "e5b2f8e1b5db",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.34.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both leave undefined, after RETURN, items past the current record when several record descriptions exist. 'Any part' only clarifies straddling items; the shared-area sentence is descriptive.",
+  "source": "audit-1985/state-route"
+ }
+}

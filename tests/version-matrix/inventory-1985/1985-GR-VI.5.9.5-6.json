@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-6",
+ "rule-digest": "d6880135fbc2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.5-5",
+   "SR-13.18.40.3-24",
+   "SR-13.18.40.3-25",
+   "SR-13.18.40.3-26"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The currency symbol must be the leftmost character position to be counted in the size of the item\"; 2023: \"or the rightmost symbol in character-string-1, optionally followed by one of the symbols '+', '-', 'CR', or 'DB'\". 2023 also allows a rightmost currency symbol (e.g. '999$+'), which 1985 refused. The one-symbol limits, sign placement and the Table 8 results are the same.",
+  "source": "audit-1985/state-route"
+ }
+}

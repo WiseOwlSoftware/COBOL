@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.5.1-3",
+ "rule-digest": "7d7eda754ed3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.2.3-11"
+  ],
+  "bridge": true,
+  "reason": "Both resolve references to data-name-1 per its linkage section description at all times. Adding data-name-2 and methods/functions only covers new features; 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.6.3-4",
+ "rule-digest": "684d0af88b92",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.32.3-3"
+  ],
+  "bridge": true,
+  "reason": "An index data item is not of category alphabetic, alphanumeric, boolean or national, so 2023 still refuses JUSTIFIED on it. Other refused categories belong to other 1985 rules.",
+  "source": "audit-1985/state-route"
+ }
+}

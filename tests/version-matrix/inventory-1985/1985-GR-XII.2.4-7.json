@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XII.2.4-7",
+ "rule-digest": "d267c8ff9f0a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-6.5-5"
+  ],
+  "bridge": true,
+  "reason": "Reference-format processing copies a source-indicator (debugging) line's program text area into the compilation group before COPY matching, so its words match as if no D.",
+  "source": "audit-1985/state-route"
+ }
+}

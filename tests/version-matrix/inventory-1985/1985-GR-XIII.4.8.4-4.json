@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XIII.4.8.4-4",
+ "rule-digest": "c458ad37989c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-5",
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-3"
+  ],
+  "bridge": true,
+  "reason": "A file-name-1 USE takes precedence over INPUT/OUTPUT/I-O/EXTEND and is selected first, so only one declarative runs for that file. Format 1 has one condition, so 'same condition' adds nothing.",
+  "source": "audit-1985/state-route"
+ }
+}

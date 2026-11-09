@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-3",
+ "rule-digest": "7c3a3ce829b3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.44.3-3"
+  ],
+  "bridge": true,
+  "reason": "Both bar REDEFINES in level 01/1 file section entries. The added FORMAT-clause bar concerns a feature 1985 lacks, so no 1985 program is accepted or refused differently.",
+  "source": "audit-1985/state-route"
+ }
+}

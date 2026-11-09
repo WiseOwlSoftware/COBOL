@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-9",
+ "rule-digest": "23f0e6478247",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The content of the data item referenced by identifier-2 indicates that ... identifier-1 ... is to have an associated end of segment indicator\"; 2023: \"SEND sends to a message server run unit: \"A message is sent to the run unit identified by the content of literal-1 or message-server-name-1\"; no indicators\". The 2023 SEND statement targets message-server run units and has no cd-name and no ESI/EMI/EGI indicator operand. The 1985 communication module's indicator rule is not carried forward.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.7.4-1",
+ "rule-digest": "a3e86b88cd1a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.46.4-3",
+   "GR-13.18.16.4-5"
+  ],
+  "bridge": true,
+  "reason": "Both print control footings minor-first, then the report footing, with prior control values in use as though a major break occurred. The no-GENERATE case is a separate rule in both editions.",
+  "source": "audit-1985/state-route"
+ }
+}

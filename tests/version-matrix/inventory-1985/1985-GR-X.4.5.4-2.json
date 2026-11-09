@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.4.5.4-2",
+ "rule-digest": "a4e24400a98d",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.22.4-6"
+  ],
+  "bridge": true,
+  "reason": "1985: \"each record-name of the associated record description entries must be the same\"; 2023: \"each name that is externalized to the operating environment for the record description entries shall be the same; the VALUE clause\". 2023 matches externalized names, which AS literal-1 may set, not record-names. It adds an identical-VALUE rule and allows the complete REDEFINES only for records not strongly typed.",
+  "source": "audit-1985/state-route"
+ }
+}

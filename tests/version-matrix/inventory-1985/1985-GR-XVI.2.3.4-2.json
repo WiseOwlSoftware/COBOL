@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XVI.2.3.4-2",
+ "rule-digest": "7938562eaf79",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments.\"; 2023: \"No candidate covers segmentation or the SEGMENT-LIMIT clause; the module is absent from 2023.\". The Segmentation module and the SEGMENT-LIMIT clause are not in 2023. The 'fixed' candidates concern source format, OCCURS and COLUMN, not overlayable segments.",
+  "source": "audit-1985/state-route"
+ }
+}

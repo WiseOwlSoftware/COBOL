@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XVI.2.2.4-2",
+ "rule-digest": "307828e7760b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"General rules concerning computer-name, the MEMORY SIZE clause, and the PROGRAM COLLATING SEQUENCE clause are presented in the Nucleus module\"; 2023: \"No Segmentation module, so no such pointer; the 12.3.6.4 rules cover computer-name and PROGRAM COLLATING SEQUENCE but have no MEMORY SIZE rule\". The rule only points from the Segmentation module to the Nucleus. 2023 has no Segmentation module, and its OBJECT-COMPUTER rules no longer have MEMORY SIZE.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.3.4-3",
+ "rule-digest": "36aa306fa880",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source ... are activated.\"; 2023: \"No candidate covers the ENABLE statement or the communication module; 2023 lacks the communication feature.\". The communication module (ENABLE INPUT TERMINAL, SYMBOLIC SOURCE, queues) is not in 2023. No candidate covers activating logical paths, so the requirement is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

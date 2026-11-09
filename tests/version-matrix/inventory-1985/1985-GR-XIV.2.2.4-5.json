@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-5",
+ "rule-digest": "8acc6d719343",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the input CD area must contain, in the content of data-name-1, the name of a symbolic queue\"; 2023: \"No 2023 clause holds the communication description entry; the 2023 RECEIVE rules cover only CONTINUE and message length, with no CD.\". 2023 has no CD entry or queue hierarchy. Its RECEIVE uses data-name-2 for message length, not sub-queue names, so the CD-based queue selection rule is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

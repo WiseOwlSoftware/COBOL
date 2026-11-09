@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-XIII.4.4.4-1",
+ "rule-digest": "6ddd009fe26b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.21.4-1",
+   "GR-8.4.3.15.4-2",
+   "GR-8.4.3.15.4-3",
+   "GR-13.18.54.4-2"
+  ],
+  "bridge": true,
+  "reason": "2023 INITIATE still zeroes sum counters and LINE-COUNTER and sets PAGE-COUNTER to 1. The size error indicator reset only initializes a 2023 SUM overflow mechanism that 1985 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

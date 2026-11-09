@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.11.3-3",
+ "rule-digest": "397a7b56fce7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.45.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"can only be qualified by the names of the associated level 01, FD, CD, or SD entries\"; 2023: \"Data-name-1 may be qualified only by the names of the associated level 01, FD, or SD entries.\". Qualifier and OCCURS rules match in substance (\"subject to any OCCURS clauses\" covers owning one or being subordinate to one), but CD is dropped as a permitted qualifier with the communication feature.",
+  "source": "audit-1985/state-route"
+ }
+}

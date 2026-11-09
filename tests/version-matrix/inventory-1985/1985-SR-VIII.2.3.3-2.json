@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-VIII.2.3.3-2",
+ "rule-digest": "ba65e0a4ec52",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.2-2",
+   "SR-12.4.5.2-3",
+   "SR-13.4.5.3-1"
+  ],
+  "bridge": true,
+  "reason": "2023 allows only one SELECT per file-name, requires an FD in the same program's file section, and requires each FD file-name in a file control entry (13.4.5.3-1). Same rule.",
+  "source": "audit-1985/state-route"
+ }
+}

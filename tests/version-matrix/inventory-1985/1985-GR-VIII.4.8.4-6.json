@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.4.8.4-6",
+ "rule-digest": "c9b29e3beb51",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-12",
+   "GR-14.9.49.4-7"
+  ],
+  "bridge": true,
+  "reason": "Same rule: control goes back to the I-O control system, then to the point after the I-O statement unless fatal (critical), else implementor-defined. The SORT/MERGE item defers to those statements.",
+  "source": "audit-1985/state-route"
+ }
+}

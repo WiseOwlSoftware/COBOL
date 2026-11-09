@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-31",
+ "rule-digest": "1baf295181fd",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the program must specify the symbolic name of the source or destination in data-name-3 prior to the execution of the first statement\"; 2023: \"No counterpart: the CD entry and Communication module are absent; no candidate covers communication description entries.\". The 2023 candidates hold no CD entry, MCS or symbolic source/destination; the Communication feature is dropped, so this rule has no 2023 counterpart.",
+  "source": "audit-1985/state-route"
+ }
+}

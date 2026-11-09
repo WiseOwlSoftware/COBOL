@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-4",
+ "rule-digest": "2a36b2318fd3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.4.4-3",
+   "SR-8.4.6.3-1",
+   "SR-8.4.6.3-2",
+   "GR-11.10.4-2"
+  ],
+  "bridge": true,
+  "reason": "2023 resolves CALL program-names by the 8.4.6.3 scope rules. The recursive exception needs the new RECURSIVE clause, so programs without it resolve exactly as in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

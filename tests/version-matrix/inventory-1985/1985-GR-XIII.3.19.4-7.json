@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.19.4-7",
+ "rule-digest": "a310853d1466",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.54.4-3",
+   "GR-13.18.54.4-7"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Crossfooting and rolling forward are accomplished during the processing of control footing report groups.\"; 2023: \"adding takes place when the report group description containing data-name-1 is processed.\". Both add during GENERATE/TERMINATE. 2023 ties crossfoot/rollforward to processing of any report group, not only control footings, and does not state subtotalling as after control break processing.",
+  "source": "audit-1985/state-route"
+ }
+}

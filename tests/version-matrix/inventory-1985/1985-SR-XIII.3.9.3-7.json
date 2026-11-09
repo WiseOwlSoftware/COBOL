@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-7",
+ "rule-digest": "7b35eabbe9a9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.15.3-7"
+  ],
+  "bridge": true,
+  "reason": "The 2023 list's other uses (GENERATE, USE, UPON, SUM operand) need level-1 groups or elementary items, so a group entry's data-name may still only qualify a sum counter.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-9",
+ "rule-digest": "9c2a86192f15",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.40.3-10"
+  ],
+  "bridge": true,
+  "reason": "1985: \"File-names associated with the GIVING phrase may not be specified in the same SAME clause.\"; 2023: \"File-names associated with the GIVING phrase shall not be specified in the same SAME AREA clause.\". First sentence matches. 1985 bars GIVING files from sharing any SAME clause; 2023 bars only SAME AREA, so sharing a SAME RECORD AREA clause is no longer refused.",
+  "source": "audit-1985/state-route"
+ }
+}

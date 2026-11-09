@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VII.2.2.2",
+ "rule-digest": "081887df1907",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.4.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"FILE-CONTROL. { file-control-entry } …\"; 2023: \"FILE-CONTROL. [ file-control-entry ] …\". 1985 braces require at least one file-control-entry. The 2023 brackets make it optional, so a FILE-CONTROL paragraph with no entries is now accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.13.4-9",
+ "rule-digest": "f0d6252d12e8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.55.4-10"
+  ],
+  "bridge": true,
+  "reason": "Both let the implementor auto-align internal formats except DISPLAY items within a record, and allow the record to be synchronized. The bit and national exclusions affect only usages 1985 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

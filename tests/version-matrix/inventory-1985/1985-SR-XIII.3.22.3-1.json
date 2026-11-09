@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.22.3-1",
+ "rule-digest": "366c9fd79e0a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.63.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"A signed numeric literal must have associated with it a signed numeric PICTURE character-string.\"; 2023: \"shall be either a signed numeric data item or a numeric-edited data item with a representation of a sign.\". Same subject, but 2023 adds a case: a signed numeric literal may also initialize a numeric-edited item that has a sign representation. 1985 allowed only a signed numeric PICTURE.",
+  "source": "audit-1985/state-route"
+ }
+}

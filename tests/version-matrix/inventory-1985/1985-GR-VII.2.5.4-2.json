@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.2.5.4-2",
+ "rule-digest": "6427872f01f5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.8.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both make the item updated by an I-O statement the one named in that file's own entry. The added value and timing words belong to the companion rule and do not change this requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

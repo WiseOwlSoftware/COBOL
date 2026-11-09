@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.2.4-1",
+ "rule-digest": "2f8d8305cb28",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.2.3.4-2"
+  ],
+  "bridge": true,
+  "reason": "Same rule: positive integer, lowest 1, maximum from OCCURS. Dynamic-capacity tables are a new 2023 feature, and EC-BOUND-SUBSCRIPT is the general check for an existing violation.",
+  "source": "audit-1985/state-route"
+ }
+}

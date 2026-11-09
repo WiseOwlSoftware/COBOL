@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.17.4-1",
+ "rule-digest": "5a54e4ef1a1a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.20.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both say the category keywords used after REPLACING (category-name in 2023) correspond to a category of data under the class/category concept. The ALL rule covers the new VALUE phrase.",
+  "source": "audit-1985/state-route"
+ }
+}

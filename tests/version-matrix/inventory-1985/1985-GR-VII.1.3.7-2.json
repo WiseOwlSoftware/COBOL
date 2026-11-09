@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.1.3.7-2",
+ "rule-digest": "ea2a4d0daabf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-6"
+  ],
+  "bridge": true,
+  "reason": "2023 still runs the file's USE procedure on an I-O exception, AT END/INVALID KEY aside. The PERFORM WHEN precedence needs 2023-only syntax, so 1985 programs behave alike.",
+  "source": "audit-1985/state-route"
+ }
+}

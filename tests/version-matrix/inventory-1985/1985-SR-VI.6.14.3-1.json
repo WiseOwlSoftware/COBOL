@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.6.14.3-1",
+ "rule-digest": "7b22374891f2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.14.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"comprise the only sentence in the paragraph\"; 2023: \"shall be the only sentence in the paragraph or in a section without paragraphs\". 2023 also accepts an EXIT sentence as the only sentence of a section without paragraphs. The 1985 rule allows it only as the sole sentence of a paragraph.",
+  "source": "audit-1985/state-route"
+ }
+}

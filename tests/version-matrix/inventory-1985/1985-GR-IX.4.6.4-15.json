@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-15",
+ "rule-digest": "b81baef248a5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-24"
+  ],
+  "bridge": true,
+  "reason": "GR24 restates a) and b): unchanged key keeps retrieval order, changed key may reorder, duplicates go last. The suppression text needs the new SUPPRESS WHEN phrase, so 1985 programs behave alike.",
+  "source": "audit-1985/state-route"
+ }
+}

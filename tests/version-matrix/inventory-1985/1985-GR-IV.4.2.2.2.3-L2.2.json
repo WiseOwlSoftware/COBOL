@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-L2.2",
+ "rule-digest": "0775a17e5cfe",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.6.4-3"
+  ],
+  "bridge": true,
+  "reason": "2023 rule b) still makes a non-ALL figurative constant one character when context gives no length, citing the same statements. The ALL and concatenation rules lie outside the 1985 rule.",
+  "source": "audit-1985/state-route"
+ }
+}

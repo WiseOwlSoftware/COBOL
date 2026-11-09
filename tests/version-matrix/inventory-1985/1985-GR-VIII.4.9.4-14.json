@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-14",
+ "rule-digest": "46b9ce7d98d9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-33"
+  ],
+  "bridge": true,
+  "reason": "GR-33 lists the same three invalid key cases. Dropping 'random or dynamic' changes nothing: sequential WRITE assigns new numbers. The lock wording is new, and 22/24 match I-O status.",
+  "source": "audit-1985/state-route"
+ }
+}

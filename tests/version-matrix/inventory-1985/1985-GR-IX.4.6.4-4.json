@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-4",
+ "rule-digest": "ce34977c8e18",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-6"
+  ],
+  "bridge": true,
+  "reason": "Same SAME RECORD AREA exception and availability for record-name-1. The added file-name-1 serves only the new 2023 FILE phrase, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

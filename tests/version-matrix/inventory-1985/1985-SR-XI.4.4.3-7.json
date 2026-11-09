@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-7",
+ "rule-digest": "7c26c86bd115",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The files referenced by file-name-2 and file-name-3 may reside on the same multiple file reel.\"; 2023: \"No 2023 SORT syntax rule (SR-14.9.40.3-1 to -15) mentions multiple file reels; SR-8 only bars report and sort-merge files\". The 2023 SORT syntax rules cover file-name-2 and file-name-3 but no longer state the multiple-file-reel permission. No candidate carries the multiple-file-reel concept.",
+  "source": "audit-1985/state-route"
+ }
+}

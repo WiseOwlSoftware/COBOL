@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.3.5.3-1",
+ "rule-digest": "1f6d997e1895",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Data-name-1 is the name of a data record and must have an 01 level-number record description, with the same name\"; 2023: \"No DATA RECORDS clause in 2023; no candidate clause holds the feature\". The DATA RECORDS clause has no 2023 counterpart. No candidate covers naming data records in a file description; the candidates concern SAME AS, keys, message tags and other subjects.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XVI.3.3.3-L2.2",
+ "rule-digest": "dc03629018de",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Wholly within the same independent segment as that MERGE statement.\"; 2023: \"No 2023 clause holds the Segmentation feature (independent segments); no candidate states this restriction.\". The rule restricts MERGE procedures to independent segments of the Segmentation module. No 2023 clause holds that feature, and no candidate covers segments or this restriction.",
+  "source": "audit-1985/state-route"
+ }
+}

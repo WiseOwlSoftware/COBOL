@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.22.4-2",
+ "rule-digest": "35e2933d3200",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.37.4-4",
+   "GR-14.9.37.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"contains a value that corresponds to an occurrence number that is greater than the highest permissible occurrence number\"; 2023: \"corresponds to an occurrence number that is negative, zero, or greater than the highest permissible occurrence number\". 2023 also fails the search at once for a zero or negative starting index, which 1985 searched. It raises EC-RANGE-SEARCH-*, so without AT END control may go to exception handling.",
+  "source": "audit-1985/state-route"
+ }
+}

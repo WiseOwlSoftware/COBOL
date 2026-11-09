@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-8",
+ "rule-digest": "94752340f212",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-10"
+  ],
+  "bridge": true,
+  "reason": "2023 GR10 still makes OPEN unsuccessful when a file attribute conflict occurs. Status '39' and which attributes are checked belong to the condition's definition (IX-7), not this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.2.3.4-3",
+ "rule-digest": "b7eb79d86002",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"to a storage medium referenced by implementor-name-1 or literal-1.\"; 2023: \"to a physical file identified by device-name-1, literal-1, or the content of the data item referenced by data-name-1.\". Same ASSIGN association subject. 2023 adds a case, the USING data-name-1 content, and fixes the association at OPEN, SORT or MERGE time. Device-name and literal association are unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.2.2.3-3",
+ "rule-digest": "cbbc30172fb2",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Except for the INITIAL clause, the optional clauses may be written in any order.\"; 2023: \"No communication description entry: no candidate comes from a clause holding the CD feature; the candidates cover only report, file, data and screen entries.\". No 2023 clause holds the communication description entry. The clause-order candidates cover report, file, data and screen entries only, so the CD rule has no counterpart.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.5.4-11",
+ "rule-digest": "a7eb6b2c6e21",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The END-RECEIVE phrase delimits the scope of the RECEIVE statement.\"; 2023: \"Communication module and RECEIVE cd-name deleted; 2023 RECEIVE FROM data-name-1 GIVING is a different message-tag statement\". The 1985 rule governs the Communication-module RECEIVE, which 2023 drops. END-RECEIVE in 2023 belongs to a new, unrelated message-tag RECEIVE, so it does not carry this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

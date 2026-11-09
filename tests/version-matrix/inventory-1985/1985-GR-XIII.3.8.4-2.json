@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.8.4-2",
+ "rule-digest": "376ae6ddb89f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.39.4-3"
+  ],
+  "bridge": true,
+  "reason": "After renumbering (HEADING 3, FIRST DETAIL 4, LAST DETAIL 6, FOOTING 7), every 1985 default carries over. The LAST CONTROL HEADING default covers a new phrase; the integer-1 condition matches 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

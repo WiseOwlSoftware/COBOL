@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XV.3.2.3-6",
+ "rule-digest": "d6f70c6720fc",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"may appear in only one USE FOR DEBUGGING statement and may appear only once in that statement\"; 2023: \"No clause holds the Debug feature; the 2023 USE rules cover only AFTER EXCEPTION, BEFORE REPORTING, EC and EO, not FOR DEBUGGING\". No 2023 clause holds the Debug module. The USE statement rules in 14.9.49.3 address exception, reporting and exception-object formats only, so USE FOR DEBUGGING is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

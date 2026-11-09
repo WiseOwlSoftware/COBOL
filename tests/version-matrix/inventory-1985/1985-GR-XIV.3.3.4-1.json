@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.3.4-1",
+ "rule-digest": "d11555c3f535",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The ENABLE statement provides a logical connection between the MCS and the specified sources or destinations.\"; 2023: \"No candidate covers the ENABLE statement, the MCS or the Communication module; the feature is absent.\". None of the candidates covers the ENABLE statement or MCS connections. The Communication module feature is not carried in the 2023 texts shown.",
+  "source": "audit-1985/state-route"
+ }
+}

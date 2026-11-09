@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-4",
+ "rule-digest": "d430dccf0617",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-7"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps REWRITE FROM as MOVE identifier-1 TO record-name-1, then REWRITE without FROM. The literal-1 form is added syntax; 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

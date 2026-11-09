@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-4",
+ "rule-digest": "28edea88f1f5",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.15.3-3",
+   "SR-13.15.3-4"
+  ],
+  "bridge": true,
+  "reason": "1985: \"A description of a report group may consist of one, two, or three hierarchic levels\"; 2023: \"Level-number shall be any integer from 1 through 49.\". Both require the first entry to be level 1. 2023 allows level-numbers 1-49, so report groups nested deeper than three levels, refused in 1985, are accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-3",
+ "rule-digest": "3ca14d2e7b20",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.5.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985 'callable' refers to Scope of Names rules. 2023 has CANCEL locate the program 'according to' 8.4.6 Scope of names and 8.4.6.3 Scope of program-names, so the same programs are reachable.",
+  "source": "audit-1985/state-route"
+ }
+}

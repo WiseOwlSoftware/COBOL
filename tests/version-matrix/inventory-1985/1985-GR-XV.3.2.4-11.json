@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-11",
+ "rule-digest": "019385efb588",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Prior to each execution of a debugging section, the content of the data item referenced by DEBUG-ITEM is space filled.\"; 2023: \"No 2023 clause holds the feature. No candidate mentions DEBUG-ITEM, DEBUG-CONTENTS or USE FOR DEBUGGING sections.\". 2023 has no clause for the Debug module feature. The MOVE group-move wording is a different subject, and the USE rule is generic. The DEBUG-ITEM updating rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

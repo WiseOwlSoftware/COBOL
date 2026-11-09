@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.15.6-4",
+ "rule-digest": "f960d53efc38",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.63.3-14"
+  ],
+  "bridge": true,
+  "reason": "Both bar group VALUE over JUSTIFIED, SYNCHRONIZED or non-DISPLAY subordinates. Every 1985 group is an alphanumeric group; only the new national/bit groups fall outside.",
+  "source": "audit-1985/state-route"
+ }
+}

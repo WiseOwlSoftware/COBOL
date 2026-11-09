@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-3",
+ "rule-digest": "587d12b27161",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-18"
+  ],
+  "bridge": true,
+  "reason": "The full (level-2) 1985 rule lets the record length differ from the replaced record. 2023 GR18 says it 'may differ'. The level-1 restriction is only the level split, which is no difference.",
+  "source": "audit-1985/state-route"
+ }
+}

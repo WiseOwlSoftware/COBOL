@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-GR-X.2.3.3-2",
+ "rule-digest": "e059a7786fb5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.6.2.1-1",
+   "GR-13.18.27.4-2",
+   "GR-8.6.7-2",
+   "GR-9.1.5-2",
+   "GR-12.3.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 treats contained source element B as its own unit with its own names, plus access to global names, data, files and configuration entries of containing elements: same substance.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VII.4.2.3-1",
+ "rule-digest": "bd6653c35fa9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-10"
+  ],
+  "bridge": true,
+  "reason": "2023 CLOSE has no explicit sentence, but sets no same-organization limit and runs each file-name as a separate CLOSE, so mixed files stay allowed.",
+  "source": "audit-1985/state-route"
+ }
+}

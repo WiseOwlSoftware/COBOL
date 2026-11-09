@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.2.3.4-7",
+ "rule-digest": "cd84a0b6bda5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.8.4-1"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule only makes indexed FILE STATUS identical to sequential and points to I-O status. 2023 has one FILE STATUS clause for every file connector, with values in 9.1.13.",
+  "source": "audit-1985/state-route"
+ }
+}

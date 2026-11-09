@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-4",
+ "rule-digest": "5de860d222dd",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.1.4-4"
+  ],
+  "bridge": true,
+  "reason": "2023 repeats the full 1985 rule. The level-1 single-transfer note is a level-2 box matter, not a difference. The zero-length sentence covers items 1985 cannot have.",
+  "source": "audit-1985/state-route"
+ }
+}

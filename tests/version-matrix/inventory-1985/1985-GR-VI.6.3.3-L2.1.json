@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.3.3-L2.1",
+ "rule-digest": "2705fecd6821",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.12.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 examples resolve NOT the 1985 way: NOT before < joins the operator (a NOT < c); NOT before an object is a logical NOT (NOT (a NOT > d)). No case differs.",
+  "source": "audit-1985/state-route"
+ }
+}

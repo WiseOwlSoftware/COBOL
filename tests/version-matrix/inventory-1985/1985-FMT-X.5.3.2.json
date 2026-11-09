@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-X.5.3.2",
+ "rule-digest": "5d8473e3207c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.5.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"CANCEL { identifier-1 | literal-1 } …\"; 2023: \"CANCEL { identifier-1 | literal-1 | program-prototype-name-1 } …\". The 2023 format adds program-prototype-name-1 as a third operand choice, so it accepts CANCEL statements that the 1985 format refuses.",
+  "source": "audit-1985/state-route"
+ }
+}

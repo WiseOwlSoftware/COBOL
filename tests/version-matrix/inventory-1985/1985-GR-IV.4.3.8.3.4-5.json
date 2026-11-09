@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.3.4-5",
+ "rule-digest": "cc5b802fdd67",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.3.4-6"
+  ],
+  "bridge": true,
+  "reason": "Unique item is still elementary without JUSTIFIED, same class/category; numeric, numeric-edited, alphanumeric-edited become alphanumeric. National/bit usage are new features.",
+  "source": "audit-1985/state-route"
+ }
+}

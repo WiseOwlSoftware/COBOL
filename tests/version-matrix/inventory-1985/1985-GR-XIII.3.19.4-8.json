@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.19.4-8",
+ "rule-digest": "9d5ac59c6e21",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.54.4-7"
+  ],
+  "bridge": true,
+  "reason": "2023 c)2 has adding take place only when GENERATE runs for a detail named in UPON. That is the same selective subtotalling for the named details; the other details are separate rules.",
+  "source": "audit-1985/state-route"
+ }
+}

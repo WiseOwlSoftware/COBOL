@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IV.4.3.2.1-2",
+ "rule-digest": "25d867298499",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.5.1.3.2-2",
+   "GR-13.18.33.4-2"
+  ],
+  "bridge": true,
+  "reason": "Same rule: noncontiguous working-storage and linkage items are special entries (level 77). Local storage is only an extension to a section that 1985 lacks; no 1985 program changes.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-30",
+ "rule-digest": "0df7724dfaf0",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the INITIAL clause is specified for an input-output CD and the program is scheduled by the MCS, the content of the data item\"; 2023: \"No 2023 clause holds the communication description entry. The candidates cover only file, sort-merge, data, report and screen entries.\". No 2023 clause holds the CD/Communication feature, and no candidate covers CDs or the MCS. The 2023 standard lacks the communication description entry.",
+  "source": "audit-1985/state-route"
+ }
+}

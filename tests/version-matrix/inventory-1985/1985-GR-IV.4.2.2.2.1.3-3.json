@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.1.3-3",
+ "rule-digest": "48970f1a53e2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.2.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both rules make these literals category alphanumeric. Naming the class adds nothing in substance, since category alphanumeric belongs to class alphanumeric; same programs, same effect.",
+  "source": "audit-1985/state-route"
+ }
+}

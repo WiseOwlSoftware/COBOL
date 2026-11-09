@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.3.7.4-8",
+ "rule-digest": "ce959e42745d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.34.4-6"
+  ],
+  "bridge": true,
+  "reason": "Like 1985, 2023 GR6 reads data-name-2 at OPEN OUTPUT, at WRITE ADVANCING PAGE and at page overflow, for the next logical page. The validity check restates a separate rule.",
+  "source": "audit-1985/state-route"
+ }
+}

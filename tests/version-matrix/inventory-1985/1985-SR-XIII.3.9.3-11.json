@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-11",
+ "rule-digest": "36ce5d399b31",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.15.3-10",
+   "SR-13.15.3-12",
+   "SR-13.15.3-13",
+   "SR-13.15.3-14",
+   "SR-13.15.3-15",
+   "SR-13.18.28.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"| M | M | | | M | P | | P | P | P | P | (PIC is M in every row, including the VALUE row)\"; 2023: \"The PICTURE clause may be omitted for an elementary item when an alphanumeric, boolean or national literal ... in the VALUE clause\". 1985 requires PICTURE in every format 3 entry; 2023 implies PICTURE from a VALUE literal. 2023 also requires COLUMN with JUSTIFIED and no longer bars JUSTIFIED with SUM.",
+  "source": "audit-1985/state-route"
+ }
+}

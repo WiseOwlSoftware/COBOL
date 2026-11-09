@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.3-L3.2",
+ "rule-digest": "16d8477ecb15",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.25.3-5"
+  ],
+  "bridge": true,
+  "reason": "1985: \"ALL literal where the length of the literal is greater than one with a data item that is numeric or numeric edited is an obsolete feature\"; 2023: \"permitted to move an ALL \"literal\" figurative constant (containing only digits) ... to an integer numeric item. In all other cases ... prohibited\". 1985 keeps any multi-character ALL literal with numeric or numeric-edited items as obsolete. 2023 keeps only digit-only literals moved to integer numeric items and prohibits all other cases.",
+  "source": "audit-1985/state-route"
+ }
+}

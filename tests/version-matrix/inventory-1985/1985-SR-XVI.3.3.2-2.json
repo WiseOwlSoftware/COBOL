@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XVI.3.3.2-2",
+ "rule-digest": "33a58bdb0b5e",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"A PERFORM statement that appears in an independent segment can have within its range ... only one of the following\"; 2023: \"No candidate covers segmentation; 2023 has no independent segments, so the PERFORM range restriction is gone\". The Segmentation module (independent segments) is absent from 2023. No candidate restricts the range of a PERFORM in an independent segment.",
+  "source": "audit-1985/state-route"
+ }
+}

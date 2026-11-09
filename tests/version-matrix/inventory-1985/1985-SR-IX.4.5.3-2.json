@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IX.4.5.3-2",
+ "rule-digest": "a31557f3fc1c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-11"
+  ],
+  "bridge": true,
+  "reason": "Both require READ KEY data-name-1 to be a prime or alternate record key of file-name-1. Record-key-name-1 is a new syntax alternative; the rule on data-name-1 is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

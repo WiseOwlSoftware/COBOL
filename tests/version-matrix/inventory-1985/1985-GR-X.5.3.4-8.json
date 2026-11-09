@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-8",
+ "rule-digest": "ac14d0c8c6b3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.5.4-7",
+   "GR-14.9.5.4-4"
+  ],
+  "bridge": true,
+  "reason": "2023 drops 'explicit or implicit', but GR-4 treats implied cancels of contained programs as explicit CANCEL statements, so GR-7's no-action rule still covers them. Same effect.",
+  "source": "audit-1985/state-route"
+ }
+}

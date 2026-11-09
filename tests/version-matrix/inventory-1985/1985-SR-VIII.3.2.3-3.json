@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VIII.3.2.3-3",
+ "rule-digest": "c6c7c72580e6",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.4.5.3-7",
+   "SR-13.4.5.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"One or more record description entries must follow the file description entry.\"; 2023: \"For an indexed file, one or more record description entries shall be associated ... When no record description entries are specified:\". 2023 requires record description entries only for indexed files. A relative file may omit them if a RECORD clause is given and FROM/INTO phrases are used.",
+  "source": "audit-1985/state-route"
+ }
+}

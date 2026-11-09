@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.9.4-1",
+ "rule-digest": "e9e33befd2b9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-8",
+   "GR-14.9.49.4-4"
+  ],
+  "bridge": true,
+  "reason": "GR-8 keeps the 1985 timing (just before the named report group is produced) and the naming by identifier-1. GR-4 presumes declaratives in contained source elements, so nesting is no bar.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VIII.4.5.3-5",
+ "rule-digest": "193fa3c20d6d",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified\"; 2023: \"No READ syntax rule requires either phrase; GR-9.1.14-4: \"not specified ... and there are no applicable exception processing statements, control is transferred to the end\"\". 2023 READ syntax rules drop the requirement. A READ with neither phrase and no USE procedure is now valid, and control goes to the end of the statement (9.1.14-4, 14.9.30.4-24 d).",
+  "source": "audit-1985/state-route"
+ }
+}

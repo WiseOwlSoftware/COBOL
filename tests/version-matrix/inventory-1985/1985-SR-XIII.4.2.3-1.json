@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.4.2.3-1",
+ "rule-digest": "bd6653c35fa9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-10"
+  ],
+  "bridge": true,
+  "reason": "No 2023 CLOSE rule restricts mixing organizations. GR-10 treats a multi-file CLOSE as separate CLOSEs per file, so mixed files are accepted with the same effect.",
+  "source": "audit-1985/state-route"
+ }
+}

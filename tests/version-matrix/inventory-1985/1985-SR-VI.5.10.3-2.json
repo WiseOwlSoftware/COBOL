@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-2",
+ "rule-digest": "e65541335c7a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.44.3-2"
+  ],
+  "bridge": true,
+  "reason": "2023 states the same rule: level-numbers identical and not 66 or 88. The 1985 level-2 box marks no difference under the audit rules.",
+  "source": "audit-1985/state-route"
+ }
+}

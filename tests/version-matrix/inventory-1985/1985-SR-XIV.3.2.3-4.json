@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.2.3-4",
+ "rule-digest": "e02c4e2193ce",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.\"; 2023: \"No DISABLE statement or Communication module in 2023; no candidate clause holds the feature\". No 2023 clause holds the DISABLE statement. The wording candidates cover CANCEL, CALL, SEND, MOVE and others, not the DISABLE key operand, so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

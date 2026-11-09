@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-17",
+ "rule-digest": "a23b7b937743",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-26",
+   "GR-14.9.51.4-27"
+  ],
+  "bridge": true,
+  "reason": "1985: \"An end-of-page condition occurs when the execution of a given WRITE statement with the END-OF-PAGE phrase causes printing\"; 2023: \"an end-of-page condition occurs when the lines written by a WRITE statement do not fit ... EC-I-O-EOP exception condition is set to exist\". 2023 raises end-of-page for any WRITE, with or without END-OF-PAGE. It sets EC-I-O-EOP/EOP-OVERFLOW and, absent the phrase, passes control to PERFORM WHEN or USE declaratives.",
+  "source": "audit-1985/state-route"
+ }
+}

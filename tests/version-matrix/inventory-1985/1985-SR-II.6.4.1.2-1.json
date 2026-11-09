@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-II.6.4.1.2-1",
+ "rule-digest": "f18b74e8fe67",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.6.3-3"
+  ],
+  "bridge": true,
+  "reason": "A separately compiled program is an outermost program. Any source element in the run unit may reference its name, so any caller may CALL it. Wider source elements are only 2023 additions.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VII.2.8.2",
+ "rule-digest": "bc1ebf10066c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.5.11.2",
+   "SR-12.4.5.11.3-2"
+  ],
+  "bridge": true,
+  "reason": "Same format: RECORD DELIMITER IS STANDARD-1 or a name. 2023 says the implementor specifies the names allowed for feature-name-1, so it equals implementor-name-1.",
+  "source": "audit-1985/state-route"
+ }
+}

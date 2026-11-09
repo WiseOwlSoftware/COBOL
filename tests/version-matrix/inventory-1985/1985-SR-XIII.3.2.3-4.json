@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.2.3-4",
+ "rule-digest": "7d7cb4a400cc",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.4.5.3-8"
+  ],
+  "bridge": true,
+  "reason": "Both bar record description entries from a report file's FD. The added ban on constant entries covers a construct 1985 lacks, so 1985 programs are accepted or refused alike.",
+  "source": "audit-1985/state-route"
+ }
+}

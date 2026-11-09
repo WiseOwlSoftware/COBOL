@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.2.12.3-5",
+ "rule-digest": "23132478bfbd",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Only one RERUN clause containing the CLOCK-UNITS phrase may be specified.\"; 2023: \"No candidate covers the RERUN clause or the CLOCK-UNITS phrase; the feature is absent from 2023.\". No 2023 clause holds the RERUN feature, and no wording candidate addresses RERUN or CLOCK-UNITS. The 2023 standard lacks the RERUN clause, so the rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

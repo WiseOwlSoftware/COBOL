@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-18",
+ "rule-digest": "7c0fea3fb8e4",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the I-O phrase is specified and the LABEL RECORDS clause indicates label records are present... labels are checked\"; 2023: \"The 2023 OPEN general rules (14.9.27.4) state no label checking or writing; the LABEL RECORDS clause is no longer in the standard.\". The 2023 OPEN rules cover I-O mode in full (GR 16) but nowhere check or write labels. The LABEL RECORDS clause this rule depends on is absent from 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

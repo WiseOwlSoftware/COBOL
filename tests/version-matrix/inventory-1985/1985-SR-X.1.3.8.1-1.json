@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.1.3.8.1-1",
+ "rule-digest": "756b534a15ba",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.6.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"that program-name may be referenced only by statements included in that containing program.\"; 2023: \"or, if the program possesses the recursive attribute, in the program itself.\". Same scope rule for a non-common contained program, but 2023 adds a case: a recursive program may also reference its own name.",
+  "source": "audit-1985/state-route"
+ }
+}

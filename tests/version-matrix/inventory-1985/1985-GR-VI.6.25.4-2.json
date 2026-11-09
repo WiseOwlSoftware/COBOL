@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-2",
+ "rule-digest": "ef6625507f03",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.43.4-1",
+   "GR-14.9.43.4-2"
+  ],
+  "bridge": true,
+  "reason": "Delimiter and SIZE wording is the same. A figurative delimiter is still one character, and alphanumeric for display identifier-3. The dynamic-length and national cases only add new features.",
+  "source": "audit-1985/state-route"
+ }
+}

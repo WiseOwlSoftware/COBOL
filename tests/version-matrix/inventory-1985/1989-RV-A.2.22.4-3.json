@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.22.4-3",
+ "rule-digest": "0baceb4acb5d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.57.4-6"
+  ],
+  "bridge": true,
+  "reason": "A character set without lowercase letters gives no uppercase letter a lowercase counterpart. 2023 then leaves each letter unchanged, so the string is unchanged, as in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

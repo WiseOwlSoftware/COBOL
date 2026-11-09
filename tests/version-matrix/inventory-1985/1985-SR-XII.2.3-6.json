@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XII.2.3-6",
+ "rule-digest": "7b06f2d635c5",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Word-1 or word-2 may be any single COBOL word except 'COPY'.\"; 2023: \"No word-1/word-2 operand; the 7.2.3.3 syntax rules cover only pseudo-text-1/2 and partial-word-1/2 for REPLACING\". The 2023 COPY syntax rules define only pseudo-text and partial-word REPLACING operands, so the word operand and its COPY restriction are gone. GR-13 is a different, broader rule.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-9",
+ "rule-digest": "31cc0e6615e3",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-28",
+   "GR-14.9.51.4-15"
+  ],
+  "bridge": true,
+  "reason": "1985: \"b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status ... and after executing the procedure\"; 2023: \"If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur\". 1985 runs imperative-statement-2 even after an unsuccessful WRITE, once the USE procedure has run. 2023 reaches NOT END-OF-PAGE only on successful execution.",
+  "source": "audit-1985/state-route"
+ }
+}

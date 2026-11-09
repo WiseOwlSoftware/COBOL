@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XII.3.3-3",
+ "rule-digest": "642763c20adc",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-7.2.4.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Pseudo-text-1 must contain one or more text words.\"; 2023: \"at least one of which shall be neither a separator comma nor a separator semicolon.\". 2023 keeps the one-or-more text-words rule but also refuses pseudo-text-1 made only of separator commas or semicolons, which the 1985 rule shown does not exclude.",
+  "source": "audit-1985/state-route"
+ }
+}

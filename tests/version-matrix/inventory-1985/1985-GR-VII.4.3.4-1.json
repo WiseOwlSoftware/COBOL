@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-1",
+ "rule-digest": "f3c291c2d9b1",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Table 1 on page VII-40 shows the results of opening available and unavailable files.\"; 2023: \"Table 18 ... (file not currently open) ... Table 19 ... files that are currently open by another file connector ... Unsuccessful open\". Availability, open mode and connector association match, but 2023 limits Table 1's results to files not currently open; opening an available file open elsewhere may now fail.",
+  "source": "audit-1985/state-route"
+ }
+}

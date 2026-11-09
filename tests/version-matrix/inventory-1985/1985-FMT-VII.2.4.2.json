@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VII.2.4.2",
+ "rule-digest": "24ed8cc69340",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.5.5.1"
+  ],
+  "bridge": true,
+  "reason": "2023 ACCESS MODE format still offers ACCESS MODE IS SEQUENTIAL. RANDOM/DYNAMIC also serve relative and indexed files; nothing shown lets sequential files use them.",
+  "source": "audit-1985/state-route"
+ }
+}

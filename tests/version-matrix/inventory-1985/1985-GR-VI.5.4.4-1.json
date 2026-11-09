@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.4.4-1",
+ "rule-digest": "ecc83c128a1d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.8.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both blank the item to all spaces when it holds a zero value. 1985 VALUE literals for edited items are nonnumeric, so zero arises only by storing; 2023 states that case explicitly.",
+  "source": "audit-1985/state-route"
+ }
+}

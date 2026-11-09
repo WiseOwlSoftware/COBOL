@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-11",
+ "rule-digest": "cd8ecc0e1df7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-34"
+  ],
+  "bridge": true,
+  "reason": "Same rule. 'Operating environment' replaces MSCS. 'Successful' only states what is implied, since GR-15 says a failed WRITE does not take place; no program is accepted or treated differently.",
+  "source": "audit-1985/state-route"
+ }
+}

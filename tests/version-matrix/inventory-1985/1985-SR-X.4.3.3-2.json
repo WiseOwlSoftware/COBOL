@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.4.3.3-2",
+ "rule-digest": "07ebdea9a405",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.22.3-1"
+  ],
+  "bridge": true,
+  "reason": "Both limit EXTERNAL in data description entries to level 1 in working-storage. File entries fall under a separate 1985 rule. The type-declaration case relies on TYPEDEF, which 1985 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.2-4",
+ "rule-digest": "8fa028a34abc",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.4.4-3",
+   "GR-8.8.4.4.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"An operand is alphabetic-upper if it consists entirely of the uppercase letters A, B, C, ... , Z, and space.\"; 2023: \"If a locale is in effect for character classification, ... characters identified as uppercase alphabetic in locale category LC_CTYPE\". Without a locale, 2023 keeps A-Z and space. With a locale, LC_CTYPE uppercase decides instead. A zero-length item is now always false.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.9.3-2",
+ "rule-digest": "48d549e7810c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.40.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"allowable combinations of characters in the COBOL character set used as symbols\"; 2023: \"The currency symbol can be selected from the set of allowable characters from the computer's compile-time coded character set.\". Both require allowable symbol combinations, with category set by the 4.x GRs. 1985 limits all symbols to the COBOL character set; 2023 lets the currency symbol come from outside it.",
+  "source": "audit-1985/state-route"
+ }
+}

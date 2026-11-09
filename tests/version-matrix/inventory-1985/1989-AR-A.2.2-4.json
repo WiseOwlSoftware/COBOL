@@ -1,0 +1,15 @@
+{
+ "rule-id": "1989-AR-A.2.2-4",
+ "rule-digest": "e83ed47ec117",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "AR-15.3-6",
+   "AR-15.3-14"
+  ],
+  "bridge": true,
+  "reason": "1985: \"do not have values within the permissible range, the returned value for the function is undefined.\"; 2023: \"the EC-ARGUMENT-FUNCTION exception condition is set to exist... the implementor defines the result of the function reference\". Integer arguments and ALL subscripting carry over. Out-of-range arguments, undefined in 1985, now set EC-ARGUMENT-FUNCTION, and the result is implementor-defined if checking is not enabled.",
+  "source": "audit-1985/state-route"
+ }
+}

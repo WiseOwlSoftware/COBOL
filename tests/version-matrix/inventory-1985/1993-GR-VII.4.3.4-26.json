@@ -1,0 +1,14 @@
+{
+ "rule-id": "1993-GR-VII.4.3.4-26",
+ "rule-digest": "c54999be72f1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-25"
+  ],
+  "bridge": true,
+  "reason": "Same order: file not affected, I-O status set, then applicable USE procedure runs. Added EC-I-O and PERFORM WHEN steps reach only new features, so 1985 programs behave alike.",
+  "source": "audit-1985/state-route"
+ }
+}

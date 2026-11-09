@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.2.4-8",
+ "rule-digest": "a86ce0c1b4a9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-10"
+  ],
+  "bridge": true,
+  "reason": "The first 2023 sentence restates the 1985 rule word for word. The added sentence concerns RESUME NEXT STATEMENT, which 1985 lacks, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

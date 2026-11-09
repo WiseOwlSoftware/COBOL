@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-XIII.3.11.3-2",
+ "rule-digest": "ec95f8165664",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.14.3-7",
+   "SR-13.18.14.3-8"
+  ],
+  "bridge": true,
+  "reason": "1985: \"the printable items must be defined in ascending column number order such that each printable item defined occupies a unique sequence\"; 2023: \"not in increasing numerical order shall be subject to a different PRESENT WHEN clause; overlap ... each be subject to a different PRESENT WHEN\". 1985 demands ascending, non-overlapping items without exception; 2023 allows out-of-order or overlapping items when each is subject to a different PRESENT WHEN clause.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-XIII.3.12.3-1",
+ "rule-digest": "387bc8fa220c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.20.3-2",
+   "SR-13.15.3-2"
+  ],
+  "bridge": true,
+  "reason": "Both standards let a report section entry omit the data-name. 2023 assumes FILLER when the entry-name clause is absent; that unnamed-entry treatment accepts the same report section programs.",
+  "source": "audit-1985/state-route"
+ }
+}

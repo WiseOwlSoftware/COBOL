@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-2",
+ "rule-digest": "6d0a42f10205",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-6",
+   "SR-12.3.7.3-7"
+  ],
+  "bridge": true,
+  "reason": "1985: \"the associated mnemonic-name may be specified only in the ACCEPT, DISPLAY, SEND, or WRITE statements\"; 2023: \"Mnemonic-name-2 may be specified only in the WRITE statement... Mnemonic-name-3 may be specified only in the ACCEPT and DISPLAY statements\". 2023 drops SEND, ties feature-name mnemonics to WRITE and device-name mnemonics to ACCEPT/DISPLAY, and lets the implementor add further restrictions.",
+  "source": "audit-1985/state-route"
+ }
+}

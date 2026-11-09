@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-8",
+ "rule-digest": "a916e5de54c6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.5-8"
+  ],
+  "bridge": true,
+  "reason": "Exceptions a-c kept. New d only states that a comma or period followed by a space is a separator, not the end of the picture string (cf. SR-13.18.40.3-7), so the same programs pass.",
+  "source": "audit-1985/state-route"
+ }
+}

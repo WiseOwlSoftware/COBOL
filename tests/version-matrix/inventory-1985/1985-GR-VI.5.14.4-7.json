@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-7",
+ "rule-digest": "81d429ba8493",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.60.4-10"
+  ],
+  "bridge": true,
+  "reason": "Same index data item definition, occurrence-number value and implementor-specified alignment, representation and value. The added class/category sentence only labels the item; effect is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

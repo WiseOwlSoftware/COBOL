@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-1",
+ "rule-digest": "b519b2325ebc",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.41.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both require the file to be open in input or I-O mode when START executes. Status 47 sits in a separate I-O status rule and does not change which programs this rule accepts.",
+  "source": "audit-1985/state-route"
+ }
+}

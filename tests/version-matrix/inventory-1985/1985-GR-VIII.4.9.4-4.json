@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-4",
+ "rule-digest": "8f3a0a9b0dd7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-9"
+  ],
+  "bridge": true,
+  "reason": "Same guarantee for identifier-1. The proviso only covers FILE-phrase cases that 1985 forbade (no storage overlap), and an unsuccessful WRITE never alters identifier-1.",
+  "source": "audit-1985/state-route"
+ }
+}

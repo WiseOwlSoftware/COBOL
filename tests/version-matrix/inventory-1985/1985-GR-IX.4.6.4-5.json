@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-5",
+ "rule-digest": "d430dccf0617",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-7"
+  ],
+  "bridge": true,
+  "reason": "For FROM identifier-1, 2023 keeps the same equivalence: the MOVE to record-name-1, then the same REWRITE without FROM. The literal-1 form is a new syntax option and leaves the 1985 case's effect unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.2.13.4-1",
+ "rule-digest": "6237fb04d6a3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.6.4.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both say files in a file-area SAME clause share all storage areas, with no more than one open at a time. 1985's sort/merge exclusion restates syntax rule 3c, not this rule; 2023 has a separate sort-merge format.",
+  "source": "audit-1985/state-route"
+ }
+}

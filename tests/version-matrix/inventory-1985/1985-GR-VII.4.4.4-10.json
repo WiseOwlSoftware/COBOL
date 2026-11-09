@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-10",
+ "rule-digest": "36aa38244b32",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-24",
+   "GR-14.9.30.4-21"
+  ],
+  "bridge": true,
+  "reason": "1985: \"If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with this file-name-1\"; 2023: \"If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement.\". Same at end flow, but 2023 drops the requirement for a USE procedure when AT END is absent: control just goes to the end of the READ. It also adds the EC-I-O-AT-END setting.",
+  "source": "audit-1985/state-route"
+ }
+}

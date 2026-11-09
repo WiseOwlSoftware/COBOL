@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.5.4.3-2",
+ "rule-digest": "8cd2de8b7bc3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.14.3-2"
+  ],
+  "bridge": true,
+  "reason": "Rule 2 sits among the EXIT PROGRAM (RAISING) format rules, like the parallel GOBACK ban. It is the same ban on EXIT PROGRAM in a GLOBAL declarative, not an extension to plain EXIT.",
+  "source": "audit-1985/state-route"
+ }
+}

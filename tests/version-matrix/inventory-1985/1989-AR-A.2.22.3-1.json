@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-AR-A.2.22.3-1",
+ "rule-digest": "979d36668590",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "AR-15.57.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Argument-1 must be class alphabetic or alphanumeric\"; 2023: \"Argument-1 shall be of class alphabetic, alphanumeric, or national\". 2023 LOWER-CASE also accepts a class national argument-1, which 1985 refused; the one-character minimum length is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

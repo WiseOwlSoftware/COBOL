@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.5.4-4",
+ "rule-digest": "81a008da3d72",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the NO DATA phrase, if specified, is ignored and control is transferred to ... if the WITH DATA phrase is specified, to imperative-statement-2\"; 2023: \"Communication module with cd-name RECEIVE and NO DATA/WITH DATA phrases dropped; 2023 RECEIVE is run-unit messaging with ON/NOT ON EXCEPTION\". 2023 RECEIVE (14.9.31) is a different feature with ON/NOT ON EXCEPTION. The MCS RECEIVE and its NO DATA/WITH DATA phrases from the 1985 communication module are gone.",
+  "source": "audit-1985/state-route"
+ }
+}

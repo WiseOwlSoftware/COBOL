@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.5.4-1",
+ "rule-digest": "6f01a9000727",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-4",
+   "GR-14.9.49.4-3"
+  ],
+  "bridge": true,
+  "reason": "Both order declarative selection the same way: own program first, then GLOBAL ones outward to the outermost program. One is executed, or none if none qualifies. Ordering within one program is a separate rule.",
+  "source": "audit-1985/state-route"
+ }
+}

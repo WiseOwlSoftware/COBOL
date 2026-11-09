@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-6",
+ "rule-digest": "2f2ec5fbbc12",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-3"
+  ],
+  "bridge": true,
+  "reason": "Both make data items beyond the current record undefined after READ when a file has several record descriptions. 'Any part' only spells out the partial case; the shared-area remark restates a general rule.",
+  "source": "audit-1985/state-route"
+ }
+}

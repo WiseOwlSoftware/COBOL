@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.7.4-3",
+ "rule-digest": "726754b0e3a1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.33.4-3"
+  ],
+  "bridge": true,
+  "reason": "Multiple level 1 entries under FD/SD implicitly redefine one area, and not under RD. 2023 just states the RD exclusion outright. The CD case goes with the communication feature 2023 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

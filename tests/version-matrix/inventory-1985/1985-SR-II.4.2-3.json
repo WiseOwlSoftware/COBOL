@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-II.4.2-3",
+ "rule-digest": "069ef0e1d79f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.63.3-18",
+   "SR-13.18.63.3-20",
+   "SR-13.18.63.3-21"
+  ],
+  "bridge": true,
+  "reason": "1985 only permits VALUE clauses to give values to selected table elements. 2023 still permits this via the table-format VALUE clause; its FROM/TO rules are format syntax, not a loss of the permission.",
+  "source": "audit-1985/state-route"
+ }
+}

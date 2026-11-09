@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.46.3-1",
+ "rule-digest": "8107038e7933",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "RV-15.99.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Two numeric digits of the seconds past the minute, in the range 00 through 59.\"; 2023: \"00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect\". Same 21-position layout; GMT vs UTC is only a change of term. 2023 adds a case: under LEAP-SECOND ON the seconds range is implementor-defined (leap seconds).",
+  "source": "audit-1985/state-route"
+ }
+}

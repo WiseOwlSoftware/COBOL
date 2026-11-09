@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-X.5.4.3-1",
+ "rule-digest": "a73fe134746d",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"If an EXIT PROGRAM statement appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last\"; 2023: \"EXIT syntax rules (SR-14.9.14.3-1..10) set no position for EXIT PROGRAM; only GO TO keeps the 'last statement' rule\". The 2023 EXIT syntax rules cover EXIT PROGRAM but drop the last-in-sequence requirement. GR-2 even treats EXIT PROGRAM as CONTINUE, so statements after it can run.",
+  "source": "audit-1985/state-route"
+ }
+}

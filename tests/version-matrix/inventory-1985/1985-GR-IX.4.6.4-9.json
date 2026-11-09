@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-9",
+ "rule-digest": "136af03a1b52",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-4"
+  ],
+  "bridge": true,
+  "reason": "Both say REWRITE releases a logical record. 'Successful' only makes explicit that a failed REWRITE updates nothing; 'operating environment' is a new term for 'operating system'.",
+  "source": "audit-1985/state-route"
+ }
+}

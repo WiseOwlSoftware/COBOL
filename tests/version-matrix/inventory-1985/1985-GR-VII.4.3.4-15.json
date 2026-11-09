@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-15",
+ "rule-digest": "4fd98e9961ac",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-15"
+  ],
+  "bridge": true,
+  "reason": "GR-14.9.27.4-15 states the sequential-file EXTEND positioning word for word. The relative and indexed sentences come from the merged general OPEN rule and do not alter the sequential requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

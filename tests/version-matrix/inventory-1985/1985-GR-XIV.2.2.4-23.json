@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-23",
+ "rule-digest": "0234dea92dc2",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The input-output CD information constitutes the communication between the MCS and the program about the message being handled.\"; 2023: \"No 2023 clause holds the communication description entry; the Communication module (CD, MCS) is absent.\". No 2023 clause holds the CD feature. The wording candidates cover only data, file, sort-merge, report and screen entries. The communication module is dropped in 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

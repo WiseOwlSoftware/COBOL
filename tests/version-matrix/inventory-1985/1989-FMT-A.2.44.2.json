@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-FMT-A.2.44.2",
+ "rule-digest": "41cabc44780a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-15.97.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"FUNCTION UPPER-CASE ( argument-1 )\"; 2023: \"FUNCTION UPPER-CASE ( argument-1 [ LOCALE locale-name-1 ] )\". The 2023 format adds an optional LOCALE locale-name-1 phrase, a case the 1985 format refuses. The 1985 form without the phrase is still valid.",
+  "source": "audit-1985/state-route"
+ }
+}

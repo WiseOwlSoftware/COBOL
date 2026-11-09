@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-11",
+ "rule-digest": "8598c82ef83b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.48.4-9"
+  ],
+  "bridge": true,
+  "reason": "GR-9 restates the 1985 rule nearly word for word. The added zero-length delimiter sentences cover items 1985 programs cannot have, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

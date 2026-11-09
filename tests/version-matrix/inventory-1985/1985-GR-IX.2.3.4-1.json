@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.2.3.4-1",
+ "rule-digest": "f8406d69bb18",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"all file control entries in the run unit which reference this file connector must have: ... d. The same organization. e. The same access mode.\"; 2023: \"i) The same specification of the FILE STATUS clause, where data-name-4 shall reference the same corresponding external data item.\". 2023 keeps 1985 items a-g but also requires the same FILE STATUS clause, referencing the same external item, across entries. 1985 placed no such limit, so 2023 refuses programs 1985 accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.3.6.3-2",
+ "rule-digest": "6c2df34a79c6",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"STANDARD specifies that labels exist for the file or the device to which the file is assigned and the labels conform to\"; 2023: \"No 2023 clause holds the LABEL RECORDS feature; no candidate addresses file labels or STANDARD labels.\". No 2023 clause holds the LABEL RECORDS clause, and no wording candidate covers file labels, so 2023 lacks the feature and this requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

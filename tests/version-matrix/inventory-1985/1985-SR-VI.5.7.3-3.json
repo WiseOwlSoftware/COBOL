@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.5.7.3-3",
+ "rule-digest": "f1a91a31c713",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.33.3-5",
+   "SR-13.18.33.3-3"
+  ],
+  "bridge": true,
+  "reason": "Both allow 1-49, 66, 77 and 88 in working-storage and linkage; the level-2 box is no difference. Adding local-storage covers a new section and leaves the WS/linkage rule intact.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-6",
+ "rule-digest": "cf4a5d7755eb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-11.10.4-3",
+   "GR-14.6.2.3.2-2"
+  ],
+  "bridge": true,
+  "reason": "2023 puts an initial program and its contained programs into initial state on each activation; spelling that out as data items and file connectors reads as wording, not a narrower rule.",
+  "source": "audit-1985/state-route"
+ }
+}

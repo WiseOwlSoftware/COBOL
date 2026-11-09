@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XVI.3.2.4-1",
+ "rule-digest": "50224757a92b",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"All sections which have the same segment-number constitute a program segment.\"; 2023: \"No candidate covers segment-numbers; the 2023 text shows no Segmentation module.\". No clause holds the Segmentation feature and no wording candidate deals with segment-numbers or program segments. 2023 lacks segment-numbers, so the rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-10",
+ "rule-digest": "3f4d579981d5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.38.3-22"
+  ],
+  "bridge": true,
+  "reason": "SR-22 sits in the format 2 (DEPENDING) syntax-rule group with SR-16–24 (integer-1/2, data-name-1, DEPENDING). It limits what may follow the subject, as 1985 SR10 does.",
+  "source": "audit-1985/state-route"
+ }
+}

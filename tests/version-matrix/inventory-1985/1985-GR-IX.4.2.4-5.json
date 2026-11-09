@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.2.4-5",
+ "rule-digest": "2e19bcf812cf",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-7"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Following the successful execution of a CLOSE statement, the record area associated with file-name-1 is no longer available.\"; 2023: \"the record area is available to the runtime element if any of the file connectors referenced by the other file-names in that SAME RECORD AREA clause are open\". 2023 keeps unavailable-on-success and undefined-on-failure, but adds an exception: under SAME RECORD AREA the area stays available while another file in that clause is open.",
+  "source": "audit-1985/state-route"
+ }
+}

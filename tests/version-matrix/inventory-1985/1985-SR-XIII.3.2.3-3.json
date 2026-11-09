@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-SR-XIII.3.2.3-3",
+ "rule-digest": "d6febec96884",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.4.5.2-11",
+   "SR-12.4.5.2-8",
+   "SR-12.4.5.2-9",
+   "SR-13.4.5.3-7",
+   "SR-13.4.5.3-8"
+  ],
+  "bridge": true,
+  "reason": "Report files take file control format 3 (sequential); formats 1/2 serve only indexed/relative files, whose FD is format 2, not the report format 3. Report file stays sequential.",
+  "source": "audit-1985/state-route"
+ }
+}

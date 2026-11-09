@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-XIII.3.2.2",
+ "rule-digest": "d026ab1fe293",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.4.5.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"LABEL { RECORD IS | RECORDS ARE } { STANDARD | OMITTED } VALUE OF implementor-name-1 IS { data-name-1 | literal-1 } …\"; 2023: \"Format 3 (report): FD file-name-1 [ IS EXTERNAL [ AS literal-1 ] ] [ IS GLOBAL ] [BLOCK…] [ record-clause ] [CODE-SET…] REPORT IS\". The 2023 report FD (Format 3) drops LABEL RECORDS and VALUE OF. It adds EXTERNAL, GLOBAL, CODE-SET FOR NATIONAL and the broader RECORD clause (VARYING, BYTES).",
+  "source": "audit-1985/state-route"
+ }
+}

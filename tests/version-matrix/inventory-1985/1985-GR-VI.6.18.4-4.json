@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-4",
+ "rule-digest": "4994962e6ef7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-6"
+  ],
+  "bridge": true,
+  "reason": "2023 still evaluates subscripts once, first, under 'item identification'. It may also cover reference modification, which this 1985 rule does not address, but the subscript rule itself is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

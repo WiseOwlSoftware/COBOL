@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.10.4-1",
+ "rule-digest": "b77aa3b1d012",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.11.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 still transfers each operand in the order listed, with implementor-defined conversion. The zero-length clause covers items 1985 lacks, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

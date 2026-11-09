@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-IX.4.5.3-6",
+ "rule-digest": "42b53f2115d4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-19",
+   "SR-14.9.30.3-6",
+   "SR-14.9.30.3-9"
+  ],
+  "bridge": true,
+  "reason": "2023 still makes random-mode READs, and dynamic-mode READs with no implied or explicit NEXT/PREVIOUS, random reads under format 2. The implied-NEXT default bears on 1985's NEXT rule, not this one.",
+  "source": "audit-1985/state-route"
+ }
+}

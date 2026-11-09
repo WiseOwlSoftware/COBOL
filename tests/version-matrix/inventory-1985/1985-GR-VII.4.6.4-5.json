@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.6.4-5",
+ "rule-digest": "f516f6d02c75",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-6"
+  ],
+  "bridge": true,
+  "reason": "Items a-e match the 1985 text. The added PERFORM WHEN case is a new 2023 construct, and sequential files have no INVALID KEY, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}
