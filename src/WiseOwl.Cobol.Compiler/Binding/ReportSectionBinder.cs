@@ -3741,12 +3741,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// the same number of levels of repetition as the subject of the entry"; d) "The maximum number of repetitions of
     /// data-name-1 and the subject of the entry shall be equal at each corresponding level taken in order beginning
     /// with the lowest level of nesting. Levels superordinate to those corresponding levels may specify any number of
-    /// repetitions."</summary>
-    private static string? RolledRepetitionFault(ReportEntryFamily data, ReportSumFamily target)
+    /// repetitions." The rule is COBOL-2002's (§2002:13.16.52.2 SR3 b)); COBOL-85's SUM clause (§1985:XIII.3.19.3 SR1)
+    /// has no repetition and admits a sum counter of the SUM entry's own group — the crossfoot of
+    /// §1985:XIII.3.19.4 GR9 a) — so below 2002 the same-group arm asks nothing of repetition (kb/Work PB5022).</summary>
+    private string? RolledRepetitionFault(ReportEntryFamily data, ReportSumFamily target)
     {
         int d = data.Extents.Count, t = target.Extents.Count;
         if (ReferenceEquals(data.Group, target.Group))
         {
+            if (Edition.DialectLevel < 2002) return null;
             if (d == 0)
                 return "it is in the same report group description as the SUM entry, so it shall be a repeating item "
                     + "(ISO §2023:13.18.54.3 SR4 b))";
