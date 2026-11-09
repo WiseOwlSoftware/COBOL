@@ -576,7 +576,10 @@ def plan_map(catalog: pathlib.Path, catalog_2023: pathlib.Path, k: int, state: p
 
 def quoted_rule(rule: dict[str, Any]) -> dict[str, Any]:
     """A 1985 rule as a request quotes it (`rule_block`)."""
-    return {f: rule.get(f) for f in ("citation", "module", "level", "box", "subject", "kind", "text")}
+    quoted = {f: rule.get(f) for f in ("citation", "module", "level", "box", "subject", "kind", "text")}
+    if (provisional := rule.get("provisional", "none")) != "none":
+        quoted["provisional"] = provisional   # a reconstruction's text (kb/Work PB4952): every verdict on it says so
+    return quoted
 
 
 def quoted_2023(by_id: dict[str, dict[str, Any]], ids: Iterable[str]) -> list[dict[str, Any]]:
@@ -834,8 +837,11 @@ def recheck_rules_1985(item: dict[str, Any]) -> list[dict[str, Any]]:
 
 def rule_block(rule: dict[str, Any]) -> str:
     level = "" if rule.get("level") is None else f", level {rule['level']}"
+    provisional = ("" if rule.get("provisional", "none") == "none" else
+                   f"; PROVISIONAL ({rule['provisional']}): the transcription's reconstruction of a printed page the scan "
+                   f"lacks, not the standard's words")
     return (f"THE 1985 RULE ({rule['citation']}, {rule.get('module') or 'no module'} module{level}; "
-            f"subject: {rule.get('subject') or '-'}):\n{rule['text']}")
+            f"subject: {rule.get('subject') or '-'}{provisional}):\n{rule['text']}")
 
 
 def candidate_block(cands: list[dict[str, Any]]) -> str:

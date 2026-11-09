@@ -33,6 +33,11 @@ THE CORRECTED TEXT AND THE PRINTED TEXT BOTH PASS (R66, specs/README.md "Correct
 corrects a defect of the printed standard, the corrected line is followed by a `> ⚠ **CORRECTED — see the
 Addendum (Cn).**` note (`Errata` in 1985: verify_publishable.CORRECTIONS_SECTION) that quotes the PRINTED line verbatim, so a quotation of either form is found inside the
 same clause, and the rule path reported for a quotation of the printed form is the corrected line's.
+
+A RECONSTRUCTION PASSES, MARKED (kb/Work PB4952). Where the scan lacks printed pages, the transcription holds an
+editorial reconstruction between a `> ⚠ **RECONSTRUCTED — not printed in our copy (folios ...).**` note and its
+`> ⚠ **END RECONSTRUCTED ...**` note (`RECONSTRUCTED`). A quotation found there is reported with `RECONSTRUCTED_MARK`:
+the citation names the standard's locator, but the text it was checked against is the transcription's, not the standard's.
 """
 from __future__ import annotations
 
@@ -43,6 +48,7 @@ import pathlib
 import re
 import sys
 import tempfile
+from typing import NamedTuple
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -59,6 +65,75 @@ SUBSUB = re.compile(r"^(\s{2,})(\d+)\\?\.\s")
 #: An editorial note on a correction (R66): the paragraph belongs to the line ABOVE it, so a quotation found in
 #: the note reports that line's rule path.
 CORRECTION_NOTE = re.compile(r"^>\s*⚠\s*\*\*CORRECTED")
+#: ⛔ A RECONSTRUCTION IS NOT THE STANDARD'S TEXT (owner 2026-11-09, kb/Work PB4952). Where the scan of a printed standard
+#: lacks pages, the transcription fills the gap with EDITORIAL text between an opening note, which names the folios it
+#: stands for, its sources and its confidence, and a closing note naming the same folios, until the printed pages are
+#: obtained and their verbatim text replaces it. Every reader that takes text from there says so: the rule catalog marks
+#: the rows `provisional`, `--check` marks a citation it verifies there, the figure sweep has no printed drawing to read.
+RECONSTRUCTED = re.compile(r"^>\s*⚠\s*\*\*RECONSTRUCTED — not printed in our copy \(folios? (?P<folios>[^)]+)\)\.\*\*")
+RECONSTRUCTED_END = re.compile(r"^>\s*⚠\s*\*\*END RECONSTRUCTED \(folios? (?P<folios>[^)]+)\)\.\*\*")
+#: An editorial note of either kind: never rule text, and a blockquote paragraph that ends at its blank line.
+EDITORIAL_NOTE = re.compile(r"^>\s*⚠\s*\*\*(?:CORRECTED|RECONSTRUCTED — |END RECONSTRUCTED )")
+#: The mark `--check` and `--find` print on a quotation found inside a reconstruction.
+RECONSTRUCTED_MARK = "[RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+
+
+class Reconstruction(NamedTuple):
+    """One reconstruction: the line of its opening note, the line of its closing note (None while unclosed), and the
+    folios each note names (`folios XIII-30 and XIII-31`)."""
+    start: int
+    end: int | None
+    folios: str
+    closing: str | None
+
+
+def folios_of(named: str) -> list[str]:
+    """The folios a note names: `XIII-30 and XIII-31` is two, `XIII-54` one."""
+    return re.findall(r"(?:[IVX]+|[A-F])-\d+", named)
+
+
+def reconstructions(lines: list[str]) -> list[Reconstruction]:
+    """Every reconstruction of `lines`, in order. A closing note with no opening one is a Reconstruction whose `start`
+    is -1; `verify_publishable.check_reconstructions` refuses both that and an unclosed one."""
+    out: list[Reconstruction] = []
+    open_at: tuple[int, str] | None = None
+    for i, line in enumerate(lines):
+        if (m := RECONSTRUCTED.match(line)) is not None:
+            if open_at is not None:
+                out.append(Reconstruction(open_at[0], None, open_at[1], None))
+            open_at = (i, m["folios"])
+        elif (m := RECONSTRUCTED_END.match(line)) is not None:
+            if open_at is None:
+                out.append(Reconstruction(-1, i, "", m["folios"]))
+            else:
+                out.append(Reconstruction(open_at[0], i, open_at[1], m["folios"]))
+            open_at = None
+    if open_at is not None:
+        out.append(Reconstruction(open_at[0], None, open_at[1], None))
+    return out
+
+
+def in_reconstruction(lines: list[str], at: int) -> bool:
+    """Whether line `at` lies inside a reconstruction: the nearest note above it (or on it) is an opening one."""
+    for k in range(at, -1, -1):
+        if "RECONSTRUCTED" in lines[k]:   # (a substring test first: the walk back reads tens of thousands of lines)
+            if RECONSTRUCTED.match(lines[k]):
+                return True
+            if RECONSTRUCTED_END.match(lines[k]):
+                return k == at
+    return False
+
+
+def reconstructed(lines: list[str]) -> list[str | None]:
+    """For each line of `lines`, the first folio of the reconstruction it lies inside (its notes included), or None
+    outside every one: one pass, read by index. A rule that opens inside one is on that folio, not the PDF page's."""
+    folio: list[str | None] = [None] * len(lines)
+    for r in reconstructions(lines):
+        if r.start >= 0:
+            first = next(iter(folios_of(r.folios)), r.folios)
+            for i in range(r.start, len(lines) if r.end is None else r.end + 1):
+                folio[i] = first
+    return folio
 
 EMPTY_NEEDLE = "quotation carries no word characters (letters, digits, underscore); nothing to match"
 
@@ -142,7 +217,8 @@ def find(lines, cls, text, edition: int):
         return 1, [f"NO CLAUSE contains {text!r} — the citation names text the standard does not have"]
     out = []
     for n, t, s, _e, i in hits[:12]:
-        out.append(f"§{edition}:{n} {rule_path(lines, i, s)}  ({t})\n    {lines[i].strip()[:190]}\n")
+        mark = f" {RECONSTRUCTED_MARK}" if in_reconstruction(lines, i) else ""
+        out.append(f"§{edition}:{n} {rule_path(lines, i, s)}  ({t}){mark}\n    {lines[i].strip()[:190]}\n")
     out.append(f"{len(hits)} occurrence(s)")
     return 0, out
 
@@ -170,7 +246,8 @@ def check(lines, cls, cited: citation.Citation, text):
             if needle in norm(lines[i]):
                 path = rule_path(lines, i, s)
                 if ordinal is None or path.split(" ")[0] == f"{ordinal})":
-                    return 0, [f"OK  §{cited.edition}:{n} {path}  ({t})\n    {lines[i].strip()[:220]}"]
+                    mark = f" {RECONSTRUCTED_MARK}" if in_reconstruction(lines, i) else ""
+                    return 0, [f"OK  §{cited.edition}:{n} {path}  ({t}){mark}\n    {lines[i].strip()[:220]}"]
                 elsewhere.append(path or "(no rule)")
     if elsewhere:
         return 1, [f"FAIL: {shown} contains {text!r}, but under rule {elsewhere[0]}, not {cited.rule}"]
@@ -205,6 +282,9 @@ def self_test() -> int:
             absent_1985 = False
         except SystemExit as ex:
             absent_1985 = "1985" in str(ex.code)
+    planted_notes = ["printed", "> ⚠ **RECONSTRUCTED — not printed in our copy (folio XIII-54).** Sources.", "edited",
+                     "> ⚠ **END RECONSTRUCTED (folio XIII-54).** Printed again.", "printed",
+                     "> ⚠ **RECONSTRUCTED — not printed in our copy (folios XIII-30 and XIII-31).**", "unclosed"]
     cases = [
         ("reads the transcription of the edition the citation names (2002), not 2023's", edition_2002 == 0),
         ("an edition whose transcription is absent exits naming it", absent_1985),
@@ -212,6 +292,16 @@ def self_test() -> int:
          check(*load(1985), c("§1985:VI.5.3.1"), "A data description entry specifies the characteristics")[0] == 0),
         ("fires on a 1985 paragraph of the wrong section",
          check(*load(1985), c("§1985:VII.5.3.1"), "A data description entry specifies the characteristics")[0] == 1),
+        # kb/Work PB4952: a quotation of a reconstruction passes MARKED; the printed text beside it carries no mark.
+        ("marks a citation verified against a reconstruction (TYPE SR1, folio XIII-55)",
+         RECONSTRUCTED_MARK in check(*load(1985), c("§1985:XIII.3.20.3"), "RH is an abbreviation for REPORT HEADING")[1][0]),
+        ("does not mark the printed text after a reconstruction (TYPE SR7, folio XIII-56)",
+         RECONSTRUCTED_MARK not in check(*load(1985), c("§1985:XIII.3.20.3"),
+                                         "The description of a report must include at least one body group")[1][0]),
+        ("pairs the notes, and reports an unclosed opening and an unopened closing",
+         [(r.start, r.end) for r in reconstructions(planted_notes)] == [(1, 3), (5, None)]
+         and [(r.start, r.end) for r in reconstructions(planted_notes[3:4])] == [(-1, 0)]
+         and reconstructed(planted_notes) == [None, "XIII-54", "XIII-54", "XIII-54", None, "XIII-30", "XIII-30"]),
         ("fires EMPTY-NEEDLE (check)", check(lines, cls, c("§2023:7.1"), "| + | + | - |")[0] == 1),
         ("fires EMPTY-NEEDLE (find)", find(lines, cls, "| + | - |", 2023)[0] == 1),
         ("silent on a needle carrying digits", check(lines, cls, c("§2023:15.43.4"), "| S999 | +999 |")[0] == 0),

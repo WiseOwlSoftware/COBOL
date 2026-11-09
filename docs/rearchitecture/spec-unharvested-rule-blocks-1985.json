@@ -639,6 +639,15 @@
    "kind": "GR",
    "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). 'Report Heading Group Presentation Rules': where the RWCS presents the group and what it places in LINE-COUNTER (XIII.3.10.1: 'The interpretation that the report writer control system (RWCS) gives to these clauses'); a next group rule's limit depends on the line the group is presented on, so it is checked at execution."
   },
+  "§1985:XIII.3.10.7": {
+   "title": "Page Heading Group Presentation Rules",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-09 (kb/Work PB4952). 'Page Heading Group Presentation Rules' (see XIII.3.10.6). The paragraph is a RECONSTRUCTION of the printed pages XIII-30 and XIII-31, which the scan lacks: its rows are provisional until the printed text replaces it."
+  },
   "§1985:XIII.3.10.8": {
    "title": "Body Group Presentation Rules",
    "ordinals": 6,

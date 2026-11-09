@@ -180,6 +180,18 @@ The 19 corrections of 2026-11-08 came from a scan for rare words one edit from a
 for every accented or foreign letter (U+00C0 to U+024F, the dotless i), each read on the rendered page; the scan finds a misprint that makes a non-word, not one that makes
 another real word.
 
+**A printed page the scan lacks holds a reconstruction until the page is obtained** (owner 2026-11-09, kb/Work PB4952).
+The scan lacks folios XIII-30 and XIII-31 (paragraph 3.10.7, the page heading group presentation rules, and its Table 2),
+XIII-54 (the SUM clause's general rules after 9 a) and XIII-55 (the TYPE clause's heading, function, general format and
+syntax rules 1 to 4); the owner asked ANSI for them. Each gap holds editorial text between a `> ⚠ **RECONSTRUCTED — not
+printed in our copy (folios …).**` note, which names its sources (the sibling 1985 paragraphs, and the 2023 rules that
+state the same requirement) and its confidence (high in substance for TYPE; low for 3.10.7 and the SUM tail, which 2002
+and 2023 rewrote), and a `> ⚠ **END RECONSTRUCTED (folios …).**` note (`cite.RECONSTRUCTED`). The rule catalog marks
+every row it reads from there `provisional`, `cite.py --check` marks a quotation it verifies there, and
+`verify_publishable.py --edition 1985` holds each reconstruction to the gap it fills: the folios it names are the ones
+the printed folios skip where it stands. When a printed page arrives its verbatim text replaces the reconstruction (with
+its folio), and the check refuses a reconstruction left beside it.
+
 **A level-2 box in prose is a `║` at each end of each boxed block** (`spec_pdf.BOX_SIDE`; the 1985 standard boxes every
 specification unique to level 2 of a module, §1985:I.1.3 and §1985:IV.1). One markup, used everywhere:
 

@@ -235,6 +235,10 @@ def check() -> int:
         v = view(year, schema)
         findings += [f"{year}: {p}" for p in v.problems]
         line = f"inventory {year}: {len(v.rows)} rules, {gaps(v.rows)} GAP"
+        # A row whose text a reconstruction holds (the catalog's `provisional`, kb/Work PB4952) is judged on text that is
+        # not the standard's: the view says how many, and each such row carries the mark.
+        if provisional := sum(1 for r in v.rows if r.get("provisional", "none") != "none"):
+            line += f" ({provisional} provisional: a reconstruction's text, kb/Work PB4952)"
         if not ed.newest:
             targets = {r["rule-id"]: r for r in inventory(ed.next_held, schema)}
             findings += [f"{year}: {r['rule-id']}: {e}" for r in v.rows for e in lineage.next_errors(r, ed, schema, targets)]
