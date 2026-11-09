@@ -1,4 +1,4 @@
-## PB5042: a report with no header fields is finished to the wave but nameless to the landing
+## Entry 3388 — 2026-11-09 13:03 PST — PB5042: a report with no header fields is finished to the wave but nameless to the landing
 
 After the 2026-11-09 restart, the reviewed, gate-GREEN PB5031 branch (`worktree-wf_ae1d041e-326-1`, Review CLEAN at
 8ead032f98) still would not land: `enqueue.py land` refused it with exit 11, 'no fix-lane report names it'. Its report
@@ -8,3 +8,4 @@ The operator rebuilt the PB5031 header from facts on disk (worktree, merge-base,
 WAITING TO LAND, so the loop's landing lane takes it. Filed kb/Work PB5042 (sibling of PB3260) with the code sites and
 a fix shape: the one finished predicate requires the branch and HEAD fields, and the wave sends the same agent back to
 repair its header.
+
