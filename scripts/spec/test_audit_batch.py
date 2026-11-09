@@ -387,6 +387,26 @@ def main() -> int:
               and "line" in refused(control="x")[1] and "line" in refused(line=3, control="x")[1]
               and "line" in refused(line=True, control="x")[1] and "control" in refused(line=2)[1]
               and "control" in refused(line=2, control=two_lines)[1])
+        old_id, kept_id = list(ditems)[:2]
+        answers_dir = state / "drafts" / "answers"
+        answers_dir.mkdir(parents=True, exist_ok=True)
+        stored = {old_id: {"program": two_lines, "expected": {"outcome": "refused"}, "basis": "SR1"},
+                  kept_id: {"program": two_lines, "expected": {"outcome": "output", "output": ["A"]}, "basis": "GR2"}}
+        for cid, ans in stored.items():
+            (answers_dir / f"{cid}.json").write_text(json.dumps({"id": ditems[cid]["id"], "answer": ans}),
+                                                     encoding="utf-8", newline="\n")
+        (state / "drafts" / "raw").mkdir(parents=True, exist_ok=True)
+        (state / "drafts" / "raw" / f"{old_id}.withdrawn.json").write_text("{}", encoding="utf-8", newline="\n")
+        code, out = run(["withdraw", "--pass", "drafts", *base], fake)
+        check("withdraw moves a stored answer the shape now refuses to raw/, never over an earlier one, and keeps the "
+              "rest (kb/Work PB4995)",
+              code == 0 and "withdrew 1" in out and A.Pass(state, "drafts").unanswered() == [old_id]
+              and json.loads((state / "drafts" / "raw" / f"{old_id}.withdrawn-2.json").read_text(encoding="utf-8"))
+              ["answer"] == stored[old_id] and (answers_dir / f"{kept_id}.json").exists())
+        code, out = run(["withdraw", "--pass", "drafts", *base], fake)
+        check("a second withdraw finds nothing to withdraw", code == 0 and "withdrew 0" in out)
+        for f in [*answers_dir.glob("*.json"), *(state / "drafts" / "raw").glob("*.json")]:
+            f.unlink()
 
         print("adjudicate and refute: the decided change records (kb/Work PB4995)")
         code, out = run(["plan", "--pass", "refute", *base], fake)
