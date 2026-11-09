@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.5.12.4-6",
+ "rule-digest": "dc7138fd4633",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.52.4-6",
+   "GR-13.18.40.4-14",
+   "SR-13.18.52.3-2"
+  ],
+  "bridge": true,
+  "reason": "52.4-6 keeps the separate sign position (not a digit position) and '+'/'-'. PICTURE rule 14 counts 'S' in the size with SEPARATE. National usage is an extension; 1985 programs act the same.",
+  "source": "audit-1985/state-route"
+ }
+}

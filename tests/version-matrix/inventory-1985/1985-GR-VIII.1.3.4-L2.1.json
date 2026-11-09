@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-L2.1",
+ "rule-digest": "c0f48346051c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.2-1",
+   "GR-9.1.13.2-3",
+   "GR-9.1.13.2-4"
+  ],
+  "bridge": true,
+  "reason": "Statuses 00, 04 and 05 (optional file absent at OPEN, created for I-O/extend) carry over. The DELETE FILE case of 05 covers a statement 1985 lacks; 1985 OPEN results are unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

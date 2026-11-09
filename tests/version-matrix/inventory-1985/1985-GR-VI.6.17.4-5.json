@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.17.4-5",
+ "rule-digest": "434e103a460b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.20.4-4",
+   "GR-14.9.20.4-5",
+   "GR-14.9.20.4-6"
+  ],
+  "bridge": true,
+  "reason": "Without REPLACING, VALUE or DEFAULT, 2023 MOVEs SPACES to alphabetic, alphanumeric and alphanumeric-edited items and ZEROES to numeric(-edited). VALUE is new syntax; 1985 programs act alike.",
+  "source": "audit-1985/state-route"
+ }
+}

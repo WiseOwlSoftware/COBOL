@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.2.4-4",
+ "rule-digest": "f8d052abfd75",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.46.4-1",
+   "SR-13.4.5.3-8"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule is only a pointer to the REPORT clause and sets no requirement. 2023 keeps the REPORT clause for report-file FDs (format 3, 13.18.46), so the reference holds.",
+  "source": "audit-1985/state-route"
+ }
+}

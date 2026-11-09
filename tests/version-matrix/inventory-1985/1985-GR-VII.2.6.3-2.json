@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.2.6.3-2",
+ "rule-digest": "458883fe73aa",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.10.3-3",
+   "GR-12.4.5.10.3-2"
+  ],
+  "bridge": true,
+  "reason": "2023 defines record and line sequential organization in the same words: a permanent structure with predecessor-successor relationships. The line sequential details only add a new form.",
+  "source": "audit-1985/state-route"
+ }
+}

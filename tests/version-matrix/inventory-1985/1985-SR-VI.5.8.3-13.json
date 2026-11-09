@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-13",
+ "rule-digest": "b5d49cfabc37",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.3.3-4",
+   "GR-13.18.38.4-2"
+  ],
+  "bridge": true,
+  "reason": "2023 still requires an index-name used in indexing to come from an INDEXED BY phrase in the table hierarchy, with hardware-dependent allocation and format. The range rules match other 1985 rules.",
+  "source": "audit-1985/state-route"
+ }
+}

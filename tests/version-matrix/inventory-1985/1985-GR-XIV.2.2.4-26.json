@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-26",
+ "rule-digest": "7ac69e48257d",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Data-name-1 has the format 'YYMMDD' ... the date on which the MCS recognizes that the message is complete.\"; 2023: \"No communication description entry in 2023; no candidate defines a CD message-date field.\". The 2023 standard has no communication description entry. Its RECEIVE rule and the date candidates (ACCEPT, functions) do not state the CD message-date field that the MCS updates.",
+  "source": "audit-1985/state-route"
+ }
+}

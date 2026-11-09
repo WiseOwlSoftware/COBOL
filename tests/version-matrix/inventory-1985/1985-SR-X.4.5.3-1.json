@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.4.5.3-1",
+ "rule-digest": "e979980fc53a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.22.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"may be specified only in file description entries ... or in record description entries in the Working-Storage Section\"; 2023: \"only in file description entries, in level 1 data description entries in the working-storage section, and in level 1 type declarations\". Same file description and working-storage placements, but 2023 adds level 1 type declarations as a permitted place for EXTERNAL, which 1985 does not allow.",
+  "source": "audit-1985/state-route"
+ }
+}

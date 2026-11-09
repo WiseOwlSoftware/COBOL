@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-3",
+ "rule-digest": "e00f45befd21",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-6"
+  ],
+  "bridge": true,
+  "reason": "Same prohibition with the same OPEN and SORT/MERGE USING/GIVING exemptions. The added COMMIT, ROLLBACK and DELETE FILE exemptions cover statements that 1985 lacks.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-XII.2.3-2",
+ "rule-digest": "d206cfb6fa9a",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-7.2.3.3-2",
+   "GR-7.2.3.4-6"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The COPY statement must be preceded by a space and terminated by the separator period.\"; 2023: \"shall be preceded by a space except when it is the first statement in a compilation group.\". 2023 adds an exception: no preceding space is needed when COPY is the first statement in a compilation group. GR-7.2.3.4-6 still ends the COPY statement with the separator period.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VI.6.14.2",
+ "rule-digest": "8dfb34b8d2fa",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.14.2"
+  ],
+  "bridge": true,
+  "reason": "The 1985 Nucleus format is the bare word EXIT, and 2023 Format 1 (simple) is the same bare EXIT. The other 2023 formats are separate features and do not alter the simple form.",
+  "source": "audit-1985/state-route"
+ }
+}

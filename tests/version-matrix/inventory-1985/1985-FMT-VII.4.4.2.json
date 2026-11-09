@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VII.4.4.2",
+ "rule-digest": "d29cd8c8d4e6",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.30.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"[ AT END imperative-statement-1 ] [ NOT AT END imperative-statement-2 ]\"; 2023: \"zero or more of the enclosed alternatives may be specified, each at most once, in any order\". Every 1985 READ form is still accepted. 2023 also accepts NOT AT END before AT END and adds PREVIOUS, ADVANCING/IGNORING LOCK, retry and LOCK phrases, so more programs are accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

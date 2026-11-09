@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.5.4-10",
+ "rule-digest": "6e2d0d9500a0",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Once the execution of a RECEIVE statement has returned a portion of a message, only subsequent execution of RECEIVE statements\"; 2023: \"2023 RECEIVE is a message-server feature with no partial messages: if length exceeds identifier-1, EC-MCS-MESSAGE-LENGTH, unsuccessful\". The 1985 Communication module's partial-message RECEIVE is gone. The 2023 RECEIVE never returns a message portion, so the rule on returning the remaining portion has no counterpart.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.6.7.3-2",
+ "rule-digest": "be7605a5d1a7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Procedure-name-2 is the name of a paragraph or section in the Procedure Division.\"; 2023: \"No 2023 clause holds the ALTER statement; the matching wording appears only under PERFORM (14.9.28.3).\". No 2023 clause holds the ALTER feature. The only similar wording is for PERFORM, a different statement, so the ALTER statement and this rule are dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

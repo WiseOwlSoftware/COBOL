@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XVI.3.3.4-1",
+ "rule-digest": "fad7243e9055",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Totally within non-independent segments, or\"; 2023: \"No Segmentation module or segment concept; no candidate comes from a clause holding the feature\". The Segmentation module (segments, independent and non-independent) is absent from 2023. No candidate addresses segment-based restrictions on program flow.",
+  "source": "audit-1985/state-route"
+ }
+}

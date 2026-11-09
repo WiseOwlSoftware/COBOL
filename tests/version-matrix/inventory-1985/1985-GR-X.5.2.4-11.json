@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-11",
+ "rule-digest": "7b430483b332",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.4.4-3"
+  ],
+  "bridge": true,
+  "reason": "2023 still makes the USING argument values available to the called program when control passes to it. The no-exception condition only covers cases where no program is called, which 1985 also never reached.",
+  "source": "audit-1985/state-route"
+ }
+}

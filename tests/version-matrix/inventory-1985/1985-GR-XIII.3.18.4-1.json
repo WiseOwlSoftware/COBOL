@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.18.4-1",
+ "rule-digest": "e7e0a474b5d0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.53.4-3",
+   "GR-13.18.53.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both execute the SOURCE implicit MOVE just before the group's lines are printed. Unprintable-item 'no action' is unobservable apart from SUM, which is excepted. COMPUTE is an extension.",
+  "source": "audit-1985/state-route"
+ }
+}

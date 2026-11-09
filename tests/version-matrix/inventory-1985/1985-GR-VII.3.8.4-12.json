@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-12",
+ "rule-digest": "1a3e95365ba9",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.43.4-16"
+  ],
+  "bridge": true,
+  "reason": "1985: \"b. If data-name-1 is not specified, by the value that would have been moved into the data item referenced by data-name-1\"; 2023: \"If the number of bytes determined as above is zero, the record is a zero-length item.\". Conditions a and b match; bytes vs character positions is terminology. 2023 adds a case 1985 lacks: a size of zero makes the sending record a zero-length item.",
+  "source": "audit-1985/state-route"
+ }
+}

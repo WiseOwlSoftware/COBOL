@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.1-2",
+ "rule-digest": "72611a97ff33",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.2.3-8",
+   "GR-14.8.2.3.2-L2.1"
+  ],
+  "bridge": true,
+  "reason": "Both share storage for by-reference arguments. 1985 had no prototypes or NESTED phrase, so its calls fall under 2023's same-length rule; groups may be ruled outside the candidates.",
+  "source": "audit-1985/state-route"
+ }
+}

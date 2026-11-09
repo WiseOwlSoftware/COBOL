@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XV.3.2.3-9",
+ "rule-digest": "09a301de3acb",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Identifier-1 must not reference any data item defined in the Report Section except sum counters.\"; 2023: \"No USE FOR DEBUGGING in 2023; the USE rules cover only exceptions, BEFORE REPORTING and objects, not debugging\". No candidate comes from a clause holding the Debug feature. The 2023 USE rules have no FOR DEBUGGING format, and identifier-1 there is a report group for USE BEFORE REPORTING.",
+  "source": "audit-1985/state-route"
+ }
+}

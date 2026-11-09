@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-FMT-XIII.4.5.2",
+ "rule-digest": "a1cf84223173",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.27.2",
+   "SR-14.9.27.3-1",
+   "SR-14.9.27.3-6"
+  ],
+  "bridge": true,
+  "reason": "1985: \"OPEN { OUTPUT {file-name-1 [WITH NO REWIND]} … | EXTEND {file-name-2} … } …\"; 2023: \"{ open-mode } [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …\". Report files stay limited to OUTPUT [NO REWIND] or EXTEND (SR-1, SR-6), but the 2023 format adds sharing-phrase and retry-phrase, with no rule barring them for report files.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VII.2.12.3-1",
+ "rule-digest": "c5cfe66a8f4c",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"File-name-1 must be a sequentially organized file.\"; 2023: \"No RERUN clause among the candidates; none covers the RERUN feature or this requirement.\". The rule restricts the RERUN clause. No 2023 candidate covers RERUN, and the hits are file-name-1 rules for other statements and clauses, so 2023 lacks the feature here.",
+  "source": "audit-1985/state-route"
+ }
+}

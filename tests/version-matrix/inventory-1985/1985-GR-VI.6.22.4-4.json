@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.22.4-4",
+ "rule-digest": "60f6f4c713bf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.37.4-9",
+   "GR-14.9.37.4-1"
+  ],
+  "bridge": true,
+  "reason": "Same nonserial search, index kept within table bounds, undefined final index on failure, AT END or end of SEARCH. EC-RANGE-SEARCH-NO-MATCH acts only when checking is enabled, which 1985 cannot do.",
+  "source": "audit-1985/state-route"
+ }
+}

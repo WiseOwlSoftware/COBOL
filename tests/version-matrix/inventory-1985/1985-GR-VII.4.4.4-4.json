@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-4",
+ "rule-digest": "42f996ce9713",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-21",
+   "GR-14.9.30.4-24"
+  ],
+  "bridge": true,
+  "reason": "Same sequential-file logic: compare record numbers, select after OPEN/READ, at end if absent optional file or no record. PREVIOUS and START are new features; 1985 programs behave alike.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-11",
+ "rule-digest": "bb70572a740c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-17"
+  ],
+  "bridge": true,
+  "reason": "GR17 restates the rule: successor relationship set by WRITE order at creation, unchanged except when records are added to the end. Level-2 box and 'physical file' are no difference.",
+  "source": "audit-1985/state-route"
+ }
+}

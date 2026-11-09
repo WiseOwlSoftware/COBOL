@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-1",
+ "rule-digest": "cdebd9b7987b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-7"
+  ],
+  "bridge": true,
+  "reason": "Short file-name-2 records are still space filled on the right on release to fixed-length file-name-1. National and SELECT WHEN cases apply only to 2023 features; 1985 programs unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

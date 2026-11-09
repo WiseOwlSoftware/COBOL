@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-GR-VI.6.16.4-1",
+ "rule-digest": "f8abb3d1997e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.5.3.2-1",
+   "GR-14.5.3.2-2",
+   "GR-14.5.3.3-3",
+   "GR-14.5.3.3-4",
+   "SR-14.9.19.3-2"
+  ],
+  "bridge": true,
+  "reason": "2023 ends an IF by a matching END-IF, a separator period, or a containing IF's next phrase (ELSE). The broader 2023 cases match the Scope of Statements rules the 1985 text cross-references.",
+  "source": "audit-1985/state-route"
+ }
+}

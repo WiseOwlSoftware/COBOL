@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.6-1",
+ "rule-digest": "0bc4fa5e8a9d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both make LINE-COUNTER reference a counter provided automatically for each report. 1985 refers its attributes to other pages, so the 2023 unsigned-integer wording adds no new requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

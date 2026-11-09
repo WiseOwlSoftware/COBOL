@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-24",
+ "rule-digest": "055addc9002f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-20"
+  ],
+  "bridge": true,
+  "reason": "GR-20 restates the 1985 rule: one OPEN per file-name, in the order written. The RESUME and sharing/retry additions concern only features new in 2023, so 1985 programs behave alike.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.8.3-7",
+ "rule-digest": "e48340c10f2c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.39.3-6"
+  ],
+  "bridge": true,
+  "reason": "The 2023 ascending order integer-3..integer-7 then integer-1, with equality allowed, makes the page limit >= FOOTING (1985 integer-5, 2023 integer-7). Other limits are separate rules.",
+  "source": "audit-1985/state-route"
+ }
+}

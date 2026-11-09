@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VI.5.8.2",
+ "rule-digest": "70040e982f1a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.38.2"
+  ],
+  "bridge": true,
+  "reason": "2023 Formats 1 and 2 match 1985 word for word: fixed and DEPENDING ON forms, repeatable KEY phrase, INDEXED BY. The level-2 box is no difference; Formats 3/4 are new additions.",
+  "source": "audit-1985/state-route"
+ }
+}

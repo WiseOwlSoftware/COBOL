@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XV.3.2.3-12",
+ "rule-digest": "d552bdecfba1",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Identifier-1 must not be reference modified.\"; 2023: \"No USE FOR DEBUGGING: the 2023 USE statement rules cover only exceptions, EC/EO and USE BEFORE REPORTING.\". No 2023 clause holds the Debug feature. The 2023 USE rules have no FOR DEBUGGING form; SR-9's identifier-1 is a report group, another subject. The restriction goes with the feature.",
+  "source": "audit-1985/state-route"
+ }
+}

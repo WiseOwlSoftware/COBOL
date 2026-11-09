@@ -1,0 +1,21 @@
+{
+ "rule-id": "1985-GR-VII.1.3.5-L2.4",
+ "rule-digest": "808d333806de",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.7-1",
+   "GR-9.1.13.7-2",
+   "GR-9.1.13.7-3",
+   "GR-9.1.13.7-4",
+   "GR-9.1.13.7-6",
+   "GR-9.1.13.7-7",
+   "GR-9.1.13.7-8",
+   "GR-9.1.13.7-9"
+  ],
+  "bridge": true,
+  "reason": "1985: \"1) ...allowed by the RECORD IS VARYING clause of the associated file-name, or 2) ...not the same size as the record being replaced.\"; 2023: \"c) ...allowed by the fixed-or-variable-length format of the RECORD clause when the implementor has specified that variable-length records\". Statuses 41-49 carry over, but status 44 gains cases c) (RECORD clause variable format) and d) (line sequential rewrite after 06), which make more I-O statements fail.",
+  "source": "audit-1985/state-route"
+ }
+}

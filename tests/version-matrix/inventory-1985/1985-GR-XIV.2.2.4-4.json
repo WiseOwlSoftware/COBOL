@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.2.2.4-4",
+ "rule-digest": "c46e52f562d6",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"contain symbolic names designating queues, sub-queues, ... , respectively ... previously defined to the message control system (MCS)\"; 2023: \"No 2023 clause holds the communication description entry; no candidate covers queues or the MCS\". The 2023 standard has no clause for the communication description entry, and no candidate deals with queues or the MCS. The communication feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

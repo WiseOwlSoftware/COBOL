@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.1.4-1",
+ "rule-digest": "38d5cdc0740f",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The ACCEPT MESSAGE COUNT statement causes the message count data item specified for cd-name-1 to be updated\"; 2023: \"No candidate covers ACCEPT MESSAGE COUNT or cd-name queues; the 2023 ACCEPT rules cover only device, date/time and screen forms\". The Communication module's ACCEPT MESSAGE COUNT is absent. No candidate holds its feature, and the 2023 ACCEPT candidates cover only device, date/time and screen ACCEPT.",
+  "source": "audit-1985/state-route"
+ }
+}

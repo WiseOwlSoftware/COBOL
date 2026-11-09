@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-IX.2.3.4-8",
+ "rule-digest": "e01f1bd9a07e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.5.3-1",
+   "GR-12.4.5.6.4-1",
+   "GR-12.4.5.10.3-5",
+   "GR-12.4.5.12.4-1"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule only says these four clauses are described separately. 2023 likewise gives ACCESS MODE, ALTERNATE RECORD KEY, ORGANIZATION INDEXED and RECORD KEY their own subclauses.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.11.3-1",
+ "rule-digest": "fb01b5b1721e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "RV-15.21.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"13-14 Two numeric digits of the seconds past the minute, in the range 00 through 59.\"; 2023: \"00 through nm, where nm is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect.\". Same layout, but under LEAP-SECOND ON the seconds may exceed 59, up to an implementor-defined value. GMT versus UTC and 'reported' versus 'local' time are wording only.",
+  "source": "audit-1985/state-route"
+ }
+}

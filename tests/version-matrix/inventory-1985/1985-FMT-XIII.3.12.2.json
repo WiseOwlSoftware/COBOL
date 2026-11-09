@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-XIII.3.12.2",
+ "rule-digest": "af1d7467d318",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.20.2"
+  ],
+  "bridge": true,
+  "reason": "The 2023 entry-name clause Format 1 (data-name) is data-name-1, the same as the 1985 data-name clause format. Screen-name and FILLER are separate formats, not changes to this one.",
+  "source": "audit-1985/state-route"
+ }
+}

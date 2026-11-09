@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-VII.1.3.5-L2.1",
+ "rule-digest": "fa7b145a1699",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.2-1",
+   "GR-9.1.13.2-3",
+   "GR-9.1.13.2-4",
+   "GR-9.1.13.2-6"
+  ],
+  "bridge": true,
+  "reason": "Statuses 00, 04, 05 (OPEN of an absent optional file, created for I-O/extend) and 07 match in substance. The added 05 case covers DELETE FILE, a statement new since 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

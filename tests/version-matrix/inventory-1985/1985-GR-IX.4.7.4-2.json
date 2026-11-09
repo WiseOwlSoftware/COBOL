@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-2",
+ "rule-digest": "77e8c5fbbd95",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.41.4-15"
+  ],
+  "bridge": true,
+  "reason": "Both editions imply EQUAL when an indexed START omits the KEY phrase. The 2023 prime-key wording restates which key is used, and record-key-name is a separate split-key feature.",
+  "source": "audit-1985/state-route"
+ }
+}

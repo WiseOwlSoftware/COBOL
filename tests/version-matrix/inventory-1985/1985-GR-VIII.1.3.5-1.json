@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.5-1",
+ "rule-digest": "1ac46a6d90fa",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.14-1"
+  ],
+  "bridge": true,
+  "reason": "Both set the I-O status to a value indicating the invalid key condition. The added 'if enabled' EC-I-O-INVALID-KEY is new, separately enabled machinery; the status rule is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

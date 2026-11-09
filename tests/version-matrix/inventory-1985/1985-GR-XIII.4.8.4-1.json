@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.8.4-1",
+ "rule-digest": "0af3d17d273e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-4",
+   "GR-14.9.49.4-3"
+  ],
+  "bridge": true,
+  "reason": "2023 picks the declarative of the source element with the statement, else GLOBAL ones in containers in the same compilation unit; else none runs. Level 1 has no GLOBAL, so same effect.",
+  "source": "audit-1985/state-route"
+ }
+}

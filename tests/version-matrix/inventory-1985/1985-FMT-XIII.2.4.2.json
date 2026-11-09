@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-XIII.2.4.2",
+ "rule-digest": "1c3cf819b90f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.6.2",
+   "FMT-12.4.6.4.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"[ MULTIPLE FILE TAPE CONTAINS { file-name-3 [ POSITION integer-1 ] } … ] …\"; 2023: \"I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ]\". The I-O-CONTROL paragraph and SAME AREA FOR are kept, but the 2023 format has no MULTIPLE FILE TAPE clause, so programs using it are no longer accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

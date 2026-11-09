@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-13",
+ "rule-digest": "ed5730f158ca",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.2.3-8",
+   "GR-14.8.2.3.2-L2.1"
+  ],
+  "bridge": true,
+  "reason": "Shared storage for by-reference is kept. Equal length is kept for plain CALLs with no prototype and no NESTED, which covers every 1985 program; other cases come only from features new in 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

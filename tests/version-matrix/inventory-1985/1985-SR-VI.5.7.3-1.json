@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.7.3-1",
+ "rule-digest": "7f484576824b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.33.3-1"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps the 1985 requirement for data description entries. It adds only screen description entries, a feature 1985 lacks, so no 1985 program's acceptance changes.",
+  "source": "audit-1985/state-route"
+ }
+}

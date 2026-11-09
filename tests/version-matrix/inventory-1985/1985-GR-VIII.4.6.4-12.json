@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-12",
+ "rule-digest": "e3d26975d3a5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-20",
+   "GR-14.9.35.4-14",
+   "GR-9.1.13.7-4"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps the RECORD IS VARYING size limits on REWRITE: unsuccessful, no update, record area unaffected, status 44. Literal-1 and FORMAT only extend to new features; bytes is wording.",
+  "source": "audit-1985/state-route"
+ }
+}

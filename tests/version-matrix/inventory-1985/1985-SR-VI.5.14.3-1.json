@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.5.14.3-1",
+ "rule-digest": "d779b585a5aa",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.60.3-1"
+  ],
+  "bridge": true,
+  "reason": "Both exclude USAGE from entries with level-number 66 or 88. The 1985 box marks only level-2 content, which the instructions treat as no difference; the wording change is not substantive.",
+  "source": "audit-1985/state-route"
+ }
+}

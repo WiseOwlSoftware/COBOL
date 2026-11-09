@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-4",
+ "rule-digest": "990067189ee7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.12.4-6",
+   "GR-14.9.12.4-2",
+   "GR-14.9.12.4-7"
+  ],
+  "bridge": true,
+  "reason": "Both divide identifier-2/literal-2 by identifier-1/literal-1, store in identifier-3, then store the remainder in identifier-4, identified after the quotient. The size-error proviso is a separate rule.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.2.4-4",
+ "rule-digest": "37ed63b0ca80",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-6"
+  ],
+  "bridge": true,
+  "reason": "Same rule for an absent optional input file: no end-of-file processing, file position indicator unchanged. The added unit and volume-pointer words never apply to indexed files.",
+  "source": "audit-1985/state-route"
+ }
+}

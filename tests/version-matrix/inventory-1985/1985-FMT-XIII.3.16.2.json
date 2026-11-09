@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-XIII.3.16.2",
+ "rule-digest": "6e3123584a90",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.18.37.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"NEXT GROUP IS { integer-1 | PLUS integer-2 | NEXT PAGE }\"; 2023: \"NEXT GROUP IS { integer-1 | {PLUS|+} integer-2 | NEXT PAGE [ WITH RESET ] }\". Same three alternatives, but 2023 adds + as a synonym for PLUS and an optional WITH RESET after NEXT PAGE, so it accepts programs the 1985 format refuses.",
+  "source": "audit-1985/state-route"
+ }
+}

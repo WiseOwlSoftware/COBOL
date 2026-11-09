@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-2",
+ "rule-digest": "876d47f0cd6a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-4"
+  ],
+  "bridge": true,
+  "reason": "Same treatment of alphabetic, alphanumeric, edited, unsigned and signed numeric (sign retained). Only national/boolean cases are added, and those types do not exist in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

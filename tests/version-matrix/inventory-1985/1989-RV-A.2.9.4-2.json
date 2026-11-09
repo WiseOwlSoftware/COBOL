@@ -1,0 +1,15 @@
+{
+ "rule-id": "1989-RV-A.2.9.4-2",
+ "rule-digest": "c3d5a1f113b6",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "RV-15.15.4-1",
+   "RV-15.15.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"If the current program collating sequence was not specified by an ALPHABET clause, the implementor determines the value.\"; 2023: \"The returned value shall be the character in the alphanumeric program collating sequence having the ordinal position specified by argument-1.\". 1985 lets the implementor determine the value when no ALPHABET clause applies. 2023 always fixes it by ordinal position; only the choice among characters sharing a position is implementor-defined.",
+  "source": "audit-1985/state-route"
+ }
+}

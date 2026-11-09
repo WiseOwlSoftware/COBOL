@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.2.4.1-1",
+ "rule-digest": "a3098a7ca0bb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.6.2.3.2-L2.2",
+   "GR-13.18.63.4-4"
+  ],
+  "bridge": true,
+  "reason": "Internal working-storage data is still initialized in the initial state: VALUE items get their value, others are undefined. The Communication Section is a feature 2023 deleted as a whole.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.1.3.8.1-3",
+ "rule-digest": "57ae65708640",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.6.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"may be referenced by statements included in any other program in the run unit, except programs it directly or indirectly contains\"; 2023: \"that program-name may be referenced by statements included in any source element in the run unit.\". Both cover separately compiled (outermost) program-names. 2023 drops the exception, so programs it contains, and the program itself, may now reference its name.",
+  "source": "audit-1985/state-route"
+ }
+}

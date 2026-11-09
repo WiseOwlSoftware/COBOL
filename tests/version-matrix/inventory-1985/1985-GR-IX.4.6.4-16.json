@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-16",
+ "rule-digest": "c64b5c665bf6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-25"
+  ],
+  "bridge": true,
+  "reason": "GR-14.9.35.4-25 a-c restate the three 1985 cases: sequential prime key mismatch, random/dynamic record absent, duplicate non-duplicate alternate key. Status codes only add detail.",
+  "source": "audit-1985/state-route"
+ }
+}

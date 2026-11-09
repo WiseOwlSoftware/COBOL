@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-8",
+ "rule-digest": "91be89774624",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.57.4-6",
+   "GR-14.9.46.4-3",
+   "GR-14.9.46.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both: report footing printed once, last in the report, during TERMINATE if a GENERATE ran. The 1985 rule defers to TERMINATE, which counts the INITIATE-TERMINATE interval.",
+  "source": "audit-1985/state-route"
+ }
+}

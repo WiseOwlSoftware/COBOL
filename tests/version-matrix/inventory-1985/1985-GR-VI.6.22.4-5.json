@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.22.4-5",
+ "rule-digest": "4fde23ab596f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.37.4-1"
+  ],
+  "bridge": true,
+  "reason": "Both send control to the end of SEARCH after imperative-statement-1/2. 2023's broader explicit-transfer wording covers GO TO and statements like STOP RUN that branch by their own rules anyway.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1989-AR-A.2.29.3-2",
+ "rule-digest": "3df3743e649e",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "AR-15.67.3-3",
+   "AR-15.67.3-4"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The total number of digits in argument-1 must not exceed 18.\"; 2023: \"If native arithmetic is in effect, the total number of digits in argument-1 shall not exceed 31.\". NUMVAL's digit limit rose from 18 to 31, 34 or 35 by arithmetic mode (native, standard-decimal, standard-binary), so arguments of 19 or more digits are now allowed.",
+  "source": "audit-1985/state-route"
+ }
+}

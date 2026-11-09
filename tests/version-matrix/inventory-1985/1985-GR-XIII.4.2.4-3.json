@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.4.2.4-3",
+ "rule-digest": "2115c79c4c98",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"CLOSE WITH LOCK | C,E | C,E,G | A,C,E,G ... E. File Lock The report file is locked and cannot be opened again\"; 2023: \"Table 14 rows: CLOSE, CLOSE WITH NO REWIND, CLOSE UNIT, CLOSE UNIT FOR REMOVAL (no WITH LOCK row); c) Close file Closing operations specified\". Same CLOSE category/format table, but 2023 drops the WITH LOCK row (E), the label processing in C and F, and adds I-O status '07' for non-unit media.",
+  "source": "audit-1985/state-route"
+ }
+}

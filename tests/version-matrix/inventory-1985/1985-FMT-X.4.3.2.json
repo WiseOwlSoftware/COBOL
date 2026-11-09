@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-FMT-X.4.3.2",
+ "rule-digest": "b92841b82b53",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.16.2",
+   "FMT-13.18.22.2",
+   "FMT-13.18.27.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"01 {data-name-1|FILLER} ... [ IS EXTERNAL ] [ IS GLOBAL ]\"; 2023: \"level-number [ entry-name-clause ] ... [ IS EXTERNAL [ AS literal-1 ] ] [ IS GLOBAL ]\". 2023 covers the same entry with EXTERNAL and GLOBAL, but makes the entry name optional, adds EXTERNAL AS literal-1 and many more clauses and usages, so more programs are accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.5.4.4-1",
+ "rule-digest": "3490258c78b9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.14.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both rules make EXIT PROGRAM outside a called program continue like CONTINUE, i.e. with the next statement. The RAISING phrase is new syntax with no 1985 program affected; 'runtime element' is terminology.",
+  "source": "audit-1985/state-route"
+ }
+}

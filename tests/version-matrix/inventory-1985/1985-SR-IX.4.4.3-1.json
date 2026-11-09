@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IX.4.4.3-1",
+ "rule-digest": "60fa72b84a00",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.27.3-2"
+  ],
+  "bridge": true,
+  "reason": "2023 still allows EXTEND only for sequential access mode. The added LINAGE condition is a sequential-file rule, presumed moot for indexed files; the level-2 box is no difference.",
+  "source": "audit-1985/state-route"
+ }
+}

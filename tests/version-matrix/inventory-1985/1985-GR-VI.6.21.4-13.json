@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-13",
+ "rule-digest": "1e24fad40719",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.28.3-12",
+   "SR-14.9.28.3-13",
+   "GR-14.9.28.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 confines both procedure-names to the PERFORM's own source element. Other programs' statements enter the range only via transfer of control (CALL). Declaratives are a separate same-program matter.",
+  "source": "audit-1985/state-route"
+ }
+}

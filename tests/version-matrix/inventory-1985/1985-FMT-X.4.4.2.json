@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-FMT-X.4.4.2",
+ "rule-digest": "ba4f6feeeef5",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.14.2",
+   "FMT-13.18.39.2",
+   "GR-13.18.39.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"PAGE [LIMIT IS] integer-1 [LINE] [HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]\"; 2023: \"integer-2 [COLS|COLUMNS] ... LAST {CONTROL HEADING|CH} IS integer-5; If integer-1 is not specified, the report consists of a single page\". RD with IS GLOBAL is kept, but the PAGE clause now accepts more programs: a page width (COLS), LAST CONTROL HEADING, and omission of the page limit integer-1.",
+  "source": "audit-1985/state-route"
+ }
+}

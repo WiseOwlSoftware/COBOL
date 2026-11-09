@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-4",
+ "rule-digest": "be579e54610f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.16.4-6",
+   "GR-13.18.57.4-6"
+  ],
+  "bridge": true,
+  "reason": "2023 still prints any page footing, advances the page, then prints any page heading when a body group fails the page fit test. CODE and WITH RESET steps are other features, not this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

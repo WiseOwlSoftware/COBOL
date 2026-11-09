@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.24.4-2",
+ "rule-digest": "9c54d6875d0d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.42.4-1",
+   "GR-14.6.11-2"
+  ],
+  "bridge": true,
+  "reason": "STOP performs normal run unit termination: an implicit CLOSE without phrases for each open file, with no exception procedures run. 'Even when an error occurs' restates 'for each file'.",
+  "source": "audit-1985/state-route"
+ }
+}

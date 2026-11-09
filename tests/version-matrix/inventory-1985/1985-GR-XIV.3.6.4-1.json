@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-1",
+ "rule-digest": "c99e88f76646",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When a receiving communication device (printer, display screen, card punch, etc.) is oriented to a fixed line size\"; 2023: \"SEND now sends a message to a message server run unit; no communication device or line-size rules remain\". The 1985 Communication module SEND to devices is gone. The 2023 SEND is a message-server statement with no line-size rules, and DISPLAY/COLUMN candidates cover other features.",
+  "source": "audit-1985/state-route"
+ }
+}

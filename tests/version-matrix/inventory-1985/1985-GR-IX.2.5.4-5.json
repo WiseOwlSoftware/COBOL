@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.2.5.4-5",
+ "rule-digest": "026f1a6eb86e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.5.3-1"
+  ],
+  "bridge": true,
+  "reason": "Item k) keeps the same key description, relative location, number of alternate keys and DUPLICATES. SUPPRESS WHEN and data-name-3 touch only post-1985 features; 1985 programs fare the same.",
+  "source": "audit-1985/state-route"
+ }
+}

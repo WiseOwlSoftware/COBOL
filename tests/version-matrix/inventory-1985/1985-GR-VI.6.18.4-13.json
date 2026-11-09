@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-13",
+ "rule-digest": "68faa326349b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-17"
+  ],
+  "bridge": true,
+  "reason": "1985: \"the leftmost occurrence of literal-1 matched within the content of the data item referenced by identifier-1 is replaced by literal-3\"; 2023: \"the leftmost occurrence of literal-1, or, if BACKWARD is specified, the rightmost occurrence of literal-1 matched\". Replacement rules a-c match in substance (6e/8e is renumbering only). 2023 adds a BACKWARD case: FIRST replaces the rightmost occurrence, and LEADING refers to the first occurrence encountered.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-7",
+ "rule-digest": "07aaecd1025b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-1",
+   "GR-14.9.35.4-2"
+  ],
+  "bridge": true,
+  "reason": "REWRITE still updates the I-O status of the file of record-name-1, now called the rewrite file connector. The file-name-1 case only covers the new REWRITE FILE form; 1985 programs act the same.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VII.3.4.4-1",
+ "rule-digest": "245181c7cc40",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.13.4-2",
+   "GR-13.18.13.4-1",
+   "GR-13.18.13.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: \"the character set used to represent the data on the external media is the one referenced by alphabet-name-1\"; 2023: \"the coded character set used to represent alphanumeric data ... is ... alphabet-name-1; ... national data ... alphabet-name-2\". Same OPEN-time and conversion rule, but 2023 limits alphabet-name-1 to usage display data, adds alphabet-name-2 for national data, and leaves other usages unconverted.",
+  "source": "audit-1985/state-route"
+ }
+}

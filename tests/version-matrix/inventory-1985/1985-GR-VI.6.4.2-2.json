@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.4.2-2",
+ "rule-digest": "9770456771a2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.7.5-2",
+   "GR-14.7.5-L2.1",
+   "GR-14.7.7-4"
+  ],
+  "bridge": true,
+  "reason": "2023 still makes a zero divisor in any divide operation or DIVIDE statement a size error. If raised during evaluation, no resultant is changed, so the operation stops. The EC name is general handling.",
+  "source": "audit-1985/state-route"
+ }
+}

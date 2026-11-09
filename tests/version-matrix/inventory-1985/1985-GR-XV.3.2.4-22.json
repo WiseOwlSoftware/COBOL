@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XV.3.2.4-22",
+ "rule-digest": "ff73fd2b6c77",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"DEBUG-CONTENTS contains 'FALL THROUGH'.\"; 2023: \"No USE FOR DEBUGGING or DEBUG-LINE/DEBUG-NAME/DEBUG-CONTENTS in any candidate; the Debug module is absent\". No candidate covers debugging sections or the DEBUG-ITEM fields; the 2023 USE statement rules cover only exception and report declaratives, so the feature is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

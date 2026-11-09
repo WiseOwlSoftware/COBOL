@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-13",
+ "rule-digest": "e8acba7d019b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.48.4-11"
+  ],
+  "bridge": true,
+  "reason": "Steps a–g match in substance. The national-item case covers a category 1985 lacks, and the size wording only clarifies, so 1985 programs run with the same effect.",
+  "source": "audit-1985/state-route"
+ }
+}

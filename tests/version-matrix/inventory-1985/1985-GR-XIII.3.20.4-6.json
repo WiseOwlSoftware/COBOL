@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-6",
+ "rule-digest": "9c5f19e99f0b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.57.4-6",
+   "GR-14.9.46.4-3",
+   "GR-14.9.16.4-5"
+  ],
+  "bridge": true,
+  "reason": "2023 prints control footings from lowest up to the break level on a GENERATE break, and all lowest to highest (FINAL last) at TERMINATE; 1985's cross-reference implies the same interval.",
+  "source": "audit-1985/state-route"
+ }
+}

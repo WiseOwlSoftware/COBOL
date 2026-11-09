@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-1",
+ "rule-digest": "bcb6b2c7fdee",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The configuration definition contains specific information concerning the memory size. The implementor defines what is to be done if the subset\"; 2023: \"Computer-name-1 may provide a means for identifying equipment configuration, in which case ... specified by each implementor. (nothing more)\". The computer-name configuration sentence is kept. The memory-size content and the implementor-defined action for a subset below the minimum configuration are no longer stated in 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

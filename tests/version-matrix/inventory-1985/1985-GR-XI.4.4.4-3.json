@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-3",
+ "rule-digest": "e009987363fa",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-3"
+  ],
+  "bridge": true,
+  "reason": "Items a and b restate the 1985 file-record duplicate ordering unchanged. Item c covers table sorts, a 2023 feature with no 1985 counterpart, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

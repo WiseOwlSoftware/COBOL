@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-IV.4.2.2.2.1.1",
+ "rule-digest": "82b9748cdb33",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-8.3.3.2.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"\"{character-1} …   \"\"; 2023: \"╭ \" [character-1] … \" ╮ ┤ ├ ╰ ' [character-1] … ' ╯\". 1985 braces require at least one character between quotation marks. 2023 brackets make character-1 optional (zero-length literal) and add an apostrophe-delimited form.",
+  "source": "audit-1985/state-route"
+ }
+}

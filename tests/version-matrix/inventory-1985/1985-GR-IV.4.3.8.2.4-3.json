@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.2.4-3",
+ "rule-digest": "f92fced27f15",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.38.4-2",
+   "GR-13.18.63.4-4"
+  ],
+  "bridge": true,
+  "reason": "2023 still lets only PERFORM VARYING, SEARCH and SET modify an index. Indexes start undefined, so using one as a subscript before it is set has undefined results, as under the 1985 'must'.",
+  "source": "audit-1985/state-route"
+ }
+}

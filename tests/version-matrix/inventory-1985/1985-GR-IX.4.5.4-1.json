@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-1",
+ "rule-digest": "26af57f7b5c4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-2",
+   "GR-9.1.13.7-7"
+  ],
+  "bridge": true,
+  "reason": "Both require file-name-1 to be open in input or I-O mode when READ executes. The '47' consequence belongs to the I-O status rules, not to this requirement, which is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

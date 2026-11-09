@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-X.4.2.3-1",
+ "rule-digest": "b1c2ed87b903",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.4.5.3-5"
+  ],
+  "bridge": true,
+  "reason": "Both make Format 1 the sequential-file FD. The 1985 clause-availability sentence only points to Sequential I-O module levels, a subsetting matter like the level-2 box.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.2.13.4-2",
+ "rule-digest": "3a8cf856d000",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.4.6.4.4-2"
+  ],
+  "bridge": true,
+  "reason": "Same shared record area, all files may be open together, record of output files and last-read input file, left-aligned redefinition. The added exception restates the file-area one-open limit.",
+  "source": "audit-1985/state-route"
+ }
+}

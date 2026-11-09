@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XVI.3.3.3-L2.1",
+ "rule-digest": "fad7243e9055",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Totally within non-independent segments, or\"; 2023: \"No 2023 clause holds the Segmentation module; no candidate addresses segments or program-flow restrictions\". No 2023 clause holds the Segmentation feature, and no candidate mentions segments. The 2023 standard lacks non-independent segments, so this program-flow restriction is gone.",
+  "source": "audit-1985/state-route"
+ }
+}

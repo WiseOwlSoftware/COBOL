@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XVI.2.3.4-3",
+ "rule-digest": "2d77a0aefaee",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the SEGMENT-LIMIT clause is omitted, all segments having segment-numbers from 0 through 49 are considered as permanent\"; 2023: \"No 2023 clause holds the Segmentation feature; no candidate covers SEGMENT-LIMIT or segments\". No 2023 clause holds the Segmentation module or SEGMENT-LIMIT, and the wording candidates are unrelated, so 2023 lacks the feature and this default rule.",
+  "source": "audit-1985/state-route"
+ }
+}

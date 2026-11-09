@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.2.4.3-1",
+ "rule-digest": "f2bc3914dec9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-10.7.3-2"
+  ],
+  "bridge": true,
+  "reason": "In 2023, END PROGRAM's program-name-1 is a program-name, a kind of user-defined word (8.3.2.2.21). It must equal the PROGRAM-ID name, so the same names are accepted or refused.",
+  "source": "audit-1985/state-route"
+ }
+}

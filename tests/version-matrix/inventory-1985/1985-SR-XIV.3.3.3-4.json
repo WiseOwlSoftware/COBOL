@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.3.3-4",
+ "rule-digest": "e02c4e2193ce",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric.\"; 2023: \"No ENABLE statement; the Communication module is not in 2023 and no candidate covers ENABLE.\". ENABLE is a Communication module statement. No 2023 candidate covers it. The candidates are rules of CALL, CANCEL, SEND (message), COPY and other statements.",
+  "source": "audit-1985/state-route"
+ }
+}

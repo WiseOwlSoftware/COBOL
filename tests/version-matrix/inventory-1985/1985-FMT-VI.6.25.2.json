@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-VI.6.25.2",
+ "rule-digest": "636246f45366",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.43.2",
+   "SR-14.9.43.3-9"
+  ],
+  "bridge": true,
+  "reason": "1985: \"{identifier-1|literal-1} … DELIMITED BY {identifier-2|literal-2|SIZE} … [ON OVERFLOW …] [NOT ON OVERFLOW …]\"; 2023: \"The DELIMITED phrase may be omitted only immediately preceding the INTO phrase. If it is omitted, DELIMITED BY SIZE is implied.\". 1985 requires DELIMITED BY in every group. 2023 lets the one before INTO be omitted, implying SIZE. Its choice indicators also allow ON OVERFLOW and NOT ON OVERFLOW in either order.",
+  "source": "audit-1985/state-route"
+ }
+}

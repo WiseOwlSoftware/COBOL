@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-11",
+ "rule-digest": "9fe0468d84d4",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.24.4-12"
+  ],
+  "bridge": true,
+  "reason": "1985: \"At the start of execution of the MERGE statement, the file referenced by file-name-4 must not be in the open mode.\"; 2023: \"If the file is in an open mode, the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the execution of the MERGE statement terminates.\". 2023 defines the open-mode result (exception, MERGE terminates), opens WITH SHARING WITH NO OTHER, and ends MERGE on OPEN/WRITE exceptions unless a USE procedure completes.",
+  "source": "audit-1985/state-route"
+ }
+}

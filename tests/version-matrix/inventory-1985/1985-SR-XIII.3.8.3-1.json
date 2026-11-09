@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.8.3-1",
+ "rule-digest": "a28269445522",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.39.3-4"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps any-order freedom for HEADING, FIRST DETAIL, LAST DETAIL and FOOTING. LAST CONTROL HEADING is a new phrase; adding it to the list changes nothing for 1985 PAGE clauses.",
+  "source": "audit-1985/state-route"
+ }
+}

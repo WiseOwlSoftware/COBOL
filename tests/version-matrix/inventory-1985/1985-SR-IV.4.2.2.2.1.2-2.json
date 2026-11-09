@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.1.2-2",
+ "rule-digest": "b0de0a0cd086",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.3.2.3-3"
+  ],
+  "bridge": true,
+  "reason": "In a quote-delimited literal two contiguous quotation marks still stand for one. Apostrophe delimiters are a new feature from 8.3.5, not a change to this doubling rule.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VIII.4.5.3-2",
+ "rule-digest": "26afad2a3e91",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-8"
+  ],
+  "bridge": true,
+  "reason": "With sequential access, 2023 implies NEXT, so every READ is the sequential format and random-format phrases such as INVALID KEY are refused. PREVIOUS is sequential-format content, not a format change.",
+  "source": "audit-1985/state-route"
+ }
+}

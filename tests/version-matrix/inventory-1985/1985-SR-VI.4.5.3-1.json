@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-1",
+ "rule-digest": "4c8a880ef50c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-5"
+  ],
+  "bridge": true,
+  "reason": "Mnemonic-name-2 and -3 belong to feature and device names, so mnemonic-name-1 is the switch mnemonic (SET ties it to an external switch); SET-only use is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

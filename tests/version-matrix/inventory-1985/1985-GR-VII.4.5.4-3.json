@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-3",
+ "rule-digest": "2be2525cf590",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-6"
+  ],
+  "bridge": true,
+  "reason": "Same rule: the record leaves the record area unless its file is in SAME RECORD AREA, then it is shared. file-name-1 only covers the new REWRITE FILE format; 1985 programs act the same.",
+  "source": "audit-1985/state-route"
+ }
+}

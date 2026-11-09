@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.5-4",
+ "rule-digest": "36ccea83e012",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both set PAGE-COUNTER of the report to 1 when INITIATE executes. The 2023 increment and RESET wording covers other events and does not alter this requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-6",
+ "rule-digest": "c42bf2ae607f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-10"
+  ],
+  "bridge": true,
+  "reason": "With the clause absent, both default to the native collating sequence. The added national sequence and the containment condition only cover nesting and national features; the alphanumeric default is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

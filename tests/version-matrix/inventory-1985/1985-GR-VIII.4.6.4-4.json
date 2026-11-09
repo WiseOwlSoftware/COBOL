@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-4",
+ "rule-digest": "62dddde647f3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-6"
+  ],
+  "bridge": true,
+  "reason": "Same rule: the released record leaves the record area unless the file is in SAME RECORD AREA, then is shared with those files. file-name-1 only covers the new FILE format; the level-2 box is no difference.",
+  "source": "audit-1985/state-route"
+ }
+}

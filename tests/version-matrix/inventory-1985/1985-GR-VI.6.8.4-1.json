@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.8.4-1",
+ "rule-digest": "35f7e5abe83e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.8.4-1",
+   "GR-14.9.8.4-2"
+  ],
+  "bridge": true,
+  "reason": "Under native arithmetic, which 1985 programs use, a lone fixed-point identifier or literal gives its exact value, then stored. Other cases involve 2023-only arithmetic modes/types.",
+  "source": "audit-1985/state-route"
+ }
+}

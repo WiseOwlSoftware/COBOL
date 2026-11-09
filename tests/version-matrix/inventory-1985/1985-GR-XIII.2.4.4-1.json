@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIII.2.4.4-1",
+ "rule-digest": "f58028dfc647",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The MULTIPLE FILE TAPE clause is presented on page VII-16 in the Sequential I-O module.\"; 2023: \"FMT-12.4.6.2: I-O-CONTROL . [ [ apply-commit-clause] . ] [ [ { same-clause }… ]. ] — no MULTIPLE FILE TAPE clause\". The 2023 I-O-CONTROL format allows only the APPLY COMMIT and SAME clauses, so the MULTIPLE FILE TAPE clause this rule points to is no longer part of the standard.",
+  "source": "audit-1985/state-route"
+ }
+}

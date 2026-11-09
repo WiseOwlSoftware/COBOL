@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-7",
+ "rule-digest": "0f987780057c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-11"
+  ],
+  "bridge": true,
+  "reason": "The program collating sequence still governs alphanumeric comparisons in relation conditions, condition-name conditions and CONTROL clauses. National and locale cases are additions only.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1993-GR-VIII.4.4.4-19",
+ "rule-digest": "e4dfdd8a9184",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-25"
+  ],
+  "bridge": true,
+  "reason": "Same ordered actions: file not affected, I-O status set, then applicable USE procedure run. The added steps b and c apply only to features 1985 lacks (EC-I-O checking, exception-checking PERFORM).",
+  "source": "audit-1985/state-route"
+ }
+}

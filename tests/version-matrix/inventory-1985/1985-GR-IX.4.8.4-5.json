@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.8.4-5",
+ "rule-digest": "635a5d323660",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-6"
+  ],
+  "bridge": true,
+  "reason": "Rules a-e on file-name-1, INPUT, OUTPUT, I-O and EXTEND match word for word. The added PERFORM WHEN precondition covers only new 2023 syntax, so 1985 programs behave the same.",
+  "source": "audit-1985/state-route"
+ }
+}

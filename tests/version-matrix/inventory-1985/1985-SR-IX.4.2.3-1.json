@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IX.4.2.3-1",
+ "rule-digest": "bd6653c35fa9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-10"
+  ],
+  "bridge": true,
+  "reason": "2023 sets no same-organization/access limit on CLOSE. GR-14.9.6.4-10 runs a multi-file CLOSE as separate per-file CLOSEs, so mixed-file CLOSEs are still accepted alike.",
+  "source": "audit-1985/state-route"
+ }
+}

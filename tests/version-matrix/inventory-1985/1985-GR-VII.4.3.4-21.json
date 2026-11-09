@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-21",
+ "rule-digest": "9a370bece073",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-17",
+   "GR-14.9.27.4-18"
+  ],
+  "bridge": true,
+  "reason": "Both keep the creation of an absent optional file on EXTEND/I-O as if OPEN OUTPUT then CLOSE, and OUTPUT creates an empty file. Status '05' and page positioning are added detail, not a conflict.",
+  "source": "audit-1985/state-route"
+ }
+}

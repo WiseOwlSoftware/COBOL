@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.3.6.3-1",
+ "rule-digest": "4b3f2f98a10c",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"OMITTED specifies that no explicit labels exist for the file or the device to which the file is assigned.\"; 2023: \"No LABEL RECORDS clause in 2023; no candidate clause holds the feature\". No 2023 clause holds the LABEL RECORDS clause, and no candidate addresses file labels or OMITTED. The feature is absent from 2023.",
+  "source": "audit-1985/state-route"
+ }
+}

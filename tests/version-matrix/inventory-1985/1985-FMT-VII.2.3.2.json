@@ -1,0 +1,20 @@
+{
+ "rule-id": "1985-FMT-VII.2.3.2",
+ "rule-digest": "f53a9c90ac55",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-12.4.5.1",
+   "GR-12.4.5.3-8",
+   "FMT-12.4.5.10.2",
+   "FMT-12.4.5.11.2",
+   "FMT-12.4.5.14.2",
+   "FMT-12.4.5.8.2",
+   "GR-12.4.5.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"PADDING CHARACTER IS { data-name-1 | literal-2 }\"; 2023: \"no PADDING CHARACTER clause: 12.4.5.10 ORGANIZATION is followed directly by 12.4.5.11 RECORD DELIMITER; GR 1 lists none\". 2023 keeps the sequential file control entry clauses (RESERVE, ORGANIZATION, RECORD DELIMITER, ACCESS, FILE STATUS) but has no PADDING CHARACTER clause, so it refuses programs 1985 accepted.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.5.13.3-1",
+ "rule-digest": "9251c65c9693",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.55.3-1",
+   "GR-13.18.55.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"This clause may only appear with an elementary item.\"; 2023: \"The SYNCHRONIZED clause may be specified for group and elementary items.\". 1985 refuses SYNCHRONIZED on a group item. 2023 accepts it and treats it as specified for each subordinate elementary item for which the clause is permitted.",
+  "source": "audit-1985/state-route"
+ }
+}

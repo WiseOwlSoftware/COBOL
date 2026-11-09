@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.8-5",
+ "rule-digest": "827f76106d91",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.37.3-6"
+  ],
+  "bridge": true,
+  "reason": "The 1985 next group rule sits in the presentation rules for body groups. 2023 item b) likewise bounds a body group's absolute NEXT GROUP integer from FIRST DETAIL to FOOTING, inclusive.",
+  "source": "audit-1985/state-route"
+ }
+}

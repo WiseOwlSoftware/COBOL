@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-XIII.3.15.4-5",
+ "rule-digest": "082324a429b8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.35.4-4",
+   "GR-13.18.35.4-5"
+  ],
+  "bridge": true,
+  "reason": "NEXT PAGE fails the page fit, forcing a page advance; report footings start a new page; first line at integer-1. The first body group after INITIATE is already on a fresh first page.",
+  "source": "audit-1985/state-route"
+ }
+}

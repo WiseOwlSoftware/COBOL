@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VII.4.6.4-1",
+ "rule-digest": "0af3d17d273e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-4",
+   "GR-14.9.49.4-3",
+   "GR-14.9.49.4-1"
+  ],
+  "bridge": true,
+  "reason": "2023 still runs the qualifying declarative of the element holding the statement, none if none qualifies. GLOBAL search was 1985 level 2; 1985 bars duplicate USE files, so only one runs.",
+  "source": "audit-1985/state-route"
+ }
+}

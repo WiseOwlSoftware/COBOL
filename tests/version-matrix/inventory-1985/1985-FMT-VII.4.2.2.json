@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VII.4.2.2",
+ "rule-digest": "064911f94892",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.6.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"WITH { NO REWIND | LOCK }\"; 2023: \"└ WITH NO REWIND ┘ (no LOCK alternative in the 2023 CLOSE format)\". The 2023 CLOSE format keeps REEL/UNIT [FOR REMOVAL] and WITH NO REWIND but drops WITH LOCK, so CLOSE file WITH LOCK is no longer a valid format.",
+  "source": "audit-1985/state-route"
+ }
+}

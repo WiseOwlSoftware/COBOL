@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-XVI.2.3.2",
+ "rule-digest": "4cf66f29766d",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"SEGMENT-LIMIT IS segment-number\"; 2023: \"No 2023 clause carries the Segmentation module or the SEGMENT-LIMIT clause; no candidate covers it.\". No 2023 clause holds the Segmentation feature, and no candidate by wording covers SEGMENT-LIMIT, so the 2023 standard lacks the clause.",
+  "source": "audit-1985/state-route"
+ }
+}

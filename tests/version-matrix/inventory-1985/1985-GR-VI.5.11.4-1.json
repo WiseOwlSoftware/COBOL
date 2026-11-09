@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.5.11.4-1",
+ "rule-digest": "462ee61b0039",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.45.4-2"
+  ],
+  "bridge": true,
+  "reason": "Same range from data-name-2 through data-name-3. 'THROUGH phrase specified' equals 'data-name-3 specified'. 'Alphanumeric' only names the one kind of group 1985 had; no national or bit groups.",
+  "source": "audit-1985/state-route"
+ }
+}

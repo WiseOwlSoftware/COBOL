@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-11",
+ "rule-digest": "c473a6cfa39d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.35.2"
+  ],
+  "bridge": true,
+  "reason": "The 2023 REWRITE format ends with optional [END-REWRITE], the explicit scope terminator that closes the statement under the general scope-of-statements rules (14.5.3).",
+  "source": "audit-1985/state-route"
+ }
+}

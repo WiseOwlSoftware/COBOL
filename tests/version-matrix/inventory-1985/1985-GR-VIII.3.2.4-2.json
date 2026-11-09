@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-VIII.3.2.4-2",
+ "rule-digest": "92b9b9e941df",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.10.4-1",
+   "GR-13.18.10.4-2",
+   "GR-13.18.10.4-3",
+   "GR-13.18.10.4-4"
+  ],
+  "bridge": true,
+  "reason": "The 1985 rule says relative-file BLOCK CONTAINS equals the sequential one. 2023 has a single BLOCK CONTAINS clause whose general rules apply uniformly, sequential and relative alike.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-XI.4.1.2",
+ "rule-digest": "a76d2d65e988",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.24.2"
+  ],
+  "bridge": true,
+  "reason": "1985: \"[ COLLATING SEQUENCE IS alphabet-name-1 ]\"; 2023: \"COLLATING SEQUENCE IS alphabet-name-1 [ alphabet-name-2 ] / FOR ALPHANUMERIC IS alphabet-name-1 / FOR NATIONAL IS alphabet-name-2\". The MERGE format is otherwise the same, but 2023's COLLATING SEQUENCE phrase adds alphabet-name-2 and the FOR ALPHANUMERIC/FOR NATIONAL forms. 2023 therefore accepts programs that 1985 refuses.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-II.3.2.4.2-2",
+ "rule-digest": "2d5d83f91545",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.57.4-6",
+   "GR-14.9.16.4-5"
+  ],
+  "bridge": true,
+  "reason": "TYPE c)2 prints control headings on a break from the break level down to the lowest, as in 1985. OR PAGE is a new phrase 1985 programs cannot use, so their output is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

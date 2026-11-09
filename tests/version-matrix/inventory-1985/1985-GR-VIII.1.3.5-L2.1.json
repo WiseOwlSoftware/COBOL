@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.5-L2.1",
+ "rule-digest": "aef86b64327c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.14-L2.1"
+  ],
+  "bridge": true,
+  "reason": "Both send a non-invalid-key I-O exception to the applicable exception (USE) procedures. The 1985 USE rules return to the statement; 2023 states it inline. PERFORM WHEN is new only.",
+  "source": "audit-1985/state-route"
+ }
+}

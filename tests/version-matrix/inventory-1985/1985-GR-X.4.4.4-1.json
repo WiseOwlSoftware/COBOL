@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-X.4.4.4-1",
+ "rule-digest": "f82a2b23a019",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.14.4-1"
+  ],
+  "bridge": true,
+  "reason": "Under GLOBAL in the report description, 2023 also makes PAGE-COUNTER and LINE-COUNTER global. Its added report groups and sum counters fall outside this 1985 rule.",
+  "source": "audit-1985/state-route"
+ }
+}

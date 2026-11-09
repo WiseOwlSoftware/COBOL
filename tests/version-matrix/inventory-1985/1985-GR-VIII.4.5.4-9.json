@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-9",
+ "rule-digest": "79f3832e797b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-28"
+  ],
+  "bridge": true,
+  "reason": "GR 28 begins the random-read rules (GR 19: else format 2 applies). GR 21 sends sequential reads of an absent file to at end, and 9.1.13.5 gives status 23 for random READ, as in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

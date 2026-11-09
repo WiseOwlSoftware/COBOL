@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-5",
+ "rule-digest": "f73f654545ea",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-2",
+   "GR-14.9.6.4-8"
+  ],
+  "bridge": true,
+  "reason": "2023 bars OPEN on an open connector; only CLOSE without UNIT ends the open mode. Reopening still needs that CLOSE. LOCK is moot: 2023 CLOSE (Table 14) has no LOCK phrase.",
+  "source": "audit-1985/state-route"
+ }
+}

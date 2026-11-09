@@ -1,0 +1,21 @@
+{
+ "rule-id": "1985-GR-VII.1.3.5-4",
+ "rule-digest": "60ed4781bd57",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.13.7-1",
+   "GR-9.1.13.7-2",
+   "GR-9.1.13.7-3",
+   "GR-9.1.13.7-4",
+   "GR-9.1.13.7-6",
+   "GR-9.1.13.7-7",
+   "GR-9.1.13.7-8",
+   "GR-9.1.13.7-9"
+  ],
+  "bridge": true,
+  "reason": "The 2023 4x statuses list the logic-error cases (improper I-O sequence, record-size limit). Status 45 is an added FORMAT-related case that leaves 1985 programs' behaviour unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

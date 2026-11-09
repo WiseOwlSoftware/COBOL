@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.17.4-4",
+ "rule-digest": "7d5c8c0f975f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.20.4-5"
+  ],
+  "bridge": true,
+  "reason": "2023 still excludes items under identifier-1 that have REDEFINES or are subordinate to one, and identifier-1 may redefine. RENAMES and FILLER are other matters; the effect is the same.",
+  "source": "audit-1985/state-route"
+ }
+}

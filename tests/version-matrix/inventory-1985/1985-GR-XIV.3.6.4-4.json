@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIV.3.6.4-4",
+ "rule-digest": "38a6757147f7",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"the content of the status key data item of the area referenced by cd-name-1 is updated by the MCS\"; 2023: \"SEND identifies a message server run unit; no cd-name or status key, failures set EC-MCS exceptions instead\". The 2023 SEND is a message-server statement with no communication description or status key. The 1985 CD-based Communication module is dropped, and no candidate updates a status key.",
+  "source": "audit-1985/state-route"
+ }
+}

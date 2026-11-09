@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-4",
+ "rule-digest": "c9b20ee742a5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-3"
+  ],
+  "bridge": true,
+  "reason": "Both: paragraph written but no computer identification, so the implementor defines the object computer. 2023 allowing clauses without computer-name-1 is a syntax change, not this rule.",
+  "source": "audit-1985/state-route"
+ }
+}

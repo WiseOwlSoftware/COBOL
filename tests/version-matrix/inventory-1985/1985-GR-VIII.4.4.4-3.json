@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-3",
+ "rule-digest": "e00f45befd21",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-6"
+  ],
+  "bridge": true,
+  "reason": "Same bar on statements referencing a non-open file, except OPEN and SORT/MERGE USING/GIVING. COMMIT, ROLLBACK and DELETE FILE are new 2023 statements, so no 1985 program changes.",
+  "source": "audit-1985/state-route"
+ }
+}

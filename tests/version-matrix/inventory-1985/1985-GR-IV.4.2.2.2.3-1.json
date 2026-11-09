@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-1",
+ "rule-digest": "e3c2e552c11b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.6.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Represents the numeric value '0', or one or more of the character '0' from the computer's character set.\"; 2023: \"represents the numeric value '0', one or more of the boolean character '0', or one or more of the character '0' ... depending on context\". 2023 keeps the numeric and character meanings of ZERO but adds a case: in boolean context it represents one or more boolean character '0'.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-XII.3.4-3",
+ "rule-digest": "dfdad90f4bd2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.4.4-5",
+   "GR-7.2.4.4-6",
+   "GR-7.2.4.4-7"
+  ],
+  "bridge": true,
+  "reason": "1985: \"in effect from the point at which it is specified until the next occurrence of the statement or the end of the separately compiled program\"; 2023: \"remains active until it is placed in the inactive state, it is canceled, or the end of the compilation group is reached\". Scope now ends at the end of the compilation group, not the separately compiled program. A later REPLACE ALSO stacks on the active one, and REPLACE LAST can make an earlier one active again.",
+  "source": "audit-1985/state-route"
+ }
+}

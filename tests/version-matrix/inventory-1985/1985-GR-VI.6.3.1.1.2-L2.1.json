@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.1.2-L2.1",
+ "rule-digest": "4d95c48d8718",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.2.7-1"
+  ],
+  "bridge": true,
+  "reason": "Same high-order-first comparison of equal-length operands, decided by the first unequal pair in the collating sequence. Zero-length items are new in 2023; alphabetic and group operands are treated as alphanumeric.",
+  "source": "audit-1985/state-route"
+ }
+}

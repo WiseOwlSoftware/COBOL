@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-8",
+ "rule-digest": "f64eddcbab42",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-11"
+  ],
+  "bridge": true,
+  "reason": "2023 restates the 1985 ignore rule verbatim. The '07' status sentence restates status rule 9.1.13.2 (07), a separate I-O status rule; ignoring NO REWIND is unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

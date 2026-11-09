@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-VI.3.2.1.2-1",
+ "rule-digest": "68b869d4f8a1",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"The comment-entry may be any combination of the characters from the computer's character set.\"; 2023: \"No comment-entry paragraphs (AUTHOR, DATE-WRITTEN, etc.) remain; the identification division rules cover only PROGRAM-ID\". The 1985 comment-entry belongs to the obsolete optional Identification Division paragraphs. No 2023 candidate covers comment-entries, so 2023 lacks the feature.",
+  "source": "audit-1985/state-route"
+ }
+}

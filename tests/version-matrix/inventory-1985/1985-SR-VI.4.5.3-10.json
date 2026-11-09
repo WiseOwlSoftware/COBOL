@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-10",
+ "rule-digest": "15dac901094e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-16"
+  ],
+  "bridge": true,
+  "reason": "2023 e) keeps the rule: without IN, integer-1's ordinal must exist in the native alphanumeric set; with IN, in that alphabet's set. NATIONAL and LOCALE are new features only.",
+  "source": "audit-1985/state-route"
+ }
+}

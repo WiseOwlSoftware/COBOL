@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-11",
+ "rule-digest": "239fa5313819",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"When the EXTEND phrase is specified and the LABEL RECORDS clause indicates label records are present\"; 2023: \"GR-14.9.27.4-15 covers OPEN EXTEND positioning only; no LABEL RECORDS clause or label processing in any candidate\". 2023 drops the LABEL RECORDS clause and label processing. The OPEN EXTEND rules give positioning only and nowhere state the label steps a-d.",
+  "source": "audit-1985/state-route"
+ }
+}

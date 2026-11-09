@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-11",
+ "rule-digest": "db9a5762e530",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-13"
+  ],
+  "bridge": true,
+  "reason": "Same flow: phrases ignored, status/position updated, other exceptions via exception processing, record made available, NOT phrase then end. Conflict caveat only concerns 2023-new locking.",
+  "source": "audit-1985/state-route"
+ }
+}

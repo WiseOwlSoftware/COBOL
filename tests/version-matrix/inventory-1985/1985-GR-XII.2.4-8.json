@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XII.2.4-8",
+ "rule-digest": "0b2e58f8a250",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.2.5-3"
+  ],
+  "bridge": true,
+  "reason": "The 2023 NOTE says syntactic validity is determined only after all text manipulation (COPY, REPLACE) completes, so library text is not validated alone, as in 1985.",
+  "source": "audit-1985/state-route"
+ }
+}

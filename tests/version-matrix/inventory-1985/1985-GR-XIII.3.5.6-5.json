@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.6-5",
+ "rule-digest": "51a30e1ee0ff",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-5"
+  ],
+  "bridge": true,
+  "reason": "2023 keeps the LINE-COUNTER rule for dummy (nonprintable) groups and SUPPRESSed groups. Adding PAGE-COUNTER extends the rule but leaves the 1985 LINE-COUNTER requirement unchanged.",
+  "source": "audit-1985/state-route"
+ }
+}

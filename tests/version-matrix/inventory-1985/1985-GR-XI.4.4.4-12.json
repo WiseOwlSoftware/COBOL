@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-12",
+ "rule-digest": "542b96e64610",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-15"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The initiation is performed as if an OPEN statement with the OUTPUT phrase had been executed.\"; 2023: \"DEPENDING ON phrase of a RECORD IS VARYING clause ... for file-name-1 is undefined upon completion of the SORT statement\". Same GIVING actions, but 2023 adds SHARING WITH NO OTHER, SORT ends on fatal implicit OPEN, fixes variable-length record size, and makes the file-name-1 DEPENDING ON item undefined.",
+  "source": "audit-1985/state-route"
+ }
+}

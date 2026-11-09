@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-3",
+ "rule-digest": "907bbf4a44d4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.15.3-3"
+  ],
+  "bridge": true,
+  "reason": "2023's 1-49 merges the 1985 formats: level 1 is the report group entry (1985 format 1, 01). A level-49 entry can have no subordinates, so group entries still stop at 48.",
+  "source": "audit-1985/state-route"
+ }
+}

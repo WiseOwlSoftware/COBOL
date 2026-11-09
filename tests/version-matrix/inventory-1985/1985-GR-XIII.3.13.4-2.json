@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XIII.3.13.4-2",
+ "rule-digest": "99fe7ff1307c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.28.4-1"
+  ],
+  "bridge": true,
+  "reason": "With no PAGE or CONTROL clause only the INITIATE event resets the item, so it prints on its detail's first GENERATE and is then omitted, i.e. blank.",
+  "source": "audit-1985/state-route"
+ }
+}

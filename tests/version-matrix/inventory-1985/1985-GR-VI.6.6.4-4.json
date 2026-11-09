@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.6.4-4",
+ "rule-digest": "2ae62b54341b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.2.4-4"
+  ],
+  "bridge": true,
+  "reason": "Both guarantee no lost significant digits in ADD. The 2023 limits (native arithmetic, binary-char/float usages) involve only post-1985 features; native is the default.",
+  "source": "audit-1985/state-route"
+ }
+}

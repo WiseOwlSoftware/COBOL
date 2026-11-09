@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-1",
+ "rule-digest": "4866efe5a564",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-3",
+   "GR-14.9.35.4-2"
+  ],
+  "bridge": true,
+  "reason": "Both require the REWRITE file to be open in I-O mode at execution. Status '49' just states the consequence of the same violation. An indexed file is necessarily mass storage.",
+  "source": "audit-1985/state-route"
+ }
+}

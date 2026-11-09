@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.4.2-1",
+ "rule-digest": "7dd411cfab11",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.7.5-1",
+   "GR-8.8.1.2-6",
+   "GR-14.7.5-L2.1"
+  ],
+  "bridge": true,
+  "reason": "2023 still makes an exponentiation-rule violation a size error. Resultant items stay unchanged, ending the operation. EC-SIZE-EXPONENTIATION is the 2023 exception framework, not a new requirement.",
+  "source": "audit-1985/state-route"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.6.3-1",
+ "rule-digest": "a114f5e05361",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985: \"Cd-name-1 must reference an output CD or input-output CD.\"; 2023: \"SEND names a message server: \"Message-server-name-1 is the name of a message server run unit.\" No cd-name operand\". The 2023 SEND statement sends to message server run units and has no cd-name operand. No candidate requires an output or input-output CD, so the communication-description rule is dropped.",
+  "source": "audit-1985/state-route"
+ }
+}

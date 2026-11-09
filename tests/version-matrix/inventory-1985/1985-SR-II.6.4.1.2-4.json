@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-II.6.4.1.2-4",
+ "rule-digest": "a9e25355a10b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.6.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"if, and only if, that program is directly contained within the calling program\"; 2023: \"or, if the program possesses the recursive attribute, in the program itself\". 2023 still limits a non-common contained program's name to its direct container, but adds a case: a recursive such program may also reference (call) itself.",
+  "source": "audit-1985/state-route"
+ }
+}

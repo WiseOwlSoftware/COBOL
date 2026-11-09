@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-1",
+ "rule-digest": "246482906c8b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.40.3-3"
+  ],
+  "bridge": true,
+  "reason": "1985: \"A SORT statement may appear anywhere in the Procedure Division except in the declarative portion.\"; 2023: \"shall not appear in imperative-statement-1 of an exception-checking PERFORM statement, in an input or output procedure, or in a\". Both bar SORT in declaratives. Judged on this rule's text alone, 2023 also bars SORT in input or output procedures, which the 1985 'anywhere' wording allowed.",
+  "source": "audit-1985/state-route"
+ }
+}

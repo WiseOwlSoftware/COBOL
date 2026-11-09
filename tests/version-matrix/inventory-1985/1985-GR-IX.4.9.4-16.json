@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-16",
+ "rule-digest": "dd3e74715770",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-40",
+   "GR-14.9.30.4-26"
+  ],
+  "bridge": true,
+  "reason": "Nonunique alternate keys still need DUPLICATES; duplicates come back in release order (READ GR26). 'Actually writes' matters only with 2023 file sharing; status '22' restates invalid-key rules.",
+  "source": "audit-1985/state-route"
+ }
+}

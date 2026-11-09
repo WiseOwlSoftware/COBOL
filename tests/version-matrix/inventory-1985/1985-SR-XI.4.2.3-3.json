@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XI.4.2.3-3",
+ "rule-digest": "7d9a9519c2f2",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.32.4-4"
+  ],
+  "bridge": true,
+  "reason": "1985: \"Record-name-1 and identifier-1 must not refer to the same storage area.\"; 2023: \"14.6.10, Overlapping operands, and 14.9.25, MOVE statement, general rules, apply to any cases in which ... share any part\". 1985 refuses a RELEASE whose identifier-1 shares storage with record-name-1. 2023 has no such syntax rule and leaves shared storage to the overlapping-operand and MOVE rules.",
+  "source": "audit-1985/state-route"
+ }
+}
