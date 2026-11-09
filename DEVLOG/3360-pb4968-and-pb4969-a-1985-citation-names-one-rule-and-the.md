@@ -1,4 +1,4 @@
-## PB4968 and PB4969: a 1985 citation names one rule, and the conformance requirements are the frame
+## Entry 3360 — 2026-11-08 21:46 PST — PB4968 and PB4969: a 1985 citation names one rule, and the conformance requirements are the frame
 
 **PB4969 (re-probed).** 43 citations in the 1985 rule catalog named two rows each: a rule of a restarted numbered list
 (`1985-GR-IV.4.2.2.2.3-L2.1`) carried the same citation as rule 1 of the block's first list (`§1985:IV.4.2.2.2.3 GR1`). The
@@ -18,3 +18,4 @@ Rows closed: none (`closes_rows: []` on both). Citations checked with `cite.py -
 §2023:4.2.10, §1985:IV.4.2.2.2.3 GRL2.1. Self-review: the tooling lane only, one writer of the designator, no second copy.
 
 Review round 1 (R1-1): the restarted-list designator `GRL<k>.<n>` is now refused in every edition whose locator is not a 1985 section (`citation._rule` takes the edition), because `cite.py --check` reads an ISO rule ordinal through NUMBERED_RULE and the form would have skipped that check; self-test case added.
+
