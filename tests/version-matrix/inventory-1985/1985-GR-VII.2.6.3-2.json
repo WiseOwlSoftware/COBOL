@@ -5,11 +5,10 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.4.5.10.3-3",
-   "GR-12.4.5.10.3-2"
+   "GR-12.4.5.10.3-3"
   ],
   "bridge": true,
-  "reason": "2023 defines record and line sequential organization in the same words: a permanent structure with predecessor-successor relationships. The line sequential details only add a new form.",
-  "source": "audit-1985/state-route"
+  "reason": "2023 states the 1985 sequential organization as record sequential organization, in the same words (a permanent logical file structure, records identified by a predecessor-successor relationship established as they are placed in the file). Line sequential organization (GR-12.4.5.10.3-2) is a new organization 2023 added, not this rule's requirement: the EDITION GATES audit found the file-organization-line-sequential-2023 gate contradicted by a KEPT link into it (kb/Work PB4996).",
+  "source": "kb/Work PB4996 (edition-gate audit re-adjudication of audit-1985/state-route)"
  }
 }
