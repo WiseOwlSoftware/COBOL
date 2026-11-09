@@ -7,10 +7,11 @@
   "to": [
    "GR-14.9.27.4-10",
    "GR-14.9.27.4-25",
-   "GR-9.1.13.6-7"
+   "GR-9.1.13.6-7",
+   "GR-14.9.27.4-1"
   ],
   "bridge": true,
-  "reason": "1985 'A value is placed in the I-O status ... to indicate the file attribute conflict condition'; §2023:14.9.27.4 GR10 sets '39' on a file attribute conflict, §2023:14.9.27.4 GR25 a) 'A value is placed in the I-O status associated with file-name to indicate the condition', and §2023:9.1.13.6 GR7 defines 39. DELETE FILE is new syntax, so no 1985 program differs.",
-  "source": "adjudicate-712/slice-18"
+  "reason": "1985 'A value is placed in the I-O status ... to indicate the file attribute conflict condition' (39); §2023:14.9.27.4 GR10 sets '39' on a file attribute conflict, §2023:14.9.27.4 GR25 'A value is placed in the I-O status associated with file-name to indicate the condition', §2023:14.9.27.4 GR1 updates it to a 9.1.13 value, §2023:9.1.13.6 GR7 defines 39. DELETE FILE is new syntax; no refusal differs.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

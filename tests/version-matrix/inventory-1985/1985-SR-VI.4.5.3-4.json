@@ -9,7 +9,7 @@
    "GR-12.3.7.4-7"
   ],
   "bridge": true,
-  "reason": "1985: ALPHABET literal-phrase literals, if numeric, are unsigned integers from one to the native character-set size; if nonnumeric with THROUGH or ALSO, one character long. 2023 §2023:12.3.7.3 SR14 b) (ALPHANUMERIC specified or implied, §2023:12.3.7.3 SR13) restates both: each numeric literal 'shall be an unsigned integer' within 'one through the maximum number of characters in the native alphanumeric character set', and 'Each alphanumeric literal, when a THROUGH or ALSO phrase is specified, shall be one character in length'; §2023:12.3.7.4 GR7 k) repeats the numeric bound ('This value shall not exceed the value that represents the number of characters in the native character set'). Same refusals; the NATIONAL items cover a post-1985 feature.",
-  "source": "adjudicate-712/slice-29"
+  "reason": "1985: ALPHABET literal-phrase numeric literals are unsigned integers from one to the native character-set size; nonnumeric ones with THROUGH or ALSO are one character. §2023:12.3.7.3 SR14 b) (ALPHANUMERIC specified or implied) restates both: 'shall be an unsigned integer ... within the range of one through the maximum number of characters in the native alphanumeric character set' and 'Each alphanumeric literal, when a THROUGH or ALSO phrase is specified, shall be one character in length'; §2023:12.3.7.4 GR7 k) repeats the bound. The NATIONAL items cover a post-1985 feature. Same refusals.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

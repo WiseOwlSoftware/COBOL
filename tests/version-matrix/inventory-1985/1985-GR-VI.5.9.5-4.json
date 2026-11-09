@@ -2,17 +2,18 @@
  "rule-id": "1985-GR-VI.5.9.5-4",
  "rule-digest": "81e19762c1f0",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-13.18.40.5-3",
    "GR-13.18.40.4-14",
    "SR-13.18.40.3-7",
    "SR-8.3.5-8",
-   "SR-13.18.40.3-13"
+   "SR-13.18.40.3-13",
+   "GR-12.3.7.4-14"
   ],
   "bridge": true,
-  "reason": "1985 simple insertion uses ',', 'B', '0', '/', counted in the size, a final comma ending the entry at the period, swapped under DECIMAL-POINT IS COMMA. §2023:13.18.40.5 GR3 keeps the four symbols, §2023:13.18.40.4 GR14 counts each in the size, §2023:13.18.40.3 SR7 and §2023:8.3.5 SR8 d) keep the final-comma rule, §2023:13.18.40.3 SR13 the swap. The added character-1 exists only with the EDITING phrase, which the 1985 format lacks: no 1985 picture changes meaning.",
-  "source": "adjudicate-712/slice-11"
+  "reason": "1985: 'The , (comma), B (space), 0 (zero), and / (slant) are used as the insertion characters', counted in the size, final comma ends the entry at the period, DECIMAL-POINT IS COMMA swaps. §2023:13.18.40.5 GR3: 'Character-1 and the symbols B, 0, /, , ... are used as the simple insertion editing symbols' adds a simple insertion symbol (the EDITING phrase character-1) that 1985 refuses; size §2023:13.18.40.4 GR14, final comma §2023:13.18.40.3 SR7 and §2023:8.3.5 SR8 d), swap §2023:13.18.40.3 SR13 and §2023:12.3.7.4 GR14 are unchanged. A case added.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

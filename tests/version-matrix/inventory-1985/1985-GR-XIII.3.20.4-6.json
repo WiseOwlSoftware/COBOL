@@ -3,16 +3,18 @@
  "rule-digest": "9c5f19e99f0b",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
+   "GR-13.18.57.4-5",
    "GR-13.18.57.4-6",
    "GR-14.9.16.4-5",
    "GR-14.9.46.4-2",
    "GR-14.9.46.4-3",
-   "GR-13.18.16.4-2"
+   "GR-13.18.16.4-2",
+   "GR-13.18.16.4-3"
   ],
-  "reason": "1985: a control footing is processed at the end of its control group; FINAL's once, as the last body group; on a GENERATE control break the footings of 'the highest level of the control break or more minor levels' are presented; at TERMINATE all of them 'if there has been at least one GENERATE statement executed'. 2023: §2023:13.18.57.4 GR6 e)1 on a break 'in order of controls from the lowest up to the level of the control break' and e)2 at TERMINATE 'provided that at least one GENERATE statement has been executed after the chronologically last INITIATE statement for the report, in order of controls from lowest to highest'; §2023:14.9.16.4 GR5 a); §2023:14.9.46.4 GR3 b) 'Each control footing is printed, if defined, beginning with the minor control footing'; §2023:14.9.46.4 GR2 nothing at all without a GENERATE; §2023:13.18.16.4 GR2 FINAL is the highest level, so its footing prints only at TERMINATE, last. 'After the chronologically last INITIATE' is the same interval as §1985:XIII.4.7.4 GR2. Same behavior.",
-  "source": "adjudicate-712/slice-25",
-  "edition": 2023,
-  "bridge": true
+  "bridge": true,
+  "reason": "1985: a control footing is processed at the end of its control group; FINAL's once, as the last body group; at a GENERATE control break the footings of 'the highest level of the control break or more minor levels'; at TERMINATE all of them 'if there has been at least one GENERATE statement executed'. 2023: §2023:13.18.57.4 GR6 e) 'in order of controls from the lowest up to the level of the control break' and at TERMINATE 'provided that at least one GENERATE statement has been executed after the chronologically last INITIATE statement for the report, in order of controls from lowest to highest'; §2023:13.18.57.4 GR5 'All other report groups are printed implicitly'; §2023:14.9.16.4 GR5 'each control footing and control heading is printed, if defined, up to the level of the control break'; §2023:13.18.16.4 GR3 'control break processing for that level and any lower levels is performed automatically'; §2023:14.9.46.4 GR3 'Each control footing is printed, if defined, beginning with the minor control footing'; §2023:14.9.46.4 GR2 no processing without a GENERATE; §2023:13.18.16.4 GR2 'FINAL, if specified, is associated with the highest level in the hierarchy', so it never breaks and prints only at TERMINATE, last. The INITIATE-to-TERMINATE interval is 1985's own (XIII.4.7.4 GR2). No program accepted or refused differently; same effect.",
+  "source": "adjudicate-712-r2/slice-12"
  }
 }

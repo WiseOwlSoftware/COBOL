@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.30.4-26"
+   "GR-14.9.30.4-26",
+   "GR-14.9.51.4-40",
+   "GR-14.9.35.4-24"
   ],
   "bridge": true,
-  "reason": "1985: duplicates of an alternate key of reference are returned in the order WRITE or REWRITE released them. §2023:14.9.30.4 GR26 states the same order; its 'in the case of PREVIOUS, in the reverse order' applies only to the PREVIOUS phrase, which 1985 lacks.",
-  "source": "adjudicate-712/slice-07"
+  "reason": "1985: duplicates of an alternate key of reference are made available in the order WRITE or REWRITE released them. §2023:14.9.30.4 GR26 repeats it; its 'or, in the case of PREVIOUS, in the reverse order' needs the 2023-only PREVIOUS phrase. §2023:14.9.51.4 GR40 'the order of retrieval of those records is the order in which the operating environment actually writes the record into the physical file' and §2023:14.9.35.4 GR24 b) 'the record is logically positioned last within the set of duplicate records' state the WRITE and REWRITE halves. Run-time; refuses nothing.",
+  "source": "adjudicate-712-r2/slice-02"
  }
 }

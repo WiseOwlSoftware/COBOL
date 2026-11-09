@@ -7,11 +7,14 @@
   "to": [
    "GR-14.9.35.4-3",
    "GR-14.9.35.4-2",
+   "GR-14.9.27.4-4",
+   "GR-14.9.27.4-8",
    "GR-14.9.27.4-16",
-   "GR-9.1.13.7-9"
+   "GR-9.1.13.7-9",
+   "GR-9.1.13.6-6"
   ],
   "bridge": true,
-  "reason": "1985 REWRITE GR1: the file 'must be a mass storage file and must be open in the I-O mode'. §2023:14.9.35.4 GR3 'The rewrite file connector shall have an open mode of I-O' ('49' otherwise, as 1985 status 49; §2023:9.1.13.7 GR9), the connector being that of record-name-1's file (§2023:14.9.35.4 GR2). The mass-storage part is kept: §2023:14.9.35.1 'The REWRITE statement logically replaces a record existing in a mass storage file', and §2023:14.9.27.4 GR16 lets only a file supporting the I-O-mode statements (REWRITE included) be opened I-O, as 1985 OPEN GR17 did. A conforming 1985 REWRITE behaves the same.",
-  "source": "adjudicate-712/slice-16"
+  "reason": "1985 REWRITE GR1: file 'must be a mass storage file and must be open in the I-O mode' (run-time; status 49/37). §2023:14.9.35.4 GR3 'The rewrite file connector shall have an open mode of I-O' ('49', §2023:9.1.13.7 GR9), connector per §2023:14.9.35.4 GR2; Table 20 (§2023:14.9.27.4 GR4, §2023:14.9.27.4 GR8) allows REWRITE only in I-O; §2023:14.9.27.4 GR16 and §2023:9.1.13.6 GR6 admit to I-O only a file supporting its I-O statements ('37'), carrying the mass-storage part. Same effect.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

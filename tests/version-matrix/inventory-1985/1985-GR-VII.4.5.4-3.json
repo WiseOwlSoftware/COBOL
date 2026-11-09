@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.35.4-6",
+   "GR-14.9.35.4-10",
    "GR-12.4.6.4.4-2"
   ],
   "bridge": true,
-  "reason": "1985 REWRITE GR3: the released record is no longer in the record area unless the file is in a SAME RECORD AREA clause, and is then also a record of the other files in that clause. §2023:14.9.35.4 GR6 restates it nearly verbatim ('is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause'); §2023:12.4.6.4.4 GR2 states the sharing ('a logical record of each file open in the output mode'). file-name-1 serves only the new REWRITE FILE form.",
-  "source": "adjudicate-712/slice-16"
+  "reason": "1985 REWRITE GR3: released record no longer in the record area unless the file is in a SAME RECORD AREA clause, and then also a record of the other files in it. §2023:14.9.35.4 GR6 restates it ('is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause'; file-name-1 is 2023-only syntax); §2023:14.9.35.4 GR10 repeats the unavailability; §2023:12.4.6.4.4 GR2 states the sharing. Same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

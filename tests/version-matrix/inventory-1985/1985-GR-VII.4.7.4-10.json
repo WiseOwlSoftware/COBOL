@@ -9,7 +9,7 @@
    "GR-14.5.3.2-2"
   ],
   "bridge": true,
-  "reason": "2023 has no WRITE-specific rule; the general rule over every statement carries it: §2023:14.5.3.2 'The scope of a statement may be explicitly terminated by using its associated scope terminator as specified in Table 12', Table 12 pairs WRITE with END-WRITE, and §2023:14.5.3.2 GR1 and §2023:14.5.3.2 GR2 state what the terminator ends (the most recent unterminated WRITE and any unterminated statements nested in it), as 1985 IV-40 Scope of Statements did.",
-  "source": "adjudicate-712/slice-17"
+  "reason": "1985 WRITE GR10: 'The END-WRITE phrase delimits the scope of the WRITE statement.' 2023 states it through the general scope-terminator rule (Table 12 pairs WRITE with END-WRITE): the terminator ends §2023:14.5.3.2 GR1 'the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined' and §2023:14.5.3.2 GR2 the statements nested in it. Same programs, same scope.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

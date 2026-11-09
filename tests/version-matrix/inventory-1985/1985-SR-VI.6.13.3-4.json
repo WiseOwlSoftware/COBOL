@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "SR-14.9.13.3-4",
-   "FMT-14.9.13.2"
+   "FMT-14.9.13.2",
+   "GR-14.9.13.4-4"
   ],
   "bridge": true,
-  "reason": "1985: 'Two operands connected by a THROUGH phrase must be of the same class. The two operands thus connected constitute a single selection object.' §2023:14.9.13.3 SR4: 'The two operands in a range-expression shall be of the same class and shall not be of class boolean, message-tag, object, or pointer'. Those excluded classes have no 1985 operand. §2023:14.9.13.2 makes '[ NOT ] range-expression' a single selection-object alternative. Both are compile-time rules.",
-  "source": "adjudicate-712/slice-30"
+  "reason": "1985: 'Two operands connected by a THROUGH phrase must be of the same class. The two operands thus connected constitute a single selection object.' §2023:14.9.13.3 SR4: 'The two operands in a range-expression shall be of the same class'; its added bar on boolean, message-tag, object and pointer names classes no 1985 operand has. §2023:14.9.13.2 makes '[ NOT ] range-expression' one selection-object alternative, and §2023:14.9.13.4 GR4 a) 5. evaluates the pair as one conditional expression. Same programs refused at compile time. Table 15 (SR10) states operand combinations, not this rule, so it is not in 'to'.",
+  "source": "adjudicate-712-r2/slice-14"
  }
 }

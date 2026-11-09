@@ -13,7 +13,7 @@
    "GR-13.18.57.4-6"
   ],
   "bridge": true,
-  "reason": "1985: absolute -> its integer; relative -> PF final LINE-COUNTER + integer when a PF is on the page, else FOOTING + integer; NEXT PAGE -> new page with no other group; unpaged -> LINE-COUNTER + integer; no LINE -> not presented. 2023 §2023:13.18.35.4 GR5 a) absolute/NEXT PAGE new page, b)5 'if no page footing has been printed on the same page, the line number is given by (FOOTING integer + integer-2)' else LINE-COUNTER + integer-2, c) unpaged; LINE-COUNTER after the PF per §2023:13.18.37.4 GR5 and §2023:8.4.3.15.4 GR4; §2023:13.18.57.4 GR6 f) no PF on a page 'occupied only by a report footing group'; §2023:13.18.35.4 GR1 and GR6: no LINE clause, no line. Same results.",
-  "source": "adjudicate-712/slice-24"
+  "reason": "1985 RF first line: absolute integer; relative after a PF on the page = PF final LINE-COUNTER + integer, else FOOTING + integer; NEXT PAGE = own page; unpaged LINE-COUNTER + integer; no LINE, not presented. §2023:13.18.35.4 GR5 a) 'If in addition the NEXT PAGE phrase is present and the report group is a report footing, the first line is printed beginning on a new page', b) 5. 'if no page footing has been printed on the same page, the line number is given by (FOOTING integer + integer-2)' else LINE-COUNTER + integer-2, c) unpaged; LINE-COUNTER per §2023:8.4.3.15.4 GR4, §2023:13.18.37.4 GR5; alone per §2023:13.18.57.4 GR6 f); §2023:13.18.35.4 GR1, GR6. Same results.",
+  "source": "adjudicate-712-r2/slice-10"
  }
 }

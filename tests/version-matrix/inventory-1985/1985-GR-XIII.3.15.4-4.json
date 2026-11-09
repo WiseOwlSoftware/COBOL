@@ -5,6 +5,7 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "SR-13.18.35.3-3",
    "GR-13.18.35.4-7",
    "GR-13.18.35.4-1",
    "GR-13.18.35.4-6",
@@ -12,7 +13,7 @@
    "GR-13.18.35.4-5"
   ],
   "bridge": true,
-  "reason": "1985: a non-first relative line prints at previous print line + integer-2; zero means the same line; the first relative line follows the presentation tables. 2023 §2023:13.18.35.4 GR7 b) 'If the LINE clause is relative, the new line number is determined by adding integer-2 to the report's LINE-COUNTER', which holds the most recent line (GR1, GR6); §2023:13.18.35.4 GR3 a zero integer-2 'will overwrite' the preceding line, exempt from the overlap rule; GR5 places the first line. Same.",
-  "source": "adjudicate-712/slice-24"
+  "reason": "1985: integer-2 is relative; a non-first relative line = previous print line + integer-2; zero -> same line; first relative line per the presentation tables. 2023 §2023:13.18.35.3 SR3 'Integer-2 specifies a relative line number'; §2023:13.18.35.4 GR7 b) 'If the LINE clause is relative, the new line number is determined by adding integer-2 to the report's LINE-COUNTER', which holds the most recent line (§2023:13.18.35.4 GR1, GR6); §2023:13.18.35.4 GR3 'a relative line specified with an integer-2 of zero will overwrite the corresponding characters of the preceding line'; §2023:13.18.35.4 GR5 the first line. The rule refuses nothing. GR-13.18.35.4-4 is the page fit test and GR-8.4.3.15.4-4 the general LINE-COUNTER definition, not this rule.",
+  "source": "adjudicate-712-r2/slice-11"
  }
 }

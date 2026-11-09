@@ -9,7 +9,7 @@
    "GR-14.9.30.4-5"
   ],
   "bridge": true,
-  "reason": "§2023:14.9.30.4 GR4 keeps the equivalence: READ without INTO, then MOVE per MOVE rules, size from the RECORD clause, RECORD IS VARYING gives 'an alphanumeric group move', identifier-1 identified after the read; §2023:14.9.30.4 GR5: an unsuccessful READ leaves identifier-1 'unchanged' (no implied move). Same requirement.",
-  "source": "adjudicate-712/slice-19"
+  "reason": "1985: READ INTO = READ without INTO, then MOVE per MOVE rules, size per RECORD clause, VARYING gives a group move, no move if unsuccessful, subscripting evaluated after the read (ref-mod timing follows subscripting in 1985). §2023:14.9.30.4 GR4: same, 'the implied move is an alphanumeric group move', item identification after the read; §2023:14.9.30.4 GR5: identifier-1 unchanged on failure. An overlapping identifier-1 (refused by 1985 SR1) still gets READ-then-MOVE, as GR8 states. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

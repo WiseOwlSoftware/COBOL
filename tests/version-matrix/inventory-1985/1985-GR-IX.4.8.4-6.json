@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.49.4-7"
+   "GR-14.9.49.4-7",
+   "GR-9.1.14-L2.1",
+   "DOC-A.1-218"
   ],
   "bridge": true,
-  "reason": "1985 GR6: after the USE procedure, if the I-O status 'does not indicate a critical input-output error', control returns 'to the next executable statement following the input-output statement'; if critical, 'the implementor determines what action is taken'. 2023 §2023:14.9.49.4 GR7 (format 1, the only format a 1985 program writes): control 'is returned to an implicit CONTINUE statement following the input-output statement' unless the status indicates 'a fatal EC-I-O exception condition', when 'the implementor determines what action is taken'. 1985 critical = statuses 3x, 4x and implementor 9x; 2023 fatal adds 7x, which no 1985 program can raise. §2023:14.9.49.4 GR12 governs format 3 (EC-I-O exception-names) only and so states no part of this requirement; a) defers to SORT/MERGE rules. Same.",
-  "source": "adjudicate-712/slice-08"
+  "reason": "1985 GR6: non-critical status -> control to the next executable statement after the I-O statement; critical -> 'the implementor determines what action is taken'. §2023:14.9.49.4 GR7 b) 'control is returned to an implicit CONTINUE statement following the input-output statement whose execution caused the exception', c) fatal EC-I-O -> 'the implementor determines what action is taken'; 9.1.14 level-2 rule 1 restates the return; §2023:A.1 item 218 keeps it implementor-defined. 1985 critical = 2023 fatal for 1985 statuses (7x needs 2023 features). GR7 a) defers to SORT/MERGE; GR12 is format 3. Same.",
+  "source": "adjudicate-712-r2/slice-03"
  }
 }

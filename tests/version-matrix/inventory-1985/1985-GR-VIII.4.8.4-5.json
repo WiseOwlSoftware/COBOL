@@ -8,10 +8,11 @@
    "GR-14.9.49.4-6",
    "GR-14.9.49.4-5",
    "GR-9.1.14-2",
+   "GR-9.1.14-3",
    "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "1985 GR5: USE procedures run 'after completion of the standard input-output exception routine upon the unsuccessful execution of an input-output operation unless an AT END or INVALID KEY phrase takes precedence', with cases a-e for file-name-1, INPUT, OUTPUT, I-O and EXTEND. §2023:14.9.49.4 GR6 restates the sentence and a-e word for word; its exception-checking PERFORM precondition always holds for a 1985 program, which has no such PERFORM. The file-name-1 precedence is also §2023:14.9.49.4 GR5, and the AT END / INVALID KEY precedence is stated as 'any applicable exception processing statements are not executed' (§2023:9.1.14 GR2) and 'Any other applicable exception processing statements are not executed' (§2023:14.9.30.4 GR24). Same (as the indexed sibling 1985-GR-IX.4.8.4-5).",
-  "source": "adjudicate-712/slice-20"
+  "reason": "1985: USE procedures run after the standard exception routine 'unless an AT END or INVALID KEY phrase takes precedence', cases a-e. §2023:14.9.49.4 GR6 repeats the sentence and a)-e); its exception-checking PERFORM proviso always holds for a 1985 program. §2023:14.9.49.4 GR5 (file-name-1 precedence), §2023:9.1.14 GR2/GR3 and §2023:14.9.30.4 GR24 ('Any other applicable exception processing statements are not executed') restate the precedences. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

@@ -10,7 +10,7 @@
    "GR-14.9.49.4-5"
   ],
   "bridge": true,
-  "reason": "1985: file-name-1 in a USE statement 'must not cause the simultaneous request for execution of more than one USE procedure'. 1985 itself already let a file-name USE coexist with an open-mode USE (§1985:IX.4.8.4 GR4 'When file-name-1 is specified explicitly, no other USE statement applies to file-name-1'), so the rule refuses only a file-name named in two USE statements. 2023 keeps that refusal, §2023:14.9.49.3 SR8 'The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within the same procedure division', and keeps one procedure per event: §2023:14.9.49.4 GR5 (a file-name USE 'takes precedence over any USE statements specifying an INPUT, OUTPUT, I-O, or EXTEND phrase') and §2023:14.9.49.4 GR3 ('no other declaratives are executed'). Same programs refused, same procedure run.",
-  "source": "adjudicate-712/slice-29"
+  "reason": "1985: file-name-1 in a USE statement 'must not cause the simultaneous request for execution of more than one USE procedure'; 1985 IX.4.8.4 lets a file-name USE coexist with an open-mode USE (the file-name one applies), so the rule refuses a file-name in two USE statements. 2023: 'The same file-name shall not appear in more than one USE AFTER EXCEPTION statement' (§2023:14.9.49.3 SR8), the file-name USE 'takes precedence over any USE statements specifying an INPUT' (§2023:14.9.49.4 GR5), and 'no other declaratives are executed' (§2023:14.9.49.4 GR3). Same refusal, still a syntax rule.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

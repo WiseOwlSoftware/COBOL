@@ -3,15 +3,15 @@
  "rule-digest": "7dd411cfab11",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-14.7.5-1",
    "GR-8.8.1.2-6",
    "GR-14.7.5-L2.1",
    "GR-14.7.7-4"
   ],
-  "reason": "1985: 'Violation of the rules for evaluation of exponentiation always terminates the arithmetic operation and always causes a size error condition.' 2023: the size error condition exists 'if the rules for evaluation of exponentiation are violated' (§2023:14.7.5 GR1), and §2023:8.8.1.2 GR6 says on each violation 'the EC-SIZE-EXPONENTIATION exception condition is set to exist and the size error condition is raised'. The operation is abandoned: with the SIZE ERROR phrase 'the values of all of the resultant data items remain unchanged' (§2023:14.7.5, catalog GR-14.7.5-L2.1), and 'If the size error condition is raised during the initial evaluation, none of the resultant data items are changed' (§2023:14.7.7 GR4). Both effects are kept. Which values violate the rules (VI.6.2.3) and what happens without the phrase (the fatal EC-SIZE handling replacing 1985's 'undefined' resultants) belong to other 1985 rules.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "reason": "1985: violation of the exponentiation rules 'always terminates the arithmetic operation and always causes a size error condition'. 2023: the size error condition exists 'if the rules for evaluation of exponentiation are violated' (§2023:14.7.5 GR1); §2023:8.8.1.2 GR6: 'the EC-SIZE-EXPONENTIATION exception condition is set to exist and the size error condition is raised'; with the phrase 'the values of all of the resultant data items remain unchanged from the values they had at the start of the execution of the arithmetic statement' (§2023:14.7.5, catalog L2.1), and §2023:14.7.7 GR4 'If the size error condition is raised during the initial evaluation, none of the resultant data items are changed'. Which values violate (VI.6.2.3 GR5) and the no-phrase EC handling (L3.1, vs 1985 GR3) are other records.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

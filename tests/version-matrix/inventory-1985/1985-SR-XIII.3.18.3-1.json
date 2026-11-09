@@ -3,13 +3,13 @@
  "rule-digest": "60105b9e4eb9",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "SR-13.18.53.3-4",
    "SR-8.4.3.15.3-1"
   ],
-  "reason": "§1985:XIII.3.18.3 SR1: identifier-1 in any Data Division section; a Report Section item must be PAGE-COUNTER, LINE-COUNTER or a sum counter of the same report. §2023:13.18.53.3 SR4: 'Identifier-1 specifies a data item defined in any section of the data division. If identifier-1 specifies a report section item, it shall be a report counter identifier or a sum counter defined in the current report', and §2023:8.4.3.15.3 SR1 lets PAGE-COUNTER and LINE-COUNTER be referenced in the report section 'only in a SOURCE clause'. Same set of operands; the arithmetic-expression extension is new syntax only. Both are compile-time rules.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "reason": "1985: identifier-1 may be in any Data Division section; a Report Section item must be PAGE-COUNTER, LINE-COUNTER or a sum counter of the report containing the SOURCE clause. §2023:13.18.53.3 SR4: 'If identifier-1 specifies a report section item, it shall be a report counter identifier or a sum counter defined in the current report.'; §2023:8.4.3.15.3 SR1: 'In the report section, PAGE-COUNTER and LINE-COUNTER may be referenced only in a SOURCE clause.' Same operands accepted and refused at compile time; the arithmetic-expression operand is new syntax. The report counter format states no part of this rule, so it is not in 'to'.",
+  "source": "adjudicate-712-r2/slice-14"
  }
 }

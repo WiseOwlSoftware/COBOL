@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-9.1.13.11-1"
+   "GR-9.1.13.11-1",
+   "DOC-A.1-110"
   ],
   "bridge": true,
-  "reason": "Both make 9x an implementor-defined unsuccessful condition with x set by the implementor; 1985 'must not duplicate any condition specified for the I-O status values 00 through 49' and §2023:9.1.13.11 GR1 'shall not duplicate any other condition specified by another I-O status value' bound it the same way for a program. The A.1 documentation item is an implementor obligation, not part of this rule.",
-  "source": "adjudicate-712/slice-18"
+  "reason": "Both make 9x an implementor-defined unsuccessful condition with x defined by the implementor. 1985 'must not duplicate any condition specified for the I-O status values 00 through 49' (every other value it defined); §2023:9.1.13.11 GR1 'shall not duplicate any other condition specified by another I-O status value'. The added 5x-7x bound only the implementor, not which programs are accepted or what they do. §2023:A.1 item 110 restates that x is the implementor's.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

@@ -3,13 +3,13 @@
  "rule-digest": "bc372c1a905b",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "FMT-14.9.19.2",
    "SR-14.9.19.3-1"
   ],
-  "reason": "The 1985 diagram (§1985:VI.6.16.2) appears to let NEXT SENTENCE be closed by END-IF, but §1985:VI.6.16.3 SR3 forbids it ('If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified'), so the 1985 programs are IF with statements and an optional ELSE closed by END-IF, or IF with statements or NEXT SENTENCE and an optional ELSE (statements or NEXT SENTENCE) with no END-IF. §2023:14.9.19.2 states exactly those two shapes, 'Format 1 (delimited)' with END-IF and 'Format 2 (historic)' with NEXT SENTENCE and no END-IF, and the 1985 ellipsis on statement-1 and statement-2 is stated in §2023:14.9.19.3 SR1 ('one or more imperative statements or a conditional statement optionally preceded by one or more imperative statements'). Same programs accepted, same meaning: KEPT (NEXT SENTENCE is archaic in 2023, a standing, not a change). The refusal of NEXT SENTENCE with END-IF stays a compile-time refusal.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "reason": "The 1985 diagram is read with §1985:VI.6.16.3 SR3 ('If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified'): IF with statements closed by END-IF, or statements/NEXT SENTENCE with an ELSE alternative and no END-IF. §2023:14.9.19.2 prints exactly these as Format 1 (delimited) and 'Format 2 (historic)'; the ellipsis on statement-1/-2 is §2023:14.9.19.3 SR1 ('one or more imperative statements or a conditional statement optionally preceded by one or more imperative statements'). NEXT SENTENCE is only marked archaic. No program accepted by one edition is refused by the other. SR-14.9.19.3-3 (omitting ELSE NEXT SENTENCE before the period) carries 1985 SR2, not this format, so it is left out.",
+  "source": "adjudicate-712-r2/slice-01"
  }
 }

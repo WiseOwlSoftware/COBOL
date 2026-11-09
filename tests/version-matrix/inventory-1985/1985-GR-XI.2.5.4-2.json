@@ -7,10 +7,11 @@
   "to": [
    "SR-12.4.6.4.3-8",
    "GR-12.4.6.4.4-4",
-   "GR-12.4.6.4.4-5"
+   "GR-12.4.6.4.4-5",
+   "DOC-A.1-169"
   ],
   "bridge": true,
-  "reason": "The 1985 'at least one of the file-names must represent a sort or merge file' is §2023:12.4.6.4.3 SR8 ('At least one file-name specified in a sort-merge-area format SAME clause shall represent a sort or merge file'). Items a-c are §2023:12.4.6.4.4 GR4 a-c, with the implementor still setting the extent of allocation. Item d is §2023:12.4.6.4.4 GR5 ('shall not be in the open mode'), with no exception condition added. The 1985 note on how non-sort files share storage (a SAME AREA or SAME RECORD AREA clause) follows from GR1-2.",
-  "source": "adjudicate-712/slice-22"
+  "reason": "1985 'at least one of the file-names must represent a sort or merge file' = §2023:12.4.6.4.3 SR8. Items a-c = §2023:12.4.6.4.4 GR4 a)-c), 'The extent of such allocation shall be specified by the implementor' (also §2023:A.1 item 169). Item d = §2023:12.4.6.4.4 GR5 'shall not be in the open mode', no exception condition added. Same programs, same effect.",
+  "source": "adjudicate-712-r2/slice-10"
  }
 }

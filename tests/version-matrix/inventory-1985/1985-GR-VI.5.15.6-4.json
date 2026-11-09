@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.18.63.3-14"
+   "SR-13.18.63.3-14",
+   "SR-13.18.63.3-16"
   ],
   "bridge": true,
-  "reason": "1985: VALUE 'must not be specified for a group item containing items subordinate to it with descriptions including JUSTIFIED, SYNCHRONIZED or USAGE (other than USAGE IS DISPLAY).' §2023:13.18.63.3 SR14: 'subordinate items within that group shall not be described with a JUSTIFIED or SYNCHRONIZED clause, and all data items subordinate to an alphanumeric group item shall be explicitly or implicitly described with usage DISPLAY.' Every 1985 group is alphanumeric, so the same programs are refused at compile time.",
-  "source": "adjudicate-712/slice-10"
+  "reason": "1985: no group VALUE when subordinates have 'JUSTIFIED, SYNCHRONIZED or USAGE (other than USAGE IS DISPLAY)'. §2023:13.18.63.3 SR14: subordinates 'shall not be described with a JUSTIFIED or SYNCHRONIZED clause, and all data items subordinate to an alphanumeric group item shall be ... usage DISPLAY'; SR16 extends it to the table format. Every group a 1985 program can declare is alphanumeric; national and bit groups need GROUP-USAGE and categories absent from 1985, so the narrowing to alphanumeric groups changes no program this rule governs.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

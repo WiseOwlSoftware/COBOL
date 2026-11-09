@@ -2,7 +2,7 @@
  "rule-id": "1985-GR-VIII.4.9.4-1",
  "rule-digest": "7b68cd3be994",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-14.9.51.4-3",
@@ -10,7 +10,7 @@
    "GR-9.1.13.7-8"
   ],
   "bridge": true,
-  "reason": "1985 GR1: the file 'must be open in the output, I-O, or extend mode' at WRITE, referring to OPEN, whose Table 2 (§1985:VIII.4.4.4 GR4, 'may be used with the open mode given at the top of the column') already allows sequential WRITE only in Output or Extend and random/dynamic WRITE only in Output or I-O (error mode a). 2023: 'If the access mode of the write file is sequential, the open mode of the write file connector shall be extend or output', otherwise I-O or output, else unsuccessful with status '48' (§2023:14.9.51.4 GR3); Table 20 of §2023:14.9.27.4 GR8 and §2023:9.1.13.7 GR8 restate it. 2023 defines status 48 for a sequential WRITE in I-O mode, which 1985 status 48 did not cover, but such a program already broke 1985's OPEN table. Same for conforming programs.",
-  "source": "adjudicate-712/slice-20"
+  "reason": "1985: the file 'must be open in the output, I-O, or extend mode'; a sequential-access WRITE in I-O mode meets this rule, breaks only the OPEN Table 2, and 1985 status 48 ('not open in the I-O, output, or extend mode') does not cover it: undefined. §2023:14.9.51.4 GR3: 'If the access mode of the write file is sequential, the open mode of the write file connector shall be extend or output', else unsuccessful with '48' (§2023:9.1.13.7 GR8 a); Table 20 of §2023:14.9.27.4 GR8). A result is now defined: changed.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

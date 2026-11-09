@@ -6,11 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-13.18.35.4-5",
-   "GR-13.18.35.4-1",
-   "GR-13.18.35.4-6"
+   "GR-13.18.35.4-6",
+   "GR-13.18.35.4-1"
   ],
   "bridge": true,
-  "reason": "1985 PF first line: a) absolute -> its integer; b) no LINE -> not presented (1985 LINE SR9 forbids a relative first LINE in a PF, so this rule has no relative case). 2023 §2023:13.18.35.4 GR5 a) integer-1; §2023:13.18.35.4 GR1/GR6: only LINE clauses define lines. Same for every 1985 program. 2023's acceptance of a relative first PF line (GR5 b)4) is the change of 1985 LINE SR9, not of this rule.",
-  "source": "adjudicate-712/slice-24"
+  "reason": "1985 PF first print line: a) absolute first LINE -> its integer; b) no LINE -> not presented. 2023 §2023:13.18.35.4 GR5 a) 'If the first LINE clause of the report group is absolute, the report group's first line number is given by integer-1', §2023:13.18.35.4 GR6 LINE-COUNTER set to it and the line printed there; §2023:13.18.35.4 GR1 lines exist only per LINE clause, so a PF with none prints nothing. This rule refuses nothing. 2023's relative first PF line (§2023:13.18.35.4 GR5 b)4 'If the report group is a page footing, the line number is given by (FOOTING integer + integer-2)') is a program §1985:XIII.3.15.3 SR9 refuses; that refusal's record carries the change. SR-13.18.35.3-3 (integer meanings) is the LINE clause's general definition, not this table rule.",
+  "source": "adjudicate-712-r2/slice-11"
  }
 }

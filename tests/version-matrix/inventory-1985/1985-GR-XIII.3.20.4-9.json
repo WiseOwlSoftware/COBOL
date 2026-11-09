@@ -3,6 +3,7 @@
  "rule-digest": "c847874e44a3",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-14.9.49.4-8",
    "GR-14.9.49.4-9",
@@ -11,11 +12,11 @@
    "GR-13.18.57.4-6",
    "GR-13.18.57.4-7",
    "GR-13.18.57.4-8",
+   "GR-13.18.35.4-4",
    "GR-13.18.35.4-5"
   ],
-  "reason": "1985 GR9 for report heading, page heading, control heading, page footing and report footing: a) run the USE BEFORE REPORTING procedure; b) if suppressed or not printable, 'no further processing'; c) otherwise present the group by its type's presentation rules. 2023: a) §2023:14.9.49.4 GR8 'The declarative is invoked just before the named report group is produced' and GR9 d) 'Before the processing of any LINE clauses'; GR9 b) 'After incrementing sum counters' never applies to these types in 1985, where SUM is allowed only in a control footing. b) §2023:14.9.45.4 GR3 inhibits printing, 'Any page advance associated with the report group', NEXT GROUP and LINE-COUNTER changes, the same list as §1985:XIII.4.6.4 GR3 (presentation, 'The processing of all LINE clauses in the report group', NEXT GROUP, LINE-COUNTER); §2023:8.4.3.15.4 GR5 leaves the counters untouched by a dummy (non-printable) group. c) the per-type placement: §2023:13.18.57.4 GR6 (when each type prints), GR7 and GR8 (upper and lower limits), §2023:13.18.35.4 GR5 (first-line position by type). Same processing for every conforming 1985 program.",
-  "source": "adjudicate-712/slice-25",
-  "edition": 2023,
-  "bridge": true
+  "bridge": true,
+  "reason": "1985 GR9 (RH, PH, CH, PF, RF): a) run the USE BEFORE REPORTING procedure; b) if suppressed or not printable, 'no further processing'; c) otherwise present the group by its type's presentation rules. 2023: a) §2023:14.9.49.4 GR8 'The declarative is invoked just before the named report group is produced', §2023:14.9.49.4 GR9 c) 'Before any page fit processing'; b) §2023:14.9.45.4 GR3 inhibits 'The printing of the print lines of the report group', 'Any page advance associated with the report group', NEXT GROUP and LINE-COUNTER changes; §2023:8.4.3.15.4 GR5 counters 'are not affected by the processing of a dummy report group'; c) presentation: §2023:13.18.57.4 GR6 (when each type prints), §2023:13.18.57.4 GR7 and GR8 (limits), §2023:13.18.35.4 GR4 'a page fit test is performed before any line of the report group is printed' and §2023:13.18.35.4 GR5 (first line). The recheck's §2023:14.9.45.4 GR1/GR2 (which group, which instance SUPPRESS covers) belong to the SUPPRESS statement's own record, not this one. Same effect.",
+  "source": "adjudicate-712-r2/slice-12"
  }
 }

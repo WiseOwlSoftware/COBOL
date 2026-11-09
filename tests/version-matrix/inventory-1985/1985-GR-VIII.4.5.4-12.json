@@ -8,7 +8,7 @@
    "GR-14.9.30.4-18"
   ],
   "bridge": true,
-  "reason": "§2023:14.9.30.4 GR18: after an unsuccessful READ the record area is undefined and 'the file position indicator is set to indicate that no valid record position has been established', as 1985 'no valid next record'. Its 'Unless otherwise specified' serves record-lock conflicts (2023 only) and the at end setting (as 1985 GR10); the next sequential READ still fails with 46 in both.",
-  "source": "adjudicate-712/slice-19"
+  "reason": "1985: after an unsuccessful READ the record area is undefined and the FPI shows 'no valid next record has been established'. §2023:14.9.30.4 GR18: record area undefined and 'the file position indicator is set to indicate that no valid record position has been established'. Its 'Unless otherwise specified' covers lock conflicts (2023 only) and at end; a following sequential READ still fails with '46' in both (§2023:14.9.30.4 GR24 restates only the at-end FPI). Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

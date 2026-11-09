@@ -8,10 +8,19 @@
    "GR-9.1.13.5-1",
    "GR-9.1.13.5-2",
    "GR-9.1.13.5-3",
-   "GR-9.1.13.5-4"
+   "GR-9.1.13.5-4",
+   "GR-14.9.51.4-40",
+   "GR-14.9.51.4-42",
+   "GR-14.9.35.4-22",
+   "GR-14.9.35.4-23",
+   "GR-14.9.35.4-25",
+   "GR-14.9.30.4-28",
+   "GR-14.9.30.4-32",
+   "GR-14.9.41.4-5",
+   "GR-14.9.10.4-3"
   ],
   "bridge": true,
-  "reason": "1985 statuses 21-24 for an indexed file each survive: 21 sequence error (§2023:9.1.13.5 GR1 'A sequence error exists for a sequentially accessed indexed file'), 22 duplicate prime/alternate key (§2023:9.1.13.5 GR2 'to write a record that would create a duplicate prime record key in a physical indexed file'; 1985 also said 'or rewrite', but a REWRITE cannot create a duplicate prime key: a changed key is 21 or 23), 23 record not found or optional file not present (§2023:9.1.13.5 GR3), 24 beyond the externally-defined boundaries (§2023:9.1.13.5 GR4 'write outside the externally-defined boundaries of a physical relative or indexed file'). The added 23 c) d) and the relative cases cover features or organizations outside this rule; per-statement rules only cite these values.",
-  "source": "adjudicate-712/slice-06"
+  "reason": "Each indexed-file status survives: 21 'A sequence error exists for a sequentially accessed indexed file' (§2023:9.1.13.5 GR1); 22 'to write a record that would create a duplicate prime record key in a physical indexed file' and write or rewrite of a duplicate alternate key without DUPLICATES (§2023:9.1.13.5 GR2; 1985's 'or rewrite' of a duplicate prime key cannot occur, a changed prime key giving 21 or 23 by §2023:14.9.35.4 GR22, GR23, GR25); 23 random access to a missing record or START/random READ on an absent optional file (§2023:9.1.13.5 GR3); 24 'An attempt is made to write outside the externally-defined boundaries of a physical relative or indexed file' (§2023:9.1.13.5 GR4). The statement rules setting these (§2023:14.9.51.4 GR40, GR42; §2023:14.9.30.4 GR28, GR32; §2023:14.9.41.4 GR5; §2023:14.9.10.4 GR3) state the same. Added 23 c) 'a START statement is attempted with an invalid key length specification' and d) concern START key length and sequential files, and the added 24 case concerns relative files: none is a program this indexed-file rule governs. Same statuses.",
+  "source": "adjudicate-712-r2/slice-01"
  }
 }

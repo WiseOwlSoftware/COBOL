@@ -6,12 +6,13 @@
   "edition": 2023,
   "to": [
    "SR-8.3.5-9",
-   "SR-8.3.5-4",
+   "SR-8.3.5-8",
    "SR-8.3.5-2",
-   "SR-8.3.5-3"
+   "SR-8.3.5-3",
+   "SR-8.3.5-4"
   ],
   "bridge": true,
-  "reason": "Part 1, a space may follow any separator: §2023:8.3.5 SR9 keeps it 'except the opening delimiter of a literal' (1985: opening quotation mark). Part 2, punctuation inside a PICTURE character-string or numeric literal is a symbol, not a separator: §2023:8.3.5 SR2 and SR3 make comma, semicolon and period separators only when a space follows, and §2023:8.3.5 SR4 exempts parentheses 'Except when appearing in a picture character-string'. So pictures and numeric literals still end only at space, comma, semicolon or period. Part 3, separator rules do not apply inside literals: the uncataloged §2023:8.3.5 preamble says 'A separator is one of the following, except when appearing in a literal'. 2023 has no comment-entries, and comment lines (§2023:6.3.7.2, uncataloged) are not character-strings. The removal of comment-entries belongs to the paragraph rules that carried them. Catalog defect: the 8.3.5 preamble has no rule id.",
-  "source": "adjudicate-712/slice-28"
+  "reason": "§2023:8.3.5 SR9 repeats that a space may follow any separator 'except the opening delimiter of a literal' (1985: opening quotation mark) and that such a space is part of the literal; §2023:8.3.5 SR8 b) keeps the literal side. Picture and numeric-literal punctuation is still a symbol: comma, semicolon and period separate only before a space (§2023:8.3.5 SR2, SR3), parentheses except in a picture string (§2023:8.3.5 SR4). The literal-content exemption sits in the uncataloged 8.3.5 preamble ('except when appearing in a literal'); 2023 has no comment-entries, whose removal is recorded on the rules that carried them. Same programs accepted and refused.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

@@ -2,19 +2,19 @@
  "rule-id": "1985-SR-XIII.3.8.3-8",
  "rule-digest": "486044992d09",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
+  "edition": 2023,
   "to": [
    "GR-13.18.39.4-1",
-   "GR-13.18.39.4-2",
    "GR-13.18.39.4-3",
    "GR-13.18.39.4-4",
    "GR-13.18.57.4-7",
    "GR-13.18.57.4-8",
-   "SR-13.18.35.3-6"
+   "SR-13.18.35.3-6",
+   "GR-13.18.35.4-2"
   ],
-  "reason": "§1985:XIII.3.8.3 SR8 confines RH/PH to HEADING..FIRST DETAIL-1 (RH on its own page: HEADING..page limit), CH and DE to FIRST DETAIL..LAST DETAIL, CF to FIRST DETAIL..FOOTING, PF and RF to FOOTING+1..page limit. 2023 states the same regions: 'each report group shall be confined within one or more of these regions' (§2023:13.18.39.4 GR1), the region integers (§2023:13.18.39.4 GR2), RH/RF on a page by itself (§2023:13.18.39.4 GR4), the upper and lower limits per type (§2023:13.18.57.4 GR7, GR8), and the compile-time check of absolute lines (§2023:13.18.35.3 SR6 c). The 2023 control heading bound is the LAST CONTROL HEADING integer, but a 1985 program has no such phrase and 'integer-5 will be equal to integer-6, if LAST DETAIL is specified' (§2023:13.18.39.4 GR3 c), reproducing the 1985 LAST DETAIL bound; LAST CONTROL HEADING and OR PAGE are 2023-only syntax.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "reason": "1985 SR8, a syntax rule, requires every report group, of absolute or relative lines, to 'be defined such that it can be presented in the vertical subdivision of the page' of its type. 2023 keeps the regions (§2023:13.18.39.4 GR1 'each report group shall be confined within one or more of these regions', GR3, GR4; §2023:13.18.57.4 GR7, GR8), but its compile-time check covers only absolute lines (§2023:13.18.35.3 SR6 c) 'Any absolute report lines shall be defined in such a way that no line appears above the upper limit or below the lower limit', and d)); for a group that cannot be printed on one page §2023:13.18.35.4 GR2 says 'If this rule is violated the EC-REPORT-PAGE-LIMIT exception condition is set to exist and the results are undefined.' An all-relative group too tall for its region, refused by 1985, is no longer a syntax-rule refusal.",
+  "source": "adjudicate-712-r2/slice-14"
  }
 }

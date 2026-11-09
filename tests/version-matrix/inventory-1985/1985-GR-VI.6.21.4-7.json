@@ -3,13 +3,13 @@
  "rule-digest": "d5d5b11622d4",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-14.9.28.4-5",
    "GR-14.9.28.4-4"
   ],
-  "reason": "§2023:14.9.28.4 GR5 keeps the first transfer ('control is transferred to the first statement of the specified set of statements except as indicated in General rules 9, 10, and 11') and the return points: after the last statement of procedure-name-1 or procedure-name-2, which for a section is the last statement of its last paragraph, as 1985 a-d spell out. 1985 e) (in-line completes after its last contained statement) follows from §2023:14.9.28.4 GR4: 'An inline PERFORM statement and an out-of-line PERFORM statement function identically', the set being the contained statements. The skipped-transfer cases of 1985 10b-d remain in 2023 GR9, GR10 and GR13 (VARYING with condition true at entry), so no 1985 PERFORM differs; 'only once' describes the single entry, iteration being the control mechanism's work in both editions.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "reason": "§2023:14.9.28.4 GR5 keeps the transfer to the first statement of the specified set (except as General rules 9, 10 and 11 indicate, the renumbered 1985 10b-d) and the return: 'If procedure-name-2 is specified, the return mechanism is after the last statement of procedure-name-2' (for a section, its last paragraph's last statement, as 1985 a)-d) spell out). 1985 e) follows from §2023:14.9.28.4 GR4: 'For an inline PERFORM statement, the specified set of statements consists of all statements contained within the PERFORM statement'. 14.6.3 GR1 and GR9/10/13 carry other 1985 rules (IV.4.4.2, GR10).",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

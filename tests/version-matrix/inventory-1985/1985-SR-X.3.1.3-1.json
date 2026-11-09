@@ -2,7 +2,7 @@
  "rule-id": "1985-SR-X.3.1.3-1",
  "rule-digest": "dfd67c15596e",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "FMT-11.10.2",
@@ -10,7 +10,7 @@
    "SR-8.3.2.2-3"
   ],
   "bridge": true,
-  "reason": "1985: the nested PROGRAM-ID program-name 'must conform to the rules for formation of a user-defined word'. 2023 format §2023:11.10.2 takes program-name-1; program-name is a user-defined word by the list in §2023:8.3.2.2 and the COBOL-word rules of §2023:8.3.2.1, including §2023:8.3.2.1 SR1 and §2023:8.3.2.2 SR3 ('each user-defined word shall contain at least one basic letter or extended letter'). The literal-1 (AS) rules concern only the externalized name. Same requirement. Catalog note: 8.3.2.1's general paragraph and the 8.3.2.2 type list are uncataloged.",
-  "source": "adjudicate-712/slice-32"
+  "reason": "1985: the nested PROGRAM-ID program-name 'must conform to the rules for formation of a user-defined word' (§1985:IV.4.2.2.1: 'not more than 30 characters', letters, digits, hyphen). 2023: program-name-1 of §2023:11.10.2 is a user-defined word under §2023:8.3.2.1 SR1 and §2023:8.3.2.2 SR3, but §2023:8.3.2.1 widens the word to 'not more than 63 characters' and adds 'extended letters' and the 'underscore'. PROGRAM-ID. MY_SUB. in a contained program is refused by the 1985 rule and accepted by 2023. The changed text is the uncatalogued 8.3.2.1 general paragraph (kb/Work PB479); the AS literal-1 phrase is separate new syntax.",
+  "source": "adjudicate-712-r2/slice-14"
  }
 }

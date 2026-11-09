@@ -3,14 +3,15 @@
  "rule-digest": "a081448864d6",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-14.5.3.2-1",
+   "GR-14.5.3.2-2",
    "GR-14.5.3.3-3",
    "GR-14.5.3.3-4"
   ],
-  "reason": "2023 states SEARCH's three terminators through the general scope rules instead of a SEARCH rule. a) END-SEARCH: Table 12 makes it SEARCH's terminator and §2023:14.5.3.2 GR1 ends 'the most-recently preceding unterminated statement having the statement-name'. b) separator period: SEARCH is a conditional statement (WHEN, AT END) and §2023:14.5.3.3 GR3 ends one 'not contained within another statement, by a separator period'. c) ELSE or END-IF of a preceding IF: §2023:14.5.3.3 GR4 ends a contained conditional statement 'by a) the termination of any containing statement, or b) the next phrase of any containing statement'. In 1985 an unterminated SEARCH can be contained only in an IF, so GR4 yields exactly 1985's c). Same termination for every 1985 program.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "reason": "1985 GR1: SEARCH ends at END-SEARCH, a separator period, or an ELSE/END-IF of a preceding IF. 2023 states these through the scope rules: END-SEARCH ends 'the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined' (§2023:14.5.3.2 GR1); END-IF ends 'any unterminated statements that appear between that statement-name and the explicit scope terminator' (§2023:14.5.3.2 GR2); a period ends one 'for a conditional statement not contained within another statement, by a separator period' (§2023:14.5.3.3 GR3); ELSE as the next phrase of the containing IF ends a contained conditional statement (§2023:14.5.3.3 GR4 'for a conditional statement contained within another statement, by'). In 1985 an unterminated SEARCH can be contained only in IF, so the same programs end the same way.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

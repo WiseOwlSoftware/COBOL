@@ -11,7 +11,7 @@
    "FMT-12.4.5.10.2"
   ],
   "bridge": true,
-  "reason": "A pointer stating no requirement beyond the presence of the ACCESS MODE and ORGANIZATION IS RELATIVE clauses in the relative file control entry. 2023's relative format (§2023:12.4.5.2 SR9) carries both, presented in §2023:12.4.5.5.1 and §2023:12.4.5.10.2; the clauses' content is carried by their own records.",
-  "source": "adjudicate-712/slice-18"
+  "reason": "A pointer stating only that the relative file control entry has the ACCESS MODE and ORGANIZATION IS RELATIVE clauses. 2023's Format 2 (§2023:12.4.5.2 SR9 'Format 2 shall be specified only for a relative file') carries both, presented in their own subclauses 12.4.5.5 and 12.4.5.10; their content is carried by their own records.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

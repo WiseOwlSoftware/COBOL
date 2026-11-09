@@ -10,7 +10,7 @@
    "GR-8.3.3.2.4-2"
   ],
   "bridge": true,
-  "reason": "§2023:8.3.3.3.2 SR3: a literal 'shall not contain more than one decimal point', the assumed point, and no rightmost point, as in 1985. §2023:8.3.3.3.2 GR4: 'An integer literal is a fixed-point numeric literal that contains no decimal point'. Quoted digits are an alphanumeric literal: format 8.3.3.2.2 with §2023:8.3.3.2.4 GR2 'Alphanumeric literals are of the class and category alphanumeric' (1985 'nonnumeric'). Floating-point literals are an addition. Same programs, same meaning.",
-  "source": "adjudicate-712/slice-28"
+  "reason": "§2023:8.3.3.3.2 SR3 repeats 'shall not contain more than one decimal point ... may appear anywhere within the literal except as the rightmost character'; §2023:8.3.3.3.2 GR4 'An integer literal is a fixed-point numeric literal that contains no decimal point'; quoted digits form an alphanumeric literal, §2023:8.3.3.2.4 GR2 'Alphanumeric literals are of the class and category alphanumeric' (1985 'nonnumeric'). Floating-point literals are a separate format. Same programs, same meaning.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

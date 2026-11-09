@@ -2,13 +2,14 @@
  "rule-id": "1985-GR-VIII.4.7.4-4",
  "rule-digest": "ec255f50a9b9",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.41.4-9"
+   "GR-14.9.41.4-9",
+   "GR-14.9.41.4-10"
   ],
   "bridge": true,
-  "reason": "1985 allows only EQUAL, GREATER, NOT LESS, GREATER OR EQUAL (§1985:VIII.4.7.2). For those §2023:14.9.41.4 GR9 a) sets the FPI to 'the first logical record in the file whose key satisfies the comparison searching the file sequentially', numeric comparison applies, and c) gives invalid key if none. GR9 b) (reverse search) serves only the LESS-type operators 1985 cannot write, so no 1985 program changes.",
-  "source": "adjudicate-712/slice-19"
+  "reason": "1985: the FPI is set to 'the first logical record in the file whose key satisfies the comparison', with only EQUAL, GREATER, NOT LESS, GREATER OR EQUAL writable (§1985:VIII.4.7.2). §2023:14.9.41.4 GR9 a) keeps that for those operators, but b) adds a case: 'If the relational operator is LESS, NOT GREATER, or LESS OR EQUAL, ... searching the file in reverse order'; §2023:14.9.41.3 SR3 admits them. A program 1985 refuses is accepted with a new positioning result.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

@@ -10,7 +10,7 @@
    "GR-9.1.13.6-6"
   ],
   "bridge": true,
-  "reason": "1985 GR17: an OPEN I-O 'must reference a file that supports the input and output operations that are permitted for a sequential file when opened in the I-O mode' and places it in I-O open mode. §2023:14.9.27.4 GR16: 'the file shall support the input and output statements that are permitted for the organization of that file when opened in the I-O mode', '37' and unsuccessful otherwise, success sets I-O mode; §2023:14.9.27.4 GR4 sets the open mode; §2023:9.1.13.6 GR6 restates the 37 case, which 1985 status 37 also gave. Same run-time requirement for a sequential file.",
-  "source": "adjudicate-712/slice-16"
+  "reason": "1985 GR17: OPEN I-O 'must reference a file that supports the input and output operations that are permitted for a sequential file when opened in the I-O mode' and places the file in I-O mode. §2023:14.9.27.4 GR16: 'the file shall support the input and output statements that are permitted for the organization of that file when opened in the I-O mode', '37' and unsuccessful otherwise, success sets I-O mode; §2023:14.9.27.4 GR4 sets the open mode; §2023:9.1.13.6 GR6 restates the 37 case 1985 also had. Same run-time requirement for a sequential file. GR8 (prior OPEN, Table 20) is 1985 GR4's requirement.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

@@ -5,12 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.30.4-19",
    "SR-14.9.30.3-6",
+   "GR-14.9.30.4-19",
    "SR-14.9.30.3-9"
   ],
   "bridge": true,
-  "reason": "1985: format 2 is used for random access mode, or for dynamic access mode when records are retrieved randomly. 2023 §2023:14.9.30.4 GR19: without an explicit or implied NEXT or PREVIOUS 'the read is a random read and the rules for format 2 apply'; §2023:14.9.30.3 SR6 bars NEXT, PREVIOUS and AT END in random mode; §2023:14.9.30.3 SR9 implies NEXT in dynamic mode only when ADVANCING, AT END or NOT AT END is written, so other dynamic-mode READs stay random. The same READs are random under both editions.",
-  "source": "adjudicate-712/slice-29"
+  "reason": "1985: format 2 serves random access mode, and dynamic access mode when records are retrieved randomly. 2023: without an explicit or implied NEXT or PREVIOUS 'the read is a random read and the rules for format 2 apply' (§2023:14.9.30.4 GR19); random mode bars NEXT, PREVIOUS, AT END and the like (§2023:14.9.30.3 SR6); in dynamic mode NEXT is implied only with ADVANCING, AT END or NOT AT END (§2023:14.9.30.3 SR9), which format 2 never carried. The same READs are random under both.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

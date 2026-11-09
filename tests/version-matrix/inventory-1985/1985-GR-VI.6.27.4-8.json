@@ -3,13 +3,14 @@
  "rule-digest": "b2d18d48a9e9",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-14.9.48.4-7",
-   "GR-8.3.3.6.4-3"
+   "GR-8.3.3.6.4-3",
+   "GR-8.3.3.6.4-1"
   ],
-  "reason": "1985: a figurative-constant delimiter 'stands for a single character nonnumeric literal', and with ALL contiguous occurrences count as one, one occurrence moved per GR13d. §2023:14.9.48.4 GR7 restates both sentences: 'it stands for a single-character national literal if identifier-1 is a national data item; otherwise, it stands for a single-character alphanumeric literal', ALL folding identical, the move per GR11d (the renumbered 13d); §2023:8.3.3.6.4 GR3 also fixes a non-ALL figurative constant at one character. 1985 SR2 makes identifier-1 alphanumeric, so the national branch never applies to a 1985 program. Same meaning.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "reason": "§2023:14.9.48.4 GR7 restates both 1985 sentences: a figurative-constant delimiter 'stands for a single-character national literal if identifier-1 is a national data item; otherwise, it stands for a single-character alphanumeric literal' (1985 SR2 keeps identifier-1 alphanumeric, so 1985's 'nonnumeric literal'), and the ALL folding with the move per GR11d (renumbered 13d). §2023:8.3.3.6.4 GR3 ('other than ALL literal-1, the length of the string is one character') and GR1 (alphanumeric character value) agree.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

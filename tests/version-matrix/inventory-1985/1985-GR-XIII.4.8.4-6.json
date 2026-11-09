@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.49.4-7"
+   "GR-14.9.49.4-7",
+   "GR-9.1.14-L2.1",
+   "DOC-A.1-218"
   ],
   "bridge": true,
-  "reason": "1985: after the USE procedure, if the I-O status 'does not indicate a critical input-output error' control returns to the next executable statement after the I-O statement; otherwise 'the implementor determines what action is taken'. 2023 format 1 USE: if the status does not indicate a fatal EC-I-O exception condition, 'control is returned to an implicit CONTINUE statement following the input-output statement whose execution caused the exception', otherwise the implementor determines the action (§2023:14.9.49.4 GR7). The MERGE/SORT case only defers to those statements. §2023:14.9.49.4 GR12 governs format 3 USE (exception-names), not this format, so it is not a counterpart. Same effect.",
-  "source": "adjudicate-712/slice-27"
+  "reason": "1985: after the USE procedure, if the I-O status 'does not indicate a critical input-output error' control returns to the next executable statement after the I-O statement; otherwise 'the implementor determines what action is taken'. 2023: §2023:14.9.49.4 GR7 b) 'control is returned to an implicit CONTINUE statement following the input-output statement whose execution caused the exception', c) for a fatal EC-I-O condition 'the implementor determines what action is taken'; §2023:9.1.14 'then control is transferred to the end of the input-output statement'; §2023:A.1 item 218 'USE statement (action taken following execution of the USE procedure when I-O status value indicates a fatal exception condition)' keeps it implementor-defined. The MERGE/SORT case only defers to those statements. Same effect.",
+  "source": "adjudicate-712-r2/slice-12"
  }
 }

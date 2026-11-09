@@ -8,7 +8,7 @@
    "SR-12.3.7.3-16"
   ],
   "bridge": true,
-  "reason": "1985: 'The same symbolic-character-1 must appear only once in a SYMBOLIC CHARACTERS clause.' 2023 §2023:12.3.7.3 SR16 a) widens the wording to 'only once within the SYMBOLIC CHARACTER clauses of this SPECIAL-NAMES paragraph', but 1985 already refused a repeat across clauses: symbolic-characters form a disjoint set of user-defined words and §1985:IV.4.2.2.1.1 says 'all user-defined words within a given disjoint set must be unique' (a symbolic-character cannot be qualified). The same programs are refused.",
-  "source": "adjudicate-712/slice-29"
+  "reason": "1985: 'The same symbolic-character-1 must appear only once in a SYMBOLIC CHARACTERS clause.' §2023:12.3.7.3 SR16 a) says 'only once within the SYMBOLIC CHARACTER clauses of this SPECIAL-NAMES paragraph', but 1985 already refused a cross-clause repeat: symbolic-character is one of the disjoint sets of user-defined words and 'all user-defined words within a given disjoint set must be unique' (§1985:IV.4.2.2.1.1), and a symbolic-character cannot be qualified. The recheck did not consult that rule. Same programs refused.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

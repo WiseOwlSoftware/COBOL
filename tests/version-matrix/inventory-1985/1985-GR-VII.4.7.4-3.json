@@ -8,7 +8,7 @@
    "GR-14.9.51.4-5"
   ],
   "bridge": true,
-  "reason": "§2023:14.9.51.4 GR5 restates the equivalence: 'MOVE identifier-1 TO record-name-1 ... according to the rules specified for the MOVE statement', then 'The same WRITE statement without the FROM phrase'. Its added 'MOVE literal-1 TO record-name-1' serves FROM literal-1, syntax a 1985 program cannot contain (the 1985 format allows only identifier-1), so no 1985 program changes meaning; the new form belongs to the format's record. NOTE 1 on overlap concerns operands 1985 SR VII.4.7.3-1 refused, which is that rule's change.",
-  "source": "adjudicate-712/slice-17"
+  "reason": "1985 WRITE GR3: WRITE FROM = 'MOVE identifier-1 TO record-name-1' per MOVE rules, then WRITE without FROM. §2023:14.9.51.4 GR5 restates both steps. Its 'MOVE literal-1' arm serves FROM literal-1, which the 1985 format (not this rule) refuses: that widening is the format's record; the overlap NOTE concerns operands 1985 SR1 refused. This rule refuses nothing and means the same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

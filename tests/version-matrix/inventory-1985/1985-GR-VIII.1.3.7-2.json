@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-14.9.27.4-25",
-   "GR-14.9.49.4-6"
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-3",
+   "GR-9.1.12-2"
   ],
   "bridge": true,
-  "reason": "This is the file attribute conflict rule (OPEN, status 39), not invalid key, so 9.1.14 does not apply. 1985 'A USE AFTER EXCEPTION procedure, if any, ... is executed'; §2023:14.9.27.4 GR25 d) 'Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed' and §2023:14.9.49.4 GR6 run it. GR25 c)'s PERFORM WHEN precedence binds only 2023 syntax.",
-  "source": "adjudicate-712/slice-18"
+  "reason": "1985 'A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed' on a file attribute conflict; §2023:14.9.27.4 GR25 d) 'Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed', the procedure associated and selected per §2023:14.9.49.4 GR3 and §2023:9.1.12 GR2 and run per §2023:14.9.49.4 GR6. GR25 c)'s exception-checking PERFORM needs 2023-only syntax. OPEN GR10 states the condition, not this rule.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

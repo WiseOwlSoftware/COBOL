@@ -2,7 +2,7 @@
  "rule-id": "1985-GR-VII.1.3.5-L2.2",
  "rule-digest": "7d836bc42496",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-9.1.13.4-1",
@@ -10,7 +10,7 @@
    "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "Status 10 keeps both 1985 cases: 'NEXT was specified or implied and the end of the physical file has been reached', and 'a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present' (§2023:9.1.13.4 GR1). The READ rules restate them (§2023:14.9.30.4 GR21 for the position indicator and GR24 'set to '10' to indicate the at end condition'). The PREVIOUS case needs syntax 1985 lacks.",
-  "source": "adjudicate-712/slice-14"
+  "reason": "1985: status 10 when 'no next logical record exists in the file because: 1) The end of the file has been reached, or 2) A sequential READ statement is attempted for the first time on an optional input file that is not present.' §2023:9.1.13.4 GR1 keeps both (a, c) and adds 'b) PREVIOUS was specified and the beginning of the physical file has been reached' ('no next or prior logical record'); READ sets '10' and fails (§2023:14.9.30.4 GR21, GR24). A program 2023 accepts (READ PREVIOUS) reaches status 10 by a cause the 1985 list does not have: a case added.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

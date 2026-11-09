@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "FMT-10.6.1"
+   "FMT-10.6.1",
+   "FMT-10.7.2"
   ],
   "bridge": true,
-  "reason": "1985 says only what the generic terms identification-division, environment-division, data-division, procedure-division and end-program-header in the source-program format stand for. 2023 §2023:10.6.1 does the same for its format: 'where the following meta-language terms are described in the indicated subclauses' lists data-division (13), environment-division (12) and procedure-division (14), and the program-definition format writes the IDENTIFICATION DIVISION header and the END PROGRAM marker out literally. The terms denote the same divisions and end marker; no program changes meaning.",
-  "source": "adjudicate-712/slice-29"
+  "reason": "1985 only glosses the source-program format's generic terms identification-division, environment-division, data-division, procedure-division and end-program-header. 2023 FMT-10.6.1 keeps environment-division, data-division and procedure-division as meta-terms for the same divisions and writes the IDENTIFICATION DIVISION header and the END PROGRAM marker out (end-marker format FMT-10.7.2). Same referents; nothing accepted or refused differs by this rule.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

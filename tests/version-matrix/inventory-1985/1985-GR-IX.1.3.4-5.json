@@ -9,14 +9,14 @@
    "GR-9.1.13.7-2",
    "GR-9.1.13.7-3",
    "GR-9.1.13.7-4",
-   "GR-9.1.13.7-5",
    "GR-9.1.13.7-6",
    "GR-9.1.13.7-7",
    "GR-9.1.13.7-8",
-   "GR-9.1.13.7-9"
+   "GR-9.1.13.7-9",
+   "GR-14.9.35.4-5"
   ],
   "bridge": true,
-  "reason": "KEPT: 1985 \"Logic Error. The input-output statement was unsuccessfully executed as a result of an improper sequence of input-output operations ... or as a result of violating a limit defined by the user\" = §2023:9.1.13.1 \"Logic error. The input-output statement was unsuccessfully executed as a result of an improper sequence of input-output operations that were performed on the file or as a result of violating a limit defined by the user\"; the class-4 values 41-49 (§2023:9.1.13.7 GR1 to GR9) restate it. 2023 restates the 1985 class definition word for word in §2023:9.1.13.1 prose, which has no catalog rule; the catalog ids named are the class's status values, each restating it.",
-  "source": "adjudicate-712/slice-05"
+  "reason": "1985 'Logic Error ... an improper sequence of input-output operations ... or as a result of violating a limit defined by the user' is word for word in §2023:9.1.13.1 ('Logic error. The input-output statement was unsuccessfully executed as a result of an improper sequence of input-output operations'). Catalogued carriers: 41-43 and 46-49 (improper sequences), 44 (the user's 'RECORD IS VARYING' limits, §2023:9.1.13.7 GR4), and REWRITE's '43' (§2023:14.9.35.4 GR5). Status 45 'Record identification failure' (§2023:9.1.13.7 GR5) needs FORMAT or CODE-SET record selection and states no part of this rule, so it is left out. Same class.",
+  "source": "adjudicate-712-r2/slice-01"
  }
 }

@@ -9,7 +9,7 @@
    "GR-14.5.3.2-2"
   ],
   "bridge": true,
-  "reason": "1985: 'The END-READ phrase delimits the scope of the READ statement' (via Scope of Statements). 2023 states this once for all statements: §2023:14.5.3.2 'An explicit scope terminator terminates the scope of' the most recent unterminated statement of its name and any unterminated statements between, with END-READ in the READ format. Same.",
-  "source": "adjudicate-712/slice-19"
+  "reason": "1985: 'The END-READ phrase delimits the scope of the READ statement.' §2023:14.5.3.2 states it for every explicit scope terminator: it terminates 'the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined' and any unterminated statements between. Same programs, same scope.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

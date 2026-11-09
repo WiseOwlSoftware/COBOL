@@ -3,15 +3,17 @@
  "rule-digest": "4064dedbc07b",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-13.18.57.4-5",
    "GR-13.18.57.4-6",
    "GR-14.9.16.4-1",
-   "GR-14.9.16.4-2"
+   "GR-14.9.16.4-2",
+   "GR-14.9.16.4-4",
+   "GR-14.9.16.4-5"
   ],
-  "reason": "1985: 'The DETAIL phrase specifies a report group that is processed by the report writer control system when a corresponding GENERATE statement is executed.' 2023: §2023:13.18.57.4 GR5 'Detail report groups are printed when referenced explicitly in a GENERATE statement'; §2023:13.18.57.4 GR6 d) 'A detail is printed as the result of the execution of an explicit GENERATE statement that references it'; §2023:14.9.16.4 GR1 (GENERATE data-name prints one instance of the detail) and §2023:14.9.16.4 GR2 (GENERATE report-name-1 gives 'the same processing as for a GENERATE data-name statement ... except that no detail is printed', matching 1985 TYPE GR11 d). Same behavior.",
-  "source": "adjudicate-712/slice-25",
-  "edition": 2023,
-  "bridge": true
+  "bridge": true,
+  "reason": "1985: 'The DETAIL phrase specifies a report group that is processed by the report writer control system when a corresponding GENERATE statement is executed.' 2023 §2023:13.18.57.4 GR5 'Detail report groups are printed when referenced explicitly in a GENERATE statement'; §2023:13.18.57.4 GR6 d); §2023:14.9.16.4 GR1, GR4 d) and GR5 b) 'The specified detail is printed, unless summary reporting is specified'; §2023:14.9.16.4 GR2 report-name gives 'the same processing ... except that no detail is printed' (1985 TYPE GR11 d). Same; no refusal.",
+  "source": "adjudicate-712-r2/slice-11"
  }
 }

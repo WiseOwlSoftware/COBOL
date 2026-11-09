@@ -3,14 +3,14 @@
  "rule-digest": "76efde98824a",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "FMT-13.15.2",
-   "SR-13.18.60.3-1",
-   "GR-13.15.4-2"
+   "GR-13.15.4-2",
+   "SR-13.18.60.3-1"
   ],
-  "reason": "§1985:XIII.3.21.3 SR1: 'The USAGE clause may be written in any data description entry' (of the Report Section). 2023 offers USAGE in every report group description entry (§2023:13.15.2) and does not list it among the elementary-only clauses; §2023:13.15.4 GR2 applies the data description USAGE rules, whose only placement limit is §2023:13.18.60.3 SR1 ('shall not be specified in a data description entry that has a level-number of 66 or 88'), levels a report group entry never has. Same placement.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "reason": "1985: 'The USAGE clause may be written in any data description entry' of the Report Section. §2023:13.15.2 offers '[ USAGE IS ] { DISPLAY | NATIONAL }' in every report group description entry, and it is not among the elementary-only clauses; §2023:13.15.4 GR2 applies the data description USAGE rules, whose placement bar §2023:13.18.60.3 SR1 ('shall not be specified in a data description entry that has a level-number of 66 or 88') no report group entry meets. Same placement; the rule refuses nothing in either edition.",
+  "source": "adjudicate-712-r2/slice-14"
  }
 }

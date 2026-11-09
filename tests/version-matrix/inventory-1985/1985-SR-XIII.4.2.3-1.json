@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-14.9.6.2",
    "GR-14.9.6.4-10"
   ],
   "bridge": true,
-  "reason": "1985: the files of one CLOSE 'need not all have the same organization or access'. 2023 states no rule requiring them to match, and §2023:14.9.6.4 GR10 makes a multi-file CLOSE 'the same as if a separate CLOSE statement had been written for each file-name-1', so a mixed CLOSE is valid with the same effect. (The per-file phrase limits of §2023:14.9.6.3 SR1 are separate 1985 rules.)",
-  "source": "adjudicate-712/slice-35"
+  "reason": "1985: 'The files referenced in the CLOSE statement need not all have the same organization or access.' 2023 has no CLOSE rule restating the sentence and none requiring the files to match: the format §2023:14.9.6.2 repeats file-name-1 with per-file phrases, §2023:14.9.6.3 SR1 limits only NO REWIND, REEL and UNIT per file (a separate 1985 rule), and §2023:14.9.6.4 GR10 makes a multi-file CLOSE 'the same as if a separate CLOSE statement had been written for each file-name-1'. A mixed CLOSE is accepted with the same effect. (§2023:14.9.6.3 SR3, no multi-file CLOSE in an exception-checking PERFORM, restricts multi-file CLOSE whatever the organizations and is not this rule's requirement.)",
+  "source": "adjudicate-712-r2/slice-15"
  }
 }

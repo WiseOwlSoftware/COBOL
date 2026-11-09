@@ -3,12 +3,13 @@
  "rule-digest": "7056d0d6937a",
  "next": {
   "kind": "KEPT",
-  "to": [
-   "GR-14.9.25.4-4"
-  ],
-  "reason": "§2023:14.9.25.4 GR4 restates 1985 GR5: a non-elementary move 'is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion', filling the receiving area without regard to subordinate items, with the OCCURS exception now named as General rule 8 of the OCCURS clause. Its carve-out ('and does not reference a variable-length group') and GR9 reach only 2023 dynamic items: §2023:8.5.1.12.1 defines 'A variable-length group is a group item whose data description has at least one dynamic-length elementary item or dynamic-capacity table', so occurs-depending groups, the only variable groups 1985 has, stay under GR4. Bit/national groups and message-tag/object/pointer items do not exist in 1985. The OCCURS exception itself is judged with the 1985 OCCURS clause.",
   "edition": 2023,
+  "to": [
+   "GR-14.9.25.4-4",
+   "GR-13.18.38.4-8"
+  ],
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "reason": "§2023:14.9.25.4 GR4 restates 1985 GR5: a non-elementary move 'is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion', filling the receiving area without regard to subordinate items, except as specified in OCCURS GR8, the exception 1985 GR5 names ('except as noted in the OCCURS clause'), now §2023:13.18.38.4 GR8 ('If the group is a receiving operand, the maximum length of the group will be used'). The variable-length-group, bit/national-group and message-tag/object/pointer carve-outs reach only 2023 item kinds (a 1985 occurs-depending group is not a variable-length group).",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

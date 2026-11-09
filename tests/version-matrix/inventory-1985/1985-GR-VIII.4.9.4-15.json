@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-14.9.51.4-15",
-   "GR-9.1.14-1"
+   "GR-9.1.14-1",
+   "GR-9.1.14-2",
+   "GR-9.1.14-3"
   ],
   "bridge": true,
-  "reason": "1985 GR15: on the invalid key condition the WRITE is unsuccessful, 'the content of the record area is unaffected', the I-O status is set to a value indicating the cause, and execution proceeds per the invalid key rules. §2023:14.9.51.4 GR15: an unsuccessful WRITE means 'the write operation does not take place, the content of the record area is unaffected', the I-O status is set to the cause, and control follows 9.1.14; §2023:9.1.14 GR1 sets the status 'to a value indicating the invalid key condition'. GR33 and GR29 define which WRITEs raise the condition, the matter of 1985 GR14. EC-I-O-INVALID-KEY is set only 'if enabled'. Same.",
-  "source": "adjudicate-712/slice-20"
+  "reason": "1985: on invalid key the WRITE is unsuccessful, 'the content of the record area is unaffected', status set to the cause, execution per the invalid key rules. §2023:14.9.51.4 GR15: 'the write operation does not take place, the content of the record area is unaffected', status set to the cause, control per 9.1.14; §2023:9.1.14 GR1-GR3 are those rules. Which WRITEs raise it is 1985 GR14's matter. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

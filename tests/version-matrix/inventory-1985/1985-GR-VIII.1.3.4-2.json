@@ -5,12 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "GR-14.9.30.4-24",
    "GR-9.1.13.4-1",
-   "GR-9.1.13.4-2",
-   "GR-14.9.30.4-24"
+   "GR-9.1.13.4-2"
   ],
   "bridge": true,
-  "reason": "§2023:9.1.13.1 restates the definition verbatim: 'At end. A sequential READ statement was unsuccessfully executed as a result of an at end condition.' That prose has no catalog rule id, so the record points at the rules that carry the class: §2023:9.1.13.4 GR1 and §2023:9.1.13.4 GR2 (statuses 10 and 14, 'A sequential READ statement is attempted') and §2023:14.9.30.4 GR24 (READ at end processing). The PREVIOUS case needs 2023-only syntax.",
-  "source": "adjudicate-712/slice-17"
+  "reason": "1985 'At End. A sequential READ statement was unsuccessfully executed as a result of an at end condition.' §2023:9.1.13.1 repeats it verbatim (prose, no catalog row, PB479); catalog carriers: §2023:14.9.30.4 GR24 'When the at end condition exists, execution of the READ statement is unsuccessful', §2023:9.1.13.4 GR1 and §2023:9.1.13.4 GR2 (status 10 and 14 for a sequential READ). PREVIOUS needs 2023-only syntax. Same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

@@ -7,10 +7,11 @@
   "to": [
    "GR-9.1.13.2-1",
    "GR-9.1.13.2-3",
-   "GR-9.1.13.2-4"
+   "GR-9.1.13.2-4",
+   "GR-14.9.27.4-17"
   ],
   "bridge": true,
-  "reason": "§2023:9.1.13.2 GR1 (00 'successfully executed and no further information is available'), §2023:9.1.13.2 GR3 (04, record length not conforming to the fixed file attributes, restated as 'shorter than or longer than the minimum or maximum length') and §2023:9.1.13.2 GR4 a) (05, optional file not present at OPEN; 'If the open mode is I-O or extend, the physical file has been created'). 05 b) covers DELETE FILE, a 2023-only statement.",
-  "source": "adjudicate-712/slice-17"
+  "reason": "1985 successful completion 00, 04, 05. §2023:9.1.13.2 GR1 (00 'successfully executed and no further information is available'); §2023:9.1.13.2 GR3 (04 'shorter than or longer than the minimum or maximum length of records allowed for the fixed file attributes', the 1985 'does not conform'); §2023:9.1.13.2 GR4 a) (05 optional file absent at OPEN, 'If the open mode is I-O or extend, the physical file has been created'), also §2023:14.9.27.4 GR17. 05 b) is DELETE FILE, 2023-only. Same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

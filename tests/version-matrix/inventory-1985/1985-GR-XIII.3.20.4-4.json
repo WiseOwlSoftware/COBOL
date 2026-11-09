@@ -3,15 +3,16 @@
  "rule-digest": "9f90748656c7",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-13.18.57.4-6",
    "GR-14.9.16.4-4",
    "GR-14.9.16.4-5",
-   "GR-13.18.16.4-2"
+   "GR-13.18.16.4-2",
+   "GR-13.18.16.4-3"
   ],
-  "reason": "1985: a control heading is processed at the start of its control group, FINAL at the chronologically first GENERATE, and on a control break 'any control heading report groups associated with the highest control level of the break and lower levels are processed'. 2023: §2023:13.18.57.4 GR6 c)1 every control heading without OR PAGE prints 'when the chronologically first GENERATE statement following an INITIATE statement for the report is executed, in order of control levels from highest to lowest', and c)2 on a control break 'from the level of the control break down to the lowest'; §2023:14.9.16.4 GR4 c) 'each control heading is printed, wherever defined, in order from major to minor' and GR5 a) up to the level of the break; §2023:13.18.16.4 GR2 places FINAL at the highest level, so the FINAL heading prints only at the first GENERATE. The OR PAGE phrase is new syntax a 1985 program cannot contain. Same behavior.",
-  "source": "adjudicate-712/slice-25",
-  "edition": 2023,
-  "bridge": true
+  "bridge": true,
+  "reason": "1985: a control heading is processed at the start of its control group, FINAL at the chronologically first GENERATE, and on a break 'any control heading report groups associated with the highest control level of the break and lower levels are processed'. 2023 §2023:13.18.57.4 GR6 c)1 at the first GENERATE following INITIATE, highest to lowest, c)2 on a break 'in order of control levels from the level of the control break down to the lowest'; §2023:14.9.16.4 GR4 c) 'each control heading is printed, wherever defined, in order from major to minor', GR5 a) 'up to the level of the control break'; §2023:13.18.16.4 GR2 'FINAL, if specified, is associated with the highest level in the hierarchy'; §2023:13.18.16.4 GR3 'control break processing for that level and any lower levels is performed automatically'. OR PAGE is syntax 1985 refuses elsewhere. Same.",
+  "source": "adjudicate-712-r2/slice-11"
  }
 }

@@ -11,7 +11,7 @@
    "GR-13.18.35.4-6"
   ],
   "bridge": true,
-  "reason": "1985: absolute -> integer; relative paged: first body group on the page with LINE-COUNTER >= FIRST DETAIL -> LINE-COUNTER + 1, later groups LINE-COUNTER + integer, LINE-COUNTER < FIRST DETAIL -> FIRST DETAIL line; unpaged LINE-COUNTER + integer; no LINE not presented. 2023 §2023:13.18.35.4 GR5 a), b)3, c). The LINE-COUNTER+1 case arises only after fit test 3b moves the saved NEXT GROUP integer into LINE-COUNTER on a new page, which 2023 covers in §2023:13.18.37.4 GR4 a)3 (first line 'on the next line following the line number in the save location'); §2023:13.18.35.4 GR1/GR6 cover the no-LINE case. Same.",
-  "source": "adjudicate-712/slice-24"
+  "reason": "1985 body group first line: absolute integer; relative paged: first body group on the page at FIRST DETAIL (LINE-COUNTER below it) or LINE-COUNTER + 1 (LINE-COUNTER at or past it), later groups LINE-COUNTER + integer; unpaged LINE-COUNTER + integer; no LINE, not presented. §2023:13.18.35.4 GR5 a), b) 3. 'if that report group is the first body group to be printed on the current page, the line number is given by the FIRST DETAIL integer', c); the LINE-COUNTER + 1 case arises only from a saved NEXT GROUP, §2023:13.18.37.4 GR4 a) 3. 'on the next line following the line number in the save location'; §2023:13.18.35.4 GR1, GR6. Same.",
+  "source": "adjudicate-712-r2/slice-10"
  }
 }

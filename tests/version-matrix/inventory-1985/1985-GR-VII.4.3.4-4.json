@@ -2,11 +2,12 @@
  "rule-id": "1985-GR-VII.4.3.4-4",
  "rule-digest": "307f93b2f7e4",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-14.9.27.4-8",
    "GR-14.9.27.4-4",
+   "GR-14.9.27.4-6",
    "GR-14.9.30.4-2",
    "GR-14.9.51.4-3",
    "GR-14.9.35.4-3",
@@ -15,7 +16,7 @@
    "GR-9.1.13.7-9"
   ],
   "bridge": true,
-  "reason": "1985 GR4: an OPEN must succeed before any permissible I-O statement; Table 2: READ input/I-O, WRITE output/extend, REWRITE I-O. §2023:14.9.27.4 GR8 'an OPEN statement shall previously be successfully executed', with Table 20's sequential rows identical for READ, WRITE, REWRITE (START is a statement 1985 sequential I-O lacks); §2023:14.9.27.4 GR4 ties open mode to Table 20; the per-statement rules §2023:14.9.30.4 GR2, §2023:14.9.51.4 GR3, §2023:14.9.35.4 GR3 and statuses §2023:9.1.13.7 GR7, GR8, GR9 restate each row (1985 had statuses 47, 48, 49). Same permitted set.",
-  "source": "adjudicate-712/slice-16"
+  "reason": "1985 GR4: 'An OPEN statement must be successfully executed prior to the execution of any of the permissible input-output statements'; Table 2 permits for a sequential file only READ (input, I-O), WRITE (output, extend) and REWRITE (I-O). §2023:14.9.27.4 GR8 keeps the prior OPEN ('an OPEN statement shall previously be successfully executed') with GR6, and Table 20's sequential-access rows keep READ, WRITE, REWRITE as in 1985 (statuses 47-49: §2023:14.9.30.4 GR2, §2023:14.9.51.4 GR3, §2023:14.9.35.4 GR3). But Table 20 adds START (input, I-O) for sequential access, which a sequential file may now use ('If the organization of the file referenced by file-name-1 is sequential, either the FIRST or the LAST phrase shall be specified', §2023:14.9.41.3 SR2; status 23 when 'a START statement is attempted on a sequential file that has no records', §2023:9.1.13.5 GR3). 2023 accepts a statement the 1985 table did not permit: a case added.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

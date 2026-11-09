@@ -2,14 +2,14 @@
  "rule-id": "1985-SR-II.6.4.1.2-4",
  "rule-digest": "a9e25355a10b",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "SR-8.4.6.3-1",
    "GR-14.9.4.4-3"
   ],
   "bridge": true,
-  "reason": "1985: a non-common, non-separately-compiled program may be called 'if, and only if, that program is directly contained within the calling program'. 2023: its name 'may be referenced only by statements included in that containing program or, if the program possesses the recursive attribute, in the program itself' (§2023:8.4.6.3 SR1), applied to CALL by §2023:14.9.4.4 GR3. The added self-reference needs the recursive attribute, attained only 'by specifying the RECURSIVE clause' (§2023:8.6.6), which no 1985 program contains; for 1985 source the rule accepts and refuses the same calls.",
-  "source": "adjudicate-712/slice-27"
+  "reason": "1985: a non-common nested program may be called 'if, and only if, that program is directly contained within the calling program'. §2023:8.4.6.3 SR1: 'only by statements included in that containing program or, if the program possesses the recursive attribute, in the program itself' (cf. §2023:11.10.4 GR4 'may call itself'). The self-call 1985 refuses is accepted for a RECURSIVE program: a case added, so CHANGED. §2023:14.9.4.4 GR3 applies it to CALL.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

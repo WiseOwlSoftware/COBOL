@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.51.4-5"
+   "GR-14.9.51.4-5",
+   "SR-14.9.51.3-6"
   ],
   "bridge": true,
-  "reason": "1985 GR3: WRITE ... FROM is equivalent to 'MOVE identifier-1 TO record-name-1' per the MOVE rules, then the same WRITE without FROM. §2023:14.9.51.4 GR5 keeps the identical equivalence for identifier-1. Its additions do not touch a conforming 1985 program: 'MOVE literal-1 TO record-name-1' serves FROM literal-1, syntax 1985's format refuses, and NOTE 1's overlap case needs identifier-1 and record-name-1 to share storage, which 1985 SR1 forbids. Same (as 1985-GR-IX.4.9.4-3).",
-  "source": "adjudicate-712/slice-20"
+  "reason": "1985: WRITE FROM = 'MOVE identifier-1 TO record-name-1' per MOVE rules, then the WRITE without FROM. §2023:14.9.51.4 GR5 keeps the same equivalence ('MOVE identifier-1 TO record-name-1'); §2023:14.9.51.3 SR6 requires the MOVE to be valid. FROM literal-1 is a different operand the 1985 format lacks; an overlapping identifier-1 (refused by 1985 SR1) still gets MOVE-then-WRITE, as GR3 states. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

@@ -2,13 +2,13 @@
  "rule-id": "1989-RV-A.2.40.4-1",
  "rule-digest": "2e86181c13ca",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
+  "edition": 2023,
   "to": [
    "RV-15.84.4-4"
   ],
-  "reason": "1985: 'The returned value is the absolute value of the approximation of the square root of argument-1.' §2023:15.84.4 RV4 says the same words under native arithmetic. A 1985 program has no ARITHMETIC clause, so by §2023:11.9.5.2 GR4 it is treated as NATIVE. §2023:15.84.4 RV2/RV3 (standard-decimal and standard-binary results) apply only to modes a 1985 program cannot select, so they state no part of this requirement.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-36"
+  "reason": "1989: 'The returned value is the absolute value of the approximation of the square root of argument-1', unconditionally. 2023 keeps those words only 'When native arithmetic is in effect' (§2023:15.84.4 RV4), the default when no ARITHMETIC clause is written (§2023:11.9.5.2 GR4), and adds cases: 'When standard-decimal arithmetic is in effect, the returned value is the absolute value of the exact square root of argument-1 rounded to 34 digits' (§2023:15.84.4 RV2) and the standard-binary case 'rounded to 113 significant bits' (§2023:15.84.4 RV3). A program selecting ARITHMETIC IS STANDARD-DECIMAL or STANDARD-BINARY is accepted by 2023, not by 1985, and gets a different SQRT result: a case added, so CHANGED. RV2/RV3 state the added cases, not the 1989 requirement, so 'to' names RV4.",
+  "source": "adjudicate-712-r2/slice-15"
  }
 }

@@ -9,14 +9,13 @@
    "GR-9.1.13.7-2",
    "GR-9.1.13.7-3",
    "GR-9.1.13.7-4",
-   "GR-9.1.13.7-5",
    "GR-9.1.13.7-6",
    "GR-9.1.13.7-7",
    "GR-9.1.13.7-8",
    "GR-9.1.13.7-9"
   ],
   "bridge": true,
-  "reason": "The CHANGED answers missed the restatement: §2023:9.1.13.1 says verbatim 'Logic error. The input-output statement was unsuccessfully executed as a result of an improper sequence of input-output operations that were performed on the file or as a result of violating a limit defined by the user.' That prose has no catalog rule id; the catalog rules of the class are the 4x values of 9.1.13.7. Status 45 (§2023:9.1.13.7 GR5, 'Record identification failure') is a new value in the class, a change to the status-value rule (1985 VIII.1.3.4 L2.5), not to this definition.",
-  "source": "adjudicate-712/slice-17"
+  "reason": "1985 Logic Error definition: unsuccessful from 'an improper sequence of input-output operations ... or ... violating a limit defined by the user'. §2023:9.1.13.1 repeats it verbatim (prose, no catalog row, PB479); the catalog carriers are the sequence/limit 4x values, e.g. §2023:9.1.13.7 GR1 (41), §2023:9.1.13.7 GR2 (42), §2023:9.1.13.7 GR3 (43), §2023:9.1.13.7 GR4 (44 boundary). Status 45 joins the class but states none of this definition (class membership is the 4x list's record). Same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

@@ -2,14 +2,14 @@
  "rule-id": "1985-GR-IV.4.3.8.3.4-4",
  "rule-digest": "45f3c14a71be",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-8.4.3.3.4-5",
    "GR-7.3.23.3-1"
   ],
   "bridge": true,
-  "reason": "1985: reference modification creates a unique data item; leftmost-character-position 'must result in a positive nonzero integer less than or equal to the number of characters', length 'must result in a positive nonzero integer', their sum minus one within the item, and an omitted length extends to the rightmost character (§1985:IV.4.3.8.3.4 GR4). 2023 states the same (§2023:8.4.3.3.4 GR5) except that length 'shall result in a positive nonzero integer, unless the REF-MOD-ZERO-LENGTH directive is set to ON'; with the directive omitted or off a zero length raises EC-BOUND-REF-MOD (§2023:7.3.23.3 GR1). Compiler directives and bit-usage items do not exist in 1985, and the EC-BOUND-REF-MOD sentence reports a violation of a requirement a conforming 1985 program already meets (the 1985 rule is a general rule, not a refusal). A 1985 program means the same.",
-  "source": "adjudicate-712/slice-04"
+  "reason": "A restriction is lifted and a run-time requirement became an exception condition. 1985: 'The evaluation of length must result in a positive nonzero integer' (§1985:IV.4.3.8.3.4 GR4). 2023: 'The evaluation of length shall result in a positive nonzero integer, unless the REF-MOD-ZERO-LENGTH directive is set to ON, when the result may also be zero' (§2023:8.4.3.3.4 GR5), so a zero-length reference modification is accepted; a non-integer, zero or out-of-range position or length sets EC-BOUND-REF-MOD, and with the directive off 'the exception condition EC-BOUND-REF-MOD is raised' for zero length (§2023:7.3.23.3 GR1). Leftmost position, sum rule and omitted length are otherwise the same. This confirms the constructs.json ref-mod-zero-length-2023 gate. GR-8.4.3.3.4-1 (position kinds) states none of this rule.",
+  "source": "adjudicate-712-r2/slice-01"
  }
 }

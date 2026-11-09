@@ -2,13 +2,13 @@
  "rule-id": "1985-SR-VI.6.24.3-2",
  "rule-digest": "fa4b4a5b0110",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "SR-14.9.42.3-1"
   ],
   "bridge": true,
-  "reason": "1985: STOP RUN 'in a consecutive sequence of imperative statements within a sentence ... must appear as the last statement in that sequence'. §2023:14.9.42.3 SR1: 'The STOP statement shall be specified only as the last statement in any discreet block of code'. 2023 leaves 'discreet block of code' undefined. The project settled that implementor latitude under CLAUDE.md rule 1 (docs/CONFORMANCE.md D-SEQ, kb/Work PB397): the block is the same consecutive imperative sequence that §2023:14.9.17.3 SR2 names. Every 2023 STOP is STOP RUN, so the scope matches, and both refuse at compile time.",
-  "source": "adjudicate-712/slice-30"
+  "reason": "1985: 'If a STOP RUN statement appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last statement in that sequence.' §2023:14.9.42.3 SR1: 'The STOP statement shall be specified only as the last statement in any discreet block of code.' The scope words differ: 2023 drops 'consecutive sequence of imperative statements within a sentence', which the same standard keeps verbatim for GO TO (§2023:14.9.17.3 SR2), for an undefined 'discreet block of code'. Whether STOP RUN may precede a conditional statement in the same sentence (permitted by the 1985 wording) is no longer stated, so the requirement differs; a project reading (docs/CONFORMANCE.md) is not the standard.",
+  "source": "adjudicate-712-r2/slice-14"
  }
 }

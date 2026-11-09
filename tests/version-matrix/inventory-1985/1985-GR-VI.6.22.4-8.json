@@ -3,12 +3,13 @@
  "rule-digest": "1cca15029a1e",
  "next": {
   "kind": "KEPT",
-  "to": [
-   "GR-14.9.37.4-3"
-  ],
-  "reason": "§2023:14.9.37.4 GR3 restates 1985 GR8 point for point: the search index is VARYING index-name-1 when it is in identifier-1's INDEXED BY phrase, otherwise the first (or only) index-name (3a, 3c); an index-name-1 of another table 'is incremented by one occurrence number at the same time as the search index is incremented' (3c 2), which is 1985 a)'s 'same amount'; an index data item identifier-2 is incremented with the search index and an integer identifier-2 by one (3b). 1985 SR2 already limits identifier-2 to USAGE INDEX or an integer item, so 2023's 'integer data item' is the same set. 'All other indexes ... are unchanged' adds nothing a 1985 program can observe.",
   "edition": 2023,
+  "to": [
+   "GR-14.9.37.4-3",
+   "GR-14.9.37.4-1"
+  ],
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "reason": "§2023:14.9.37.4 GR3 restates 1985 GR8: the search index is VARYING index-name-1 when it is in identifier-1's INDEXED BY phrase, else the first (or only) index-name; another table's index-name-1: 'The index referenced by index-name-1 is incremented by one occurrence number at the same time as the search index is incremented' (1985's 'same amount' as one occurrence); an index data item identifier-2 incremented by the same amount, an integer one by one (1985 SR2 limits identifier-2 to those two). §2023:14.9.37.4 GR1 states that the VARYING item is the additional item varied. Same for every 1985 program.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-7.2.3.4-6"
+   "GR-7.2.3.4-6",
+   "GR-7.2.3.4-1"
   ],
   "bridge": true,
-  "reason": "§2023:7.2.3.4 GR6: library text is copied 'logically replacing the entire COPY statement beginning with the reserved word COPY and ending with the separator period, inclusive', as 1985 GR2 says. The literal-1 way of naming the text (§2023:7.2.3.4 GR1) is new syntax a 1985 program cannot use, so it changes no 1985 program's meaning.",
-  "source": "adjudicate-712/slice-23"
+  "reason": "§2023:7.2.3.4 GR6: the library text is copied 'logically replacing the entire COPY statement beginning with the reserved word COPY and ending with the separator period, inclusive'; §2023:7.2.3.4 GR1 'Text-name-1 or literal-1 identifies the library text'. The replacement effect holds for every COPY statement; literal-1 is a naming alternative recorded with the COPY format, it alters no part of this requirement.",
+  "source": "adjudicate-712-r2/slice-10"
  }
 }

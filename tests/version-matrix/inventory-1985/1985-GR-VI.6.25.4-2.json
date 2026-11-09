@@ -3,14 +3,15 @@
  "rule-digest": "ef6625507f03",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-14.9.43.4-1",
    "GR-14.9.43.4-2",
-   "GR-8.3.3.6.4-3"
+   "GR-8.3.3.6.4-3",
+   "GR-8.3.3.6.4-1"
   ],
-  "reason": "1985: 'Literal-2 or the content of the data item referenced by identifier-2 indicates the character(s) delimiting the move. If the SIZE phrase is used, the content of the complete data item ... is moved' and a figurative-constant delimiter 'is a single character nonnumeric literal'. §2023:14.9.43.4 GR1 repeats both sentences word for word, adding only the current length of a dynamic-length identifier-1 (a 2023-only item kind). The single-character figurative delimiter is carried by §2023:14.9.43.4 GR2 ('an implicit one character data item whose usage shall be the same as the usage of identifier-3, either display or national'; display is the only usage a 1985 identifier-3 can have) and §2023:8.3.3.6.4 GR3 ('When a figurative constant is other than ALL literal-1, the length of the string is one character'). Every 1985 program means the same.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "reason": "§2023:14.9.43.4 GR1 repeats both 1985 sentences ('If the SIZE phrase is used, the content of the complete data item defined by identifier-1 or literal-1 is moved'), adding only dynamic-length items (2023-only). The single-character figurative delimiter is §2023:14.9.43.4 GR2 ('an implicit one character data item whose usage shall be the same as the usage of identifier-3, either display or national'), §2023:8.3.3.6.4 GR3 ('When a figurative constant is other than ALL literal-1, the length of the string is one character') and, for 1985's 'nonnumeric', §2023:8.3.3.6.4 GR1 ('the figurative constant represents an alphanumeric character value'). Omitting DELIMITED (§2023:14.9.43.3 SR9) is format, not this rule.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

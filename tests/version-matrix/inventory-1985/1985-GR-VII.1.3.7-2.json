@@ -2,14 +2,16 @@
  "rule-id": "1985-GR-VII.1.3.7-2",
  "rule-digest": "ea2a4d0daabf",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
+  "edition": 2023,
   "to": [
    "GR-14.9.27.4-25",
-   "GR-14.9.49.4-6"
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-3",
+   "GR-14.9.27.4-10"
   ],
-  "reason": "1985 file attribute conflict (an unsuccessful OPEN): 'A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.' 2023 states the same for the OPEN that fails on a file attribute conflict (§2023:14.9.27.4 GR10 'a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful'): §2023:14.9.27.4 GR25 d) 'Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed', with §2023:14.9.49.4 GR6 a) 'If file-name-1 is specified, the associated procedure is executed when the condition described in the USE statement occurs'. The exception-checking PERFORM precedence and EC-I-O checking need 2023-only syntax or directives, so a 1985 program behaves the same.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-15"
+  "reason": "1985: on a file attribute conflict, 'A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.' 2023 keeps this for an OPEN that fails with 39 (§2023:14.9.27.4 GR10; GR25 d) 'Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed'; selection by §2023:14.9.49.4 GR3 and GR6). But it adds a case where the procedure is not executed: an OPEN inside an exception-checking PERFORM with an applicable WHEN phrase continues by that phrase and 'No applicable USE declarative is executed' (§2023:14.9.27.4 GR25 c). 1985 refuses that program and 2023 accepts it with a different effect: a case added.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

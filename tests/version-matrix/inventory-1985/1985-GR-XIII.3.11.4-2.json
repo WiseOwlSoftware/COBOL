@@ -9,7 +9,7 @@
    "SR-13.18.14.3-9"
   ],
   "bridge": true,
-  "reason": "1985: integer-1 is the leftmost column of the printable item (the only form). 2023 §2023:13.18.14.4 GR6 b) 'If LEFT is specified, integer-1 is the leftmost column of the printable item', and §2023:13.18.14.3 SR9 'If any of the operands is absolute and neither LEFT, CENTER, nor RIGHT is specified, LEFT is assumed'. Every 1985 COLUMN clause means the same; RIGHT and CENTER are syntax 1985 lacks.",
-  "source": "adjudicate-712/slice-24"
+  "reason": "1985: integer-1 is the column of the leftmost character position. 2023 §2023:13.18.14.4 GR6 b) 'If LEFT is specified, integer-1 is the leftmost column of the printable item' and §2023:13.18.14.3 SR9 '... neither LEFT, CENTER, nor RIGHT is specified, LEFT is assumed', so every 1985 COLUMN clause means the same. The rule refuses nothing; RIGHT, CENTER and relative columns are refused at 1985 by the format, whose record carries them. GR-13.18.14.4-3 (column-character correspondence) states none of this rule.",
+  "source": "adjudicate-712-r2/slice-11"
  }
 }

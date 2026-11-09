@@ -8,10 +8,13 @@
    "GR-9.1.14-1",
    "GR-9.1.13.5-2",
    "GR-9.1.13.5-3",
-   "GR-9.1.13.5-4"
+   "GR-9.1.13.5-4",
+   "GR-14.9.51.4-15",
+   "GR-14.9.51.4-33",
+   "GR-14.9.35.4-21"
   ],
   "bridge": true,
-  "reason": "1985 'The I-O status ... is set to a value indicating the invalid key condition (See ... I-O Status)'; §2023:9.1.14 GR1 'set to a value indicating the invalid key condition as described in 9.1.13.5', whose relative-file values are §2023:9.1.13.5 GR2, GR3, GR4. The added 'if enabled, the EC-I-O-INVALID-KEY exception condition is set to exist' is nonfatal and acts only when checking is enabled, so the status and control flow of a 1985 program are unchanged.",
-  "source": "adjudicate-712/slice-18"
+  "reason": "1985 'The I-O status ... is set to a value indicating the invalid key condition'; §2023:9.1.14 GR1 'set to a value indicating the invalid key condition as described in 9.1.13.5', whose relative values are §2023:9.1.13.5 GR2-GR4, and the statement rules set them (§2023:14.9.51.4 GR15, §2023:14.9.51.4 GR33, §2023:14.9.35.4 GR21). The added 'if enabled, the EC-I-O-INVALID-KEY exception condition is set to exist' acts only when checking is enabled; status and control flow are the same. (The '34' carve-out is the status-definition record's change, not this one's.)",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

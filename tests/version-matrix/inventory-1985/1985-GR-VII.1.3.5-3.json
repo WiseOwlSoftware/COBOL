@@ -10,10 +10,12 @@
    "GR-9.1.13.6-3",
    "GR-9.1.13.6-4",
    "GR-9.1.13.6-5",
-   "GR-9.1.13.6-6"
+   "GR-9.1.13.6-6",
+   "GR-9.1.13.6-7",
+   "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "§2023:9.1.13.1 repeats the 1985 definition word for word, including 'The permanent error condition remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique is invoked to correct the permanent error condition'. That prose has no catalog rule. The catalogued rules stating the condition are the 3x values that say 'A permanent error exists' (§2023:9.1.13.6 GR1 'A permanent error exists and no further information is available concerning the input-output operation', and 31, 34, 35, 37). Class-3 statuses are fatal and the implementor determines the action, as 1985's 'critical error conditions' were.",
-  "source": "adjudicate-712/slice-14"
+  "reason": "1985 Permanent Error: unsuccessful, an error precluding further processing, 'Any specified exception procedures are executed', and the condition 'remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique is invoked'. §2023:9.1.13.1 repeats this word for word (prose, no catalog row). Catalogued carriers: the 3x values (§2023:9.1.13.6 GR1 'A permanent error exists and no further information is available', GR2-GR7) and USE procedures run 'upon the unsuccessful execution of an input-output operation' (§2023:14.9.49.4 GR6). The fatal-status action (§2023:14.9.49.4 GR7, §2023:14.6.13.1.3 GR3) is the 1985 critical-error preamble, not this rule. Same requirement.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

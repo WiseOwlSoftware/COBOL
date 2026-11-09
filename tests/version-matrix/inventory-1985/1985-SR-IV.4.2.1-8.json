@@ -8,7 +8,7 @@
    "SR-8.3.5-8"
   ],
   "bridge": true,
-  "reason": "§2023:8.3.5 SR8 keeps exceptions a) to c) (b now reads 'closing delimiter of a literal', which for a 1985 nonnumeric literal is the closing quotation mark). New item d) ('The terminating period of a data description entry that ends with a PICTURE clause') adds nothing for 1985: §1985:VI.5.9.5 GR4 and GR5 already require a final ',' or '.' to be 'immediately followed by the separator period'. So 'PIC 999, .' was already illegal in 1985. The recheck's claim that it passed is wrong.",
-  "source": "adjudicate-712/slice-28"
+  "reason": "§2023:8.3.5 SR8 keeps exceptions a) to c) ('closing delimiter of a literal' covers the 1985 closing quotation mark). Its added d) ('The terminating period of a data description entry that ends with a PICTURE clause that contains a comma or period as the last character') refuses nothing new: §1985:VI.5.9.5 already says of a final insertion comma or period that the PICTURE clause 'must be immediately followed by the separator period', so 'PIC 999, .' was refused in 1985 too (the recheck did not see that text). Same programs accepted and refused.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

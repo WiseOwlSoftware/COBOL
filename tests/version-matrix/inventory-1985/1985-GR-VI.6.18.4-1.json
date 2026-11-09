@@ -2,13 +2,13 @@
  "rule-id": "1985-GR-VI.6.18.4-1",
  "rule-digest": "d94183c42879",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-14.9.22.4-3"
   ],
   "bridge": true,
-  "reason": "§2023:14.9.22.4 GR3 repeats the 1985 rule word for word (leftmost start, left to right, 'regardless of its class'), adding a case only 'unless BACKWARD is specified', a phrase the 1985 format lacks; every 1985 INSPECT scans the same way.",
-  "source": "adjudicate-712/slice-11"
+  "reason": "1985: inspection 'begins at the leftmost character position ... and proceeds from left to right to the rightmost character position'. §2023:14.9.22.4 GR3 repeats this and adds 'unless BACKWARD is specified, in which case ... begins at the rightmost character position ... and proceeds from right to left'. INSPECT BACKWARD, refused by the 1985 format, is accepted: a case added.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

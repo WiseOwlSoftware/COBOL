@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.35.4-1",
-   "GR-14.9.35.4-2"
+   "GR-14.9.35.4-2",
+   "GR-14.9.35.4-14"
   ],
   "bridge": true,
-  "reason": "1985 'causes the value of the I-O status of the file-name associated with record-name-1 to be updated'; §2023:14.9.35.4 GR1 'causes the I-O status value in the rewrite file connector to be updated', and §2023:14.9.35.4 GR2 defines that connector as 'the file-name associated with record-name-1' (or file-name-1, a 2023-only form). Same requirement under a new term.",
-  "source": "adjudicate-712/slice-17"
+  "reason": "1985 REWRITE GR7: execution updates the I-O status of the file associated with record-name-1. §2023:14.9.35.4 GR1 'causes the I-O status value in the rewrite file connector to be updated'; §2023:14.9.35.4 GR2 makes that connector record-name-1's file; §2023:14.9.35.4 GR14 restates it for failure. Same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

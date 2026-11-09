@@ -7,10 +7,11 @@
   "to": [
    "GR-14.9.49.4-1",
    "GR-14.9.49.4-3",
-   "GR-14.9.49.4-4"
+   "GR-14.9.49.4-4",
+   "FMT-14.2.1"
   ],
   "bridge": true,
-  "reason": "For nested programs 1985 already selects as 2023 does: §1985:X.5.5.4 GR1 picks 'The declarative within the program that contains the statement which caused the qualifying condition', then GLOBAL declaratives of each containing program up to the outermost, else none. §2023:14.9.49.4 GR4 restates that order ('a qualifying declarative with the GLOBAL attribute in the next inclusive directly containing source element'), §2023:14.9.49.4 GR3 selects at most one, §2023:14.9.49.4 GR1 ties invocation to the USE conditions. Neither searches outside the compilation unit.",
-  "source": "adjudicate-712/slice-19"
+  "reason": "1985: declaratives may appear in any program; only a declarative of the program containing the failing statement (and, per §1985:X.5.5.4 GR1, GLOBAL ones of containing programs) is invoked, else none. §2023:14.2.1 allows DECLARATIVES in any procedure division; §2023:14.9.49.4 GR4 selects 'the qualifying declarative in the source element that contains the statement that caused the condition to exist', then GLOBAL ones outward; §2023:14.9.49.4 GR3: 'If no declarative is identified, no declarative is executed'. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

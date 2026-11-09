@@ -12,10 +12,11 @@
    "GR-9.1.13.7-6",
    "GR-9.1.13.7-7",
    "GR-9.1.13.7-8",
-   "GR-9.1.13.7-9"
+   "GR-9.1.13.7-9",
+   "GR-14.9.35.4-5"
   ],
   "bridge": true,
-  "reason": "§2023:9.1.13.1 repeats the definition ('Logic error. The input-output statement was unsuccessfully executed as a result of an improper sequence of input-output operations ...' or a user-defined limit); that prose has no catalog rule, and the 4x value rules of 9.1.13.7 carry the class. The added status 45 ('no record description entry was selected for processing with the FORMAT clause or the CODE-SET clause', §2023:9.1.13.7 GR5) arises only from SELECT WHEN (§2023:13.18.51.4 GR4 'If no record description entry is selected, the input-output operation is unsuccessful'), which 1985 lacks. The definition of a logic error is unchanged; changes in the individual 4x values are recorded under 1985-GR-VII.1.3.5-L2.4.",
-  "source": "adjudicate-712/slice-14"
+  "reason": "1985 Logic Error: unsuccessful 'as a result of an improper sequence of input-output operations ... or as a result of violating a limit defined by the user'. §2023:9.1.13.1 repeats the definition (prose, no catalog row). The 4x values carry the class: §2023:9.1.13.7 GR1-GR4 and GR6-GR9 (41-44, 46-49), with the REWRITE sequence case stated at the statement (§2023:14.9.35.4 GR5 'the I-O status in the rewrite file connector is set to '43''). Status 45 (§2023:9.1.13.7 GR5) needs record selection 1985 lacks and is a per-value change recorded under 1985-GR-VII.1.3.5-L2.4. The definition of the class is the same.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.41.4-15",
-   "GR-14.9.41.4-16"
+   "GR-14.9.41.4-16",
+   "GR-14.9.30.4-21"
   ],
   "bridge": true,
-  "reason": "1985 GR10: without KEY 'the prime record key ... becomes the key of reference'; with KEY, the named record key or 'the record key whose leftmost character position corresponds to the leftmost character position of' data-name-1; it orders this START and, if successful, later sequential READs. 2023 §2023:14.9.41.4 GR15 treats an omitted KEY as KEY IS EQUAL TO the prime record key, and §2023:14.9.41.4 GR16: the key specified 'or that shares a leftmost character with the data item specified in the KEY phrase, becomes the key of reference', used to order this START and, 'If the execution of the START statement is successful', subsequent sequential READs. Same rule.",
-  "source": "adjudicate-712/slice-08"
+  "reason": "1985 GR10: no KEY -> prime key; KEY -> data-name-1's record key or the key whose leftmost position matches data-name-1's; used to order this START and, if successful, later sequential READs. §2023:14.9.41.4 GR15 ('the same as if KEY IS EQUAL TO data-name-1 or record-key-name-1 had been specified' with the prime key) and §2023:14.9.41.4 GR16 ('or that shares a leftmost character with the data item specified in the KEY phrase, becomes the key of reference'; used for subsequent sequential READs), with §2023:14.9.30.4 GR21 b) on the READ side. GR17 is the counterpart of 1985 GR4, not of this rule. record-key-name-1 is new syntax. Same.",
+  "source": "adjudicate-712-r2/slice-03"
  }
 }

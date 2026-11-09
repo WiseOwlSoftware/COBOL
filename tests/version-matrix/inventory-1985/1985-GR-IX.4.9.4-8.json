@@ -10,7 +10,7 @@
    "GR-9.1.13.7-4"
   ],
   "bridge": true,
-  "reason": "1985 GR8: the record must not be larger than the largest or smaller than the smallest size the RECORD IS VARYING clause allows; otherwise the WRITE is unsuccessful, does not take place, leaves the record area unaffected and sets the status to the cause (1985 Indexed I-O status 44). 2023 §2023:14.9.51.4 GR14 keeps the bounds and sets '44'; §2023:14.9.51.4 GR15 gives the same unsuccessful-WRITE effect; §2023:9.1.13.7 GR4 defines 44 as this boundary violation. Bytes vs character positions is unit wording for 1985's alphanumeric records; literal-1, FILE and FORMAT are 2023-only syntax. Run-time in both. Same.",
-  "source": "adjudicate-712/slice-08"
+  "reason": "1985 GR8: the record must lie within the RECORD IS VARYING bounds, else the WRITE is unsuccessful, does not take place, record area unaffected, status to the cause (44). §2023:14.9.51.4 GR14 'shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause', else '44'; §2023:14.9.51.4 GR15 the same unsuccessful effect; §2023:9.1.13.7 GR4 defines 44. Bytes vs character positions is unit wording for 1985 data; literal-1/FILE/FORMAT are 2023 syntax. GR1 (status update) is GR7's counterpart. Same.",
+  "source": "adjudicate-712-r2/slice-03"
  }
 }

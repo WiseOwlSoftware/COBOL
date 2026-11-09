@@ -2,7 +2,7 @@
  "rule-id": "1985-SR-II.6.4.1.2-3",
  "rule-digest": "3f6fac7fb7cb",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "SR-8.4.6.3-2",
@@ -10,7 +10,7 @@
    "GR-14.9.4.4-3"
   ],
   "bridge": true,
-  "reason": "Both let any program within the common program's container call it, except the common program and programs within it. 2023 relaxes that exception only when 'the program possesses the recursive attribute' (§2023:8.4.6.3 SR2), and 'The recursive attribute is attained by specifying the RECURSIVE clause' (§2023:8.6.6), which no 1985 program can contain; so 1985 source accepted or refused by 1985 is accepted or refused alike in 2023. §2023:11.10.4 GR2 and §2023:14.9.4.4 GR3 apply the scope rule to calls. The recursive case is a 2023 addition carried by the RECURSIVE clause, not a change in meaning of 1985 source.",
-  "source": "adjudicate-712/slice-27"
+  "reason": "1985: a common program may be called from within its container 'unless the calling program is itself contained within the program possessing the common attribute'. §2023:8.4.6.3 SR2 lifts that exclusion: the common program and programs within it 'may reference the program-name only if the program possesses the recursive attribute'. A call 1985 refuses outright is accepted for a RECURSIVE program: a case added, so CHANGED. §2023:11.10.4 GR2 and §2023:14.9.4.4 GR3 apply the scope rule to CALL.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

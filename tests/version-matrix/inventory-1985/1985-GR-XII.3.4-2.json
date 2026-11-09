@@ -2,7 +2,7 @@
  "rule-id": "1985-GR-XII.3.4-2",
  "rule-digest": "3200cd9a100a",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-7.2.4.4-4",
@@ -10,7 +10,7 @@
    "GR-7.2.4.4-7"
   ],
   "bridge": true,
-  "reason": "1985 format 2 (REPLACE OFF) discontinues any replacement in effect. 2023: §2023:7.2.4.4 GR7 'A format 2 REPLACE statement without the LAST phrase cancels the active REPLACE statement and cancels all REPLACE statements in the queue'; §2023:7.2.4.4 GR6 'A format 2 REPLACE statement has no effect' when none is active; canceled means 'removed from use for replace processing for the remainder of the compilation group' (§2023:7.2.4.4 GR4). REPLACE LAST OFF is new syntax and only 2023's ALSO fills the queue, so a 1985 REPLACE OFF means the same.",
-  "source": "adjudicate-712/slice-23"
+  "reason": "1985: 'The format 2 REPLACE statement specifies that any text replacement currently in effect is discontinued.' 2023 keeps that for format 2 without LAST (§2023:7.2.4.4 GR7 d) 'cancels the active REPLACE statement and cancels all REPLACE statements in the queue'; GR6 b) no effect when none active; GR4 c) canceled) but adds REPLACE LAST OFF, accepted in 2023 and refused in 1985: §2023:7.2.4.4 GR7 c) 'A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement and pops the last statement that was pushed into the queue', which re-activates replacement instead of discontinuing it.",
+  "source": "adjudicate-712-r2/slice-10"
  }
 }

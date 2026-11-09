@@ -3,14 +3,14 @@
  "rule-digest": "9770456771a2",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-14.7.5-2",
    "GR-14.7.5-L2.1",
    "GR-14.7.7-4"
   ],
-  "reason": "1985: 'Division by zero always terminates the arithmetic operation and always causes a size error condition.' 2023: the size error condition exists 'if the divisor in a divide operation or in a DIVIDE statement is zero' (§2023:14.7.5 GR2); with the SIZE ERROR phrase 'the values of all of the resultant data items remain unchanged' (§2023:14.7.5, catalog GR-14.7.5-L2.1), and §2023:14.7.7 GR4 'If the size error condition is raised during the initial evaluation, none of the resultant data items are changed', so the operation is abandoned. Same requirement. The EC-SIZE-ZERO-DIVIDE handling without the phrase revises 1985's no-phrase paragraph, not this rule.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "reason": "1985: 'Division by zero always terminates the arithmetic operation and always causes a size error condition.' 2023: the size error condition exists 'if the divisor in a divide operation or in a DIVIDE statement is zero' (§2023:14.7.5 GR2); with the phrase the resultants 'remain unchanged from the values they had at the start of the execution of the arithmetic statement' (§2023:14.7.5, catalog L2.1); §2023:14.7.7 GR4 'If the size error condition is raised during the initial evaluation, none of the resultant data items are changed'. The no-phrase EC-SIZE-ZERO-DIVIDE (L3.2) revises 1985 GR3, not this rule.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

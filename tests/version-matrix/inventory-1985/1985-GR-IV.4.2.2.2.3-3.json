@@ -6,11 +6,11 @@
   "edition": 2023,
   "to": [
    "FMT-8.3.3.6.2",
-   "GR-8.3.3.6.4-6",
-   "GR-12.3.7.4-8"
+   "GR-12.3.7.4-8",
+   "GR-8.3.3.6.4-6"
   ],
   "bridge": true,
-  "reason": "1985: '[ALL] HIGH-VALUE(S) Except in the SPECIAL-NAMES paragraph, represents one or more of the character that has the highest ordinal position in the program collating sequence' (§1985:IV.4.2.2.2.3); inside SPECIAL-NAMES it is the native sequence (§1985:VI.4.5.4 GR7). 2023 restates it: 'The character that has the highest ordinal position in the program collating sequence is associated with the figurative constant HIGH-VALUE, except when ... specified as a literal in the SPECIAL-NAMES paragraph' (§2023:12.3.7.4 GR8), and §2023:8.3.3.6.4 GR6 ends 'otherwise, the alphanumeric program collating sequence is used'. The additions in GR6 (multiple-character combinations, LC_COLLATE locale, national program collating sequence, a runtime-determined sequence) arise only from locale-based alphabets, national contexts and a runtime change of the collating sequence, none of which a 1985 program can contain; a 1985 program's sequence is fixed at compilation, so the compile-time and runtime sequences coincide and HIGH-VALUE means the same.",
-  "source": "adjudicate-712/slice-04"
+  "reason": "1985: '[ALL] HIGH-VALUE(S) Except in the SPECIAL-NAMES paragraph, represents one or more of the character that has the highest ordinal position in the program collating sequence'. 2023: 'The character that has the highest ordinal position in the program collating sequence is associated with the figurative constant HIGH-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph' (§2023:12.3.7.4 GR8), the [ALL] HIGH-VALUE(S) spellings in §2023:8.3.3.6.2, and §2023:8.3.3.6.4 GR6. The multiple-character, LC_COLLATE, national and runtime-sequence cases in GR6 apply only to locales, national contexts and SET of the collating sequence, which this 1985 rule neither allows nor refuses; for every program the 1985 rule governs the value is the same. 'One or more' (repetition) is the length rules, not this definition.",
+  "source": "adjudicate-712-r2/slice-01"
  }
 }

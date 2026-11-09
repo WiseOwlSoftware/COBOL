@@ -3,12 +3,14 @@
  "rule-digest": "3a8cf856d000",
  "next": {
   "kind": "KEPT",
-  "to": [
-   "GR-12.4.6.4.4-2"
-  ],
-  "reason": "1985 SAME RECORD AREA: shared memory for the current logical record, 'All of these files may be in the open mode at the same time', the record is a record of each output file and the most recently read input file, an implicit redefinition aligned leftmost. §2023:12.4.6.4.4 GR2 states each part ('All of these files may be in the open mode at the same time', 'aligned on the leftmost byte position'). Its 'except that only one file that is also specified in a file-area format SAME clause may be open' restates 1985 §1985:VII.2.13.3 SR3c. Its added sentences on the area's availability while any sharing connector is open only bear on a reference after CLOSE, which 1985 CLOSE GR6 already made unavailable (that delta is recorded on 1985-GR-VII.4.2.4-6), so a conforming 1985 program means the same.",
   "edition": 2023,
+  "to": [
+   "GR-12.4.6.4.4-2",
+   "GR-14.9.51.4-4",
+   "GR-14.9.35.4-6"
+  ],
   "bridge": true,
-  "source": "adjudicate-712/slice-15"
+  "reason": "1985 SAME RECORD AREA: the files share the current-logical-record area, 'All of these files may be in the open mode at the same time', the record is one of each output file and of the most recently read input file, an implicit redefinition aligned leftmost. §2023:12.4.6.4.4 GR2 states each part ('All of these files may be in the open mode at the same time', 'aligned on the leftmost byte position'); its 'except' restates 1985 SR3c. WRITE and REWRITE restate the record's availability to the other files (§2023:14.9.51.4 GR4, §2023:14.9.35.4 GR6), as 1985 WRITE/REWRITE did. GR2's added availability sentences match §2023:14.9.6.4 GR7, the CLOSE-side change recorded on 1985-GR-VII.4.2.4-6.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

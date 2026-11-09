@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.11.4-1",
-   "GR-14.9.11.4-6"
+   "GR-14.9.11.4-6",
+   "DOC-A.1-56"
   ],
   "bridge": true,
-  "reason": "§2023:14.9.11.4 GR1: 'causes the content of each operand to be transferred to the device in the order listed', conversion 'defined by the implementor', as in 1985; §2023:14.9.11.4 GR6 restates the order. The zero-length sentence concerns items 1985 cannot declare.",
-  "source": "adjudicate-712/slice-11"
+  "reason": "§2023:14.9.11.4 GR1: 'causes the content of each operand to be transferred to the device in the order listed', conversion 'defined by the implementor' (DOC-A.1-56), as 1985; §2023:14.9.11.4 GR6 restates the order. The added 'zero-length data item or a zero-length literal, no data is transferred' changes nothing a 1985 program can write: a 1985 zero-length operand also transfers nothing, and the empty literal is a literal-rule change, not this rule's.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

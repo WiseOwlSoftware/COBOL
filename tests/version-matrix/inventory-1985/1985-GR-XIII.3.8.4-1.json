@@ -2,16 +2,18 @@
  "rule-id": "1985-GR-XIII.3.8.4-1",
  "rule-digest": "835e714bc3cd",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-13.18.39.4-1",
    "GR-13.18.39.4-2",
    "GR-13.18.39.4-3",
-   "GR-13.18.39.4-4"
+   "GR-13.18.39.4-4",
+   "GR-13.18.57.4-7",
+   "GR-13.18.57.4-8"
   ],
   "bridge": true,
-  "reason": "A 1985 PAGE clause means the same. 1985: integer-1 page size, HEADING first line for RH/PH, FIRST DETAIL first body line (RH without NEXT PAGE and PH end before it), LAST DETAIL last line for control headings and details, FOOTING last line for control footings (PF and RF not on a page by itself follow it). 2023 §2023:13.18.39.4 GR2 states the same regions, adding 'Integer-5 is the LAST CONTROL HEADING integer' for control headings; when it is omitted, as in every 1985 program, §2023:13.18.39.4 GR3 c) sets it 'equal to integer-6, if LAST DETAIL is specified, or equal to integer-7, if FOOTING is specified, or otherwise equal to the page limit', which is exactly the 1985 control-heading limit (1985 XIII.3.8.4 GR2 defaults for LAST DETAIL). §2023:13.18.39.4 GR4 keeps RH/RF on a page by itself; §2023:13.18.39.4 GR1 confines groups to their regions. The new phrase is an opt-in addition, not a different requirement, so the three CHANGED answers are rejected.",
-  "source": "adjudicate-712/slice-26"
+  "reason": "1985 d): 'LAST DETAIL integer-4 defines the last line number on which a control heading or detail report group may be presented'; the PAGE clause has page size, HEADING, FIRST DETAIL, LAST DETAIL, FOOTING. 2023 §2023:13.18.39.4 GR2 adds cases: 'Integer-5 is the LAST CONTROL HEADING integer. It defines the last line position on which any line of a control heading may be printed' and 'Integer-6 is the LAST DETAIL integer. It defines the last line position on which any line of a detail may be printed' (LAST DETAIL no longer bounds control headings when LAST CONTROL HEADING is written), and 'Integer-2 is the page width'. 2023 accepts PAGE clauses 1985 refuses, with a control-heading limit 1985 cannot express: a case added, so CHANGED. A 1985 program keeps its limits: §2023:13.18.39.4 GR3 c) 'If LAST CONTROL HEADING is omitted, integer-5 will be equal to integer-6, if LAST DETAIL is specified', else FOOTING, else the page limit, the 1985 GR2 default of LAST DETAIL; HEADING, FIRST DETAIL and FOOTING regions are the same (§2023:13.18.39.4 GR1, GR2; §2023:13.18.39.4 GR4 RH/RF on a page by itself; §2023:13.18.57.4 GR7 upper and §2023:13.18.57.4 GR8 lower limits, 'The lower limit for a control heading is the line given by the LAST CONTROL HEADING integer').",
+  "source": "adjudicate-712-r2/slice-12"
  }
 }

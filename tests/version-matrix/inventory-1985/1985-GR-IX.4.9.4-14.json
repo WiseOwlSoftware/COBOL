@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.51.4-38"
+   "GR-14.9.51.4-38",
+   "GR-14.9.51.4-35"
   ],
   "bridge": true,
-  "reason": "1985 GR14: in sequential access records 'must be released ... in ascending order of prime record key values according to the collating sequence of the file'; in extend mode the first record must have a prime key 'greater than the highest prime record key value existing in the file'. 2023 §2023:14.9.51.4 GR38 states both, adds that later extend records exceed the highest written (the ascending-order duty already implies it) and states the result (unsuccessful, invalid key, status '21'), which 1985 gave in GR17a and GR18. Same.",
-  "source": "adjudicate-712/slice-08"
+  "reason": "1985 GR14: sequential access releases records 'in ascending order of prime record key values according to the collating sequence of the file'; extend's first record must exceed the highest existing key. §2023:14.9.51.4 GR38 states both (later extend records exceeding the highest written is implied by ascending order); §2023:14.9.51.4 GR35 bases the ordering comparison on the file's collating sequence. GR38's '21' result is 1985 GR17a/GR18's; GR42 a) is GR17's counterpart. Connector wording only scopes sharing. Same.",
+  "source": "adjudicate-712-r2/slice-03"
  }
 }

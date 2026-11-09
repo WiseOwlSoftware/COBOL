@@ -9,7 +9,7 @@
    "GR-14.9.30.4-26"
   ],
   "bridge": true,
-  "reason": "1985 GR16: an alternate key 'may be nonunique only if the DUPLICATES phrase is specified', and duplicates are retrieved sequentially 'in the order in which they are released to the MSCS'. 2023 §2023:14.9.51.4 GR40 keeps 'may be non unique only if the DUPLICATES phrase is specified' with retrieval in 'the order in which the operating environment actually writes the record', and §2023:14.9.30.4 GR26 returns duplicates 'in the same order ... in which they are released by execution of WRITE statements'. 'Actually writes' can differ only under 2023 file sharing; the '22' result restates 1985 GR17c/GR18. Same.",
-  "source": "adjudicate-712/slice-08"
+  "reason": "1985 GR16: an alternate key 'may be nonunique only if the DUPLICATES phrase is specified', duplicates retrieved in release order. §2023:14.9.51.4 GR40 'may be non unique only if the DUPLICATES phrase is specified for that data item'; §2023:14.9.30.4 GR26 returns duplicates in the order 'in which they are released by execution of WRITE statements'. GR41's suppression carve-out needs SUPPRESS WHEN, refused by 1985's format, not by this rule. The '22' result is 1985 GR17c's counterpart (GR42 c)). Same.",
+  "source": "adjudicate-712-r2/slice-03"
  }
 }

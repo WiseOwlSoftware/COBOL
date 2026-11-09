@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "SR-13.18.63.3-12",
+   "SR-13.18.63.3-16",
    "SR-13.18.63.3-24"
   ],
   "bridge": true,
-  "reason": "1985: VALUE 'must not be stated in a data description entry that contains a REDEFINES clause, or in an entry that is subordinate to' one, and 'This rule does not apply to condition-name entries.' §2023:13.18.63.3 SR12 states the same ban word for word, under FORMAT 1 (data-item). The condition-name exemption is kept by format scoping: the condition-name format imports only 'Syntax rules 10 and 17 above apply' (§2023:13.18.63.3 SR24), not SR12. Same programs accepted and refused; both compile-time.",
-  "source": "adjudicate-712/slice-10"
+  "reason": "1985: VALUE 'must not be stated in a data description entry that contains a REDEFINES clause, or in an entry that is subordinate to' one; not for condition-names. §2023:13.18.63.3 SR12 states the ban verbatim; §2023:13.18.63.3 SR16 applies it to the table format; the condition-name format imports only 'Syntax rules 10 and 17 above apply' (§2023:13.18.63.3 SR24), keeping the exemption. Same programs refused at compile time.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

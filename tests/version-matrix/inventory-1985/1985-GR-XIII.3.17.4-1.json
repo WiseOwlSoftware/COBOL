@@ -2,15 +2,16 @@
  "rule-id": "1985-GR-XIII.3.17.4-1",
  "rule-digest": "41fe54f47486",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
+  "edition": 2023,
   "to": [
    "GR-13.18.52.4-1",
+   "SR-13.18.52.3-1",
    "GR-13.18.52.4-4",
    "GR-13.18.40.4-14"
   ],
-  "reason": "1985 (report writer SIGN): the clause 'specifies the position and the mode of representation of the operational sign', 'applies only to numeric data description entries whose PICTURE contains the character 'S'', and 'S' fixes neither representation nor position. 2023: §2023:13.18.52.4 GR1 'The SIGN clause specifies the position and the mode of representation of the operational sign ... The SIGN clause applies only to numeric items whose picture character-string contains the symbol 'S''; §2023:13.18.52.4 GR4 'Neither the representation nor the position of that operational sign is specified by the symbol 'S''; §2023:13.18.40.4 GR14 'The symbol 'S' indicates the presence, but neither the representation nor, necessarily, the position of an operational sign'. The group-level wording of GR1 only adds a case (already 1985 VI.5.12.4 GR1); same meaning for a report group entry.",
-  "source": "adjudicate-712/slice-25",
-  "edition": 2023,
-  "bridge": true
+  "bridge": true,
+  "reason": "1985 report-writer SIGN: 'The SIGN clause applies only to numeric data description entries whose PICTURE contains the character S' (with §1985:XIII.3.17.3 SR1), so a group report entry may not carry it. 2023 §2023:13.18.52.4 GR1 adds 'or for each numeric item subordinate to the group to which it applies'; §2023:13.18.52.3 SR1 allows 'an alphanumeric group item, national group item, or strongly-typed group item', and §2023:13.15.3 SR11 does not confine SIGN to elementary report entries. A report group entry with SIGN over numeric 'S' items, refused by 1985, is accepted: a case added. Kept: position and mode of the sign, and §2023:13.18.52.4 GR4 / §2023:13.18.40.4 GR14 'S' 'indicates the presence, but neither the representation nor, necessarily, the position of an operational sign'.",
+  "source": "adjudicate-712-r2/slice-11"
  }
 }

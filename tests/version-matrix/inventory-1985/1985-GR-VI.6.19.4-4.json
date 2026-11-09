@@ -2,14 +2,14 @@
  "rule-id": "1985-GR-VI.6.19.4-4",
  "rule-digest": "0c1a969d802b",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
+  "edition": 2023,
   "to": [
    "GR-14.9.25.4-6",
    "GR-14.9.25.4-5"
   ],
-  "reason": "§2023:14.9.25.4 GR6 restates the 1985 conversion rule ('Any necessary conversion of data from one form of internal representation to another takes place during valid elementary moves'), the sign, separate-sign, 'P' and usage-conversion provisions of 1985 4a, and the signed/unsigned receiver rules of 4b; §2023:14.9.25.4 GR5 carries 1985 4a's 'no de-editing' and 4b's implied de-editing. The 31-position cap on an alphanumeric sender ('unless the number of character positions is greater than 31, in which case the rightmost 31 character positions are used') cannot alter a 1985 result, since 1985 numeric and numeric-edited receivers hold at most 18 digit positions and alignment keeps only the rightmost integer digits. The EC-DATA-INCOMPATIBLE case of GR6 d) 1 ('results ... are undefined') covers content 1985 already left undefined (§1985:VI.6.4.7 'the result of such a reference is undefined'), and checking is off for a 1985 program. Alignment and space/zero fill (1985 4a-4c 'as previously defined') belong to the Standard Alignment Rules, judged with that clause (2023 14.6.8, prose without catalog rules for 14.6.8.5).",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "reason": "1985 GR4: conversion 'takes place during legal elementary moves, along with any editing specified for' the receiver, with no exception for a sender and receiver that are the same item, and §1985:VI.6.4.5 makes overlap undefined only when the items 'are not defined by the same data description entry'. §2023:14.9.25.4 GR6 b) 1: when the sending and receiving operands reference the same data item, 'If the category of the operand is alphanumeric-edited or national-edited, the result of execution of the statement is undefined'. MOVE X TO X of an alphanumeric-edited X was defined (editing) in 1985 and is undefined in 2023: a result made undefined. The rest (sign, separate sign, 'P', usage conversion, signed/unsigned receivers, alphanumeric sender as an unsigned integer) recurs in GR6 a) and d); the de-editing provisions in §2023:14.9.25.4 GR5 ('De-editing takes place only when the sending operand is a numeric-edited data item'). The 31-position cap cannot alter an 18-digit 1985 receiver.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

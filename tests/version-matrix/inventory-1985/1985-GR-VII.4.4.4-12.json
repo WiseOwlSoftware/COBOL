@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.30.4-18"
+   "GR-14.9.30.4-18",
+   "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "1985 READ GR12: after an unsuccessful READ 'the content of the associated record area is undefined and the file position indicator is set to indicate that no valid next record has been established'. §2023:14.9.30.4 GR18: 'the content of the associated record area is undefined ... and the file position indicator is set to indicate that no valid record position has been established'. Its 'unless otherwise specified' cases (at end per GR24, locking) do not change a 1985 program: the next READ fails with '46' under §2023:14.9.30.4 GR21 as under 1985 GR4a.",
-  "source": "adjudicate-712/slice-16"
+  "reason": "1985 READ GR12: after an unsuccessful READ 'the content of the associated record area is undefined and the file position indicator is set to indicate that no valid next record has been established'. §2023:14.9.30.4 GR18 'the content of the associated record area is undefined ... and the file position indicator is set to indicate that no valid record position has been established'; its at-end exception (§2023:14.9.30.4 GR24 b 'no next or previous logical record exists', NOTE 6 record area undefined) yields the same next-READ failure (status 46 after any unsuccessful READ, as 1985). Lock-conflict cases are 2023-only. Same effect.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

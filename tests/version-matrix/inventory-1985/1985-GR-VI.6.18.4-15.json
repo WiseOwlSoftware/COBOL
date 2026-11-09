@@ -2,16 +2,17 @@
  "rule-id": "1985-GR-VI.6.18.4-15",
  "rule-digest": "4aab759f9f70",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "GR-14.9.22.4-19",
    "GR-14.9.22.4-6",
    "GR-14.6.4-4",
+   "GR-14.6.4-6",
    "GR-14.6.4-7"
   ],
   "bridge": true,
-  "reason": "The format 3 equivalence is verbatim in §2023:14.9.22.4 GR19. 1985 'Subscripting ... is evaluated only once before executing the format 1 statement' became 'Item identification ... is done only once'; §2023:14.6.4 lists subscript evaluation and reference modification in item identification, and §1985:IV.4.3.8.3.4 GR3 already evaluates reference modification 'at the time subscripting would be evaluated'. §2023:14.9.22.4 GR6 restates once-only.",
-  "source": "adjudicate-712/slice-11"
+  "reason": "Equivalence to two successive INSPECTs is verbatim in §2023:14.9.22.4 GR19, but 1985 'Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement' became 'Item identification of any identifier in the format 2 statement is done only once before executing the format 1 statement', and item identification includes 'length evaluation for an occurs-depending group item' (§2023:14.6.4 GR6). A tally into identifier-1's DEPENDING ON item no longer changes the length the REPLACING part scans: a result changed.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

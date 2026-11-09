@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.30.4-2",
+   "GR-14.9.27.4-8",
    "GR-9.1.13.7-7"
   ],
   "bridge": true,
-  "reason": "1985: file 'must be open in the input or I-O mode at the time this statement is executed'. §2023:14.9.30.4 GR2: 'The open mode ... shall be input or I-O', else status '47'; §2023:9.1.13.7 GR7 defines 47 as 1985 status 47 does. Same run-time requirement.",
-  "source": "adjudicate-712/slice-19"
+  "reason": "1985: file 'must be open in the input or I-O mode at the time this statement is executed'. §2023:14.9.30.4 GR2 'The open mode ... shall be input or I-O', else '47' (§2023:9.1.13.7 GR7, as 1985's 47); §2023:14.9.27.4 GR8 'shall be in an open mode at the time of the execution', Table 20 READ under Input and I-O. Same run-time requirement.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

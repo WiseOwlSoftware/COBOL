@@ -9,7 +9,7 @@
    "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "1985 selects by the current key of reference in the file's collating sequence: >= after OPEN or START, > after READ, the next duplicate for an alternate key with duplicates, at end when none is found, FPI set to the record's key. §2023:14.9.30.4 GR21 a), d), e), f), g) state the same, and route the not-found and optional-file cases to §2023:14.9.30.4 GR24 as 1985 routed them to GR10. 2023 words the cases as 'the previous operation on the file'; WRITE, REWRITE and DELETE leave the file position indicator unchanged (§2023:14.9.35.4 GR13), and the transcription's correction note C12 reads d) and e) as reading the FPI, so intervening non-positioning statements select as in 1985. Case a (no valid next record): unsuccessful in both; GR24 applies only when the at end condition exists, so a status 46 goes through GR13 as 1985 GR11. That status's fatal handling is recorded on 1985-GR-IX.4.5.4-11.",
-  "source": "adjudicate-712/slice-07"
+  "reason": "1985 selects by the current key of reference in the file's collating sequence: >= after OPEN or START, > after READ, the next duplicate for a duplicates key, at end when none, FPI set to the key read; no valid next record: unsuccessful; optional file absent: GR10. §2023:14.9.30.4 GR21 'The setting of the file position indicator at the start of the execution of the READ statement is used in determining the record to be made available', with a), d)-g) the same cases (e) read per the transcription's correction C12) and the at end cases routed to §2023:14.9.30.4 GR24 'the at end condition exists, the following occurs in the order specified', as 1985 GR10. KEY, PREVIOUS and SUPPRESS cases need 2023-only syntax.",
+  "source": "adjudicate-712-r2/slice-02"
  }
 }

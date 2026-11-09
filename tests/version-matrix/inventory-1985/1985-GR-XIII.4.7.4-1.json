@@ -10,7 +10,7 @@
    "GR-13.18.57.4-6"
   ],
   "bridge": true,
-  "reason": "1985: TERMINATE produces all control footings 'beginning with the minor control footing', then the report footing, with the prior control values available 'as though a control break has been sensed in the most major control data-name'. 2023: control items get their prior values, each control footing is printed 'beginning with the minor control footing ... as though a control break has been sensed in the most major control data item', then the report footing, then the values are restored (§2023:14.9.46.4 GR3); §2023:13.18.16.4 GR5 and §2023:13.18.57.4 GR6 (e 2, g) restate the prior-value storing and the TERMINATE printing. The no-GENERATE case is a separate rule in both editions. Same effect.",
-  "source": "adjudicate-712/slice-27"
+  "reason": "1985: TERMINATE produces all control footings 'beginning with the minor control footing', then the report footing, with the prior control values available to control footing and report footing SOURCE clauses and USE procedures 'as though a control break has been sensed in the most major control data-name'. 2023: §2023:14.9.46.4 GR3 control items changed to prior values, 'Each control footing is printed, if defined, beginning with the minor control footing', 'as though a control break has been sensed in the most major control data item', 'The report footing is printed, if defined', then restored; §2023:13.18.16.4 GR5 'the prior controls are stored in the control data items before each control footing is printed'; §2023:13.18.57.4 GR6 e) and g). That 2023 page headings and footings printed during TERMINATE also see prior values differs from 1985 TYPE GR13 c), that rule's record, not this one. The recheck's GR-13.18.16.4-4 is the GENERATE-break rule, not kept. Same effect for this rule.",
+  "source": "adjudicate-712-r2/slice-12"
  }
 }

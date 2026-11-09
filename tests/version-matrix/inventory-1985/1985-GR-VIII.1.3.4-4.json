@@ -9,7 +9,7 @@
    "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "The CHANGED answers missed the restatement: §2023:9.1.13.1 says verbatim 'Permanent error. The input-output statement was unsuccessfully executed as the result of an error that precluded further processing of the file. Any specified exception procedures are executed. The permanent error condition remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique is invoked to correct the permanent error condition.' That prose has no catalog rule id; the catalog rules carrying it are §2023:9.1.13.6 GR1 ('A permanent error exists') and §2023:14.9.49.4 GR6 (exception procedures run on an unsuccessful I-O operation). The fatal follow-up action is a separate 1985 rule (critical errors).",
-  "source": "adjudicate-712/slice-17"
+  "reason": "1985 Permanent Error definition (unsuccessful from an error precluding further processing; exception procedures executed; condition persists unless an implementor-defined technique corrects it). §2023:9.1.13.1 repeats it verbatim ('The permanent error condition remains in effect for all subsequent input-output operations on the file'; prose, no catalog row, PB479). Catalog carriers of parts: §2023:9.1.13.6 GR1 ('A permanent error exists'), §2023:14.9.49.4 GR6 (procedures executed upon unsuccessful I-O). Same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

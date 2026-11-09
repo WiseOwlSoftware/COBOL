@@ -3,12 +3,12 @@
  "rule-digest": "deeb65baf309",
  "next": {
   "kind": "KEPT",
+  "edition": 2023,
   "to": [
    "GR-14.9.43.4-3"
   ],
-  "reason": "1985 a-c: characters transferred by alphanumeric-to-alphanumeric move rules without space filling; DELIMITED without SIZE stops at the end of sender, end of receiver or the delimiter, which is not transferred; with SIZE the whole sender goes; repeated for every sender. §2023:14.9.43.4 GR3 a-c repeat these rules and add only national-to-national moves (national operands are 2023-only, §2023:14.9.43.3 SR1) and zero-length operands ('If an identifier-1 references a zero-length item, that sending operand is ignored'; a zero-length identifier-2 acts as SIZE). Neither reaches a 1985 program that 2023 accepts: zero-length items arise only from dynamic-length items or variable-length groups, and §2023:14.9.43.3 SR11 bars variable-length groups as identifier-1/2/3 (that refusal of a 1985 ODO-group operand belongs to the operand rule, not to this transfer rule), and §2023:14.9.43.3 SR3 bars a zero-length literal-2. Transfer semantics are the same for every 1985 program.",
-  "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "reason": "1985 GR4 a)-c) and its repeat sentence recur in §2023:14.9.43.4 GR3 (characters transferred 'in accordance with the MOVE statement rules for alphanumeric-to-alphanumeric moves' without space fill; DELIMITED without SIZE stops at end of sender, end of receiver or the untransferred delimiter; with SIZE the whole sender). Additions cover national operands and zero-length items, neither reachable from a 1985 program 2023 accepts. The implied DELIMITED BY SIZE of an omitted phrase is §2023:14.9.43.3 SR9, format, which this 1985 rule does not refuse. GR1 and GR7 carry 1985 GR2 and GR8.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

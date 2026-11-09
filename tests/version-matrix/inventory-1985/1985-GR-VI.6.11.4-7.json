@@ -10,11 +10,12 @@
    "GR-14.7.4.3-2",
    "GR-14.7.4.3-10",
    "GR-14.7.7-1",
-   "GR-14.7.7-3",
-   "GR-14.6.8.2-4"
+   "GR-14.6.8.2-3",
+   "GR-14.6.8.2-4",
+   "GR-14.6.8.2-5"
   ],
   "bridge": true,
-  "reason": "1985: remainder accuracy 'defined by the calculation', 'alignment and truncation (not rounding)'. §2023:14.9.12.4 GR6 and GR7 define the remainder by its calculation; identifier-4 takes no rounded-phrase, so §2023:14.7.4.3 GR2 and GR10 truncate; §2023:14.7.7 GR1, §2023:14.7.7 GR3 and §2023:14.6.8.2 GR4 align and transfer with 'zero fill or truncation'.",
-  "source": "adjudicate-712/slice-11"
+  "reason": "1985: remainder accuracy 'defined by the calculation', 'alignment and truncation (not rounding)'. §2023:14.9.12.4 GR6 and GR7 define the remainder by its calculation; identifier-4 takes no ROUNDED, so §2023:14.7.4.3 GR2 (as if ROUNDED MODE IS TRUNCATION) and GR10 truncate; §2023:14.7.7 GR1 and §2023:14.6.8.2 GR3-GR5 align 'with zero fill or truncation'. The signed subsidiary quotient concerns 1985 GR6. Same effect.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

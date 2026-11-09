@@ -11,7 +11,7 @@
    "FMT-12.4.5.14.2"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only makes the relative RESERVE clause the sequential one. 2023 writes one RESERVE clause (12.4.5.14, 'the number of input-output areas allocated is equal to the value of integer-1', §2023:12.4.5.14.3 GR1) into both the relative format (§2023:12.4.5.2 SR9 'Format 2 shall be specified only for a relative file') and the sequential format (§2023:12.4.5.2 SR11), so the sameness holds; the clause's own content is carried by the sequential RESERVE rule's record.",
-  "source": "adjudicate-712/slice-18"
+  "reason": "The 1985 rule only makes the relative RESERVE clause the sequential one. 2023 writes one RESERVE clause (12.4.5.14) into both the relative format (§2023:12.4.5.2 SR9 'Format 2 shall be specified only for a relative file') and the sequential format (§2023:12.4.5.2 SR11), so the sameness holds. The clause's content (§2023:12.4.5.14.3 GR1) is the sequential RESERVE rule's record, not a part of this one.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

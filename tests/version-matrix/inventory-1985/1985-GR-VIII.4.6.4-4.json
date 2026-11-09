@@ -8,7 +8,7 @@
    "GR-14.9.35.4-6"
   ],
   "bridge": true,
-  "reason": "§2023:14.9.35.4 GR6: the released record 'is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause', and is then a record of the other files in that clause. file-name-1 only serves the 2023 FILE format. Same.",
-  "source": "adjudicate-712/slice-19"
+  "reason": "1985: the released record 'is no longer available in the record area unless' its file is in a SAME RECORD AREA clause, and is then a record of the other files. §2023:14.9.35.4 GR6 restates it word for word; file-name-1 serves only the 2023 FILE format. Same.",
+  "source": "adjudicate-712-r2/slice-09"
  }
 }

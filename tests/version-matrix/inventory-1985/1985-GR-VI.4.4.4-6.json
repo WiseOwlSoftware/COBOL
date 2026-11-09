@@ -8,7 +8,7 @@
    "GR-12.3.6.4-10"
   ],
   "bridge": true,
-  "reason": "1985: clause absent -> 'the program collating sequence is the native collating sequence'. §2023:12.3.6.4 GR10: clause absent and not inherited from a containing unit -> 'the initial program collating sequences are the native alphanumeric collating sequence and the native national collating sequence'. The containment proviso restates 1985 GR2 (clauses apply to contained programs); the national sequence serves new data only.",
-  "source": "adjudicate-712/slice-09"
+  "reason": "1985: clause absent -> 'the program collating sequence is the native collating sequence'. §2023:12.3.6.4 GR10: absent and not inherited -> 'the initial program collating sequences are the native alphanumeric collating sequence and the native national collating sequence'. Inheritance restates 1985 GR2; 'initial' matters only with the new SET COLLATING SEQUENCE; the national sequence serves 2023-only data. GR9 governs the clause when specified, not this case. Same.",
+  "source": "adjudicate-712-r2/slice-03"
  }
 }

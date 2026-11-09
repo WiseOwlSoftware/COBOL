@@ -10,7 +10,7 @@
    "GR-12.4.5.8.4-1"
   ],
   "bridge": true,
-  "reason": "1985 makes the indexed FILE STATUS clause the sequential one and points to I-O status for its content. 2023 has one FILE STATUS clause, used by the indexed file control entry, whose data item receives the I-O status: §2023:12.4.5.8.4 GR1 'A list of the possible I-O status values is contained in 9.1.13, I-O status'. No organization distinction.",
-  "source": "adjudicate-712/slice-06"
+  "reason": "1985 pointer: the indexed FILE STATUS clause is the sequential one and its content is the I-O status. 2023 has one organization-neutral FILE STATUS clause (§2023:12.4.5.8.2, in Format 1 (indexed) of §2023:12.4.5.1); §2023:12.4.5.8.4 GR1 'updated to contain the value of the I-O status for the file connector referenced by the subject of the entry'. The imported sequential syntax rules are carried by the 1985 VII FILE STATUS records, not this pointer; 2023 SR3-SR4 concern new features.",
+  "source": "adjudicate-712-r2/slice-02"
  }
 }

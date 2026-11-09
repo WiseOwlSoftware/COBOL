@@ -5,13 +5,15 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.16.4-4",
+   "GR-14.9.16.4-1",
    "GR-14.9.16.4-2",
+   "GR-14.9.16.4-4",
    "GR-14.9.16.4-6",
+   "GR-13.18.57.4-5",
    "GR-13.18.57.4-6"
   ],
   "bridge": true,
-  "reason": "Same. 1985 first GENERATE: report heading, page heading, all control headings major to minor, then the detail (or part of detail processing for GENERATE report-name), with PH/PF per GR4. 2023 §2023:14.9.16.4 GR4 gives the same order, 'each control heading is printed, wherever defined, in order from major to minor', then the detail 'unless summary reporting is specified' (§2023:14.9.16.4 GR2 'except that no detail is printed'); PH/PF page advance is §2023:14.9.16.4 GR6; §2023:13.18.57.4 GR6 a)-c) restate the per-type conditions. WITH RESET is a NEXT GROUP addition.",
-  "source": "adjudicate-712/slice-26"
+  "reason": "1985 first GENERATE: report heading, page heading, all control headings major to minor, then the detail (or part of detail processing for GENERATE report-name), with PH/PF per GR4. 2023: §2023:14.9.16.4 GR4 the same order, 'each control heading is printed, wherever defined, in order from major to minor', then 'The specified detail is printed, unless summary reporting is specified'; §2023:14.9.16.4 GR2 summary reporting is the same processing 'except that no detail is printed'; §2023:14.9.16.4 GR1 the detail 'following any necessary control break and page fit processing'; §2023:14.9.16.4 GR6 page advance; §2023:13.18.57.4 GR5 implicit printing and GR6 a)-c) per-type conditions. 'Following an INITIATE' matches 1985 GR7. Same effect.",
+  "source": "adjudicate-712-r2/slice-12"
  }
 }

@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.27.4-10"
+   "GR-14.9.27.4-10",
+   "GR-9.1.13.2-3"
   ],
   "bridge": true,
-  "reason": "1985: min/max record sizes 'are established at the time the file is created and must not subsequently be changed'. 2023 §2023:9.1.6 (prose, no catalog rule) lists 'the minimum and maximum logical record size in bytes' among attributes that 'apply to the file at the time it is created and cannot be changed'; §2023:14.9.27.4 GR10 enforces them at OPEN by comparing the connector's attributes 'with the fixed file attributes of the file' (status 39, as 1985 status 39 in §1985:VIII.1.3.4). Same requirement.",
-  "source": "adjudicate-712/slice-19"
+  "reason": "1985: min/max record sizes 'are established at the time the file is created and must not subsequently be changed'. 2023 9.1.6 (prose, no catalog row) makes them fixed attributes; §2023:9.1.13.2 GR3 names 'the minimum or maximum length of records allowed for the fixed file attributes for that file', and §2023:14.9.27.4 GR10 compares the connector 'with the fixed file attributes of the file' at OPEN (status 39, as 1985). Same requirement.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

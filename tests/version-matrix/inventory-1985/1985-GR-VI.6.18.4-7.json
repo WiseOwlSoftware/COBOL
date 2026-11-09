@@ -3,12 +3,13 @@
  "rule-digest": "5703de313d19",
  "next": {
   "kind": "KEPT",
-  "to": [
-   "GR-14.9.22.4-9"
-  ],
-  "reason": "§2023:14.9.22.4 GR9 restates the 1985 BEFORE/AFTER restriction word for word (first eligible 'at the leftmost character position'; BEFORE up to 'but not including, the first occurrence'; AFTER from the position to the right of the first occurrence; no occurrence of literal-2 means 'never eligible'). Its additions concern only 2023 features: BACKWARD (absent from 1985) and 'identifier-4 references a zero-length item', which no 1985 program can produce because 1985 SR2 requires identifier-4 to be an elementary DISPLAY item. A conforming 1985 INSPECT means the same; the recheck's GR3 states the scan direction, which is 1985 GR3's subject, not this rule's.",
   "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-9",
+   "GR-14.9.22.4-3"
+  ],
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "reason": "1985 GR7 a)-c) recur in §2023:14.9.22.4 GR9, outside its BACKWARD and zero-length identifier-4 branches (neither reachable from 1985 syntax). 1985 b) reads 'from its leftmost character position up to, but not including, the first occurrence'; 2023 b) reads 'the first character position that is eligible to participate up to, but not including, the first occurrence encountered of literal-2', and §2023:14.9.22.4 GR3 fixes where that occurrence is found: 'the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/or replacing) begins at the leftmost character position'. With BEFORE and AFTER both specified the region is the same intersection, so every 1985 INSPECT means the same.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

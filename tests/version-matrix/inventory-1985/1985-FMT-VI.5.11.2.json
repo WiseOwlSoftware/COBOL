@@ -9,7 +9,7 @@
    "FMT-13.16.2"
   ],
   "bridge": true,
-  "reason": "1985: 66 data-name-1 RENAMES data-name-2 [ {THROUGH|THRU} data-name-3 ] . with the note that level-number and data-name-1 are not part of the clause. §2023:13.18.45.2 prints the same format and note (\"Level-number and data-name-1 are not part of the RENAMES clause\"), and §2023:13.16.2 Format 2 (renames) restates it as a data description entry. The 1985 level-2 box marks a module level, not a different requirement. Same programs accepted, same meaning.",
-  "source": "adjudicate-712/slice-01"
+  "reason": "1985 prints '66 data-name-1 RENAMES data-name-2 [{THROUGH|THRU} data-name-3] .' with the note 'Level-number and data-name-1 are not part of the RENAMES clause' (§1985:VI.5.11.2). §2023:13.18.45.2 prints the same format and note, and §2023:13.16.2 Format 2 (renames) restates it as an entry. No case added or removed: same programs accepted. GR-13.18.33.4-2 (level 66 used only in the renames format) states the level-number rule the 1985 note puts outside this clause, so it is not in 'to'.",
+  "source": "adjudicate-712-r2/slice-01"
  }
 }

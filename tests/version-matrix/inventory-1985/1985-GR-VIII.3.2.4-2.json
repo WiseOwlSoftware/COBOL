@@ -11,7 +11,7 @@
    "FMT-13.18.10.2"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only makes the relative BLOCK CONTAINS clause the sequential one. 2023 writes one BLOCK CONTAINS clause (13.18.10) into FD Format 1 ('the file description entry for a sequential file', §2023:13.4.5.3 SR5) and Format 2 ('for a relative file or an indexed file', §2023:13.4.5.3 SR7), so the sameness holds; the clause's content is carried by the sequential rule's record.",
-  "source": "adjudicate-712/slice-18"
+  "reason": "The 1985 rule only makes the relative BLOCK CONTAINS clause the sequential one. 2023 writes one BLOCK CONTAINS clause (13.18.10) into FD Format 1 (sequential, §2023:13.4.5.3 SR5) and Format 2 ('for a relative file or an indexed file', §2023:13.4.5.3 SR7). The clause's own rules are the sequential BLOCK CONTAINS record's content.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }
