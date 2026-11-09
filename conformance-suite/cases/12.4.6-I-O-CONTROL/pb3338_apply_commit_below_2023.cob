@@ -5,8 +5,9 @@
 *> portable: unverified
 *>---
 *> kb/Work PB3338 - the APPLY COMMIT clause is a COBOL-2023 addition (Annex E.3.2 item 2): the I-O-CONTROL
-*> paragraph of ISO/IEC 1989:2002 and 2014 has no APPLY clause, so below 2023 the clause is refused (the closed
-*> I-O-CONTROL format, COBOL1970). Its 2023 twin, which runs, is pb3338_apply_commit_rollback.
+*> paragraph of ISO/IEC 1989:2002 and 2014 has no APPLY clause, so below 2023 the clause is refused by its edition
+*> (COBOL0900, kb/Work PB5025: the grammar spells it at every edition and the conformance pass names COBOL-2023).
+*> Its 2023 twin, which runs, is pb3338_apply_commit_rollback.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3338BE.
        ENVIRONMENT DIVISION.
