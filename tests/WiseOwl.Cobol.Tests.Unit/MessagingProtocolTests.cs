@@ -203,11 +203,11 @@ public sealed class MessagingProtocolTests
         var shortToken = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("abcdefgh", null, [new MessageSlot("TOKEN-01", MessageTag.Null)])));   // the image holds no 'T': the first one is the slot token's
         int tokenCount = Array.IndexOf(shortToken, (byte)'T', 0) - 4;                                                    // the token's count precedes its first unit
         shortToken[tokenCount] = 7;
-        Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, shortToken));
+        Assert.Contains("token is 7 positions, not 8", Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, shortToken)).Message);   // the guard's own refusal, not a later flag-byte one
         // PB5004: a slot whose token the image does not hold is no slot of that message; the decoder refuses it as it refuses the party byte.
         var absent = PeerFrameCodec.Encode(new GrantFrame(1, 1, new MessageBody("TOKEN-01", null, [new MessageSlot("TOKEN-01", MessageTag.Null)])));
         absent[Array.IndexOf(absent, (byte)'T', 0)] = (byte)'X';                                                          // the image's first unit; the slot's token stays
-        Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, absent));
+        Assert.Contains("is not in the message image", Assert.Throws<InvalidDataException>(() => PeerFrameCodec.Decode(McsFrameKind.Grant, absent)).Message);
     }
 
     [Fact]
