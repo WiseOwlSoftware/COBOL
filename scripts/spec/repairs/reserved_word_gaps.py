@@ -42,8 +42,9 @@ NEXT = re.compile(r'^<a id="section-8-10')
 WORD = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
 LIST_PAGES = range(234, 238)          # 0-based PDF pages carrying the alphabetic list
 
-# Printed form → transcribed form. Both are ISO's own defects, not ours; C1 in the Addendum covers EMD-START.
-PRINTED_QUIRKS = {"EMD-START": "END-START"}
+# Printed form → transcribed form: ISO's own misprints, each corrected in the transcription and recorded in the
+# Addendum (C1 EMD-START, C15 i-O and I-OICONTROL). The order corrections of C16 move no word, and this check is a set.
+PRINTED_QUIRKS = {"EMD-START": "END-START", "i-O": "I-O", "I-OICONTROL": "I-O-CONTROL"}
 WRAP_TAILS = {"QUIET", "SIGNALING"}   # continuation fragments already rejoined into their stem
 
 
