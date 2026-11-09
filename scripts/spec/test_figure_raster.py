@@ -608,6 +608,21 @@ def main() -> int:
     tall = [g for g in got if g[1] >= 9]
     check("a single tall brace is not cut", len(tall) == 1 and tall[0][0] == "L" and near(tall[0][2], 50, 1.5), f"got {got}")
 
+    # 8b. Underlined words of running text (kb/Work PB5041): hint boxes are 12 pt tall, the baseline 3.5 pt above a box's
+    #     bottom. A rule under the word is found; a word with no rule, a word whose letters' feet cover 93 % of its width
+    #     (bold Times), a short word and a rule hugging the baseline-free box top are not.
+    img = canvas()
+    fill(img, 20, 40, 60, 40.8)                                  # the rule, 0.8 pt thick, below the baseline (y 40)
+    fill(img, 20, 30, 60, 38)                                    # a solid word body above it
+    fill(img, 20, 62, 60, 70.5)                                  # no rule
+    for i in range(10):                                          # feet at 93 %: a chain with a 0.3 pt gap per 4.3 pt
+        fill(img, 20 + i * 4.3, 98, 24 + i * 4.3, 99.2)
+    fill(img, 20, 110, 28, 110.8)                                # a rule under a word narrower than 14 pt
+    hints = [(20, 29, 60, 41.5, "RULED"), (20, 62, 60, 74.0, "BARE"), (20, 88, 60, 100.5, "FEET"), (20, 100, 28, 112.5, "IN")]
+    got = [h[4] for h in R.underlined_hints(img < 128, hints, S)]
+    total += 1
+    check("an underline below a word's baseline is found, feet and short words are not", got == ["RULED"], f"got {got}")
+
     # 9. REAL 1985 pages (kb/Work PB4848, PB4897, PB4899): general-format regions cropped from the licensed scan, binarized,
     #    the stamp margins excluded, each counted BY EYE against the rendered page. The calibration table is
     #    figure_raster_pages/calibration.json; a crop is measured with its page's skew. PDF page 222's crop holds no
