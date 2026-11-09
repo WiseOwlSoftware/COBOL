@@ -36727,7 +36727,8 @@ correction is a departure from the page.
 have (`BEFCRE`) or a letter outside the ASCII range. A misprint that turns one real word into another passes both,
 and no scan can see it: only a reader can, comparing the sentence's sense with its 2023 counterpart clause. That read
 has not been done. A normative sentence of this transcription whose wording disagrees with its 2023 counterpart is
-therefore checked against the rendered page before it is taken as the rule of 1985 (kb/Work PB4984).
+therefore checked against the rendered page before it is taken as the rule of 1985, and so is a sentence with no 2023
+counterpart (a rule of a module 2023 dropped), which the comparison cannot reach at all (kb/Work PB4984).
 
 ## Corrections applied
 
