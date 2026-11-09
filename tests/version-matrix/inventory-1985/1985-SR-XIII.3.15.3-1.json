@@ -3,13 +3,14 @@
  "rule-digest": "3b8e918ab9ed",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "SR-13.18.35.3-3",
-   "SR-13.18.35.3-6"
+   "SR-13.18.35.3-6",
+   "GR-13.18.35.4-2"
   ],
+  "reason": "1985: integer-1 and integer-2 'must not exceed three significant digits', no line may fall outside the page subdivision for its group type, and 'Integer-2 may be zero'. §2023:13.18.35.3 SR3: 'Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not divided into pages ... Integer-2 may be zero' - the three-digit cap is gone (page limit itself up to 9999, §2023:13.18.39.3 SR5). The subdivision limit stays a syntax rule only for absolute lines and for relative lines ending an absolute group (§2023:13.18.35.3 SR6c, SR6d); a group that cannot fit a page now sets EC-REPORT-PAGE-LIMIT with undefined results (§2023:13.18.35.4 GR2). Looser limits and part of a compile-time refusal moved to a run-time exception condition.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"Integer-1 and integer-2 must not exceed three significant digits in length.\"; 2023: \"Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not divided into pages.\". 2023 drops the three-digit limit for the page limit (itself up to 9999), or 9999 for unpaged reports. The vertical-subdivision rule (6c, 6d) and 'Integer-2 may be zero' are kept.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-33"
  }
 }

@@ -2,14 +2,15 @@
  "rule-id": "1985-SR-VIII.4.8.3-3",
  "rule-digest": "8b3681274b75",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "SR-14.9.49.3-8",
+   "GR-14.9.49.4-3",
    "GR-14.9.49.4-5"
   ],
   "bridge": true,
-  "reason": "1985: \"must not cause the simultaneous request for execution of more than one USE procedure.\"; 2023: \"a USE statement specifying file-name-1 takes precedence over any USE statements specifying an INPUT, OUTPUT, I-O, or EXTEND phrase\". 1985 refuses any file-name USE that would request two procedures. 2023 bans only a repeated file-name and lets a file-name USE coexist with an open-mode USE, resolved by precedence.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 SR3: 'Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure'; with 1985 GR4 a file-name USE coexists with open-mode USEs, so SR3 refuses one file-name in two USE statements. §2023:14.9.49.3 SR8: 'The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within the same procedure division'; §2023:14.9.49.4 GR5 gives the file-name USE precedence over INPUT/OUTPUT/I-O/EXTEND USEs and §2023:14.9.49.4 GR3 runs only 'The first declarative that satisfies the selection criteria'. Same refusal, compile-time.",
+  "source": "adjudicate-712-r2/slice-14"
  }
 }

@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
+   "GR-9.1.14-1",
+   "GR-9.1.14-3",
    "GR-9.1.14-4"
   ],
   "bridge": true,
-  "reason": "1985: \"The INVALID KEY phrase must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified\"; 2023: \"If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end\". 1985 refuses a WRITE with neither INVALID KEY nor an applicable USE. 2023 has no such syntax rule, accepts the program, and sends control to the end of the statement.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 refuses an indexed WRITE with neither INVALID KEY nor an applicable USE AFTER STANDARD EXCEPTION procedure; no other 1985 rule allows it. 2023 has no such syntax rule: the format leaves both phrases optional, and at run time §2023:9.1.14 GR1 sets the invalid key I-O status 'and, if enabled, the EC-I-O-INVALID-KEY exception condition is set to exist', §2023:9.1.14 GR3 runs any applicable exception processing statements, and §2023:9.1.14 GR4 'If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end of the input-output statement.' A compile-time refusal became an accepted program with a run-time exception condition (when enabled).",
+  "source": "adjudicate-712/slice-29"
  }
 }

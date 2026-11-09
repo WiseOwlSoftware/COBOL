@@ -2,13 +2,14 @@
  "rule-id": "1985-GR-VI.6.25.4-3",
  "rule-digest": "8e668ac78738",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.43.4-2"
+   "GR-14.9.43.4-2",
+   "GR-8.3.3.6.4-3"
   ],
   "bridge": true,
-  "reason": "1985: \"it refers to an implicit one character data item whose usage is DISPLAY.\"; 2023: \"whose usage shall be the same as the usage of identifier-3, either display or national.\". The figurative constant's usage now follows identifier-3, which adds a national case. Results are the same when identifier-3 is display, as it always was in 1985.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a figurative constant as literal-1 or literal-2 'refers to an implicit one character data item whose usage is DISPLAY'. §2023:14.9.43.4 GR2: 'it refers to an implicit one character data item whose usage shall be the same as the usage of identifier-3, either display or national'; 1985 SR2 forces identifier-3 to DISPLAY, so every 1985 program gets the same one-character DISPLAY item. §2023:8.3.3.6.4 GR3 restates the one-character length.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

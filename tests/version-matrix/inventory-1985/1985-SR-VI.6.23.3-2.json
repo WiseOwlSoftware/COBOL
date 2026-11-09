@@ -7,12 +7,10 @@
   "to": [
    "SR-14.9.39.3-1",
    "SR-14.9.39.3-2",
-   "SR-14.9.39.3-3",
-   "SR-14.9.39.3-4",
    "GR-14.9.39.4-2"
   ],
   "bridge": true,
-  "reason": "1985: \"an elementary item described as an integer\"; 2023: \"If the value of arithmetic-expression-1 does not result in an integer\" (§2023:14.9.39.4 GR2). An integer sender is now an arithmetic expression whose non-integer value is a run-time EC-BOUND-SUBSCRIPT, not a compile-time refusal; identifier-2 is an index item, and a numeric identifier-1 still needs index-name-2 (§2023:14.9.39.3 SR4).",
-  "source": "adjudication kb/Work PB5008"
+  "reason": "Identifier-1 is kept: §2023:14.9.39.3 SR1 'shall reference a data item of class index or an integer data item'. Identifier-2 narrows: §2023:14.9.39.3 SR2 'shall reference a data item of class index'. The 1985 integer sender is now written as arithmetic-expression-1 (§2023:14.9.39.2), which no syntax rule requires to be an integer. Instead §2023:14.9.39.4 GR2 sets EC-BOUND-SUBSCRIPT 'If the value of arithmetic-expression-1 does not result in an integer'. A non-integer numeric sender, refused at compile time in 1985, compiles and raises a run-time exception condition (error mode c).",
+  "source": "adjudicate-712/slice-30"
  }
 }

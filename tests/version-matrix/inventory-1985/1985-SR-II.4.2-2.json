@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.18.63.3-13"
+   "SR-13.18.63.3-13",
+   "GR-13.18.63.4-5"
   ],
   "bridge": true,
-  "reason": "2023 still allows a group-level VALUE on the entry defining the table and forbids VALUE at subordinate levels. The category limit on the literal is a separate VALUE-clause rule, not this one.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: all dimensions of a table may be initialized by a VALUE clause on the entry defining the entire table, and 'lower level entries must not contain VALUE clauses'. 2023: a group-level VALUE is allowed and 'The VALUE clause shall not be specified at subordinate levels within this group' (§2023:13.18.63.3 SR13); 'the group area is initialized without consideration for the individual elementary or group items' (§2023:13.18.63.4 GR5), so every dimension is set. The literal-category limit is a separate VALUE rule. Same effect.",
+  "source": "adjudicate-712/slice-27"
  }
 }

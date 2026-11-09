@@ -5,11 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.4.5.5.3-1",
-   "GR-12.4.5.10.3-4"
+   "FMT-12.4.5.1",
+   "SR-12.4.5.2-9",
+   "FMT-12.4.5.5.1",
+   "FMT-12.4.5.10.2"
   ],
   "bridge": true,
-  "reason": "The 1985 rule is only a pointer to the ACCESS MODE and ORGANIZATION IS RELATIVE clauses and states no requirement. 2023 still presents both clauses (12.4.5.5, 12.4.5.10), so nothing differs.",
-  "source": "audit-1985/state-route"
+  "reason": "A pointer stating only that the relative file control entry has the ACCESS MODE and ORGANIZATION IS RELATIVE clauses. 2023's Format 2 (§2023:12.4.5.2 SR9 'Format 2 shall be specified only for a relative file') carries both, presented in their own subclauses 12.4.5.5 and 12.4.5.10; their content is carried by their own records.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

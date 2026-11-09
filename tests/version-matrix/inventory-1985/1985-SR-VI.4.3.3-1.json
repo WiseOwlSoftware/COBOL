@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-VI.4.3.3-1",
+ "rule-digest": "07f0bdfa7fee",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-12.3.5.2"
+  ],
+  "bridge": true,
+  "reason": "1985: in SOURCE-COMPUTER, 'Computer-name is a system-name.' 2023 §2023:12.3.5.2 writes the operand as computer-name-1, and §2023:8.3.2.3.1 'The types of system-names are:' lists computer-name. Same requirement; the catalog has no rule id for the 8.3.2.3.1 list, so the format is the record's only id.",
+  "source": "adjudicate-712/slice-29"
+ }
+}

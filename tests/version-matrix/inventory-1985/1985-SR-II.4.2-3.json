@@ -2,15 +2,18 @@
  "rule-id": "1985-SR-II.4.2-3",
  "rule-digest": "069ef0e1d79f",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
+   "GR-13.18.63.4-9",
    "SR-13.18.63.3-18",
    "SR-13.18.63.3-20",
-   "SR-13.18.63.3-21"
+   "GR-13.18.63.4-12",
+   "GR-13.18.63.4-13",
+   "GR-13.18.63.4-14"
   ],
   "bridge": true,
-  "reason": "1985 only permits VALUE clauses to give values to selected table elements. 2023 still permits this via the table-format VALUE clause; its FROM/TO rules are format syntax, not a loss of the permission.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The value of selected table elements may be specified using VALUE clauses', i.e. a VALUE on an OCCURS entry or a subordinate, which sets every occurrence (§1985:VI.5.15.6). 2023 keeps that (§2023:13.18.63.4 GR9 'causes every occurrence of the associated data item to be assigned the specified value') but its counterpart text now reads 'using VALUE clauses with or without the optional TO phrase' (§2023:D.3.3, informative) and adds the table-format VALUE whose FROM subscripts pick the element (§2023:13.18.63.3 SR18, §2023:13.18.63.3 SR20; §2023:13.18.63.4 GR12 'The table element initialized is identified by subscript-1'; §2023:13.18.63.4 GR13, GR14 for TO). VALUE ... FROM (n) [TO (m)], refused by 1985, is accepted: a case added, so CHANGED.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

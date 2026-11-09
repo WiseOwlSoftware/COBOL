@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-14.9.6.2",
    "GR-14.9.6.4-10"
   ],
   "bridge": true,
-  "reason": "2023 CLOSE has no explicit sentence, but sets no same-organization limit and runs each file-name as a separate CLOSE, so mixed files stay allowed.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 VII.4.2.3 SR1: 'The files referenced in the CLOSE statement need not all have the same organization or access.' 2023 has no sentence saying so, but nothing requires uniformity: §2023:14.9.6.2 repeats the file-name-1 group freely ('<u>CLOSE</u> ... file-name-1 ... …') and §2023:14.9.6.4 GR10 makes a multi-file CLOSE 'the same as if a separate CLOSE statement had been written for each file-name-1'. A CLOSE naming files of different organizations or access modes is accepted and means the same.",
+  "source": "adjudicate-712/slice-31"
  }
 }

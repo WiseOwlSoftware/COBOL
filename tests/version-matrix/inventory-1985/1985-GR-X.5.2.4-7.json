@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-7",
+ "rule-digest": "b798ba4c49b4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.6.2.3.2-L2.3",
+   "GR-14.6.2.3.2-1",
+   "GR-14.6.2.3.2-3",
+   "GR-11.10.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985: internal-connector files 'are not in the open mode when the program is in an initial state', else as last exited. §2023:14.6.2.3.2 (initial state, occasions 1 and 3, list item 3): 'internal file connectors are initialized by setting them to not be in any open mode'; §2023:11.10.4 GR3 for initial programs. The last-exit half is §2023:8.6.4 prose (static items, last-used state) with no catalog row; it states the same. No case added or refused.",
+  "source": "adjudicate-712-r2/slice-10"
+ }
+}

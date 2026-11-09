@@ -3,14 +3,17 @@
  "rule-digest": "8df71f264064",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "SR-12.4.5.2-2",
    "SR-12.4.5.2-3",
-   "SR-13.4.5.3-8"
+   "SR-12.4.5.2-11",
+   "SR-13.4.5.3-1",
+   "SR-13.4.5.3-8",
+   "FMT-13.4.5.2"
   ],
+  "reason": "1985: a report file is specified only once in FILE-CONTROL and its SELECT needs an FD with a REPORT clause in the same program. 2023: 'A given file-name may be specified in only one SELECT clause' (§2023:12.4.5.2 SR2); each SELECT needs an FD or SD in the same source element (§2023:12.4.5.2 SR3), and Format 3 (report) is used only with an FD, not an SD (§2023:12.4.5.2 SR11); each FD's file-name 'shall be specified in a file control entry' (§2023:13.4.5.3 SR1); 'Format 3 is the file description entry for a report file' (§2023:13.4.5.3 SR8) and its format (§2023:13.4.5.2) requires REPORT IS/REPORTS ARE. All compile-time; same programs refused.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "2023 allows a file-name in only one SELECT and requires its FD in the same source element. Format 3 is the report-file FD; the record-entry bar is a separate rule.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-33"
  }
 }

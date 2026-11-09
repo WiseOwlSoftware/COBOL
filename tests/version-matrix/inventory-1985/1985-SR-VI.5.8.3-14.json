@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-14",
+ "rule-digest": "4fb02b3859e0",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.2.3-1",
+   "SR-8.4.2.2.3-6"
+  ],
+  "bridge": true,
+  "reason": "1985 requires 'Index-name-1 must be a unique word within the program'. 1985 qualification (§1985:IV.4.3.8.1) has no format that qualifies an index-name, so a duplicate index-name is refused. 2023 adds Format 3 qualified-index-name to 8.4.2.2.2. §2023:8.4.2.2.3 SR6 says 'The qualification of an index-name may include the name of the table with which the index-name is associated'. §2023:8.4.2.2.3 SR1 requires uniqueness only 'For each non unique user-defined name that is explicitly referenced ... through a sequence of qualifiers'. Two tables may now share an index-name: refused in 1985, accepted in 2023 when every reference is qualified.",
+  "source": "adjudicate-712/slice-30"
+ }
+}

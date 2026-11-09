@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.16.4-6",
+   "GR-13.18.57.4-5",
    "GR-13.18.57.4-6"
   ],
   "bridge": true,
-  "reason": "2023 still prints any page footing, advances the page, then prints any page heading when a body group fails the page fit test. CODE and WITH RESET steps are other features, not this rule.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: an automatic function of the RWCS is to process page heading and page footing, if defined, when it must advance to a new page to present a body group. 2023: §2023:14.9.16.4 GR6 a failed page fit causes a page advance: 'If a page footing is defined it is printed', advance, then the page heading if defined; §2023:13.18.57.4 GR5 'All other report groups are printed implicitly'; §2023:13.18.57.4 GR6 b) and f) put the page heading first and the page footing last on each page. The CODE identifier and WITH RESET steps in that sequence belong to syntax 1985 lacks. Same effect.",
+  "source": "adjudicate-712-r2/slice-12"
  }
 }

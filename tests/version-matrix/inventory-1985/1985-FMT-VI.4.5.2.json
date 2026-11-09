@@ -5,10 +5,13 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-12.3.7.2"
+   "FMT-12.3.7.2",
+   "SR-12.3.7.3-8",
+   "SR-12.3.7.3-15",
+   "SR-12.3.7.3-31"
   ],
   "bridge": true,
-  "reason": "1985: \"[CURRENCY SIGN IS literal-6]\"; 2023: \"[ CURRENCY SIGN IS literal-7 [ WITH PICTURE SYMBOL literal-8 ] ] …\". Same SPECIAL-NAMES format, and the 1985 clauses survive, but 2023 accepts more: repeatable CURRENCY with PICTURE SYMBOL, CLASS FOR/IN, LOCALE, CRT STATUS, CURSOR, ORDER TABLE.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 SPECIAL-NAMES: implementor-name-1 IS mnemonic-name [ON/OFF STATUS], ALPHABET (STANDARD-1, STANDARD-2, NATIVE, implementor-name-2, literals), SYMBOLIC CHARACTERS, CLASS, one CURRENCY SIGN IS literal-6, DECIMAL-POINT IS COMMA, in that printed order. §2023:12.3.7.2 keeps each clause (implementor-name-1 becomes switch-name-1, feature-name-1 or device-name-1 per §2023:12.3.7.3 SR8; implementor-name-2 becomes code-name-1 per SR15; the empty paragraph period per SR31) and adds repeatable CURRENCY … WITH PICTURE SYMBOL literal-8, CLASS FOR/IN, CRT STATUS, CURSOR, LOCALE, dynamic-length-structure-clause and ORDER TABLE. For review: the 2023 format prints the clauses in a different order (alphabet first, switch/device names and symbolic-characters-clause near the end) and no 12.3.7.3 syntax rule frees the order, so a 1985 paragraph in 1985 order may not match the 2023 format literally. Compile-time either way.",
+  "source": "adjudicate-712/slice-01"
  }
 }

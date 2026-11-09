@@ -3,13 +3,13 @@
  "rule-digest": "86aa2b738bcd",
  "next": {
   "kind": "KEPT",
-  "edition": 2023,
   "to": [
    "GR-8.8.4.2.7-2",
-   "GR-8.8.4.2.10-2"
+   "GR-8.8.4.2.1-13"
   ],
+  "reason": "1985: unequal-size operands are compared 'as though the shorter operand were extended on the right by sufficient spaces'. §2023:8.8.4.2.7 GR2: 'comparison proceeds as though the shorter operand were extended on the right by sufficient alphanumeric spaces', applied to group and alphabetic operands through §2023:8.8.4.2.1 GR13. Trailing-space truncation and EC-LOCALE-INCOMPATIBLE apply only to locale-based comparison, used only when the program collating sequence is locale based (§2023:8.8.4.2.7), which a 1985 program cannot specify; the national-space rule covers a 2023-only class. Same results.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "2023 still extends the shorter operand on the right with spaces. Locale-based truncation applies only when locale-based comparison, a new feature, is specified; 1985 programs act alike.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-13"
  }
 }

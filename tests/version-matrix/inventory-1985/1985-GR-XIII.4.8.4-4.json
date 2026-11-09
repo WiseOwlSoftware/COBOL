@@ -6,11 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-14.9.49.4-5",
+   "GR-14.9.49.4-3",
    "GR-14.9.49.4-6",
-   "GR-14.9.49.4-3"
+   "SR-14.9.49.3-8"
   ],
   "bridge": true,
-  "reason": "A file-name-1 USE takes precedence over INPUT/OUTPUT/I-O/EXTEND and is selected first, so only one declarative runs for that file. Format 1 has one condition, so 'same condition' adds nothing.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'When file-name-1 is specified explicitly, no other USE statement applies to file-name-1.' 2023: 'a USE statement specifying file-name-1 takes precedence over any USE statements specifying an INPUT, OUTPUT, I-O, or EXTEND phrase' (§2023:14.9.49.4 GR5); file-name-1 USEs are examined first and 'The first declarative that satisfies the selection criteria is executed and no other declaratives are executed' (§2023:14.9.49.4 GR3); the mode USEs exclude 'those files referenced by file-name-1 in another USE statement' (§2023:14.9.49.4 GR6); and 'The same file-name shall not appear in more than one USE AFTER EXCEPTION statement' (§2023:14.9.49.3 SR8). Same effect.",
+  "source": "adjudicate-712/slice-27"
  }
 }

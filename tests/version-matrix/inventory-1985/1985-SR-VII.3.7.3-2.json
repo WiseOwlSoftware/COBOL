@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-VII.3.7.3-2",
+ "rule-digest": "056416d2897b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-8.4.2.2.2",
+   "SR-8.4.2.2.3-1",
+   "SR-8.4.2.2.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985 VII.3.7.3 SR2: LINAGE 'Data-name-1, data-name-2, data-name-3, data-name-4 may be qualified.' The 2023 LINAGE syntax rules (§2023:13.18.34.3) neither restate nor forbid it; qualification is general: §2023:8.4.2.2.2 gives 'data-name-1 [ data-qualifier ] …', §2023:8.4.2.2.3 SR1 requires it for non-unique names and §2023:8.4.2.2.3 SR2 states 'A name may be qualified even though it does not need qualification'. Same meaning.",
+  "source": "adjudicate-712/slice-31"
+ }
+}

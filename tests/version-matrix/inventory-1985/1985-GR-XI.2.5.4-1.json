@@ -8,7 +8,7 @@
    "GR-12.4.6.4.4-2"
   ],
   "bridge": true,
-  "reason": "Same shared record area, simultaneous opens, output/most-recently-read semantics and leftmost alignment. The file-area exception only restates the separate SAME AREA open limit (GR-1).",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:12.4.6.4.4 GR2 restates the shared record area, simultaneous opens, the record of each output file and of the most recently-read input file, and 'an implicit redefinition of the area with records aligned on the leftmost byte position'. Its file-area exception and availability sentences follow from 1985's SAME AREA precedence and OPEN/CLOSE. WRITE GR4 and RELEASE GR3 restate the 1985 WRITE/RELEASE rules, not this one.",
+  "source": "adjudicate-712-r2/slice-10"
  }
 }

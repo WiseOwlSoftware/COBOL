@@ -3,12 +3,14 @@
  "rule-digest": "04ffdc38ecdc",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "FMT-13.18.43.2"
+   "FMT-13.18.43.2",
+   "SR-13.18.43.3-2",
+   "SR-13.18.43.3-9"
   ],
+  "reason": "§1985:VII.3.8.2 has three RECORD formats ending in CHARACTERS: CONTAINS integer-1, IS VARYING IN SIZE, and CONTAINS integer-4 TO integer-5. §2023:13.18.43.2 keeps all three but offers BYTES beside CHARACTERS in each, and §2023:13.18.43.3 SR2 makes them synonyms ('The words BYTES and CHARACTERS are synonymous and may be used interchangeably'), so RECORD CONTAINS 80 BYTES, refused by the 1985 format, is accepted. 2023 also restricts the third format where 1985 does not: §2023:13.18.43.3 SR9, 'Integer-5 shall be greater than integer-4' (1985's only rule on them, §1985:VII.3.8.4 GR13, calls them the minimum and the maximum), so RECORD CONTAINS 80 TO 80 CHARACTERS, conforming in 1985, is refused. Wider and stricter at compile time, no exception condition: CHANGED.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"RECORD CONTAINS integer-1 CHARACTERS\"; 2023: \"RECORD CONTAINS integer-1 ╭ BYTES ╮ ┤ ├ ╰ CHARACTERS ╯ (BYTES alternative also in formats 2 and 3)\". The same three formats remain, but 2023 adds BYTES as an alternative to CHARACTERS, so it accepts e.g. RECORD CONTAINS 80 BYTES, which the 1985 syntax refuses.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-02"
  }
 }

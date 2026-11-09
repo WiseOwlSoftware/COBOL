@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.15.3-7"
+   "SR-13.15.3-7",
+   "FMT-13.15.2"
   ],
   "bridge": true,
-  "reason": "The 2023 list's other uses (GENERATE, USE, UPON, SUM operand) need level-1 groups or elementary items, so a group entry's data-name may still only qualify a sum counter.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: in a format 2 (level 02-48 group) entry 'data-name-1 is optional. If present it may be used only to qualify a sum counter reference.' The 2023 format §2023:13.15.2 keeps the entry-name clause optional. §2023:13.15.3 SR7 allows the data-name only in GENERATE, USE BEFORE REPORTING, 'as a qualifier for a SUM counter', in UPON, or as a SUM operand, and 'The data-name shall not be referenced in any other way.' GENERATE, USE and UPON name report groups with a TYPE clause, which §2023:13.15.3 SR5 confines to level 1; a SUM operand 'shall be the name of a numeric data item' (§2023:13.18.54.3 SR4), which a group entry is not. So for a level 02-48 group entry only qualification remains: the same programs are accepted and refused.",
+  "source": "adjudicate-712-r2/slice-15"
  }
 }

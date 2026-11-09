@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "FMT-12.4.5.1",
+   "FMT-12.4.5.8.2",
    "GR-12.4.5.8.4-1"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only makes indexed FILE STATUS identical to sequential and points to I-O status. 2023 has one FILE STATUS clause for every file connector, with values in 9.1.13.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 pointer: the indexed FILE STATUS clause is the sequential one and its content is the I-O status. 2023 has one organization-neutral FILE STATUS clause (§2023:12.4.5.8.2, in Format 1 (indexed) of §2023:12.4.5.1); §2023:12.4.5.8.4 GR1 'updated to contain the value of the I-O status for the file connector referenced by the subject of the entry'. The imported sequential syntax rules are carried by the 1985 VII FILE STATUS records, not this pointer; 2023 SR3-SR4 concern new features.",
+  "source": "adjudicate-712-r2/slice-02"
  }
 }

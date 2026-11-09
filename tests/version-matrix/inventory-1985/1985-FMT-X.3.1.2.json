@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-11.10.2"
+   "FMT-11.10.2",
+   "FMT-10.6.1"
   ],
   "bridge": true,
-  "reason": "1985: \"PROGRAM-ID. program-name [ IS { |COMMON| |INITIAL| } PROGRAM ] .\"; 2023: \"PROGRAM-ID. program-name-1 [ AS literal-1 ] [ IS { |COMMON| |{INITIAL|RECURSIVE}| } PROGRAM ] .\". Same paragraph, and COMMON/INITIAL in any order stay legal. 2023 adds an AS literal-1 phrase and a RECURSIVE alternative, so it accepts programs the 1985 format refuses.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'PROGRAM-ID. program-name [IS {COMMON INITIAL} PROGRAM].' with COMMON and INITIAL in choice indicators. §2023:11.10.2 Format 1 (definition), restated in the program-definition of §2023:10.6.1, keeps COMMON and INITIAL in any order but adds '[AS literal-1]' and the RECURSIVE alternative. No other 1985 rule allows AS or RECURSIVE. Every 1985 paragraph keeps its meaning; more are accepted. CHANGED (looser).",
+  "source": "adjudicate-712/slice-03"
  }
 }

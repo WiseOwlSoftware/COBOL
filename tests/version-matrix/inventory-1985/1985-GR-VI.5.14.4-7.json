@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.60.4-10"
+   "GR-13.18.60.4-10",
+   "DOC-A.1-211"
   ],
   "bridge": true,
-  "reason": "Same index data item definition, occurrence-number value and implementor-specified alignment, representation and value. The added class/category sentence only labels the item; effect is unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:13.18.60.4 GR10 repeats the 1985 rule: index data item whose value 'shall correspond to an occurrence number of a table element', with alignment, representation and the value for each occurrence number specified by the implementor (documented per DOC-A.1-211). The added 'The class and category of an index data item are index' names the item and changes no 1985 program.",
+  "source": "adjudicate-712/slice-09"
  }
 }

@@ -5,11 +5,10 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.30.4-14",
    "GR-9.1.13.2-3"
   ],
   "bridge": true,
-  "reason": "1985: \"If the number of character positions in the record that is read is less than the minimum size specified by the record description entries\"; 2023: \"For a record sequential file, if the number of bytes in the record that is read is less than the minimum size specified\". The 2023 undefined-remainder and truncation rule is limited to record sequential files. For indexed files only I-O status 04 (9.1.13.2) still covers a length conflict.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 states for indexed files that a record shorter than the minimum leaves the rest of the record area undefined and a longer one is truncated on the right, READ successful with a length-conflict status. 2023 confines that text to 'For a record sequential file' (§2023:14.9.30.4 GR14, which therefore states nothing for indexed files); for an indexed READ only the successful status 04 remains (§2023:9.1.13.2 GR3). The record-area content and truncation for an indexed file are no longer specified.",
+  "source": "adjudicate-712/slice-07"
  }
 }

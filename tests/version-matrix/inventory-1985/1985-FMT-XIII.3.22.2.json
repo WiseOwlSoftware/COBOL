@@ -5,10 +5,13 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-13.18.63.2"
+   "FMT-13.18.63.2",
+   "SR-13.18.63.3-17",
+   "SR-13.18.63.3-34",
+   "SR-13.18.63.3-35"
   ],
   "bridge": true,
-  "reason": "1985: \"VALUE IS literal-1\"; 2023: \"Format 4 (report-section): { VALUE IS | VALUES ARE } { literal-1 } …\". The 2023 report-section format adds the VALUES ARE option and repeated literals; the 1985 Report Writer VALUE clause allows exactly one literal, so more programs are now accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 Report Writer VALUE clause is only 'VALUE IS literal-1' (§1985:XIII.3.22.2). 2023 report-section Format 4 is '{VALUE IS | VALUES ARE} {literal-1} ...' (§2023:13.18.63.2); 'The words VALUE and VALUES are equivalent' (§2023:13.18.63.3 SR17, applied to the report format by §2023:13.18.63.3 SR34), and more than one operand is allowed in a repeating entry (§2023:13.18.63.3 SR35). Every 1985 form keeps its meaning; 2023 accepts VALUES ARE and several literals, which the 1985 format refuses (looser). 1985 VI.5.15.2's VALUES ARE is the condition-name format only, so no 1985 rule already allows this in a report item.",
+  "source": "adjudicate-712/slice-04"
  }
 }

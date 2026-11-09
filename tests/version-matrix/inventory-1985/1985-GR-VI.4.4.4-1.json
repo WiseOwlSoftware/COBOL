@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-12.3.6.4-2"
+   "GR-12.3.6.4-2",
+   "DOC-A.1-127"
   ],
   "bridge": true,
-  "reason": "1985: \"The configuration definition contains specific information concerning the memory size. The implementor defines what is to be done if the subset\"; 2023: \"Computer-name-1 may provide a means for identifying equipment configuration, in which case ... specified by each implementor. (nothing more)\". The computer-name configuration sentence is kept. The memory-size content and the implementor-defined action for a subset below the minimum configuration are no longer stated in 2023.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:12.3.6.4 GR2 keeps 'computer-name-1 and its implied configuration are specified by each implementor' (documented per §2023:A.1, DOC-A.1-127). 1985's 'The configuration definition contains specific information concerning the memory size' and 'The implementor defines what is to be done if the subset specified by the user is less than the minimum configuration' belong to the MEMORY SIZE clause (obsolete in 1985), which §2023:12.3.6.2 no longer has; no 2023 rule carries those sentences.",
+  "source": "adjudicate-712/slice-09"
  }
 }

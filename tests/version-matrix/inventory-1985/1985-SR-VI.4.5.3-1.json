@@ -5,10 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-12.3.7.3-5"
+   "SR-12.3.7.3-5",
+   "FMT-12.3.7.2",
+   "GR-12.3.7.4-2"
   ],
   "bridge": true,
-  "reason": "Mnemonic-name-2 and -3 belong to feature and device names, so mnemonic-name-1 is the switch mnemonic (SET ties it to an external switch); SET-only use is unchanged.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a mnemonic-name for an external switch 'may be specified only in the SET statement.' 2023 §2023:12.3.7.2 ties mnemonic-name-1 to switch-name-1 ('IS mnemonic-name-1'), §2023:12.3.7.4 GR2 'Switch-name-1 identifies an implementor-defined external switch', and §2023:12.3.7.3 SR5 'Mnemonic-name-1 may be specified only in a SET statement.' Same syntax refusal; no exception condition.",
+  "source": "adjudicate-712/slice-29"
  }
 }

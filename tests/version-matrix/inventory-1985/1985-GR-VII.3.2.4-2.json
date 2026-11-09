@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-VII.3.2.4-2",
+ "rule-digest": "d007df1cf7cf",
+ "next": {
+  "kind": "REMOVED",
+  "to": [],
+  "reason": "1985 GR2 only says the BLOCK CONTAINS, CODE-SET, DATA RECORDS, LABEL RECORDS, LINAGE, RECORD and VALUE OF clauses 'are presented in alphabetical order on the following pages': a note on the document's layout, with no requirement on a program or implementation. 2023 states no presentation order (the word 'alphabetical' does not occur in specs/ISO_COBOL_2023.md); its file description clauses are subclauses of §2023:13.18, and the order of clauses in source is a different matter. No rule carries it; no program's meaning depends on it.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-15"
+ }
+}

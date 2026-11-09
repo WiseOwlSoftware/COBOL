@@ -5,10 +5,15 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-13.4.5.2"
+   "FMT-13.4.5.2",
+   "SR-13.4.5.3-8",
+   "FMT-13.18.10.2",
+   "FMT-13.18.43.2",
+   "FMT-13.18.13.2",
+   "FMT-13.18.46.2"
   ],
   "bridge": true,
-  "reason": "1985: \"LABEL { RECORD IS | RECORDS ARE } { STANDARD | OMITTED } VALUE OF implementor-name-1 IS { data-name-1 | literal-1 } …\"; 2023: \"Format 3 (report): FD file-name-1 [ IS EXTERNAL [ AS literal-1 ] ] [ IS GLOBAL ] [BLOCK…] [ record-clause ] [CODE-SET…] REPORT IS\". The 2023 report FD (Format 3) drops LABEL RECORDS and VALUE OF. It adds EXTERNAL, GLOBAL, CODE-SET FOR NATIONAL and the broader RECORD clause (VARYING, BYTES).",
-  "source": "audit-1985/state-route"
+  "reason": "1985 report-file FD: BLOCK CONTAINS, RECORD CONTAINS, LABEL RECORD(S) {STANDARD|OMITTED}, VALUE OF, CODE-SET, {REPORT IS|REPORTS ARE}. §2023:13.4.5.2 Format 3 (report), the report-file FD per §2023:13.4.5.3 SR8, keeps BLOCK (§2023:13.18.10.2), the record-clause (§2023:13.18.43.2), CODE-SET (§2023:13.18.13.2, adding FOR ALPHANUMERIC/NATIONAL) and REPORT (§2023:13.18.46.2) but has no LABEL or VALUE OF clause anywhere in the standard, so a 1985 report FD using them is refused. EXTERNAL/GLOBAL and RECORD VARYING are not new (1985 X.4.2.2 Format 3). CHANGED (stricter and looser).",
+  "source": "adjudicate-712/slice-03"
  }
 }

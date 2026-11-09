@@ -2,13 +2,14 @@
  "rule-id": "1985-GR-IX.1.3.4-L2.6",
  "rule-digest": "2f8eb6c3d764",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-9.1.13.11-1"
+   "GR-9.1.13.11-1",
+   "DOC-A.1-110"
   ],
   "bridge": true,
-  "reason": "In 1985, 00-49 were all the non-9x statuses. 2023 bars 9x from duplicating any other status: the same rule, its reach growing only with statuses added elsewhere.",
-  "source": "audit-1985/state-route"
+  "reason": "The bar on the implementor's 9x conditions is widened. 1985: 'This condition must not duplicate any condition specified for the I-O status values 00 through 49' (§1985:IX.1.3.4). 2023: 'This condition shall not duplicate any other condition specified by another I-O status value' (§2023:9.1.13.11 GR1), which now also excludes the 5x, 6x and 7x conditions. A 1985 program reaches these: with no SHARING phrase or clause 'the implementor defines the sharing mode in which the file is opened' (§2023:9.1.15), and an OPEN that conflicts with another file connector is status 61 (§2023:9.1.13.9 GR1), a condition a 1985 implementor could report as 9x. The value of x stays implementor-defined (§2023:A.1 110).",
+  "source": "adjudicate-712-r2/slice-01"
  }
 }

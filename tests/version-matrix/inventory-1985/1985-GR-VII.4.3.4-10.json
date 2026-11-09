@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.27.4-11"
+   "GR-14.9.27.4-11",
+   "GR-9.1.13.2-6"
   ],
   "bridge": true,
-  "reason": "1985: \"The NO REWIND and REVERSED phrases will be ignored if they do not apply to the storage medium\"; 2023: \"The NO REWIND phrase will be ignored if it does not apply to the storage medium on which the file resides.\". 2023 keeps the ignore rule for NO REWIND only. REVERSED no longer appears in the 2023 OPEN rules, so that case is dropped while the rest of the rule survives.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR10: 'The NO REWIND and REVERSED phrases will be ignored if they do not apply to the storage medium'. 2023 keeps the NO REWIND half: §2023:14.9.27.4 GR11 'The NO REWIND phrase will be ignored if it does not apply to the storage medium' (OPEN successful, status '07', as §2023:9.1.13.2 GR6 and 1985 status 07 both say). REVERSED (obsolete in 1985 4.3.1) is absent from the 2023 OPEN format §2023:14.9.27.2 and every 2023 OPEN rule, so the REVERSED case of this rule has no 2023 counterpart: a case removed.",
+  "source": "adjudicate-712/slice-16"
  }
 }

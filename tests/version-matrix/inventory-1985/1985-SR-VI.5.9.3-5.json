@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-13.16.3-8"
+   "SR-13.16.3-8",
+   "SR-13.16.3-9"
   ],
   "bridge": true,
-  "reason": "1985: \"must be specified for every elementary item except an index data item or the subject of the RENAMES clause\"; 2023: \"shall not be specified for ... binary-char, ... pointer ... a PICTURE clause shall be specified except as indicated in Syntax rule 9\". 2023 keeps the prohibition for index and RENAMES but forbids PICTURE for more usages. It relaxes the requirement for other elementary items with a Syntax rule 9 exception that 1985 lacks.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 requires PICTURE for every elementary item except an index data item or a RENAMES subject, and prohibits it for those two. §2023:13.16.3 SR8 keeps both prohibitions and the requirement 'except as indicated in Syntax rule 9'. §2023:13.16.3 SR9 lets PICTURE be omitted when the VALUE clause gives a nonempty alphanumeric, boolean or national literal, with PICTURE X(length) implied. An elementary item with VALUE 'ABC' and no PICTURE, refused in 1985, is accepted. SR8's extra prohibited usages exist only in 2023.",
+  "source": "adjudicate-712/slice-30"
  }
 }

@@ -3,12 +3,12 @@
  "rule-digest": "7ed3675a7ec3",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "FMT-13.18.40.2"
   ],
+  "reason": "§1985:VI.5.9.2 is '{PICTURE|PIC} IS character-string' alone. §2023:13.18.40.2 keeps that as the base of 'Format 1 (basic)' but adds the optional, repeatable 'EDITING character-1 FOR' NEGATIVE/POSITIVE phrase and a 'Format 2 (locale)' with LOCALE and SIZE, both refused by the 1985 format; a 1985 PICTURE clause means the same, but the format is wider, so CHANGED. PIC as an abbreviation is the 1985 rule §1985:VI.5.9.3 SR6, whose own 2023 counterpart is §2023:13.18.40.3 SR5, so it is not part of this record.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"PICTURE/PIC IS character-string\"; 2023: \"IS character-string-1 [EDITING character-1 FOR {NEGATIVE IS literal-2 | POSITIVE IS literal-3}]...; Format 2 ... LOCALE ... SIZE IS integer-1\". The 1985 PICTURE IS character-string form survives as Format 1's base, but 2023 adds an optional repeatable EDITING phrase and a LOCALE/SIZE format, accepting clauses 1985 refused.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-02"
  }
 }

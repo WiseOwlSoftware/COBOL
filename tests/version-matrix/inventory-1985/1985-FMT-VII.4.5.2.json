@@ -3,12 +3,13 @@
  "rule-digest": "39fb0ebade69",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "FMT-14.9.35.2"
+   "FMT-14.9.35.2",
+   "SR-14.9.35.3-2"
   ],
+  "reason": "§1985:VII.4.5.2, the sequential REWRITE, is 'REWRITE record-name-1 [FROM identifier-1] [END-REWRITE]' with no INVALID KEY phrase. §2023:14.9.35.2 is one REWRITE format for every organization; it accepts the 1985 form with the same meaning, and §2023:14.9.35.3 SR2 ('Neither the INVALID KEY phrase nor the NOT INVALID KEY phrase shall be specified for a REWRITE statement that references a file with sequential organization') keeps the 1985 sequential restriction. But it adds 'FILE file-name-1', 'FROM literal-1', the retry-phrase and WITH [NO] LOCK, all refused by the 1985 format: wider, no exception condition, CHANGED.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"REWRITE record-name-1 [ FROM identifier-1 ] [ END-REWRITE ]\"; 2023: \"REWRITE { record-name-1 RECORD | FILE file-name-1 } [ FROM { identifier-1 | literal-1 } ] [ retry-phrase ] [ WITH LOCK | WITH NO LOCK ]\". Every 1985 form remains valid, but 2023 adds cases: FILE file-name-1, FROM literal-1, the RETRY phrase and the LOCK phrases. More programs are accepted.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-02"
  }
 }

@@ -5,10 +5,15 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-14.7.7-2"
+   "SR-14.7.7-2",
+   "SR-14.9.2.3-1",
+   "SR-14.9.12.3-4",
+   "SR-14.9.26.3-4",
+   "SR-14.9.44.3-1",
+   "SR-13.18.40.3-14"
   ],
   "bridge": true,
-  "reason": "1985: \"The maximum size of each operand is 18 decimal digits. ... must not contain more than 18 decimal digits.\"; 2023: \"when native arithmetic is in effect: ... the composite of operands shall not contain more than 31 digits.\". The composite limit rises from 18 to 31 digits and applies only under native arithmetic. Some operand kinds are excluded, and the separate 18-digit per-operand limit is not restated.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 VI.6.4.4 (2): 'The maximum size of each operand is 18 decimal digits' and the composite of operands of ADD/DIVIDE/MULTIPLY/SUBTRACT 'must not contain more than 18 decimal digits'. §2023:14.7.7 SR2 limits the composite to 31 digits, only 'when native arithmetic is in effect', excluding intrinsic-function, binary-char..binary-double, float and floating-point-literal operands from it; the composite is defined per statement by §2023:14.9.2.3 SR1, §2023:14.9.12.3 SR4, §2023:14.9.26.3 SR4 and §2023:14.9.44.3 SR1; the per-operand bound is the general digit limit of §2023:13.18.40.3 SR14 ('shall range from 1 through 31'). Every conforming 1985 program is still accepted with the same meaning, but 2023 accepts operands and composites of 19-31 digits that 1985 refuses: a compile-time relaxation, no exception condition.",
+  "source": "adjudicate-712/slice-31"
  }
 }

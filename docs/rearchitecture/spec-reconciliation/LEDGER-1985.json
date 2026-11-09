@@ -7068,6 +7068,54 @@
    "sweep": "table-body-paragraph(PB5028)",
    "was": "| The following clauses appear in record description entry, data description entry, 77 level description entry, or report group description entry: |",
    "now": "| The following clauses appear in record description entry, data description<br>&nbsp;&nbsp;&nbsp;entry, 77 level description entry, or report group description entry: |"
+  },
+  {
+   "page": 869,
+   "sweep": "table-head-underlines(PB5041)",
+   "was": "| Character Positions | Contents |",
+   "now": "| Character <u>Positions</u> | <u>Contents</u> |"
+  },
+  {
+   "page": 870,
+   "sweep": "table-head-underlines(PB5041)",
+   "was": "| Character Positions | Contents |",
+   "now": "| Character <u>Positions</u> | <u>Contents</u> |"
+  },
+  {
+   "page": 905,
+   "sweep": "table-head-underlines(PB5041)",
+   "was": "| Positions | Contents |",
+   "now": "| <u>Positions</u> | <u>Contents</u> |"
+  },
+  {
+   "page": 906,
+   "sweep": "table-head-underlines(PB5041)",
+   "was": "| Character Positions | Contents |",
+   "now": "| Character <u>Positions</u> | <u>Contents</u> |"
+  },
+  {
+   "page": 882,
+   "sweep": "table-head-underlines(PB5041)",
+   "was": "| Argument Type | Function Type |",
+   "now": "| <u>Argument Type</u> | <u>Function Type</u> |"
+  },
+  {
+   "page": 886,
+   "sweep": "table-head-underlines(PB5041)",
+   "was": "| Argument Type | Function Type |",
+   "now": "| <u>Argument Type</u> | <u>Function Type</u> |"
+  },
+  {
+   "page": 895,
+   "sweep": "table-head-underlines(PB5041)",
+   "was": "| Argument Type | Function Type |",
+   "now": "| <u>Argument Type</u> | <u>Function Type</u> |"
+  },
+  {
+   "page": 901,
+   "sweep": "table-head-underlines(PB5041)",
+   "was": "| Argument Type | Function Type |",
+   "now": "| <u>Argument Type</u> | <u>Function Type</u> |"
   }
  ],
  "boxes": [

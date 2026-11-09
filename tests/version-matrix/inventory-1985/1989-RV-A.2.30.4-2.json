@@ -2,15 +2,11 @@
  "rule-id": "1989-RV-A.2.30.4-2",
  "rule-digest": "2e29841c1c77",
  "next": {
-  "kind": "CHANGED",
+  "kind": "REMOVED",
+  "to": [],
+  "reason": "1985 fixes the size of the NUMVAL-C result: 'The number of digits returned is 18.' No 2023 rule fixes a returned digit count. §2023:15.68.4 RV1 ('The returned value is the numeric value represented by argument-1') restates 1985 RV1, and §2023:15.68.3 AR6/AR7 restate 1985 AR3's limit on argument-1 digits (31/35/34), so neither states this requirement. Instead §2023:15.4.1 says 'When native arithmetic is in effect, the characteristics and representation of the returned value are defined by the implementor.' That paragraph has no catalog id. The fixed 18-digit size is therefore dropped. A conforming 1985 argument has at most 18 digits, so its value is the same.",
   "edition": 2023,
-  "to": [
-   "RV-15.68.4-1",
-   "AR-15.68.3-6",
-   "AR-15.68.3-7"
-  ],
   "bridge": true,
-  "reason": "1985: \"The number of digits returned is 18.\"; 2023: \"The returned value is the numeric value represented by argument-1. ... shall not exceed 31 ... 35 ... 34.\". 1985 fixes the NUMVAL-C result at 18 digits. 2023 returns the value of argument-1 itself, with a digit limit of 31, 34 or 35 set by the arithmetic mode in effect.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-36"
  }
 }

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-18",
+ "rule-digest": "b8fce584c65f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-10",
+   "GR-9.1.13.2-3"
+  ],
+  "bridge": true,
+  "reason": "1985: min/max record sizes 'are established at the time the file is created and must not subsequently be changed'. 2023 9.1.6 (prose, no catalog row) makes them fixed attributes; §2023:9.1.13.2 GR3 names 'the minimum or maximum length of records allowed for the fixed file attributes for that file', and §2023:14.9.27.4 GR10 compares the connector 'with the fixed file attributes of the file' at OPEN (status 39, as 1985). Same requirement.",
+  "source": "adjudicate-712-r2/slice-08"
+ }
+}

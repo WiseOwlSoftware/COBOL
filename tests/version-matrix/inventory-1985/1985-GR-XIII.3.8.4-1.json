@@ -5,11 +5,15 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
+   "GR-13.18.39.4-1",
    "GR-13.18.39.4-2",
-   "GR-13.18.39.4-3"
+   "GR-13.18.39.4-3",
+   "GR-13.18.39.4-4",
+   "GR-13.18.57.4-7",
+   "GR-13.18.57.4-8"
   ],
   "bridge": true,
-  "reason": "1985: \"LAST DETAIL integer-4 defines the last line number on which a control heading or detail report group may be presented.\"; 2023: \"Integer-5 is the LAST CONTROL HEADING integer. It defines the last line position on which any line of a control heading may be printed.\". 2023 adds a separate LAST CONTROL HEADING limit for control headings, so LAST DETAIL limits only details. When it is omitted it defaults to LAST DETAIL. The other regions match.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 d): 'LAST DETAIL integer-4 defines the last line number on which a control heading or detail report group may be presented'; the PAGE clause has page size, HEADING, FIRST DETAIL, LAST DETAIL, FOOTING. 2023 §2023:13.18.39.4 GR2 adds cases: 'Integer-5 is the LAST CONTROL HEADING integer. It defines the last line position on which any line of a control heading may be printed' and 'Integer-6 is the LAST DETAIL integer. It defines the last line position on which any line of a detail may be printed' (LAST DETAIL no longer bounds control headings when LAST CONTROL HEADING is written), and 'Integer-2 is the page width'. 2023 accepts PAGE clauses 1985 refuses, with a control-heading limit 1985 cannot express: a case added, so CHANGED. A 1985 program keeps its limits: §2023:13.18.39.4 GR3 c) 'If LAST CONTROL HEADING is omitted, integer-5 will be equal to integer-6, if LAST DETAIL is specified', else FOOTING, else the page limit, the 1985 GR2 default of LAST DETAIL; HEADING, FIRST DETAIL and FOOTING regions are the same (§2023:13.18.39.4 GR1, GR2; §2023:13.18.39.4 GR4 RH/RF on a page by itself; §2023:13.18.57.4 GR7 upper and §2023:13.18.57.4 GR8 lower limits, 'The lower limit for a control heading is the line given by the LAST CONTROL HEADING integer').",
+  "source": "adjudicate-712-r2/slice-12"
  }
 }

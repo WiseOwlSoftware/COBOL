@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-14.9.30.4-21",
-   "GR-14.9.30.4-24"
+   "GR-14.9.30.4-24",
+   "GR-9.1.13.7-6",
+   "GR-9.1.13.4-1"
   ],
   "bridge": true,
-  "reason": "Same sequential-file logic: compare record numbers, select after OPEN/READ, at end if absent optional file or no record. PREVIOUS and START are new features; 1985 programs behave alike.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 READ GR4: record-number comparison; no valid next record -> unsuccessful; optional file absent -> GR10; after OPEN first record >= FPI, after READ next higher; none -> no next record, at end; FPI set to record number. §2023:14.9.30.4 GR21 sequential part keeps each step ('Comparisons for records in sequential files relate to the record number', selection after OPEN/READ, 'the file position indicator is set to the record number'); no valid position -> unsuccessful (§2023:9.1.13.7 GR6 '46'); absent optional file -> '10' (§2023:9.1.13.4 GR1); none found -> at end per §2023:14.9.30.4 GR24. PREVIOUS/START are 2023-only syntax. Same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

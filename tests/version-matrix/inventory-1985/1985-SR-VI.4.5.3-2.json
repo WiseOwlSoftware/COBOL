@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "SR-12.3.7.3-6",
-   "SR-12.3.7.3-7"
+   "SR-12.3.7.3-7",
+   "FMT-12.3.7.2"
   ],
   "bridge": true,
-  "reason": "1985: \"the associated mnemonic-name may be specified only in the ACCEPT, DISPLAY, SEND, or WRITE statements\"; 2023: \"Mnemonic-name-2 may be specified only in the WRITE statement... Mnemonic-name-3 may be specified only in the ACCEPT and DISPLAY statements\". 2023 drops SEND, ties feature-name mnemonics to WRITE and device-name mnemonics to ACCEPT/DISPLAY, and lets the implementor add further restrictions.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a non-switch implementor-name's mnemonic-name 'may be specified only in the ACCEPT, DISPLAY, SEND, or WRITE statements', with no condition-name. 2023 splits the names: §2023:12.3.7.3 SR6 'Mnemonic-name-2 may be specified only in the WRITE statement' (feature-names) and §2023:12.3.7.3 SR7 'Mnemonic-name-3 may be specified only in the ACCEPT and DISPLAY statements' (device-names), each letting the implementor add restrictions; SEND is no longer listed. §2023:12.3.7.2 still allows ON/OFF STATUS condition-names only on switch-name-1. The set of statements allowed for a given mnemonic differs.",
+  "source": "adjudicate-712/slice-29"
  }
 }

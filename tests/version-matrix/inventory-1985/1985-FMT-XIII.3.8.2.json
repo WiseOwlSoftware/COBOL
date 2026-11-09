@@ -6,11 +6,13 @@
   "edition": 2023,
   "to": [
    "FMT-13.18.39.2",
+   "SR-13.18.39.3-1",
    "SR-13.18.39.3-2",
+   "SR-13.18.39.3-3",
    "SR-13.18.39.3-4"
   ],
   "bridge": true,
-  "reason": "1985: \"PAGE LIMIT IS integer-1 LINE [HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]\"; 2023: \"Either integer-1 or integer-2 or both shall be specified. ... phrases may be written in any order.\". 2023 accepts every 1985 form but adds cases: integer-1 optional with a COLUMNS width, LAST CONTROL HEADING, DE/CH abbreviations and free phrase order.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 PAGE: 'PAGE {LIMIT IS|LIMITS ARE} integer-1 {LINE|LINES} [HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]' (§1985:XIII.3.8.2); any phrase order is already 1985 (§1985:XIII.3.8.3 SR1), restated by §2023:13.18.39.3 SR4. 2023 (§2023:13.18.39.2) adds 'integer-2 {COLS|COLUMNS}', makes integer-1 optional ('Either integer-1 or integer-2 or both shall be specified', §2023:13.18.39.3 SR2, with the phrases allowed only when integer-1 is given, SR3), adds LAST CONTROL HEADING, optional IS before each integer, and the synonyms FIRST DE, LAST CH, LAST DE (§2023:13.18.39.3 SR1). Every 1985 clause keeps its meaning; 2023 accepts clauses the 1985 format refuses (looser).",
+  "source": "adjudicate-712/slice-04"
  }
 }

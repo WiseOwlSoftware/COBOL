@@ -5,11 +5,16 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
+   "FMT-8.3.3.6.2",
+   "SR-8.3.3.6.3-1",
+   "GR-8.3.3.6.4-3",
    "GR-8.3.3.6.4-6",
-   "GR-8.3.3.6.4-7"
+   "GR-8.3.3.6.4-7",
+   "GR-12.3.7.4-8",
+   "GR-12.3.7.4-9"
   ],
   "bridge": true,
-  "reason": "1985: \"the actual characters associated with each figurative constant depend upon the program collating sequence specified.\"; 2023: \"At compile time ... collating sequence used during compilation. At runtime ... runtime collating sequence. When locale category LC_COLLATE\". HIGH/LOW-VALUE now depend on the compile-time or runtime collating sequence, a locale, or national context, not just the program collating sequence. ALL-redundancy parts not shown.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'the word ALL is redundant and is used for readability only', so with SRL3.1 ('the only figurative constant permitted is ZERO') ALL ZERO stood wherever ZERO did, a numeric-only literal included. 2023 drops the redundancy statement and §2023:8.3.3.6.3 SR1 a) permits there only 'ZERO (ZEROS, ZEROES) without the ALL phrase': ALL ZERO in that position, accepted in 1985, is refused (a case removed), so CHANGED. Kept parts: ALL optional in formats 1-5 (FMT-8.3.3.6.2) with one character when 'other than ALL literal-1' (§2023:8.3.3.6.4 GR3); HIGH/LOW-VALUE follow the program collating sequence except in SPECIAL-NAMES (§2023:12.3.7.4 GR8, GR9; §2023:8.3.3.6.4 GR6, GR7).",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

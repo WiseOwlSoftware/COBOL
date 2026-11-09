@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-8.4.6.3-2"
+   "SR-8.4.6.3-2",
+   "GR-11.10.4-2",
+   "GR-11.10.4-4"
   ],
   "bridge": true,
-  "reason": "1985: \"except that program possessing the common attribute and any programs contained within it.\"; 2023: \"may reference the program-name only if the program possesses the recursive attribute.\". Same scope rule for common program-names, but 2023 adds a case: the common program and programs it contains may reference the name if it is recursive. 1985 excluded them outright.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a common program-name is referenceable in the containing program and its contained programs 'except that program possessing the common attribute and any programs contained within it'. 2023 §2023:8.4.6.3 SR2 keeps the scope but the excluded programs 'may reference the program-name only if the program possesses the recursive attribute'; §2023:11.10.4 GR2 restates the common scope and §2023:11.10.4 GR4 the recursive self-call. Looser: a new exception to the exclusion.",
+  "source": "adjudicate-712/slice-32"
  }
 }

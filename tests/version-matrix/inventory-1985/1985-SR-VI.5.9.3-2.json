@@ -2,13 +2,14 @@
  "rule-id": "1985-SR-VI.5.9.3-2",
  "rule-digest": "48d549e7810c",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "SR-13.18.40.3-2",
    "GR-13.18.40.4-3"
   ],
   "bridge": true,
-  "source": "adjudication kb/Work PB5008"
+  "reason": "1985: a character-string 'consists of certain allowable combinations of characters ... The allowable combinations determine the category'. §2023:13.18.40.3 SR2 keeps 'an allowable combination of characters used as picture symbols' and §2023:13.18.40.4 GR3 keeps 'A PICTURE clause defines the subject of the entry to fall into one of the following categories', but the categories now include boolean, national and national-edited, with their symbols: strings such as PIC 1 or PIC N, not allowable in 1985 and so refused, are accepted, so CHANGED. The currency-symbol note is not the difference: 1985 already let the CURRENCY SIGN literal be 'any character from the computer's character set' (§1985:VI.4.5.4).",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

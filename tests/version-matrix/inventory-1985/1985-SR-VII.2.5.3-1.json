@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-VII.2.5.3-1",
+ "rule-digest": "8de075e4809d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-8.4.2.2.2",
+   "SR-8.4.2.2.3-1",
+   "SR-8.4.2.2.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985 VII.2.5.3 SR1: FILE STATUS 'Data-name-1 may be qualified.' 2023's FILE STATUS rules (§2023:12.4.5.8.3) neither restate nor forbid it; qualification is general: §2023:8.4.2.2.2 gives the qualified-data-name form 'data-name-1 [ data-qualifier ] …', §2023:8.4.2.2.3 SR1 requires qualifiers for a non-unique name and §2023:8.4.2.2.3 SR2 states 'A name may be qualified even though it does not need qualification'. A qualified FILE STATUS data-name is accepted and means the same in both editions.",
+  "source": "adjudicate-712/slice-31"
+ }
+}

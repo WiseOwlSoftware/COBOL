@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.2.3.3-2",
+ "rule-digest": "0e350e6bebf9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-10.7.3-1"
+  ],
+  "bridge": true,
+  "reason": "1985: every separately compiled program in a sequence 'must be terminated by an end program header except for the last program'. §2023:10.7.3 SR1: 'An end marker shall be present in every source unit that contains, is contained in, or precedes another source unit' (contains/contained is 1985 X.2.3.2 SR1). Compile-time in both; the same sequences accepted and refused. GR-10.7.4-1 (the marker ends the unit) and FMT-10.6.1 state no part of this requirement.",
+  "source": "adjudicate-712-r2/slice-03"
+ }
+}

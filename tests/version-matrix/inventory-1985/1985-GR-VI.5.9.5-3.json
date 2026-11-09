@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-3",
+ "rule-digest": "abcddce776d5",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.40.3-27",
+   "SR-13.18.40.3-21"
+  ],
+  "bridge": true,
+  "reason": "1985: floating insertion and zero suppression 'are mutually exclusive'; 'Only one type of replacement'. §2023:13.18.40.3 SR27: no more than one of a string of two or more '+', '-' or currency symbols, a string of '*' or a string of 'Z'; §2023:13.18.40.3 SR21: 'Z' and '*' 'mutually exclusive'. Extended editing sign symbols take the non-floating cs precedence (13.18.40.6). Same pictures refused at compile time.",
+  "source": "adjudicate-712-r2/slice-04"
+ }
+}

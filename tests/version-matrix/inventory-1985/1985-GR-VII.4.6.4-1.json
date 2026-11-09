@@ -5,12 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.49.4-4",
+   "GR-14.9.49.4-1",
    "GR-14.9.49.4-3",
-   "GR-14.9.49.4-1"
+   "GR-14.9.49.4-4",
+   "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "2023 still runs the qualifying declarative of the element holding the statement, none if none qualifies. GLOBAL search was 1985 level 2; 1985 bars duplicate USE files, so only one runs.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.49.4 GR6 a) runs the procedure 'when the condition described in the USE statement occurs' (with §2023:14.9.49.4 GR1); §2023:14.9.49.4 GR4 selects 'the qualifying declarative in the source element that contains the statement that caused the condition to exist', then GLOBAL ones in containing elements, which 1985 X.5.5.4 GR1 already allowed; §2023:14.9.49.4 GR3 ends 'If no declarative is identified, no declarative is executed' (1985 'no declarative is executed'). No 2023 rule restricts declaratives by nesting. Same result for every 1985 program.",
+  "source": "adjudicate-712/slice-17"
  }
 }

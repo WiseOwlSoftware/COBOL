@@ -8,7 +8,7 @@
    "GR-14.9.51.4-5"
   ],
   "bridge": true,
-  "reason": "1985: \"MOVE identifier-1 TO record-name-1\"; 2023: \"`MOVE identifier-1 TO record-name-1` or `MOVE literal-1 TO record-name-1`\". The MOVE-then-WRITE equivalence for FROM is kept, but 2023 adds a case: FROM literal-1, equivalent to MOVE literal-1 TO record-name-1. The 1985 rule covers only identifier-1.",
-  "source": "audit-1985/state-route"
+  "reason": "2023 adds FROM literal-1 (§2023:14.9.51.4 GR5: \"MOVE literal-1 TO record-name-1\"), which the 1985 format refuses; the FROM identifier-1 case is unchanged. 1985 WRITE GR3: WRITE FROM = 'MOVE identifier-1 TO record-name-1' per MOVE rules, then WRITE without FROM. §2023:14.9.51.4 GR5 restates both steps. Its 'MOVE literal-1' arm serves FROM literal-1, which the 1985 format (not this rule) refuses: that widening is the format's record; the overlap NOTE concerns operands 1985 SR1 refused. This rule refuses nothing and means the same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }
