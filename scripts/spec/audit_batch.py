@@ -35,9 +35,10 @@ held edition (kb/Work PB4995, PB5008), and the fleet decides only what they leav
 A ninth pass serves the 1985 transcription, not the change records (kb/Work PB4984):
 
   misprints one request per 1985 catalog rule as it now reads, with the 2023 rules its map answer paired it with (none
-          for a NONE, or a rule the map never saw, which is read for its own sense alone): a proofreader of the misprints a spelling check cannot see, a real word printed for another (MISPRINT, with the
-          printed words, the intended words and their context, all checked against the rule's text, or CLEAN). Each is a
-          LEAD (`misprint-leads`), which a reader of the rendered page confirms before the Errata lists it.
+          for a NONE, or a rule the map never saw, which is read for its own sense alone): a proofreader of the misprints
+          a spelling check cannot see, a real word printed for another (MISPRINT, with the printed words, the intended
+          words and their context, all checked against the rule's text, or CLEAN). Each is a LEAD (`misprint-leads`),
+          which a reader of the rendered page confirms before the Errata lists it.
 
     python scripts/spec/audit_batch.py plan    --pass route  --state DIR [--catalog F] [--catalog-2023 F]
     python scripts/spec/audit_batch.py plan    --pass map    --state DIR [--catalog F] [--catalog-2023 F] [--candidates 15]
@@ -50,7 +51,7 @@ A ninth pass serves the 1985 transcription, not the change records (kb/Work PB49
     python scripts/spec/audit_batch.py plan    --pass recheck --state DIR [--catalog F] [--catalog-2023 F] [--near-1985 10]
                                                                                    # once every adjudicate item is answered
     python scripts/spec/audit_batch.py plan    --pass misprints --state DIR [--catalog F]  # once every map item is answered
-    python scripts/spec/audit_batch.py submit --pass P --state DIR --api-key-file KEY [--api-account A] --max-usd N --canary 20
+    python scripts/spec/audit_batch.py submit  --pass P --state DIR --api-key-file KEY [--api-account A] --max-usd N --canary 20
     python scripts/spec/audit_batch.py submit  --pass P --state DIR --api-key-file KEY --max-usd N      # the rest
     python scripts/spec/audit_batch.py status  --pass P --state DIR [--api-key-file KEY]
     python scripts/spec/audit_batch.py collect --pass P --state DIR --api-key-file KEY
@@ -586,8 +587,10 @@ def plan_misprints(catalog: pathlib.Path, catalog_2023: pathlib.Path, state: pat
     items, answers = m.items(), m.answers()
     if missing := [cid for cid in items if cid not in answers]:
         raise SystemExit(f"{TOOL}: {len(missing)} map item(s) are unanswered; collect and retry the map pass first")
-    named = {it["id"]: [c for c in map_candidates(it) if c["id"] in set(answers[cid]["answer"]["rules_2023"])]
-             for cid, it in items.items()}
+    named = {}
+    for cid, it in items.items():
+        chosen = set(answers[cid]["answer"]["rules_2023"])
+        named[it["id"]] = [c for c in map_candidates(it) if c["id"] in chosen]
     rules, _ = load_catalogs(catalog, catalog_2023)    # every quoted citation one in the one format
     return [{"id": r["id"], "rule": quoted_rule(r), "counterparts": named.get(r["id"], [])} for r in rules]
 
