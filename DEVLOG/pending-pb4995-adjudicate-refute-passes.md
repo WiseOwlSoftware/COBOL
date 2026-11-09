@@ -26,13 +26,20 @@ PB4998's candidate split, so they were migrated once in the scratch run, every c
 at 85.
 
 **The drafts.** `run_drafts.py` (new) compiles and runs each draft at 85 through the conformance harness's `Run` and the
-WiseOwl adapter, the one place a program is compiled, run and compared, and writes `drafts/runs.json` naming the
-compiler's commit: all 965 drafts (the 35 grown drafts were collected after the parser fix, PR #1363) give 817
-MATCH, 147 MISMATCH, 1 NO VERDICT (a run past the hang guard). A MATCH becomes a witness only
-after the fleet checks the draft against the rule text.
+WiseOwl adapter, the one judge of a program's outcome: an output draft is an accepted test, a refused draft a FLAGGED
+test (`Run.flagged`), so a refusal counts only when the diagnostic is at the line the draft names as violating and its
+conforming control compiles. The first count (817 MATCH) scored any nonzero exit as a refused MATCH, a second judge the
+branch review caught (w20261931a R1-1): 20 of those were refused only for COBOL2199, a report-writer rule that holds at 85
+too (§1985:XIII.3.15.3 SR5), so the drafts broke a rule other than their own. The drafts prompt now asks for the line and
+the control; no stored draft has them, so a diagnosed refusal is REFUSED UNCONFIRMED, never a MATCH. `drafts/runs.json`
+names the binary (its `--version` and the digest of its assemblies, R1-2), not the checkout's HEAD. All 965 drafts (the
+35 grown drafts were collected after the parser fix, PR #1363) give MATCH 603, REFUSED UNCONFIRMED 219, MISMATCH 142, NO
+VERDICT 1 (a run past the hang guard). A MATCH becomes a witness only after the fleet checks the draft against the rule
+text. The change records' reasons quote the differing words as written (they carried Python repr quoting, R1-6); the
+batch was regenerated and re-applied (809 store files, GAP unchanged).
 
 **Left open (PB4995 stays open):** the 149 contested rules for `cobol-adjudicator` agents; a sample audit of the refute
 pass (it upheld 98 %); the MISMATCH drafts to triage; and each CHANGED or REMOVED rule's own verdict and witness at 85. Self-review: the passes reuse the map's candidate shape and cache layer (no
 second prompt builder), the change record's kinds have one home, the runner reuses the harness rather than a second
 compile-and-compare, and each new arm has a planted self-test case (adjudicate and refute plans and answer shapes,
-decided and contested results, the change batch, CARRIES as KEPT, a plan that grows, and the runner's five outcomes).
+decided and contested results, the change batch, CARRIES as KEPT, a plan that grows, and the runner's outcomes through the harness).

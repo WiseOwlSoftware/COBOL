@@ -939,7 +939,7 @@ each a DETECTION a fleet agent turns into a verdict, never a verdict itself:
 | `map` | 1985 catalog rule, with its candidates (below); planned only once every route item is answered | SAME, DIFFERS or NONE, the 2023 ids and the differing words |
 | `verify` | SAME answer | UPHELD, REFUTED or UNSURE: the adversarial pass tries to refute it |
 | `claims` | 1985 claim of `VERSION_CHANGE_REFERENCE.md` (a JSON list of claims the fleet prepares, each with its 1985 locator) | CONFIRMED, REFUTED or NOT-ADDRESSED, with the 1985 `locator` and `rule` (null where no numbered rule decides) as fields of their own |
-| `drafts` | rule whose disposition is a row of its own | a minimal program and the outcome the rule requires, which `scripts/spec/run_drafts.py` compiles and runs under `--std=1985` and the fleet checks against the rule text before any use |
+| `drafts` | rule whose disposition is a row of its own | a minimal program and the outcome the rule requires (for a refusal, the violating line and a conforming control), which `scripts/spec/run_drafts.py` compiles and runs under `--std=1985` and the fleet checks against the rule text before any use |
 | `adjudicate` | DISPUTED or OWN-ROW rule, with its map candidates and both readers' answers (kb/Work PB4995) | its change record: KEPT or CHANGED (the 2023 candidates it carries into, and for CHANGED the differing words) or REMOVED (2023 drops it), or OPEN when the texts do not decide |
 | `refute` | KEPT, CHANGED or REMOVED adjudication, with every candidate the adjudicator saw | UPHELD, REFUTED or UNSURE: the independent refuter of the decision |
 
@@ -959,9 +959,13 @@ request per clause (247 for 1985), so it is cheap; the heading and the wording s
 UPHELD it; an OPEN, refuted or unsure adjudication is `contested`, a fleet adjudicator's (`cobol-adjudicator`), never a
 vote. `python scripts/spec/audit_batch.py change-batch` turns every decided change into a `record_verdicts.py --edition
 1985` batch (`change_records`, the one writer). `python scripts/spec/run_drafts.py --state DIR` compiles and runs each draft at `--std=1985` through the
-conformance harness (`conformance-suite/harness/run.py`'s `Run` and the WiseOwl adapter, the one place a program is
-compiled, run and compared) and writes `DIR/drafts/runs.json`: MATCH, MISMATCH or NO VERDICT per rule, naming the
-compiler's commit. A MATCH is a candidate witness, placed in the conformance suite only after the fleet checks the draft
+conformance harness (`conformance-suite/harness/run.py`'s `Run` and the WiseOwl adapter, the one judge of a program's
+outcome): an output draft is an accepted test (`Run.accept`), and a refused draft a FLAGGED test (`Run.flagged`), so a
+refusal counts only when it is the rule's: the draft names the line that violates the rule and carries a control (the
+program with that line made conforming), the control must compile and the diagnostic must be AT that line. A draft that
+names neither (one written before the drafts prompt asked for them) is REFUSED UNCONFIRMED when the compiler reports any
+diagnostic, never a MATCH. It writes `DIR/drafts/runs.json`: MATCH, MISMATCH, REFUSED UNCONFIRMED or NO VERDICT per rule,
+naming the compiler binary (its `--version` and the digest of its assemblies, never a checkout's HEAD). A MATCH is a candidate witness, placed in the conformance suite only after the fleet checks the draft
 against the rule text; a MISMATCH is a defect or a suspect draft for the fleet to tell apart. The tool's rules:
 
 - **Restartable**, on the ONE batch state the transcriber shares (`scripts/spec/message_batches.py`, `BatchRun`): an
