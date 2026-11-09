@@ -885,6 +885,10 @@ chain's NEWEST row, and an older row in it holds none (the schema refuses them t
 every 1985 rule that carries into it without a copy. The older row's state is the chain's, evaluated at its own edition:
 the chain's test must also be placed at that edition (the conformance suite's placement, DESIGN-conformance-suite.md).
 CHANGED and REMOVED rows, and NEW ones, carry verdicts of their own. The fleet's work is therefore only what changed.
+Both languages compute it: Python's `lineage.state_of` and the C# view's `StateAt` in the drift test over
+`TraceabilityInventory.RowsOf`, held to each other for every held edition by
+`EveryOlderEditionsRuleState_AgreesWithThePythonView`. The session probe and the ledger report each held edition's rules and
+GAP side by side (`inventory_view.edition_views`); the ledger's trend series stays the newest edition's GAP.
 
 **The audit fills the change records** (§10.3). Its passes are detections. A SAME that the verify pass upholds is
 recorded as KEPT through the one recording path (`record_verdicts.py --edition 1985`, a batch the run itself writes from
