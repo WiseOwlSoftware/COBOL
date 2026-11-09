@@ -1,4 +1,4 @@
-## PB4994: an older row's chain state in the C# view, and the GAP count per edition in the ledger
+## Entry 3350 — 2026-11-08 18:08 PST — PB4994: an older row's chain state in the C# view, and the GAP count per edition in the ledger
 
 Slice 3 of the rule-lineage campaign (kb/Work PB4991, DESIGN-spec-conformance-review.md section 10.2). PB4992 had put the
 chain state (`lineage.state_of`) and the probe's per-edition `invent` line in Python; this slice does the rest.
@@ -18,3 +18,4 @@ and `gaps` are the one per-edition read; the probe's `summary` and `gen_ledger.m
 GAP tile names each older edition's GAP. The ledger's trend stays the newest edition's GAP, v1.0's metric.
 
 Rows closed: none (a tooling slice).
+
