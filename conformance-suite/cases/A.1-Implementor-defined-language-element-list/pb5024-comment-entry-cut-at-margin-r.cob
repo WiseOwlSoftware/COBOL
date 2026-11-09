@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb5024-comment-entry-cut-at-margin-r
       *> rules: [DOC-A.1-158]
-      *> accept: [85, 2002, 2014, 2023]
+      *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
       *>---
