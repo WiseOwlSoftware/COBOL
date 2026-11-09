@@ -1,4 +1,4 @@
-## PB5000 - a merge landing is credited per row with the commits that changed the row
+## Entry 3368 — 2026-11-09 00:57 PST — PB5000 - a merge landing is credited per row with the commits that changed the row
 
 `backfill_closes_rows.closures_from_history` credited a merge landing with the messages of every commit it brought in,
 so attribution arm 3 (a message naming exactly one note) failed as soon as any other brought-in commit named a second
@@ -18,3 +18,4 @@ history before kb/Work PB4148.
 Branch review R1-1: the per-row message first replaced the merge's message for every arm, which narrowed arm 1 (the row's
 notes intersected with the message) and lost correct credits (DOC-A.1-143 lost PB1536, DOC-A.1-51 fell to arm 2). Now only
 arm 3 reads the per-row message; `attribute` takes it as a third argument and arm 1 keeps the widest evidence, as before. Gate: see the landing's record.
+
