@@ -173,7 +173,7 @@ in effect for the run unit until another runtime locale is established" (§2023:
 or reads the last exception status, which "exists for the entire run unit" (§2023:14.6.13.1.1). Of 2,329 accepted assigned
 tests, 382 hold a directive or REPLACE statement (283 a TURN), 21 sit in the EXIT, GOBACK and STOP clauses, and 26
 more touch that state: 426 (`check17/solo_union.py`, `check17/run_unit_state.py`). A refused test, a flagged program,
-a control's leg (§3.2), a `build` test and a test with its own WiseOwl compile options (§4) run solo too.
+a control's leg (§3.2), a `build` test, a test that starts `servers` and a test with its own WiseOwl compile options (§4) run solo too.
 
 **Labelled output** (17c). A test's output is its section, the lines after its header up to the next header or `*DONE`.
 `<file>.out` holds the expected sections, headers included, so where every test applies it equals the grouped program's
@@ -203,6 +203,7 @@ The file block holds one field, `source-format` (`fixed` or `free`, required; fi
 | `files` | Copybooks, data files and other units the test needs, beside the case file |
 | `main` | `yes`: the test runs as the run unit's main program, alone; the only test that may write a STOP statement |
 | `build` | WiseOwl tests only (PB2101): ordered compile steps of a multi-unit test, `"<file>"` or `"<file> > <output>"`, `"{self}"` for the test; it runs solo. Refused in `cases/`: how separate units find each other is implementor-defined |
+| `servers` | WiseOwl tests only (PB4745, DESIGN-message-control.md §0 Q9): a map from a message server name to a declared file, `{BALANCE: balsrv.cbl}`. The in-process runner compiles each file as a `build` unit is (its options `wiseowl/options/<id>.<file>.json`) and starts its main program, before the test, as a concurrent run unit serving the name in the test's own MCS directory; it ends them with the test. A name is compared as a server name is (trailing spaces removed, without regard to case); a file's assembly is neither the test's nor a build step's nor another server's. It runs solo. Refused in `cases/`: how a second run unit is started and found is implementor-defined |
 | `portable` | `unverified` on every migrated test until its clause pass clears it; the suites carry only cleared tests |
 
 A flagged test has no block of its own: it is one line of its file's `<file>.flagged.jsonl` (§3.2).

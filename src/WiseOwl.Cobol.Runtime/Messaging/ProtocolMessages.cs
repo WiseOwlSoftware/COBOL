@@ -2,8 +2,12 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace WiseOwl.Cobol.Runtime.Messaging;
 
-/// <summary>What <c>mcs.json</c> defines for one server name (§0 Q3): its <c>maxLength</c>, and whether it has a <c>start</c> command.</summary>
-internal sealed record ServerDefinition(int? MaxLength, bool HasStart);
+/// <summary>What <c>mcs.json</c> defines for one server name (§0 Q3): its <c>maxLength</c>, and its <c>start</c> command as the program and its arguments, or null when it has none.</summary>
+internal sealed record ServerDefinition(int? MaxLength, IReadOnlyList<string>? Start)
+{
+    /// <summary>True when a request that finds no live server can start one (design 5.4.5).</summary>
+    internal bool HasStart => Start is not null;
+}
 
 /// <summary>
 /// How one SEND or RECEIVE ended (docs/rearchitecture/DESIGN-message-control.md design 5.7's <c>MessageOutcome</c> in the protocol's terms).

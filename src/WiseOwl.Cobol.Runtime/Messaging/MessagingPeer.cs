@@ -30,6 +30,9 @@ internal sealed class MessagingPeer
     private ConcurrentQueue<int> _deadlines = null!;
     private Dictionary<int, ITimer> _timers = null!;
     private SocketTransport? _transport;
+    private ServerActivation? _activation;
+    private Func<string, ServerDefinition?> _definitions = static _ => null;
+    private readonly CancellationTokenSource _stop = new();
     private MessagingProtocol? _protocol;
     private string? _failure;
     private bool _started, _ended;
@@ -94,6 +97,7 @@ internal sealed class MessagingPeer
             CancelTimers();
             _transport?.Dispose();
             _wake?.Dispose();
+            _stop.Dispose();
         }
     }
 
@@ -102,6 +106,7 @@ internal sealed class MessagingPeer
     {
         if (_ended) return;
         _ended = true;
+        _stop.Cancel();                                  // a start in progress on the run unit's thread stops waiting for its server
         CancelTimers();
         _transport?.Abort();
         SignalWake();                                    // a statement blocked on another thread's kill stops waiting and sees the end
@@ -188,7 +193,7 @@ internal sealed class MessagingPeer
                     case Connect c: _answers.Enqueue(new Connected(c.Endpoint, transport.Connect(c.Endpoint))); break;
                     case RingBells r: transport.RingBells(r.Spelling); break;
                     case ArmDeadline d: Arm(d); break;
-                    case Activate: throw new IOException("a server cannot be started from this run unit yet");   // slice S5 (PB4745): no definition has a start command until then
+                    case Activate a: _answers.Enqueue(StartServer(a)); break;
                     case Deliver d:
                         transport.Write(d.Ack.Link, d.Ack.Frame.Kind, PeerFrameCodec.Encode(d.Ack.Frame));   // a write that throws leaves the RECEIVE current: nothing was delivered
                         _result = d.Result;
@@ -202,6 +207,14 @@ internal sealed class MessagingPeer
                 _answers.Enqueue(new ActionFailed(action, e.Message));
             }
         }
+    }
+
+    /// <summary>design 5.4.5: starts the server the definition names. A definition that has gone, or a failure that is not the command's own end, is an <see cref="IOException"/>,
+    /// which <see cref="Execute"/> answers as <see cref="ActionFailed"/> (EC-MCS-IMP).</summary>
+    private ActivationEnded StartServer(Activate action)
+    {
+        var definition = _definitions(action.Name) ?? throw new IOException($"server '{action.Name}' has no definition");
+        return _activation!.Run(action.Name, definition, _stop.Token);
     }
 
     private void Arm(ArmDeadline deadline)
@@ -248,7 +261,9 @@ internal sealed class MessagingPeer
                 throw new IOException($"the socket directory '{sockets.Path}' leaves no room for a socket entry: an AF_UNIX path holds at most {McsSocketDirectory.MaxPathBytes} bytes, and the longest entry adds {McsSocketDirectory.LongestEntryBytes}");
             string runId = McsSocketDirectory.NewRunId();
             _transport = new SocketTransport(sockets, runId, SignalWake);
-            _protocol = new MessagingProtocol(identity, runId, Environment.ProcessId, settings.ServedName, settings.Definitions);
+            _definitions = settings.Definitions ?? ServerDefinitions.Read(directory.Path);   // an unusable mcs.json is an IOException: EC-MCS-IMP (§0 Q8)
+            _activation = new ServerActivation(sockets, directory.Path, runId, _transport);
+            _protocol = new MessagingProtocol(identity, runId, Environment.ProcessId, settings.ServedName, _definitions);
             RunId = runId;
             if (settings.ServedName is not null)
             {
