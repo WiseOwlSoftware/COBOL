@@ -1,0 +1,4 @@
+## Entry 3391 — 2026-11-09 13:55 PST — File six review leads (PB5046-PB5051)
+
+Six review leads became kb/Work notes. PB5046 and PB5047 are the two 1985 SUM under-rejects (SUM outside a control footing; SUM naming a SOURCE or VALUE entry) from the PB5022 report. PB5048 records that PB5022's 85-vs-2002 SUM crossfoot difference is in no edition document (PB5022 review R1-1). PB5049 and PB5050 come from the PB5041 report: the underlined_hints self-test's missing monospaced and negative cases, and the incomplete recall-limit statement in TRANSCRIPTION-STATE. PB5051 comes from the PB5031 report: its verdict's unreachability argument is unsound. Only the register changed.
+
