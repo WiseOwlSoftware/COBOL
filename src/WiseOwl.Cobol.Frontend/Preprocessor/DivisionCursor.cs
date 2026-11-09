@@ -6,7 +6,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 
 /// <summary>
 /// ⛔ THE ONE RULE FOR "WHICH DIVISION IS THIS TEXT IN" in the §2023:6.5 logical conversion (kb/Work PB1494, PB2739, PB4241): the
-/// obsolete COBOL-85 comment-entry paragraphs (AUTHOR … SECURITY, REMARKS) exist only in the IDENTIFICATION DIVISION, so
+/// comment-entry paragraphs (COBOL-85's AUTHOR … SECURITY, and the older REMARKS) exist only in the IDENTIFICATION DIVISION, so
 /// the converter must know whether it stands in one — otherwise a PROCEDURE DIVISION paragraph named REMARKS is read as a
 /// comment-entry and its lines are lost.
 /// <para>The rule is read off TEXT-WORDS of LOGICAL text, wherever they begin on a line: §2023:6.3.1 "The program-text area

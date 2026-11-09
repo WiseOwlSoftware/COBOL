@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: pb4487_library_text_copied_twice_is_decided_per_inclusion
       *> rules: [GR-6.5-5]
-      *> accept: [85]
       *> files: [PB4487RB.cpy]
       *> source-format: fixed
       *> portable: unverified
@@ -13,17 +12,19 @@
       *> PB4487RB stands in, and carries it undecided in each of the two
       *> texts the two COPY statements bring in (kb/Work PB4281, PB4487,
       *> docs/CONFORMANCE.md D-CE2). The first COPY stands in the
-      *> IDENTIFICATION DIVISION, where REMARKS is the COBOL-85
-      *> comment-entry paragraph and its entry is commentary. The second
-      *> stands in the PROCEDURE DIVISION, where REMARKS is a paragraph of
-      *> the program, and the REPLACE statement acts on its words:
-      *> 7.2.4.4 2) "Pseudo-text-1 specifies the text to be replaced by
-      *> pseudo-text-2", so its DISPLAY shows R. The run shows the item's
-      *> value and then R.
-      *> Leg that can fail: the decision kept per line of the library text
-      *> rather than per inclusion of it; the two inclusions disagree, so
-      *> the second is never read by the REPLACE stage and its DISPLAY
-      *> names an item that is not defined.
+      *> IDENTIFICATION DIVISION, where REMARKS is the comment-entry
+      *> paragraph and its entry is commentary. The second stands in the
+      *> PROCEDURE DIVISION, where REMARKS is a paragraph of the program,
+      *> and the REPLACE statement acts on its words: 7.2.4.4 2)
+      *> "Pseudo-text-1 specifies the text to be replaced by
+      *> pseudo-text-2".
+      *> No edition has the REMARKS paragraph (1985 VI.3.2.1.1 prints
+      *> none; kb/Work PB5026), so the first inclusion is refused at
+      *> every edition with COBOL0902 and the program is a refusal: the
+      *> per-inclusion decision it exercises is held by the unit tests
+      *> CommentEntryResolverTests (PB4487 facts).
+      *> Leg that can fail: the IDENTIFICATION DIVISION inclusion read
+      *> as program text, so no COBOL0902 is reported.
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. PB4487B.
 000300 REPLACE ==PB4487-R== BY =="R"== ==DIVISION== BY ==DIVISION==.

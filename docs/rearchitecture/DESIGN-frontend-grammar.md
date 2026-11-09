@@ -1221,8 +1221,9 @@ reference formats, and the only place source comments are recognized. Its model:
   decision kb/Work R61): a comment-entry paragraph (AUTHOR … SECURITY, REMARKS) keeps its HEADER as program text — the
   header line is written `AUTHOR. .`, the paragraph's terminating period standing for the discarded comment-entry,
   because COBOL-85 ended the entry at the next Area-A word — and only the entry (the rest of the header line and its
-  Area-B body) is discarded, at every edition, so the `identification-comments-removed-2002` / `remarks-removed-2002`
-  gate (COBOL0902 from 2002) sees the same paragraph in either format. The FREE-form classifier (`FreeFormConverter`)
+  Area-B body) is discarded, at every edition, so the `identification-comments-removed-2002` gate (COBOL0902 from
+  2002) and the `remarks-removed-85` gate (COBOL0902 at every edition, kb/Work PB5026) see the same paragraph in either
+  format. The FREE-form classifier (`FreeFormConverter`)
   does the same (docs/CONFORMANCE.md D-CE1, kb/Work PB3245 review R1-1): a line whose first word is a comment-entry
   paragraph's word is written `AUTHOR. .` and the rest of that line, the entry, is discarded (GnuCOBOL 3.2's `-free`
   reading; no edition has both free form and a comment-entry), so in neither format does comment-entry text reach the
