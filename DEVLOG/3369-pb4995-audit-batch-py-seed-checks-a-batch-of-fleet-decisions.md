@@ -1,4 +1,4 @@
-## PB4995: `audit_batch.py seed` checks a batch of fleet decisions with the run's own recheck and refute passes
+## Entry 3369 — 2026-11-09 01:26 PST — PB4995: `audit_batch.py seed` checks a batch of fleet decisions with the run's own recheck and refute passes
 
 The 1985 recheck (account2, $229.66) contested 712 change records, and the owner chose a `cobol-adjudicator` decision for
 every one, then one more max-effort recheck of those decisions before they stand (approved 2026-11-09, capped at $165 of
@@ -13,3 +13,4 @@ into the upstream run. The recheck and refute plans, `results` and `change-batch
 as on any adjudication, with no second planner. The self-test seeds a run from a fleet record, plans its recheck from it
 with the upstream routes, and refuses an inherited plan, a non-empty directory and a rule the upstream run never
 adjudicated.
+
