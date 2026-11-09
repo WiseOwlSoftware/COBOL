@@ -267,15 +267,27 @@ i
 
 # Preface
 
-This document provides the definition of the programming language features that make up American National Standard X3.23-1985.
+> ⚠ **CORRECTED — see the Errata (C1).** The standard prints `This document piovides the definition` (page 7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `provides`. Amendment 2 has since replaced the Preface this sentence opened with its own (C177): the correction is kept as the record of the printed page.
 
-> ⚠ **CORRECTED — see the Errata (C1).** The standard prints `This document piovides the definition` (page 7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `provides`.
+This amendment, the second to the document entitled *American National Standard for Information Systems – Programming Language – COBOL,* ANSI X3.23-1985, ISO 1989:1985, presents correction of errors and clarification of ambiguities in *Programming Language COBOL.*
 
-Within this document, the following terms are used·
+The first amendment to ANSI X3.23-1985, ISO 1989:1985, entitled, *American National Standard for Information Systems – Programming Language – Intrinsic Function Module for COBOL*, ANSI X3.23a-1989 and *Programming Languages – COBOL – Amendment 1: Intrinsic Function Module*, ISO 1989/Amendment 1, must be applied to ANSI X3.23-1985 (or ISO 1989:1985) before applying the corrections identified in this second amendment.
 
-- "First Standard COBOL" refers to American National Standard X3.23-1968
-- "Second Standard COBOL" refers to American National Standard X3 23-1974, which superseded American National Standard X3 23-1968
-- "Third Standard COBOL" or "Standard COBOL" refers to American National Standard X3.23-1985, which supersedes American National Standard X3.23-1974
+Within this document:
+
+– "First Standard COBOL" refers to ANSI X3.23-1968, ISO R-1989:1972.
+
+– "Second Standard COBOL" refers to ANSI X3.23-1974, ISO 1989:1978, which superseded first Standard COBOL.
+
+– "Third Standard COBOL" refers to ANSI COBOL X3.23-1985, ISO 1989:1985, which superseded second Standard COBOL.
+
+– Both "Amendment 1" and "Intrinsic Function Amendment" refer to ANSI X3.23a-1989, ISO 1989:1985/Amd.1:1992.
+
+– Both "Amendment 2" and "Correction Amendment" refer to ANSI X3.23b-1993, ISO 1989:1985/Amd.2:1993.
+
+– "Amended third Standard COBOL" refers to third Standard COBOL updated first with the content of amendment 1 and then with the content of amendment 2. The terms "Standard COBOL" and "COBOL" also refer to amended third Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C177).** The standard prints `This document provides the definition of the programming language features that make up American National Standard X3.23-1985. Within this document, the following terms are used: First, Second and Third Standard COBOL (the 1985 Preface)` (page 7). Amendment 2 (ANSI X3.23b-1993), its change for page Preface (page 913, folio B-1), applied in place: "Replace with preface from page iv of this document" (page 912): the Preface's text and its list of terms; the list of the members of X3J4 that follows it is not the Preface's and stays (kb/Work PB5045). Corrected to `This amendment, the second to the document ... (the preface of Amendment 2, page iv, above)`.
 
 ## Page 8
 
@@ -969,6 +981,68 @@ Chapter 3:  Procedure Division in the Segmentation Module
 | 3.2 | Segment-Numbers ................................................. | XVI-7 |
 | 3.3 | Restrictions on Program Flow .................................... | XVI-8 |
 
+<u>SECTION A: INTRINSIC FUNCTION MODULE</u>
+
+Chapter 1:  Introduction to the Intrinsic Function Module
+
+| | | |
+|---|---|---|
+| 1.1 | Purpose of Intrinsic Function Module . . . . . . . . . . . . . . . . . . . . . . | A-27 |
+| 1.2 | Function-Name . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . | A-27 |
+
+Chapter 2:  General Description
+
+| | | |
+|---|---|---|
+| 2.1 | Function Definition and Returned Value | A-27 |
+| 2.2 | Arguments | A-28 |
+| 2.3 | Types of Functions | A-29 |
+| 2.4 | Definitions of Functions | A-29 |
+| 2.5 | ACOS | A-33 |
+| 2.6 | ANNUITY | A-34 |
+| 2.7 | ASIN | A-35 |
+| 2.8 | ATAN | A-36 |
+| 2.9 | CHAR | A-37 |
+| 2.10 | COS | A-38 |
+| 2.11 | CURRENT-DATE | A-39 |
+| 2.12 | DATE-OF-INTEGER | A-41 |
+| 2.13 | DAY-OF-INTEGER | A-42 |
+| 2.14 | FACTORIAL | A-43 |
+| 2.15 | INTEGER | A-44 |
+| 2.16 | INTEGER-OF-DATE | A-45 |
+| 2.17 | INTEGER-OF-DAY | A-46 |
+| 2.18 | INTEGER-PART | A-47 |
+| 2.19 | LENGTH | A-48 |
+| 2.20 | LOG | A-49 |
+| 2.21 | LOG10 | A-50 |
+| 2.22 | LOWER-CASE | A-51 |
+| 2.23 | MAX | A-52 |
+| 2.24 | MEAN | A-53 |
+| 2.25 | MEDIAN | A-54 |
+| 2.26 | MIDRANGE | A-55 |
+| 2.27 | MIN | A-56 |
+| 2.28 | MOD | A-57 |
+| 2.29 | NUMVAL | A-58 |
+| 2.30 | NUMVAL-C | A-59 |
+| 2.31 | ORD | A-60 |
+| 2.32 | ORD-MAX | A-61 |
+| 2.33 | ORD-MIN | A-62 |
+| 2.34 | PRESENT-VALUE | A-63 |
+| 2.35 | RANDOM | A-64 |
+| 2.36 | RANGE | A-65 |
+| 2.37 | REM | A-66 |
+| 2.38 | REVERSE | A-67 |
+| 2.39 | SIN | A-68 |
+| 2.40 | SQRT | A-69 |
+| 2.41 | STANDARD-DEVIATION | A-70 |
+| 2.42 | SUM | A-71 |
+| 2.43 | TAN | A-72 |
+| 2.44 | UPPER-CASE | A-73 |
+| 2.45 | VARIANCE | A-74 |
+| 2.46 | WHEN-COMPILED | A-75 |
+
+> ⚠ **CORRECTED — see the Errata (C178).** The standard prints `3.3 Restrictions on Program Flow ... XVI-8 (the last entry for the Segmentation module)` (page 18). Amendment 2 (ANSI X3.23b-1993), its change for page x (page 913, folio B-1), applied in place: "Add the following after the last entry for the Segmentation module in the table of contents", its entries continuing on page 914 (folio B-2) (kb/Work PB5045). Corrected to `SECTION A: INTRINSIC FUNCTION MODULE, Chapter 1 (1.1, 1.2) and Chapter 2 (2.1 to 2.46), above`.
+
 x
 
 ## Page 19
@@ -1013,8 +1087,11 @@ Chapter 3: The Standardization of COBOL
 | 3.3 | American National Standard COBOL 1974 ........................... | XVII-12 |
 | 3.4 | American National Standard COBOL 1985 ........................... | XVII-12 |
 | 3.5 | American National Standard COBOL 1985, Addendum 1 ............... | XVII-13 |
+| 3.6 | American National Standard COBOL 1985, Amendment 2 .............. | XVII-13 |
 
 > ⚠ **CORRECTED — see the Errata (C38).** The standard prints `| 3.4 | American National Standard COBOL 1985 ... | XVII-12 |` (page 19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 3.4" (kb/Work PB5045). Corrected to `| 3.5 | American National Standard COBOL 1985, Addendum 1 ... | XVII-13 |`.
+
+> ⚠ **CORRECTED — see the Errata (C179).** The standard prints `3.5 American National Standard COBOL 1985, Addendum 1 ... XVII-13` (page 19). Amendment 2 (ANSI X3.23b-1993), its change for page xi (A-1) (page 915, folio B-3), applied in place: "Add the following after the entry for 3.5" (kb/Work PB5045). Corrected to `3.6 American National Standard COBOL 1985, Amendment 2 ... XVII-13`.
 
 Chapter 4: International Standardization of COBOL
 
@@ -1023,9 +1100,12 @@ Chapter 4: International Standardization of COBOL
 | 4.1 | ISO Recommendation R-1989-1972 for COBOL ....................... | XVII-14 |
 | 4.2 | ISO Standard 1989-1978 for COBOL ................................ | XVII-14 |
 | 4.3 | ISO Standard 1989-1985 for COBOL ................................ | XVII-15 |
-| 4.4 | ISO Standard 1989-1985 for COBOL, Addendum 1 .................... | XVII-15 |
+| 4.4 | ISO 1989:1985/Amd.1:1992 ........................................ | XVII-15 |
+| 4.5 | ISO 1989:1985/Amd.2:1994 ........................................ | XVII-15 |
 
 > ⚠ **CORRECTED — see the Errata (C39).** The standard prints `| 4.3 | ISO Standard 1989-1985 for COBOL ... | XVII-15 |` (page 19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 4.3" (kb/Work PB5045). Corrected to `| 4.4 | ISO Standard 1989-1985 for COBOL, Addendum 1 ... | XVII-15 |`.
+
+> ⚠ **CORRECTED — see the Errata (C180).** The standard prints `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1 ... XVII-15` (page 19). Amendment 2 (ANSI X3.23b-1993), its change for page xi (A-1) (page 915, folio B-3), applied in place: "Replace the entry for 4.4 with the following" (kb/Work PB5045). Corrected to `4.4 ISO 1989:1985/Amd.1:1992 ... XVII-15 ¶ 4.5 ISO 1989:1985/Amd.2:1994 ... XVII-15`.
 
 <u>APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>
 
@@ -1048,8 +1128,14 @@ Chapter 2: Substantive Changes
 
 | | | |
 |---|---|---|
-| 2.1 | Substantive Changes Not Affecting Existing Programs ............ | XVII-42 |
-| 2.2 | Substantive Changes Potentially Affecting Existing Programs .... | XVII-51 |
+| 2.1 | Substantive Changes Not Affecting Existing Programs (Third Standard COBOL) ............ | XVII-42 |
+| 2.1A | Substantive Changes Not Affecting Existing Programs (Intrinsic Function Amendment) ... | XVII-50 |
+| 2.1B | Substantive Changes Not Affecting Existing Programs (Correction Amendment) ............ | XVII-50 |
+| 2.2 | Substantive Changes Potentially Affecting Existing Programs (Third Standard COBOL) .... | XVII-51 |
+| 2.2A | Substantive Changes Potentially Affecting Existing Programs (Intrinsic Function Amendment) | XVII-80 |
+| 2.2B | Substantive Changes Potentially Affecting Existing Programs (Correction Amendment) .... | XVII-80 |
+
+> ⚠ **CORRECTED — see the Errata (C181).** The standard prints `2.1 Substantive Changes Not Affecting Existing Programs ... XVII-42 ¶ 2.2 Substantive Changes Potentially Affecting Existing Programs ... XVII-51` (page 20). Amendment 2 (ANSI X3.23b-1993), its change for page xii (page 915, folio B-3), applied in place: "Replace the entries for 2.1 and 2.2 with the following" (kb/Work PB5045). Corrected to `2.1, 2.1A, 2.1B, 2.2, 2.2A, 2.2B (above)`.
 
 <u>APPENDIX C: LANGUAGE ELEMENT LISTS</u>
 
@@ -1340,13 +1426,17 @@ An implementation that includes language elements in addition to the subset and 
 
 Documentation associated with an implementation must identify any standard extensions (language elements not defined in the supported subset or supported levels of optional modules but defined elsewhere in Standard COBOL) or nonstandard extensions (language elements or functions not defined in Standard COBOL) that are included in the implementation.
 
-A conforming implementation of Standard COBOL must provide a warning mechanism, which optionally may be invoked by the user at compile time to indicate, if appropriate, that a program contains nonstandard extensions that are included in the implementation.
+A conforming implementation of Standard COBOL must provide a warning mechanism, which optionally may be invoked by the user at compile time to indicate, if appropriate, that a program contains nonstandard extensions that are included in the implementation. This warning mechanism is required to flag only extensions that are syntactically distinguishable.
+
+> ⚠ **CORRECTED — see the Errata (C182).** The standard prints `that a program contains nonstandard extensions that are included in the implementation.` (page 28, folio I-8). Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.2 entitled Extension Language Elements, last paragraph, add the following as the new last sentence" (kb/Work PB5045). Corrected to `that a program contains nonstandard extensions that are included in the implementation. This warning mechanism is required to flag only extensions that are syntactically distinguishable.`.
 
 #### 1.5.2.5.3 Reserved Words
 
-An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation. An implementation of Standard COBOL need not recognize any new reserved words introduced by the optional Intrinsic Function module until that module is included in the implementation. (See page IV-45, COBOL Reserved Words.)
+An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specifications of the seven required modules and the five optional modules. (See page IV-45, COBOL Reserved Words.)
 
 > ⚠ **CORRECTED — see the Errata (C51).** The standard prints `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules. (See page IV-45, COBOL Reserved Words.)` (page 28, folio I-8). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-8 (page 834, folio A-4), applied in place: "Paragraph 1.5.2.5.3, change to read" (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C183).** The standard prints `An implementation of Standard COBOL must recognize ... the four optional modules. (See page IV-45, COBOL Reserved Words.) (as printed; Amendment 1 changed it first, C51)` (page 28, folio I-8). Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.3 entitled Reserved Words, change to read"; the paragraph as Amendment 1 changed it (C51) is replaced (kb/Work PB5045). Corrected to `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specifications of the seven required modules and the five optional modules. (See page IV-45, COBOL Reserved Words.)`.
 
 #### 1.5.2.5.4 Character Substitution
 
@@ -1498,7 +1588,7 @@ Nucleus Element Summary
 | &nbsp;&nbsp;Subscripting with a data-name ............................... | X | X |
 | &nbsp;&nbsp;Subscripting with an index-name ............................. | X | X |
 | &nbsp;&nbsp;Relative subscripting ....................................... | X | X |
-| &nbsp;Reference-modifier ............................................ | N | X |
+| &nbsp;Reference modification ........................................ | N | X |
 | <u>Reference Format</u> | | |
 | &nbsp;Sequence number ............................................... | X | X |
 | &nbsp;Continuation of lines | | |
@@ -1519,6 +1609,8 @@ Nucleus Element Summary
 > ⚠ **CORRECTED — see the Errata (C53).** The standard prints `| &nbsp;Reference modification ........................................ | N | X |` (page 32, folio I-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (page 834, folio A-4), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045). Corrected to `Reference-modifier`.
 
 > ⚠ **CORRECTED — see the Errata (C54).** The standard prints `| &nbsp;&nbsp;Asterisk (8) comment line ................................... | X | X |` (page 32, folio I-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (T) (page 834, folio A-4), applied in place: "Under 'Reference Format', change 'Asterisk (8) comment line' to 'Asterisk (\*) comment line'", a typographical error (kb/Work PB5045). Corrected to `Asterisk (*) comment line`.
+
+> ⚠ **CORRECTED — see the Errata (C184).** The standard prints `Reference modification (as printed; Amendment 1 changed it to Reference-modifier, C53)` (page 32, folio I-12). Amendment 2 (ANSI X3.23b-1993), its change for page I-12 (A-4) (page 915, folio B-3), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'": Amendment 2 restores the printed entry Amendment 1 changed (C53) (kb/Work PB5045). Corrected to `Reference modification`.
 
 I-12
 
@@ -2962,13 +3054,15 @@ Language Concepts Element Summary
 | &nbsp;&nbsp;Subscripting with an index-name | 1 NUC |
 | &nbsp;&nbsp;Relative subscripting | 1 NUC |
 | &nbsp;Function-identifier | 1 ITR |
-| &nbsp;Reference-modifier | 2 NUC |
+| &nbsp;Reference modification | 2 NUC |
 
 > ⚠ **CORRECTED — see the Errata (C58).** The standard prints `Literals` (page 62, folio I-42). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Literals'; align the word 'Function-names' one position to the right of the word 'Literals': Function-names ... 1 ITR" (kb/Work PB5045). Corrected to `Function-names ... 1 ITR ¶ Literals`.
 
 > ⚠ **CORRECTED — see the Errata (C59).** The standard prints `| &nbsp;Reference modification | 2 NUC |` (page 62, folio I-42). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045). Corrected to `| &nbsp;Reference-modifier | 2 NUC |`.
 
 > ⚠ **CORRECTED — see the Errata (C60).** The standard prints `Reference-modifier` (page 62, folio I-42). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier': Function-identifier ... 1 ITR" (kb/Work PB5045). Corrected to `Function-identifier ... 1 ITR ¶ Reference-modifier`.
+
+> ⚠ **CORRECTED — see the Errata (C185).** The standard prints `Reference modification (as printed; Amendment 1 changed it to Reference-modifier, C59)` (page 62, folio I-42). Amendment 2 (ANSI X3.23b-1993), its change for page I-42 (A-6) (page 915, folio B-3), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'": Amendment 2 restores the printed entry Amendment 1 changed (C59) (kb/Work PB5045). Corrected to `Reference modification`.
 
 I-42
 
@@ -37796,6 +37890,15 @@ it is taken as the rule of 1985.
 | [C174](#errata-c174) | 801 | XVII-93 | Appendix C of Section XVII, the implementor-defined language element list, new items 81 to 84 | `(no items 81 to 84)` | `(81) to (84)` | amendment-1 |
 | [C175](#errata-c175) | 806 | XVII-98 | Appendix C of Section XVII, the undefined language element list, a new item 29 | `(no item 29)` | `(29) Intrinsic functions` | amendment-1 |
 | [C176](#errata-c176) | 707 | XVI-9 | after Section XVI, the Intrinsic Function module (Section A) | `(Section XVI ends)` | `Section A follows` | amendment-1 |
+| [C177](#errata-c177) | 7 | — | the standard's Preface | `the 1985 Preface` | `Amendment 2's preface` | amendment-2 |
+| [C178](#errata-c178) | 18 | — | the table of contents, after Section XVI | `(no Section A)` | `SECTION A: INTRINSIC FUNCTION MODULE` | amendment-2 |
+| [C179](#errata-c179) | 19 | — | the table of contents, Appendix A, Chapter 3 | `(no entry 3.6)` | `3.6 ... Amendment 2` | amendment-2 |
+| [C180](#errata-c180) | 19 | — | the table of contents, Appendix A, Chapter 4 | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1` | `4.4 ISO 1989:1985/Amd.1:1992, 4.5 ISO 1989:1985/Amd.2:1994` | amendment-2 |
+| [C181](#errata-c181) | 20 | — | the table of contents, Appendix B, Chapter 2 | `2.1, 2.2` | `2.1, 2.1A, 2.1B, 2.2, 2.2A, 2.2B` | amendment-2 |
+| [C182](#errata-c182) | 28 | I-8 | Section I, paragraph 1.5.2.5.2 (Extension Language Elements), last paragraph | `(no last sentence)` | `This warning mechanism is required to flag only extensions…` | amendment-2 |
+| [C183](#errata-c183) | 28 | I-8 | Section I, paragraph 1.5.2.5.3 (Reserved Words) | `An implementation of Standard COBOL must recognize as reser…` | `An implementation of Standard COBOL must recognize as reser…` | amendment-2 |
+| [C184](#errata-c184) | 32 | I-12 | Section I, the Nucleus module summary, Language Concepts | `Reference-modifier` | `Reference modification` | amendment-2 |
+| [C185](#errata-c185) | 62 | I-42 | Section I, the division summary, Uniqueness of Reference | `Reference-modifier` | `Reference modification` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -37806,7 +37909,7 @@ it is taken as the rule of 1985.
 | **Printed** | `This document piovides the definition` |
 | **This transcription** | `This document provides the definition` |
 
-A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page. Amendment 2 has since replaced the Preface this sentence opened with its own (C177): the correction is kept as the record of the printed page.
 
 <a id="errata-c2"></a>
 
@@ -39732,6 +39835,105 @@ Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-98 (page 85
 | **This transcription** | `Section A, the Intrinsic Function Module, inserted after Section XVI` |
 
 Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVI-9 (page 854, folio A-24), applied in place: "Insert after section XVI pages A-27 through A-76 containing the Intrinsic Function module". Section A is that module, and this transcription holds it once, where Amendment 1 prints it (under AMENDMENT 1, `SECTION A: INTRINSIC FUNCTION MODULE`, with Amendment 2's changes to it applied there): it stands after Section XVI in the amended standard, and its rules are cited §1989:A (docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.1) (kb/Work PB5045).
+
+<a id="errata-c177"></a>
+
+### C177 · page 7 · the standard's Preface · `the 1985 Preface` → `Amendment 2's preface`
+
+| | |
+|---|---|
+| **Printed** | `This document provides the definition of the programming language features that make up American National Standard X3.23-1985. Within this document, the following terms are used: First, Second and Third Standard COBOL (the 1985 Preface)` |
+| **This transcription** | `This amendment, the second to the document ... (the preface of Amendment 2, page iv, above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page Preface (page 913, folio B-1), applied in place: "Replace with preface from page iv of this document" (page 912): the Preface's text and its list of terms; the list of the members of X3J4 that follows it is not the Preface's and stays (kb/Work PB5045).
+
+<a id="errata-c178"></a>
+
+### C178 · page 18 · the table of contents, after Section XVI · `(no Section A)` → `SECTION A: INTRINSIC FUNCTION MODULE`
+
+| | |
+|---|---|
+| **Printed** | `3.3 Restrictions on Program Flow ... XVI-8 (the last entry for the Segmentation module)` |
+| **This transcription** | `SECTION A: INTRINSIC FUNCTION MODULE, Chapter 1 (1.1, 1.2) and Chapter 2 (2.1 to 2.46), above` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page x (page 913, folio B-1), applied in place: "Add the following after the last entry for the Segmentation module in the table of contents", its entries continuing on page 914 (folio B-2) (kb/Work PB5045).
+
+<a id="errata-c179"></a>
+
+### C179 · page 19 · the table of contents, Appendix A, Chapter 3 · `(no entry 3.6)` → `3.6 ... Amendment 2`
+
+| | |
+|---|---|
+| **Printed** | `3.5 American National Standard COBOL 1985, Addendum 1 ... XVII-13` |
+| **This transcription** | `3.6 American National Standard COBOL 1985, Amendment 2 ... XVII-13` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page xi (A-1) (page 915, folio B-3), applied in place: "Add the following after the entry for 3.5" (kb/Work PB5045).
+
+<a id="errata-c180"></a>
+
+### C180 · page 19 · the table of contents, Appendix A, Chapter 4 · `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1` → `4.4 ISO 1989:1985/Amd.1:1992, 4.5 ISO 1989:1985/A…`
+
+| | |
+|---|---|
+| **Printed** | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1 ... XVII-15` |
+| **This transcription** | `4.4 ISO 1989:1985/Amd.1:1992 ... XVII-15 ¶ 4.5 ISO 1989:1985/Amd.2:1994 ... XVII-15` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page xi (A-1) (page 915, folio B-3), applied in place: "Replace the entry for 4.4 with the following" (kb/Work PB5045).
+
+<a id="errata-c181"></a>
+
+### C181 · page 20 · the table of contents, Appendix B, Chapter 2 · `2.1, 2.2` → `2.1, 2.1A, 2.1B, 2.2, 2.2A, 2.2B`
+
+| | |
+|---|---|
+| **Printed** | `2.1 Substantive Changes Not Affecting Existing Programs ... XVII-42 ¶ 2.2 Substantive Changes Potentially Affecting Existing Programs ... XVII-51` |
+| **This transcription** | `2.1, 2.1A, 2.1B, 2.2, 2.2A, 2.2B (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page xii (page 915, folio B-3), applied in place: "Replace the entries for 2.1 and 2.2 with the following" (kb/Work PB5045).
+
+<a id="errata-c182"></a>
+
+### C182 · page 28 (folio I-8) · Section I, paragraph 1.5.2.5.2 (Extension Language Elements), last paragraph · `(no last sentence)` → `This warning mechanism is required to flag only e…`
+
+| | |
+|---|---|
+| **Printed** | `that a program contains nonstandard extensions that are included in the implementation.` |
+| **This transcription** | `that a program contains nonstandard extensions that are included in the implementation. This warning mechanism is required to flag only extensions that are syntactically distinguishable.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.2 entitled Extension Language Elements, last paragraph, add the following as the new last sentence" (kb/Work PB5045).
+
+<a id="errata-c183"></a>
+
+### C183 · page 28 (folio I-8) · Section I, paragraph 1.5.2.5.3 (Reserved Words) · `An implementation of Standard COBOL must recogniz…` → `An implementation of Standard COBOL must recogniz…`
+
+| | |
+|---|---|
+| **Printed** | `An implementation of Standard COBOL must recognize ... the four optional modules. (See page IV-45, COBOL Reserved Words.) (as printed; Amendment 1 changed it first, C51)` |
+| **This transcription** | `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specifications of the seven required modules and the five optional modules. (See page IV-45, COBOL Reserved Words.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.3 entitled Reserved Words, change to read"; the paragraph as Amendment 1 changed it (C51) is replaced (kb/Work PB5045).
+
+<a id="errata-c184"></a>
+
+### C184 · page 32 (folio I-12) · Section I, the Nucleus module summary, Language Concepts · `Reference-modifier` → `Reference modification`
+
+| | |
+|---|---|
+| **Printed** | `Reference modification (as printed; Amendment 1 changed it to Reference-modifier, C53)` |
+| **This transcription** | `Reference modification` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page I-12 (A-4) (page 915, folio B-3), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'": Amendment 2 restores the printed entry Amendment 1 changed (C53) (kb/Work PB5045).
+
+<a id="errata-c185"></a>
+
+### C185 · page 62 (folio I-42) · Section I, the division summary, Uniqueness of Reference · `Reference-modifier` → `Reference modification`
+
+| | |
+|---|---|
+| **Printed** | `Reference modification (as printed; Amendment 1 changed it to Reference-modifier, C59)` |
+| **This transcription** | `Reference modification` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page I-42 (A-6) (page 915, folio B-3), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'": Amendment 2 restores the printed entry Amendment 1 changed (C59) (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
