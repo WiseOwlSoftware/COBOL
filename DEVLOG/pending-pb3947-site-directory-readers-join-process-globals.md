@@ -14,3 +14,10 @@ constants, read from the runtime) or calls a member of `CldrLocaleLoader`, `Cldr
 now carries the attribute. A new reader joins the rule by being written, not by someone remembering a list.
 
 No inventory row (test infrastructure); `closes_rows: []` stands. No diagnostic code used (COBOL6664-COBOL6666 returned).
+
+Review round 1 found the scan's hand-listed entry points missed `LocaleCollation`, which resolves locales through
+`CollationEngine.ForLocale`: `CobolCollationTests`, `BTreeModelTests` and `BTreeShapeTests` read the site directories
+outside the collection. The resolver list now includes `LocaleCollation`, `LocaleConfig`, `CollationRuntime`,
+`LocaleState` and `LocaleInfo`, the three classes joined the collection, and a second drift test
+(`EveryRuntimeTypeNamingAResolver_IsClassified`) makes every product type that names a root resolver be classified as a
+resolver or as non-resolving, so a new resolving type cannot slip past the scan.

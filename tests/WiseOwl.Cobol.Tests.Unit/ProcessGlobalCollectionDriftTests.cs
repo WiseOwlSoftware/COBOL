@@ -24,9 +24,47 @@ public sealed class ProcessGlobalCollectionDriftTests
 {
     private static readonly string[] SiteVariables = [CldrLocaleLoader.EnvDirectory, TailoringRules.EnvDirectory];
 
+    /// <summary>The types that resolve a locale through the site directories (they read the two variables, directly or
+    /// through <c>CollationEngine.ForLocale</c>). A test source calling a member of one is a reader.</summary>
+    private static readonly string[] ResolverTypes =
+    [
+        "CldrLocaleLoader", "CldrTailoringBuilder", "TailoringRules", "LocaleManager", "CollationEngine",
+        "LocaleCollation", "LocaleConfig", "CollationRuntime", "LocaleState", "LocaleInfo",
+    ];
+
+    /// <summary>The source types that name a resolver but resolve nothing themselves (tables, keys, facts, the config
+    /// listing, the binder). <see cref="EveryRuntimeTypeNamingAResolver_IsClassified"/> requires every other one to be a resolver.</summary>
+    private static readonly string[] NonResolvingTypes =
+    [
+        "CldrLocaleData", "CobolIntrinsics", "CodePointKey", "CollationElement", "CollationTable", "Collator",
+        "LocaleCollationException", "LocaleFacts", "RuntimeConfig", "SpecialNamesBinder", "UnicodeNormalizer",
+    ];
+
     private static readonly Regex Reader = new(
-        @"\b(CldrLocaleLoader|CldrTailoringBuilder|TailoringRules|LocaleManager|CollationEngine)\.\w+|\b(" + string.Join('|', SiteVariables) + @")\b",
+        @"\b(" + string.Join('|', ResolverTypes) + @")\.\w+|\bnew (LocaleCollation|LocaleConfig)\b|\b(" + string.Join('|', SiteVariables) + @")\b",
         RegexOptions.Compiled);
+
+    private static readonly Regex NamesResolver = new(@"\b(" + string.Join('|', ResolverTypes[..5]) + @")\b", RegexOptions.Compiled);
+
+    private static readonly TreeScope ProductSources = new(Under: ["src/"], Kinds: [".cs"]);
+
+    /// <summary>A source file naming one of the five root resolvers declares a type that either resolves locales (and is
+    /// then a resolver) or does not; a new such type must be classified, so the next reader cannot slip past the scan.</summary>
+    [Fact]
+    public void EveryRuntimeTypeNamingAResolver_IsClassified()
+    {
+        string[] known = [.. ResolverTypes, .. NonResolvingTypes];
+        string[] unclassified =
+        [
+            .. TrackedTree.Files(ProductSources)
+                .Where(rel => NamesResolver.IsMatch(File.ReadAllText(TestRepo.At(rel))))
+                .Select(rel => Path.GetFileName(rel).Split('.')[0])
+                .Where(stem => !known.Contains(stem))
+                .Distinct().Order(StringComparer.Ordinal),
+        ];
+        Assert.True(unclassified.Length == 0,
+            "these source types name a locale resolver but are in neither ResolverTypes nor NonResolvingTypes: " + string.Join(", ", unclassified));
+    }
 
     private static readonly Regex Collection = new(@"\[Collection\(""process-globals""\)\]", RegexOptions.Compiled);
 
