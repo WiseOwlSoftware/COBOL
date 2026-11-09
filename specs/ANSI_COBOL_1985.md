@@ -14226,7 +14226,9 @@ Nucleus - PERFORM
 
 c. Format 3 is the PERFORM ... UNTIL. The specified set of statements is performed until the condition specified by the UNTIL phrase is true. When the condition is true, control is transferred to the end of the PERFORM statement. If the condition is true when the PERFORM statement is entered, ║and the TEST BEFORE phrase is specified or implied,║ no transfer to procedure-name-1 takes place, and control is passed to the end of the PERFORM statement. ║If the TEST AFTER phrase is specified, the PERFORM statement functions as if the TEST BEFORE phrase were specified except that the condition is tested after the specified set of statements has been executed. Any subscripting or reference modification associated with the operands specified in condition-1 is evaluated each time the condition is tested.║
 
-║d. Format 4 is the PERFORM ... VARYING. This variation of the PERFORM statement is used to augment the values referenced by one or more identifiers or index-names in an orderly fashion during the execution of a PERFORM statement. In the following discussion, every reference to identifier as the object of the VARYING, AFTER, and FROM (current value) phrases also refers to index-names. If index-name-1 or index-name-3 is specified, the value of the associated index at the beginning of the PERFORM statement must be set to an occurrence number of an element in the table. If index-name-2 or index-name-4 is specified, the value of the data item referenced by identifier-2 or identifier-5 at the beginning of the PERFORM statement must be equal to an occurrence number of an element in a table associated with index-name-2 or index-name-4. Subsequent augmentation, as described below, of index-name-1 or index-name-3 must not result in the associated index being set to a value outside the range of the table associated with index-name-1 or index-name-3; except that, at the completion of the PERFORM statement, the index associated with index-name-1 may contain a value that is outside the range of the associated table by one increment or decrement value. If identifier-2 or identifier-5 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is set or augmented. If identifier-3, identifier-4, identifier-6, or identifier-7 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is used in a setting or augmenting operation. Any subscripting or reference modification associated with the operands specified in condition-1 or condition-2 is evaluated each time the condition is tested.║
+║d. Format 4 is the PERFORM ... VARYING. This variation of the PERFORM statement is used to augment the values referenced by one or more identifiers or index-names in an orderly fashion during the execution of a PERFORM statement. In the following discussion, every reference to identifier as the object of the VARYING, AFTER, and FROM (current value) phrases also refers to index-names. If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-1 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-1. If index-name-3 is specified, the value of identifier-6, index-name-4, or literal-3 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-3. Subsequent augmentation, as described below, of index-name-1 or index-name-3 must not result in the associated index being set to a value outside the range of the table associated with index-name-1 or index-name-3; except that, at the completion of the PERFORM statement, the index associated with index-name-1 may contain a value that is outside the range of the associated table by one increment or decrement value. If identifier-2 or identifier-5 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is set or augmented. If identifier-3, identifier-4, identifier-6, or identifier-7 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is used in a setting or augmenting operation. Any subscripting or reference modification associated with the operands specified in condition-1 or condition-2 is evaluated each time the condition is tested.║
+
+> ⚠ **CORRECTED — see the Errata (C246).** The standard prints `If index-name-1 or index-name-3 is specified, the value of the associated index at the beginning of the PERFORM statement must be set to an occurrence number of an element in the table. If index-name-2 or index-name-4 is specified, the value of the data item referenced by identifier-2 or identifier-5 at the beginning of the PERFORM statement must be equal to an occurrence number of an element in a table associated with index-name-2 or index-name-4.` (page 345, folio VI-113). Amendment 2 (ANSI X3.23b-1993), its change for page VI-113 (page 924, folio B-12), applied in place: "Paragraph 6.21.4 of the PERFORM statement, general rule 10d, change the fourth and fifth sentences to read" (shaded: level 2, the rule stands in its box) (kb/Work PB5045). Corrected to the text above.
 
 ║Representations of the actions of several types of format 4 PERFORM statements are given in figures 1 through 4 on pages VI-114 through VI-119. These are not intended to dictate implementation.║
 
@@ -14566,7 +14568,9 @@ Nucleus - SEARCH
 
 ║a. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is greater than the highest permissible occurrence number for identifier-1, the search is terminated immediately. The number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause. (See VI-26, The OCCURS Clause.) Then, if the AT END phrase is specified, imperative-statement-1 is executed; if the AT END phrase is not specified, control passes to the end of the SEARCH statement.║
 
-║b. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is not greater than the highest permissible occurrence number for identifier-1 (the number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause), the SEARCH statement operates by evaluating the conditions in the order that they are written, making use of the index settings, wherever specified, to determine the occurrence of those items to be tested. If none of the conditions is satisfied, the index-name for identifier-1 is incremented to obtain reference to the next occurrence. The process is then repeated using the new index-name settings unless the new value of the index-name settings for identifier-1 corresponds to a table element outside the permissible range of occurrence values, in which case the search terminates as indicated in 2a above. If one of the conditions is satisfied upon its evaluation, the search terminates immediately, and control passes to the imperative statement associated with that condition, if present, or, if the NEXT SENTENCE phrase is associated with that condition, to the next executable sentence; the index-name remains set at the occurrence which caused the condition to be satisfied.║
+║b. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is not greater than the highest permissible occurrence number for identifier-1 (the number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause), the SEARCH statement operates by evaluating the conditions in the order that they are written, making use of the index settings, wherever specified, to determine the occurrence of those items to be tested. If none of the conditions is satisfied, the index-name for identifier-1 is incremented to obtain reference to the next occurrence. The process is then repeated using the new index-name settings unless the new value of the index-name settings for identifier-1 corresponds to a table element outside the permissible range of occurrence values, in which case the search terminates as indicated in 2a above. If one of the conditions is satisfied upon its evaluation, the search terminates immediately, and control passes to the imperative statement associated with that condition, if present, or, if the NEXT SENTENCE phrase is associated with that condition, to the next executable sentence; the index-name remains set at the occurrence which caused the condition to be satisfied. When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║
+
+> ⚠ **CORRECTED — see the Errata (C247).** The standard prints `the index-name remains set at the occurrence which caused the condition to be satisfied.║` (page 356, folio VI-124). Amendment 2 (ANSI X3.23b-1993), its change for page VI-124 (page 924, folio B-12), applied in place: "Paragraph 6.22.4 of the SEARCH statement, general rule 2b, add the following as the new last sentence" (shaded: level 2, in the rule's box) (kb/Work PB5045). Corrected to the text above.
 
 ║(3) In a format 2 SEARCH statement, the results of the SEARCH ALL operation are predictable only when:║
 
@@ -14574,7 +14578,9 @@ Nucleus - SEARCH
 
 ║b. The contents of the key(s) referenced in the WHEN phrase are sufficient to identify a unique table element.║
 
-║(4) If format 2 of the SEARCH statement is used, a nonserial type of search operation may take place; the initial setting of the index-name for identifier-1 is ignored and its setting is varied during the search operation in a manner specified by the implementor, with the restriction that at no time is it set to a value that exceeds the value which corresponds to the last element of the table, or that is less than the value that corresponds to the first element of the table. The length of the table is discussed in the OCCURS clause. (See page VI-26, The OCCURS Clause.) If any of the conditions specified in the WHEN phrase cannot be satisfied for any setting of the index within the permitted range, control is passed to imperative-statement-1 of the AT END phrase, when specified, or to the end of the SEARCH statement when this phrase is not specified; in either case the final setting of the index is not predictable. If all the conditions can be satisfied, the index indicates an occurrence that allows the conditions to be satisfied, and control passes to imperative-statement-2, if specified, or to the next executable sentence if the NEXT SENTENCE phrase is specified.║
+║(4) If format 2 of the SEARCH statement is used, a nonserial type of search operation may take place; the initial setting of the index-name for identifier-1 is ignored and its setting is varied during the search operation in a manner specified by the implementor, with the restriction that at no time is it set to a value that exceeds the value which corresponds to the last element of the table, or that is less than the value that corresponds to the first element of the table. The length of the table is discussed in the OCCURS clause. (See page VI-26, The OCCURS Clause.) If any of the conditions specified in the WHEN phrase cannot be satisfied for any setting of the index within the permitted range, control is passed to imperative-statement-1 of the AT END phrase, when specified, or to the end of the SEARCH statement when this phrase is not specified; in either case the final setting of the index is not predictable. If all the conditions can be satisfied, the index indicates an occurrence that allows the conditions to be satisfied, and control passes to imperative-statement-2, if specified, or to the next executable sentence if the NEXT SENTENCE phrase is specified. When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║
+
+> ⚠ **CORRECTED — see the Errata (C248).** The standard prints `or to the next executable sentence if the NEXT SENTENCE phrase is specified.║` (page 356, folio VI-124). Amendment 2 (ANSI X3.23b-1993), its change for page VI-124 (page 924, folio B-12), applied in place: "Paragraph 6.22.4 of the SEARCH statement, general rule 4, add the following as the new last sentence" (shaded: level 2, in the rule's box) (kb/Work PB5045). Corrected to the text above.
 
 VI-124
 
@@ -15333,17 +15339,9 @@ a. I-O Status = 9x. An implementor-defined condition exists. This condition must
 
 The at end condition can occur as a result of the execution of a READ statement. (See page VII-44. The READ Statement.)
 
-### 1.3.7 The File Attribute Conflict Condition
+### ║1.3.7 Special Register LINAGE-COUNTER║
 
-The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page VII-39, The OPEN Statement; page VII-48, The REWRITE Statement; and page VII-52, The WRITE Statement.)
-
-When the file attribute conflict condition is recognized, these actions take place in the following order:
-
-(1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page VII-2, I-O Status.)
-
-(2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.
-
-### ║1.3.8 Special Register LINAGE-COUNTER║
+> ⚠ **CORRECTED — see the Errata (C249).** The standard prints `1.3.7 The File Attribute Conflict Condition (its three paragraphs and two numbered items) ... 1.3.8 Special Register LINAGE-COUNTER` (page 379, folio VII-5). Amendment 2 (ANSI X3.23b-1993), its change for page VII-5 (page 924, folio B-12), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition; renumber paragraph 1.3.8 entitled Special Register LINAGE-COUNTER as new paragraph 1.3.7" (kb/Work PB5045). Corrected to `(paragraph 1.3.7 deleted) 1.3.7 Special Register LINAGE-COUNTER`.
 
 ║The reserved word LINAGE-COUNTER is a name for a line counter generated by the presence of a LINAGE clause in a file description entry. (See page VII-27, The LINAGE Clause.) The implicit description is that of an unsigned integer whose size is equal to the size of integer-1 or the data item referenced by data-name-1 in the LINAGE clause. LINAGE-COUNTER may be referenced only in Procedure Division statements; however, only the input-output control system may change the value of LINAGE-COUNTER.║
 
@@ -16253,6 +16251,10 @@ Sequential I-O - RECORD
 
 ║c. If data-name-1 is not specified and the record does contain a variable occurrence data item, by the sum of the fixed portion and that portion of the table described by the number of occurrences at the time of execution of the output statement.║
 
+║If the number of character positions in the logical record to be written is less than integer-2 or greater than integer-3, the output statement is unsuccessful and, except during execution of a RELEASE statement, the associated I-O status is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.)║
+
+> ⚠ **CORRECTED — see the Errata (C250).** The standard prints `(general rule 10 ends with item c)` (page 406, folio VII-32). Amendment 2 (ANSI X3.23b-1993), its change for page VII-32 (page 924, folio B-12), applied in place: "Paragraph 3.8.4 of the RECORD clause, general rule 10, add the following as a new last paragraph" (shaded: level 2, boxed) (kb/Work PB5045). Corrected to the text above.
+
 ║(11) If data-name-1 is specified, after the successful execution of a READ or RETURN statement for the file, the contents of the data item referenced by data-name-1 will indicate the number of character positions in the record just read.║
 
 ║(12) If the INTO phrase is specified in the READ or RETURN statement, the number of character positions in the current record that participate as the sending data items in the implicit MOVE statement is determined by the following conditions:║
@@ -16263,9 +16265,13 @@ Sequential I-O - RECORD
 
 <u>FORMAT 3</u>:
 
-(13) When format 3 of the RECORD clause is used, integer-4 and integer-5 refer to the minimum number of characters in the smallest size data record and the maximum number of characters in the largest size data record, respectively. However, in this case, the size of each data record is completely defined in the record description entry.
+(13) It is implementor defined whether format 3 of the RECORD clause produces fixed length records or variable length records.
 
-(14) The size of each data record is specified in terms of the number of character positions required to store the logical record, regardless of the types of characters used to represent the items within the logical record. The size of a record is determined by the sum of the number of characters in all fixed length elementary items plus the sum of the maximum number of characters in any variable length item subordinate to the record. This sum may be different from the actual size of the record; see page IV-16, Selection of Character Representation and Radix; page VI-44, The SYNCHRONIZED Clause; page VI-46, The USAGE Clause.
+(14) When format 3 of the RECORD clause is used, integer-4 and integer-5 refer to the minimum number of characters in the smallest size data record and the maximum number of characters in the largest size data record, respectively. However, in this case, the size of each data record is completely defined in the record description entry.
+
+> ⚠ **CORRECTED — see the Errata (C251).** The standard prints `(13) When format 3 of the RECORD clause is used, ... (14) The size of each data record ...` (page 406, folio VII-32). Amendment 2 (ANSI X3.23b-1993), its change for page VII-32 (page 924, folio B-12), applied in place: "Paragraph 3.8.4 of the RECORD clause, renumber general rules 13 and 14 as new general rules 14 and 15. Add the following as new general rule 13 after the header FORMAT 3" (kb/Work PB5045). Corrected to `(13) It is implementor defined ... (14) When format 3 of the RECORD clause is used, ... (15) The size of each data record ...`.
+
+(15) The size of each data record is specified in terms of the number of character positions required to store the logical record, regardless of the types of characters used to represent the items within the logical record. The size of a record is determined by the sum of the number of characters in all fixed length elementary items plus the sum of the maximum number of characters in any variable length item subordinate to the record. This sum may be different from the actual size of the record; see page IV-16, Selection of Character Representation and Radix; page VI-44, The SYNCHRONIZED Clause; page VI-46, The USAGE Clause.
 
 VII-32
 
@@ -16451,13 +16457,13 @@ If label records are specified for the file, the labels are processed according 
 
 F. Close Reel/Unit
 
-<u>Input Files and Input-Output Files</u>:
+<u>Input Files and Input-Output Files (Reel/Unit Media)</u>:
 
-The following operations take place:
+1\) If the current reel/unit is the last or only reel/unit for the file, there is no reel/unit swap, the current volume pointer remains unchanged, and the file position indicator is set to indicate that no next reel/unit exists.
 
-1\) If the current reel/unit is the last or only reel/unit for the file or the reel is on a non-reel/unit medium, there is no reel/unit swap and the current volume pointer remains unchanged.
+2\) If another reel/unit exists for the file, a reel/unit swap occurs, the current volume pointer is updated to point to the next reel/unit existing in the file, the standard beginning reel/unit label procedure is executed, and the file position indicator is set to one less than the number of the first record existing on the new current volume. If no data records exist for the current volume, another reel/unit swap occurs.
 
-2\) If another reel/unit exists for the file, a reel/unit swap occurs, the current volume pointer is updated to point to the next reel/unit existing in the file, and the standard beginning reel/unit label procedure is executed. If no data records exist for the current volume, another reel/unit swap occurs.
+> ⚠ **CORRECTED — see the Errata (C252).** The standard prints `Input Files and Input-Output Files: ... (two numbered operations)` (page 411, folio VII-37). Amendment 2 (ANSI X3.23b-1993), its change for page VII-37 (page 925, folio B-13), applied in place: "Paragraph 4.2.4 of the CLOSE statement in the Sequential I-O module, general rule 3, change paragraph F to read as follows": its input and input-output files (kb/Work PB5045). Corrected to the text above.
 
 <u>Output Files (Reel/Unit Media)</u>:
 
@@ -16477,9 +16483,11 @@ Sequential I-O - CLOSE
 
 4\) The next executed WRITE statement that references that file directs the next logical data record to the next reel/unit of the file.
 
-<u>Output Files (Non-Reel/Unit Media)</u>:
+<u>Input Files, Input-Output Files, and Output Files (Non-Reel/Unit Media)</u>:
 
-Execution of this statement is considered successful. The file remains in the open mode, and no action takes place except as specified in general rule 4.
+Execution of this statement is considered successful. The file remains in the open mode, the file position indicator is unchanged, and no action takes place except as specified in general rule 4.
+
+> ⚠ **CORRECTED — see the Errata (C253).** The standard prints `<u>Output Files (Non-Reel/Unit Media)</u>: ¶ Execution of this statement is considered successful. The file remains in the open mode, and no action takes place except as specified in general rule 4.` (page 412, folio VII-38). Amendment 2 (ANSI X3.23b-1993), its change for page VII-37 (page 925, folio B-13), applied in place: "Paragraph 4.2.4 of the CLOSE statement in the Sequential I-O module, general rule 3, change paragraph F to read as follows": its non-reel/unit media (the output files on reel/unit media read as before) (kb/Work PB5045). Corrected to the text above.
 
 G. Rewind
 
@@ -16590,7 +16598,9 @@ b. When the OUTPUT phrase is specified, the execution of the OPEN statement caus
 
 The behavior of the OPEN statement when label records are specified but not present, or when label records are not specified but are present, is undefined.
 
-(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)
+(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)
+
+> ⚠ **CORRECTED — see the Errata (C254).** The standard prints `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)` (page 415, folio VII-41). Amendment 2 (ANSI X3.23b-1993), its change for page VII-41 (page 926, folio B-14), applied in place: "Paragraph 4.3.4 of the OPEN statement in the Sequential I-O module, general rule 8, change to read" (kb/Work PB5045). Corrected to the text above.
 
 ║(9) The NO REWIND and REVERSED phrases must only be used with:║
 
@@ -16683,6 +16693,14 @@ c. To point to the new reel/unit for an unavailable output, I-O, ║or extend║
 
 (25) The minimum and maximum record sizes for a file are established at the time the file is created and must not subsequently be changed.
 
+(26) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:
+
+a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.
+
+b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page VII-50, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C255).** The standard prints `(the general rules end with rule 25)` (page 417, folio VII-43). Amendment 2 (ANSI X3.23b-1993), its change for page VII-43 (page 926, folio B-14), applied in place: "Paragraph 4.3.4 of the OPEN statement in the Sequential I-O module, add the following as the new general rule 26" (kb/Work PB5045). Corrected to the text above.
+
 VII-43
 
 ## Page 418
@@ -16774,9 +16792,13 @@ c. The standard beginning reel/unit label procedure.
 
 a. A value, derived from the setting of the file position indicator, is placed into the I-O status associated with file-name-1 to indicate the at end condition. (See page VII-2, I-O Status.)
 
-b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.
+b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.
 
-c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with this file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+> ⚠ **CORRECTED — see the Errata (C256).** The standard prints `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` (page 420, folio VII-46). Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 926, folio B-14), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, replace general rule 10b with the following" (kb/Work PB5045). Corrected to the text above.
+
+c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+
+> ⚠ **CORRECTED — see the Errata (C257).** The standard prints `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with this file-name-1, and that procedure is executed.` (page 420, folio VII-46). Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 926, folio B-14), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, general rule 10c, change the first sentence to read" (kb/Work PB5045). Corrected to `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.`.
 
 When the at end condition occurs, execution of the READ statement is unsuccessful.
 
@@ -16784,7 +16806,9 @@ When the at end condition occurs, execution of the READ statement is unsuccessfu
 
 a. The file position indicator is set and the I-O status associated with file-name-1 is updated.
 
-b. If an exception condition which is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file name-1. (See page VII-50, The USE Statement.)
+b. If an exception condition that is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page VII-50, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C258).** The standard prints `b. If an exception condition which is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file name-1. (See page VII-50, The USE Statement.)` (page 420, folio VII-46). Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 927, folio B-15), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, replace general rule 11b with the following" (kb/Work PB5045). Corrected to the text above.
 
 c. If no exception condition exists, the record is made available in the record area and any implicit move resulting from the presence of an INTO phrase is executed. Control is transferred to the end of the READ statement or to imperative-statement-2, if specified. In the latter case, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the READ statement.
 
@@ -16822,9 +16846,11 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.5.3 Syntax Rules
 
-(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
 > ⚠ **CORRECTED — see the Errata (C133).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 422, folio VII-48). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-48 (page 849, folio A-19), applied in place: "Paragraph 4.5.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C259).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 422, folio VII-48). Amendment 2 (ANSI X3.23b-1993), its change for page VII-48 (A-19) (page 927, folio B-15), applied in place: "Paragraph 4.5.3 of the REWRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's, C138) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -16894,7 +16920,9 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (2) The USE statement is never executed; it merely defines the conditions calling for the execution of the USE procedures.
 
-(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.
+(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.
+
+> ⚠ **CORRECTED — see the Errata (C260).** The standard prints `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` (page 424, folio VII-50). Amendment 2 (ANSI X3.23b-1993), its change for page VII-50 (page 927, folio B-15), applied in place: "Paragraph 4.6.3 of the USE statement in the Sequential I-O module, syntax rule 3, change to read" (kb/Work PB5045). Corrected to `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.`.
 
 (4) The words ERROR and EXCEPTION are synonymous and may be used interchangeably.
 
@@ -16973,9 +17001,11 @@ The WRITE statement releases a logical record for an output file. It can also be
 
 ### 4.7.3 Syntax Rules
 
-(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
 > ⚠ **CORRECTED — see the Errata (C134).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 426, folio VII-52). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-52 (page 849, folio A-19), applied in place: "Paragraph 4.7.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C261).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 426, folio VII-52). Amendment 2 (ANSI X3.23b-1993), its change for page VII-52 (A-19) (page 927, folio B-15), applied in place: "Paragraph 4.7.3 of the WRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -17025,9 +17055,9 @@ b. The same WRITE statement without the FROM phrase.
 
 ║(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.)║
 
-║(9) If, during the execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:║
+║(9) If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 after execution of the input-output operation.║
 
-║a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.║
+> ⚠ **CORRECTED — see the Errata (C262).** The standard prints `║(9) If, during the execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:║ ¶ ║a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.║ (its subparagraph b on page 428)` (page 427, folio VII-53). Amendment 2 (ANSI X3.23b-1993), its change for page VII-53 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, replace general rule 9, including subparagraphs a and b, with the following" (shaded: level 2, boxed) (kb/Work PB5045). Corrected to `║(9) If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 after execution of the input-output operation.║`.
 
 VII-53
 
@@ -17035,15 +17065,19 @@ VII-53
 
 Sequential I-O - WRITE
 
-║b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.║
+> ⚠ **CORRECTED — see the Errata (C263).** The standard prints `║b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.║` (page 428, folio VII-54). Amendment 2 (ANSI X3.23b-1993), its change for page VII-53 (page 927, folio B-15), applied in place: the same change: its subparagraph b, on page 428 (kb/Work PB5045). Corrected to `(deleted: general rule 9 replaced, above)`.
 
-(10) The END-WRITE phrase delimits the scope of the WRITE statement. (See page IV-40, Scope of Statements.)
+(10) If the execution of the WRITE statement is unsuccessful, the I-O status of the file-name associated with record-name-1 is updated and control is transferred according to the rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to the file-name associated with record-name-1. (See page VII-50, The USE Statement).
 
-(11) The successor relationship of a sequential file is established by the order of execution of WRITE statements when the file is created. The relationship does not change ║except when records are added to the end of a file.║
+> ⚠ **CORRECTED — see the Errata (C266).** The standard prints `(no rule 10 after the renumbering)` (page 428, folio VII-54). Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 928, folio B-16), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, add the following as the new general rule 10" (kb/Work PB5045). Corrected to the text above.
 
-║(12) When a sequential file is open in the extend mode, the execution of the WRITE statement will add records to the end of the file as though the file were open in the output mode. If there are records in the file, the first record written after the execution of the OPEN statement with the EXTEND phrase is the successor of the last record in the file.║
+(11) The END-WRITE phrase delimits the scope of the WRITE statement. (See page IV-40, Scope of Statements.)
 
-(13) When an attempt is made to write beyond the externally defined boundaries of a sequential file, an exception condition exists and the contents of the record area are unaffected. The following actions take place:
+(12) The successor relationship of a sequential file is established by the order of execution of WRITE statements when the file is created. The relationship does not change ║except when records are added to the end of a file.║
+
+║(13) When a sequential file is open in the extend mode, the execution of the WRITE statement will add records to the end of the file as though the file were open in the output mode. If there are records in the file, the first record written after the execution of the OPEN statement with the EXTEND phrase is the successor of the last record in the file.║
+
+(14) When an attempt is made to write beyond the externally defined boundaries of a sequential file, an exception condition exists and the contents of the record area are unaffected. The following actions take place:
 
 a. The value of the I-O status of the file-name associated with record-name-1 is set to a value indicating a boundary violation. (See page VII-2, I-O Status.)
 
@@ -17051,7 +17085,7 @@ b. If a USE AFTER STANDARD EXCEPTION declarative is explicitly or implicitly spe
 
 c. If a USE AFTER STANDARD EXCEPTION declarative is not explicitly or implicitly specified for the file-name associated with record-name-1, the result is undefined.
 
-(14) If the end of reel/unit is recognized and the externally defined boundaries of the file have not been exceeded, the following operations are executed:
+(15) If the end of reel/unit is recognized and the externally defined boundaries of the file have not been exceeded, the following operations are executed:
 
 a. The standard ending reel/unit label procedure.
 
@@ -17059,7 +17093,9 @@ b. A reel/unit swap. The current volume pointer is updated to point to the next 
 
 c. The standard beginning reel/unit label procedure.
 
-(15) ║Both║ the ADVANCING phrase ║and the END-OF-PAGE phrase║ allow control of the vertical positioning of each line on a representation of a printed page. If the ADVANCING phrase is not used, automatic advancing will be provided by the implementor to act as if the user had specified AFTER ADVANCING 1 LINE. If the ADVANCING phrase is used, advancing is provided as follows:
+(16) ║Both║ the ADVANCING phrase ║and the END-OF-PAGE phrase║ allow control of the vertical positioning of each line on a representation of a printed page. If the ADVANCING phrase is not used, automatic advancing will be provided by the implementor to act as if the user had specified AFTER ADVANCING 1 LINE. If the ADVANCING phrase is used, advancing is provided as follows:
+
+> ⚠ **CORRECTED — see the Errata (C264).** The standard prints `general rules (10) ... as printed` (page 428, folio VII-54). Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, renumber general rules 10 through 17 as new general rules 11 through 18" (kb/Work PB5045). Corrected to `each renumbered one higher`.
 
 a. If integer-1 or the value of the data item referenced by identifier-2 is positive, the representation of the printed page is advanced the number of lines equal to that value.
 
@@ -17083,9 +17119,11 @@ f. If the AFTER phrase is used, the line is presented after the representation o
 
 h. If PAGE is specified ║and the LINAGE clause is not specified in the associated file description entry,║ the record is presented on the physical page before or after (depending on the phrase used) the device is repositioned to the next physical page. The repositioning to the next physical page is accomplished in accordance with an implementor-defined technique. If physical page has no meaning in conjunction with a specific device, advancing will be provided by the implementor to act as if the user had specified BEFORE or AFTER (depending on the phrase used) ADVANCING 1 LINE.
 
-║(16) If the logical end of the representation of the printed page is reached during the execution of a WRITE statement with the END-OF-PAGE phrase, imperative-statement-1 specified in the END-OF-PAGE phrase is executed. The logical end is specified in the LINAGE clause associated with record-name-1.║
+║(17) If the logical end of the representation of the printed page is reached during the execution of a WRITE statement with the END-OF-PAGE phrase, imperative-statement-1 specified in the END-OF-PAGE phrase is executed. The logical end is specified in the LINAGE clause associated with record-name-1.║
 
-║(17) An end-of-page condition occurs when the execution of a given WRITE statement with the END-OF-PAGE phrase causes printing or spacing within the footing area of a page body. This occurs when the execution of such a WRITE statement causes the LINAGE-COUNTER to equal or exceed the value specified by integer-2 or the data item referenced by data-name-2 of the LINAGE clause if specified. In this case, the WRITE statement is executed and then imperative-statement-1 in the END-OF-PAGE phrase is executed.║
+║(18) An end-of-page condition occurs when the execution of a given WRITE statement with the END-OF-PAGE phrase causes printing or spacing within the footing area of a page body. This occurs when the execution of such a WRITE statement causes the LINAGE-COUNTER to equal or exceed the value specified by integer-2 or the data item referenced by data-name-2 of the LINAGE clause if specified. In this case, the WRITE statement is executed and then imperative-statement-1 in the END-OF-PAGE phrase is executed.║
+
+> ⚠ **CORRECTED — see the Errata (C265).** The standard prints `general rules ║(16) ... as printed` (page 429, folio VII-55). Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, renumber general rules 10 through 17 as new general rules 11 through 18" (kb/Work PB5045). Corrected to `each renumbered one higher`.
 
 ║An automatic page overflow condition occurs when the execution of a given WRITE statement (with or without an END-OF-PAGE phrase) cannot be fully accommodated within the current page body.║
 
@@ -17301,9 +17339,7 @@ If the invalid key condition does not exist after the execution of the input-out
 
 The at end condition can occur as a result of the execution of a READ statement. (See page VIII-26, The READ Statement.)
 
-### 1.3.7 The File Attribute Conflict Condition
-
-The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page VIII-21, The OPEN Statement; page VIII-30, The REWRITE Statement; and page VIII-37, The WRITE Statement.)
+> ⚠ **CORRECTED — see the Errata (C267).** The standard prints `### 1.3.7 The File Attribute Conflict Condition The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page VIII-21, The OPEN Statement; page VIII-30, The REWRITE Statement; and page VIII-37, The WRITE Statement.)` (page 436, folio VIII-6). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-6 (page 928, folio B-16), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition that appears on the bottom of page VIII-6 and on the top of page VIII-7" (kb/Work PB5045). Corrected to `(paragraph 1.3.7 deleted)`.
 
 VIII-6
 
@@ -17311,11 +17347,7 @@ VIII-6
 
 Relative I-O - Introduction
 
-When the file attribute conflict condition is recognized, these actions take place in the following order:
-
-(1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page VIII-2, I-O Status.)
-
-(2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.
+> ⚠ **CORRECTED — see the Errata (C268).** The standard prints `When the file attribute conflict condition is recognized, these actions take place in the following order: ¶ (1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page VIII-2, I-O Status.) ¶ (2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.` (page 437, folio VIII-7). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-6 (page 928, folio B-16), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition that appears on the bottom of page VIII-6 and on the top of page VIII-7" (kb/Work PB5045). Corrected to `(deleted)`.
 
 VIII-7
 
@@ -17843,7 +17875,9 @@ b. When the OUTPUT phrase is specified, the execution of the OPEN statement caus
 
 The behavior of the OPEN statement when label records are specified but not present, or when label records are not specified but are present, is undefined.
 
-(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VIII-6, The File Attribute Conflict Condition.)
+(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)
+
+> ⚠ **CORRECTED — see the Errata (C269).** The standard prints `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VIII-6, The File Attribute Conflict Condition.)` (page 454, folio VIII-24). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-24 (page 928, folio B-16), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Relative I-O module, general rule 8, change to read" (kb/Work PB5045). Corrected to the text above.
 
 ║(9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.║
 
@@ -17891,6 +17925,14 @@ The successful execution of an OPEN statement with the OUTPUT phrase creates the
 (17) If more than one file-name is specified in an OPEN statement, the result of executing this OPEN statement is the same as if a separate OPEN statement had been written for each file-name in the same order as specified in the OPEN statement.
 
 (18) The minimum and maximum record sizes for a file are established at the time the file is created and must not subsequently be changed.
+
+(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:
+
+a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.
+
+b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page VIII-35, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C270).** The standard prints `(the general rules end with rule 18)` (page 455, folio VIII-25). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-25 (page 928, folio B-16), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Relative I-O module, add the following as the new general rule 19" (kb/Work PB5045). Corrected to the text above.
 
 VIII-25
 
@@ -38095,6 +38137,31 @@ it is taken as the rule of 1985.
 | [C243](#errata-c243) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), a new general rule 9 after the header FORMAT 1 | `(no rule 9)` | `(9) Identifier-1 is a sending data item.` | amendment-2 |
 | [C244](#errata-c244) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 12c | `general rule 6e` | `general rule 7e` | amendment-2 |
 | [C245](#errata-c245) | 331 | VI-99 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 15a | `general rule 6e` | `general rule 7e` | amendment-2 |
+| [C246](#errata-c246) | 345 | VI-113 | Section VI, paragraph 6.21.4 (PERFORM), general rule 10d, the fourth and fifth sentences | `If index-name-1 or index-name-3 is specified, ...` | `If index-name-1 is specified, ... index-name-3 ...` | amendment-2 |
+| [C247](#errata-c247) | 356 | VI-124 | Section VI, paragraph 6.22.4 (SEARCH), general rule 2b | `(no last sentence)` | `When control is passed to the next executable sentence, ...` | amendment-2 |
+| [C248](#errata-c248) | 356 | VI-124 | Section VI, paragraph 6.22.4 (SEARCH), general rule 4 | `(no last sentence)` | `When control is passed to the next executable sentence, ...` | amendment-2 |
+| [C249](#errata-c249) | 379 | VII-5 | Section VII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, 1.3.8 renumbered 1.3.7 | `1.3.7 The File Attribute Conflict Condition; 1.3.8 LINAGE-C…` | `(deleted); 1.3.7 LINAGE-COUNTER` | amendment-2 |
+| [C250](#errata-c250) | 406 | VII-32 | Section VII, paragraph 3.8.4 (RECORD), general rule 10, a new last paragraph | `(no last paragraph)` | `If the number of character positions in the logical record…` | amendment-2 |
+| [C251](#errata-c251) | 406 | VII-32 | Section VII, paragraph 3.8.4 (RECORD), general rules 13 and 14 renumbered 14 and 15, a new general rule 13 | `(13), (14)` | `new (13); (14), (15)` | amendment-2 |
+| [C252](#errata-c252) | 411 | VII-37 | Section VII, paragraph 4.2.4 (CLOSE), general rule 3, paragraph F, input and input-output files | `Input Files and Input-Output Files: The following operation…` | `Input Files and Input-Output Files (Reel/Unit Media): 1) ..…` | amendment-2 |
+| [C253](#errata-c253) | 412 | VII-38 | Section VII, paragraph 4.2.4 (CLOSE), general rule 3, paragraph F, non-reel/unit media | `Output Files (Non-Reel/Unit Media): ...` | `Input Files, Input-Output Files, and Output Files (Non-Reel…` | amendment-2 |
+| [C254](#errata-c254) | 415 | VII-41 | Section VII, paragraph 4.3.4 (OPEN), general rule 8 | `(See page VII-5, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
+| [C255](#errata-c255) | 417 | VII-43 | Section VII, paragraph 4.3.4 (OPEN), a new general rule 26 | `(no rule 26)` | `(26) If the execution of the OPEN statement is unsuccessful…` | amendment-2 |
+| [C256](#errata-c256) | 420 | VII-46 | Section VII, paragraph 4.4.4 (READ), general rule 10b | `b. If the AT END phrase is specified ... USE AFTER STANDARD…` | `b. ... the AT END imperative-statement-1. ... NOT AT END ph…` | amendment-2 |
+| [C257](#errata-c257) | 420 | VII-46 | Section VII, paragraph 4.4.4 (READ), general rule 10c, first sentence | `a USE AFTER STANDARD EXCEPTION procedure must be associated…` | `a USE AFTER EXCEPTION procedure must be associated with the…` | amendment-2 |
+| [C258](#errata-c258) | 420 | VII-46 | Section VII, paragraph 4.4.4 (READ), general rule 11b | `b. If an exception condition which is not an at end conditi…` | `b. If an exception condition that is not an at end conditio…` | amendment-2 |
+| [C259](#errata-c259) | 422 | VII-48 | Section VII, paragraph 4.5.3 (REWRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C260](#errata-c260) | 424 | VII-50 | Section VII, paragraph 4.6.3 (USE), syntax rule 3 | `(3) Appearance of file-name-1 in a USE statement must not c…` | `(3) The same file-name must not appear in more than one USE…` | amendment-2 |
+| [C261](#errata-c261) | 426 | VII-52 | Section VII, paragraph 4.7.3 (WRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C262](#errata-c262) | 427 | VII-53 | Section VII, paragraph 4.7.4 (WRITE), general rule 9 and its subparagraph a | `(9) ... at the appropriate time as follows: a. ...` | `(9) If, during the successful execution ... after execution…` | amendment-2 |
+| [C263](#errata-c263) | 428 | VII-54 | Section VII, paragraph 4.7.4 (WRITE), general rule 9, subparagraph b | `b. If the execution of the WRITE statement is unsuccessful,…` | `(deleted)` | amendment-2 |
+| [C264](#errata-c264) | 428 | VII-54 | Section VII, paragraph 4.7.4 (WRITE), general rules renumbered (page 428) | `(10) ... (17)` | `(11) ... (18)` | amendment-2 |
+| [C265](#errata-c265) | 429 | VII-55 | Section VII, paragraph 4.7.4 (WRITE), general rules renumbered (page 429) | `(16), (17)` | `(17), (18)` | amendment-2 |
+| [C266](#errata-c266) | 428 | VII-54 | Section VII, paragraph 4.7.4 (WRITE), a new general rule 10 | `(no rule 10)` | `(10) If the execution of the WRITE statement is unsuccessfu…` | amendment-2 |
+| [C267](#errata-c267) | 436 | VIII-6 | Section VIII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, its page VIII-6 part | `1.3.7 The File Attribute Conflict Condition ...` | `(deleted)` | amendment-2 |
+| [C268](#errata-c268) | 437 | VIII-7 | Section VIII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, its page VIII-7 part | `When the file attribute conflict condition is recognized, .…` | `(deleted)` | amendment-2 |
+| [C269](#errata-c269) | 454 | VIII-24 | Section VIII, paragraph 4.4.4 (OPEN), general rule 8 | `(See page VIII-6, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
+| [C270](#errata-c270) | 455 | VIII-25 | Section VIII, paragraph 4.4.4 (OPEN), a new general rule 19 | `(no rule 19)` | `(19) If the execution of the OPEN statement is unsuccessful…` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -40790,6 +40857,281 @@ Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11)
 | **This transcription** | `in the sense of general rule 7e` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page VI-99 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 15a, second line, change 'in general rule 6e to 'in general rule 7e'" (the amendment prints no closing quotation mark after 6e) (kb/Work PB5045).
+
+<a id="errata-c246"></a>
+
+### C246 · page 345 (folio VI-113) · Section VI, paragraph 6.21.4 (PERFORM), general rule 10d, the fourth and fifth sentences · `If index-name-1 or index-name-3 is specified, ...` → `If index-name-1 is specified, ... index-name-3 ...`
+
+| | |
+|---|---|
+| **Printed** | `If index-name-1 or index-name-3 is specified, the value of the associated index at the beginning of the PERFORM statement must be set to an occurrence number of an element in the table. If index-name-2 or index-name-4 is specified, the value of the data item referenced by identifier-2 or identifier-5 at the beginning of the PERFORM statement must be equal to an occurrence number of an element in a table associated with index-name-2 or index-name-4.` |
+| **This transcription** | `If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-1 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-1. If index-name-3 is specified, the value of identifier-6, index-name-4, or literal-3 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-3.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-113 (page 924, folio B-12), applied in place: "Paragraph 6.21.4 of the PERFORM statement, general rule 10d, change the fourth and fifth sentences to read" (shaded: level 2, the rule stands in its box) (kb/Work PB5045).
+
+<a id="errata-c247"></a>
+
+### C247 · page 356 (folio VI-124) · Section VI, paragraph 6.22.4 (SEARCH), general rule 2b · `(no last sentence)` → `When control is passed to the next executable sen…`
+
+| | |
+|---|---|
+| **Printed** | `the index-name remains set at the occurrence which caused the condition to be satisfied.║` |
+| **This transcription** | `the index-name remains set at the occurrence which caused the condition to be satisfied. When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-124 (page 924, folio B-12), applied in place: "Paragraph 6.22.4 of the SEARCH statement, general rule 2b, add the following as the new last sentence" (shaded: level 2, in the rule's box) (kb/Work PB5045).
+
+<a id="errata-c248"></a>
+
+### C248 · page 356 (folio VI-124) · Section VI, paragraph 6.22.4 (SEARCH), general rule 4 · `(no last sentence)` → `When control is passed to the next executable sen…`
+
+| | |
+|---|---|
+| **Printed** | `or to the next executable sentence if the NEXT SENTENCE phrase is specified.║` |
+| **This transcription** | `or to the next executable sentence if the NEXT SENTENCE phrase is specified. When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-124 (page 924, folio B-12), applied in place: "Paragraph 6.22.4 of the SEARCH statement, general rule 4, add the following as the new last sentence" (shaded: level 2, in the rule's box) (kb/Work PB5045).
+
+<a id="errata-c249"></a>
+
+### C249 · page 379 (folio VII-5) · Section VII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, 1.3.8 renumbered 1.3.7 · `1.3.7 The File Attribute Conflict Condition; 1.3.…` → `(deleted); 1.3.7 LINAGE-COUNTER`
+
+| | |
+|---|---|
+| **Printed** | `1.3.7 The File Attribute Conflict Condition (its three paragraphs and two numbered items) ... 1.3.8 Special Register LINAGE-COUNTER` |
+| **This transcription** | `(paragraph 1.3.7 deleted) 1.3.7 Special Register LINAGE-COUNTER` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-5 (page 924, folio B-12), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition; renumber paragraph 1.3.8 entitled Special Register LINAGE-COUNTER as new paragraph 1.3.7" (kb/Work PB5045).
+
+<a id="errata-c250"></a>
+
+### C250 · page 406 (folio VII-32) · Section VII, paragraph 3.8.4 (RECORD), general rule 10, a new last paragraph · `(no last paragraph)` → `If the number of character positions in the logic…`
+
+| | |
+|---|---|
+| **Printed** | `(general rule 10 ends with item c)` |
+| **This transcription** | `║If the number of character positions in the logical record to be written is less than integer-2 or greater than integer-3, the output statement is unsuccessful and, except during execution of a RELEASE statement, the associated I-O status is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.)║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-32 (page 924, folio B-12), applied in place: "Paragraph 3.8.4 of the RECORD clause, general rule 10, add the following as a new last paragraph" (shaded: level 2, boxed) (kb/Work PB5045).
+
+<a id="errata-c251"></a>
+
+### C251 · page 406 (folio VII-32) · Section VII, paragraph 3.8.4 (RECORD), general rules 13 and 14 renumbered 14 and 15, a new general rule 13 · `(13), (14)` → `new (13); (14), (15)`
+
+| | |
+|---|---|
+| **Printed** | `(13) When format 3 of the RECORD clause is used, ... (14) The size of each data record ...` |
+| **This transcription** | `(13) It is implementor defined ... (14) When format 3 of the RECORD clause is used, ... (15) The size of each data record ...` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-32 (page 924, folio B-12), applied in place: "Paragraph 3.8.4 of the RECORD clause, renumber general rules 13 and 14 as new general rules 14 and 15. Add the following as new general rule 13 after the header FORMAT 3" (kb/Work PB5045).
+
+<a id="errata-c252"></a>
+
+### C252 · page 411 (folio VII-37) · Section VII, paragraph 4.2.4 (CLOSE), general rule 3, paragraph F, input and input-output files · `Input Files and Input-Output Files: The following…` → `Input Files and Input-Output Files (Reel/Unit Med…`
+
+| | |
+|---|---|
+| **Printed** | `Input Files and Input-Output Files: ... (two numbered operations)` |
+| **This transcription** | `Input Files and Input-Output Files (Reel/Unit Media): 1) ... the file position indicator is set to indicate that no next reel/unit exists. 2) ... the file position indicator is set to one less than the number of the first record existing on the new current volume. ...` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-37 (page 925, folio B-13), applied in place: "Paragraph 4.2.4 of the CLOSE statement in the Sequential I-O module, general rule 3, change paragraph F to read as follows": its input and input-output files (kb/Work PB5045).
+
+<a id="errata-c253"></a>
+
+### C253 · page 412 (folio VII-38) · Section VII, paragraph 4.2.4 (CLOSE), general rule 3, paragraph F, non-reel/unit media · `Output Files (Non-Reel/Unit Media): ...` → `Input Files, Input-Output Files, and Output Files…`
+
+| | |
+|---|---|
+| **Printed** | `<u>Output Files (Non-Reel/Unit Media)</u>: ¶ Execution of this statement is considered successful. The file remains in the open mode, and no action takes place except as specified in general rule 4.` |
+| **This transcription** | `<u>Input Files, Input-Output Files, and Output Files (Non-Reel/Unit Media)</u>: ¶ Execution of this statement is considered successful. The file remains in the open mode, the file position indicator is unchanged, and no action takes place except as specified in general rule 4.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-37 (page 925, folio B-13), applied in place: "Paragraph 4.2.4 of the CLOSE statement in the Sequential I-O module, general rule 3, change paragraph F to read as follows": its non-reel/unit media (the output files on reel/unit media read as before) (kb/Work PB5045).
+
+<a id="errata-c254"></a>
+
+### C254 · page 415 (folio VII-41) · Section VII, paragraph 4.3.4 (OPEN), general rule 8 · `(See page VII-5, The File Attribute Conflict Cond…` → `The implementor defines which ... (See page II-1,…`
+
+| | |
+|---|---|
+| **Printed** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)` |
+| **This transcription** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-41 (page 926, folio B-14), applied in place: "Paragraph 4.3.4 of the OPEN statement in the Sequential I-O module, general rule 8, change to read" (kb/Work PB5045).
+
+<a id="errata-c255"></a>
+
+### C255 · page 417 (folio VII-43) · Section VII, paragraph 4.3.4 (OPEN), a new general rule 26 · `(no rule 26)` → `(26) If the execution of the OPEN statement is un…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 25)` |
+| **This transcription** | `(26) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order: ¶ a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful. ¶ b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page VII-50, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-43 (page 926, folio B-14), applied in place: "Paragraph 4.3.4 of the OPEN statement in the Sequential I-O module, add the following as the new general rule 26" (kb/Work PB5045).
+
+<a id="errata-c256"></a>
+
+### C256 · page 420 (folio VII-46) · Section VII, paragraph 4.4.4 (READ), general rule 10b · `b. If the AT END phrase is specified ... USE AFTE…` → `b. ... the AT END imperative-statement-1. ... NOT…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` |
+| **This transcription** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 926, folio B-14), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, replace general rule 10b with the following" (kb/Work PB5045).
+
+<a id="errata-c257"></a>
+
+### C257 · page 420 (folio VII-46) · Section VII, paragraph 4.4.4 (READ), general rule 10c, first sentence · `a USE AFTER STANDARD EXCEPTION procedure must be…` → `a USE AFTER EXCEPTION procedure must be associate…`
+
+| | |
+|---|---|
+| **Printed** | `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with this file-name-1, and that procedure is executed.` |
+| **This transcription** | `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 926, folio B-14), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, general rule 10c, change the first sentence to read" (kb/Work PB5045).
+
+<a id="errata-c258"></a>
+
+### C258 · page 420 (folio VII-46) · Section VII, paragraph 4.4.4 (READ), general rule 11b · `b. If an exception condition which is not an at e…` → `b. If an exception condition that is not an at en…`
+
+| | |
+|---|---|
+| **Printed** | `b. If an exception condition which is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file name-1. (See page VII-50, The USE Statement.)` |
+| **This transcription** | `b. If an exception condition that is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page VII-50, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 927, folio B-15), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, replace general rule 11b with the following" (kb/Work PB5045).
+
+<a id="errata-c259"></a>
+
+### C259 · page 422 (folio VII-48) · Section VII, paragraph 4.5.3 (REWRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-48 (A-19) (page 927, folio B-15), applied in place: "Paragraph 4.5.3 of the REWRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's, C138) (kb/Work PB5045).
+
+<a id="errata-c260"></a>
+
+### C260 · page 424 (folio VII-50) · Section VII, paragraph 4.6.3 (USE), syntax rule 3 · `(3) Appearance of file-name-1 in a USE statement…` → `(3) The same file-name must not appear in more th…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` |
+| **This transcription** | `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-50 (page 927, folio B-15), applied in place: "Paragraph 4.6.3 of the USE statement in the Sequential I-O module, syntax rule 3, change to read" (kb/Work PB5045).
+
+<a id="errata-c261"></a>
+
+### C261 · page 426 (folio VII-52) · Section VII, paragraph 4.7.3 (WRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-52 (A-19) (page 927, folio B-15), applied in place: "Paragraph 4.7.3 of the WRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c262"></a>
+
+### C262 · page 427 (folio VII-53) · Section VII, paragraph 4.7.4 (WRITE), general rule 9 and its subparagraph a · `(9) ... at the appropriate time as follows: a. ...` → `(9) If, during the successful execution ... after…`
+
+| | |
+|---|---|
+| **Printed** | `║(9) If, during the execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:║ ¶ ║a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.║ (its subparagraph b on page 428)` |
+| **This transcription** | `║(9) If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 after execution of the input-output operation.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-53 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, replace general rule 9, including subparagraphs a and b, with the following" (shaded: level 2, boxed) (kb/Work PB5045).
+
+<a id="errata-c263"></a>
+
+### C263 · page 428 (folio VII-54) · Section VII, paragraph 4.7.4 (WRITE), general rule 9, subparagraph b · `b. If the execution of the WRITE statement is uns…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `║b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.║` |
+| **This transcription** | `(deleted: general rule 9 replaced, above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-53 (page 927, folio B-15), applied in place: the same change: its subparagraph b, on page 428 (kb/Work PB5045).
+
+<a id="errata-c264"></a>
+
+### C264 · page 428 (folio VII-54) · Section VII, paragraph 4.7.4 (WRITE), general rules renumbered (page 428) · `(10) ... (17)` → `(11) ... (18)`
+
+| | |
+|---|---|
+| **Printed** | `general rules (10) ... as printed` |
+| **This transcription** | `each renumbered one higher` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, renumber general rules 10 through 17 as new general rules 11 through 18" (kb/Work PB5045).
+
+<a id="errata-c265"></a>
+
+### C265 · page 429 (folio VII-55) · Section VII, paragraph 4.7.4 (WRITE), general rules renumbered (page 429) · `(16), (17)` → `(17), (18)`
+
+| | |
+|---|---|
+| **Printed** | `general rules ║(16) ... as printed` |
+| **This transcription** | `each renumbered one higher` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, renumber general rules 10 through 17 as new general rules 11 through 18" (kb/Work PB5045).
+
+<a id="errata-c266"></a>
+
+### C266 · page 428 (folio VII-54) · Section VII, paragraph 4.7.4 (WRITE), a new general rule 10 · `(no rule 10)` → `(10) If the execution of the WRITE statement is u…`
+
+| | |
+|---|---|
+| **Printed** | `(no rule 10 after the renumbering)` |
+| **This transcription** | `(10) If the execution of the WRITE statement is unsuccessful, the I-O status of the file-name associated with record-name-1 is updated and control is transferred according to the rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to the file-name associated with record-name-1. (See page VII-50, The USE Statement).` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 928, folio B-16), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, add the following as the new general rule 10" (kb/Work PB5045).
+
+<a id="errata-c267"></a>
+
+### C267 · page 436 (folio VIII-6) · Section VIII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, its page VIII-6 part · `1.3.7 The File Attribute Conflict Condition ...` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `### 1.3.7 The File Attribute Conflict Condition The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page VIII-21, The OPEN Statement; page VIII-30, The REWRITE Statement; and page VIII-37, The WRITE Statement.)` |
+| **This transcription** | `(paragraph 1.3.7 deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-6 (page 928, folio B-16), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition that appears on the bottom of page VIII-6 and on the top of page VIII-7" (kb/Work PB5045).
+
+<a id="errata-c268"></a>
+
+### C268 · page 437 (folio VIII-7) · Section VIII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, its page VIII-7 part · `When the file attribute conflict condition is rec…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `When the file attribute conflict condition is recognized, these actions take place in the following order: ¶ (1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page VIII-2, I-O Status.) ¶ (2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.` |
+| **This transcription** | `(deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-6 (page 928, folio B-16), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition that appears on the bottom of page VIII-6 and on the top of page VIII-7" (kb/Work PB5045).
+
+<a id="errata-c269"></a>
+
+### C269 · page 454 (folio VIII-24) · Section VIII, paragraph 4.4.4 (OPEN), general rule 8 · `(See page VIII-6, The File Attribute Conflict Con…` → `The implementor defines which ... (See page II-1,…`
+
+| | |
+|---|---|
+| **Printed** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VIII-6, The File Attribute Conflict Condition.)` |
+| **This transcription** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-24 (page 928, folio B-16), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Relative I-O module, general rule 8, change to read" (kb/Work PB5045).
+
+<a id="errata-c270"></a>
+
+### C270 · page 455 (folio VIII-25) · Section VIII, paragraph 4.4.4 (OPEN), a new general rule 19 · `(no rule 19)` → `(19) If the execution of the OPEN statement is un…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 18)` |
+| **This transcription** | `(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order: ¶ a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful. ¶ b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page VIII-35, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-25 (page 928, folio B-16), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Relative I-O module, add the following as the new general rule 19" (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
