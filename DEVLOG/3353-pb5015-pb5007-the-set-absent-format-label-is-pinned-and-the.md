@@ -1,4 +1,4 @@
-## PB5015, PB5007: the SET absent-format label is pinned, and the VALIDATE facility's data clauses name COBOL-2002 at COBOL-85
+## Entry 3353 — 2026-11-08 19:14 PST — PB5015, PB5007: the SET absent-format label is pinned, and the VALIDATE facility's data clauses name COBOL-2002 at COBOL-85
 
 Wave 20261936 group C, two notes on one root (edition-aware diagnostics around the SET format table and the
 declined VALIDATE facility).
@@ -48,3 +48,4 @@ skip (`ConstructRegistry.IsAvailable`), so the gate and the skip cannot name dif
 choice the matrix theories each wrote is now one function. No hot path changed. Gate: run 000001 RED on the CITATIONS
 audit (a comment's "from 2002" read as the FROM clause; reworded); run 000002-20261109T022839Z
 `=== BUILD-LOCAL GATE: GREEN — Conformance 22,731/22,731 · Unit 40,573/40,573 · Characterization 37/37 cases ran (skipped 0) ===`.
+
