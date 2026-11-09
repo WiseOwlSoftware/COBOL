@@ -19292,6 +19292,14 @@ The successful execution of an OPEN statement with the OUTPUT phrase creates the
 
 (18) The minimum and maximum record sizes for a file are established at the time the file is created and must not subsequently be changed.
 
+(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:
+
+a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.
+
+b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page IX-39, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C281).** The standard prints `(the general rules end with rule 18)` (page 497, folio IX-27). Amendment 2 (ANSI X3.23b-1993), its change for page IX-27 (page 931, folio B-19), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, add the following as the new general rule 19" (kb/Work PB5045). Corrected to the text above.
+
 IX-27
 
 ## Page 498
@@ -19404,9 +19412,13 @@ b. The current record is moved from the record area to the area specified by ide
 
 a. A value, derived from the setting of the file position indicator, is placed into the I-O status associated with file-name-1 to indicate the at end condition. (See page IX-2, I-O Status.)
 
-b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.
+b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1 control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.
 
-c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+> ⚠ **CORRECTED — see the Errata (C282).** The standard prints `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` (page 500, folio IX-30). Amendment 2 (ANSI X3.23b-1993), its change for page IX-30 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read" (the amendment prints no comma after 'imperative-statement-1' in its last sentence, as its sequential and relative rows do; the text follows the amendment) (kb/Work PB5045). Corrected to the text above.
+
+c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+
+> ⚠ **CORRECTED — see the Errata (C283).** The standard prints `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed.` (page 500, folio IX-30). Amendment 2 (ANSI X3.23b-1993), its change for page IX-30 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following" (kb/Work PB5045). Corrected to `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.`.
 
 IX-30
 
@@ -19420,7 +19432,9 @@ When the at end condition occurs, execution of the READ statement is unsuccessfu
 
 a. The file position indicator is set and the I-O status associated with file-name-1 is updated.
 
-b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page IX-39, The USE Statement.)
+b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page IX-39, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C284).** The standard prints `b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page IX-39, The USE Statement.)` (page 501, folio IX-31). Amendment 2 (ANSI X3.23b-1993), its change for page IX-31 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following" (kb/Work PB5045). Corrected to the text above.
 
 c. If no exception condition exists, the record is made available in the record area and any implicit move resulting from the presence of an INTO phrase is executed. Control is transferred to the end of the READ statement or to imperative-statement-2, if specified. In the latter case, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the READ statement.
 
@@ -19469,9 +19483,11 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.6.3 Syntax Rules
 
-(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
 > ⚠ **CORRECTED — see the Errata (C140).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 503, folio IX-33). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C285).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 503, folio IX-33). Amendment 2 (ANSI X3.23b-1993), its change for page IX-33 (A-19) (page 932, folio B-20), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Indexed I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -19670,7 +19686,9 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (2) The USE statement is never executed; it merely defines the conditions calling for the execution of the USE procedures.
 
-(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.
+(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.
+
+> ⚠ **CORRECTED — see the Errata (C286).** The standard prints `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` (page 509, folio IX-39). Amendment 2 (ANSI X3.23b-1993), its change for page IX-39 (page 932, folio B-20), applied in place: "Paragraph 4.8.3 of the USE statement in the Indexed I-O module, syntax rule 3, change to read" (kb/Work PB5045). Corrected to `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.`.
 
 (4) The words ERROR and EXCEPTION are synonymous and may be used interchangeably.
 
@@ -19736,9 +19754,11 @@ The WRITE statement releases a logical record for an output or input-output file
 
 ### 4.9.3 Syntax Rules
 
-(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
 > ⚠ **CORRECTED — see the Errata (C142).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 511, folio IX-41). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-41 (page 850, folio A-20), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C287).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 511, folio IX-41). Amendment 2 (ANSI X3.23b-1993), its change for page IX-41 (A-20) (page 932, folio B-20), applied in place: "Paragraph 4.9.3 of the WRITE statement in the Indexed I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -19778,11 +19798,9 @@ in the area referenced by record-name-1 is not available ║except as specified 
 
 ║(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page IX-2, I-O Status.)║
 
-(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, the invalid key condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:
+(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page IX-6, The Invalid Key Condition.)
 
-a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.
-
-b. If the execution of the WRITE statement is unsuccessful for a reason other than an invalid key condition, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.
+> ⚠ **CORRECTED — see the Errata (C288).** The standard prints `(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, ... as follows: a. ... b. ...` (page 512, folio IX-42). Amendment 2 (ANSI X3.23b-1993), its change for page IX-42 (page 932, folio B-20), applied in place: "Paragraph 4.9.4 of the WRITE statement in the Indexed I-O module, general rule 9, including subparagraphs a and b, change to read" (kb/Work PB5045). Corrected to `(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page IX-6, The Invalid Key Condition.)`.
 
 (10) The END-WRITE phrase delimits the scope of the WRITE statement. (See page IV-40, Scope of Statements.)
 
@@ -20039,7 +20057,9 @@ Inter-Program Communication - Introduction
 
 ### ║1.3.8.3 Conventions for Index-Names║
 
-║If a data item possessing either or both the external or global attributes includes a table accessed with an index, that index also possesses correspondingly either or both attributes. Therefore, the scope of an index-name is identical to that of the data-name which names the table whose index is named by that index-name and the scope of name rules for data-names apply. Index-names cannot be qualified.║
+║If a data item possessing the global attribute includes a table described with an index-name, that index-name also possesses the global attribute. Therefore, the scope of an index-name is identical to that of the data-name which names the table whose index is named by that index-name and the scope of name rules for data-names apply. Index-names cannot be qualified.║
+
+> ⚠ **CORRECTED — see the Errata (C289).** The standard prints `║If a data item possessing either or both the external or global attributes includes a table accessed with an index, that index also possesses correspondingly either or both attributes.` (page 521, folio X-7). Amendment 2 (ANSI X3.23b-1993), its change for page X-7 (page 932, folio B-20), applied in place: "Paragraph 1.3.8.3, Conventions for Index-Names, change the first sentence to read" (shaded: level 2, the paragraph's box) (kb/Work PB5045). Corrected to `║If a data item possessing the global attribute includes a table described with an index-name, that index-name also possesses the global attribute.`.
 
 X-7
 
@@ -20675,7 +20695,9 @@ Inter-Program Communication - EXTERNAL
 
 ║(2) In the same program, the data-name specified as the subject of the entry whose level-number is 01 that includes the EXTERNAL clause must not be the same data-name specified for any other data description entry which includes the EXTERNAL clause.║
 
-║(3) The VALUE clause must not be used in any data description entry which includes, or is subordinate to, an entry which includes the EXTERNAL clause. The VALUE clause may be specified for condition-name entries associated with such data description entries.║
+║(3) The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause. The VALUE clause may be specified for condition-name entries associated with such data description entries.║
+
+> ⚠ **CORRECTED — see the Errata (C290).** The standard prints `║(3) The VALUE clause must not be used in any data description entry which includes, or is subordinate to, an entry which includes the EXTERNAL clause.` (page 539, folio X-23). Amendment 2 (ANSI X3.23b-1993), its change for page X-23 (page 932, folio B-20), applied in place: "Paragraph 4.5.3 of the EXTERNAL clause, syntax rule 3, change the first sentence to read" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `║(3) The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause.`.
 
 ### ║4.5.4 General Rules║
 
@@ -20998,6 +21020,10 @@ The EXIT PROGRAM statement marks the logical end of a called program.
 (2) The execution of an EXIT PROGRAM statement in a called program which does not possess the initial attribute causes execution to continue with the next executable statement following the CALL statement in the calling program. The program state of the calling program is not altered and is identical to that which existed at the time it executed the CALL statement except that the contents of data items and the contents of data files shared between the calling and called program may have been changed. The program state of the called program is not altered except that the ends of the ranges of all PERFORM statements executed by that called program are considered to have been reached.
 
 ║(3) Besides the actions specified in general rule 2, the execution of an EXIT PROGRAM statement in a called program which possesses the initial attribute is equivalent also to executing a CANCEL statement referencing that program. (See page X-31, The CANCEL Statement.)║
+
+║(4) An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase is specified, except within a program called while executing within the range of that declarative procedure.║
+
+> ⚠ **CORRECTED — see the Errata (C291).** The standard prints `(the general rules end with rule 3)` (page 549, folio X-33). Amendment 2 (ANSI X3.23b-1993), its change for page X-33 (page 932, folio B-20), applied in place: "Paragraph 5.4.4 of the EXIT PROGRAM statement, add the following as the new general rule 4" (shaded: level 2, boxed) (kb/Work PB5045). Corrected to the text above.
 
 X-33
 
@@ -21425,7 +21451,9 @@ b. Second, the collating sequence established as the program collating sequence.
 
 a. The processing of the file is initiated. The initiation is performed as if an OPEN statement with the INPUT phrase had been executed. If an output procedure is specified, this initiation is performed before control passes to the output procedure.
 
-b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed.
+b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed. If the file referenced by file-name-1 is described with variable length records, the size of any record written to file-name-1 is the size of that record when it was read from file-name-2 or file-name-3, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1.
+
+> ⚠ **CORRECTED — see the Errata (C292).** The standard prints `b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed.` (page 562, folio XI-10). Amendment 2 (ANSI X3.23b-1993), its change for page XI-10 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7b, add the following as the new last sentence for the paragraph" (kb/Work PB5045). Corrected to the text above.
 
 XI-10
 
@@ -21433,9 +21461,15 @@ XI-10
 
 Sort-Merge - MERGE
 
-c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure.
+c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure. For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement.
+
+> ⚠ **CORRECTED — see the Errata (C293).** The standard prints `If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure.` (page 563, folio XI-11). Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7c, add the following as a new last sentence after the words '... the last statement in the output procedure.'" (kb/Work PB5045). Corrected to the text above.
 
 These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed.
+
+The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 or file-name-3 is undefined upon completion of the MERGE statement.
+
+> ⚠ **CORRECTED — see the Errata (C294).** The standard prints `These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed.` (page 563, folio XI-11). Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7, add the following as a new last paragraph for general rule 7" (kb/Work PB5045). Corrected to `The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 or file-name-3 is undefined upon completion of the MERGE statement.`.
 
 (8) The output procedure may consist of any procedure needed to select, modify, or copy the records that are made available one at a time by the RETURN statement in merged order from the file referenced by file-name-1. The range includes all statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the output procedure, as well as all statements in declarative procedures that are executed as a result of the execution of statements in the range of the output procedure. The range of the output procedure must not cause the execution of any MERGE, RELEASE, or SORT statement. (See page IV-25, Explicit and Implicit Specifications.)
 
@@ -21447,7 +21481,9 @@ These implicit functions are performed such that any associated USE AFTER EXCEPT
 
 a. The processing of the file is initiated. The initiation is performed as if an OPEN statement with the OUTPUT phrase had been executed.
 
-b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed.
+b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed. If the file referenced by file-name-4 is described with variable length records, the size of any record written to file-name-4 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-4.
+
+> ⚠ **CORRECTED — see the Errata (C295).** The standard prints `b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed.` (page 563, folio XI-11). Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11b, add the following as the new last sentence for the first paragraph" (kb/Work PB5045). Corrected to the text above.
 
 For a relative file, the relative key data item for the first record returned contains the value '1'; for the second record returned, the value '2', etc. After execution of the MERGE statement, the content of the relative key data item indicates the last record returned to the file.
 
@@ -21459,7 +21495,13 @@ Sort-Merge - MERGE
 
 c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed.
 
-These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-4. On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 11c above.
+These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-4. On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-4 is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 11c above.
+
+The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the MERGE statement for which the GIVING phrase is specified.
+
+> ⚠ **CORRECTED — see the Errata (C296).** The standard prints `any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed;` (page 564, folio XI-12). Amendment 2 (ANSI X3.23b-1993), its change for page XI-12 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11, last paragraph, sixth line, change in part" (kb/Work PB5045). Corrected to `any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-4 is executed;`.
+
+> ⚠ **CORRECTED — see the Errata (C297).** The standard prints `(general rule 11 ends with the paragraph above)` (page 564, folio XI-12). Amendment 2 (ANSI X3.23b-1993), its change for page XI-12 (page 934, folio B-22), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11, add the following as a new last paragraph for general rule 11" (kb/Work PB5045). Corrected to the text above.
 
 (12) If the file referenced by file-name-4 contains only fixed length records, any record in the file referenced by file-name-1 containing fewer character positions than that fixed length is space filled on the right beginning with the first character position after the last character in the record when that record is returned to the file referenced by file-name-4.
 
@@ -21501,9 +21543,11 @@ The RELEASE statement transfers records to the initial phase of a sort operation
 
 (2) A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement for the file-name whose sort-merge file description entry contains record-name-1.
 
-(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.
+(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
 
 > ⚠ **CORRECTED — see the Errata (C153).** The standard prints `(3) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 565, folio XI-13). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XI-13 (page 850, folio A-20), applied in place: "Paragraph 4.2.3, change syntax rule 3 to read" (kb/Work PB5045). Corrected to `(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C298).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 565, folio XI-13). Amendment 2 (ANSI X3.23b-1993), its change for page XI-13 (A-20) (page 934, folio B-22), applied in place: "Paragraph 4.2.3 of the RELEASE statement in the Sort-Merge module, syntax rule 3, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 ### 4.2.4 General Rules
 
@@ -21710,13 +21754,15 @@ referenced by file-name-3 must not be in the open mode. When this phase terminat
 
 a. The processing of the file is initiated. The initiation is performed as if an OPEN statement with the INPUT phrase had been executed.
 
-b. The logical records are obtained and released to the sort operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed.
+b. The logical records are obtained and released to the sort operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed. If the file referenced by file-name-1 is described with variable length records, the size of any record released to file-name-1 is the size of that record when it was read from file-name-2, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1.
 
-For a relative file, the content of the relative key data item is undefined after the execution of the SORT statement if file-name-2 is not referenced in the GIVING phrase.
-
-c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. This termination is performed before the file referenced by file-name-1 is sequenced by the SORT statement.
+c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. This termination is performed before the file referenced by file-name-1 is sequenced by the SORT statement. For a relative file, the content of the relative key data item associated with file-name-2 is undefined after the execution of the SORT statement if file-name-2 is not referenced in the GIVING phrase.
 
 These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-2.
+
+The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 is undefined upon completion of the SORT statement.
+
+> ⚠ **CORRECTED — see the Errata (C299).** The standard prints `b. The logical records are obtained ... (to the end of general rule 9: its paragraph For a relative file, item c and the paragraph These implicit functions)` (page 571, folio XI-19). Amendment 2 (ANSI X3.23b-1993), its change for page XI-19 (page 934, folio B-22), applied in place: "Paragraph 4.4.4 of the SORT statement, beginning of general rule 9b to the end of general rule 9, replace with the following" (kb/Work PB5045). Corrected to `b. ... c. ... These implicit functions ... The value of the data item referenced by the DEPENDING ON phrase ... (above)`.
 
 (10) The output procedure may consist of any procedure needed to select, modify, or copy the records that are made available one at a time by the RETURN statement in sorted order from the file referenced by file-name-1. The range includes all statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the output procedure, as well as all statements in declarative procedures that are executed as a result of the execution of statements in the range of the output procedure. The range of the output procedure must not cause the execution of any MERGE,
 
@@ -21734,13 +21780,21 @@ RELEASE, or SORT statement. (See page IV-25, Explicit and Implicit Specification
 
 a. The processing of the file is initiated. The initiation is performed as if an OPEN statement with the OUTPUT phrase had been executed. This initiation is performed after the execution of any input procedure.
 
-b. The sorted logical records are returned and written onto the file. The records are written as if a WRITE statement without any optional phrases had been execution.
+b. The sorted logical records are returned and written onto the file. The records are written as if a WRITE statement without any optional phrases had been executed. If the file referenced by file-name-3 is described with variable length records, the size of any record written to file-name-3 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-3.
+
+> ⚠ **CORRECTED — see the Errata (C300).** The standard prints `phrases had been execution.` (page 572, folio XI-20). Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 934, folio B-22), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12b, first paragraph, last sentence, change 'phrases had been execution.' to 'phrases had been executed.'" (kb/Work PB5045). Corrected to `phrases had been executed.`.
+
+> ⚠ **CORRECTED — see the Errata (C301).** The standard prints `... phrases had been executed.` (page 572, folio XI-20). Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 935, folio B-23), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12b, add the following as the new last sentence in the first paragraph" (kb/Work PB5045). Corrected to the text above.
 
 For a relative file, the relative key data item for the first record returned contains the value '1'; for the second record returned, the value '2', etc. After execution of the SORT statement, the content of the relative key data item indicates the last record returned to the file.
 
 c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed.
 
-These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-3. On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above.
+These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-3. On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-3 is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above.
+
+The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the SORT statement for which the GIVING phrase is specified.
+
+> ⚠ **CORRECTED — see the Errata (C302).** The standard prints `On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above.` (page 572, folio XI-20). Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 935, folio B-23), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12, last paragraph, last sentence beginning with 'On the first attempt', replace with the following" (the replacement is that sentence and a new paragraph) (kb/Work PB5045). Corrected to the text above.
 
 (13) If the file referenced by file-name-3 contains only fixed length records, any record in the file referenced by file-name-1 containing fewer character positions than that fixed length is space filled on the right beginning with the first character position after the last character in the record when that record is returned to the file referenced by file-name-3.
 
@@ -21865,7 +21919,9 @@ Source Text Manipulation - COPY
 
 ║a. The leftmost library text word which is not a separator comma or a separator semicolon is the first text word used for comparison. Any text word or space preceding this text word is copied into the source program. Starting with the first text word for comparison and first pseudo-text-1, identifier-1, word-1, or literal-1 that was specified in the REPLACING phrase, the entire REPLACING phrase operand that precedes the reserved word BY is compared to an equivalent number of contiguous library text words.║
 
-║b. Pseudo-text-1, identifier-1, word-1, or literal-1 match the library text if, and only if, the ordered sequence of text words that forms pseudo-text-1, identifier-1, word-1, or literal-1 is equal, character for character, to the ordered sequence of library text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the library text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space.║
+║b. Pseudo-text-1, identifier-1, word-1, or literal-1 match the library text if, and only if, the ordered sequence of text words that forms pseudo-text-1, identifier-1, word-1, or literal-1 is equal, character for character, to the ordered sequence of library text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the library text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space. Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)║
+
+> ⚠ **CORRECTED — see the Errata (C303).** The standard prints `(no such sentence)` (page 577, folio XII-3). Amendment 2 (ANSI X3.23b-1993), its change for page XII-3 (page 935, folio B-23), applied in place: "Paragraph 2.4 of the COPY statement, general rule 5b, add the following as the new last sentence" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)`.
 
 ║c. If no match occurs, the comparison is repeated with each next successive pseudo-text-1, identifier-1, word-1, or literal-1, if any, in the REPLACING phrase until either a match is found or there is no next successive REPLACING operand.║
 
@@ -21908,6 +21964,10 @@ Source Text Manipulation - COPY
 ║(10) For purposes of compilation, text words after replacement are placed in the source program according to the rules for reference format. (See page IV-41, Reference Format.) When copying text words of pseudo-text-2 into the source program, additional spaces may be introduced only between text words where there already exists a space (including the assumed space between source lines).║
 
 ║(11) If additional lines are introduced into the source program as a result of the processing of COPY statements, the indicator area of the introduced line contains the same character as the line on which the text being replaced begins, unless that line contains a hyphen, in which case the introduced line contains a space. In the case where a literal is continued onto an introduced line which is not a debugging line, a hyphen is placed in the indicator area.║
+
+(12) The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.
+
+> ⚠ **CORRECTED — see the Errata (C304).** The standard prints `(the general rules end with rule 11)` (page 579, folio XII-5). Amendment 2 (ANSI X3.23b-1993), its change for page XII-5 (page 935, folio B-23), applied in place: "Paragraph 2.4 of the COPY statement, add the following as a new general rule 12" (kb/Work PB5045). Corrected to `(12) The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.`.
 
 XII-5
 
@@ -21969,13 +22029,17 @@ Source Text Manipulation - REPLACE
 
 ║(4) Any REPLACE statements contained in a source program are processed after the processing of any COPY statements contained in a source program.║
 
-║(5) The text produced as a result of the processing of a REPLACE statement must not contain a REPLACE statement.║
+║(5) The text produced as a result of the processing of a REPLACE statement must contain neither a COPY statement nor a REPLACE statement.║
+
+> ⚠ **CORRECTED — see the Errata (C305).** The standard prints `║(5) The text produced as a result of the processing of a REPLACE statement must not contain a REPLACE statement.║` (page 581, folio XII-7). Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 935, folio B-23), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 5, change to read" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `║(5) The text produced as a result of the processing of a REPLACE statement must contain neither a COPY statement nor a REPLACE statement.║`.
 
 ║(6) The comparison operation to determine text replacement occurs in the following manner:║
 
 ║a. Starting with the leftmost source program text word and the first pseudo-text-1, pseudo-text-1 is compared to an equivalent number of contiguous source program text words.║
 
-║b. Pseudo-text-1 matches the source program text if, and only if, the ordered sequence of text words that forms pseudo-text-1 is equal, character for character, to the ordered sequence of source program text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the source program text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space.║
+║b. Pseudo-text-1 matches the source program text if, and only if, the ordered sequence of text words that forms pseudo-text-1 is equal, character for character, to the ordered sequence of source program text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the source program text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space. Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)║
+
+> ⚠ **CORRECTED — see the Errata (C306).** The standard prints `(no such sentence)` (page 581, folio XII-7). Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 936, folio B-24), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 6b, add the following as the new last sentence" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)`.
 
 ║c. If no match occurs, the comparison is repeated with each next successive occurrence of pseudo-text-1, until either a match is found or there is no next successive occurrence of pseudo-text-1.║
 
@@ -21985,7 +22049,9 @@ Source Text Manipulation - REPLACE
 
 ║f. The comparison operation continues until the rightmost text word in the source program text which is within the scope of the REPLACE statement has either participated in a match or been considered as a leftmost source program text word and participated in a complete comparison cycle.║
 
-║(7) Comment lines or blank lines occurring in the source program text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the source program text and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement. A comment line or blank line in source program text is not replaced if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.║
+║(7) Comment lines or blank lines occurring in the source program text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the source program text and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement. A comment line or blank line in source program text is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.║
+
+> ⚠ **CORRECTED — see the Errata (C307).** The standard prints `A comment line or blank line in source program text is not replaced if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.` (page 581, folio XII-7). Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 936, folio B-24), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 7, change the last sentence to read" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `A comment line or blank line in source program text is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.`.
 
 ║(8) Debugging lines are permitted in pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area.║
 
@@ -23160,7 +23226,9 @@ a. The first print line of the body group is presented on the line number specif
 
 b. If the value in LINE-COUNTER is equal to or greater than the line number specified by the FIRST DETAIL phrase of the PAGE clause, and if no body group has previously been presented on the page to which the report is currently positioned, then the first print line of the current body group is presented on the line immediately following the line indicated by the value contained in LINE-COUNTER.
 
-If the value in LINE-COUNTER is equal to or greater than the line number specified by the FIRST DETAIL phrase of the PAGE clause, and if a body group has previously been presented on the page to which the report is currently positioned, then the first print line of the current page group is presented on the line that is obtained by adding the content of LINE-COUNTER and the integer of the first LINE NUMBER clause of the current body group.
+If the value in LINE-COUNTER is equal to or greater than the line number specified by the FIRST DETAIL phrase of the PAGE clause, and if a body group has previously been presented on the page to which the report is currently positioned, then the first print line of the current body group is presented on the line that is obtained by adding the content of LINE-COUNTER and the integer of the first LINE NUMBER clause of the current body group.
+
+> ⚠ **CORRECTED — see the Errata (C308).** The standard prints `the first print line of the current page group is presented` (page 614, folio XIII-34). Amendment 2 (ANSI X3.23b-1993), its change for page XIII-34 (page 936, folio B-24), applied in place: "Paragraph 3.10.8 entitled Body Group Presentation Rules, rule 4b, second paragraph, fourth line, change 'current page group' to 'current body group'" (kb/Work PB5045). Corrected to `the first print line of the current body group is presented`.
 
 If the value in LINE-COUNTER is less than the line number specified by the FIRST DETAIL phrase of the PAGE clause, then the first print line of the body group is presented on the line specified by the FIRST DETAIL phrase.
 
@@ -24375,7 +24443,9 @@ a. When the OUTPUT phrase is specified, the execution of the OPEN statement caus
 
 The behavior of the OPEN statement when label records are specified but not present, or when label records are not specified but are present, is undefined.
 
-(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)
+(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)
+
+> ⚠ **CORRECTED — see the Errata (C309).** The standard prints `(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)` (page 649, folio XIII-71). Amendment 2 (ANSI X3.23b-1993), its change for page XIII-71 (page 936, folio B-24), applied in place: "Paragraph 4.5.4 of the OPEN statement in the Report Writer module, general rule 6, change to read" (kb/Work PB5045). Corrected to the text above.
 
 (7) The NO REWIND phrase must only be used with:
 
@@ -24606,7 +24676,9 @@ The USE BEFORE REPORTING statement specifies Procedure Division statements that 
 
 (1) A USE BEFORE REPORTING statement, when present, must immediately follow a section header in the declaratives portion of the Procedure Division and must appear in a sentence by itself. The remainder of the section must consist of zero, one, or more procedural paragraphs that define the procedures to be used.
 
-(2) Identifier-1 must reference a report group. Identifier-1 must not appear in more than one USE BEFORE REPORTING statement.
+(2) Identifier-1 must reference a report group. The same identifier-1 must not appear in more than one USE BEFORE REPORTING statement within the same Procedure Division.
+
+> ⚠ **CORRECTED — see the Errata (C310).** The standard prints `(2) Identifier-1 must reference a report group. Identifier-1 must not appear in more than one USE BEFORE REPORTING statement.` (page 656, folio XIII-78). Amendment 2 (ANSI X3.23b-1993), its change for page XIII-78 (page 936, folio B-24), applied in place: "Paragraph 4.9.3 of the USE BEFORE REPORTING statement, syntax rule 2, change to read" (kb/Work PB5045). Corrected to `(2) Identifier-1 must reference a report group. The same identifier-1 must not appear in more than one USE BEFORE REPORTING statement within the same Procedure Division.`.
 
 (3) The GENERATE, INITIATE, or TERMINATE statements must not appear in a paragraph within a USE BEFORE REPORTING procedure. A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or TERMINATE statements in its range.
 
@@ -33047,7 +33119,9 @@ In the Intrinsic Function module, a function is a temporary data item whose valu
 
 #### 1.2.2 Value Returned by a Function
 
-The value returned by a function is considered to be a data value. A mechanism is provided at object time to assign a data value to a function when it is referenced. In order to determine the function's value, the evaluation mechanism may require access to data values provided by the referencing program. These data values are provided by specifying parameters, known as arguments, when referencing the function. Specific functions may place constraints on these arguments, such as range, etc. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined.
+The value returned by a function is considered to be a data value. A mechanism is provided at object time to assign a data value to a function when it is referenced. In order to determine the function's value, the evaluation mechanism may require access to data values provided by the referencing program. These data values are provided by specifying parameters, known as arguments, when referencing the function. Specific functions may place constraints on these arguments, such as range, etc. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined.
+
+> ⚠ **CORRECTED — see the Errata (C311).** The standard prints `If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined.` (page 857, folio A-27). Amendment 2 (ANSI X3.23b-1993), its change for page (A-27) (page 936, folio B-24), applied in place: "Paragraph 1.2.2 entitled Value Returned by a Function, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined.`.
 
 #### 1.2.3 Function-Identifier
 
@@ -38183,6 +38257,37 @@ it is taken as the rule of 1985.
 | [C278](#errata-c278) | 474 | IX-4 | Section IX, paragraph 1.3.4 (I-O Status), item 3b, I-O status 22 | `b. I-O Status = 22. An attempt is made to write ║or rewrite…` | `b. I-O Status = 22. An attempt is made ║either:║ ║1)║ ... ║…` | amendment-2 |
 | [C279](#errata-c279) | 477 | IX-7 | Section IX, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted | `1.3.7 The File Attribute Conflict Condition ...` | `(deleted)` | amendment-2 |
 | [C280](#errata-c280) | 496 | IX-26 | Section IX, paragraph 4.4.4 (OPEN), general rule 8 | `(See page IX-7, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
+| [C281](#errata-c281) | 497 | IX-27 | Section IX, paragraph 4.4.4 (OPEN), a new general rule 19 | `(no rule 19)` | `(19) If the execution of the OPEN statement is unsuccessful…` | amendment-2 |
+| [C282](#errata-c282) | 500 | IX-30 | Section IX, paragraph 4.5.4 (READ), general rule 10b | `b. If the AT END phrase is specified ... USE AFTER STANDARD…` | `b. ... the AT END imperative-statement-1. ... NOT AT END ph…` | amendment-2 |
+| [C283](#errata-c283) | 500 | IX-30 | Section IX, paragraph 4.5.4 (READ), general rule 10c, first sentence | `a USE AFTER STANDARD EXCEPTION procedure must be associated…` | `a USE AFTER EXCEPTION procedure must be associated with the…` | amendment-2 |
+| [C284](#errata-c284) | 501 | IX-31 | Section IX, paragraph 4.5.4 (READ), general rule 11b | `b. If an exception condition which is not ... applicable to…` | `b. If an exception condition that is not ... referenced by…` | amendment-2 |
+| [C285](#errata-c285) | 503 | IX-33 | Section IX, paragraph 4.6.3 (REWRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C286](#errata-c286) | 509 | IX-39 | Section IX, paragraph 4.8.3 (USE), syntax rule 3 | `(3) Appearance of file-name-1 in a USE statement must not c…` | `(3) The same file-name must not appear in more than one USE…` | amendment-2 |
+| [C287](#errata-c287) | 511 | IX-41 | Section IX, paragraph 4.9.3 (WRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C288](#errata-c288) | 512 | IX-42 | Section IX, paragraph 4.9.4 (WRITE), general rule 9 and its subparagraphs a and b | `(9) ... at the appropriate time as follows: a. ... b. ...` | `(9) Transfer of control following the successful or unsucce…` | amendment-2 |
+| [C289](#errata-c289) | 521 | X-7 | Section X, paragraph 1.3.8.3 (Conventions for Index-Names), first sentence | `either or both the external or global attributes ... an ind…` | `the global attribute ... an index-name ...` | amendment-2 |
+| [C290](#errata-c290) | 539 | X-23 | Section X, paragraph 4.5.3 (EXTERNAL), syntax rule 3, first sentence | `entry which includes, or is subordinate to, an entry which…` | `entry that includes, or is subordinate to an entry that inc…` | amendment-2 |
+| [C291](#errata-c291) | 549 | X-33 | Section X, paragraph 5.4.4 (EXIT PROGRAM), a new general rule 4 | `(no rule 4)` | `(4) An EXIT PROGRAM statement must not be executed while ...` | amendment-2 |
+| [C292](#errata-c292) | 562 | XI-10 | Section XI, paragraph 4.1.4 (MERGE), general rule 7b | `(no last sentence)` | `If the file referenced by file-name-1 is described with var…` | amendment-2 |
+| [C293](#errata-c293) | 563 | XI-11 | Section XI, paragraph 4.1.4 (MERGE), general rule 7c | `(no last sentence)` | `For a relative file, the content of the relative key data i…` | amendment-2 |
+| [C294](#errata-c294) | 563 | XI-11 | Section XI, paragraph 4.1.4 (MERGE), general rule 7, a new last paragraph | `(no last paragraph)` | `The value of the data item referenced by the DEPENDING ON p…` | amendment-2 |
+| [C295](#errata-c295) | 563 | XI-11 | Section XI, paragraph 4.1.4 (MERGE), general rule 11b, first paragraph | `(no last sentence)` | `If the file referenced by file-name-4 is described with var…` | amendment-2 |
+| [C296](#errata-c296) | 564 | XI-12 | Section XI, paragraph 4.1.4 (MERGE), general rule 11, last paragraph | `any USE AFTER STANDARD EXCEPTION/ERROR procedure specified…` | `any USE AFTER EXCEPTION procedure associated with the file…` | amendment-2 |
+| [C297](#errata-c297) | 564 | XI-12 | Section XI, paragraph 4.1.4 (MERGE), general rule 11, a new last paragraph | `(no last paragraph)` | `The value of the data item referenced by the DEPENDING ON p…` | amendment-2 |
+| [C298](#errata-c298) | 565 | XI-13 | Section XI, paragraph 4.2.3 (RELEASE), syntax rule 3, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C299](#errata-c299) | 571 | XI-19 | Section XI, paragraph 4.4.4 (SORT), general rule 9b to the end of general rule 9 | `9b ... end of general rule 9` | `9b, 9c and two paragraphs, as the amendment reads` | amendment-2 |
+| [C300](#errata-c300) | 572 | XI-20 | Section XI, paragraph 4.4.4 (SORT), general rule 12b, first paragraph, last sentence | `phrases had been execution.` | `phrases had been executed.` | amendment-2 |
+| [C301](#errata-c301) | 572 | XI-20 | Section XI, paragraph 4.4.4 (SORT), general rule 12b, first paragraph | `(no last sentence)` | `If the file referenced by file-name-3 is described with var…` | amendment-2 |
+| [C302](#errata-c302) | 572 | XI-20 | Section XI, paragraph 4.4.4 (SORT), general rule 12, last paragraph, last sentence | `any USE AFTER STANDARD EXCEPTION/ERROR procedure specified…` | `any USE AFTER EXCEPTION procedure associated with the file…` | amendment-2 |
+| [C303](#errata-c303) | 577 | XII-3 | Section XII, paragraph 2.4 (COPY), general rule 5b | `(no last sentence)` | `Each lowercase letter is equivalent to the corresponding up…` | amendment-2 |
+| [C304](#errata-c304) | 579 | XII-5 | Section XII, paragraph 2.4 (COPY), a new general rule 12 | `(no rule 12)` | `(12) The text produced as a result of the complete processi…` | amendment-2 |
+| [C305](#errata-c305) | 581 | XII-7 | Section XII, paragraph 3.4 (REPLACE), general rule 5 | `must not contain a REPLACE statement` | `must contain neither a COPY statement nor a REPLACE stateme…` | amendment-2 |
+| [C306](#errata-c306) | 581 | XII-7 | Section XII, paragraph 3.4 (REPLACE), general rule 6b | `(no last sentence)` | `Each lowercase letter is equivalent to the corresponding up…` | amendment-2 |
+| [C307](#errata-c307) | 581 | XII-7 | Section XII, paragraph 3.4 (REPLACE), general rule 7, last sentence | `is not replaced if` | `is not placed into the resultant program if` | amendment-2 |
+| [C308](#errata-c308) | 614 | XIII-34 | Section XIII, paragraph 3.10.8 (Body Group Presentation Rules), rule 4b, second paragraph | `current page group` | `current body group` | amendment-2 |
+| [C309](#errata-c309) | 649 | XIII-71 | Section XIII, paragraph 4.5.4 (OPEN), general rule 6 | `(See page VII-5, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
+| [C310](#errata-c310) | 656 | XIII-78 | Section XIII, paragraph 4.9.3 (USE BEFORE REPORTING), syntax rule 2 | `Identifier-1 must not appear in more than one USE BEFORE RE…` | `The same identifier-1 must not appear in more than one USE…` | amendment-2 |
+| [C311](#errata-c311) | 857 | A-27 | Section A, paragraph 1.2.2 (Value Returned by a Function), last sentence | `the returned value for the function is undefined.` | `then the result of such a reference is undefined.` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -41263,6 +41368,347 @@ Amendment 2 (ANSI X3.23b-1993), its change for page IX-7 (page 930, folio B-18),
 | **This transcription** | `(8) If during the execution of the OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page IX-26 (page 930, folio B-18), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, general rule 8, change to read" (kb/Work PB5045).
+
+<a id="errata-c281"></a>
+
+### C281 · page 497 (folio IX-27) · Section IX, paragraph 4.4.4 (OPEN), a new general rule 19 · `(no rule 19)` → `(19) If the execution of the OPEN statement is un…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 18)` |
+| **This transcription** | `(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order: ¶ a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful. ¶ b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page IX-39, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-27 (page 931, folio B-19), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, add the following as the new general rule 19" (kb/Work PB5045).
+
+<a id="errata-c282"></a>
+
+### C282 · page 500 (folio IX-30) · Section IX, paragraph 4.5.4 (READ), general rule 10b · `b. If the AT END phrase is specified ... USE AFTE…` → `b. ... the AT END imperative-statement-1. ... NOT…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` |
+| **This transcription** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1 control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-30 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read" (the amendment prints no comma after 'imperative-statement-1' in its last sentence, as its sequential and relative rows do; the text follows the amendment) (kb/Work PB5045).
+
+<a id="errata-c283"></a>
+
+### C283 · page 500 (folio IX-30) · Section IX, paragraph 4.5.4 (READ), general rule 10c, first sentence · `a USE AFTER STANDARD EXCEPTION procedure must be…` → `a USE AFTER EXCEPTION procedure must be associate…`
+
+| | |
+|---|---|
+| **Printed** | `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed.` |
+| **This transcription** | `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-30 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following" (kb/Work PB5045).
+
+<a id="errata-c284"></a>
+
+### C284 · page 501 (folio IX-31) · Section IX, paragraph 4.5.4 (READ), general rule 11b · `b. If an exception condition which is not ... app…` → `b. If an exception condition that is not ... refe…`
+
+| | |
+|---|---|
+| **Printed** | `b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page IX-39, The USE Statement.)` |
+| **This transcription** | `b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page IX-39, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-31 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following" (kb/Work PB5045).
+
+<a id="errata-c285"></a>
+
+### C285 · page 503 (folio IX-33) · Section IX, paragraph 4.6.3 (REWRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-33 (A-19) (page 932, folio B-20), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Indexed I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c286"></a>
+
+### C286 · page 509 (folio IX-39) · Section IX, paragraph 4.8.3 (USE), syntax rule 3 · `(3) Appearance of file-name-1 in a USE statement…` → `(3) The same file-name must not appear in more th…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` |
+| **This transcription** | `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-39 (page 932, folio B-20), applied in place: "Paragraph 4.8.3 of the USE statement in the Indexed I-O module, syntax rule 3, change to read" (kb/Work PB5045).
+
+<a id="errata-c287"></a>
+
+### C287 · page 511 (folio IX-41) · Section IX, paragraph 4.9.3 (WRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-41 (A-20) (page 932, folio B-20), applied in place: "Paragraph 4.9.3 of the WRITE statement in the Indexed I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c288"></a>
+
+### C288 · page 512 (folio IX-42) · Section IX, paragraph 4.9.4 (WRITE), general rule 9 and its subparagraphs a and b · `(9) ... at the appropriate time as follows: a. ..…` → `(9) Transfer of control following the successful…`
+
+| | |
+|---|---|
+| **Printed** | `(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, ... as follows: a. ... b. ...` |
+| **This transcription** | `(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page IX-6, The Invalid Key Condition.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-42 (page 932, folio B-20), applied in place: "Paragraph 4.9.4 of the WRITE statement in the Indexed I-O module, general rule 9, including subparagraphs a and b, change to read" (kb/Work PB5045).
+
+<a id="errata-c289"></a>
+
+### C289 · page 521 (folio X-7) · Section X, paragraph 1.3.8.3 (Conventions for Index-Names), first sentence · `either or both the external or global attributes…` → `the global attribute ... an index-name ...`
+
+| | |
+|---|---|
+| **Printed** | `║If a data item possessing either or both the external or global attributes includes a table accessed with an index, that index also possesses correspondingly either or both attributes.` |
+| **This transcription** | `║If a data item possessing the global attribute includes a table described with an index-name, that index-name also possesses the global attribute.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page X-7 (page 932, folio B-20), applied in place: "Paragraph 1.3.8.3, Conventions for Index-Names, change the first sentence to read" (shaded: level 2, the paragraph's box) (kb/Work PB5045).
+
+<a id="errata-c290"></a>
+
+### C290 · page 539 (folio X-23) · Section X, paragraph 4.5.3 (EXTERNAL), syntax rule 3, first sentence · `entry which includes, or is subordinate to, an en…` → `entry that includes, or is subordinate to an entr…`
+
+| | |
+|---|---|
+| **Printed** | `║(3) The VALUE clause must not be used in any data description entry which includes, or is subordinate to, an entry which includes the EXTERNAL clause.` |
+| **This transcription** | `║(3) The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page X-23 (page 932, folio B-20), applied in place: "Paragraph 4.5.3 of the EXTERNAL clause, syntax rule 3, change the first sentence to read" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c291"></a>
+
+### C291 · page 549 (folio X-33) · Section X, paragraph 5.4.4 (EXIT PROGRAM), a new general rule 4 · `(no rule 4)` → `(4) An EXIT PROGRAM statement must not be execute…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 3)` |
+| **This transcription** | `║(4) An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase is specified, except within a program called while executing within the range of that declarative procedure.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page X-33 (page 932, folio B-20), applied in place: "Paragraph 5.4.4 of the EXIT PROGRAM statement, add the following as the new general rule 4" (shaded: level 2, boxed) (kb/Work PB5045).
+
+<a id="errata-c292"></a>
+
+### C292 · page 562 (folio XI-10) · Section XI, paragraph 4.1.4 (MERGE), general rule 7b · `(no last sentence)` → `If the file referenced by file-name-1 is describe…`
+
+| | |
+|---|---|
+| **Printed** | `b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed.` |
+| **This transcription** | `b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed. If the file referenced by file-name-1 is described with variable length records, the size of any record written to file-name-1 is the size of that record when it was read from file-name-2 or file-name-3, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-10 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7b, add the following as the new last sentence for the paragraph" (kb/Work PB5045).
+
+<a id="errata-c293"></a>
+
+### C293 · page 563 (folio XI-11) · Section XI, paragraph 4.1.4 (MERGE), general rule 7c · `(no last sentence)` → `For a relative file, the content of the relative…`
+
+| | |
+|---|---|
+| **Printed** | `If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure.` |
+| **This transcription** | `If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure. For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7c, add the following as a new last sentence after the words '... the last statement in the output procedure.'" (kb/Work PB5045).
+
+<a id="errata-c294"></a>
+
+### C294 · page 563 (folio XI-11) · Section XI, paragraph 4.1.4 (MERGE), general rule 7, a new last paragraph · `(no last paragraph)` → `The value of the data item referenced by the DEPE…`
+
+| | |
+|---|---|
+| **Printed** | `These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed.` |
+| **This transcription** | `The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 or file-name-3 is undefined upon completion of the MERGE statement.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7, add the following as a new last paragraph for general rule 7" (kb/Work PB5045).
+
+<a id="errata-c295"></a>
+
+### C295 · page 563 (folio XI-11) · Section XI, paragraph 4.1.4 (MERGE), general rule 11b, first paragraph · `(no last sentence)` → `If the file referenced by file-name-4 is describe…`
+
+| | |
+|---|---|
+| **Printed** | `b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed.` |
+| **This transcription** | `b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed. If the file referenced by file-name-4 is described with variable length records, the size of any record written to file-name-4 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-4.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11b, add the following as the new last sentence for the first paragraph" (kb/Work PB5045).
+
+<a id="errata-c296"></a>
+
+### C296 · page 564 (folio XI-12) · Section XI, paragraph 4.1.4 (MERGE), general rule 11, last paragraph · `any USE AFTER STANDARD EXCEPTION/ERROR procedure…` → `any USE AFTER EXCEPTION procedure associated with…`
+
+| | |
+|---|---|
+| **Printed** | `any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed;` |
+| **This transcription** | `any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-4 is executed;` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-12 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11, last paragraph, sixth line, change in part" (kb/Work PB5045).
+
+<a id="errata-c297"></a>
+
+### C297 · page 564 (folio XI-12) · Section XI, paragraph 4.1.4 (MERGE), general rule 11, a new last paragraph · `(no last paragraph)` → `The value of the data item referenced by the DEPE…`
+
+| | |
+|---|---|
+| **Printed** | `(general rule 11 ends with the paragraph above)` |
+| **This transcription** | `The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the MERGE statement for which the GIVING phrase is specified.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-12 (page 934, folio B-22), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11, add the following as a new last paragraph for general rule 11" (kb/Work PB5045).
+
+<a id="errata-c298"></a>
+
+### C298 · page 565 (folio XI-13) · Section XI, paragraph 4.2.3 (RELEASE), syntax rule 3, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-13 (A-20) (page 934, folio B-22), applied in place: "Paragraph 4.2.3 of the RELEASE statement in the Sort-Merge module, syntax rule 3, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c299"></a>
+
+### C299 · page 571 (folio XI-19) · Section XI, paragraph 4.4.4 (SORT), general rule 9b to the end of general rule 9 · `9b ... end of general rule 9` → `9b, 9c and two paragraphs, as the amendment reads`
+
+| | |
+|---|---|
+| **Printed** | `b. The logical records are obtained ... (to the end of general rule 9: its paragraph For a relative file, item c and the paragraph These implicit functions)` |
+| **This transcription** | `b. ... c. ... These implicit functions ... The value of the data item referenced by the DEPENDING ON phrase ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-19 (page 934, folio B-22), applied in place: "Paragraph 4.4.4 of the SORT statement, beginning of general rule 9b to the end of general rule 9, replace with the following" (kb/Work PB5045).
+
+<a id="errata-c300"></a>
+
+### C300 · page 572 (folio XI-20) · Section XI, paragraph 4.4.4 (SORT), general rule 12b, first paragraph, last sentence · `phrases had been execution.` → `phrases had been executed.`
+
+| | |
+|---|---|
+| **Printed** | `phrases had been execution.` |
+| **This transcription** | `phrases had been executed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 934, folio B-22), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12b, first paragraph, last sentence, change 'phrases had been execution.' to 'phrases had been executed.'" (kb/Work PB5045).
+
+<a id="errata-c301"></a>
+
+### C301 · page 572 (folio XI-20) · Section XI, paragraph 4.4.4 (SORT), general rule 12b, first paragraph · `(no last sentence)` → `If the file referenced by file-name-3 is describe…`
+
+| | |
+|---|---|
+| **Printed** | `... phrases had been executed.` |
+| **This transcription** | `... phrases had been executed. If the file referenced by file-name-3 is described with variable length records, the size of any record written to file-name-3 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-3.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 935, folio B-23), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12b, add the following as the new last sentence in the first paragraph" (kb/Work PB5045).
+
+<a id="errata-c302"></a>
+
+### C302 · page 572 (folio XI-20) · Section XI, paragraph 4.4.4 (SORT), general rule 12, last paragraph, last sentence · `any USE AFTER STANDARD EXCEPTION/ERROR procedure…` → `any USE AFTER EXCEPTION procedure associated with…`
+
+| | |
+|---|---|
+| **Printed** | `On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above.` |
+| **This transcription** | `On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-3 is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above. ¶ The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the SORT statement for which the GIVING phrase is specified.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 935, folio B-23), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12, last paragraph, last sentence beginning with 'On the first attempt', replace with the following" (the replacement is that sentence and a new paragraph) (kb/Work PB5045).
+
+<a id="errata-c303"></a>
+
+### C303 · page 577 (folio XII-3) · Section XII, paragraph 2.4 (COPY), general rule 5b · `(no last sentence)` → `Each lowercase letter is equivalent to the corres…`
+
+| | |
+|---|---|
+| **Printed** | `(no such sentence)` |
+| **This transcription** | `Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-3 (page 935, folio B-23), applied in place: "Paragraph 2.4 of the COPY statement, general rule 5b, add the following as the new last sentence" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c304"></a>
+
+### C304 · page 579 (folio XII-5) · Section XII, paragraph 2.4 (COPY), a new general rule 12 · `(no rule 12)` → `(12) The text produced as a result of the complet…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 11)` |
+| **This transcription** | `(12) The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-5 (page 935, folio B-23), applied in place: "Paragraph 2.4 of the COPY statement, add the following as a new general rule 12" (kb/Work PB5045).
+
+<a id="errata-c305"></a>
+
+### C305 · page 581 (folio XII-7) · Section XII, paragraph 3.4 (REPLACE), general rule 5 · `must not contain a REPLACE statement` → `must contain neither a COPY statement nor a REPLA…`
+
+| | |
+|---|---|
+| **Printed** | `║(5) The text produced as a result of the processing of a REPLACE statement must not contain a REPLACE statement.║` |
+| **This transcription** | `║(5) The text produced as a result of the processing of a REPLACE statement must contain neither a COPY statement nor a REPLACE statement.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 935, folio B-23), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 5, change to read" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c306"></a>
+
+### C306 · page 581 (folio XII-7) · Section XII, paragraph 3.4 (REPLACE), general rule 6b · `(no last sentence)` → `Each lowercase letter is equivalent to the corres…`
+
+| | |
+|---|---|
+| **Printed** | `(no such sentence)` |
+| **This transcription** | `Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 936, folio B-24), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 6b, add the following as the new last sentence" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c307"></a>
+
+### C307 · page 581 (folio XII-7) · Section XII, paragraph 3.4 (REPLACE), general rule 7, last sentence · `is not replaced if` → `is not placed into the resultant program if`
+
+| | |
+|---|---|
+| **Printed** | `A comment line or blank line in source program text is not replaced if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.` |
+| **This transcription** | `A comment line or blank line in source program text is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 936, folio B-24), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 7, change the last sentence to read" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c308"></a>
+
+### C308 · page 614 (folio XIII-34) · Section XIII, paragraph 3.10.8 (Body Group Presentation Rules), rule 4b, second paragraph · `current page group` → `current body group`
+
+| | |
+|---|---|
+| **Printed** | `the first print line of the current page group is presented` |
+| **This transcription** | `the first print line of the current body group is presented` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XIII-34 (page 936, folio B-24), applied in place: "Paragraph 3.10.8 entitled Body Group Presentation Rules, rule 4b, second paragraph, fourth line, change 'current page group' to 'current body group'" (kb/Work PB5045).
+
+<a id="errata-c309"></a>
+
+### C309 · page 649 (folio XIII-71) · Section XIII, paragraph 4.5.4 (OPEN), general rule 6 · `(See page VII-5, The File Attribute Conflict Cond…` → `The implementor defines which ... (See page II-1,…`
+
+| | |
+|---|---|
+| **Printed** | `(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)` |
+| **This transcription** | `(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XIII-71 (page 936, folio B-24), applied in place: "Paragraph 4.5.4 of the OPEN statement in the Report Writer module, general rule 6, change to read" (kb/Work PB5045).
+
+<a id="errata-c310"></a>
+
+### C310 · page 656 (folio XIII-78) · Section XIII, paragraph 4.9.3 (USE BEFORE REPORTING), syntax rule 2 · `Identifier-1 must not appear in more than one USE…` → `The same identifier-1 must not appear in more tha…`
+
+| | |
+|---|---|
+| **Printed** | `(2) Identifier-1 must reference a report group. Identifier-1 must not appear in more than one USE BEFORE REPORTING statement.` |
+| **This transcription** | `(2) Identifier-1 must reference a report group. The same identifier-1 must not appear in more than one USE BEFORE REPORTING statement within the same Procedure Division.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XIII-78 (page 936, folio B-24), applied in place: "Paragraph 4.9.3 of the USE BEFORE REPORTING statement, syntax rule 2, change to read" (kb/Work PB5045).
+
+<a id="errata-c311"></a>
+
+### C311 · page 857 (folio A-27) · Section A, paragraph 1.2.2 (Value Returned by a Function), last sentence · `the returned value for the function is undefined.` → `then the result of such a reference is undefined.`
+
+| | |
+|---|---|
+| **Printed** | `If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined.` |
+| **This transcription** | `If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-27) (page 936, folio B-24), applied in place: "Paragraph 1.2.2 entitled Value Returned by a Function, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 

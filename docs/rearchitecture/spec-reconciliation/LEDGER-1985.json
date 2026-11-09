@@ -15524,6 +15524,18 @@
     "║1)║ to write a record that would create a duplicate prime record key║; or║",
     "║2) to write or rewrite a record that would create a duplicate alternate record key"
    ]
+  },
+  {
+   "page": 549,
+   "n": 732,
+   "region": "rule",
+   "where": "5.4.4 GR 4, the new rule, shaded by Amendment 2 row X-33 (Errata C291, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║(4) An EXIT PROGRAM statement must not be executed while executing"
+   ]
   }
  ]
 }
