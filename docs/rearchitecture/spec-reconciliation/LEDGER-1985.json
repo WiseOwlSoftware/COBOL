@@ -15497,6 +15497,30 @@
     "║or global names║",
     "║or external║ attribute"
    ]
+  },
+  {
+   "page": 248,
+   "n": 727,
+   "region": "rule",
+   "where": "4.5.4 GR 4d, the new subitem 4, shaded by Amendment 2 row VI-16 (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║4\\) If a character code set is being specified"
+   ]
+  },
+  {
+   "page": 263,
+   "n": 728,
+   "region": "rule",
+   "where": "5.9.4 GR 8, symbol P, item c, shaded by Amendment 2 row VI-31 (Errata, kb/Work PB5045)",
+   "certainty": "high",
+   "decision": "MARKED",
+   "blocks": 1,
+   "opens": [
+    "║c. A MOVE statement where the sending operand is numeric edited"
+   ]
   }
  ]
 }

@@ -7682,7 +7682,9 @@ A conditional sentence is a conditional statement, optionally preceded by an imp
 
 #### 6.4.2.2.1 Definition of Compiler Directing Statement
 
-A compiler directing statement consists of a compiler directing verb and its operands. The compiler directing verbs are COPY, REPLACE, and USE (see page XII-2, The COPY Statement; page XII-6, The REPLACE Statement; and the USE Statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5). A compiler directing statement causes the compiler to take a specific action during compilation.
+A compiler directing statement consists of a compiler directing verb and its operands. The compiler directing verbs are COPY, ENTER, REPLACE, and USE (see page XII-2, The COPY Statement; page VI-83, The ENTER Statement; page XII-6, The REPLACE Statement; and the USE statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5). A compiler directing statement causes the compiler to take a specific action during compilation.
+
+> ⚠ **CORRECTED — see the Errata (C204).** The standard prints `The compiler directing verbs are COPY, REPLACE, and USE (see page XII-2, The COPY Statement; page XII-6, The REPLACE Statement; and the USE Statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5).` (page 184, folio IV-38). Amendment 2 (ANSI X3.23b-1993), its change for page IV-38 (page 919, folio B-7), applied in place: "Paragraph 6.4.2.2.1 entitled Definition of Compiler Directing Statement, second sentence, change to read" (kb/Work PB5045). Corrected to the text above.
 
 #### 6.4.2.2.2 Definition of Compiler Directing Sentence
 
@@ -7839,7 +7841,9 @@ Reference Format
 
 7.2.5 Pseudo-Text
 
-The character-strings and separators comprising pseudo-text may start in either area A or area B. If, however, there is a hyphen in the indicator area of a line which follows the opening pseudo-text delimiter, area A of the line must be blank; and the normal rules for continuation of lines apply to the formation of text words. (See page IV-42, Continuation of Lines.)
+The text words and the separator space comprising pseudo-text may start in either area A or area B. If, however, there is a hyphen in the indicator area of a line which follows the opening pseudo-text delimiter, area A of the line must be blank; and the normal rules for continuation of lines apply to the formation of text words. (See page IV-42, Continuation of Lines.)
+
+> ⚠ **CORRECTED — see the Errata (C205).** The standard prints `The character-strings and separators comprising pseudo-text` (page 189, folio IV-43). Amendment 2 (ANSI X3.23b-1993), its change for page IV-43 (page 919, folio B-7), applied in place: "Paragraph 7.2.5 entitled Pseudo-Text, change a portion of the first sentence from 'The character-strings and separators comprising' to 'The text words and the separator space comprising'" (kb/Work PB5045). Corrected to `The text words and the separator space comprising pseudo-text`.
 
 7.3 DIVISION, SECTION, PARAGRAPH FORMATS
 
@@ -7903,9 +7907,11 @@ COBOL Reserved Words
 
 ## 8. <u>COBOL RESERVED WORDS</u>
 
-The following is a list of COBOL reserved words for the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation.
+The following is a list of COBOL reserved words for the seven required modules and the five optional modules.
 
 > ⚠ **CORRECTED — see the Errata (C106).** The standard prints `8. COBOL RESERVED WORDS (the heading the list follows)` (page 191, folio IV-45). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-45 (page 843, folio A-13), applied in place: "Paragraph 8, insert the following before the list of reserved words" (kb/Work PB5045). Corrected to `The following is a list of COBOL reserved words for the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation.`.
+
+> ⚠ **CORRECTED — see the Errata (C206).** The standard prints `The following is a list ... and the four optional modules of Report Writer, Communication, Debug, and Segmentation. (Amendment 1's sentence, C106)` (page 191, folio IV-45). Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (A-13) (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, change the first paragraph to read" (kb/Work PB5045). Corrected to `The following is a list of COBOL reserved words for the seven required modules and the five optional modules.`.
 
 | | | | |
 |---|---|---|---|
@@ -7949,7 +7955,7 @@ The following is a list of COBOL reserved words for the seven required modules a
 | CHARACTER | DISABLE | FOOTING | LOCK |
 | CHARACTERS | DISPLAY | FOR | LOW-VALUE |
 | CLASS | DIVIDE | FROM | LOW-VALUES |
-| CLOCK-UNITS | DIVISION | | |
+| CLOCK-UNITS | DIVISION | FUNCTION | |
 | CLOSE | DOWN | GENERATE | MEMORY |
 | COBOL | DUPLICATES | GIVING | MERGE |
 | CODE | DYNAMIC | GLOBAL | MESSAGE |
@@ -7962,6 +7968,8 @@ The following is a list of COBOL reserved words for the seven required modules a
 | COMP | END-ADD | HIGH-VALUES | NATIVE |
 | COMPUTATIONAL | END-CALL | | NEGATIVE |
 | COMPUTE | END-COMPUTE | I-O | NEXT |
+
+> ⚠ **CORRECTED — see the Errata (C207).** The standard prints `FROM, GENERATE (no FUNCTION between them)` (page 191, folio IV-45). Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, add the word FUNCTION between the words FROM and GENERATE in the list of COBOL reserved words" (kb/Work PB5045). Corrected to `FROM, FUNCTION, GENERATE`.
 
 IV-45
 
@@ -8015,11 +8023,9 @@ COBOL Reserved Words
 | | SEGMENT | THEN | &lt;= |
 | QUEUE | SEGMENT-LIMIT | THROUGH | |
 
-The following is a list of COBOL reserved words for the optional Intrinsic Function module.
-
-FUNCTION
-
 > ⚠ **CORRECTED — see the Errata (C107).** The standard prints `QUEUE SEGMENT-LIMIT THROUGH (the last row of the list)` (page 192, folio IV-46). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-46 (page 844, folio A-14), applied in place: "Paragraph 8, insert the following after the list of reserved words" (kb/Work PB5045). Corrected to `The following is a list of COBOL reserved words for the optional Intrinsic Function module. ¶ FUNCTION`.
+
+> ⚠ **CORRECTED — see the Errata (C208).** The standard prints `The following is a list of COBOL reserved words for the optional Intrinsic Function module. FUNCTION (Amendment 1's text, C107)` (page 192, folio IV-46). Amendment 2 (ANSI X3.23b-1993), its change for page IV-46 (A-14) (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, delete the following text" (kb/Work PB5045). Corrected to `(deleted)`.
 
 IV-46
 
@@ -9167,11 +9173,13 @@ Verb Formats (EXIT - INSPECT)
 </pre>
 
 <pre style="line-height:1">
-                    ╭ {statement-1} …   ╮ ╭ <u>ELSE</u> {statement-2} …   [<u>END-IF</u>] ╮
+                    ╭ statement-1       ╮ ╭ <u>ELSE</u> statement-2       [<u>END-IF</u>] ╮
                     ┤                   ├ │                                 │
 <u>IF</u> condition-1 THEN ╰ <u>NEXT</u> <u>SENTENCE</u>     ╯ ┤ <u>ELSE</u> <u>NEXT</u> <u>SENTENCE</u>              ├
                                           ╰ <u>END-IF</u>                          ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C209).** The standard prints `IF condition-1 THEN { {statement-1} ... | NEXT SENTENCE } { ELSE {statement-2} ... [END-IF] | ... }` (page 216, folio V-24). Amendment 2 (ANSI X3.23b-1993), its change for page V-24 (page 919, folio B-7), applied in place: "General format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2" (kb/Work PB5045). Corrected to `IF condition-1 THEN { statement-1 | NEXT SENTENCE } { ELSE statement-2 [END-IF] | ... }`.
 
 <pre style="line-height:1">
 <u>INITIALIZE</u>  {identifier-1} …
@@ -10674,7 +10682,9 @@ b. If the NATIVE phrase is specified, the native character code set or native co
 
 c. If the implementor-name-2 phrase is specified, the character code set or collating sequence identified is that defined by the implementor. The implementor also defines the correspondence between characters of the character code set specified by implementor-name-2 and the characters of the native character code set.
 
-║d. If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause (see page VII-24, The CODE-SET Clause). The collating sequence identified is that defined according to the following rules:║
+║d. If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause (see page VII-24, The CODE-SET Clause). The character code set and/or collating sequence identified is that defined according to the following rules:║
+
+> ⚠ **CORRECTED — see the Errata (C210).** The standard prints `The collating sequence identified is that defined` (page 247, folio VI-15). Amendment 2 (ANSI X3.23b-1993), its change for page VI-15 (page 919, folio B-7), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, second sentence, change 'The collating sequence identified' to 'The character code set and/or collating sequence identified'" (shaded, level 2: the sentence stands in the level-2 box) (kb/Work PB5045). Corrected to `The character code set and/or collating sequence identified is that defined`.
 
 ║1\) The value of each literal specifies:║
 
@@ -10692,9 +10702,15 @@ Nucleus - SPECIAL-NAMES
 
 ║3\) Any characters within the native collating sequence, which are not explicitly specified in the literal phrase, assume a position, in the collating sequence being specified, greater than any of the explicitly specified characters. The relative order within the set of these unspecified characters is unchanged from the native collating sequence.║
 
-║4\) If the THROUGH phrase is specified, the set of contiguous characters in the native character set beginning with the character specified by the value of literal-1, and ending with the character specified by the value of literal-2, is assigned a successive ascending position in the collating sequence being specified. In addition, the set of contiguous characters specified by a given THROUGH phrase may specify characters of the native character set in either ascending or descending sequence.║
+║4\) If a character code set is being specified, the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase.║
 
-║5\) If the ALSO phrase is specified, the characters of the native character set specified by the value of literal-1 and literal-3 are assigned to the same ordinal position in the collating sequence being specified or in the character code set that is used to represent the data, and if alphabet-name-1 is referenced in a SYMBOLIC CHARACTERS clause, only literal-1 is used to represent the character in the native character set.║
+> ⚠ **CORRECTED — see the Errata (C212).** The standard prints `4) If the THROUGH phrase ... 5) If the ALSO phrase ...` (page 248, folio VI-16). Amendment 2 (ANSI X3.23b-1993), its change for page VI-16 (page 920, folio B-8), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, renumber subitems 4 and 5 to new subitems 5 and 6. Insert the following as the new subitem 4" (shaded: level 2, boxed) (kb/Work PB5045). Corrected to `4) If a character code set is being specified, ... (new) 5) If the THROUGH phrase ... 6) If the ALSO phrase ...`.
+
+║5\) If the THROUGH phrase is specified, the contiguous characters in the native character set, beginning with the character specified by literal-1 and ending with the character specified by literal-2, are each assigned a successive ascending collating position in the collating sequence being specified and/or a successive ascending ordinal number in the character code set being specified. In addition, the set of contiguous characters specified by a given THROUGH phrase may specify characters of the native character set in either ascending or descending sequence.║
+
+> ⚠ **CORRECTED — see the Errata (C211).** The standard prints `If the THROUGH phrase is specified, the set of contiguous characters ... is assigned a successive ascending position in the collating sequence being specified.` (page 248, folio VI-16). Amendment 2 (ANSI X3.23b-1993), its change for page VI-16 (page 920, folio B-8), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, subitem 4, replace the first sentence (Beginning 'If the THROUGH phrase is specified') with the following new sentence" (shaded: level 2, in the box) (kb/Work PB5045). Corrected to `If the THROUGH phrase is specified, the contiguous characters ... are each assigned a successive ascending collating position ... and/or a successive ascending ordinal number in the character code set being specified.`.
+
+║6\) If the ALSO phrase is specified, the characters of the native character set specified by the value of literal-1 and literal-3 are assigned to the same ordinal position in the collating sequence being specified or in the character code set that is used to represent the data, and if alphabet-name-1 is referenced in a SYMBOLIC CHARACTERS clause, only literal-1 is used to represent the character in the native character set.║
 
 ║(5) The character that has the highest ordinal position in the program collating sequence is associated with the figurative constant HIGH-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph. If more than one character has the highest position in the program collating sequence, the last character specified is associated with the figurative constant HIGH-VALUE.║
 
@@ -11251,9 +11267,13 @@ In certain operations that reference a data item whose PICTURE character-string 
 
 a. Any operation requiring a numeric sending operand.
 
-b. A MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.
+b. An elementary MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.
 
-c. A MOVE statement where the sending operand is numeric edited and its PICTURE character-string contains the symbol 'P' and the receiving operand is numeric or numeric edited.
+> ⚠ **CORRECTED — see the Errata (C213).** The standard prints `b. A MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.` (page 263, folio VI-31). Amendment 2 (ANSI X3.23b-1993), its change for page VI-31 (page 920, folio B-8), applied in place: "Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of symbol 'P', second paragraph, change subparagraph b to read" (kb/Work PB5045). Corrected to `b. An elementary MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.`.
+
+║c. A MOVE statement where the sending operand is numeric edited and its PICTURE character-string contains the symbol 'P' and the receiving operand is numeric or numeric edited.║
+
+> ⚠ **CORRECTED — see the Errata (C214).** The standard prints `c. A MOVE statement where the sending operand is numeric edited and its PICTURE character-string contains the symbol 'P' and the receiving operand is numeric or numeric edited. (not boxed)` (page 263, folio VI-31). Amendment 2 (ANSI X3.23b-1993), its change for page VI-31 (page 920, folio B-8), applied in place: "Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of the symbol 'P', second paragraph, shade subparagraph c": shading is the amendment's mark of level 2, the box of this transcription (kb/Work PB5045). Corrected to `the item boxed`.
 
 d. A comparison operation where both operands are numeric.
 
@@ -11358,7 +11378,9 @@ decimal point, represented by the symbol 'V' and the actual decimal point, repre
 
 (7) Floating insertion editing. The currency symbol and editing sign control symbols '+' and '-' are the floating insertion characters and as such are mutually exclusive in a given PICTURE character-string.
 
-Floating insertion editing is indicated in a PICTURE character-string by using a string of at least two of the floating insertion characters. This string of floating insertion characters may contain any of the simple insertion characters or have simple insertion characters immediately to the right of this string. These simple insertion characters are part of the floating string. When the floating insertion character is the currency symbol, this string of floating insertion characters may have the fixed insertion characters 'CR' and 'DB' immediately to the right of this string.
+Floating insertion editing is indicated in a PICTURE character-string by using a string of at least two of the floating insertion characters. This string of floating insertion characters may contain any of the simple insertion characters or have simple insertion characters immediately to the right of this string. These simple insertion characters are part of the floating string. When the floating insertion character is the currency symbol, this string of floating insertion characters may have one of the editing sign control symbols '+', '-', 'CR', or 'DB' immediately to the right of this string.
+
+> ⚠ **CORRECTED — see the Errata (C215).** The standard prints `this string of floating insertion characters may have the fixed insertion characters 'CR' and 'DB' immediately to the right of this string.` (page 266, folio VI-34). Amendment 2 (ANSI X3.23b-1993), its change for page VI-34 (page 920, folio B-8), applied in place: "Paragraph 5.9.5, editing rules of the PICTURE clause, editing rule 7, second paragraph, change last sentence" (kb/Work PB5045). Corrected to `this string of floating insertion characters may have one of the editing sign control symbols '+', '-', 'CR', or 'DB' immediately to the right of this string.`.
 
 The leftmost character of the floating insertion string represents the leftmost limit of the floating symbols in the data item. The rightmost character of the floating string represents the rightmost limit of the floating symbols in the data item.
 
@@ -37967,6 +37989,18 @@ it is taken as the rule of 1985.
 | [C201](#errata-c201) | 168 | IV-22 | Section IV, paragraph 4.3.8.3.1, its title | `Purpose of a Function-Identifier` | `Function` | amendment-2 |
 | [C202](#errata-c202) | 168 | IV-22 | Section IV, paragraph 4.3.8.4, its title | `Reference-Modifier` | `Reference Modification` | amendment-2 |
 | [C203](#errata-c203) | 173 | IV-27 | Section IV, paragraph 4.4.4 (Explicit and Implicit Scope Terminators), last paragraph, item 2 | `Examples of such phrases are ELSE, WHEN, NOT AT END, etc.` | `(deleted)` | amendment-2 |
+| [C204](#errata-c204) | 184 | IV-38 | Section IV, paragraph 6.4.2.2.1 (Definition of Compiler Directing Statement), second sentence | `COPY, REPLACE, and USE` | `COPY, ENTER, REPLACE, and USE` | amendment-2 |
+| [C205](#errata-c205) | 189 | IV-43 | Section IV, paragraph 7.2.5 (Pseudo-Text), first sentence | `The character-strings and separators comprising` | `The text words and the separator space comprising` | amendment-2 |
+| [C206](#errata-c206) | 191 | IV-45 | Section IV, paragraph 8 (COBOL Reserved Words), first paragraph | `the four optional modules of ...` | `the five optional modules.` | amendment-2 |
+| [C207](#errata-c207) | 191 | IV-45 | Section IV, paragraph 8 (COBOL Reserved Words), the list | `(no FUNCTION)` | `FUNCTION` | amendment-2 |
+| [C208](#errata-c208) | 192 | IV-46 | Section IV, paragraph 8 (COBOL Reserved Words), after the list | `The following is a list ... Intrinsic Function module. FUNC…` | `(deleted)` | amendment-2 |
+| [C209](#errata-c209) | 216 | V-24 | Section V, the general format of the IF statement | `{statement-1} …, {statement-2} …` | `statement-1, statement-2` | amendment-2 |
+| [C210](#errata-c210) | 247 | VI-15 | Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, second sentence | `The collating sequence identified` | `The character code set and/or collating sequence identified` | amendment-2 |
+| [C211](#errata-c211) | 248 | VI-16 | Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, subitem 4, first sentence | `If the THROUGH phrase is specified, the set of ...` | `... and/or a successive ascending ordinal number ...` | amendment-2 |
+| [C212](#errata-c212) | 248 | VI-16 | Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, subitems 4 to 6 | `subitems 4, 5` | `new subitem 4; 5, 6` | amendment-2 |
+| [C213](#errata-c213) | 263 | VI-31 | Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item b | `b. A MOVE statement` | `b. An elementary MOVE statement` | amendment-2 |
+| [C214](#errata-c214) | 263 | VI-31 | Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item c | `c. (not boxed)` | `c. (boxed)` | amendment-2 |
+| [C215](#errata-c215) | 266 | VI-34 | Section VI, paragraph 5.9.5 (PICTURE editing rules), editing rule 7, second paragraph, last sentence | `the fixed insertion characters 'CR' and 'DB'` | `one of the editing sign control symbols '+', '-', 'CR', or…` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -40200,6 +40234,138 @@ Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-12) (page 918, foli
 | **This transcription** | `(deleted)` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page IV-27 (page 918, folio B-6), applied in place: "Paragraph 4.4.4 entitled Explicit and Implicit Scope Terminators, last paragraph, item 2, delete the last sentence that reads: 'Examples of such phrases are ELSE, WHEN, NOT AT END, etc.'" (kb/Work PB5045).
+
+<a id="errata-c204"></a>
+
+### C204 · page 184 (folio IV-38) · Section IV, paragraph 6.4.2.2.1 (Definition of Compiler Directing Statement), second sentence · `COPY, REPLACE, and USE` → `COPY, ENTER, REPLACE, and USE`
+
+| | |
+|---|---|
+| **Printed** | `The compiler directing verbs are COPY, REPLACE, and USE (see page XII-2, The COPY Statement; page XII-6, The REPLACE Statement; and the USE Statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5).` |
+| **This transcription** | `The compiler directing verbs are COPY, ENTER, REPLACE, and USE (see page XII-2, The COPY Statement; page VI-83, The ENTER Statement; page XII-6, The REPLACE Statement; and the USE statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5).` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-38 (page 919, folio B-7), applied in place: "Paragraph 6.4.2.2.1 entitled Definition of Compiler Directing Statement, second sentence, change to read" (kb/Work PB5045).
+
+<a id="errata-c205"></a>
+
+### C205 · page 189 (folio IV-43) · Section IV, paragraph 7.2.5 (Pseudo-Text), first sentence · `The character-strings and separators comprising` → `The text words and the separator space comprising`
+
+| | |
+|---|---|
+| **Printed** | `The character-strings and separators comprising pseudo-text` |
+| **This transcription** | `The text words and the separator space comprising pseudo-text` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-43 (page 919, folio B-7), applied in place: "Paragraph 7.2.5 entitled Pseudo-Text, change a portion of the first sentence from 'The character-strings and separators comprising' to 'The text words and the separator space comprising'" (kb/Work PB5045).
+
+<a id="errata-c206"></a>
+
+### C206 · page 191 (folio IV-45) · Section IV, paragraph 8 (COBOL Reserved Words), first paragraph · `the four optional modules of ...` → `the five optional modules.`
+
+| | |
+|---|---|
+| **Printed** | `The following is a list ... and the four optional modules of Report Writer, Communication, Debug, and Segmentation. (Amendment 1's sentence, C106)` |
+| **This transcription** | `The following is a list of COBOL reserved words for the seven required modules and the five optional modules.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (A-13) (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, change the first paragraph to read" (kb/Work PB5045).
+
+<a id="errata-c207"></a>
+
+### C207 · page 191 (folio IV-45) · Section IV, paragraph 8 (COBOL Reserved Words), the list · `(no FUNCTION)` → `FUNCTION`
+
+| | |
+|---|---|
+| **Printed** | `FROM, GENERATE (no FUNCTION between them)` |
+| **This transcription** | `FROM, FUNCTION, GENERATE` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, add the word FUNCTION between the words FROM and GENERATE in the list of COBOL reserved words" (kb/Work PB5045).
+
+<a id="errata-c208"></a>
+
+### C208 · page 192 (folio IV-46) · Section IV, paragraph 8 (COBOL Reserved Words), after the list · `The following is a list ... Intrinsic Function mo…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `The following is a list of COBOL reserved words for the optional Intrinsic Function module. FUNCTION (Amendment 1's text, C107)` |
+| **This transcription** | `(deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-46 (A-14) (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, delete the following text" (kb/Work PB5045).
+
+<a id="errata-c209"></a>
+
+### C209 · page 216 (folio V-24) · Section V, the general format of the IF statement · `{statement-1} …, {statement-2} …` → `statement-1, statement-2`
+
+| | |
+|---|---|
+| **Printed** | `IF condition-1 THEN { {statement-1} ... NEXT SENTENCE } { ELSE {statement-2} ... [END-IF] ... }` |
+| **This transcription** | `IF condition-1 THEN { statement-1 NEXT SENTENCE } { ELSE statement-2 [END-IF] ... }` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page V-24 (page 919, folio B-7), applied in place: "General format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2" (kb/Work PB5045).
+
+<a id="errata-c210"></a>
+
+### C210 · page 247 (folio VI-15) · Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, second sentence · `The collating sequence identified` → `The character code set and/or collating sequence…`
+
+| | |
+|---|---|
+| **Printed** | `The collating sequence identified is that defined` |
+| **This transcription** | `The character code set and/or collating sequence identified is that defined` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-15 (page 919, folio B-7), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, second sentence, change 'The collating sequence identified' to 'The character code set and/or collating sequence identified'" (shaded, level 2: the sentence stands in the level-2 box) (kb/Work PB5045).
+
+<a id="errata-c211"></a>
+
+### C211 · page 248 (folio VI-16) · Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, subitem 4, first sentence · `If the THROUGH phrase is specified, the set of ...` → `... and/or a successive ascending ordinal number…`
+
+| | |
+|---|---|
+| **Printed** | `If the THROUGH phrase is specified, the set of contiguous characters ... is assigned a successive ascending position in the collating sequence being specified.` |
+| **This transcription** | `If the THROUGH phrase is specified, the contiguous characters ... are each assigned a successive ascending collating position ... and/or a successive ascending ordinal number in the character code set being specified.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-16 (page 920, folio B-8), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, subitem 4, replace the first sentence (Beginning 'If the THROUGH phrase is specified') with the following new sentence" (shaded: level 2, in the box) (kb/Work PB5045).
+
+<a id="errata-c212"></a>
+
+### C212 · page 248 (folio VI-16) · Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, subitems 4 to 6 · `subitems 4, 5` → `new subitem 4; 5, 6`
+
+| | |
+|---|---|
+| **Printed** | `4) If the THROUGH phrase ... 5) If the ALSO phrase ...` |
+| **This transcription** | `4) If a character code set is being specified, ... (new) 5) If the THROUGH phrase ... 6) If the ALSO phrase ...` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-16 (page 920, folio B-8), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, renumber subitems 4 and 5 to new subitems 5 and 6. Insert the following as the new subitem 4" (shaded: level 2, boxed) (kb/Work PB5045).
+
+<a id="errata-c213"></a>
+
+### C213 · page 263 (folio VI-31) · Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item b · `b. A MOVE statement` → `b. An elementary MOVE statement`
+
+| | |
+|---|---|
+| **Printed** | `b. A MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.` |
+| **This transcription** | `b. An elementary MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-31 (page 920, folio B-8), applied in place: "Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of symbol 'P', second paragraph, change subparagraph b to read" (kb/Work PB5045).
+
+<a id="errata-c214"></a>
+
+### C214 · page 263 (folio VI-31) · Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item c · `c. (not boxed)` → `c. (boxed)`
+
+| | |
+|---|---|
+| **Printed** | `c. A MOVE statement where the sending operand is numeric edited and its PICTURE character-string contains the symbol 'P' and the receiving operand is numeric or numeric edited. (not boxed)` |
+| **This transcription** | `the item boxed` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-31 (page 920, folio B-8), applied in place: "Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of the symbol 'P', second paragraph, shade subparagraph c": shading is the amendment's mark of level 2, the box of this transcription (kb/Work PB5045).
+
+<a id="errata-c215"></a>
+
+### C215 · page 266 (folio VI-34) · Section VI, paragraph 5.9.5 (PICTURE editing rules), editing rule 7, second paragraph, last sentence · `the fixed insertion characters 'CR' and 'DB'` → `one of the editing sign control symbols '+', '-',…`
+
+| | |
+|---|---|
+| **Printed** | `this string of floating insertion characters may have the fixed insertion characters 'CR' and 'DB' immediately to the right of this string.` |
+| **This transcription** | `this string of floating insertion characters may have one of the editing sign control symbols '+', '-', 'CR', or 'DB' immediately to the right of this string.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-34 (page 920, folio B-8), applied in place: "Paragraph 5.9.5, editing rules of the PICTURE clause, editing rule 7, second paragraph, change last sentence" (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
