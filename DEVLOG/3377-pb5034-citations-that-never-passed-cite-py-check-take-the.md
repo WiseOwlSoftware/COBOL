@@ -1,4 +1,4 @@
-## PB5034 citations that never passed cite.py --check take the checked edition form
+## Entry 3377 — 2026-11-09 05:12 PST — PB5034 citations that never passed cite.py --check take the checked edition form
 
 Two reviews (PB5024 R1-1 and PB5025 R1-1) found citations in comments that nobody had run through `cite.py --check`. I re-ran
 each probe on this tree. `cite.py --check "§2023:E.3.2 2" ...` refuses the citation because "2" is not a rule designator.
@@ -21,3 +21,4 @@ passed `--check`.
 prints its own rule paths in that shape and the tree holds about 7,600 such lines, so the shape is a tooling lead in the wave
 report. No inventory row closes (`closes_rows: []`, with a reason). The branch continues PB5026 (wave 20261946 group A) and lands
 with it.
+
