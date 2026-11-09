@@ -1,4 +1,4 @@
-## PB4711: a boolean expression is no CONCAT argument
+## Entry 3343 — 2026-11-08 16:22 PST — PB4711: a boolean expression is no CONCAT argument
 
 PB4711 asked whether a boolean expression satisfies CONCAT's argument rule. Re-probe on the branch build: `CONCAT(WS-A B1 B-AND B0)` and `CONCAT(WS-A B-NOT B1)` compiled clean and ran. The standard decides it: §2023:15.18.3 AR1 requires "data items or literals of class alphabetic, alphanumeric, boolean, numeric or national"; a boolean expression (§2023:8.8.2) is neither a data item nor a literal, and §2023:15.3 type 3 ("a boolean expression or literal") governs only the positions whose class kind is boolean, which CONCAT's is not (cite.py --check OK on AR1).
 
@@ -9,3 +9,4 @@ Goldens: `pb124_boolean_argument_boundary`'s two CONCAT lines used B-AND express
 The first gate caught pb4635_parenthesized_boolean_argument, which asserted CONCAT((BB) "A") = 1010A from the same §2023:15.3 type 3 reading; the line is removed from the golden and its .out and the parenthesized form is witnessed as a refusal (pb4711-concat-parenthesized-boolean-item).
 
 Branch review round 1: R1-1 (blocking) a parenthesized boolean LITERAL, (B"1"), was still admitted because IsBooleanExpression exempted BoundBoolLiteral, which only a parenthesized literal ever binds to (a bare one is a literal operand); the exemption is gone, every BoundBoolOperand is an expression (golden pb4711-concat-parenthesized-boolean-literal, COBOL1627). R1-2: IsCoercible now takes the operand, so a boolean expression at an integer position (FIND-STRING argument-3) is not offered as a --permissive coercion and draws one diagnostic, not two. R1-3 (parser lead, re-probed: CONCAT("A" (B"1")) parsed as ONE boolean expression): boolArgAhead treats a grouping paren opening on a boolean literal after a completed depth-0 term as a new term, so it is two arguments (golden pb4711-concat-term-then-parenthesized-boolean). The citation in the IsBooleanExpression comment is now §2023:8.8.2 (cite.py --check OK).
+
