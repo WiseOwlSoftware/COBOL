@@ -1,4 +1,4 @@
-## PB5025: APPLY COMMIT below COBOL-2023 is refused by its edition, and the last construct gate is gone
+## Entry 3374 — 2026-11-09 04:18 PST — PB5025: APPLY COMMIT below COBOL-2023 is refused by its edition, and the last construct gate is gone
 
 kb/Work PB5025, wave 20261946 group C. Below COBOL-2023 the I-O-CONTROL `APPLY COMMIT` clause drew COBOL1970, the
 closed-format refusal ("'APPLY' is not a clause of the I-O-CONTROL paragraph"), because `ioControlClause` predicted
@@ -27,3 +27,4 @@ section 8.4 are updated. The sibling sweep found two `{isXXXX()}?` predicates le
 in PERFORM and OPEN's RETRY. Both are word status.
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 22,757/22,757 · Unit 40,617/40,617 · Characterization 37/37 cases ran (skipped 0)` (run 000001-20261109T113529Z, at b1a0bbcb5d). Self-review (architecture, code, performance, duplication): one edition check per clause, made at the one recognition site, as the sibling I-O-CONTROL arms (MULTIPLE FILE, RERUN) make theirs; no new allocation and no second statement of the rule. No new defect was found.
+
