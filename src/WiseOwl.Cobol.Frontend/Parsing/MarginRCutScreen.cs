@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Common;
 using WiseOwl.Cobol.Frontend.Diagnostics;
@@ -18,7 +19,8 @@ namespace WiseOwl.Cobol.Frontend.Parsing;
 /// <see cref="IMarginRCutLocator"/> and the same <see cref="LocatedMarginRCut.EndsAtMarginR"/> decision (the token's last
 /// character stands at position 72 and the cut text begins at position 73 with no space between them), never a second scan.
 /// <para>What stays silent is what <c>ReferenceFormatMap</c> already decided is no cut (a blank tail, a comment line, an inline
-/// comment's rest, a tag that recurs: the locator answers null) and a line whose text past margin R begins after a space,
+/// comment's rest, a tag that recurs: the locator answers null), a token the parse tree gives to a comment-entry (AUTHOR, REMARKS and the other
+/// identification paragraphs hold arbitrary commentary, <see cref="CommentEntryTokens"/>, kb/Work PB5024) and a line whose text past margin R begins after a space,
 /// the ordinary sequence number or identification tag. A token on a line the compiler never read (a false conditional-compilation
 /// branch, a debugging line without debugging mode) is no token of the stream's default channel, so it is not asked about.</para>
 /// </summary>
@@ -27,13 +29,14 @@ public static class MarginRCutScreen
     /// <summary>The warnings for every token of <paramref name="tokens"/> that ends at margin R with cut text right after it,
     /// except on a line <paramref name="reported"/> already holds a COBOL5788 for: the syntax-error note names that cut, and
     /// one cut is named once. In source order.</summary>
-    public static List<Diagnostic> Warnings(IEnumerable<IToken> tokens, IMarginRCutLocator cuts, IReadOnlyList<Diagnostic> reported)
+    public static List<Diagnostic> Warnings(IEnumerable<IToken> tokens, IParseTree tree, IMarginRCutLocator cuts, IReadOnlyList<Diagnostic> reported)
     {
         var warnings = new List<Diagnostic>();
+        var commentEntries = CommentEntryTokens.Of(tree);
         foreach (var token in tokens)
         {
             if (token.Channel != TokenConstants.DefaultChannel || token.Type == TokenConstants.EOF
-                || token.StopIndex < token.StartIndex)
+                || token.StopIndex < token.StartIndex || commentEntries.Contains(token.TokenIndex))
                 continue;
             // A token continued across lines (ISO §2023:6.3.5) is one token of the resultant line whose characters stand on
             // several physical lines, and any segment may end at margin R: every character is asked about, not only the last.

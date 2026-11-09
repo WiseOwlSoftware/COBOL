@@ -97,6 +97,34 @@ public sealed class MarginRCutTokenTests : IDisposable
         Assert.Contains("'Y.' (positions 73 to 74)", warning);
     }
 
+    /// <summary>An AUTHOR entry whose word ends at position 72 with text at 73 (kb/Work PB5024).</summary>
+    private static readonly string[] CutAuthor =
+    [
+        "       IDENTIFICATION DIVISION.",
+        "       PROGRAM-ID. MARGINRT.",
+        "       AUTHOR. SOME NAME".PadRight(71) + "XYZ.",
+    ];
+
+    [Fact] // PB5024: a comment-entry is commentary (§2023:12.1 is silent on its text), so a cut inside it changes no program
+    public void ACutInACommentEntry_IsNotNamed()
+    {
+        var diagnostics = Compile(Program([.. CutAuthor, "       PROCEDURE DIVISION.", "       MAIN-P.", "           STOP RUN."]), InitialReferenceFormat.Fixed);
+
+        Assert.Empty(Of(diagnostics, Warning));
+        Assert.Empty(Of(diagnostics, Note));
+        Assert.DoesNotContain(diagnostics, d => d.IsError);
+    }
+
+    [Fact] // PB5024: a cut in program text (a data description) still draws the warning (alone: a recurring tail is a tag, PB4372)
+    public void TheSameCutInADataDescription_IsStillNamed()
+    {
+        string cutPicture = "       01 Y PIC 99 VALUE".PadRight(70) + " 12";   // VALUE 12 reads VALUE 1
+        var diagnostics = Compile(Program([.. Head[..2], "       DATA DIVISION.", "       WORKING-STORAGE SECTION.", cutPicture, "           .",
+            "       PROCEDURE DIVISION.", "       MAIN-P.", "           STOP RUN."]));
+
+        Assert.Single(Of(diagnostics, Warning));
+    }
+
     [Fact] // a sequence number or tag SET OFF by a space is the ordinary use of positions 73-80
     public void ATagAfterASpace_IsNotACut()
     {
