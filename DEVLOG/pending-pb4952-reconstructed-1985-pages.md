@@ -36,8 +36,9 @@ gone, the rows were re-recorded against their clean text, and `verify_publishabl
 hyphenated or underscored tag in any transcription.
 
 **Inventory.** Batch `pb4952-reconstructions` records the new rows' change records (TYPE SR1-4 KEPT into SR9, SR10,
-SR12 and SR13-14; the TYPE format CHANGED into FMT-13.18.57.2; 3.10.7 GR1-4 and SUM GR9-11 KEPT) and re-records the
-three rows whose text changed. 1985: 2,266 rules, 1,090 GAP (the CHANGED format is the one new GAP), 12 provisional.
+SR12 and SR13-14; the TYPE format CHANGED into FMT-13.18.57.2; 3.10.7 GR1-4 and SUM GR10-11 KEPT; SUM GR9 keeps #1413's CHANGED adjudication, which rests on the printed item a)
+and re-records the three rows whose text changed. 1985 at this head: 2,266 rules, 1,035 GAP (the CHANGED format is one
+new GAP), 12 provisional.
 `closes_rows: []`: the rows are new.
 
 **Self-review.** Architecture: one definition of the notes, one reader, every consumer through it; no second gap
