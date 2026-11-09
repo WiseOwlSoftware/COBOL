@@ -1,4 +1,4 @@
-## PB5026: the REMARKS paragraph is refused at every edition, because no held edition has it
+## Entry 3376 — 2026-11-09 04:35 PST — PB5026: the REMARKS paragraph is refused at every edition, because no held edition has it
 
 **The defect.** `constructs.json` row `remarks-removed-2002` opened the REMARKS paragraph's window at 85 as "a '74
 carryover accepted at 85 for CCVS", so `--std 85` compiled and ran `REMARKS. ...` after PROGRAM-ID. Re-probed on this
@@ -36,3 +36,4 @@ and its per-inclusion decision stays held by `CommentEntryResolverTests`' PB4487
 
 **Rows.** None re-verdicted: the 1985 inventory carries lineage only (1985-FMT-VI.3.2.1.1 CHANGED to FMT-11.2.1,
 unchanged), and no 2023 row covers a paragraph no edition has.
+
