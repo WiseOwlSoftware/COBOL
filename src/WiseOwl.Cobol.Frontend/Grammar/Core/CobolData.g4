@@ -391,7 +391,7 @@ dataDescriptionClause
     | dynamicLengthClause
     | groupUsageClause   // COBOL-2002 §2023:13.18.29 (kb/Work PB79); superset parse, introduction-gated by VersionConformancePass ParseArm.VisitGroupUsageClause
     | selectWhenClause   // ISO §2023:13.18.51 — Annex A.4.8 item 2), DECLINED: recognize-only, refused by name at bind (COBOL1705)
-    | validationClause   // ISO §2023:13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitValidationClause (COBOL0900 below 2002, kb/Work PB5007) and refused by name from 2002 (COBOL1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
+    | validationClause   // ISO §2023:13.16.2 validation-clauses — Annex A.4.14, DECLINED: recognize-only; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitValidationClause (COBOL0900 below 2002, kb/Work PB5007) and refused by name at 2002 and later (COBOL1708); the rule and its rationale are in Grammar/Core/CobolDeclined.g4
     | unrecognizedDataClause   // ⛔ LAST — the error production above; refused BY NAME by ClosedFormatPass (COBOL1941)
     ;
 
