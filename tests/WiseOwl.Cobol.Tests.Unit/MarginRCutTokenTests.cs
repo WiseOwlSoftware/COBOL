@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
 /// ⛔ A TOKEN THE MARGIN CUT IN TWO IS NAMED EVEN WHEN THE PROGRAM STILL PARSES (kb/Work PB4999; ISO §2023:6.3.1 "Margin R is
-/// immediately to the right of the rightmost character position of the program-text area", Annex A.1 item 158: position 72
+/// immediately to the right of the rightmost character position of the program-text area", §2023:A.1 item 158: position 72
 /// here). The text past margin R is not program text, so <c>COMPUTE X = Y ** 0.7</c> with its <c>7</c> at position 73 is read
 /// <c>COMPUTE X = Y ** 0.</c>, which is a valid program of another meaning. COBOL6688 is the warning; COBOL5788
 /// (<see cref="MarginRCutNoteTests"/>) is the note beside a syntax error, and a line holds one of the two, never both. Every
@@ -105,7 +105,8 @@ public sealed class MarginRCutTokenTests : IDisposable
         "       AUTHOR. SOME NAME".PadRight(71) + "XYZ.",
     ];
 
-    [Fact] // PB5024: a comment-entry is commentary (§2023:12.1 is silent on its text), so a cut inside it changes no program
+    [Fact] // PB5024: a comment-entry "may be any combination of characters from the computer's character set" (§1985:III.2,
+             // its definition), so a cut inside it changes no program
     public void ACutInACommentEntry_IsNotNamed()
     {
         var diagnostics = Compile(Program([.. CutAuthor, "       PROCEDURE DIVISION.", "       MAIN-P.", "           STOP RUN."]), InitialReferenceFormat.Fixed);
@@ -155,7 +156,7 @@ public sealed class MarginRCutTokenTests : IDisposable
         Assert.Empty(Of(diagnostics, Warning));
     }
 
-    [Fact] // free form is not column-bounded (§2023:6.4): nothing is cut
+    [Fact] // "the entire free-form line constitutes the program-text area of the line" (§2023:6.4.1): nothing is cut
     public void FreeForm_HasNoMarginR()
     {
         var diagnostics = Compile(Program([.. Head, CutNumber, .. Tail]), InitialReferenceFormat.Free);

@@ -157,7 +157,7 @@ public sealed class SendFormatClassificationTests
         EditionHarness.AssertNoDiagnostic(diagnostics, Undefined);
     }
 
-    /// <summary>Below 2023 the facility is not part of the edition (Annex E.3.2 item 1): the introduction gate answers
+    /// <summary>Below 2023 the facility is not part of the edition (§2023:E.3.2 item 1): the introduction gate answers
     /// before any format is asked, as for every SEND (kb/Work PB374).</summary>
     [Theory]
     [InlineData(85)]

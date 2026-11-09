@@ -685,7 +685,7 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>APPLY COMMIT (I-O-CONTROL, ISO §2023:12.4.6.3) — the commit-and-rollback facility, a COBOL-2023
-        /// introduction (§2023:E.3.2 2), gated on RECOGNITION (kb/Work PB5025). The arm is the union grammar, so at
+        /// introduction (§2023:E.3.2 item 2), gated on RECOGNITION (kb/Work PB5025). The arm is the union grammar, so at
         /// --std 2014 <c>APPLY COMMIT ON F.</c> reaches here and names the edition where the {is2023()}? construct gate
         /// made it the closed-format refusal (COBOL1970). The §2023:12.4.6.3.3 syntax rules stay in the binder
         /// (<c>FileControlBinder.BindApplyCommitClause</c>); this arm only names the edition.</summary>
@@ -2467,7 +2467,7 @@ internal sealed class VersionConformancePass
         { _p.Check(Constructs.CommunicationKeyPhraseRemoved2002, "the KEY phrase"); return base.VisitChildren(ctx); }
 
         /// <summary>The asynchronous messaging statements, RECEIVE (ISO §2023:14.9.31) and SEND (§2023:14.9.38) — a COBOL-2023
-        /// introduction (Annex E.3.2 item 1), gated on RECOGNITION (kb/Work PB374). Both arms are the union grammar:
+        /// introduction (§2023:E.3.2 item 1), gated on RECOGNITION (kb/Work PB374). Both arms are the union grammar:
         /// they parse at every edition, because §2023:8.9 reserves the two verbs at COBOL-85 for the '85 communication
         /// module and at 2023 for this facility with a user-word gap between, so the reservation predicate they used to
         /// carry recognized the 2023 formats at --std 85 and compiled them under a warning naming the 2023 facility.

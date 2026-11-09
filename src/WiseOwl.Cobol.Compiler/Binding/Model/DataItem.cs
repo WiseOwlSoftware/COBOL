@@ -661,7 +661,7 @@ public sealed class DataItem
     /// <summary>The form of the SYNCHRONIZED clause that describes the item (ISO §2023:13.18.55), or null when none does.
     /// Changes no offset and no width (the one-byte natural boundary, docs/CONFORMANCE.md DOC-A.1-195/197), so it is
     /// not emitted; it is read by the rules that ask about the clause: the COBOL-2023 group-item edition gate
-    /// (Annex E.3.2 item 6), §2023:13.16.3 SR24 d), §2023:13.18.63.3 SR14, §2023:13.16.3 SR13 (CONSTANT RECORD) and the §2023:8.5.3.1
+    /// (§2023:E.3.2 item 6), §2023:13.16.3 SR24 d), §2023:13.18.63.3 SR14, §2023:13.16.3 SR13 (CONSTANT RECORD) and the §2023:8.5.3.1
     /// type-equivalence comparison, which compares the PHRASE (<see cref="SynchronizedPhrase"/>, kb/Work PB538).
     /// <para>An elementary item carries the clause its own entry wrote, else the one an enclosing group wrote: a
     /// group's clause "is treated as though it had instead been separately specified for each of the subordinate
