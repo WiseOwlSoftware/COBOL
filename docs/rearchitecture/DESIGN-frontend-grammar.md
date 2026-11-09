@@ -1326,8 +1326,15 @@ reference formats, and the only place source comments are recognized. Its model:
   numeric sequence area (`MarginRCut.IsSequenceNumber`), or the identification tags (`FitsIdentificationArea`: one word of at
   most eight characters, positions 73–80, the COBOL-85 card-image convention) of a file in which such a word recurs on at
   least `MarginRCut.RecurrenceThatMakesATag` (two) lines, a tagged blank line counting. Shape cannot tell ONE tag from the
-  one-word tail of a statement, so a lone tag-shaped word still draws the note, which says "may". Only a parse error asks, so
-  a program that parses never hears of its tags.
+  one-word tail of a statement, so a lone tag-shaped word still draws the note, which says "may". The note is asked only by a
+  parse error; the program that still parses is the other arm (kb/Work PB4999, COBOL6688): `MarginRCutScreen.Warnings`
+  asks the SAME locator, after the parse, of every default-channel token of the stream, and a token whose last character
+  stands at position 72 with the cut text right behind it (`LocatedMarginRCut.EndsAtMarginR`, the decision the listener's
+  in-word arm already used) draws the warning, because the format read the token short and the program means something else
+  (`Y ** 0.7` with the `7` at position 73 is `Y ** 0.`). A cut set off by a space (a sequence number, a tag) is no cut of a
+  token and stays silent, as does every shape `CutAt` answers null for; a line that already drew COBOL5788 is not named twice;
+  an omitted or absent debugging line has no default-channel token. The text of the two warnings is `MarginRCut.Account` and
+  `MarginRCut.Remedy`, one sentence for both.
   `MarginRCut` carries the margin twice because the two units differ on a line holding a tab (kb/Work PB4373): `Column` is the
   physical column the file holds the cut at (what the warning's location names), `LastProgramTextPosition` is the position the
   format fixes (72, `FixedFormLine.MarginR`) and the one the message states, so the positions it quotes for the cut text

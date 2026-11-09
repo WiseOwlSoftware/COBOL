@@ -584,6 +584,11 @@ public sealed class Frontend
             diagnostics.AddBeforeEffects(screened.Diagnostics, parseStart);
         }
 
+        // ISO §2023:6.3.1 — a token the margin cut in two is read short, and a program that still parses means something else
+        // (kb/Work PB4999). Asked AFTER the parse so a syntax error's own margin-R note (COBOL5788) has named its line already,
+        // and placed among the parse's reports by position like the other causes (DiagnosticBag.AddBeforeEffects).
+        diagnostics.AddBeforeEffects(MarginRCutScreen.Warnings(tokens.GetTokens(), cuts, diagnostics.Diagnostics), parseStart);
+
         return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines);
     }
 
