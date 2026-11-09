@@ -6,10 +6,15 @@
   "edition": 2023,
   "to": [
    "GR-14.9.8.4-2",
-   "GR-14.7.7-4"
+   "GR-14.7.7-1",
+   "SR-14.7.7-2",
+   "GR-14.7.7-3",
+   "GR-14.7.7-4",
+   "GR-14.6.10-1",
+   "GR-14.6.10-2"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only points COMPUTE to the ROUNDED, SIZE ERROR, arithmetic-statement and multiple-result rules; 2023 applies 14.7.4, 14.7.5 and 14.7.7 to COMPUTE.",
-  "source": "audit-1985/state-route"
+  "reason": "A pointer rule: 2023 states each rule it points to, the arithmetic statements' common rules through \"The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements\" (§2023:14.7.7) and the overlapping operands in §2023:14.6.10.",
+  "source": "adjudication kb/Work PB5008"
  }
 }
