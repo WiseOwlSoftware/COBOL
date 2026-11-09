@@ -30,10 +30,11 @@ public sealed class ProcessGlobalCollectionDriftTests
 
     private static readonly Regex Collection = new(@"\[Collection\(""process-globals""\)\]", RegexOptions.Compiled);
 
-    private static IEnumerable<string> UnitTestSources() =>
-        Directory.EnumerateFiles(TestRepo.Tests("WiseOwl.Cobol.Tests.Unit"), "*.cs", SearchOption.AllDirectories)
-            .Where(f => !f.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Any(p => p is "obj" or "bin"))
-            .Where(f => Path.GetFileName(f) != nameof(ProcessGlobalCollectionDriftTests) + ".cs");
+    /// <summary>The Unit assembly's committed sources; this file names the entry points it scans for, so it sets itself aside.</summary>
+    private static readonly TreeScope UnitSources = new(Under: ["tests/WiseOwl.Cobol.Tests.Unit/"],
+        Except: ["tests/WiseOwl.Cobol.Tests.Unit/ProcessGlobalCollectionDriftTests.cs"], Kinds: [".cs"]);
+
+    private static IEnumerable<string> UnitTestSources() => TrackedTree.Files(UnitSources).Select(rel => TestRepo.At(rel));
 
     [Fact]
     public void TheScan_ReachesTheKnownReadersAndTheWriter()
