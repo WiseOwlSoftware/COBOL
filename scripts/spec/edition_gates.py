@@ -110,8 +110,6 @@ HELD_OPEN: dict[str, str] = {
     "inline-perform-after-2002",                             # §2023:14.9.28.2 Format 2
     "set-condition-repeated-2002",                           # §2023:14.9.39.2
     "use-without-procedure-2002", "use-without-after-2002",  # optional words of §2023:14.9.49.2
-    "from-literal-2002",                                     # literal-1 of §2023:14.9.51.2; §2023:14.9.51.3 SR6 is KEPT
-    "procedure-returning-2002",                              # the RETURNING phrase of the format, §2023:14.2.1
 )}
 _COMMENT = "//"
 
