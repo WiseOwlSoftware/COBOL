@@ -1,4 +1,4 @@
-## The asynchronous messaging facility closes: PB4700 and three comment notes it removed the subject of
+## Entry 3366 — 2026-11-08 23:39 PST — The asynchronous messaging facility closes: PB4700 and three comment notes it removed the subject of
 
 PB4700 asked that SEND, RECEIVE and USAGE MESSAGE-TAG be implemented. Its slices PB4739 to PB4745 had all landed, so this change is the closing one.
 
@@ -9,3 +9,4 @@ PB4700 asked that SEND, RECEIVE and USAGE MESSAGE-TAG be implemented. Its slices
 **Self-review.** Architecture, full code, performance and duplication lenses found nothing in a diff of comments, one test roster and three goldens.
 
 **Review round 1.** R1-1: the SEND RETURNING operand had no undefined-name golden; `pb4700-send-returning-undefined` (COBOL1639) now pins it, so all four operands PB3594 named are covered. R1-2: the two stale comments naming SEND and RECEIVE as declined (DeclinedFacilityOperandDriftTests docstring, DeclinedFacilityPass.VisitProcedureDivision) now say VALIDATE only.
+
