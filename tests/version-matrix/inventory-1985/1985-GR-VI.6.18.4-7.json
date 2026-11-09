@@ -2,13 +2,14 @@
  "rule-id": "1985-GR-VI.6.18.4-7",
  "rule-digest": "891eb760ead7",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.22.4-9"
+   "GR-14.9.22.4-9",
+   "GR-14.9.22.4-3"
   ],
   "bridge": true,
-  "reason": "1985: \"If neither the BEFORE nor AFTER phrase is specified, literal-1 or the implied operand of the CHARACTERS phrase participates\"; 2023: \"If neither the BEFORE nor AFTER phrase is specified or identifier-4 references a zero-length item, ... participates\". Same BEFORE/AFTER restriction, but 2023 adds cases: a zero-length identifier-4 acts as no BEFORE/AFTER, and BACKWARD moves where eligibility starts and the AFTER region.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR7 a)-c) recur in §2023:14.9.22.4 GR9, outside its BACKWARD and zero-length identifier-4 branches (neither reachable from 1985 syntax). 1985 b) reads 'from its leftmost character position up to, but not including, the first occurrence'; 2023 b) reads 'the first character position that is eligible to participate up to, but not including, the first occurrence encountered of literal-2', and §2023:14.9.22.4 GR3 fixes where that occurrence is found: 'the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/or replacing) begins at the leftmost character position'. With BEFORE and AFTER both specified the region is the same intersection, so every 1985 INSPECT means the same.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

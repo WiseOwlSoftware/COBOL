@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-10",
+ "rule-digest": "e15e2b43dfd9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.5.3.2-1",
+   "GR-14.5.3.2-2"
+  ],
+  "bridge": true,
+  "reason": "1985 WRITE GR10: 'The END-WRITE phrase delimits the scope of the WRITE statement.' 2023 states it through the general scope-terminator rule (Table 12 pairs WRITE with END-WRITE): the terminator ends §2023:14.5.3.2 GR1 'the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined' and §2023:14.5.3.2 GR2 the statements nested in it. Same programs, same scope.",
+  "source": "adjudicate-712-r2/slice-07"
+ }
+}

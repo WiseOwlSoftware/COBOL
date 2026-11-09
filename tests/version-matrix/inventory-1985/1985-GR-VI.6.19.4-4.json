@@ -9,7 +9,7 @@
    "GR-14.9.25.4-5"
   ],
   "bridge": true,
-  "reason": "1985: \"When the sending operand is described as being alphanumeric, data is moved as if the sending operand were described as an unsigned numeric integer.\"; 2023: \"unless the number of character positions is greater than 31, in which case the rightmost 31 character positions are used.\". Same conversion rules otherwise. 2023 caps an alphanumeric sender at 31 positions and makes non-numeric content set EC-DATA-INCOMPATIBLE with undefined results.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR4: conversion 'takes place during legal elementary moves, along with any editing specified for' the receiver, with no exception for a sender and receiver that are the same item, and §1985:VI.6.4.5 makes overlap undefined only when the items 'are not defined by the same data description entry'. §2023:14.9.25.4 GR6 b) 1: when the sending and receiving operands reference the same data item, 'If the category of the operand is alphanumeric-edited or national-edited, the result of execution of the statement is undefined'. MOVE X TO X of an alphanumeric-edited X was defined (editing) in 1985 and is undefined in 2023: a result made undefined. The rest (sign, separate sign, 'P', usage conversion, signed/unsigned receivers, alphanumeric sender as an unsigned integer) recurs in GR6 a) and d); the de-editing provisions in §2023:14.9.25.4 GR5 ('De-editing takes place only when the sending operand is a numeric-edited data item'). The 31-position cap cannot alter an 18-digit 1985 receiver.",
+  "source": "adjudicate-712-r2/slice-05"
  }
 }

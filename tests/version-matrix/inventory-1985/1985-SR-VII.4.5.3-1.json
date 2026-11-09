@@ -5,10 +5,13 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.35.4-7"
+   "GR-14.9.35.4-7",
+   "GR-14.9.35.4-10",
+   "GR-14.6.10-1",
+   "GR-14.6.10-2"
   ],
   "bridge": true,
-  "reason": "1985: \"Record-name-1 and identifier-1 must not refer to the same storage area.\"; 2023: \"14.6.10, Overlapping operands, and 14.9.25, MOVE statement, general rules, apply to any cases in which the storage area ... share\". 1985 refuses a FROM identifier sharing the record's storage. 2023 states no such syntax rule and lets overlap through under the overlapping-operand and MOVE rules, possibly undefined.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 VII.4.5.3 SR1: REWRITE 'Record-name-1 and identifier-1 must not refer to the same storage area' (a compile-time refusal). 2023 has no such syntax rule: §2023:14.9.35.4 GR7 makes REWRITE ... FROM a MOVE to the record followed by REWRITE, and its NOTE 2 applies the overlapping-operand and MOVE rules 'to any cases in which the storage area identified by identifier-1 and the record area ... share any part of their storage areas'; §2023:14.9.35.4 GR10 contemplates identifier-1 being 'one or part of one of the record descriptions'. Under §2023:14.6.10 GR1 the result is undefined unless the items share a data description entry (§2023:14.6.10 GR2: as if no overlap). A source 1985 refuses is accepted; no exception condition replaces the refusal.",
+  "source": "adjudicate-712/slice-31"
  }
 }

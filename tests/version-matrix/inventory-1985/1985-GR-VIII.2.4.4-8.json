@@ -2,13 +2,13 @@
  "rule-id": "1985-GR-VIII.2.4.4-8",
  "rule-digest": "f727b086773b",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "GR-12.4.5.3-1"
   ],
   "bridge": true,
-  "reason": "1985: \"data-name-1 must reference an external data item and the RELATIVE KEY phrase ... must reference that same external data item\"; 2023: \"h) The same specification of the RELATIVE KEY clause, where data-name-7 references an external data item.\". Item f) keeps the same access mode. Item h) only states the external key as a condition, unlike i)'s 'shall reference'. The 1985 requirement that the relative key be external is no longer stated.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 requires the same access mode and a RELATIVE KEY naming the same external data item in every entry for an external file connector (§1985:VIII.2.4.4 GR8). §2023:12.4.5.3 GR1 keeps 'f) The same access mode' and 'h) The same specification of the RELATIVE KEY clause, where data-name-7 references an external data item', and §2023:14.8.4.2 removes any doubt that h) is a requirement: 'the file status, linage and relative key data items shall be external data items and shall refer to the same corresponding storage'. A violation, undefined in 1985, may now raise EC-EXTERNAL-DATA-MISMATCH when checking is enabled; a conforming 1985 program is unaffected. 14.8.4.2 has no catalog rule id, so 'to' names GR1 only.",
+  "source": "adjudicate-712/slice-18"
  }
 }

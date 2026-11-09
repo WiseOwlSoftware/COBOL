@@ -2,15 +2,16 @@
  "rule-id": "1985-GR-XIII.3.10.6-4",
  "rule-digest": "6d9fd08a2005",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
    "SR-13.18.37.3-6",
    "SR-13.18.37.3-7",
-   "GR-13.18.37.4-3"
+   "GR-13.18.37.4-3",
+   "SR-13.18.37.3-3"
   ],
   "bridge": true,
-  "reason": "1985: \"R | Absolute | ... | Illegal Combination++ (If the PAGE clause is omitted.)\"; 2023: \"the effect of the absolute and relative forms is to increase the line number ... namely the first body group when the report is not divided\". Limits a and b and NEXT PAGE rule c are kept, but 1985 refuses an absolute NEXT GROUP in an unpaged report heading; 2023 gives it an effect on the first body group.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 RH NEXT GROUP: absolute integer above the final line and below FIRST DETAIL; relative sum below FIRST DETAIL; NEXT PAGE = RH alone on page 1; absolute/NEXT PAGE illegal unpaged. §2023:13.18.37.3 SR6 a) 'shall be greater than the minimum last line number of the report group and less than the FIRST DETAIL integer', SR7 a) 'plus integer-2 shall be less than the FIRST DETAIL integer', §2023:13.18.37.4 GR3 c) 'printed on the first page of the report as the only report group on that page', §2023:13.18.37.3 SR3 'only the relative form of the clause may be specified' unpaged. Same refusals and effect.",
+  "source": "adjudicate-712-r2/slice-10"
  }
 }

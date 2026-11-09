@@ -1,0 +1,16 @@
+{
+ "rule-id": "1989-RV-A.2.25.4-1",
+ "rule-digest": "194019b04d87",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.61.4-1",
+   "RV-15.61.4-2",
+   "RV-15.61.4-3"
+  ],
+  "bridge": true,
+  "reason": "1989 RV1 (middle value of the sorted list) is refined by 1989 RV2, which already gives the odd-count rule and the even-count 'arithmetic mean of the values referenced by the two middle occurrences'. 2023 states the same: odd count, middle value (§2023:15.61.4 RV1); even count, 'the arithmetic mean of the two middle values' (§2023:15.61.4 RV2); sorted order by simple-condition comparisons (§2023:15.61.4 RV3). The even-count mean is not new. Same.",
+  "source": "adjudicate-712/slice-35"
+ }
+}

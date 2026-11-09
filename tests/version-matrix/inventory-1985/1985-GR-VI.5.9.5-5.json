@@ -1,0 +1,20 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-5",
+ "rule-digest": "67bf965ae2f7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.5-4",
+   "GR-13.18.40.4-14",
+   "SR-13.18.40.3-20",
+   "SR-13.18.40.3-7",
+   "SR-8.3.5-8",
+   "SR-13.18.40.3-13",
+   "GR-12.3.7.4-14"
+  ],
+  "bridge": true,
+  "reason": "1985: '.' is the insertion character and decimal point for alignment, counted in size, 'V' with '.' disallowed, final '.' ends the entry, same position. §2023:13.18.40.5 GR4 ('The symbol . is used as the special insertion editing symbol', same position), §2023:13.18.40.4 GR14 (counted, alignment), §2023:13.18.40.3 SR20 (V and . 'mutually exclusive'), §2023:13.18.40.3 SR7 with §2023:8.3.5 SR8, §2023:13.18.40.3 SR13 and §2023:12.3.7.4 GR14 (DECIMAL-POINT IS COMMA). Same programs, same effect.",
+  "source": "adjudicate-712-r2/slice-04"
+ }
+}

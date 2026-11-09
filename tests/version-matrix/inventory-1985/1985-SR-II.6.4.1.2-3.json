@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "SR-8.4.6.3-2"
+   "SR-8.4.6.3-2",
+   "GR-11.10.4-2",
+   "GR-14.9.4.4-3"
   ],
   "bridge": true,
-  "reason": "1985: \"unless the calling program is itself contained within the program possessing the common attribute\"; 2023: \"the program possessing the common attribute and any programs contained within it may reference the program-name only if the program possesses the recursive attribute\". Same scope for calling a common program, but 2023 lets the common program and programs within it call it if it is recursive. 1985 refused such calls without exception.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: a common program may be called from within its container 'unless the calling program is itself contained within the program possessing the common attribute'. §2023:8.4.6.3 SR2 lifts that exclusion: the common program and programs within it 'may reference the program-name only if the program possesses the recursive attribute'. A call 1985 refuses outright is accepted for a RECURSIVE program: a case added, so CHANGED. §2023:11.10.4 GR2 and §2023:14.9.4.4 GR3 apply the scope rule to CALL.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

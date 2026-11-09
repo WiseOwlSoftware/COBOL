@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-14.9.27.2"
+   "FMT-14.9.27.2",
+   "SR-14.9.27.3-5"
   ],
   "bridge": true,
-  "reason": "1985: \"OPEN { INPUT {file-name-1} … | OUTPUT {file-name-2} … | I-O {file-name-3} … | EXTEND {file-name-4} … } …\"; 2023: \"OPEN {{INPUT|OUTPUT|I-O|EXTEND} [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …} …\". Same four repeatable open modes, but the 2023 format adds optional sharing-phrase, retry-phrase and WITH NO REWIND, so it accepts OPEN statements the 1985 format refuses.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 indexed OPEN: OPEN {INPUT|OUTPUT|I-O|EXTEND} {file-name} …, repeated. §2023:14.9.27.2 keeps the four repeatable modes and adds [ sharing-phrase ] [ retry-phrase ] and WITH NO REWIND; for an indexed file §2023:14.9.27.3 SR5 still refuses NO REWIND (\"The NO REWIND phrase may be specified only for sequential files\"), so the added indexed cases are the sharing and retry phrases (e.g. OPEN INPUT SHARING WITH READ ONLY idx-file), accepted at compile time. 1985 OPEN statements keep their meaning; no refusal became an exception.",
+  "source": "adjudicate-712/slice-01"
  }
 }

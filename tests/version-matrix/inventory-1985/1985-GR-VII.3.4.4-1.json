@@ -2,15 +2,16 @@
  "rule-id": "1985-GR-VII.3.4.4-1",
  "rule-digest": "245181c7cc40",
  "next": {
-  "kind": "CHANGED",
-  "edition": 2023,
+  "kind": "KEPT",
   "to": [
-   "GR-13.18.13.4-2",
    "GR-13.18.13.4-1",
-   "GR-13.18.13.4-4"
+   "GR-13.18.13.4-2",
+   "GR-13.18.13.4-3",
+   "GR-13.18.13.4-6"
   ],
+  "reason": "1985: on a successful OPEN 'the character set used to represent the data on the external media is the one referenced by alphabet-name-1', and the clause 'specifies the algorithm for converting the character set on the external media from/to the native character set'. §2023:13.18.13.4 GR2 sets 'the coded character set used to represent alphanumeric data on the storage medium' to alphabet-name-1 at OPEN, GR1 states the input/output conversion and GR6 its character-by-character replacement. The narrowing to alphanumeric data does not reach a 1985 program: 1985 §1985:VII.3.4.3 SR1 already requires all data in a CODE-SET file to be USAGE DISPLAY (as §2023:13.18.13.3 SR3 a) does), and with no SELECT WHEN clause (2023-only) §2023:13.18.13.4 GR3 converts 'all data items in each record'. alphabet-name-2 and national data are 2023-only. Same meaning.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"the character set used to represent the data on the external media is the one referenced by alphabet-name-1\"; 2023: \"the coded character set used to represent alphanumeric data ... is ... alphabet-name-1; ... national data ... alphabet-name-2\". Same OPEN-time and conversion rule, but 2023 limits alphabet-name-1 to usage display data, adds alphabet-name-2 for national data, and leaves other usages unconverted.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-15"
  }
 }

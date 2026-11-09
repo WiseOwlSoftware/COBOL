@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.30.4-28"
+   "GR-14.9.30.4-28",
+   "GR-9.1.13.5-3"
   ],
   "bridge": true,
-  "reason": "GR 28 begins the random-read rules (GR 19: else format 2 applies). GR 21 sends sequential reads of an absent file to at end, and 9.1.13.5 gives status 23 for random READ, as in 1985.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.30.4 GR28, printed under 'FORMAT 2' of the general rules, repeats 1985: optional input file not present gives 'the invalid key condition exists and execution of the READ statement is unsuccessful'; §2023:9.1.13.5 GR3 b) names status 23 for 'a START or random READ' on an absent optional file. Same.",
+  "source": "adjudicate-712/slice-19"
  }
 }

@@ -5,11 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-8.4.3.3.3-1",
+   "FMT-8.4.3.3.2",
    "SR-8.4.3.3.3-3"
   ],
   "bridge": true,
-  "reason": "2023 makes the base identifier-1, which by its form may be qualified or subscripted; only other reference-modified identifiers are barred. Category limits belong to other 1985 rules.",
-  "source": "audit-1985/state-route"
+  "reason": "The 2023 reference-modification format (§2023:8.4.3.3.2) takes identifier-1 where 1985 had data-name-1, and an identifier may be qualified and subscripted. §2023:8.4.3.3.3 SR3 'Identifier-1 shall not be a reference-modification format identifier' excludes only what 1985's 'qualified or subscripted' also excluded. Function and method identifiers as the base are additions.",
+  "source": "adjudicate-712/slice-28"
  }
 }

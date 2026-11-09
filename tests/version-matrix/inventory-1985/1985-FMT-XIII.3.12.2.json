@@ -2,13 +2,15 @@
  "rule-id": "1985-FMT-XIII.3.12.2",
  "rule-digest": "af1d7467d318",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-13.18.20.2"
+   "FMT-13.18.20.2",
+   "SR-13.18.20.3-3",
+   "SR-13.15.3-2"
   ],
   "bridge": true,
-  "reason": "The 2023 entry-name clause Format 1 (data-name) is data-name-1, the same as the 1985 data-name clause format. Screen-name and FILLER are separate formats, not changes to this one.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 report-writer data-name clause is 'data-name-1' only; FILLER belongs to the Nucleus clause, whose §1985:VI.5.5.3 SR1 confines it to the File, Working-Storage, Communication and Linkage Sections, so FILLER could not name a report group entry. 2023 keeps Format 1 'data-name-1' of §2023:13.18.20.2 but, for a report group description entry, 'either data-name-1 or FILLER shall be specified' (§2023:13.18.20.3 SR3; §2023:13.15.3 SR2 'the data-name format or filler format shall be specified'). A report group entry named FILLER, refused in 1985, is accepted. CHANGED (looser).",
+  "source": "adjudicate-712/slice-03"
  }
 }

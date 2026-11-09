@@ -9,7 +9,7 @@
    "DOC-A.1-177"
   ],
   "bridge": true,
-  "reason": "Both give an implementor-specified sign position and representation for 'S' with no SIGN clause. 2023 GR7's conversion text applies only when a SIGN clause applies, so not exempting it changes nothing.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'S' with no SIGN clause has an operational sign, 'the implementor will define the position and representation', 'General rules 5 through 7 do not apply'. §2023:13.18.52.4 GR4: 'The implementor shall specify the position and representation of the operational sign. General rules 5 and 6 do not apply'; documented per DOC-A.1-177. Not exempting GR7 is inert: its first sentence (signed item) agrees and its conversion sentence needs a SIGN clause. Same programs, same effect.",
+  "source": "adjudicate-712-r2/slice-04"
  }
 }

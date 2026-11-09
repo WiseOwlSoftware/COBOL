@@ -8,7 +8,7 @@
    "GR-12.4.5.3-1"
   ],
   "bridge": true,
-  "reason": "1985: \"d. The same organization. e. The same access mode. f. The same external data item for data-name-1 in the RELATIVE KEY phrase.\"; 2023: \"i) The same specification of the FILE STATUS clause, where data-name-4 shall reference the same corresponding external data item.\". 2023 keeps items a-f for external file connectors but adds a FILE STATUS consistency requirement, which 1985 did not impose, so some 1985-valid programs are now refused.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:12.4.5.3 GR1 keeps 1985 a)-f) (OPTIONAL, ASSIGN consistency, RESERVE, organization, access mode, RELATIVE KEY external item) but adds requirements, among them 'i) The same specification of the FILE STATUS clause, where data-name-4 shall reference the same corresponding external data item', also stated in §2023:14.8.4.2. 1985 allowed different status items per entry: 'The data item referenced by data-name-1 which is updated ... is the one specified in the file control entry associated with that statement' (§1985:VII.2.5.4 GR2). A 1985 program whose entries for one external file name different or no FILE STATUS items is no longer conforming (stricter); l) sharing and m) lock mode add further consistency requirements.",
+  "source": "adjudicate-712/slice-18"
  }
 }

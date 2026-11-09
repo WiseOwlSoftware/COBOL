@@ -2,13 +2,14 @@
  "rule-id": "1985-GR-IX.4.9.4-4",
  "rule-digest": "8f3a0a9b0dd7",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.51.4-9"
+   "GR-14.9.51.4-9",
+   "GR-14.9.51.4-4"
   ],
   "bridge": true,
-  "reason": "1985: \"After the execution of the WRITE statement is complete, the information in the area referenced by identifier-1 is available\"; 2023: \"After the successful execution of a WRITE statement, ... provided that identifier-1 is not one or part of one of the record descriptions\". 2023 makes identifier-1 available only after successful execution, and only if it is not part of the file's record descriptions. 1985 covers any completed WRITE, without that proviso.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR4: after WRITE 'the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause'. 2023 §2023:14.9.51.4 GR9 says the same 'After the successful execution', 'provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description', and §2023:14.9.51.4 GR4 restates the record-area half. The proviso excludes only programs 1985 SR1 refuses (all records of one file share the record area, so such an identifier-1 refers to record-name-1's storage). 'Successful' changes nothing: 1985 GR2 makes the record area unavailable only after successful execution, and a failed WRITE touches identifier-1 in neither edition. Same.",
+  "source": "adjudicate-712/slice-08"
  }
 }

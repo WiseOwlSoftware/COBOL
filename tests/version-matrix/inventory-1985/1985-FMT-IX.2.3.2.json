@@ -5,10 +5,16 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "FMT-12.4.5.1"
+   "FMT-12.4.5.1",
+   "FMT-12.4.5.5.1",
+   "FMT-12.4.5.6.2",
+   "FMT-12.4.5.8.2",
+   "FMT-12.4.5.10.2",
+   "FMT-12.4.5.12.2",
+   "FMT-12.4.5.14.2"
   ],
   "bridge": true,
-  "reason": "1985: \"ASSIGN TO { implementor-name-1 | literal-1 } … RECORD KEY IS data-name-1 [ ALTERNATE RECORD KEY IS data-name-2 [ WITH DUPLICATES ] ]\"; 2023: \"[ USING data-name-1 ] … record-key-name-1 SOURCE IS { data-name-3 } … [ SUPPRESS WHEN literal-2 ] … LOCK MODE IS … SHARING WITH\". 2023 Format 1 keeps every 1985 element but adds ASSIGN USING, SOURCE keys, SUPPRESS WHEN, COLLATING SEQUENCE, LOCK MODE and SHARING, so more programs are accepted.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 indexed file control entry: SELECT [OPTIONAL] file-name-1 ASSIGN TO implementor-name/literal, [RESERVE], [ORGANIZATION IS] INDEXED, [ACCESS MODE], RECORD KEY, [ALTERNATE RECORD KEY … [WITH DUPLICATES]], [FILE STATUS]. §2023:12.4.5.1 Format 1 and the clause formats that restate its parts (§2023:12.4.5.5.1 ACCESS MODE, §2023:12.4.5.6.2 ALTERNATE RECORD KEY, §2023:12.4.5.8.2 FILE STATUS, §2023:12.4.5.10.2 ORGANIZATION, §2023:12.4.5.12.2 RECORD KEY, §2023:12.4.5.14.2 RESERVE) keep every 1985 element and add ASSIGN USING, record-key-name SOURCE keys, SUPPRESS WHEN, collating-sequence-clause, LOCK MODE and SHARING. Clause order stays free after SELECT (§2023:12.4.5.2 SR1, the 2023 form of 1985 SR1, mapped there). Cases added at compile time; no refusal became an exception.",
+  "source": "adjudicate-712/slice-01"
  }
 }

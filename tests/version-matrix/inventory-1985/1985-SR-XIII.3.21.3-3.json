@@ -3,12 +3,13 @@
  "rule-digest": "dc19e3e54320",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
-   "SR-13.18.60.3-7"
+   "SR-13.18.60.3-7",
+   "FMT-13.15.2"
   ],
+  "reason": "§1985:XIII.3.21.3 SR3: a report group item's USAGE 'can specify only USAGE IS DISPLAY'. §2023:13.18.60.3 SR7: 'Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item', and the report group entry format offers DISPLAY or NATIONAL (§2023:13.15.2). USAGE NATIONAL, refused in 1985, is accepted: looser. Still a compile-time rule.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"The USAGE clause for a report group item can specify only USAGE IS DISPLAY.\"; 2023: \"Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item.\". Same restriction on report group usage, but 2023 adds NATIONAL as a permitted usage beside DISPLAY, so it accepts a case the 1985 rule refused.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-34"
  }
 }

@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-12.3.7.3-14"
+   "SR-12.3.7.3-14",
+   "GR-12.3.7.4-7"
   ],
   "bridge": true,
-  "reason": "b)1 and b)3 restate both 1985 limits for the implied ALPHANUMERIC case. No-duplicate, cap and NATIONAL items are separate or new rules and do not alter this one.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: ALPHABET literal-phrase numeric literals are unsigned integers from one to the native character-set size; nonnumeric ones with THROUGH or ALSO are one character. §2023:12.3.7.3 SR14 b) (ALPHANUMERIC specified or implied) restates both: 'shall be an unsigned integer ... within the range of one through the maximum number of characters in the native alphanumeric character set' and 'Each alphanumeric literal, when a THROUGH or ALSO phrase is specified, shall be one character in length'; §2023:12.3.7.4 GR7 k) repeats the bound. The NATIONAL items cover a post-1985 feature. Same refusals.",
+  "source": "adjudicate-712-r2/slice-13"
  }
 }

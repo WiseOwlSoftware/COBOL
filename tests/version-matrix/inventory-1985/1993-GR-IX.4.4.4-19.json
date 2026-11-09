@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.27.4-25"
+   "GR-14.9.27.4-25",
+   "GR-14.9.27.4-1",
+   "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "1985: \"b. Any applicable USE AFTER EXCEPTION procedure is executed.\"; 2023: \"c) If the OPEN statement is specified in imperative-statement-1 in an exception-checking PERFORM ... No applicable USE declarative is executed.\". Same order (file unaffected, I-O status set, then USE). 2023 adds raising EC-I-O if enabled, and a case where a PERFORM WHEN phrase applies and no USE declarative runs.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 (1993 amendment): an unsuccessful OPEN leaves 'the physical file' unaffected, then 'a. A value is placed in the I-O status', then 'b. Any applicable USE AFTER EXCEPTION procedure is executed.' §2023:14.9.27.4 GR25 keeps 'the file is not affected', a) the I-O status, and d) 'Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed', but adds cases: b) 'If it is enabled, the level-3 EC-I-O exception condition ... is set to exist', and c) an OPEN in an exception-checking PERFORM with an applicable WHEN phrase continues at that WHEN phrase and 'No applicable USE declarative is executed'. §2023:14.9.49.4 GR6 runs USE procedures only when the statement is outside an exception-checking PERFORM or no WHEN matched. Those programs (>>TURN, exception-checking PERFORM, USE FOR EXCEPTION) are accepted by 2023 and refused by 1985, and for them the result differs: a case added, so CHANGED. §2023:14.9.27.4 GR1 restates the I-O status update. Catalog defect: this row's text also carries the 1993 erratum text for READ GR10b, GR10c and GR11b (IX-30/IX-31); that belongs to the READ statement and is not decided here.",
+  "source": "adjudicate-712-r2/slice-15"
  }
 }

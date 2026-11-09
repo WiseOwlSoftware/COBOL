@@ -8,7 +8,7 @@
    "GR-14.9.5.4-5"
   ],
   "bridge": true,
-  "reason": "1985: \"must not refer directly or indirectly to any program that has been called and has not yet executed an EXIT PROGRAM statement\"; 2023: \"the EC-PROGRAM-CANCEL-ACTIVE exception condition is raised ... If checking ... is not enabled, the results ... are defined by the implementor\". Same ban on canceling an active program or one containing it. A violation, undefined in 1985, now raises a checked exception (program not canceled) or is implementor-defined.",
-  "source": "audit-1985/state-route"
+  "reason": "Same prohibition: 1985 'must not refer directly or indirectly to any program that has been called and has not yet executed an EXIT PROGRAM'; 2023 'shall not be in the active state or contain a program in the active state' (§2023:14.9.5.4 GR5). 1985 states no result for a violation; 2023 raises EC-PROGRAM-CANCEL-ACTIVE when checking is enabled, 'and the referenced program is not canceled', otherwise the result is implementor-defined (§2023:14.9.5.4 GR5). A run-time rule in both editions; the violation now has a defined outcome.",
+  "source": "adjudicate-712/slice-22"
  }
 }

@@ -10,7 +10,7 @@
    "GR-9.1.13.7-4"
   ],
   "bridge": true,
-  "reason": "2023 keeps the RECORD IS VARYING size limit for record-name-1: WRITE unsuccessful, no write, record area unaffected, status '44'. Literal, FILE and FORMAT cases are new features.",
-  "source": "audit-1985/state-route"
+  "reason": "§2023:14.9.51.4 GR14 keeps the RECORD IS VARYING bounds on record-name-1 ('shall not be larger than the largest or smaller than the smallest number of bytes allowed by the RECORD IS VARYING clause'); a violation is unsuccessful with status '44' (§2023:9.1.13.7 GR4 a), as 1985 44); §2023:14.9.51.4 GR15 'the write operation does not take place, the content of the record area is unaffected'. Bytes against character positions is terminology; literal-1, FILE and FORMAT are 2023-only forms. Run-time in both.",
+  "source": "adjudicate-712/slice-17"
  }
 }

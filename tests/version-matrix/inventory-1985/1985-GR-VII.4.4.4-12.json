@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.30.4-18"
+   "GR-14.9.30.4-18",
+   "GR-14.9.30.4-24"
   ],
   "bridge": true,
-  "reason": "Both leave the record area undefined and the position invalid after an unsuccessful READ. The 'otherwise specified' exceptions cover locking or at-end cases, where the next READ still gets '46'.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 READ GR12: after an unsuccessful READ 'the content of the associated record area is undefined and the file position indicator is set to indicate that no valid next record has been established'. §2023:14.9.30.4 GR18 'the content of the associated record area is undefined ... and the file position indicator is set to indicate that no valid record position has been established'; its at-end exception (§2023:14.9.30.4 GR24 b 'no next or previous logical record exists', NOTE 6 record area undefined) yields the same next-READ failure (status 46 after any unsuccessful READ, as 1985). Lock-conflict cases are 2023-only. Same effect.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

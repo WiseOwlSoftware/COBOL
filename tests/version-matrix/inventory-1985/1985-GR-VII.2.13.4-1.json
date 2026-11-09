@@ -5,10 +5,11 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-12.4.6.4.4-1"
+   "GR-12.4.6.4.4-1",
+   "SR-12.4.6.4.3-6"
   ],
   "bridge": true,
-  "reason": "Both say files in a file-area SAME clause share all storage areas, with no more than one open at a time. 1985's sort/merge exclusion restates syntax rule 3c, not this rule; 2023 has a separate sort-merge format.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: files in a SAME AREA clause 'that do not represent sort or merge files are to use the same memory area', the shared area includes all their storage areas, and 'it is not valid to have more than one of these files in the open mode at the same time'. §2023:12.4.6.4.4 GR1 states the shared area, 'all storage areas', and 'No more than one of these files may be in the open mode at a given time'. The sort/merge exclusion: 1985 refuses a sort file in plain SAME AREA (§1985:XI.2.5.3 SR4) and 2023 does too ('shall not be specified in a file-area format SAME clause', §2023:12.4.6.4.3 SR6). Same programs accepted and refused; a run-time limit in both.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

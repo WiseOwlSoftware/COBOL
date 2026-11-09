@@ -3,12 +3,12 @@
  "rule-digest": "0e171f672496",
  "next": {
   "kind": "CHANGED",
-  "edition": 2023,
   "to": [
    "GR-14.9.6.4-3"
   ],
+  "reason": "1985 Table 1 gives CLOSE, CLOSE WITH LOCK (C,E), CLOSE WITH NO REWIND, CLOSE REEL/UNIT and FOR REMOVAL per file category, with 'E. File Lock The file is locked and cannot be opened again during this execution of this run unit' and C/F performing label processing ('the labels are processed according to the implementor's standard label convention'). §2023:14.9.6.4 GR3 keeps the table (Table 14) and symbols a, b, d, f, g, but has no WITH LOCK row or file-lock symbol (the §2023:14.9.6.2 general format offers only REEL/UNIT [FOR REMOVAL] or WITH NO REWIND, so CLOSE WITH LOCK is refused), reduces c) to 'Closing operations specified by the implementor are executed' with no label processing, drops the label procedures from e), and adds that a CLOSE UNIT of the last unit sets the file position indicator to no next record. Status '07' for non-unit media restates 1985's own I-O status 07. Different requirement.",
+  "edition": 2023,
   "bridge": true,
-  "reason": "1985: \"CLOSE WITH LOCK | C,E | C,E,G | A,C,E,G ... E. File Lock The file is locked and cannot be opened again during this execution\"; 2023: \"Table 14 has rows CLOSE, CLOSE WITH NO REWIND, CLOSE UNIT, CLOSE UNIT FOR REMOVAL; no WITH LOCK row, no file lock symbol\". The CLOSE table is kept, but WITH LOCK (E) is gone, label processing is dropped from C and F, and I-O status '07' is added for non-unit media and ignored phrases.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-15"
  }
 }

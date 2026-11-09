@@ -5,12 +5,12 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "GR-14.9.30.4-24",
    "GR-9.1.13.4-1",
-   "GR-9.1.13.4-2",
-   "GR-14.9.30.4-24"
+   "GR-9.1.13.4-2"
   ],
   "bridge": true,
-  "reason": "The 1985 rule only defines the at end class of status values. 2023 keeps the class (status 10, 14) as a failed sequential READ; PREVIOUS is a new feature and does not alter 1985 programs.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 'At End. A sequential READ statement was unsuccessfully executed as a result of an at end condition.' §2023:9.1.13.1 repeats it verbatim (prose, no catalog row, PB479); catalog carriers: §2023:14.9.30.4 GR24 'When the at end condition exists, execution of the READ statement is unsuccessful', §2023:9.1.13.4 GR1 and §2023:9.1.13.4 GR2 (status 10 and 14 for a sequential READ). PREVIOUS needs 2023-only syntax. Same.",
+  "source": "adjudicate-712-r2/slice-07"
  }
 }

@@ -6,10 +6,13 @@
   "edition": 2023,
   "to": [
    "GR-14.9.27.4-2",
-   "GR-14.9.6.4-8"
+   "GR-14.9.27.4-4",
+   "GR-14.9.6.4-8",
+   "SR-14.9.6.3-2",
+   "GR-9.1.13.7-1"
   ],
   "bridge": true,
-  "reason": "2023 bars OPEN on an open connector; only CLOSE without UNIT ends the open mode. Reopening still needs that CLOSE. LOCK is moot: 2023 CLOSE (Table 14) has no LOCK phrase.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR5: a file may be opened INPUT, OUTPUT, EXTEND and I-O in one run unit, and each re-OPEN 'must be preceded by the execution of a CLOSE statement, without the REEL, UNIT, or LOCK phrase'. §2023:14.9.27.4 GR4 sets any of the four modes; GR2 'The file connector referenced by file-name-1 shall not be open' (41, §2023:9.1.13.7 GR1, as in 1985); only a CLOSE 'without the UNIT phrase' leaves open mode (§2023:14.9.6.4 GR8), with REEL and UNIT equivalent (§2023:14.9.6.3 SR2). The LOCK exclusion has no 2023 counterpart because the 2023 CLOSE format has no LOCK phrase; that removal belongs to the CLOSE format record. Every reopen sequence both editions accept behaves the same.",
+  "source": "adjudicate-712-r2/slice-06"
  }
 }

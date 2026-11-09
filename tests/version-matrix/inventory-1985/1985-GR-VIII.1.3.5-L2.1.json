@@ -5,10 +5,15 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-9.1.14-L2.1"
+   "GR-9.1.14-L2.1",
+   "GR-9.1.12-2",
+   "GR-14.9.49.4-3",
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-7",
+   "GR-14.9.30.4-13"
   ],
   "bridge": true,
-  "reason": "Both send a non-invalid-key I-O exception to the applicable exception (USE) procedures. The 1985 USE rules return to the statement; 2023 states it inline. PERFORM WHEN is new only.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 sends a non-invalid-key exception to any USE AFTER EXCEPTION procedure and then on per the USE rules; §2023:9.1.14 'unsuccessful completion that is not an invalid key condition, control is transferred according to the rules of any applicable exception processing statements', the file USE being selected per §2023:9.1.12 GR2 and §2023:14.9.49.4 GR3, run per §2023:14.9.49.4 GR6, control returned per §2023:14.9.49.4 GR7; §2023:14.9.30.4 GR13 b) restates it for READ. The exception-checking PERFORM binds only 2023 syntax. 9.1.14 GR4 is the invalid-key case and is not this rule.",
+  "source": "adjudicate-712-r2/slice-08"
  }
 }

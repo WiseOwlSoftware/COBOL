@@ -6,10 +6,11 @@
   "edition": 2023,
   "to": [
    "GR-14.9.27.4-10",
+   "GR-14.9.27.4-25",
    "GR-9.1.13.6-7"
   ],
   "bridge": true,
-  "reason": "Both place an I-O status value for the file attribute conflict condition. 1985 sets it by reference to the I-O status table; 2023 names it '39'. Which attributes are checked is a separate matter.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: on a file attribute conflict 'A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition' (indexed: only OPEN yields it, status 39). §2023:14.9.27.4 GR10 'a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful, and the I-O status associated with file-name-1 is set to 39'; §2023:14.9.27.4 GR25 a) 'A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful'; §2023:9.1.13.6 GR7 defines 39. Implementor-chosen validation is already in the 1985 amendment to IX OPEN GR8. Run-time; no program newly accepted. GR-14.9.27.4-1 (any OPEN updates the status) is general, not this rule's requirement.",
+  "source": "adjudicate-712-r2/slice-02"
  }
 }

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-AR-A.2.13.3-1",
+ "rule-digest": "41e782a7e8df",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "AR-15.24.3-1"
+  ],
+  "bridge": true,
+  "reason": "1989: argument-1 'is a positive integer that represents a number of days succeeding December 31, 1600', no upper bound. 2023 §2023:15.24.3 AR1 requires 'a value in integer date form', and §2023:15.5.2 bounds that form at 'less than or equal to ... 3,067,671'. Larger arguments, in range in 1989, are now out of range (EC-ARGUMENT-FUNCTION per §2023:15.3 AR14). Stricter. §2023:15.5.2 has no catalog row.",
+  "source": "adjudicate-712/slice-35"
+ }
+}

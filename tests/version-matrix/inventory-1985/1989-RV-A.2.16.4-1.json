@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.16.4-1",
+ "rule-digest": "1f8585b8ee25",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.46.4-1"
+  ],
+  "bridge": true,
+  "reason": "1989: the number of days the date 'succeeds December 31, 1600, in the Gregorian calendar'. §2023:15.46.4 RV1: 'The returned value is in integer date form', which §2023:15.5.2 defines as 'a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar'. Same value for every argument 2023 accepts; the argument range change is on AR-A.2.16.3-1. §2023:15.5.2 has no catalog row.",
+  "source": "adjudicate-712/slice-35"
+ }
+}

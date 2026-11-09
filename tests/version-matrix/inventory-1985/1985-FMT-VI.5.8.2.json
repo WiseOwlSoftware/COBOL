@@ -2,13 +2,13 @@
  "rule-id": "1985-FMT-VI.5.8.2",
  "rule-digest": "70040e982f1a",
  "next": {
-  "kind": "KEPT",
-  "edition": 2023,
+  "kind": "CHANGED",
   "to": [
    "FMT-13.18.38.2"
   ],
+  "reason": "§1985:VI.5.8.2 has two formats, 'OCCURS integer-2 TIMES' and 'OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1', each with the repeatable ASCENDING/DESCENDING KEY phrase and INDEXED BY. §2023:13.18.38.2 keeps both word for word as 'Format 1 (fixed-table)' and 'Format 2 (occurs-depending-table)' (the 1985 level-2 box is no difference), so a conforming 1985 OCCURS means the same; but the one general format now also holds 'Format 3 (report-writer)' with STEP and 'Format 4 (dynamic-capacity-table)' OCCURS DYNAMIC, which the 1985 format refuses. The diagram's requirement is wider, so the record is CHANGED (a general format proves only its whole diagram's edge).",
+  "edition": 2023,
   "bridge": true,
-  "reason": "2023 Formats 1 and 2 match 1985 word for word: fixed and DEPENDING ON forms, repeatable KEY phrase, INDEXED BY. The level-2 box is no difference; Formats 3/4 are new additions.",
-  "source": "audit-1985/state-route"
+  "source": "adjudicate-712/slice-02"
  }
 }

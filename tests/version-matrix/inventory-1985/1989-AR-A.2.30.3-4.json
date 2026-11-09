@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "AR-15.68.3-2"
+   "AR-15.68.3-2",
+   "AR-15.68.3-1"
   ],
   "bridge": true,
-  "reason": "1985: \"Argument-2, if specified, must be a nonnumeric literal or alphanumeric data item.\"; 2023: \"Argument-2, if specified, shall be of the same class as argument-1.\". Argument-1 may now be national (AR-15.68.3-1), so a national argument-2 is accepted with it. 1985 allowed only a nonnumeric literal or an alphanumeric data item.",
-  "source": "audit-1985/state-route"
+  "reason": "1989: argument-2 'must be a nonnumeric literal or alphanumeric data item', no content rule. §2023:15.68.3 AR2: 'shall be of the same class as argument-1' (alphanumeric or national per §2023:15.68.3 AR1), shall contain a non-space character and shall not contain digits, '*', '+', '-', ',', '.', 'CR' or 'DB'. National is added and those currency strings, valid in 1989, are now refused. Differs both ways.",
+  "source": "adjudicate-712/slice-35"
  }
 }

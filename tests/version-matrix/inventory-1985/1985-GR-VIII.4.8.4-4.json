@@ -5,12 +5,13 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
+   "GR-14.9.49.4-3",
    "GR-14.9.49.4-5",
    "GR-14.9.49.4-6",
-   "GR-14.9.49.4-3"
+   "SR-14.9.49.3-8"
   ],
   "bridge": true,
-  "reason": "A USE naming file-name-1 takes precedence and is examined first. Only one declarative runs, and INPUT/OUTPUT/I-O/EXTEND USEs exclude that file, so no other USE applies to it.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 GR4: 'When file-name-1 is specified explicitly, no other USE statement applies to file-name-1.' 2023 gives the same result from four rules: another USE naming the file is refused ('The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within the same procedure division', §2023:14.9.49.3 SR8, as 1985 SR3 did); the file-name USE 'takes precedence over any USE statements specifying an INPUT, OUTPUT, I-O, or EXTEND phrase' (§2023:14.9.49.4 GR5); each mode USE runs 'except those files referenced by file-name-1 in another USE statement specifying the same condition' (§2023:14.9.49.4 GR6); and 'The first declarative that satisfies the selection criteria is executed and no other declaratives are executed' (§2023:14.9.49.4 GR3). Format 3 and GLOBAL selection are new syntax. Same.",
+  "source": "adjudicate-712/slice-20"
  }
 }

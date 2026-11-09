@@ -6,10 +6,12 @@
   "edition": 2023,
   "to": [
    "GR-13.18.40.4-13",
-   "SR-13.18.40.3-14"
+   "SR-13.18.40.3-14",
+   "SR-13.18.40.3-2",
+   "GR-13.18.40.4-14"
   ],
   "bridge": true,
-  "reason": "1985: \"The number of digit positions that can be represented in the PICTURE character-string must range from 1 to 18 inclusive\"; 2023: \"for fixed-point data items of category numeric-edited, the number of digit positions ... shall range from 1 through 31.\". Both define the pictures that make an item numeric-edited, but the digit limit rose from 18 to 31, so 19-31 digit edited pictures are now accepted. 2023 also adds floating-point edited items.",
-  "source": "audit-1985/state-route"
+  "reason": "1985: numeric edited uses 'B', '/', 'P', 'V', 'Z', '0', '9', ',', '.', '*', '+', '-', 'CR', 'DB', cs; 'The number of digit positions ... must range from 1 to 18 inclusive'; at least one editing symbol. §2023:13.18.40.4 GR13 a) defines fixed-point numeric-edited by an equivalent symbol test, combinations per §2023:13.18.40.3 SR2, content per §2023:13.18.40.4 GR14, but §2023:13.18.40.3 SR14 allows 'from 1 through 31' digit positions for fixed-point numeric-edited items: 19 to 31 digit edited pictures refused in 1985 are accepted. Floating-point edited items (GR13 b) are new.",
+  "source": "adjudicate-712/slice-10"
  }
 }

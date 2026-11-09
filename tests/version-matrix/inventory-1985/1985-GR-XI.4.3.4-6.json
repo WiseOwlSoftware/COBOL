@@ -5,10 +5,11 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.34.4-5"
+   "GR-14.9.34.4-5",
+   "GR-13.18.43.4-16"
   ],
   "bridge": true,
-  "reason": "1985: \"Any subscripting associated with identifier-1 is evaluated after the record has been read and immediately before it is moved\"; 2023: \"Item identification of the data item referenced by identifier-1 is done after the record has been read and immediately before\". Same two-step equivalence otherwise. But 1985 fixes timing only for subscripting; 2023 fixes it for all item identification of identifier-1, e.g. reference modification and length.",
-  "source": "audit-1985/state-route"
+  "reason": "Same two-step equivalence: RETURN, then an implicit MOVE that does not occur if the RETURN was unsuccessful, with 'alphanumeric group move' for RECORD VARYING. The record size, which 1985 takes from 'rules specified for the RECORD clause', is §2023:13.18.43.4 GR16. Difference: 1985 fixes only the timing of 'subscripting associated with identifier-1'. 2023 fixes all of it: 'Item identification of the data item referenced by identifier-1 is done after the record has been read' (§2023:14.9.34.4 GR5), which covers reference modification, already legal in 1985 and with unstated timing there.",
+  "source": "adjudicate-712/slice-22"
  }
 }

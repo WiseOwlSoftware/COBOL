@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.3.8.3-9",
+ "rule-digest": "5bdb02b3205e",
+ "next": {
+  "kind": "CHANGED",
+  "to": [
+   "GR-13.18.35.4-2"
+  ],
+  "reason": "§1985:XIII.3.8.3 SR9, a syntax rule: 'All report groups must be described such that they can be presented on one page. The report writer control system (RWCS) never splits a multi-line report group across page boundaries.' §2023:13.18.35.4 GR2 keeps the requirement ('each report group shall be described such that it may be printed on one page. A report group shall never be split between two pages') but as a general rule: 'If this rule is violated the EC-REPORT-PAGE-LIMIT exception condition is set to exist and the results are undefined.' A compile-time refusal became a run-time exception condition (PB5008 mode c).",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-34"
+ }
+}

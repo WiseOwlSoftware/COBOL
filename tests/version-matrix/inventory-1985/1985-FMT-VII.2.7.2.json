@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-FMT-VII.2.7.2",
+ "rule-digest": "4bb6454c41c6",
+ "next": {
+  "kind": "REMOVED",
+  "to": [],
+  "reason": "§1985:VII.2.7.2 is the clause 'PADDING CHARACTER IS {data-name-1 | literal-1}' of a sequential file control entry. 2023 has no PADDING CHARACTER clause: the clauses of the file control entry, §2023:12.4.5.1 'Format 3 (sequential)', are ASSIGN, ACCESS MODE, FILE STATUS, LOCK MODE, ORGANIZATION, RECORD DELIMITER, RESERVE and SHARING, and the words occur in 2023 only in the prose of §2023:9.1.1 ('Padding characters are added or deleted as necessary'), which states no clause. A 1985 entry with PADDING CHARACTER is refused by a 2023 compiler: REMOVED.",
+  "edition": 2023,
+  "bridge": true,
+  "source": "adjudicate-712/slice-02"
+ }
+}
