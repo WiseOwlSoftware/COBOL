@@ -194,3 +194,18 @@ specification unique to level 2 of a module, §1985:I.1.3 and §1985:IV.1). One 
 Every reader of a 1985 heading reads it through the box side (`citation._MARK_85`, `sweep_figures.CLAUSE_LINE` and
 `MD_HEADING`, `audit_grammar_optional_words.MD_HEADING`): a boxed heading once hid 30 of the 213 general formats from
 the grammar audit and a clause from `cite.py`. A new reader of the headings does the same.
+
+**The element-summary tables (PDF pages 31-83) carry the printed indentation and underlines** (kb/Work PB4953). An
+indented row is its first cell prefixed with one `&nbsp;` per printed character of indentation, counted from the
+leftmost row of its block (a block opens at a heading row such as `<u>PROCEDURE DIVISION</u>`), and a group label the
+page underlines is `<u>…</u>` around the label alone, never the dotted leader after it. The indentation was measured
+from the scanned page (a row's left edge, 8.4 pixels to the character at 100 dpi) and the rows were matched to the
+table by order; pages 60 and 84 are not tables, and page 71's opening paragraph is not a table row. The row repairs
+are in the ledger under the sweep `summary-rows(PB4953)`. A top-level body heading the page underlines (`4. <u>TABLE
+HANDLING</u>`, `<u>SECTION IV: …</u>`, a `GENERAL FORMAT FOR …` title, a condition-format label) carries `<u>` over its
+words and not its number; the ledger sweep is `heading-underlines(PB4953)`.
+
+**The running head of Amendment 1's change list** (PDF pages 831-856: `Page No.` and `Change to ANSI X3.23-1985 and
+ISO 1989-1985`) has two shapes: the table header row `| <u>Page No.</u> | <u>Change to …</u> |` where a change table
+follows it, and the single line `<u>Page No.</u> | <u>Change to …</u>` on a page of prose. Every table in that list is
+written with its outer pipes (ledger sweep `amendment-1-heads(PB4953)`).

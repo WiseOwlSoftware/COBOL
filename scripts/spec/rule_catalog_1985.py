@@ -143,9 +143,9 @@ CHANGE_PAGE = re.compile(r"(?P<amd>\()?(?P<folio>(?:[IVX]+|[A-F])-\d+)\)?")
 CHANGE_PARAGRAPH = re.compile(r"\bParagraphs? (?P<num>\d+(?:\.\d+)*)")
 CHANGE_RULE = re.compile(r"\b(?:(?P<kind>syntax|general|arguments?|returned values?) )?rules? \(?(?P<n>\d+)\)?(?![\d.])",
                          re.IGNORECASE)
-#: A change that ADDS a rule: "add the following as the new general rule 4", "as new syntax rule 5", "as a new general
-#: rule 12" (never "as a new last paragraph for general rule 7", which amends rule 7).
-CHANGE_ADDS = re.compile(r"\bas (?:the |a )?new (?P<kind>syntax|general|arguments?|returned values?) rule (?P<n>\d+)",
+#: A change that ADDS a rule: "add the following as the new general rule 4", "add new syntax rule 4 as follows" (X3.23a-1989
+#: X-27, XIV-26), "as new syntax rule 5", "as a new general rule 12" (never "as a new last paragraph for general rule 7", which amends rule 7).
+CHANGE_ADDS = re.compile(r"\b(?:as (?:the |a )?|add )new (?P<kind>syntax|general|arguments?|returned values?) rule (?P<n>\d+)",
                          re.IGNORECASE)
 
 
@@ -194,9 +194,17 @@ class Catalog:
         counts = collections.Counter(r["id"] for r in self.rules)
         return sorted(i for i, n in counts.items() if n > 1)
 
+    def shared_citations(self) -> list[str]:
+        """Every citation more than one row carries: a citation names ONE rule (kb/Work PB4969), so a rule of a restarted
+        list is cited by its list (citation.rule_designator). The rows cited by a printed page (`§1985:p.XIII-56`: a
+        paragraph the scan lacks, an added rule) are exempt, the page being no rule's citation."""
+        counts = collections.Counter(r["citation"] for r in self.rules if ":p." not in r["citation"])
+        return sorted(c for c, n in counts.items() if n > 1)
+
     def findings(self) -> int:
         return (len(self.empty) + len(self.unrecognised) + len(self.unexplained) + len(self.one_level_boxes)
                 + len(self.unresolved) + len(self.unattributed) + len(self.stale) + len(self.duplicates())
+                + len(self.shared_citations())
                 + self.drift()[1] + len(self.untyped) + len(self.uncitable) + len(self.standing))
 
 
@@ -258,7 +266,8 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
                 sublist=start["sublist"], text=text, page=start["page"], folio=folio,
                 band=start["band"], subject=titles.get(para.rsplit(".", 1)[0], ""),
                 citation=f"§{year}:p.{folio}" if cite_page else
-                f"§{year}:{loc}" + ("" if kind == "FMT" else f" {kind}{start['n']}"))
+                f"§{year}:{loc}" + ("" if kind == "FMT" else
+                                    f" {citation.rule_designator(kind, start['n'], start['sublist'])}"))
         buf = []
 
     def close_block() -> None:
@@ -550,6 +559,8 @@ def summary(cat: Catalog) -> list[str]:
                          ("adjudication(s) the transcription no longer supports", cat.stale),
                          ("DUPLICATE id(s): the inventory key is not unique (a paragraph transcribed twice, or a "
                           "list the ordinals above broke)", cat.duplicates()),
+                         ("CITATION(S) more than one row carries (a citation must name one rule: "
+                          "citation.rule_designator)", cat.shared_citations()),
                          ("rule(s) of an admitted paragraph its manifest kind map does not name (citation, sub-list, "
                           "ordinal)", cat.untyped),
                          ("row(s) whose citation names no region of the transcription", cat.uncitable),
@@ -924,6 +935,11 @@ def self_test() -> int:
     check("an added rule the table prints below its row is that row's text",
           by.get("1993-SR-VI.5.7.3-3", {}).get("text") == "A planted rule printed below its row: a. its item.")
     check("every id is unique", not cat.duplicates())
+    twin = Catalog(rules=[{"citation": "§1985:IV.4.4.2 GR1"}, {"citation": "§1985:IV.4.4.2 GR1"},
+                          {"citation": "§1985:p.XIII-56"}, {"citation": "§1985:p.XIII-56"},
+                          {"citation": f"§1985:IV.4.4.2 {citation.rule_designator('GR', 1, 2)}"}])
+    check("no two rows share a citation, a sub-list's rule naming its list; a page-cited row is exempt (kb/Work PB4969)",
+          not cat.shared_citations() and twin.shared_citations() == ["§1985:IV.4.4.2 GR1"])
     added = by.get("1993-GR-VI.5.7.4-3", {})
     check("a change that adds a rule is a row of its amendment, cited by the amendment's own page",
           added.get("document") == AMENDMENT_2 and added.get("citation") == "§1993:p.B-1"

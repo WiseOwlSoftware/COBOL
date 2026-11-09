@@ -1,6 +1,6 @@
 {
  "generated_from": "specs/ANSI_COBOL_1985.md",
- "rule_count": 2253,
+ "rule_count": 2255,
  "blocks": 664,
  "rules": [
   {
@@ -808,7 +808,7 @@
   },
   {
    "id": "1985-GR-IV.4.2.2.2.3-L2.1",
-   "citation": "§1985:IV.4.2.2.2.3 GR1",
+   "citation": "§1985:IV.4.2.2.2.3 GRL2.1",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.2.2.2.3",
@@ -829,7 +829,7 @@
   },
   {
    "id": "1985-GR-IV.4.2.2.2.3-L2.2",
-   "citation": "§1985:IV.4.2.2.2.3 GR2",
+   "citation": "§1985:IV.4.2.2.2.3 GRL2.2",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.2.2.2.3",
@@ -850,7 +850,7 @@
   },
   {
    "id": "1985-GR-IV.4.2.2.2.3-L2.3",
-   "citation": "§1985:IV.4.2.2.2.3 GR3",
+   "citation": "§1985:IV.4.2.2.2.3 GRL2.3",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.2.2.2.3",
@@ -871,7 +871,7 @@
   },
   {
    "id": "1985-SR-IV.4.2.2.2.3-L3.1",
-   "citation": "§1985:IV.4.2.2.2.3 SR1",
+   "citation": "§1985:IV.4.2.2.2.3 SRL3.1",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.2.2.2.3",
@@ -892,7 +892,7 @@
   },
   {
    "id": "1985-SR-IV.4.2.2.2.3-L3.2",
-   "citation": "§1985:IV.4.2.2.2.3 SR2",
+   "citation": "§1985:IV.4.2.2.2.3 SRL3.2",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.2.2.2.3",
@@ -913,7 +913,7 @@
   },
   {
    "id": "1985-SR-IV.4.2.2.2.3-L3.3",
-   "citation": "§1985:IV.4.2.2.2.3 SR3",
+   "citation": "§1985:IV.4.2.2.2.3 SRL3.3",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.2.2.2.3",
@@ -1186,7 +1186,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.1",
-   "citation": "§1985:IV.4.3.8.1 SR1",
+   "citation": "§1985:IV.4.3.8.1 SRL2.1",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1207,7 +1207,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.2",
-   "citation": "§1985:IV.4.3.8.1 SR2",
+   "citation": "§1985:IV.4.3.8.1 SRL2.2",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1228,7 +1228,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.3",
-   "citation": "§1985:IV.4.3.8.1 SR3",
+   "citation": "§1985:IV.4.3.8.1 SRL2.3",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1249,7 +1249,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.4",
-   "citation": "§1985:IV.4.3.8.1 SR4",
+   "citation": "§1985:IV.4.3.8.1 SRL2.4",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1270,7 +1270,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.5",
-   "citation": "§1985:IV.4.3.8.1 SR5",
+   "citation": "§1985:IV.4.3.8.1 SRL2.5",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1291,7 +1291,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.6",
-   "citation": "§1985:IV.4.3.8.1 SR6",
+   "citation": "§1985:IV.4.3.8.1 SRL2.6",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1312,7 +1312,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.7",
-   "citation": "§1985:IV.4.3.8.1 SR7",
+   "citation": "§1985:IV.4.3.8.1 SRL2.7",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1333,7 +1333,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.8",
-   "citation": "§1985:IV.4.3.8.1 SR8",
+   "citation": "§1985:IV.4.3.8.1 SRL2.8",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1354,7 +1354,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.9",
-   "citation": "§1985:IV.4.3.8.1 SR9",
+   "citation": "§1985:IV.4.3.8.1 SRL2.9",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1375,7 +1375,7 @@
   },
   {
    "id": "1985-SR-IV.4.3.8.1-L2.10",
-   "citation": "§1985:IV.4.3.8.1 SR10",
+   "citation": "§1985:IV.4.3.8.1 SRL2.10",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.3.8.1",
@@ -1904,7 +1904,7 @@
   },
   {
    "id": "1985-GR-IV.4.4.2-L2.1",
-   "citation": "§1985:IV.4.4.2 GR1",
+   "citation": "§1985:IV.4.4.2 GRL2.1",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.4.2",
@@ -1925,7 +1925,7 @@
   },
   {
    "id": "1985-GR-IV.4.4.2-L2.2",
-   "citation": "§1985:IV.4.4.2 GR2",
+   "citation": "§1985:IV.4.4.2 GRL2.2",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.4.2",
@@ -1946,7 +1946,7 @@
   },
   {
    "id": "1985-GR-IV.4.4.2-L2.3",
-   "citation": "§1985:IV.4.4.2 GR3",
+   "citation": "§1985:IV.4.4.2 GRL2.3",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.4.2",
@@ -1967,7 +1967,7 @@
   },
   {
    "id": "1985-GR-IV.4.4.2-L2.4",
-   "citation": "§1985:IV.4.4.2 GR4",
+   "citation": "§1985:IV.4.4.2 GRL2.4",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.4.2",
@@ -1988,7 +1988,7 @@
   },
   {
    "id": "1985-GR-IV.4.4.2-L2.5",
-   "citation": "§1985:IV.4.4.2 GR5",
+   "citation": "§1985:IV.4.4.2 GRL2.5",
    "document": "X3.23-1985",
    "section": "IV",
    "paragraph": "4.4.2",
@@ -7184,7 +7184,7 @@
   },
   {
    "id": "1985-GR-VI.6.3.1.1.2-L2.1",
-   "citation": "§1985:VI.6.3.1.1.2 GR1",
+   "citation": "§1985:VI.6.3.1.1.2 GRL2.1",
    "document": "X3.23-1985",
    "section": "VI",
    "paragraph": "6.3.1.1.2",
@@ -7205,7 +7205,7 @@
   },
   {
    "id": "1985-GR-VI.6.3.1.1.2-L2.2",
-   "citation": "§1985:VI.6.3.1.1.2 GR2",
+   "citation": "§1985:VI.6.3.1.1.2 GRL2.2",
    "document": "X3.23-1985",
    "section": "VI",
    "paragraph": "6.3.1.1.2",
@@ -7436,7 +7436,7 @@
   },
   {
    "id": "1985-GR-VI.6.3.3-L2.1",
-   "citation": "§1985:VI.6.3.3 GR1",
+   "citation": "§1985:VI.6.3.3 GRL2.1",
    "document": "X3.23-1985",
    "section": "VI",
    "paragraph": "6.3.3",
@@ -7457,7 +7457,7 @@
   },
   {
    "id": "1985-GR-VI.6.3.3-L2.2",
-   "citation": "§1985:VI.6.3.3 GR2",
+   "citation": "§1985:VI.6.3.3 GRL2.2",
    "document": "X3.23-1985",
    "section": "VI",
    "paragraph": "6.3.3",
@@ -13832,7 +13832,7 @@
   },
   {
    "id": "1985-GR-VII.1.3.5-L2.1",
-   "citation": "§1985:VII.1.3.5 GR1",
+   "citation": "§1985:VII.1.3.5 GRL2.1",
    "document": "X3.23-1985",
    "section": "VII",
    "paragraph": "1.3.5",
@@ -13853,7 +13853,7 @@
   },
   {
    "id": "1985-GR-VII.1.3.5-L2.2",
-   "citation": "§1985:VII.1.3.5 GR2",
+   "citation": "§1985:VII.1.3.5 GRL2.2",
    "document": "X3.23-1985",
    "section": "VII",
    "paragraph": "1.3.5",
@@ -13874,7 +13874,7 @@
   },
   {
    "id": "1985-GR-VII.1.3.5-L2.3",
-   "citation": "§1985:VII.1.3.5 GR3",
+   "citation": "§1985:VII.1.3.5 GRL2.3",
    "document": "X3.23-1985",
    "section": "VII",
    "paragraph": "1.3.5",
@@ -13895,7 +13895,7 @@
   },
   {
    "id": "1985-GR-VII.1.3.5-L2.4",
-   "citation": "§1985:VII.1.3.5 GR4",
+   "citation": "§1985:VII.1.3.5 GRL2.4",
    "document": "X3.23-1985",
    "section": "VII",
    "paragraph": "1.3.5",
@@ -13916,7 +13916,7 @@
   },
   {
    "id": "1985-GR-VII.1.3.5-L2.5",
-   "citation": "§1985:VII.1.3.5 GR5",
+   "citation": "§1985:VII.1.3.5 GRL2.5",
    "document": "X3.23-1985",
    "section": "VII",
    "paragraph": "1.3.5",
@@ -19188,7 +19188,7 @@
   },
   {
    "id": "1985-GR-VIII.1.3.4-L2.1",
-   "citation": "§1985:VIII.1.3.4 GR1",
+   "citation": "§1985:VIII.1.3.4 GRL2.1",
    "document": "X3.23-1985",
    "section": "VIII",
    "paragraph": "1.3.4",
@@ -19209,7 +19209,7 @@
   },
   {
    "id": "1985-GR-VIII.1.3.4-L2.2",
-   "citation": "§1985:VIII.1.3.4 GR2",
+   "citation": "§1985:VIII.1.3.4 GRL2.2",
    "document": "X3.23-1985",
    "section": "VIII",
    "paragraph": "1.3.4",
@@ -19230,7 +19230,7 @@
   },
   {
    "id": "1985-GR-VIII.1.3.4-L2.3",
-   "citation": "§1985:VIII.1.3.4 GR3",
+   "citation": "§1985:VIII.1.3.4 GRL2.3",
    "document": "X3.23-1985",
    "section": "VIII",
    "paragraph": "1.3.4",
@@ -19251,7 +19251,7 @@
   },
   {
    "id": "1985-GR-VIII.1.3.4-L2.4",
-   "citation": "§1985:VIII.1.3.4 GR4",
+   "citation": "§1985:VIII.1.3.4 GRL2.4",
    "document": "X3.23-1985",
    "section": "VIII",
    "paragraph": "1.3.4",
@@ -19272,7 +19272,7 @@
   },
   {
    "id": "1985-GR-VIII.1.3.4-L2.5",
-   "citation": "§1985:VIII.1.3.4 GR5",
+   "citation": "§1985:VIII.1.3.4 GRL2.5",
    "document": "X3.23-1985",
    "section": "VIII",
    "paragraph": "1.3.4",
@@ -19293,7 +19293,7 @@
   },
   {
    "id": "1985-GR-VIII.1.3.4-L2.6",
-   "citation": "§1985:VIII.1.3.4 GR6",
+   "citation": "§1985:VIII.1.3.4 GRL2.6",
    "document": "X3.23-1985",
    "section": "VIII",
    "paragraph": "1.3.4",
@@ -19377,7 +19377,7 @@
   },
   {
    "id": "1985-GR-VIII.1.3.5-L2.1",
-   "citation": "§1985:VIII.1.3.5 GR1",
+   "citation": "§1985:VIII.1.3.5 GRL2.1",
    "document": "X3.23-1985",
    "section": "VIII",
    "paragraph": "1.3.5",
@@ -19398,7 +19398,7 @@
   },
   {
    "id": "1985-GR-VIII.1.3.5-L2.2",
-   "citation": "§1985:VIII.1.3.5 GR2",
+   "citation": "§1985:VIII.1.3.5 GRL2.2",
    "document": "X3.23-1985",
    "section": "VIII",
    "paragraph": "1.3.5",
@@ -23217,7 +23217,7 @@
   },
   {
    "id": "1985-GR-IX.1.3.4-L2.1",
-   "citation": "§1985:IX.1.3.4 GR1",
+   "citation": "§1985:IX.1.3.4 GRL2.1",
    "document": "X3.23-1985",
    "section": "IX",
    "paragraph": "1.3.4",
@@ -23238,7 +23238,7 @@
   },
   {
    "id": "1985-GR-IX.1.3.4-L2.2",
-   "citation": "§1985:IX.1.3.4 GR2",
+   "citation": "§1985:IX.1.3.4 GRL2.2",
    "document": "X3.23-1985",
    "section": "IX",
    "paragraph": "1.3.4",
@@ -23259,7 +23259,7 @@
   },
   {
    "id": "1985-GR-IX.1.3.4-L2.3",
-   "citation": "§1985:IX.1.3.4 GR3",
+   "citation": "§1985:IX.1.3.4 GRL2.3",
    "document": "X3.23-1985",
    "section": "IX",
    "paragraph": "1.3.4",
@@ -23280,7 +23280,7 @@
   },
   {
    "id": "1985-GR-IX.1.3.4-L2.4",
-   "citation": "§1985:IX.1.3.4 GR4",
+   "citation": "§1985:IX.1.3.4 GRL2.4",
    "document": "X3.23-1985",
    "section": "IX",
    "paragraph": "1.3.4",
@@ -23301,7 +23301,7 @@
   },
   {
    "id": "1985-GR-IX.1.3.4-L2.5",
-   "citation": "§1985:IX.1.3.4 GR5",
+   "citation": "§1985:IX.1.3.4 GRL2.5",
    "document": "X3.23-1985",
    "section": "IX",
    "paragraph": "1.3.4",
@@ -23322,7 +23322,7 @@
   },
   {
    "id": "1985-GR-IX.1.3.4-L2.6",
-   "citation": "§1985:IX.1.3.4 GR6",
+   "citation": "§1985:IX.1.3.4 GRL2.6",
    "document": "X3.23-1985",
    "section": "IX",
    "paragraph": "1.3.4",
@@ -23406,7 +23406,7 @@
   },
   {
    "id": "1985-GR-IX.1.3.5-L2.1",
-   "citation": "§1985:IX.1.3.5 GR1",
+   "citation": "§1985:IX.1.3.5 GRL2.1",
    "document": "X3.23-1985",
    "section": "IX",
    "paragraph": "1.3.5",
@@ -23427,7 +23427,7 @@
   },
   {
    "id": "1985-GR-IX.1.3.5-L2.2",
-   "citation": "§1985:IX.1.3.5 GR2",
+   "citation": "§1985:IX.1.3.5 GRL2.2",
    "document": "X3.23-1985",
    "section": "IX",
    "paragraph": "1.3.5",
@@ -27229,6 +27229,7 @@
    "box": "none",
    "level": 1,
    "amended_by": [
+    "X3.23a-1989",
     "X3.23b-1993"
    ],
    "status": "normal",
@@ -27820,7 +27821,9 @@
    "sublist": 1,
    "box": "none",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 520,
    "folio": "X-6",
@@ -29523,7 +29526,9 @@
    "sublist": 1,
    "box": "none",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 545,
    "folio": "X-29",
@@ -30741,7 +30746,9 @@
    "sublist": 1,
    "box": "none",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 560,
    "folio": "XI-8",
@@ -31271,6 +31278,7 @@
    "box": "none",
    "level": 1,
    "amended_by": [
+    "X3.23a-1989",
     "X3.23b-1993"
    ],
    "status": "normal",
@@ -32475,7 +32483,9 @@
    "sublist": 1,
    "box": "part",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 578,
    "folio": "XII-4",
@@ -32517,7 +32527,9 @@
    "sublist": 1,
    "box": "part",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 578,
    "folio": "XII-4",
@@ -40530,7 +40542,9 @@
    "sublist": 1,
    "box": "whole",
    "level": 2,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 677,
    "folio": "XIV-19",
@@ -42000,7 +42014,9 @@
    "sublist": 1,
    "box": "whole",
    "level": 2,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "obsolete: C.1(18)",
    "page": 693,
    "folio": "XV-5",
@@ -42618,7 +42634,7 @@
   },
   {
    "id": "1985-GR-XVI.1.4.3-L2.1",
-   "citation": "§1985:XVI.1.4.3 GR1",
+   "citation": "§1985:XVI.1.4.3 GRL2.1",
    "document": "X3.23-1985",
    "section": "XVI",
    "paragraph": "1.4.3",
@@ -42639,7 +42655,7 @@
   },
   {
    "id": "1985-GR-XVI.1.4.3-L2.2",
-   "citation": "§1985:XVI.1.4.3 GR2",
+   "citation": "§1985:XVI.1.4.3 GRL2.2",
    "document": "X3.23-1985",
    "section": "XVI",
    "paragraph": "1.4.3",
@@ -43059,7 +43075,7 @@
   },
   {
    "id": "1985-SR-XVI.3.3.2-L2.1",
-   "citation": "§1985:XVI.3.3.2 SR1",
+   "citation": "§1985:XVI.3.3.2 SRL2.1",
    "document": "X3.23-1985",
    "section": "XVI",
    "paragraph": "3.3.2",
@@ -43080,7 +43096,7 @@
   },
   {
    "id": "1985-SR-XVI.3.3.2-L2.2",
-   "citation": "§1985:XVI.3.3.2 SR2",
+   "citation": "§1985:XVI.3.3.2 SRL2.2",
    "document": "X3.23-1985",
    "section": "XVI",
    "paragraph": "3.3.2",
@@ -43143,7 +43159,7 @@
   },
   {
    "id": "1985-SR-XVI.3.3.3-L2.1",
-   "citation": "§1985:XVI.3.3.3 SR1",
+   "citation": "§1985:XVI.3.3.3 SRL2.1",
    "document": "X3.23-1985",
    "section": "XVI",
    "paragraph": "3.3.3",
@@ -43164,7 +43180,7 @@
   },
   {
    "id": "1985-SR-XVI.3.3.3-L2.2",
-   "citation": "§1985:XVI.3.3.3 SR2",
+   "citation": "§1985:XVI.3.3.3 SRL2.2",
    "document": "X3.23-1985",
    "section": "XVI",
    "paragraph": "3.3.3",
@@ -43227,7 +43243,7 @@
   },
   {
    "id": "1985-SR-XVI.3.3.4-L2.1",
-   "citation": "§1985:XVI.3.3.4 SR1",
+   "citation": "§1985:XVI.3.3.4 SRL2.1",
    "document": "X3.23-1985",
    "section": "XVI",
    "paragraph": "3.3.4",
@@ -43248,7 +43264,7 @@
   },
   {
    "id": "1985-SR-XVI.3.3.4-L2.2",
-   "citation": "§1985:XVI.3.3.4 SR2",
+   "citation": "§1985:XVI.3.3.4 SRL2.2",
    "document": "X3.23-1985",
    "section": "XVI",
    "paragraph": "3.3.4",
@@ -47264,6 +47280,48 @@
    "folio": "A-76",
    "band": "",
    "text": "The returned value must denote the same time as the compilation date and time if provided in the listing of the source program and in the generated object code for the source program, although their representations and precisions may differ."
+  },
+  {
+   "id": "1989-SR-X.5.2.3-4",
+   "citation": "§1989:p.A-20",
+   "document": "X3.23a-1989",
+   "section": "X",
+   "paragraph": "5.2.3",
+   "locator": "X.5.2.3",
+   "module": "Inter-Program Communication",
+   "subject": "THE CALL STATEMENT",
+   "kind": "SR",
+   "ordinal": 4,
+   "sublist": 1,
+   "box": "none",
+   "level": 1,
+   "amended_by": [],
+   "status": "normal",
+   "page": 850,
+   "folio": "A-20",
+   "band": "",
+   "text": "Identifier-2 must not be a function-identifier."
+  },
+  {
+   "id": "1989-SR-XIV.3.6.3-6",
+   "citation": "§1989:p.A-21",
+   "document": "X3.23a-1989",
+   "section": "XIV",
+   "paragraph": "3.6.3",
+   "locator": "XIV.3.6.3",
+   "module": "Communication",
+   "subject": "THE SEND STATEMENT",
+   "kind": "SR",
+   "ordinal": 6,
+   "sublist": 1,
+   "box": "none",
+   "level": 1,
+   "amended_by": [],
+   "status": "normal",
+   "page": 851,
+   "folio": "A-21",
+   "band": "",
+   "text": "If identifier-1 is a function-identifier, it must reference an alphanumeric function."
   },
   {
    "id": "1993-GR-VI.6.18.4-1",
