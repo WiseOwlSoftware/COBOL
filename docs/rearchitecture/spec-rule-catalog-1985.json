@@ -1,6 +1,6 @@
 {
  "generated_from": "specs/ANSI_COBOL_1985.md",
- "rule_count": 2253,
+ "rule_count": 2255,
  "blocks": 664,
  "rules": [
   {
@@ -27229,6 +27229,7 @@
    "box": "none",
    "level": 1,
    "amended_by": [
+    "X3.23a-1989",
     "X3.23b-1993"
    ],
    "status": "normal",
@@ -27820,7 +27821,9 @@
    "sublist": 1,
    "box": "none",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 520,
    "folio": "X-6",
@@ -29523,7 +29526,9 @@
    "sublist": 1,
    "box": "none",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 545,
    "folio": "X-29",
@@ -30741,7 +30746,9 @@
    "sublist": 1,
    "box": "none",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 560,
    "folio": "XI-8",
@@ -31271,6 +31278,7 @@
    "box": "none",
    "level": 1,
    "amended_by": [
+    "X3.23a-1989",
     "X3.23b-1993"
    ],
    "status": "normal",
@@ -32475,7 +32483,9 @@
    "sublist": 1,
    "box": "part",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 578,
    "folio": "XII-4",
@@ -32517,7 +32527,9 @@
    "sublist": 1,
    "box": "part",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 578,
    "folio": "XII-4",
@@ -40530,7 +40542,9 @@
    "sublist": 1,
    "box": "whole",
    "level": 2,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 677,
    "folio": "XIV-19",
@@ -42000,7 +42014,9 @@
    "sublist": 1,
    "box": "whole",
    "level": 2,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "obsolete: C.1(18)",
    "page": 693,
    "folio": "XV-5",
@@ -47264,6 +47280,48 @@
    "folio": "A-76",
    "band": "",
    "text": "The returned value must denote the same time as the compilation date and time if provided in the listing of the source program and in the generated object code for the source program, although their representations and precisions may differ."
+  },
+  {
+   "id": "1989-SR-X.5.2.3-4",
+   "citation": "§1989:p.A-20",
+   "document": "X3.23a-1989",
+   "section": "X",
+   "paragraph": "5.2.3",
+   "locator": "X.5.2.3",
+   "module": "Inter-Program Communication",
+   "subject": "THE CALL STATEMENT",
+   "kind": "SR",
+   "ordinal": 4,
+   "sublist": 1,
+   "box": "none",
+   "level": 1,
+   "amended_by": [],
+   "status": "normal",
+   "page": 850,
+   "folio": "A-20",
+   "band": "",
+   "text": "Identifier-2 must not be a function-identifier."
+  },
+  {
+   "id": "1989-SR-XIV.3.6.3-6",
+   "citation": "§1989:p.A-21",
+   "document": "X3.23a-1989",
+   "section": "XIV",
+   "paragraph": "3.6.3",
+   "locator": "XIV.3.6.3",
+   "module": "Communication",
+   "subject": "THE SEND STATEMENT",
+   "kind": "SR",
+   "ordinal": 6,
+   "sublist": 1,
+   "box": "none",
+   "level": 1,
+   "amended_by": [],
+   "status": "normal",
+   "page": 851,
+   "folio": "A-21",
+   "band": "",
+   "text": "If identifier-1 is a function-identifier, it must reference an alphanumeric function."
   },
   {
    "id": "1993-GR-VI.6.18.4-1",
