@@ -636,8 +636,13 @@ internal sealed class LinkageBinder(DataBinder data)
         // (the record's own entry carries no EXTERNAL clause, so the parse-tree scan above cannot see it).
         // Re-based through the SAME cell mechanism, keyed by the record's own name (GR5). An entry that ALSO
         // carries its own EXTERNAL clause was already re-based by the scan above — skip the double registration.
+        // ⛔ ONE CLAIMANT PER RECORD (kb/Work PB5003): a record of an EXTERNAL FD is claimed by the FD arm below — its area is
+        // keyed by the FILE's externalized name (GR4b/GR5), so a record that is ALSO external by its type
+        // (`FD F IS EXTERNAL. 01 R TYPE TG.` with `TG IS TYPEDEF STRONG EXTERNAL`) must not take a second cell and backing
+        // under its own name: both declared `_scell_R` / `_redef_R` (CS0102).
+        var externalFdRecords = data.State.Files.Declared.Where(f => f.IsExternal).SelectMany(f => f.Records).ToHashSet();
         foreach (var item in data.State.Forest.Roots)
-            if (item is { ExternalFromType: true, HasExternalClause: false, CobolName: not null })
+            if (item is { ExternalFromType: true, HasExternalClause: false, CobolName: not null } && !externalFdRecords.Contains(item))
                 CallMakeExternal(item);
 
         // EXTERNAL FDs: the record area is run-unit storage keyed by the externalized FILE name (§2023:13.18.22.4
