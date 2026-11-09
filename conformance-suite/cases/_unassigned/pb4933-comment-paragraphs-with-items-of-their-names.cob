@@ -8,8 +8,8 @@
       *> DATE-COMPILED and SECURITY free, data items of those names are user-defined words, and
       *> the five COBOL-85 comment paragraphs (deleted by COBOL-2002, VCR Table 7) draw the same
       *> named removal COBOL0902 as without the items.
-      *> The reservation gate retypes the declared free word to a user-defined word, but keeps
-      *> the keyword token a parse read in its header (kb/Work PB4933, refusalWhereFree).
+      *> The reservation gate retypes the declared free word to a user-defined word, but gives
+      *> the header back its keyword where its user-word reading fails (kb/Work PB4933, PB4958).
       *> Fails if a paragraph header draws COBOL0001.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB4933A.
