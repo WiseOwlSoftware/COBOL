@@ -1,4 +1,4 @@
-## A wave's concurrency is derived from the gate pool it feeds (PB5100)
+## Entry 3436 — 2026-11-10 07:54 PST — A wave's concurrency is derived from the gate pool it feeds (PB5100)
 
 The fix lane's rolling wave ran a hand-set number of implementers (`wave.concurrency`, 6, then an interim 3) against a
 gate pool of 3 slots, so gates queued for 24 to 42 minutes while each waiting implementer held a model session open.
@@ -18,3 +18,4 @@ rules key). plan_wave self-test 545/545, rolling wave self-test 52/52. No invent
 Branch review round 1 found that the pool read ran after the wave number and codes were reserved and the groups recorded in the
 dispatch ledger. A malformed slot `settings.json` would raise there and strand them (the PB3114 harm). The read now runs before
 the first reservation, and two self-test checks pin the order. plan_wave self-test: 547/547.
+
