@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.14.4-9",
  "rule-digest": "938cae9cbee8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#FormatPackedImage; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#ParsePackedImage; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUsageClause; docs/CONFORMANCE.md#DOC-A.1-215",
  "test-ref": "conformance:cases/VI.5.14@1985-USAGE-CLAUSE/1985-GR-VI_5_14_4-9",
+ "notes": "§1985:VI.5.14.4 GR9 requires that \"a radix of 10 is used\", that \"each digit position must occupy the minimum possible configuration in computer storage\", leaves alignment, representation and sign to the implementor, and requires that \"Sufficient computer storage must be allocated by the implementor to contain the maximum range of values implied by the associated decimal PICTURE character-string\". The representation has no edition arm: PicInfo.ByteForm gives Usage.Packed the BCD form, PicInfo.StorageWidth gives it digits/2+1 bytes (one nibble per digit plus the trailing sign nibble, enough for every value of the PICTURE), and FormatPackedImage/ParsePackedImage write and read that image (C/D/F sign nibble, the determination docs/CONFORMANCE.md DOC-A.1-215 records) wherever the item is seen as bytes. The one 1985 difference, the 2023 WITH NO SIGN phrase the 1985 format lacks, is refused by VersionConformancePass.VisitUsageClause (COBOL0900 at --std 85, probed). The witness runs unsigned, signed, scaled and 18-digit PACKED-DECIMAL items through VALUE, arithmetic at the range limits, a group MOVE and comparisons; a probe added the byte widths (S9(4) is 3 bytes; 9(5), S9 and S9(18) together are 14) and a group MOVE that carries all three values.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

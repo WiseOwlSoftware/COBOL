@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.18.3-3",
  "rule-digest": "82cffbdc1d54",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInspectConvertingPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNonNumericLiteral; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectLiteralSize; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectLiteralSizes",
  "test-ref": "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/1985-SR-VI_6_18_3-3",
+ "notes": "§1985:VI.6.18.3 SR3: \"Each literal must be a nonnumeric literal and must not be a figurative constant that begins with the word ALL.\" InspectCharOperandOf refuses a numeric literal in every literal position and an ALL figurative as literal-1 to literal-4 with COBOL1757 at every edition; the 1985 difference, literal-5, is the edition gate VisitInspectConvertingPhrase (construct inspect-converting-to-all-2002), which refuses CONVERTING ... TO ALL literal and TO ALL ZEROS at 85 with COBOL0900, and VisitNonNumericLiteral refuses the later editions' hexadecimal, national and boolean literals at 85. The second sentence (\"If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an implicit one character data item\") is InspectCharOperandOf's one-character figurative operand, measured as 1 by InspectLiteralSize: probed at 85, ALL ZERO BY \"AB\" and CONVERTING SPACE TO \"AB\" are refused with COBOL0846, and REPLACING ALL \"CA\" BY ZERO, CONVERTING \"ABC\" TO SPACE and AFTER QUOTE compile and run. The witness tallies ALL SPACE (literal-1 a figurative constant).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

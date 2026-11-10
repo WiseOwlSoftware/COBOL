@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.2.3-6",
  "rule-digest": "56346672c34f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindCompute; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; docs/CONFORMANCE.md#DOC-A.1-123",
  "test-ref": "conformance:cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/1985-GR-VI_6_2_3-6",
+ "notes": "§1985:VI.6.2.3 GR6: 'Arithmetic expressions allow the user to combine arithmetic operations without the restrictions on composite of operands and/or receiving data items. Each implementor will indicate the techniques used in handling arithmetic expressions.' The restriction it lifts is §1985:VI.6.4.4 item 2 (the composite of operands 'must not contain more than 18 decimal digits'), which StatementValidation.CheckComposite enforces at 18 digits for a 1985 program (COBOL0805) and which only the ADD, SUBTRACT, MULTIPLY, DIVIDE and CORRESPONDING binders ask; ArithmeticBinder.BindCompute binds the expression and its receivers without asking it, and no condition or other arithmetic-expression position asks it either, so an expression is bound whatever its operands superimpose to. The techniques are indicated in docs/CONFORMANCE.md DOC-A.1-123 (the native intermediate data item, a scaled Int128 with an exact wide form past it; native arithmetic is the only mode a 1985 program has). The witness computes PIC 9(18) + PIC V9(18), a 36-digit composite, into an edited item; probes at --std 85 add the same pair in a relation condition, a product of two 18-digit items divided back, and a mixed expression, all exact, while the same pair in ADD ... GIVING is refused COBOL0805 (E:/COBOL-coord/scratch/coderead-85/out/work-slice-19/p7/a.cob, b.cob).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-FMT-A.2.30.2",
  "rule-digest": "4e511f5a91d2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordWordOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
  "test-ref": "conformance:cases/A.2.30@1985-NUMVAL-C-FUNCTION/1989-FMT-A_2_30_2",
+ "notes": "§1989:A.2.30.2 prints \"FUNCTION NUMVAL-C ( argument-1 [ argument-2 ] )\": one or two arguments in parentheses and nothing else. BindNumvalCFamily walks the argument list by position and requires one or two operands (COBOL1504 for none, for empty parentheses and for three); the LOCALE and ANYCASE keywords that §2023:15.68.2 adds are refused at 85 by its two construct checks (COBOL0900), and where the program declares a data item named ANYCASE or LOCALE, KeywordWordOf reads the word as argument-2, which the 1989 format allows. Probed at 85: one argument, two arguments with and without a comma are accepted. The witness runs both forms. The content rule the same binder applies to argument-2 is an argument rule, recorded on 1989-AR-A.2.30.3-4.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

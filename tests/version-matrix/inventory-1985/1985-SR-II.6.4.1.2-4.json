@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-II.6.4.1.2-4",
  "rule-digest": "a9e25355a10b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate",
  "test-ref": "conformance:cases/II.6.4.1@1985-Transfer-of-Control/1985-SR-II_6_4_1_2-4",
+ "notes": "§1985:II.6.4.1.2 SR4: a program that is neither common nor separately compiled may be called \"if, and only if, that program is directly contained within the calling program\". Activate resolves every CALL name, literal or identifier, through ResolveVisible, whose only arm that returns a non-common contained program is the scan of the caller's own children; the container walk returns COMMON programs only, the self-call arm needs the RECURSIVE attribute (refused at 85, COBOL0885), and the last arm returns outermost programs only, so any other reference is a separately compiled program of that name or EC-PROGRAM-NOT-FOUND (the ON EXCEPTION path, fatal without one). Probed at --std 85 over a three-level tree, by literal and by identifier: a direct child is called; a grandchild, a sibling, a sibling of the container and the container itself are not; and with a separately compiled program of the same name in the run unit (§1985:II.6.4.1.3 SR2 \"the separately compiled program is called\") the sibling's call reaches that one. The witness calls a non-common sibling under ON EXCEPTION.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

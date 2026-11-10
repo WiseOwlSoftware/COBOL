@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.23.4-4",
  "rule-digest": "dafa6e912d09",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetUpDown; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetUpDown; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#LandAmount; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#AugmentSetTarget; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#Augment",
  "test-ref": "conformance:cases/VI.6.23@1985-SET-STATEMENT/1985-GR-VI_6_23_4-4",
+ "notes": "§1985:VI.6.23.4 GR4: \"the content of index-name-3 is incremented (UP BY) or decremented (DOWN BY) by a value that corresponds to the number of occurrences represented by the value of integer-2 or the data item referenced by identifier-3\", repeated for each index-name-3, and \"For each repetition the value of the data item referenced by identifier-3 is used as it was at the beginning of the execution of the statement.\" BindSetUpDown binds the receiving list and the amount; EmitSetUpDown evaluates the amount once into a temporary (LandAmount) before any index changes, then AugmentSetTarget adds or subtracts that one value for each index in written order through CobolIndex.Augment. An index is its occurrence number, so the amount is the number of occurrences with no conversion. No edition arm is involved: 2023's added case (a result outside the 64-bit implementor range raises EC-RANGE-INDEX and leaves the index unchanged) is not reachable from a table 1985 can describe. The witness is SET IX1 IX2 UP BY ST (IX1), whose amount would change if it were read again after IX1 moved. Probed further at --std 85: three indexes of two tables in one statement, DOWN BY with the amount subscripted by the last index changed, a signed integer-2 (§1985:VI.6.23.3 SR4 \"Integer-1 and integer-2 may be signed.\") and a negative and a COMP identifier-3 all give the rule's values.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

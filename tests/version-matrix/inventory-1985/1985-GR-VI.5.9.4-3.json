@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.9.4-3",
  "rule-digest": "9dd3bdf6d44a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenPictureDigitCapacity; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity; src/WiseOwl.Cobol.Editions/EditionInfo.cs#MaxDigits",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-GR-VI_5_9_4-3",
+ "notes": "§1985:VI.5.9.4 GR3: 'Its PICTURE character-string can contain only the symbols '9', 'P', 'S', and 'V'. The number of digit positions that can be described by the PICTURE character-string must range from 1 to 18 inclusive'. AnalyzeCharacterString's last arm makes a string of 9 P S V category Numeric and counts its digit positions as the 9s plus every P (DigitPositions); DataBinder.BindEntry passes each written PICTURE to ScreenPictureDigitCapacity, and EditionContext.CheckDigitCapacity refuses fewer than 1 and more than MaxDigits, which EditionInfo.MaxDigits makes 18 below 2002 (COBOL0802) and 31 from 2002. The lower bound is also PictureComposition.Validate's refusal of a string with no 9 (COBOL1934). Probed at --std 85: PIC 9(18), S9(18), 9(16)PP and PP9(16) compile; PIC 9(19), 9(17)PP, PP9(17) and S9(18)V9 are refused with COBOL0802, PIC S, V and PPP with COBOL1934. Sentence b, the content with an operational sign, is carried by the SIGN clause's representation (S9(18) VALUE -1 displays -000000000000000001). The witness stores and displays 18-digit, 16V2 and 1-digit items.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

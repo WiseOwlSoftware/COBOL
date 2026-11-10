@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.3.5.2",
  "rule-digest": "3cb11bbdd41c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataRecordsClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
  "test-ref": "conformance:cases/VII.3.5@1985-DATA-RECORDS-CLAUSE/1985-FMT-VII_3_5_2",
+ "notes": "§1985:VII.3.5.2 prints DATA { RECORD IS | RECORDS ARE } { data-name-1 } ..., with DATA, RECORD and RECORDS underlined and IS and ARE not. dataRecordsClause is DATA (RECORD IS? | RECORDS ARE?) cobolWord+, an alternative of fileDescriptionClause: one of RECORD or RECORDS is required, each optional word goes only with its own key word, and the operands are one or more bare words, which is the format's data-name-1 (§1985:III.2: a word not subscripted or qualified unless the format's rules permit it, and this clause's rules permit neither). The 1985 edition reaches it through VisitDataRecordsClause, which is silent at 85 and refuses the clause from 2002 (COBOL0873); the Rows table admits it in every FD format and ScreenClauseRepetition refuses a second clause (COBOL2423). The clause is documentation (§1985:VII.3.5.1) and binds nothing. Probed at 85: DATA RECORD IS R1, DATA RECORDS ARE R1 R2 and DATA RECORDS R1 compile and run; DATA RECORD ARE, DATA RECORDS IS, DATA R1, no operand, a literal operand, R1 OF F1 and the clause twice are refused. One neighbour is not this row: a name that is no 01 record of the file (DATA RECORD IS NOSUCH) compiles at 85, which is §1985:VII.3.5.3 SR1's requirement and kb/Work PB5070's defect (row 1985-SR-VII.3.5.3-1). The witness writes DATA RECORDS ARE REC-A REC-B over two 01 records and writes one of them.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

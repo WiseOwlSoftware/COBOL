@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.15.6-1",
  "rule-digest": "09e61162665b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#InGatedDataEntry; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset",
  "test-ref": "conformance:cases/VI.5.15@1985-VALUE-CLAUSE/1985-GR-VI_5_15_6-1",
+ "notes": "§1985:VI.5.15.6 GR1 requires \"In the File Section, the VALUE clause may be used only in condition-name entries\", \"In the Linkage Section, the VALUE clause may be used only in condition-name entries\", and that VALUE clauses in the Working-Storage and Communication Sections \"take effect only when the program is placed into its initial state\", a data item with one being \"initialized to the defined value\". The 1985 arm is VersionConformancePass.VisitValueClause: for an entry whose level is not 66 or 88 (InGatedDataEntry) under the file section (FD and SD records) or the linkage section it asks the construct value-clause-linkage-file-external-2002, which refuses the clause below 2002 (COBOL0900 at --std 85; probed on elementary, group, level-77, FD and SD entries, while level-88 VALUE entries in both sections compile and test true). ValueInitializer.InitializerFrom builds each working-storage and communication-section item's seed from its VALUE literal, and the seed is applied only at the initial state: field initializers plus RecordStructEmitter.EmitStaticReset, the hook the runtime calls on CANCEL and for an INITIAL program. The witness displays two working-storage VALUE items; a probe showed a called program's VALUE items keep their changed contents across calls, return to the VALUE after CANCEL and on every call of an INITIAL program, are not restored by INITIALIZE, and that a CD record item's VALUE initializes it.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

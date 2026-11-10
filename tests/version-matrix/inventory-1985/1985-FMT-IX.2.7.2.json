@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-IX.2.7.2",
  "rule-digest": "e585f42d9353",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordKeyClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
  "test-ref": "conformance:cases/IX.2.7@1985-RECORD-KEY-CLAUSE/1985-FMT-IX_2_7_2",
+ "notes": "§1985:IX.2.7.2 prints RECORD KEY IS data-name-1, with RECORD the one underlined word. recordKeyClause requires RECORD, takes KEY and IS as optional words and one data-name operand; BindFileControl captures its base word and qualifiers through ClauseDataName (a subscripted or reference-modified operand is refused, COBOL2024); the 2023 alternative record-key-name-1 SOURCE IS data-name-2 is refused at 85 by VisitRecordKeySourcePhrase (COBOL0900), and a second RECORD KEY clause by ScreenClauseRepetition (COBOL2423). Probed at 85: RECORD KEY IS K1, RECORD KEY K1 and RECORD K1 OF R1 compile and run; KEY IS K1 without RECORD, a missing operand, a literal operand, a second data-name, WITH DUPLICATES after the key and K1 (1:2) are refused. The witness declares RECORD KEY IS IX-KEY, writes one record and reads it back at random by that key.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

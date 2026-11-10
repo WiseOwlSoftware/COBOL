@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-RV-A.2.9.4-2",
  "rule-digest": "c3d5a1f113b6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Char; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Collate",
  "test-ref": "conformance:cases/A.2.9@1985-CHAR-FUNCTION/1989-RV-A_2_9_4-2",
+ "notes": "§1989:A.2.9.4 RV2: \"If the current program collating sequence was not specified by an ALPHABET clause, the implementor determines the value.\" BindFunctionResult flags a CHAR call for the program's collation table only when a non-identity alphanumeric PROGRAM COLLATING SEQUENCE is in effect; without one (no edition arm) Collate adds no argument and the one-argument Char returns the implementor's determination, the character whose native code is argument-1 minus 1, the exact inverse of ORD and the same at every invocation. Probed at --std 85: CHAR (66) is \"A\" from a literal, an item and an expression, in a contained program, with an ALPHABET declared but not named as the collating sequence, and with ALPHABET IS NATIVE named; ORD (CHAR (n)) is n at 1, 66 and 256. The witness moves CHAR (66) to a PIC X item with no collating sequence declared.",
  "next": {
   "kind": "CHANGED",
   "to": [

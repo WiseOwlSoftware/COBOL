@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-RV-A.2.22.4-2",
  "rule-digest": "60644b443ff9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
  "test-ref": "conformance:cases/A.2.22@1985-LOWER-CASE-FUNCTION/1989-RV-A_2_22_4-2",
+ "notes": "§1989:A.2.22.4 RV2: \"The character string returned has the same length as argument-1.\" At 85 RenderStringValue takes its third case arm (the LOCALE phrase and the CHARACTER CLASSIFICATION clause that select the two locale arms are refused at 85 with COBOL0900) and calls CobolIntrinsics.LowerCase on the argument's whole image; its ToLowerInvariant is a simple case mapping, one character to one, so no letter can change the length. Probed at --std 85: a group, an OCCURS DEPENDING group at its current count, a literal with trailing spaces and non-ASCII letters each returned FUNCTION LENGTH equal to the argument's. The witness lowers a PIC X(5) item and displays the result's LENGTH (05) and content.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

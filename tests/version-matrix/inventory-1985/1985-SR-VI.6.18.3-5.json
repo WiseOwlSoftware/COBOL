@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.18.3-5",
  "rule-digest": "a2533d08ca12",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectLiteralSizes; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#RunCycle; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region",
  "test-ref": "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/1985-SR-VI_6_18_3-5",
+ "notes": "§1985:VI.6.18.3 SR5 limits the operands to one character in level 1 only: \"Except as specifically noted in syntax and general rules, this restriction on length does not apply to level 2.\" The compiler implements the level 2 Nucleus at 85, so the requirement is to accept operands longer than one character: InspectCharOperandOf binds literal-1, literal-2, literal-3 and identifier-3, identifier-4, identifier-5 with no length limit (the lengths the other rules do fix are CheckInspectLiteralSizes for SR7 and SR9 and the CHARACTERS replacement of SR8), and the runtime compares a pattern of any length (RunCycle) and locates a BEFORE/AFTER delimiter of any length (Region). The witness tallies ALL \"AB\" BEFORE INITIAL \"CA\" and replaces with two-character identifier-3, identifier-4 and identifier-5 and two-character literals, with the output the general rules require.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

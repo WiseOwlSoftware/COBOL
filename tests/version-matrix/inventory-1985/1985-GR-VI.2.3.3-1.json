@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.2.3.3-1",
  "rule-digest": "2326c52b729d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#environmentDivision; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureDivision; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision",
  "test-ref": "conformance:cases/VI.2.3@1985-STRUCTURE/1985-GR-VI_2_3_3-1",
+ "notes": "§1985:VI.2.3.3 GR1: \"The beginning of a division in a program is indicated by the appropriate division header\", and its end by the next division's header, the end program header, or \"That physical position after which no more source program lines occur.\" The grammar states it structurally: programUnit is identificationDivision environmentDivision? dataDivision? procedureDivision? nestedProgram* endProgramHeader?, and environmentDivision, dataDivision and procedureDivision each open on their own header tokens, so a division's content is reachable only behind its header and closes at the next header, END PROGRAM or EOF. The one header the superset grammar leaves optional, IDENTIFICATION DIVISION (identificationDivision, the 2002 form), is required at --std 85 by VersionConformancePass.VisitIdentificationDivision (Constructs.IdentificationHeaderOptional2002, COBOL0900). Probed at 85: a unit opening on PROGRAM-ID is refused (COBOL0900); WORKING-STORAGE SECTION or a paragraph with no DATA or PROCEDURE DIVISION header, a division after a later one and a repeated DATA DIVISION are refused (COBOL0001); a three-program sequence whose divisions end at a header, at END PROGRAM and at end of source compiles and runs. The witness runs four headers in order, the last division ended by the end of the source.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

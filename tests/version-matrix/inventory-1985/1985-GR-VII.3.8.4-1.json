@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.8.4-1",
  "rule-digest": "0ebd40fe4bc7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ImpliesVariableFormat; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordContains; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FitRecord",
  "test-ref": "conformance:cases/VII.3.8@1985-RECORD-CLAUSE/1985-GR-VII_3_8_4-1",
+ "notes": "§1985:VII.3.8.4 GR1: \"If the RECORD clause is not specified, the size of each data record is completely defined in the record description entry\"; §1985:II.2.1.4.3 leaves the record type of such a file to the implementor (\"it is implementor defined whether fixed length or variable length records are obtained\"). No edition arm: at 85 as at 2023 a file whose entry writes no RECORD clause (FileModel.RecordContains and Varying both null) is sized from its record description entries alone - FileModel.RecordWidth is the widest description's physical width, the file is fixed length unless ImpliesVariableFormat finds a variable-length description, and the connector pads or cuts every record to that width (FileConnector.FitRecord). Probed at --std 85: an FD with 01 R5 PIC X(5) and 01 R10 PIC X(10) and no RECORD clause writes two 10-character records (20-byte file; the short record is sent as the whole record area), the fixed-length choice §1985:II.2.1.4.1 describes (\"Fixed length records must contain the same number of character positions for all the records in the file\"). The witness writes and reads back one 8-character record of an FD with no RECORD clause.",
  "next": {
   "kind": "CHANGED",
   "to": [

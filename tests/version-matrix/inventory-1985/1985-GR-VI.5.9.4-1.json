@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.9.4-1",
  "rule-digest": "28cf13e1fcfe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#PicCategory; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateDataItem; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#UsageConstructId; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#PictureConstructId",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-GR-VI_5_9_4-1",
+ "notes": "§1985:VI.5.9.4 GR1: 'There are five categories of data that can be described with a PICTURE clause: alphabetic, numeric, alphanumeric, alphanumeric edited, and numeric edited.' PictureAnalyzer.AnalyzeCharacterString sorts every character-string into exactly these at 85: the A/X arm gives PicCategory.Alphanumeric (IsAlphabetic when the string is all 'A', an EditMask when B 0 / make it alphanumeric edited), the editing-symbol arm gives NumericEdited and the fall-through arm Numeric. The three categories 2023 adds define no item at 85: a PICTURE of N, 1 or E is still analysed, and VersionConformancePass.GateDataItem (UsageConstructId for national-data-2002 and boolean-data-2002, PictureConstructId for pic-external-float-2002 and national-edited-2002) refuses the entry with COBOL0900 below 2002. Probed at --std 85: PIC NN, PIC 11 and PIC 9.9E+99 each get COBOL0900. The witness declares one item of each of the five categories and displays them.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.3.3-2",
  "rule-digest": "565397ac950d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ResultRefMod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FinishIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
  "test-ref": "conformance:cases/IV.4.3.8.3@1985-Function-Identifier/1985-SR-IV_4_3_8_3_3-2",
+ "notes": "§1985:IV.4.3.8.3.3 SR2: \"A reference-modifier may be specified only for functions of the category alphanumeric.\" FinishIntrinsic hands the one reference-modifier written after a function-identifier to ResultRefMod, which reads the bound call's result category (argument-typed, so MAX and MIN over alphanumeric arguments are alphanumeric) and refuses anything but alphanumeric, national or boolean with COBOL1629; no edition arm is needed because BindFunctionResult refuses every function the 1989 module does not hold (COBOL1502 on IntroducedIn above 85), which removes every national and boolean function at 85. Probed at 85: UPPER-CASE, LOWER-CASE, REVERSE, CHAR, CURRENT-DATE, WHEN-COMPILED and MAX/MIN of alphanumeric arguments accept the modifier and return the slice; MAX of numeric arguments, LENGTH, SQRT, ORD, NUMVAL and INTEGER-OF-DATE draw COBOL1629, RANDOM (1:1) draws COBOL1543, NATIONAL-OF and BOOLEAN-OF-INTEGER draw COBOL1502. The witness accepts UPPER-CASE (A1) (2:3) and refuses MOD (N1 N2) (1:1).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

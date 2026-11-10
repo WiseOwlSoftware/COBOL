@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.12.3-1",
  "rule-digest": "fb1a89d03a06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#GateGroupSignSubordinates; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#IsSignedNumericEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect",
  "test-ref": "conformance:cases/VI.5.12@1985-SIGN-CLAUSE/1985-SR-VI_5_12_3-1",
+ "notes": "§1985:VI.5.12.3 SR1: \"The SIGN clause may be specified only for a numeric data description entry whose PICTURE contains the character 'S', or a group item containing at least one such numeric data description entry.\" Run screens every data description entry that wrote a SIGN clause, in every section. An elementary entry goes to SignClauseElementaryDefect at every edition, which refuses one that is not of category numeric, has no S in its picture or has no PICTURE with COBOL2422. A group goes to GateGroupSignSubordinates, the 1985 arm (it returns at once from 2002): a group with no descendant that IsSignedNumericEntry accepts is refused through the construct sign-group-unsigned-subordinates-2002 with COBOL0900, which is the condition 2023 dropped. Probed at 85: SIGN on PIC X, PIC A, PIC -ZZ9, PIC 9(3), USAGE INDEX and on a group of alphanumeric and unsigned items is refused in the working-storage, file and linkage sections; SIGN on PIC S9 items at levels 01, 05 and 77 and on a group holding one signed item compiles. The witness is PIC 9(3) SIGN IS LEADING SEPARATE, refused with COBOL2422.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
