@@ -150,8 +150,8 @@ originally architected it"; kb/Work PB4992). Each fact has one home:
 through `scripts/spec/record_verdicts.py` (§8). A rule nobody has adjudicated has no file: the catalog is the
 denominator, and an unadjudicated rule is a GAP by the view. It sits beside `constructs.json` and the rest of the
 machine-read test data rather than under `docs/`, because its reader is the battery, not a person. **Why a file per
-row:** the merge queue runs no merge driver (kb/Work PB3642), so a catalogue that two landings both edit admits one pull
-request at a time, and the one 4,214-row file was the second cause of landing holds (PB4148). Two landings that close
+row:** the merge queue merges with plain git, so two pull requests that each add a row beside the same neighbour of one
+catalogue file conflict there, and the one 4,214-row file was the second cause of landing holds (PB4148). Two landings that close
 different rows touch different files and merge with git's plain merge; a conflict means two branches changed the SAME
 row. A file is named by its rule id, nothing else lives in the directory, and two names differing only in case are
 refused (`merge_drivers.py --self-test`, its real-tree arm).

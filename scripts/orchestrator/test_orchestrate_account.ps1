@@ -10,8 +10,16 @@ $Here = $PSScriptRoot
 . (Join-Path $Here 'testdata/orchestrate_test_lib.ps1')
 
 # 2b. the account is a parameter (kb/Work PB2479): -ConfigDir selects it, every child runs as exactly it (the variable
-#     set for a named account, UNSET for the default one), the log and units.jsonl name it, an unknown dir is refused
-$acct2 = Join-Path $HOME '.claude-acct2'
+#     set for a named account, UNSET for the default one), the log and units.jsonl name it, an unknown dir is refused.
+#     ⛔ In a temp HOME (kb/Work PB5113): the accounts' REAL config dirs carry the status line's live meter
+#     (rate-limits.json, budget.py live_reading), so an account over its allowance made the supervisor hold until
+#     the next day and every gate's self-tests HANG an hour; these cases test the account, never its quota.
+$acctHome = Join-Path $Root 'acct-home'
+New-Item -ItemType Directory -Force -Path (Join-Path $acctHome '.claude'), (Join-Path $acctHome '.claude-acct2') | Out-Null
+$savedProfile = $env:USERPROFILE
+$env:USERPROFILE = $acctHome
+try {
+$acct2 = Join-Path $acctHome '.claude-acct2'
 $r = Run-Orch 'acct2' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-ConfigDir', $acct2)
 Check 'account 2: the log header names it' ($r.out -match 'account: account2 \(config dir ') $true
 Check 'account 2: units.jsonl names it' $r.units[0].account 'account2'
@@ -19,7 +27,7 @@ Check 'account 2: the unit runs with its CLAUDE_CONFIG_DIR' ((Get-Content (Join-
 $saved = $env:CLAUDE_CONFIG_DIR
 try {
     $env:CLAUDE_CONFIG_DIR = $acct2   # the default account must not inherit the caller's variable
-    $r = Run-Orch 'acct1' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-ConfigDir', (Join-Path $HOME '.claude'))
+    $r = Run-Orch 'acct1' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-ConfigDir', (Join-Path $acctHome '.claude'))
 } finally { if ($saved) { $env:CLAUDE_CONFIG_DIR = $saved } else { Remove-Item Env:CLAUDE_CONFIG_DIR -ErrorAction SilentlyContinue } }
 Check 'account 1: units.jsonl names it' $r.units[0].account 'account1'
 Check 'account 1: the unit runs with CLAUDE_CONFIG_DIR unset' ((Get-Content (Join-Path $r.coord 'fake-invocations.txt') -Raw) -match 'CONFIG_DIR <>') $true
@@ -28,6 +36,8 @@ Check 'the transcripts are looked for under the account''s config dir' ($r.out -
 $r = Run-Orch 'acctbad' 'good' @('-Unit', 'wave', '-ConfigDir', (Join-Path $Root 'not-an-account'))
 Check 'an unknown config dir is refused' "$($r.code) $($r.runs)" '2 0'
 Check 'the refusal names the table' ($r.out -match 'not in model_rules.json accounts.list') $true
+} finally { $env:USERPROFILE = $savedProfile }
+$acct2 = Join-Path $HOME '.claude-acct2'
 
 $ss = (& pwsh -NoProfile -File (Join-Path (Split-Path $Here -Parent) 'start-session.ps1') -DryRun -ConfigDir $acct2) -join ' '
 Check 'start-session.ps1 -ConfigDir starts that account' ($ss -match [regex]::Escape("as account account2 (CLAUDE_CONFIG_DIR = $acct2)")) $true
