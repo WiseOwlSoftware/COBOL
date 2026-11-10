@@ -1270,7 +1270,7 @@ internal sealed class VersionConformancePass
             {
                 string? where = HasAncestor<CobolParserCore.LinkageSectionContext>(ctx) ? "the linkage section"
                     : HasAncestor<CobolParserCore.FileSectionContext>(ctx) ? "the file section"
-                    : EntryHasExternal(ctx) ? "an EXTERNAL data item" : null;
+                    : InExternalRecord(ctx) ? "an EXTERNAL data item" : null;
                 if (where is not null)
                     _p.Check(Constructs.ValueClauseLinkageFileExternal2002, $"a VALUE clause in {where}");
             }
@@ -1416,20 +1416,52 @@ internal sealed class VersionConformancePass
         private static bool EntryHasStrongTypedef(Antlr4.Runtime.RuleContext ctx) =>
             EntryHasClause(ctx, c => c.typedefClause()?.STRONG() is not null);
 
-        /// <summary>Whether the dataDescriptionEntry enclosing <paramref name="ctx"/> writes the EXTERNAL clause (F.2 item
-        /// 145's third subject).</summary>
-        private static bool EntryHasExternal(Antlr4.Runtime.RuleContext ctx) =>
-            EntryHasClause(ctx, c => c.externalClause() is not null);
-
-        /// <summary>The one sibling scan over the enclosing entry's <c>dataDescriptionClauses</c> list.</summary>
-        private static bool EntryHasClause(Antlr4.Runtime.RuleContext ctx, Func<CobolParserCore.DataDescriptionClauseContext, bool> test)
+        /// <summary>Whether the dataDescriptionEntry enclosing <paramref name="ctx"/> is part of the description or
+        /// redefinition of an external data record (F.2 item 145's third subject). ⛔ THE RECORD, NOT THE ENTRY (kb/Work
+        /// PB5072): §1985:VI.5.15.3 SR4 reads "The VALUE clause must not be specified in any entry which is part of the
+        /// description or redefinition of an external data record", and §1985:X.4.5.3 SR3 "in any data description entry
+        /// that includes, or is subordinate to an entry that includes, the EXTERNAL clause". EXTERNAL is written on a record
+        /// description entry, the record's level-01 entry (§1985:X.4.5.3 SR1, SR2), so asking the VALUE clause's own entry let every subordinate entry
+        /// through. The entries of a section are one flat list, so the record is the nearest level-01 or level-77 entry at
+        /// or before this one; a level-01 entry that REDEFINES an external record is a redefinition of it.</summary>
+        private static bool InExternalRecord(Antlr4.Runtime.RuleContext ctx)
         {
-            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
-                if (a is CobolParserCore.DataDescriptionEntryContext e)
-                    return e.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
-                        ?.Any(test) ?? false;
+            if (EnclosingEntry(ctx) is not { Parent: Antlr4.Runtime.ParserRuleContext section } entry) return false;
+            var entries = section.GetRuleContexts<CobolParserCore.DataDescriptionEntryContext>();
+            int at = Array.IndexOf(entries, entry);
+            while (at >= 0 && LevelOf(entries[at]) is not (1 or 77)) at--;
+            if (at < 0) return false;
+            var record = entries[at];
+            if (HasClause(record, c => c.externalClause() is not null)) return true;
+            // 01 R REDEFINES X: the redefined record of the same section decides (§1985:VI.5.15.3 SR4's "redefinition").
+            var redefines = record.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
+                ?.Select(c => c.redefinesClause()).FirstOrDefault(r => r is not null);
+            if (redefines?.dataReference().cobolWord()?.GetText() is not { } redefined) return false;
+            for (int i = at - 1; i >= 0; i--)
+                if (LevelOf(entries[i]) is 1 && entries[i].dataName()?.GetText() is { } name
+                    && string.Equals(name, redefined, StringComparison.OrdinalIgnoreCase))
+                    return HasClause(entries[i], c => c.externalClause() is not null);
             return false;
         }
+
+        private static CobolParserCore.DataDescriptionEntryContext? EnclosingEntry(Antlr4.Runtime.RuleContext ctx)
+        {
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.DataDescriptionEntryContext e) return e;
+            return null;
+        }
+
+        private static int? LevelOf(CobolParserCore.DataDescriptionEntryContext e) =>
+            int.TryParse(e.levelNumber()?.GetText(), System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out int level) ? level : null;
+
+        /// <summary>The one sibling scan over an entry's <c>dataDescriptionClauses</c> list.</summary>
+        private static bool HasClause(CobolParserCore.DataDescriptionEntryContext e, Func<CobolParserCore.DataDescriptionClauseContext, bool> test) =>
+            e.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()?.Any(test) ?? false;
+
+        /// <summary>The one sibling scan over the enclosing entry's <c>dataDescriptionClauses</c> list.</summary>
+        private static bool EntryHasClause(Antlr4.Runtime.RuleContext ctx, Func<CobolParserCore.DataDescriptionClauseContext, bool> test) =>
+            EnclosingEntry(ctx) is { } e && HasClause(e, test);
 
         /// <summary>The report-group PRESENT WHEN clause (ISO §2023:13.18.41 Format 1; P10 Step 13) — a COBOL-2002
         /// introduction (the 2002 RW modernization; PRESENT itself is §2023:8.9-reserved "added 2002").
