@@ -754,8 +754,8 @@ unheld 1985 text.
   F.1 item 1 elements). The unit is the obligation; its entry names the 85 test reproducing it, which names
   `construct:<id>` and derives its output from the unit's own expectation. Reported as unit-level coverage.
 - `excluded`, with a reason: `fips-pub-21-1` (decision 11) or `ccvs-scaffolding` (CCVS's own machinery, such as the
-  X-card parameters). A CCVS defect is not excluded: NC201A and RL118A test ISO behavior with a wrong expectation, so
-  they map as `rows` with a `differs` entry.
+  X-card parameters). A CCVS defect is not excluded: RL118A tests ISO behavior with a wrong expectation, so
+  it maps as `rows` with a `differs` entry.
 - `open`: not yet mapped.
 
 No unit is `not-claimed`: WiseOwl implements Communication (decision 12), the one candidate the study found.

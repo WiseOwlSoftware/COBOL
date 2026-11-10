@@ -53,8 +53,8 @@
       *> NIST NC201A PFM-TEST-F4-23 ("ORDER OF INITIALISATION OF VARYING IDENTIFIERS") asserts 6 for the first
       *> program below.  Per CLAUDE.md rule 1 the ISO text is the oracle and the CCVS corpus is a regression
       *> net; the divergence is recorded in tests/nist/corpus.tsv, pinned in SpecPinnedNistTests and determined
-      *> in docs/CONFORMANCE.md section 3.  GR13 e) is worded identically in COBOL-85/2002/2014/2023 (no row in
-      *> docs/VERSION_CHANGE_REFERENCE.md); the inline arms need COBOL-2002 (an inline PERFORM's AFTER phrase is
+      *> in docs/CONFORMANCE.md section 3.  GR13 e) 2 is worded identically in COBOL-2002/2014/2023; COBOL-85
+      *> states the OTHER order (kb/Work PB5101, witness pb5101_varying_after_from_outer_1985); the inline arms need COBOL-2002 (an inline PERFORM's AFTER phrase is
       *> 2002 Annex F.2 item 91, kb/Work PB4305), so the witness runs from 2002.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB436VARYAFTER.
