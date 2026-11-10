@@ -21,7 +21,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 public static class DirectiveStateRegistry
 {
     /// <summary>One pushable directive's disposition.</summary>
-    /// <param name="Row">The <c>constructs.json</c> row id.</param>
+    /// <param name="Row">The <c>constructs/</c> row id.</param>
     /// <param name="Carriers">The stage types holding the state; empty when none does.</param>
     /// <param name="Products">The <see cref="DirectiveResults"/> members carrying the state onward.</param>
     /// <param name="Reason">Where the state lives, or — for an uncarried row — why there is none, with the rule.</param>

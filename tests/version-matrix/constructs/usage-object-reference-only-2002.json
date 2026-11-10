@@ -1,0 +1,13 @@
+{
+ "id": "usage-object-reference-only-2002",
+ "status": "active",
+ "description": "USAGE OBJECT REFERENCE object-class-name-1 ONLY (ISO §2023:13.18.60.2; GR22 d)2.) — the referenced object is of EXACTLY the named class, never a subclass. LIVE since kb/Work PB389 (a trailing ONLY was a raw COBOL0307 parse error before): the descriptor carries the flag and §2023:14.9.39.3 SR12 a)1. / b)1. / c)1. read it. ONLY is §2023:8.10 context-sensitive — a legal user word at every edition — so the shape is gated only by the USAGE OBJECT REFERENCE clause's own 2002 introduction.",
+ "display": "USAGE OBJECT REFERENCE ONLY",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR22 d)2. (OO)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (OO; derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UORON.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS UORONC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 C1 USAGE OBJECT REFERENCE UORONC ONLY.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE UORONC \"NEW\" RETURNING C1.\n    STOP RUN.\nEND PROGRAM UORON.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. UORONC INHERITS FROM BASE.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS BASE.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nEND OBJECT.\nEND CLASS UORONC.\n"
+}

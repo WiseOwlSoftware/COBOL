@@ -9,9 +9,9 @@
 > two-arm walk — one arm over the bound tree (semantic gates), one over the raw parse tree (syntactic gates + the
 > §2023:8.9 reserved-word funnel); version *identity* is recovered by the pass itself (bound-node type/attribute or
 > parse-tree re-recognition — no `.Syntax` back-reference, no grammar annotation), while version *numbers* stay
-> single-sourced in `constructs.json`. This doc is the canonical design for the
+> single-sourced in `constructs/`. This doc is the canonical design for the
 > version-conformance pipeline; the version-gating
-> *framework* primitives (`EditionInfo`, `IDiagnosticSink`, `ConstructRegistry`, `constructs.json`) remain owned by
+> *framework* primitives (`EditionInfo`, `IDiagnosticSink`, `ConstructRegistry`, `constructs/`) remain owned by
 > [`DESIGN-edition-framework.md`](DESIGN-edition-framework.md). Cross-refs: [`DESIGN-frontend-grammar.md`](DESIGN-frontend-grammar.md),
 > [`DESIGN-binder-bound-tree.md`](DESIGN-binder-bound-tree.md). SSOT for settled invariants stays `docs/DESIGN.md`.
 
@@ -71,19 +71,19 @@ all four (`feedback_one_mechanism_per_job`: one canonical mechanism per job, wit
      Roslyn
 ```
 
-The pass is **table-driven** from `constructs.json`/`ConstructRegistry` (already the single version table) and is trivially testable in isolation: feed it a bound tree + an `EditionInfo`, assert the diagnostics — no binder, no emitter.
+The pass is **table-driven** from `constructs/`/`ConstructRegistry` (already the single version table) and is trivially testable in isolation: feed it a bound tree + an `EditionInfo`, assert the diagnostics — no binder, no emitter.
 
 ### 1.1 The gating-exception ledger (the COMPLETE list — everything else is pass-owned)
 
 "Edition-agnostic bind" means: the binder makes NO hardcoded-year gating decision of its own. Exec Step E folded
-the last ~19 inline `DialectLevel` diagnostic gates into the pass (each now a `constructs.json` row firing from
+the last ~19 inline `DialectLevel` diagnostic gates into the pass (each now a `constructs/` row firing from
 the correct arm, entering the version matrix with its negative witness). What legitimately REMAINS binder-side
 is this closed, documented set:
 
 1. **The ONE bind-time `Check`** — `UdfBinder` (UserFunctionInvocation2002): an intrinsic FUNCTION and a
    user-function call are syntactically identical, only the repository-resolved name set separates them, so the
    gate fires at bind on recognition (§2.4).
-2. **Catalog-driven per-NAME windows** — version facts that live in their OWN tables, not constructs.json: the
+2. **Catalog-driven per-NAME windows** — version facts that live in their OWN tables, not the construct catalogue: the
    D8 intrinsic IntroducedIn/RemovedIn windows (`IntrinsicCatalog`, COBOL1502/1503, + the bespoke TRIM
    argument-2 window riding BindTrim), the `ExceptionCatalog` EC-name windows (COBOL0878 — EcBinder, the USE
    F3 name loop, `>>TURN`), the `PictureAnalyzer` picture-symbol rows (the ≥edition 0899 half of the W2 skeleton
@@ -138,7 +138,7 @@ after parsing — never by a grammar action or a side table keyed on the parse n
   predicate is evaluated *speculatively* by ANTLR during failing prediction (the trap that killed the earlier
   forward-stamp attempt); recognition here happens post-parse over a fully-built tree.
 - **The pass names the construct-ID, the table owns the version number.** A gate says only *"this node is
-  `RaisingClause2002`"*; `constructs.json`/`ConstructRegistry` remains the sole owner of *"that construct requires 2002 /
+  `RaisingClause2002`"*; `constructs/`/`ConstructRegistry` remains the sole owner of *"that construct requires 2002 /
   was removed at 2023."* No version facts in two places → no drift. The parse (or bound) shape says *what*, the table
   says *which edition*.
 - **Semantic gates → the bound-tree arm keys on the resolved fact.** Where the identity is a RESOLVED bound
@@ -248,7 +248,7 @@ site guaranteed to be forgotten. `LevelNumberArmDriftTests` reads the `.g4` file
 description entry (kb/Work PB485).
 
 **Why the formation tables cannot be edition-gated.** They have no `introducedIn`: the (unary, unary) and
-(B-NOT, B-NOT) pairs are invalid in 1985, 2002, 2014 and 2023 alike. There is no `constructs.json` row to write and
+(B-NOT, B-NOT) pairs are invalid in 1985, 2002, 2014 and 2023 alike. There is no `constructs/` row to write and
 no `Check` to make.
 
 **And no dialect arm exists either** — this is the part worth recording, because the contrary assumption is the
@@ -276,7 +276,7 @@ compiler-directive word (§2023:8.12). It calls the same `ConstructRegistry.Chec
 `EditionSeverityPolicy`, so the codes are the pass's codes: COBOL0900 below the introducing edition,
 COBOL0902 at a removing one, COBOL0903 at an obsoleting one.
 
-**The roster is derived, and that is the load-bearing part.** `constructs.json` rows carry a `directiveWords`
+**The roster is derived, and that is the load-bearing part.** `constructs/` rows carry a `directiveWords`
 column; `CompilerDirectiveCatalog` (`WiseOwl.Cobol.Editions`) inverts it into the word → row map the stage consults.
 Adding a directive is ONE row plus `pwsh scripts/gen-constructs.ps1` — the word becomes recognized, its edition
 becomes enforced, and the version matrix compiles its `source` at all four editions, in one change.
@@ -423,7 +423,7 @@ finally funnels every bind-time `Check` into the one pass.
   **This risk MATERIALIZED for five gates and is now mechanically closed** (kb/Work PB353): the misassignment is
   no longer a review question but two CI facts — `EditionGateArmDriftTests` requires every BOUND-arm construct to
   name the resolved fact that keeps it there (and forbids an unadjudicated construct gated from both arms), and
-  its survival theory recompiles every gated construct's own `constructs.json` program with the
+  its survival theory recompiles every gated construct's own `constructs/` program with the
   procedure-division operands broken, requiring the edition diagnostic to outlive the bind.
 
 ## 7. SSOT / doc impact

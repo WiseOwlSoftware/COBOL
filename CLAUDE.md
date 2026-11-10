@@ -60,12 +60,16 @@ commitments, the four required reviews) and does not restate them. Other documen
    the forensic prose lives in the note body. Its views are `work.py` subcommands (`blocked`, `unharmed`, `analyses`,
    `landed`, `upstream`, `stats`). **Read it with `python scripts/spec/work.py next` and keep it CURRENT in the same
    change set as the work** — a landed fix flips its note's `status` AND writes `closes_rows` in the commit that lands
-   it, and a newly found defect becomes a note before it becomes a DEVLOG paragraph.
+   it, and a newly found defect becomes a note before it becomes a DEVLOG paragraph. **A finding, lead or landing paragraph
+   added to a note after it is filed is a NEW FILE beside it** (`kb/Work/<id>/<yyyy-mm-dd>-<slug>.md`, which `work.py` reads
+   as part of the note; `python scripts/orchestrator/compact_notes.py` folds them back when nothing else is in flight): the
+   note file itself is edited only for its own frontmatter and by its owner, so two branches never edit one file for an
+   append and plain git merges everything, locally and in the merge queue (owner 2026-11-10, kb/Work PB5110: no custom merge drivers).
    ⛔ **Do not open a new list, table, tracker, checklist or "remaining work" section anywhere** — not in plan §0, not in
    a design doc, not in a new markdown file, not in a JSON sidecar. Five such registers had accumulated by 2026-08-04,
    three each declaring themselves canonical, and a WRONG-ANSWER defect sat in a prose paragraph where no work list
    could see it. The only other registers are the ones derived mechanically from the spec (the rule catalog → the
-   traceability inventory → its generated burn-down) and `constructs.json`; those are GENERATED or CI-owned.
+   traceability inventory → its generated burn-down) and `constructs/`; those are GENERATED or CI-owned.
 
 **Subagents are a tool, used on judgment.** Nothing here says when or how to delegate. The `workstream` skill, its
 templates and the orchestrator loop are available machinery, not a gate.

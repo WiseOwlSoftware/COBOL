@@ -1,0 +1,12 @@
+{
+ "id": "procedure-returning-2002",
+ "description": "PROCEDURE DIVISION … RETURNING, ISO §2023:14.2 — the RETURNING phrase is 2002+",
+ "display": "PROCEDURE DIVISION RETURNING",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.2.1 (the RETURNING phrase of the general format); §2023:14.2.2 SR4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PR.\nDATA DIVISION.\nLINKAGE SECTION.\n77 RC PIC 99.\nPROCEDURE DIVISION RETURNING RC.\nMAIN.\n    MOVE 9 TO RC.\n    STOP RUN.\n"
+}

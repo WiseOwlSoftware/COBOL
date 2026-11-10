@@ -1,0 +1,12 @@
+{
+ "id": "value-of-removed-2002",
+ "description": "VALUE OF clause (FD) — obsolete '85 label-field clause, deleted by ISO 2002 (P2.6 gate).",
+ "display": "the VALUE OF clause (FD)",
+ "diagnosticCode": "COBOL0902",
+ "citation": "obsolete '85 label-field clause, deleted by ISO 2002 (§1985:VII.3.9.2, REMOVED); VCR Table 7",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7 (85→2002 deletions)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VO.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmvo\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F\n    VALUE OF RETENTION IS 30.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    CLOSE F.\n    STOP RUN.\n"
+}

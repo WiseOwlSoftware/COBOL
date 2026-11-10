@@ -100,7 +100,7 @@ public sealed class LiteralScreenDriftTests
         char sep = Path.DirectorySeparatorChar;
         var sites = Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories)
             .Where(p => p.Contains($"{sep}WiseOwl.Cobol.") && !p.Contains($"{sep}obj{sep}") && !p.Contains($"{sep}bin{sep}")
-                        // ConstructRegistry.g.cs is DATA, the rendering of constructs.json: the row literal-length-8191-2014
+                        // ConstructRegistry.g.cs is DATA, the rendering of the construct catalogue: the row literal-length-8191-2014
                         // names COBOL0814 as its diagnostic, the way every row names its own (kb/Work PB1615) — it reports nothing.
                         && Path.GetFileName(p) is not ("DiagnosticCatalog.cs" or "CobolLiteral.cs" or "ConstructRegistry.g.cs"))
             .Where(p => File.ReadAllText(p).Contains(needle, StringComparison.Ordinal))

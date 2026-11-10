@@ -1,0 +1,13 @@
+{
+ "id": "sign-group-nondisplay-subordinate-2002",
+ "status": "active",
+ "description": "A SIGN clause on a GROUP item that applies to a signed numeric subordinate whose usage is not DISPLAY (kb/Work PB1319). COBOL-85 required 'The numeric data description entries to which the SIGN clause applies must be described as USAGE IS DISPLAY'; the 2023 text of 13.18.52.3 SR2 restricts only 'an elementary item for which the SIGN clause is specified', and 13.18.52.4 GR1 applies a group's clause to a binary or packed item without effect (CONFORMANCE.md D-SIGN1). THE EDGE IS DERIVED, NOT QUOTED, exactly as sign-group-unsigned-subordinates-2002's (VCR row 7.40). A subordinate that writes its own SIGN clause is the subject of that clause (GR2/GR3), so the group's clause does not apply to it or to anything below it. Gated in ONE place, CheckSignClausesPass.",
+ "display": "a group SIGN clause applying to a signed numeric item whose usage is not DISPLAY",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.52.3 SR2 (2023 text); ANSI X3.23-1985 SIGN clause syntax rule (vendor transcriptions); VCR row 7.40 (derived 2002 edge)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.40 (85->2002: a group SIGN clause may cover a signed numeric item of another usage)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SGC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G SIGN IS LEADING SEPARATE.\n  05 C PIC S9(3) COMP.\n  05 D PIC S9(3).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

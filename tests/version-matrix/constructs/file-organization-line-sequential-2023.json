@@ -1,0 +1,12 @@
+{
+ "id": "file-organization-line-sequential-2023",
+ "description": "ORGANIZATION IS LINE SEQUENTIAL (ISO §2023:12.4.5.10.3 GR2) — the line sequential file organization, introduced 2023",
+ "display": "ORGANIZATION LINE SEQUENTIAL",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.4.5.10.3 GR2; §2023:9.1.7.2 splits sequential files into record- and line-delimited types",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2023 introduction — the Foreword's list of main changes over ISO/IEC 1989:2014 names \"Line Sequential file organization\" (Annex E carries no item for it); no VCR row",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMLS.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmls\" ORGANIZATION IS LINE SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"A\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+}

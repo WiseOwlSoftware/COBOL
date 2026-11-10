@@ -1,0 +1,12 @@
+{
+ "id": "end-receive-as-user-word",
+ "description": "The word END-RECEIVE as a user-defined word — the THIRD re-reserved communication word (discovered mechanically, DEVLOG 585; the recall-based classification knew only two): same interval as RECEIVE, user-definable at 2014 only (kb/Work PB656).",
+ "display": "the word END-RECEIVE as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: the THIRD re-reserved communication word — discovered mechanically; same interval as RECEIVE",
+ "introducedIn": 2014,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "VCR row 32; reserved-words.json row END-RECEIVE",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 END-RECEIVE PIC 9 VALUE 4.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY END-RECEIVE.\n    STOP RUN.\n"
+}

@@ -25,7 +25,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// covers only 2014→2023, the repo holds no 2002/2014 text. The construct-gate rows carry the answer the
 /// catalog settled on: the LOCALE keyword and phrases ride the 2002 locale facility (Annex A.4.9's home
 /// edition), LOCALE-TIME-FROM-SECONDS the provisional 2014 window (kb/Work R28 — WG4 CD 1.2 Annex D.2), all
-/// marked provisional in constructs.json under ratified decision #1 (no further standards acquisition).
+/// marked provisional in the construct catalogue under ratified decision #1 (no further standards acquisition).
 /// </para>
 /// </summary>
 public sealed class LocaleModuleNonSupportTests

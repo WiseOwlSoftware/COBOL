@@ -1,0 +1,12 @@
+{
+ "id": "usage-binary-char-family-2002",
+ "description": "The fixed-width binary usages BINARY-CHAR/-SHORT/-LONG/-DOUBLE (ISO 13.18.60.4 GR12/GR21) - native two's-complement 1/2/4/8-byte integers, SIGNED default / UNSIGNED widens, realized on the COMP-5 BinaryCapacity discipline. LIVE (Phase 4 M2-DATA-1, DEVLOG 614): compiles at 2002+; below 2002 the introduction gate names the edition (COBOL0900).",
+ "display": "a fixed-width binary usage (BINARY-CHAR/-SHORT/-LONG/-DOUBLE)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.4 GR12/GR21",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 catalog (Phase 4 M2-DATA-1); native fixed-width binary integers",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UBIN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-B USAGE BINARY-LONG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -104,7 +104,7 @@ semantics).
   ⛔ **Content-filter rule (tripped 4×):** no word list ever transits a conversation stream in any form —
   scripts print counts only; regeneration is disk-to-disk.
 - **The registry** (`WiseOwl.Cobol.Editions/ConstructDialectStatus.cs`): the in-code rendering of the canonical
-  `tests/version-matrix/constructs.json`; `ConstructRegistry.Check(edition, sink, id, where)` is THE gating entry
+  `tests/version-matrix/constructs/`; `ConstructRegistry.Check(edition, sink, id, where)` is THE gating entry
   point (introduction → error both axes; removal → `Removed()`; obsolete → 0903 warning; dual-obligation
   WINDOW rows use 0900 for the introduction edge and their code for the removal edge). The drift test makes a
   gate unable to land without its matrix row and vice versa. Every version-gated `ConstructRegistry.Check` call
@@ -136,7 +136,7 @@ semantics).
     `Removed()` seam (Error strict / Warning `--permissive`) and share the `declined-optional-element`
     `--suppress` family. It is also what makes the rows WITNESSABLE — the negative corpus asserts a failing
     compile, and the 1560-band warnings have no assertion mechanism at all.
-  - **⛔ NO `constructs.json` ROW, deliberately.** The `new-construct` skill's matrix row asserts a construct
+  - **⛔ NO `constructs/` ROW, deliberately.** The `new-construct` skill's matrix row asserts a construct
     "compiles clean at the introducing edition and produces the gating diagnostic below it" — both halves are
     FALSE for a declined element, which is refused at *every* edition it exists in and has no gating edge to
     assert. `ConstructRegistry` is the edition-gating registry; putting a decline in it would be the same
@@ -187,10 +187,10 @@ COMMIT@2023, RAISING@2002, RECEIVE + END-RECEIVE (85-reserved → free 2002/2014
    0801/0802/0810/0811/0873/0875–0879/0882/0893/09xx.
 2. **INV-1-STRONG at the default edition:** `WISEOWL_COBOL_NIST_STD=2023 WISEOWL_COBOL_NIST_PERMISSIVE=1` over the
    golden run = **349/349 byte-exact**.
-3. **INV-2 both ways:** every constructs.json row's f(case,V) matrix green (strict cells + the removed-
+3. **INV-2 both ways:** every construct catalogue row's f(case,V) matrix green (strict cells + the removed-
    permissive theory + the obsolete-warning theory); reject cells carry their `expectDiagnostic`.
 4. **Census:** ≥357 GREEN on the full NIST census at 85.
-5. **Drift:** both drift disciplines green (registry↔constructs.json; word table↔reserved-words.json).
+5. **Drift:** both drift disciplines green (registry↔the construct catalogue; word table↔reserved-words.json).
 6. **Negative corpus:** every registry gate ≥1 enabled negative case (Phase-2 W2 seeds; Phase-8 completes
    with the registry-coverage unit test).
 7. **§2023:4.2.2:** the selectable conformance-checking suboption ships with OO interfaces (roadmap Phase 3) /

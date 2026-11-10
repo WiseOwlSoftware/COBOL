@@ -1,0 +1,12 @@
+{
+ "id": "unlock-statement-2002",
+ "description": "The UNLOCK statement (ISO 14.9.47; UNLOCK file [RECORD[S]]) - releases every record lock this connector holds on the file. 2002 introduction; 0900 below 2002.",
+ "display": "the UNLOCK statement",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.47 (UNLOCK file [RECORD[S]]); 2002 introduction",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWUN.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN.\n           UNLOCK F.\n           STOP RUN.\n"
+}

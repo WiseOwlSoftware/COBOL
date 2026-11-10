@@ -1,0 +1,12 @@
+{
+ "id": "standard-compare-2002",
+ "description": "FUNCTION STANDARD-COMPARE (ISO 15.85) - the cultural-ordering comparison returning the single character \"<\", \"=\" or \">\" (15.85.4 r6/r7) over the ordering table an ORDER TABLE ordering-name identifies or, absent one, the default table 'ISO 14651_2020_TABLE1' (15.85.3 r5). LIVE (kb/Work PB101 T7): CobolIntrinsics.StandardCompare over the derived CLDR/UCA collation engine, argument-4's four ordering levels (15.85.4 r1/r2) and the 15.85.4 r4 trailing-space rule. Below 2002 the D8 catalog window rejects by name+edition (COBOL1502) - the window is now enforced rather than suppressed, because the row's Bind is no longer Unsupported.",
+ "display": "FUNCTION STANDARD-COMPARE (cultural ordering)",
+ "diagnosticCode": "COBOL1502",
+ "citation": "ISO §2023:15.85 STANDARD-COMPARE; §2023:12.3.7.2 ORDER TABLE; §2023:A.3 item 25 (dependent on an ISO/IEC 14651:2020 implementation - support IS now claimed); provisional 2002 edge",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL1502",
+ "vcr": "2002 introduction (the cultural-ordering facility, with the ORDER TABLE clause it depends on; Annex E covers 2014-2023 only and lists no STANDARD-COMPARE delta, so the edge is derived from the ORDER reserved-word row - see VERSION_CHANGE_REFERENCE 'cultural ordering')",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB101SC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 R PIC X.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION STANDARD-COMPARE(\"a\" \"b\") TO R.\n    STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "set-address-2002",
+ "status": "active",
+ "description": "SET ADDRESS OF (data-pointer assignment), ISO §2023:14.9.39 Format 7 + §2023:8.4.3.11 ADDRESS OF - introduced 2002. LIVE (Phase-4b increment 2, DEVLOG 617): both directions - SET p TO ADDRESS OF x (the sender form; x's record is forced onto a StorageCell so a CellPointer window can alias it) and SET ADDRESS OF b TO p (SR18 - the receiver shall be BASED; GR12-13 snapshot assignment). Binder-side registry gate (a grammar predicate would fall through to the other SET alternatives and mis-diagnose).",
+ "display": "SET ADDRESS OF (data-pointer assignment)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39 Format 7 + §2023:8.4.3.11 ADDRESS OF; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SAMX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(5) VALUE \"HELLO\".\n01 P USAGE POINTER.\n01 B PIC X(5) BASED.\nPROCEDURE DIVISION.\nMAIN.\n    SET P TO ADDRESS OF X.\n    SET ADDRESS OF B TO P.\n    STOP RUN.\n"
+}

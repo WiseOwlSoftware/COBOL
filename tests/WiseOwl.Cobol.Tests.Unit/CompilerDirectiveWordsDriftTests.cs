@@ -57,7 +57,7 @@ public sealed class CompilerDirectiveWordsDriftTests
 
     /// <summary>Every directive the catalog recognizes heads its line with a §2023:8.12 word (§2023:7.3.3 SR6) — except the two
     /// Annex E.2 item 21 directives the 2023 text removed, which the 2023 table no longer lists. A directive added to
-    /// <c>constructs.json</c> without its word on the list is a red test, never a silently usable variable name.</summary>
+    /// <c>constructs/</c> without its word on the list is a red test, never a silently usable variable name.</summary>
     [Fact]
     public void EveryCatalogDirectiveWord_IsReserved()
     {

@@ -1,0 +1,12 @@
+{
+ "id": "value-false-phrase-2002",
+ "description": "The VALUE clause's Format-3 WHEN SET TO FALSE phrase (ISO 13.18.63.2 format 3 - the bracket [ WHEN SET TO FALSE IS literal-4 ] printed on the line after [ IN alphabet-name-1 ]). literal-4 is the value 13.18.63.4 GR20 places in the conditional variable for 'SET condition-name TO FALSE', and 13.18.63.3 SR27 screens it against the condition's own VALUE set (COBOL2048). A COBOL-2002 addition, with the SET Format-4 FALSE phrase it exists to feed - DERIVED, not quoted: the 2023 Annex E carries no 85->2002 VALUE row (the A1 authority gap, D18), and the reserved-word evidence cannot date it because FALSE is already reserved at 85 for EVALUATE. Recognition-fired by VersionConformancePass.ParseArm.VisitValueClauseFalsePhrase: the binder abandons the operand on every 13.18.63.3 SR violation, so a bound-arm gate would lose the 0900 on exactly those paths (the TYPEDEF drop-proof lesson). kb/Work PB555.",
+ "display": "the VALUE clause's WHEN SET TO FALSE phrase",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.63.2 Format 3 / §2023:13.18.63.4 GR20; a COBOL-2002 addition",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "Condition-name WHEN SET TO FALSE phrase (COBOL-2002); A1 authority-sufficiency gap (D18)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMVALFP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 CV PIC 9 VALUE 1.\n   88 CN VALUE 1 WHEN SET TO FALSE IS 7.\nPROCEDURE DIVISION.\nMAIN.\n    IF CN DISPLAY \"Y\" ELSE DISPLAY \"N\" END-IF.\n    STOP RUN.\n"
+}

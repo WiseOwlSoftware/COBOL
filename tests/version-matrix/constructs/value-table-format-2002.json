@@ -1,0 +1,12 @@
+{
+ "id": "value-table-format-2002",
+ "description": "The Format 2 (table) VALUE clause (ISO 13.18.63.2) - a literal list keyed to occurrence subscripts by a mandatory FROM (subscript) phrase with optional TO, initializing selected OCCURS-table elements/ranges. A COBOL-2002 addition (derived - DATA_MODEL_DESIGN.md; not citable from the 2023 spec Annex E, whose VALUE rows are numeric-edited only - the A1 authority gap, D18). Recognition-fired by VersionConformancePass.ParseArm.VisitValueClause on a valueClauseTablePhrase.",
+ "display": "the Format 2 (table) VALUE clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.63.2 Format 2 (table); a COBOL-2002 addition; §2023:13.18.63.4 GR12",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "Table-format VALUE (COBOL-2002); A1 authority-sufficiency gap (D18)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMVAL2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T-GRP.\n   03 E PIC X(3) OCCURS 6 VALUES ARE \"AAA\" \"BBB\" FROM (1).\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY E(1).\n    STOP RUN.\n"
+}

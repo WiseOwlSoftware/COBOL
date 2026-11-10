@@ -1,0 +1,12 @@
+{
+ "id": "resume-statement-2002",
+ "description": "The RESUME statement - a 2002 introduction (the EC model). The fixture's USE F3 declarative also gates (0877) below 2002; the reject cells assert THIS row's 0876. Folded from the inline EcBinder gate (Exec Step E).",
+ "display": "the RESUME statement",
+ "diagnosticCode": "COBOL0876",
+ "citation": "ISO §2023:14.9.33 (the exception-recovery statement; the EC model is 2002+)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0876",
+ "vcr": "2002 introduction (the EC model)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWRES.\nPROCEDURE DIVISION.\nDECLARATIVES.\nD-SEC SECTION.\n    USE AFTER EXCEPTION CONDITION EC-USER-ROW.\nD-P.\n    RESUME AT NEXT STATEMENT.\nEND DECLARATIVES.\nM-SEC SECTION.\nMAIN.\n    STOP RUN.\n"
+}

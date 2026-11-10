@@ -1,0 +1,12 @@
+{
+ "id": "stop-run-status-2002",
+ "description": "STOP RUN WITH status phrase, ISO §2023:14.9.42 — the status phrase is 2002+",
+ "display": "STOP RUN WITH status",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.42.2 (the WITH STATUS phrase of the general format); §2023:14.9.42.4 GR5",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN WITH NORMAL STATUS RC.\n"
+}

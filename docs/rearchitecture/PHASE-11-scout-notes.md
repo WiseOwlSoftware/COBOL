@@ -1011,9 +1011,9 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 
 ### 5. VERSION TEST MATRIX registry
 
-- **Canonical file: `E:\COBOL\tests\version-matrix\constructs.json`** — `{"constructs": [ {row}, ... ]}`. Row fields: `id` (kebab, e.g. "exception-file-n-2002"), optional `status` ("active" default | "pending" = catalogued, compile assertions skipped), `description`, `display`, `diagnosticCode`, `citation`, `introducedIn` (int), `removedIn` (int|null), optional `obsoleteIn`, `expectDiagnostic`, optional `expectDiagnosticBelow`, `vcr` (citation of VERSION_CHANGE_REFERENCE row or introducing standard), `source` (inline \n-joined minimal COBOL program). Vendor constructs live in `vendor-constructs.json`, never here.
+- **Canonical file: `E:\COBOL\tests\version-matrix\the construct catalogue`** — `{"constructs": [ {row}, ... ]}`. Row fields: `id` (kebab, e.g. "exception-file-n-2002"), optional `status` ("active" default | "pending" = catalogued, compile assertions skipped), `description`, `display`, `diagnosticCode`, `citation`, `introducedIn` (int), `removedIn` (int|null), optional `obsoleteIn`, `expectDiagnostic`, optional `expectDiagnosticBelow`, `vcr` (citation of VERSION_CHANGE_REFERENCE row or introducing standard), `source` (inline \n-joined minimal COBOL program). Vendor constructs live in `vendor-constructs.json`, never here.
 - **Executor: `tests\WiseOwl.Cobol.Tests.Conformance\VersionMatrixTests.cs`** — `Construct_MatchesEditionExpectation(string constructId, int edition)` (:76-101); expected outcome `ExpectCompiles` = `edition >= IntroducedIn && (RemovedIn is null || edition < RemovedIn)` (:50-51); a reject cell asserts the diagnostic code: `edition < IntroducedIn ? ExpectDiagnosticBelow ?? ExpectDiagnostic : ExpectDiagnostic` (:97-99). Also `RemovedConstruct_CompilesPermissive_WithWarning` (:115), `ObsoleteConstruct_CompilesEverywhere_WarnsFromObsoleteEdition` (:141, fixed 0903 band).
-- **Generated renderings (committed):** `scripts/gen-constructs.ps1` emits `src\WiseOwl.Cobol.Editions\ConstructRegistry.g.cs` (Entries list) and `src\WiseOwl.Cobol.Editions\Constructs.g.cs` (one `public const string PascalId = "kebab-id";` per row); `ConstructRegistryDriftTests` asserts they equal constructs.json. So adding a matrix row = edit constructs.json + re-run gen-constructs.ps1 + commit both .g.cs files.
+- **Generated renderings (committed):** `scripts/gen-constructs.ps1` emits `src\WiseOwl.Cobol.Editions\ConstructRegistry.g.cs` (Entries list) and `src\WiseOwl.Cobol.Editions\Constructs.g.cs` (one `public const string PascalId = "kebab-id";` per row); `ConstructRegistryDriftTests` asserts they equal the construct catalogue. So adding a matrix row = edit the construct catalogue + re-run gen-constructs.ps1 + commit both .g.cs files.
 
 ### 6. Other test classes asked about
 
@@ -1026,14 +1026,14 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 **(b) Enabled**: `tests\conformance\2002\manifest.json:20` — `"exception_file_n"` in `"enabled"`. Runs via CorpusRunnerTests.cs:61-88 at strict `--std 2002`, byte-compares stdout to the .out under CutRunner.Normalize.
 **(c) Legacy exclusion**: `legacy-integration-tests/ConformanceTests.cs:111` — `("2002", "exception_file_n")` in `GreenfieldOnly` (comment :108-110: legacy has no EC model and no national result category); the legacy theory returns early at :304.
 **(d) Negative**: `tests\conformance\negative\exception_file_n_below_2002.cob` — line 1 `*> reject-at: 85`, lines 2-5 a spec-citation comment, body displays both -N twins. `exception_file_n_below_2002.err` = the single line `COBOL1502`. Enabled at `tests\conformance\negative\manifest.json:42`. Runs via CorpusRunnerTests.cs:97-115: CompileFull at 85 must fail; AssertHasDiagnostic(errors, "COBOL1502"). The diagnostic is produced by IntrinsicBinder.cs:139-141.
-**(e) Matrix row**: `tests\version-matrix\constructs.json:1731-1743` — id `"exception-file-n-2002"`, status "active", introducedIn 2002, removedIn null, expectDiagnostic "COBOL1502", diagnosticCode "COBOL1502", citation (§2023:15.29/§2023:15.31 + the 2023 optional-arg form staged loud → PHASE-13 Step 9), vcr, source = inline VMEFN1 program displaying both twins. Executed by VersionMatrixTests.cs:76-101 as 4 cells: compile at 2002/2014/2023, reject at 85 asserting COBOL1502. Rendered to `src\WiseOwl.Cobol.Editions\Constructs.g.cs:151` (`public const string ExceptionFileN2002 = "exception-file-n-2002";`) and `ConstructRegistry.g.cs:153` by `scripts/gen-constructs.ps1`.
+**(e) Matrix row**: `tests\version-matrix\the construct catalogue:1731-1743` — id `"exception-file-n-2002"`, status "active", introducedIn 2002, removedIn null, expectDiagnostic "COBOL1502", diagnosticCode "COBOL1502", citation (§2023:15.29/§2023:15.31 + the 2023 optional-arg form staged loud → PHASE-13 Step 9), vcr, source = inline VMEFN1 program displaying both twins. Executed by VersionMatrixTests.cs:76-101 as 4 cells: compile at 2002/2014/2023, reject at 85 asserting COBOL1502. Rendered to `src\WiseOwl.Cobol.Editions\Constructs.g.cs:151` (`public const string ExceptionFileN2002 = "exception-file-n-2002";`) and `ConstructRegistry.g.cs:153` by `scripts/gen-constructs.ps1`.
 
 ### Checklist for a new P11 golden+negative set (the P10-proven pattern)
 1. `tests/conformance/<ed>/<name>.cob` + `.out` (LF; header comment citing the ISO §).
 2. Add `<name>` to that dir's `manifest.json` `"enabled"` array (else the integrity fact fails).
 3. If the legacy cannot reproduce it: add `("<ed>", "<name>")` + comment to `GreenfieldOnly` in `legacy-integration-tests/ConformanceTests.cs` — SAME commit.
 4. Negative window row: `tests/conformance/negative/<name>.cob` with `*> reject-at: <editions>` line 1 + `<name>.err` containing the code substring (COBOL1502 for introduced-later intrinsics, 1503 for removed) + manifest `"enabled"` entry.
-5. Matrix row in `tests/version-matrix/constructs.json` (if a new construct id is warranted) + re-run `scripts/gen-constructs.ps1` and commit both .g.cs files.
+5. Matrix row in `tests/version-matrix/constructs/` (if a new construct id is warranted) + re-run `scripts/gen-constructs.ps1` and commit both .g.cs files.
 6. Optional spec-pinned xUnit facts in `IntrinsicFunctionDifferentialTests.cs` via `AssertSpec`.
 
 ### Key signatures / anchors
@@ -1044,13 +1044,13 @@ Because the legacy `ConformanceTests` auto-discovers every `.cob`+`.out`, a gold
 - `tests/WiseOwl.Cobol.Tests.Conformance/EditionHarness.cs:22 — public static (bool Ok, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings) CompileFull(string source, int edition, bool permissive = false)`
 - `tests/WiseOwl.Cobol.Tests.Conformance/EditionHarness.cs:95 — public static void AssertHasDiagnostic(IEnumerable<string> diagnostics, string expectedSubstring)  [case-insensitive substring]`
 - `tests/WiseOwl.Cobol.Tests.Conformance/VersionMatrixTests.cs:78 — public void Construct_MatchesEditionExpectation(string constructId, int edition)  [f(case,V) :50-51; reject-cell code pick :97]`
-- `tests/version-matrix/constructs.json:1731-1743 — the 'exception-file-n-2002' row (id/status/description/display/diagnosticCode/citation/introducedIn/removedIn/expectDiagnostic/vcr/source)`
+- `tests/version-matrix/constructs/:1731-1743 — the 'exception-file-n-2002' row (id/status/description/display/diagnosticCode/citation/introducedIn/removedIn/expectDiagnostic/vcr/source)`
 - `tests/conformance/2002/manifest.json:20 — "exception_file_n" in "enabled"`
 - `tests/conformance/negative/manifest.json:42 — "exception_file_n_below_2002" in "enabled"`
 - `conformance-suite/wiseowl/diagnostics.json "exception_file_n_below_2002" — refuse-at [85], expect COBOL1502` (the program's former line-1 `*> reject-at: 85` and its `.err`; kb/Work PB3177 moved both there)
 - `legacy-integration-tests/ConformanceTests.cs:66 — private static readonly HashSet<(string, string)> GreenfieldOnly  [exception_file_n entry :111; skip :304]`
 - `src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:139-144 — the D8 window gate: COBOL1502 (IntroducedIn > DialectLevel) / COBOL1503 (RemovedIn)`
-- `src/WiseOwl.Cobol.Editions/Constructs.g.cs:151 + src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs:153 — generated by scripts/gen-constructs.ps1 from constructs.json (drift-tested)`
+- `src/WiseOwl.Cobol.Editions/Constructs.g.cs:151 + src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs:153 — generated by scripts/gen-constructs.ps1 from the construct catalogue (drift-tested)`
 - `tests/WiseOwl.Cobol.Tests.Conformance/IntrinsicFunctionDifferentialTests.cs:26 — private static void AssertSpec(string source, string expected, int dialect = 85)  [spec-pinned; :24 AssertSameAsLegacy → DifferentialGolden.Assert]`
 - `tests/WiseOwl.Cobol.Tests.Conformance/DifferentialGolden.cs:42 — public static void Assert(string source, int edition = 85, [CallerFilePath] string file = "", string? goldenName = null)  [committed goldens tests/differential/<class>/<hash>.out; WISEOWL_COBOL_DIFF_MODE golden|bake|verify]`
 - `tests/WiseOwl.Cobol.Tests.Conformance/EditionGateDiagnosticTests.cs:20-25 — AssertNames(errors, requiredEdition, targeting)  [0900-band message quality: 'requires COBOL-X' + 'targeting COBOL-Y']`
@@ -1308,7 +1308,7 @@ unit-style golden if in doubt; the corpus golden stays within 8 bits.)
 - Legacy exclusion SAME COMMIT: `("2002", "intrinsics_boolean_conv")` + comment into `GreenfieldOnly`,
   `legacy-integration-tests/ConformanceTests.cs` (legacy has no boolean functions).
 - `conformance-suite/cases/_unassigned/boolean_conv_below_2002.cob` + `.err` (copy from here) + manifest "enabled" entry.
-- Matrix row in `tests/version-matrix/constructs.json` (id `boolean-of-integer-2002`, introducedIn 2002,
+- Matrix row in `tests/version-matrix/constructs/` (id `boolean-of-integer-2002`, introducedIn 2002,
   expectDiagnostic COBOL1502, citation §2023:15.13/§2023:15.45, source = the nested COMPUTE program from the negative
   row without the reject header) → re-run `scripts/gen-constructs.ps1` → commit BOTH regenerated .g.cs files
   (`src/WiseOwl.Cobol.Editions/Constructs.g.cs` + `ConstructRegistry.g.cs`).

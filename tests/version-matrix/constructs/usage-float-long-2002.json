@@ -1,0 +1,13 @@
+{
+ "id": "usage-float-long-2002",
+ "status": "active",
+ "description": "USAGE FLOAT-LONG (implementor-defined double-precision float, mapped to native double) - PROVISIONAL 2002 edge (D16: the short/long/extended trio is the presumed-2002 half of the float family split). LIVE (P12 step 2): compiles at 2002+, COBOL0900 below. Representation implementor-defined per §2023:13.18.60.4 GR13/GR21.",
+ "display": "USAGE FLOAT-LONG",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.4 GR13 (USAGE clause; the implementor-defined float trio)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "D16 float-family split (provisional 2002)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-LONG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

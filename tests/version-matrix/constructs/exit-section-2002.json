@@ -1,0 +1,12 @@
+{
+ "id": "exit-section-2002",
+ "description": "EXIT SECTION (ISO §2023:14.9.14 Format 4 / §2023:14.9.14.4 GR7) — a COBOL-2002 structured-procedure exit transferring control to the end of the current section (firing its PERFORM/SORT/USE return mechanism); introduced 2002.",
+ "display": "the EXIT SECTION statement",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.14.2 Format 4 / §2023:14.9.14.4 GR7 — COBOL-2002 structured-exit introduction (VCR has no 85→2002 rows; derived from the 2002 standard)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEXSEC.\nPROCEDURE DIVISION.\nDRIVER SECTION.\nD1.\n    PERFORM WORK-SEC.\n    STOP RUN.\nWORK-SEC SECTION.\nW1.\n    EXIT SECTION.\nW2.\n    DISPLAY \"W2\".\n"
+}

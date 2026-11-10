@@ -1,0 +1,12 @@
+{
+ "id": "call-returning-2002",
+ "description": "CALL ... RETURNING status-item, ISO 14.9.4 - the RETURNING phrase is a 2002 introduction (folded from the inline CallBinder gate, Exec Step E).",
+ "display": "CALL RETURNING",
+ "diagnosticCode": "COBOL0884",
+ "citation": "ISO §2023:14.9.4.2 (the RETURNING phrase on CALL is 2002+); §2023:14.9.4.4 GR4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0884",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWCRET.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"RWCRSUB\" RETURNING RC.\n    STOP RUN.\nEND PROGRAM RWCRET.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. RWCRSUB.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LR PIC 99.\nPROCEDURE DIVISION RETURNING LR.\nMAIN.\n    MOVE 5 TO LR.\n    GOBACK.\nEND PROGRAM RWCRSUB.\n"
+}

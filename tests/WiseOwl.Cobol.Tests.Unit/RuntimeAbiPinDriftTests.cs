@@ -45,8 +45,8 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>bump --call-abi</c> (a compiler-side crossing change) raises the number in <c>Directory.Build.props</c> or
 /// <see cref="RuntimeAbi.CallAbi"/> and has this class write the hashes. If the change is a pure rename with no effect on
 /// what crosses (a temporary's name), <c>python scripts/abi_pin.py repin</c> alone, and say why in the commit. Two branches
-/// that each changed the pin no longer conflict: the merge driver (scripts/merge_drivers.py) adds their counters and marks
-/// the hashes UNMEASURED, and the merge measures the merged tree before it makes the merge commit.
+/// that each changed the pin conflict in plain git (kb/Work PB5110, no merge driver): take main's pin, re-apply the branch's own
+/// bump and let this class measure the merged tree; this test and the public-API analyzers (RS0016, RS0017) refuse a wrong merge.
 /// </summary>
 public sealed class RuntimeAbiPinDriftTests
 {

@@ -1,0 +1,13 @@
+{
+ "id": "end-display-2002",
+ "description": "The explicit DISPLAY scope terminator END-DISPLAY (ISO 14.9.11.2) - a COBOL-2002 addition like the whole 2002 scope-terminator wave. The registered end-accept twin had a gate and END-DISPLAY had NONE, so `DISPLAY X END-DISPLAY` was silently accepted at 85 (kb/Work PB134).",
+ "display": "the END-DISPLAY scope terminator",
+ "diagnosticCode": "COBOL0816",
+ "citation": "ISO §2023:14.9.11.2 - COBOL-2002 scope terminator",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "status": "active",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W134D.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4) VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W END-DISPLAY\n    STOP RUN.\n",
+ "expectDiagnostic": "COBOL0816"
+}

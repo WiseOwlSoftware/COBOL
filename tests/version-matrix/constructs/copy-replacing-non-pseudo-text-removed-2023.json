@@ -1,0 +1,15 @@
+{
+ "id": "copy-replacing-non-pseudo-text-removed-2023",
+ "description": "Non-pseudo-text COPY REPLACING operands (identifier/literal/word forms) - permitted through 2014, REMOVED by ISO 2023 (Annex E.2 item 1 bullet 4; ==pseudo-text== is the only conforming shape). Emit site: CopyProcessor (frontend); the row's copybooks entry stages the library text beside the program (a missing text is CBL3620 at every edition since kb/Work PB1355).",
+ "display": "a non-pseudo-text COPY REPLACING operand (identifier/literal/word)",
+ "diagnosticCode": "COBOL0902",
+ "citation": "Annex E.2 item 1 bullet 4; §1985:XII.2.3 SR6 (REMOVED); VCR row 4",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR row 4 (E.2 item 1 bullet 4); W3 preprocessor threading (DEVLOG 598)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCR1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\nCOPY VMCR1BK REPLACING KWRD BY K-NEW.\n01 W PIC 9 VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W K-NEW.\n    STOP RUN.\n",
+ "copybooks": {
+  "VMCR1BK.cpy": "01 KWRD PIC X VALUE \"K\".\n"
+ }
+}

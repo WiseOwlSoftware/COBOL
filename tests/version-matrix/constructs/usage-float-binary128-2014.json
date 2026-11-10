@@ -1,0 +1,12 @@
+{
+ "id": "usage-float-binary128-2014",
+ "status": "pending",
+ "description": "USAGE FLOAT-BINARY-128 (ISO/IEC 60559:2020 binary128, §2023:13.18.60.4 GR16) — a COBOL-2014 introduction that is PROCESSOR-DEPENDENT (Annex A.3 item 17). PENDING: .NET has no IEEE 754 binary128 type and GR16 pins the format, so WiseOwl COBOL documents it as non-support (rejected loud, COBOL1564) rather than a non-conforming double-backed approximation; this row would activate if the pinned format is implemented.",
+ "display": "USAGE FLOAT-BINARY-128",
+ "diagnosticCode": "COBOL1564",
+ "citation": "ISO §2023:13.18.60.4 GR16 (binary128); Annex A.3 item 17 (processor-dependent); non-support COBOL1564",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "2014 introduction (§2023:13.18.60.4 GR16 FLOAT-BINARY-128 = IEEE binary128); Annex A.3 item 17 processor-dependent",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FB128.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-BINARY-128.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

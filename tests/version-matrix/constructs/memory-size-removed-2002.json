@@ -1,0 +1,12 @@
+{
+ "id": "memory-size-removed-2002",
+ "description": "MEMORY SIZE clause (OBJECT-COMPUTER) — obsolete '85 element deleted by ISO 2002; gated at the modelled memorySizeClause (P2.6; kb/Work PB830).",
+ "display": "the MEMORY SIZE clause (OBJECT-COMPUTER)",
+ "diagnosticCode": "COBOL0902",
+ "citation": "obsolete '85 element deleted by ISO 2002 (§1985:VI.4.4.2, CHANGED); VCR Table 7; §1985:XVI.2.2.4 GR2",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MS.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. GENERIC-BOX\n    MEMORY SIZE 64000 WORDS.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

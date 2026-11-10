@@ -1,0 +1,13 @@
+{
+ "id": "concat-operator-2002",
+ "status": "active",
+ "description": "Concatenation expression — the & operator joining literals (§2023:8.8.3) — mandatory 2002-era core (roadmap D6; the 2023 CONCAT function is defined by reference to this operator). ACTIVE as of P10 Step 14: a compile-time fold to the equivalent single literal (§2023:8.8.3.3 GR3) via ConcatFolder; the §2023:8.8.3.2 SRs are COBOL1540/1541/1545; the introduction gate is the VersionConformancePass parse arm (VisitConcatenationExpression).",
+ "display": "concatenation expression (&)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.8.3",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "ISO-validation D6 (§2023:8.8.3 concatenation expressions); provisional edge per decision 1",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(6).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"ABC\" & \"DEF\" TO W.\n    DISPLAY W.\n    STOP RUN.\n"
+}

@@ -656,7 +656,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 - ⛔ **M3-3 — JSON & XML** `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` + special registers (XML-CODE/JSON-CODE/…).
   **NON-ISO — OUT OF THE ISO-CONFORMANCE SCOPE.** `specs/ISO_COBOL_2023.md` (the ISO/IEC 1989:2023 text) has ZERO `JSON`/
   `XML` occurrences — these are IBM Enterprise-COBOL vendor extensions, NOT part of the standard (confirmed 2026-07-07,
-  DEVLOG 664; consistent with the pre-P2.5 constructs.json scrub that moved JSON/XML to vendor-dialect post-G8). Do
+  DEVLOG 664; consistent with the pre-P2.5 the construct catalogue scrub that moved JSON/XML to vendor-dialect post-G8). Do
   NOT implement under the "100% ISO" mission; it belongs to a later vendor-dialect track. *Large* if/when done. The
   legacy `CobolParserJsonXml.g4` overlay is dead/unwired.
 - ☐ **M3-4 — File sharing/locking finalization** (if not folded into M2-FILE-1), function/method pointers,
@@ -675,7 +675,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   item 25 / E.3.2 item 4 (the spec's own change annex) list XOR and EXCLUSIVE-OR among the words newly reserved
   by 2023 (they were user-defined words before), and presence in the 2023 body (§2023:8.8.4.9) proves nothing about
   2002. The operator is `{is2023()}?`-gated; conformance re-editioned to `conformance-suite/cases/8.8.4.11-Complex-Combined-conditions/logical_xor`
-  (VCR rows 32/41; constructs.json rows `logical-xor-operator-2023` + the two user-word interval rows).
+  (VCR rows 32/41; the construct catalogue rows `logical-xor-operator-2023` + the two user-word interval rows).
 - ☑ **M4-2b — `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics — BOTH LANDED.** SMALLEST-ALGEBRAIC (§2023:15.83)
   is a compile-time PICTURE fold (`IntrinsicBind.Fold`, the HIGHEST/LOWEST `BindAlgebraicFold` family;
   `smallest_algebraic` ENABLED). EXCEPTION-FILE-N (§2023:15.29) + EXCEPTION-LOCATION-N (§2023:15.31) landed with the P10

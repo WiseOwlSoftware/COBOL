@@ -24,8 +24,8 @@ refusal registry (PB4147). The adjudications now live where two different rules 
 (each edition's directory is its `store` in the schema's `editions.of`, `inventory_schema.Edition.store`)
 
 each an object, `json.dumps(indent=1)` plus a newline. Git's plain merge keeps both branches' files; a conflict means two
-branches changed the SAME rule's adjudication, which is a real one. No merge driver governs a store (`scripts/merge_drivers.py
---self-test` holds that), and `.gitattributes` does not name it. An edition's store starts with no directory at all (git
+branches changed the SAME rule's adjudication, which is a real one. No merge driver governs a store (there is none anywhere, kb/Work PB5110; `RegistryShapeDriftTests`
+holds that), and `.gitattributes` does not name it. An edition's store starts with no directory at all (git
 holds no empty one), which reads as a store with no adjudication.
 
 THE FILE'S NAME IS ITS RULE ID, so a reader finds a record without a scan and a rename of a rule is a rename of a file.

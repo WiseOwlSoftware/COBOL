@@ -1,0 +1,12 @@
+{
+ "id": "currency-picture-symbol-2002",
+ "description": "CURRENCY SIGN … WITH PICTURE SYMBOL, ISO §2023:12.3.7 — the symbol-separate form is 2002+; COBOL-85 had only the bare single-character CURRENCY SIGN",
+ "display": "CURRENCY SIGN WITH PICTURE SYMBOL",
+ "diagnosticCode": "COBOL0893",
+ "citation": "ISO §2023:12.3.7.2 (the WITH PICTURE SYMBOL phrase of the CURRENCY clause); pinned pre-band code (VCR Table 7 row 7.3); §2023:12.3.7.3 SR23",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0893",
+ "vcr": "2002 introduction (VERSION_CHANGE_REFERENCE Table 7; derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CPS.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    CURRENCY SIGN IS \"F\" WITH PICTURE SYMBOL \"F\".\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 E PICTURE FF9.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 5 TO E.\n    DISPLAY E.\n    STOP RUN.\n"
+}

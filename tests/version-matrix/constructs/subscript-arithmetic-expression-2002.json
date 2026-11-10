@@ -1,0 +1,12 @@
+{
+ "id": "subscript-arithmetic-expression-2002",
+ "description": "A subscript that is an arithmetic expression other than an integer, a data-name or an index-name, each optionally followed by + or - an integer — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 133: \"Subscripting with arithmetic expressions. An arithmetic expression may now be used as a subscript, not just the forms data-name + integer and data-name - integer.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, VersionConformancePass.ParseArm.VisitSubscriptPart, once per subscript (kb/Work PB4305; VCR row 7.47).",
+ "display": "a subscript that is an arithmetic expression other than an integer, a data-name or an index-name, each optionally followed by + or - an integer",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.4.2.3.2; ISO/IEC 1989:2002 Annex F.2 item 133",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 133)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSAE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T.\n    05 E PIC X OCCURS 4 VALUE \"A\".\n01 I PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY E (I * 2).\n    STOP RUN.\n"
+}

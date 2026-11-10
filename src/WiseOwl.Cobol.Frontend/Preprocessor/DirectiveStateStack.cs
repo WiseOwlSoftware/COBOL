@@ -10,7 +10,7 @@ public enum DirectiveStackKind { Push, Pop }
 /// <summary>
 /// ONE <c>&gt;&gt;PUSH</c> or <c>&gt;&gt;POP</c> directive (ISO §2023:7.3.22 / §2023:7.3.20), reduced to what the directive
 /// state stack acts on: where it was written, which way it goes, and which directive's state it names — a
-/// <c>constructs.json</c> ROW id, or null for <c>ALL</c>.
+/// <c>constructs/</c> ROW id, or null for <c>ALL</c>.
 /// </summary>
 /// <param name="Line">1-based line in the frame of the stage that parsed it.</param>
 /// <param name="Kind">PUSH or POP.</param>

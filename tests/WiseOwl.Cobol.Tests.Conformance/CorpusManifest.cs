@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Runtime;
 using WiseOwl.Cobol.Tests.Shared;
 
 namespace WiseOwl.Cobol.Tests.Conformance;
@@ -29,6 +30,19 @@ public sealed record CorpusRow(string Name, string Suite, string Status, string[
     /// unit now ends abnormally instead. <c>null</c> for every other row.</summary>
     public string? ExpectedTermination =>
         Status == "divergent" && TerminatesMarker.Match(Note) is { Success: true } m ? m.Groups[1].Value : null;
+
+    /// <summary>The BEHAVIOR marker's grammar: a note beginning <c>BEHAVIOR &lt;id&gt;[,&lt;id&gt;…]:</c>, each id a
+    /// <see cref="DialectBehaviors.Row.Id"/>.</summary>
+    public const string BehaviorMarkerPattern = @"^BEHAVIOR ([a-z0-9-]+(?:,[a-z0-9-]+)*):";
+
+    private static readonly System.Text.RegularExpressions.Regex BehaviorMarker =
+        new(BehaviorMarkerPattern, System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    /// <summary>The <see cref="DialectBehaviors"/> ids whose per-edition behaviour changes this program's output after
+    /// COBOL-85 (kb/Work PB5101): the row's golden is then per edition (<see cref="CorpusManifest.GoldenPath"/>). Empty
+    /// for every other row.</summary>
+    public IReadOnlyList<string> Behaviors =>
+        BehaviorMarker.Match(Note) is { Success: true } m ? m.Groups[1].Value.Split(',') : [];
 }
 
 /// <summary>
@@ -78,9 +92,46 @@ public static class CorpusManifest
     /// attached to the P2.7 flip; promoted to a G7 exit criterion at Phase 8): <c>WISEOWL_COBOL_NIST_STD</c>
     /// (85|2002|2014|2023, default 85) + <c>WISEOWL_COBOL_NIST_PERMISSIVE=1</c> re-target the WHOLE golden run — e.g.
     /// <c>WISEOWL_COBOL_NIST_STD=2023 WISEOWL_COBOL_NIST_PERMISSIVE=1</c> compiles AND RUNS all 318 goldens at the
-    /// shipping default edition in migration mode, asserting byte-identical output.</summary>
+    /// shipping default edition in migration mode, asserting byte-identical output against each program's golden
+    /// at that edition (<see cref="GoldenPath"/>: <c>valid/</c>, or a declared behaviour change's per-edition one).</summary>
     internal static int GoldenRunEdition { get; } =
         int.TryParse(Environment.GetEnvironmentVariable("WISEOWL_COBOL_NIST_STD"), out int v) ? v : 85;
+
+    /// <summary>The directory of the per-edition report goldens: <c>tests/nist/valid-editions/&lt;E&gt;/&lt;name&gt;.txt</c>
+    /// is the report of a program whose output a <see cref="DialectBehaviors"/> row changes at edition E.</summary>
+    internal static string EditionGoldenRoot { get; } = Path.Combine(Root, "valid-editions");
+
+    /// <summary>⛔ THE ONE SELECTION OF A NIST REPORT GOLDEN (kb/Work PB5101). A COBOL-85 program's report is the same
+    /// at every edition unless a gated behaviour change reaches it; such a row declares the change
+    /// (<see cref="CorpusRow.Behaviors"/>), and at <paramref name="edition"/> its golden is the one of the greatest
+    /// declared <see cref="DialectBehaviors.Row.ChangedIn"/> not above it, else <c>valid/</c>. So the INV-1-strong
+    /// run at 2023 asserts the 2023 behaviour byte for byte instead of turning red on it, and the 85 run the 1985
+    /// one. <c>CorpusManifestTests.EditionGoldens_AreExactlyTheDeclaredBehaviorEditions</c> holds the files on disk
+    /// equal to the declarations.</summary>
+    internal static string GoldenPath(string testName, int edition)
+    {
+        CorpusRow row = Rows.First(r => string.Equals(r.Name, testName, StringComparison.OrdinalIgnoreCase));
+        int? from = BehaviorEditions(row).Where(e => e <= edition).Select(e => (int?)e).Max();
+        return from is { } e
+            ? Path.Combine(EditionGoldenRoot, e.ToString(System.Globalization.CultureInfo.InvariantCulture), testName + ".txt")
+            : Path.Combine(Root, "valid", testName + ".txt");
+    }
+
+    /// <summary>The editions at which <paramref name="row"/>'s declared behaviours change, read from the one
+    /// <see cref="DialectBehaviors"/> table (an unknown id throws: the drift test names it).</summary>
+    internal static IEnumerable<int> BehaviorEditions(CorpusRow row)
+    {
+        var editions = new List<int>();
+        foreach (string id in row.Behaviors)
+        {
+            int? changedIn = null;
+            foreach (DialectBehaviors.Row b in DialectBehaviors.All)
+                if (b.Id == id) changedIn = b.ChangedIn;
+            editions.Add(changedIn ?? throw new InvalidOperationException(
+                $"tests/nist/corpus.tsv {row.Name}: BEHAVIOR `{id}` is not a DialectBehaviors Id"));
+        }
+        return editions.Distinct();
+    }
 
     /// <summary>The golden run's severity axis (<c>WISEOWL_COBOL_NIST_PERMISSIVE=1</c>; see <see cref="GoldenRunEdition"/>).</summary>
     internal static bool GoldenRunPermissive { get; } =

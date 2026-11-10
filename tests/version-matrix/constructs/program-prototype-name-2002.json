@@ -1,0 +1,13 @@
+{
+ "id": "program-prototype-name-2002",
+ "status": "active",
+ "description": "A program-prototype-name as the operand of CALL and CANCEL — §2023:14.9.4.2 Format 2's bracket-omitted spelling `CALL program-prototype-name-1` and §2023:14.9.5.2's third operand alternative — which §2023:8.4.6.8 scopes to 'the program-name of a containing program definition or a program-prototype-name declared in the REPOSITORY paragraph'. ISO/IEC 1989:2002 introduced it (its clause 8.4.5.7 carries the same sentence); COBOL-85 has no program-prototype-names, and its CALL and CANCEL identifier-1 shall be a data item (§2023:14.9.4.3 SR1, §2023:14.9.5.3 SR1). The spelling is written exactly like identifier-1, so there is nothing for a recognition gate to see: below 2002 the word is ROUTED as identifier-1 (CallBinder.ProgramPrototypeNamesExist, a behavioral read, DESIGN-version-conformance-pipeline §1.1 item 3) and one that names no data item is the §2023:8.4.2.1 undefined reference, COBOL1639. The containing spelling needs no REPOSITORY entry, so this row's own witness is it: until kb/Work PB4509 an 85 compile ACCEPTED a nested program's `CALL OUTER` as a prototype CALL.",
+ "display": "a program-prototype-name as the CALL / CANCEL operand",
+ "diagnosticCode": "COBOL1639",
+ "citation": "ISO §2023:8.4.6.8; §2023:14.9.4.2 Format 2; §2023:14.9.5.2; §2023:14.9.4.3 SR1; ISO/IEC 1989:2002 clause 8.4.5.7 (the introduction)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL1639",
+ "vcr": "2002 introduction (ISO/IEC 1989:2002 clause 8.4.5.7; Annex E covers 2014-2023 only)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PPNC1.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"PPNC2\".\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. PPNC2.\nPROCEDURE DIVISION.\nP.\n    CALL PPNC1.\n    EXIT PROGRAM.\nEND PROGRAM PPNC2.\nEND PROGRAM PPNC1.\n"
+}

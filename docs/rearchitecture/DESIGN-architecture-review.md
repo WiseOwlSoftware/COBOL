@@ -1564,7 +1564,7 @@ arguments) → BoundIntrinsicCall`. *Steps:* PB2300, PB2376–PB2381.
 `ParseArm` (R0-0009, the widest fan-out in the census).
 *Responsibilities.* The ONE edition gate (D7, `DESIGN-version-conformance-pipeline.md`): the bound arm over
 `BoundUnit` (STOP RUN status, CALL forms, prototypes), the parse arm (one `Visit` per construct family firing
-`ConstructRegistry.Check` with its `constructs.json` id), the word checks (`reservedWords` and `cobolWords` constructor
+`ConstructRegistry.Check` with its `constructs/` id), the word checks (`reservedWords` and `cobolWords` constructor
 parameters; "A COBOL word is a character-string of not more than 63 characters", §2023:8.3.2.1, through `CobolWordRule`),
 and the removed and obsolete flags.
 *Target types.* The parse arm stays ONE tree walk, and the walk dispatches each context to the gate of the grammar
@@ -1602,7 +1602,7 @@ class-condition keyword set (kb/Work PB2292). The two are now two rules — the 
 asserts that no rule name is defined in two grammar files, which this map relies on. The map also needs the
 identification, environment and procedure fragments the core-defined contexts belong to (§8.4's regroup); the notes'
 `blocked_by` carry the order. Why
-this partition: a construct's grammar rule (§8.4), its gate and its `constructs.json` row then share one name, so a
+this partition: a construct's grammar rule (§8.4), its gate and its `constructs/` row then share one name, so a
 §2023:14.9 GAP fix lands in the procedure gate's file only — the shape that makes the next case automatic. *Steps:*
 PB2304, PB2385–PB2390, then PB2301 (the bound arm and `CobolWordGate`).
 
@@ -2047,7 +2047,7 @@ owner through the branch survey's lifecycle state (`inflight.classify_inflight`)
 LAND or ENQUEUED is finished, and a group meeting it is planned as its CONTINUATION (its pred merges that branch
 first, no `after:`); a dispatched group with no report, and a branch IN FLIGHT, STOPPED, BOUNCED or undecided
 (DECISION) is running, and a group HOLDING against it waits, the hold named; a group's own work (the branch its pred
-continues, a dispatch or branch on its own notes) never collides. A group is HELD by running work only where a member of one matches a member of the other (`inflight.hold`, kb/Work PB4452; the owner, 2026-11-02: "Non overlapping edits to the same file typically will merge without conflict"), with the hold named as `file#member`: a file both only SHARE, or that either side claims WHOLE (no member list: a caller the member index found, a site named whole, a diff the unit reader could not read), holds nothing, and no open note reserves a file. Two claims MEET (`inflight.collision`: a file either claims whole, or a member of one that matches a member of the other, `inflight.unit_meet`, `source_units.match`; never a file a merge driver merges by key, `merge_drivers.covered_by_driver`) to GROUP: within a wave, and against a FINISHED branch, where meeting on the file is what makes one step (kb/Work PB4396). Two groups on different members of one file run side by side, and git's three-way merge combines their branches. An in-flight worktree's or branch's members are the
+continues, a dispatch or branch on its own notes) never collides. A group is HELD by running work only where a member of one matches a member of the other (`inflight.hold`, kb/Work PB4452; the owner, 2026-11-02: "Non overlapping edits to the same file typically will merge without conflict"), with the hold named as `file#member`: a file both only SHARE, or that either side claims WHOLE (no member list: a caller the member index found, a site named whole, a diff the unit reader could not read), holds nothing, and no open note reserves a file. Two claims MEET (`inflight.collision`: a file either claims whole, or a member of one that matches a member of the other, `inflight.unit_meet`, `source_units.match`; no file is exempt, kb/Work PB5110) to GROUP: within a wave, and against a FINISHED branch, where meeting on the file is what makes one step (kb/Work PB4396). Two groups on different members of one file run side by side, and git's three-way merge combines their branches. An in-flight worktree's or branch's members are the
 units its ACTUAL diff touches in each file another claim shares (`inflight.inflight_units`, batched git reads); a
 ledger group's are the members it recorded. An EMPTY set meets NOTHING (kb/Work PB3670, superseding PB3263's "an
 unknown set meets its subsystem"): the group is named UNPARTITIONED and holds nothing, and its implementer adds the

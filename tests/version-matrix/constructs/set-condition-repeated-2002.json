@@ -1,0 +1,12 @@
+{
+ "id": "set-condition-repeated-2002",
+ "description": "A SET statement (Format 4, condition-setting) that writes more than one {condition-name-1}... TO TRUE phrase - SET A1 TO TRUE B1 TO TRUE. ANSI X3.23-1985 prints Format 4 as SET {condition-name-1}... TO TRUE with no ellipsis on the whole unit (§1985:VI.6.23.2, printed page VI-127), so a statement carries ONE TO TRUE phrase; the post-ballot ISO/IEC 1989:2002 text (2001-12-04, 14.8.35.1 Format 4) repeats the unit, SET {{condition-name-1}... TO {TRUE | FALSE}}..., as the 2023 text does (§2023:14.9.39.2). A COBOL-2002 introduction (kb/Work PB4919), gated in ONE place, VersionConformancePass.ParseArm.VisitSetBooleanStatement, on the count of setConditionPhrase nodes beside the FALSE arm's gate (set-condition-false-2002).",
+ "display": "a SET statement with more than one condition-name TO TRUE phrase",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39.2 Format 4; §1985:VI.6.23.2 Format 4 has no outer ellipsis; the ISO/IEC 1989:2002 post-ballot text 14.8.35.1 Format 4 adds it",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.52 (b) - repeated SET ... TO TRUE phrases, a COBOL-85 restriction read from the printed formats",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSTR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 9 VALUE 0.\n   88 A1 VALUE 1.\n01 B PIC 9 VALUE 0.\n   88 B1 VALUE 2.\nPROCEDURE DIVISION.\nMAIN.\n    SET A1 TO TRUE B1 TO TRUE.\n    DISPLAY A B.\n    STOP RUN.\n"
+}

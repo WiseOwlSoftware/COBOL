@@ -1,0 +1,12 @@
+{
+ "id": "based-clause-2002",
+ "description": "BASED clause (a data item addressed via SET ADDRESS/ALLOCATE), ISO §2023:13.18.5 — introduced 2002",
+ "display": "BASED clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.5",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 B BASED.\n   05 F PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "identification-header-optional-2002",
+ "status": "active",
+ "description": "A program or function source unit WITHOUT the IDENTIFICATION DIVISION header — ISO §2023:11.2.1 prints `[ IDENTIFICATION DIVISION. ]` in brackets (rendered, PDF p293 / folio 263), so the unit may open directly on its PROGRAM-ID or FUNCTION-ID paragraph. X3.23-1985 required the header, so the header-less form is a 2002 relaxation. Parsed at every edition (superset-parse) so the below-2002 rejection is this named gate rather than `unexpected 'PROGRAM-ID'`. kb/Work PB829.",
+ "display": "a source unit without the IDENTIFICATION DIVISION header",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.2.1 (Identification division structure: `[ IDENTIFICATION DIVISION. ]`) — 2002 relaxation of the '85 required header",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 relaxation: the IDENTIFICATION DIVISION header is optional (§2023:11.2.1; the '85 format required it)",
+ "source": "PROGRAM-ID. IDHOPT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X VALUE \"a\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY A.\n    STOP RUN.\n"
+}

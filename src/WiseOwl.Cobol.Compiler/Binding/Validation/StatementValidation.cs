@@ -949,39 +949,82 @@ internal sealed class StatementValidation(DataBinder data)
         return false;
     }
 
-    /// <summary>SR7 — with REPLACING CHARACTERS, literal-3 shall be ONE character (an identifier-5 of another
-    /// size is the runtime GR15 case — the runtime uses its first character, deterministic).</summary>
+    /// <summary>⛔ THE EDITION THAT MAKES INSPECT'S SIZE RULES SYNTAX RULES OVER DATA ITEMS (kb/Work PB5103). §1985:VI.6.18.3
+    /// SR7, SR8 and SR9 say "the size of literal-3 or the data item referenced by identifier-5 must be equal to the size
+    /// of literal-1 or the data item referenced by identifier-3" (and CHARACTERS and CONVERTING likewise), so at --std 85
+    /// a mis-sized identifier is a program the standard does not allow. From 2002 the same words are general rules
+    /// (§2023:14.9.22.4 GR14, GR15 and GR22) that SET EC-RANGE-INSPECT-SIZE at run time, so only literals are asked at
+    /// compile time there. The one predicate, so the three rules read the same edition boundary.</summary>
+    private bool InspectSizeRulesCoverDataItems => data.Edition.DialectLevel < 2002;
+
+    /// <summary>The rule's citation in the edition being compiled: the 2023 number, or the 1985 number at --std 85, where
+    /// the REPLACING pair is SR7 and the CHARACTERS rule SR8 (CONVERTING's is SR9 in both).</summary>
+    private string InspectRuleCitation(string rule2023, string rule1985) =>
+        InspectSizeRulesCoverDataItems ? $"§1985:VI.6.18.3 {rule1985}" : $"§2023:14.9.22.3 {rule2023}";
+
+    /// <summary>SR7 — with REPLACING CHARACTERS, literal-3 shall be ONE character (§1985:VI.6.18.3 SR8 at --std 85, which
+    /// asks a data item's size too, being a syntax rule there; from 2002 an identifier-5 of another size is the
+    /// run-time GR15 case — the runtime uses its first character, deterministic).</summary>
     public bool CheckInspectCharactersReplacement(BoundOperand rep)
     {
-        if (rep is not BoundStringLiteral { Value.Length: not 1 } bad) return true;
-        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT REPLACING CHARACTERS BY a {bad.Value.Length}-"
-            + "character literal — literal-3 shall be one character in length (ISO §2023:14.9.22.3 SR7)");
+        var size = rep is BoundStringLiteral literal ? literal.Value.Length
+            : InspectSizeRulesCoverDataItems && rep is BoundFieldOperand ? IntrinsicBinder.KnownWidth(rep)
+            : null;
+        if (size is null or 1) return true;
+        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT REPLACING CHARACTERS BY {InspectOperandImage(rep, size.Value)} "
+            + $"— the replacement shall be one character in length ({InspectRuleCitation("SR7", "SR8")})");
         return false;
     }
 
-    /// <summary>⛔ ONE SIZE RULE FOR BOTH INSPECT LITERAL PAIRS (kb/Work PB3233). ISO §2023:14.9.22.3 SR6 ("When both
+    /// <summary>⛔ ONE SIZE RULE FOR BOTH INSPECT OPERAND PAIRS (kb/Work PB3233, PB5103). ISO §2023:14.9.22.3 SR6 ("When both
     /// literal-1 and literal-3 are specified, they shall be the same size except when literal-3 is a figurative
     /// constant") and SR9 ("When both literal-4 and literal-5 are specified they shall be the same size except when
     /// literal-5 is a figurative constant") are one rule over two pairs, so both pairs are asked here. Each operand
-    /// arrives as the binder's <c>(Op, Figurative)</c> answer, and its size is <see cref="InspectLiteralSize"/>'s:
+    /// arrives as the binder's <c>(Op, Figurative)</c> answer, and its size is <see cref="InspectOperandSize"/>'s:
     /// a figurative PATTERN (literal-1 / literal-4, a bare symbolic-character included) is the "implicit one character
     /// data item" of SR3, never skipped as "not a literal". Only a figurative REPLACEMENT is exempt, because GR14 /
-    /// GR22 size it to the pattern at run time. An identifier on either side is no literal, so the size check is
-    /// GR14 / GR22's run-time EC-RANGE-INSPECT-SIZE instead.</summary>
-    /// <param name="converting">False for a REPLACING pair (SR6), true for the CONVERTING pair (SR9).</param>
+    /// GR22 size it to the pattern at run time. An identifier on either side is no literal, so from 2002 the size check
+    /// is GR14 / GR22's run-time EC-RANGE-INSPECT-SIZE; at --std 85 it is the syntax rule it is there
+    /// (§1985:VI.6.18.3 SR7 and SR9), asked of the data item's static size.</summary>
+    /// <param name="converting">False for a REPLACING pair (SR6; SR7 at --std 85), true for the CONVERTING pair (SR9).</param>
     public bool CheckInspectLiteralSizes((BoundOperand Op, bool Figurative) pattern,
         (BoundOperand Op, bool Figurative) replacement, bool converting)
     {
-        if (replacement.Figurative || InspectLiteralSize(pattern) is not { } patternSize
-            || InspectLiteralSize(replacement) is not { } replacementSize || patternSize == replacementSize) return true;
+        if (replacement.Figurative || InspectOperandSize(pattern) is not { } patternSize
+            || InspectOperandSize(replacement) is not { } replacementSize || patternSize == replacementSize) return true;
         var (rule, phrase, names) = converting
-            ? ("SR9", "CONVERTING", ("literal-4", "literal-5"))
-            : ("SR6", "REPLACING", ("literal-1", "literal-3"));
-        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT {phrase}: {names.Item1} {InspectLiteralImage(pattern, patternSize)} "
-            + $"and {names.Item2} {InspectLiteralImage(replacement, replacementSize)} differ in size "
-            + $"(ISO §2023:14.9.22.3 {rule} — the same size unless {names.Item2} is a figurative constant)");
+            ? (InspectRuleCitation("SR9", "SR9"), "CONVERTING", ("literal-4", "literal-5"))
+            : (InspectRuleCitation("SR6", "SR7"), "REPLACING", ("literal-1", "literal-3"));
+        data.Edition.Error(DiagnosticCatalog.InspectLiteralSize, $"INSPECT {phrase}: {names.Item1} {InspectOperandImage(pattern.Op, patternSize)} "
+            + $"and {names.Item2} {InspectOperandImage(replacement.Op, replacementSize)} differ in size "
+            + $"({rule} — the same size unless {names.Item2} is a figurative constant)");
         return false;
     }
+
+    /// <summary>§1985:VI.6.18.3 SR10 — "The same character must not appear more than once either in literal-4 or in the data
+    /// item referenced by identifier-6" (kb/Work PB5089). A syntax rule of the 1985 edition only: §2023:14.9.22.4 GR23
+    /// ("the first occurrence of the character is used for replacement") replaces it, so from 2002 a repeated character
+    /// is legal. Only literal-4 can be asked at compile time: the content of an identifier-6 is a run-time fact.</summary>
+    public bool CheckInspectConvertingRepeatedCharacter(BoundOperand from)
+    {
+        if (!InspectSizeRulesCoverDataItems || from is not BoundStringLiteral literal) return true;
+        var seen = new HashSet<char>();
+        foreach (var ch in literal.Value)
+        {
+            if (seen.Add(ch)) continue;
+            data.Edition.Error(DiagnosticCatalog.InspectConvertingRepeatedCharacter, $"INSPECT CONVERTING literal-4 '{literal.Value}' "
+                + $"holds the character '{ch}' more than once (§1985:VI.6.18.3 SR10)");
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>The size of an INSPECT operand for the size rules: its literal size (<see cref="InspectLiteralSize"/>), or —
+    /// where <see cref="InspectSizeRulesCoverDataItems"/> — a data item's static size (the ONE reader of an operand's
+    /// compile-time width, <see cref="IntrinsicBinder.KnownWidth"/>); null when it is a run-time quantity.</summary>
+    private int? InspectOperandSize((BoundOperand Op, bool Figurative) operand) =>
+        InspectLiteralSize(operand)
+        ?? (InspectSizeRulesCoverDataItems && operand.Op is BoundFieldOperand ? IntrinsicBinder.KnownWidth(operand.Op) : null);
 
     /// <summary>The statically known size of an INSPECT literal operand, for SR6 / SR9: a figurative constant is ONE
     /// character (ISO §2023:14.9.22.3 SR3: "If literal-1, literal-2, or literal-4 is a figurative constant, it refers to an
@@ -993,10 +1036,13 @@ internal sealed class StatementValidation(DataBinder data)
         : operand.Op is BoundStringLiteral literal ? literal.Value.Length
         : null;
 
-    private static string InspectLiteralImage((BoundOperand Op, bool Figurative) operand, int size) =>
-        operand.Op is BoundStringLiteral literal
-            ? $"'{literal.Value}' ({size} character{(size == 1 ? "" : "s")})"
-            : "(a figurative constant, an implicit one-character item by SR3)";
+    private static string InspectOperandImage(BoundOperand operand, int size) =>
+        operand switch
+        {
+            BoundStringLiteral literal => $"'{literal.Value}' ({size} character{(size == 1 ? "" : "s")})",
+            BoundFieldOperand field => $"the data item '{field.Place.Item.CobolName}' ({size} character{(size == 1 ? "" : "s")})",
+            _ => "(a figurative constant, an implicit one-character item by SR3)",
+        };
 
     /// <summary>⛔ THE ONE ELEMENTARY ARM OF INSPECT'S USAGE RULES (kb/Work PB856). ISO §2023:14.9.22.3 SR1 and SR2 end in
     /// the same words — "an elementary item described implicitly or explicitly as usage display or national" — and

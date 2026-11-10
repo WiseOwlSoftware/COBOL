@@ -1,0 +1,12 @@
+{
+ "id": "segment-limit-removed-2002",
+ "description": "SEGMENT-LIMIT clause (OBJECT-COMPUTER) — segmentation deleted by ISO 2002; gated at the modelled segmentLimitClause (P2.6; kb/Work PB830). The CLAUSE and the WORD both leave at 2002: the 2002 standard's own §2023:8.9 list does not hold SEGMENT-LIMIT (reserved-words.json r2002 false, kb/Work PB4297), so it is a data-name from 2002 on (VCR row 7.8).",
+ "display": "the SEGMENT-LIMIT clause (OBJECT-COMPUTER)",
+ "diagnosticCode": "COBOL0902",
+ "citation": "segmentation deleted by ISO 2002 (§1985:XVI.2.3.2, REMOVED); VCR Table 7",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SL.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. GENERIC-BOX\n    SEGMENT-LIMIT IS 20.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -10,7 +10,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// funnel (superset parse + bind-time gate → the VersionConformancePass — every construct now gates at BIND). The
 /// matrix reject cells assert code PRESENCE per row (expectDiagnostic); these facts assert message QUALITY
 /// (edition-naming) for one representative construct of each class, plus the vendor JSON/XML disposition (COBOL0313
-/// via <c>CobolErrorStrategy</c>) and the 0860/0861 collision migration. Sources mirror the constructs.json rows.
+/// via <c>CobolErrorStrategy</c>) and the 0860/0861 collision migration. Sources mirror the construct catalogue rows.
 /// </summary>
 public sealed class EditionGateDiagnosticTests
 {

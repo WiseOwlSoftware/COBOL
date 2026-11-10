@@ -1,0 +1,24 @@
+{
+ "id": "listing-directive-2002",
+ "description": "The >>LISTING { ON | OFF } compiler directive (ISO §2023:7.3.18) - it turns any source listing on or off. §2023:7.3.18.3 GR1 makes producing a listing implementor-defined and directs that the directive be IGNORED when no listing is produced; WiseOwl COBOL produces none, so recognize-and-consume is the conforming disposition. The introduction gate rejects the directive word below 2002. The §2023:7.3 compiler-directive facility is a COBOL-2002 introduction: COBOL-85 has no compiler directives at all, so a '>>' line cannot occur in a conforming COBOL-85 source. The edition edge below 2023 is DERIVED, not quoted (VCR Table 7's discipline, rows 7.19/7.20 - the repo holds no 2002 or 2014 text, ratified decision #1): the derivation is (a) the M2 post-85 feature catalog in docs/ISO2023_CONFORMANCE_PLAN.md, which places '*>' inline comments, >>SOURCE FORMAT, conditional compilation and 'recognize-and-ignore of the other standard >> directives' in COBOL-2002, (b) the sibling row leap-second-directive-2002, already landed on the same derivation (kb/Work PB65), and (c) Annex E, which itemizes the 2014->2023 delta and does NOT list this directive among the additions, so it predates 2023. Overturnable in one line if the 2002/2014 text is ever acquired.",
+ "display": ">>LISTING directive",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:7.3.18; the §2023:7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
+ "directiveWords": [
+  "LISTING"
+ ],
+ "directiveOperand": {
+  "form": "words",
+  "choice": [
+   "ON",
+   "OFF"
+  ],
+  "choiceOmissible": true,
+  "citation": "ISO §2023:7.3.18.2 general format (rendered, folio 78): LISTING and OFF are underlined, ON is not, so per §2023:5.2.3 the ON alternative may be selected with the word omitted — which is the case §2023:7.3.18.3 GR4/GR5 call 'specifying or implying the ON phrase'. ⚠ The transcription's figure note reads the missing underline as a typesetting omission and would make the choice mandatory; the underlining plus GR4/GR5's 'implying' is followed here, because rejecting a bare >>LISTING would reject conforming source."
+ },
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "compiler directives (§2023:7.3) - 2002 introduction",
+ "source": "       >>LISTING ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725LI.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n"
+}

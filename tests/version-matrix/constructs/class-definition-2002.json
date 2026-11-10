@@ -1,0 +1,13 @@
+{
+ "id": "class-definition-2002",
+ "status": "active",
+ "description": "A class definition (CLASS-ID compilation unit), ISO 11.2/11.3 - introduced 2002 (OO). Grammar-gated in compilationGroup; below 2002 the W1.5 parse-layer mapping names the edition (0900); LIVE since the Phase-3 spine part 2 (the ClassUnit collection + pass-1 class symbol table, DEVLOG 601): a class-only unit compiles at 2002+ to a real C# class rooted at CobolObject.",
+ "display": "a class definition (CLASS-ID compilation unit)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.2/§2023:11.3 (OO)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 594)",
+ "source": "IDENTIFICATION DIVISION.\nCLASS-ID. CD1.\nEND CLASS CD1.\n"
+}

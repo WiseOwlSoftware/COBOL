@@ -1,0 +1,12 @@
+{
+ "id": "linkage-global-2002",
+ "description": "The GLOBAL clause in the linkage section — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 61: \"Global clause in the linkage section. The GLOBAL clause may be specified in level 1 data description entries in the linkage section.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, VersionConformancePass.ParseArm.VisitGlobalClause (kb/Work PB4305; VCR row 7.47).",
+ "display": "the GLOBAL clause in the linkage section",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.27.3 SR1; ISO/IEC 1989:2002 Annex F.2 item 61",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 61)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMLKG.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L PIC X GLOBAL.\nPROCEDURE DIVISION USING L.\nMAIN.\n    DISPLAY L.\n    GOBACK.\n"
+}

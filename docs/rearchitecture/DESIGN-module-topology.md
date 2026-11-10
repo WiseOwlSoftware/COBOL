@@ -322,7 +322,7 @@ constructs gate at bind time through the `VersionConformancePass`, and the vendo
 in `CobolErrorStrategy` as a token-keyed vendor hint (a parse-error re-diagnosis, not an ISO edition gate).
 `EditionContext` **splits**: an immutable `EditionInfo` (DialectLevel/Permissive/MaxDigits) stays in Editions; the
 diagnostic-sink half becomes `DiagnosticSink` (in `Frontend/Common` or Editions, `IReadOnlyList` views) — the 290
-`data.Edition.Error(...)` sites retarget to the sink. `constructs.json`/`reserved-words.json` remain the canonical
+`data.Edition.Error(...)` sites retarget to the sink. `constructs/`/`reserved-words.json` remain the canonical
 catalogue with drift tests.
 
 ### 2.12 CodeGen ↔ Runtime coupling
@@ -537,7 +537,7 @@ guard; each extracted class ships with the header block; DEVLOG entry per landin
    mechanical. The current SSOT (§1.4 / csproj banner) defers it to a G8 big-bang. **Confirm we may pull the rename
    forward.**
 2. **New `WiseOwl.Cobol.Editions` assembly vs a shared folder link.** Recommended: a real assembly (clean leaf, no cycle).
-   Acceptable alternative: keep the registry in Compiler and give Frontend a *generated* copy from `constructs.json` at
+   Acceptable alternative: keep the registry in Compiler and give Frontend a *generated* copy from `constructs/` at
    build time. Assembly is cleaner; confirm the extra project is acceptable.
 3. **JSON/XML deletion vs quarantine (§2.14).** Delete outright (recommended — non-ISO, 0 spec occurrences) or keep
    behind a `--enable-json-xml` off-by-default flag for any downstream user? Confirm outright deletion.

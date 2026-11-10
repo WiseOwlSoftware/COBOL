@@ -148,13 +148,13 @@ originally architected it"; kb/Work PB4992). Each fact has one home:
 **The store.** One JSON file per adjudicated rule, `tests/version-matrix/inventory/<rule-id>.json` for 2023 and
 `tests/version-matrix/inventory-<edition>/<rule-id>.json` for an older edition (kb/Work PB4148, PB4991), written only
 through `scripts/spec/record_verdicts.py` (§8). A rule nobody has adjudicated has no file: the catalog is the
-denominator, and an unadjudicated rule is a GAP by the view. It sits beside `constructs.json` and the rest of the
+denominator, and an unadjudicated rule is a GAP by the view. It sits beside `constructs/` and the rest of the
 machine-read test data rather than under `docs/`, because its reader is the battery, not a person. **Why a file per
 row:** the merge queue merges with plain git, so two pull requests that each add a row beside the same neighbour of one
 catalogue file conflict there, and the one 4,214-row file was the second cause of landing holds (PB4148). Two landings that close
 different rows touch different files and merge with git's plain merge; a conflict means two branches changed the SAME
 row. A file is named by its rule id, nothing else lives in the directory, and two names differing only in case are
-refused (`merge_drivers.py --self-test`, its real-tree arm).
+refused (`RegistryShapeDriftTests`).
 
 **The view, ONE PER LANGUAGE.** `scripts/spec/inventory_view.py` (`inventory(edition)` over a working tree, its root
 the repository's or another worktree's, and `inventory_at(rev, edition)` for a commit: every file the state rule reads,
@@ -958,7 +958,7 @@ the rule text.
 **Everything else is derived from the chains, never written by hand:** each edition's GAP count (the session probe and
 the ledger report one per edition), the conformance statement of each edition (kb/Work PB4885 for 1985), the conformance
 suite's edition bands (a band is a chain's span: DESIGN-conformance-suite.md §3.5), the drift test that the
-compiler's edition gates (`constructs.json` windows, the grammar's version predicates) agree with the lineage's edges,
+compiler's edition gates (`constructs/` windows, the grammar's version predicates) agree with the lineage's edges,
 and **each diagnostic's citation at each edition** (kb/Work PB4950, the owner on 2026-11-08: "a way for a
 compilation error to accurately describe the edition + rule violated"). A diagnostic cites one rule; walking that rule's
 chain gives the rule of the compilation's edition (a 2023 SR read back along KEPT and CHANGED links to its 1985 rule),
@@ -983,7 +983,7 @@ the band at 85 from `chain_bands`; until then the token is the only 85 position 
 deleting it would place them nowhere.
 
 **The edition gates rest on the lineage's edges (kb/Work PB4996).** `scripts/spec/edition_gates.py --check` (the gate's
-EDITION GATES audit) reads every gate, a `constructs.json` window and a version predicate of the grammar (citing what its
+EDITION GATES audit) reads every gate, a `constructs/` window and a version predicate of the grammar (citing what its
 rule's comment cites), and holds each edge the held editions span to the rules its citation names. An edge between two
 held editions, a START or an END, rests on a cited rule that changes between them: a rule of the newer one that is NEW or
 that a CHANGED record names, or a rule of the older one whose record is REMOVED or CHANGED. Either side carries either

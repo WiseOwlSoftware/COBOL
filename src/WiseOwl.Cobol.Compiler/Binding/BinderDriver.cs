@@ -92,7 +92,7 @@ internal sealed class BinderDriver
         // PB1377, PB1378): PUSH ALL / POP ALL (§2023:7.3.22.3 SR3, §2023:7.3.20.3 SR3), FLAG-02 / FLAG-14 (§2023:7.3.14.3 SR1,
         // §2023:7.3.15.3 SR1) between clauses and statements; LEAP-SECOND / PROPAGATE outside every compilation unit
         // (§2023:7.3.17.3 SR1, §2023:7.3.21.3 SR1); a PUSH/POP naming one inherits its rule (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2). Each
-        // rule is data on the directive's constructs.json row; a pure position rule over the tree and the directive
+        // rule is data on the directive's the construct catalogue row; a pure position rule over the tree and the directive
         // sites, with no tree walk unless the source has a site the pass judges.
         global::WiseOwl.Cobol.Validation.DirectivePlacementPass.Run(tree, directives.DirectiveSites, edition);
 

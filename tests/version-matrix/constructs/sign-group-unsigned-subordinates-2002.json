@@ -1,0 +1,13 @@
+{
+ "id": "sign-group-unsigned-subordinates-2002",
+ "status": "active",
+ "description": "A SIGN clause on a GROUP item that contains no signed numeric data description entry (kb/Work PB1319). COBOL-85 admitted the clause only on 'a numeric data description entry whose PICTURE contains the character S, or a group item containing at least one such numeric data description entry'; the 2023 text of 13.18.52.3 SR1 admits any alphanumeric, national or strongly-typed group item. THE EDGE IS DERIVED, NOT QUOTED (the repo holds no 1985, 2002 or 2014 text, ratified decision #1): the 1985 wording is the vendor transcriptions of ANSI X3.23-1985 (Micro Focus, Veryant isCOBOL, Fujitsu, IBM Enterprise COBOL); Annex E lists no SIGN change, so 2014 = 2023; 2002 is the edition that recast SR1 around group categories with national group items (VCR row 7.40). GnuCOBOL 3.2 has no per-dialect arm here (silence, not evidence). Gated in ONE place, CheckSignClausesPass.",
+ "display": "a SIGN clause on a group item with no signed numeric subordinate",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.52.3 SR1 (2023 text); ANSI X3.23-1985 SIGN clause syntax rule (vendor transcriptions); VCR row 7.40 (derived 2002 edge)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.40 (85->2002: the SIGN clause's group subject no longer needs a signed numeric subordinate)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SGU.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G SIGN IS LEADING SEPARATE.\n  05 X PIC X(3).\n  05 N PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

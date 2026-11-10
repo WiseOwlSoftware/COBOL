@@ -1,0 +1,13 @@
+{
+ "id": "padding-character-removed-2014",
+ "description": "PADDING CHARACTER clause (file control entry) - the ANSI X3.23-1985 Sequential I-O block-fill character (PADDING [CHARACTER] IS {data-name-1 | literal-1}); no program-visible effect in a model with no blocking, so parsed-and-ignored at 85/2002 (the MULTIPLE FILE / RERUN posture), with the obsolete-element warning COBOL0903 at 2002. DELETED from the standard: the 2023 file control entry's clauses are 12.4.5.4 through 12.4.5.15 and none is PADDING, and the word appears NOWHERE in the 2023 text, 8.9 included. THE 2002 AND 2014 EDGES ARE DERIVED, NOT QUOTED (the repo holds no 2002 or 2014 text, ratified decision #1), so CLAUDE.md rule 1's precedence takes GnuCOBOL's: its 3.2 dialect files set padding-character-clause obsolete in cobol2002.conf and unconformable in cobol2014.conf, and cobc -std=cobol2002 warns 'PADDING CHARACTER is obsolete in COBOL 2002' (kb/Work PB656). The same source's word lists keep PADDING reserved at 2002 and not at 2014 (reserved-words.json), so the clause and the user-word-padding-2014 row agree. kb/Work PB300, PB656.",
+ "display": "the PADDING CHARACTER clause (file control entry)",
+ "diagnosticCode": "COBOL0902",
+ "citation": "absent from the whole ISO 2023 text; the file control entry's clauses are ISO §2023:12.4.5.4-§2023:12.4.5.15 (§2023:12.4.5) and none is PADDING; §2023:8.9 absence (the list runs PACKED-DECIMAL -> PAGE); GnuCOBOL 3.2 cobol2002.conf/cobol2014.conf: obsolete 2002, removed 2014; §1985:VII.2.7.4 GR1 (REMOVED); VCR Table 7 row 7.20",
+ "introducedIn": 85,
+ "removedIn": 2014,
+ "obsoleteIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7 row 7.20; reserved-words.json row PADDING (r2014/r2023 false)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPADC.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmpadc\" ORGANIZATION IS SEQUENTIAL\n        PADDING CHARACTER IS SPACE.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"PAD\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+}

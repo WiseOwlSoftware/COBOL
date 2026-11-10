@@ -1,0 +1,12 @@
+{
+ "id": "initialize-then-replacing-2002",
+ "description": "The INITIALIZE THEN REPLACING connective - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
+ "display": "INITIALIZE THEN REPLACING",
+ "diagnosticCode": "COBOL0833",
+ "citation": "ISO §2023:14.9.20.2 (the THEN connective is 2002+; REPLACING itself is COBOL-85)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0833",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWITRP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE A THEN REPLACING ALPHANUMERIC DATA BY \"Z\".\n    STOP RUN.\n"
+}

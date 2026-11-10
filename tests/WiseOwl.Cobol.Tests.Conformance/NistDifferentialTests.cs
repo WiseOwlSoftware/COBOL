@@ -42,7 +42,7 @@ public abstract class NistDifferentialTestsBase<TSlot>
     [MemberData(nameof(GreenPrograms))]
     public void NistProgram_MatchesGolden(string testName)
     {
-        string goldenPath = TestRepo.Nist("valid", testName + ".txt");
+        string goldenPath = CorpusManifest.GoldenPath(testName, CorpusManifest.GoldenRunEdition);
         Assert.True(File.Exists(goldenPath), $"golden not found: {goldenPath}");
 
         // A row that declares TERMINATES asserts the abnormal termination itself, not the report golden: the golden

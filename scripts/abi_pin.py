@@ -5,7 +5,7 @@ section 15.4; tests/WiseOwl.Cobol.Tests.Unit/RuntimeAbiPinDriftTests.cs).
     python scripts/abi_pin.py bump --runtime-major     # an incompatible change to PublicAPI.Shipped.txt or a codec's image
     python scripts/abi_pin.py bump --call-abi          # a compiler-side change to what crosses a CALL (RuntimeAbi.CallAbi)
     python scripts/abi_pin.py repin                    # no bump: the hashes moved and nothing incompatible did (a rename)
-    python scripts/abi_pin.py settle [--stage]         # what the merge does when the pin says UNMEASURED
+    python scripts/abi_pin.py settle [--stage]         # after resolving a conflict in the pin: agree the tree with its counters
     python scripts/abi_pin.py --self-test
 
 THE PIN (`src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin`): the runtime major and the hash of what it guards (the shipped public
@@ -14,23 +14,23 @@ surface and the codecs' images), the call ABI and the hash of the boundary-layou
 
 ⛔ WHY A FILE, AND WHY A TOOL. The pins used to be four constants in that test, and the numbers were also hand-edited in
 `Directory.Build.props` and `RuntimeAbi.CallAbi`. Every branch that touched the runtime's surface re-derived the hashes
-by hand and bumped the major, so two such branches always conflicted (4 landings in the logs of E:\\COBOL-coord\\logs, 2026-10-14
-to 2026-10-24), and the resolution is never a line edit: the merged tree has its OWN hash, which no branch measured, and
-its own major (a finisher's merge, 2026-10-24: "main's 17 shipped AnnuityDec(CobolRounding, CobolDec, long), so the merged
-surface is an incompatible change against main's 17: major 18"). So:
-  - an author runs `bump` or `repin`, which edits the three places a number lives and has the test WRITE the measurement
-    (`WISEOWL_COBOL_WRITE_ABI_PIN=1`, as `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1` writes the diagnostics doc);
-  - the merge driver (merge_drivers.py, `cobol-abi-pin`) adds the counters two branches each raised (base + both
-    increments) and marks the hashes UNMEASURED, and `merge_drivers.merge` runs `settle` before it makes the merge
-    commit: the numbers are written into `Directory.Build.props` and `RuntimeAbi.cs`, and the test measures the merged
-    tree and writes the hashes. Nothing is bumped by a branch's author that the landing then has to guess.
+by hand and bumped the major, so two such branches always conflicted, and the resolution is never a line edit: the merged tree
+has its OWN hash, which no branch measured, and its own major (a finisher's merge, 2026-10-24: "main's 17 shipped
+AnnuityDec(CobolRounding, CobolDec, long), so the merged surface is an incompatible change against main's 17: major 18").
+So an author runs `bump` or `repin`, which edits the three places a number lives and has the test WRITE the measurement
+(`WISEOWL_COBOL_WRITE_ABI_PIN=1`, as `WISEOWL_COBOL_WRITE_DIAGNOSTICS_DOC=1` writes the diagnostics doc).
+
+⛔ NO MERGE DRIVER (owner, kb/Work PB5110: "No custom merge drivers are required"). Two branches that both changed the pin
+conflict in plain git, here and in the merge queue alike, and the finisher regenerates: take main's pin, re-apply this branch's
+own bump (`bump`, or `repin`), and the measuring test writes the hashes of the merged tree. A wrong resolution is red at
+`RuntimeAbiPinDriftTests` and at the public-API analyzers (RS0016, RS0017). `settle --stage` is the same step for a merge in
+progress: it writes the pin's counters into `Directory.Build.props` and `RuntimeAbi.cs`, measures the tree and stages the three.
 
 ⛔ A SETTLE THAT FAILS SAYS WHOSE FAILURE IT IS (kb/Work PB3673). `settle` returns a `Failure(cause, why)`, the cause one of
 the two `merge-*` rows of gate.NOT_RUN_CAUSES, the gate's one classification by who can fix a cause: MERGE_BLOCKED
 (the host's: a build output another process holds, a full disk, a command that cannot start, a git write refused; no finisher
-can fix it and a retry may clear it) or MERGE_FAILED (the merged tree's own: a malformed pin or owned file, a build or the
-measuring test that is red, a measurement that wrote no pin). `merge_drivers.merge` hands it to `enqueue.py land` as it is,
-so a settle that could not run is never reported as a merge conflict.
+can fix it and a retry may clear it) or MERGE_FAILED (the tree's own: a malformed pin or owned file, a build or the
+measuring test that is red, a measurement that wrote no pin). `git_merge.merge` gives git's own refusals the same two.
 """
 from __future__ import annotations
 
@@ -49,8 +49,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 PIN_PATH = "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin"
 PROPS_PATH = "Directory.Build.props"
 CALL_ABI_PATH = "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs"
-#: The files `settle` writes: the review's coverage rule (prune_worktrees.mechanical) accepts a merge commit whose tree
-#: differs from the drivers' own merge in these and nowhere else.
+#: The files `settle` writes and stages.
 OWNED = (PIN_PATH, PROPS_PATH, CALL_ABI_PATH)
 UNMEASURED = "UNMEASURED"
 COUNTERS = ("runtime-major", "call-abi")
@@ -66,7 +65,7 @@ _CALL_ABI = re.compile(r"(public static int CallAbi \{ get; \} = )(\d+)(;)")
 #: gate.NOT_RUN_CAUSES, the gate's ONE classification of a cause by who can fix it (enqueue.py reads the class
 #: from there; enqueue.py's self-test holds each tag to a row). BLOCKED is a cause outside the merged tree, which no
 #: finisher fixes and a retry may clear; FAILED is the merged tree's own. The settle's Failure carries them, and
-#: merge_drivers.merge gives git's own refusals of the merge commit the same two.
+#: git_merge.merge gives git's own refusals of the merge commit the same two.
 MERGE_BLOCKED, MERGE_FAILED = "merge-blocked", "merge-failed"
 #: What a failed build or test run says when the cause is the host's, not the tree's, ON A LINE THAT REPORTS THE FAILURE
 #: (kb/Work PB3809): MSBuild's copy of an output over a file another process holds, once its retries are spent (`error
@@ -126,35 +125,6 @@ def with_values(text: str, values: dict[str, str]) -> str:
                    and not ln.lstrip().startswith("#") else ln for ln in text.split(NL))
 
 
-def merge_text(base: str, ours: str, theirs: str) -> str | None:
-    """The merge driver: both sides changed the pin. Each counter is the base plus both sides' increments (two branches
-    that each raised the major by one raise it by two: the merged surface is incompatible with each side's); the hashes
-    are UNMEASURED, for `settle` to measure on the merged tree. None when a side is not a pin or a counter is not a number."""
-    b, o, t = parse(base), parse(ours), parse(theirs)
-    if not (b and o and t):
-        return None
-    try:
-        merged = {k: str(int(b[k]) + (int(o[k]) - int(b[k])) + (int(t[k]) - int(b[k]))) for k in COUNTERS}
-    except ValueError:
-        return None
-    return with_values(ours, {**merged, **{k: UNMEASURED for k in HASHES}})
-
-
-def unmeasured(text: str) -> bool:
-    """THE test of an unsettled pin, for every reader (needs_settle, merge_drivers.is_drivers_merge): a hash LINE reads
-    UNMEASURED, which merge_text writes when both sides changed the pin. The header's prose names the word too ("the hashes
-    read UNMEASURED"), so a text search was true for every tree: every merge of main ran a solution build and the
-    measuring test, and the review's coverage rule passed hand edits of the ABI files (kb/Work PB3671 and its review
-    R1-1). A pin `parse` refuses (conflict markers) is not unmeasured: RuntimeAbiPinDriftTests reports it."""
-    values = parse(text)
-    return values is not None and any(values[k] == UNMEASURED for k in HASHES)
-
-
-def needs_settle(repo: pathlib.Path) -> bool:
-    path = repo / PIN_PATH
-    return path.is_file() and unmeasured(path.read_text(encoding="utf-8"))
-
-
 def _sub(path: pathlib.Path, pattern: re.Pattern, number: str) -> None:
     text = path.read_text(encoding="utf-8")
     new, n = pattern.subn(lambda m: m.group(1) + number + m.group(3), text, count=1)
@@ -189,7 +159,7 @@ def settle(repo: pathlib.Path, *, stage: bool = True, measure: Runner = run_meas
     """Make the tree agree with the pin's counters and measure its hashes: the counters are written into
     Directory.Build.props (the major) and RuntimeAbi.cs (the call ABI), `measure` builds the tree and has the test write
     the hashes, and the owned files are staged (`stage`, for a merge in progress). None, or the Failure: MERGE_FAILED
-    for the merged tree's own (the pin or an owned file is malformed, the measurement wrote no pin), MERGE_BLOCKED for a
+    for the tree's own (the pin or an owned file is malformed, the measurement wrote no pin), MERGE_BLOCKED for a
     host that refused a write (the measurement classifies its own, run_measurement; kb/Work PB3673)."""
     try:
         pin = parse((repo / PIN_PATH).read_text(encoding="utf-8"))
@@ -217,7 +187,8 @@ def settle(repo: pathlib.Path, *, stage: bool = True, measure: Runner = run_meas
 
 
 def bump(repo: pathlib.Path, *, runtime_major: bool, call_abi: bool, measure: Runner = run_measurement) -> Failure | None:
-    """An author's bump: raise the named counters, mark the hashes UNMEASURED and settle (nothing staged)."""
+    """An author's bump: raise the named counters, mark the hashes UNMEASURED and settle (nothing staged), so the tree's
+    measurement replaces them."""
     path = repo / PIN_PATH
     text = path.read_text(encoding="utf-8")
     pin = parse(text)
@@ -248,22 +219,6 @@ def self_test() -> int:
            parse(base) == {"runtime-major": "17", "runtime-hash": "AAAA", "call-abi": "2", "boundary-hash": "BBBB"}
            and parse("runtime-major 17") is None and parse(base + "extra 1" + NL) is None
            and parse(base + "call-abi 3" + NL) is None)
-    both = merge_text(base, pin(18, "CCCC", 2, "BBBB"), pin(18, "DDDD", 2, "BBBB"))
-    expect("merge: a counter both sides raised by one is raised by two (the merged surface is incompatible with each "
-           "side's), and the hashes are UNMEASURED; the header is ours'",
-           both == pin(19, UNMEASURED, 2, UNMEASURED), repr(both))
-    mixed = merge_text(base, pin(18, "CCCC", 2, "BBBB"), pin(17, "AAAA", 3, "EEEE"))
-    expect("merge: a counter only one side raised keeps that side's value, so the two counters add independently",
-           mixed == pin(18, UNMEASURED, 3, UNMEASURED), repr(mixed))
-    expect("merge: a side that is not a pin, or a counter that is not a number, is a conflict (None)",
-           merge_text(base, "x", base) is None and merge_text(base, base.replace("2", "two"), base) is None)
-    prose = f"# the hashes read {UNMEASURED} and are measured on the merged tree{NL}"
-    expect("unmeasured: a pin whose header names UNMEASURED only in its prose is measured, one whose hash line reads it "
-           "is not, and a pin parse refuses (conflict markers) is not unmeasured (kb/Work PB3671: a text search made "
-           "every merge of main build and measure)",
-           not unmeasured(prose + base) and unmeasured(prose + pin(17, UNMEASURED, 2, "BBBB"))
-           and not unmeasured(f"<<<<<<< ours{NL}{base}======={NL}{base}>>>>>>> theirs{NL}"))
-
     root = scratch_dir("abi-pin-selftest-")
     try:
         repo = ScratchRepo.init(root / "repo").path
@@ -282,20 +237,20 @@ def self_test() -> int:
             (r / PIN_PATH).write_bytes(with_values((r / PIN_PATH).read_text(encoding="utf-8"),
                                                    {"runtime-hash": "1111", "boundary-hash": "2222"}).encode("utf-8"))
             return None
-        expect("needs_settle: an UNMEASURED hash", needs_settle(repo))
         why = settle(repo, measure=writes)
-        expect("settle: the merged counters are written into the props and RuntimeAbi.cs BEFORE the measurement, the "
+        expect("settle: the pin's counters are written into the props and RuntimeAbi.cs BEFORE the measurement, the "
                "test's hashes land in the pin, and the owned files are staged",
                why is None and "<Version>18.0.0</Version>" in seen[0] and "CallAbi { get; } = 3;" in seen[0]
                and parse((repo / PIN_PATH).read_text(encoding="utf-8")) == {
                    "runtime-major": "18", "runtime-hash": "1111", "call-abi": "3", "boundary-hash": "2222"}
-               and not needs_settle(repo) and set(s.git("diff", "--cached", "--name-only").split()) == set(OWNED),
+               and UNMEASURED not in parse((repo / PIN_PATH).read_text(encoding="utf-8")).values()
+               and set(s.git("diff", "--cached", "--name-only").split()) == set(OWNED),
                f"{why} {seen}")
         (repo / PIN_PATH).write_bytes(pin(18, UNMEASURED, 3, UNMEASURED).encode("utf-8"))
         exited = Failure(MERGE_FAILED, "the measuring run exited 1")
         silent = settle(repo, measure=lambda r: None)
         expect("settle: a measurement that fails, or writes nothing, is the reason, never a pass; the measurement's own "
-               "class passes through, and a measurement that wrote nothing is the merged tree's (MERGE_FAILED)",
+               "class passes through, and a measurement that wrote nothing is the tree's own (MERGE_FAILED)",
                settle(repo, measure=lambda r: exited) == exited and silent is not None and "did not write" in silent.why
                and silent.cause == MERGE_FAILED)
         long_output = NL.join(["error MSB3027: Could not copy SourceGen.dll. The file is locked by: csharp-ls (62616)"]
@@ -326,7 +281,7 @@ def self_test() -> int:
                            "used by another process.").cause == MERGE_BLOCKED)
         (repo / PROPS_PATH).write_bytes(b"<Project />")
         malformed = settle(repo, measure=writes)
-        expect("settle: an owned file that lacks the line the settle rewrites is the merged tree's (MERGE_FAILED), and "
+        expect("settle: an owned file that lacks the line the settle rewrites is the tree's own (MERGE_FAILED), and "
                "the measurement never runs",
                malformed is not None and malformed.cause == MERGE_FAILED and "not there exactly once" in malformed.why
                and len(seen) == 1, f"{malformed}")
@@ -340,11 +295,11 @@ def self_test() -> int:
     finally:
         remove_tree(root)
     # THE REAL TREE: the pin is a measured file nobody hand-edits; it holds exactly the four lines the measuring test
-    # reads, in its order, and never UNMEASURED on a committed tree (a merge settles it before its commit).
+    # reads, in its order, and never UNMEASURED on a committed tree.
     real = (HERE.parent / PIN_PATH).read_text(encoding="utf-8")
     keys = [ln.split()[0] for ln in real.split(NL) if ln.strip() and not ln.lstrip().startswith("#")]
     expect("real tree: the pin holds the four measured lines in order, none of them UNMEASURED",
-           keys == list(KEYS) and parse(real) is not None and not unmeasured(real), f"{keys}")
+           keys == list(KEYS) and parse(real) is not None and UNMEASURED not in parse(real).values(), f"{keys}")
     print(f"abi_pin self-test: {'FAIL' if failures else 'PASS'}")
     return 1 if failures else 0
 

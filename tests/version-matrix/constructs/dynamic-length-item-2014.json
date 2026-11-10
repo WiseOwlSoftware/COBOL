@@ -1,0 +1,12 @@
+{
+ "id": "dynamic-length-item-2014",
+ "description": "DYNAMIC LENGTH elementary item — a variable-length, minimum-length-zero PIC X/N string (§2023:8.5.1.10 / §2023:13.18.19), ISO 2014+; below 2014 the DYNAMIC LENGTH clause is COBOL0900. LIVE (P12 wave 2): the item is a native string (no byte substrate); a receiving MOVE truncates to the LIMIT with no padding (CobolDynString.Store). The 2023 SET [SIZE OF] length enhancement (VCR row 60) is deferred to P13.",
+ "display": "DYNAMIC LENGTH elementary item",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.5.1.10 / §2023:13.18.19 — variable-length min-0 string; §2023:13.16.3 SR18 permitted co-clauses; §2023:13.18.19.3 SR1 PICTURE one N or X",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2014 introduction (§2023:8.5.1.10 / §2023:13.18.19 DYNAMIC LENGTH elementary items)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. DL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-D PIC X DYNAMIC LENGTH LIMIT IS 20.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"HELLO\" TO W-D.\n    DISPLAY W-D.\n    STOP RUN.\n"
+}

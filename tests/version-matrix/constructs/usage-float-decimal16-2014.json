@@ -1,0 +1,12 @@
+{
+ "id": "usage-float-decimal16-2014",
+ "status": "pending",
+ "description": "USAGE FLOAT-DECIMAL-16 (ISO/IEC 60559:2020 decimal64, §2023:13.18.60.4 GR17) — a COBOL-2014 introduction that is PROCESSOR-DEPENDENT (Annex A.3 item 19). PENDING: .NET has no IEEE 754 decimal64 type (System.Decimal is a different format) and GR17 pins the format, so WiseOwl COBOL documents it as non-support (rejected loud, COBOL1564); this row would activate if the pinned format is implemented.",
+ "display": "USAGE FLOAT-DECIMAL-16",
+ "diagnosticCode": "COBOL1564",
+ "citation": "ISO §2023:13.18.60.4 GR17 (decimal64); Annex A.3 item 19 (processor-dependent); non-support COBOL1564",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "2014 introduction (§2023:13.18.60.4 GR17 FLOAT-DECIMAL-16 = IEEE decimal64); Annex A.3 item 19 processor-dependent",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FD16.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-DECIMAL-16.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

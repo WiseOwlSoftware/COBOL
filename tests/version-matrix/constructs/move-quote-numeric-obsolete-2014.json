@@ -1,0 +1,13 @@
+{
+ "id": "move-quote-numeric-obsolete-2014",
+ "description": "MOVE of the figurative constant QUOTE to a numeric or numeric-edited item - the ONE figurative the change annex tracks separately (W2 adversarial-review correction): designated OBSOLETE by ISO 2014 (Annex E.2 item 21 - 'features that were classified as obsolete in the previous COBOL standard'), then REMOVED 2023 with the rest (E.2 item 1; 14.9.25.3 SR5). 0903 warning at 2014, 0902 at 2023; pre-removal semantics on the StoreAsImage substrate (spec-pinned - legacy CBL0906 compile-rejects this shape at every standard, a documented legacy non-conformance). ASKED BY EVERY ASKER OF THE MOVE RULES (kb/Work PB3755), through the one body FigurativeAssociation.GateSr5: the written MOVE and every implicit FROM/INTO move (VersionConformancePass.GateMove), INITIALIZE REPLACING's hypothetical MOVE (VersionConformancePass.GateInitialize, 14.9.20.3 SR4) and a figurative argument BY CONTENT into a numeric-edited formal parameter of a CALL, an INVOKE or a user-defined function (ParameterConformance.GateFigurativeEdition; 14.8.2.3.3 rule 2 d: the formal is not numeric, so the MOVE rules apply, not rule 2 a's COMPUTE).",
+ "display": "MOVE of the figurative constant QUOTE to a numeric or numeric-edited item",
+ "diagnosticCode": "COBOL0902",
+ "citation": "Annex E.2 item 21 (obsolete-in-2014) + E.2 item 1 (removed 2023); §2023:14.9.25.3 SR5; §1985:VI.6.19.4 GR3 (CHANGED) — the ONE figurative the change annex tracks separately",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "obsoleteIn": 2014,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR rows 1+28 (E.2 item 21; E.2 item 1; 14.9.25.3 SR5)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVQTN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-NUM PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE QUOTE TO W-NUM.\n    STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "set-dyn-length-size-2023",
+ "description": "SET [SIZE OF] data-name TO n (ISO §2023:14.9.39 Format 16) — a COBOL-2023 addition: set the current length of a DYNAMIC LENGTH elementary item (growing space-fills the added positions, GR39; shrinking drops trailing positions). Semantic gate on the BoundSetSize node (the target must be dynamic-length), covering both the explicit SIZE OF form and the bare re-routed form. The DYNAMIC LENGTH clause itself is 2014, but the SET-length form is 2023.",
+ "display": "SET [SIZE OF] dyn-length TO n",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39 Format 16 (§2023:14.9.39.4 GR37-39); Annex E.3.3 item — the dynamic-length SET",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 60 (dynamic-length SET — 2023 introduction)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SETSZ.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 D PIC X DYNAMIC LENGTH.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"HI\" TO D.\n    SET SIZE OF D TO 4.\n    STOP RUN.\n"
+}
