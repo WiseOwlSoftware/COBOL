@@ -1,0 +1,12 @@
+{
+ "id": "close-with-lock-removed-2023",
+ "description": "CLOSE … WITH LOCK — REMOVED 2014→2023 (an Annex E deletion; the only pre-P2.6 gate already covering a 2023 removal was CALL ON OVERFLOW).",
+ "display": "the CLOSE WITH LOCK phrase",
+ "diagnosticCode": "COBOL0902",
+ "citation": "REMOVED 2014→2023 (Annex E deletion; VCR row 7); §1985:VII.4.2.2 (CHANGED); §1985:VII.4.2.4 GR3",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR row 7 (Annex E 2014→2023 deletions)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CL.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmcl\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    CLOSE F WITH LOCK.\n    STOP RUN.\n"
+}

@@ -7,7 +7,7 @@ section 10.2, slice 5).
     python scripts/spec/edition_gates.py --self-test
 
 An EDITION GATE is a place the compiler decides that a construct exists at some editions and not at others: a window of
-`tests/version-matrix/constructs.json` (`introducedIn`, `removedIn`) and a version predicate of the grammar
+`tests/version-matrix/constructs/` (`introducedIn`, `removedIn`) and a version predicate of the grammar
 (`{is2002()}?`, a gate whose window starts at its edition and never ends). Its EDGE is the edition where the window starts
 or ends. The lineage (`lineage.py`) records, between each pair of adjacent held editions, what became of each older rule:
 KEPT, CHANGED or REMOVED (`inventory_schema.ChangeRecord`), and a newer rule no record names is NEW. So an edge between two
@@ -70,12 +70,13 @@ from typing import Any, NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation  # noqa: E402  (the one citation parser)
+import construct_store  # noqa: E402  (the construct catalogue, one file per construct, kb/Work PB5110)
 import inventory_view  # noqa: E402  (the one view of each held edition)
 from inventory_schema import REPO, Edition, Schema, load_schema  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-CONSTRUCTS_REL = "tests/version-matrix/constructs.json"
+CONSTRUCTS_REL = construct_store.STORE_REL
 GRAMMAR_REL = "src/WiseOwl.Cobol.Frontend/Grammar"
 #: The clauses of the 2023 text that list the reserved words and the context-sensitive words, as citations: a gate citing
 #: only these is a word's reservation, whose edges are the word lists' (see the module docstring).
@@ -94,7 +95,7 @@ _FORMAT_KIND = "FMT"
 #: docstring); each was searched for a rule of its own (branch review R2-1, wave 20261935 C). The fix is a catalog that
 #: numbers each format's alternatives, which no note carries yet (the report's lead names it for the registrar).
 FORMAT_ONLY = "the catalog holds the general format as one rule and no SR or GR names this construct (lead R2-1, w20261935 C)"
-HELD_OPEN: dict[str, str] = {f"constructs.json {c}": FORMAT_ONLY for c in (
+HELD_OPEN: dict[str, str] = {f"constructs/{c}": FORMAT_ONLY for c in (
     "end-accept-2002", "end-display-2002",                   # a scope terminator; §2023:14.5.3.2 GR1 is KEPT
     "identification-header-optional-2002",                   # the bracketed header of §2023:11.2.1
     "computer-name-optional-2002",                           # §2023:12.3.6.2
@@ -133,16 +134,16 @@ class Pair(NamedTuple):
 
 # -- the gates ----------------------------------------------------------------------------------------------------------
 
-def construct_gates(raw: Mapping[str, Any], year_of: Mapping[str, int]) -> list[Gate]:
-    """Every window of the construct catalogue `raw` (constructs.json) as a gate, its edges as years: `year_of` maps the
+def construct_gates(rows: Iterable[Mapping[str, Any]], year_of: Mapping[str, int]) -> list[Gate]:
+    """Every window of the construct catalogue `rows` (tests/version-matrix/constructs/) as a gate, its edges as years: `year_of` maps the
     catalogue's edition spelling (`85`, `2002`) to its edition's year, as a grammar predicate's (`grammar_gates`)."""
     def year(spelling: Any) -> int:
         if str(spelling) not in year_of:
             raise SystemExit(f"{CONSTRUCTS_REL}: edition {spelling!r} names no edition of the schema")
         return year_of[str(spelling)]
-    return [Gate(f"constructs.json {c['id']}", year(c["introducedIn"]), year(c["removedIn"]) if c.get("removedIn") else None,
+    return [Gate(f"constructs/{c['id']}", year(c["introducedIn"]), year(c["removedIn"]) if c.get("removedIn") else None,
                  tuple(x for x in citation.scan(c.get("citation") or "") if x.error is None))
-            for c in raw["constructs"]]
+            for c in rows]
 
 
 def grammar_gates(files: Mapping[str, str], year_of: Mapping[str, int]) -> list[Gate]:
@@ -328,12 +329,12 @@ def audit(gates: Iterable[Gate], pairs: Iterable[Pair], schema: Schema) -> tuple
 
 
 def repository_inputs(schema: Schema, root: pathlib.Path = REPO) -> tuple[list[Gate], list[Pair]]:
-    """The repository's gates (constructs.json and the grammar) and the lineage between each adjacent pair of its held
+    """The repository's gates (the construct catalogue and the grammar) and the lineage between each adjacent pair of its held
     editions, read through the one view."""
     year_of = {e.spelling: e.year for e in schema.all_editions}
     grammar = {p.relative_to(root).as_posix(): p.read_text(encoding="utf-8")
                for p in sorted((root / GRAMMAR_REL).rglob("*.g4"))}
-    gates = (construct_gates(json.loads((root / CONSTRUCTS_REL).read_text(encoding="utf-8")), year_of)
+    gates = (construct_gates(construct_store.read_rows(root), year_of)
              + grammar_gates(grammar, year_of))
     held = [e for e in schema.all_editions if e.held]
     views = {e.year: inventory_view.inventory(e.year, schema) for e in held}
@@ -357,7 +358,7 @@ def check() -> int:
     gates, pairs = repository_inputs(schema)
     findings, proven = audit(gates, pairs, schema)
     kept, findings = held_open(findings, HELD_OPEN)
-    windows = sum(1 for g in gates if g.where.startswith("constructs.json"))
+    windows = sum(1 for g in gates if g.where.startswith("constructs/"))
     print(f"edition gates: {len(gates)} ({windows} construct windows, {len(gates) - windows} grammar predicates); "
           f"{len(proven)} with an edge the held editions span, each proven by the lineage or left to the word lists")
     for f in kept:
@@ -495,10 +496,10 @@ def self_test() -> int:
     ok([(g.where, g.start, [c.locator for c in g.cites]) for g in gg] == [("g/B.g4:4", 2014, ["14.9.2.2"])],
        "a predicate on a later alternative reads its rule's leading comment, across the header and the alternatives")
     year_of = {e.spelling: e.year for e in schema.all_editions}
-    construct = construct_gates({"constructs": [{"id": "c", "introducedIn": 85, "removedIn": 2002,
-                                                 "citation": "§2023:14.9.3.4 GR1; §5000:1 malformed"}]},  # citation-audit: example
+    construct = construct_gates([{"id": "c", "introducedIn": 85, "removedIn": 2002,
+                                      "citation": "§2023:14.9.3.4 GR1; §5000:1 malformed"}],  # citation-audit: example
                                 year_of)
-    ok(construct == [Gate("constructs.json c", 1985, 2002, construct[0].cites)] and len(construct[0].cites) == 1,
+    ok(construct == [Gate("constructs/c", 1985, 2002, construct[0].cites)] and len(construct[0].cites) == 1,
        "a construct's window is a gate in years (85 is 1985) citing what its citation names, a malformed citation "
        "dropped (CITATIONS refuses it)")
     print(f"=== EDITION GATES SELF-TEST: {'PASS' if not fails else 'FAIL - ' + str(len(fails))} ===")

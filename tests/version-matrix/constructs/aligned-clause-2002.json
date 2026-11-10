@@ -1,0 +1,12 @@
+{
+ "id": "aligned-clause-2002",
+ "description": "ALIGNED clause (the subject of the entry is aligned on the first bit of the first available byte boundary, with implicit filler bits per 8.5.1.6.3), ISO 13.18.1 - introduced 2002 (ALIGNED is a 2002 reserved word per 8.9). kb/Work PB487.",
+ "display": "ALIGNED clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.1",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. ALGN9AL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n   05 B1 PIC 1(4) USAGE BIT.\n   05 B2 PIC 1(4) USAGE BIT ALIGNED.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"LEN=\" FUNCTION LENGTH(G).\n    STOP RUN.\n"
+}

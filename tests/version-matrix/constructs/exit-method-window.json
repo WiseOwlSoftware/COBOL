@@ -1,0 +1,14 @@
+{
+ "id": "exit-method-window",
+ "status": "active",
+ "description": "EXIT METHOD statement - introduced 2002 (OO), REMOVED 2023 (Annex E; dual-obligation window). ACTIVE since OO port slice 2 (DEVLOG 602): the source is a real driver+class+method (the placement SR is enforced - 0827 outside a method); the dual-edge codes ride the new expectDiagnosticBelow mechanism (0900 at 85 via the class parse gate, 0902 at 2023 via the exit-method-window registry row); at 2002/2014 EXIT METHOD is the method-return synonym (BoundMethodReturn), proven by OoSpineTests run facts.",
+ "display": "the EXIT METHOD statement",
+ "diagnosticCode": "COBOL0902",
+ "citation": "introduced 2002 (OO), REMOVED 2023 (Annex E; VCR row 5) — the dual-obligation window: 0900 below 2002, 0902 at 2023",
+ "introducedIn": 2002,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0902",
+ "expectDiagnosticBelow": "COBOL0900",
+ "vcr": "VCR row 5 (Annex E @49034)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XM.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS XMC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 OBJ USAGE OBJECT REFERENCE XMC.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE XMC \"NEW\" RETURNING OBJ.\n    INVOKE OBJ \"M1\".\n    STOP RUN.\nEND PROGRAM XM.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. XMC INHERITS FROM BASE.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS BASE.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. M1.\nPROCEDURE DIVISION.\nMAIN.\n    EXIT METHOD.\nEND METHOD M1.\nEND OBJECT.\nEND CLASS XMC.\n"
+}

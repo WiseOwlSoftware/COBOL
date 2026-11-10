@@ -1,0 +1,13 @@
+{
+ "id": "method-property-selector-2002",
+ "status": "pending",
+ "description": "The METHOD-ID GET/SET PROPERTY selector (ISO 11.7; the SR6/SR7 accessor shapes are COBOL0842) - introduced 2002 (OO). PENDING as a matrix PROBE only (the construct is LIVE, DEVLOG 606): transitively grammar-gated inside classDefinition, whose own gate fires first below 2002 - no independent below-edition signature to probe. Explicit accessors join the roster under the pinned __GET_/__SET_ names (11.7.4 GR1a), identical to clause-synthesized ones.",
+ "display": "the METHOD-ID GET/SET PROPERTY selector",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.7 (the §2023:11.7.3 SR6/SR7 accessor shapes); §2023:11.7.4 GR1a (the pinned accessor names)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 OO (roadmap Phase 3; DEVLOG 606)",
+ "source": "IDENTIFICATION DIVISION.\nCLASS-ID. MPSQ1.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. GET PROPERTY BAL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LK-R PIC 9(4).\nPROCEDURE DIVISION RETURNING LK-R.\nEND METHOD.\nEND OBJECT.\nEND CLASS MPSQ1.\n"
+}

@@ -64,6 +64,7 @@ REPO = SUITE.parent
 sys.path.insert(0, str(HARNESS))
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
 
+import construct_store  # noqa: E402  (scripts/spec: the construct catalogue, one file per construct, kb/Work PB5110)
 import cobol_source as cobol  # noqa: E402  (this directory's: the program-text facts the refusals need)
 import config  # noqa: E402  (this directory's: the harness's adapter, profile and baseline formats)
 import generated_output  # noqa: E402  (the one way a generator clears the directory it writes: never wholesale)
@@ -72,7 +73,6 @@ import inventory_view  # noqa: E402  (the one view of the inventory, kb/Work PB4
 sys.path.append(str(Path(__file__).resolve().parents[2] / "scripts"))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-CONSTRUCTS_PATH = REPO / "tests" / "version-matrix" / "constructs.json"
 RESERVED_WORDS_PATH = REPO / "tests" / "version-matrix" / "reserved-words.json"
 SPEC_PATH = REPO / "specs" / "ISO_COBOL_2023.md"
 IMPLEMENTOR_DEFINED_PATH = SUITE / "implementor-defined.json"
@@ -825,14 +825,14 @@ def check_cases(reader: Reader) -> None:
         windows = {}
         for c in case.constructs:
             if c not in inputs.constructs:
-                reader.refuse(rel, 1, f"constructs names {c!r}, which tests/version-matrix/constructs.json does not "
+                reader.refuse(rel, 1, f"constructs names {c!r}, which tests/version-matrix/constructs/ does not "
                                       f"have")
             else:
                 windows[c] = inputs.window(c)
         for e in case.accept:
             for c, window in windows.items():
                 if e not in window:
-                    reader.refuse(rel, 1, f"accepted at {e}, where the construct {c} does not exist (constructs.json: "
+                    reader.refuse(rel, 1, f"accepted at {e}, where the construct {c} does not exist (tests/version-matrix/constructs/: "
                                           f"{', '.join(window) or 'no edition'})")
         _check_band_against_constructs(reader, case, known, windows)
         if case.flag is not None:
@@ -1228,7 +1228,7 @@ def repository_inputs() -> tuple[Inputs, list[Problem]]:
     schema = inventory_schema.load_schema()
     rows = {r["rule-id"]: r for r in inventory_view.inventory()}
     constructs = {c["id"]: (int(c["introducedIn"]), int(c["removedIn"]) if c.get("removedIn") else None)
-                  for c in json.loads(CONSTRUCTS_PATH.read_text(encoding="utf-8"))["constructs"]}
+                  for c in construct_store.read_rows(REPO)}
     a1, problems = load_implementor_defined(IMPLEMENTOR_DEFINED_PATH, rows)
     diagnostics, bad_diagnostics = load_sidecars(DIAGNOSTICS_DIR)
     options, bad_options = load_sidecars(OPTIONS_DIR)
@@ -1592,7 +1592,7 @@ def self_test() -> int:
                             "source-format: fixed"], _PROGRAM), "accepted at 2002, where the construct c-gone-2002"),
         "unknown construct": ("cases/1.1.1-Rule/what.cob",
                               _fixed(["id: what", "rules: [GR-1.1.1-1]", "accept: [85]", "constructs: [nope]",
-                                      "source-format: fixed"], _PROGRAM), "constructs.json does not have"),
+                                      "source-format: fixed"], _PROGRAM), "constructs/ does not have"),
         "no control": ("cases/1.1.1-Rule/no-control.cob",
                        _fixed(["id: no-control", "rules: [SR-1.1.1-1]", "flag: {kind: syntax, at: [85]}",
                                "source-format: fixed"], _PROGRAM[:9] + ["<<         MOVE 1 TO W-A"] + _PROGRAM[9:]),

@@ -1,0 +1,29 @@
+{
+ "id": "propagate-directive-2002",
+ "description": "The >>PROPAGATE { ON | OFF } compiler directive (ISO §2023:7.3.21) - automatic propagation of an unhandled exception condition to the activating runtime element. Recognized and operand-validated by PropagateDirectiveProcessor (the runtime propagation effect is the deferred PHASE-13 EC work); the introduction gate rejects the directive word below 2002 through the ONE ConstructRegistry funnel - it emitted a bespoke COBOL0883 until kb/Work PB725, which left COBOL0883 owning only the malformed-operand half. The §2023:7.3 compiler-directive facility is a COBOL-2002 introduction: COBOL-85 has no compiler directives at all, so a '>>' line cannot occur in a conforming COBOL-85 source. The edition edge below 2023 is DERIVED, not quoted (VCR Table 7's discipline, rows 7.19/7.20 - the repo holds no 2002 or 2014 text, ratified decision #1): the derivation is (a) the M2 post-85 feature catalog in docs/ISO2023_CONFORMANCE_PLAN.md, which places '*>' inline comments, >>SOURCE FORMAT, conditional compilation and 'recognize-and-ignore of the other standard >> directives' in COBOL-2002, (b) the sibling row leap-second-directive-2002, already landed on the same derivation (kb/Work PB65), and (c) Annex E, which itemizes the 2014->2023 delta and does NOT list this directive among the additions, so it predates 2023. Overturnable in one line if the 2002/2014 text is ever acquired.",
+ "display": ">>PROPAGATE directive",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:7.3.21; the §2023:7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
+ "directiveWords": [
+  "PROPAGATE"
+ ],
+ "directivePlacement": {
+  "rule": "outsideCompilationUnits",
+  "citation": "§2023:7.3.21.3 SR1",
+  "text": "A PROPAGATE directive shall not be specified within a compilation unit"
+ },
+ "directiveOperand": {
+  "form": "words",
+  "choice": [
+   "ON",
+   "OFF"
+  ],
+  "choiceOmissible": true,
+  "citation": "ISO §2023:7.3.21.2 general format: PROPAGATE and OFF are underlined, ON is not, so per §2023:5.2.3 the ON alternative may be selected with the word omitted; §2023:7.3.21.4 GR4's OFF default is about omitting the DIRECTIVE, not about which alternative the format implies."
+ },
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "compiler directives (§2023:7.3) - 2002 introduction",
+ "source": "       >>PROPAGATE ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725PR.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n"
+}

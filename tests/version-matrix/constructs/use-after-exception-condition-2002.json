@@ -1,0 +1,12 @@
+{
+ "id": "use-after-exception-condition-2002",
+ "description": "USE AFTER EXCEPTION CONDITION (Format 3) - a 2002 introduction (the EC model). Folded from the inline ProcedureTableBuilder gate (Exec Step E).",
+ "display": "USE AFTER EXCEPTION CONDITION",
+ "diagnosticCode": "COBOL0877",
+ "citation": "ISO §2023:14.9.49.2 Format 3 (the exception-condition declarative; the EC model is 2002+); §2023:14.9.49.4 GR13",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0877",
+ "vcr": "2002 introduction (the EC model)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWUEC.\nPROCEDURE DIVISION.\nDECLARATIVES.\nD-SEC SECTION.\n    USE AFTER EXCEPTION CONDITION EC-USER-ROW.\nD-P.\n    CONTINUE.\nEND DECLARATIVES.\nM-SEC SECTION.\nMAIN.\n    STOP RUN.\n"
+}

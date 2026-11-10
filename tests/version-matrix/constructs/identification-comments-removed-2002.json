@@ -1,0 +1,12 @@
+{
+ "id": "identification-comments-removed-2002",
+ "description": "The five identification comment paragraphs (AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY) — obsolete '85 elements deleted by ISO 2002; ONE row, the AUTHOR witness (the gate names each paragraph per site).",
+ "display": "an identification comment paragraph (AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY)",
+ "diagnosticCode": "COBOL0902",
+ "citation": "the five obsolete '85 comment paragraphs deleted by ISO 2002 (§1985:VI.3.2.1.2 SR1, §1985:VI.3.4.2, REMOVED); one row, paragraph named per site; VCR Table 7",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AC.\nAUTHOR. CCVS-STYLE COMMENT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "move-all-digit-integer-obsolete-2023",
+ "description": "MOVE of a digit-only ALL literal (or a digit symbolic-character) to an INTEGER numeric item - the sole surviving alphanumeric-figurative-to-numeric MOVE (14.9.25.3 SR5), valid at EVERY edition (the BoundAllLiteral runtime-loud latent bug fixed by AllDigitFill compile-time folding, 8.3.3.6.4 GR2 + 14.9.25.4 GR6d3b), obsolete-flagged 0903 at 2023 (SR5 NOTE; Annex F.2 item 2). Gate: StatementBinder.MoveFigurative.cs (W2 track A, DEVLOG 593). ASKED BY EVERY ASKER OF THE MOVE RULES (kb/Work PB3755), through the one body FigurativeAssociation.GateSr5: the written MOVE and every implicit FROM/INTO move (VersionConformancePass.GateMove), INITIALIZE REPLACING's hypothetical MOVE (VersionConformancePass.GateInitialize, 14.9.20.3 SR4) and a figurative argument BY CONTENT into a numeric-edited formal parameter of a CALL, an INVOKE or a user-defined function (ParameterConformance.GateFigurativeEdition; 14.8.2.3.3 rule 2 d: the formal is not numeric, so the MOVE rules apply, not rule 2 a's COMPUTE).",
+ "display": "MOVE of a digit-only ALL literal (or a digit symbolic-character) to an integer numeric item",
+ "diagnosticCode": "COBOL0903",
+ "citation": "§2023:14.9.25.3 SR5 + its NOTE; Annex F.2 item 2; VCR rows 92/128 — the sole surviving figurative→numeric MOVE, obsolete-flagged at 2023",
+ "introducedIn": 85,
+ "removedIn": null,
+ "obsoleteIn": 2023,
+ "expectDiagnostic": "COBOL0903",
+ "vcr": "VCR rows 92/128 (F.2 item 2; 14.9.25.3 SR5 + NOTE)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVALLD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-INT PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE ALL \"5\" TO W-INT.\n    DISPLAY W-INT.\n    STOP RUN.\n"
+}

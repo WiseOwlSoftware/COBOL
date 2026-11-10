@@ -1,0 +1,12 @@
+{
+ "id": "unstring-sender-reference-modified-2002",
+ "description": "A reference-modified UNSTRING sending operand — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 139: \"UNSTRING statement. The sending operand may be reference modified.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, VersionConformancePass.ParseArm.VisitUnstringStatement (kb/Work PB4305; VCR row 7.47).",
+ "display": "a reference-modified UNSTRING sending operand",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§1985:VI.6.27.3 SR7 (\"Identifier-1 must not be reference modified\", deleted); ISO §2023:14.9.48.3; ISO/IEC 1989:2002 Annex F.2 item 139",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 139)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMUSR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(10) VALUE \"AB,CD,EF  \".\n01 A PIC X(2).\n01 B PIC X(2).\nPROCEDURE DIVISION.\nMAIN.\n    UNSTRING S (1:5) DELIMITED BY \",\" INTO A B.\n    STOP RUN.\n"
+}

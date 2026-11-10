@@ -1,0 +1,12 @@
+{
+ "id": "delete-file-2023",
+ "description": "DELETE FILE (physical file deletion), ISO 2023 §2023:14.9.10 Format 2",
+ "display": "DELETE FILE",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO 2023 §2023:14.9.10 Format 2; Annex E.3.3 item 15; §2023:14.9.10.4 GR14",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "E.2 new-feature row (DELETE FILE)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. DF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    DELETE FILE F.\n    STOP RUN.\n"
+}

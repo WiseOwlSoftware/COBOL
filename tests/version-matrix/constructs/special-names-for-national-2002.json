@@ -1,0 +1,12 @@
+{
+ "id": "special-names-for-national-2002",
+ "description": "The FOR ALPHANUMERIC / FOR NATIONAL phrase on the SPECIAL-NAMES ALPHABET, CLASS, and SYMBOLIC CHARACTERS clauses, ISO 12.3.7 - introduced 2002 (national repertoire). Parse-arm gated at the three sites (VisitAlphabetClause/VisitClassDefinitionClause/VisitSymbolicCharactersClause).",
+ "display": "the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.7.2 (the FOR ALPHANUMERIC and FOR NATIONAL phrases of the general format); §2023:12.3.7.3 SR13",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 national surface; W1.5 parse-layer mapping (DEVLOG 594)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15L.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET AB1 FOR NATIONAL IS NATIVE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "constant-entry-2002",
+ "status": "active",
+ "description": "Constant entry (01 name CONSTANT [IS GLOBAL] AS {literal | arith-expr | LENGTH OF} | FROM cv, §2023:13.10) — mandatory 2002-era core (roadmap D5); PROVISIONAL pre-2023 edge (zero Annex E hits ⇒ predates 2023). ACTIVE as of P10 Step 15: a COMPILE-TIME substitution (§2023:13.10.4 GR1/GR3 — references substitute the literal; no storage) bound into ConstantEntryBinder.cs; the §2023:13.10 SRs are COBOL1547; the introduction gate is the VersionConformancePass parse arm (VisitConstantEntryBody).",
+ "display": "constant entry (01 … CONSTANT AS)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.10",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "ISO-validation D5 (§2023:13.10 constant entry); provisional edge per decision 1",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 K CONSTANT AS 42.\n01 W PIC 99.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE K TO W.\n    DISPLAY W.\n    STOP RUN.\n"
+}

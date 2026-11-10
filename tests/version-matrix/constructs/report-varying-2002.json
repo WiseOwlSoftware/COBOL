@@ -1,0 +1,13 @@
+{
+ "id": "report-varying-2002",
+ "status": "active",
+ "description": "The report-group VARYING clause (§2023:13.18.64) — an independent temporary integer counter per repetition of a repeating report entry: first occurrence ← arithmetic-expression-1 (default 1, GR3a), subsequent occurrences += arithmetic-expression-2 (default 1, GR3b); each value persists through its occurrence (GR4 — usable as a SOURCE item). LIVE (P10 Step 13) on the multiple-COLUMN repetition vehicle (SR1); the OCCURS / multiple-LINE vehicles stage 0899 with the report-group OCCURS family. 2002 introduction — same derivation chain as report-present-when-2002 (VCR row 101's 2002→2014 TERMINATE-with-VARYING flagging delta presupposes the 2002 clause).",
+ "display": "VARYING (report group description)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.64 / §2023:13.15",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 RW addition (VCR row 101 presupposes it in 2002; Annex E 2014→2023 has no introduction hit)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRVY1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrvy1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nREPORT SECTION.\nRD R-1.\n01 D-1 TYPE DE.\n   03 LINE PLUS 1.\n      05 COLUMNS ARE 1 5 9 PIC Z9 SOURCE IS R-V VARYING R-V FROM 1 BY 2.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
+}

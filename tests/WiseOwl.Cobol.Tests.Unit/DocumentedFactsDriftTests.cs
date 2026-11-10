@@ -105,8 +105,7 @@ public sealed class DocumentedFactsDriftTests
 
     private static IEnumerable<string> ConstructCodes()
     {
-        using var doc = JsonDocument.Parse(File.ReadAllText(TestRepo.VersionMatrix("constructs.json")));
-        return [.. doc.RootElement.GetProperty("constructs").EnumerateArray().Select(c => c.GetProperty("diagnosticCode").GetString()!)];
+        return [.. TestRepo.ConstructRows().Select(c => c.GetProperty("diagnosticCode").GetString()!)];
     }
 
     private static string FactsPath => TestRepo.At("tests", "doc-facts", "compiler-facts.json");

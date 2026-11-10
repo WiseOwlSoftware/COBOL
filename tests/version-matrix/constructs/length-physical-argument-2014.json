@@ -1,0 +1,12 @@
+{
+ "id": "length-physical-argument-2014",
+ "description": "The PHYSICAL keyword of FUNCTION LENGTH / BYTE-LENGTH (argument-1 PHYSICAL), ISO 15.50.2 / 15.14.2 - introduced 2014 (kb/Work PB4308) with the variable-length group (15.50.4 r8 / 15.14.4 r7): the printed 2002 format is `( argument-1 )`, PHYSICAL is a reserved word only from 2014 (reserved-words.json r85 false / r2002 false / r2014 true), so below 2014 it is a user-defined word and the phrase is no keyword; the 2023 Annex E lists no change to it. The functions themselves are 1985 (LENGTH) and 2002 (BYTE-LENGTH). One row covers both functions, gated in the binder (IntrinsicBinder.BindLengthFamily) like the other function-argument introductions.",
+ "display": "the PHYSICAL phrase of FUNCTION LENGTH / BYTE-LENGTH",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:15.50.2 / §2023:15.14.2 (argument-1 [ PHYSICAL ]); §2023:15.50.4 r8 / §2023:15.14.4 r7",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2014 introduction (PHYSICAL reserved from 2014; absent from the printed 2002 format; kb/Work PB4308)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB4308LP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(4).\n01 N PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N = FUNCTION LENGTH(S PHYSICAL).\n    STOP RUN.\n"
+}

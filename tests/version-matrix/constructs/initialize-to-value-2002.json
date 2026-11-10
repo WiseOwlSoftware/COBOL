@@ -1,0 +1,12 @@
+{
+ "id": "initialize-to-value-2002",
+ "description": "The INITIALIZE [category] TO VALUE phrase - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
+ "display": "INITIALIZE TO VALUE",
+ "diagnosticCode": "COBOL0831",
+ "citation": "ISO §2023:14.9.20.2 (the VALUE phrase is 2002+); §2023:14.9.20.4 GR5",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0831",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWIVAL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE A ALL TO VALUE.\n    STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "inspect-converting-to-all-2002",
+ "description": "An INSPECT CONVERTING whose TO operand is a figurative constant beginning with ALL — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 75: \"INSPECT CONVERTING statement. A figurative constant beginning with ALL may be specified as the TO literal in the INSPECT CONVERTING statement.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, VersionConformancePass.ParseArm.VisitInspectConvertingPhrase (kb/Work PB4305; VCR row 7.47).",
+ "display": "an INSPECT CONVERTING whose TO operand is a figurative constant beginning with ALL",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.22.3 SR3; ISO/IEC 1989:2002 Annex F.2 item 75",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 75)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMICA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(5) VALUE \"ABCAB\".\nPROCEDURE DIVISION.\nMAIN.\n    INSPECT S CONVERTING \"AB\" TO ALL \"Z\"\n    DISPLAY S.\n    STOP RUN.\n"
+}

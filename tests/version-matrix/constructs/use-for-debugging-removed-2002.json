@@ -1,0 +1,12 @@
+{
+ "id": "use-for-debugging-removed-2002",
+ "description": "USE FOR DEBUGGING declarative (the '85 debug module) - deleted by ISO 2002 with the whole facility (DEBUG-* registers included), absent from ISO 2023. MODELED at --std 85 (the ON procedure-name / ALL PROCEDURES trigger leg + the DEBUG-ITEM register; object-time switch RunUnit.DebugMode default ON): without WITH DEBUGGING MODE the debugging section is comment-treated (the '85 rule); with it, the declarative fires before each subject procedure. Rejected COBOL0902 at >=2002. Companion of debugging-mode-removed-2002.",
+ "display": "the USE FOR DEBUGGING declarative",
+ "diagnosticCode": "COBOL0902",
+ "citation": "the '85 debug module's declarative, deleted by ISO 2002 with the whole facility incl. DEBUG-* registers (§2023:8.9 absence); modeled at 85 (comment-treated without WITH DEBUGGING MODE, its ON procedure-name / ALL PROCEDURES triggers fire with it); companion of debugging-mode-removed-2002; VCR Table 7 row 7.17",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7 row 7.17; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMUD1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSOURCE-COMPUTER. VMCOMP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 3.\nPROCEDURE DIVISION.\nDECLARATIVES.\nDBG-SEC SECTION.\n    USE FOR DEBUGGING ON ALL PROCEDURES.\nDBG-PARA.\n    DISPLAY \"NEVER-SEEN\".\nEND DECLARATIVES.\nMAIN SECTION.\nM1.\n    DISPLAY W.\n    STOP RUN.\n"
+}

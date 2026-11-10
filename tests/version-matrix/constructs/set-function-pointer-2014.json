@@ -1,0 +1,12 @@
+{
+ "id": "set-function-pointer-2014",
+ "status": "active",
+ "description": "SET { identifier-12 } … TO identifier-13 (ISO §2023:14.9.39.2 Format 8, function-pointer-assignment), including the §2023:8.4.3.12 ADDRESS OF FUNCTION function-address-identifier sender — dated 2014 by its only possible operand, the 2014 USAGE FUNCTION-POINTER item (usage-function-pointer-2014). The plain form reuses the setToStatement shape every SET ... TO format shares (kb/Work PB4231) and re-routes on the receiver's category in SetBinder (the Format-9 pattern); the ADDRESS OF FUNCTION sender is its own grammar rule (setFunctionAddressStatement). SR20's same-signature screen is COBOL1959 and §2023:8.4.3.12.3 SR1/SR2 is COBOL1960. LIVE as of kb/Work PB452 + PB817.",
+ "display": "SET TO function-pointer (Format 8)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39.2 Format 8 / §2023:14.9.39.3 SR20 / §2023:14.9.39.4 GR14 / §2023:8.4.3.12",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "ISO §2023:14.9.39.2 Format 8 (its operand is the 2014 function-pointer category, §2023:8.5.2.7)",
+ "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. KSFPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-R PIC 9(4).\nPROCEDURE DIVISION RETURNING L-R.\nEND FUNCTION KSFPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. KSETFP.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION KSFPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FP1 USAGE FUNCTION-POINTER TO KSFPROTO.\n01 FP2 USAGE FUNCTION-POINTER TO KSFPROTO.\nPROCEDURE DIVISION.\nMAIN.\n    SET FP1 TO ADDRESS OF FUNCTION KSFPROTO\n    SET FP2 TO FP1\n    STOP RUN.\nEND PROGRAM KSETFP.\n"
+}

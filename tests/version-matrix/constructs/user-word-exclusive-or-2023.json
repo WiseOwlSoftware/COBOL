@@ -1,0 +1,12 @@
+{
+ "id": "user-word-exclusive-or-2023",
+ "description": "The word EXCLUSIVE-OR as a user-defined word - 8.9 interval encoding: user-definable at 85/2002/2014, reserved by 2023 (Annex E.2 item 25 = VCR row 32). cobolWord admits the token at the W3 regating; the funnel rejects 0901 at 2023.",
+ "display": "the word EXCLUSIVE-OR as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32)",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "VCR row 32 (Annex E.2 item 25); W3 regating (DEVLOG 596)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWXOR2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 EXCLUSIVE-OR PIC 9 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY EXCLUSIVE-OR.\n    STOP RUN.\n"
+}

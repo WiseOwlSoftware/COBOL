@@ -1,0 +1,25 @@
+{
+ "id": "flag-14-directive-2023",
+ "directiveWords": [
+  "FLAG-14"
+ ],
+ "directivePlacement": {
+  "rule": "betweenClauses",
+  "citation": "§2023:7.3.15.3 SR1",
+  "text": "The FLAG-14 directive may be specified only between clauses in divisions other than the procedure division and only between statements in the procedure division"
+ },
+ "directiveOperand": {
+  "form": "stage",
+  "owner": "FlagDirectiveProcessor",
+  "citation": "ISO §2023:7.3.15.2 general format: a list of syntax-option words with ON/OFF (§2023:7.3.15.3 GR4 names the options) — a structured operand, diagnosed by its own stage as COBOL1622."
+ },
+ "description": "The >>FLAG-14 { ALL | option... } { ON | OFF } migration-flagging directive (ISO §2023:7.3.15) — a COBOL-2023 addition: Annex E.2 item 5 lists FLAG-14 among the compiler-directive words new to 2023. It directs the implementor's warning mechanism to flag 2014-to-2023 incompatibilities (GR1). Recognized and collected by FlagDirectiveProcessor and folded per option per source line by FlagState (FlagConformancePass emits the per-option COBOL1621 warning); the introduction gate rejects the directive word below 2023.",
+ "display": ">>FLAG-14 directive",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:7.3.15; Annex E.2 item 5 (compiler-directive words added in 2023)",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 64 (FLAG-14 directive — 2023 introduction)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLG14.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n       >>FLAG-14 READ-PREVIOUS ON\n           DISPLAY \"Y\".\n           STOP RUN.\n"
+}

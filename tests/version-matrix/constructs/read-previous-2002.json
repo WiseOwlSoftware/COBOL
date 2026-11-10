@@ -1,0 +1,12 @@
+{
+ "id": "read-previous-2002",
+ "description": "READ ... PREVIOUS (keyed sequential read in reverse), ISO §2023:14.9.30 Format 1 — introduced 2002",
+ "display": "READ PREVIOUS",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.30 Format 1; §2023:14.9.30.4 GR20",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard); rows 29/108 gate the after-OPEN behavior",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RP.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrp\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    READ F PREVIOUS AT END DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
+}

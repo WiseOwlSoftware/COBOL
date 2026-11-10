@@ -1,0 +1,14 @@
+{
+ "id": "user-word-character-removed-2023",
+ "status": "active",
+ "description": "A COBOL word whose characters the COBOL 2002/2014 Annex B permits where they stand and the COBOL 2023 Annex B does not — Annex E.2 item 4: U+037A GREEK YPOGEGRAMMENI was deleted, and U+30FB KATAKANA MIDDLE DOT may no longer be a word's first or last character (B.3 item 3, medial only). Modeled as removedIn=2023: compiles at 2002/2014, rejected at 2023 (COBOL0902; --permissive downgrades to a warning and keeps the 2014 rule). Every other Annex B violation is COBOL2773 at every edition. kb/Work PB1402.",
+ "display": "a character Annex B permitted in this position before COBOL-2023",
+ "diagnosticCode": "COBOL0902",
+ "citation": "ISO §2023:8.3.2.1; Annex B.3 item 3; Annex E.2 item 4 (037A deleted, 30FB made medial)",
+ "introducedIn": 2002,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0902",
+ "expectDiagnosticBelow": "COBOL0900",
+ "vcr": "VCR row 10 (E.2 item 4)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWKD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 ABC・ PIC X VALUE \"M\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY ABC・.\n    STOP RUN.\n"
+}

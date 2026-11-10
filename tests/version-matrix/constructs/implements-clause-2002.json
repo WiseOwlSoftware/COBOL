@@ -1,0 +1,13 @@
+{
+ "id": "implements-clause-2002",
+ "status": "pending",
+ "description": "The IMPLEMENTS clause in a FACTORY/OBJECT paragraph (ISO 11.8) - introduced 2002 (OO). PENDING as a matrix PROBE only (the construct is LIVE, DEVLOG 606): it is TRANSITIVELY grammar-gated inside classDefinition, whose own gate fires first below 2002, so no independent below-edition signature exists to probe (the same residue argument as EditionGateHints' remarks). Conformance is the binder-authoritative 9.3.8.2.3 pass over the 11.8.4 GR2 closure (COBOL0841); the word IMPLEMENTS is 8.10 context-sensitive - a user word at every edition.",
+ "display": "the IMPLEMENTS clause (FACTORY/OBJECT paragraph)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.8; §2023:11.8.4 GR2; the word IMPLEMENTS is context-sensitive (§2023:8.10)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 OO (roadmap Phase 3; DEVLOG 606)",
+ "source": "IDENTIFICATION DIVISION.\nCLASS-ID. IMPQ1.\nIDENTIFICATION DIVISION.\nOBJECT. IMPLEMENTS IFQX.\nEND OBJECT.\nEND CLASS IMPQ1.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "usage-object-reference-2002",
+ "status": "active",
+ "description": "USAGE OBJECT REFERENCE (ISO 13.18.60, OO). LIVE since the Phase-3 spine (part 1 universal, part 2 typed via the pass-1 class symbol table, DEVLOG 600/601): universal → object?, typed → the class’s emitted C# type; PICTURE-conflict 0812; unknown declared class 0813.",
+ "display": "USAGE OBJECT REFERENCE",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.3 SR15; §2023:13.18.60.4 / §2023:8.5.2.14 (OO)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 OO (roadmap Phase 3); skeleton (W2)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UOBJ.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-O USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

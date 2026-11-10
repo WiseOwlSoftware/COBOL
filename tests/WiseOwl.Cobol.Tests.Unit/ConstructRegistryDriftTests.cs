@@ -26,9 +26,7 @@ public sealed class ConstructRegistryDriftTests
 
     private static List<JsonRow> LoadRows()
     {
-        string path = TestRepo.VersionMatrix("constructs.json");
-        using var doc = JsonDocument.Parse(File.ReadAllText(path));
-        return [.. doc.RootElement.GetProperty("constructs").EnumerateArray().Select(e => new JsonRow(
+        return [.. TestRepo.ConstructRows().Select(e => new JsonRow(
             e.GetProperty("id").GetString()!,
             e.GetProperty("display").GetString()!,
             e.GetProperty("introducedIn").GetInt32(),

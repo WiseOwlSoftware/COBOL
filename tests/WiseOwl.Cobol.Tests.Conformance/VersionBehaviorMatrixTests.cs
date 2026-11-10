@@ -28,10 +28,8 @@ public sealed class VersionBehaviorMatrixTests
 
     private static IReadOnlyList<VariantRow> Load()
     {
-        string path = TestRepo.VersionMatrix("constructs.json");
-        using var doc = JsonDocument.Parse(File.ReadAllText(path));
         var list = new List<VariantRow>();
-        foreach (var e in doc.RootElement.GetProperty("constructs").EnumerateArray())
+        foreach (var e in TestRepo.ConstructRows())
         {
             if (!e.TryGetProperty("variant", out var v)) continue;
             var outputs = new Dictionary<string, string>();

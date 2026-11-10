@@ -1,0 +1,12 @@
+{
+ "id": "stop-literal-removed-2002",
+ "description": "STOP literal (X3.23-1985 Format 2: communicate the literal to the operator, then CONTINUE — implemented via BoundStopLiteral to stderr, fixing the DEVLOG-578 silent bind-as-STOP-RUN); deleted by ISO 2002 (§2023:14.9.42 has no literal form).",
+ "display": "the STOP literal statement",
+ "diagnosticCode": "COBOL0902",
+ "citation": "X3.23-1985 Format 2 (§1985:VI.6.24.4 GR4, REMOVED), deleted by ISO 2002 (§2023:14.9.42 has no literal form)",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7; P2.8 W2 latent-bug fix folded into P2.6",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SPL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    STOP \"OPERATOR MESSAGE\".\n    DISPLAY W.\n    STOP RUN.\n"
+}

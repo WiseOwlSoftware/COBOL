@@ -1,0 +1,13 @@
+{
+ "id": "next-sentence-archaic-2023",
+ "description": "NEXT SENTENCE — ARCHAIC in ISO 2023 (Annex F.1 / §2023:4.2.12; VCR row 90): 0903 WARNING at ≥2023, remains conforming.",
+ "display": "the NEXT SENTENCE phrase",
+ "diagnosticCode": "COBOL0903",
+ "citation": "ARCHAIC in ISO 2023 (Annex F.1; §2023:4.2.12; VCR row 90) — warning only",
+ "introducedIn": 85,
+ "removedIn": null,
+ "obsoleteIn": 2023,
+ "expectDiagnostic": "COBOL0903",
+ "vcr": "VCR row 90 (Annex F.1 archaic)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    IF W = 1 THEN NEXT SENTENCE ELSE DISPLAY \"NO\".\n    DISPLAY \"OK\".\n    STOP RUN.\n"
+}

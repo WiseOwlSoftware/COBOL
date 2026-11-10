@@ -1,0 +1,13 @@
+{
+ "id": "call-as-phrase-2002",
+ "status": "active",
+ "description": "CALL Format 2 (program-prototype) - the AS phrase, ISO §2023:14.9.4.2 Format 2 (AS NESTED / AS program-prototype-name-1), introduced 2002 with program prototypes and the NESTED reserved word (§2023:8.9: NESTED reserved from 2002). The FMT-14.9.4.2 row's residue 'the AS-phrase edition gate' re-measured by kb/Work PB239: an 85 compile ACCEPTED `CALL \"X\" AS NESTED` with no diagnostic. Recognition gate on callAsPhrase. The bare program-prototype-name spelling of Format 2 is the program-prototype-name-2002 row: it needs no REPOSITORY paragraph when the name is the element's own or a containing program definition's (§2023:8.4.6.8), so the REPOSITORY entry's gate cannot stand for it (kb/Work PB4509).",
+ "display": "the CALL ... AS phrase (program-prototype format)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.4.2 Format 2 (the AS phrase); §2023:8.9 (NESTED reserved from 2002); 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only); §2023:14.9.4.4 GR7",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CASX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(6) VALUE \"ABCDEF\".\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"CASX2\" AS NESTED USING X.\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. CASX2.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L PIC X(6).\nPROCEDURE DIVISION USING L.\nP.\n    EXIT PROGRAM.\nEND PROGRAM CASX2.\nEND PROGRAM CASX1.\n"
+}
