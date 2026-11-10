@@ -101,6 +101,7 @@ import inert_lane  # noqa: E402  — THE classification of a change no test read
 import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
 from gate_slot import ExclusiveLock, GateSlots, Slot, gate_class_from_env  # noqa: E402
+import process_job  # noqa: E402  — THE one held process tree: an audit's or a test host's whole tree, stopped as one (kb/Work PB5098)
 from detached import kill_tree, pid_alive, spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536), THE one tree kill (PB4072), THE one liveness probe (PB4008)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
@@ -454,22 +455,24 @@ def _no_slot(**kwargs) -> dict:
 class _Live:
     """The audit processes of one `Host.audits()` call (kb/Work PB3061), so the first RED can stop the rest. `add` under
     the lock stops a process that starts after `stop_all` ran, so no audit slips through the gap between its spawn and
-    its registration; `stopped` holds the pids stopped, so their exits are reported STOPPED, never RED."""
+    its registration; `stopped` holds the pids stopped, so their exits are reported STOPPED, never RED. Each is a
+    ProcessJob (scripts/process_job.py, kb/Work PB5098), so a stop kills its WHOLE tree, an orphaned grandchild included,
+    which `taskkill /T` cannot reach."""
 
     def __init__(self) -> None:
         self.lock = threading.Lock()
         self.stopping = threading.Event()
-        self.procs: set[subprocess.Popen] = set()
+        self.procs: set[process_job.ProcessJob] = set()
         self.stopped: set[int] = set()
 
-    def add(self, p: subprocess.Popen) -> None:
+    def add(self, p: process_job.ProcessJob) -> None:
         with self.lock:
             self.procs.add(p)
-            if self.stopping.is_set() and p.poll() is None:
+            if self.stopping.is_set() and p.popen.poll() is None:
                 self.stopped.add(p.pid)
-                kill_tree(p.pid)   # its whole tree: each audit leads the process group start_new_session gave it
+                p.kill()   # its whole tree, orphans included (kb/Work PB5098)
 
-    def discard(self, p: subprocess.Popen) -> None:
+    def discard(self, p: process_job.ProcessJob) -> None:
         with self.lock:
             self.procs.discard(p)
 
@@ -477,10 +480,10 @@ class _Live:
         """Stop every registered process still running, and every one registered from now on; returns how many."""
         with self.lock:
             self.stopping.set()
-            running = [p for p in self.procs if p.poll() is None]
+            running = [p for p in self.procs if p.popen.poll() is None]
             for p in running:
                 self.stopped.add(p.pid)
-                kill_tree(p.pid)
+                p.kill()
             return len(running)
 
 
@@ -620,19 +623,22 @@ class Host:
         t = time.monotonic()
         if live is not None and live.stopping.is_set():
             return None, "", 0.0
-        p = subprocess.Popen([sys.executable, *cmd], cwd=self.repo, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                             text=True, encoding="utf-8", errors="replace", start_new_session=os.name != "nt",
-                             **spawn())
-        if live is not None:
-            live.add(p)
-        try:
-            out = p.communicate()[0]
-        finally:
-            if live is not None:
-                live.discard(p)
+        # ⛔ A FILE, NEVER A PIPE (kb/Work PB5098): a pipe an orphaned grandchild still holds blocks its reader forever
+        with tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace", newline="\n") as fh:
+            with process_job.ProcessJob.start([sys.executable, *cmd], cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT,
+                                              **spawn()) as p:
+                if live is not None:
+                    live.add(p)
+                try:
+                    rc = p.wait()
+                finally:
+                    if live is not None:
+                        live.discard(p)
+            fh.seek(0)
+            out = fh.read()
         if live is not None and p.pid in live.stopped:
-            return None, out or "", time.monotonic() - t
-        return p.returncode, out or "", time.monotonic() - t
+            return None, out, time.monotonic() - t
+        return rc, out, time.monotonic() - t
 
     def audit_commands(self, tooling: bool) -> tuple[tuple[str, list[str]], ...]:
         """The audits this gate runs: AUDITS, less the TOOLING_ONLY ones unless the change touches tooling (the first-red
@@ -726,18 +732,19 @@ class Host:
 
     def run_host(self, asm: str, run: Path, env: dict[str, str], spawn: Spawn) -> int:
         """One assembly's whole population: `dotnet test --no-build` with a trx logger, its whole output to `<asm>.log`.
-        The host is registered in `hosts_live` while it runs and leads its own process group, so `stop_hosts` ends its
-        whole tree (kb/Work PB4326); a host that starts after the stop is killed at once and exits non-zero."""
+        The host is registered in `hosts_live` while it runs as the root of a ProcessJob, so `stop_hosts` ends its
+        whole tree, orphans included (kb/Work PB4326, PB5098); a host that starts after the stop is killed at once and
+        exits non-zero."""
         cmd = ["dotnet", "test", str(self.repo / GATED_ASSEMBLIES[asm]), "--no-build", "--results-directory",
                str(run), "--logger", f"trx;LogFileName={asm}.trx"]
         with open(run / f"{asm}.log", "wb") as fh:
-            p = subprocess.Popen(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT,
-                                 start_new_session=os.name != "nt", **spawn(env=env))
-            self.hosts_live.add(p)
-            try:
-                return p.wait()
-            finally:
-                self.hosts_live.discard(p)
+            with process_job.ProcessJob.start(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT,
+                                              **spawn(env=env)) as p:
+                self.hosts_live.add(p)
+                try:
+                    return p.wait()
+                finally:
+                    self.hosts_live.discard(p)
 
 
 def host_env(first: Path | None, observations: Path, only: Path | None = None) -> dict[str, str]:
