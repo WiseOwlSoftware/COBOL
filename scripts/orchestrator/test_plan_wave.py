@@ -3694,6 +3694,15 @@ check("PB5100: the planner passes the derived value, never a rules key",
       "rules[" + chr(34) + "wave" + chr(34) + "][" + chr(34) + "concurrency" + chr(34) + "]"
       in pathlib.Path(pw.__file__).read_text(encoding="utf-8"), False)
 
+# PB5100 R1-1: the pool is read BEFORE the first reservation, so a malformed slot settings file raises while the plan
+# still changes no shared state (PB3114). Expected: in plan_main the pool read precedes alloc.allocate and the ledger render.
+_pm = pathlib.Path(pw.__file__).read_text(encoding="utf-8").split("def plan_main", 1)[1]
+check("PB5100: plan_main reads the gate pool before it reserves a wave number or codes",
+      0 < _pm.index("GateSlots.for_repo") < _pm.index("alloc.allocate("), True)
+check("PB5100: plan_main reads the gate pool before the recording render",
+      _pm.index("GateSlots.for_repo") < _pm.index("rc := render(gjson)") if "rc := render(gjson)" in _pm
+      else _pm.index("GateSlots.for_repo") < _pm.index("rc = render(gjson)"), True)
+
 for f in fails:
     print("FAIL:", f)
 print(f"plan_wave self-test: {len(checked) - len(fails)}/{len(checked)} checks OK")

@@ -1257,6 +1257,9 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
     # A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE (kb/Work PB3114): render and check on the PEEKED codes,
     # recording nothing; only then reserve the codes, render again with them and record. A RED check reserves no code
     # and holds no note in the ledger (a wave entry never expires: its notes waited for a hand `--release`).
+    # The gate pool is read HERE, before anything is reserved or recorded: a malformed slot settings file raises, and a
+    # raise after the reservations would strand the wave number, the codes and the held notes (kb/Work PB5100, R1-1).
+    workers, why_workers = wave_concurrency(gate_slot.GateSlots.for_repo(REPO).state())
     if rc := render(gjson, "--no-record"):
         print("make_dispatch_specs.py + check_practices.py: RED (no code reserved, nothing recorded in the dispatch "
               "ledger, no wf-args file; fix the cause and plan again)")
@@ -1277,7 +1280,6 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
     print(f"make_dispatch_specs.py + check_practices.py: {'GREEN' if rc == 0 else 'RED'}")
     if rc:
         return rc
-    workers, why_workers = wave_concurrency(gate_slot.GateSlots.for_repo(REPO).state())
     print(f"  concurrency {workers}: {why_workers}")
     args = {"scratch": str(scratch), "wave": wave, "stop_file": str(stop_file), "global_stop": str(coord.global_stop(a.coord)),
             "concurrency": workers,
