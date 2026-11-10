@@ -1,4 +1,4 @@
-## PERFORM VARYING ... AFTER runs the 1985 order at --std 85 (PB5101)
+## Entry 3433 — 2026-11-10 06:12 PST — PERFORM VARYING ... AFTER runs the 1985 order at --std 85 (PB5101)
 
 PB436 (landed earlier) pinned ONE order for the two operations of an AFTER step under TEST BEFORE, the 2023 order of
 GR13 e) 2 a-c (reset the inner variable, then augment the outer), at every edition, because the archive held no 1985
@@ -21,3 +21,4 @@ exist yet (PB5094). Docs: the CONFORMANCE.md section 3 determination now reads p
 row 7.53 records the difference.
 
 Review round 1 (R1-1): the 1985 edge is now a DialectBehaviors member, PerformVaryingInitInnerBeforeAugmentOuter (ChangedIn 2002, VCR row 7.53 carrying its behavior anchor), read by BindVarying through IsActive instead of an inline year test; the stale NC201A sentence in scripts/guard-verdict.sh (R1-2) is corrected.
+
