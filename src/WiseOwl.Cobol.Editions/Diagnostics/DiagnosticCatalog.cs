@@ -9315,6 +9315,17 @@ public static class DiagnosticCatalog
         + "decimal point, is not an unsigned integer.",
         "X3.23-1985 STOP statement syntax rules 1 and 3 (§1985:VI.6.24.3)");
 
+    /// <summary>COBOL6818 — an X3.23-1985 target-less GO TO (no procedure-name-1) that is not the whole of a single statement
+    /// paragraph (kb/Work PB5087). Emitted by PlacementRules.RefusedOutOfSequence (the BareGoToAlone row) where the statement
+    /// exists (COBOL-85; from 2002 it is COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor BareGoToNotAlone = new(
+        "COBOL6818", "bare-go-to-not-alone", EditionSeverity.Error,
+        "An X3.23-1985 GO TO statement without a procedure-name is written beside another statement or sentence of its "
+        + "paragraph. §1985:VI.6.15.3 SR3: \"A format 1 GO TO statement, without procedure-name-1, can only appear in a "
+        + "single statement paragraph.\" Such a GO TO takes its target from an ALTER statement, whose procedure-name-1 "
+        + "names a paragraph that is that one GO TO statement.",
+        "X3.23-1985 GO TO statement syntax rule 3 (§1985:VI.6.15.3)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
