@@ -52,11 +52,9 @@
   the lane retries it once the lock is free (kb/Work PB3527, PB3662); exit 15 (PREDECESSOR
   QUEUED: the branch merged a predecessor whose pull request is still open, so it carries that pull request's stamped
   DEVLOG entry beside its own, nothing queued, nothing red) is the same: the lane retries it once no open pull request
-  owns an entry the branch carries (kb/Work PB3145); exit 16 (DRIVER FILE QUEUED: an open pull request changes a
-  merge-driver file the branch changes too, and GitHub's merge queue merges without the drivers; nothing stamped or
-  queued, nothing red) is the same: the lane retries it once none does (kb/Work PB3642); exit 13 (another
-  `land` of the branch holds the worktree's land lock, kb/Work PB3310) is the same: nothing ran, the lane retries it
-  once the lock is free. A gate NOT RUN (it
+  owns an entry the branch carries (kb/Work PB3145); exit 13 (another `land` of the branch holds the worktree's land
+  lock, kb/Work PB3310) is the same: nothing ran, the lane retries it once the lock is free. A shared file never
+  holds a branch (owner, kb/Work PB5109): a merge group that conflicts bounces, and a finisher fixes it then. A gate NOT RUN (it
   measured nothing) goes by its cause's class in `gate.NOT_RUN_CAUSES` (kb/Work PB3526): the landing runs no gate (kb/Work
   PB4331), so the only one it reads is its own merge of main's (`merge-blocked`: exit 2, retried once; `merge-failed`:
   exit 5, a finisher's). A gate of the worktree that runs or is starting when the landing would write it is exit 12,

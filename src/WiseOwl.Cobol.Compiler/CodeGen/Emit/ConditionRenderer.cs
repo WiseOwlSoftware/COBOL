@@ -104,9 +104,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // never did, so `EVALUATE S9-ITEM WHEN "A" THRU "Z"` compared an OVERPUNCHED image here and a plain one
         // one lowering over — the two-arm shape, and reachable the moment the EC gate stopped demanding a
         // literal pair. A no-op for every non-signed-numeric operand, which is why it is unconditional there too.
-        string read = OperandText.AsString(n.Left, num, deSign: true);
-        var lo = new MembershipOperand(loFig ? FigSeed(n.Lo, subjectCat) : OperandText.AsString(n.Lo, num, deSign: true), loFig);
-        var hi = new MembershipOperand(hiFig ? FigSeed(n.Hi, subjectCat) : OperandText.AsString(n.Hi, num, deSign: true), hiFig);
+        // At --std 85 a group end keeps the numeric operand's image (DropsOperationalSign, kb/Work PB5106).
+        string read = OperandText.AsString(n.Left, num, DropsOperationalSign(n.Left, n.Lo) && DropsOperationalSign(n.Left, n.Hi));
+        var lo = new MembershipOperand(loFig ? FigSeed(n.Lo, subjectCat)
+            : OperandText.AsString(n.Lo, num, DropsOperationalSign(n.Left, n.Lo)), loFig);
+        var hi = new MembershipOperand(hiFig ? FigSeed(n.Hi, subjectCat)
+            : OperandText.AsString(n.Hi, num, DropsOperationalSign(n.Left, n.Hi)), hiFig);
         return RenderStringRange(read, lo, hi, n.CheckInvalid, collate);
     }
 
@@ -374,13 +377,28 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         if (cmp is CollatingClass.National)
             return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.NatCollateArg}) {r.Op} 0";
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
+        {
             // An ALPHANUMERIC comparison (§2023:8.8.4.2.7) under the alphanumeric program collating sequence. `cmp` is
             // necessarily Alphanumeric here — an IsString operand's category is never Numeric, so ForComparison's
             // both-numeric arm cannot be reached under this guard.
-            // A signed numeric compared against an alphanumeric operand drops its sign (ISO §2023:8.8.4.2.5 → §2023:14.9.25.4 GR6a).
-            return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.CollateArgFor(leftCat, rightCat)}) {r.Op} 0";
+            // A signed numeric compared against an alphanumeric operand drops its sign (ISO §2023:8.8.4.2.5 → §2023:14.9.25.4 GR6a),
+            // except where DropsOperationalSign says the pair is a 1985 numeric-with-group one (kb/Work PB5106).
+            bool deSign = DropsOperationalSign(r.Left, r.Right);
+            return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign)}, {OperandText.AsString(r.Right, num, deSign)}{ctx.CollateArgFor(leftCat, rightCat)}) {r.Op} 0";
+        }
         return RenderNumericRelational(r);
     }
+
+    /// <summary>⛔ WHETHER A CHARACTER COMPARISON OF THE PAIR (<paramref name="a"/>, <paramref name="b"/>) READS A SIGNED
+    /// NUMERIC OPERAND WITHOUT ITS OPERATIONAL SIGN — the ONE answer for every string-relation surface (the direct
+    /// relation and the EVALUATE range). True, §2023:8.8.4.2.5 → §2023:14.9.25.4 GR6a, except at --std 85 opposite a GROUP:
+    /// §1985:VI.6.3.1.1.2 GR2 moves the numeric operand "to a group item of the same size", and a move to a group is
+    /// "exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion of
+    /// data" (§1985:VI.6.19.4 GR3 item 5), so the operand's own character image, a SEPARATE sign character
+    /// included, is what is compared. From 2002 a group "shall be treated as an elementary alphanumeric data item"
+    /// (§2002:8.8.4.1.1), so the elementary rule applies (kb/Work PB5106).</summary>
+    private bool DropsOperationalSign(BoundOperand a, BoundOperand b) =>
+        !(ctx.Data.DialectLevel < 2002 && (RelationPair.GroupItemOf(a) is not null || RelationPair.GroupItemOf(b) is not null));
 
     /// <summary>The comparison of NUMERIC operands (ISO §2023:8.8.4.2.4 — "a comparison is made with respect to the
     /// algebraic value of the operands regardless of the manner in which their usage is described"), reached by
