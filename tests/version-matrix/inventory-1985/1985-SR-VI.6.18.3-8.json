@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-VI.6.18.3-8",
+ "rule-digest": "c4b346205744",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.22.3-7",
+   "GR-14.9.22.4-15"
+  ],
+  "bridge": true,
+  "reason": "§1985:VI.6.18.3 SR8 as amended by X3.23b-1993: 'When the CHARACTERS phrase is used, literal-3 or the size of the data item referenced by identifier-5 must be one character in length.' The amendment struck literal-2 and identifier-4 from the 1985 print ('literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5'), so only the replacing operand is limited. §2023:14.9.22.3 SR7 keeps the literal half as a syntax rule: 'When the CHARACTERS phrase is specified, literal-3 shall be one character in length.' The identifier half moved to §2023:14.9.22.4 GR15: 'the data item referenced by identifier-5 shall be one character in length. If it is not, the EC-RANGE-INSPECT-SIZE exception condition is set to exist and the results of the execution of the INSPECT statement are undefined.' A 1985 refusal of a longer identifier-5 became an exception condition with an undefined result.",
+  "source": "readjudicate-amended-1985/slice-10"
+ }
+}

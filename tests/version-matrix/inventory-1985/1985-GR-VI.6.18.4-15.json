@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-15",
+ "rule-digest": "4030107e1a09",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-17",
+   "GR-14.9.22.4-7"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993) only renumbered this rule (old GR13) and its reference ('general rule 6e' to 7e). §1985:VI.6.18.4 GR15 a) to d) recur in §2023:14.9.22.4 GR17 ('each character matched, in the sense of General rule 8e'). 2023 c) 'provided that the first such occurrence encountered' for 1985 'provided that the leftmost occurrence', and d) 'or, if BACKWARD is specified, the rightmost occurrence of literal-1', differ only under BACKWARD, syntax the 1985 general format refuses, not this rule. §2023:14.9.22.4 GR7 states the replacement too: 'each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2)'.",
+  "source": "readjudicate-amended-1985/slice-04"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XII.3.4-5",
+ "rule-digest": "7fb775a3d711",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.4.4-9"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993) changed the rule from 'must not contain a REPLACE statement' to §1985:XII.3.4 GR5 'must contain neither a COPY statement nor a REPLACE statement', so the COPY statement is no longer a 2023 addition. §2023:7.2.4.4 GR9 keeps both and adds three cases: 'shall not contain a COPY statement, a REPLACE statement, a SOURCE FORMAT directive, a comment, or a blank line'. The words that differ are 'a SOURCE FORMAT directive, a comment, or a blank line'. The comment and blank line cases reverse a 1985 result: §1985:XII.3.4 GR7 has 'Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged', where 2023 forbids them in the text REPLACE produces (it removes them in logical conversion, §2023:6.5 GR2 'If the line is a comment line or a blank line, that line is logically discarded').",
+  "source": "readjudicate-amended-1985/slice-08"
+ }
+}

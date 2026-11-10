@@ -1,0 +1,16 @@
+{
+ "rule-id": "1989-AR-A.2.2-4",
+ "rule-digest": "c04e081528dd",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "AR-15.3-6",
+   "AR-15.3-14",
+   "GR-8.4.2.3.4-1"
+  ],
+  "bridge": true,
+  "reason": "§1989:A.2.2 AR4, as amended in place by X3.23b-1993: out-of-range arguments - 'then the result of such a reference is undefined' (printed: 'the returned value for the function is undefined'), and an ALL subscript yielding no argument - 'otherwise the result of the reference to the function-identifier is undefined' (printed: 'otherwise the returned value is undefined'). The amendment changed what is undefined (the reference, not only the returned value); it changed no accepted program. §2023:15.3 AR14 keeps the ALL-subscript expansion word for word, including 'otherwise the result of the reference to the function-identifier is undefined', and §2023:8.4.2.3.4 GR1 restates it ('If ALL is specified, the subscript is all of the possible values of a subscript for the associated table'). But for out-of-range arguments 2023 replaces 'undefined' with 'the EC-ARGUMENT-FUNCTION exception condition is set to exist' and, when checking is not enabled, 'the implementor defines the result of the function reference': undefined made an exception condition and implementor-defined. 2023 also adds a case: 'If the subscript ALL is specified for a dynamic-capacity table, the range of values of the subscript is from 1 to the current capacity of the table'. The integer argument type is unchanged in substance: §2023:15.3 AR6 'An arithmetic expression that will always result in an integer value or an integer data item shall be specified' against 1989 'An arithmetic expression which will always result in an integer value must be specified' (an integer data item is such an expression).",
+  "source": "readjudicate-amended-1985/slice-12"
+ }
+}

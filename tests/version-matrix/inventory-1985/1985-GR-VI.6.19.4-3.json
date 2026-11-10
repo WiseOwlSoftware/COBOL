@@ -1,0 +1,20 @@
+{
+ "rule-id": "1985-GR-VI.6.19.4-3",
+ "rule-digest": "ca3a6a2b3d97",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.25.4-4",
+   "GR-14.9.25.4-7",
+   "GR-13.18.40.4-3",
+   "GR-8.3.3.6.4-4",
+   "SR-14.9.25.3-5",
+   "SR-14.9.25.3-6",
+   "SR-14.9.25.3-10"
+  ],
+  "bridge": true,
+  "reason": "Amendment 1 (X3.23a-1989) corrected the category list, 'categories: numeric, alphabetic, numeric edited, alphanumeric edited' gaining 'alphanumeric' (a typographical error); the requirement is as it was. §1985:VI.6.19.4 GR3: 'All other figurative constants belong to the category alphanumeric' and 'e. All other elementary moves are legal', so MOVE QUOTE, HIGH-VALUE, LOW-VALUE or ALL literal to a numeric or numeric edited item is legal 1985 (§1985:VI.6.19.4 GR4: 'as if the sending operand were described as an unsigned numeric integer'). §2023:14.9.25.3 SR5 refuses it: 'the move of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL \"literal\", or ALL symbolic-character) to either a numeric item or a numeric-edited item is prohibited', save ALL digits to an integer item; §2023:E.2 lists the removal. The rest is kept: the elementary move (§2023:14.9.25.4 GR4), literal and figurative-constant categories (§2023:14.9.25.4 GR7 with Table 17; ZERO as 'the numeric value', §2023:8.3.3.6.4 GR4), item categories (§2023:13.18.40.4 GR3), ZERO not to alphabetic (§2023:14.9.25.3 SR6) and prohibitions a) to c) in Table 16 (§2023:14.9.25.3 SR10). d) is the level 1 limit, and SPACE as 'alphabetic' (Table 17: alphanumeric) allows the same moves.",
+  "source": "readjudicate-amended-1985/slice-04"
+ }
+}

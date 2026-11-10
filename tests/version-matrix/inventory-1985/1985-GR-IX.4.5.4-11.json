@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-11",
+ "rule-digest": "8f09edb6b6c5",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-13",
+   "GR-9.1.12-2"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993; the C284 flag) reworded b only: the USE procedure 'applicable to file-name-1' became the one 'associated with the file connector referenced by file-name-1' (§1985:IX.4.5.4 GR11). What differs from 2023 is item a. 1985: 'The file position indicator is set and the I-O status associated with file-name-1 is updated' (§1985:IX.4.5.4 GR11). 2023: 'The I-O status associated with file-name-1 is updated and, if the record operation conflict condition did not occur, the file position indicator is set' (§2023:14.9.30.4 GR13), and for that condition 'The file position indicator is unchanged' (§2023:14.9.30.4 GR10). A program with no SHARING or LOCK MODE syntax reaches it, since then 'the type of record locking for that opening of a shared file associated with that file connector is defined by the implementor' (§2023:12.4.5.9.4 GR1): a case removed from the 1985 result. Items b and c are carried. b: 2023 transfers control 'according to the rules in 9.1.12, Input-output exception processing. If the exception condition is not a fatal exception condition, control is then transferred to the end of the READ statement' (§2023:14.9.30.4 GR13), 9.1.12 naming the USE declarative (§2023:9.1.12 GR2). The earlier record called the fatal case a change; it is none, because 1985's USE rule already says 'If the I-O status value does indicate a critical error, the implementor determines what action is taken' and otherwise returns control 'to the next executable statement following the input-output statement whose execution caused the exception' (§1985:IX.4.8.4 GR6). c: the record is made available and control goes to the end of the READ or, 'if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2' (§2023:14.9.30.4 GR13).",
+  "source": "readjudicate-amended-1985/slice-02"
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "rule-id": "1985-GR-VI.6.16.4-2",
+ "rule-digest": "3f47086191f7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.19.4-1",
+   "GR-14.9.19.4-2",
+   "GR-14.9.19.4-3",
+   "GR-14.9.19.4-4",
+   "GR-14.9.19.4-5",
+   "GR-14.9.19.4-6",
+   "GR-14.9.19.4-7",
+   "GR-14.6.3-3"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993, page VI-91) added one sentence to 2b and to 2e: 'This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period' (§1985:VI.6.16.4 GR2), which defines 'control passes to the next executable sentence' in the words 2023 uses: 'control is transferred to an implicit CONTINUE statement immediately preceding the next separator period' (§2023:14.9.19.4 GR4 for the THEN phrase, §2023:14.9.19.4 GR6 for the ELSE phrase). The other cases are unchanged: a true condition runs statement-1 and ignores ELSE (§2023:14.9.19.4 GR3), a false one runs statement-2 (§2023:14.9.19.4 GR5) or, with no ELSE, ignores the THEN phrase (§2023:14.9.19.4 GR7, 1985 2d 'statement-1 is ignored and control passes to the end of the IF statement'). 1985's one format includes the END-IF form, which 2023 makes format 1 and states again in §2023:14.9.19.4 GR1 ('If condition-1 is true, control is transferred to the first statement of statement-1') and §2023:14.9.19.4 GR2. 1985's 'If a procedure branching or conditional statement is executed which causes an explicit transfer of control, control is explicitly transferred in accordance with the rules of that statement' is §2023:14.6.3 'An explicit transfer of control may be caused only by the execution of a procedure branching or conditional statement'. NEXT SENTENCE stays out of the END-IF form in both (§1985:VI.6.16.3 SR3; 2023 format 1 has no NEXT SENTENCE). The same programs, with the same flow.",
+  "source": "readjudicate-amended-1985/slice-03"
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-10",
+ "rule-digest": "d9fdeb261071",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-24",
+   "GR-14.9.30.4-21",
+   "GR-9.1.13.4-1",
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-7",
+   "GR-9.1.12-2"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993; the C282 and C283 flags) reworded b and c: the USE procedure is now the one 'associated with the file connector referenced by file-name-1', and b spells out that after imperative-statement-1 'control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored'. It kept the requirement that differs from 2023. 1985 c: 'If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed' (§1985:IX.4.5.4 GR10), with 'The INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1' (§1985:IX.4.5.3 SR7). 2023 d): 'any applicable at end exception processing statements are executed. If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement' (§2023:14.9.30.4 GR24); 14.9.30.3 has no such syntax rule, so a READ with neither AT END nor a USE procedure, which 1985 refuses, is accepted. GR24 a) also adds 'if enabled, the EC-I-O-AT-END exception condition is set to exist' (§2023:14.9.30.4 GR24). The rest is carried: the trigger and status ('an optional input file is not present or that no next or previous logical record exists, the I-O status value associated with file-name-1 is set to '10', the at end condition exists', §2023:14.9.30.4 GR21; §2023:9.1.13.4 GR1), AT END taking precedence over the USE procedure (§2023:14.9.30.4 GR24c; §2023:14.9.49.4 GR6 'unless an AT END or INVALID KEY phrase takes precedence'), the USE declarative as the applicable exception processing statement (§2023:9.1.12 GR2), the return after it to 'an implicit CONTINUE statement following the input-output statement' (§2023:14.9.49.4 GR7), and 'execution of the READ statement is unsuccessful' (§2023:14.9.30.4 GR24).",
+  "source": "readjudicate-amended-1985/slice-02"
+ }
+}

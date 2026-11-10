@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-7",
+ "rule-digest": "50cd9db19902",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-8",
+   "GR-14.9.22.4-3"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993) only renumbered this rule (old GR6) and its references ('general rules 10 and 13' to 12 and 15, 'paragraphs 6a through 6d' to 'general rules 7a through 7d'). §1985:VI.6.18.4 GR7 a) to e) recur in §2023:14.9.22.4 GR8 ('The operands of the TALLYING or REPLACING phrase are considered in the order they are specified in the INSPECT statement from left to right'); each 2023 addition is a BACKWARD branch ('starting with the leftmost character position, or, if BACKWARD is specified, the rightmost character position'), syntax the 1985 general format refuses, not this rule. 2023 c) still prints 'General rules 12 and 15' where its replacing rule is GR17: numbering only. §2023:14.9.22.4 GR3 restates the start and direction of a): 'begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right to the rightmost character position'.",
+  "source": "readjudicate-amended-1985/slice-04"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-8",
+ "rule-digest": "8612801d7aa2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-10",
+   "GR-9.1.13.6-7"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (§1993:p.B-14, 'general rule 8, change to read') replaced the cross-reference to the deleted File Attribute Conflict Condition paragraph with two sentences. The amended §1985:VII.4.3.4 GR8 reads 'a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file.' §2023:14.9.27.4 GR10 states all three: 'a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful, and the I-O status associated with file-name-1 is set to '39'. The implementor defines which of the fixed-file attributes are validated during the execution of the OPEN statement. The validation of fixed-file attributes may vary depending on the organization or storage medium of the file.' §2023:9.1.13.6 GR7 repeats the unsuccessful OPEN ('The OPEN or DELETE FILE statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the source unit'). Status 39 is already 1985's value for this condition, so nothing differs: the amendment brought the 1985 rule to the wording 2023 carries.",
+  "source": "readjudicate-amended-1985/slice-06"
+ }
+}

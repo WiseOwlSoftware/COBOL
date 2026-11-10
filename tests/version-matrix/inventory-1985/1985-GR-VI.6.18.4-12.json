@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-12",
+ "rule-digest": "78c490c07495",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-12"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993, pages VI-96 and VI-98) renumbered this rule (old GR10) and its reference in c, 'general rule 6e' to 'general rule 7e'; the requirement is the printed one. §1985:VI.6.18.4 GR12 a ('If the ALL phrase is specified, the content of the data item referenced by identifier-2 is incremented by one for each occurrence of literal-1 matched') and c ('incremented by one for each character matched, in the sense of general rule 7e') recur word for word in §2023:14.9.22.4 GR12 a) and c) ('in the sense of General rule 8e': numbering). In b, 1985 has 'provided that the leftmost such occurrence is at the point where comparison began in the first comparison cycle in which literal-1 was eligible to participate' and 2023 'provided that the first such occurrence encountered is at the point where comparison began': in a left-to-right inspection, the only one 1985 has (§1985:VI.6.18.4 GR2), the first occurrence encountered is the leftmost, so the two name the same occurrence and every 1985 INSPECT tallies the same count. The 2023 wording follows the direction of the scan, which this rule does not set: the right-to-left case is BACKWARD's, added by §2023:14.9.22.4 GR3 and recorded as the change of 1985-GR-VI.6.18.4-2. The same three cases, ALL, LEADING and CHARACTERS, with none added or removed.",
+  "source": "readjudicate-amended-1985/slice-03"
+ }
+}
