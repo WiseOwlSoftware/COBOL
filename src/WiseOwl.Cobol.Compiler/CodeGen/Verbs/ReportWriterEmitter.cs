@@ -590,7 +590,7 @@ internal sealed class ReportWriterEmitter(
             if (r.File is null) continue;   // diagnosed at bind (§2023:13.18.46) — compile already failed
             w.Line($"__RPT_{r.CsIndex} = new CobolReport({CsLiteral(r.Name)}, {FileKeyExpr(r.File)}, "
                 + $"{r.LineWidth}, {r.PageWidth}, {(r.Paged ? "true" : "false")}, {r.PageLimit}, {r.Heading}, {r.FirstDetail}, "
-                + $"{r.LastControlHeading}, {r.LastDetail}, {r.Footing});");
+                + $"{r.LastControlHeading}, {r.LastDetail}, {r.Footing}) {{ Edition = {ctx.Data.DialectLevel} }};");
             // The CODE clause (§2023:13.18.12): the characters every logical record of this report begins with (GR1). A
             // literal is a constant; an identifier is READ by the engine at each body group (GR3 — the value is used
             // until the next evaluation), through the one string-carrier read the CONTROL operands use.
