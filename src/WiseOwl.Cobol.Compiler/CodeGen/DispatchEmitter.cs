@@ -44,8 +44,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // procedure-subject debugging declarative was collected under WITH DEBUGGING MODE. Gates all debug
         // scaffolding (zero-scaffolding invariant — a non-debug program is byte-identical).
         dispatchState.DebugActive = bound.DebugSubjects is { Count: > 0 } || bound.DebugTargets is { Count: > 0 };
-        dispatchState.DebugByPc = bound.DebugSubjects?.ToDictionary(s => s.SubjectPc)
-            ?? new Dictionary<int, BoundDebugSubject>();
+        dispatchState.DebugByPc = (bound.DebugSubjects ?? []).ToLookup(s => s.SubjectPc);
+        dispatchState.DebugUseProcedure = (bound.DebugSubjects ?? []).Any(s => s.SubjectPc < bound.EntryPc);
         w.Line();
         // The dispatcher internals use a `__` prefix — COBOL data-names cannot contain a double underscore — so they
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
@@ -172,9 +172,12 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 // its debugging declarative just BEFORE its own body — populate DEBUG-ITEM from the
                 // transfer cause (__dbgCause, set by whatever transferred control here) and run the
                 // section over its bounded pc range.
-                if (dispatchState.DebugActive && dispatchState.DebugByPc.TryGetValue(i, out var subj))
-                    w.Line($"__RunDebug({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(subj.SubjectName, true)}, "
-                        + $"{subj.SourceLine}, {subj.SectionStartPc}, {subj.SectionEndPc});");
+                // One procedure-name is one trigger (§1985:XV.3.2.4 GR3 a): a section subject and the paragraph subject
+                // of its first paragraph are two, the section first, each under its own name.
+                if (dispatchState.DebugActive)
+                    foreach (var subj in dispatchState.DebugByPc[i].OrderByDescending(s => s.IsSection))
+                        w.Line($"__RunDebug({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(subj.SubjectName, true)}, "
+                            + $"{subj.SourceLine}, {subj.SectionStartPc}, {subj.SectionEndPc});");
                 if (!EmitParagraphBody(bound.Paragraphs[i], i))
                 {
                     // Sequential fall-through into pc+1 is DEBUG-CONTENTS "FALL THROUGH"; DEBUG-LINE is
@@ -257,7 +260,11 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // statement, carried in __dbgLine by the transfer site.
             w.Line("int __line = __dbgCause == DebugCause.StartProgram ? __subjLine : __dbgLine;");
             w.Line("__dbgItem.Populate(__line, __nm, __dbgCause);");
-            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgBusy = false; }");
+            // The debugging section's own PERFORMs and GO TOs set the cause of the transfer they make; the cause this
+            // trigger found is the next trigger's too when one procedure-name pair shares the pc (a section and its
+            // first paragraph, §1985:XV.3.2.4 GR3 a), so it is restored.
+            w.Line("var __savedCause = __dbgCause; int __savedLine = __dbgLine;");
+            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgBusy = false; __dbgCause = __savedCause; __dbgLine = __savedLine; }");
         }
         w.Line();
         // The data-name, ALL REFERENCES OF and cd-name triggers (docs/CONTROL_FLOW_DESIGN.md D20): the same guards as __RunDebug, named
@@ -395,6 +402,14 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         else
             w.Line($"if (__useActive[__id]) return{ret};   // ISO §2023:14.9.49.4 GR2 — an active USE procedure is not re-invoked");
         w.Line("__useActive[__id] = true;");
+        // §1985:XV.3.2.4 GR21: the USE procedure "that is to be executed" is a debug trigger of its own cause, 'USE PROCEDURE';
+        // DEBUG-LINE is the statement that caused it (StatementEmitter records each statement's line). Only a declarative id is a
+        // USE procedure: the exception-checking PERFORM's handler ranges share this invoker.
+        if (dispatchState.DebugActive)
+        {
+            string useTest = dispatchState.F3HandlerBasePc is not null ? $"if (__id < {dispatchState.DeclCount}) " : "";
+            w.Line($"{useTest}__dbgCause = DebugCause.UseProcedure;");
+        }
         if (ecModel)
         {
             // The procedure's statements are OTHER source text than the statement whose raise selected it, and

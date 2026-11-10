@@ -126,6 +126,9 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         // A statement that leaves the sequence owes the after-statement debugging sections of the statements enclosing it first
         // (X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c; DebugTriggerEmitter.LandBeforeTransfer).
         if (s is IBoundTransfersControl) _debug.LandBeforeTransfer();
+        // §1985:XV.3.2.4 GR21 a: the DEBUG-LINE of a USE procedure's debugging section is the statement that causes the procedure to run.
+        if (_dispatchState.DebugActive && _dispatchState.DebugUseProcedure && s.DebugLine > 0)
+            _ctx.Writer.Line($"__dbgLine = {s.DebugLine};");
         if (!s.OperandEvaluation || _dispatchState.InOperandEvaluation) return s.Accept(this);
         bool saved = _dispatchState.EnterOperandEvaluation();
         try { return s.Accept(this); }

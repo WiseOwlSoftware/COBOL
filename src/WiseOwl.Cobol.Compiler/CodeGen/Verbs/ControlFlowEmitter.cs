@@ -225,8 +225,8 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
 
     /// <summary>An out-of-line PERFORM is a recursive bounded <c>Dispatch(start, end)</c> over the target pc range
     /// (the C# call stack is the return-address stack, DESIGN §5.4). X3.23-1985 USE FOR DEBUGGING (VCR 7.17):
-    /// the FIRST entry into the range is a plain-PERFORM transfer (DEBUG-CONTENTS SPACES); every subsequent loop
-    /// iteration is DEBUG-CONTENTS "PERFORM LOOP" — a per-PERFORM first-iteration flag carries that (any loop form).</summary>
+    /// every transfer into the range from the PERFORM's control mechanism, the first included, is DEBUG-CONTENTS
+    /// "PERFORM LOOP" (§1985:XV.3.2.4 GR20), in every loop form.</summary>
     public void EmitOutOfLinePerform(BoundOutOfLinePerform p)
     {
         var w = ctx.Writer;
@@ -243,13 +243,14 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         }
         if (dispatch.DebugActive)
         {
-            // DEBUG-LINE for a PERFORM/iteration trigger is the PERFORM statement's own line on EVERY iteration
-            // (DB101A PERF-ITERATION-TEST :611-617); DEBUG-CONTENTS is SPACES on entry, "PERFORM LOOP" on re-iter.
-            int fid = ctx.Names.NextLoop();
-            w.Line($"bool __dbgFirst{fid} = true;");
+            // §1985:XV.3.2.4 GR20: "If the transfer of control from the control mechanism associated with a PERFORM
+            // statement caused the debugging section ... to be executed": DEBUG-LINE identifies the PERFORM statement
+            // (DB101A PERF-ITERATION-TEST :611-617), DEBUG-CONTENTS contains 'PERFORM LOOP'. The control mechanism
+            // transfers on EVERY execution of the range (§1985:IV.4.4.2), so the cause is set inside the body, once
+            // per execution, and the first one is no exception (DB101A SIMPLE-PERFORM-TEST).
             EmitPerform(p.Control, () =>
             {
-                w.Line($"__dbgCause = __dbgFirst{fid} ? DebugCause.Transfer : DebugCause.PerformLoop; __dbgFirst{fid} = false; __dbgLine = {p.SourceLine};");
+                dispatch.EmitDebugCause(w, "PerformLoop", p.SourceLine);
                 EmitPerformedRange(p);
             }, inline: false);
         }

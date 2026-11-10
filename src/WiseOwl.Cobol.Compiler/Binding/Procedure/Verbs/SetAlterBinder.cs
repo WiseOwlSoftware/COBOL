@@ -146,9 +146,9 @@ internal sealed class SetAlterBinder(BinderContext ctx)
             }
             if (ctx.Table.ResolveProcedureOperand(names[1], "ALTER TO PROCEED TO") is not { } dest)
             { bad = true; continue; }
-            entries.Add(new BoundAlterEntry(_alterSwFields![target.Range.Start], dest.Range.Start));
+            entries.Add(new BoundAlterEntry(_alterSwFields![target.Range.Start], dest.Range.Start, target.Range.Start, ProcedureNameShape.AsWritten(names[1])));
         }
-        return bad ? BoundRejected.Reported(ctx.Edition) : new BoundAlter(entries);
+        return bad ? BoundRejected.Reported(ctx.Edition) : new BoundAlter(entries, ctx.SourceLine(al));
     }
 
     /// <summary>True when paragraph <paramref name="pc"/> consists of a SINGLE sentence whose only statement is a
