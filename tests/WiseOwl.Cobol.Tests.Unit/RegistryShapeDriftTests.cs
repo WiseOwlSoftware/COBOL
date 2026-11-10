@@ -17,6 +17,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// entries. The work notes' own shape (a note is one file, its addenda are files beside it) is checked by
 /// <c>scripts/spec/work.py check</c>.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class RegistryShapeDriftTests
 {
     [Fact]
