@@ -11,8 +11,8 @@ A lifted refusal is a change. It is written into DESIGN-spec-conformance-review.
 recheck prompts of `scripts/spec/audit_batch.py`.
 
 **The band.** Fifteen Mythos 5.2 adjudicators decided the 113 rules of 2023 from the two standards: 95 are in force at 85
-(their `editions` gain 85, each with the 1985 citation in its notes), 18 are not (the 1985 records lose the target; two
-become CHANGED). A refuter attacked a seeded sample of 20 and overturned one (GROUP INDICATE, `GR-13.18.28.4-1`: 1985
+(their `editions` gain 85, each with the 1985 citation in its notes), 18 are not (16 KEPT records lose the target; two records, whose only target it was,
+become CHANGED and keep it). A refuter attacked a seeded sample of 20 and overturned one (GROUP INDICATE, `GR-13.18.28.4-1`: 1985
 supplies spaces, 2023 omits the entry and its line), which is corrected here.
 
 **The code read.** 350 of the 699 witnessed rows were read against the compiler at `--std 85`: 239 closing verdicts, 110

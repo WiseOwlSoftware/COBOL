@@ -5,8 +5,9 @@ edition band without 85, written before the 1985 text was held (97 `2002,2014,20
 Mythos 5.2 adjudicators decided each of the 113 rules of 2023 from the two standards, under kb/Work PB5021's rule:
 
 - 95 are in force at 85, whole or in the part their notes sentence names; each row's `editions` gained 85.
-- 18 are not stated by the 1985 standard; the 1985 records that named them lost that target (16 stay KEPT, two are
-  re-decided CHANGED: `1985-SR-IX.2.5.3-3`, `1985-SR-IX.2.7.3-3`).
+- 18 are not stated by the 1985 standard: 16 were removed from the KEPT records that named them, and two records,
+  whose only target it was, are re-decided CHANGED and keep it as the same-subject successor
+  (`1985-SR-IX.2.5.3-3`, `1985-SR-IX.2.7.3-3`).
 
 A refuter then attacked a seeded sample of 20 (seed 20261110: the two re-decisions, five the adjudicators flagged, five
 wrong mappings, eight in-band). It upheld 18, found one DOUBTFUL (`GR-13.18.14.4-7`: 2023 states a counter and never says
