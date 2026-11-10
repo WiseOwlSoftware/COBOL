@@ -26,8 +26,10 @@ using Core = CobolParserCore;
 /// file open in the named mode): a declarative that names the file, or one whose open mode (INPUT, OUTPUT, I-O, EXTEND)
 /// the file can be in when the verb executes — a READ or START
 /// runs on a file open INPUT or I-O, a WRITE on one open OUTPUT, I-O or EXTEND, a REWRITE or DELETE on one open I-O.
-/// A declarative of a containing program counts too: "Only a declarative within the separately compiled program that contains the statement" is invoked (§1985:VII.4.6.4 GR1), and a contained program is part of its container's separately compiled program. The test is the most permissive reading of "applicable"
-/// that is still static: a procedure that no execution of the verb can reach is not applicable.</para>
+/// A declarative of a containing program counts too: "Only a declarative within the separately compiled program that
+/// contains the statement" is invoked (§1985:VII.4.6.4 GR1), and a contained program is part of its container's
+/// separately compiled program. The test is the most permissive reading of "applicable" that is still static: a
+/// procedure that no execution of the verb can reach is not applicable.</para>
 /// <para>One instance per bound unit (<see cref="BinderContext.ExceptionPhrases"/>); every verb binder of the keyed and
 /// sequential arms calls <see cref="Require"/> with the phrase fact its own parse tree spells.</para>
 /// </summary>

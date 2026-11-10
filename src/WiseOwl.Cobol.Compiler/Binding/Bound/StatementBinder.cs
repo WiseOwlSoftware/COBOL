@@ -181,7 +181,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal SourceElementKind UnitKind { get => Ctx.UnitKind; set => Ctx.UnitKind = value; }
 
     /// <summary>The USE declaratives of the programs that contain this unit, nearest first — the cross-program half
-    /// of "an applicable USE AFTER STANDARD EXCEPTION procedure" (§1985:VII.4.6.4 GR1; kb/Work PB5076). Set by
+    /// of an applicable USE AFTER STANDARD EXCEPTION procedure (§1985:VII.4.6.4 GR1; kb/Work PB5076). Set by
     /// <c>BinderDriver</c> beside <see cref="UnitKind"/>; stored on the <see cref="BinderContext"/> that reads it.</summary>
     internal Func<IEnumerable<BoundDeclarative>>? ContainerUses { get => Ctx.ContainerUses; set => Ctx.ContainerUses = value; }
 
