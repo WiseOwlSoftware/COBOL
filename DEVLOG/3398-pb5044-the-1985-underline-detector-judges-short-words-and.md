@@ -1,4 +1,4 @@
-## PB5044: the 1985 underline detector judges short words and says what it cannot see
+## Entry 3398 — 2026-11-09 17:07 PST — PB5044: the 1985 underline detector judges short words and says what it cannot see
 
 `figure_raster.underlined_hints` (PB5041) skipped every proportional word under 14 pt and every one-character word, so the
 running head of Amendment 1's change list (`to`, `and`, `ISO`, `No.`) and every short underlined word went unmeasured. The
@@ -16,3 +16,4 @@ displaced 5 pt) is still missed. TRANSCRIPTION-STATE now names every blind spot 
 Tests. Case 8b of `test_figure_raster.py` plants the monospaced arm (a ragged rule found, a 70 % rule not), a short word
 inside an underlined phrase and one with feet alone, a rule at the box's top (the comment's fourth negative, now planted)
 and a displaced box, which fails at the old 0.27. Self-test 78/78. No inventory row closed; no compiled program changes.
+
