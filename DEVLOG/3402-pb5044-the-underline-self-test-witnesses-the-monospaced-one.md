@@ -1,4 +1,4 @@
-## PB5044: the underline self-test witnesses the monospaced one-glyph guard
+## Entry 3402 — 2026-11-09 18:57 PST — PB5044: the underline self-test witnesses the monospaced one-glyph guard
 
 Two branches answered the same PB5044 review round 1 in parallel. The one that landed (entry 3398) planted the ragged
 monospaced rule at 91 % and the `MT` word narrower than `MONO_RULE_MIN_W`. This branch carried the same two repairs and
@@ -11,3 +11,4 @@ Fix. Case 8b of `test_figure_raster.py` now plants `M`, a one-glyph monospaced w
 case turns RED (it reports `M`). Self-test 78/78. The conflict with main was resolved by taking main's MONO and `MT`
 planting, its TRANSCRIPTION-STATE wording and its stamped entry 3398, and adding only the `M` witness; this branch's
 duplicate `MN` case is dropped. No inventory row closed; no compiled program changes.
+
