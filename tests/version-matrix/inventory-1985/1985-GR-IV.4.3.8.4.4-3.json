@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.4.4-3",
+ "rule-digest": "811c163e86c3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.6.4-2",
+   "GR-14.6.4-4",
+   "GR-14.6.4-7",
+   "AR-15.3-14"
+  ],
+  "bridge": true,
+  "reason": "Amendment 1 (X3.23a-1989, its changes for page IV-23) added to §1985:IV.4.3.8.4.4 GR3 the sentence 'the reference-modifier is applied to each of the implicitly specified elements of the table' for an ALL subscript, and rule c, 'the reference modification is evaluated immediately after evaluation of the function'; rules a and b stand ('the reference modification is evaluated immediately after evaluation of the subscripts', or where subscripting would be evaluated). 2023 states one order: 'The item identification steps that are applicable to that identifier are evaluated in the following order' (§2023:14.6.4), with 'function evaluation' (§2023:14.6.4 GR2), 'subscript evaluation' (§2023:14.6.4 GR4) and 'reference modification' (§2023:14.6.4 GR7). For a function reference only the function step precedes reference modification (rule c). For a data item the steps between subscripts and reference modification (object property evaluation, 'length evaluation for an occurs-depending group item', §2023:14.6.4 GR6) are absent from 1985 programs or have no side effect, so reference modification still follows the subscripts directly, or stands where they would be (rules a, b). The ALL sentence is §2023:15.3: 'When ALL is specified as a subscript, the effect is as if each table element associated with that subscript position were specified', each one 'the identifier with each subscript specified by the word ALL replaced by one' and so on, so the reference-modifier written on the identifier applies to every element (the catalog holds this prose in AR-15.3-14). Same order and result.",
+  "source": "readjudicate-amended-1985/slice-01"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-12",
+ "rule-digest": "78c490c07495",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-12",
+   "GR-14.9.22.4-7"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993, pages VI-96 and VI-98) renumbered this rule (old GR10) and its reference in c ('general rule 6e' to 'general rule 7e'); the requirement is the printed one. a and c recur word for word in §2023:14.9.22.4 GR12 ('incremented by one for each occurrence of literal-1 matched'; 'incremented by one for each character matched, in the sense of General rule 8e': numbering). b differs: §1985:VI.6.18.4 GR12 has 'provided that the leftmost such occurrence is at the point where comparison began in the first comparison cycle in which literal-1 was eligible to participate'; §2023:14.9.22.4 GR12 has 'provided that the first such occurrence encountered is at the point where comparison began in the first comparison cycle in which literal-1 was eligible to participate'. Left to right the first occurrence encountered is the leftmost, so every 1985 INSPECT tallies the same count; under BACKWARD (§2023:14.9.22.2 prints an optional 'BACKWARD' before identifier-1; §2023:14.9.22.4 GR3 'proceeds from right to left') it is the rightmost, and comparison begins at the rightmost character position, so by the 2023 words LEADING 'A' in 'XAA' tallies 2 where the 1985 word 'leftmost' would tally none. The 2023 wording is not another term for the same occurrence: it gives the LEADING tally of a right-to-left inspection, which 1985 refuses (§1985:VI.6.18.2 prints identifier-1 directly after INSPECT), a result the 1985 words do not give. A case added (family ruling); nothing in this rule's own text sets it apart from 1985-GR-VI.6.18.4-2 and -15. 'to': GR12 states the whole rule; §2023:14.9.22.4 GR7 states in its own words that 'each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2)', the tally a spells out.",
+  "source": "pb5092/inspect-leftmost"
+ }
+}

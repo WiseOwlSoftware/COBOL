@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-4",
+ "rule-digest": "708f0bce40d8",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.5-4",
+   "GR-8.8.1.2-5",
+   "SR-8.8.2-3"
+  ],
+  "bridge": true,
+  "reason": "Amendment X3.23a-1989 added 'a list of function arguments' and X3.23b-1993 added 'Except in pseudo-text', so the rule now reads 'Except in pseudo-text, parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions' (§1985:IV.4.2.1 SR4). §2023:8.3.5 SR4 has the same sentence with two wider members: 'delimiting subscripts, a list of function or method arguments, a reference modifier, arithmetic or boolean expressions, or conditions'. Words that differ: 'or method', 'or boolean'. Parentheses round a method's argument list and round a boolean expression, refused by the 1985 list, are accepted: cases added, so CHANGED; the pseudo-text exception, which the withdrawn record counted as a difference, is now common to both. The 2023 opening 'Except when appearing in a picture character-string' restates the closing paragraph of §1985:IV.4.2.1 ('Any punctuation character which appears as part of the specification of a PICTURE character-string or numeric literal is not considered as a punctuation character'). The balance itself is restated for arithmetic expressions by §2023:8.8.1.2 GR5 ('There shall be a one-to-one correspondence between left and right parentheses of an arithmetic expression') and extended to the added case by §2023:8.8.2 SR3 ('There shall be a one-to-one correspondence between left and right parentheses'). Still a compile-time refusal; no exception condition.",
+  "source": "readjudicate-amended-1985/slice-09"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-10",
+ "rule-digest": "6e95829857e3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.4.4-2",
+   "GR-14.2.3-2"
+  ],
+  "bridge": true,
+  "reason": "X3.23a-1989 changed 'data-names' to 'parameters' and 'data-name' to 'parameter' in general rule 10 (a typographical correction, erratum C151, kb/Work PB5045); the requirement did not move. 1985: the sequence of the parameters in the two USING phrases 'determines the correspondence between the parameters used by the calling and called programs', and 'This correspondence is positional and not by name equivalence; the first parameter in one USING phrase corresponds to the first parameter in the other' (§1985:X.5.2.4 GR10). 2023: the sequence of arguments in the CALL statement's USING phrase and of formal parameters in the called program's procedure division header 'determine the correspondence between arguments and formal parameters. This correspondence is positional and not by name equivalence' (§2023:14.9.4.4 GR2), and 'The correspondence between the arguments and the formal parameters is established on a positional basis' (§2023:14.2.3 GR2). Arguments and formal parameters are the 2023 terms for the amended 'parameters'. Same requirement.",
+  "source": "readjudicate-amended-1985/slice-07"
+ }
+}

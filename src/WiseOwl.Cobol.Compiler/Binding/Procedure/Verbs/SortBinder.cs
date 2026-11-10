@@ -442,6 +442,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             }
         if (!ScreenSameClauses(file, usingFiles, givingFiles, merge: true)) return BoundRejected.Reported(ctx.Edition);   // SR11
+        if (!ScreenMultipleFileReels(file, usingFiles, givingFiles)) return BoundRejected.Reported(ctx.Edition);         // §1985:XI.4.1.3 SR6
         if (!ScreenIndexedGivingKey(keys, givingFiles, merge: true)) return BoundRejected.Reported(ctx.Edition);         // SR10
         if (!ScreenTransferRecordSizes(file, usingFiles, givingFiles, merge: true)) return BoundRejected.Reported(ctx.Edition);   // SR3, SR12
         // VCR 27 (2014→2023): a MERGE newly PROHIBITED inside another MERGE's output procedure / a file-SORT's input
@@ -927,6 +928,26 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (why is null) continue;
             ctx.Validation.RejectStatementOperand($"{verb} files {string.Join(", ", named.Select(f => $"'{f.CobolName}'"))} "
                 + $"are named in one SAME clause: {why} ({rule})");
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>⛔ §1985:XI.4.1.3 SR6 — "No two files specified in any one MERGE statement may reside on the same multiple
+    /// file reel." The files that reside on one reel are those one MULTIPLE FILE TAPE clause names (§1985:VII.2.11.3 GR1),
+    /// recorded as <see cref="FileModel.MultipleFileReels"/> (kb/Work PB5086). MERGE's alone: SORT's USING files may share
+    /// a reel (§1985:XI.4.4.3 SR7). Returns false when a violation was REPORTED.</summary>
+    private bool ScreenMultipleFileReels(FileModel sd, IReadOnlyList<FileModel> usingFiles, IReadOnlyList<FileModel> givingFiles)
+    {
+        var statement = usingFiles.Concat(givingFiles).Prepend(sd).Distinct().ToList();
+        foreach (var reel in statement.SelectMany(f => f.MultipleFileReels).Distinct())
+        {
+            var named = statement.Where(reel.Members.Contains).ToList();
+            if (named.Count < 2) continue;
+            ctx.Edition.Error(DiagnosticCatalog.MergeFilesOnOneReel,
+                $"MERGE files {string.Join(", ", named.Select(f => $"'{f.CobolName}'"))} are named in one MULTIPLE FILE TAPE "
+                + "clause and so reside on the same multiple file reel: \"No two files specified in any one MERGE statement "
+                + "may reside on the same multiple file reel\" (§1985:XI.4.1.3 SR6)");
             return false;
         }
         return true;

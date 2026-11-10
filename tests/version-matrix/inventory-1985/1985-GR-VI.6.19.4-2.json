@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.19.4-2",
+ "rule-digest": "ca6e88c698ce",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.25.4-1",
+   "GR-14.6.4-4",
+   "GR-14.6.4-6"
+  ],
+  "bridge": true,
+  "reason": "Amendment 1 (X3.23a-1989) replaced 'Any subscripting associated with identifier-1 is evaluated only once' by the sentence 2023 prints. §1985:VI.6.19.4 GR2 and §2023:14.9.25.4 GR1 both have 'function-identifier, the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is moved to the first of the receiving operands' and 'The length of the data item referenced by identifier-1 is evaluated only once', with the same order of moves, DEPENDING ON sentence and temp example. 1985 'Any length evaluation or subscripting associated with identifier-2 is evaluated immediately before the data is moved' is 2023 'Item identification for identifier-2 is performed immediately before the data is moved', whose steps §2023:14.6.4 lists ('subscript evaluation', 'length evaluation for an occurs-depending group item'; in 1985 too 'the reference modification is evaluated immediately after evaluation of the subscripts', §1985:IV.4.3.8.4.4 GR3). The 2023 zero-length sentences ('If identifier-2 is a zero-length item, the MOVE statement leaves identifier-2 unchanged') state no part of this rule: a zero-length 1985 operand is an occurs-depending group, whose move is §1985:VI.6.19.4 GR5's.",
+  "source": "readjudicate-amended-1985/slice-04"
+ }
+}
