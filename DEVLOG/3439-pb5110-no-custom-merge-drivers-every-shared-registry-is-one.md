@@ -1,4 +1,4 @@
-## PB5110: no custom merge drivers; every shared registry is one file per entry
+## Entry 3439 — 2026-11-10 10:12 PST — PB5110: no custom merge drivers; every shared registry is one file per entry
 
 The owner decided on 2026-11-10 that no custom merge driver is needed: git merges non-conflicting changes to a shared file and
 raises a conflict where there is one. The drivers (kb/Work PB3610) existed because two branches that each appended to one file
@@ -50,3 +50,4 @@ carries. The two public fleet tools `orient.py` and `fix_clusters.py` (submodule
 note when run by hand; the planner's own path to `fix_clusters.py` is covered by the folded view. R1-2: the conflict brief no
 longer prints `git merge <ref> --keep`, and its self-test refuses `--keep`. R1-3: the doubled "the construct catalogue" phrases
 are corrected and the historical PHASE-13 review is restored to its original text.
+
