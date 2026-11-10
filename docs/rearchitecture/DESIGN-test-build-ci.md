@@ -1593,12 +1593,11 @@ one-file-per-entry DEVLOG stand.
    merged head's own copy, so a note main gained after the branch's gate meets a rule the branch added there, never first in
    CI, PB3389), `rename_diagnostic_prefix.py --check` (PB3575), `rename_retired_names.py --check` (PB3837) and
    `landing_check.py` (a path no landing carries, `coord.NEVER_WORK`; a public-API symbol listed twice, PB3694; two in-flight
-   branches editing the same member, PB2118, PB4452). Two refusals are exits that are not reds, retried by the lane: exit 15 when the branch merged a
+   branches editing the same member, PB2118, PB4452). One refusal is an exit that is not a red, retried by the lane: exit 15 when the branch merged a
    predecessor whose pull request is still open and so adds that pull request's stamped DEVLOG entry beside its own
-   (`enqueue.open_predecessors`, PB3145), and exit 16 when an open pull request that ENTERS the queue
-   (`enqueue.driver_file_holders`, `queue_facts.PullRequest.entering`) changes a file a merge driver covers that the branch
-   changes too (the queue merges with plain git, so the two would conflict inside it; the repository's queue-entry lock covers
-   the look and the queueing, kb/Work PB3642). A branch whose tip is already inside origin/main ends exit 0 NOTHING TO LAND
+   (`enqueue.open_predecessors`, PB3145). Another open pull request that changes the same file never holds a branch
+   (owner, PB5109): git merges the two, and a merge group that does conflict bounces the pull request, which a finisher
+   fixes then. A branch whose tip is already inside origin/main ends exit 0 NOTHING TO LAND
    (PB3157). A gate NOT RUN, which measured nothing, is judged by its cause's class (PB3526): exit 2, no red, for an
    ENVIRONMENT cause or a BRANCH cause main fails the same way at the same step, else exit 5. Main moving again while the pull
    request is queued costs no re-gate: the merge group integrates the branch on the current main and runs the whole population.

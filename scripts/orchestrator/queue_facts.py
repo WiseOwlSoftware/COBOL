@@ -8,8 +8,8 @@
 Nothing else asks GitHub about a pull request's place in the queue. This docstring names no count of callers (a count
 rots, kb/Work PB3744): `grep -rn "queue_facts.<operation>" scripts` finds the callers of an operation. `read` answers the
 branch survey (prune_worktrees.live_survey: ENQUEUED, NOT QUEUED, BOUNCED), the landing lane's queue watch (land_lane.py
-tick, kb/Work PB3527), which takes the facts the survey read on the same tick, and the driver-file hold
-(enqueue.driver_file_holders, which land_lane.driver_files_free asks again on every exit-16 wait tick, kb/Work PB3642).
+tick, kb/Work PB3527), which takes the facts the survey read on the same tick. No landing is held on a file another
+open pull request shares (owner, kb/Work PB5109).
 
 WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not be asked):
   - ONE GraphQL query: the merge queue's own entries on main (`mergeQueue(branch: "main")`, the queue's record of who
@@ -147,15 +147,6 @@ class PullRequest:
         """A required check that FAILED on the head before the queue took it: the pull request cannot enter the queue
         until the branch changes (kb/Work PB3096's pre-queue red, PB3527)."""
         return None if self.in_queue else next((c for c in self.checks if c.failed), None)
-
-    @property
-    def entering(self) -> bool:
-        """The pull request is IN the merge queue or on its way into it (auto-merge on: GitHub queues it once its required
-        checks pass) and nothing keeps it out: not bounced, not conflicting with main, no required check failed. Only
-        such a pull request can share a merge group with another, whose merge GitHub builds with plain git (kb/Work
-        PB3642 review R1-1); a bounced one re-enters only through a fresh `enqueue.py land` of a new head, which merges
-        main in through the merge drivers first."""
-        return (self.in_queue or bool(self.auto_merge_at)) and not (self.bounced or self.conflicts or self.red)
 
 
 def _head_runs(commit: dict, required: tuple[str, ...]) -> tuple[list[CheckRun], list[CheckRun]]:
@@ -562,14 +553,6 @@ def self_test() -> int:
            "checks green or not; one the queue already holds does not (kb/Work PB3527 review R1-5)",
            dirty['dirty'].conflicts and dirty['dirty'].red is None and not dirty['dirtyq'].conflicts
            and not prs['auto'].conflicts, str(dirty))
-    expect("a pull request ENTERS the merge queue when it is in it or has auto-merge on, and is not bounced, conflicting or "
-           "red; a bounced, conflicting or red one, and one with neither the queue nor auto-merge, does not (kb/Work "
-           "PB3642 review R1-1)",
-           prs['queued'].entering and prs['flag'].entering and prs['auto'].entering and prs['stuck'].entering
-           and prs['rerun'].entering and not prs['removed'].entering and not prs['red'].entering
-           and not dirty['dirty'].entering and dirty['dirtyq'].entering and not fixed['fixed'].entering
-           and fixed['again'].entering and not fixed['old'].entering,
-           f'{prs} {dirty} {fixed}')
     lost = read(fake([node(8, 'lost', 'h1', auto='t', runs=[gate(81, 'IN_PROGRESS')])], jobs={}), required=req) or {}
     expect("a job the jobs API cannot read leaves the check-run unknown, never stuck",
            not lost['lost'].checks[0].stuck and lost['lost'].checks[0].job_status == '', str(lost))
@@ -588,7 +571,7 @@ def self_test() -> int:
            "decides, so the cancelled run's FAILED ci-gate is no red and no required check-run exists yet; every other "
            "context's newest check-run is read (`others`: the newer run's jobs, another workflow's newest run, a suite with "
            "no workflow run), an unresolved one with its job's status, and the survey's line says what still runs",
-           r is not None and r.checks == () and r.red is None and r.entering
+           r is not None and r.checks == () and r.red is None
            and [c.name for c in r.others] == ['audits', 'changes', 'ext', 'lint']
            and r.others[0].run == 960 and r.others[0].job_status == 'in_progress' and not r.others[0].stuck
            and [c.name for c in r.head_runs] == ['audits', 'changes', 'ext', 'lint']
