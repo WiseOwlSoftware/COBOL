@@ -1000,7 +1000,8 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   death); a shell caller wraps a command with `gate_slot.py run [--label TEXT] -- <command>`. `gate.py` takes the slot after
   the worktree's gate lock and its audits and BEFORE the build, and holds it through the population check. The slot is held
   by the gate's whole PROCESS TREE. On Windows, acquisition puts the holder ITSELF into a Job object with
-  `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` before it spawns anything, so no grandchild can escape and a dead driver takes every
+  `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` (`process_job.bind_current`, the one copy of the Job-object code) before it
+  spawns anything, so no grandchild can escape and a dead driver takes every
   `dotnet` process with it. On Linux the slot's descriptor is inherited by the children (every spawn passes
   `**slot.spawn_kwargs()`), and an `flock` lives until the last descriptor closes, so an ORPHANED Linux tree keeps its slot
   until it exits. ⛔ `spawn_kwargs` also turns PERSISTENT BUILD SERVERS off in every child (`MSBUILDDISABLENODEREUSE=1`,
@@ -1097,7 +1098,12 @@ so one discovered late runs alone for the last 50 s).
 **3. No verdict from the clock.** A self-test is never RED for being slow. A run still going `HANG_AFTER_S = 3600` s after it
 took its place (counted from the place, so waiting behind other gates never counts; far above every PASS measured) is stopped
 and reported HANG with its output so far: `=== SELF-TESTS: HANG — … ===`, exit 3, the gate's reason `SELF-TESTS HANG`, never
-`SELF-TESTS RED`.
+`SELF-TESTS RED`. ⛔ The stop ends the self-test's WHOLE process tree (kb/Work PB5098): each self-test, each audit and each
+test host runs as the root of a `scripts/process_job.py` ProcessJob (Windows: started suspended, put in its own
+kill-on-close Job object, then resumed; POSIX: a new session), so a kill reaches an orphaned grandchild that
+`taskkill /T` cannot, and their output goes to FILES, never pipes, because a pipe an orphan still holds blocks its reader
+(on 2026-11-10 the HANG stop itself waited 87 minutes on one). A self-test that exits leaving processes of its tree running
+has them killed, and its output names them.
 
 **Proof.** `self_tests.py --self-test` (`fleet_arms`) runs the phase from four CONCURRENT simulated gates over one planted
 repository: a full run records; the gates on the unchanged tree re-run nothing; a changed input (a file read through a name
