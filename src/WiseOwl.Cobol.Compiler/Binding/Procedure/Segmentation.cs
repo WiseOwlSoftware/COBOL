@@ -60,9 +60,10 @@ internal static class Segmentation
         return false;
     }
 
-    /// <summary>§1985:XVI.3.3.2 (PERFORM), XVI.3.3.3 (MERGE) and XVI.3.3.4 (SORT): the procedures a statement names lie
-    /// "Totally within non-independent segments" or "Wholly contained in a single independent segment", the statement's own
-    /// when it is itself in an independent segment ("Wholly within the same independent segment as that" statement).
+    /// <summary>The one rule §1985:XVI.3.3.2 (PERFORM), XVI.3.3.3 (MERGE) and XVI.3.3.4 (SORT) each state: the procedures a
+    /// statement names lie wholly in non-independent segments or wholly in a single independent segment, the statement's
+    /// own when it is itself in an independent segment. §1985:XVI.3.3.3: "(1) Totally within non-independent segments, or
+    /// (2) Wholly contained in a single independent segment."
     /// <paramref name="range"/> is the procedures the statement names (procedure-name-1 through procedure-name-2, either
     /// physical order): each PERFORM, SORT and MERGE that those procedures contain is asked about its own procedures, and
     /// the procedures they perform are not added to the outer statement's (docs/CONFORMANCE.md §3.8: the CCVS-85 segmentation
@@ -79,8 +80,8 @@ internal static class Segmentation
         if (RangeAllowed(from, spanned)) return;
         ctx.Edition.Error(DiagnosticCatalog.SegmentationFlowRestriction,
             $"the procedures this {verb} statement in segment {from} names lie in segments {string.Join(", ", spanned)}: they "
-            + "shall be \"Totally within non-independent segments\" or \"Wholly contained in a single independent segment\""
-            + (SegmentNumber.IsIndependent(from) ? $", and for a {verb} statement in an independent segment that segment is its own, {from}" : "")
+            + "shall lie wholly in non-independent segments or wholly in one independent segment"
+            + (SegmentNumber.IsIndependent(from) ? $", which for a {verb} statement in an independent segment is its own, {from}" : "")
             + $" ({rule})");
     }
 

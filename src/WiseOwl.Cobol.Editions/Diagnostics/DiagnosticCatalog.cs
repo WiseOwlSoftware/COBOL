@@ -9469,9 +9469,9 @@ public static class DiagnosticCatalog
         "COBOL6877", "segmentation-flow-restriction", EditionSeverity.Error,
         "A statement breaks a restriction on program flow in a segmented program. §1985:XVI.3.3.1: \"A GO TO statement in a "
         + "section whose segment-number is greater than or equal to 50 must not be referred to by an ALTER statement in a "
-        + "section with a different segment-number.\" §1985:XVI.3.3.2, XVI.3.3.3 and XVI.3.3.4: the procedures a PERFORM, "
-        + "MERGE or SORT statement executes are \"Totally within non-independent segments\" or \"Wholly contained in a single "
-        + "independent segment\", the statement's own when it is itself in an independent segment.",
+        + "section with a different segment-number.\" The procedures a PERFORM, MERGE or SORT statement names lie wholly in "
+        + "non-independent segments or wholly in one independent segment, the statement's own when it is itself in an "
+        + "independent segment (§1985:XVI.3.3.2, XVI.3.3.3, XVI.3.3.4).",
         "X3.23-1985 Segmentation module restrictions on program flow (§1985:XVI.3.3.1 through XVI.3.3.4)");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the

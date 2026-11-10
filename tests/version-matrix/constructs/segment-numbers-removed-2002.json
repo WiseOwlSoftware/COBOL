@@ -3,7 +3,7 @@
  "description": "Section-header segment-number (the '85 Segmentation module: section-name SECTION [0-99].; 50-99 = independent segments) - at 85 all segments are resident, the flow restrictions of the module are checked (COBOL6877) and an independent segment's ALTERed GO TOs return to their initial state on re-entry (kb/Work PB5084; CONTROL_FLOW_DESIGN D4); deleted by ISO 2002. Companion of segment-limit-removed-2002.",
  "display": "a section-header segment-number",
  "diagnosticCode": "COBOL0902",
- "citation": "the '85 Segmentation module's section priority number, deleted by ISO 2002 ('segment' is absent from the 2023 text; §2023:8.9 absence); at 85 all segments are resident, the §1985:XVI.3.3 flow restrictions are COBOL6877 and an independent segment's ALTERed GO TOs return to their initial state on re-entry (§1985:XVI.1.4.3; kb/Work PB5084); companion of segment-limit-removed-2002; VCR Table 7 row 7.18",
+ "citation": "the '85 Segmentation module's section priority number, deleted by ISO 2002 ('segment' is absent from the 2023 text; §2023:8.9 absence); at 85 all segments are resident, the §1985:XVI.3.3 flow restrictions are COBOL6877 and an independent segment's ALTERed GO TOs return to their initial state on re-entry (§1985:XVI.1.4.3); companion of segment-limit-removed-2002; VCR Table 7 row 7.18",
  "introducedIn": 85,
  "removedIn": 2002,
  "expectDiagnostic": "COBOL0902",
