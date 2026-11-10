@@ -9373,6 +9373,44 @@ public static class DiagnosticCatalog
         "ISO §1985:VII.4.4.3 SR1; §1985:VIII.4.5.3 SR1; §1985:IX.4.5.3 SR1; §1985:VII.4.5.3 SR1; §1985:VIII.4.6.3 SR1; "
         + "§1985:IX.4.6.3 SR1; §1985:VII.4.7.3 SR1; §1985:VIII.4.9.3 SR1; §1985:IX.4.9.3 SR1; §1985:XI.4.2.3 SR3; §1985:XI.4.3.3 SR1; "
         + "§2002:14.8.29.2 SR2; §2002:14.8.30.2 SR2; §2002:14.8.32.2 SR1; §2002:14.8.33.2 SR1; §2002:14.8.47.2 SR4");
+    /// <summary>COBOL6823 — GENERATE report-name names a report whose description holds more than one detail report group, at a
+    /// dialect that allows the summary form only for a report with at most one (kb/Work PB5078). §1985:XIII.3.20.3 SR6: "When a
+    /// GENERATE report-name statement is specified in the Procedure Division, the corresponding report description entry must
+    /// include no more than one detail report group." (§1985:XIII.4.3.3 SR2 b says the same.) COBOL-2002 and later keep only
+    /// the CONTROL-clause condition (§2023:14.9.16.3 SR2).</summary>
+    public static readonly DiagnosticDescriptor ReportGenerateDetailCount = new(
+        "COBOL6823", "report-generate-detail-count", EditionSeverity.Error,
+        "§1985:XIII.3.20.3 SR6: \"When a GENERATE report-name statement is specified in the Procedure Division, the "
+        + "corresponding report description entry must include no more than one detail report group.\" (COBOL-2002 and later "
+        + "have no such limit, §2023:14.9.16.3 SR2.)",
+        "ISO §1985:XIII.3.20.3 SR6");
+
+    /// <summary>COBOL6824 — a SUM clause's RESET operand is at the wrong control level for the control footing that holds it
+    /// (kb/Work PB5079). §2023:13.18.54.3 SR8: "If the current report group is a control footing, its level of control shall be
+    /// a lower level than that of data-name-3." The 1985 text allows the footing's own level too — §1985:XIII.3.19.3 SR4:
+    /// "Data-name-2 must not be a lower level control than the associated control for the report group in which the RESET
+    /// phrase appears."</summary>
+    public static readonly DiagnosticDescriptor ReportResetLevel = new(
+        "COBOL6824", "report-reset-level", EditionSeverity.Error,
+        "A RESET ON operand is at a control level the SUM clause's control footing may not reset on: the footing's level of "
+        + "control shall be a lower level than that of data-name-3 (§2023:13.18.54.3 SR8); in COBOL-85 data-name-2 must not be "
+        + "a lower level control than the associated control (§1985:XIII.3.19.3 SR4).",
+        "ISO §2023:13.18.54.3 SR8; ISO §1985:XIII.3.19.3 SR4");
+
+    /// <summary>COBOL6825 — a SOURCE clause of a control footing, page heading, page footing or report footing report group
+    /// references a control data item or storage that shares it, at a dialect that forbids it (kb/Work PB5079). §1985:XIII.3.20.3
+    /// SR5: "In control footing, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE
+    /// statements must not reference any of the following: a. Group data items containing a control data item. b. Data items
+    /// subordinate to a control data item. c. A redefinition or renaming of any part of a control data item. In page heading
+    /// and page footing report groups, SOURCE clauses and USE statements must not reference control data-names." The 2002
+    /// and later texts carry no such restriction.</summary>
+    public static readonly DiagnosticDescriptor ReportSourceControlData = new(
+        "COBOL6825", "report-source-control-data", EditionSeverity.Error,
+        "§1985:XIII.3.20.3 SR5: in control footing, page heading, page footing and report footing report groups a SOURCE clause "
+        + "must not reference a group item containing a control data item, an item subordinate to one, or a redefinition or "
+        + "renaming of any part of one; in page heading and page footing report groups it must not reference a control "
+        + "data-name at all. (COBOL-2002 and later have no such restriction.)",
+        "ISO §1985:XIII.3.20.3 SR5");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

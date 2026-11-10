@@ -203,7 +203,7 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
                     Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}': the {CommunicationFormats.ClauseWords(field)} clause names FILLER; ISO/IEC 1989:2002 A.1.2.2 "
                         + "SR6 and SR15 let a data-name be replaced by the reserved word FILLER \"within this series\", the option of the series of data-names, and a clause prints a data-name.");
                 else
-                    names[named] = clause.dataName().GetText();
+                    Record(named, clause.dataName().GetText());
             }
             else
             {
@@ -228,17 +228,28 @@ internal sealed class CommunicationSectionBinder(DataBinder host)
             else
                 for (int i = 0; i < series.Length; i++)
                     if (series[i].dataName().FILLER() is null)
-                        names[header[i].Field] = series[i].dataName().GetText();
+                    {
+                        using var seriesAt = Edition.At(series[i]);
+                        Record(header[i].Field, series[i].dataName().GetText());
+                    }
         }
-        foreach (var repeated in names.Values.GroupBy(n => n, CobolNames.Comparer).Where(g => g.Count() > 1))
-            Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}' names the data-name '{repeated.Key}' more than once; ISO/IEC 1989:2002 A.1.2.2 "
-                + (format switch
-                {
-                    CommunicationFormat.Input => "SR6",
-                    CommunicationFormat.Output => "SR10",
-                    _ => "SR15",
-                }) + ": the data-names \"shall be unique within the CD entry\".");
         return names;
+
+        // Record the data-name a clause or a series member gives a field. A name another field already carries is refused AT
+        // THE OCCURRENCE that repeats it (kb/Work PB5090): the clause or the series member the cursor stands on.
+        void Record(CommunicationField field, string name)
+        {
+            if (names.Any(n => n.Key != field && CobolNames.Same(n.Value, name)))
+                Edition.Error(DiagnosticCatalog.CommunicationEntryRule, $"CD '{cdName}' names the data-name '{name}' more than once; "
+                    + (Edition.DialectLevel < 2002 ? "ISO §1985:XIV.2.2.3 " : "ISO/IEC 1989:2002 A.1.2.2 ")
+                    + (format switch
+                    {
+                        CommunicationFormat.Input => "SR6",
+                        CommunicationFormat.Output => "SR10",
+                        _ => "SR15",
+                    }) + ": the data-names \"shall be unique within the CD entry\".");
+            names[field] = name;
+        }
     }
 
     /// <summary>The record A.1.2.3 prints as the "IMPLICIT DESCRIPTION": an unnamed level 1 group of elementary items, named by the clauses that name them

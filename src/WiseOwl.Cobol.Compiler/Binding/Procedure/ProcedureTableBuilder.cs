@@ -968,9 +968,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // statement within the same procedure division. Format 2 names exactly one group per
             // statement, so only the Duplicate verdict is reachable here.
             if (_useReportGroups.Register(group) == ConstructOperand.Duplicate)
+            {
+                using var duplicateAt = ctx.Edition.At(use.reportGroupReference());   // the repeating operand (kb/Work PB5090)
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': report group "
                     + $"'{head}' already has a USE BEFORE REPORTING procedure in this procedure "
                     + "division (ISO §2023:14.9.49.3 SR9)");
+            }
             return new DeclScope([], null, global, group);
         }
         var target = use.useOnTarget();
@@ -989,8 +992,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // declaratives portion of a given procedure division. Format 1's brace group takes exactly one
             // alternative per statement, so only the Duplicate verdict is reachable here.
             if (_useModes.Register(m) == ConstructOperand.Duplicate)
+            {
+                using var duplicateAt = ctx.Edition.At(target);   // the repeating USE statement's operand (kb/Work PB5090)
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': this open mode already "
                     + "has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR7)");
+            }
             return new DeclScope([], m, global, null);
         }
 
@@ -1021,8 +1027,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 case ConstructOperand.Repeated:
                     continue;
                 case ConstructOperand.Duplicate:
-                    ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': file '{fname}' "
-                        + "already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)");
+                    using (ctx.Edition.At(fn))   // the file-name that repeats (kb/Work PB5090)
+                        ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': file '{fname}' "
+                            + "already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)");
                     continue;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the file
             }
             files.Add(file);
