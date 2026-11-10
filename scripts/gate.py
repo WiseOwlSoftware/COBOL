@@ -341,6 +341,9 @@ AUDITS = (
     ("ARCH SUBSYSTEMS", ["scripts/arch/r2_subsystems.py", "--check"]),
     ("ANNEX A.1 REGISTER", ["scripts/spec/audit_annex_a1.py", "--check"]),
     ("DERIVATION REGISTER", ["scripts/spec/audit_derivations.py", "--check"]),
+    # kb/Work PB5052: every 1985 figure verdict names the block of the transcription its page and ordinal say; it reads no
+    # PDF, so the gate runs it where `sweep_figures.py --edition 1985 --check` (which measures the scan) cannot.
+    ("FIGURE VERDICTS 1985", ["scripts/spec/sweep_figures.py", "--edition", "1985", "--identity"]),
     # kb/Work PB2878, PB4395: THE lanes' classification against the tree (every entry names a tracked path; every script
     # the build or a compiler test is seen to read is CODE_READS), a question over the committed tree, so an audit.
     ("INERT LANE", ["scripts/inert_lane.py", "check"]),
