@@ -37,10 +37,12 @@ public sealed class RegistryShapeDriftTests
     public void EveryConstructFile_IsOneConstruct_NamedByItsId()
     {
         var bad = new List<string>();
-        foreach (string file in Directory.EnumerateFiles(TestRepo.ConstructsDir, "*", SearchOption.AllDirectories))
+        // the rows come from TestRepo.ConstructRows (the one reader); this walk is the catalogue's own shape: no subdirectory, only <id>.json
+        foreach (string dir in Directory.EnumerateDirectories(TestRepo.ConstructsDir)) bad.Add($"{Path.GetFileName(dir)}/: a directory in the catalogue");
+        foreach (string file in Directory.EnumerateFiles(TestRepo.ConstructsDir))
         {
             string stem = Path.GetFileNameWithoutExtension(file);
-            if (Path.GetExtension(file) != ".json" || Path.GetDirectoryName(file) != Path.GetFullPath(TestRepo.ConstructsDir)) { bad.Add($"{Path.GetFileName(file)}: not a <id>.json file at the top of the catalogue"); continue; }
+            if (Path.GetExtension(file) != ".json") { bad.Add($"{Path.GetFileName(file)}: not a <id>.json file"); continue; }
             using var doc = JsonDocument.Parse(File.ReadAllText(file));
             if (doc.RootElement.ValueKind != JsonValueKind.Object || !doc.RootElement.TryGetProperty("id", out var id) || id.GetString() != stem)
                 bad.Add($"{stem}.json: not one construct object whose id is the file's name");
@@ -57,10 +59,11 @@ public sealed class RegistryShapeDriftTests
         string root = TestRepo.VersionMatrix(directory);
         if (!Directory.Exists(root)) return;   // an edition's store starts with no directory at all (inventory_store.py)
         var bad = new List<string>();
-        foreach (string file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+        foreach (string dir in Directory.EnumerateDirectories(root)) bad.Add($"{Path.GetFileName(dir)}/: a directory in the store");
+        foreach (string file in Directory.EnumerateFiles(root))
         {
             string stem = Path.GetFileNameWithoutExtension(file);
-            if (Path.GetExtension(file) != ".json" || Path.GetDirectoryName(file) != Path.GetFullPath(root)) { bad.Add($"{Path.GetFileName(file)}: not a <rule-id>.json file"); continue; }
+            if (Path.GetExtension(file) != ".json") { bad.Add($"{Path.GetFileName(file)}: not a <rule-id>.json file"); continue; }
             using var doc = JsonDocument.Parse(File.ReadAllText(file));
             if (doc.RootElement.ValueKind != JsonValueKind.Object || !doc.RootElement.TryGetProperty("rule-id", out var id) || id.GetString() != stem)
                 bad.Add($"{stem}.json: not one rule object whose rule-id is the file's name");
