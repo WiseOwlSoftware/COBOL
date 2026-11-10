@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c15_inspect_converting_duplicate_first
       *> rules: [GR-14.9.22.4-23]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
