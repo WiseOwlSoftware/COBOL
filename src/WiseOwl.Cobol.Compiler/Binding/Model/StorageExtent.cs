@@ -47,7 +47,8 @@ public readonly record struct StorageExtent(DataItem Area, int Start, int Length
         return new StorageExtent(inner.Area, inner.Start + start - 1, len);
     }
 
-    private static StorageExtent? OfItem(DataItem item)
+    /// <summary>The static extent of one data item (its whole occurrence), or null when not provable (see the type's summary).</summary>
+    public static StorageExtent? OfItem(DataItem item)
     {
         if (item.IsDynamicLength || item.IsAnyLength || VariableLengthCompatibility.IsVariableLength(item)) return null;
         if (item.Pic is { Usage: Usage.National or Usage.Bit } || item.HasBitDescendant) return null;

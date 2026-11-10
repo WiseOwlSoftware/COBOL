@@ -414,23 +414,26 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (ReferenceEquals(item, control)) return pageGroup ? "is the control data item" : null;
         if (IsAncestorOf(item, control)) return "is a group item containing the control data item";
         if (IsAncestorOf(control, item)) return "is a data item subordinate to the control data item";
-        // c) — a redefinition of any part of the control data item: some level of the operand's chain redefines (or is
-        // redefined by) some level of the control's chain. A file record's implicit redefinition is no REDEFINES clause.
-        static DataItem RedefinitionRoot(DataItem x)
-        {
-            while (x.RedefinesTarget is { } target && !x.RedefinesImplicitly) x = target;
-            return x;
-        }
-        for (var x = item; x is not null; x = x.Parent)
-            for (var y = control; y is not null; y = y.Parent)
-                if (!ReferenceEquals(x, y) && ReferenceEquals(RedefinitionRoot(x), RedefinitionRoot(y)))
-                    return "is a redefinition of part of the control data item";
-        // c) — a level-66 renaming of any part of it.
-        if (item.Renames is { From: { } from } renames
-            && (IsAncestorOf(control, from) || ReferenceEquals(control, from) || IsAncestorOf(from, control)
-                || renames.Thru is { } thru && (ReferenceEquals(control, thru) || IsAncestorOf(control, thru) || IsAncestorOf(thru, control))))
-            return "is a renaming of part of the control data item";
+        // c) — a redefinition or renaming of ANY PART of the control data item. Neither ancestry nor descent holds here, so a
+        // shared byte can come only through a REDEFINES or a RENAMES: the question is the STORAGE overlap the layout proves
+        // (StorageExtent), never the shape of the REDEFINES chains. A RENAMES item spans From through Thru, every item
+        // between them included. An extent the compiler cannot prove (a table, a variable-length item) is not asked.
+        if (ExtentOf(item) is { } itemExtent && StorageExtent.OfItem(control) is { } controlExtent && itemExtent.Overlaps(controlExtent))
+            return item.Renames is not null ? "is a renaming of part of the control data item"
+                : "is a redefinition of part of the control data item";
         return null;
+    }
+
+    /// <summary>The storage extent of a SOURCE operand's item: its own, or for a level-66 RENAMES item the span of
+    /// <c>From</c> through <c>Thru</c> (§2023:13.18.45.4 GR2: the items between them are part of the alias); null when unprovable.</summary>
+    private static StorageExtent? ExtentOf(DataItem item)
+    {
+        if (item.Renames is not { From: { } from } renames) return StorageExtent.OfItem(item);
+        if (StorageExtent.OfItem(from) is not { } first) return null;
+        if (renames.Thru is not { } thru) return first;
+        if (StorageExtent.OfItem(thru) is not { } last || !ReferenceEquals(first.Area, last.Area)) return null;
+        int start = Math.Min(first.Start, last.Start);
+        return new StorageExtent(first.Area, start, Math.Max(first.Start + first.Length, last.Start + last.Length) - start);
     }
 
     private static bool IsAncestorOf(DataItem ancestor, DataItem item)

@@ -8,7 +8,7 @@
       *> group in which the RESET phrase appears." (cite.py: OK). CONTROLS ARE FINAL WS-A WS-B makes WS-B the lower level, so RESET ON WS-B
       *> in the control footing for WS-A is the forbidden one. 2023:13.18.54.3 SR8: "If the current report group is a control footing, its
       *> level of control shall be a lower level than that of data-name-3", so every edition refuses it. RESET ON FINAL is legal.
-      *> conformance:pb5079-reset-lower-control-legal is the legal side.
+      *> conformance:pb5079-reset-higher-control is the legal side.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5079CN.
        ENVIRONMENT DIVISION.
