@@ -428,16 +428,16 @@ RL301M	RL	pending	-	none	cataloged (not asserted)
 RL401M	RL	pending	-	none	cataloged (not asserted)
 RW301M	RW	pending	-	none	cataloged (not asserted)
 RW302M	RW	pending	-	none	cataloged (not asserted)
-SG101A	SG	pending	-	none	cataloged (not asserted)
-SG102A	SG	pending	-	none	cataloged (not asserted)
-SG103A	SG	pending	-	none	cataloged (not asserted)
-SG104A	SG	pending	-	none	cataloged (not asserted)
-SG105A	SG	pending	-	none	cataloged (not asserted)
-SG106A	SG	pending	-	none	cataloged (not asserted)
-SG201A	SG	pending	-	none	cataloged (not asserted)
-SG202A	SG	pending	-	none	cataloged (not asserted)
-SG203A	SG	pending	-	none	cataloged (not asserted)
-SG204A	SG	pending	-	none	cataloged (not asserted)
+SG101A	SG	green	-	valid	-
+SG102A	SG	green	-	valid	-
+SG103A	SG	green	-	valid	-
+SG104A	SG	green	-	valid	-
+SG105A	SG	green	-	valid	-
+SG106A	SG	green	-	valid	-
+SG201A	SG	green	-	valid	-
+SG202A	SG	green	-	valid	-
+SG203A	SG	green	-	valid	-
+SG204A	SG	green	-	valid	-
 SG302M	SG	pending	-	none	cataloged (not asserted)
 SG303M	SG	pending	-	none	cataloged (not asserted)
 SG401M	SG	pending	-	none	cataloged (not asserted)

@@ -79,31 +79,31 @@
            MOVE ALL "Z" TO RL-LONG
            MOVE "ABCDE" TO RL-SHORT
            MOVE 1 TO RL-KEY
-           WRITE RL-SHORT
+           WRITE RL-SHORT INVALID KEY CONTINUE END-WRITE
            DISPLAY "R1 WRITE=" RL-ST
            MOVE ALL "Y" TO RL-LONG
            MOVE 2 TO RL-KEY
-           WRITE RL-SHORT FROM WS-SRC
+           WRITE RL-SHORT FROM WS-SRC INVALID KEY CONTINUE END-WRITE
            DISPLAY "R2 WRITE=" RL-ST
            CLOSE RL
            OPEN I-O RL
            MOVE 1 TO RL-KEY
-           READ RL
+           READ RL INVALID KEY CONTINUE END-READ
            MOVE ALL "X" TO RL-LONG
            MOVE "klmno" TO RL-SHORT
-           REWRITE RL-SHORT
+           REWRITE RL-SHORT INVALID KEY CONTINUE END-REWRITE
            DISPLAY "R1 REWRITE=" RL-ST
            MOVE ALL "W" TO RL-LONG
            MOVE 2 TO RL-KEY
-           REWRITE RL-SHORT FROM WS-SRC
+           REWRITE RL-SHORT FROM WS-SRC INVALID KEY CONTINUE END-REWRITE
            DISPLAY "R2 REWRITE=" RL-ST
            CLOSE RL
            OPEN INPUT RL
            MOVE 1 TO RL-KEY
-           READ RL
+           READ RL INVALID KEY CONTINUE END-READ
            DISPLAY "R1 READ=" RL-ST " [" RL-LONG "]"
            MOVE 2 TO RL-KEY
-           READ RL
+           READ RL INVALID KEY CONTINUE END-READ
            DISPLAY "R2 READ=" RL-ST " [" RL-LONG "]"
            CLOSE RL
       *> Indexed file: WRITE and REWRITE with a key shorter than the record.
@@ -111,21 +111,21 @@
            MOVE ALL "Z" TO XF-LONG
            MOVE "KEY" TO XF-K
            MOVE "ab" TO XF-SJ
-           WRITE XF-SHORT
+           WRITE XF-SHORT INVALID KEY CONTINUE END-WRITE
            DISPLAY "X1 WRITE=" XF-ST
            CLOSE XF
            OPEN I-O XF
            MOVE "KEY" TO XF-K
-           READ XF
+           READ XF INVALID KEY CONTINUE END-READ
            DISPLAY "X1 READ=" XF-ST " [" XF-LONG "]"
            MOVE ALL "W" TO XF-REST
            MOVE "KEY" TO XF-K
-           REWRITE XF-SHORT
+           REWRITE XF-SHORT INVALID KEY CONTINUE END-REWRITE
            DISPLAY "X1 REWRITE=" XF-ST
            CLOSE XF
            OPEN INPUT XF
            MOVE "KEY" TO XF-K
-           READ XF
+           READ XF INVALID KEY CONTINUE END-READ
            DISPLAY "X1 READ2=" XF-ST " [" XF-LONG "]"
            CLOSE XF
       *> Record sequential, DEPENDING ON: WRITE, then REWRITE of the record.
@@ -136,7 +136,7 @@
            WRITE VF-SHORT
            CLOSE VF
            OPEN I-O VF
-           READ VF
+           READ VF AT END CONTINUE END-READ
            DISPLAY "V1 READ=" VF-ST " LEN=" VF-LEN
                    " [" VF-LONG (1:VF-LEN) "]"
            MOVE ALL "Q" TO VF-LONG
@@ -146,7 +146,7 @@
            DISPLAY "V1 REWRITE=" VF-ST
            CLOSE VF
            OPEN INPUT VF
-           READ VF
+           READ VF AT END CONTINUE END-READ
            DISPLAY "V1 READ2=" VF-ST " LEN=" VF-LEN
                    " [" VF-LONG (1:VF-LEN) "]"
            CLOSE VF

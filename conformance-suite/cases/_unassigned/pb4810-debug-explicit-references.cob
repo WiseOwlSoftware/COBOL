@@ -97,7 +97,8 @@
            DISPLAY "3 MOVE TO RK".
            MOVE 1 TO RK.
            MOVE "AAAA" TO FR.
-           WRITE FR.
+           WRITE FR INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE F.
            OPEN I-O F.
            DISPLAY "4 START".

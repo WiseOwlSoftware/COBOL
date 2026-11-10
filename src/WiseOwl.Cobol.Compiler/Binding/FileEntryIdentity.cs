@@ -23,8 +23,11 @@ internal static class FileEntryIdentity
     /// <c>SOURCE IS</c> operands of j)/k) ("each data-name-6" / "each data-name-3") enter as the record-key-name
     /// followed by each operand's own entry in order (kb/Work PB1099). Every segment is built from the bound <see cref="FileModel"/>; kb/Work
     /// PB1079 measured c), d), g), j)'s and k)'s descriptions and locations, and k)'s SUPPRESS WHEN missing from it,
-    /// so a mismatch in any of them ran the activated program with no condition.</summary>
-    public static string Of(FileModel f)
+    /// so a mismatch in any of them ran the activated program with no condition.
+    /// <para>⛔ The SAME segments decide the rule at compile time for the describers of one compilation group
+    /// (<see cref="ExternalFileConnectorRules"/>, COBOL6847, kb/Work PB5069), so the compile-time and the run-time checks
+    /// cannot disagree on what "the same specification" is, and a segment added here is checked by both.</para></summary>
+    public static IReadOnlyList<FileEntrySegment> Segments(FileModel f)
     {
         // §2023:12.4.5.3 GR1 j)/k) "The same data description entry for data-name-… as well as their relative location
         // within the associated record": the key's name as written (part of its data description entry), its
@@ -63,14 +66,42 @@ internal static class FileEntryIdentity
         // THREE operands, so the USING data-name is part of the identity, not just the TO target. Consistency rule
         // (the implementor's, GR1 b's second sentence; docs/CONFORMANCE.md §7 DOC-A.1-72): the same data-name
         // spelling, qualifiers included.
-        return $"OPT={f.Optional}|ASSIGN={f.AssignTarget.ToUpperInvariant()}"
-            + $"|USING={CobolNames.UpperFold(string.Join(" OF ", new[] { f.AssignUsingName ?? "" }.Concat(f.AssignUsingQualifiers)))}"
+        return
+        [
+            new("OPT", "the OPTIONAL phrase", $"{f.Optional}"),
+            new("ASSIGN", "the ASSIGN clause", f.AssignTarget.ToUpperInvariant()),
+            new("USING", "the ASSIGN clause's USING phrase",
+                CobolNames.UpperFold(string.Join(" OF ", new[] { f.AssignUsingName ?? "" }.Concat(f.AssignUsingQualifiers)))),
             // c) "Either the STANDARD-1 phrase or a consistent value of feature-name-1" — consistency rule: the same
             // phrase (the clause is declined accept-inert, kb/Work PB292, so the written phrase is all there is).
-            + $"|DELIM={f.RecordDelimiter}|RESERVE={f.ReserveAreas}"
-            + $"|ORG={f.Organization}|ACC={f.AccessMode}|COLL={fileColl};{keyColl}"
-            + $"|KEY={(f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item) : "")}"
-            + $"|ALT={string.Join(",", f.AlternateKeyNames.Select(a => $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}"))}"
-            + $"|SHARE={f.Sharing}|LOCK={(f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : "")}";
+            new("DELIM", "the RECORD DELIMITER clause", f.RecordDelimiter ?? ""),
+            new("RESERVE", "the RESERVE clause", $"{f.ReserveAreas}"),
+            new("ORG", "the organization", $"{f.Organization}"),
+            new("ACC", "the access mode", $"{f.AccessMode}"),
+            new("COLL", "the COLLATING SEQUENCE clauses", $"{fileColl};{keyColl}"),
+            new("KEY", "the RECORD KEY clause", f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item) : ""),
+            new("ALT", "the ALTERNATE RECORD KEY clauses",
+                string.Join(",", f.AlternateKeyNames.Select(a => $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}"))),
+            new("SHARE", "the sharing mode", $"{f.Sharing}"),
+            new("LOCK", "the lock mode", f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : ""),
+            // §1985:VII.2.7.4 GR6 / §2002:12.3.4.3 GR1 h) "The same specification of the PADDING CHARACTER clause" (kb/Work
+            // PB5069): literal-1's character, or data-name-1's corresponding external data item (its identity, the
+            // RELATIVE KEY rule's reading of "the same"). Empty where no clause is written, so the editions that have no
+            // such clause (2014 and later) compare equal.
+            new("PAD", "the PADDING CHARACTER clause", f.Padding switch
+            {
+                null => "",
+                { DataName: { } pn } p => "@" + (p.Item?.ExternalItemIdentity() ?? CobolNames.UpperFold(pn)),
+                { Literal: { } lit } => "=" + lit,
+                _ => "",
+            }),
+        ];
     }
+
+    /// <summary>The identity as one string (<see cref="FileModel.SelectFingerprint"/>), the segments joined in order.</summary>
+    public static string Of(FileModel f) => string.Join("|", Segments(f).Select(s => $"{s.Key}={s.Value}"));
 }
+
+/// <summary>One §2023:12.4.5.3 GR1 item of an external file control entry's identity: its key in the fingerprint, the
+/// clause it is (for a diagnostic), and its value as the entry specifies it.</summary>
+internal readonly record struct FileEntrySegment(string Key, string Clause, string Value);

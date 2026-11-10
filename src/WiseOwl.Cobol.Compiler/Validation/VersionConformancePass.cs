@@ -725,7 +725,29 @@ internal sealed class VersionConformancePass
         public override object? VisitSegmentLimitClause(CobolParserCore.SegmentLimitClauseContext ctx)
         {
             _p.Check(Constructs.SegmentLimitRemoved2002, "the OBJECT-COMPUTER SEGMENT-LIMIT clause");
+            ScreenSegmentNumber(ctx.integerLiteral(), 1, 49, Constructs.SegmentLimitRemoved2002, "the SEGMENT-LIMIT clause",
+                "§1985:XVI.2.3.3 SR1: \"Segment-number must be an integer ranging in value from 1 through 49.\"");
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>⛔ THE SEGMENTATION MODULE'S RANGES (kb/Work PB5084): §1985:XVI.2.3.3 SR1 (SEGMENT-LIMIT, 1 through 49),
+        /// §1985:XVI.3.2.3 SR1 (a section's segment-number, 0 through 99) and SR3 (a declarative section's, less than 50).
+        /// Asked only where the construct row is available (COBOL-85): from 2002 the clause and the number are removed
+        /// (COBOL0902), which is the whole answer there. The number is an <c>integerLiteral</c>, so it is unsigned and
+        /// integral by the grammar; zero is §2023:5.5 1)'s question for SEGMENT-LIMIT (<c>IntegerOperandRules.Slots</c>),
+        /// so only the upper bound can be broken there.</summary>
+        private void ScreenSegmentNumber(CobolParserCore.IntegerLiteralContext? number, int min, int max, string construct,
+            string where, string rule)
+        {
+            if (number is null || !ConstructRegistry.IsAvailable(_p._edition, construct)) return;
+            string text = number.GetText();
+            int value = Segmentation.ValueOf(number);
+            if (value <= max && (value >= min || value == 0)) return;   // a zero below min is the SEGMENT-LIMIT slot's COBOL2386
+            using var _ = Sink.At(number);
+            _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.SegmentNumberOutOfRange.Code, EditionSeverity.Error,
+                DiagnosticCatalog.SegmentNumberOutOfRange.Id,
+                $"{where}: the segment-number {text} is not in the range {min} through {max} — {rule}", where,
+                DiagnosticCatalog.SegmentNumberOutOfRange.IsoSection));
         }
 
         public override object? VisitDebuggingModeClause(CobolParserCore.DebuggingModeClauseContext ctx)
@@ -930,36 +952,25 @@ internal sealed class VersionConformancePass
         /// <summary>F.2 item 133: "An arithmetic expression may now be used as a subscript, not just the forms
         /// data-name + integer and data-name - integer." A COBOL-85 subscript is an integer, or a data-name or
         /// index-name optionally followed by + or - and an integer; any other expression is the 2002 form. Only a
-        /// data reference's own subscripts are asked: a function's argument list is the same rule's node.</summary>
+        /// data reference's own subscripts are asked: a function's argument list is the same rule's node.
+        /// <para>⛔ THE 1985 FORMS ARE ASKED WHOLE (kb/Work PB5074), not by shape alone: integer-1 is an integer that
+        /// "may be signed and, if signed, it must be positive" (§1985:IV.4.3.8.2.3 SR6), and integer-2 and integer-3
+        /// take §1985:III.2's default, "neither signed nor zero". So <c>ELEM (1.5)</c>, <c>ELEM (-1)</c> and
+        /// <c>ELEM (I + 0)</c> are no 1985 subscript: each is an arithmetic expression, the 2002 form. SR5's other
+        /// half, a data-name-2 that is "a numeric elementary item representing an integer", needs the item's
+        /// description and is asked by the binder (<c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c>); both ask <see cref="Cobol85OperandForms"/>.</para></summary>
         public override object? VisitSubscriptPart(CobolParserCore.SubscriptPartContext ctx)
         {
             if (ctx.Parent is CobolParserCore.DataReferenceSuffixContext or CobolParserCore.QualificationContext
                 && ctx.subscriptList() is { } list)
                 foreach (var item in list.subscriptItem())
-                    if (!IsCobol85Subscript(item))
+                    if (!Cobol85OperandForms.IsSubscript(item))
                     {
                         using var _ = Sink.At(item);
                         _p.Check(Constructs.SubscriptArithmeticExpression2002, $"the arithmetic-expression subscript {WrittenSource.Of(item)}");
                     }
             return base.VisitChildren(ctx);
         }
-
-        private static bool IsCobol85Subscript(CobolParserCore.SubscriptItemContext item)
-        {
-            if (item.functionArgument()?.arithmeticExpression() is not { } arith) return true;   // ALL / a non-arithmetic operand: another rule's
-            var terms = arith.additiveExpression().multiplicativeExpression();
-            var first = SolePrimary(terms[0]);
-            return terms.Length switch
-            {
-                1 => first?.numericLiteral() is not null || first?.dataReference() is not null,
-                2 => first?.dataReference() is not null && SolePrimary(terms[1])?.numericLiteral() is not null,
-                _ => false,
-            };
-        }
-
-        /// <summary>The primary a multiplicative term is when it is nothing more: no operator, no unary sign.</summary>
-        private static CobolParserCore.PrimaryExpressionContext? SolePrimary(CobolParserCore.MultiplicativeExpressionContext term) =>
-            term.powerExpression() is [var power] && power.unaryExpression() is [var unary] ? unary.primaryExpression() : null;
 
         /// <summary>F.2 item 139: "The sending operand [of UNSTRING] may be reference modified."</summary>
         public override object? VisitUnstringStatement(CobolParserCore.UnstringStatementContext ctx)
@@ -1119,12 +1130,17 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>A section-header segment-number — the '85 Segmentation module's priority number, deleted
-        /// 2002. Parsed and ignored at 85 (all segments resident — a conforming posture).</summary>
+        /// 2002. At 85 its range is checked here (<see cref="ScreenSegmentNumber"/>); the binder reads the number into the
+        /// section (<see cref="Segmentation.OfHeader"/>) for the module's flow restrictions and the initial state of an
+        /// independent segment (VCR row 7.18, kb/Work PB5084).</summary>
         public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
         {
             if (ctx.integerLiteral() is not null)
                 _p.Check(Constructs.SegmentNumbersRemoved2002,
                     $"the segment-number on section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
+            ScreenSegmentNumber(ctx.integerLiteral(), 0, 99, Constructs.SegmentNumbersRemoved2002,
+                $"section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'",
+                "§1985:XVI.3.2.3 SR1: \"The segment-number must be an integer ranging in value from 0 through 99.\"");
             GateLeadingSentences(ctx.sentence(), $"section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
             return base.VisitChildren(ctx);
         }
@@ -1139,6 +1155,9 @@ internal sealed class VersionConformancePass
             if (ctx.integerLiteral() is not null)
                 _p.Check(Constructs.SegmentNumbersRemoved2002,
                     $"the segment-number on declarative section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
+            ScreenSegmentNumber(ctx.integerLiteral(), 0, 49, Constructs.SegmentNumbersRemoved2002,
+                $"declarative section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'",
+                "§1985:XVI.3.2.3 SR3: \"Sections in the declaratives must contain segment-numbers less than 50.\"");
             if (!_debuggingModeDeclared
                 && ctx.sentence() is { Length: > 0 } sentences
                 && sentences[0].statement() is { Length: 1 } first
@@ -1258,7 +1277,7 @@ internal sealed class VersionConformancePass
             {
                 string? where = HasAncestor<CobolParserCore.LinkageSectionContext>(ctx) ? "the linkage section"
                     : HasAncestor<CobolParserCore.FileSectionContext>(ctx) ? "the file section"
-                    : EntryHasExternal(ctx) ? "an EXTERNAL data item" : null;
+                    : InExternalRecord(ctx) ? "an EXTERNAL data item" : null;
                 if (where is not null)
                     _p.Check(Constructs.ValueClauseLinkageFileExternal2002, $"a VALUE clause in {where}");
             }
@@ -1404,20 +1423,52 @@ internal sealed class VersionConformancePass
         private static bool EntryHasStrongTypedef(Antlr4.Runtime.RuleContext ctx) =>
             EntryHasClause(ctx, c => c.typedefClause()?.STRONG() is not null);
 
-        /// <summary>Whether the dataDescriptionEntry enclosing <paramref name="ctx"/> writes the EXTERNAL clause (F.2 item
-        /// 145's third subject).</summary>
-        private static bool EntryHasExternal(Antlr4.Runtime.RuleContext ctx) =>
-            EntryHasClause(ctx, c => c.externalClause() is not null);
-
-        /// <summary>The one sibling scan over the enclosing entry's <c>dataDescriptionClauses</c> list.</summary>
-        private static bool EntryHasClause(Antlr4.Runtime.RuleContext ctx, Func<CobolParserCore.DataDescriptionClauseContext, bool> test)
+        /// <summary>Whether the dataDescriptionEntry enclosing <paramref name="ctx"/> is part of the description or
+        /// redefinition of an external data record (F.2 item 145's third subject). ⛔ THE RECORD, NOT THE ENTRY (kb/Work
+        /// PB5072): §1985:VI.5.15.3 SR4 reads "The VALUE clause must not be specified in any entry which is part of the
+        /// description or redefinition of an external data record", and §1985:X.4.5.3 SR3 "in any data description entry
+        /// that includes, or is subordinate to an entry that includes, the EXTERNAL clause". EXTERNAL is written on a record
+        /// description entry, the record's level-01 entry (§1985:X.4.5.3 SR1, SR2), so asking the VALUE clause's own entry let every subordinate entry
+        /// through. The entries of a section are one flat list, so the record is the nearest level-01 or level-77 entry at
+        /// or before this one; a level-01 entry that REDEFINES an external record is a redefinition of it.</summary>
+        private static bool InExternalRecord(Antlr4.Runtime.RuleContext ctx)
         {
-            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
-                if (a is CobolParserCore.DataDescriptionEntryContext e)
-                    return e.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
-                        ?.Any(test) ?? false;
+            if (EnclosingEntry(ctx) is not { Parent: Antlr4.Runtime.ParserRuleContext section } entry) return false;
+            var entries = section.GetRuleContexts<CobolParserCore.DataDescriptionEntryContext>();
+            int at = Array.IndexOf(entries, entry);
+            while (at >= 0 && LevelOf(entries[at]) is not (1 or 77)) at--;
+            if (at < 0) return false;
+            var record = entries[at];
+            if (HasClause(record, c => c.externalClause() is not null)) return true;
+            // 01 R REDEFINES X: the redefined record of the same section decides (§1985:VI.5.15.3 SR4's "redefinition").
+            var redefines = record.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
+                ?.Select(c => c.redefinesClause()).FirstOrDefault(r => r is not null);
+            if (redefines?.dataReference().cobolWord()?.GetText() is not { } redefined) return false;
+            for (int i = at - 1; i >= 0; i--)
+                if (LevelOf(entries[i]) is 1 && entries[i].dataName()?.GetText() is { } name
+                    && CobolNames.Same(name, redefined))
+                    return HasClause(entries[i], c => c.externalClause() is not null);
             return false;
         }
+
+        private static CobolParserCore.DataDescriptionEntryContext? EnclosingEntry(Antlr4.Runtime.RuleContext ctx)
+        {
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.DataDescriptionEntryContext e) return e;
+            return null;
+        }
+
+        private static int? LevelOf(CobolParserCore.DataDescriptionEntryContext e) =>
+            int.TryParse(e.levelNumber()?.GetText(), System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out int level) ? level : null;
+
+        /// <summary>The one sibling scan over an entry's <c>dataDescriptionClauses</c> list.</summary>
+        private static bool HasClause(CobolParserCore.DataDescriptionEntryContext e, Func<CobolParserCore.DataDescriptionClauseContext, bool> test) =>
+            e.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()?.Any(test) ?? false;
+
+        /// <summary>The one sibling scan over the enclosing entry's <c>dataDescriptionClauses</c> list.</summary>
+        private static bool EntryHasClause(Antlr4.Runtime.RuleContext ctx, Func<CobolParserCore.DataDescriptionClauseContext, bool> test) =>
+            EnclosingEntry(ctx) is { } e && HasClause(e, test);
 
         /// <summary>The report-group PRESENT WHEN clause (ISO §2023:13.18.41 Format 1; P10 Step 13) — a COBOL-2002
         /// introduction (the 2002 RW modernization; PRESENT itself is §2023:8.9-reserved "added 2002").
@@ -2053,14 +2104,15 @@ internal sealed class VersionConformancePass
                     _p.Check(Constructs.EndDisplay2002, "the DISPLAY statement");
                     break;
                 }
-            // ISO/IEC 1989:2002 Annex F.2 item 46: "If the literal in a DISPLAY statement is numeric, it may be signed"
-            // (display-signed-numeric-literal-2002; kb/Work PB4305).
+            // §1985:VI.6.10.3 SR2: "If literal-1 is numeric, then it must be an unsigned integer." ISO/IEC 1989:2002 Annex F.2
+            // item 46 lifts the sign half ("If the literal in a DISPLAY statement is numeric, it may be signed") and its
+            // 14.8.10.2 prints no rule on the literal at all, so one row answers both halves: a signed literal, and one with
+            // a digit position right of the decimal point (display-numeric-literal-2002; kb/Work PB4305, PB5074).
             foreach (var literal in ctx.literal())
-                if (literal.numericLiteral()?.signedNumericLiteral() is { } n
-                    && (n.PLUS() ?? n.MINUS() ?? n.numericLiteralCore().SIGNED_INTEGERLIT() ?? n.numericLiteralCore().SIGNED_DECIMALLIT()) is not null)
+                if (literal.numericLiteral()?.signedNumericLiteral() is { } n && !Cobol85OperandForms.IsUnsignedIntegerLiteral(n))
                 {
                     using var _ = Sink.At(literal);
-                    _p.Check(Constructs.DisplaySignedNumericLiteral2002, $"the signed numeric literal {WrittenSource.Of(literal)} as a DISPLAY operand");
+                    _p.Check(Constructs.DisplayNumericLiteral2002, $"the numeric literal {WrittenSource.Of(literal)}, which is not an unsigned integer, as a DISPLAY operand");
                 }
             return base.VisitChildren(ctx);
         }

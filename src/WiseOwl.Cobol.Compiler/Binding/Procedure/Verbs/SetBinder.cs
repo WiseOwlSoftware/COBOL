@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -1379,6 +1380,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         }
         // §2023:14.9.39.3 SR2 — the sending alternative, classified ONCE for every receiver (kb/Work PB212).
         if (IndexAssignmentSenderOf(recvs, sender) is not { } alternative) return BoundRejected.Reported(ctx.Edition);
+        GateCobol85IndexAmount(amount, upDown: false);
         var targets = new List<BoundSetTarget>();
         bool admitted = true;
         foreach (var dref in recvs)
@@ -1514,6 +1516,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 _fmt.ReportNoFormat(recvs, kinds, SetDirections.UpDown, DataBinder.WrittenText(amount));
                 return BoundRejected.Reported(ctx.Edition);
         }
+        GateCobol85IndexAmount(amount, upDown: true);
         var targets = new List<BoundSetTarget>();
         foreach (var dref in recvs)
         {
@@ -1521,6 +1524,37 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             targets.Add(t);
         }
         return new BoundSetUpDown(targets, host.Expr.BindIndexWindowExpr(amount), down);
+    }
+
+    /// <summary>⛔ THE X3.23-1985 SENDING OPERANDS OF FORMATS 1 AND 2 (kb/Work PB5074). §1985:VI.6.23.2 prints Format 1's
+    /// sender as <c>{ index-name-2 | identifier-2 | integer-1 }</c> and Format 2's amount as <c>{ identifier-3 | integer-2 }</c>,
+    /// held to §1985:VI.6.23.3 SR2 ("Identifier-1 and identifier-2 must each reference an index data item or an elementary
+    /// item described as an integer"), SR3 ("Identifier-3 must reference an elementary numeric integer") and SR4
+    /// ("Integer-1 and integer-2 may be signed. Integer-1 must be positive."), with §1985:III.2's "neither signed nor zero
+    /// unless explicitly allowed". ISO/IEC 1989:2002 prints arithmetic-expression-1 and arithmetic-expression-2 in those
+    /// positions (14.8.35.1), so any other operand, a non-integer literal or item, a zero or negative integer-1, an
+    /// expression, is the 2002 form: row <c>set-arithmetic-expression-2002</c>, asked once per statement, after the
+    /// format is selected (a statement no format admits is refused already).</summary>
+    private void GateCobol85IndexAmount(Core.ArithmeticExpressionContext amount, bool upDown)
+    {
+        if (ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.SetArithmeticExpression2002)
+            || IsCobol85IndexAmount(amount, upDown)) return;
+        using var _ = ctx.Edition.At(amount);
+        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.SetArithmeticExpression2002,
+            $"the SET {(upDown ? "UP BY or DOWN BY" : "TO")} operand {DataBinder.WrittenText(amount)}");
+    }
+
+    /// <summary>Whether <paramref name="amount"/> is one of the 1985 operands <see cref="GateCobol85IndexAmount"/> names: an
+    /// integer literal with the sign its position admits, or a data reference to an index-name, an index data item or an
+    /// elementary numeric integer (an item the reference does not resolve, or one of another class, is refused by its own
+    /// rule and is not asked here).</summary>
+    private bool IsCobol85IndexAmount(Core.ArithmeticExpressionContext amount, bool upDown)
+    {
+        if (amount.additiveExpression().multiplicativeExpression() is not [var term]
+            || term.powerExpression() is not [var power] || power.unaryExpression() is not [var unary]) return false;
+        if (unary.primaryExpression()?.dataReference() is not { } dref)
+            return Cobol85OperandForms.IsInteger(unary, upDown ? Cobol85IntegerSign.Any : Cobol85IntegerSign.Positive);
+        return ctx.Refs.ProbeDeclaration(dref) is not { Pic: { Category: PicCategory.Numeric, Scale: > 0 } };
     }
 
     /// <summary>SET Format 14 (ISO §2023:14.9.39.2; OCCURS DYNAMIC, data-model D9) — <c>SET data-name-2

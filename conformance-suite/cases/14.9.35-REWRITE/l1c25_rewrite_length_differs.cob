@@ -68,36 +68,60 @@
        MAIN-PARA.
            OPEN OUTPUT R-FILE X-FILE.
            MOVE 1 TO R-KEY. MOVE 10 TO R-LN.
-           MOVE ALL "A" TO R-REC. WRITE R-REC.
+           MOVE ALL "A" TO R-REC. WRITE R-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            MOVE 2 TO R-KEY. MOVE 15 TO R-LN.
-           MOVE ALL "C" TO R-REC. WRITE R-REC.
+           MOVE ALL "C" TO R-REC. WRITE R-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            MOVE 10 TO X-LN. MOVE "K001" TO X-KEY.
-           MOVE ALL "A" TO X-DATA. WRITE X-REC.
+           MOVE ALL "A" TO X-DATA. WRITE X-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            MOVE 16 TO X-LN. MOVE "K002" TO X-KEY.
-           MOVE ALL "C" TO X-DATA. WRITE X-REC.
+           MOVE ALL "C" TO X-DATA. WRITE X-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE R-FILE X-FILE.
            OPEN I-O R-FILE X-FILE.
            MOVE 1 TO R-KEY. MOVE 15 TO R-LN.
-           MOVE ALL "B" TO R-REC. REWRITE R-REC.
+           MOVE ALL "B" TO R-REC. REWRITE R-REC
+               INVALID KEY CONTINUE END-REWRITE
+           .
            DISPLAY "REL1 REW=" R-ST.
            MOVE 2 TO R-KEY. MOVE 5 TO R-LN.
-           MOVE ALL "D" TO R-REC. REWRITE R-REC.
+           MOVE ALL "D" TO R-REC. REWRITE R-REC
+               INVALID KEY CONTINUE END-REWRITE
+           .
            DISPLAY "REL2 REW=" R-ST.
            MOVE 18 TO X-LN. MOVE "K001" TO X-KEY.
-           MOVE ALL "E" TO X-DATA. REWRITE X-REC.
+           MOVE ALL "E" TO X-DATA. REWRITE X-REC
+               INVALID KEY CONTINUE END-REWRITE
+           .
            DISPLAY "IDX1 REW=" X-ST.
            MOVE 6 TO X-LN. MOVE "K002" TO X-KEY.
-           MOVE ALL "F" TO X-DATA. REWRITE X-REC.
+           MOVE ALL "F" TO X-DATA. REWRITE X-REC
+               INVALID KEY CONTINUE END-REWRITE
+           .
            DISPLAY "IDX2 REW=" X-ST.
            CLOSE R-FILE X-FILE.
            OPEN INPUT R-FILE X-FILE.
-           MOVE 1 TO R-KEY. MOVE 0 TO R-LN. READ R-FILE.
+           MOVE 1 TO R-KEY. MOVE 0 TO R-LN. READ R-FILE
+               INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "REL1 LN=" R-LN " " R-REC(1:R-LN).
-           MOVE 2 TO R-KEY. MOVE 0 TO R-LN. READ R-FILE.
+           MOVE 2 TO R-KEY. MOVE 0 TO R-LN. READ R-FILE
+               INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "REL2 LN=" R-LN " " R-REC(1:R-LN).
-           MOVE "K001" TO X-KEY. MOVE 0 TO X-LN. READ X-FILE.
+           MOVE "K001" TO X-KEY. MOVE 0 TO X-LN. READ X-FILE
+               INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "IDX1 LN=" X-LN " " X-REC(1:X-LN).
-           MOVE "K002" TO X-KEY. MOVE 0 TO X-LN. READ X-FILE.
+           MOVE "K002" TO X-KEY. MOVE 0 TO X-LN. READ X-FILE
+               INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "IDX2 LN=" X-LN " " X-REC(1:X-LN).
            CLOSE R-FILE X-FILE.
            STOP RUN.

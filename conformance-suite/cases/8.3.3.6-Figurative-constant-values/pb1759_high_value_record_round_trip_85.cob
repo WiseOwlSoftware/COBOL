@@ -71,7 +71,8 @@
            CLOSE SQ.
            OPEN INPUT SQ.
            MOVE SPACES TO SREC.
-           READ SQ.
+           READ SQ AT END CONTINUE END-READ
+           .
            IF SREC = HIGH-VALUES DISPLAY "SQ-R=" FS " HV"
            ELSE DISPLAY "SQ-R=" FS " NOT-HV".
            IF SB = -1 DISPLAY "SQ-B=-1" ELSE DISPLAY "SQ-B-WRONG".
@@ -79,35 +80,43 @@
            OPEN OUTPUT RL.
            MOVE 1 TO RK.
            MOVE HIGH-VALUES TO RREC.
-           WRITE RREC.
+           WRITE RREC INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "RL-W=" FS.
            CLOSE RL.
            OPEN INPUT RL.
            MOVE 1 TO RK.
            MOVE SPACES TO RREC.
-           READ RL.
+           READ RL INVALID KEY CONTINUE END-READ
+           .
            IF RREC = HIGH-VALUES DISPLAY "RL-R=" FS " HV"
            ELSE DISPLAY "RL-R=" FS " NOT-HV".
            IF RN = -1 DISPLAY "RL-N=-1" ELSE DISPLAY "RL-N-WRONG".
            CLOSE RL.
            OPEN OUTPUT IX.
            MOVE HIGH-VALUES TO IREC.
-           WRITE IREC.
+           WRITE IREC INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "ZZZZ" TO IK.
            MOVE 7 TO IB.
-           WRITE IREC.
+           WRITE IREC INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "IX-W=" FS.
            CLOSE IX.
            OPEN INPUT IX.
            MOVE LOW-VALUES TO IK.
-           START IX KEY IS NOT LESS THAN IK.
-           READ IX NEXT RECORD.
+           START IX KEY IS NOT LESS THAN IK
+               INVALID KEY CONTINUE END-START.
+           READ IX NEXT RECORD AT END CONTINUE END-READ
+           .
            DISPLAY "IX-1=" IK " " IB.
-           READ IX NEXT RECORD.
+           READ IX NEXT RECORD AT END CONTINUE END-READ
+           .
            IF IK = HIGH-VALUES DISPLAY "IX-2=HV " IB
            ELSE DISPLAY "IX-2=NOT-HV".
            MOVE HIGH-VALUES TO IK.
-           READ IX KEY IS IK.
+           READ IX KEY IS IK INVALID KEY CONTINUE END-READ
+           .
            IF IREC = HIGH-VALUES DISPLAY "IX-K=" FS " HV"
            ELSE DISPLAY "IX-K=" FS " NOT-HV".
            CLOSE IX.

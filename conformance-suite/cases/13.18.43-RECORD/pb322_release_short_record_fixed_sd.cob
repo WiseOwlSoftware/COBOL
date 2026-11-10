@@ -53,7 +53,7 @@
            SORT SW ASCENDING KEY AK INPUT PROCEDURE IS FEED GIVING OU
            OPEN INPUT OU
            PERFORM 3 TIMES
-               READ OU
+               READ OU AT END CONTINUE END-READ
                DISPLAY "1 [" OU-REC "]"
            END-PERFORM
            CLOSE OU

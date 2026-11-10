@@ -68,7 +68,7 @@
            MOVE 0 TO WS-LEN
            MOVE SPACES TO RL-REC
            OPEN OUTPUT RL
-           WRITE RL-REC
+           WRITE RL-REC INVALID KEY CONTINUE END-WRITE
            DISPLAY "RL W=" WS-ST
            CLOSE RL
            MOVE 99 TO WS-LEN

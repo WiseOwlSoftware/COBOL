@@ -302,12 +302,14 @@ public sealed class ClauseOperandQualificationSpecTests
             MOVE 2 TO RK OF G-B.
             MOVE 9 TO RK OF G-A.
             MOVE "BBBB" TO R-REC.
-            WRITE R-REC.
+            WRITE R-REC INVALID KEY CONTINUE END-WRITE
+            .
             CLOSE RELF.
             OPEN INPUT RELF.
             MOVE 2 TO RK OF G-B.
             MOVE 9 TO RK OF G-A.
-            READ RELF.
+            READ RELF INVALID KEY CONTINUE END-READ
+            .
             DISPLAY "GOT=" R-REC.
             CLOSE RELF.
             STOP RUN.

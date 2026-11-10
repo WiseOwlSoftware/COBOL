@@ -59,10 +59,20 @@
        01  FS3  PIC XX.
        01  F    PIC X VALUE "-".
        PROCEDURE DIVISION.
+       DECLARATIVES.
+       U1 SECTION.
+      *> COBOL-85 (1985:IX.4.5.3 SR7) makes AT END or INVALID KEY mandatory where no applicable USE procedure is
+      *> specified: the inner READ and WRITE below are the statements under test and name no such phrase, so this
+      *> procedure is their applicable one. It does nothing.
+           USE AFTER STANDARD EXCEPTION PROCEDURE ON RELF IXG PRT.
+       U1-P.
+           CONTINUE.
+       END DECLARATIVES.
+       MAIN-S SECTION.
        MAIN-P.
            OPEN OUTPUT RELF
            MOVE "AAAA" TO RELF-REC
-           WRITE RELF-REC
+           WRITE RELF-REC INVALID KEY CONTINUE END-WRITE
            CLOSE RELF
            OPEN OUTPUT IXG
            CLOSE IXG

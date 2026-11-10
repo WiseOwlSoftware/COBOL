@@ -73,8 +73,6 @@ GREENFIELD = [
 #: file is valid C# the product writes on purpose, and is not reshaped to dodge a tool's parser (CLAUDE.md rule 4).
 WHOLE_FILE_UNREADABLE = {
     "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs": "first failing member: MultipleLineOperands (line 1586)",
-    "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs":
-        "first failing members: PictureConstructId and UsageConstructId (lines 487-534), conditional chains over `is` patterns",
     "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs":
         "first failing member: Owners (line 253), a dictionary initializer of collection expressions with `with { .. }`",
     "src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs":

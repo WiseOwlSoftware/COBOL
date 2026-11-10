@@ -43,12 +43,12 @@
            OPEN OUTPUT RL
            MOVE 3 TO RK
            MOVE "REL-REC-03" TO RL-REC
-           WRITE RL-REC
+           WRITE RL-REC INVALID KEY CONTINUE END-WRITE
            CLOSE RL
            OPEN INPUT RL
            MOVE SPACES TO RL-REC
            MOVE 3 TO RK
-           READ RL
+           READ RL INVALID KEY CONTINUE END-READ
            DISPLAY RL-REC
            CLOSE RL
            STOP RUN.

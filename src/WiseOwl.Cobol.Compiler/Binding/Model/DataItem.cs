@@ -437,6 +437,24 @@ public sealed class DataItem
         "ExpandType / ExpandSameAs write it under ISO §2023:13.18.22.4 GR3 with the GR2 level-1 check — a derived effect, never a verbatim copy")]
     public bool ExternalFromType { get; set; }
 
+    /// <summary>The "corresponding external data item" identity of this item (ISO §2023:14.8.4.2; §1985:VIII.2.4.4 GR8's "that
+    /// same external data item"): the dotted qualified path from its EXTERNAL root (the root carries the EXTERNAL clause or an
+    /// external TYPE), i.e. the externalized name plus the sub-path; null when the item is NOT an external data item. Two
+    /// file-referencing items are the SAME corresponding external item iff their identities are equal. Keyed by the
+    /// data-name, as the run-unit ExternalStore cell key is (the rare AS-literal externalized name is not honored there
+    /// either). Read by the external file connector rules (<c>ExternalFileConnectorRules</c>), the entry identity
+    /// (<c>FileEntryIdentity</c>) and the emitted external descriptor (<c>OoEmitter</c>; kb/Work PB2418).</summary>
+    public string? ExternalItemIdentity()
+    {
+        var path = new List<string>();
+        var r = this;
+        while (r.Parent is not null) { path.Add(r.CobolName ?? "?"); r = r.Parent; }
+        if (!(r.HasExternalClause || r.ExternalFromType)) return null;   // root is not an external data item
+        path.Add(r.CobolName ?? "?");
+        path.Reverse();
+        return CobolNames.UpperFold(string.Join(".", path));
+    }
+
     /// <summary>True when this level-01 entry carries a CONSTANT RECORD clause (ISO §2023:13.18.15) — a STRUCTURED
     /// CONSTANT: its content is that of an INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT (§2023:13.18.15.4 GR1),
     /// which is NOT the ordinary initial state — a VALUE-less numeric-edited item holds its edited zero, no OPTIONS

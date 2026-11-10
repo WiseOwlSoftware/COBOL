@@ -106,6 +106,11 @@ public sealed partial class FileControlBinder
             ResolveFileCollating(file);   // §2023:12.4.5.7 — per-key collating weights (needs the resolved keys)
             if (file.RelativeKeyName is { } rl)
                 file.RelativeKeyItem = _host.ResolveClauseOperand(rl, file.RelativeKeyQualifiers, "RELATIVE KEY", file.RelativeKeyAt);
+            if (file.Padding is { DataName: { } pn } pad)
+            {
+                pad.Item = _host.ResolveClauseOperand(pn, pad.Qualifiers, "PADDING CHARACTER", pad.At);
+                ScreenPaddingDataName(pad);
+            }
             ResolveAssignUsing(file);   // §2023:12.4.5.3 GR3 b + §2023:12.4.5.2 SR7
             // ⛔ THE FILE CONTROL ENTRY'S OWN SYNTAX RULES, screened HERE — at the ENTRY, for EVERY declared file,
             // whatever the procedure division does with it. They used to run from KeyedIoBinder on the first keyed
@@ -126,6 +131,7 @@ public sealed partial class FileControlBinder
             RecordClauseRules.Screen(file, Edition);
             ResolveLinage(file);   // §2023:13.18.34 — the logical-page operands and §2023:13.18.34.3's syntax rules
         }
+        ResolveValueOfDataNames();   // §1985:VII.3.9.3 SR1, SR2 (kb/Work PB5070)
         ResolveApplyCommit();   // §2023:12.4.6.3.3 — its identifiers, and SR9's FILE STATUS / LINAGE / RECORD items resolved above
     }
 

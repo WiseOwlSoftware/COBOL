@@ -95,8 +95,10 @@
        PROCEDURE DIVISION.
        MAIN.
            OPEN OUTPUT RL.
-           MOVE 1 TO RK. MOVE "REL1AAAA" TO RR. WRITE RR.
-           MOVE 7 TO RK. MOVE "REL7BBBB" TO RR. WRITE RR.
+           MOVE 1 TO RK. MOVE "REL1AAAA" TO RR. WRITE RR INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE 7 TO RK. MOVE "REL7BBBB" TO RR. WRITE RR INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "RL-MAKE=" FR.
            CLOSE RL.
            OPEN I-O SQ.
@@ -108,7 +110,8 @@
            CLOSE SQ.
            OPEN I-O RL.
            DISPLAY "RL-OPEN=" FR.
-           MOVE 7 TO RK. READ RL.
+           MOVE 7 TO RK. READ RL INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "RL-READ7=" FR " " RR.
            MOVE 5 TO RK. READ RL INVALID KEY DISPLAY "RL-READ5 INVALID".
            DISPLAY "RL-READ5=" FR.
@@ -120,8 +123,10 @@
            OPEN INPUT XR.
            DISPLAY "IX-OVER-RL=" FX.
            OPEN OUTPUT IX.
-           MOVE "K002SEC " TO IX-R. WRITE IX-R.
-           MOVE "K001FST " TO IX-R. WRITE IX-R.
+           MOVE "K002SEC " TO IX-R. WRITE IX-R INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE "K001FST " TO IX-R. WRITE IX-R INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "IX-MAKE=" FI.
            CLOSE IX.
            OPEN I-O RI.
@@ -129,7 +134,8 @@
            OPEN I-O SI.
            DISPLAY "SQ-IX=" FT.
            OPEN INPUT IX.
-           MOVE "K001" TO IX-K. READ IX.
+           MOVE "K001" TO IX-K. READ IX INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "IX-READ1=" FI " " IX-D.
            MOVE "K009" TO IX-K. READ IX INVALID KEY DISPLAY "IX-READ9 INVALID".
            DISPLAY "IX-READ9=" FI.

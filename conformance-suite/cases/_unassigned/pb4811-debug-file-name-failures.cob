@@ -126,9 +126,11 @@
            CLOSE SF.
            OPEN OUTPUT KF.
            MOVE "AAA11111" TO KREC.
-           WRITE KREC.
+           WRITE KREC INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "BBB22222" TO KREC.
-           WRITE KREC.
+           WRITE KREC INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE KF.
            OPEN OUTPUT KU.
            MOVE "AAA11111" TO UREC.
@@ -141,11 +143,13 @@
            OPEN I-O KF.
            MOVE "ZZZ" TO KK.
            DISPLAY "START KF ZZZ, no phrase".
-           START KF KEY = KK.
+           START KF KEY = KK INVALID KEY CONTINUE END-START
+           .
            DISPLAY "FS2 " FS2.
            MOVE "QQQ" TO KK.
            DISPLAY "DELETE KF QQQ, no phrase".
-           DELETE KF.
+           DELETE KF INVALID KEY CONTINUE END-DELETE
+           .
            DISPLAY "FS2 " FS2.
            CLOSE KF.
            OPEN I-O KU.

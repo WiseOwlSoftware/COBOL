@@ -8,6 +8,6 @@
  "removedIn": 2002,
  "vcr": "VCR Table 7 (obsolete-85 element removed 2002)",
  "status": "active",
- "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMBGT.\nPROCEDURE DIVISION.\nP1.\n    GO TO.\n    STOP RUN.\n",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMBGT.\nPROCEDURE DIVISION.\nP0.\n    STOP RUN.\nP1.\n    GO TO.\n",
  "expectDiagnostic": "COBOL0811"
 }

@@ -9304,6 +9304,176 @@ public static class DiagnosticCatalog
         + "§2023:13.18.54.4 GR6.)",
         "ISO §1985:XIII.3.19.3 SR1");
 
+    /// <summary>COBOL6817 — an X3.23-1985 STOP literal-1 that is an ALL figurative constant or a numeric literal other than
+    /// an unsigned integer (kb/Work PB5074). Emitted by ControlFlowBinder.ScreenStopLiteral where the STOP literal statement
+    /// exists (COBOL-85; from 2002 the statement is COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor StopLiteralOperand = new(
+        "COBOL6817", "stop-literal-operand", EditionSeverity.Error,
+        "The literal of an X3.23-1985 STOP literal statement breaks one of its syntax rules. §1985:VI.6.24.3 SR1: "
+        + "\"Literal-1 must not be a figurative constant that begins with the word ALL.\" SR3: \"If literal-1 is numeric, "
+        + "then it must be an unsigned integer.\" A signed numeric literal, or one with a digit position right of the "
+        + "decimal point, is not an unsigned integer.",
+        "X3.23-1985 STOP statement syntax rules 1 and 3 (§1985:VI.6.24.3)");
+
+    /// <summary>COBOL6818 — an X3.23-1985 target-less GO TO (no procedure-name-1) that is not the whole of a single statement
+    /// paragraph (kb/Work PB5087). Emitted by PlacementRules.RefusedOutOfSequence (the BareGoToAlone row) where the statement
+    /// exists (COBOL-85; from 2002 it is COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor BareGoToNotAlone = new(
+        "COBOL6818", "bare-go-to-not-alone", EditionSeverity.Error,
+        "An X3.23-1985 GO TO statement without a procedure-name is written beside another statement or sentence of its "
+        + "paragraph. §1985:VI.6.15.3 SR3: \"A format 1 GO TO statement, without procedure-name-1, can only appear in a "
+        + "single statement paragraph.\" Such a GO TO takes its target from an ALTER statement, whose procedure-name-1 "
+        + "names a paragraph that is that one GO TO statement.",
+        "X3.23-1985 GO TO statement syntax rule 3 (§1985:VI.6.15.3)");
+
+    /// <summary>COBOL6819 — an X3.23-1985 segment-number outside the range the Segmentation module gives it (kb/Work PB5084):
+    /// SEGMENT-LIMIT 1 through 49, a section 0 through 99, a declarative section less than 50. Emitted by
+    /// VersionConformancePass.ParseArm.ScreenSegmentNumber where the module's constructs exist (COBOL-85; from 2002 they are
+    /// COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor SegmentNumberOutOfRange = new(
+        "COBOL6819", "segment-number-out-of-range", EditionSeverity.Error,
+        "An X3.23-1985 segment-number is outside the range its syntax rule allows. §1985:XVI.2.3.3 SR1 (SEGMENT-LIMIT): "
+        + "\"Segment-number must be an integer ranging in value from 1 through 49.\" §1985:XVI.3.2.3 SR1: \"The segment-number "
+        + "must be an integer ranging in value from 0 through 99.\" SR3: \"Sections in the declaratives must contain "
+        + "segment-numbers less than 50.\"",
+        "X3.23-1985 Segmentation module syntax rules (§1985:XVI.2.3.3 SR1; §1985:XVI.3.2.3 SR1, SR3)");
+    /// <summary>COBOL6826 — a READ, WRITE, REWRITE, DELETE or START that omits the phrase COBOL-85 makes mandatory when no applicable
+    /// USE AFTER STANDARD EXCEPTION procedure is specified (kb/Work PB5076). Each 1985 I-O module words it once per statement
+    /// and organization: §1985:VII.4.4.3 SR2 (a sequential READ: AT END), §1985:VIII.4.5.3 SR5 and §1985:IX.4.5.3 SR7 (a relative or
+    /// indexed READ: INVALID KEY or AT END), §1985:VIII.4.9.3 SR3 and §1985:IX.4.9.3 SR3 (WRITE), §1985:VIII.4.6.3 SR4 and
+    /// §1985:IX.4.6.3 SR3 (REWRITE), §1985:VIII.4.3.3 SR2 and §1985:IX.4.3.3 SR2 (DELETE), §1985:VIII.4.7.3 SR3 and §1985:IX.4.7.3 SR3
+    /// (START). COBOL-2002 and later print no such rule: their general rules say where control goes when the exception
+    /// has no phrase and no declarative to take it (§2023:14.9.30.4 GR24 d)).</summary>
+    public static readonly DiagnosticDescriptor IoExceptionPhraseRequired = new(
+        "COBOL6826", "io-exception-phrase-required", EditionSeverity.Error,
+        "§1985:IX.4.5.3 SR7: \"The INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER "
+        + "STANDARD EXCEPTION procedure is specified for file-name-1.\" The 1985 module of each organization words the same "
+        + "requirement for READ, WRITE, REWRITE, DELETE and START (the access mode qualifies DELETE and REWRITE: §1985:VIII.4.3.3 "
+        + "SR2, §1985:VIII.4.6.3 SR4). The statement omits the phrase and no USE AFTER STANDARD EXCEPTION procedure of the unit "
+        + "(or a containing program's) names the file or the mode it is opened in. COBOL-2002 and later do not print "
+        + "the requirement.",
+        "ISO §1985:VII.4.4.3 SR2; §1985:VIII.4.5.3 SR5; §1985:IX.4.5.3 SR7; §1985:VIII.4.9.3 SR3; §1985:IX.4.9.3 SR3; "
+        + "§1985:VIII.4.6.3 SR4; §1985:IX.4.6.3 SR3; §1985:VIII.4.3.3 SR2; §1985:IX.4.3.3 SR2; §1985:VIII.4.7.3 SR3; §1985:IX.4.7.3 SR3");
+
+    /// <summary>COBOL6827 — the FROM or INTO operand of a READ, RETURN, WRITE, REWRITE or RELEASE is the file's own record area, at
+    /// the editions that forbid it (kb/Work PB5077). §1985:IX.4.5.3 SR1: "The storage area associated with identifier-1 and the
+    /// record area associated with file-name-1 must not be the same storage area." (READ, RETURN), §1985:IX.4.6.3 SR1: "Record-name-1
+    /// and identifier-1 must not reference the same storage area." (WRITE, REWRITE, RELEASE); COBOL-2002 words both as syntax rules
+    /// too (§2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1, §2002:14.8.30.2 SR2, §2002:14.8.33.2 SR1, §2002:14.8.47.2 SR4). The 2023
+    /// standard replaces them with its overlapping-operand rules (§2023:14.6.10), so a program that shares the storage is
+    /// accepted there with an undefined result.</summary>
+    public static readonly DiagnosticDescriptor IoPhraseOperandIsRecordArea = new(
+        "COBOL6827", "io-phrase-operand-is-record-area", EditionSeverity.Error,
+        "§1985:IX.4.5.3 SR1: \"The storage area associated with identifier-1 and the record area associated with file-name-1 must "
+        + "not be the same storage area.\" (READ INTO and RETURN INTO; §1985:XI.4.3.3 SR1). §1985:IX.4.6.3 SR1: \"Record-name-1 and "
+        + "identifier-1 must not reference the same storage area.\" (WRITE FROM, REWRITE FROM and RELEASE FROM; §1985:XI.4.2.3 SR3). "
+        + "The operand names the file's record area: a record description of the file (all of them redefine the one area), "
+        + "or an item that begins the area and is as long as it. COBOL-2002 keeps both rules (§2002:14.8.29.2 SR2); COBOL-2023 "
+        + "drops them for the overlapping-operand rules of §2023:14.6.10.",
+        "ISO §1985:VII.4.4.3 SR1; §1985:VIII.4.5.3 SR1; §1985:IX.4.5.3 SR1; §1985:VII.4.5.3 SR1; §1985:VIII.4.6.3 SR1; "
+        + "§1985:IX.4.6.3 SR1; §1985:VII.4.7.3 SR1; §1985:VIII.4.9.3 SR1; §1985:IX.4.9.3 SR1; §1985:XI.4.2.3 SR3; §1985:XI.4.3.3 SR1; "
+        + "§2002:14.8.29.2 SR2; §2002:14.8.30.2 SR2; §2002:14.8.32.2 SR1; §2002:14.8.33.2 SR1; §2002:14.8.47.2 SR4");
+    /// <summary>COBOL6823 — GENERATE report-name names a report whose description holds more than one detail report group, at a
+    /// dialect that allows the summary form only for a report with at most one (kb/Work PB5078). §1985:XIII.3.20.3 SR6: "When a
+    /// GENERATE report-name statement is specified in the Procedure Division, the corresponding report description entry must
+    /// include no more than one detail report group." (§1985:XIII.4.3.3 SR2 b says the same.) COBOL-2002 and later keep only
+    /// the CONTROL-clause condition (§2023:14.9.16.3 SR2).</summary>
+    public static readonly DiagnosticDescriptor ReportGenerateDetailCount = new(
+        "COBOL6823", "report-generate-detail-count", EditionSeverity.Error,
+        "§1985:XIII.3.20.3 SR6: \"When a GENERATE report-name statement is specified in the Procedure Division, the "
+        + "corresponding report description entry must include no more than one detail report group.\" (COBOL-2002 and later "
+        + "have no such limit, §2023:14.9.16.3 SR2.)",
+        "ISO §1985:XIII.3.20.3 SR6");
+
+    /// <summary>COBOL6824 — a SUM clause's RESET operand is at the wrong control level for the control footing that holds it
+    /// (kb/Work PB5079). §2023:13.18.54.3 SR8: "If the current report group is a control footing, its level of control shall be
+    /// a lower level than that of data-name-3." The 1985 text allows the footing's own level too — §1985:XIII.3.19.3 SR4:
+    /// "Data-name-2 must not be a lower level control than the associated control for the report group in which the RESET
+    /// phrase appears."</summary>
+    public static readonly DiagnosticDescriptor ReportResetLevel = new(
+        "COBOL6824", "report-reset-level", EditionSeverity.Error,
+        "A RESET ON operand is at a control level the SUM clause's control footing may not reset on: the footing's level of "
+        + "control shall be a lower level than that of data-name-3 (§2023:13.18.54.3 SR8); in COBOL-85 data-name-2 must not be "
+        + "a lower level control than the associated control (§1985:XIII.3.19.3 SR4).",
+        "ISO §2023:13.18.54.3 SR8; ISO §1985:XIII.3.19.3 SR4");
+
+    /// <summary>COBOL6825 — a SOURCE clause of a control footing, page heading, page footing or report footing report group
+    /// references a control data item or storage that shares it, at a dialect that forbids it (kb/Work PB5079). §1985:XIII.3.20.3
+    /// SR5: "In control footing, page heading, page footing, and report footing report groups, SOURCE clauses and associated USE
+    /// statements must not reference any of the following: a. Group data items containing a control data item. b. Data items
+    /// subordinate to a control data item. c. A redefinition or renaming of any part of a control data item. In page heading
+    /// and page footing report groups, SOURCE clauses and USE statements must not reference control data-names." The 2002
+    /// and later texts carry no such restriction.</summary>
+    public static readonly DiagnosticDescriptor ReportSourceControlData = new(
+        "COBOL6825", "report-source-control-data", EditionSeverity.Error,
+        "§1985:XIII.3.20.3 SR5: in control footing, page heading, page footing and report footing report groups a SOURCE clause "
+        + "must not reference a group item containing a control data item, an item subordinate to one, or a redefinition or "
+        + "renaming of any part of one; in page heading and page footing report groups it must not reference a control "
+        + "data-name at all. (COBOL-2002 and later have no such restriction.)",
+        "ISO §1985:XIII.3.20.3 SR5");
+
+    /// <summary>COBOL6847 — two file control entries of one compilation group describe the same EXTERNAL file connector and
+    /// differ in a specification the run unit's entries must share (kb/Work PB5069). Every edition prints the rule:
+    /// §1985:VII.2.3.4 GR1, §1985:VIII.2.3.4 GR1 and §1985:IX.2.3.4 GR1 (OPTIONAL, ASSIGN, RECORD DELIMITER, RESERVE,
+    /// organization, access mode), §1985:VII.2.4.3 GR3 (access mode), §1985:VII.2.7.4 GR6 (PADDING CHARACTER) and
+    /// §1985:IX.2.5.4 GR5 (the record keys); §2002:12.3.4.3 GR1 a) to k); §2023:12.4.5.3 GR1 a) to m). The specifications
+    /// compared are <c>FileEntryIdentity.Segments</c>, the same identity the run time compares across separately compiled
+    /// runtime elements (EC-EXTERNAL-FILE-MISMATCH). Emitted by <c>ExternalFileConnectorRules.Check</c> at the entry that
+    /// differs from the first describer.</summary>
+    public static readonly DiagnosticDescriptor ExternalFileEntryDisagreement = new(
+        "COBOL6847", "external-file-entry-disagreement", EditionSeverity.Error,
+        "Two file control entries of the run unit describe the same external file connector and specify a clause "
+        + "differently. §2023:12.4.5.3 GR1: \"If the file connector referenced by file-name-1 is an external file connector "
+        + "(see 13.18.22, EXTERNAL clause), all file control entries in the run unit that reference this file connector shall "
+        + "have\" the same OPTIONAL phrase, a consistent ASSIGN clause and RECORD DELIMITER phrase, the same RESERVE integer, "
+        + "organization, access mode, COLLATING SEQUENCE clauses, record keys, sharing mode and lock mode. COBOL-85 and "
+        + "COBOL-2002 state the same rule and add the PADDING CHARACTER clause (§1985:VII.2.7.4 GR6, §2002:12.3.4.3 GR1 h)). "
+        + "WiseOwl COBOL's consistency rule for the implementor-defined operands (ASSIGN, RECORD DELIMITER) is the same "
+        + "specification as written. Write the clause the same way in every program that describes the file.",
+        "ISO §2023:12.4.5.3 GR1; §2002:12.3.4.3 GR1; §1985:VII.2.3.4 GR1; §1985:VII.2.4.3 GR3; §1985:VII.2.7.4 GR6; "
+        + "§1985:VIII.2.3.4 GR1; §1985:IX.2.3.4 GR1; §1985:IX.2.5.4 GR5");
+
+    /// <summary>COBOL6848 — the operand of a PADDING CHARACTER clause breaks the clause's syntax rules (kb/Work PB5070):
+    /// literal-1 that is not one alphanumeric character (§1985:VII.2.7.3 SR1, §2002:12.3.4.10.2 SR1), or data-name-1 that is
+    /// not a one-character alphanumeric item of the working-storage, local-storage or linkage section (§1985:VII.2.7.3 SR3,
+    /// §2002:12.3.4.10.2 SR3). Emitted by <c>FileControlBinder.CapturePadding</c>; the clause exists at COBOL-85 and COBOL-2002.</summary>
+    public static readonly DiagnosticDescriptor PaddingCharacterOperand = new(
+        "COBOL6848", "padding-character-operand", EditionSeverity.Error,
+        "The operand of the PADDING CHARACTER clause is not one character. §1985:VII.2.7.3 SR1: \"Literal-1 must be a "
+        + "one-character nonnumeric literal.\" SR3: \"Data-name-1 must be defined in the Data Division as a one-character "
+        + "data item of the category alphanumeric and must not be defined in the Communication Section, the File Section, or "
+        + "the Report Section.\" COBOL-2002 words the same rules (§2002:12.3.4.10.2 SR1, SR3).",
+        "ISO §1985:VII.2.7.3 SR1, SR3; §2002:12.3.4.10.2 SR1, SR3");
+
+    /// <summary>COBOL6849 — an operand of an obsolete COBOL-85 file description clause breaks the clause's syntax rules
+    /// (kb/Work PB5070): a DATA RECORDS data-name that names no 01 record description of the entry (§1985:VII.3.5.3 SR1), or a
+    /// VALUE OF data-name-1 described USAGE IS INDEX or outside the Working-Storage Section (§1985:VII.3.9.3 SR1, SR2). Emitted
+    /// by <c>FileControlBinder.ScreenDataRecords</c> and <c>FileControlBinder.ResolveValueOfDataNames</c>; both clauses exist at
+    /// COBOL-85 and are deleted from COBOL-2002.</summary>
+    public static readonly DiagnosticDescriptor FileDescriptionClauseOperand = new(
+        "COBOL6849", "file-description-clause-operand", EditionSeverity.Error,
+        "An operand of the DATA RECORDS or VALUE OF clause breaks the clause's syntax rules. §1985:VII.3.5.3 SR1: \"Data-name-1 "
+        + "is the name of a data record and must have an 01 level-number record description, with the same name, associated "
+        + "with it.\" §1985:VII.3.9.3 SR1: \"Data-name-1 should be qualified when necessary, but cannot be subscripted, nor can "
+        + "data-name-1 be an item described with the USAGE IS INDEX clause.\" SR2: \"Data-name-1 must be in the "
+        + "Working-Storage Section.\"",
+        "ISO §1985:VII.3.5.3 SR1; §1985:VII.3.9.3 SR1, SR2");
+
+    /// <summary>COBOL6877 — a statement breaks a restriction the X3.23-1985 Segmentation module places on program flow (kb/Work
+    /// PB5084): an ALTER in another segment refers to a GO TO of an independent segment (§1985:XVI.3.3.1), or the procedures a
+    /// PERFORM, SORT or MERGE names span the fixed portion and an independent segment, two independent segments, or an
+    /// independent segment other than the statement's own (§1985:XVI.3.3.2, XVI.3.3.3, XVI.3.3.4). One descriptor for the
+    /// module's four restrictions, as COBOL6819 holds its three ranges. Emitted by
+    /// <c>Segmentation.CheckAlter</c> and <c>Segmentation.CheckProcedures</c> at COBOL-85, the one edition with segment-numbers.</summary>
+    public static readonly DiagnosticDescriptor SegmentationFlowRestriction = new(
+        "COBOL6877", "segmentation-flow-restriction", EditionSeverity.Error,
+        "A statement breaks a restriction on program flow in a segmented program. §1985:XVI.3.3.1: \"A GO TO statement in a "
+        + "section whose segment-number is greater than or equal to 50 must not be referred to by an ALTER statement in a "
+        + "section with a different segment-number.\" The procedures a PERFORM, MERGE or SORT statement names lie wholly in "
+        + "non-independent segments or wholly in one independent segment, the statement's own when it is itself in an "
+        + "independent segment (§1985:XVI.3.3.2, XVI.3.3.3, XVI.3.3.4).",
+        "X3.23-1985 Segmentation module restrictions on program flow (§1985:XVI.3.3.1 through XVI.3.3.4)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

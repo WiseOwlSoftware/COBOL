@@ -165,7 +165,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // statement of its first paragraph through last statement of its last (ISO §2023:14.9.28).
             string sectionName = HeaderName(section.sectionName().procedureName(), "section");
             ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
-            var info = new SectionInfo(sectionName, _paras.Count);
+            var info = new SectionInfo(sectionName, _paras.Count, segment: Segmentation.OfHeader(section.integerLiteral()));
             // §2023:14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
             // the section's first paragraph, so GO TO / PERFORM <section> enters them (§2023:14.9.17/§2023:14.9.28).
             AddAnonymousParagraph(section.sentence(), info, used);
@@ -417,6 +417,18 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// method scope). Every <see cref="AddParagraph"/> appends to all three.</summary>
     public IReadOnlyList<(string Cobol, string Method, Core.SentenceContext[] Sentences)> Paragraphs => _paras;
     public IReadOnlyList<SectionInfo?> ParaSections => _paraSection;
+
+    /// <summary>The COBOL-85 segment-number of each of <paramref name="count"/> pcs (kb/Work PB5084; a paragraph outside every
+    /// section, and an appended handler paragraph, is segment 0), or null when no section is an independent segment: the run
+    /// time needs the map only to return an independent segment to its initial state (§1985:XVI.1.4.3), so a program without
+    /// one keeps the generated source it had.</summary>
+    public IReadOnlyList<int>? SegmentsPerPc(int count)
+    {
+        if (!_paraSection.Any(s => s is { } section && SegmentNumber.IsIndependent(section.Segment))) return null;
+        var segments = new int[count];
+        for (int pc = 0; pc < count && pc < _paraSection.Count; pc++) segments[pc] = _paraSection[pc]?.Segment ?? 0;
+        return segments;
+    }
     public IReadOnlyList<OoMethodScope?> ParaMethods => _paraMethod;
 
     private int _entryPc;
@@ -484,7 +496,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         ctx.Data.DeclareUserWord(name, UserWordKind.SectionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
         // isDeclarative: THE fact §2023:14.9.28.3 SR11 (and GO TO's / ALTER's analogous constraints) asks about,
         // recorded where it is known rather than re-derived from pc arithmetic later.
-        var info = new SectionInfo(name, _paras.Count, isDeclarative: true);
+        var info = new SectionInfo(name, _paras.Count, isDeclarative: true, segment: Segmentation.OfHeader(sec.integerLiteral()));
 
         // SR1: the first sentence consists of exactly one USE statement.
         var leading = sec.sentence();
@@ -968,9 +980,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // statement within the same procedure division. Format 2 names exactly one group per
             // statement, so only the Duplicate verdict is reachable here.
             if (_useReportGroups.Register(group) == ConstructOperand.Duplicate)
+            {
+                using var duplicateAt = ctx.Edition.At(use.reportGroupReference());   // the repeating operand (kb/Work PB5090)
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': report group "
                     + $"'{head}' already has a USE BEFORE REPORTING procedure in this procedure "
                     + "division (ISO §2023:14.9.49.3 SR9)");
+            }
             return new DeclScope([], null, global, group);
         }
         var target = use.useOnTarget();
@@ -989,8 +1004,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // declaratives portion of a given procedure division. Format 1's brace group takes exactly one
             // alternative per statement, so only the Duplicate verdict is reachable here.
             if (_useModes.Register(m) == ConstructOperand.Duplicate)
+            {
+                using var duplicateAt = ctx.Edition.At(target);   // the repeating USE statement's operand (kb/Work PB5090)
                 ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': this open mode already "
                     + "has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR7)");
+            }
             return new DeclScope([], m, global, null);
         }
 
@@ -1021,8 +1039,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 case ConstructOperand.Repeated:
                     continue;
                 case ConstructOperand.Duplicate:
-                    ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': file '{fname}' "
-                        + "already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)");
+                    using (ctx.Edition.At(fn))   // the file-name that repeats (kb/Work PB5090)
+                        ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{sectionName}': file '{fname}' "
+                            + "already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)");
                     continue;   // §2023:14.9.49.4 GR3 recovery — the FIRST declarative keeps the file
             }
             files.Add(file);

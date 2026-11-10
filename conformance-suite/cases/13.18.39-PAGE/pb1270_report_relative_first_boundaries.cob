@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1270_report_relative_first_boundaries
       *> rules: [GR-13.18.39.4-1, GR-13.18.39.4-2, GR-13.18.39.4-4]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -15,7 +15,7 @@
       *> terminate before FIRST DETAIL (5): PH PLUS 1 after RH prints on 3. GR2 g): a page footing begins after FOOTING (9):
       *> PF PLUS 1 prints on 10, its second line PLUS 1 on 11. GR2 a): nothing below the page limit (12): RF PLUS 1 after the
       *> page footing prints ON 12. D1 prints on FIRST DETAIL 5 (GR5 b 3.), its second line PLUS 4 on 9 = LAST DETAIL.
-      *> Nothing here is newer than COBOL-85.
+      *> The page footing's RELATIVE first line is COBOL-2002's: 1985:XIII.3.15.3 SR9 requires it absolute (kb/Work PB5079).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1270R.
        ENVIRONMENT DIVISION.

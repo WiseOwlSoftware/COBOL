@@ -88,11 +88,14 @@
            CLOSE SQF.
            OPEN OUTPUT IXF.
            MOVE "CC" TO IX-KEY. MOVE "ZZ" TO IX-ALT. MOVE "TRI " TO IX-DATA.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "AA" TO IX-KEY. MOVE "ZZ" TO IX-ALT. MOVE "ONE " TO IX-DATA.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "BB" TO IX-KEY. MOVE "YY" TO IX-ALT. MOVE "TWO " TO IX-DATA.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE IXF.
            OPEN INPUT IXF.
            DISPLAY "PRIME WALK:".
@@ -104,8 +107,10 @@
            END-PERFORM.
            CLOSE IXF.
            OPEN OUTPUT RLF.
-           MOVE 1 TO WS-RK. MOVE "ONE " TO RL-REC. WRITE RL-REC.
-           MOVE 2 TO WS-RK. MOVE "TWO " TO RL-REC. WRITE RL-REC.
+           MOVE 1 TO WS-RK. MOVE "ONE " TO RL-REC. WRITE RL-REC INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE 2 TO WS-RK. MOVE "TWO " TO RL-REC. WRITE RL-REC INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE RLF.
            OPEN INPUT RLF.
            MOVE 2 TO WS-RK.

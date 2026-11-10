@@ -170,6 +170,11 @@ public sealed partial class FileControlBinder
                     file.LockMode = MapLockMode(lm);
                 else if (clauses.fileCollatingSequenceClause() is { } col)   // §2023:12.4.5.7 — introduction-gated post-bind; resolved in ResolveFileCollating
                     CaptureFileCollating(file, col);
+                // PADDING CHARACTER (§1985:VII.2.7, §2002:12.3.4.10; deleted from 2014, VersionConformancePass): literal-1's
+                // rule screened as written, data-name-1 resolved and screened post-build (ResolveFiles), and both part of
+                // the external file connector's entry identity (kb/Work PB5069, PB5070).
+                else if (clauses.paddingCharacterClause() is { } pad)
+                    file.Padding = CapturePadding(pad);
                 // RESERVE clause (ISO §2023:12.4.5.14) — integer-1 is the connector's input-output area count
                 // (§2023:12.4.5.14.3 GR1, "If the RESERVE clause is specified, the number of input-output areas allocated
                 // is equal to the value of integer-1"; kb/Work PB643): the emitter tells the connector
