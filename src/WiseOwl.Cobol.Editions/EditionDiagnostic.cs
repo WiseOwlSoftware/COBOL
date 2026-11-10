@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Editions;
 /// </summary>
 /// <param name="Code">The diagnostic code (a 0900–0903 band member, or a pinned 08xx).</param>
 /// <param name="Severity">Error (fails the compile) or Warning (never fails) — from <see cref="EditionSeverityPolicy"/>.</param>
-/// <param name="ConstructId">The <c>constructs.json</c> row id (empty for a non-registry diagnostic).</param>
+/// <param name="ConstructId">The <c>constructs/</c> row id (empty for a non-registry diagnostic).</param>
 /// <param name="Message">The fully-rendered human message.</param>
 /// <param name="Where">Localizer text ("FD OUT-FILE", "paragraph P1", …).</param>
 /// <param name="Citation">ISO § / VCR-row citation.</param>

@@ -1,0 +1,12 @@
+{
+ "id": "remarks-removed-85",
+ "description": "REMARKS paragraph — a pre-1985 comment paragraph that NO held edition has: the CODASYL Journal of Development 1968 deleted it (§1985:A.2.5 item 8), the X3.23-1985 Identification Division general format (§1985:VI.3.2.1.1) prints only PROGRAM-ID, AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED and SECURITY, and ISO 2002 and later print none of the comment paragraphs. The grammar still recognizes it so every edition refuses it by name (COBOL0902) and --permissive keeps a migrated program compiling with a warning (kb/Work PB5026). Its window is empty: removed at the first held edition.",
+ "display": "the REMARKS paragraph",
+ "diagnosticCode": "COBOL0902",
+ "citation": "absent from the X3.23-1985 Identification Division general format (§1985:VI.3.2.1.1), deleted by the CODASYL Journal of Development 1968 (§1985:A.2.5); absent from ISO 2002 and later; VCR Table 7",
+ "introducedIn": 85,
+ "removedIn": 85,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7 row 7.10",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RM2.\nREMARKS. CCVS-STYLE REMARK TEXT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "occurs-dynamic-2014",
+ "description": "OCCURS DYNAMIC — a dynamic-capacity table (§2023:13.18.38 Format 4 / §2023:8.5.1.9), ISO 2014+; below 2014 the OCCURS DYNAMIC clause is COBOL0900. The growable CobolDynTable<T> substrate (data-model D9); the CAPACITY register, SET Format 14, SEARCH over the current capacity, and the variable-length-group operations are greenfield-corpus goldens, not matrix rows.",
+ "display": "OCCURS DYNAMIC (dynamic-capacity table)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.38 Format 4 / §2023:8.5.1.9; CAPACITY register + SET Format 14 + SEARCH over current capacity",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2014 introduction (§2023:13.18.38 Format 4 dynamic-capacity tables)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-TBL.\n   05 W-E PIC 9(3) OCCURS DYNAMIC FROM 2 TO 8.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"OK\".\n    STOP RUN.\n"
+}

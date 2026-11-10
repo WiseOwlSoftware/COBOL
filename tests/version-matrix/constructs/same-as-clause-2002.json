@@ -1,0 +1,13 @@
+{
+ "id": "same-as-clause-2002",
+ "status": "active",
+ "description": "SAME AS clause in a data description entry — the subject takes the SAME description as data-name-1's entry, subordinates included (ISO §2023:13.18.49 GR1/GR2; levels renumber relative to the subject). PROVISIONAL 2002 edge (the TYPEDEF-family decision-1 policy — SAME AS predates 2023 with zero Annex E 2014→2023 rows). LIVE (P10 Step 16): expansion rides the ONE ExpandTypes/CloneItem machinery (ExpandSameAs); §2023:13.16.3 SR12 composition + the §2023:13.18.49.3 SRs enforce as COBOL1555/1556/1557.",
+ "display": "SAME AS clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.49; provisional 2002 per the decision-1 policy (the TYPEDEF-family edge)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard; the TYPEDEF/SAME AS data-description family)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PROTO PIC 9(3).\n01 W SAME AS PROTO.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 7 TO W.\n    DISPLAY W.\n    STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "rounded-mode-is-2014",
+ "description": "The ROUNDED MODE IS phrase (the 8-mode set) — ISO 2014+ (§2023:14.7.4); at 85/2002 bare ROUNDED is the single nearest-away-from-zero rounding",
+ "display": "ROUNDED MODE IS",
+ "diagnosticCode": "COBOL0803",
+ "expectDiagnostic": "COBOL0803",
+ "citation": "ISO §2023:14.7.4; §2023:14.7.4.3 GR1",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "2014 introduction (§2023:14.7.4 rounded-phrase modes)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RM.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W ROUNDED MODE IS NEAREST-EVEN = 5 / 2.\n    DISPLAY W.\n    STOP RUN.\n"
+}

@@ -13,10 +13,10 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>gate-behavior-by-dialect</c>) — kb/Work PB344, PB4453.
 ///
 /// <para>⛔ WHY A SECOND ANCHOR KIND EXISTS. A VCR row's <c>&lt;!-- gate:id --&gt;</c> anchor resolves to a
-/// <c>tests/version-matrix/constructs.json</c> row, and that register answers "does this edition HAVE this
+/// <c>tests/version-matrix/constructs/</c> row, and that register answers "does this edition HAVE this
 /// construct?" — every row of it carries a DIAGNOSTIC code, because its answer is a rejection. A behaviour
 /// change has no diagnostic and cannot have one: the source is legal at every edition and only the ANSWER
-/// differs, so it can never be a <c>constructs.json</c> row. Those rows sat at <c>&lt;!-- todo --&gt;</c> —
+/// differs, so it can never be a <c>constructs/</c> row. Those rows sat at <c>&lt;!-- todo --&gt;</c> —
 /// indistinguishable from "nobody has done the work" — while the compiler shipped the 2023 rule to
 /// <c>--std 85/2002/2014</c>. The <c>&lt;!-- behavior:id --&gt;</c> anchor resolves HERE instead.</para>
 ///

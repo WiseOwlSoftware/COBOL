@@ -1,0 +1,12 @@
+{
+ "id": "boolean-operators-2002",
+ "description": "The boolean operators B-AND/B-OR/B-XOR/B-NOT (boolean expressions, ISO 8.7.2/8.8.2; COMPUTE Format 2 14.9.8; boolean relation 8.8.4.2.2; simple boolean condition 8.8.4.3). 2002 introduction; the operator tiers are {is2002()}?-gated, so below 2002 the W1.5 parse-layer mapping names the edition (0900) and the words are user-defined. (Depends on boolean data - the source uses PIC 1 items.)",
+ "display": "the boolean operators B-AND/B-OR/B-XOR/B-NOT (boolean expressions)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.7.2/§2023:8.8.2; COMPUTE F2 §2023:14.9.8; boolean relation §2023:8.8.4.2.2; simple boolean condition §2023:8.8.4.3; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BOOLOP1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-A PIC 1(4) VALUE B\"1100\".\n01 WS-B PIC 1(4) VALUE B\"0101\".\n01 WS-R PIC 1(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE WS-R = WS-A B-AND WS-B.\n    DISPLAY WS-R.\n    STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "open-reversed-removed-2002",
+ "description": "OPEN … REVERSED — obsolete '85 tape phrase deleted by ISO 2002 (NO REWIND survives into 2023 §2023:14.9.27); P2.6 gate.",
+ "display": "the OPEN REVERSED phrase",
+ "diagnosticCode": "COBOL0902",
+ "citation": "obsolete '85 tape phrase deleted by ISO 2002 (§1985:VII.4.3.3 SR1, REMOVED; NO REWIND survives, §2023:14.9.27); VCR Table 7",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OR2.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmor\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN INPUT F REVERSED.\n    CLOSE F.\n    STOP RUN.\n"
+}

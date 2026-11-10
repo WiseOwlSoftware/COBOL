@@ -1,0 +1,12 @@
+{
+ "id": "data-records-removed-2002",
+ "description": "DATA RECORDS clause (FD and SD — one grammar rule, ONE validator site; the former SD-only binder gate migrated; pinned 0873 kept) — obsolete '85 element deleted by ISO 2002.",
+ "display": "the DATA RECORDS clause (FD/SD)",
+ "diagnosticCode": "COBOL0873",
+ "citation": "obsolete '85 element (§1985:VII.3.5.2, REMOVED) deleted by ISO 2002 (§2023:13.4.6 admits only the record clause); pinned code kept; VCR Table 7 row 7.1",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0873",
+ "vcr": "VCR Table 7 row 7.1",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. DR.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmdr\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F\n    DATA RECORD IS R.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    CLOSE F.\n    STOP RUN.\n"
+}

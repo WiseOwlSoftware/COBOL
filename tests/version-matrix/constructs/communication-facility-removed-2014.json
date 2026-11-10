@@ -1,0 +1,13 @@
+{
+ "id": "communication-facility-removed-2014",
+ "description": "The communication facility: the COMMUNICATION SECTION with its communication description entries (ISO/IEC 1989:2002 Annex A.1) and the ACCEPT MESSAGE COUNT, DISABLE, ENABLE, PURGE, RECEIVE and SEND statements over them (Annex A.2). Owner decision 12 of kb/Work PB4614 (2026-11-04): WiseOwl implements it at COBOL-85 and 2002, kb/Work PB4677. The 2002 text prints it as an optional element and as obsolete, \"to be deleted from the next revision\" (Annex A), and the 2014 final committee draft has no such section, so it is accepted at 85, OBSOLETE at 2002 (the obsolete-element warning COBOL0903) and REMOVED at 2014 (COBOL0902, error strict, warning permissive). Every rule is the union grammar, gated on recognition by the parse arm of VersionConformancePass. The published 2002 and 2014 texts are not held; the edges are read from the 2002 post-ballot text and the 2014 FCD.",
+ "display": "the communication facility",
+ "diagnosticCode": "COBOL0902",
+ "citation": "ISO/IEC 1989:2002 Annex A (optional, obsolete, to be deleted from the next revision); absent from the 2014 FCD and from ISO 2023; §1985:XIV.2.2.2 (REMOVED); VCR Table 7",
+ "introducedIn": 85,
+ "removedIn": 2014,
+ "obsoleteIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CDF.\nDATA DIVISION.\nCOMMUNICATION SECTION.\nCD C FOR INPUT SYMBOLIC QUEUE IS Q.\nPROCEDURE DIVISION.\nMAIN.\n    ACCEPT C MESSAGE COUNT.\n    STOP RUN.\n"
+}

@@ -49,7 +49,7 @@ account in the coordination directory, and this script prints it after a render 
     docs/REARCHITECTURE_PLAN.md §0            the `⛔ BATTERY REFERENCE — CURRENT` bullet: number, date,
                                                        tree, and every leg's measured result
     docs/VERSION_CHANGE_REFERENCE.md                   the anchor dispositions (todo · gated · ref-only · pinned)
-    tests/version-matrix/constructs.json               the matrix registry size
+    tests/version-matrix/constructs/                   the matrix registry size
     conformance-suite/ (its generator's reader)        the conformance suite: tests accepted by edition, refusals
     kb/Work, through ledger_plan.py                    what remains: the buckets, each note's lane (the fix lane's
                                                        population `work.fixable`, the campaign and held clusters of the
@@ -108,6 +108,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "orchestrator"))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import citation  # noqa: E402  (the one citation format, kb/Work PB4887)
+import construct_store  # noqa: E402  (the construct catalogue, one file per construct, kb/Work PB5110)
 import coord  # noqa: E402  (names the coordination directory)
 import git_batch  # noqa: E402  (scripts/: one git process for many objects)
 import inventory_schema  # noqa: E402  (a commit's schema, for its view)
@@ -116,7 +117,6 @@ import inventory_view  # noqa: E402  (the one view of the inventory: the tree an
 import ledger_plan  # noqa: E402  (the plan's lanes: measured there, rendered here)
 from standard_streams import ensure_utf8  # noqa: E402
 
-CONSTRUCTS = REPO / "tests" / "version-matrix" / "constructs.json"
 CONFORMANCE = REPO / "docs" / "CONFORMANCE.md"
 PLAN = REPO / "docs" / "REARCHITECTURE_PLAN.md"
 VCR = REPO / "docs" / "VERSION_CHANGE_REFERENCE.md"
@@ -189,7 +189,7 @@ STAMP_PATHS = (
     *(ed.store for ed in inventory_schema.EDITIONS if ed.held),
     *(ed.catalog for ed in inventory_schema.EDITIONS if ed.held),
     "tests/version-matrix/inventory-schema.json",
-    "tests/version-matrix/constructs.json",
+    construct_store.STORE_REL,
     "conformance-suite",
     "kb/Work",
     "docs/CONFORMANCE.md",
@@ -411,7 +411,7 @@ def measure_suite() -> dict:
     return {
         "tests": len(reader.cases), "accepted": sum(1 for c in reader.cases if c.accept),
         "refusals": len(inputs.diagnostics), "editions": editions,
-        "constructs": len(json.loads(CONSTRUCTS.read_text(encoding="utf-8"))["constructs"]),
+        "constructs": len(construct_store.read_rows(REPO)),
         "vcr_todo": todo, "vcr_gated": len(gate), "vcr_ref": ref, "vcr_pin": pin,
         "vcr_done": len(gate) + ref + pin, "vcr_total": len(gate) + ref + pin + todo,
     }

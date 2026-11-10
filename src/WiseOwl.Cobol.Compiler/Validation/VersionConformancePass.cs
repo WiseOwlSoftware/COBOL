@@ -1636,7 +1636,7 @@ internal sealed class VersionConformancePass
         /// a COBOL-2002 introduction, on BOTH arms of <c>assignClause</c>: the <c>TO … USING data-name-1</c> tail and
         /// the bare <c>ASSIGN USING data-name-1</c>. One token test covers both, because USING is the only token the
         /// two arms share past ASSIGN and no other file-control rule spells it.
-        /// <para>THE EDGE IS DERIVED, NOT QUOTED (kb/Work PB746; constructs.json <c>assign-using-2002</c> and VCR row 7.27
+        /// <para>THE EDGE IS DERIVED, NOT QUOTED (kb/Work PB746; the construct catalogue <c>assign-using-2002</c> and VCR row 7.27
         /// carry the derivation): Annex E never names the phrase, so it predates 2023, and GnuCOBOL's per-standard
         /// dialect files place it at 2002 (cobol85.conf <c>assign-using-variable: unconformable</c>, cobol2002.conf
         /// <c>ok</c>). Recognition-fire on the clause, so a SELECT that also fails to bind still names its edition.</para></summary>
@@ -2087,7 +2087,7 @@ internal sealed class VersionConformancePass
         // carries the negative witness). Recognition-based (DEVLOG 724): a below-edition construct names its
         // edition even when it ALSO fails to bind. The catalog-driven per-NAME windows (the D8 intrinsic windows,
         // the ExceptionCatalog EC-name windows, the PictureAnalyzer symbol rows, the digit caps) STAY binder-side
-        // by design — their version facts live in their own tables, not in constructs.json — as do the two
+        // by design — their version facts live in their own tables, not in the construct catalogue — as do the two
         // sanctioned BEHAVIORAL edition reads (the <2002 keyword-omitted FUNCTION routing, the ≥2002 MOVE CORR
         // pair-selection window) and the SYNCHRONIZED-on-group site (sync-on-group-2023 — bind-side because
         // "has subordinates" is not a parse-tree fact, but through the canonical Check funnel since CA14, so it

@@ -1,6 +1,6 @@
 UNIT: wave.
 
-1. Load the `workstream` skill (dispatch_guard.py refuses the Workflow call otherwise) and follow
+1. Load the `workstream` skill and follow
    .claude/skills/workstream/templates/MANDATORY-PRACTICES.md.
    THE FLEET LAUNCH COMES FIRST (kb/Work PB2597): before the Workflow runs, do nothing but steps 1 to 3. A defect you
    find on the way (a planner bug, a tooling gap) becomes a kb/Work note (id from alloc.py) named in the handoff, never

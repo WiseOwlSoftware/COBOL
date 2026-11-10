@@ -1,0 +1,12 @@
+{
+ "id": "options-default-rounded-2014",
+ "description": "The DEFAULT ROUNDED clause of the OPTIONS paragraph (§2023:11.9.6) — a 2014 clause of the 2002 paragraph: with the paragraph gate at 2002, each 2014-only clause carries its own introduction arm (P10 Step 12; the 85→2002 clause inventory derives from the M2 catalog — 2002 OPTIONS carried the ARITHMETIC clause)",
+ "display": "OPTIONS DEFAULT ROUNDED",
+ "diagnosticCode": "COBOL0900",
+ "expectDiagnostic": "COBOL0900",
+ "citation": "ISO §2023:11.9.6",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "2014 introduction (§2023:11.9.6; a 2014 addition to the 2002 OPTIONS paragraph)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. ODRP10AS.\nOPTIONS.\n    DEFAULT ROUNDED MODE IS NEAREST-EVEN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W ROUNDED = 5 / 2.\n    DISPLAY W.\n    STOP RUN.\n"
+}

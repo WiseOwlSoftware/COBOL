@@ -1,0 +1,12 @@
+{
+ "id": "not-equal-operator-2014",
+ "description": "The relational operator <> (ISO §2023:8.7.5.2 SR11: \"<> is an abbreviation for NOT EQUAL\"; a special character word of §2023:8.3.2.4.2 2)). A COBOL-2014 INTRODUCTION: COBOL-85's relational operators are the six GREATER / LESS / EQUAL forms with their symbols and NOT (no <>), and the 2002 text has none either - clause 8.7.5.2 of the 2001-12-04 J4 text ends its abbreviation rules at SR8 \"<= is an abbreviation for LESS THAN OR EQUAL TO.\" and its special character words read >= <= *> >> :: with no <> - while Annex D.3 (2002->2014 changes) item 16 of the 2009 committee draft reads \"Relational operator enhancement. The symbol <> has been added as an extended relational operator. It is an abbreviation for 'not equal'.\" (kb/Work PB3602's re-derivation, PB3604; the published 2002 and 2014 texts were not obtained, so the 2002 verdict is read from the post-ballot 2002 text and the 2014 one from the committee draft). The word forms NOT EQUAL TO and NOT = are COBOL-85 and stay legal at every edition. Its siblings of §2023:8.3.2.4.2 are different rows: & (concat-operator-2002), >> (the directive rows), :: (inline-method-invocation-2002) and *> (floating-comment-indicator-2002). Gated in ONE place, the VersionConformancePass parse arm on comparisonOperator (kb/Work PB1459): the NOTEQUAL token appears in no other rule.",
+ "display": "the relational operator <>",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.3.2.4.2 2) (special character word '<>'), §2023:8.7.5.2 SR11; a COBOL-2014 introduction (2009 committee draft Annex D.3 item 16; absent from the 2002 text)",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.26 - the 2002->2014 extended relational operator (Annex D.3 item 16 of the 2009 committee draft); special character words (§2023:8.3.2.4.2)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NEQ.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 9 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    IF A <> 3 DISPLAY \"NE\".\n    STOP RUN.\n"
+}

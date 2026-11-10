@@ -1,0 +1,15 @@
+{
+ "id": "copy-suppress-2002",
+ "description": "The SUPPRESS [PRINTING] phrase of the COPY statement (ISO §2023:7.2.3.2: [ SUPPRESS PRINTING ]; 7.2.3.4 GR4 \"If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed\"). ANSI X3.23-1985's COPY has no SUPPRESS phrase. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.44; the repo holds no 1985, 2002 or 2014 text, ratified decision #1): none of the NIST CCVS-85 programs or copy library writes it (the only 'SUPPRESS' text in them is message data); Micro Focus's COPY reference marks SUPPRESS as a dialect extension (OSVS, VSC2, MF), not ANS85; Annex E lists no change, so it predates 2023; the row shares the 2002 edge of the literal-name phrase (the edition that rewrote COPY), the one that never refuses a legal 2002 program. The gate is on the phrase, asked by CopyProcessor.GateCopyPhrase (kb/Work PB1601).",
+ "display": "the SUPPRESS phrase of the COPY statement",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:7.2.3.2 (COPY general format); 7.2.3.4 GR4; a COBOL-2002 introduction (derived: VCR row 7.44); §2023:7.2.3.4 GR4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "ISO §2023:7.2.3.2 SUPPRESS [PRINTING]; provisional edge per decision 1; VCR row 7.44",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCSP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\nCOPY VMCSPBK SUPPRESS PRINTING.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n",
+ "copybooks": {
+  "VMCSPBK.cpy": "01 W PIC X VALUE \"K\".\n"
+ }
+}

@@ -50,6 +50,10 @@
     {
       "id": "indexed-read-previous-after-open-at-end",
       "vcrRow": "29"
+    },
+    {
+      "id": "perform-varying-after-init-inner-first",
+      "vcrRow": "7.53"
     }
   ],
   "nonstandardExtensionIds": [
@@ -839,7 +843,8 @@
     "COBOL6764",
     "COBOL6814",
     "COBOL6815",
-    "COBOL6816"
+    "COBOL6816",
+    "COBOL6859"
   ],
   "cliOptions": [
     "--copy",

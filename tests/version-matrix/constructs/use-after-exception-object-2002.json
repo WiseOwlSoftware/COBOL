@@ -1,0 +1,13 @@
+{
+ "id": "use-after-exception-object-2002",
+ "description": "USE AFTER EXCEPTION OBJECT (Format 4) - a 2002 introduction (the EC-OO declarative). The in-window fixture needs a class-name operand, which requires an OO compilation group - the matrix skips compile assertions (PENDING: activates when the matrix runner gains multi-unit OO fixtures, PHASE 09) while the registry row drives the gate. Folded from the inline ProcedureTableBuilder gate (Exec Step E).",
+ "display": "USE AFTER EXCEPTION OBJECT",
+ "diagnosticCode": "COBOL0876",
+ "citation": "ISO §2023:14.9.49.2 Format 4 (the exception-object declarative; EC-OO); §2023:14.9.49.4 GR15",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0876",
+ "vcr": "2002 introduction (the EC-OO wave)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWUEO.\nPROCEDURE DIVISION.\nDECLARATIVES.\nD-SEC SECTION.\n    USE AFTER EXCEPTION OBJECT RWCLS.\nD-P.\n    CONTINUE.\nEND DECLARATIVES.\nM-SEC SECTION.\nMAIN.\n    STOP RUN.\n",
+ "status": "pending"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "string-delimited-omitted-2002",
+ "description": "A STRING statement with its DELIMITED phrase omitted before INTO (ISO §2023:14.9.43.3 SR9: 'The DELIMITED phrase may be omitted only immediately preceding the INTO phrase. If it is omitted, DELIMITED BY SIZE is implied'). COBOL-85's STRING closes every sending group with DELIMITED BY {identifier-2 | literal-2 | SIZE} - every one of the 34 STRING statements in the NIST CCVS-85 suite writes it - so the omission is a post-1985 form. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.31; the repo holds no 1985/2002/2014 text, ratified decision #1): Annex E (2014->2023) does not list it, so it predates 2023; the 2002-versus-2014 split is not derivable in-repo (GnuCOBOL has no dialect option and accepts the omission everywhere) and takes the provisional 2002 edge rows 7.21/7.26 carry - the edge that never refuses a legal 2002 program. Gated in ONE place, VersionConformancePass.VisitStringStatement, on the last sending phrase (kb/Work PB1567).",
+ "display": "a STRING statement with the DELIMITED phrase omitted",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.43.3 SR9; a post-1985 form (derived: VCR row 7.31)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "STRING DELIMITED phrase optional (post-85; provisional 2002 edge); VCR row 7.31",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSTRD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X(3) VALUE \"ABC\".\n01 B PIC X(6) VALUE SPACES.\nPROCEDURE DIVISION.\nMAIN.\n    STRING A A INTO B.\n    DISPLAY B.\n    STOP RUN.\n"
+}

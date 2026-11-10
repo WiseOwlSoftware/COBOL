@@ -1,0 +1,22 @@
+{
+ "id": "flag-native-arithmetic-directive-window",
+ "description": "The >>FLAG-NATIVE-ARITHMETIC directive - the second leg of Annex E.2 item 21, on the identical window and the identical derivation as flag-85-directive-window: introduced with the §2023:7.3 facility in COBOL-2002, classified obsolete by the 2014 standard, REMOVED in COBOL-2023. Its operand syntax is likewise NOT DERIVABLE from the 2023 text; the row gates the directive WORD. Below 2002 COBOL0900, at 2023 COBOL0902, at 2014 the COBOL0903 obsolete warning. (VCR row 28's third and fourth legs, Standard Arithmetic and MOVE QUOTE, were already rowed.)",
+ "display": ">>FLAG-NATIVE-ARITHMETIC directive",
+ "diagnosticCode": "COBOL0902",
+ "citation": "Annex E.2 item 21 (removed in 2023, classified obsolete by the previous standard); the §2023:7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
+ "directiveWords": [
+  "FLAG-NATIVE-ARITHMETIC"
+ ],
+ "directiveOperand": {
+  "form": "text",
+  "operandRequired": false,
+  "citation": "Annex E.2 item 21 removed this directive in 2023, so the 2023 text carries no clause and its operand syntax is NOT derivable in-repo: the row gates the WORD, which is what the removal record supports. Content unchecked by decision, not by omission."
+ },
+ "introducedIn": 2002,
+ "removedIn": 2023,
+ "obsoleteIn": 2014,
+ "expectDiagnostic": "COBOL0902",
+ "expectDiagnosticBelow": "COBOL0900",
+ "vcr": "VCR row 28 (Annex E.2 item 21 removal) + the §2023:7.3 facility's 2002 introduction",
+ "source": "       >>FLAG-NATIVE-ARITHMETIC STANDARD-BINARY\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725FN.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n"
+}

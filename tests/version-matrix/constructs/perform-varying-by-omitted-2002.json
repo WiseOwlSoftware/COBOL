@@ -1,0 +1,12 @@
+{
+ "id": "perform-varying-by-omitted-2002",
+ "description": "A PERFORM varying-phrase (the VARYING phrase or an AFTER phrase) with its BY phrase omitted (ISO §2023:14.9.28.4 GR12: 'For any BY phrase that is omitted, the augment value is 1'). PRESENT at 2002: the same sentence is general rule 9 of ISO/IEC 1989:2002 clause 14.8.27.3 (the 2001-12-04 J4 text), so the omission is legal 2002 source. THE 1985 EDGE IS DERIVED, NOT QUOTED (VCR row 7.42; no ANSI X3.23-1985 text in the archive): every one of the 241 VARYING / AFTER phrases in the NIST CCVS-85 suite writes BY, and GnuCOBOL 3.2 refuses the omission at -std=cobol85 ('PERFORM VARYING without BY phrase does not conform to COBOL 85') while accepting it at cobol2002 and later (CLAUDE.md rule 1's precedence where the standard is silent). Against it: the 2002 list of 1985-to-2002 changes (Annex F.2) does not name the BY omission, so a 1985 text could still move the edge. Gated in ONE place per site, VersionConformancePass.VisitPerformVarying and VisitPerformVaryingAfter, at the phrase that omits BY (kb/Work PB2282).",
+ "display": "a PERFORM VARYING or AFTER phrase with the BY phrase omitted",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.28.4 GR12; ISO/IEC 1989:2002 14.8.27.3 GR9; a post-1985 form (derived: VCR row 7.42)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "PERFORM varying-phrase BY optional (post-85; 2002 quoted, 1985 derived); VCR row 7.42",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPVBY.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9(2).\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM VARYING N FROM 1 UNTIL N > 2\n        DISPLAY N\n    END-PERFORM.\n    STOP RUN.\n"
+}

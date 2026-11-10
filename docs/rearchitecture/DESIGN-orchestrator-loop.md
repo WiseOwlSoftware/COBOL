@@ -161,7 +161,7 @@ checkpoints with WIP commits and a stamped `STATUS.md`, so `resume` rebuilds the
 then end at any time without losing a running agent, and the orchestrator's session would only plan and judge.
 Its costs: the supervisor must re-implement the rolling pool, the same-file successor rule, the train assembly and
 the stall ceiling that `wf_rolling_wave.js` already has; the structured return schema becomes a file contract; and
-`dispatch_guard.py` cannot see a dispatch it does not mediate, so the brief checks move into the supervisor. It
+`dispatch_guard.py` cannot see a dispatch it does not mediate, so the wind-down refusal moves into the supervisor. It
 becomes worth building when measurement shows wave units being killed with work in flight often enough that the
 lost agent work exceeds that cost. Open decision D3.
 
@@ -316,7 +316,7 @@ Each iteration, in this order:
 - Forbidden to every unit: the WSL lifecycle commands `wsl --terminate`, `--shutdown`, `--update`, `--export`,
   `--unregister` (they kill every other session's Linux gate). Land only through
   `python scripts/orchestrator/enqueue.py land <branch>` (the landing lane, section 4.9; main refuses a direct push).
-- A `wave` unit loads the `workstream` skill before the Workflow call (`dispatch_guard.py` refuses it otherwise),
+- A `wave` unit loads the `workstream` skill before the Workflow call (its procedure; no hook requires it, kb/Work PB5112),
   runs `plan_wave.py`, which renders the specs with `make_dispatch_specs.py` and runs `check_practices.py`, then
   starts `wf_rolling_wave.js` with the args file `plan_wave.py` wrote.
 - A role's turn cap has ONE home, the `maxTurns` of its `.claude/agents/<role>.md` (the number the harness enforces;
@@ -327,7 +327,7 @@ Each iteration, in this order:
 ### 4.2 Permission mode under a headless session
 
 The repository's hooks stay the real guard under any `--permission-mode`: `forbidden_commands.py` refuses the
-forbidden git and shell shapes, `dispatch_guard.py` refuses an unchecked dispatch, `status_guard.py` refuses a
+forbidden git and shell shapes, `dispatch_guard.py` refuses a loop unit's fleet launch after `STOP-UNIT`, `status_guard.py` refuses a
 commit with a stale `STATUS.md`. `--permission-prompts none` makes anything that would prompt a denial instead of
 a hang. The default mode is `bypassPermissions` (decision D1, owner 2026-10-04: allowed for the COBOL work). With prompts
 gone, the hooks above are the only guard, which is why the WSL lifecycle commands are blocked by `forbidden_commands.py`
@@ -360,8 +360,8 @@ Three mechanisms keep a just-paid fleet from being thrown away:
   case for the race in which the cap fires as the launch happens: whichever wins, no fleet stop is sent. The supervisor
   records whether a fleet (`local_workflow` or `local_agent` background task) was running when the wind-down fired
   (`fleet_at_wind_down`).
-- **No fleet launch after the signal.** `dispatch_guard.py` (rule 0) refuses a `Workflow` call and an implementer or
-  lander `Agent` call from a loop unit (the supervisor exports `COBOL_LOOP_UNIT`) while `STOP-UNIT` exists; the unit
+- **No fleet launch after the signal.** `dispatch_guard.py` refuses a `Workflow` call and an implementer or
+  finisher `Agent` call from a loop unit (the supervisor exports `COBOL_LOOP_UNIT`) while `STOP-UNIT` exists; the unit
   prompts say to check `STOP-UNIT` immediately before the call. An attended session shares the coordination directory
   but never carries the variable, so the loop's signal never refuses its dispatches.
 - **The fleet launch comes first** (`units/wave.md`): a wave unit does nothing but plan before its Workflow runs; a
@@ -618,8 +618,8 @@ notes those commits and the branch name with their status, and each note's newes
 verdict's files are read by `verdict_line.outcome_files`, the one reader of the outcome `verdict_line.conflict_outcome`
 writes for `enqueue.py land` (`scripts/verdict_line.py`, the verdict line's one home, kb/Work PB3714). `land_lane.py conflict-brief <branch>` prints the recorded brief while the branch is at
 that attempt's end head and origin/main is still `brief_main`, and otherwise computes one now against origin/main
-through the merge drivers (`merge_drivers.merge_conflicts`: `git merge-tree` with the drivers' configuration, the merge's
-own definition, so a keyed catalogue is named exactly when its driver declines, a real conflict): the case of a pull
+(`git_merge.merge_conflicts`: `git merge-tree`, the merge's own definition, so a file is named exactly when git
+leaves it in conflict): the case of a pull
 request the queue BOUNCED as DIRTY, which no attempt recorded, or of a branch or a main that moved. The
 status line of a STOPPED exit-4 attempt names the command, and the enqueue unit's step 4 puts its output in the
 finisher's prompt verbatim. The lane still dispatches no model: launching that finisher the moment the stop is recorded,
@@ -1051,8 +1051,8 @@ kb/Work PB4951) that wait on nothing, run twice: once over `status: open`, once 
    function, a Markdown section; a file with none named is claimed whole). Two claims MEET (`inflight.collision`, to
    group) on a file either claims whole or on a member of one that matches a member of the other (a type meets its
    members, a section its subsections), and HOLD (`inflight.hold`, running work against a group) only on the member
-   match; a file a merge driver merges by key never meets
-   (`merge_drivers.covered_by_driver`, the rule `enqueue.py`'s re-gate reads). A note's members come from its site block (`path#Member`,
+   match; no file is exempt (kb/Work PB5110: the shared registries are one file per entry, so two entries never meet).
+   A note's members come from its site block (`path#Member`,
    `` `path` (`member`, ...) `` with an optional `:line` after the path, the form MANDATORY-PRACTICES R3 and
    `work.SITES_RULE` require, `work.NoteSites.members`), each kept only when the file on the planned tree declares a
    unit every one of them matches (a stale, misspelt or prose name claims the file whole, `work._members_located`, and `work.py check` refuses it for a note held to the site rule, as it refuses a code file named with neither members nor `(whole: why)`, `NoteSites.unnamed` and `undeclared`, kb/Work PB3797); an in-flight worktree's or branch's from the units its
@@ -1418,7 +1418,7 @@ new terminal. A STOP file left on purpose by that procedure is named in the prom
 Python self-tests in the style of `scripts/hooks/test_dispatch_guard.py` (a script that prints a case count and
 exits nonzero on a failure; no framework): `test_alloc.py` (including two real parallel processes allocating
 concurrently with no duplicate), `test_inventory_ratchet.py` (a fabricated reopen, a GAP rise, the marker),
-`test_budget.py` (with each account's reset, readings and telemetry), `scripts/hooks/test_dispatch_guard.py` (rule 0: a loop
+`test_budget.py` (with each account's reset, readings and telemetry), `scripts/hooks/test_dispatch_guard.py` (its one rule: a loop
 unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test_adopt_main.py` (section 4.10: the loop adopts a stable main commit, and only that), `test_ledger_state.py` (owed until the current stamp is
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
 a landing pushed from another clone is owed while the checkout is behind, and the mark refuses until it is fast-forwarded),
@@ -1611,8 +1611,8 @@ The three rules, each paired with a drift test so the next case is automatic (CL
    `module.member` spellings over `scripts/`, `.claude/`, `tests/`, `conformance-suite/harness/` and `.github/` finds
    nothing. A C# drift test that read a script's source for a `def` (`LandingPipelineDriftTests` reads `def land(` and
    `def queue(` in `enqueue.py`; `self_tests.py --self-test` reads `AUDITS = (` in `gate.py`;
-   `MergeDriverDriftTests` reads the `merge_drivers.` call sites in `enqueue.py`, `prune_worktrees.py` and
-   `land_lane.py`) is re-pointed at the module that now holds the text, in the same landing.
+   `MergeDriverDriftTests`, which read the `merge_drivers.` call sites, was the third; `landing_rules.py` holds that rule now)
+   is re-pointed at the module that now holds the text, in the same landing.
 
 ### 16.1 The behavior-neutrality oracle every split uses
 
@@ -1762,8 +1762,8 @@ modules sit in `scripts/orchestrator/` because they import
 `coord`, `queue_facts` and `reports`; the CLI stays at `scripts/prune_worktrees.py`, where every session, hook and
 brief runs it. Importers re-pointed: `plan_wave.py`'s stages (`classify`, `locked`, `owned`, `branch_graph`,
 `replay_view`), `land_lane.py` (`live_survey`), `scripts/hooks/session_start.py`, `devlog.py` (`contained` in its
-docstring), `merge_drivers.py` and `MergeDriverDriftTests` (`prune_worktrees.mechanical` → `review_coverage.mechanical`
-and `is_drivers_merge`'s caller), `abi_pin.py`, `git_batch.py`'s docstring, `test_plan_wave.py`.
+docstring), `git_merge.py` (`prune_worktrees.mechanical` → `review_coverage.mechanical` and
+`is_clean_merge`'s caller), `abi_pin.py`, `git_batch.py`'s docstring, `test_plan_wave.py`.
 
 ### 16.5 `gate.py` → the gate's modules (`scripts/`)
 
@@ -1791,13 +1791,13 @@ docstring, `GateLegDriftTests`, `scripts/test_linux_gate.py`.
 |---|---|---|
 | `landing_verdict.py` | THE vocabulary the landing writes and the lane reads: the exit codes, the verdict line, the ENQUEUED line and its parser, the remedies | `EXIT_CONFLICT`, `EXIT_MERGE_INCOMPLETE`, `EXIT_QUEUE_NOT_ACTIVE`, `EXIT_GITHUB`, `EXIT_UNREVIEWED`, `EXIT_GATE_BUSY`, `EXIT_LAND_BUSY`, `EXIT_UNTESTED`, `EXIT_PREDECESSOR_QUEUED`, `VERDICT`, `QUEUED`, `QUEUED_LINE`, `REMEDY_GATE_TIP`, `REMEDY_OLD_GATE`, `UNREVIEWED_LANES`, `CATCH_UP` |
 | `land_checks.py` | The landing checks (`enqueue.py checks`): the table, the range run, the re-run | `CHECKS`, `run_checks`, `rerun_check`, `_script_runner` |
-| `land_tree.py` | The worktree a landing acts in: its state, dirty paths, the land lock, main fetched and merged in through the drivers | `LAND_LOCK_NAME`, `worktree_of`, `land_lock_path`, `WorktreeState`, `worktree_state`, `dirty_paths`, `fetch_main`, `merge_main`, `_git` |
+| `land_tree.py` | The worktree a landing acts in: its state, dirty paths, the land lock, main fetched and merged in with plain git | `LAND_LOCK_NAME`, `worktree_of`, `land_lock_path`, `WorktreeState`, `worktree_state`, `dirty_paths`, `fetch_main`, `merge_main`, `_git` |
 | `land_evidence.py` | Whether the tip is tested: the gate lock and the recorded gate (the landing runs no gate, kb/Work PB4331) | `Tested`, `gate_busy`, `tested_locally` |
 | `land_queue.py` | GitHub's side of a landing: the queue state, open or queue the pull request, requeue, its text, the predecessors, the record of a block, the review gate, the landing measure | `queue_state`, `queue`, `requeue`, `pull_request_text`, `PR_LIST_FIELDS`, `FILES_LISTED`, `open_predecessors`, `awaited_predecessors`, `record_blocked`, `review_gate`, `measure_landing` |
 | `enqueue.py` (stays, the step) | `land` in its four numbered steps, `_stamp`, `main` | `land`, `_stamp`, `main` |
 
 `LandingPipelineDriftTests` reads `def queue(` from `land_queue.py` and `def land(` from `enqueue.py` after this;
-`MergeDriverDriftTests` reads `merge_drivers.merge(wt, base,` and `conflict_outcome(files)` from `land_tree.py` and
+`landing_rules.py` reads `git_merge.merge(wt, base,` and `conflict_outcome(files)` from `land_tree.py` and
 `enqueue.py` respectively. Importers re-pointed: `land_lane.py` (the `EXIT_*` imports and `VERDICT` → `landing_verdict`;
 `rerun_check`, `requeue` → `land_checks`, `land_queue`; `tested_locally`, `open_predecessors` → `land_evidence`,
 `land_queue`; `worktree_state`, `queue_state`, `merge_main`, `QUEUED_LINE` by owner), `next_unit.py`, `gate_slot.py`'s
@@ -1871,12 +1871,10 @@ oracle: every `CONFORMANCE.md §N` and `CONFORMANCE.md#ANCHOR` cited under `src/
 sweep of 3,600 citations is not made, and the inventory's computed `derivation` anchor is unchanged.
 
 **The two register tables stay tables.** A §7 or §8 row is a set of cells two engines read by position; a file per row
-would be the same cells as frontmatter, read by a new parser on each side. Appends to those tables (15 hunks in §7 in a
-week) merge through a keyed-table driver instead: `Driver("cobol-keyed-table", ("docs/conformance/*.md",),
-lambda: merge_keyed_table, …)` in `merge_drivers.DRIVERS`, keyed on the first cell of each table row, header rows
-required equal, prose outside tables merged by `union_text` — the keyed JSON driver's rule over markdown rows. This
-is the owner's decision (2026-10-25, asked in the Mythos-lane session: "Keyed tables" over one file per row), 
-recorded in PB3738.
+would be the same cells as frontmatter, read by a new parser on each side. The plan here was a keyed-table merge driver
+(`cobol-keyed-table`, the owner's decision of 2026-10-25, recorded in PB3738); the owner's decision of 2026-11-10 (PB5110)
+deleted every merge driver, so appends to those tables merge by plain git and PB3738 re-decides their shape under the
+one-file-per-entry rule before it lands.
 
 **The migration** is one script, `scripts/spec/conformance_migrate.py`, run once by the landing that splits the file
 and deleted by it (the `devlog_migrate.py` shape, `DESIGN-test-build-ci.md` §3.17.4): it cuts the committed `docs/CONFORMANCE.md` into the
@@ -1886,62 +1884,22 @@ the file it cut (the implementer commits the diff of the two: empty). After the 
 `docs/CONFORMANCE.md` §3" says "add `docs/conformance/determinations/D-<KEY>.md`" (`spec-lookup`, `land-a-fix`,
 `golden-lane-brief.md`, `cloud-adjudicate-brief.md`, `wf_lane3_adjudicate.js`, MANDATORY-PRACTICES).
 
-### 16.9 `PublicAPI.Unshipped.txt`: a keyed merge driver
+### 16.9 `PublicAPI.Unshipped.txt`: the keyed merge driver, retired
 
-A public-API baseline (`Microsoft.CodeAnalysis.PublicApiAnalyzers`) is a SET of symbol lines under one
-`#nullable enable` header; `*REMOVED*`-prefixed lines are members of the same set. `.gitattributes` merged it by line
-union before PB3727 (`src/**/PublicAPI.*.txt merge=union`), which kept a line one side removed and once duplicated a symbol
-(PB3694). The driver: `Driver("cobol-keyed-publicapi", ("src/**/PublicAPI.*.txt",), lambda: merge_symbol_set, "a
-public-API baseline is a set of symbol lines: a line either side added is kept, a line either side removed is gone, the
-header stays first, the rest sorted")` in `merge_drivers.DRIVERS`; `merge_symbol_set(base, ours, theirs)` =
-header + sorted((base ∪ (ours − base) ∪ (theirs − base)) − (base − ours) − (base − theirs)), ordinal order, LF, and
-it never declines (a line is atomic; a stale symbol fails the build, RS0017, as it does today). The `.gitattributes`
-line becomes `src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi` with its comment; `merge_drivers.py --check` holds the
-registry and the attributes together as it does for every driver, and `MergeDriverDriftTests.TheSelfTests_DeclareEveryArm`
-names the new arms: `publicapi: lines each side added are both kept`, `publicapi: a line one side removed is gone`,
-`publicapi: the header stays first and the rest is sorted`, `publicapi: the same line added by both is one line`.
-Corrected at the landing: THE LANDING LEAVES THE BASELINES AS MAIN HAS THEM, unsorted. Until a branch lands, its
-landing merges main in through MAIN's registry (`enqueue.py land` runs main's `merge_drivers`), which defines no driver
-for a name only the branch's registry holds, so git falls back to its line merge; a baseline the branch had sorted met
-every main change to it as a conflict (PR #608 stopped on PB3677's additions to `PublicAPI.Unshipped.txt`). A branch
-that leaves the file as main has it cannot conflict on it: git takes main's side without running any driver. So A NEW
-DRIVER LANDS ALONE, without reformatting the files it governs; their order converges at their first merge in which both
-sides changed them, whose output the driver sorts. The rule is mechanical (kb/Work PB3825): `merge_drivers.py --check`
-(`new_driver_files`, which `MergeDriverDriftTests.TheDriverRegistry_AgreesWithGitattributes` runs in every gate) refuses a
-branch that changes a file a DRIVERS pattern governs while `origin/main`'s `.gitattributes` does not yet give that
-pattern that driver (it says another driver, `union`, or none), unless the file is byte-for-byte main's; "the branch
-changed" is `merge-base(HEAD, origin/main)..HEAD`, so a main that moved since is not the branch's change, and a driver is
-the branch's to add only when the merge base's `.gitattributes` did not give the pattern it either (a branch cut before
-main renamed or re-pointed a driver still declares the old one: main's change, remedied by merging main in, never by
-reverting the branch's file). A hand-run Linux gate reads the same `origin/main`: `linux-gate.sh` sets each clone's
-`refs/remotes/origin/main` to the tree's (`pin_origin_main`), because a `--shared` clone inherits the source's LOCAL `main`
-there, which nothing advances. A checkout with
-no `origin/main` or no merge base (CI's merge-group checkout) prints `NOTE … NOT CHECKED` and the reason, and passes the
-rest of `--check`; it is never read as having checked. `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's
-`runtime-hash` line by line (`RuntimeAbiPinDriftTests.RuntimeHalf`), and a branch that changes Shipped changes the pin,
-so that first merge leaves the pin UNMEASURED and `abi_pin.settle` measures the sorted file. Corrected at
-implementation: the driver's patterns are matched by git's rules in the registry too
-(`merge_drivers.pattern_matches`, which `covered_by_driver` and `--check` read), since `pathlib`'s `match` lets `**`
-span exactly one directory where git lets it span any number. A baseline the driver covers is a file merged by key, so
-the planner's collision rule and the landing's merge-overlap rule (`covered_by_driver`) set it aside as they do the
-catalogues. And a merge reads its ATTRIBUTES from the registry as it reads its driver commands
-(`merge_drivers.attributes_tree`, given to git as `-c attr.tree=…`: the merged-into side's `.gitattributes` followed
-by a `<pattern> merge=<driver>` line per DRIVERS pattern; a later line wins). Without it, a branch cut before this
-landing (its `.gitattributes` still says `merge=union`) merging a main whose baseline the driver sorted got the union: a
-measured branch that added two symbols came out with 31 duplicated lines (RS0025 in the Release build).
-
-THE LANDING CHECK READS THE HEAD, AND CI READS THE QUEUE'S MERGE (kb/Work PB3694). The driver runs only in a merge this
-repository makes; GitHub's merge group merges the baselines by git's LINE merge (no driver is defined there, PB3642), and that
-merge keeps a symbol both sides added at different places twice (RS0025 in the Release build, which no local gate saw because
-the local merge, through the driver, had made one line). `landing_check.py` reads the baselines of the landing's own tree at
-every landing (arm 0b, `baseline_stops`) and STOPS (exit 3) on a symbol listed twice in one file or as a plain line in two
-files of one directory (Shipped and Unshipped are one project's API). `merge_drivers.is_symbol_baseline` (the DRIVERS row's
-pattern) names the files and `merge_drivers.baseline_duplicates` is the rule, so the rule lives beside the merge it guards.
-RESIDUAL, STATED: the queue's own merge is not readable before the push. Every landing's head already contains `origin/main`
-(`enqueue.queue` refuses any other, exit 2; the lane checks from the merge base), so a driverless `git merge-tree` of main and
-the head is the head's own tree and says nothing; the merge differs only when main advances after the push, and a commit that
-does not exist yet cannot be read. CI's merge-group run is the net for that window. No `merge=union` attribute remains in
-`.gitattributes`; the work notes' body union (`merge_note`) keeps a doubled line visible to the reader, and no build reads it.
+PB3727 gave the public-API baselines (`Microsoft.CodeAnalysis.PublicApiAnalyzers`, a SET of symbol lines under one
+`#nullable enable` header) a keyed merge driver, and PB3825 added the rule that a new driver lands alone. The owner's decision
+of 2026-11-10 (kb/Work PB5110: "No custom merge drivers are required") deleted every merge driver, this one with them:
+`scripts/merge_drivers.py`, the `.gitattributes` block and `MergeDriverDriftTests`. The baselines change only with the
+compiler surface, so two branches that both change one conflict in plain git, here and in the merge queue alike, and the
+finisher keeps both sides' symbols once each (RS0016 and RS0017 refuse a wrong set). What survives is the net under a plain
+merge: `landing_check.py` reads the baselines of the landing's own tree at every landing (arm 0b, `baseline_stops`) and STOPS
+(exit 3) on a symbol listed twice in one file or as a plain line in two files of one directory (Shipped and Unshipped are
+one project's API), which RS0025 fails the Release build on and which plain git keeps when two branches add the same symbol
+at different places (kb/Work PB3694). `landing_check.is_symbol_baseline` names the files and `landing_check.baseline_duplicates`
+is the rule. The queue's own merge is not readable before the push: every landing's head already contains `origin/main`, so
+a `git merge-tree` of the two is the head's own tree, and CI's merge-group run is the net for a main that advances after the
+push. `PublicAPI.Shipped.txt` order feeds the runtime ABI pin's `runtime-hash` line by line, so a branch that changes Shipped
+changes the pin, and a conflict there is resolved by regenerating it (`scripts/abi_pin.py`).
 
 ### 16.10 The order, the waves and PB3637
 
@@ -1976,7 +1934,7 @@ does), so a rename never reads as "not created yet".
 | Tier | Note | Step | Files claimed whole | Oracle (what proves nothing changed) |
 |---|---|---|---|---|
 | 1 | PB3637 | The UTF-8 switch: one function, `scripts/standard_streams.py#ensure_utf8`, the first statement of every live Python entry point — in the program, not the environment, by the owner's direction of 2026-10-10 (kb/Work PB1546) and because `PYTHONIOENCODING=cp1252` beats `PYTHONUTF8=1` (measured), so an environment variable cannot pass this row's oracle — every per-script `reconfigure` copy deleted, the `--help` drift test | the live tools' Python files (173, the five among them), `standard_streams.py`, one new Unit test (`ScriptStandardStreamsDriftTests`, since kb/Work PB4395 the script's own `--self-test` over the tree) | `standard_streams.py --check`: every argparse entry point's `--help` and a usage error exit 0 and 2 under `PYTHONIOENCODING=cp1252`; the self-test runner GREEN |
-| 1 | PB3727 | §16.9, the PublicAPI driver | `scripts/merge_drivers.py`, `.gitattributes`, `MergeDriverDriftTests.cs`, the two baselines | the driver's arms; `merge_drivers.py --check`; a `merge-tree` of the two baselines against the last three landings that touched them reproduces main's result |
+| 1 | PB3727 | §16.9, the PublicAPI driver (retired by PB5110) | `scripts/merge_drivers.py`, `.gitattributes`, `MergeDriverDriftTests.cs`, the two baselines | the driver's arms; `merge_drivers.py --check`; a `merge-tree` of the two baselines against the last three landings that touched them reproduces main's result |
 | 2 | PB3728 | §16.3, `plan_wave.py` split by job, `plan()` in stages | `plan_wave.py`, `test_plan_wave.py`, the five new modules, every importer §16.3 names | `test_plan_wave.py` GREEN with the same 416 `check(` labels (460 checks run); `--dry-run` before/after identical; the golden `testdata/plan_wave_default.json` unchanged |
 | 2 | PB3738 | §16.8, CONFORMANCE.md one file per determination | `docs/CONFORMANCE.md`, `docs/conformance/**`, `rendered_views.py`, `.gitignore`, the five readers, `ConformanceRegister.cs`, `session-probe.ps1`, `DOC_INDEX.md`, the briefs and skills that name the file | the render is byte-identical to the file it cut; every citation resolves (`--check`); `audit_annex_a1.py`, `audit_derivations.py`, `gen_ledger.py --check` and `AnnexA1RegisterDriftTests` GREEN with the same counts |
 | 3 | PB3729 | §16.2 for plan_wave: the collector `selftest_cases.py`, the layout drift test, `AssertCases`; `test_plan_wave.py` becomes `scripts/selftests/orchestrator/plan_wave/` | `selftest_cases.py`, `SelfTestArmSource.cs`, the new drift test, the plan_wave case files, `test_plan_wave.py` (deleted), `self_tests.py`'s docstring | the same 416 `check(` labels; `self_tests.py --list` finds every case file; the layout test GREEN |
@@ -2002,7 +1960,7 @@ conflict briefs), which PB3723 reports.
 
 The §2 component table of this document gains the new modules as each split lands (the implementer's sweep, rule 6);
 §12 names `scripts/selftests/` and the collector once PB3729 lands; `docs/DOC_INDEX.md` rows for the five scripts, for
-`docs/CONFORMANCE.md` and for `scripts/merge_drivers.py` change with their steps; `DESIGN-test-build-ci.md` §3.14.10
+`docs/CONFORMANCE.md` change with their steps; `DESIGN-test-build-ci.md` §3.14.10
 and section 3.17.4 keep their one-sentence pointers here; MANDATORY-PRACTICES I-rules that say "a fix ships its self-test arm"
 say "its case" after PB3729; the `gate`, `workstream` and `kb-sync` skills name the case layout where they name
 `--self-test`. Nothing in this section is a worklist: the steps are the kb/Work notes, and `python scripts/spec/work.py

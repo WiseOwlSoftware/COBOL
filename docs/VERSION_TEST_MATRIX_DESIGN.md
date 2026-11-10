@@ -131,6 +131,13 @@ they cover ~70% of real dialect collisions and exercise all five gating patterns
   each NIST program at 2002/2014/2023 too and
   assert it still compiles (output need not re-match the golden at a later edition unless behavior is edition-invariant,
   which for the nucleus it is — so re-matching the golden is the strong form; start with "still compiles").
+  **Where a gated behaviour variant reaches a NIST program, the strong form compares against that edition's golden**
+  (kb/Work PB5101): the program's `tests/nist/corpus.tsv` row declares `BEHAVIOR <DialectBehaviors id>[,…]:`, and the
+  golden run at edition V reads `tests/nist/valid-editions/<E>/<name>.txt` for the greatest declared `ChangedIn` E ≤ V
+  (else `valid/`), one selection in `CorpusManifest.GoldenPath`. `CorpusManifestTests.EditionGoldens_AreExactlyTheDeclaredBehaviorEditions`
+  holds the files equal to the declarations and each different from the golden it supersedes; an undeclared variant
+  is the INV-1-strong leg's own red. The one member is NC201A (row 7.53: the 1985 order of a PERFORM VARYING AFTER
+  step at 85, the 2002 order from 2002, whose CCVS check then FAILs).
 - **The conformance suite** (`conformance-suite/`, `docs/rearchitecture/DESIGN-conformance-suite.md`, approved by
   the owner 2026-10-14, kb/Work PB3160, revision 3 2026-11-04, PB4614): one tree of tests filed by ISO clause (`cases/<clause>-<Name>/<id>.cob`
   + `<id>.out`; WiseOwl's own behaviour under `wiseowl/cases/`), each opening with a metadata header that names its
@@ -216,7 +223,7 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
   edition.) **Decision #2 — default `--std`:** the `CompilerDriver.Options.DialectLevel` default is
   **2023** (`src/WiseOwl.Cobol.Compiler/CompilerDriver.cs`), pinned by a `CompilerDriverTests` regression test; the CLI
   `--std` defaults to 2023 and `--nist` without an explicit `--std` targets 85 (`src/WiseOwl.Cobol.Cli/CliOptions.cs`).
-  **Phase 1 — seed + continuity ✅ DONE:** the canonical **`tests/version-matrix/constructs.json`** (12 seeded rows —
+  **Phase 1 — seed + continuity ✅ DONE:** the canonical **`tests/version-matrix/constructs/`** (12 seeded rows —
   85 baseline; 2002: ALLOCATE, FREE, INVOKE, GOBACK RETURNING, STOP-status, BASED, PROCEDURE…RETURNING; 2014: JSON
   GENERATE, XML GENERATE; 2023: DELETE FILE, TYPE IS) loaded by `VersionMatrixTests` — 48 matrix cells, all green;
   the **`EditionHarness`** (`Compile`/`CompileNist`/`GetDiagnostics`/`AssertHasDiagnostic` — THE per-edition
@@ -315,7 +322,7 @@ GO TO), 0882 (CALL ON OVERFLOW).
 
 `src/WiseOwl.Cobol.Editions/ConstructDialectStatus.cs` (record: Id, Display, IntroducedIn, RemovedIn, ObsoleteIn?,
 DiagnosticCode, Citation) + `ConstructRegistry` with `StatusAt(edition, permissive)` and the one `Check(...)`
-entry. `tests/version-matrix/constructs.json` stays THE canonical catalogue (§10 #5; gains an optional
+entry. `tests/version-matrix/constructs/` stays THE canonical catalogue (§10 #5; gains an optional
 `expectDiagnostic` field); a unit drift test asserts registry↔json metadata equality both directions, and the
 ReservedWords drift test does the same one level up.
 
@@ -491,7 +498,7 @@ threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATI
 4. **INV-1 strong vs weak form:** "still compiles" (weak) vs "re-matches the 85 golden" (strong) at later editions.
    *Default:* weak first (compiles), strengthen to golden-match where behavior is edition-invariant.
 5. **Catalogue ↔ registry source of truth:** make ONE **structured data file** canonical — e.g.
-   `tests/version-matrix/constructs.json` (or `.yaml`) holding every catalogue entry (§4) with its edition metadata.
+   `tests/version-matrix/constructs/` (or `.yaml`) holding every catalogue entry (§4) with its edition metadata.
    BOTH the human-readable `VERSION_CHANGE_REFERENCE.md` table AND the in-code `ConstructDialectStatus` registry are
    derived/diffed from that file (a CI drift check). The "cannot drift" guarantee must **not** parse markdown — the doc
    is a rendering of the data, not the source.

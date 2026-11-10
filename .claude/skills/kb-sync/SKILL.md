@@ -1,6 +1,6 @@
 ---
 name: kb-sync
-description: Use after landing work that changes remaining-work state, and at every phase close - validates the kb/Work register, regenerates the derived views, keeps constructs.json and plan section 0 in agreement, and sweeps the docs.
+description: Use after landing work that changes remaining-work state, and at every phase close - validates the kb/Work register, regenerates the derived views, keeps the construct catalogue and plan section 0 in agreement, and sweeps the docs.
 ---
 
 # KB sync
@@ -20,7 +20,7 @@ What remains:
    by a live note, every `closes_rows` entry a row the inventory calls closed; `scripts/spec/work_inventory.py`).
    `python scripts/spec/work.py --self-test` holds the register's one frontmatter reader to its cases.
 2. `python scripts/rendered_views.py --check` — every rendered view (the burn-down, the drift-rule index, the diagnostics table) still renders, none is tracked.
-3. `constructs.json` — still its own authority for CI and the drift tests; unchanged.
+3. `constructs/` — still its own authority for CI and the drift tests; unchanged.
 4. Plan §0 — narrative and owner decisions ONLY. It no longer carries a worklist; `Fix next` does.
 
 ## The registers and who owns what
@@ -29,7 +29,7 @@ What remains:
 |---|---|---|
 | **`kb/Work/`** | ⛔ **ALL remaining work** — defects, analyses, adjudications, decisions | **the ONE work register**; `work.py next` is "what now" |
 | `docs/REARCHITECTURE_PLAN.md` §0 | live state: where we are, gates, open GAPs, owner decisions, campaign narrative | **the only live-state SSOT** — and **NOT a worklist** |
-| `tests/version-matrix/constructs.json` | per-construct edition metadata + status | authoritative for CI and drift tests |
+| `tests/version-matrix/constructs/` | per-construct edition metadata + status | authoritative for CI and drift tests |
 | `docs/rearchitecture/spec-reconciliation/LEDGER.json` | PDF-vs-markdown transcription defects | the reconciliation SSOT — **COMPLETE, 210/210** |
 
 ⛔ **THERE IS NO "TRACKER" AND NO §A/§B/§C ANY MORE.** Those were sections of `kb/Remaining Work Tracker.md`,
@@ -39,7 +39,7 @@ doc is stale — fix it on discovery (below).
 
 ## When a construct lands
 
-Flip its `status` in `constructs.json`, and flip the `status` of its `kb/Work/` note if it has one. Same commit.
+Flip its `status` in its `constructs/<id>.json`, and flip the `status` of its `kb/Work/` note if it has one. Same commit.
 
 ## When a fix-queue item lands
 

@@ -37,7 +37,7 @@ for CI's `supersede` job (scripts/orchestrator/cancel_superseded.py), which canc
 head commit no entry heads any more; an unreadable, absent or incomplete queue is None there too.
 A pull request is IN THE QUEUE when the queue's entries name it or GitHub says `isInMergeQueue`; one an entry names carries
 its place in the queue (`position`: the entries' own order), which the survey simulates the queue's builds in
-(merge_drivers.foresee_queue, kb/Work PB3723). Auto-merge on is NOT
+(git_merge.foresee_queue, kb/Work PB3723). Auto-merge on is NOT
 in the queue: it is GitHub's promise to queue the pull request once its required checks pass, and that promise is what
 PR #385 broke. Offline, unauthenticated, with no gh, or on any malformed answer the read is None: a non-observation,
 never a claim that nothing is open or queued (a job that cannot be read leaves that check-run's `job_status` empty, so
@@ -223,7 +223,7 @@ def read(gh: Gh | None = None, required: tuple[str, ...] | None = None) -> dict[
         nodes = data['pullRequests']['nodes']
         entries = ((data.get('mergeQueue') or {}).get('entries') or {}).get('nodes') or []
         # The entries in the queue's own order (`position`, else the order GitHub listed them): a pull request's place in
-        # it is what a conflict between two queued heads is read against (merge_drivers.foresee_queue, kb/Work PB3723).
+        # it is what a conflict between two queued heads is read against (git_merge.foresee_queue, kb/Work PB3723).
         listed = [e for e in entries if isinstance(e, dict)]
         queued = {int((e.get('pullRequest') or {}).get('number') or 0): int(e.get('position') or i + 1)
                   for i, e in enumerate(listed)}

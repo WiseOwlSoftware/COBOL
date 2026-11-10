@@ -415,7 +415,7 @@ public sealed class MoveEditionDifferentialTests
         EditionHarness.AssertNoDiagnostic(warnings, "COBOL0902");
     }
 
-    // ═══ The constructs.json row sources (activation readiness — the matrix theories' shapes) ═════════════════
+    // ═══ The construct catalogue row sources (activation readiness — the matrix theories' shapes) ═════════════════
 
     [Theory]
     [InlineData(85)]

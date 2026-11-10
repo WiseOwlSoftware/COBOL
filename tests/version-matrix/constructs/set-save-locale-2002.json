@@ -1,0 +1,12 @@
+{
+ "id": "set-save-locale-2002",
+ "description": "SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}, ISO 14.9.39.2 Format 12 (save-locale) - introduced 2002 with the locale facility (Annex A.4.9 item 9; kb/Work PB64 T1): the current locale (GR26) or the user default (GR27) is saved and a reference to it - a managed saved-locale handle (DESIGN-locale-facility L4) - is placed into the data-pointer (SR28). Parse-arm gated on recognition (VisitSetLocaleStatement; the shape has no '85 reading).",
+ "display": "SET TO LOCALE (save-locale, Format 12)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39.2 Format 12; §2023:14.9.39.3 SR28; §2023:14.9.39.4 GR26/GR27",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the locale facility; kb/Work PB64 T1 - the saved-locale handle)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64SV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01  SAVED-LOC USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET SAVED-LOC TO LOCALE LC_ALL.\n    STOP RUN.\n"
+}

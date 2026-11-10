@@ -1,0 +1,12 @@
+{
+ "id": "program-collating-national-2002",
+ "description": "The national surface of the OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE clause, ISO 12.3.6.2 - alphabet-name-2 of the two-name IS form and the FOR ALPHANUMERIC / FOR NATIONAL forms, all introduced 2002 with the national class (the 85 format is the single-name IS form). Parse-arm gated on recognition (VisitProgramCollatingSequenceClause).",
+ "display": "the PROGRAM COLLATING SEQUENCE national surface (alphabet-name-2 / FOR forms)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.6.2 (PROGRAM COLLATING SEQUENCE second alternative + alphabet-name-2); §2023:12.3.6.3 SR2",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the national class, §2023:12.3.6 SR2/GR9)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15PC.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. XYZ\n    PROGRAM COLLATING SEQUENCE FOR NATIONAL IS NATSEQ.\nSPECIAL-NAMES.\n    ALPHABET NATSEQ FOR NATIONAL IS NATIVE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

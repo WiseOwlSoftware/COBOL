@@ -5,8 +5,8 @@
 #   python scripts/abi_pin.py bump --call-abi        a compiler-side change to what crosses a CALL (RuntimeAbi.CallAbi)
 #   python scripts/abi_pin.py repin                  nothing incompatible (a pure rename): say why in the commit
 # Each raises the counters in Directory.Build.props <Version> and RuntimeAbi.cs and has the test write the hashes.
-# A merge of two branches that both changed this file is made by scripts/merge_drivers.py: the counters add, the hashes
-# read UNMEASURED and are measured on the merged tree before the merge commit.
+# Two branches that both changed this file conflict in plain git (kb/Work PB5110): take main's file, re-apply this
+# branch's own bump (the commands above) and let the test measure the merged tree; never merge the hashes by hand.
 runtime-major 25
 runtime-hash 26C06D9A39E32459
 call-abi 6

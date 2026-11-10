@@ -1,0 +1,12 @@
+{
+ "id": "user-word-sharing-2002",
+ "description": "The word SHARING as a user-defined word - 8.9 interval encoding: user-definable at 85 (the clause did not exist), reserved since 2002 (ReservedWords.Table covers SHARING/RETRY/UNLOCK). cobolWord admits the token; the funnel rejects 0901 at >=2002.",
+ "display": "the word SHARING as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable at 85, reserved since 2002",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "8.9 (2002 introduction); ReservedWords.Table SHARING/RETRY/UNLOCK rows",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWUW.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 SHARING PIC X.\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "usage-program-pointer-2002",
+ "status": "active",
+ "description": "USAGE PROGRAM-POINTER (§2023:13.18.60 GR24 — a program-pointer data item holding the address of an OUTERMOST program) — a COBOL-2002 introduction. ACTIVE as of P10 Step 7: the ProgramPointer carrier resolves through the ONE RunUnit ProgramTable (SET … TO ENTRY §2023:8.4.3.13; CALL through the pointer §2023:14.9.4 SR1; relations §2023:8.8.4.2.16). The restricted TO-prototype form (GR25) is staged loud (program prototypes = P13). Gate home: the bound-arm UsageConstructId (the usage-pointer-2002 pattern).",
+ "display": "USAGE PROGRAM-POINTER",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.4 GR24/GR25",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "ISO §2023:13.18.60 (2002 pointer family); GnuCOBOL 2002 reserved list row PROGRAM-POINTER",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KPP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PP USAGE PROGRAM-POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    IF PP = NULL DISPLAY \"NULL\" END-IF.\n    STOP RUN.\n"
+}

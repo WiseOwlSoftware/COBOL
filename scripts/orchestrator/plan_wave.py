@@ -122,8 +122,7 @@ shape. RUNNING work HOLDS a group by `hold` (kb/Work PB4452, the owner 2026-11-0
 file typically will merge without conflict"): only where a member of one matches a member of the other (source_units.
 meet), so a shared FILE, or a file either side claims whole (an index-found caller, a site named whole), holds nothing;
 git's merge at landing is the authority on a conflict, and a finisher repairs a real one. Two claims MEET by `collision`
-(a file either claims whole, or a member of one that matches a member of the other, never a file a merge driver merges
-by key, merge_drivers.covered_by_driver) to GROUP: within a wave and against a FINISHED branch, where meeting on a file is
+(a file either claims whole, or a member of one that matches a member of the other) to GROUP: within a wave and against a FINISHED branch, where meeting on a file is
 what makes one step (kb/Work PB4396). Two groups on DIFFERENT MEMBERS of one file run side by side, and git's three-way
 merge combines their branches (the owner: "Developers do this all the time"). A note's declared set (declared_sets, the one computation, on one explicit IndexPolicy, kb/Work PB3203) is its
 STRUCTURED sites only, read by ONE reader (work.note_sites): the paths of its Code site / Site / Sites blocks with the
@@ -196,6 +195,7 @@ sys.path.insert(0, str(HERE.parent / "spec"))
 import adopt_main  # noqa: E402  (the adopted commit: the floor this planner refuses to plan below, kb/Work PB2699)
 import alloc  # noqa: E402
 import coord  # noqa: E402
+import gate_slot  # noqa: E402  (the gate pool a wave's implementers feed: its cap and live holders, kb/Work PB5100)
 import group_sizes  # noqa: E402  (a campaign's measured group size, kb/Work PB4944)
 import work  # noqa: E402  (cluster_order: the ONE reader of cluster: and blocked_by:)
 from standard_streams import ensure_utf8  # noqa: E402
@@ -1000,6 +1000,16 @@ def main(argv: list[str] | None = None) -> int:
         return plan_main(argv, stack)
 
 
+def wave_concurrency(state: "gate_slot.SlotState") -> tuple[int, str]:
+    """The implementers one wave may run at once, DERIVED from the gate pool they feed (kb/Work PB5100): the pool's cap in
+    force, less the slots held and the tickets waiting now (another lane's gates: this planner runs before the wave starts
+    any of its own), never fewer than one. Gates are 86 % of a group's fix-to-review time (kb/Work PB4888), so an
+    implementer beyond the free slots only holds a model session open while its gate queues. Returns (workers, why)."""
+    n = max(1, state.cap - len(state.held) - len(state.waiting))
+    return n, (f"gate cap {state.cap} - {len(state.held)} slot(s) held - {len(state.waiting)} ticket(s) waiting, "
+               "at least 1")
+
+
 def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--wave", default="next", help="the wave number, or next (default): the allocator's next wave "
@@ -1105,8 +1115,8 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
         if not view["notes"]:
             print(f"=== CLUSTER {a.cluster} LANDED: every one of its {view['named']} note(s) is landed or retired ===")
             return 0
-        texts = {r["id"]: f.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n")
-                 for r in view["notes"] if (f := REPO / "kb" / "Work" / f"{r['id']}.md").is_file()}
+        texts = {r["id"]: t.replace("\r\n", "\n")
+                 for r in view["notes"] if (t := work.note_text(r["id"], REPO / "kb" / "Work")) is not None}
         tiers = {r["id"]: r["tier"] for r in view["notes"]}   # the effective tiers: the placement order (PB3638)
         # A CAMPAIGN WHOSE GROUPS ALWAYS RUN OVER IS SPLIT SMALLER (kb/Work PB4944): its recorded pace sets the group size
         cap, why = group_sizes.campaign_cap(cdir, a.cluster, notes_cap(rules))
@@ -1246,6 +1256,9 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
     # A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE (kb/Work PB3114): render and check on the PEEKED codes,
     # recording nothing; only then reserve the codes, render again with them and record. A RED check reserves no code
     # and holds no note in the ledger (a wave entry never expires: its notes waited for a hand `--release`).
+    # The gate pool is read HERE, before anything is reserved or recorded: a malformed slot settings file raises, and a
+    # raise after the reservations would strand the wave number, the codes and the held notes (kb/Work PB5100, R1-1).
+    workers, why_workers = wave_concurrency(gate_slot.GateSlots.for_repo(REPO).state())
     if rc := render(gjson, "--no-record"):
         print("make_dispatch_specs.py + check_practices.py: RED (no code reserved, nothing recorded in the dispatch "
               "ledger, no wf-args file; fix the cause and plan again)")
@@ -1266,8 +1279,9 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
     print(f"make_dispatch_specs.py + check_practices.py: {'GREEN' if rc == 0 else 'RED'}")
     if rc:
         return rc
+    print(f"  concurrency {workers}: {why_workers}")
     args = {"scratch": str(scratch), "wave": wave, "stop_file": str(stop_file), "global_stop": str(coord.global_stop(a.coord)),
-            "concurrency": rules["wave"]["concurrency"],
+            "concurrency": workers,
             "authorization": a.authorization,
             "groups": [{k: j[k] for k in ("letter", "lead", "notes", "codes", "model", "after", "requirements") if k in j}
                        for j in gjson]}

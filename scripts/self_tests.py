@@ -130,6 +130,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterator
 
+import process_job  # this directory's: the self-test's whole process tree, stopped as one (kb/Work PB5098)
 import sharedfile  # this directory's: the one Windows share-retry rule for files several processes read and replace
 import live_tools  # this directory's: the one list of the live tools' trees, which discovery reads
 import inert_lane  # this directory's: the one classification of what a change touches, whose tooling flag `_record` proves
@@ -144,7 +145,7 @@ from standard_streams import ensure_utf8
 REPO = Path(__file__).resolve().parents[1]
 FLAG = "--self-test"
 VERDICT = "=== SELF-TESTS: "
-#: The submodule `check_practices.py` lives in (test_dispatch_guard.py, test_plan_wave.py import it).
+#: The submodule `check_practices.py` lives in (test_plan_wave.py imports it).
 SUBMODULE = "tools/claude-skills"
 #: ⛔ A HANG DETECTOR, NEVER A VERDICT ON SPEED (module docstring): counted from the moment the self-test holds its
 #: budget place, so waiting behind other gates never counts, and set far above every PASS measured — the slowest,
@@ -660,20 +661,44 @@ class Runner:
     def _exec(self, test: SelfTest, env: dict[str, str], why: str, waited: float,
               label: str = "") -> "subprocess.CompletedProcess[str] | Result":
         """One run of the self-test's command, or the HANG or RED-127 Result when it did not finish (`label` says which
-        run of a clock-proved self-test it was)."""
+        run of a clock-proved self-test it was).
+
+        ⛔ THE WHOLE TREE, AND FILES, NEVER PIPES (kb/Work PB5098): the self-test runs as the root of a ProcessJob
+        (scripts/process_job.py), so the HANG stop kills every process it started, an orphaned grandchild included, and
+        whatever it leaves running when it exits is killed too and named; its output goes to files, because a pipe an
+        orphan still holds blocks its reader (on 2026-11-10 an orphaned test supervisor held one and the HANG stop
+        itself waited 87 minutes in subprocess.run's post-kill communicate())."""
         start = time.monotonic()
+        out_dir = Path(tempfile.mkdtemp(prefix="out-", dir=env.get("COBOL_COORD_DIR") or None))
+        out_path, err_path = out_dir / "stdout.txt", out_dir / "stderr.txt"
+
+        def read(p: Path) -> str:
+            return p.read_text(encoding="utf-8", errors="replace") if p.exists() else ""
+
         try:
-            return subprocess.run(test.command(), cwd=self.repo, env=env, stdin=subprocess.DEVNULL,
-                                  capture_output=True, text=True, encoding="utf-8", errors="replace",
-                                  timeout=self.hang_after_s)
-        except subprocess.TimeoutExpired as e:
-            return Result(test, HANG, None, time.monotonic() - start,
-                          f"{_text(e.stdout)}{_text(e.stderr)}\n⛔ HANG: {label}still running {self.hang_after_s:.0f} s "
-                          f"after it took its budget place; stopped (a hang detector, never a verdict on speed)",
-                          why, waited)
+            with open(out_path, "w", encoding="utf-8", newline="\n") as fo, open(err_path, "w", encoding="utf-8", newline="\n") as fe:
+                job = process_job.ProcessJob.start(test.command(), cwd=self.repo, env=env, stdin=subprocess.DEVNULL,
+                                                   stdout=fo, stderr=fe)
+                with job:
+                    try:
+                        rc = job.wait(self.hang_after_s)
+                    except subprocess.TimeoutExpired:
+                        job.kill()
+                        return Result(test, HANG, None, time.monotonic() - start,
+                                      f"{read(out_path)}{read(err_path)}\n⛔ HANG: {label}still running "
+                                      f"{self.hang_after_s:.0f} s after it took its budget place; stopped with its whole "
+                                      f"process tree (a hang detector, never a verdict on speed)", why, waited)
+                    left = job.alive()
+            stdout, stderr = read(out_path), read(err_path)
+            if left:  # killed at the block's end; said, because a self-test that leaves processes running is a defect
+                stderr += (f"\n⚠ it exited leaving {len(left)} process(es) of its tree running (pid(s) "
+                           f"{', '.join(map(str, left[:8]))}); they were killed (kb/Work PB5098)")
+            return subprocess.CompletedProcess(test.command(), rc, stdout, stderr)
         except OSError as e:
             return Result(test, RED, 127, time.monotonic() - start,
                           f"⛔ could not start {test.command()[0]}: {e}", why, waited)
+        finally:
+            shutil.rmtree(out_dir, ignore_errors=True)
 
     def _clock(self, test: SelfTest, trace_dir: Path) -> "clocks.Clock":
         """The clock proof this self-test's PASS needs (scripts/self_test_clock.py `Clock.of`), from the tracked Python
@@ -1179,7 +1204,15 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         for name, body in bodies.items():
             (root / "scripts" / name).write_text(REAL_CLOCK + body + span.format(sleep=_FLEET_SLEEP_S), encoding="utf-8",
                                                  newline="\n")
-        (root / "scripts" / "test_hang.py").write_text("import time\ntime.sleep(60)\n", encoding="utf-8", newline="\n")
+        # The hung one and the one that exits leaving a process behind each start a grandchild that sleeps and records
+        # its pid (kb/Work PB5098: the HANG stop and the runner kill the WHOLE tree, an orphan included).
+        pids = Path(tempfile.mkdtemp(dir=s))
+        grandchild = ("import subprocess, sys\np = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(600)'],"
+                      " stdin=subprocess.DEVNULL)\nopen({path!r}, 'w').write(str(p.pid))\n")
+        (root / "scripts" / "test_hang.py").write_text(grandchild.format(path=str(pids / "hang.pid"))
+                                                       + "import time\ntime.sleep(60)\n", encoding="utf-8", newline="\n")
+        (root / "scripts" / "test_orphan.py").write_text(REAL_CLOCK + grandchild.format(path=str(pids / "orphan.pid")),
+                                                         encoding="utf-8", newline="\n")
         # The proof of the tooling flag (`_record`): a self-test that reads a file `planted` does not see; one that reads
         # it while walking the whole tree with git, undeclared (judged) and declared a population (the accepted residue);
         # and a declaration its trace does not bear out.
@@ -1335,6 +1368,30 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               "never RED", (hung[0].state, rc, line.startswith(VERDICT + "HANG")), (HANG, HANG_EXIT, True))
         check("arm: a hung self-test's output names the hang",
               any("HANG: still running" in s for s in said), True)
+        from detached import pid_alive  # noqa: PLC0415  (this directory's: the one liveness probe)
+
+        def tree_dead(name: str) -> bool:
+            f = pids / name
+            if not f.exists():
+                return False
+            pid = int(f.read_text(encoding="utf-8").strip())
+            while pid_alive(pid):  # no limit: a tree the kill does not end is the hang detector's (no wall clock)
+                time.sleep(0.1)
+            return True
+        # The stop above may come before a loaded host has started the grandchild (review R2-1): the whole-tree proof
+        # re-runs the hung self-test with a doubled hang limit until its grandchild recorded its pid, so the check
+        # never reads a slow start as a surviving tree; no limit on the doubling (no wall clock in a verdict).
+        limit = 1.0
+        while not (pids / "hang.pid").exists():
+            limit *= 2
+            gate(False, [], hang_after_s=limit, which=[found["test_hang.py"]])
+        check("arm: the HANG stop kills the hung self-test's WHOLE tree, its grandchild included (kb/Work PB5098)",
+              tree_dead("hang.pid"), True)
+        orphan = gate(False, [], which=[found["test_orphan.py"]])
+        check("arm: a self-test that exits leaving a process running is still judged by its exit code, its output names "
+              "what it left, and the runner kills it (kb/Work PB5098: an orphan held the runner's pipe 87 minutes)",
+              (orphan[0].state, "process(es) of its tree running" in orphan[0].output, tree_dead("orphan.pid")),
+              (GREEN, True, True))
         stray = gate(False, [], which=[found["test_stray.py"]])
         check("arm: a self-test that passes but read a file the tooling flag does not see is RED, naming the file and "
               "TOOLING_READS, and records no PASS (kb/Work PB4326, review R1-1)",

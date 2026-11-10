@@ -1,0 +1,13 @@
+{
+ "id": "user-word-function-pointer-2014",
+ "status": "active",
+ "description": "The word FUNCTION-POINTER as a user-defined word — user-definable at 85 AND 2002, reserved since 2014 (§2023:8.9; reserved-words.json row FUNCTION-POINTER r85=false r2002=false r2014..r2023=true). Interval row: cobolWord/_dataNameTokens/CheckedTokenTypes-admitted at P10 Step 7.",
+ "display": "the word FUNCTION-POINTER as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable at 85/2002, reserved since 2014",
+ "introducedIn": 85,
+ "removedIn": 2014,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "reserved-words.json FUNCTION-POINTER (added 2014; ISO 2023 §2023:8.9)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWFP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FUNCTION-POINTER PIC 99 VALUE 6.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY FUNCTION-POINTER.\n    STOP RUN.\n"
+}

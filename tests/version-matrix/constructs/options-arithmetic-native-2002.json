@@ -1,0 +1,11 @@
+{
+ "id": "options-arithmetic-native-2002",
+ "description": "The OPTIONS paragraph with ARITHMETIC IS NATIVE — the OPTIONS paragraph and its ARITHMETIC clause are 2002 introductions (the 2002 standard introduced OPTIONS with ARITHMETIC IS NATIVE|STANDARD; Annex E.2 item 21 places plain Standard Arithmetic as obsolete-in-2014/removed-2023, so it and its container predate 2014; the OPTIONS reserved word is 2002 per the §2023:8.9 reserved-word table)",
+ "display": "OPTIONS paragraph / ARITHMETIC IS NATIVE",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.9 / §2023:11.9.5; Annex E.2 item 21",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "vcr": "2002 introduction (M2 catalog + Annex E.2 item 21 back-derivation; the 85→2002 delta is under-documented in the 2023 text)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OA.\nOPTIONS.\n    ARITHMETIC IS NATIVE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+}

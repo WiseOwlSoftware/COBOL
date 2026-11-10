@@ -185,17 +185,17 @@ def ready_notes_view(status: str, view: pathlib.Path, work_dir: pathlib.Path | N
     view.mkdir(parents=True)
     for it in items:
         if it.get("status") == status and it.get("id") in works and not work.waiting_on(it, by_id):
-            if it.get("id") in owed:
-                (view / it["_file"]).write_text(owing(work_dir / it["_file"], owed[it["id"]]), encoding="utf-8", newline="")
-            else:
-                shutil.copyfile(work_dir / it["_file"], view / it["_file"])
+            # the note's text as the register reads it, addenda folded in (work.note_text, kb/Work PB5110): fix_clusters.py
+            # reads one file per note, so a Sites paragraph that only an addendum carries must be in that file
+            text = work.note_text(it["id"], work_dir) or ""
+            (view / it["_file"]).write_text(owing(text, owed[it["id"]]) if it.get("id") in owed else text,
+                                            encoding="utf-8", newline="\n")
     return view
 
 
-def owing(note: pathlib.Path, flags: list[str]) -> str:
+def owing(text: str, flags: list[str]) -> str:
     """A note's text with `flags` set true and `process_only` false in its frontmatter (a line added where one is
     absent): the planner's view of a prerequisite that owes a harmed note's harm (kb/Work PB4769)."""
-    text = note.read_text(encoding="utf-8")
     head, sep, body = text.partition("\n---")
     lines = head.split("\n")
     for key, value in [*((f, "true") for f in flags), ("process_only", "false")]:
@@ -211,7 +211,7 @@ def fold_unsited(raw: Mapping[str, Any], notes: Mapping[str, Note]) -> dict[str,
     """fix_clusters.py's output with every UNSITED note made a group of its own (kb/Work PB4566), the rule the campaign
     lane already follows (campaign_clusters: "a note declaring no site file is a group of its own"). fix_clusters
     resolves a site only against .agent-fleet.json's `src` and `ext` and lists the rest under `unsited`; the planner
-    read `clusters` alone, so a ready defect sited in a data file (PB3600 on tests/version-matrix/constructs.json, PB3957
+    read `clusters` alone, so a ready defect sited in a data file (PB3600 on tests/version-matrix/constructs/, PB3957
     on reserved-words.json) was planned by no wave while the ledger counted it as a group. The group's collision set is
     its note's DECLARED set (declare_fix_lane), so its partition is the same as any cluster's. Returns `clusters` only:
     no reader sees an `unsited` list it could drop."""

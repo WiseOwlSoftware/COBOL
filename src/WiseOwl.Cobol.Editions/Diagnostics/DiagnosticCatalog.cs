@@ -156,7 +156,7 @@ public static class DiagnosticCatalog
     // ⛔ COBOL0883 ("propagate-directive") is RETIRED — NEVER REALLOCATE IT. It was >>PROPAGATE's own
     //    malformed-operand code, one of SIX spellings of the single rule "a directive's operand shall be one the
     //    directive's general format admits" (ISO §2023:7.3.3 SR6). kb/Work PB794 made that rule DATA — the
-    //    `directiveOperand` column of constructs.json — checked once at the point a >> word is recognized, so
+    //    `directiveOperand` column of the construct catalogue — checked once at the point a >> word is recognized, so
     //    >>PROPAGATE MAYBE is now COBOL1911 like every other closed-operand directive, and the seven
     //    directives that had no such code at all stopped compiling malformed lines in silence. PB725 had already
     //    taken this descriptor's edition half onto COBOL0900; this is the other half. The COBOL0875 and
@@ -2746,7 +2746,7 @@ public static class DiagnosticCatalog
     // PLACEMENT code (§2023:7.3.17.3 SR1 "shall not be specified within a compilation unit"; kb/Work PB65) after kb/Work
     // PB794 had taken its operand half onto COBOL1911. kb/Work PB1378 found the rule written for LEAP-SECOND
     // alone (and wrongly — it latched at the first unit and rejected a directive BETWEEN two sibling units) while
-    // PROPAGATE's twin SR1 was unchecked, so both directives' placement is now DATA on their constructs.json rows
+    // PROPAGATE's twin SR1 was unchecked, so both directives' placement is now DATA on their the construct catalogue rows
     // (directivePlacement) judged by ONE pass — COBOL2652 (DirectivePlacementViolation) below.
     // §2023:14.9.43.3 / §2023:14.9.48.3 — the STRING and UNSTRING operand rules that are not about USAGE (those are
     // COBOL1626): a reference-modified, edited, JUSTIFIED or strongly-typed STRING receiver (SR4/SR5/SR6), a
@@ -3553,7 +3553,7 @@ public static class DiagnosticCatalog
     // ⛔ COBOL1576 ("ref-mod-zero-length-malformed-operand") is RETIRED — NEVER REALLOCATE IT. It was
     //    >>REF-MOD-ZERO-LENGTH's own copy of "a directive's operand shall be one its general format admits"
     //    (ISO §2023:7.3.3 SR6), one of six such codes; kb/Work PB794 made the rule DATA on the directive's
-    //    constructs.json row and gave the whole family ONE producer, COBOL1911. (It had itself been
+    //    the construct catalogue row and gave the whole family ONE producer, COBOL1911. (It had itself been
     //    renumbered from a bare-literal "COBOL1573" that collided with ExternalFileStatusConsistency above —
     //    the P13 plan-vs-spec review finding C1, DEVLOG 907 — because the frontend emit bypassed this catalog;
     //    the central producer ends that class of collision for every directive at once.) The COBOL0875 and
@@ -4243,7 +4243,7 @@ public static class DiagnosticCatalog
     /// COBOL1911 — THE malformed compiler-directive operand, for the whole §2023:7.3 family (kb/Work PB794).
     /// ISO §2023:7.3.3 SR6 composes compiler-instruction "as specified in the syntax of each directive", and for the
     /// directives whose syntax is a closed word set that specification is the <c>directiveOperand</c> column of
-    /// <c>constructs.json</c>, checked once by <see cref="CompilerDirectiveCatalog.CheckOperand"/> at the point
+    /// <c>constructs/</c>, checked once by <see cref="CompilerDirectiveCatalog.CheckOperand"/> at the point
     /// the directive word is recognized. ONE descriptor, not one per directive: the rule had been written six
     /// times with six codes (0883 PROPAGATE, 1650 LEAP-SECOND, 1576 REF-MOD-ZERO-LENGTH, 1622 FLAG-14,
     /// 1623 COBOL-WORDS, 0718 TURN) and the seven directives nobody had written it for — SOURCE FORMAT, LISTING,
@@ -4256,7 +4256,7 @@ public static class DiagnosticCatalog
         "A compiler directive's operand is not one the directive's own general format admits. ISO §2023:7.3.3 syntax "
         + "rule 6: \"Compiler-instruction is composed of compiler-directive words, system-names, and user-defined "
         + "words as specified in the syntax of each directive.\" The message names the directive, what was "
-        + "written, and the admissible set — which is read from the directive's constructs.json row, so every "
+        + "written, and the admissible set — which is read from the directive's the construct catalogue row, so every "
         + "directive whose operand is a closed word set is checked by construction rather than by remembering.",
         "ISO §2023:7.3.3 SR6 / each directive's general format");
 
@@ -6181,7 +6181,7 @@ public static class DiagnosticCatalog
     /// LEAP-SECOND and PROPAGATE "shall not be specified within a compilation unit" (§2023:7.3.17.3 SR1, §2023:7.3.21.3 SR1),
     /// COBOL-WORDS "may be specified only before the first IDENTIFICATION DIVISION within a compilation group"
     /// (§2023:7.3.10.3 SR1), and a PUSH or POP that names one of them "shall not be specified where directive-name must not
-    /// be specified" (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2). The rule lives as data on the directive's constructs.json row;
+    /// be specified" (§2023:7.3.20.3 SR2, §2023:7.3.22.3 SR2). The rule lives as data on the directive's the construct catalogue row;
     /// <c>DirectiveSiteProcessor</c> (the text rule) and <c>DirectivePlacementPass</c> (the parse-tree rule) are its
     /// only reporters. An ERROR: a directive misplaced in a unit has no well-defined compilation-group state to
     /// apply (the warning rules of COBOL2344 and COBOL2187 leave the directive's effect unambiguous).</summary>
@@ -8624,8 +8624,19 @@ public static class DiagnosticCatalog
         "COBOL0846", "inspect-literal-size", EditionSeverity.Error,
         "An INSPECT literal is of the wrong size: §2023:14.9.22.3 SR7 \"When the CHARACTERS phrase is specified, literal-3 "
         + "shall be one character in length\", and SR9 \"When both literal-4 and literal-5 are specified they shall be the "
-        + "same size except when literal-5 is a figurative constant.\"",
-        "ISO §2023:14.9.22.3 SR7, SR9");
+        + "same size except when literal-5 is a figurative constant.\" At --std 85 the size rules are syntax rules over the "
+        + "data items too, so a mis-sized identifier is refused here as well: §1985:VI.6.18.3 SR7 \"The size of literal-3 or "
+        + "the data item referenced by identifier-5 must be equal to the size of literal-1 or the data item referenced by "
+        + "identifier-3.\", SR8 and SR9 (from 2002 a mis-sized identifier is the run-time EC-RANGE-INSPECT-SIZE instead).",
+        "ISO §2023:14.9.22.3 SR7, SR9; §1985:VI.6.18.3 SR7, SR8, SR9");
+
+    /// <summary>COBOL6859 — an INSPECT CONVERTING literal-4 that repeats a character, at --std 85 (kb/Work PB5089).</summary>
+    public static readonly DiagnosticDescriptor InspectConvertingRepeatedCharacter = new(
+        "COBOL6859", "inspect-converting-repeated-character", EditionSeverity.Error,
+        "The literal-4 of an INSPECT CONVERTING holds one character more than once. §1985:VI.6.18.3 SR10: \"The same "
+        + "character must not appear more than once either in literal-4 or in the data item referenced by identifier-6.\" "
+        + "From 2002 the rule is gone and the first occurrence decides (§2023:14.9.22.4 GR23).",
+        "ISO §1985:VI.6.18.3 SR10");
 
     /// <summary>COBOL0858 — raising phrase name invalid (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor RaisingPhraseNameInvalid = new(

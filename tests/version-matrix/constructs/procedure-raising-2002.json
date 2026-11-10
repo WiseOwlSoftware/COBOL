@@ -1,0 +1,13 @@
+{
+ "id": "procedure-raising-2002",
+ "status": "active",
+ "description": "PROCEDURE DIVISION RAISING (declares the exception conditions a program or method may propagate to its activator) - COBOL-2002 introduction, {is2002()}?-gated at CobolParserCore.g4:487. GATED (P3 step 10): below 2002 the parse gate now re-diagnoses the RAISING token in the procedureDivision rule as COBOL0900 via ReservedWordEditionHints (it previously surfaced as a GENERIC COBOL0001 - the loud-hole fix); binds at 2002+ with a valid level-3 EC-USER name.",
+ "display": "PROCEDURE DIVISION RAISING",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.2.2 (RAISING phrase, introduced 2002)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "85->2002 introduction (grammar {is2002()}? gate; RAISING reserved 2002 per user-word-raising-2002)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PR.\nPROCEDURE DIVISION RAISING EC-USER-MYERR.\nMAIN.\n    STOP RUN.\n"
+}

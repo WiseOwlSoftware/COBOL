@@ -14,7 +14,7 @@ ticks the supervisor ticks `python scripts/orchestrator/review_lane.py tick`, wh
 for every branch WAITING FOR REVIEW and ONE `cobol-finisher` for every CONFLICT stop, each its own headless session.
 This unit keeps the judgment the lanes cannot make: the review lane's holds, the finishers of every other stop, the
 leads, the records and the ledger.
-1. Load the `workstream` skill (the dispatch guard refuses a finisher or reviewer otherwise); read
+1. Load the `workstream` skill; read
    .claude/skills/workstream/references/landing.md.
 2. THE REVIEW LANE'S RESULTS (MANDATORY-PRACTICES I10; kb/Work PB3027, PB3608). This step starts no reviewer: the lane
    reviews every row `python scripts/prune_worktrees.py --brief` lists WAITING FOR REVIEW (a DONE branch whose report

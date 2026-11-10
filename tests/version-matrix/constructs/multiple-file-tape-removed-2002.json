@@ -1,0 +1,12 @@
+{
+ "id": "multiple-file-tape-removed-2002",
+ "description": "MULTIPLE FILE [TAPE] clause (I-O-CONTROL) — obsolete '85 reel-sharing description, deleted by ISO 2002 (P2.6 gate).",
+ "display": "the MULTIPLE FILE [TAPE] clause (I-O-CONTROL)",
+ "diagnosticCode": "COBOL0902",
+ "citation": "obsolete '85 reel-sharing description, deleted by ISO 2002 (§1985:VII.2.11.2, REMOVED); VCR Table 7",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmmf\" ORGANIZATION IS SEQUENTIAL.\nI-O-CONTROL.\n    MULTIPLE FILE TAPE CONTAINS F POSITION 1.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    CLOSE F.\n    STOP RUN.\n"
+}

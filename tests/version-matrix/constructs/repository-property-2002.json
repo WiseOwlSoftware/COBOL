@@ -1,0 +1,13 @@
+{
+ "id": "repository-property-2002",
+ "status": "active",
+ "description": "The REPOSITORY PROPERTY entry (ISO 12.3.8; required by 8.4.3.9.3 SR1 for property references) - introduced 2002 (OO). Grammar-gated in repositoryEntry; below 2002 the W1.5 parse-layer mapping names the edition (0900).",
+ "display": "the REPOSITORY PROPERTY entry",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.8 (OO; required by §2023:8.4.3.9.3 SR1 property references)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 606)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RPRQ1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS CPRQ\n    PROPERTY PRQX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM RPRQ1.\nIDENTIFICATION DIVISION.\nCLASS-ID. CPRQ INHERITS FROM BASE.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS BASE.\nOBJECT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-PRQ PIC 9(5).\nPROCEDURE DIVISION.\nMETHOD-ID. GET PROPERTY PRQX.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LK-R PIC 9(5).\nPROCEDURE DIVISION RETURNING LK-R.\n    MOVE W-PRQ TO LK-R.\nEND METHOD.\nEND OBJECT.\nEND CLASS CPRQ.\n"
+}

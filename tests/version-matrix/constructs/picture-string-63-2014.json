@@ -1,0 +1,12 @@
+{
+ "id": "picture-string-63-2014",
+ "description": "The PICTURE character-string length bound (ISO §2023:13.18.40.3 SR4: 63 characters in the 2023 text) is 50 at COBOL-2002 - a RELAXATION, so a 51-to-63-character character-string-1 compiles at 2014 and 2023 and is rejected at COBOL-85 and COBOL-2002 with COBOL2146 (also under --permissive: a length error, not a removed construct). THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.46; the repo holds no 2002 or 2014 text of record, ratified decision #1), by the method of owner decision kb/Work R61: GnuCOBOL 3.2's cobol2014.conf carries pic-length 63 (while keeping word-length 31, so it distinguishes the two limits per edition), and Annex E (2014 to 2023) lists a word-length increase (item 11) but no picture-string increase, which it would have to if 2014 still said 50, so 2014 = 2023; the 2014 CD's 50 is the committee draft, not the standard. ONE bound, PictureAnalyzer.MaxStringLength(edition) (kb/Work PB4304).",
+ "display": "a PICTURE character-string longer than 50 characters",
+ "diagnosticCode": "COBOL2146",
+ "citation": "ISO §2023:13.18.40.3 SR4 (63 characters in the 2023 text) - the 50-character bound at COBOL-2002 is quoted from the 2002 draft's SR4 and the 2014 edge is DERIVED (VCR row 7.46)",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL2146",
+ "vcr": "VCR row 7.46 (PICTURE character-string bound 50 -> 63 at 2014); kb/Work PB4304",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPS63.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

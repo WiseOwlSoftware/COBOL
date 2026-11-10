@@ -1,0 +1,12 @@
+{
+ "id": "picture-locale-format2-2002",
+ "description": "PICTURE format 2 - the LOCALE phrase ({PICTURE|PIC} IS character-string-1 LOCALE [IS locale-name-1] SIZE IS integer-1), ISO 13.18.40.2 - introduced 2002 with the locale facility (Annex A.4.9 item 8; kb/Work PB64 T6): a fixed-point numeric-edited item (13.18.40.4 GR16) of integer-1 character positions (GR17) whose editing is the locale's LC_MONETARY (13.18.40.5 r9-r15; CobolLocaleEdit). Parse-arm gated on recognition (VisitPictureClause on pictureLocalePhrase presence; the predicate is NOT edition-gated - the ORDER TABLE precedent - so the gate, not a raw parse error at SIZE, answers below 2002).",
+ "display": "the PICTURE LOCALE phrase (format 2)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.40.2 format 2; §2023:13.18.40.3 SR32-SR37; §2023:13.18.40.4 GR16-GR18",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the locale facility; kb/Work PB64 T6 - locale editing over the ONE LC_MONETARY model)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T6PL.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE FR IS \"fr-FR\".\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 P PIC +$9.9 LOCALE IS FR SIZE IS 10.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

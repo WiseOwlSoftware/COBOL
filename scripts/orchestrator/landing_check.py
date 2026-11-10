@@ -82,7 +82,6 @@ from reports import Report, ledger_slug, load_reports  # noqa: E402  (THE fleet-
 import work  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
-import merge_drivers  # noqa: E402  (scripts/: which files are public-API baselines, and the symbol one lists twice, kb/Work PB3694)
 
 PB = re.compile(r"\bPB\d+\b")
 LEADING_IDS = re.compile(r"^((?:PB\d+[\s+,&-]*)+)", re.M)   # "PB1939+PB2004: ..." — the notes a commit works on
@@ -181,14 +180,50 @@ def best_group(files: set[str], groups: list[dict[str, Any]]) -> dict[str, Any] 
                key=lambda ng: (ng[0], -len(ng[1].get("files", [])), ng[1].get("at", 0.0)), default=(0, None))[1]
 
 
+#: A public-API baseline (Microsoft.CodeAnalysis.PublicApiAnalyzers): `PublicAPI.Shipped.txt`, `PublicAPI.Unshipped.txt` or any
+#: other `PublicAPI.<kind>.txt` anywhere under src/.
+SYMBOL_BASELINE = re.compile(r"src/(?:[^/]+/)*PublicAPI\.[^/]*\.txt")
+
+
+def is_symbol_baseline(path: str) -> bool:
+    """Whether `path` (repository-relative, `/`-separated) is a public-API baseline."""
+    return SYMBOL_BASELINE.fullmatch(path) is not None
+
+
+def baseline_duplicates(files: dict[str, str]) -> list[str]:
+    """The symbols the baselines `files` ({path: text}) list twice, which Microsoft.CodeAnalysis.PublicApiAnalyzers fails
+    the build on as RS0025 (kb/Work PB3694): a symbol line twice in one file, or one plain line in two files of one directory
+    (Shipped and Unshipped are one project's API). A `*REMOVED*X` line is a different line from the Shipped `X` it removes,
+    so that pair is no finding. A line is compared without its CR; a blank line and a `#` header line are no symbol. Sorted,
+    one finding per symbol and place, each naming the file(s)."""
+    by_dir: dict[str, dict[str, set[str]]] = {}
+    found: list[str] = []
+    for path, text in sorted(files.items()):
+        seen: set[str] = set()
+        for line in (ln.rstrip(chr(13)) for ln in text.split(chr(10))):
+            if not line or line.startswith("#"):
+                continue
+            if line in seen:
+                found.append(f"{path}: {line} is listed twice")
+            seen.add(line)
+        directory = str(pathlib.PurePosixPath(path).parent)
+        for line in seen:
+            by_dir.setdefault(directory, {}).setdefault(line, set()).add(path)
+    for owners in by_dir.values():
+        for line, paths in owners.items():
+            if len(paths) > 1:
+                found.append(f"{' and '.join(sorted(paths))}: {line} is listed in both")
+    return sorted(found)
+
+
 def baseline_texts(repo: pathlib.Path, git: Callable[..., Any], tree: str) -> dict[str, str]:
-    """{path: text} of every public-API baseline (merge_drivers.is_symbol_baseline) in `tree`, from one `git ls-tree -r`
+    """{path: text} of every public-API baseline (is_symbol_baseline) in `tree`, from one `git ls-tree -r`
     and ONE batched blob read (git_batch.blobs), however many baselines the tree holds."""
     listed = git("ls-tree", "-r", "-z", tree).stdout.split(chr(0))
     paths = {}   # {path: blob id}: an entry reads `<mode> blob <id>\t<path>`
     for entry in filter(None, listed):
         meta, _, path = entry.partition(chr(9))
-        if merge_drivers.is_symbol_baseline(path):
+        if is_symbol_baseline(path):
             paths[path] = meta.split()[2]
     blob = dict(git_batch.blobs(repo, paths.values()))
     return {path: blob[oid].decode("utf-8", "replace") for path, oid in paths.items()}
@@ -196,9 +231,9 @@ def baseline_texts(repo: pathlib.Path, git: Callable[..., Any], tree: str) -> di
 
 def baseline_stops(repo: pathlib.Path, rev: str, git: Callable[..., Any]) -> list[str]:
     """The public-API baselines of the landing's own tree that list a symbol twice, or in both PublicAPI.Shipped.txt and
-    PublicAPI.Unshipped.txt (kb/Work PB3694): RS0025 fails the Release build on one. The merge driver (PB3727) keeps a
-    symbol both sides added once in a merge this repository makes; this reads what the branch's head holds, which no
-    local test of a branch ever read.
+    PublicAPI.Unshipped.txt (kb/Work PB3694): RS0025 fails the Release build on one. Plain git keeps a symbol both sides
+    added at different places twice (kb/Work PB5110: no merge driver sorts the baselines as a set any more); this reads
+    what the branch's head holds, which no local test of a branch ever read.
 
     What it does NOT read is GitHub's merge group's own merge. That merge runs no driver (PB3642) and keeps a symbol both
     sides added at different places twice, but it merges the pushed head with the main of the moment it is made. Every
@@ -207,10 +242,10 @@ def baseline_stops(repo: pathlib.Path, rev: str, git: Callable[..., Any]) -> lis
     reads nothing. Only a main that advances after the push makes the merge differ, and no check before the push can
     read a commit that does not exist yet: CI's merge-group run is the net for it (kb/Work PB3694, Residual)."""
     tree = git("rev-parse", "--verify", "-q", f"{rev}^{{tree}}").stdout.strip()
-    dups = merge_drivers.baseline_duplicates(baseline_texts(repo, git, tree)) if tree else []
+    dups = baseline_duplicates(baseline_texts(repo, git, tree)) if tree else []
     return ([f"the landing's tree lists a public-API symbol twice, which fails the Release build (RS0025): "
              f"{'; '.join(dups[:5])}{' …' if len(dups) > 5 else ''} — keep each symbol once in the baselines "
-             f"(`python scripts/merge_drivers.py merge <origin/main>` merges them as a set), commit, and re-gate"]
+             f"(after `git merge origin/main`, delete the second line of each), commit, and re-gate"]
             if dups else [])
 
 

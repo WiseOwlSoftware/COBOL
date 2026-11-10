@@ -75,11 +75,11 @@ tests/_shared/TestRepo.cs is read by drift_rules.py's self-test, the .g4 files b
 one of them turned a self-test red in CI's merge group after a green gate.
 THE ACCEPTED RESIDUE, named (owner 2026-10-31, kb/Work PB4323: a merge-group red may be one of five first-run classes, and
 the CI invariant is weakened knowingly): (a) a DECLARED POPULATION reader: a self-test whose first
-lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a population (test_plan_wave.py and
-test_dispatch_guard.py walk every markdown file), so no set of paths bounds it and the proof
+lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a population (test_plan_wave.py walks
+every markdown file), so no set of paths bounds it and the proof
 does not apply to it. The declaration is checked against the trace (scripts/self_tests.py): one that ran no git command over
 the whole repository (the tracer records a read of directory "") is RED, and a self-test that ran such a command WITHOUT
-the declaration is judged like any other, so its specific reads (merge_drivers.py's ABI pin) are
+the declaration is judged like any other, so its specific reads (abi_pin.py's ABI pin) are
 TOOLING_READS entries, not a blind spot (review round 2, finding R2-1); (b) the INERT corpora, DEVLOG/ and kb/, which devlog.py and the register's self-tests read as
 fixtures: every landing adds to both, the audits that govern an entry (`devlog.py check`, `work.py check`) run in every
 lane, and a change to how they are read is a script edit; and, since PB4453, the Markdown under docs/ that four self-tests
@@ -367,9 +367,9 @@ CLASSIFICATION = Classification(inert={
        "WiseOwl.Cobol.sln": "scripts/arch/census.py, scripts/linux-gate.sh, scripts/orchestrator/test_orchestrate_account.ps1",
        "LICENSE": "scripts/arch/census.py (read on Linux)",
        "global.json": "scripts/toolchain_audit.py (the SDK pin global.json's version and rollForward must accept)",
-       "Directory.Build.props": "scripts/merge_drivers.py (settling the ABI pin)",
-       "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs": "scripts/merge_drivers.py (settling the ABI pin)",
-       "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin": "scripts/merge_drivers.py (settling the ABI pin)",
+       "Directory.Build.props": "scripts/abi_pin.py (settling the ABI pin)",
+       "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs": "scripts/abi_pin.py (settling the ABI pin)",
+       "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin": "scripts/abi_pin.py (settling the ABI pin)",
        ".gitmodules":"scripts/devlog.py, scripts/orchestrator/landing_devlog.py, scripts/hooks/test_forbidden_commands.py",
        ".agent-fleet.json": "scripts/spec/ledger_plan.py, scripts/orchestrator/test_orchestrate_adopt.ps1 and _ledger.ps1",
        "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files)",
@@ -1143,7 +1143,7 @@ def wiring(root: Path) -> list[str]:
     need("if not whole:" not in runner, "scripts/self_tests.py exempts a whole-tree reader without its declaration")
     need(runner.find("self.classification.unclassified_reads(") < runner.find("self.store.record(test.path"),
          "scripts/self_tests.py records a PASS before the tooling flag's proof")
-    for rel in ("scripts/hooks/test_dispatch_guard.py", "scripts/orchestrator/test_plan_wave.py"):
+    for rel in ("scripts/orchestrator/test_plan_wave.py",):
         need("# SELF-TEST-POPULATION: tree" in text(rel), f"{rel} no longer declares its population")
     return bad
 

@@ -1,10 +1,10 @@
-"""docchecks/vcr.py — docs/VERSION_CHANGE_REFERENCE.md against tests/version-matrix/constructs.json and the ISO text
+"""docchecks/vcr.py — docs/VERSION_CHANGE_REFERENCE.md against tests/version-matrix/constructs/ and the ISO text
 (kb/Work PB4453; was the Conformance test VcrDriftTests and scripts/gen-vcr.ps1, which ran it with an environment variable).
 
-Four rules: every `<!-- gate:CONSTRUCT-ID -->` anchor names a construct constructs.json holds (forward coverage); every
+Four rules: every `<!-- gate:CONSTRUCT-ID -->` anchor names a construct the catalogue holds (forward coverage); every
 `§2023:<clause>` and every `§2023:<clause> `quoted text`` the document writes resolves in specs/ISO_COBOL_2023.md (the standard's text is
 read HERE, never by a compiler test); the document cites no spec LINE number (it does not survive a spec edit); and the
-generated gating status index between the GEN:VCR-STATUS markers is what the anchors and constructs.json render.
+generated gating status index between the GEN:VCR-STATUS markers is what the anchors and the catalogue render.
 `python scripts/doc_audits.py --write-vcr` regenerates the index.
 """
 from __future__ import annotations
@@ -16,9 +16,9 @@ from pathlib import Path
 from . import common
 import spec_pdf  # scripts/spec, on sys.path via common
 import citation  # scripts/spec, on sys.path via common
+import construct_store  # scripts/spec, on sys.path via common (the construct catalogue, kb/Work PB5110)
 from .common import Check
 
-CONSTRUCTS = "tests/version-matrix/constructs.json"
 SPEC = spec_pdf.markdown(2023).relative_to(spec_pdf.REPO).as_posix()   # the one edition table (kb/Work PB4815)
 START, END = "<!-- GEN:VCR-STATUS START -->", "<!-- GEN:VCR-STATUS END -->"
 GATE_ANCHOR = re.compile(r"<!--\s*((?:gate:[^\s>]+\s*)+)-->")
@@ -64,11 +64,11 @@ def render_index(vcr_lines: list[str], constructs: dict[str, dict]) -> str:
 
 
 def load_constructs(root: Path) -> dict[str, dict]:
-    return {c["id"]: c for c in json.loads(common.text(root, CONSTRUCTS))["constructs"]}
+    return {c["id"]: c for c in construct_store.read_rows(root)}
 
 
 def anchor_findings(vcr_lines: list[str], constructs: dict[str, dict]) -> list[str]:
-    return [f"VCR row {row}: gate:{i} names a construct absent from constructs.json (forward coverage)"
+    return [f"VCR row {row}: gate:{i} names a construct absent from the catalogue (forward coverage)"
             for row, ids in gate_anchors(vcr_lines) for i in ids if i not in constructs]
 
 

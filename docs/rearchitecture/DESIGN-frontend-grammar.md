@@ -20,7 +20,7 @@ consumes).
 > **This is a SUPERSET grammar.** It recognises the union of all editions — there are no edition `{isXXXX()}?` gates;
 > every construct parses at every `--std`. Each version-gated rule carries a committed-match construct-id ANNOTATION (a
 > parse *action*, not a speculative gating predicate — which would be evaluated speculatively during a failing parse),
-> while version NUMBERS stay single-sourced in `constructs.json`. Edition gating lives entirely in ONE
+> while version NUMBERS stay single-sourced in `constructs/`. Edition gating lives entirely in ONE
 > `VersionConformancePass` over the bound tree (parse → edition-agnostic bind → VersionConformancePass → emit-if-clean →
 > backend); there is no `ReservedWordEditionHints`. Full design:
 > `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.
@@ -32,7 +32,7 @@ consumes).
 1. **Typed-native only** — the frontend produces a *syntactic* parse tree; it never touches storage form. No
    change here can regress the byte invariant. (Unaffected but stated for completeness.)
 2. **Spec-first** — every gate, token, and severity cites ISO/IEC 1989:2023 (`specs/ISO_COBOL_2023.md`). The
-   canonical construct/edition metadata is `tests/version-matrix/constructs.json` +
+   canonical construct/edition metadata is `tests/version-matrix/constructs/` +
    `tests/version-matrix/reserved-words.json`; the frontend must consume that single source, never a copy.
 3. **Battery green throughout** — the FULL battery (greenfield conformance + unit + characterization + the
    NIST legacy guard; current counts live in the plan's STATUS banner) stays
@@ -225,7 +225,7 @@ binder:
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  WiseOwl.Cobol.Editions            (NEW lowest assembly — see DESIGN-edition-framework.md)  │
 │    ConstructRegistry · ReservedWords · EditionSeverityPolicy · EditionInfo    │
-│    (generated from constructs.json + reserved-words.json + cobol-words.json)   │
+│    (generated from the construct catalogue + reserved-words.json + cobol-words.json)   │
 └───────────────▲───────────────────────────────────────────────▲──────────────┘
                 │ referenced by                                  │ referenced by
 ┌───────────────┴───────────────────────────┐   ┌───────────────┴──────────────┐
@@ -303,7 +303,7 @@ a one-line banner at the top of each fragment (there is currently no per-fragmen
 
 **Rationale for keeping the fragment split:** ANTLR import fragments give physical cohesion per subsystem
 with zero runtime cost. Version-gated rules live *inside* their subsystem fragment, each carrying its
-committed-match construct-id annotation (introduction editions single-sourced in `constructs.json`, decided
+committed-match construct-id annotation (introduction editions single-sourced in `constructs/`, decided
 by the `VersionConformancePass`); fragment-at-a-time landing keeps the incremental discipline of
 `feedback_grammar_version_factoring`. Forking grammars per edition would 4× the maintenance for a model the
 superset grammar + one pass already express correctly.
@@ -337,10 +337,10 @@ Grammar sites carry the annotation, not a gate — every alternative parses at e
 Edition legality is decided in exactly ONE place: the `VersionConformancePass` over the bound tree
 (`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`). Bound nodes carry a `.Syntax`
 back-reference; the pass reads the construct id (from the side table, or from a self-identifying bound
-node), asks `ConstructRegistry.Check` (single-sourced from `constructs.json`), and emits the
+node), asks `ConstructRegistry.Check` (single-sourced from `constructs/`), and emits the
 COBOL0900-band diagnostic through `EditionSeverityPolicy`. Because the identity is never thrown away,
 there is no reverse-signature recogniser: `ReservedWordEditionHints` does not exist in the end state, and a
-new gated construct is self-registering (add the `constructs.json` row + the annotation; no empirical
+new gated construct is self-registering (add the `constructs/` row + the annotation; no empirical
 signature step).
 
 **The two load-bearing forward-detects.** Exactly two semantic predicates survive in the grammar, and both

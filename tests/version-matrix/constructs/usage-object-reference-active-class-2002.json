@@ -1,0 +1,13 @@
+{
+ "id": "usage-object-reference-active-class-2002",
+ "status": "active",
+ "description": "USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS (ISO §2023:13.18.60.2 general format, GR22 e)) — the reference is bound to \"the same class as the object that was used to invoke the method in which this data description entry is specified\". LIVE since kb/Work PB389: the descriptor carries the ACTIVE-CLASS kind and its containing class, the item emits that class's C# type, §2023:13.18.60.3 SR16 places it (COBOL1924), and §2023:14.9.39.3 SR12 b) / SR14 adjudicate it as a SET operand. ACTIVE-CLASS is a §2023:8.9 reserved word 2002+ and an ordinary user word at 85, so the token rides the cobolWord reservation funnel.",
+ "display": "USAGE OBJECT REFERENCE ACTIVE-CLASS",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR22 e) / §2023:13.18.60.3 SR16 (OO)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (OO; derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UORAC.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM UORAC.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. UORACC.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. MK.\nDATA DIVISION.\nLOCAL-STORAGE SECTION.\n01 A USAGE OBJECT REFERENCE ACTIVE-CLASS.\nPROCEDURE DIVISION.\nMAIN.\n    SET A TO SELF.\nEND METHOD MK.\nEND OBJECT.\nEND CLASS UORACC.\n"
+}

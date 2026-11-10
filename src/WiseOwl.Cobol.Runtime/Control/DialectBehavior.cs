@@ -74,6 +74,15 @@ public enum DialectBehavior
     /// (the arbitration and the default mode) and <c>FileConnector.Open</c> (the cross-run-unit file lock and the
     /// host refusal's status), both through <c>FileConnector.SharingFacilityInEffect</c>.</summary>
     FileSharingFacility = 2,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.28.4 GR13 e) 2 a-c, TEST BEFORE: when an AFTER level's condition is
+    /// satisfied the inner variable is set to its initialization value FIRST and the outer variable is augmented
+    /// SECOND. §1985:VI.6.21.4 GR10 d) 1 (Figure 2 draws the same) has the opposite order: it augments the outer
+    /// variable and THEN sets the inner one, so at <c>--std 85</c> an AFTER level whose FROM reads the level to its
+    /// left starts from the augmented value (kb/Work PB5101, PB436). Both editions are QUOTED (VCR row 7.53), the
+    /// 2002 text being worded as 2023 is. The consumer is <c>ControlFlowBinder.BindVarying</c>, which sets
+    /// <c>PerformVarying.AugmentOuterFirst</c> for the emitter.</summary>
+    PerformVaryingInitInnerBeforeAugmentOuter = 3,
 }
 
 /// <summary>
@@ -113,6 +122,10 @@ public static class DialectBehaviors
             "7.39", "9.1.15", "A.4.7",
             "a file connector's sharing mode restricts other connectors, and Table 19 arbitrates every OPEN with '61', "
             + "only from COBOL-2002; at COBOL-85 the facility is not in effect and no connector restricts another"),
+        new(DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter, "perform-varying-after-init-inner-first", 2002,
+            "7.53", "14.9.28.4 GR13 e) 2", "§1985:VI.6.21.4 GR10 d) 1",
+            "a TEST BEFORE PERFORM VARYING ... AFTER step sets the inner variable to its initialization value before "
+            + "augmenting the outer one only from COBOL-2002; COBOL-85 augments the outer variable first"),
     ];
 
     static DialectBehaviors()

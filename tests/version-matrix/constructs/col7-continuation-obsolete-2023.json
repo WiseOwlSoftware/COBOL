@@ -1,0 +1,13 @@
+{
+ "id": "col7-continuation-obsolete-2023",
+ "description": "The fixed continuation indicator (hyphen in column 7), incl. literal continuation - OBSOLETE as of ISO 2023 (Annex F.2 item 4; use the floating indicator), warning-only (the element remains conforming). Emit site: the frontend ReferenceFormatProcessor, once per compilation.",
+ "display": "the fixed continuation indicator (hyphen in column 7)",
+ "diagnosticCode": "COBOL0903",
+ "citation": "Annex F.2 item 4; §2023:4.2.13; VCR row 94; warning only",
+ "introducedIn": 85,
+ "removedIn": null,
+ "obsoleteIn": 2023,
+ "expectDiagnostic": "COBOL0903",
+ "vcr": "VCR row 94 (F.2 item 4); W3 preprocessor threading (DEVLOG 598)",
+ "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. VMLC1.\n000300 DATA DIVISION.\n000400 WORKING-STORAGE SECTION.\n000500 01 W-TXT PIC X(60) VALUE \"AAAAAAAAAA\n000600-    \"BBBBBBBBBB\".\n000700 PROCEDURE DIVISION.\n000800 MAIN.\n000900     DISPLAY W-TXT.\n001000     STOP RUN.\n"
+}

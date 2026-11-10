@@ -1,0 +1,12 @@
+{
+ "id": "zero-length-literal-2014",
+ "description": "The zero-length literal (ISO §2023:8.3.3.1: 'If the opening and closing delimiters are contiguous, the length of the literal is zero, and it is known as a zero-length literal') in every spelling the alphanumeric, national and boolean formats admit - \"\", '', X\"\", N\"\", NX\"\", B\"\", BX\"\" (CobolLiteral.IsZeroLength). Not the same construct as ref-mod-zero-length-2023 (a reference modification of length zero). THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.30; the repo holds no 1985/2002/2014 text, ratified decision #1): GnuCOBOL 3.2's per-standard dialect files carry zero-length-literals: unconformable in cobol85.conf AND cobol2002.conf and ok in cobol2014.conf - the method owner decision kb/Work R61 used for the debugging-mode window - and cobc -std=cobol2002 refuses MOVE \"\" TO X with 'zero-length literal does not conform to COBOL 2002'; Annex E (2014->2023) does not list it, so it predates 2023. Gated position-blind on the TOKEN by LiteralScreen.GateFormat (kb/Work PB895).",
+ "display": "the zero-length literal",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.3.3.1; a COBOL-2014 introduction (derived: VCR row 7.30)",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "zero-length literals (2014 introduction, GnuCOBOL dialect-file evidence); VCR row 7.30",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMZLEN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"\" TO W.\n    DISPLAY \"[\" W \"]\".\n    STOP RUN.\n"
+}

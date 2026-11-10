@@ -60,7 +60,7 @@ public sealed class DiagnosticOpeningElisionDriftTests
     /// <summary>A construct's <c>display</c> is the HEAD of every edition-gate message the registry words
     /// (<c>"{display} requires COBOL-2002 …"</c>, <c>"{display} was removed in …"</c>), so a row that spells
     /// <c>SET … TO object-reference</c> there opens a diagnostic with an elided statement through no call the source scan
-    /// can see. The registry is data (tests/version-matrix/constructs.json), so it is asked as data.</summary>
+    /// can see. The registry is data (tests/version-matrix/constructs/), so it is asked as data.</summary>
     [Fact]
     public void NoConstructDisplayOpensWithAnElidedStatement()
     {

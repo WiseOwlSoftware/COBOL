@@ -1,0 +1,13 @@
+{
+ "id": "debugging-line-removed-2014",
+ "description": "The fixed-form DEBUGGING LINE (indicator D in column 7) - the COBOL-85 debug module's lines, compiled only under WITH DEBUGGING MODE. ISO 6.2.2 lists no such fixed indicator at COBOL-2023. Owner decision kb/Work R61 (researched against GnuCOBOL's per-standard dialect files, debugging-mode: ok at 85, obsolete at 2002, unconformable at 2014): accepted at 85, OBSOLETE at 2002 (the obsolete-element warning COBOL0903), REMOVED at 2014 (COBOL0902, error strict / warning permissive, the pre-removal comment semantics kept). Medium confidence on the 2002/2014 edge (the ISO 2002 and 2014 texts are not in the repository). Recognized in ONE place, the fixed-form classifier of the 6.5 logical conversion (kb/Work PB1494); the 2002 floating spelling >>D is the row floating-debugging-indicator-2002 (kb/Work PB4298). The WITH DEBUGGING MODE clause and USE FOR DEBUGGING keep their own rows.",
+ "display": "the fixed-form debugging line (indicator D)",
+ "diagnosticCode": "COBOL0902",
+ "citation": "ISO 6.2.2 (no D indicator at 2023); §1985:VI.4.3.4 GR4 (debugging lines, REMOVED); obsolete 2002, removed 2014",
+ "introducedIn": 85,
+ "removedIn": 2014,
+ "obsoleteIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR rows 7.9 and 7.17 (the debug facility); kb/Work R61",
+ "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. PB1494DL.\n000300 PROCEDURE DIVISION.\n000400 MAIN.\n000500     DISPLAY \"A\".\n000600D    DISPLAY \"DEBUG\".\n000700     STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "class-condition-alphabet-name-2002",
+ "description": "A class condition that tests an alphabet-name — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 16: \"Class condition test with alphabet-name. The content of a data item can be tested against the coded character set named as alphabet-name.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, ConditionBinder.BindUserWordClassCondition, the alphabet-name arm (kb/Work PB4305; VCR row 7.47).",
+ "display": "a class condition that tests an alphabet-name",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.8.4.4.4 GR3; ISO/IEC 1989:2002 Annex F.2 item 16",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 16)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCCA.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET MYA IS STANDARD-1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    IF S IS MYA DISPLAY \"YES\" END-IF.\n    STOP RUN.\n"
+}

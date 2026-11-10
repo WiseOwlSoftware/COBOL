@@ -255,13 +255,13 @@ generated-code failure. Roadmap §2.12 / PHASE-07 Steps 5, 11-12.
 
 ### F7 — Edition metadata is duplicated across Frontend and Compiler (no shared home) — MED
 **Location:** `src/WiseOwl.Cobol.Frontend/Parsing/EditionGateHints.cs:35-63` (a `Gate` table with `IntroducedIn` +
-ISO citation + `constructs.json` row id, in the **legacy** `legacy-root.Parsing` namespace);
+ISO citation + `constructs/` row id, in the **legacy** `legacy-root.Parsing` namespace);
 `src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs:17-22` (`DialectLevel` + `is2002/2014/2023`);
 `src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs:26-49` (`DialectLevel`, `MaxDigits`).
 
 **Description.** The construct→introduction-edition catalogue exists in two places on two sides of the assembly
 boundary. The frontend's `EditionGateHints` hard-codes ~30 `Gate` rows (construct, introducing edition, ISO
-citation), which the comment itself says duplicates the canonical `constructs.json` / `ConstructRegistry.Check`
+citation), which the comment itself says duplicates the canonical `constructs/` / `ConstructRegistry.Check`
 that lives in `WiseOwl.Cobol.Compiler` ("one wording, two emit layers", `EditionGateHints.cs:14-18`). The frontend
 cannot reference the compiler's registry (would cycle), so the metadata is copied. Two edition scalars
 (`CobolParserCoreBase.DialectLevel` int and `EditionContext.DialectLevel` int) model the same concept
@@ -278,7 +278,7 @@ This is a *topology* defect (no shared lower layer), not a logic bug — but it 
 change must be made in two assemblies, and drift silently diverges the parse-time and bind-time diagnosis.
 
 **Recommendation.** Extract a leaf `WiseOwl.Cobol.Editions` assembly (referenced by both Frontend and Compiler)
-holding `constructs.json` + `ConstructRegistry` + `EditionGateHints` + an immutable `EditionInfo`, deleting the
+holding `constructs/` + `ConstructRegistry` + `EditionGateHints` + an immutable `EditionInfo`, deleting the
 frontend copy. Roadmap §2.1 / §2.11 (new assembly, changes 1, 7, 46-48).
 
 ---

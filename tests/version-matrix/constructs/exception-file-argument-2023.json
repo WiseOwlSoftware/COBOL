@@ -1,0 +1,12 @@
+{
+ "id": "exception-file-argument-2023",
+ "description": "FUNCTION EXCEPTION-FILE(file-connector-name) with an optional file-connector-name argument (ISO §2023:15.28.2/.3/.4 r2) — a COBOL-2023 addition (Annex E.3.3 item 25): it returns the NAMED FD connector's I-O status + SELECT-spelled name, or two spaces if that connector was never opened/attempted/accessed. The no-argument base form is 2002. The argument form is gated below 2023.",
+ "display": "FUNCTION EXCEPTION-FILE(file-connector-name)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:15.28.3 rule 1 / §2023:15.28.4 r2; Annex E.3.3 item 25",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 68 (EXCEPTION-FILE argument form — 2023 introduction)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. EXCFA.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"excfa.txt\".\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(5).\n       WORKING-STORAGE SECTION.\n       01 W PIC X(20).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE FUNCTION EXCEPTION-FILE(F) TO W.\n           DISPLAY W.\n           STOP RUN.\n"
+}

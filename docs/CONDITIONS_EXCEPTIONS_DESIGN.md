@@ -1189,7 +1189,7 @@ done).
   carries each name's own introduction edition, which is what the gate reads.
 - **SET cond-name TO FALSE / WHEN SET TO FALSE (D7): 2002+** — diagnosed at `--std=85` with COBOL0900, gated
   recognition-first in `VersionConformancePass.ParseArm` (`VisitValueClauseFalsePhrase`, `VisitSetBooleanStatement`)
-  on the `constructs.json` rows `value-false-phrase-2002` / `set-condition-false-2002`; COBOL2049 (missing FALSE
+  on the `constructs/` rows `value-false-phrase-2002` / `set-condition-false-2002`; COBOL2049 (missing FALSE
   phrase) applies only in editions that have the phrase.
 - **CALL … ON OVERFLOW: REMOVED in 2023** (VCR row 3) — accepted at 85/2002/2014, diagnosed at 2023 (ON EXCEPTION is
   the replacement).

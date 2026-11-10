@@ -1,0 +1,13 @@
+{
+ "id": "national-edited-2002",
+ "status": "active",
+ "description": "National-edited data (PICTURE N with at least one instance of character-1 or one of the symbols B 0 /, ISO 8.5.2.11 / 13.18.40.4 GR10). LIVE (kb/Work PB492): compiles at 2002+ as a category-national item carrying an edit mask (one UTF-16 char per position, D-N1; 13.18.40.5 Table 7 gives the category SIMPLE INSERTION and nothing else; MOVE Table 16 national-edited row); below 2002 the introduction gate rejects (COBOL0900).",
+ "display": "national-edited data (PICTURE N with character-1 / B 0 /)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.5.2.11 / §2023:13.18.40.4 GR10; §2023:13.18.40.5 Table 7 simple insertion, §2023:13.18.40.4 GR1/GR2 national character positions",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 catalog national/boolean; Phase 4a residue #2 (PHASE4_RECONCILIATION M2-DATA-3/4 design)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NATED.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-NE PIC NN0NN.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

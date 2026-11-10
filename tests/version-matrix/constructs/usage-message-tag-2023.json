@@ -1,0 +1,13 @@
+{
+ "id": "usage-message-tag-2023",
+ "status": "active",
+ "description": "USAGE MESSAGE-TAG (ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR9), a COBOL-2023 introduction (§2023:8.9 reserves MESSAGE-TAG from 2023; Annex E.2 item 25 = VCR row 32): below 2023 the word is a user-defined word, so the entry draws the ordinary COBOL0900 introduction gate (bound-arm UsageConstructId, the usage-function-pointer-2014 shape). LIVE since kb/Work PB4740: the entry binds the message-tag category (PicCategory.MessageTag, DOC-A.1-212) and a program using the usage and its NULL, SET Format 17, relation, INITIALIZE and BY VALUE forms compiles at 2023.",
+ "display": "USAGE MESSAGE-TAG",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.4 GR9 / §2023:8.9 (reserved from 2023)",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2023 introduction (ISO Annex E.2 item 25 = VCR row 32, the MESSAGE-TAG reserved word)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KMT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MT USAGE MESSAGE-TAG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

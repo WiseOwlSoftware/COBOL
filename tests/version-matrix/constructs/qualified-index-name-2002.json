@@ -1,0 +1,12 @@
+{
+ "id": "qualified-index-name-2002",
+ "description": "A qualified index-name — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 108: \"Qualification of index-names. Index-names may be qualified in the same manner as data and condition-names, even in cases where uniqueness of reference may already be established.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, ReferenceResolver.ResolveIndexName, once per written reference (kb/Work PB4305; VCR row 7.47).",
+ "display": "a qualified index-name",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.4.2.2.3 SR6; ISO/IEC 1989:2002 Annex F.2 item 108",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 108)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMQIX.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T.\n    05 E PIC X OCCURS 3 INDEXED BY IX.\nPROCEDURE DIVISION.\nMAIN.\n    SET IX OF T TO 1\n    DISPLAY E (IX).\n    STOP RUN.\n"
+}

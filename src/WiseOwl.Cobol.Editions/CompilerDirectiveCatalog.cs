@@ -17,7 +17,7 @@ namespace WiseOwl.Cobol.Editions;
 /// <see cref="ConstructRegistry.Check"/>. That is <c>feedback_one_mechanism_per_job</c> failing four ways on one
 /// rule, and it is why half the §2023:E.2 item 5 family was gated and half was not.</para>
 ///
-/// <para>Now a directive is ONE <c>tests/version-matrix/constructs.json</c> row carrying
+/// <para>Now a directive is ONE <c>tests/version-matrix/constructs/</c> row carrying
 /// <c>directiveWords</c> plus a regen: the word becomes recognized, its introducing edition becomes enforced by
 /// the one COBOL0900 producer, and the version matrix compiles its <c>source</c> at all four editions
 /// automatically. <c>CompilerDirectiveCatalogDriftTests</c> keeps the roster honest against §2023:7.3 itself.</para>
@@ -31,7 +31,7 @@ public static class CompilerDirectiveCatalog
             foreach (string w in e.DirectiveWords)
                 if (!map.TryAdd(w, e))
                     throw new InvalidOperationException(
-                        $"constructs.json: directive word '{w}' is claimed by both '{map[w].Id}' and '{e.Id}' — "
+                        $"the construct catalogue: directive word '{w}' is claimed by both '{map[w].Id}' and '{e.Id}' — "
                         + "one word, one row (ISO §2023:7.3.3 SR6: a compiler-instruction opens with ONE "
                         + "compiler-directive word)");
         return map;
@@ -190,7 +190,7 @@ public static class CompilerDirectiveCatalog
     private static readonly Lazy<IReadOnlyList<string>> PushableRowsLazy = new(() =>
     {
         var push = Find("PUSH")?.DirectiveOperand
-            ?? throw new InvalidOperationException("constructs.json: no PUSH directive row with a directiveOperand");
+            ?? throw new InvalidOperationException("the construct catalogue: no PUSH directive row with a directiveOperand");
         var excluded = new HashSet<string>(StringComparer.Ordinal);
         foreach (string name in push.ExcludedDirectives)
             if (Find(name) is { } row) excluded.Add(row.Id);
