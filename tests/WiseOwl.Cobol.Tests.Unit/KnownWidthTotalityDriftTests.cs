@@ -46,7 +46,7 @@ public sealed class KnownWidthTotalityDriftTests
         string binder = File.ReadAllText(TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "Verbs",
             "IntrinsicBinder.cs"));
         var m2 = Regex.Match(binder,
-            @"private static int\? KnownWidth\(BoundOperand op\) => op switch\s*\{(?<body>.*?)\n    \};",
+            @"internal static int\? KnownWidth\(BoundOperand op\) => op switch\s*\{(?<body>.*?)\n    \};",
             RegexOptions.Singleline);
         Assert.True(m2.Success, "KnownWidth's switch is gone or reshaped — re-point this guard deliberately.");
         var armed = Regex.Matches(m2.Groups["body"].Value, @"(?<t>Bound\w+)")
