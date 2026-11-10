@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.5.3-1",
+ "rule-digest": "c4be5f50238b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.2.3-3"
+  ],
+  "bridge": true,
+  "reason": "Both print \"The words IN and OF are equivalent\": §1985:IV.4.3.8.5.3 SR1 for the qualifiers of the identifier format, §2023:8.4.2.2.3 SR3 for the qualification formats that the 2023 identifier reaches through \"Format 2 (qualified-data-name-with-subscripts)\" (§2023:8.4.3.1.2). The same qualified names are accepted with either word. The 2023 formats that take OF alone (an object property, SUPER) are new syntax the 1985 rule never covered.",
+  "source": "classify-unrecorded-1985/slice-02"
+ }
+}

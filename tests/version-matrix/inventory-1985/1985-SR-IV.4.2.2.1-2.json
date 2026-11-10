@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1-2",
+ "rule-digest": "77afa26dd589",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.2.1-1",
+   "SR-8.3.2.1-5"
+  ],
+  "bridge": true,
+  "reason": "§1985:IV.4.2.2.1 SR2 (Amendment 2's text, X3.23b-1993; Errata C198): \"The reserved words LENGTH, RANDOM, and SUM form an identical set with the function-names LENGTH, RANDOM, and SUM\" and they \"may not be used as a system-name or as a user-defined word regardless of context\". 2023 states the same for these three words: each is in the reserved-word list (§2023:8.9) and in the intrinsic-function-name list (§2023:8.11; both lists checked mechanically, their overlap is LENGTH, RANDOM, SIGN, SUM), §2023:8.3.2.1 SR1 says \"Reserved words shall not be used as user-defined words or system-names\", and §2023:8.3.2.1 SR5 withholds from \"intrinsic function names LENGTH, RANDOM, SIGN, and SUM\" the leave it gives every other intrinsic-function-name to be a user-defined word or system-name. 2023's fourth word SIGN is no difference for the three words this rule names (SIGN is no 1985 function-name); it is recorded on §1985:IV.4.2.2.1 SR1, the rule for all other words.",
+  "source": "classify-unrecorded-1985/slice-01"
+ }
+}

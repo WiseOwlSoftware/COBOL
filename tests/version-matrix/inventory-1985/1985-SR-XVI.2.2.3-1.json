@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XVI.2.2.3-1",
+ "rule-digest": "21a2f2d0039f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-12.3.6.2"
+  ],
+  "bridge": true,
+  "reason": "1985 Segmentation OBJECT-COMPUTER: 'Computer-name is a system-name.' (§1985:XVI.2.2.3 SR1), a system-name being 'a COBOL word which is used to communicate with the operating environment' with one of 'three types of system-names' computer-name (§1985:IV.4.2.2.1.2). 2023 keeps the OBJECT-COMPUTER operand as '[ computer-name-1 ]' (§2023:12.3.6.2) and still classes it: 'A system-name is used to communicate with the operating environment', 'The types of system-names are:' ... computer-name (§2023:8.3.2.3.1). Same requirement: the word in that position is a system-name whose formation the implementor governs; the Segmentation module itself is gone but the paragraph and this operand are not. The classifying sentence is unnumbered prose with no catalog row (kb/Work PB479), so the format that places computer-name-1 is the record's only id, as in the Nucleus twins 1985-SR-VI.4.3.3-1 and 1985-SR-VI.4.4.3-1.",
+  "source": "classify-unrecorded-1985/slice-06"
+ }
+}

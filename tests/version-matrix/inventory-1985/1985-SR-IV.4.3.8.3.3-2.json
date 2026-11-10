@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.3.3-2",
+ "rule-digest": "565397ac950d",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.3.3-2"
+  ],
+  "bridge": true,
+  "reason": "§1985:IV.4.3.8.3.3 SR2 (added by Amendment 1, X3.23a-1989; Errata C95): \"A reference-modifier may be specified only for functions of the category alphanumeric.\" §2023:8.4.3.3.3 SR2: \"If identifier-1 is a function-identifier, it shall reference an alphanumeric, boolean, or national function.\" The words that differ: \"boolean, or national\", two more types of function that 2023 lets a reference-modifier follow (a widened range); an integer or numeric function is refused under both, and an alphanumeric function is accepted under both.",
+  "source": "classify-unrecorded-1985/slice-01"
+ }
+}
