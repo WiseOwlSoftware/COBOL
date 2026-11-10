@@ -95,7 +95,10 @@ internal sealed partial class ControlFlowBinder
         // the fatal EC-RANGE-PERFORM-VARYING. Capture the enable flag NOW (F10/V3 template) so the emitter keeps
         // the directive-free output byte-identical (no check emitted when off).
         bool checkIndexRange = ctx.EcState.Turn.Enabled("EC-RANGE-PERFORM-VARYING", null, v.Start.Line);
-        return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null, checkIndexRange);
+        // §1985:VI.6.21.4 GR10 d) 1 augments the outer variable BEFORE setting the inner one; §2002 and §2023:14.9.28.4
+        // GR13 e) 2 a–c set the inner one first (kb/Work PB5101, PB436).
+        bool augmentOuterFirst = ctx.Edition.Edition.Year < 2002;
+        return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null, augmentOuterFirst, checkIndexRange);
     }
 
     /// <summary>A varying-phrase operand POSITION. It is an enum and not a bool because the position IS the rule:

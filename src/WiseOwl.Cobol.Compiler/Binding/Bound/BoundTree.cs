@@ -1627,9 +1627,13 @@ public sealed record VaryingLevel(BoundSetTarget Var, BoundExpr From, BoundExpr 
 
 /// <summary><c>PERFORM … VARYING v FROM f BY b UNTIL c [AFTER …]…</c> (ISO §2023:14.9.28, the VARYING phrase of
 /// Formats 1 and 2 — §2023:14.9.28.4 GR13): nested
-/// induction loops, leftmost level outermost.</summary>
+/// induction loops, leftmost level outermost.
+/// <para><paramref name="AugmentOuterFirst"/> is the EDITION's order of the two operations of a TEST BEFORE AFTER step
+/// when the inner condition is true (kb/Work PB5101): <c>true</c> at 1985, whose §1985:VI.6.21.4 GR10 d) 1 augments the
+/// outer variable and THEN sets the inner one to its from-value; <c>false</c> from 2002, whose §2023:14.9.28.4 GR13
+/// e) 2 a–c resets the inner variable FIRST. Decided by the binder so the emitter asks the rule's question, not the edition.</para></summary>
 public sealed record PerformVarying(IReadOnlyList<VaryingLevel> Levels, bool TestAfter,
-    bool CheckIndexRange = false) : BoundPerformControl;
+    bool AugmentOuterFirst, bool CheckIndexRange = false) : BoundPerformControl;
 
 /// <summary>An inline <c>PERFORM … END-PERFORM</c> (a real loop over a bound body).</summary>
 public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyList<BoundStatement> Body) : BoundStatement;
