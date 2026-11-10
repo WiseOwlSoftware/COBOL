@@ -17,8 +17,8 @@ THE FORMAT (owner 2026-11-06; the edition is MANDATORY):
 | `2014`  | ISO/IEC 1989:2014                | clause number                                                         | parsed only (no transcription) |
 | `2002`  | ISO/IEC 1989:2002                | clause number                                                         | `specs/ISO_COBOL_2002.md` once it exists, parsed only until then |
 | `1985`  | ANSI X3.23-1985                  | Roman section, then that section's own paragraph number: `VI.5.3.2` (Section VI, the Nucleus); the section alone `VI`; a printed page with no paragraph `p.VI-20`; an appendix `B`, `B.2.1` | `specs/ANSI_COBOL_1985.md` |
-| `1989`  | ANSI X3.23a-1989 (the amendment) | its own numbering                                                     | parsed only              |
-| `1993`  | ANSI X3.23b-1993 (the amendment) | its own numbering                                                     | parsed only              |
+| `1989`  | ANSI X3.23a-1989 (the amendment) | Section A's paragraph `A.2.2`, or a printed page `p.A-20`              | its Amendment 1 in `specs/ANSI_COBOL_1985.md` |
+| `1993`  | ANSI X3.23b-1993 (the amendment) | a printed page `p.B-16` (a table of changes: no paragraph of its own)  | its Amendment 2 in `specs/ANSI_COBOL_1985.md` |
 
 - **Rule** (optional, after ONE space): `SR n` | `GR n` | `AR n` | `RV n` | `Format n` | `Table n` (`RULE_KINDS`). A syntax or general rule is written
   glued (`GR1`, `SR17`), and its sub-item path is glued after the number as the repository has always written it
@@ -192,7 +192,7 @@ def _edition_locator(token: str, locator: str | None) -> tuple[int, str]:
             "clause": "an ISO edition is cited by clause number (13.18.35.4, A.1)",
             "section": "a 1985 locator is a Roman section and its own paragraph (VI.5.3.2), the section (VI), "
                        "a printed page (p.VI-20) or an appendix (B.2)",
-            "own": "an amendment is cited by its own numbering"}[shape])
+            "own": "an amendment is cited by its own paragraph (Amendment 1: A.2.2) or its printed page (p.A-20, p.B-16)"}[shape])
     return edition, locator
 
 
@@ -285,8 +285,13 @@ SECTIONS_85 = ("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"
                "XVII", "XVIII")
 
 
+#: An amendment is printed inside the 1985 transcription, so its token is read from that file.
+SOURCE_EDITION = {1989: 1985, 1993: 1985}
+
+
 def transcription(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> pathlib.Path | None:
     """The transcription `validate` checks `edition` against, or None while the edition is parsed only."""
+    edition = SOURCE_EDITION.get(edition, edition)
     if edition not in spec_pdf.EDITIONS:
         return None
     path = spec_pdf.markdown(edition, repo)
@@ -299,22 +304,25 @@ def iso_regions(lines: list[str]):
     return [(n, t, s, heads[k + 1][2] if k + 1 < len(heads) else len(lines)) for k, (n, t, s) in enumerate(heads)]
 
 
-def regions_1985(lines: list[str]):
-    """Every citable region of the 1985 transcription. A section's paragraph runs to the next paragraph of the SAME
+def regions_1985(lines: list[str], start: int = 0, end: int | None = None, sections: tuple[str, ...] = SECTIONS_85):
+    """Every citable region of the 1985 transcription (or, with `start`/`end`, of the lines of one amendment printed
+    in it, whose own lettered sections are `sections`: `amendment_regions`). A section's paragraph runs to the next paragraph of the SAME
     section (its region nests nothing: `VI.5.3` ends where `VI.5.3.1` begins, the clause-region convention of the ISO
     transcription); a section or an appendix runs to the next one; a printed page runs from the page break above its
     folio to the folio. A page the scan prints twice (SCAN_REPEAT_85) is no region: the first copy is the one cited. A
     reconstruction of printed pages the scan lacks (cite.RECONSTRUCTED, kb/Work PB4952) is read as text: its headings
     open their regions, and `cite.py --check` marks a quotation it finds there."""
+    end = len(lines) if end is None else end
     out = []
-    owner, owner_start, para, para_start, title, page_start = None, 0, None, 0, "", 0
+    owner, owner_start, para, para_start, title, page_start = None, 0, None, 0, "", start
     repeat = False
 
     def close_para(at: int) -> None:
         if owner and para:
             out.append((f"{owner}.{para}", title, para_start, at))
 
-    for i, line in enumerate(lines):
+    for i in range(start, end):
+        line = lines[i]
         if PAGE_85.match(line):
             if repeat:
                 para_start = i            # the paragraph the repeat interrupted resumes here, a region of its own
@@ -337,7 +345,7 @@ def regions_1985(lines: list[str]):
         head = SECTION_85.match(line) or APPENDIX_85.match(line)
         if head is not None:
             name = head.group(1)
-            if SECTION_85.match(line) and name not in SECTIONS_85:
+            if SECTION_85.match(line) and name not in sections:
                 name = None                       # an amendment's lettered section: not a 1985 locator
             if name != owner:
                 close_para(i)
@@ -348,10 +356,29 @@ def regions_1985(lines: list[str]):
         if owner and (p := PARAGRAPH_85.match(line)) is not None:
             close_para(i)
             para, para_start, title = (p.group(1) or p.group(2)), i, line.lstrip("#* ").strip()
-    close_para(len(lines))
+    close_para(end)
     if owner:
-        out.append((owner, "", owner_start, len(lines)))
+        out.append((owner, "", owner_start, end))
     return out
+
+
+#: The amendments the 1985 transcription prints after the standard, each under its own `# AMENDMENT n:` heading, and
+#: the edition token that cites it (`§1989:A.2.2`, `§1993:p.B-16`). Amendment 1 adds one lettered section, A; Amendment 2
+#: is a table of changes with no section of its own, so it is cited by its printed pages only (kb/Work PB5043).
+AMENDMENT_EDITIONS = {1989: (1, ("A",)), 1993: (2, ())}
+
+
+def amendment_regions(lines: list[str], edition: int):
+    """The citable regions of the amendment `edition` names (`AMENDMENT_EDITIONS`): `regions_1985` read over that
+    amendment's lines alone, so a page `p.A-20` of Amendment 1 is no page of the standard's Appendix A. Empty when the
+    transcription carries no such amendment."""
+    number, sections = AMENDMENT_EDITIONS[edition]
+    heads = [i for i, l in enumerate(lines) if AMENDMENT_85.match(l)]
+    mine = [i for i in heads if lines[i].startswith(f"# AMENDMENT {number}:")]
+    if not mine:
+        return []
+    following = [i for i in heads if i > mine[0]]
+    return regions_1985(lines, mine[0], following[0] if following else len(lines), sections)
 
 
 @functools.lru_cache(maxsize=None)
@@ -361,7 +388,9 @@ def _loaded(edition: int, repo: pathlib.Path) -> tuple[tuple[str, ...], tuple[tu
         return None
     lines = path.read_text(encoding="utf-8").splitlines()
     shape = EDITIONS[edition].locator
-    return tuple(lines), tuple(regions_1985(lines) if shape == "section" else iso_regions(lines))
+    found = (regions_1985(lines) if shape == "section" else
+             amendment_regions(lines, edition) if shape == "own" else iso_regions(lines))
+    return tuple(lines), tuple(found)
 
 
 def regions(edition: int, repo: pathlib.Path = spec_pdf.REPO):
@@ -613,7 +642,14 @@ def self_test() -> int:
         ("2023 phantom refused", bad("§2023:8.3.1.2") == "the 2023 standard has no clause 8.3.1.2"),
         ("2014 is parsed only", bad("§2014:99.99") is None),
         ("2002 is parsed only while its transcription is absent", parse_only),
-        ("1989 and 1993 are parsed only", bad("§1989:A.2.1") is None and bad("§1993:3.1") is None),
+        ("1989 and 1993 are read from their amendments in the 1985 transcription (kb/Work PB5043): Section A's paragraph "
+         "and either amendment's printed page validate",
+         bad("§1989:A.2.2") is None and bad("§1989:p.A-20") is None and bad("§1993:p.B-16") is None),
+        ("an amendment's page is that amendment's alone, and a phantom locator is refused (kb/Work PB5043)",
+         bad("§1993:p.A-20") is not None and bad("§1989:p.B-16") is not None and bad("§1989:A.9.9.9") is not None
+         and bad("§1993:p.B-999") is not None and bad("§1993:A.2.2") is not None),
+        ("a planted amendment is cut at the next one and owns only its own pages and section",
+         _planted_amendments()),
         ("1985 against the real transcription", bad("§1985:VI.5.3.2") is None and bad("§1985:p.VI-20") is None),
         *_real_1985_heads(),
         ("parses an argument rule and a returned-value rule, the catalogs' AR and RV (kb/Work PB4886)",
@@ -742,8 +778,19 @@ def _bare_in(line: str, prev: str = "") -> bool:
     return bare_standard(line, c, known=universe(2023), prev=prev)
 
 
+def _planted_amendments() -> bool:
+    """`amendment_regions` over a planted transcription: Amendment 1 owns its Section A paragraph and its page `A-1`,
+    Amendment 2 its page `B-1` alone, and neither reads the other's lines."""
+    planted = ["# AMENDMENT 1: PLANTED MODULE", "## Page 1", "# SECTION A: PLANTED FUNCTIONS", "## 2.2 Planted paragraph",
+               "its text", "A-1", "# AMENDMENT 2: PLANTED CORRECTIONS", "## Page 2", "a change", "B-1"]
+    one = {r[0]: r[2:] for r in amendment_regions(planted, 1989)}
+    two = {r[0]: r[2:] for r in amendment_regions(planted, 1993)}
+    return (set(one) == {"p.A-1", "A", "A.2.2"} and one["A.2.2"] == (3, 6) and set(two) == {"p.B-1"}
+            and amendment_regions(["# SECTION I: X"], 1989) == [])
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap =argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("citation", nargs="?", help="parse and validate one whole citation, print its canonical form")
     ap.add_argument("--self-test", action="store_true", help="the planted cases for every edition and rejection")
     args = ap.parse_args()
