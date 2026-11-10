@@ -1589,6 +1589,12 @@ check("a group is bound by every campaign its notes belong to, one that holds th
 check("a member of a campaign whose lead note has no section is bound by nothing", bound[1], {})
 check("a note naming no campaign (no cluster, a scalar cluster, an unknown note) is bound by nothing",
       group_requirements([rg], {rg.notes[0]: "PB950"}, RQDIR) + group_requirements([rg], {}, RQDIR), [{}, {}])
+# Review R2-1: an owner requirement recorded as an ADDENDUM of a running campaign's lead note reaches the brief.
+(RQDIR / "PB953.md").write_text("# PB953\n\n## Standing requirements\n\n- Lead rule.\n", encoding="utf-8", newline="\n")
+(RQDIR / "PB953").mkdir()
+(RQDIR / "PB953" / "2026-11-12-owner.md").write_text("## Standing requirements\n\n- Owner addition.\n", encoding="utf-8", newline="\n")
+check("a requirement added in a lead note's addendum reaches the group (R2-1)",
+      group_requirements([rg], {rg.notes[0]: ["PB953"]}, RQDIR), [{"PB953": ["Lead rule.", "Owner addition."]}])
 check("a campaign lead naming no note file binds nothing", group_requirements([rg], {rg.notes[0]: ["PB999"]}, RQDIR), [{}])
 check("`always` (the campaign a --cluster wave runs) binds every group, before the notes' own, once",
       group_requirements([rg, rg_other], member_of, RQDIR, ["PB950"]),

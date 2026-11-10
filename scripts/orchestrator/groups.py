@@ -351,8 +351,8 @@ def group_requirements(groups: Sequence[Group], cluster_of: Mapping[str, Any], n
 
     def of(lead: str) -> list[str]:
         if lead not in read:
-            f = notes_dir / f"{lead}.md"
-            read[lead] = campaign_requirements(f.read_text(encoding="utf-8")) if f.is_file() else []
+            text = work.note_text(lead, notes_dir)  # the note AND its addenda: an owner addition is an addendum file
+            read[lead] = campaign_requirements(text) if text is not None else []
         return read[lead]
 
     out = []
