@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-XIII.4.9.3-2",
+ "rule-digest": "6023e642a822",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.49.3-9"
+  ],
+  "bridge": true,
+  "reason": "X3.23b-1993 (its change for page XIII-78, errata C310) replaced the printed 'Identifier-1 must not appear in more than one USE BEFORE REPORTING statement' with §1985:XIII.4.9.3 SR2: 'Identifier-1 must reference a report group. The same identifier-1 must not appear in more than one USE BEFORE REPORTING statement within the same Procedure Division.' §2023:14.9.49.3 SR9 (FORMAT 2): 'Identifier-1 shall reference a report group. The same identifier-1 shall not appear in more than one USE BEFORE REPORTING statement within the same procedure division.' The amended text is the 2023 rule word for word (must/shall): the same programs are refused.",
+  "source": "readjudicate-amended-1985/slice-11"
+ }
+}

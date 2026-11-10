@@ -2,11 +2,15 @@
  "rule-id": "1985-SR-VIII.4.7.3-3",
  "rule-digest": "4d4d72b432fc",
  "next": {
-  "kind": "REMOVED",
+  "kind": "CHANGED",
   "edition": 2023,
-  "to": [],
+  "to": [
+   "GR-14.9.41.4-6",
+   "GR-9.1.14-3",
+   "GR-9.1.14-4"
+  ],
   "bridge": true,
-  "reason": "1985: \"The INVALID KEY phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1.\"; 2023: \"GR-9.1.14-3: or there are no applicable exception processing statements, control is transferred to the end of the input-output statement.\". 2023 calls INVALID KEY optional (GR-14.9.41.4-6) and defines the result when neither it nor a USE procedure exists, so the 1985 requirement is dropped.",
-  "source": "audit-1985/state-route"
+  "reason": "§1985:VIII.4.7.3 SR3 (level 2, boxed; the box is no difference): 'The INVALID KEY phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1' (START on a relative file). 2023 has no such syntax rule (§2023:14.9.41.3); §2023:14.9.41.4 GR6 makes the transfer of control depend 'on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the START statement as specified in 9.1.14', and the refused case is stated by §2023:9.1.14 GR4: 'If the INVALID KEY phrase is not specified in the input-output statement and there are no applicable exception processing statements, control is transferred to the end of the input-output statement'; so too §2023:9.1.14 GR3: 'If control is returned from those statements or there are no applicable exception processing statements, control is transferred to the end of the input-output statement'. Words that differ: 1985 'must be specified'; 2023 'not specified ... there are no applicable ... exception processing statements, control is transferred to the end'. A statement 1985 refuses is accepted by 2023 with a stated run-time effect: a lifted refusal, so CHANGED (kb/Work PB5021), not REMOVED.",
+  "source": "pb5092/use-required-phrases"
  }
 }

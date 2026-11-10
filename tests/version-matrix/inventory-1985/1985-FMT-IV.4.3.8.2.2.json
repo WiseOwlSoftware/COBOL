@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-FMT-IV.4.3.8.2.2",
+ "rule-digest": "e3f49847b34c",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-8.4.2.3.2",
+   "GR-8.4.2.3.4-1"
+  ],
+  "bridge": true,
+  "reason": "Amendment 1 (X3.23a-1989, its change for page IV-21: 'replace the general format with the following') added ALL to the 1985 format, so ALL is no longer a 2023 addition: §1985:IV.4.3.8.2.2 takes ALL, integer-1, data-name-2 [{+|-} integer-2] or index-name-1 [{+|-} integer-3]. §2023:8.4.2.3.2 takes ALL, 'arithmetic-expression-1' or index-name-1 [{+|-} integer-1]. Every 1985 form is an arithmetic expression or the index form and keeps its meaning, but 2023 accepts subscripts the 1985 format refuses: any arithmetic expression (A(I * 2), A(I + J), a subscripted or non-integer operand) where 1985 allows only an integer literal or a data-name with a literal offset, that data-name 'a numeric elementary item representing an integer' (§1985:IV.4.3.8.2.3 SR5). The compile-time refusal of a non-integer subscript became a run-time exception condition: 'If the evaluation of arithmetic-expression-1 does not result in an integer, the EC-BOUND-SUBSCRIPT exception condition is set to exist' (§2023:8.4.2.3.4 GR1). Where ALL may be written is the requirement of §1985:IV.4.3.8.2.3 SR7 ('The subscript ALL may be used only when the subscripted identifier is used as a function argument'), carried by §2023:8.4.2.3.3 SR6, not this format's, so SR-8.4.2.3.3-6 is left out.",
+  "source": "readjudicate-amended-1985/slice-01"
+ }
+}

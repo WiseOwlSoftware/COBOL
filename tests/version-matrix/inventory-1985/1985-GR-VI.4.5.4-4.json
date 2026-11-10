@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-4",
+ "rule-digest": "c826b96d09e1",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-7",
+   "SR-13.18.13.3-1"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993, pages VI-15 and VI-16) made the literal phrase define a code set too: 'The character code set and/or collating sequence identified is that defined according to the following rules', a new subitem 4 ('the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase') and THROUGH characters 'are each assigned a successive ascending collating position in the collating sequence being specified and/or a successive ascending ordinal number in the character code set being specified' (§1985:VI.4.5.4 GR4). §2023:12.3.7.4 GR7 carries the rule: the same contexts (NOTE 2, Table 6), NATIVE, the implementor's code-name and k) 'When literal-phrase is specified, the coded character set and collating sequence are defined according to the following rules' with the same subitems 1 to 6, the amendment's subitem 4 verbatim. Three differences remain. (1) 1985 d: 'If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause'; 2023 has no such refusal: Table 6 reads '| literal phrase | Y | Y |' and §2023:13.18.13.3 SR1 asks only that 'Alphabet-name-1 shall reference an alphabet that defines an alphanumeric coded character set', so a CODE-SET naming a literal-phrase alphabet, refused in 1985, is accepted. (2) 1985 a: 'If the STANDARD-2 phrase is specified, the character code set identified is the International Reference Version of the ISO 7-bit code'; 2023 c): 'the implementor shall specify whether the International Reference Version or a national version is referenced' (made implementor-defined), and STANDARD-1 moves from 'American National Standard X3.4-1977' to 'ISO/IEC 646 International Reference Version'. (3) 2023 k) 5 keeps the unamended THROUGH wording, 'is assigned a successive ascending position in the collating sequence being specified', without the amendment's code-set ordinal, and k) 6 adds 'Literal-1 is the first character in the sequence of multiple characters defined at that ordinal position'. LOCALE, UCS-4, UTF-8, UTF-16 and the NATIONAL phrase are 2023 syntax the 1985 format lacks.",
+  "source": "readjudicate-amended-1985/slice-03"
+ }
+}

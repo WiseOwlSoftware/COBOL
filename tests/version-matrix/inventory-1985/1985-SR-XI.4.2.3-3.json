@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-SR-XI.4.2.3-3",
+ "rule-digest": "1c8dcb866f87",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.32.3-2",
+   "GR-14.9.32.4-4",
+   "GR-14.6.10-1",
+   "GR-14.6.10-2"
+  ],
+  "bridge": true,
+  "reason": "Amended text (X3.23a-1989 added the function sentence, errata C153; X3.23b-1993 made the second sentence unconditional again, errata C298), §1985:XI.4.2.3 SR3: 'If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.' Two differences in 2023. (a) The function sentence is widened: §2023:14.9.32.3 SR2 'it shall reference an alphanumeric or national function'; 2023 accepts a national function 1985 refuses. (b) 2023 has no syntax rule refusing shared storage: §2023:14.9.32.4 GR4 makes RELEASE FROM an implicit MOVE and its NOTE says 14.6.10 and the MOVE rules 'apply to any cases in which the storage area identified by identifier-1 and the record area associated with record-name-1 share any part of their storage areas'; the result is then §2023:14.6.10 GR2 'the same as if the data items shared no part of their respective storage areas' (same data description entry) or §2023:14.6.10 GR1 'the result of the statement is undefined'. A refusal became acceptance with a defined or undefined result; no exception condition.",
+  "source": "readjudicate-amended-1985/slice-11"
+ }
+}

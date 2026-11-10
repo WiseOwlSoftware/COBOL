@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-9",
+ "rule-digest": "c25b30fc450e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-15",
+   "GR-9.1.14-2",
+   "GR-9.1.14-3",
+   "GR-9.1.14-L2.2"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993, page IX-42) replaced the printed GR9 and its a and b, which sent a WRITE that failed for a reason other than an invalid key to imperative-statement-2, with a pointer: 'Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page IX-6, The Invalid Key Condition.)' (§1985:IX.4.9.4 GR9). The difference the withdrawn record rested on is gone: §1985:IX.1.3.5 runs NOT INVALID KEY only 'If no exception condition exists'. 2023 states the same pointer: 'The transfer of control depends on other clauses and the value of the I-O status as described in 9.1.12 ..., 9.1.13, I-O status and 9.1.14, Invalid key condition' (§2023:14.9.51.4 GR15), and the dependence on the two phrases is §2023:9.1.14 GR2 ('If the INVALID KEY phrase is specified in the input-output statement, any applicable exception processing statements are not executed'), §2023:9.1.14 GR3 ('If the INVALID KEY phrase is not specified') and the second list of §2023:9.1.14 ('or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified', only on 'a successful completion'). The same as the REWRITE and START pointer rules' records. The dropped requirement of a USE procedure when INVALID KEY is absent is the change of 1985-SR-IX.4.9.3-3 and 1985-GR-IX.1.3.5-3, not of this pointer.",
+  "source": "readjudicate-amended-1985/slice-03"
+ }
+}

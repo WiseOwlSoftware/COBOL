@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-4",
+ "rule-digest": "a397b3cb7c5b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-6"
+  ],
+  "bridge": true,
+  "reason": "The in-place change is erratum C34 (kb/Work PB5045), a slip of the printed page and not an amendment: the page printed 'as the associated output file' and the rule now reads 'as the associated I-O file, as well as the file associated with record-name-1' (§1985:VIII.4.6.4 GR4), because a REWRITE file 'must be open in the I-O mode' (§1985:VIII.4.6.4 GR1). 1985: the released record 'is no longer available in the record area' unless its file is named in a SAME RECORD AREA clause, and is then also a record of the other files of that clause. §2023:14.9.35.4 GR6: it 'is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause', and is a record of the other file-names 'referenced in the same SAME RECORD AREA clause as file-name-1 or the file-name associated with record-name-1, as well as the file associated with record-name-1'. 2023 names the file by its file-name, never as an output file, so the corrected text and 2023 agree; file-name-1 serves only the 2023 FILE format, and the level-2 box is no difference. Same requirement.",
+  "source": "readjudicate-amended-1985/slice-07"
+ }
+}
