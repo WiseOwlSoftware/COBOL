@@ -1,10 +1,14 @@
       *>--- conformance-case
       *> id: pb1399_set_index_function_sender
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> At COBOL-85 a function is no SET sender: 1985 VI.6.23.3 SR2 asks an
+      *> index data item or an integer item, and ISO/IEC 1989:2002 Annex
+      *> F.2 item 60 lifted the rule confining functions to arithmetic
+      *> expressions (kb/Work PB5074), so the case runs from 2002.
       *> kb/Work PB1399 — SET Format 1's sending operand identifier-2 is "a data item of class index"
       *> (ISO/IEC 1989:2023 §2023:14.9.39.3 SR2), and ISO §2023:8.4.3.1.3 SR1 lets an identifier be ANY of the identifier
       *> formats, so a function-identifier of class index is identifier-2 exactly as an index data item is.

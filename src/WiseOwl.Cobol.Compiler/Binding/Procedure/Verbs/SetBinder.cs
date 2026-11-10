@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
@@ -1552,8 +1553,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (amount.additiveExpression().multiplicativeExpression() is not [var term]
             || term.powerExpression() is not [var power] || power.unaryExpression() is not [var unary]) return false;
         if (unary.primaryExpression()?.dataReference() is not { } dref)
-            return WiseOwl.Cobol.Validation.IntegerOperandRules.IsCobol85Integer(unary,
-                upDown ? WiseOwl.Cobol.Validation.Cobol85IntegerSign.Any : WiseOwl.Cobol.Validation.Cobol85IntegerSign.Positive);
+            return Cobol85OperandForms.IsInteger(unary, upDown ? Cobol85IntegerSign.Any : Cobol85IntegerSign.Positive);
         return ctx.Refs.ProbeDeclaration(dref) is not { Pic: { Category: PicCategory.Numeric, Scale: > 0 } };
     }
 

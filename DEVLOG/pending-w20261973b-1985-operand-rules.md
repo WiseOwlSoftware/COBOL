@@ -7,9 +7,10 @@ Wave 20261973 group B, the version-conformance pass over the 1985 `--std=85` tri
 `PIC 9V9`, `SET IX TO -1` and `SET IX TO 0`, `STOP 1.5`, `STOP -1` and `STOP ALL "A"` all compiled, and `STOP SPACE` and
 `STOP ZERO` communicated the words. One mechanism: the 1985 general-format `integer` (§1985:III.2, "neither signed nor zero
 unless explicitly allowed by the rules for that format") was never asked, only the operand's shape. It now has one reader,
-`IntegerOperandRules.IsCobol85Integer`, which takes the sign each format admits (`Cobol85IntegerSign`) and reads a sign the
-parser gave the unary operator when it touches the literal; the literal rule "an unsigned integer" (DISPLAY SR2, STOP SR3) is
-`IsUnsignedIntegerLiteral`. Where the 2002 text relaxes a rule, the fix is the edition window naming COBOL-2002 (COBOL0900):
+`Cobol85OperandForms.IsInteger` (Frontend.Parsing, beside `GoToFormats`, so the edition gate and the binders share it with no
+Binding-to-Validation edge; the gate's first run refused exactly those edges), which takes the sign each format admits
+(`Cobol85IntegerSign`) and reads a sign the parser gave the unary operator when it touches the literal; the literal rule "an
+unsigned integer" (DISPLAY SR2, STOP SR3) is `Cobol85OperandForms.IsUnsignedIntegerLiteral`. Where the 2002 text relaxes a rule, the fix is the edition window naming COBOL-2002 (COBOL0900):
 the subscript row now covers §1985:IV.4.3.8.2.3 SR5 (the data-name's description, asked in `SubscriptBinder`, which asks the
 parse arm's shape test first so one subscript draws one diagnostic) and SR6; the DISPLAY row, renamed
 `display-numeric-literal-2002`, covers all of §1985:VI.6.10.3 SR2; the new row `set-arithmetic-expression-2002` covers

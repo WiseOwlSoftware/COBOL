@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Frontend.Parsing;
 
 using WiseOwl.Cobol.Binding.Model;
 
@@ -143,10 +144,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             || subCtx.subscriptList() is not { } list) return;
         foreach (var written in list.subscriptItem())
         {
-            if (!WiseOwl.Cobol.Validation.VersionConformancePass.IsCobol85Subscript(written)) continue;   // the shape half's, reported there
-            if (written.functionArgument()?.arithmeticExpression()?.additiveExpression().multiplicativeExpression() is not [var first, ..]
-                || first.powerExpression() is not [var power] || power.unaryExpression() is not [var unary]
-                || unary.primaryExpression()?.dataReference() is not { } name
+            if (!Cobol85OperandForms.IsSubscript(written)   // the shape half's, reported by the edition gate
+                || Cobol85OperandForms.SubscriptDataName(written) is not { } name
                 || refs.ProbeDeclaration(name) is not { Pic.Scale: > 0 }) continue;
             using var _ = data.Edition.At(name);
             ConstructRegistry.Check(data.Edition.Edition, data.Edition.Sink, Constructs.SubscriptArithmeticExpression2002,

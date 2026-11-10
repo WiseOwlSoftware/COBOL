@@ -84,18 +84,6 @@ internal sealed class IntegerOperandPass(IDiagnosticSink sink) : CursorFollowing
     }
 }
 
-/// <summary>The sign an X3.23-1985 <c>integer</c> position admits (§1985:III.2: "neither signed nor zero unless explicitly
-/// allowed by the rules for that format").</summary>
-internal enum Cobol85IntegerSign
-{
-    /// <summary>§1985:III.2's default: no sign.</summary>
-    None,
-    /// <summary>"may be signed and, if signed, it must be positive" (§1985:IV.4.3.8.2.3 SR6; §1985:VI.6.23.3 SR4's integer-1).</summary>
-    Positive,
-    /// <summary>"may be signed" with no condition on the value's sign (§1985:VI.6.23.3 SR4's integer-2).</summary>
-    Any,
-}
-
 /// <summary>The per-position exceptions to §2023:5.5 1)'s NONZERO default, and nothing else (see
 /// <see cref="IntegerOperandPass"/>).</summary>
 internal static class IntegerOperandRules
@@ -344,52 +332,6 @@ internal static class IntegerOperandRules
     /// numeric literal which is an integer, and it must be neither signed nor zero unless explicitly allowed by the rules
     /// for that format" (kb/Work PB5074). <paramref name="sign"/> is what the format's rules allow; no 1985 rule this reader
     /// serves allows zero, so zero is refused at every sign.</summary>
-    /// <summary>An unsigned integer literal: no sign written and no digit position right of the decimal point (zero is
-    /// one). The "unsigned integer" of §1985:VI.6.10.3 SR2 and §1985:VI.6.24.3 SR3, a rule on a literal-1, not a general
-    /// format's <c>integer</c> (<see cref="IsCobol85Integer"/>).</summary>
-    internal static bool IsUnsignedIntegerLiteral(Core.SignedNumericLiteralContext n) =>
-        n.PLUS() is null && n.MINUS() is null && n.numericLiteralCore() is { ChildCount: 1 } core
-        && core.Start.Type == Core.INTEGERLIT;
-
-    internal static bool IsCobol85Integer(Core.NumericLiteralContext literal, Cobol85IntegerSign sign) =>
-        IsCobol85Integer(literal, outerSign: null, sign);
-
-    /// <summary>The <see cref="IsCobol85Integer(Core.NumericLiteralContext, Cobol85IntegerSign)"/> question over an arithmetic
-    /// operand, where the parser may read a contiguous sign as a unary operator before an unsigned literal: <c>+1</c> in
-    /// a statement operand is the signed literal §1985:IV.4.2.2.2.1 describes, and a sign separated from its digits by a
-    /// space is no literal at all, so only a sign token that touches the literal is taken as its sign.</summary>
-    internal static bool IsCobol85Integer(Core.UnaryExpressionContext unary, Cobol85IntegerSign sign)
-    {
-        if (unary.addOp() is not { } op) return unary.primaryExpression()?.numericLiteral() is { } bare && IsCobol85Integer(bare, sign);
-        return unary.unaryExpression() is { } inner && inner.addOp() is null
-            && inner.primaryExpression()?.numericLiteral() is { } literal
-            && op.Stop.StopIndex + 1 == literal.Start.StartIndex
-            && IsCobol85Integer(literal, op.MINUS() is null ? '+' : '-', sign);
-    }
-
-    private static bool IsCobol85Integer(Core.NumericLiteralContext literal, char? outerSign, Cobol85IntegerSign sign)
-    {
-        var signed = literal.signedNumericLiteral();
-        var core = signed.numericLiteralCore();
-        if (core.ChildCount != 1 || core.Start.Type is not (Core.INTEGERLIT or Core.SIGNED_INTEGERLIT)) return false;
-        string digits = core.Start.Text;
-        char written = signed.MINUS() is not null ? '-' : signed.PLUS() is not null ? '+'
-            : digits[0] is '+' or '-' ? digits[0] : ' ';
-        if (digits[0] is '+' or '-') digits = digits[1..];
-        if (outerSign is { } outer)
-        {
-            if (written != ' ') return false;   // two signs: an expression, never one literal
-            written = outer;
-        }
-        if (digits.AsSpan().Trim('0').IsEmpty) return false;
-        return written switch
-        {
-            ' ' => true,
-            '+' => sign is not Cobol85IntegerSign.None,
-            _ => sign is Cobol85IntegerSign.Any,
-        };
-    }
-
     /// <summary>The <c>long</c> twin of <see cref="TryHostValue(string, out int, out bool)"/> for an integer literal
     /// used as a run-time POSITION (a subscript or a reference-modifier position, kb/Work PB2151): the position
     /// intakes take a <c>long</c> (<c>CobolNum.Position</c> saturates there), so the literal is read at that width and

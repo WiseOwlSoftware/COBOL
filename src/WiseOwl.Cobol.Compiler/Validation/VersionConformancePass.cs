@@ -587,29 +587,6 @@ internal sealed class VersionConformancePass
         return n is CobolParserCore.FunctionArgumentContext;
     }
 
-    /// <summary>Whether a written subscript has one of the X3.23-1985 forms (§1985:IV.4.3.8.2.2) — the SHAPE half,
-    /// asked by <see cref="ParseArm.VisitSubscriptPart"/>; <c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c> asks the
-    /// description half of the subscripts this passes, so neither reports a subscript the other has.</summary>
-    internal static bool IsCobol85Subscript(CobolParserCore.SubscriptItemContext item)
-    {
-        if (item.functionArgument()?.arithmeticExpression() is not { } arith) return true;   // ALL / a non-arithmetic operand: another rule's
-        var terms = arith.additiveExpression().multiplicativeExpression();
-        var first = SolePrimary(terms[0]);
-        return terms.Length switch
-        {
-            1 => first?.dataReference() is not null
-                || (terms[0].powerExpression() is [var power] && power.unaryExpression() is [var unary]
-                    && IntegerOperandRules.IsCobol85Integer(unary, Cobol85IntegerSign.Positive)),
-            2 => first?.dataReference() is not null
-                && SolePrimary(terms[1])?.numericLiteral() is { } integer2 && IntegerOperandRules.IsCobol85Integer(integer2, Cobol85IntegerSign.None),
-            _ => false,
-        };
-    }
-
-    /// <summary>The primary a multiplicative term is when it is nothing more: no operator, no unary sign.</summary>
-    private static CobolParserCore.PrimaryExpressionContext? SolePrimary(CobolParserCore.MultiplicativeExpressionContext term) =>
-        term.powerExpression() is [var power] && power.unaryExpression() is [var unary] ? unary.primaryExpression() : null;
-
     /// <summary>
     /// The parse-tree arm of the conformance pass (rearch PHASE-03 Step 14h): the ABSORBED
     /// <c>EditionValidator</c>. It walks the raw compilation unit (ANTLR <c>-no-listener -visitor</c>, so
@@ -983,13 +960,13 @@ internal sealed class VersionConformancePass
         /// take §1985:III.2's default, "neither signed nor zero". So <c>ELEM (1.5)</c>, <c>ELEM (-1)</c> and
         /// <c>ELEM (I + 0)</c> are no 1985 subscript: each is an arithmetic expression, the 2002 form. SR5's other
         /// half, a data-name-2 that is "a numeric elementary item representing an integer", needs the item's
-        /// description and is asked by the binder (<c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c>).</para></summary>
+        /// description and is asked by the binder (<c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c>); both ask <see cref="Cobol85OperandForms"/>.</para></summary>
         public override object? VisitSubscriptPart(CobolParserCore.SubscriptPartContext ctx)
         {
             if (ctx.Parent is CobolParserCore.DataReferenceSuffixContext or CobolParserCore.QualificationContext
                 && ctx.subscriptList() is { } list)
                 foreach (var item in list.subscriptItem())
-                    if (!IsCobol85Subscript(item))
+                    if (!Cobol85OperandForms.IsSubscript(item))
                     {
                         using var _ = Sink.At(item);
                         _p.Check(Constructs.SubscriptArithmeticExpression2002, $"the arithmetic-expression subscript {WrittenSource.Of(item)}");
@@ -1470,7 +1447,7 @@ internal sealed class VersionConformancePass
             if (redefines?.dataReference().cobolWord()?.GetText() is not { } redefined) return false;
             for (int i = at - 1; i >= 0; i--)
                 if (LevelOf(entries[i]) is 1 && entries[i].dataName()?.GetText() is { } name
-                    && string.Equals(name, redefined, StringComparison.OrdinalIgnoreCase))
+                    && CobolNames.Same(name, redefined))
                     return HasClause(entries[i], c => c.externalClause() is not null);
             return false;
         }
@@ -2133,7 +2110,7 @@ internal sealed class VersionConformancePass
             // 14.8.10.2 prints no rule on the literal at all, so one row answers both halves: a signed literal, and one with
             // a digit position right of the decimal point (display-numeric-literal-2002; kb/Work PB4305, PB5074).
             foreach (var literal in ctx.literal())
-                if (literal.numericLiteral()?.signedNumericLiteral() is { } n && !IntegerOperandRules.IsUnsignedIntegerLiteral(n))
+                if (literal.numericLiteral()?.signedNumericLiteral() is { } n && !Cobol85OperandForms.IsUnsignedIntegerLiteral(n))
                 {
                     using var _ = Sink.At(literal);
                     _p.Check(Constructs.DisplayNumericLiteral2002, $"the numeric literal {WrittenSource.Of(literal)}, which is not an unsigned integer, as a DISPLAY operand");

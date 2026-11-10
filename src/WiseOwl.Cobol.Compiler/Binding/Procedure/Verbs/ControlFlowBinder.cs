@@ -40,8 +40,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             ? ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.LiteralEnv).Value
             // A keyword figurative constant is communicated as the value it represents (§1985:IV.4.2.2.2.3: SPACE
             // "Represents one or more of the character space from the computer's character set"), one character as in
-            // DISPLAY, never as its spelling
-            // (kb/Work PB5074: STOP SPACE displayed the word SPACE).
+            // DISPLAY, never as its spelling (kb/Work PB5074: STOP SPACE displayed the word SPACE).
             : nn?.figurativeConstant() is { } fig
               && ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, ctx.Data.LiteralEnv) is { } c
                 ? c.ToString()
@@ -58,7 +57,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.StopLiteralRemoved2002)) return;
         string? broken = slit.nonNumericLiteral()?.figurativeConstant()?.ALL() is not null
             ? "SR1: \"Literal-1 must not be a figurative constant that begins with the word ALL.\""
-            : slit.numericLiteral() is { } num && !WiseOwl.Cobol.Validation.IntegerOperandRules.IsUnsignedIntegerLiteral(num.signedNumericLiteral())
+            : slit.numericLiteral() is { } num && !Cobol85OperandForms.IsUnsignedIntegerLiteral(num.signedNumericLiteral())
                 ? "SR3: \"If literal-1 is numeric, then it must be an unsigned integer.\""
                 : null;
         if (broken is null) return;
