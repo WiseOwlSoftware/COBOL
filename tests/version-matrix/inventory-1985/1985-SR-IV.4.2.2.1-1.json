@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.1-1",
+ "rule-digest": "2389c0ca7acf",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.2.1-1",
+   "SR-8.3.2.1-4",
+   "SR-8.3.2.1-5"
+  ],
+  "bridge": true,
+  "reason": "§1985:IV.4.2.2.1 SR1 (the paragraph as Amendment 2, X3.23b-1993, replaced it; Errata C198): \"For all COBOL words excluding the words LENGTH, RANDOM, and SUM: a. Reserved words form disjoint sets with user-defined words, system-names, and function-names. b. ... The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word.\" 2023 keeps (a) against user-defined words and system-names, §2023:8.3.2.1 SR1 \"Reserved words shall not be used as user-defined words or system-names\", and (b) between system-names and user-defined words, §2023:8.3.2.1 SR4 \"A given word may be used as a system-name and as a user-defined word\". The function-name part has a different requirement, §2023:8.3.2.1 SR5: \"Intrinsic-function-names may be used as user-defined words and system-names, except for — intrinsic function names LENGTH, RANDOM, SIGN, and SUM; and — intrinsic function names identified in a function-specifier in the REPOSITORY paragraph.\" The words that differ: \"SIGN\", a fourth word that is both reserved (§2023:8.9) and an intrinsic function name (§2023:8.11), where 1985 excludes three; and the added case \"identified in a function-specifier in the REPOSITORY paragraph\", in which a function-name may NOT be a user-defined word or a system-name, where 1985 lets every function-name outside the three be one. 2023 has no rule of its own for the 1985 sentence that context determines the classification.",
+  "source": "classify-unrecorded-1985/slice-01"
+ }
+}

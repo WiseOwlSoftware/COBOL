@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.4.3-5",
+ "rule-digest": "d3452c60afac",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.3.3-2"
+  ],
+  "bridge": true,
+  "reason": "1985 (syntax rule 5 comes from Amendment 1, X3.23a-1989): \"The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function\" (§1985:IV.4.3.8.4.3 SR5). 2023: \"If identifier-1 is a function-identifier, it shall reference an alphanumeric, boolean, or national function\" (§2023:8.4.3.3.3 SR2). The words that differ are \"alphanumeric, boolean, or national\": 2023 also accepts reference modification of a boolean or national function, which the 1985 rule refuses. A numeric or integer function is refused by both.",
+  "source": "classify-unrecorded-1985/slice-02"
+ }
+}
