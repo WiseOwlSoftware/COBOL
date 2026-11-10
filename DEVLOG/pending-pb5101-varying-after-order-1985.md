@@ -19,3 +19,5 @@ contrast, derived from the rule). No refusal golden: nothing is refused, and no 
 2023 row GR-14.9.28.4-13 stays CONFORMS and gains the new witnesses (a `record_verdicts` batch); no 1985 inventory rows
 exist yet (PB5094). Docs: the CONFORMANCE.md section 3 determination now reads per edition, and VERSION_CHANGE_REFERENCE
 row 7.53 records the difference.
+
+Review round 1 (R1-1): the 1985 edge is now a DialectBehaviors member, PerformVaryingInitInnerBeforeAugmentOuter (ChangedIn 2002, VCR row 7.53 carrying its behavior anchor), read by BindVarying through IsActive instead of an inline year test; the stale NC201A sentence in scripts/guard-verdict.sh (R1-2) is corrected.

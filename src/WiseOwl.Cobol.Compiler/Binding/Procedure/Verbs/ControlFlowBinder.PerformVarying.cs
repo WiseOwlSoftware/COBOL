@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Expressions;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -97,7 +98,7 @@ internal sealed partial class ControlFlowBinder
         bool checkIndexRange = ctx.EcState.Turn.Enabled("EC-RANGE-PERFORM-VARYING", null, v.Start.Line);
         // §1985:VI.6.21.4 GR10 d) 1 augments the outer variable BEFORE setting the inner one; §2002 and §2023:14.9.28.4
         // GR13 e) 2 a–c set the inner one first (kb/Work PB5101, PB436).
-        bool augmentOuterFirst = ctx.Edition.Edition.Year < 2002;
+        bool augmentOuterFirst = !DialectBehaviors.IsActive(DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter, ctx.Edition.Edition.Year);
         return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null, augmentOuterFirst, checkIndexRange);
     }
 
