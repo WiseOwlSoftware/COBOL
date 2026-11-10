@@ -106,9 +106,10 @@ sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module o
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
 import queue_facts  # noqa: E402  — THE one reader of GitHub's facts: a merge-queue bounce's reds (kb/Work PB3644)
 from test_population import (GATED_ASSEMBLIES, LINUX_GATE_RESULTS, Population, PopulationError,  # noqa: E402
-                             UnreadableTrx, check as check_population, list_population, not_passed, passed_cases,
+                             UnreadableTrx, check as check_population, failed_results, list_population, not_passed, passed_cases,
                              red_classes, scrubbed_env, synthetic_listing, synthetic_trx)
 from standard_streams import ensure_utf8  # noqa: E402
+from test_leg_report import verdict_of  # noqa: E402  — THE reader of a host's verdict line
 
 VERDICT = "=== BUILD-LOCAL GATE: "
 #: ⛔ THE ONE ORDERING CHANNEL TO A TEST HOST (kb/Work PB4328): the path of a file of test class names, one per line, that
@@ -1267,8 +1268,25 @@ class Gate:
                 runs.append(p.name)
                 for asm, names in found.items():
                     passed[asm] |= names
-                red_hosts |= {r["asm"] for r in rec.get("runs") or [] if isinstance(r, dict) and r.get("red") and r.get("asm") in found}
+                red_hosts |= {r["asm"] for r in rec.get("runs") or []
+                              if isinstance(r, dict) and r.get("red") and r.get("asm") in found
+                              and not self._red_explained(p, r["asm"])}
         return Carry(runs, passed, red_hosts=red_hosts) if runs else None
+
+    @staticmethod
+    def _red_explained(run: Path, asm: str) -> bool:
+        """WHETHER A RED HOST'S RED IS THE CASES ITS TRX NAMES (kb/Work PB5099, review R1-1 and R2-1): the host printed a
+        `Failed!` verdict whose Failed count equals the trx's Failed results, and there is at least one. Then a retry of
+        those cases tests everything the red was about. Any other red (no verdict line, a count the trx does not
+        account for, a crash after the last result, a cleanup failure) has a host-level cause no case carries, and the
+        assembly runs whole again."""
+        try:
+            verdict = verdict_of((run / f"{asm}.log").read_text(encoding="utf-8", errors="replace").splitlines())
+            failed = failed_results(run / f"{asm}.trx")
+        except (OSError, UnreadableTrx):
+            return False
+        m = re.match(r"Failed!\s+-\s+Failed:\s+(\d+)", verdict or "")
+        return bool(m) and failed > 0 and int(m.group(1)) == failed
 
     def _beside(self, out: Outcome, name: str, work: Callable[[], tuple[list[str], list[str]]]) -> None:
         """Start `work` BESIDE the gate's critical path (kb/Work PB2880): a step that needs nothing the critical path
@@ -1474,12 +1492,12 @@ class Gate:
         runs this gate composes with and how many cases it carries; None when the carried passes cover no listed case."""
         lefts = {asm: not_passed(listings[asm], carry.passed[asm]) for asm in GATED_ASSEMBLIES}
         for asm in carry.red_hosts:
-            if not lefts[asm]:
-                # ⛔ A HOST THAT WENT RED WITH EVERY CASE PASSED (a class or collection cleanup failure, a crash after the
-                # last result, a report with no verdict line) left no case to retry, and "nothing left" would compose its
-                # RED into a GREEN: the host runs the whole assembly again, so a deterministic host failure stays RED.
-                carry.passed[asm] = Counter()
-                lefts[asm] = {n: c for n, c in listings[asm].items()}
+            # ⛔ A HOST WHOSE RED THE CASES DO NOT EXPLAIN (`_red_explained`: a class or collection cleanup failure, a crash
+            # after the last result, no verdict line, a failure count beside a failed case that the trx does not name)
+            # has a cause no retry of cases reaches, and composing around it would turn a deterministic host failure
+            # GREEN: the host runs the whole assembly again.
+            carry.passed[asm] = Counter()
+            lefts[asm] = dict(listings[asm])
         to_run = {asm: sum(left.values()) for asm, left in lefts.items()}
         carried = {asm: sum(listings[asm].values()) - to_run[asm] for asm in GATED_ASSEMBLIES}
         if not any(carried.values()):
@@ -1856,6 +1874,8 @@ class FakeHost(Host):
         passed = sum(o == ["Passed"] for _, o in cases)
         failed = sum(o == ["Failed"] for _, o in cases)
         log = [f"  Failed {cases[0][0]} [1 s]", "  Error Message:", "   PLANTED-RED-MESSAGE"] if red else []
+        if asm == "Conformance" and "log-miscount" in self.plant:   # a red the trx does not account for: the log counts one more
+            failed += 1
         log.append(f"{'Failed!' if red else 'Passed!'}  - Failed:     {failed}, Passed:     {passed}, Skipped:     0, "
                    f"Total:     {len(cases)}, Duration: 1 s - WiseOwl.Cobol.Tests.{asm}.dll (net10.0)")
         (run / f"{asm}.log").write_text("\n".join(log) + "\n", encoding="utf-8", newline="\n")
@@ -2523,6 +2543,14 @@ def self_test() -> int:
             cl1.verdict == "RED" and cl2.verdict == "RED" and sorted(hcl.envs) == ["Conformance"]
             and len((run_dirs(d / "runs")[-1] / "only-Conformance.txt").read_text(encoding="utf-8").splitlines()) == 6
             and cl2.populations["Conformance"].carried == 0 and "Conformance RED" in cl2.line, cl2.line)
+        d = root / "compose-miscount"
+        d.mkdir()
+        mc1, _ = regate(d, plant={"red", "log-miscount"})
+        mc2, hmc = regate(d, plant={"red", "log-miscount"})
+        arm("a red host whose verdict counts a failure its trx does not name (a host-level fault beside a failed case) "
+            "runs the whole assembly again, and the carried passes do not turn it GREEN (review R2-1)",
+            mc1.verdict == "RED" and mc2.verdict == "RED" and sorted(hmc.envs) == ["Conformance"]
+            and mc2.populations["Conformance"].carried == 0, mc2.line)
         d = root / "compose-prune"
         d.mkdir()
         regate(d, plant={"red"})

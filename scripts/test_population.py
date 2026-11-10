@@ -388,6 +388,13 @@ def passed_cases(paths: list[str | Path]) -> Counter:
     return passed
 
 
+def failed_results(path: str | Path) -> int:
+    """HOW MANY RESULTS THIS TRX RECORDS AS Failed (kb/Work PB5099): the count a host's own `Failed!  - Failed: N` verdict
+    line must equal when its red is fully explained by the cases the trx names; a file that cannot be read raises
+    `UnreadableTrx` naming it."""
+    return sum(r.get("outcome") == "Failed" for r in trx_root(path).iter(TRX_NS + "UnitTestResult"))
+
+
 def not_passed(listed: Counter, passed: Counter) -> dict[str, int]:
     """THE CASES A RETRY RUNS (kb/Work PB5099): the listed names (as `--list-tests` prints them) that `passed` (trx
     spelling, `passed_cases`) does not cover, each with how many of its listed cases are left. A name run at all runs
