@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VII.4.2.4-3",
+ "rule-digest": "c3f9639a6078",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.6.4-3"
+  ],
+  "bridge": true,
+  "reason": "1985 as amended by Amendment 2: Table 1 gives CLOSE, CLOSE WITH LOCK (C,E), CLOSE WITH NO REWIND, CLOSE REEL/UNIT and FOR REMOVAL per file category, with 'E. File Lock The file is locked and cannot be opened again during this execution of this run unit' and C performing label processing ('the labels are processed according to the implementor's standard label convention'); its amended F sets the file position indicator (§1985:VII.4.2.4 GR3: 'the file position indicator is set to indicate that no next reel/unit exists') and leaves a non-reel/unit file's unchanged. §2023:14.9.6.4 GR3 keeps the table and F's file position indicator ('the file position indicator is unchanged' on non-unit media), but has no WITH LOCK row or file-lock symbol (CLOSE WITH LOCK is refused), reduces c) to 'Closing operations specified by the implementor are executed' with no label processing, and sets I-O status '07' for non-unit media. Different requirement.",
+  "source": "adjudicate-712/slice-15; re-decided against the amended text, kb/Work PB5045 (review R1-2)"
+ }
+}

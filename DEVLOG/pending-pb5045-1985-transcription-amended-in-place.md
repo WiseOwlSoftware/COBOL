@@ -59,8 +59,12 @@ withdrawn. Of those, 97 are records whose rule an amendment or a misprint correc
 against the printed text, so it is withdrawn and its row left for re-adjudication against the amended text, never
 carried (kb/Work PB698's drift refusal). The first batch of this branch had carried them, stamping the amended text's
 digest on a record decided against the old one; branch review round 1 refused that (R1-2), and the store was rewound to
-main's and moved again. The inventory view is green; 1985 GAP 1052 (main) to 1081: the withdrawn rows are among the view's 134 unclassified
-1985 rules, waiting for re-adjudication.
+main's and moved again. Two of the 97 hold a `constructs.json` edition gate, which EDITION GATES refuses to rest on an
+unclassified rule, so they were decided again against their amended text in the same change: the CD entry formats
+(XIV.2.2.2, Addendum 1's comma deletion) stay REMOVED, and the CLOSE table (VII.4.2.4 GR3, Amendment 2's file position
+indicator in F) stays CHANGED, its reason no longer counting the position indicator as a 2023 difference. The C338
+correction above re-decided the one record on its rule the same way. The inventory view is green; 1985 GAP 1052 (main)
+to 1081, and the other 95 rows are among the view's 132 unclassified 1985 rules, waiting for re-adjudication.
 
 **The amendment rows the catalog could not see** (review R1-1). Page 931 printed IX-30, IX-30 and IX-31 as dash-joined
 prose, which neither change-row shape reads, so `parse` swallowed them as IX-27's new text and indexed READ GR10 and GR11
