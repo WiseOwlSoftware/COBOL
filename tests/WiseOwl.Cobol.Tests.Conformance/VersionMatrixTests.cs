@@ -9,11 +9,11 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// The VERSION TEST MATRIX catalogue (docs/VERSION_TEST_MATRIX_DESIGN.md; Phase 1) and its row generators — the
 /// data half of the matrix, held in ONE non-generic type so the twelve partitions of
-/// <see cref="VersionMatrixTestsBase{TSlot}"/> share a single parse of <c>constructs.json</c> rather than one per
+/// <see cref="VersionMatrixTestsBase{TSlot}"/> share a single parse of <c>constructs/</c> rather than one per
 /// closed generic type.
 /// </summary>
 /// <remarks>
-/// The catalogue is the CANONICAL <c>tests/version-matrix/constructs.json</c> (design §10 #5 — the
+/// The catalogue is the CANONICAL <c>tests/version-matrix/constructs/</c> (design §10 #5 — the
 /// VERSION_CHANGE_REFERENCE.md tables and the future in-code registry are renderings of that file; extend it,
 /// never fork).
 /// </remarks>
@@ -22,10 +22,6 @@ internal static class VersionMatrixCatalogue
     internal sealed record Construct(string Id, string Description, int IntroducedIn, int? RemovedIn, string Vcr,
         string Source, string Status, string? ExpectDiagnostic, int? ObsoleteIn, string? ExpectDiagnosticBelow,
         IReadOnlyDictionary<string, string>? Copybooks = null, string? Declined = null);
-
-    /// <summary>The catalogue file: the one spelling of the path. Declared before <see cref="All"/>, whose initializer
-    /// reads it.</summary>
-    internal static string CataloguePath { get; } = TestRepo.VersionMatrix("constructs.json");
 
     internal static IReadOnlyList<Construct> All { get; } = LoadCatalogue();
 
@@ -111,9 +107,8 @@ internal static class VersionMatrixCatalogue
 
     private static IReadOnlyList<Construct> LoadCatalogue()
     {
-        using var doc = JsonDocument.Parse(File.ReadAllText(CataloguePath));
         var list = new List<Construct>();
-        foreach (var e in doc.RootElement.GetProperty("constructs").EnumerateArray())
+        foreach (var e in TestRepo.ConstructRows())
         {
             list.Add(new Construct(
                 e.GetProperty("id").GetString()!,
@@ -148,7 +143,7 @@ internal static class VersionMatrixCatalogue
 ///
 /// Covered today: INTRODUCTION-GATING both ways (INV-2) and CONTINUITY (INV-1, the FULL corpus witness set).
 /// Not yet: removed-construct gating and behavior variants (INV-3) — those await the EditionValidator (Phase 2);
-/// their rows join constructs.json with <c>removedIn</c>/variant metadata as that lands.
+/// their rows join the construct catalogue with <c>removedIn</c>/variant metadata as that lands.
 /// </summary>
 /// <remarks>
 /// ⛔ THIS CLASS IS PARTITIONED — see <see cref="TestPartitioning"/> (plan §11 A13). It held <b>2,127 theory rows
@@ -194,7 +189,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
                    : $"not valid until {c.IntroducedIn}{(c.RemovedIn is { } r ? $" / removed {r}" : "")}")
                 + $"; {c.Vcr}) but it compiled.");
             // The two-obligation rule's diagnostic half: reject cells assert the QUALITY of the rejection
-            // once their edition-band code exists (P2.7 — expectDiagnostic in constructs.json). A DUAL-window
+            // once their edition-band code exists (P2.7 — expectDiagnostic in the construct catalogue). A DUAL-window
             // row (introduced ≥2002 AND removed — e.g. EXIT METHOD, method WS) rejects with DIFFERENT codes at
             // the two edges: expectDiagnosticBelow (0900 not-yet-introduced) below introducedIn,
             // expectDiagnostic (0902 removed) at/after removedIn (the exit-method-window reactivation
@@ -224,7 +219,7 @@ public abstract class VersionMatrixTestsBase<TSlot>
     /// <para>⛔ THIS TEST IS THE REASON THE POLICY IS NOW AUTOMATIC. Until CA14 the permissive axis was tested
     /// ONLY for removal rows, so the ONE site that routed an introduction through the removed-severity seam
     /// (SYNCHRONIZED on a group item) accepted it with a warning under <c>--permissive</c> for two phases with
-    /// nothing red. A new introduction row joins this theory the moment it enters constructs.json.</para></summary>
+    /// nothing red. A new introduction row joins this theory the moment it enters the construct catalogue.</para></summary>
     [Theory]
     [MemberData(nameof(IntroducedMatrix))]
     public void IntroducedConstruct_IsRejectedUnderPermissive(string constructId, int edition)

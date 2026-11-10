@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// co-equal-diagnostic violation). These facts pin the ACCEPTED 85 leg (parse + correct run semantics — RERUN /
 /// ENTER / segment-numbers are inert; USE FOR DEBUGGING is MODELED at 85, the procedure-trigger leg, VCR 7.17)
 /// and the per-word §2023:8.9 user-word continuity; the ≥2002 reject/permissive legs are pinned by the
-/// four constructs.json matrix rows and the negative corpus (rerun / enter / use-for-debugging /
+/// four the construct catalogue matrix rows and the negative corpus (rerun / enter / use-for-debugging /
 /// segment-numbers). No ISO-2023 § exists for any of them — the registry rows cite the §2023:8.9 ABSENCE pinpoints.
 /// </summary>
 public sealed class Ansi85AcceptanceTests

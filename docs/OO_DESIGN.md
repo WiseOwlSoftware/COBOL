@@ -618,7 +618,7 @@ interface declares the member, and `ObjectPropertyResolver.ResolveObjectProperty
 interface-typed `i` over the interface's prototype closure (`AllPrototypes`) — the roster an INVOKE through `i`
 resolves over — with the interface qualifying the formal statics (`OoPendingPropertyOp.InterfaceCsName`). REGISTRY: interface-definition-2002, repository-interface-2002,
 repository-property-2002, implements-clause-2002, property-clause-2002, method-property-selector-2002
-(constructs.json rows for the four independently-reachable gates; bind-time `ConstructRegistry.Check` gates —
+(the construct catalogue rows for the four independently-reachable gates; bind-time `ConstructRegistry.Check` gates —
 the INTERFACE-ID unit at `OoClassTable`, both repository specifiers in `DataBinder`, the PROPERTY clause in the
 `DataBinder` clause loop; the `VersionConformancePass` funnel at end state). GOLDENS: oo_interface (two classes
 implementing one interface, polymorphic dispatch through an interface-typed reference), oo_interface_covariant

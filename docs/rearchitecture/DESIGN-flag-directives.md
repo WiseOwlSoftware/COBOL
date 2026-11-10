@@ -164,11 +164,11 @@ citation precision and suppressibility while keeping the band to two codes (the 
 the `EveryEmittedCode_IsACatalogDescriptor` drift test is satisfied). Severity is hard-coded
 `EditionSeverity.Warning` (NOT `EditionSeverityPolicy`, which is edition-derived).
 
-**D6 — VCR anchoring.** The directive-WORD rows (11/64/91/96/115) anchor to the new `constructs.json` rows
+**D6 — VCR anchoring.** The directive-WORD rows (11/64/91/96/115) anchor to the new `constructs/` rows
 `Flag14Directive2023` / `Flag02DirectiveObsolete2023` (`<!-- gate:… -->`, genuine edition gates). The per-OPTION
 rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-- ref-only -->` pointing at
 `FlagConformancePass` once their detector lands (confirm against the DOC AUDITS gate audit, `scripts/docchecks/vcr.py`; do NOT invent a
-`constructs.json` edition row for a non-edition-gated behavior).
+`constructs/` edition row for a non-edition-gated behavior).
 
 ## 3. The three seams (each an exact copy of a proven template)
 
@@ -202,7 +202,7 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
   model change is needed — a simplification over the original Incr-3 plan). Catalog 1620 (Flag02Warning) + 1621
   (Flag14Warning), both exercised. Goldens: `>>FLAG-14 READ-PREVIOUS ON` + a READ PREVIOUS ⇒ warning (OFF ⇒
   none); `>>FLAG-02 I-O-STATUS-07 ON` + a CLOSE WITH NO REWIND ⇒ warning. Directive-word introduction gate +
-  `constructs.json` rows land here too (or the immediately-following Incr 0b if kept tight).
+  `constructs/` rows land here too (or the immediately-following Incr 0b if kept tight).
 * **Incr 1 — the data/VALUE + report/WRITE options** (parse arm + resolved lookups), delivered as sub-increments:
   * **1a (DONE)** g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO — `VisitDataDescriptionEntry`; numeric-edited via the ONE
     `PictureAnalyzer` (discard edition); figurative ZERO via `FirstDescendant<FigurativeConstantContext>`.

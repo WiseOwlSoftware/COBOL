@@ -1,0 +1,12 @@
+{
+ "id": "goback-status-2023",
+ "description": "GOBACK … WITH {ERROR|NORMAL} STATUS [id|lit] phrase, ISO §2023:14.9.18.2 — a COBOL-2023 addition (annex item 32: GOBACK now allows the same status phrase as the STOP statement; §2023:14.9.18.4 GR3 routes a main-program GOBACK to STOP semantics). Distinct edition from the 2002 STOP-status phrase — the shared statusPhrase rule is 2002-gated on STOP, 2023 on GOBACK. GOBACK is valid at 2014 so the below-2023 witness isolates the status phrase.",
+ "display": "GOBACK WITH NORMAL/ERROR STATUS",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.18.2 / §2023:14.9.18.4 GR3; Annex E.3.3 (2023 new-features annex item 32)",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 75 (GOBACK status phrase — 2023 introduction)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. GBST.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    GOBACK WITH NORMAL STATUS RC.\n"
+}

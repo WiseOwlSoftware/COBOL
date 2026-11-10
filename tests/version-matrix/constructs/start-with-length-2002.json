@@ -1,0 +1,12 @@
+{
+ "id": "start-with-length-2002",
+ "description": "START KEY ... WITH LENGTH phrase (variable-length key comparison), ISO 14.9.41.2 prints it as `[ WITH LENGTH arithmetic-expression-1 ]` - provisional 2002 edge. Gated on RECOGNITION in the VersionConformancePass parse arm (VisitStartWithLength -> 0900 below 2002); startKeyPhrase carries no version predicate, so an ill-organized or unbindable START still names the edition (kb/Work PB353).",
+ "display": "the START KEY … WITH LENGTH phrase",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.41.2 (provisional 2002 edge) — the printed [ WITH LENGTH arithmetic-expression-1 ] bracket; §2023:14.9.41.3 SR8 confines it to indexed organization",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "provisional 2002 edge (decision-1 policy); W1.5 parse-layer mapping (DEVLOG 594)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15P.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F2 ASSIGN TO \"f2.dat\"\n        ORGANIZATION INDEXED ACCESS DYNAMIC RECORD KEY RK.\nDATA DIVISION.\nFILE SECTION.\nFD F2.\n01 R2.\n   05 RK PIC X(5).\n   05 RD2 PIC X(5).\nPROCEDURE DIVISION.\nMAIN.\n    START F2 KEY = RK WITH LENGTH 3.\n    STOP RUN.\n"
+}

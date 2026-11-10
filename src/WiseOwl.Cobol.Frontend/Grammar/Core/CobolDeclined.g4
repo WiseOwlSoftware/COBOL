@@ -37,7 +37,7 @@
 //
 // ⛔ NO RULE HERE IS EDITION-GATED: THE UNION GRAMMAR SPELLS THE FACILITY AT EVERY EDITION (kb/Work PB5007). The
 // VALIDATE facility is a COBOL-2002 introduction, and its data description syntax does not exist at COBOL-85. Below
-// 2002 `VersionConformancePass` names that edition on RECOGNITION (COBOL0900; constructs.json row
+// 2002 `VersionConformancePass` names that edition on RECOGNITION (COBOL0900; the construct catalogue row
 // `validation-clauses-2002`, a DECLINED row; ParseArm.VisitValidationClause and VisitValidateValidPhrase), and from
 // 2002 `DeclinedFacilityPass` refuses the clause by name (COBOL1708). That is D7 (DESIGN §1.1): the parse reads the
 // edition only for §2023:8.9 word status, and every construct gate is the post-bind pass's.

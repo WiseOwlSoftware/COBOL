@@ -101,6 +101,7 @@ import inert_lane  # noqa: E402  — THE classification of a change no test read
 import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT  # noqa: E402
 from gate_slot import ExclusiveLock, GateSlots, Slot, gate_class_from_env  # noqa: E402
+import process_job  # noqa: E402  — THE one held process tree: an audit's or a test host's whole tree, stopped as one (kb/Work PB5098)
 from detached import kill_tree, pid_alive, spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536), THE one tree kill (PB4072), THE one liveness probe (PB4008)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
@@ -149,7 +150,7 @@ BUSY = "BUSY"
 EXIT_BUSY = 3
 #: A gate that MEASURED NOTHING about the change prints `NOT RUN [<cause>]`, the cause's TAG naming one row of
 #: NOT_RUN_CAUSES, which classifies it ONCE (kb/Work PB3526; review R2-1 of wave 1150). The landing's merge of main into
-#: the branch (merge_drivers.merge: a clean merge, then abi_pin.settle, a build and a measuring test on the merged tree) is
+#: the branch (git_merge.merge: a clean merge, then the merge commit) is
 #: a step that can measure nothing too, and its failure names its cause by the same two classes through the `merge-*` rows
 #: (kb/Work PB3673): a merge that could not be completed for a cause outside the tree is never reported as a CONFLICT.
 #: ENVIRONMENT: a cause outside the code the gated tree carries (the coordination directory's shared gate settings, the host's WSL, Python, .NET SDK or
@@ -197,7 +198,7 @@ NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
                                        "its lock's holder hung) or to start its process detached (scripts/detached.py)"),
     NotRunCause("run", ENVIRONMENT, "`--await` was handed no gate run directory (none at that path: a wrong path, or a "
                                     "run pruned since)"),
-    NotRunCause("merge-blocked", ENVIRONMENT, "the landing's clean merge of main (merge_drivers.merge) could not be "
+    NotRunCause("merge-blocked", ENVIRONMENT, "the landing's merge of main (git_merge.merge) could not be "
                                               "completed for a cause outside the merged tree: the ABI-pin settle's "
                                               "measuring build met a build output locked by another process (MSB3027, "
                                               "MSB3021: a language server or an antivirus scan), a full disk or no .NET "
@@ -337,7 +338,7 @@ AUDITS = (
     # what the view refuses (an adjudication of a dropped rule, a copied catalog field or state, an adjudication decided
     # against other text) and an older edition's illegal change record are refused here, in every lane.
     ("INVENTORY VIEW", ["scripts/spec/inventory_view.py", "--check"]),
-    # kb/Work PB4996: every edition gate of the compiler (a constructs.json window, a grammar version predicate) rests on
+    # kb/Work PB4996: every edition gate of the compiler (a construct catalogue window, a grammar version predicate) rests on
     # an edge the rule lineage proves: a start on a NEW or CHANGED rule, an end on a REMOVED or CHANGED one.
     ("EDITION GATES", ["scripts/spec/edition_gates.py", "--check"]),
     ("SPEC CORRECTIONS", ["scripts/spec/verify_publishable.py"]),
@@ -454,22 +455,24 @@ def _no_slot(**kwargs) -> dict:
 class _Live:
     """The audit processes of one `Host.audits()` call (kb/Work PB3061), so the first RED can stop the rest. `add` under
     the lock stops a process that starts after `stop_all` ran, so no audit slips through the gap between its spawn and
-    its registration; `stopped` holds the pids stopped, so their exits are reported STOPPED, never RED."""
+    its registration; `stopped` holds the pids stopped, so their exits are reported STOPPED, never RED. Each is a
+    ProcessJob (scripts/process_job.py, kb/Work PB5098), so a stop kills its WHOLE tree, an orphaned grandchild included,
+    which `taskkill /T` cannot reach."""
 
     def __init__(self) -> None:
         self.lock = threading.Lock()
         self.stopping = threading.Event()
-        self.procs: set[subprocess.Popen] = set()
+        self.procs: set[process_job.ProcessJob] = set()
         self.stopped: set[int] = set()
 
-    def add(self, p: subprocess.Popen) -> None:
+    def add(self, p: process_job.ProcessJob) -> None:
         with self.lock:
             self.procs.add(p)
-            if self.stopping.is_set() and p.poll() is None:
+            if self.stopping.is_set() and p.popen.poll() is None:
                 self.stopped.add(p.pid)
-                kill_tree(p.pid)   # its whole tree: each audit leads the process group start_new_session gave it
+                p.kill()   # its whole tree, orphans included (kb/Work PB5098)
 
-    def discard(self, p: subprocess.Popen) -> None:
+    def discard(self, p: process_job.ProcessJob) -> None:
         with self.lock:
             self.procs.discard(p)
 
@@ -477,10 +480,10 @@ class _Live:
         """Stop every registered process still running, and every one registered from now on; returns how many."""
         with self.lock:
             self.stopping.set()
-            running = [p for p in self.procs if p.poll() is None]
+            running = [p for p in self.procs if p.popen.poll() is None]
             for p in running:
                 self.stopped.add(p.pid)
-                kill_tree(p.pid)
+                p.kill()
             return len(running)
 
 
@@ -620,19 +623,22 @@ class Host:
         t = time.monotonic()
         if live is not None and live.stopping.is_set():
             return None, "", 0.0
-        p = subprocess.Popen([sys.executable, *cmd], cwd=self.repo, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                             text=True, encoding="utf-8", errors="replace", start_new_session=os.name != "nt",
-                             **spawn())
-        if live is not None:
-            live.add(p)
-        try:
-            out = p.communicate()[0]
-        finally:
-            if live is not None:
-                live.discard(p)
+        # ⛔ A FILE, NEVER A PIPE (kb/Work PB5098): a pipe an orphaned grandchild still holds blocks its reader forever
+        with tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace", newline="\n") as fh:
+            with process_job.ProcessJob.start([sys.executable, *cmd], cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT,
+                                              **spawn()) as p:
+                if live is not None:
+                    live.add(p)
+                try:
+                    rc = p.wait()
+                finally:
+                    if live is not None:
+                        live.discard(p)
+            fh.seek(0)
+            out = fh.read()
         if live is not None and p.pid in live.stopped:
-            return None, out or "", time.monotonic() - t
-        return p.returncode, out or "", time.monotonic() - t
+            return None, out, time.monotonic() - t
+        return rc, out, time.monotonic() - t
 
     def audit_commands(self, tooling: bool) -> tuple[tuple[str, list[str]], ...]:
         """The audits this gate runs: AUDITS, less the TOOLING_ONLY ones unless the change touches tooling (the first-red
@@ -726,18 +732,19 @@ class Host:
 
     def run_host(self, asm: str, run: Path, env: dict[str, str], spawn: Spawn) -> int:
         """One assembly's whole population: `dotnet test --no-build` with a trx logger, its whole output to `<asm>.log`.
-        The host is registered in `hosts_live` while it runs and leads its own process group, so `stop_hosts` ends its
-        whole tree (kb/Work PB4326); a host that starts after the stop is killed at once and exits non-zero."""
+        The host is registered in `hosts_live` while it runs as the root of a ProcessJob, so `stop_hosts` ends its
+        whole tree, orphans included (kb/Work PB4326, PB5098); a host that starts after the stop is killed at once and
+        exits non-zero."""
         cmd = ["dotnet", "test", str(self.repo / GATED_ASSEMBLIES[asm]), "--no-build", "--results-directory",
                str(run), "--logger", f"trx;LogFileName={asm}.trx"]
         with open(run / f"{asm}.log", "wb") as fh:
-            p = subprocess.Popen(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT,
-                                 start_new_session=os.name != "nt", **spawn(env=env))
-            self.hosts_live.add(p)
-            try:
-                return p.wait()
-            finally:
-                self.hosts_live.discard(p)
+            with process_job.ProcessJob.start(cmd, cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT,
+                                              **spawn(env=env)) as p:
+                self.hosts_live.add(p)
+                try:
+                    return p.wait()
+                finally:
+                    self.hosts_live.discard(p)
 
 
 def host_env(first: Path | None, observations: Path, only: Path | None = None) -> dict[str, str]:

@@ -1,0 +1,12 @@
+{
+ "id": "alternate-key-suppress-when-2023",
+ "description": "The SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause (ISO 12.4.5.6.2) - alternate-key suppression: a record's alternate access path is withheld when the key value equals literal-1 (12.4.5.6.4 GR6), and the record is not considered to exist for READ/START. A COBOL-2023 addition; 0900 below 2023. Parses at all editions (superset), introduction-gated post-bind by VersionConformancePass.",
+ "display": "the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.4.5.6.2 / §2023:12.4.5.6.4 GR6 (Annex E.3.3 item 42); 2023 introduction",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2023 introduction (Introduction p.27 + Annex E.3.3 item 42)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWSUP.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS INDEXED\n               RECORD KEY IS R-KEY\n               ALTERNATE RECORD KEY IS R-ALT SUPPRESS WHEN SPACES.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R.\n          05 R-KEY PIC X(4).\n          05 R-ALT PIC X(4).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+}

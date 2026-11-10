@@ -1,6 +1,6 @@
 ---
 name: new-construct
-description: Use when adding or edition-gating a COBOL construct, grammar rule, or reserved word - covers grammar fragment placement, the version predicate, the constructs.json row, the mandatory edition-gate test sweep, and goldens.
+description: Use when adding or edition-gating a COBOL construct, grammar rule, or reserved word - covers grammar fragment placement, the version predicate, the construct catalogue row, the mandatory edition-gate test sweep, and goldens.
 ---
 
 > **Generic base:** [`engineering-standards`](https://github.com/BrentRector/claude-skills/blob/main/skills/engineering-standards/SKILL.md) + [`variant-analysis`](https://github.com/BrentRector/claude-skills/blob/main/skills/variant-analysis/SKILL.md) in [BrentRector/claude-skills](https://github.com/BrentRector/claude-skills) — the reusable discipline, with the owner's bar in its sibling `engineering-standards`. THIS skill is the WiseOwl COBOL application of it and wins on conflict.
@@ -37,9 +37,9 @@ Never land a parsed statement without its bound node, its emitter, and an end-to
 VALUE. Parsing something and emitting a no-op is worse than a compile error — the program runs and silently
 produces wrong results.
 
-## 3. The constructs.json row
+## 3. The construct catalogue row
 
-Add the row to `tests/version-matrix/constructs.json` with `introducedIn` / `removedIn` / behavior variants and an
+Add the row as the file `tests/version-matrix/constructs/<construct-id>.json` (one file per construct, `scripts/spec/construct_store.py`; then `pwsh scripts/gen-constructs.ps1`) with `introducedIn` / `removedIn` / behavior variants and an
 embedded `source` that compiles clean at the introducing edition and produces the gating diagnostic below it.
 
 Every construct owes BOTH obligations: the per-edition behavior, and the correct diagnostic when the targeted

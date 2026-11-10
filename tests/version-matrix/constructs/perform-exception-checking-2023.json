@@ -1,0 +1,13 @@
+{
+ "id": "perform-exception-checking-2023",
+ "description": "PENDING (runtime staged). The Format 3 (exception-checking) PERFORM (ISO 14.9.28.2 Format 3 / 14.9.28.4 GR14-22) - a per-statement exception interceptor scoped to imperative-statement-1 that dispatches a raised exception condition to a matching WHEN handler in written order (new-in-2023). Fully recognized/validated (COBOL1597-1617) + introduction-gated (COBOL0900 below 2023, recognition-fired from VersionConformancePass.ParseArm.VisitPerformStatement on a performWhenPhrase, disjoint from the perform-until-exit-2023 gate), but the runtime handler dispatch is a documented next-wave GAP - at 2023 the construct is currently rejected with COBOL0899 (staged), so no 2023 program compiles yet. status flips to active + expectDiagnostic drops when the interceptor wave lands.",
+ "display": "the Format-3 (exception-checking) PERFORM",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.28.2 Format 3 / §2023:14.9.28.3 SR14-16 / §2023:14.9.28.4 GR14-22; Annex E.3.3",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "status": "pending",
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 79 (exception-checking PERFORM WHEN - 2023 introduction)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPERF3.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE\n        DISPLAY \"S\"\n    END-PERFORM.\n    STOP RUN.\n"
+}

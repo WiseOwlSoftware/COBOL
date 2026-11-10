@@ -1,0 +1,13 @@
+{
+ "id": "report-source-rounded-2002",
+ "status": "active",
+ "description": "The ROUNDED phrase of the SOURCE clause of a report group description entry (kb/Work PB3964). ANSI X3.23-1985's SOURCE clause has no rounded phrase; ISO/IEC 1989:2002 Annex F.2 item 115 QUOTES the change: 'SOURCE allows arithmetic expressions and functions and a ROUNDED phrase'. The 2023 text is 13.18.53.2 (`[ rounded-phrase ]`) with 13.18.53.3 SR3 and 13.18.53.4 GR2. Gated by recognition, VersionConformancePass ParseArm.VisitReportSourceClause, once per written clause.",
+ "display": "the ROUNDED phrase of the SOURCE clause (report group description)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO/IEC 1989:2002 Annex F.2 (substantive changes not affecting existing programs), item 115; ISO §2023:13.18.53.2, §2023:13.18.53.3 SR3, §2023:13.18.53.4 GR2 (2023 text)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.45 (85->2002: SOURCE takes a ROUNDED phrase)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RSRD.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"RSRD.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC S9(3) VALUE -5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 10 LINES.\n01 DA TYPE DETAIL LINE PLUS 1.\n    02 COLUMN 1 PIC S9(3) SOURCE WN ROUNDED.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+}

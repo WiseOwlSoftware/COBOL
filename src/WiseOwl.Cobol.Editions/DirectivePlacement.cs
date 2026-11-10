@@ -5,7 +5,7 @@ namespace WiseOwl.Cobol.Editions;
 /// <summary>WHERE a compiler directive may be written — the placement rules ISO §2023:7.3 states per directive
 /// (kb/Work PB1377, PB1378, PB1065). One value per RULE SHAPE; a directive row names the shape and quotes its clause,
 /// so the stage that judges the shape is written once and a new directive with the same restriction is one
-/// <c>constructs.json</c> field plus a regen, never another hand-written check.</summary>
+/// <c>constructs/</c> field plus a regen, never another hand-written check.</summary>
 public enum DirectivePlacementRule
 {
     /// <summary>"shall not be specified within a compilation unit" — §2023:7.3.17.3 SR1 (LEAP-SECOND), §2023:7.3.21.3 SR1
@@ -26,7 +26,7 @@ public enum DirectivePlacementRule
 
 /// <summary>
 /// One directive row's placement rule, rendered from the row's <c>directivePlacement</c> object in
-/// <c>tests/version-matrix/constructs.json</c>.
+/// <c>tests/version-matrix/constructs/</c>.
 /// </summary>
 /// <param name="Rule">Which rule shape.</param>
 /// <param name="Citation">The ISO clause and syntax rule it comes from, e.g. <c>§2023:7.3.17.3 SR1</c>.</param>

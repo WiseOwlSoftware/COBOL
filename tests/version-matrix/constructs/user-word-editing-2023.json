@@ -1,0 +1,12 @@
+{
+ "id": "user-word-editing-2023",
+ "description": "The word EDITING as a user-defined word - 8.9 interval encoding: user-definable at 85/2002/2014 (the PICTURE EDITING phrase did not exist), reserved by 2023 (Annex E.2 item 25 = VCR row 32). cobolWord admits the token so a pre-2023 data-name EDITING still parses; the funnel rejects 0901 at 2023.",
+ "display": "the word EDITING as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32)",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "VCR row 32 (Annex E.2 item 25); reserved-words.json row EDITING",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWEDIT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 EDITING PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY EDITING.\n    STOP RUN.\n"
+}

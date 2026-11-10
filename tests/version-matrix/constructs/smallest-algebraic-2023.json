@@ -1,0 +1,13 @@
+{
+ "id": "smallest-algebraic-2023",
+ "status": "active",
+ "description": "FUNCTION SMALLEST-ALGEBRAIC (ISO 15.83) - the smallest positive value that may increment argument-1, from its PICTURE/usage description alone (NOT its runtime contents). LIVE (P11: the fold pre-existed via BindAlgebraicFold; Step 7 added the golden + window row): a compile-time PICTURE fold = 10^(-scale) - S999 -> +1, 99V9(3) -> 0.001, S9PP -> +100, BINARY-CHAR -> +1 (the 15.83.4 RVR2 NOTE table). argument-1 shall be a category-numeric DATA ITEM (15.83.3 AR1 - stricter than HIGHEST/LOWEST-ALGEBRAIC: NO numeric-edited, no literal/expression/function). NEW-IN-2023 (Annex E.3 item 29 'has been added'); at --std 2014 or below the D8 catalog window rejects by name+edition (COBOL1502).",
+ "display": "FUNCTION SMALLEST-ALGEBRAIC (PICTURE increment fold)",
+ "diagnosticCode": "COBOL1502",
+ "citation": "ISO §2023:15.83 SMALLEST-ALGEBRAIC; AR1 numeric DATA ITEM only (no numeric-edited); NEW-IN-2023 (Annex E.3 item 29)",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL1502",
+ "vcr": "M2/M3 catalog SMALLEST-ALGEBRAIC; 2023 introduction (Annex E.3 item 29 'has been added'; Annex E.2 item 13 lists it among the new intrinsic-function names)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSMALLALG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X-INT PIC S999.\n01 R3 PIC S9(3).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE R3 = FUNCTION SMALLEST-ALGEBRAIC(X-INT)\n    DISPLAY R3\n    STOP RUN.\n"
+}

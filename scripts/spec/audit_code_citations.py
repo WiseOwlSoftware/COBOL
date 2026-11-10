@@ -84,7 +84,7 @@ THE CHECKS, each narrow on purpose:
               message the user is sent to look up. It arrived with 160 sites and joined the measured backlog;
               kb/Work PB388's sweep qualified every one of them (wave 47), so it GATES under `--check` now.
 
-  CONSTRUCT-CODE — (kb/Work PB4467) a `citation` of `tests/version-matrix/constructs.json` NAMES CODE OR PROJECT
+  CONSTRUCT-CODE — (kb/Work PB4467) a `citation` of a row of `tests/version-matrix/constructs/` NAMES CODE OR PROJECT
               HISTORY: a C# member (`CopyProcessor.GateCopyPhrase`), a grammar rule (`repositoryEntry`), a file
               (`CobolParserCore.g4:487`), an emit-site or gate pointer, a "LIVE as of the Phase-3 spine" status, a
               DEVLOG or kb/Work id. `ConstructRegistry` interpolates `({citation})` into the edition-gate diagnostic
@@ -138,6 +138,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation_corpus  # noqa: E402
 import cite as cite_mod  # noqa: E402  — THE one reader of the standard's printed rule paths (CLAUDE.md rule 1)
 import citation  # noqa: E402  — THE one citation format and its parser (kb/Work PB4887)
+import construct_store  # noqa: E402  (the construct catalogue, one file per construct, kb/Work PB5110)
 from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -1086,7 +1087,6 @@ def ordinal_scan(data, tops=None):
     return findings
 
 
-CONSTRUCTS = REPO / "tests" / "version-matrix" / "constructs.json"
 
 #: ⛔ CONSTRUCT-CODE (kb/Work PB4467): what a construct citation may not NAME. Each entry is a kind of token that is
 #: the implementation, never the standard's rule. They are shapes, not a list of members, so the next member a refactor
@@ -1130,28 +1130,26 @@ def construct_citation_defects(text: str) -> list[str]:
     return out
 
 
-def construct_citation_scan(path: pathlib.Path = CONSTRUCTS):
+def construct_citation_scan(root: pathlib.Path = REPO):
     """CONSTRUCT-CODE over every citation `ConstructRegistry` and `CompilerDirectiveCatalog` put in front of a user:
-    a row's `citation` and the `citation` of its directive blocks."""
+    a row's `citation` and the `citation` of its directive blocks. The catalogue is one file per construct
+    (construct_store, kb/Work PB5110), so a finding is sited at the row's own file."""
     findings: list[tuple[str, str, str, str]] = []
     try:
-        raw = path.read_text(encoding="utf-8")
-        rows = json.loads(raw)["constructs"]
-    except (OSError, ValueError, KeyError) as e:
-        return [("CONSTRUCT-CODE", path.relative_to(REPO).as_posix(), "", f"constructs.json cannot be read: {e}")]
-    rel = path.relative_to(REPO).as_posix()
-    at = {}
-    for n, ln in enumerate(raw.splitlines(), 1):
-        if (m := re.match(r'\s*"id":\s*"([^"]+)"', ln)):
-            at[m.group(1)] = n
+        rows = construct_store.read_rows(root)
+    except (OSError, SystemExit) as e:
+        return [("CONSTRUCT-CODE", construct_store.STORE_REL, "", f"the construct catalogue cannot be read: {e}")]
     for row in rows:
+        rel = f"{construct_store.STORE_REL}/{construct_store.row_name(row['id'])}"
+        at = next((n for n, ln in enumerate((root / rel).read_text(encoding="utf-8").splitlines(), 1)
+                   if re.match(r'\s*"id":\s*"', ln)), 1)
         blocks_ = [("citation", row.get("citation"))] + [
             (f"{k}.citation", (row.get(k) or {}).get("citation")) for k in ("directiveOperand", "directivePlacement")]
         for key, text in blocks_:
             if not text:
                 continue
             for defect in construct_citation_defects(text):
-                findings.append(("CONSTRUCT-CODE", f"{rel}:{at.get(row['id'], 1)}", row["id"],
+                findings.append(("CONSTRUCT-CODE", f"{rel}:{at}", row["id"],
                                  f"row {row['id']} {key} names {defect}; a construct citation names the standard's rule "
                                  f"only (kb/Work PB4467), because ConstructRegistry copies it into the diagnostic"))
     return findings
@@ -1336,7 +1334,7 @@ DIAG_SELF_TEST = [
      '    // the SET receiver rule (ISO §2023:14.9.39.3 SR17)'),
     # ⛔ AND THE ORDINAL WRITTEN WITH A SPACE — `SR 10`, not `SR10`. Both of the arm's remaining findings on
     # its first full run were this shape (`OoBinder.cs:645`, `ConstructRegistry.g.cs:119`, generated from
-    # `constructs.json`) and both citations were CORRECT. An ordinal separated by a space is an ordinal.
+    # the construct catalogue) and both citations were CORRECT. An ordinal separated by a space is an ordinal.
     (None,
      '    Err($"BY REFERENCE argument \'{a}\' references OBJECT data (ISO §2023:14.9.23.3 SR 10); pass it BY CONTENT");',
      '    Err($"BY REFERENCE argument \'{a}\' references OBJECT data (ISO §2023:14.9.23.3 SR 10)");'),
@@ -1357,7 +1355,7 @@ def diagnostic_self_test(direct) -> bool:
 
 
 #: CONSTRUCT-CODE: (the kind that must fire, a citation as shipped before kb/Work PB4467, its repaired twin). Each defect
-#: is a citation `constructs.json` carried; each twin is what the row says now.
+#: is a citation the construct catalogue carried; each twin is what the row says now.
 CONSTRUCT_SELF_TEST = [
     ("a C# member",
      "ISO 14.9.13.2 (range-expression); a COBOL-2002 addition; bind-site gate (DataBinder.TryResolveRangeAlphabet)",

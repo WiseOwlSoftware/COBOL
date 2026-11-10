@@ -1,0 +1,12 @@
+{
+ "id": "options-float-decimal-2014",
+ "description": "The FLOAT-DECIMAL clause of the OPTIONS paragraph (§2023:11.9.9) — a 2014 clause of the 2002 paragraph (own introduction arm, P10 Step 12)",
+ "display": "OPTIONS FLOAT-DECIMAL",
+ "diagnosticCode": "COBOL0900",
+ "expectDiagnostic": "COBOL0900",
+ "citation": "ISO §2023:11.9.9",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "2014 introduction (§2023:11.9.9)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OFDP10AS.\nOPTIONS.\n    FLOAT-DECIMAL IS DECIMAL-ENCODING.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+}

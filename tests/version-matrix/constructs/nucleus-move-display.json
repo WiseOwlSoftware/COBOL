@@ -1,0 +1,11 @@
+{
+ "id": "nucleus-move-display",
+ "description": "Nucleus MOVE/DISPLAY — edition-invariant since COBOL-85",
+ "display": "nucleus MOVE/DISPLAY",
+ "diagnosticCode": "COBOL0900",
+ "citation": "edition-invariant baseline",
+ "introducedIn": 85,
+ "removedIn": null,
+ "vcr": "baseline (no row — never changed)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NUC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(5) VALUE \"HI\".\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"BYE\" TO W.\n    DISPLAY W.\n    STOP RUN.\n"
+}

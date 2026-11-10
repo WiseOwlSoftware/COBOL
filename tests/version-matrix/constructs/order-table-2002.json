@@ -1,0 +1,12 @@
+{
+ "id": "order-table-2002",
+ "description": "The SPECIAL-NAMES ORDER TABLE ordering-name-1 IS literal-9 clause, ISO 12.3.7.2 (the last item of the paragraph's general format) - introduced 2002 with the cultural-ordering facility. Literal-9 identifies a cultural ordering table constructed per ISO/IEC 14651:2020 Annex A and the implementor specifies its allowable content (12.3.7.4 GR17); ordering-name-1 may be specified only in the STANDARD-COMPARE intrinsic function (12.3.7.3 SR9). Parse-arm gated on recognition (VisitOrderTableClause). The grammar predicate is NOT edition-gated, unlike the LOCALE clause's: TABLE is reserved at every edition (reserved-words.json r85 true), so the pair ORDER + TABLE has no competing COBOL-85 reading, and recognizing it everywhere is what makes the sub-2002 answer this explanatory COBOL0900 instead of a parse error at TABLE.",
+ "display": "the ORDER TABLE clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.7.2 (the ORDER TABLE clause of the SPECIAL-NAMES general format); §2023:12.3.7.3 SR9/SR10/SR11; §2023:12.3.7.4 GR17",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the cultural-ordering facility; kb/Work PB101 - ORDER TABLE + STANDARD-COMPARE over the derived CLDR/UCA collation engine). Annex E covers 2014-2023 only, so the 2002 edge is derived from the ORDER reserved-word row (reserved-words.json r85 false / r2002 true), not from an E-list entry.",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB101OT.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ORDER TABLE OT1 IS \"ISO 14651_2020_TABLE1\".\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

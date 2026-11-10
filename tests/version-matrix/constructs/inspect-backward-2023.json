@@ -1,0 +1,12 @@
+{
+ "id": "inspect-backward-2023",
+ "description": "INSPECT BACKWARD - a COBOL-2023 introduction (VCR row 77). Folded from the inline InspectBinder gate (Exec Step E).",
+ "display": "INSPECT BACKWARD",
+ "diagnosticCode": "COBOL0845",
+ "citation": "ISO §2023:14.9.22.2; §2023:14.9.22.4 GR3",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0845",
+ "vcr": "VCR row 77 (2014->2023: INSPECT BACKWARD)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWIBW.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(5) VALUE \"ABABA\".\n77 N PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    INSPECT BACKWARD S TALLYING N FOR ALL \"AB\".\n    STOP RUN.\n"
+}

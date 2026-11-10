@@ -1,0 +1,12 @@
+{
+ "id": "use-without-after-2002",
+ "description": "A USE STANDARD EXCEPTION/ERROR statement (Format 1, the file-exception declarative) without the word AFTER - a COBOL-2002 relaxation of a COBOL-85 restriction. The ANSI X3.23-1985 format underlines AFTER (USE AFTER STANDARD {EXCEPTION | ERROR} PROCEDURE ON ..., §1985:VII.4.6.2, printed page VII-50, and the same in every I-O module and the Inter-Program Communication module), so it is a required word at 85; the post-ballot ISO/IEC 1989:2002 text (2001-12-04, 14.8.45.1 Format 1) prints AFTER without underlining, as the 2023 text does (§2023:14.9.49.2). The 2002 Annex F.2 list names the PROCEDURE relaxation (item 141, use-without-procedure-2002) but not this one; the edge is read from the two printed formats, not from F.2 (kb/Work PB4919). Gated in ONE place, VersionConformancePass.ParseArm.VisitUseStatement, the Format 1 arm beside its PROCEDURE twin; Formats 3 and 4, whose AFTER is also optional, are 2002 introductions gated whole.",
+ "display": "a USE STANDARD EXCEPTION/ERROR statement without the word AFTER",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.49.2; §1985:VII.4.6.2 underlines AFTER; the ISO/IEC 1989:2002 post-ballot text 14.8.45.1 Format 1 does not",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.52 (a) - USE without AFTER, a COBOL-85 restriction read from the printed formats",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMUNA.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"VMUNA\".\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nDECLARATIVES.\nD1 SECTION.\n    USE STANDARD ERROR PROCEDURE ON F.\nD1-P.\n    DISPLAY \"ERR\".\nEND DECLARATIVES.\nMAIN SECTION.\nM1.\n    STOP RUN.\n"
+}

@@ -29,7 +29,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <para><b>Two tests, one adjudicated table, and they have to agree.</b> The STATIC half derives both arms'
 /// construct ids from the pass's own source and requires every bound-arm id to name the RESOLVED FACT that makes
 /// a parse-arm home impossible — so a future gate cannot be classified by habit. The BEHAVIOURAL half proves the
-/// property the classification is FOR: it takes every gated construct's own <c>constructs.json</c> program,
+/// property the classification is FOR: it takes every gated construct's own <c>constructs/</c> program,
 /// breaks every PROCEDURE-DIVISION reference to a declared name so the bind must bail, and requires the edition
 /// diagnostic to survive. The exempt rows are exactly the ones whose gate legitimately depends on a fact the
 /// broken program no longer supplies.</para>

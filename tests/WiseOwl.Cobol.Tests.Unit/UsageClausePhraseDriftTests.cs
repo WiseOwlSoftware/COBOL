@@ -424,7 +424,7 @@ public sealed class UsageClausePhraseDriftTests : WiseOwlCobolTestBase
         }
     }
 
-    /// <summary>The 2014 introduction gate (constructs.json <c>usage-float-format-phrase-2014</c>): the phrase is a
+    /// <summary>The 2014 introduction gate (the construct catalogue <c>usage-float-format-phrase-2014</c>): the phrase is a
     /// 2014 language element in its own right — Annex A.3 item 18 names it separately from item 17's usages — so it
     /// draws COBOL0900 below 2014 and nothing at 2014+.</summary>
     [Fact]

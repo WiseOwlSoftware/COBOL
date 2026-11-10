@@ -1,0 +1,13 @@
+{
+ "id": "bare-goto-removed-2002",
+ "description": "GO TO without a procedure-name (the ALTER-dependent form) — an obsolete element of ANSI X3.23-1985, DELETED by ISO/IEC 1989:2002 (§2023:14.9.17 requires procedure-name-1). Folded from the inline COBOL0811 binder gate (P2.6b).",
+ "display": "GO TO without a procedure-name (the ALTER-dependent form)",
+ "diagnosticCode": "COBOL0811",
+ "citation": "ISO §2023:14.9.17 (procedure-name-1 required); obsolete ’85 form (§1985:VI.6.15.3 SR3, REMOVED) deleted by ISO 2002",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "vcr": "VCR Table 7 (obsolete-85 element removed 2002)",
+ "status": "active",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMBGT.\nPROCEDURE DIVISION.\nP1.\n    GO TO.\n    STOP RUN.\n",
+ "expectDiagnostic": "COBOL0811"
+}

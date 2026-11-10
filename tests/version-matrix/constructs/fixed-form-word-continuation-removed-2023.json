@@ -1,0 +1,12 @@
+{
+ "id": "fixed-form-word-continuation-removed-2023",
+ "description": "Continuation of a COBOL word across fixed-form lines via the col-7 hyphen - permitted through 2014, REMOVED by ISO 2023 (Annex E.2 item 1 bullet 2). Emit site: the frontend ReferenceFormatProcessor (only the column-aware pass sees the indicator); 0902 error strict / warning permissive at 2023, pre-removal join semantics preserved.",
+ "display": "continuation of a COBOL word in fixed-form reference format",
+ "diagnosticCode": "COBOL0902",
+ "citation": "Annex E.2 item 1 bullet 2; §1985:IV.7.2.2 (continuation of lines, prose); VCR row 2",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR row 2 (E.2 item 1 bullet 2); W3 preprocessor threading (DEVLOG 598)",
+ "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. VMWC1.\n000300 DATA DIVISION.\n000400 WORKING-STORAGE SECTION.\n000500 01 W-LONG-DATA-NA\n000600-    ME PIC 9(3) VALUE 123.\n000700 PROCEDURE DIVISION.\n000800 MAIN.\n000900     DISPLAY W-LONG-DATA-NAME.\n001000     STOP RUN.\n"
+}

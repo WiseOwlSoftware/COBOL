@@ -1,0 +1,12 @@
+{
+ "id": "perform-until-exit-2023",
+ "description": "PERFORM … UNTIL EXIT (ISO §2023:14.9.28.4 GR11) — a COBOL-2023 addition: an unconditional infinite loop (a condition that never becomes true). Plain UNTIL condition is edition-invariant; only the EXIT alternative is gated. Escape is by EXIT PERFORM (inline) or GOBACK/STOP RUN (out-of-line).",
+ "display": "PERFORM UNTIL EXIT",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.28.2 until-phrase / §2023:14.9.28.4 GR11; Annex E.3.3 item 37",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 80 (PERFORM UNTIL EXIT — 2023 introduction)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PUE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM UNTIL EXIT\n        ADD 1 TO N\n        IF N = 2 EXIT PERFORM END-IF\n    END-PERFORM.\n    STOP RUN.\n"
+}

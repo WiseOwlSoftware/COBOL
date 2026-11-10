@@ -1,0 +1,13 @@
+{
+ "id": "apply-commit-clause-2023",
+ "status": "active",
+ "description": "The I-O-CONTROL APPLY COMMIT clause (ISO §2023:12.4.6.3) and with it the COMMIT and ROLLBACK statements it gives effect to (§2023:14.9.7, §2023:14.9.36) — the commit and rollback facility, a COBOL-2023 introduction (§2023:E.3.2 item 2). Provided for RELATIVE and INDEXED files (kb/Work PB3337, PB3338; docs/CONFORMANCE.md §5, A.4.3 Partial). The ISO/IEC 1989:2002 and 2014 I-O-CONTROL formats have no APPLY clause (nor the 85 format); the grammar is the union, so below 2023 VersionConformancePass names the edition on recognition (COBOL0900; kb/Work PB5025). COMMIT and ROLLBACK are user-defined words below 2023 (user-word-commit-2023).",
+ "display": "APPLY COMMIT clause (commit and rollback)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.4.6.3 (APPLY COMMIT clause; §2023:E.3.2 item 2)",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 2 row 39 (§2023:E.3.2 item 2)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. ACC.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RELF ASSIGN TO \"acc.dat\"\n        ORGANIZATION IS RELATIVE\n        RELATIVE KEY IS RK.\nI-O-CONTROL.\n    APPLY COMMIT ON RELF.\nDATA DIVISION.\nFILE SECTION.\nFD RELF.\n01 RREC PIC X(10).\nWORKING-STORAGE SECTION.\n01 RK PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

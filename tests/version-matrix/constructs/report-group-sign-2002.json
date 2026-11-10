@@ -1,0 +1,13 @@
+{
+ "id": "report-group-sign-2002",
+ "status": "active",
+ "description": "A SIGN clause on a report group description entry that is a GROUP, i.e. has subordinate entries (kb/Work PB3683). ANSI X3.23-1985 admitted the clause only on an elementary report entry; ISO/IEC 1989:2002 Annex F.2 item 123 QUOTES the change: 'the SIGN clause may be specified at the group level' in a report description entry. The 2023 text of 13.18.52.3 SR1 admits 'an alphanumeric group item, national group item, or strongly-typed group item', which a report group entry with subordinates is, and 13.15.3 does not restrict it. Gated in ONE place, DataBinder.ScreenReportSignClauses (once per written entry).",
+ "display": "a SIGN clause on a report group description entry that is a group",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO/IEC 1989:2002 Annex F.2 item 123; ISO §2023:13.18.52.3 SR1 (2023 text)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 7.40 (85->2002: a report group entry's SIGN clause may be specified at the group level)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RGSN.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRT ASSIGN TO \"RGSN.TXT\".\nDATA DIVISION.\nFILE SECTION.\nFD PRT REPORT IS R1.\nWORKING-STORAGE SECTION.\n01 WN PIC S9(3) VALUE -5.\nREPORT SECTION.\nRD R1 PAGE LIMIT IS 10 LINES.\n01 DA TYPE DETAIL LINE PLUS 1 SIGN LEADING SEPARATE.\n    02 COLUMN 1 PIC S9(3) SOURCE WN.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRT.\n    INITIATE R1.\n    GENERATE DA.\n    TERMINATE R1.\n    CLOSE PRT.\n    STOP RUN.\n"
+}

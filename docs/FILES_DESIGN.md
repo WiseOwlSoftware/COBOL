@@ -311,7 +311,7 @@ of the class theory.
 **No site upstream of `RetryLoop` may restate its outcome.** Splitting the SECONDS arm off the FOREVER arm was a
 one-line change to the code and a change to NOTHING ELSE, and five descriptions of the old arm survived it — in
 `StatementBinder.BindRetry`, `FileLockBinder.BindVerbRetry`, `BoundTree.RetryKind`, `BoundKeyedIo.Retry` and
-`FileRegistry.ConflictOnLockedRecord` — plus `constructs.json`'s `retry-phrase-2002` row, which is the SOURCE of
+`FileRegistry.ConflictOnLockedRecord` — plus `constructs/`'s `retry-phrase-2002` row, which is the SOURCE of
 a generated registry. Each of those now POINTS here instead of naming a status, so the next change to the retry
 rules cannot leave a description behind it (kb/Work PB346).
 
@@ -1996,7 +1996,7 @@ lists BYTES among the words that *"have either been added to the list of context
 context in which they are reserved has been expanded"*. That sentence is an OR, so the word alone does not
 settle it — but §2023:8.10 gives BYTES exactly ONE construct, the *"RECORD clause"*, so there is no earlier
 context for 2023 to have EXPANDED and the first arm is the one that applies. `VisitRecordClause` in the
-version-conformance pass therefore refuses the word below 2023 (**COBOL0900**, constructs.json row
+version-conformance pass therefore refuses the word below 2023 (**COBOL0900**, the construct catalogue row
 `record-clause-bytes-2023`), on the CONTINUE AFTER … SECONDS precedent — SECONDS is in the same item-13 list.
 The gate is a PARSE ARM and not a `{is2023()}?` predicate because the word sits mid-alternative, where a
 semantic predicate does not steer prediction and would throw a token error instead of naming the edition.
@@ -2652,7 +2652,7 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
 per-edition BEHAVIOUR changes** — the behaviour twin of `WiseOwl.Cobol.Editions.ConstructRegistry`. A construct row
 answers *does this edition HAVE this construct?* and yields a DIAGNOSTIC; a `DialectBehavior` member answers
 *which edition's RULE does this construct obey?* and yields an ANSWER, which is why it can never be a
-`constructs.json` row: the source is legal at every edition. It lives in the RUNTIME because both sides read it
+`constructs/` row: the source is legal at every edition. It lives in the RUNTIME because both sides read it
 — the emitter folds a compile-time-decided behaviour, the connectors ask at run time over the edition the
 compilation baked into them (`FileConnector.Edition`, carried per CONNECTOR from the registration's `edition:`
 argument, since a run unit may link programs from separate compilations). Each member names the
@@ -2673,7 +2673,7 @@ and 2023 and asserts the EMITTED TEXT of `__IoCheck`, `__IoCheckEc` and `__RunGl
 failing loudly if a selector is not emitted at all (a comparison of nothing is not evidence). Both of its
 failure branches were fired once before it was trusted.
 - **ORGANIZATION LINE SEQUENTIAL is a COBOL-2023 INTRODUCTION** (§2023:12.4.5.10.3 GR2), so it is rejected at 85,
-  2002 AND 2014 — `constructs.json` row `file-organization-line-sequential-2023`, gated on the clause's
+  2002 AND 2014 — `constructs/` row `file-organization-line-sequential-2023`, gated on the clause's
   RECOGNITION by `VersionConformancePass.ParseArm.VisitOrganizationClause` (COBOL0900). **The edition IS
   derivable from the 2023 spec after all** (kb/Work PB688 corrected the earlier "not derivable — derive it from
   the 2002 standard" reading): the **Foreword's** list of the main changes this third edition makes over
@@ -2759,7 +2759,7 @@ alike, and the negative witnesses carry `*> reject-at: 85 2002 2014 2023`. One l
 85: §2023:8.9 reserves `FORMAT` only from 2002 (`ReservedWords.Table`, `r85=false`), so at `--std 85` the word is a
 legal user-defined name. That is preserved by the `nameSlot` row in `tests/version-matrix/cobol-words.json`
 — measured: `01 FORMAT PIC X(4).` plus a subscripted `FORMAT-E (2)` compiles and RUNS at `--std 85`, and
-draws `COBOL0901` by name at 2002/2014/2023 through the existing §2023:8.9 funnel. No `constructs.json` row is
+draws `COBOL0901` by name at 2002/2014/2023 through the existing §2023:8.9 funnel. No `constructs/` row is
 owed: that register's contract is source that COMPILES CLEAN at its introducing edition, which a permanently
 declined element never does — the same reason VALIDATE, the SCREEN SECTION, MCS and COMMIT/ROLLBACK have no
 rows either.
@@ -2823,7 +2823,7 @@ nothing already has COBOL1639 (§2023:8.4.2.1) from the resolver and stays a def
 but is not a logical record is refused at bind.
 
 **Edition posture.** Edition-INVARIANT — the rule is written identically in 1985, 2002 and 2014, so there is no
-gate and no `constructs.json` row. Witnesses: `tests/conformance/negative/pb347-*` (seven cases, three verbs ×
+gate and no `constructs/` row. Witnesses: `tests/conformance/negative/pb347-*` (seven cases, three verbs ×
 the subordinate / reference-modified / not-a-file-record faults, each `*> reject-at: 85 2002 2014 2023`) and
 the acceptance twins `conformance-suite/cases/14.9.32-RELEASE/pb347_record_name_identity` and
 `conformance-suite/cases/14.9.32-RELEASE/pb347_record_name_identity_85`, which pin that the qualified `OF` form still binds at all
@@ -2893,7 +2893,7 @@ rule whose boundary is a construct and whose subject is an operand written insid
 remembers the LAST clause that named a key rather than the first, ONE violation is ONE diagnostic even when the
 offending clause also repeats the key internally.
 
-**Edition posture.** The file-control COLLATING SEQUENCE clause is a COBOL-2002 addition (`constructs.json`
+**Edition posture.** The file-control COLLATING SEQUENCE clause is a COBOL-2002 addition (`constructs/`
 `file-collating-clause-2002`, COBOL0900 at `--std 85`), so SR8's behaviour lanes are 2002/2014/2023 and 85 is the
 gate lane. Witnesses: `conformance:FileCollatingSequenceSpecTests` (both arms per edition, the
 one-diagnostic count, and the 85 gate), the positive golden

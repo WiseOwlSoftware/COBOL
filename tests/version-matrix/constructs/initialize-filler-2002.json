@@ -1,0 +1,12 @@
+{
+ "id": "initialize-filler-2002",
+ "description": "The INITIALIZE WITH FILLER phrase - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
+ "display": "INITIALIZE WITH FILLER",
+ "diagnosticCode": "COBOL0830",
+ "citation": "ISO §2023:14.9.20.2 (the FILLER phrase is 2002+); §2023:14.9.20.4 GR5",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0830",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWIFIL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n  05 FILLER PIC X(3).\n  05 A PIC 9.\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE G WITH FILLER.\n    STOP RUN.\n"
+}

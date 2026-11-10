@@ -1,0 +1,13 @@
+{
+ "id": "usage-pointer-2002",
+ "status": "active",
+ "description": "USAGE POINTER data (ISO §2023:13.18.60 / §2023:8.5.2.6) - introduced 2002. LIVE end-to-end on the ONE ManagedPointer carrier: increment 1 (DEVLOG 613) SET TO NULL/pointer + [NOT] EQUAL; increment 2 (DEVLOG 617) ADDRESS OF / BASED / SET ADDRESS OF / ALLOCATE-FREE / Format-10 arithmetic on the StorageCell+CellPointer window model with structural §2023:8.8.4.2 equality. Below 2002 the W1.5 mapping names the edition (0900).",
+ "display": "USAGE POINTER",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.2 (the POINTER phrase of the general format) / §2023:8.5.2.6; §2023:13.18.60.4 GR23",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 catalog pointers/ALLOCATE (Phase 4b); skeleton (W2)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PTRQ1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"X\".\n    STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "label-records-removed-2002",
+ "description": "LABEL RECORDS clause (FD) — obsolete '85 element DELETED by ISO/IEC 1989:2002; the 2023 FD clause set (§2023:13.18) has no LABEL clause. The FIRST removal gate, shipped with the permissive flip (every NIST FD writes this clause).",
+ "display": "the LABEL RECORDS clause",
+ "diagnosticCode": "COBOL0902",
+ "citation": "obsolete '85 FD element DELETED by ISO 2002; the 2023 FD clause set (§2023:13.18) has no LABEL clause; §1985:VII.3.6.2 (REMOVED); VCR Table 7",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7 (85→2002 deletions); §10 #1 migration posture",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. LR.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmlr\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F LABEL RECORDS ARE STANDARD.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"X\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "continue-after-2023",
+ "description": "CONTINUE AFTER arithmetic-expression SECONDS (ISO §2023:14.9.9) — a COBOL-2023 addition: a timed pause. Plain CONTINUE is 1985-continuous; only the AFTER … SECONDS phrase is gated. A negative interval is forced to 0 (GR1a) and sets the nonfatal EC-CONTINUE-LESS-THAN-ZERO under CHECKING ON (GR1b).",
+ "display": "CONTINUE AFTER n SECONDS",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.9.2 / §2023:14.9.9.4 GR1; Annex E.3.3 item 14; §2023:14.9.9.3 SR2",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 57 (CONTINUE timed pause — 2023 introduction)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CONTA.\nPROCEDURE DIVISION.\nMAIN.\n    CONTINUE AFTER 0 SECONDS.\n    STOP RUN.\n"
+}

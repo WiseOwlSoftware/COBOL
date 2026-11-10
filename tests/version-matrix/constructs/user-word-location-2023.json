@@ -1,0 +1,12 @@
+{
+ "id": "user-word-location-2023",
+ "description": "The word LOCATION as a user-defined word - 8.9 interval encoding: user-definable at 85/2002/2014 (the exception-checking PERFORM WITH LOCATION phrase did not exist), reserved by 2023 (Annex E.2 item 25 = VCR row 32). cobolWord admits the token so a pre-2023 data-name/paragraph LOCATION still parses; the funnel rejects 0901 at 2023 (the continuity invariant; the EDITING precedent).",
+ "display": "the word LOCATION as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32)",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "VCR row 32 (Annex E.2 item 25); reserved-words.json row LOCATION",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWLOC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 LOCATION PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY LOCATION.\n    STOP RUN.\n"
+}

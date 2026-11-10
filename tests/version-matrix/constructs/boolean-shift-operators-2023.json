@@ -1,0 +1,12 @@
+{
+ "id": "boolean-shift-operators-2023",
+ "description": "The boolean shift operators B-SHIFT-L / B-SHIFT-R / B-SHIFT-LC / B-SHIFT-RC (ISO §2023:8.8.2 rule 8) — a COBOL-2023 addition (strictly later than the 2002 boolean operators B-AND/B-OR/B-XOR/B-NOT). Logical shift fills boolean 0; circular shift rotates. The second operand is an integer; the result length is the first operand's length (rule 9). Recognition-based gate (HasShiftOp) at the COMPUTE F2 / primaryCondition altitude, distinct from the boolean-operators-2002 gate.",
+ "display": "boolean shift operators B-SHIFT-L/R/LC/RC",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.8.2 rule 8 / Table 4; Annex E.2 (reserved-word additions)",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR rows 9/32/46 (boolean shift operators — 2023 introduction)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BSH.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 1(4) VALUE B\"1100\".\n01 R PIC 1(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE R = A B-SHIFT-L 1.\n    STOP RUN.\n"
+}

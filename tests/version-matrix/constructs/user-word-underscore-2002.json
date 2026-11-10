@@ -1,0 +1,13 @@
+{
+ "id": "user-word-underscore-2002",
+ "status": "active",
+ "description": "The UNDERSCORE as a character of a COBOL word (a user-defined word here) — ISO §2023:8.3.2.1: \"Each character of a COBOL word … shall be selected from the set of basic letters, basic digits, extended letters, and the basic special characters hyphen and underscore. The hyphen or underscore shall not appear as the first or last character in such words.\" A COBOL-2002 introduction: the '85 word character set has the hyphen only. Parsed at EVERY edition (superset-parse / bind-narrow) so the below-2002 rejection is this named gate rather than a raw `no viable alternative`. fix-queue R02.",
+ "display": "the underscore in a COBOL word",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.3.2.1 (word character set: hyphen AND underscore; neither first nor last) — 2002 introduction, the '85 set being hyphen-only",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard); the word-character-set half of §2023:8.3.2.1, whose other half (the 63-character length ceiling) is the 2023 RELAXATION checked inline as COBOL1567 rather than as a construct row",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWUS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MY_NAME PIC X(5) VALUE \"hello\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY MY_NAME.\n    STOP RUN.\n"
+}

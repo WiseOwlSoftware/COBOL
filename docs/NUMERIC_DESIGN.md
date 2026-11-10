@@ -420,7 +420,7 @@ r2; 'E' not `[eE]` — the lexer is case-insensitive) placed BEFORE `DECIMALLIT`
 token — plus a `FLOATLIT` alt in `numericLiteralCore` (and the DECIMAL-POINT IS COMMA twin `COMMA_FLOATLIT`,
 kb/Work PB98). `EmitText.UnscaledLit` detects the E and returns a `Real` NumX with the literal verbatim (a COBOL
 float literal is already valid C# `double` syntax — the form the CALL/INVOKE argument emitters still take).
-The literal FORMAT is a COBOL-2002 introduction (constructs.json `floating-point-literal-2002`, VCR row 7.37, kb/Work
+The literal FORMAT is a COBOL-2002 introduction (the construct catalogue `floating-point-literal-2002`, VCR row 7.37, kb/Work
 PB674; COBOL-85's numeric literal is fixed-point alone): `LiteralScreen.GateFloatingPoint` refuses it below 2002 with
 COBOL0900 on the TOKEN (`LiteralTokens.FloatingPointTypes`), position-blind, so no consumer carries its own gate.
 ⛔ **THE LITERAL IS ITS EXACT VALUE IN EVERY POSITION AND EVERY MODE** (owner decision D-B, 2026-08-30; kb/Work

@@ -1,0 +1,12 @@
+{
+ "id": "arithmetic-standard-decimal-2014",
+ "description": "OPTIONS ARITHMETIC IS STANDARD-DECIMAL (decimal128 intermediates, §2023:8.8.1.5) — a 2014 keyword of the 2002 ARITHMETIC clause (the OPTIONS paragraph itself is 2002); the VisitArithmeticMethod parse arm owns the introduction edge now that the paragraph parses at 2002 (P10 Step 12)",
+ "display": "ARITHMETIC IS STANDARD-DECIMAL",
+ "diagnosticCode": "COBOL0900",
+ "expectDiagnostic": "COBOL0900",
+ "citation": "ISO §2023:11.9.5 / §2023:8.8.1.5",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "2014 introduction (§2023:11.9.5 / §2023:8.8.1.5)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SDPROG.\nOPTIONS.\n    ARITHMETIC IS STANDARD-DECIMAL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9V9(5).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = 1 / 8.\n    DISPLAY W.\n    STOP RUN.\n"
+}

@@ -157,9 +157,9 @@ guard_output_verdict() {
         # be non-zero with no FAIL* line at all (the IX108A false green). "NO TEST(S) FAILED" is not [0-9]+.
         # ⛔ THE ALLOWANCE COMES FROM THE GOLDEN, NOT FROM THE CONSTANT 0. This arm is reached only after a
         # candidate matched the golden byte-for-byte, so the output's footer IS the golden's footer: comparing
-        # it to 0 was auditing the BASELINE, not the run. One golden legitimately carries a failure — NC201A,
-        # whose PFM-TEST-F4-23 asserts a value §2023:14.9.28.4 GR13 e) 2 contradicts (kb/Work PB436) — and scoring
-        # that as a regression would turn a CONFORMING compiler red. Which goldens may carry one is not decided
+        # it to 0 was auditing the BASELINE, not the run. A golden may legitimately carry a failure (a CCVS defect: a test whose own expectation contradicts the
+        # standard) and scoring that as a regression would turn a CONFORMING compiler red; none does today (NC201A, the
+        # last, passes since kb/Work PB5101). Which goldens may carry one is not decided
         # here: tests/nist/corpus.tsv declares them CCVS-DEFECT and CorpusManifestTests asserts that the
         # declared set equals the goldens that actually carry a footer, in BOTH directions — so a golden cannot
         # quietly acquire a failure, and this comparison cannot quietly stop noticing one.

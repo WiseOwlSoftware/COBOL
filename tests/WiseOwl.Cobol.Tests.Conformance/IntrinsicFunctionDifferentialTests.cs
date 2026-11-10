@@ -335,7 +335,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     }
 
     /// <summary>DISPLAY-OF/NATIONAL-OF (§2023:15.26/§2023:15.66) are 2002 introductions — the D8 per-name catalog window
-    /// (the §1.1 ledger's catalog-driven mechanism, no constructs.json row) rejects them by name at --std 85.</summary>
+    /// (the §1.1 ledger's catalog-driven mechanism, no the construct catalogue row) rejects them by name at --std 85.</summary>
     [Fact]
     public void EditionGate_RepertoireFunctionsAt85_RejectedByName()
     {

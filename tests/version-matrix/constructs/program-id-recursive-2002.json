@@ -1,0 +1,12 @@
+{
+ "id": "program-id-recursive-2002",
+ "description": "The PROGRAM-ID RECURSIVE attribute - a 2002 introduction. Folded from the inline BinderDriver gate (Exec Step E).",
+ "display": "PROGRAM-ID RECURSIVE",
+ "diagnosticCode": "COBOL0885",
+ "citation": "ISO §2023:11.10.2 (the RECURSIVE attribute is 2002+); §2023:11.10.4 GR4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0885",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWREC IS RECURSIVE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "user-word-raising-2002",
+ "description": "The word RAISING as a user-defined word — §2023:8.9 interval encoding: user-definable at 85, reserved since 2002 (the EC family; the DEVLOG-585 mechanical correction of the 2023-only assumption).",
+ "display": "the word RAISING as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable at 85, reserved since 2002",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "reserved-words.json row RAISING (GnuCOBOL 2002/2014 lists + ISO 2023 §2023:8.9)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 RAISING PIC 9 VALUE 6.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY RAISING.\n    STOP RUN.\n"
+}

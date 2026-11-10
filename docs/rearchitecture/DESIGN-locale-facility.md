@@ -52,7 +52,7 @@ plus the `ORDER TABLE` clause (§2023:15.85, A.4.9 item 11 + A.3 item 25), the s
 
 Companion docs — this one defers to them, never duplicates them:
 `DESIGN-frontend-grammar.md` (superset parse / construct-id annotation), `DESIGN-version-conformance-pipeline.md`
-(the one edition gate), `DESIGN-edition-framework.md` (`constructs.json`, reserved/context-sensitive words),
+(the one edition gate), `DESIGN-edition-framework.md` (`constructs/`, reserved/context-sensitive words),
 `DESIGN-runtime-library.md` (`RunUnit` state ownership), `DATA_MODEL_DESIGN.md` (PICTURE/category),
 `CONDITIONS_EXCEPTIONS_DESIGN.md` (EC raise/declarative machinery), `INTRINSICS_DESIGN.md`
 (the intrinsic catalog + renderer).
@@ -83,7 +83,7 @@ Companion docs — this one defers to them, never duplicates them:
    abstraction (§4.4), ONE LC_MONETARY field model shared by PICTURE editing *and* NUMVAL-C parsing (§4.6),
    ONE locale-resolution path shared by every reference form.
 4. **Four editions in one compiler.** The whole facility is COBOL-2002+ (§6). Every new construct gets a
-   `constructs.json` row and the mandatory edition-gate sweep; nothing parses differently per `--std`.
+   `constructs/` row and the mandatory edition-gate sweep; nothing parses differently per `--std`.
 5. **The dispatch changes, not the callers.** Locale comparison is an *algorithm*, not a weight table. The
    existing three `CobolString.Compare` overloads (`char pad` / `ushort[] weights` / `NationalCollation`)
    cannot host a fourth arm without becoming a four-way overload set that every call site must re-choose
@@ -955,7 +955,7 @@ zero-fan-out result the project has been bitten by before.
 the clause in §2023:12.3.7.2. No loop is added for convenience.
 
 Every version-gated rule carries its committed-match **construct-id annotation** per
-`DESIGN-frontend-grammar.md`; version numbers stay in `constructs.json`.
+`DESIGN-frontend-grammar.md`; version numbers stay in `constructs/`.
 
 ---
 
@@ -977,9 +977,9 @@ The whole facility is **COBOL-2002+**. Evidence, and its limits, stated honestly
   2014 (the latter per `kb/Work R28`, from WG4 CD 1.2 Annex D.2). ⚠ Those windows are **provisional** under
   ratified decision #1 (no further standards acquisition): the 2023 text proves only presence-in-2014 (Annex E
   lists no locale addition) and says nothing about 2002. The design does not re-litigate them; it inherits
-  them and marks them provisional in `constructs.json`, as the neighbouring rows already do.
+  them and marks them provisional in `constructs/`, as the neighbouring rows already do.
 
-New `constructs.json` rows (ids follow the existing `<feature>-<edition>` convention):
+New `constructs/` rows (ids follow the existing `<feature>-<edition>` convention):
 
 | id | introducedIn | citation |
 |---|---|---|
@@ -1183,7 +1183,7 @@ behavioural test list.
 4. Every `EC-LOCALE-*` name registered in `ExceptionCatalog` has **at least one raise site** — the standing
    answer to "registered but never raised".
 
-**T-D · Edition matrix.** All seven `constructs.json` rows × four `--std` values; plus the sweep that every
+**T-D · Edition matrix.** All seven `constructs/` rows × four `--std` values; plus the sweep that every
 currently-green corpus program still compiles at every edition.
 
 **T-E · Differential.** The four GnuCOBOL cases in §9 flip from `WE_REJECT_THEY_ACCEPT` to accepted; the
@@ -1226,7 +1226,7 @@ on the author's machine and fail in CI — a failure mode this repo has already 
 | `Runtime/Values/Text/CobolString.cs` (✅) | three `Compare` + three `ThruMember` overloads → the `char pad` native form + ONE `CobolCollation` form |
 | `CodeGen/Roslyn/CollationEmit.cs` (✅) | NEW — the ONE renderer of a carrier from an `AlphabetDef` / `NationalAlphabetDef` |
 | `Editions/Diagnostics/DiagnosticCatalog.cs` | 1642–1650; delete 1518 (implement) or extend it (non-support) |
-| `tests/version-matrix/constructs.json` | seven rows |
+| `tests/version-matrix/constructs/` | seven rows |
 | `docs/CONFORMANCE.md` | §4 item 5 rewritten; the §8 determination table added; the stale "parse error" claim corrected **regardless of the decision** |
 
 ---

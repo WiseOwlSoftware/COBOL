@@ -1,0 +1,12 @@
+{
+ "id": "segment-numbers-removed-2002",
+ "description": "Section-header segment-number (the '85 Segmentation module: section-name SECTION [0-99].; 50-99 = independent segments) - parsed-and-ignored at 85 (all segments resident, a conforming posture; the independent-segment ALTER-reversion rules are deliberately not implemented - ALTER is itself gated 0810/0811); deleted by ISO 2002. Companion of segment-limit-removed-2002.",
+ "display": "a section-header segment-number",
+ "diagnosticCode": "COBOL0902",
+ "citation": "the '85 Segmentation module's section priority number, deleted by ISO 2002 ('segment' is absent from the 2023 text; §2023:8.9 absence); parsed-and-ignored at 85 (all segments resident); companion of segment-limit-removed-2002; VCR Table 7 row 7.18",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7 row 7.18; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSG1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 5.\nPROCEDURE DIVISION.\nFIRST-PART SECTION 10.\nP1.\n    DISPLAY W.\nSECOND-HALF SECTION 50.\nP2.\n    STOP RUN.\n"
+}

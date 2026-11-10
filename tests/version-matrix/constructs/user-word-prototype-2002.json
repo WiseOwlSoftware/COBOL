@@ -1,0 +1,12 @@
+{
+ "id": "user-word-prototype-2002",
+ "description": "The word PROTOTYPE as a user-defined word - 8.9 interval encoding: user-definable at 85, reserved since 2002 (ReservedWords.Table row; the FUNCTION-ID ... IS PROTOTYPE keyword). cobolWord + _dataNameTokens admit the token at 85; the funnel rejects 0901 at >=2002 (CheckedTokenTypes).",
+ "display": "the word PROTOTYPE as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable at 85, reserved since 2002",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "8.9 (2002 introduction); ReservedWords.Table PROTOTYPE row (UDF-3 wave, DEVLOG 624)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PROTOTYPE PIC X.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

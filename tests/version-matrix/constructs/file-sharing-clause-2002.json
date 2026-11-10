@@ -1,0 +1,12 @@
+{
+ "id": "file-sharing-clause-2002",
+ "description": "The SHARING clause / OPEN SHARING phrase (ISO 12.4.5.15 / 14.9.27) - governs whether another file connector may open the same physical file (Table 19 -> status 61). 2002 introduction; {is2002()}?-gated, so below 2002 the W1.5 parse-layer mapping names the edition (0900).",
+ "display": "the SHARING clause / OPEN SHARING phrase",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.4.5.15 / §2023:14.9.27; 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWSH.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL\n               SHARING WITH ALL OTHER LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+}

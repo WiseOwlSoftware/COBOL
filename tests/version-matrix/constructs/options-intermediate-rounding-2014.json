@@ -1,0 +1,12 @@
+{
+ "id": "options-intermediate-rounding-2014",
+ "description": "The INTERMEDIATE ROUNDING clause of the OPTIONS paragraph (§2023:11.9.11) — a 2014 clause of the 2002 paragraph (own introduction arm, P10 Step 12)",
+ "display": "OPTIONS INTERMEDIATE ROUNDING",
+ "diagnosticCode": "COBOL0900",
+ "expectDiagnostic": "COBOL0900",
+ "citation": "ISO §2023:11.9.11",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "2014 introduction (§2023:11.9.11)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OIRP10AS.\nOPTIONS.\n    INTERMEDIATE ROUNDING IS TRUNCATION.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+}

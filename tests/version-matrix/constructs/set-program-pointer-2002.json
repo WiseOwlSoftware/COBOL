@@ -1,0 +1,12 @@
+{
+ "id": "set-program-pointer-2002",
+ "status": "active",
+ "description": "SET { identifier-7 } … TO identifier-8 (ISO §2023:14.9.39.2 Format 9, program-pointer-assignment), including the §2023:8.4.3.13 ADDRESS OF PROGRAM program-address-identifier sender — dated 2002 by its only possible operand, the 2002 USAGE PROGRAM-POINTER item (usage-program-pointer-2002), since §2023:14.9.39.3 SR21 makes every receiving operand category program-pointer. The plain form reuses the setToStatement shape every SET ... TO format shares (kb/Work PB4231) and re-routes on the receiver's category in SetBinder; the ADDRESS OF PROGRAM sender is its own grammar rule (setProgramAddressStatement over programAddressIdentifier), and OF is an optional word because the §2023:8.4.3.13.2 figure underlines ADDRESS and PROGRAM only. SR22's same-signature screen is COBOL1959 and §2023:8.4.3.13.3 SR1/SR2/SR3 is COBOL2157. LIVE as of kb/Work PB549, which measured the gap: the ISO spelling was a bare parse error at EVERY edition and the Micro Focus / IBM `SET pp TO ENTRY` extension (whose words are in no ISO general format) was the only route into a program-pointer.",
+ "display": "SET TO program-pointer (Format 9)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39.2 Format 9 / §2023:14.9.39.3 SR21 / SR22 / §2023:8.4.3.13",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "vcr": "ISO §2023:14.9.39.2 Format 9 (its operand is the 2002 program-pointer category, §2023:8.5.2.9); the set-function-pointer-2014 twin",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KSPP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PP USAGE PROGRAM-POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET PP TO ADDRESS OF PROGRAM \"KSPPSUB\"\n    STOP RUN.\nEND PROGRAM KSPP.\n"
+}

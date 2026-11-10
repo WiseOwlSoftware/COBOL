@@ -1,0 +1,12 @@
+{
+ "id": "set-last-exception-2002",
+ "description": "SET LAST EXCEPTION TO OFF - a 2002 introduction (the EC model). Folded from the inline EcBinder gate (Exec Step E).",
+ "display": "SET LAST EXCEPTION TO OFF",
+ "diagnosticCode": "COBOL0879",
+ "citation": "ISO §2023:14.9.39 Format 13 (the saved-exception form; the EC model is 2002+); §2023:14.9.39.4 GR28",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0879",
+ "vcr": "2002 introduction (the EC model)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWSLE.\nPROCEDURE DIVISION.\nMAIN.\n    SET LAST EXCEPTION TO OFF.\n    STOP RUN.\n"
+}

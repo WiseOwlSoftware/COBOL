@@ -418,11 +418,10 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// their initialization values"), and this arm implements exactly it — the two arms are deliberately NOT
     /// symmetric, and each is written to its own sub-step.</para>
     /// <para>FROM/BY render inline so each set/augment re-reads their current contents (GR12).</para>
-    /// <para>⚠ NIST NC201A PFM-TEST-F4-23 ("ORDER OF INITIALISATION OF VARYING IDENTIFIERS") asserts 6 executions
-    /// for the TEST BEFORE <c>AFTER B FROM A</c> nest; GR13 e) 2 gives 8. The ISO text is the oracle and the CCVS
-    /// corpus is a regression net (CLAUDE.md rule 1), so NC201A is a recorded ISO-vs-CCVS divergence —
-    /// <c>tests/nist/corpus.tsv</c> row, the pin in <c>SpecPinnedNistTests</c>, and the determination in
-    /// <c>docs/CONFORMANCE.md</c> §3. kb/Work PB436.</para></summary>
+    /// <para>⚠ THE ORDER IS PER EDITION (<see cref="PerformVarying.AugmentOuterFirst"/>, kb/Work PB436, PB5101). From 2002,
+    /// GR13 e) 2 gives 8 executions for the TEST BEFORE <c>AFTER B FROM A</c> nest; the 1985 text (§1985:VI.6.21.4 GR10 d) 1)
+    /// augments the outer variable first and gives 6, which NIST NC201A PFM-TEST-F4-23 asserts and which now passes
+    /// at <c>--std 85</c>. Determination: <c>docs/CONFORMANCE.md</c> §3.</para></summary>
     private void EmitVarying(PerformVarying v, Action body)
     {
         var w = ctx.Writer;
@@ -452,11 +451,22 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                         //      its associated augment value"   — level k augments SECOND.
                         // So `AFTER B FROM A` resets B from the PRE-augment A (GR12 re-identifies the FROM operand
                         // on every setting operation; GR13's closing paragraph gives the change immediate effect).
-                        // ⛔ Do NOT swap these two: the augment-then-reset order is NIST NC201A PFM-TEST-F4-23's
-                        // CCVS-85 expectation, which GR13 e) 2 contradicts — see the method doc-comment, the
-                        // docs/CONFORMANCE.md §3 determination and kb/Work PB436.
-                        InitVaryingLevel(v, levels[k + 1]);
-                        AugmentLevel(levels[k]);
+                        // ⛔ The two orders are EDITIONS, not a choice: reset-then-augment from 2002 (this text),
+                        // augment-then-reset at 1985 (below) — see the method doc-comment, the docs/CONFORMANCE.md §3
+                        // determination and kb/Work PB436, PB5101.
+                        // §1985:VI.6.21.4 GR10 d) 1 (v.AugmentOuterFirst, PB5101) states the OTHER order: "the content of
+                        // the data item referenced by identifier-2 is augmented …" and only then "the content of the data
+                        // item referenced by identifier-5 is set to literal-3 or the current value of … identifier-6".
+                        if (v.AugmentOuterFirst)
+                        {
+                            AugmentLevel(levels[k]);
+                            InitVaryingLevel(v, levels[k + 1]);
+                        }
+                        else
+                        {
+                            InitVaryingLevel(v, levels[k + 1]);
+                            AugmentLevel(levels[k]);
+                        }
                     }
                 }
             }

@@ -1,0 +1,12 @@
+{
+ "id": "user-word-commit-2023",
+ "description": "The word COMMIT as a user-defined word — §2023:8.9 interval encoding: user-definable until COBOL-2023 reserved it (Annex E.2 item 25 = VCR row 32; the P2.4 funnel emits 0901). Probe reshaped to the DECLARATION screen (kb/Work PB137/PB138): the reference position is structurally unparseable at 2023 - the reservation-gated cobolWord keeps operand lists from absorbing the word - so dataName's predicated re-admission plus the VisitDataName funnel arm carry the targeted 0901.",
+ "display": "the word COMMIT as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32)",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "VCR row 32; reserved-words.json row COMMIT",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. WUWC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 COMMIT PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"X\".\n    STOP RUN.\n"
+}

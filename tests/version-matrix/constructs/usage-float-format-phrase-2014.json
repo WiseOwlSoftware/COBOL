@@ -1,0 +1,12 @@
+{
+ "id": "usage-float-format-phrase-2014",
+ "description": "The USAGE clause's per-item endianness-phrase and encoding-phrase (ISO §2023:13.18.60.2 general format: FLOAT-BINARY-32/-64/-128 [ endianness-phrase ], and FLOAT-DECIMAL-16/-34 with a bracketed choice-indicator group over { encoding-phrase, endianness-phrase }) — a COBOL-2014 addition arriving with the standard floating-point usages themselves. §2023:13.18.60.4 GR19a/b give the phrase its meaning (HIGH-ORDER-LEFT = big-endian, HIGH-ORDER-RIGHT = little-endian) and GR19c/d make the OPTIONS FLOAT-BINARY / FLOAT-DECIMAL clause supply the IMPLIED phrase only where the item states none — so the item's own phrase WINS, per §2023:11.9.8.3 SR2/SR3's 'in which an endianness-phrase is not specified'. Recognition-based on the parsed floatFormatPhrase, like the noSignPhrase row above: the phrase is a modifier, not a usage keyword, so it cannot be keyed on the resolved Usage enum. Annex A.3 item 18 makes the phrase processor-dependent AND requires that when the FLOAT-BINARY clause is supported, the USAGE-clause phrases match it — WiseOwl COBOL supports both phrases in both places.",
+ "display": "USAGE FLOAT-BINARY-32 HIGH-ORDER-RIGHT (the endianness-phrase)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.2 general format / §2023:13.18.60.4 GR19a-d, GR20; §2023:11.9.8.3 SR2/SR3; Annex A.3 item 18",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2014 introduction (§2023:13.18.60.2 endianness-phrase / encoding-phrase on the USAGE clause; arrives with the standard floating-point usages)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UFFP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-BINARY-32 HIGH-ORDER-RIGHT.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 1.5 TO F.\n    STOP RUN.\n"
+}

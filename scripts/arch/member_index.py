@@ -553,7 +553,10 @@ def main(argv: list[str] | None = None) -> int:
         idx = current(REPO, a.cache, regenerate=a.cache is not None)
         print(f"=== MEMBER INDEX: CURRENT (commit {idx['commit'][:12]}, treeKey {idx['treeKey'][:12]}) ===")
         return 0
-    text = (REPO / "kb" / "Work" / f"{a.note}.md").read_text(encoding="utf-8")
+    text = work.note_text(a.note, REPO / "kb" / "Work")
+    if text is None:
+        print(f"⛔ no kb/Work note {a.note}")
+        return 2
     fs = note_file_set(text)
     print(json.dumps(fs, indent=1, ensure_ascii=False))
     return 1 if fs["unknown"] else 0

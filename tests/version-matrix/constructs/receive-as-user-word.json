@@ -1,0 +1,12 @@
+{
+ "id": "receive-as-user-word",
+ "description": "The word RECEIVE as a user-defined word — the RE-reservation interval in ONE f(case,V) row: 85/2002-reserved (the communication facility, obsolete at 2002 per GnuCOBOL's cobol2002.conf, its word on the ISO 2002 §2002:8.9 list, kb/Work PB4297) → user-definable at 2014 → re-reserved 2023 (Annex E.2 item 25, which compares 2023 with 2014 only: E.1). kb/Work PB656.",
+ "display": "the word RECEIVE as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding of the RE-reservation: 85/2002-reserved (communication; ISO 2002 §2002:8.9) → user-definable 2014 → re-reserved 2023 (Annex E.2 item 25)",
+ "introducedIn": 2014,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "VCR row 32; reserved-words.json row RECEIVE (ISO Annex E.2 item 25 decides the 2014 edge, the GnuCOBOL 2002 list the 2002 one)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 RECEIVE PIC 9 VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY RECEIVE.\n    STOP RUN.\n"
+}
