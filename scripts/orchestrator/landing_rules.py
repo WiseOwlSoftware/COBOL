@@ -268,7 +268,6 @@ DECLARED: dict[str, tuple[str, ...]] = {
             "bounce's results",
         'live_heads: a queue longer than one page, no merge queue on main, a failed call, a malformed answer or an '
             'offline gh is None (an incomplete read), never a short list',
-        'a pull request ENTERS the merge queue when it is in it or has auto-merge on',
     ),
     'scripts/orchestrator/enqueue.py': (
         'the queue not ACTIVE (ABSENT, DRIFT or SKIPPED) refuses with exit 8 before anything is checked, pushed or '
