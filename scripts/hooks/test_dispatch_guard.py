@@ -40,37 +40,42 @@ ATTENDED = {k: v for k, v in os.environ.items() if k != "COBOL_LOOP_UNIT"} | {"C
 UNIT = dict(ATTENDED, COBOL_LOOP_UNIT="wave")
 
 
-def blocked(payload: object, env: dict) -> bool:
+PASSES, REFUSED = 0, 2   # the hook's two answers; any other exit code is the hook crashing, which no case expects
+
+
+def answer(payload: object, env: dict) -> int:
+    """The hook's exit code for one call (kb/Work PB5112 review R1-4: a case that only asked "was it refused?" counted a
+    crash, exit 1, as a pass, and three planted mutants survived)."""
     r = subprocess.run([sys.executable, str(HOOK)], input=payload if isinstance(payload, str) else json.dumps(payload),
                        capture_output=True, text=True, timeout=180, env=env)
-    return r.returncode == 2
+    return r.returncode
 
 
 # No rule about delegating (kb/Work PB5112): with no skill loaded and a hand-written brief, every dispatch passes.
 FREE = [
-    ("attended: a Workflow with no skill loaded passes", WORKFLOW, ATTENDED, False),
-    ("attended: an implementer with an inline brief passes", IMPLEMENTER, ATTENDED, False),
-    ("attended: a finisher with an inline brief passes", FINISHER, ATTENDED, False),
-    ("attended: a read-only role passes", REFUTER, ATTENDED, False),
-    ("loop unit, no STOP-UNIT: a Workflow passes", WORKFLOW, UNIT, False),
-    ("loop unit, no STOP-UNIT: an implementer passes", IMPLEMENTER, UNIT, False),
-    ("another tool is not guarded", {"tool_name": "Bash", "tool_input": {"command": "ls"}}, UNIT, False),
-    ("unparseable input never wedges a session", "not json", UNIT, False),
+    ("attended: a Workflow with no skill loaded passes", WORKFLOW, ATTENDED, PASSES),
+    ("attended: an implementer with an inline brief passes", IMPLEMENTER, ATTENDED, PASSES),
+    ("attended: a finisher with an inline brief passes", FINISHER, ATTENDED, PASSES),
+    ("attended: a read-only role passes", REFUTER, ATTENDED, PASSES),
+    ("loop unit, no STOP-UNIT: a Workflow passes", WORKFLOW, UNIT, PASSES),
+    ("loop unit, no STOP-UNIT: an implementer passes", IMPLEMENTER, UNIT, PASSES),
+    ("another tool is not guarded", {"tool_name": "Bash", "tool_input": {"command": "ls"}}, UNIT, PASSES),
+    ("unparseable input never wedges a session", "not json", UNIT, PASSES),
 ]
 # The one rule (kb/Work PB2597): in a LOOP UNIT with STOP-UNIT present, no fleet launch; a read-only role still passes, and
 # an attended session sharing the coordination directory is never refused.
 STOPPED = [
-    ("loop unit after STOP-UNIT: a Workflow is refused", WORKFLOW, UNIT, True),
-    ("loop unit after STOP-UNIT: an implementer is refused", IMPLEMENTER, UNIT, True),
-    ("loop unit after STOP-UNIT: a finisher is refused", FINISHER, UNIT, True),
-    ("loop unit after STOP-UNIT: a read-only role passes", REFUTER, UNIT, False),
-    ("attended session, the loop's STOP-UNIT present: a Workflow passes", WORKFLOW, ATTENDED, False),
-    ("attended session, the loop's STOP-UNIT present: an implementer passes", IMPLEMENTER, ATTENDED, False),
+    ("loop unit after STOP-UNIT: a Workflow is refused", WORKFLOW, UNIT, REFUSED),
+    ("loop unit after STOP-UNIT: an implementer is refused", IMPLEMENTER, UNIT, REFUSED),
+    ("loop unit after STOP-UNIT: a finisher is refused", FINISHER, UNIT, REFUSED),
+    ("loop unit after STOP-UNIT: a read-only role passes", REFUTER, UNIT, PASSES),
+    ("attended session, the loop's STOP-UNIT present: a Workflow passes", WORKFLOW, ATTENDED, PASSES),
+    ("attended session, the loop's STOP-UNIT present: an implementer passes", IMPLEMENTER, ATTENDED, PASSES),
 ]
 
-fails = [n for n, p, env, want in FREE if blocked(p, env) != want]
+fails = [f"{n} (exit {got})" for n, p, env, want in FREE if (got := answer(p, env)) != want]
 (COORD / "STOP-UNIT").write_text("", encoding="utf-8", newline="\n")
-fails += [n for n, p, env, want in STOPPED if blocked(p, env) != want]
+fails += [f"{n} (exit {got})" for n, p, env, want in STOPPED if (got := answer(p, env)) != want]
 (COORD / "STOP-UNIT").unlink()
 # The hook writes nothing (kb/Work PB3186): the coordination directory holds what the test put there, and no more.
 if sorted(p.name for p in COORD.iterdir()):

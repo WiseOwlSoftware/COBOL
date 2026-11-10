@@ -360,8 +360,8 @@ Three mechanisms keep a just-paid fleet from being thrown away:
   case for the race in which the cap fires as the launch happens: whichever wins, no fleet stop is sent. The supervisor
   records whether a fleet (`local_workflow` or `local_agent` background task) was running when the wind-down fired
   (`fleet_at_wind_down`).
-- **No fleet launch after the signal.** `dispatch_guard.py` (rule 0) refuses a `Workflow` call and an implementer or
-  lander `Agent` call from a loop unit (the supervisor exports `COBOL_LOOP_UNIT`) while `STOP-UNIT` exists; the unit
+- **No fleet launch after the signal.** `dispatch_guard.py` refuses a `Workflow` call and an implementer or
+  finisher `Agent` call from a loop unit (the supervisor exports `COBOL_LOOP_UNIT`) while `STOP-UNIT` exists; the unit
   prompts say to check `STOP-UNIT` immediately before the call. An attended session shares the coordination directory
   but never carries the variable, so the loop's signal never refuses its dispatches.
 - **The fleet launch comes first** (`units/wave.md`): a wave unit does nothing but plan before its Workflow runs; a
@@ -1418,7 +1418,7 @@ new terminal. A STOP file left on purpose by that procedure is named in the prom
 Python self-tests in the style of `scripts/hooks/test_dispatch_guard.py` (a script that prints a case count and
 exits nonzero on a failure; no framework): `test_alloc.py` (including two real parallel processes allocating
 concurrently with no duplicate), `test_inventory_ratchet.py` (a fabricated reopen, a GAP rise, the marker),
-`test_budget.py` (with each account's reset, readings and telemetry), `scripts/hooks/test_dispatch_guard.py` (rule 0: a loop
+`test_budget.py` (with each account's reset, readings and telemetry), `scripts/hooks/test_dispatch_guard.py` (its one rule: a loop
 unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test_adopt_main.py` (section 4.10: the loop adopts a stable main commit, and only that), `test_ledger_state.py` (owed until the current stamp is
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
 a landing pushed from another clone is owed while the checkout is behind, and the mark refuses until it is fast-forwarded),
