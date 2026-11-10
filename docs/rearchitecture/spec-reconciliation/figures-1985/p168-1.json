@@ -1,0 +1,16 @@
+{
+ "page": 168,
+ "figure": 1,
+ "drawn_lines": [
+  "╭ data-name-1                                    ╮",
+  "┤                                                ├ (leftmost-character-position:[length])",
+  "╰ <u>FUNCTION</u> function-name-1 [({argument-1} …   )] ╯"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "╭ data-name-1                                    ╮",
+  "┤                                                ├ (leftmost-character-position:[length])",
+  "╰ <u>FUNCTION</u> function-name-1 [({argument-1} …   )] ╯"
+ ],
+ "reason": "The figure is an amendment's text applied in place, not the base page's ink: Errata C97, Section IV, paragraph 4.3.8.4.2, the general format of reference modification (kb/Work PB5045). It is drawn as the amendment prints it."
+}

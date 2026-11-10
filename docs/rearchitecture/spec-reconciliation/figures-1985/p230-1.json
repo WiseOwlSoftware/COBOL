@@ -2,11 +2,11 @@
  "page": 230,
  "figure": 1,
  "drawn_lines": [
-  "data-name-1 (leftmost-character-position: [length])"
+  "<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]"
  ],
- "decided": "generated",
+ "decided": "drawn",
  "figure_lines": [
-  "data-name-1 ( leftmost-character-position: [ length ] )"
+  "<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]"
  ],
- "reason": "The printed page sets the reference-modification format line as the regeneration reads it; it is a general format of the composite skeleton."
+ "reason": "The figure is an amendment's text applied in place, not the base page's ink: Errata C117, Section V, the miscellaneous formats, after SUBSCRIPTING (kb/Work PB5045). It is drawn as the amendment prints it."
 }

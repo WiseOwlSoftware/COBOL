@@ -47414,7 +47414,7 @@ a COBOL word the standard uses anywhere else; each occurs exactly once in the 1,
 |---|---:|---|
 | `i-O` | **1** | page 206 — this reserved-word list, and nowhere else |
 | `I-OICONTROL` | **1** | page 206 — this reserved-word list, and nowhere else |
-| `I-O-CONTROL` | **8**, on 6 pages | page 209, the context-sensitive word table (`APPLY` — I-O-CONTROL paragraph); page 233, 9.1.18.2; page 333, the I-O-CONTROL paragraph's own clause 12.4.6 and its general format; page 1022, an example program; page 1217, the index |
+| `I-O-CONTROL` | **8**, on 6 pages | page 13, the table of contents (12.4.6 I-O-CONTROL paragraph); page 209, the context-sensitive word table (`APPLY` — I-O-CONTROL paragraph); page 233, 9.1.18.2; page 333, the I-O-CONTROL paragraph's own clause 12.4.6 and its general format; page 1022, an example program; page 1217, the index |
 | `I-O` | the OPEN statement's general format | page 675, the OPEN statement (the index's "I-O phrase … OPEN statement 675") |
 
 The reserved-word list of ISO/IEC 1989:2002 prints the two entries `I-O` and `I-O-CONTROL` at the same place. Corrected

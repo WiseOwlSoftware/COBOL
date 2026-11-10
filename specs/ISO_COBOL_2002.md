@@ -13,7 +13,10 @@ paragraphs and no reproduction grant of its own, so none is reproduced here.
 
 > **About this transcription.** ISO/IEC 1989:2002 is the authoritative text; where this transcription and the
 > published standard differ, **the published standard governs**. The words, the punctuation and the spelling are
-> transcribed as printed, the standard's own defects included.
+> transcribed as printed. The transcription is meant to be the most accurate version of the specification (owner,
+> 2026-11-09, kb/Work PB5045): an evident misprint the reconciliation finds is corrected in place, attributed in a
+> note that quotes the printed form, and listed with its page, as the 1985 and 2023 transcriptions do; none has been
+> corrected yet, because the reconciliation against the rendered pages is still owed.
 >
 > **How it was made.** The source PDF carries a true text layer, so every page was converted from that layer with no
 > model: the headings, rules, notes, lists, tables and code come from the fonts and positions the page prints. Every
