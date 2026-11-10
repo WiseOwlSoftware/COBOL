@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.2.1-5",
  "rule-digest": "85547643c22e",
+ "test-ref": "conformance:cases/IV.4.2@1985-LANGUAGE-STRUCTURE/1985-SR-IV_4_2_1-5",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

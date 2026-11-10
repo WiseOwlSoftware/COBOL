@@ -1,0 +1,42 @@
+      *>--- conformance-case
+      *> id: 1985-FMT-XIII_2_3_2
+      *> rules: [1985-FMT-XIII.2.3.2]
+      *> accept: [85]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §1985:XIII.2.3.2 (THE FILE CONTROL ENTRY). An output test: the
+      *> program must translate and run at 85 and DISPLAY exactly the
+      *> lines its .out holds, the outcome the rule requires. Placed
+      *> from the audit's draft, confirmed by
+      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
+000100 IDENTIFICATION DIVISION.
+000200 PROGRAM-ID. RWFC.
+000300 ENVIRONMENT DIVISION.
+000400 INPUT-OUTPUT SECTION.
+000500 FILE-CONTROL.
+000600     SELECT RPT-FILE ASSIGN TO "RPTOUT"
+000700         RESERVE 1 AREA
+000800         ORGANIZATION IS SEQUENTIAL
+000900         ACCESS MODE IS SEQUENTIAL
+001000         FILE STATUS IS WS-STAT.
+001100 DATA DIVISION.
+001200 FILE SECTION.
+001300 FD  RPT-FILE
+001400     REPORT IS RPT-1.
+001500 WORKING-STORAGE SECTION.
+001600 01  WS-STAT PIC XX.
+001700 REPORT SECTION.
+001800 RD  RPT-1.
+001900 01  DET-LINE TYPE IS DETAIL LINE NUMBER IS PLUS 1.
+002000     05  COLUMN 1 PIC X(5) VALUE "HELLO".
+002100 PROCEDURE DIVISION.
+002200 MAIN-PARA.
+002300     OPEN OUTPUT RPT-FILE.
+002400     DISPLAY WS-STAT.
+002500     INITIATE RPT-1.
+002600     GENERATE DET-LINE.
+002700     TERMINATE RPT-1.
+002800     CLOSE RPT-FILE.
+002900     DISPLAY "DONE".
+003000     STOP RUN.

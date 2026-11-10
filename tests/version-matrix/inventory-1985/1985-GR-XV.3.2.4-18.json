@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-18",
  "rule-digest": "29720f0a0a7b",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-18",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

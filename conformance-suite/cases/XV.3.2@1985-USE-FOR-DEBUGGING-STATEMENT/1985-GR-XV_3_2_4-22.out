@@ -1,0 +1,6 @@
+[WATCHED                       ] [A           ]
+[PARA-B                        ] [FALL THROUGH]
+B
+[WATCHED                       ] [B           ]
+SAME STATEMENT, SAME DEBUG-LINE
+ANOTHER STATEMENT, ANOTHER DEBUG-LINE

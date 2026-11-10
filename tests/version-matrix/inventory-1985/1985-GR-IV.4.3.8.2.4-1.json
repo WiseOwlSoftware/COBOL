@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.3.8.2.4-1",
  "rule-digest": "2f8d8305cb28",
+ "test-ref": "conformance:cases/IV.4.3.8.2@1985-Subscripting/1985-GR-IV_4_3_8_2_4-1",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

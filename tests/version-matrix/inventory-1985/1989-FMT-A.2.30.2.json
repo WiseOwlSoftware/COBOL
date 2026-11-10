@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.30.2",
  "rule-digest": "4e511f5a91d2",
+ "test-ref": "conformance:cases/A.2.30@1985-NUMVAL-C-FUNCTION/1989-FMT-A_2_30_2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VII.2.11.2",
  "rule-digest": "3bfb5de0d70e",
+ "test-ref": "conformance:cases/VII.2.11@1985-MULTIPLE-FILE-TAPE-CLAUSE/1985-FMT-VII_2_11_2",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

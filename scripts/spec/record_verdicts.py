@@ -54,7 +54,9 @@ only a symbol the prose does not name (`inventory_schema.retired_symbols_left_in
 
 A WITNESS-ONLY record — `{"rule-id": "...", "test-ref": "..."}`, with no verdict and no statement field — adds
 witnesses to a row that is already adjudicated and restates nothing, so it is safe to re-apply on a merged tree
-after another batch has re-adjudicated the same row (a full record there would silently revert it).
+after another batch has re-adjudicated the same row (a full record there would silently revert it). On an older
+edition's row, the change record is an adjudication too: a CHANGED or REMOVED rule takes its witness before its verdict
+(the conformance test `place_witnesses.py` placed; CONFORMS still owes the code read, kb/Work PB4995).
 
 A WITHDRAWAL — `{"rule-id": "...", "withdraw": "<why>"}` — takes out of the store a record the view refuses because
 its rule is gone (an amendment deleted it) or moved (its id now names another rule, or no rule): a renumbered rule's
@@ -222,6 +224,13 @@ def merged(row: dict, rec: dict, schema, ed: Edition = NEWEST) -> dict:
     return out
 
 
+def _reference_errors(rec: dict, where: str, schema) -> list[str]:
+    """Each reference the record NAMES, shape-checked by the one predicate the history replay also asks
+    (`witness_shape_error`); the row's already-carried references are the battery gate's to re-check."""
+    return [f"{where}: {err}" for field in WITNESS_FIELDS for ref in schema.split(rec.get(field, ""), _sep(field, schema))
+            if (err := witness_shape_error(field, ref, schema))]
+
+
 def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dict[str, str],
              by_id: dict[str, dict], ed: Edition = NEWEST,
              targets: dict[str, dict] | None = None) -> list[str]:
@@ -279,8 +288,14 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
                 bad.append(f"{where}: {err}")
             if lineage.chained(after, schema):
                 continue
-            if not verdict and not row.get("verdict") and set(rec) <= {"rule-id", "next", "notes"}:
-                continue                        # a CHANGED or REMOVED record before its verdict is recorded
+            if not verdict and not row.get("verdict"):
+                if set(rec) <= {"rule-id", "next", "notes"}:
+                    continue                    # a CHANGED or REMOVED record before its verdict is recorded
+                if is_witness_only(rec, ed) and RETIRE not in rec and after.get("next"):
+                    # the WITNESS of a CHANGED or REMOVED rule before its verdict is read (place_witnesses.py, kb/Work
+                    # PB4995): its change record is the row's adjudication, and CONFORMS still owes the code read
+                    bad += _reference_errors(rec, where, schema)
+                    continue
         if is_witness_only(rec, ed):
             if not (rec.get("code-location") or rec.get("test-ref") or rec.get(RETIRE)):
                 bad.append(f"{where}: no verdict and no witness — the record says nothing")
@@ -350,12 +365,7 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         if "editions" in fields and (err := schema.editions_error(after["editions"])):
             bad.append(f"{where}: {err}")
 
-        # Each reference the record NAMES is shape-checked by the one predicate the history replay also asks
-        # (`witness_shape_error`); the row's already-carried references are the battery gate's to re-check.
-        for field in WITNESS_FIELDS:
-            for ref in schema.split(rec.get(field, ""), _sep(field, schema)):
-                if err := witness_shape_error(field, ref, schema):
-                    bad.append(f"{where}: {err}")
+        bad += _reference_errors(rec, where, schema)
 
         # The row's KIND may oblige a COMPUTED register anchor (`kinds` in the schema). It is derived from the
         # rule-id rather than typed, so a mis-filed determination cannot be spelled — kb/Work A11's failure mode.

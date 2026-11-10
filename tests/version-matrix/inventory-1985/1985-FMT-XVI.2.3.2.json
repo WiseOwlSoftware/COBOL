@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-XVI.2.3.2",
  "rule-digest": "4cf66f29766d",
+ "test-ref": "conformance:cases/XVI.2.3@1985-SEGMENT-LIMIT-CLAUSE/1985-FMT-XVI_2_3_2",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.2-4",
  "rule-digest": "c04e081528dd",
+ "test-ref": "conformance:cases/A.2@1985-GENERAL-DESCRIPTION/1989-AR-A_2_2-4",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.3.9.3-10",
  "rule-digest": "c4292d9a907c",
+ "test-ref": "conformance:cases/XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/1985-SR-XIII_3_9_3-10",
  "next": {
   "kind": "CHANGED",
   "to": [

@@ -1,0 +1,36 @@
+      *>--- conformance-case
+      *> id: 1985-SR-XIII_4_3_3-2
+      *> rules: [1985-SR-XIII.4.3.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §1985:XIII.4.3.3 SR2 (THE GENERATE STATEMENT). A refusal: the
+      *> rule forbids line 22 of the program below, and WiseOwl refuses
+      *> it at 85 with COBOL0899 there; a compiler that accepts it
+      *> fails. Placed from the audit's draft, confirmed by
+      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
+000100 IDENTIFICATION DIVISION.
+000200 PROGRAM-ID. RWGEN.
+000300 ENVIRONMENT DIVISION.
+000400 INPUT-OUTPUT SECTION.
+000500 FILE-CONTROL.
+000600     SELECT RPT-FILE ASSIGN TO PRINTER.
+000700 DATA DIVISION.
+000800 FILE SECTION.
+000900 FD  RPT-FILE
+001000     REPORT IS RPT.
+001100 WORKING-STORAGE SECTION.
+001200 01  WS-KEY PIC X VALUE "A".
+001300 REPORT SECTION.
+001400 RD  RPT
+001500     PAGE LIMIT IS 60 LINES.
+001600 01  DET TYPE IS DETAIL LINE NUMBER IS 1.
+001700     05  COLUMN 1 PIC X SOURCE WS-KEY.
+001800 PROCEDURE DIVISION.
+001900 MAIN-PARA.
+002000     OPEN OUTPUT RPT-FILE.
+002100     INITIATE RPT.
+002200     GENERATE RPT.
+002300     TERMINATE RPT.
+002400     CLOSE RPT-FILE.
+002500     STOP RUN.

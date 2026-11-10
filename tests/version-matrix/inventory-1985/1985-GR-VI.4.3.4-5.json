@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.4.3.4-5",
  "rule-digest": "6e382c001be9",
+ "test-ref": "conformance:cases/VI.4.3@1985-SOURCE-COMPUTER-PARAGRAPH/1985-GR-VI_4_3_4-5",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

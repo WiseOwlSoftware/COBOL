@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-IX.2.7.2",
  "rule-digest": "e585f42d9353",
+ "test-ref": "conformance:cases/IX.2.7@1985-RECORD-KEY-CLAUSE/1985-FMT-IX_2_7_2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

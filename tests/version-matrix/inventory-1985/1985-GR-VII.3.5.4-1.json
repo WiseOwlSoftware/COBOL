@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.3.5.4-1",
  "rule-digest": "ec2784811caf",
+ "test-ref": "conformance:cases/VII.3.5@1985-DATA-RECORDS-CLAUSE/1985-GR-VII_3_5_4-1",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

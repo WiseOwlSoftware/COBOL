@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.2.5.4-3",
  "rule-digest": "b4527144c25c",
+ "test-ref": "conformance:cases/IX.2.5@1985-ALTERNATE-RECORD-KEY-CLAUSE/1985-GR-IX_2_5_4-3",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

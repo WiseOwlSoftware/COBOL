@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VI.4.5.2",
  "rule-digest": "c0fa70f78762",
+ "test-ref": "conformance:cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/1985-FMT-VI_4_5_2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

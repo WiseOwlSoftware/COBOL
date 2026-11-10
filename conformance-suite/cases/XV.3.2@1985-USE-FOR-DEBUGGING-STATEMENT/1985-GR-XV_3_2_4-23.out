@@ -1,0 +1,13 @@
+[DFILE1    ] [     ]
+[DFILE1    ] [     ]
+[DFILE1    ] [     ]
+[DFILE1    ] [ABCDE]
+[DFILE1    ] [     ]
+[CIN       ]
+[Q1                                              85123123595999T1          0005200000000]
+[CIN       ]
+[Q1                                              86010100000100T1          0003200000000]
+[CIN       ]
+[Q1                                              86010100000100T1          0003200000000]
+SAME STATEMENT, SAME DEBUG-LINE
+ANOTHER STATEMENT, ANOTHER DEBUG-LINE

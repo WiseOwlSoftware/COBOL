@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VI.6.21.2",
  "rule-digest": "cfa95f2b26f6",
+ "test-ref": "conformance:cases/VI.6.21@1985-PERFORM-STATEMENT/1985-FMT-VI_6_21_2",
  "next": {
   "kind": "CHANGED",
   "to": [

@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.38.3-1",
  "rule-digest": "979d36668590",
+ "test-ref": "conformance:cases/A.2.38@1985-REVERSE-FUNCTION/1989-AR-A_2_38_3-1",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

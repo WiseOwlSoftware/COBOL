@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-X.4.5.3-2",
  "rule-digest": "1540f416ae2a",
+ "test-ref": "conformance:cases/X.4.5@1985-EXTERNAL-CLAUSE/1985-SR-X_4_5_3-2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

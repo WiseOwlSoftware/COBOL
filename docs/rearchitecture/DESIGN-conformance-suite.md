@@ -195,7 +195,7 @@ The file block holds one field, `source-format` (`fixed` or `free`, required; fi
 | Field | Meaning |
 |---|---|
 | `id` | Unique across both trees; letters, digits, `-`, `_`; stable from the first release. Naming neither clause nor file, so a test can move |
-| `rules` | The inventory rows witnessed. A rule 2023 lacks has a qualified id (`GR-A.2.5.3-4@2002`); a facility no held text describes is `construct:<id>` (§3.5). `[]` only in `_unassigned/`. Format points are read from the parse, never written here (§3.4) |
+| `rules` | The inventory rows witnessed. A rule of an older HELD edition is its own catalog's id (`1985-GR-VI.6.18.4-3`), its band that edition alone, filed in its own clause (§3.5); a rule 2023 lacks of an edition not yet held has a qualified id (`GR-A.2.5.3-4@2002`); a facility no held text describes is `construct:<id>` (§3.5). `[]` only in `_unassigned/`. Format points are read from the parse, never written here (§3.4) |
 | `accept` | Editions at which the test compiles and runs with its section equal to its expected section. `{from: <edition>}` means that edition and every later one, so a new edition inherits the test |
 | `constructs` | The `constructs.json` rows the test uses incidentally whose window is not every edition; each accepted edition lies inside each window. The constructs of its rules come from their facilities (§3.5) |
 | `requires` | Optional or processor-dependent elements needed, by stable `constructs.json` module id (`module-report-writer`), never by A.4 number, which differs between editions. The module row records the element's status per edition; a profile not claiming it where it is optional or processor-dependent gets NOT APPLICABLE |
@@ -431,6 +431,20 @@ A locator into an untracked text is committed as digest and line; `cite.py --tex
 the quoted words where the texts are held. For example, 2023 E.2 item 22 ("The prior standard had a note that
 conflicted with a rule") proves only READ PREVIOUS's 2014|2023 change; its 2014 side is `two-texts`, from the rule
 printed in both drafts (`t2002.txt:26766-26767`, `t2014.txt:32274-32275`).
+
+**A rule of an older held edition is witnessed in its own text's clause** (kb/Work PB4995 item 3). The 1985 rules are a
+catalog of their own (DESIGN-spec-conformance-review.md §10.2), so a test of one names its catalog id in `rules`: its
+band is 1985 alone (the generator's `Inputs.band`: an older rule exists at its own edition; its successor at a later one
+is another rule, reached through the change record), and it is filed in the folder of the clause that holds its rule
+block, qualified by the year, `cases/<clause>@1985-<Name>/` (`VI.6.18@1985-INSPECT-STATEMENT`), so the 1985 numbering
+is never read as 2023's. The completeness report counts the newest edition's rows; an older edition's rules and GAP are
+its own view's (`inventory_view.py --summary`). The 1985 audit's checked drafts are placed by one script,
+`scripts/spec/place_witnesses.py`, from the confirmation pass's records: each judged again on the build through the
+harness, an output draft an accepted test at 85 and a refused draft a WiseOwl refusal pinning the code the compiler
+reports at the draft's violating line (its control has no expected output of its own, so the flagged form of §3.2 waits
+for the clause pass), each `portable: unverified` until that pass clears it. Its witness is recorded on the rule's store
+row as a witness-only `test-ref` where the rule's verdict is its own (CHANGED, REMOVED, or not yet classified); a KEPT
+rule's test is its chain's and stays unrecorded there.
 
 **A placement carries the weakest evidence it rests on** (decisions 5, 10, 14). The generator derives, per test and
 edition, the weakest class among the edges the placement relies on (its rules' bands and its facilities' windows) and

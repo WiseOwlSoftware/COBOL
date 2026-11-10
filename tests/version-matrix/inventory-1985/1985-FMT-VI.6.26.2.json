@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VI.6.26.2",
  "rule-digest": "61288d43ca49",
+ "test-ref": "conformance:cases/VI.6.26@1985-SUBTRACT-STATEMENT/1985-FMT-VI_6_26_2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.17.3-1",
  "rule-digest": "24d6c797ce87",
+ "test-ref": "conformance:cases/A.2.17@1985-INTEGER-OF-DAY-FUNCTION/1989-AR-A_2_17_3-1",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

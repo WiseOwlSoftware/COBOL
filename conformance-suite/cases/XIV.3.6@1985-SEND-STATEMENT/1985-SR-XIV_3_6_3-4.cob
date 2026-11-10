@@ -1,0 +1,33 @@
+      *>--- conformance-case
+      *> id: 1985-SR-XIV_3_6_3-4
+      *> rules: [1985-SR-XIV.3.6.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §1985:XIV.3.6.3 SR4 (THE SEND STATEMENT). A refusal: the rule
+      *> forbids line 21 of the program below, and WiseOwl refuses it at
+      *> 85 with COBOL1639 there; a compiler that accepts it fails.
+      *> Placed from the audit's draft, confirmed by
+      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
+000100 IDENTIFICATION DIVISION.
+000200 PROGRAM-ID. SNDMN.
+000300 ENVIRONMENT DIVISION.
+000400 CONFIGURATION SECTION.
+000500 SPECIAL-NAMES.
+000600     C01 IS TOP-PAGE.
+000700 DATA DIVISION.
+000800 WORKING-STORAGE SECTION.
+000900 01  MSG PIC X(10) VALUE "HELLO".
+001000 COMMUNICATION SECTION.
+001100 CD  OUT-CD FOR OUTPUT
+001200     DESTINATION COUNT IS DEST-COUNT
+001300     TEXT LENGTH IS TEXT-LEN
+001400     STATUS KEY IS STAT-KEY
+001500     SYMBOLIC DESTINATION IS DEST-NAME.
+001600 PROCEDURE DIVISION.
+001700 P1.
+001800     MOVE 1 TO DEST-COUNT.
+001900     MOVE "TERM1" TO DEST-NAME.
+002000     MOVE 5 TO TEXT-LEN.
+002100     SEND OUT-CD FROM MSG WITH EMI AFTER ADVANCING NO-SUCH-NAME.
+002200     STOP RUN.

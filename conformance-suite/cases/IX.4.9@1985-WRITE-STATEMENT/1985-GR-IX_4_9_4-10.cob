@@ -1,0 +1,45 @@
+      *>--- conformance-case
+      *> id: 1985-GR-IX_4_9_4-10
+      *> rules: [1985-GR-IX.4.9.4-10]
+      *> accept: [85]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §1985:IX.4.9.4 GR10 (THE WRITE STATEMENT). An output test: the
+      *> program must translate and run at 85 and DISPLAY exactly the
+      *> lines its .out holds, the outcome the rule requires. Placed
+      *> from the confirmation pass's redraft (WRONG original) by
+      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
+000100 IDENTIFICATION DIVISION.
+000200 PROGRAM-ID. ENDWRT.
+000300 ENVIRONMENT DIVISION.
+000400 INPUT-OUTPUT SECTION.
+000500 FILE-CONTROL.
+000600     SELECT IDX-FILE ASSIGN TO IDXFILE
+000700         ORGANIZATION IS INDEXED
+000800         ACCESS MODE IS RANDOM
+000900         RECORD KEY IS IDX-KEY.
+001000 DATA DIVISION.
+001100 FILE SECTION.
+001200 FD  IDX-FILE
+001300     LABEL RECORDS ARE STANDARD.
+001400 01  IDX-REC.
+001500     05 IDX-KEY  PIC X(4).
+001600     05 IDX-DATA PIC X(10).
+001700 PROCEDURE DIVISION.
+001800 MAIN-PARA.
+001900     OPEN OUTPUT IDX-FILE.
+002000     MOVE "0001" TO IDX-KEY.
+002100     MOVE "FIRST" TO IDX-DATA.
+002200     WRITE IDX-REC
+002300         INVALID KEY DISPLAY "INVALID 1"
+002400     END-WRITE
+002500     DISPLAY "NEXT 1".
+002600     MOVE "0001" TO IDX-KEY.
+002700     MOVE "SECOND" TO IDX-DATA.
+002800     WRITE IDX-REC
+002900         INVALID KEY DISPLAY "INVALID 2"
+003000     END-WRITE
+003100     DISPLAY "NEXT 2".
+003200     CLOSE IDX-FILE.
+003300     STOP RUN.

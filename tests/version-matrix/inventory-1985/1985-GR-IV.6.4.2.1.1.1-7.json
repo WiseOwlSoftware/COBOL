@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.6.4.2.1.1.1-7",
  "rule-digest": "d85bfa84c3a1",
+ "test-ref": "conformance:cases/IV.6.4.2.1.1@1985-Definition-of-Conditional-Statement/1985-GR-IV_6_4_2_1_1_1-7",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

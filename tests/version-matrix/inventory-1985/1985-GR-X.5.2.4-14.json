@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.5.2.4-14",
  "rule-digest": "b5aaa320e8b5",
+ "test-ref": "conformance:cases/X.5.2@1985-CALL-STATEMENT/1985-GR-X_5_2_4-14",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
