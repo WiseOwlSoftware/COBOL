@@ -9065,7 +9065,6 @@ The following is the list of reserved words:
 - B-SHIFT-R
 - B-SHIFT-LC
 - B-SHIFT-RC
-- BY
 - B-XOR
 - BASED
 - BEFORE
@@ -9080,6 +9079,9 @@ The following is the list of reserved words:
 - BLOCK
 - BOOLEAN
 - BOTTOM
+- BY
+
+> ⚠ **CORRECTED — see the Addendum (C16).** The standard prints **`BY`** between `B-SHIFT-RC` and `B-XOR` (page 205), out of the list's alphabetical order; it belongs here, after `BOTTOM`, where the list of ISO/IEC 1989:2002 places it. Moved, not changed: the word is the same.
 
 - CALL
 - CANCEL
@@ -9160,8 +9162,11 @@ The following is the list of reserved words:
 - END-MULTIPLY
 - END-OF-PAGE
 - END-PERFORM
-- END-RECEIVE
 - END-READ
+- END-RECEIVE
+
+> ⚠ **CORRECTED — see the Addendum (C16).** The standard prints **`END-RECEIVE`** before **`END-READ`** (page 206), out of the list's alphabetical order; `END-READ` precedes `END-RECEIVE`, as in the list of ISO/IEC 1989:2002. Reordered, not changed.
+
 - END-RETURN
 - END-REWRITE
 - END-SEARCH
@@ -9190,8 +9195,11 @@ The following is the list of reserved words:
 - EXTERNAL
 
 - FACTORY
-- FARTHEST-FROM-ZERO
 - FALSE
+- FARTHEST-FROM-ZERO
+
+> ⚠ **CORRECTED — see the Addendum (C16).** The standard prints **`FARTHEST-FROM-ZERO`** before **`FALSE`** (page 206), out of the list's alphabetical order; `FALSE` precedes `FARTHEST-FROM-ZERO`. Reordered, not changed.
+
 - FD
 - FILE
 - FILE-CONTROL
@@ -9237,8 +9245,11 @@ The following is the list of reserved words:
 - HIGH-VALUE
 - HIGH-VALUES
 
-- i-O
-- I-OICONTROL
+- I-O
+- I-O-CONTROL
+
+> ⚠ **CORRECTED — see the Addendum (C15).** The standard prints **`i-O`** and **`I-OICONTROL`** here (page 206); they are typesetting slips in ISO/IEC 1989:2023 for the reserved words `I-O` and `I-O-CONTROL`, which the standard spells so everywhere else — the OPEN statement's general format (page 675), the I-O-CONTROL paragraph's own general format (12.4.6, page 333) and the index (page 1217). Corrected because a reserved-word list is consumed as data (the reason of C1).
+
 - IDENTIFICATION
 - IF
 - IN
@@ -9393,8 +9404,11 @@ The following is the list of reserved words:
 - SEARCH
 - SECTION
 - SELECT
-- SEND
 - SELF
+- SEND
+
+> ⚠ **CORRECTED — see the Addendum (C16).** The standard prints **`SEND`** before **`SELF`** (page 207), out of the list's alphabetical order; `SELF` precedes `SEND`, as in the list of ISO/IEC 1989:2002. Reordered, not changed.
+
 - SENTENCE
 - SEPARATE
 - SEQUENCE
@@ -47384,6 +47398,47 @@ which classifies every en dash and reports each one it keeps.
 every prose dash (`a single character – either an alphanumeric …`), every en dash of Annexes D to G (they are prose,
 not COBOL text) and the four inside general-format figures, which `sweep_figures.py` regenerates from the PDF and
 owns. The em dash (U+2014) is the transcription's own prose punctuation and was never in question.
+
+### C15 · page 206 · reserved-word list · `i-O` → `I-O`, `I-OICONTROL` → `I-O-CONTROL`
+
+| | |
+|---|---|
+| **Printed** | `i-O` and, on the next line, `I-OICONTROL` |
+| **This transcription** | `I-O` and `I-O-CONTROL` |
+
+Two slips on adjacent lines of the same column, confirmed on the rendered page: a lower-case `i` where every other
+entry of the list is upper case, and an `I` where the second hyphen of `I-O-CONTROL` belongs. Neither printed form is
+a COBOL word the standard uses anywhere else; each occurs exactly once in the 1,261 pages, here.
+
+| spelling | occurrences | where |
+|---|---:|---|
+| `i-O` | **1** | page 206 — this reserved-word list, and nowhere else |
+| `I-OICONTROL` | **1** | page 206 — this reserved-word list, and nowhere else |
+| `I-O-CONTROL` | **8**, on 6 pages | page 209, the context-sensitive word table (`APPLY` — I-O-CONTROL paragraph); page 233, 9.1.18.2; page 333, the I-O-CONTROL paragraph's own clause 12.4.6 and its general format; page 1022, an example program; page 1217, the index |
+| `I-O` | the OPEN statement's general format | page 675, the OPEN statement (the index's "I-O phrase … OPEN statement 675") |
+
+The reserved-word list of ISO/IEC 1989:2002 prints the two entries `I-O` and `I-O-CONTROL` at the same place. Corrected
+for the reason of C1: the list is consumed as data, and a reserved-word table generated from the printed form would
+reserve `I-OICONTROL` and fail to reserve `I-O-CONTROL`.
+
+### C16 · pages 205, 206 and 207 · reserved-word list · four entries out of alphabetical order · `BY`, `END-READ`, `FALSE`, `SELF`
+
+| printed page | **Printed** order | this transcription |
+|---:|---|---|
+| 205 | `B-SHIFT-RC`, `BY`, `B-XOR`, … `BOTTOM` | `B-SHIFT-RC`, `B-XOR`, … `BOTTOM`, `BY` |
+| 206 | `END-PERFORM`, `END-RECEIVE`, `END-READ` | `END-PERFORM`, `END-READ`, `END-RECEIVE` |
+| 206 | `FACTORY`, `FARTHEST-FROM-ZERO`, `FALSE` | `FACTORY`, `FALSE`, `FARTHEST-FROM-ZERO` |
+| 207 | `SELECT`, `SEND`, `SELF` | `SELECT`, `SELF`, `SEND` |
+
+8.9 is an alphabetical list, and its collation is the one these four break: a hyphen sorts before a letter
+(`B-AND` … `B-XOR` precede `BASED`; `LOCAL-STORAGE` precedes `LOCALE`). Each of the four is misplaced under that
+collation and under any other — `BY` sits inside the `B-` words, and `REA` < `REC`, `FAL` < `FAR`, `SEL` < `SEN` —
+and the list of ISO/IEC 1989:2002 prints `END-READ` before `END-RECEIVE`, `BY` after `BOTTOM` and `SELF` before `SEND`
+(`FARTHEST-FROM-ZERO` is new in 2014). The words are unchanged; only their places move, so no reserved word is added
+or lost. A mechanical check of every adjacent pair in the list found these four and two more, which are kept as
+printed because their order is systematic rather than a slip: `FLOAT-BINARY-64` before `FLOAT-BINARY-128` (the
+`FLOAT-` words are ordered by width, as `FLOAT-DECIMAL-16` before `FLOAT-DECIMAL-34`) and `B-SHIFT-L`, `B-SHIFT-R`
+before `B-SHIFT-LC`, `B-SHIFT-RC` (the two shifts, then their circular forms).
 
 ## Defects recorded but NOT corrected
 

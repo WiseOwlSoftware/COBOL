@@ -259,7 +259,8 @@ def load(edition: int, repo: pathlib.Path = spec_pdf.REPO):
     """The lines and citable regions of `edition`'s transcription (`citation.regions`); exits while it is absent."""
     loaded = citation.regions(edition, repo)
     if loaded is None:
-        where = f"({spec_pdf.markdown(edition, repo).relative_to(repo).as_posix()}) " if edition in spec_pdf.EDITIONS else ""
+        source = citation.SOURCE_EDITION.get(edition, edition)
+        where = f"({spec_pdf.markdown(source, repo).relative_to(repo).as_posix()}) " if source in spec_pdf.EDITIONS else ""
         sys.exit(f"FATAL: the {edition} transcription {where}does not exist in this tree.")
     return loaded
 
