@@ -165,14 +165,13 @@ WORK_SKILLS = ("Then, as the work arises: `spec-lookup` before any COBOL semanti
                "`review` for a review · `architecture-review` for R2/R3 work · `new-construct` for a construct, grammar "
                "rule or reserved word. A project skill that names a base (`brent-tools:…`) loads that base first.")
 LANE_SKILLS = {
-    "operator": "Lane OPERATOR (the config dir operator-session.json names): invoke `workstream` before you supervise "
-                "or steer the loop, land, or dispatch anything; act on the probe's `mailbox` line (arm this session's "
-                "inbox watcher).",
-    "mythos": "Lane MYTHOS: owner-assigned Mythos tasks only, each with its approval line; invoke `workstream` before any "
-              "dispatch; act on the probe's `mailbox` line (arm this session's inbox watcher).",
-    "solo": "No two-lane coordination directory here: invoke `workstream` before any dispatch.",
-    "unknown": "Lane unknown (the lane rule could not be read): invoke `workstream` before any dispatch; check "
-               "`python scripts/orchestrator/mailbox.py status`.",
+    "operator": "Lane OPERATOR (the config dir operator-session.json names): `workstream` holds the loop's procedures "
+                "(supervising, steering, landing); act on the probe's `mailbox` line (arm this session's inbox watcher).",
+    "mythos": "Lane MYTHOS: the codebase is this session's to decide (CLAUDE.md, Ownership; kb/Work PB5112), a Fable or "
+              "Mythos spend beyond what the owner approved stays the owner's; `workstream` is a tool when you run a "
+              "fleet; act on the probe's `mailbox` line (arm this session's inbox watcher).",
+    "solo": "No two-lane coordination directory here: `workstream` is a tool when you run a fleet.",
+    "unknown": "Lane unknown (the lane rule could not be read): check `python scripts/orchestrator/mailbox.py status`.",
 }
 
 
@@ -211,7 +210,7 @@ def _self_test() -> int:
     check("a startup and a clear read the same as a resume",
           skills_block("startup", "operator") == op == skills_block("clear", "operator"))
     my = skills_block("startup", "mythos")
-    check("the Mythos lane names its approval rule and its watcher", "approval line" in my and "watcher" in my)
+    check("the Mythos lane names what stays the owner's and its watcher", "stays the owner" in my and "watcher" in my)
     cp = skills_block("compact", "operator")
     check("a compaction keeps the loaded skills instead of restarting", "stay in force" in cp and "NOW" not in cp)
     wave = skills_block("startup", "loop:wave")

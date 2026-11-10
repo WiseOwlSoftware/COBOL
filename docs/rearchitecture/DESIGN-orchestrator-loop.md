@@ -161,7 +161,7 @@ checkpoints with WIP commits and a stamped `STATUS.md`, so `resume` rebuilds the
 then end at any time without losing a running agent, and the orchestrator's session would only plan and judge.
 Its costs: the supervisor must re-implement the rolling pool, the same-file successor rule, the train assembly and
 the stall ceiling that `wf_rolling_wave.js` already has; the structured return schema becomes a file contract; and
-`dispatch_guard.py` cannot see a dispatch it does not mediate, so the brief checks move into the supervisor. It
+`dispatch_guard.py` cannot see a dispatch it does not mediate, so the wind-down refusal moves into the supervisor. It
 becomes worth building when measurement shows wave units being killed with work in flight often enough that the
 lost agent work exceeds that cost. Open decision D3.
 
@@ -316,7 +316,7 @@ Each iteration, in this order:
 - Forbidden to every unit: the WSL lifecycle commands `wsl --terminate`, `--shutdown`, `--update`, `--export`,
   `--unregister` (they kill every other session's Linux gate). Land only through
   `python scripts/orchestrator/enqueue.py land <branch>` (the landing lane, section 4.9; main refuses a direct push).
-- A `wave` unit loads the `workstream` skill before the Workflow call (`dispatch_guard.py` refuses it otherwise),
+- A `wave` unit loads the `workstream` skill before the Workflow call (its procedure; no hook requires it, kb/Work PB5112),
   runs `plan_wave.py`, which renders the specs with `make_dispatch_specs.py` and runs `check_practices.py`, then
   starts `wf_rolling_wave.js` with the args file `plan_wave.py` wrote.
 - A role's turn cap has ONE home, the `maxTurns` of its `.claude/agents/<role>.md` (the number the harness enforces;
@@ -327,7 +327,7 @@ Each iteration, in this order:
 ### 4.2 Permission mode under a headless session
 
 The repository's hooks stay the real guard under any `--permission-mode`: `forbidden_commands.py` refuses the
-forbidden git and shell shapes, `dispatch_guard.py` refuses an unchecked dispatch, `status_guard.py` refuses a
+forbidden git and shell shapes, `dispatch_guard.py` refuses a loop unit's fleet launch after `STOP-UNIT`, `status_guard.py` refuses a
 commit with a stale `STATUS.md`. `--permission-prompts none` makes anything that would prompt a denial instead of
 a hang. The default mode is `bypassPermissions` (decision D1, owner 2026-10-04: allowed for the COBOL work). With prompts
 gone, the hooks above are the only guard, which is why the WSL lifecycle commands are blocked by `forbidden_commands.py`
@@ -360,8 +360,8 @@ Three mechanisms keep a just-paid fleet from being thrown away:
   case for the race in which the cap fires as the launch happens: whichever wins, no fleet stop is sent. The supervisor
   records whether a fleet (`local_workflow` or `local_agent` background task) was running when the wind-down fired
   (`fleet_at_wind_down`).
-- **No fleet launch after the signal.** `dispatch_guard.py` (rule 0) refuses a `Workflow` call and an implementer or
-  lander `Agent` call from a loop unit (the supervisor exports `COBOL_LOOP_UNIT`) while `STOP-UNIT` exists; the unit
+- **No fleet launch after the signal.** `dispatch_guard.py` refuses a `Workflow` call and an implementer or
+  finisher `Agent` call from a loop unit (the supervisor exports `COBOL_LOOP_UNIT`) while `STOP-UNIT` exists; the unit
   prompts say to check `STOP-UNIT` immediately before the call. An attended session shares the coordination directory
   but never carries the variable, so the loop's signal never refuses its dispatches.
 - **The fleet launch comes first** (`units/wave.md`): a wave unit does nothing but plan before its Workflow runs; a
@@ -1418,7 +1418,7 @@ new terminal. A STOP file left on purpose by that procedure is named in the prom
 Python self-tests in the style of `scripts/hooks/test_dispatch_guard.py` (a script that prints a case count and
 exits nonzero on a failure; no framework): `test_alloc.py` (including two real parallel processes allocating
 concurrently with no duplicate), `test_inventory_ratchet.py` (a fabricated reopen, a GAP rise, the marker),
-`test_budget.py` (with each account's reset, readings and telemetry), `scripts/hooks/test_dispatch_guard.py` (rule 0: a loop
+`test_budget.py` (with each account's reset, readings and telemetry), `scripts/hooks/test_dispatch_guard.py` (its one rule: a loop
 unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test_adopt_main.py` (section 4.10: the loop adopts a stable main commit, and only that), `test_ledger_state.py` (owed until the current stamp is
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
 a landing pushed from another clone is owed while the checkout is behind, and the mark refuses until it is fast-forwarded),
