@@ -41,3 +41,12 @@ main said `python scripts/merge_drivers.py merge <ref> --keep`.
 `conflict_report` read it). Left, and named in PB5110: the `merge-failed` BRANCH arm of `gate.NOT_RUN_CAUSES` and exit 5
 have no producer now and are exercised only by a planted `Merged(incomplete=…)`; PB3738's keyed-table driver plan for the two
 CONFORMANCE.md register tables is superseded.
+
+**Review round 1 (R1-1, R1-2, R1-3).** R1-1 (blocking, fixed): the note shape (file plus addenda) was read only by `work.py`; the
+planner's campaign texts, the landing check's `inflight.computed_file_set`, the member-index CLI and the fix lane's note view
+(`clusters.ready_notes_view`, the one file `fix_clusters.py` reads) each read `<id>.md` alone. `work.note_text` is now the one
+body reader and all four call it; self-test arms in `work.py` and `test_plan_wave.py` plant a Sites paragraph only an addendum
+carries. The two public fleet tools `orient.py` and `fix_clusters.py` (submodule `tools/claude-skills`) still read one file per
+note when run by hand; the planner's own path to `fix_clusters.py` is covered by the folded view. R1-2: the conflict brief no
+longer prints `git merge <ref> --keep`, and its self-test refuses `--keep`. R1-3: the doubled "the construct catalogue" phrases
+are corrected and the historical PHASE-13 review is restored to its original text.

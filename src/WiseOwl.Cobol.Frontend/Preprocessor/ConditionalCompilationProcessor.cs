@@ -506,7 +506,7 @@ public static partial class ConditionalCompilationProcessor
                             emit = line;
                         }
                         // A recognized ISO §2023:7.3 directive with no downstream stage: CONSUME it (the program
-                        // compiles with the default behaviour) — the roster is the the construct catalogue rows, never a
+                        // compiles with the default behaviour) — the roster is the construct catalogue rows, never a
                         // hand-kept name set (kb/Work PB725). An UNRECOGNIZED >> word is left in place when
                         // emitting so it surfaces downstream (catching typos like >>IFF).
                         else emit = CompilerDirectiveCatalog.IsDirective(keyword) ? "" : line;

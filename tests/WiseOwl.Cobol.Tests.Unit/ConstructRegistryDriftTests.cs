@@ -56,7 +56,7 @@ public sealed class ConstructRegistryDriftTests
         foreach (var (id, r) in rows)
         {
             var e = reg[id];
-            // The generated Entries must reproduce EVERY the construct catalogue field verbatim (staleness guard).
+            // The generated Entries must reproduce EVERY construct catalogue field verbatim (staleness guard).
             Assert.True(e.IntroducedIn == r.IntroducedIn && e.RemovedIn == r.RemovedIn && e.ObsoleteIn == r.ObsoleteIn,
                 $"drift on {id}: registry ({e.IntroducedIn},{e.RemovedIn?.ToString() ?? "-"},{e.ObsoleteIn?.ToString() ?? "-"}) "
                 + $"vs json ({r.IntroducedIn},{r.RemovedIn?.ToString() ?? "-"},{r.ObsoleteIn?.ToString() ?? "-"})");

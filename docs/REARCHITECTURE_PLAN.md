@@ -3464,7 +3464,7 @@ only (LIVE rows are spot-sampled, 1 in 10).
 2. Every `GAP` row has an OWNER: a named wave/phase row in this plan (most land in this phase's Steps 1–11
    worklists or the P13 ledger fix queue) or an explicit CONFORMANCE.md disposition (which converts it to
    `DISPOSED`).
-3. A drift guard: a CI test asserts (a) every the construct catalogue row + CONFORMANCE.md disposition references an
+3. A drift guard: a CI test asserts (a) every construct catalogue row + CONFORMANCE.md disposition references an
    inventory row id, and (b) every `LIVE` row's cited test still exists. The inventory is thereafter maintained
    in the same change set as any surface change (the CLAUDE.md rule-4 discipline).
 4. The DEFINITION OF DONE for the whole mission becomes checkable: 100% conforming = zero GAP rows.

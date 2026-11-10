@@ -432,6 +432,18 @@ def read_addenda(work_dir: pathlib.Path, note_file: str) -> tuple[list[tuple[str
     return found, refused
 
 
+def note_text(note_id: str, work_dir: pathlib.Path = WORK) -> str | None:
+    """The whole text of the note `note_id` as the register reads it (`fold_text`: its file, then its addenda), or None when
+    `work_dir` has no such file. THE READER for every consumer of a note's BODY outside `read_notes`: the planner's declared
+    sets, the landing check's computed file set, the member-index CLI. A reader of `<id>.md` alone sees a different note
+    than the register does, because a reopen or a landing paragraph is an addendum file (PB5110)."""
+    p = work_dir / f"{note_id}.md"
+    if not p.is_file():
+        return None
+    addenda, _ = read_addenda(work_dir, p.name)
+    return fold_text(p.read_text(encoding="utf-8", errors="replace"), [t for _, t in addenda])
+
+
 def read_notes(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[str]]:
     """Every note under `work_dir` and a refusal for every file named like a note that is not one (read_note). A note is its
     file followed by its addenda (`fold_text`), so a reader of `_body` sees every paragraph of the note, and a directory of
@@ -2317,6 +2329,10 @@ def addendum_findings() -> list[str]:
             findings.append(f"addenda are not read after the note in name order (refused {refused}, body {body!r})")
         if by_id["PB9001"].get("status") != "open" or by_id["PB9002"]["_body"] != by_id["PB9002"]["_body"].rstrip(chr(10)) + chr(10):
             findings.append("a note's frontmatter or its addendum-free body changed by reading addenda")
+        text9001 = note_text("PB9001", root) or ""
+        if (not text9001.startswith("---") or not (text9001.index("body") < text9001.index("**First.**") < text9001.index("**Second.**"))
+                or note_text("PB9002", root) != head.replace("PB9001", "PB9002") or note_text("PB9009", root) is not None):
+            findings.append("note_text (the body reader of the planner, the landing check and the member index) differs from the register's note")
         folded = fold_text((root / "PB9001.md").read_text(encoding="utf-8"),
                            [t for _, t in read_addenda(root, "PB9001.md")[0]])
         (root / "PB9001.md").write_text(folded, encoding="utf-8", newline=chr(10))

@@ -357,7 +357,7 @@ public sealed class ReportWriterConformanceTests
     // 2002 surface". They now share the class's 2023 compiler, because the READ-BACK the whole class observes
     // through is a 2023 organization (see the WiseOwl.Cobol field): a program carrying it is not expressible at 2002
     // at all, so the helper's name was the only thing asserting the edition. 2002-and-later coverage of PRESENT
-    // WHEN itself is the the construct catalogue (construct × edition) matrix's job, not this net's.
+    // WHEN itself is the construct catalogue (construct × edition) matrix's job, not this net's.
 
     [Fact]   // §2023:13.18.41.4 GR3g / §2023:13.18.54.4 GR10: a SUM entry absent under its PRESENT WHEN is neither
              // printed nor reset for that instance of the report group — the counter carries its accumulation

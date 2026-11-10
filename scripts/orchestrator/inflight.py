@@ -34,6 +34,7 @@ sys.path.insert(0, str(HERE.parent / "arch"))
 import coord  # noqa: E402
 import git_batch  # noqa: E402  (scripts/: the batched git reads, one process for many objects, kb/Work PB3582)
 import source_units  # noqa: E402  (scripts/arch/: the units of a file, the units a diff touches, the name match)
+import work  # noqa: E402  (scripts/spec/: note_text, THE reader of a note's whole body, its addenda included, kb/Work PB5110)
 from reports import Report, answers, ledger_slug  # noqa: E402  (the report reader: "a dispatch returned")
 if TYPE_CHECKING:
     from prune_worktrees import Replay  # noqa: E402  (imported lazily at run time: it imports this module back)
@@ -352,8 +353,8 @@ def computed_file_set(repo: pathlib.Path, ids: list[str], policy: IndexPolicy) -
     declared = declared_sets(repo, policy)
     out = Claim()
     for i in ids:
-        if (f := repo / "kb" / "Work" / f"{i}.md").is_file():
-            out = out | declared(f.read_text(encoding="utf-8", errors="replace"))
+        if (text := work.note_text(i, repo / "kb" / "Work")) is not None:
+            out = out | declared(text)
     return out
 
 

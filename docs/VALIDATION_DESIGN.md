@@ -187,7 +187,7 @@ COMMIT@2023, RAISING@2002, RECEIVE + END-RECEIVE (85-reserved → free 2002/2014
    0801/0802/0810/0811/0873/0875–0879/0882/0893/09xx.
 2. **INV-1-STRONG at the default edition:** `WISEOWL_COBOL_NIST_STD=2023 WISEOWL_COBOL_NIST_PERMISSIVE=1` over the
    golden run = **349/349 byte-exact**.
-3. **INV-2 both ways:** every the construct catalogue row's f(case,V) matrix green (strict cells + the removed-
+3. **INV-2 both ways:** every construct catalogue row's f(case,V) matrix green (strict cells + the removed-
    permissive theory + the obsolete-warning theory); reject cells carry their `expectDiagnostic`.
 4. **Census:** ≥357 GREEN on the full NIST census at 85.
 5. **Drift:** both drift disciplines green (registry↔the construct catalogue; word table↔reserved-words.json).

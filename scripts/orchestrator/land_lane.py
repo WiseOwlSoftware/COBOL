@@ -364,7 +364,7 @@ def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, re
            "CONFLICT finisher, who gets it verbatim (units/enqueue.md step 4).",
            f"Bringing {label} ({main_sha[:12] or 'unreadable'}) into {branch} ({tip[:12] or 'unreadable'}, merge "
            f"base {base[:12] or 'unreadable'}) leaves {len(files)} file(s) in conflict: {', '.join(files) or 'none'}.",
-           f"Merge with `git merge {against if against == MAIN else main_sha or against} --keep` and "
+           f"Merge with `git merge {against if against == MAIN else main_sha or against}` and "
            f"resolve each file against BOTH sides' intent: this branch's notes and report, and what {who} gained on the "
            "file, with its notes and reports (finisher-brief.md, CONFLICT). Never take one side wholesale."
            + ("" if against == MAIN else
@@ -2634,7 +2634,7 @@ def self_test() -> int:
                "head, not origin/main (which merges clean): the file, the entry's name, and the merge command for its head",
                show_conflict_brief(c17c, "wq", lambda *a, cwd=None: qbr.run(*a, cwd=cwd), foreseen_out.append) == 0
                and "Bringing wahead" in "".join(foreseen_out) and "leaves 1 file(s) in conflict: scripts/q.py" in "".join(foreseen_out)
-               and f"git merge {ahead_head}" in "".join(foreseen_out)
+               and f"`git merge {ahead_head}`" in "".join(foreseen_out) and "--keep" not in "".join(foreseen_out)
                and "QUEUED ahead of this one" in "".join(foreseen_out) and "the entry queued ahead" in "".join(foreseen_out),
                "".join(foreseen_out))
 

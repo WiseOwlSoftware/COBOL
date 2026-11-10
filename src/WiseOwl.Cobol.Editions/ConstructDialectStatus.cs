@@ -21,7 +21,7 @@ public enum ConstructAvailability
 /// drift test (<c>ConstructRegistryDriftTests</c>) asserts registry↔json equality BOTH directions, so a gate
 /// cannot land without its matrix row nor a row without its registry entry.
 /// </summary>
-/// <param name="Id">The the construct catalogue row id.</param>
+/// <param name="Id">The construct catalogue row id.</param>
 /// <param name="Display">Human name used in diagnostics.</param>
 /// <param name="IntroducedIn">First edition that HAS the construct (85/2002/2014/2023).</param>
 /// <param name="RemovedIn">First edition that REMOVED it (null = never).</param>

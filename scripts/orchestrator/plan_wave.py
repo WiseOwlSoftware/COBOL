@@ -1115,8 +1115,8 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
         if not view["notes"]:
             print(f"=== CLUSTER {a.cluster} LANDED: every one of its {view['named']} note(s) is landed or retired ===")
             return 0
-        texts = {r["id"]: f.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n")
-                 for r in view["notes"] if (f := REPO / "kb" / "Work" / f"{r['id']}.md").is_file()}
+        texts = {r["id"]: t.replace("\r\n", "\n")
+                 for r in view["notes"] if (t := work.note_text(r["id"], REPO / "kb" / "Work")) is not None}
         tiers = {r["id"]: r["tier"] for r in view["notes"]}   # the effective tiers: the placement order (PB3638)
         # A CAMPAIGN WHOSE GROUPS ALWAYS RUN OVER IS SPLIT SMALLER (kb/Work PB4944): its recorded pace sets the group size
         cap, why = group_sizes.campaign_cap(cdir, a.cluster, notes_cap(rules))

@@ -1254,6 +1254,17 @@ try:
 except SystemExit as e:  # the campaign clusters by fix_clusters.py's real index: a missing submodule is a FAIL, not a skip
     fc = None
     check("tools/claude-skills submodule present (git submodule update --init tools/claude-skills)", str(e), "")
+# A NOTE'S BODY IS ITS FILE AND ITS ADDENDA (kb/Work PB5110, review R1-1): the landing check's computed file set reads a
+# **Sites:** block that only an addendum carries, so a reopened note claims the files its reopening names
+ADD_REPO = TMP / "addenda-repo"
+(ADD_REPO / "kb" / "Work" / "PB9101").mkdir(parents=True)
+(ADD_REPO / "kb" / "Work" / "PB9101.md").write_text("---" + chr(10) + "id: PB9101" + chr(10) + "---" + chr(10) + "# PB9101" + chr(10),
+                                                    encoding="utf-8", newline=chr(10))
+(ADD_REPO / "kb" / "Work" / "PB9101" / "2026-11-11-reopen.md").write_text(
+    "**Sites:** `scripts/addendum_only.py`" + chr(10), encoding="utf-8", newline=chr(10))
+check("computed_file_set reads a note's addenda: a site named only in an addendum is claimed",
+      "scripts/addendum_only.py" in inb.computed_file_set(ADD_REPO, ["PB9101"], IndexPolicy(TMP / "no-cache-add", regenerate=False)).files,
+      True)
 if fc:
     cnotes = load_notes(CW, {"wrong_answer": 8})
     ctexts = {i: (CW / f"{i}.md").read_text(encoding="utf-8") for i in cnotes}
@@ -2233,6 +2244,13 @@ view = ready_notes_view("open", TMP / "fix-lane-view", FL)
 check("the fix lane reads the open harmed notes that wait on nothing: a landed blocker is no hold, an open one, an owner "
       "status and a chain are; a harmed analysis is in, an unharmed decision or analysis and a process_only defect are not",
       sorted(p.stem for p in view.iterdir()), ["PB801", "PB803", "PB808"])
+# the view's copy of a note carries its addenda, the one file fix_clusters.py reads (kb/Work PB5110, review R1-1)
+(FL / "PB801").mkdir()
+(FL / "PB801" / "2026-11-11-reopen.md").write_text("addendum-only paragraph" + NL, encoding="utf-8", newline="")
+check("a ready note's copy in the fix lane's view carries its addenda",
+      "addendum-only paragraph" in (ready_notes_view("open", TMP / "fix-lane-view-add", FL) / "PB801.md").read_text(encoding="utf-8"), True)
+(FL / "PB801" / "2026-11-11-reopen.md").unlink()
+(FL / "PB801").rmdir()
 # a ready process_only prerequisite of a harmed note joins the view with the harm it owes (kb/Work PB4769); one with no
 # harmed dependent stays hidden, and the register's own file is untouched
 PQ = TMP / "prereq-register"

@@ -308,7 +308,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // Keyword omission via the REPOSITORY FUNCTION specifier is a COBOL-2002 introduction (§2023:12.3.8) — below
         // 2002 the routing is inert, so the 85/NIST surface is byte-invariant (a lone name(args) stays a data
         // reference exactly as before). The FUNCTION-keyword form is unaffected at every edition. ⛔ The edition is
-        // the the construct catalogue row of the declaration that licenses the omission (kb/Work PB2589): the entry's own gate
+        // the construct catalogue row of the declaration that licenses the omission (kb/Work PB2589): the entry's own gate
         // (VersionConformancePass ParseArm.VisitRepositoryEntry) and this route read ONE fact, not two copies of 2002.
         if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.RepositoryFunction2002)) return null;
         if (dref.cobolWord() is not { } cw) return null;                    // special registers (LINAGE/LINE/PAGE-COUNTER) are never functions

@@ -128,7 +128,7 @@ public static class EditionSeverityPolicy
 public readonly record struct EditionDiagnostic(
     string Code,              // COBOL0900 … or a pinned 08xx
     EditionSeverity Severity,
-    string ConstructId,       // the the construct catalogue row id (empty for non-registry diagnostics)
+    string ConstructId,       // the construct catalogue row id (empty for non-registry diagnostics)
     string Message,
     string Where,             // "FD OUT-FILE", "paragraph P1" …
     string Citation,          // ISO § / VCR row
