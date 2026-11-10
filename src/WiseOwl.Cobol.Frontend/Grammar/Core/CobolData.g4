@@ -175,21 +175,33 @@ codeSetForPhrase
     : FOR? (ALPHANUMERIC | NATIONAL) IS? cobolWord
     ;
 
-// LABEL RECORD(S) IS/ARE — obsolete COBOL-85 FD clause, semantically inert
+// LABEL RECORDS clause — §1985:VII.3.6.2, verbatim: LABEL {RECORD IS | RECORDS ARE} {STANDARD | OMITTED}. An obsolete
+// COBOL-85 element, deleted from COBOL-2002 (VersionConformancePass.VisitLabelRecordsClause, COBOL0902). The braces
+// require one of the two words (§1985:IV.2.1.4), so any other word is not the clause (kb/Work PB5070: IGNORED was
+// eaten by a `cobolWord+` arm). Labels are not processed, so the clause changes no I-O (no label support is claimed).
 labelRecordsClause
-    : LABEL (RECORD IS? | RECORDS ARE?) (STANDARD | OMITTED | cobolWord+)
+    : LABEL (RECORD IS? | RECORDS ARE?) (STANDARD | OMITTED)
     ;
 
-// DATA RECORD(S) IS/ARE — obsolete COBOL-74 FD clause, semantically inert
+// DATA RECORDS clause — §1985:VII.3.5.2: DATA {RECORD IS | RECORDS ARE} {data-name-1} …, documentation only (GR1, GR2);
+// an obsolete COBOL-85 element, deleted from COBOL-2002 (COBOL0873). §1985:VII.3.5.3 SR1, each data-name-1 the name of
+// an 01 record description of the entry, is FileControlBinder.ScreenDataRecords (COBOL6849, kb/Work PB5070).
 dataRecordsClause
     : DATA (RECORD IS? | RECORDS ARE?) cobolWord+
     ;
 
-// VALUE OF implementor-name IS data-name/literal — obsolete COBOL-85 FD clause
-// (§2023:13.18 removed feature), semantically inert. Operands are implementor-defined label
-// fields; consume the word/literal/IS sequence until the next clause keyword or the period.
+// VALUE OF clause — §1985:VII.3.9.2: VALUE OF {implementor-name-1 IS {data-name-1 | literal-1}} …, an obsolete COBOL-85
+// element deleted from COBOL-2002 (COBOL0902). IS is not underlined, so it is optional; implementor-name-1 stands before
+// EVERY operand (the braces, §1985:IV.2.1.4), so `VALUE OF "F1DATA"` is not the clause (kb/Work PB5070: a word-eater
+// `(cobolWord | literal | IS)+` took it). Labels are not processed, so implementor-name-1 names a label field this
+// implementation does not check (any word is admitted: docs/CONFORMANCE.md 3.7); data-name-1's syntax rules
+// (§1985:VII.3.9.3 SR1, SR2) are FileControlBinder.ScreenValueOfDataName (COBOL6849).
 valueOfClause
-    : VALUE OF (cobolWord | literal | IS)+
+    : VALUE OF valueOfEntry+
+    ;
+
+valueOfEntry
+    : cobolWord IS? (literal | dataReference)
     ;
 
 // LINAGE clause (ISO §2023:13.18.34) — page-based printing for sequential files

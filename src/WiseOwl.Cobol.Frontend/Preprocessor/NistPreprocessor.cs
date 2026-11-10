@@ -26,6 +26,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 ///   XXXXX030-043 — The MCS's symbolic names and passwords of the CM module (kb/Work PB4677; tests/nist/data/mcs.json defines them)
 ///   XXXXX082     — SOURCE-COMPUTER name
 ///   XXXXX083     — OBJECT-COMPUTER name
+///   XXXXX075-079 — The VALUE OF clause's object (literal-1; kb/Work PB5070)
 ///   XXXXX084     — Implementor-specific label clause value (LABEL RECORDS)
 ///   XXXXX086-088 — Implementor's own DATA DESCRIPTION of a file/label identifier item (kb/Work PB487)
 ///   XXXXX090     — CLASS definition: single character value ("A")
@@ -196,6 +197,12 @@ public static class NistPreprocessor
 
         // XXXXX084: implementor-specific label clause value (LABEL RECORDS)
         source = Literal(source, "XXXXX084", "STANDARD");
+
+        // XXXXX075-079: the VALUE OF clause's object, "REPLACE WITH VALUE CLAUSE OBJECT" (newcob.val: DB104A, IX302M, ST101A …),
+        // after XXXXX074, the implementor-name, which stays a word. The object is data-name-1 or literal-1 (§1985:VII.3.9.2),
+        // and a data-name would have to be a Working-Storage item the program does not describe (§1985:VII.3.9.3 SR2), so the
+        // card is a literal (kb/Work PB5070). Labels are not processed, so its value is never compared.
+        source = Rewrite(source, new Regex(@"(?<![A-Za-z0-9])XXXXX07[5-9](?![A-Za-z0-9])"), m => "\"" + m.Value + "\"");
 
         // XXXXX086/087/088: the implementor's own DATA DESCRIPTION of a file/label identifier item. The card is
         // written `01 IX-FD1-ID1` / `XXXXX086.` — the whole clause list is the X-card, and the implementor

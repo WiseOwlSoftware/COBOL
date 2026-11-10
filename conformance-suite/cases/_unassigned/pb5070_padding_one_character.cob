@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb5070_padding_one_character
-      *> rules: [GR-12.4.5.3-1]
+      *> rules: []
       *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified

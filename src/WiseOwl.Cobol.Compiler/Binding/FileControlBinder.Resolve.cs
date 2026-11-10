@@ -131,6 +131,7 @@ public sealed partial class FileControlBinder
             RecordClauseRules.Screen(file, Edition);
             ResolveLinage(file);   // §2023:13.18.34 — the logical-page operands and §2023:13.18.34.3's syntax rules
         }
+        ResolveValueOfDataNames();   // §1985:VII.3.9.3 SR1, SR2 (kb/Work PB5070)
         ResolveApplyCommit();   // §2023:12.4.6.3.3 — its identifiers, and SR9's FILE STATUS / LINAGE / RECORD items resolved above
     }
 

@@ -34,8 +34,20 @@ public sealed partial class FileControlBinder
     {
         if (clause.dataReference() is { } dref)
         {
-            var (name, quals) = _host.ClauseDataName(dref, "PADDING CHARACTER");
             using var _ = Edition.At(dref);
+            // A constant-name stands where the format specifies literal-1 (§2023:13.10.3 SR2; constant entries begin at 2002):
+            // the word is literal-1 when the program declares it a constant, data-name-1 otherwise.
+            var reading = _host.LiteralEnv.ReadConstant(dref.GetText());
+            if (reading.Kind is ConstantReadingKind.Refused)
+                return new PaddingCharacterSpec { Literal = dref.GetText(), At = Edition.Cursor };
+            if (reading.Kind is not ConstantReadingKind.NotAConstant)
+            {
+                string? one = reading.Value.Category is PicCategory.Alphanumeric && reading.Value.Value.Length == 1
+                    ? reading.Value.Value : null;
+                if (one is null) ReportPaddingLiteral(dref.GetText(), $"the constant-name '{dref.GetText()}' stands for literal-1, ");
+                return new PaddingCharacterSpec { Literal = one ?? dref.GetText(), At = Edition.Cursor };
+            }
+            var (name, quals) = _host.ClauseDataName(dref, "PADDING CHARACTER");
             return new PaddingCharacterSpec { DataName = name, Qualifiers = quals, At = Edition.Cursor };
         }
         var lit = clause.literal();
@@ -47,13 +59,17 @@ public sealed partial class FileControlBinder
             return new PaddingCharacterSpec { Literal = lit.GetText(), At = Edition.Cursor };
         }
         string? value = OneCharacter(lit, _host.LiteralEnv);
-        if (value is null)
-            Edition.Error(DiagnosticCatalog.PaddingCharacterOperand, $"PADDING CHARACTER IS {lit.GetText()}: literal-1 is not a "
-                + "one-character " + (Edition.DialectLevel < 2002
-                    ? "nonnumeric literal (ISO §1985:VII.2.7.3 SR1: \"Literal-1 must be a one-character nonnumeric literal.\")"
-                    : "alphanumeric literal (ISO §2002:12.3.4.10.2 SR1: \"Literal-1 shall be a one-character alphanumeric literal.\")"));
+        if (value is null) ReportPaddingLiteral(lit.GetText(), "");
         return new PaddingCharacterSpec { Literal = value ?? lit.GetText(), At = Edition.Cursor };
     }
+
+    /// <summary>The ONE report of literal-1's rule (COBOL6848), at the cursor the caller set; <paramref name="via"/> names a
+    /// constant-name that stands for the literal.</summary>
+    private void ReportPaddingLiteral(string written, string via) =>
+        Edition.Error(DiagnosticCatalog.PaddingCharacterOperand, $"PADDING CHARACTER IS {written}: {via}literal-1 is not a "
+            + "one-character " + (Edition.DialectLevel < 2002
+                ? "nonnumeric literal (ISO §1985:VII.2.7.3 SR1: \"Literal-1 must be a one-character nonnumeric literal.\")"
+                : "alphanumeric literal (ISO §2002:12.3.4.10.2 SR1: \"Literal-1 shall be a one-character alphanumeric literal.\")"));
 
     /// <summary>The one character literal-1 stands for, or null when it is not a one-character alphanumeric literal.</summary>
     private static string? OneCharacter(Core.LiteralContext lit, LiteralEnvironment env)

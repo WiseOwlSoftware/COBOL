@@ -9445,6 +9445,20 @@ public static class DiagnosticCatalog
         + "the Report Section.\" COBOL-2002 words the same rules (§2002:12.3.4.10.2 SR1, SR3).",
         "ISO §1985:VII.2.7.3 SR1, SR3; §2002:12.3.4.10.2 SR1, SR3");
 
+    /// <summary>COBOL6849 — an operand of an obsolete COBOL-85 file description clause breaks the clause's syntax rules
+    /// (kb/Work PB5070): a DATA RECORDS data-name that names no 01 record description of the entry (§1985:VII.3.5.3 SR1), or a
+    /// VALUE OF data-name-1 described USAGE IS INDEX or outside the Working-Storage Section (§1985:VII.3.9.3 SR1, SR2). Emitted
+    /// by <c>FileControlBinder.ScreenDataRecords</c> and <c>FileControlBinder.ResolveValueOfDataNames</c>; both clauses exist at
+    /// COBOL-85 and are deleted from COBOL-2002.</summary>
+    public static readonly DiagnosticDescriptor FileDescriptionClauseOperand = new(
+        "COBOL6849", "file-description-clause-operand", EditionSeverity.Error,
+        "An operand of the DATA RECORDS or VALUE OF clause breaks the clause's syntax rules. §1985:VII.3.5.3 SR1: \"Data-name-1 "
+        + "is the name of a data record and must have an 01 level-number record description, with the same name, associated "
+        + "with it.\" §1985:VII.3.9.3 SR1: \"Data-name-1 should be qualified when necessary, but cannot be subscripted, nor can "
+        + "data-name-1 be an item described with the USAGE IS INDEX clause.\" SR2: \"Data-name-1 must be in the "
+        + "Working-Storage Section.\"",
+        "ISO §1985:VII.3.5.3 SR1; §1985:VII.3.9.3 SR1, SR2");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

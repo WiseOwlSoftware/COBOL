@@ -3415,6 +3415,19 @@ is D32 of `docs/FILES_DESIGN.md`.
 | The FILE STATUS and LINAGE items | External, and the same FILE STATUS item in every entry, at 2023 only (COBOL1624, COBOL1573): the Annex E.2 items 9 and 12 requirement, which no earlier edition states for FILE STATUS; its severity follows the removal policy (a warning under --permissive) |
 | The PADDING CHARACTER clause (85, 2002; deleted from 2014) | A null facility in function: WiseOwl COBOL has no blocking model, so no padding character is written or bypassed (§1985:VII.2.7.4 GR2: the creation or recognition of padding characters does not occur where the clause is not applicable to the device type). Its syntax rules are enforced (COBOL6848: §1985:VII.2.7.3 SR1 a one-character nonnumeric literal, a figurative constant counting as one character and an ALL literal only when its literal is; SR3 a one-character alphanumeric item outside the communication, file and report sections; §2002:12.3.4.10.2 SR1, SR3), and for an external file connector the clause is part of the entry identity and data-name-1 must be an external data item (§1985:VII.2.7.4 GR6, §2002:12.3.4.3 GR1 h)) |
 
+### 3.7 The obsolete COBOL-85 file description clauses LABEL RECORDS, VALUE OF and DATA RECORDS (kb/Work PB5070)
+
+The three clauses are obsolete elements of X3.23-1985 and are deleted from COBOL-2002 (COBOL0902, COBOL0873). WiseOwl COBOL claims no
+label processing, so LABEL RECORDS and VALUE OF are null facilities in function (§1985:I.1.5.2.5.1), and DATA RECORDS is documentation
+(§1985:VII.3.5.4 GR1). Their general formats and syntax rules are enforced at COBOL-85, where they are rules of the source program.
+
+| Item | Determination |
+|---|---|
+| The general formats | The grammar is the printed format: LABEL takes STANDARD or OMITTED only (§1985:VII.3.6.2), and VALUE OF writes implementor-name-1 before every data-name-1 or literal-1 (§1985:VII.3.9.2; §1985:IV.2.1.4, a brace requires one of its options), so any other spelling is a syntax error |
+| VALUE OF implementor-name-1 | Any word. The label fields it names are the implementor's, and no label is read or written, so no name is checked against a list. The run-unit consistency rule for an external file connector's VALUE OF clauses (§1985:VII.3.9.4 GR2: "The implementor will specify the consistency rules") is therefore vacuous: every specification is consistent |
+| VALUE OF data-name-1 | §1985:VII.3.9.3 SR1 and SR2: not subscripted (COBOL2024, the clause-operand capture), not USAGE IS INDEX, and in the Working-Storage Section (COBOL6849); an undefined name is COBOL1639 |
+| DATA RECORDS data-name-1 | §1985:VII.3.5.3 SR1: the name of an 01 record description of the same entry (COBOL6849), in an FD and in an SD |
+
 ## 4. Documented non-support facilities (§2023:4.2.6 / §2023:4.2.7 / §2023:4.2.13)
 
 The following facilities are **not implemented** (commit and rollback only for the sequential organizations, item 2),
