@@ -356,12 +356,9 @@ public sealed class CorpusManifestTests
     /// here, where it is a real audit of the BASELINE rather than of the run, and it is stated as a SET EQUALITY
     /// so neither direction can rot: a golden that quietly acquires a failure is caught, and a declaration left
     /// behind after a golden is repaired is caught too (feedback_measure_the_selectors_complement).
-    /// <para>The one declared member today is <b>NC201A</b>: PFM-TEST-F4-23 ("ORDER OF INITIALISATION OF VARYING
-    /// IDENTIFIERS") asserts SIX body executions for <c>VARYING A … AFTER B FROM A …</c> under TEST BEFORE,
-    /// while ISO §2023:14.9.28.4 GR13 e) 2 a–c set the inner induction variable to its initialization value BEFORE
-    /// augmenting the one to its left — so B is reset from the PRE-augment A and the statement runs EIGHT.
-    /// The determination is in <c>docs/CONFORMANCE.md</c> §3; the citation-bearing pin is in
-    /// <c>SpecPinnedNistTests</c>; kb/Work PB436.</para></summary>
+    /// <para>There is NO declared member today: NC201A, the one that was (PFM-TEST-F4-23 asserts the 1985 order of an
+    /// AFTER step, which the compiler applied from 2002 on, kb/Work PB436), passes since it follows the 1985 text at
+    /// <c>--std 85</c> (kb/Work PB5101). The allowance stays for the next CCVS check the text contradicts.</para></summary>
     [Fact]
     public void GoldensCarryingACcvsFailure_AreExactlyTheDeclaredCcvsDefects()
     {
