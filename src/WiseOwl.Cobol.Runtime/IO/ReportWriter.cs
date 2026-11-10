@@ -1342,9 +1342,9 @@ public sealed class CobolReport(
     }
 
     /// <summary>⛔ THE ONE PROLOGUE OF EVERY GROUP PRESENTATION — body, page heading, page footing, report heading
-    /// and report footing alike. It takes the group's presence snapshot (<see cref="BeginPresentation"/>), performs the
-    /// group's own sum additions (<see cref="ApplyRolled"/>), runs the group's USE BEFORE REPORTING declarative
-    /// (§2023:14.9.49.4 GR8, after the additions per GR9 b), and answers whether the group has anything to
+    /// and report footing alike. It performs the group's own sum additions (<see cref="ApplyRolled"/>), runs the
+    /// group's USE BEFORE REPORTING declarative (§2023:14.9.49.4 GR8, after the additions per GR9 b), takes the
+    /// group's presence snapshot (<see cref="BeginPresentation"/>), and answers whether the group has anything to
     /// PRINT. When it has not, the group's processing still ENDS, so its end-of-group sum reset (§2023:13.18.54.4 GR2)
     /// runs here:
     /// <list type="bullet">
@@ -1368,16 +1368,22 @@ public sealed class CobolReport(
         // footing's processing: a) crossfoot, b) roll forward, c) "the USE procedure is executed"; §2023:14.9.49.4 GR9 b)
         // invokes the declarative "After incrementing sum counters defined in the report group". A USE procedure that
         // reads (or SUPPRESSes on) its group's crossfooted or rolled totals therefore sees them current, never the
-        // previous instance's (kb/Work PB5127). The presence snapshot §2023:13.18.54.4 GR11 reads is taken first,
-        // once per presentation (§2023:13.18.41.4 GR2).
-        first = BeginPresentation(group);
+        // previous instance's (kb/Work PB5127).
         // §2023:13.18.54.4 GR7 a)/b) — a rolled total is added when the group is PROCESSED, before any of its lines is
         // printed, whether or not anything prints (a SUPPRESSed group and a dummy group are still processed, and
         // SUPPRESS inhibits only printing, page advance, NEXT GROUP and LINE-COUNTER changes — see SuppressPrinting).
         // An OR PAGE reprint of a control heading is the same instance printed again, not a second processing
-        // (the reset it skips, `PresentBody`), so it adds nothing.
-        if (!reprint) ApplyRolled(group);
+        // (the reset it skips, `PresentBody`), so it adds nothing. The additions read the presence snapshot
+        // (§2023:13.18.54.4 GR11), so a group that owes any takes one BEFORE the declarative; the group's printing then
+        // takes its own AFTER it (below), because a declarative decides its group's presence (kb/Work PB367b — the
+        // order the standard leaves to the implementor between GR9 d) and §2023:13.18.41.4 GR2).
+        if (!reprint && group.Rolled.Count > 0)
+        {
+            group.SnapshotPresence();
+            ApplyRolled(group);
+        }
         bool suppressed = RunBeforeReporting(group);   // §2023:14.9.49 GR8; true ⇒ a §2023:14.9.45 SUPPRESS executed
+        first = BeginPresentation(group);
         if (first >= 0 && !suppressed) return true;
         EndOfGroupSumReset(group);
         return false;

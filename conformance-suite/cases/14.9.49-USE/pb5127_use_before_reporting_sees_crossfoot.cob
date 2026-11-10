@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb5127_use_before_reporting_sees_crossfoot
       *> rules: [GR-14.9.49.4-9, GR-13.18.54.4-7]
-      *> accept: [85, 2002, 2014, 2023]
+      *> accept: [85]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -28,6 +28,9 @@
       *> still reset (f) and GRAND still rolled: USE CF-F reads GRAND=0077 and the last STATEMENT line, after the
       *> final resets, reads zero everywhere (LINE=05: the suppressed footing printed no line, the FINAL footing one).
       *> Each USE line can fail: a USE run before step a or b reads the previous totals.
+      *> Accepted at COBOL-85 only: a SUM whose addend is an entry of its own report group (the crossfoot of
+      *> step a) is §2023:13.18.54.3 SR4 b) 's repeating-item case from 2002 (COBOL2730 otherwise); the order
+      *> itself is every edition's (§2023:14.9.49.4 GR9 b)).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5127CFSEQ.
        ENVIRONMENT DIVISION.

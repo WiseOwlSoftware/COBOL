@@ -1365,10 +1365,11 @@ of an unsupported facility.
   `DialectBehavior.ControlFootingPageGroupsSeePriorControlValues`, VCR row 7.54); from 2002 they see the prior ones.
   Witnesses: `conformance:cases/13.18.16-CONTROL/pb5128_footing_page_groups_control_values` and `.../pb5128_terminate_page_footing_control_values` (each `.85.out` and `.out`).
   The sum-counter side of the same 1985 rule (GR10 a)–c): crossfoot and roll forward BEFORE the USE procedure) is
-  every edition's order, §2023:14.9.49.4 GR9 b) saying the same (the group's presence snapshot, which §2023:13.18.54.4
-  GR11 reads for those additions, is therefore taken before the USE procedure: one answer per presentation,
-  §2023:13.18.41.4 GR2), witness
-  `conformance:cases/14.9.49-USE/pb5127_use_before_reporting_sees_crossfoot` (kb/Work PB5127).
+  every edition's order, §2023:14.9.49.4 GR9 b) saying the same. A group that owes such additions takes the presence
+  snapshot §2023:13.18.54.4 GR11 reads for them BEFORE the USE procedure, and takes the snapshot its printing reads
+  AFTER it (the determination of kb/Work PB367b stands: a declarative decides its own group's presence).
+  Witness `conformance:cases/14.9.49-USE/pb5127_use_before_reporting_sees_crossfoot` (85 only: a same-group addend is
+  §2023:13.18.54.3 SR4 b) 's repeating-item case from 2002) (kb/Work PB5127).
 - **Normal completion of a declarative — "a fatal exception occurs within the scope of the declarative" (§2023:14.6.13.1.2 1),
   spec silent on three points)**: the rule makes a declarative that falls off its end "not complete normally" when a
   fatal exception occurs within its scope. **Pinned choices: (a) "occurs" is read as "is RAISED"** — checking for it is
