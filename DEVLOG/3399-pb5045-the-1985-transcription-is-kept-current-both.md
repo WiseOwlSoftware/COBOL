@@ -1,4 +1,4 @@
-## PB5045: the 1985 transcription is kept current, both amendments applied in place and evident misprints corrected, each attributed
+## Entry 3399 — 2026-11-09 18:31 PST — PB5045: the 1985 transcription is kept current, both amendments applied in place and evident misprints corrected, each attributed
 
 The owner ruled on 2026-11-09 that the markdown transcription is the most accurate version of the specification: it
 corrects evident misprints, applies what later revisions correct or change, attributes every modification, and never
@@ -83,3 +83,4 @@ IV.4.3.8.4.3-5, GR IV.4.3.8.4.4-1 and -3, and GR IX.4.5.4-10 and -11. The self-t
 it is kb/Work PB5052, filed on main from the previous wave's report.
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 22,767/22,767 · Unit 40,620/40,620 · Characterization 37/37 cases ran (skipped 0) (run 000002-20261110T001215Z) ===`. After branch review round 1 (R1-1, R1-2 and lead R1-3 above): `=== BUILD-LOCAL GATE: GREEN — Conformance 22,783/22,783 · Unit 40,620/40,620 · Characterization 37/37 cases ran (skipped 0) (run 000003-20261110T020921Z) ===`; the two runs before it were RED on EDITION GATES (two withdrawn records under a constructs.json gate, re-decided) and on SELF-TESTS (CHANGE_FORMAT spelled the general-format noun itself, now spec_headings.GENERAL_FORMAT_NOUN).
+
