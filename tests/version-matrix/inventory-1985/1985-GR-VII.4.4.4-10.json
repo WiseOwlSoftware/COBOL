@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-10",
+ "rule-digest": "0f51439f7aac",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-24",
+   "GR-14.9.30.4-21",
+   "GR-9.1.13.4-1",
+   "GR-9.1.12-2",
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-7"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (§1993:p.B-14, 'replace general rule 10b with the following' and 'general rule 10c, change the first sentence to read') added to 10b the continuation after imperative-statement-1 ('control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored') and reworded 10c without STANDARD and for the file connector; it left the obligation. The amended §1985:VII.4.4.4 GR10 c still reads 'If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed' (§1985:VII.4.4.3 SR2 refuses a READ with neither). §2023:14.9.30.4 GR24 keeps the order (status, AT END first, 'Any other applicable exception processing statements are not executed', READ unsuccessful) but its d) reads 'any applicable at end exception processing statements are executed. If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement': the words that differ are 'must be associated' against 'If there are no applicable', so 2023 accepts and defines a READ with neither AT END nor a USE procedure, which 1985 refuses. GR24 a) also adds 'if enabled, the EC-I-O-AT-END exception condition is set to exist'. The rest is carried unchanged: §2023:14.9.30.4 GR21 states the entry ('If the file position indicator indicates that an optional input file is not present or that no next or previous logical record exists'), §2023:9.1.13.4 GR1 the status value, §2023:9.1.12 GR2 names the USE declarative as the applicable exception processing statements, §2023:14.9.49.4 GR6 runs it 'unless an AT END or INVALID KEY phrase takes precedence', and §2023:14.9.49.4 GR7 returns as 1985 does ('control is returned to an implicit CONTINUE statement following the input-output statement whose execution caused the exception').",
+  "source": "readjudicate-amended-1985/slice-06"
+ }
+}

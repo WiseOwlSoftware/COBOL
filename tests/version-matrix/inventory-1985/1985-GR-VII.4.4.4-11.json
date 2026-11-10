@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-11",
+ "rule-digest": "24c9f8272b51",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.30.4-13",
+   "GR-9.1.12-2",
+   "GR-14.9.49.4-6",
+   "GR-14.9.49.4-7"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (§1993:p.B-15, 'replace general rule 11b with the following') changed only 11b's wording: 'which' to 'that', and the USE procedure 'applicable to file name-1' to the one 'associated with the file connector referenced by file-name-1'. The amended §1985:VII.4.4.4 GR11: with no at end condition the AT END phrase is ignored; a. 'The file position indicator is set and the I-O status associated with file-name-1 is updated'; b. 'control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1'; c. the record is made available, the INTO move is executed, and control goes to the end of the READ or to imperative-statement-2. §2023:14.9.30.4 GR13 states the same three steps: a) the status is updated and 'if the record operation conflict condition did not occur, the file position indicator is set'; b) 'control is transferred according to the rules in 9.1.12, Input-output exception processing. If the exception condition is not a fatal exception condition, control is then transferred to the end of the READ statement'; c) 'Control is transferred to the end of the READ statement, or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2'. §2023:9.1.12 GR2 names the USE declarative as those statements, §2023:14.9.49.4 GR6 executes it on the unsuccessful operation, and §2023:14.9.49.4 GR7 gives the return 1985 gives in §1985:VII.4.6.4 GR6 (non-critical status: the statement after the input-output statement). The conflict proviso reaches only record locking (§2023:14.9.30.4 GR9), and the WHEN phrase of 9.1.12 only an exception-checking PERFORM, neither of which 1985 can write; this rule refuses nothing, so no refusal moved. Same requirement.",
+  "source": "readjudicate-amended-1985/slice-06"
+ }
+}

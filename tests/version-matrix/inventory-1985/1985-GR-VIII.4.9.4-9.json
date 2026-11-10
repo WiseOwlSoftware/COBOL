@@ -1,0 +1,19 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-9",
+ "rule-digest": "b47e42e14eeb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-15",
+   "GR-9.1.14-2",
+   "GR-9.1.14-3",
+   "GR-9.1.14-4",
+   "GR-9.1.14-L2.1",
+   "GR-9.1.14-L2.2"
+  ],
+  "bridge": true,
+  "reason": "X3.23b-1993 replaced general rule 9, with its subparagraphs a and b on the NOT INVALID KEY phrase, by one sentence (erratum C277, kb/Work PB5045): 'Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases' (§1985:VIII.4.9.4 GR9), which points at The Invalid Key Condition, where 'If an exception condition which is not an invalid key condition exists, control is transferred according to the rules of the USE statement' (§1985:VIII.1.3.5). The difference the withdrawn record found (subparagraph b of the printed rule) left with the amendment. 2023 has no WRITE rule in those words: 'The transfer of control depends on other clauses and the value of the I-O status as described in 9.1.12, Input-output exception processing, 9.1.13, I-O status and 9.1.14, Invalid key condition' (§2023:14.9.51.4 GR15), and the dependence on the two phrases is stated there: 'If the INVALID KEY phrase is specified in the input-output statement, any applicable exception processing statements are not executed, and control is transferred to the imperative-statement specified in the INVALID KEY phrase' (§2023:9.1.14 GR2); 'If the INVALID KEY phrase is not specified in the input-output statement, any applicable exception processing statements are executed' (§2023:9.1.14 GR3); 'the INVALID KEY phrase is ignored, if specified' (§2023:9.1.14 GR4); 'If the I-O status indicates an unsuccessful completion that is not an invalid key condition, control is transferred according to the rules of any applicable exception processing statements' and 'If the I-O status indicates a successful completion, control is transferred to the end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified' (§2023:9.1.14, its second list). The transfer depends on the same two phrases in both. Same requirement; what §2023:9.1.14 changes of §1985:VIII.1.3.5 itself belongs to that paragraph's records.",
+  "source": "readjudicate-amended-1985/slice-07"
+ }
+}

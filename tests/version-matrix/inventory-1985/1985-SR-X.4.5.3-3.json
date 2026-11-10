@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-X.4.5.3-3",
+ "rule-digest": "cd5de8d1670b",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.22.4-6",
+   "GR-13.18.63.4-4",
+   "GR-13.18.63.4-2"
+  ],
+  "bridge": true,
+  "reason": "X3.23b-1993 (its change for page X-23, errata C290) reworded the first sentence only ('which includes, or is subordinate to, an entry which includes' became 'that includes, or is subordinate to an entry that includes'); the refusal is the same. §1985:X.4.5.3 SR3: 'The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause. The VALUE clause may be specified for condition-name entries associated with such data description entries.' 2023 has no such prohibition (the syntax rules of §2023:13.18.22.3 state none; SR1 only places the clause) and regulates the VALUE clause of an external item instead: §2023:13.18.22.4 GR6 'the VALUE clause specification, if any, for each record name of the associated record description entries shall be identical'; §2023:13.18.63.4 GR4 a) VALUE clauses take effect 'for external items, during the execution of an INITIALIZE statement'; §2023:13.18.63.4 GR2 'In the file section, VALUE clauses take effect only during the execution of an INITIALIZE statement' (the records of an external file). A program 1985 refuses is accepted in 2023, the VALUE taking effect only on INITIALIZE; the condition-name permission is unchanged.",
+  "source": "readjudicate-amended-1985/slice-11"
+ }
+}

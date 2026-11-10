@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XV.3.2.3-10",
+ "rule-digest": "c2c25705bdf5",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "X3.23a-1989 (its change for page XV-5, a typographical correction, errata C160) deleted 'or indexing'; the rule still restricts identifier-1 of a USE FOR DEBUGGING statement. §1985:XV.3.2.3 SR10: 'identifier-1 must be specified without the subscripting normally required'. The 2023 standard has no USE FOR DEBUGGING statement: §2023:14.9.49.2 gives the USE statement four formats, 'Format 1 (file-exception)', 'Format 2 (reporting)', 'Format 3 (exception-name)' and 'Format 4 (exception-object)', none for debugging, and the words FOR DEBUGGING and DEBUG-ITEM occur nowhere in specs/ISO_COBOL_2023.md. The feature is dropped and no 2023 rule states this requirement.",
+  "source": "readjudicate-amended-1985/slice-11"
+ }
+}

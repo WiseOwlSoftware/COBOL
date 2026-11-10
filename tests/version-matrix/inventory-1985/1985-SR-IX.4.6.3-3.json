@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-IX.4.6.3-3",
+ "rule-digest": "7d268535f0c9",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-9.1.14-3",
+   "GR-9.1.14-4"
+  ],
+  "bridge": true,
+  "reason": "Amendment X3.23a-1989 replaced 'The INVALID KEY and the NOT INVALID KEY phrases must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name' with 'The INVALID KEY phrase must be specified in the REWRITE statement for indexed files for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified' (§1985:IX.4.6.3 SR3); the 1985 run-time text agrees, 'a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed' (§1985:IX.1.3.5). 2023 has no such syntax rule; its only rule on the phrase's presence forbids it elsewhere (§2023:14.9.35.3 SR2). It covers the refused case with a defined result: 'If the INVALID KEY phrase is not specified in the input-output statement and there are no applicable exception processing statements, control is transferred to the end of the input-output statement' (§2023:9.1.14 GR4), and likewise 'If control is returned from those statements or there are no applicable exception processing statements, control is transferred to the end of the input-output statement' (§2023:9.1.14 GR3). Words that differ: 1985 'must be specified'; 2023 'not specified ... and there are no applicable exception processing statements, control is transferred to the end'. An indexed REWRITE with neither the phrase nor a USE procedure, refused by 1985, is accepted with a stated effect: a lifted refusal, so CHANGED, not REMOVED as the withdrawn record had it (the subject keeps 2023 rules). No exception condition replaces the refusal.",
+  "source": "readjudicate-amended-1985/slice-09"
+ }
+}
