@@ -58,3 +58,5 @@ The inventory view is green; 1985 GAP 1052 to 1048 with the two new IV.4.2.2.1 r
 
 **Left as found.** `sweep_figures.py --edition 1985 --check` fails on main at page 200's figure verdict (no audit runs it);
 it is kb/Work PB5052, filed on main from the previous wave's report.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 22,767/22,767 · Unit 40,620/40,620 · Characterization 37/37 cases ran (skipped 0) (run 000002-20261110T001215Z) ===`.
