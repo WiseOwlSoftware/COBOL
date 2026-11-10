@@ -270,6 +270,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             // SR9 / GR22: a figurative literal-5 takes literal-4's / identifier-6's size — at RUN time, the same
             // reason as SR6 above (kb/Work PB1126); a figurative literal-4 is SR3's one character (kb/Work PB3233).
             ctx.Validation.CheckInspectLiteralSizes(from, to, converting: true);   // SR9 — pure check
+            ctx.Validation.CheckInspectConvertingRepeatedCharacter(from.Op);   // §1985 SR10 — pure check, --std 85 only
             // The after-before-phrase is the ONE inspectDelimiters rule the other two formats use (PB1125).
             var (before, after) = InspectDelimiters(conv.inspectDelimiters());
             converting = new BoundInspectConvert(from.Op, to.Op, before, after, to.Figurative);
