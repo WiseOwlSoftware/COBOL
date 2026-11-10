@@ -66,7 +66,7 @@ effort, turn cap, 1-hour prompt cache and — for the read-only roles — a hook
 ## 2. Caps, the gate, and the rolling wave
 
 - Turn caps: 160 for any read-only agent, 400 for an implementer; at the cap, checkpoint and return `SPLIT`. A job that will not fit is SPLIT, never extended. The one exception (kb/Work PB3536, MANDATORY-PRACTICES P2): an implementer or finisher whose gate still runs at the cap returns `GATE-PENDING` with the gate's run directory, and the rolling wave awaits that run's verdict file instead of a finisher re-running it.
-- One mechanism per implementer; the fill unit is a GROUP computed by `fix_clusters.py` (never hand-picked), orientation through `orient.py` before any source is read. Budget: at most 6 implementers + one 4-wide read-only chunk; never a 16-wide `pipeline`; a fleet over ~40 agents is split.
+- One mechanism per implementer; the fill unit is a GROUP computed by `fix_clusters.py` (never hand-picked), orientation through `orient.py` before any source is read. Budget: at most `wave.concurrency` implementers (model_rules.json; 3, the gate-slot cap, until kb/Work PB5100 derives it) + one 4-wide read-only chunk; never a 16-wide `pipeline`; a fleet over ~40 agents is split.
 - The gate (one shape, kb/Work PB3022): `build-local.ps1 -Priority BelowNormal`, the whole Windows population (kb/Work PB4328), nothing run on Linux (I8, kb/Work PB4327); the landing gates nothing: `enqueue.py land` reads that gate's record (exit 14 when a tip has none; exit 12 while a gate of the worktree runs), and CI's merge group is the first run of the merged tree, Linux, Release and GitHub's runners, each of its reds classified by the landing lane against that record (INFRA and RUNNER re-queued once, MERGE and GENUINE to a finisher; MANDATORY-PRACTICES I1, I2, L1, L2, L12; kb/Work PB4331).
 
 ⭐ **THE FIX LANE IS A ROLLING WAVE** (owner 2026-09-27: "use this new rolling functionality as it reduces context and token use"). Every fix-lane dispatch is
@@ -74,7 +74,7 @@ effort, turn cap, 1-hour prompt cache and — for the read-only roles — a hook
 `make_dispatch_specs.py <groups.json>`, which records each group in the dispatch ledger once `check_practices.py` is GREEN. `concurrency` workers pull groups from one
 queue and a freed slot refills at once; a DONE branch is reviewed on its branch by one read-only `cobol-reviewer` and the loop's landing lane lands it only when
 stamped `Review: CLEAN` at its head; one file's work is ONE group, its overflow continued on its branch and landed once (kb/Work PB4396); a dependency successor (`after:`) merges its predecessor's final branch; no lander exists (kb/Work PB3023,
-PB3381). **Args:** `{ scratch, wave, stop_file, global_stop, concurrency (6), groups: [{ letter,
+PB3381). **Args:** `{ scratch, wave, stop_file, global_stop, concurrency (model_rules.json wave.concurrency, 3), groups: [{ letter,
 lead, notes, codes, after? }], review_fix_rounds (2), reviewer_ceiling_min (90) }`. **Return payloads are capped** (kb/Work PB1912): an implementer's `summary` is
 at most 900 characters, `leads` at most 6 of at most 500, a finisher's final text at most 25 lines; the detail lives in the report file. `check_practices.py
 <groups.json>` refuses two groups that edit the same member, `after:` or not (`inflight.hold`); a shared file alone never refuses a pair (multiple editors per file, kb/Work PB4452).

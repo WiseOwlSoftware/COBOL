@@ -103,15 +103,18 @@ public sealed class InspectDifferentialTests
             """));
 
     // §2023:14.9.22.4 GR20/GR23: CONVERTING maps each character of literal-4 positionally to literal-5; a character
-    // duplicated in literal-4 ("ABA") maps by its FIRST occurrence — 'A' goes to 'X', never to 'Z'.
+    // duplicated in literal-4 ("ABA") maps by its FIRST occurrence — 'A' goes to 'X', never to 'Z'. SPEC-PINNED at 2002:
+    // §1985:VI.6.18.3 SR10 ("The same character must not appear more than once either in literal-4 or in the data item
+    // referenced by identifier-6") makes the statement illegal at --std 85 (kb/Work PB5089), so the 85-dialect golden
+    // no longer hosts it; GR23 is the rule of the editions that accept it.
     [Fact]
     public void Convert_DuplicateFromCharacter_FirstOccurrenceWins()
-        => AssertMatchesGolden(Program("""
+        => AssertSpecPinned(Program("""
             01 WS-X PIC X(6) VALUE "ABCABC".
             """, """
                 INSPECT WS-X CONVERTING "ABA" TO "XYZ".
                 DISPLAY WS-X.
-            """));
+            """), "XYCXYC", dialectLevel: 2002);
 
     // §2023:14.9.22.3 SR6 / §2023:14.9.22.4 GR14: a FIGURATIVE literal-3 is expanded to the size of literal-1 — ALL "AB" BY
     // SPACES replaces each "AB" with two spaces. SPEC-PINNED: the legacy binds the figurative as one character and

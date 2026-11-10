@@ -8624,8 +8624,19 @@ public static class DiagnosticCatalog
         "COBOL0846", "inspect-literal-size", EditionSeverity.Error,
         "An INSPECT literal is of the wrong size: §2023:14.9.22.3 SR7 \"When the CHARACTERS phrase is specified, literal-3 "
         + "shall be one character in length\", and SR9 \"When both literal-4 and literal-5 are specified they shall be the "
-        + "same size except when literal-5 is a figurative constant.\"",
-        "ISO §2023:14.9.22.3 SR7, SR9");
+        + "same size except when literal-5 is a figurative constant.\" At --std 85 the size rules are syntax rules over the "
+        + "data items too, so a mis-sized identifier is refused here as well: §1985:VI.6.18.3 SR7 \"The size of literal-3 or "
+        + "the data item referenced by identifier-5 must be equal to the size of literal-1 or the data item referenced by "
+        + "identifier-3.\", SR8 and SR9 (from 2002 a mis-sized identifier is the run-time EC-RANGE-INSPECT-SIZE instead).",
+        "ISO §2023:14.9.22.3 SR7, SR9; §1985:VI.6.18.3 SR7, SR8, SR9");
+
+    /// <summary>COBOL6859 — an INSPECT CONVERTING literal-4 that repeats a character, at --std 85 (kb/Work PB5089).</summary>
+    public static readonly DiagnosticDescriptor InspectConvertingRepeatedCharacter = new(
+        "COBOL6859", "inspect-converting-repeated-character", EditionSeverity.Error,
+        "The literal-4 of an INSPECT CONVERTING holds one character more than once. §1985:VI.6.18.3 SR10: \"The same "
+        + "character must not appear more than once either in literal-4 or in the data item referenced by identifier-6.\" "
+        + "From 2002 the rule is gone and the first occurrence decides (§2023:14.9.22.4 GR23).",
+        "ISO §1985:VI.6.18.3 SR10");
 
     /// <summary>COBOL0858 — raising phrase name invalid (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor RaisingPhraseNameInvalid = new(

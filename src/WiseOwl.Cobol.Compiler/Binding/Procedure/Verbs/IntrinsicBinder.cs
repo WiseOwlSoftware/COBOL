@@ -1598,7 +1598,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// measurement (2026-08-09): groups answer their §2023:8.5.2.1 class, ALL literals their literal's category,
     /// and a ref-mod view the §2023:8.4.3.3.4 GR6 rewrite, with MAX/MIN's type resolution and body choice aligned
     /// on the one classifier.</remarks>
-    private static int? KnownWidth(BoundOperand op) => op switch
+    internal static int? KnownWidth(BoundOperand op) => op switch
     {
         BoundStringLiteral sl => sl.Value.Length,
         // §2023:8.4.3.3 — a ref-mod view with a LITERAL length has that static width; a computed or
