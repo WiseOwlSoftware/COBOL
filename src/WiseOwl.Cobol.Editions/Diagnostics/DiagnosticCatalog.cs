@@ -9326,6 +9326,18 @@ public static class DiagnosticCatalog
         + "names a paragraph that is that one GO TO statement.",
         "X3.23-1985 GO TO statement syntax rule 3 (§1985:VI.6.15.3)");
 
+    /// <summary>COBOL6819 — an X3.23-1985 segment-number outside the range the Segmentation module gives it (kb/Work PB5084):
+    /// SEGMENT-LIMIT 1 through 49, a section 0 through 99, a declarative section less than 50. Emitted by
+    /// VersionConformancePass.ParseArm.ScreenSegmentNumber where the module's constructs exist (COBOL-85; from 2002 they are
+    /// COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor SegmentNumberOutOfRange = new(
+        "COBOL6819", "segment-number-out-of-range", EditionSeverity.Error,
+        "An X3.23-1985 segment-number is outside the range its syntax rule allows. §1985:XVI.2.3.3 SR1 (SEGMENT-LIMIT): "
+        + "\"Segment-number must be an integer ranging in value from 1 through 49.\" §1985:XVI.3.2.3 SR1: \"The segment-number "
+        + "must be an integer ranging in value from 0 through 99.\" SR3: \"Sections in the declaratives must contain "
+        + "segment-numbers less than 50.\"",
+        "X3.23-1985 Segmentation module syntax rules (§1985:XVI.2.3.3 SR1; §1985:XVI.3.2.3 SR1, SR3)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

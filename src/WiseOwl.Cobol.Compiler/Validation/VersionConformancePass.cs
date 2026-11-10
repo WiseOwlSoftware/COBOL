@@ -748,7 +748,31 @@ internal sealed class VersionConformancePass
         public override object? VisitSegmentLimitClause(CobolParserCore.SegmentLimitClauseContext ctx)
         {
             _p.Check(Constructs.SegmentLimitRemoved2002, "the OBJECT-COMPUTER SEGMENT-LIMIT clause");
+            ScreenSegmentNumber(ctx.integerLiteral(), 1, 49, Constructs.SegmentLimitRemoved2002, "the SEGMENT-LIMIT clause",
+                "§1985:XVI.2.3.3 SR1: \"Segment-number must be an integer ranging in value from 1 through 49.\"");
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>⛔ THE SEGMENTATION MODULE'S RANGES (kb/Work PB5084): §1985:XVI.2.3.3 SR1 (SEGMENT-LIMIT, 1 through 49),
+        /// §1985:XVI.3.2.3 SR1 (a section's segment-number, 0 through 99) and SR3 (a declarative section's, less than 50).
+        /// Asked only where the construct row is available (COBOL-85): from 2002 the clause and the number are removed
+        /// (COBOL0902), which is the whole answer there. The number is an <c>integerLiteral</c>, so it is unsigned and
+        /// integral by the grammar; zero is §2023:5.5 1)'s question for SEGMENT-LIMIT (<c>IntegerOperandRules.Slots</c>),
+        /// so only the upper bound can be broken there.</summary>
+        private void ScreenSegmentNumber(CobolParserCore.IntegerLiteralContext? number, int min, int max, string construct,
+            string where, string rule)
+        {
+            if (number is null || !ConstructRegistry.IsAvailable(_p._edition, construct)) return;
+            string text = number.GetText();
+            string digits = text.TrimStart('0');
+            int value = digits.Length is 0 ? 0 : digits.Length > 2 ? int.MaxValue
+                : int.Parse(digits, System.Globalization.CultureInfo.InvariantCulture);
+            if (value <= max && (value >= min || value == 0)) return;   // a zero below min is the SEGMENT-LIMIT slot's COBOL2386
+            using var _ = Sink.At(number);
+            _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.SegmentNumberOutOfRange.Code, EditionSeverity.Error,
+                DiagnosticCatalog.SegmentNumberOutOfRange.Id,
+                $"{where}: the segment-number {text} is not in the range {min} through {max} — {rule}", where,
+                DiagnosticCatalog.SegmentNumberOutOfRange.IsoSection));
         }
 
         public override object? VisitDebuggingModeClause(CobolParserCore.DebuggingModeClauseContext ctx)
@@ -1131,12 +1155,16 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>A section-header segment-number — the '85 Segmentation module's priority number, deleted
-        /// 2002. Parsed and ignored at 85 (all segments resident — a conforming posture).</summary>
+        /// 2002. At 85 its range is checked (<see cref="ScreenSegmentNumber"/>) and the number is otherwise discarded
+        /// (all segments resident; VCR row 7.18 records what that posture does not implement).</summary>
         public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
         {
             if (ctx.integerLiteral() is not null)
                 _p.Check(Constructs.SegmentNumbersRemoved2002,
                     $"the segment-number on section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
+            ScreenSegmentNumber(ctx.integerLiteral(), 0, 99, Constructs.SegmentNumbersRemoved2002,
+                $"section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'",
+                "§1985:XVI.3.2.3 SR1: \"The segment-number must be an integer ranging in value from 0 through 99.\"");
             GateLeadingSentences(ctx.sentence(), $"section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
             return base.VisitChildren(ctx);
         }
@@ -1151,6 +1179,9 @@ internal sealed class VersionConformancePass
             if (ctx.integerLiteral() is not null)
                 _p.Check(Constructs.SegmentNumbersRemoved2002,
                     $"the segment-number on declarative section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'");
+            ScreenSegmentNumber(ctx.integerLiteral(), 0, 49, Constructs.SegmentNumbersRemoved2002,
+                $"declarative section '{ProcedureNameShape.Head(ctx.sectionName().procedureName())}'",
+                "§1985:XVI.3.2.3 SR3: \"Sections in the declaratives must contain segment-numbers less than 50.\"");
             if (!_debuggingModeDeclared
                 && ctx.sentence() is { Length: > 0 } sentences
                 && sentences[0].statement() is { Length: 1 } first

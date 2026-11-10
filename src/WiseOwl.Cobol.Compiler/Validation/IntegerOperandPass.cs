@@ -129,9 +129,10 @@ internal static class IntegerOperandRules
         // ── PROCEDURE DIVISION HEADERS ──────────────────────────────────────────────────────────────────────
         [typeof(Core.SectionDefinitionContext)] = All(IntegerSlot.Not(
             "the section header's segment-number is the 1985 Segmentation module's priority-number (0 through 99), "
-            + "not an integer-n; its range is that module's rule")),
+            + "not an integer-n; its range is that module's rule, §1985:XVI.3.2.3 SR1 (VersionConformancePass ScreenSegmentNumber, COBOL6819)")),
         [typeof(Core.DeclarativeSectionContext)] = All(IntegerSlot.Not(
-            "the declarative section header's segment-number is the 1985 Segmentation module's priority-number")),
+            "the declarative section header's segment-number is the 1985 Segmentation module's priority-number, below 50 by "
+            + "§1985:XVI.3.2.3 SR3 (VersionConformancePass ScreenSegmentNumber, COBOL6819)")),
 
         // ── DATA DIVISION ───────────────────────────────────────────────────────────────────────────────────
         [typeof(Core.BlockContainsClauseContext)] = Nonzero,   // §2023:13.18.10 — nothing permits 0; SR1 orders them (FileControlBinder.BindBlockContainsClause)
