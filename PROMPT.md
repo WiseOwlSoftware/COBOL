@@ -27,7 +27,7 @@ A change is finished when all of the following are true. If one is not, the chan
 - **Swept.** Every sibling instance of the same pattern is fixed in the same pass.
 - **One mechanism.** No second type/helper/dispatch doing a job something already does.
 - **Cited.** Each implemented rule carries its exact ISO §/GR in the code.
-- **Proven.** Its spec-derived golden exists, is registered in the same commit, and the wave-local gate is green.
+- **Proven.** Its spec-derived golden exists, is registered in the same commit, and the gate is green.
 - **Documented.** Docs current in the same change set; a `DEVLOG/` entry; committed and pushed.
 
 ## 3. Architectural commitments
@@ -50,7 +50,7 @@ These are settled. Design *within* them; do not relitigate them.
 
 ## 4. The four required reviews
 
-This is a commercial product with a decade-plus lifetime, so the owner requires four review dimensions — as
+This is a commercial product with a decade-plus lifetime, so four review dimensions apply — as
 continuous criteria on every change, and as a comprehensive pass over the whole source once the design has settled:
 
 1. **Architecture** — layout, naming, single-responsibility, no god classes, clean phase boundaries.
@@ -59,23 +59,23 @@ continuous criteria on every change, and as a comprehensive pass over the whole 
 4. **Duplication and efficiency** — repeated logic, parallel mechanisms, redundant computation.
 
 Findings become tracked work, never prose that evaporates. The comprehensive pass is planned in
-`docs/rearchitecture/DESIGN-architecture-review.md` and run by `.claude/skills/architecture-review`; the owner
-decides when it starts (kb/Work PB1754).
+`docs/rearchitecture/DESIGN-architecture-review.md` and run by `.claude/skills/architecture-review` (kb/Work
+PB1754).
 
 ## 5. Working style
 
-- **Autonomous.** Fix, test, commit and push each checkpoint. Stop only for a genuine owner decision, asked as a
-  bare question, one at a time. Never end a turn asking permission to continue.
+- **Autonomous.** Fix, test, commit and push each checkpoint. Decisions about the codebase are made and recorded
+  (CLAUDE.md, Ownership); the owner is asked only what stays the owner's, as a bare question, one at a time. Never end
+  a turn asking permission to continue.
 - **Spec-first, always in that order.** Derive the expected result from the § and write down the citation *before*
   reading the implementation, building a repro, or looking at the diff.
-- **Gate by blast radius.** Wave-local per commit; the comprehensive battery once per accumulated batch, pre-merge.
-  Read the verdict line, then commit as a separate step.
+- **One gate.** `pwsh scripts/build-local.ps1` at the head that lands (CLAUDE.md, Testing); read its verdict line
+  before the next step.
 - **Honest reporting.** Log missteps, dead ends and friction in the DEVLOG. Never write "verified" or "complete"
   without the evidence in hand. A "flake" verdict requires a named test and a clean re-run of that test.
-- **Token-frugal, restart-safe workstreams (owner standing instruction, 2026-09-02).** Every fleet, lander,
-  implementer and adjudication workflow runs so that a session-limit kill costs at most one step and a restart never
-  repeats work: checkpoint to DISK (WIP commits + `STATUS.md` per worktree; one JSON line per rule per workflow
-  stage), replace a killed agent with a FRESH one reading the checkpoint (never resume a long transcript), keep to the
-  concurrency budget (1 lander + ≤3 implementers + one 4-wide read-only chunk), land finished work first with one
-  lander on main at a time, and allocate ids centrally. The operational SSOT and the brief/workflow templates are the
-  `workstream` skill (`.claude/skills/workstream/`) — invoke it before dispatching anything.
+- **Proven.** Every claim in a report carries the evidence produced for it: the command and its verdict line, the merged
+  pull request, the count before and after (owner 2026-11-10: "You should always prove your work"). A check counts only
+  if it could have failed.
+- **Frugal.** Money, tokens and waiting are costs of the change. Do not redo work whose inputs did not change; a long
+  job checkpoints to disk (WIP commits, `STATUS.md`) so a killed session costs one step. Whether and how to use
+  subagents is a judgment made per task; the `workstream` skill holds the machinery for a fleet.
