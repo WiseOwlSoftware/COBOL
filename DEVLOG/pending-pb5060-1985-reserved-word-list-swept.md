@@ -27,7 +27,7 @@ audit entry. The 2023 row pins PB5053's result, which until now no check held: `
 its order is not checked.
 
 **Seen to fail.** On the tree before the repair the check reports `no blank line stands between FUNCTION and GENERATE:
-one separates two letter groups`. The self-test plants each rule's violation (18 cases), among them C16's
+one separates two letter groups`. The self-test plants each rule's violation (19 cases), among them C16's
 `END-RECEIVE` before `END-READ`.
 
 **Goldens and rows.** None: the change reaches no compiler behaviour (the compiler's reserved words do not come from

@@ -20,7 +20,8 @@ pages 235 to 237, printed 205 to 207):
   2. KEPT PAIRS. A pair the standard prints against rule 1 on purpose is named in the edition's row with its reason
      and the correction record that decided it. A kept pair that is no longer adjacent in the list, or no longer
      against the order, is refused: the row would then excuse nothing, or excuse the wrong thing.
-  3. THE SPECIAL-CHARACTER WORDS (`+`, `>=`, ...) close the list: no word follows one.
+  3. THE SPECIAL-CHARACTER WORDS (`+`, `>=`, ...) close the list: no word follows one. An entry that is neither a
+     word in capital letters nor a special-character word (2023 printed `i-O`, its Addendum's C15) is refused.
   4. LETTER GROUPS (an edition whose row says `gaps`). The printed columns leave one blank line where the initial
      letter changes and none anywhere else. A transcription that keeps the columns (1985: one table per page, read
      down each column) keeps the blanks, so inside a column two neighbours share their initial letter and a blank
@@ -46,8 +47,9 @@ import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-#: A reserved word proper; every other entry of a list is a special-character word.
+#: A reserved word proper, and a special-character word (`+`, `>=`, `::`); an entry that is neither is a finding.
 WORD = re.compile(r"^[A-Z][A-Z0-9-]*$")
+SPECIAL = re.compile(r"^[^A-Za-z0-9 ]+$")
 
 #: One printed column: its entries top to bottom, a blank line of the page as "".
 Column = list[str]
@@ -136,7 +138,13 @@ LISTS: dict[int, WordList] = {
 def check_columns(columns: list[Column], kept: dict[tuple[str, str], str], gaps: bool) -> list[str]:
     """Rules 1 to 4 of the module docstring over one list. Each finding names its words; none prints the list."""
     findings: list[str] = []
-    entries = [entry for column in columns for entry in column if entry]
+    entries = []
+    for entry in (entry for column in columns for entry in column if entry):
+        if WORD.match(entry) or SPECIAL.match(entry):
+            entries.append(entry)
+        else:
+            findings.append(f"the entry {entry!r} is neither a reserved word (capital letters, digits and hyphens, a "
+                            "letter first) nor a special-character word")
     used: set[tuple[str, str]] = set()
     for before, after in zip(entries, entries[1:]):
         if not WORD.match(before):
@@ -162,8 +170,9 @@ def check_columns(columns: list[Column], kept: dict[tuple[str, str], str], gaps:
 
 
 def _group(entry: str) -> str:
-    """The letter group an entry is printed in: a word's initial, and one group for the special-character words."""
-    return entry[0] if WORD.match(entry) else ""
+    """The letter group an entry is printed in: its initial letter (a malformed word's too, which is refused as
+    itself and not again as a gap), and one group for the special-character words."""
+    return entry[0].upper() if entry[0].isalpha() else ""
 
 
 def _gap_findings(column: Column) -> list[str]:
@@ -258,6 +267,10 @@ def self_test() -> int:
            and len(check(text_1985(table(["FROM", "", "", "GO"])), 1985)) == 1)
     expect("the special-character words are a group of their own: they need the blank after the last word",
            len(check(text_1985(table(["ZERO", "+", "-"])), 1985)) == 1)
+    expect("an entry that is neither a word nor a special-character word is refused once, as itself (2023 printed `i-O`)",
+           check(text_1985(table(["HIGH-VALUES", "", "i-O", "IF"])), 1985)
+           == ["the entry 'i-O' is neither a reserved word (capital letters, digits and hyphens, a letter first) nor a "
+               "special-character word"])
     expect("a 1985 text without the list's heading, or with an empty list, is refused, never passed",
            len(check("# SECTION V\n", 1985)) == 1 and len(check(text_1985(), 1985)) == 1)
     expect("a table row with a cell too many is refused",
