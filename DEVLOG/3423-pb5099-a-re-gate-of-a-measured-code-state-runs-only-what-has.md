@@ -1,4 +1,4 @@
-## PB5099: a re-gate of a measured code state runs only what has not passed
+## Entry 3423 — 2026-11-10 02:07 PST — PB5099: a re-gate of a measured code state runs only what has not passed
 
 **Mechanism.** The gate's reuse rule answered a re-gate only from a GREEN record at the same tree and base. Wave 20261972's
 gate of tree fc15c9ace5 went RED on one harness non-observation (`ArchReviewFleetDriftTests.EachFleetInstrument_PassesItsSelfTest`)
@@ -37,3 +37,4 @@ to force a re-run of the same tree now expects COMPOSED: a base only decides the
 R1-1 (blocking, fixed): a host that went RED with every trx case Passed (cleanup failure, crash after the last result) left no case to retry, and the composition turned its RED into GREEN. `Gate.carry` now records `red_hosts` and `_retry` runs such an assembly whole again when the carried passes leave nothing, carrying none of its passes. R1-2 (lead, fixed in the same file): `_prune` never deletes a run the verdict composes with (`composed_from`). Two new gate self-test arms (90 total).
 
 R2-1 (blocking, fixed): R1-1 reran a RED host whole only when the carried passes left no case, so a host RED for a host-level fault AND with a failed case retried only that case. `Gate._red_explained` now decides per RED host of a carried run whether its red is the cases its trx names (a Failed! verdict whose Failed count equals the trx Failed results, at least one); every other red (cleanup failure under a Passed! line, no verdict, a count the trx does not account for) lands in Carry.red_hosts and `_retry` runs the assembly whole whether or not cases are left. A fault that leaves log and trx exactly as a plain failed case does is not observable to the gate, and a plain failed case is the owners retry shape. New test_population.failed_results; a third arm (91 total).
+
