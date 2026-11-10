@@ -17,11 +17,11 @@ public enum ConstructAvailability
 
 /// <summary>
 /// One construct's per-edition dialect status (VERSION_TEST_MATRIX_DESIGN "Phase-2 implementation plan" P2.5):
-/// the in-code rendering of a <c>tests/version-matrix/constructs.json</c> row — THE canonical catalogue; the
+/// the in-code rendering of a <c>tests/version-matrix/constructs/</c> row — THE canonical catalogue; the
 /// drift test (<c>ConstructRegistryDriftTests</c>) asserts registry↔json equality BOTH directions, so a gate
 /// cannot land without its matrix row nor a row without its registry entry.
 /// </summary>
-/// <param name="Id">The constructs.json row id.</param>
+/// <param name="Id">The the construct catalogue row id.</param>
 /// <param name="Display">Human name used in diagnostics.</param>
 /// <param name="IntroducedIn">First edition that HAS the construct (85/2002/2014/2023).</param>
 /// <param name="RemovedIn">First edition that REMOVED it (null = never).</param>
@@ -42,7 +42,7 @@ public sealed record ConstructDialectStatus(
     /// a clause whose construct spans several words (§2023:7.3.16's IF/ELSE/END-IF, §2023:7.3.13's
     /// EVALUATE/WHEN/END-EVALUATE) carries them all, because a bare <c>&gt;&gt;ELSE</c> is not a directive of
     /// its own. <see cref="WiseOwl.Cobol.Editions.CompilerDirectiveCatalog"/> inverts this into the word → row map
-    /// the text-manipulation stage gates on, so adding a directive is ONE constructs.json row plus a regen —
+    /// the text-manipulation stage gates on, so adding a directive is ONE the construct catalogue row plus a regen —
     /// never an edit to a set of strings that carries no edition.
     /// </summary>
     public IReadOnlyList<string> DirectiveWords { get; init; } = [];

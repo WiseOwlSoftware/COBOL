@@ -15,7 +15,7 @@
 #                                           directive words the row gates; CompilerDirectiveCatalog inverts them into
 #                                           the word → row map the text-manipulation stage gates on, so a new
 #                                           directive is ONE row here plus a regen — never a hand-kept name set.
-# Outputs (ALL committed; ConstructRegistryDriftTests asserts they equal constructs.json):
+# Outputs (ALL committed; ConstructRegistryDriftTests asserts they equal the construct catalogue):
 #   src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs  — the ConstructRegistry.Entries list (a partial).
 #   src/WiseOwl.Cobol.Editions/Constructs.g.cs         — one `public const string <PascalId> = "<id>";` per row.
 

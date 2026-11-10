@@ -12,7 +12,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// a LOUD DISCOVERY TOOL (the investigated de-sign/DISPLAY diffs were all version-INVARIANT, DEVLOG 517; WiseOwl COBOL's
 /// one scaled-integer numeric pipeline makes most RUN-TIME arithmetic edition-invariant). Its first CONFIRMED variant
 /// is compile-time arithmetic (<c>arithmetic-intermediate-precision-2023</c>, kb/Work PB1592): standard arithmetic
-/// at 2002/2014, the documented System.Decimal mode at 2023. Uses the SAME <c>[Theory][MemberData]</c> mechanism + the SAME <c>constructs.json</c>
+/// at 2002/2014, the documented System.Decimal mode at 2023. Uses the SAME <c>[Theory][MemberData]</c> mechanism + the SAME <c>constructs/</c>
 /// catalogue as <see cref="VersionMatrixTests"/> (a `variant` block per candidate row) — NOT a new mechanism.
 /// A candidate is `confirmed:false` (pending) until an investigation confirms its edition-dependence and populates
 /// per-edition <c>outputs</c>; then it becomes an asserted per-edition golden. Pending candidates still RUN at every

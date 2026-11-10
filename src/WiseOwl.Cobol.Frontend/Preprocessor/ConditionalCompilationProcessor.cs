@@ -32,7 +32,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// <c>&gt;&gt;compiler-instruction</c> — and §2023:7.3.3 SR6 opens compiler-instruction with a compiler-directive word
 /// (§2023:8.12), so "may this word head a <c>&gt;&gt;</c> line at the targeted edition" is one question asked once,
 /// here, against <see cref="WiseOwl.Cobol.Editions.CompilerDirectiveCatalog"/> (the <c>directiveWords</c> column of
-/// <c>constructs.json</c>, inverted). It answers for the consumed directives, the ones a downstream stage owns,
+/// <c>constructs/</c>, inverted). It answers for the consumed directives, the ones a downstream stage owns,
 /// and the conditional-compilation directives alike. kb/Work PB725: the roster used to be a flat name set with no
 /// edition column, so eleven directives compiled clean at <c>--std 85</c>, an edition with no compiler directives
 /// at all, while the five with their own per-stage gate were correctly rejected. <c>&gt;&gt;SOURCE FORMAT</c> is
@@ -506,7 +506,7 @@ public static partial class ConditionalCompilationProcessor
                             emit = line;
                         }
                         // A recognized ISO §2023:7.3 directive with no downstream stage: CONSUME it (the program
-                        // compiles with the default behaviour) — the roster is the constructs.json rows, never a
+                        // compiles with the default behaviour) — the roster is the the construct catalogue rows, never a
                         // hand-kept name set (kb/Work PB725). An UNRECOGNIZED >> word is left in place when
                         // emitting so it surfaces downstream (catching typos like >>IFF).
                         else emit = CompilerDirectiveCatalog.IsDirective(keyword) ? "" : line;

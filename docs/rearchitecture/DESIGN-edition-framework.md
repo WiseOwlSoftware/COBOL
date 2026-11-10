@@ -11,7 +11,7 @@
 > `docs/VERSION_CHANGE_REFERENCE.md`.
 
 > **Consumer of these primitives.** This doc owns the version-gating FRAMEWORK PRIMITIVES (`EditionInfo`,
-> `IDiagnosticSink`, `ConstructRegistry`, `constructs.json`, `EditionSeverityPolicy`) — the single version table. Their
+> `IDiagnosticSink`, `ConstructRegistry`, `constructs/`, `EditionSeverityPolicy`) — the single version table. Their
 > sole consumer is ONE `VersionConformancePass` over the bound tree: parse is a SUPERSET (no edition predicates; each
 > version-gated rule carries a committed-match construct-id annotation), bind is edition-AGNOSTIC (zero `Check` calls save the UDF exception; DESIGN-version-conformance-pipeline §1.1 is the complete exception ledger),
 > the pass is the sole gate, and emit runs only on a clean tree. ⚠ **NO `.Syntax` back-ref on
@@ -38,12 +38,12 @@ frontend physically cannot see it. Every duplication below is a symptom of that 
 | P4 | **Two parallel mechanisms for removed / introduction gating** (singular-pattern violation). Most gates route through `ConstructRegistry.Check`, but a handful stay inline with pinned codes: `0816` END-ACCEPT (intro), `0803` ROUNDED MODE (intro), `0810` ALTER / `0811` bare GO TO / `0882` CALL ON OVERFLOW (removed). None are registry rows, so **none enter the version matrix**. | `StatementBinder.Accept.cs:45`, `StatementBinder.cs:1229`, `StatementBinder.AlterSwitches.cs:119,137`, `StatementBinder.Call.cs:176` |
 | P5 | **`DialectLevel` is double-sourced.** `CobolParserCoreBase.DialectLevel` (Frontend, `{ get; set; } = 85`), `Frontend.DialectLevel` (init = 85), and `EditionContext.DialectLevel` (Compiler) are three independent stores set from `Options.DialectLevel` by hand; a fourth default (`Options` = 2023, CLI `--std` = 2023-or-85). Four defaults that must be kept equal by convention. | `CobolParserCoreBase.cs:17`, `Frontend.cs:45`, `EditionContext.cs:29`, `CompilerDriver.cs:38` |
 | P6 | **`EditionContext` is an overloaded "edition" object that is really `EditionInfo + DiagnosticSink`.** It carries the immutable edition facts (DialectLevel/Permissive/MaxDigits) *and* two `public List<string>` accumulators (`Diagnostics`, `Warnings`) that are stringly-typed (`$"error {code}: {message}"`) and mutable-exposed. 290 call sites. The "edition" name mislabels a diagnostic sink. | `EditionContext.cs:37-56` |
-| P7 | **Edition metadata lives in 3+ representations, drift-protected in only some.** `constructs.json` ↔ `ConstructRegistry.Entries` (drift-tested both ways ✓); `reserved-words.json` ↔ `ReservedWords.Table.cs` (drift-tested ✓); but `EditionGateHints` (P1), the frontend preprocessor gates (P2), and the inline gates (P4) are **not** bound to the registry, and `VERSION_CHANGE_REFERENCE.md` is a hand-maintained rendering that has gone **stale** (117 `TODO` rows; e.g. CALL ON OVERFLOW row shows TODO though `0882` is live). | drift tests present for 2 of ≥5 encodings; `docs/VERSION_CHANGE_REFERENCE.md` |
-| P8 | **The version-gating track is unaudited.** The matrix harness (`VersionMatrixTests`) computes expected accept/reject from `constructs.json`, which is good — but VCR status is hand-ticked, not harness-driven, so it cannot be trusted as the gap list. Genuine holes exist (e.g. SYNCHRONIZED-on-group emits a generic `COBOL0001` under both 2002 and 2023, no gate). | critique `iso-pending` [HIGH]; `docs/VERSION_CHANGE_REFERENCE.md` |
+| P7 | **Edition metadata lives in 3+ representations, drift-protected in only some.** `constructs/` ↔ `ConstructRegistry.Entries` (drift-tested both ways ✓); `reserved-words.json` ↔ `ReservedWords.Table.cs` (drift-tested ✓); but `EditionGateHints` (P1), the frontend preprocessor gates (P2), and the inline gates (P4) are **not** bound to the registry, and `VERSION_CHANGE_REFERENCE.md` is a hand-maintained rendering that has gone **stale** (117 `TODO` rows; e.g. CALL ON OVERFLOW row shows TODO though `0882` is live). | drift tests present for 2 of ≥5 encodings; `docs/VERSION_CHANGE_REFERENCE.md` |
+| P8 | **The version-gating track is unaudited.** The matrix harness (`VersionMatrixTests`) computes expected accept/reject from `constructs/`, which is good — but VCR status is hand-ticked, not harness-driven, so it cannot be trusted as the gap list. Genuine holes exist (e.g. SYNCHRONIZED-on-group emits a generic `COBOL0001` under both 2002 and 2023, no gate). | critique `iso-pending` [HIGH]; `docs/VERSION_CHANGE_REFERENCE.md` |
 | P9 | **`EditionValidator` hard-couples to generated grammar token ints + positional heuristics** (`CheckedTokenTypes` HashSet of `CobolLexer.*` constants, `IsProvableUserWordPosition` rule-shape switch). Correct but fragile against grammar edits, and it lives in `Validation` while consuming `Frontend` generated types. | `EditionValidator.cs:268-388` |
 
 **What is already good and MUST be preserved:** the `Check`-is-the-one-funnel discipline; the
-`constructs.json`/`reserved-words.json` drift tests; the `EditionContext.Removed` severity seam;
+`constructs/`/`reserved-words.json` drift tests; the `EditionContext.Removed` severity seam;
 the `ConstructAvailability` verdict shape; the `pending`-row scheduling mechanism; the conservative
 "only high-confidence reserved words reject" policy; the rich ISO §-citation on every row.
 
@@ -67,9 +67,9 @@ WiseOwl.Cobol.Editions           (NEW — bottom of the compiler stack)
   EditionDiagnostic.cs       structured diagnostic record
   IDiagnosticSink.cs         report channel (frontend + compiler both implement/consume)
   EditionCodes.cs            (moved) 0900-0903 band + pinned 08xx consts
-  Constructs.g.cs            (GENERATED) const id per constructs.json row
+  Constructs.g.cs            (GENERATED) const id per the construct catalogue row
   ConstructDialectStatus.cs  (moved) verdict record
-  ConstructRegistry.g.cs     (GENERATED from constructs.json) Entries + Find + Check
+  ConstructRegistry.g.cs     (GENERATED from the construct catalogue) Entries + Find + Check
   ConstructRegistry.cs       hand-written Check() gating funnel (partial)
   ReservedWordEntry.cs       (moved)
   ReservedWords.Table.g.cs   (GENERATED — as today)
@@ -128,7 +128,7 @@ public static class EditionSeverityPolicy
 public readonly record struct EditionDiagnostic(
     string Code,              // COBOL0900 … or a pinned 08xx
     EditionSeverity Severity,
-    string ConstructId,       // the constructs.json row id (empty for non-registry diagnostics)
+    string ConstructId,       // the the construct catalogue row id (empty for non-registry diagnostics)
     string Message,
     string Where,             // "FD OUT-FILE", "paragraph P1" …
     string Citation,          // ISO § / VCR row
@@ -178,17 +178,17 @@ Note the `Check` body is *identical* to today's logic (`ConstructDialectStatus.c
 plumbing changes (EditionInfo + sink instead of `EditionContext`). This keeps behavior byte-stable
 for the migration.
 
-### 2.6 Generate the registry FROM `constructs.json` (fixes P7 — one source, auto-checked)
+### 2.6 Generate the registry FROM `constructs/` (fixes P7 — one source, auto-checked)
 
-`constructs.json` becomes the **single source**. `ConstructRegistry.Entries`, the `Constructs.*` id
+`constructs/` becomes the **single source**. `ConstructRegistry.Entries`, the `Constructs.*` id
 consts, and (unchanged) `ReservedWords.Table` are **generated**, not hand-maintained:
 
 - Add a Roslyn **incremental source generator** `ConstructRegistryGenerator` in a new
-  `src/WiseOwl.Cobol.Editions.SourceGen/` project. It reads `constructs.json` (registered as an
+  `src/WiseOwl.Cobol.Editions.SourceGen/` project. It reads `constructs/` (registered as an
   `AdditionalFiles` item) and emits `ConstructRegistry.g.cs` (`Entries` list) and `Constructs.g.cs`
   (`public const string LabelRecordsRemoved2002 = "label-records-removed-2002";` … from the ids).
 - The `Display`, `DiagnosticCode`, and `Citation` fields — today only in the C# — move **into
-  `constructs.json`** (`display`, `expectDiagnostic`, `vcr`/`citation` already partly there) so the
+  `constructs/`** (`display`, `expectDiagnostic`, `vcr`/`citation` already partly there) so the
   generator has everything. This deletes the hand-written 110-row `Entries` array.
 - **A row's `citation` names the ISO rule (and the VCR row that records the edition change) and nothing else.**
   `ConstructRegistry.Check` interpolates it into the edition-gate message and passes it as the diagnostic's
@@ -233,7 +233,7 @@ This is the singular design: every edition diagnostic has ONE origin — the `Ve
 
 ### 2.8 Fold the inline gates into the registry (fixes P4)
 
-The five inline gates (`0816`, `0803`, `0810`, `0811`, `0882`) become `constructs.json` rows with
+The five inline gates (`0816`, `0803`, `0810`, `0811`, `0882`) become `constructs/` rows with
 their **pinned codes kept** (`DiagnosticCode` field), and their call sites become
 `ConstructRegistry.Check(ed, sink, Constructs.EndAccept2002, where)` etc. They then automatically
 enter the version matrix (positive+negative fixtures required by the drift discipline). ALL `Check`
@@ -255,10 +255,10 @@ which absorbs and replaces `EditionValidator`:
 ### 2.10 The version-gating audit as a first-class workstream (fixes P7/P8)
 
 - **Make the harness the single source of VCR status.** Generate `docs/VERSION_CHANGE_REFERENCE.md`
-  from `constructs.json` + the harness result (a `python scripts/doc_audits.py --write-vcr` + a `--emit-status` mode of
+  from `constructs/` + the harness result (a `python scripts/doc_audits.py --write-vcr` + a `--emit-status` mode of
   `VersionMatrixTests`), so a row's status is *derived* from a passing (construct × edition) fixture,
   never hand-ticked. A stale ledger becomes structurally impossible.
-- **Every VCR row needs a positive + negative fixture** in `constructs.json` (the schema already
+- **Every VCR row needs a positive + negative fixture** in `constructs/` (the schema already
   supports `expectDiagnostic` / `expectDiagnosticBelow`); the audit backfills the missing
   85→2002 and 2002→2014 row sets the doc admits are absent, and adds the known holes (SYNCHRONIZED-
   on-group, etc.) as `pending` rows so they are catalogued and LOUD rather than a generic
@@ -293,7 +293,7 @@ unconditionally through `EditionContext.Removed`) and implementor latitude (`--s
 | Action | From | To | Why |
 |--------|------|----|-----|
 | create | — | `src/WiseOwl.Cobol.Editions/` (assembly + `WiseOwl.Cobol.Editions` ns) | The shared low layer both Frontend and Compiler reference; root-cause fix for P1/P2/P7. |
-| create | — | `src/WiseOwl.Cobol.Editions.SourceGen/` (`ConstructRegistryGenerator`) | Generate registry + id consts from `constructs.json` (P7); single source, auto-checked. |
+| create | — | `src/WiseOwl.Cobol.Editions.SourceGen/` (`ConstructRegistryGenerator`) | Generate registry + id consts from `constructs/` (P7); single source, auto-checked. |
 | split | `Binding/EditionContext.cs` | `Editions/EditionInfo.cs` (immutable value + `MaxDigits`/`CheckDigitCapacity`) **+** `Compiler`'s diagnostic collector implementing `IDiagnosticSink` | End the "edition = diagnostic sink" mislabel (P6); single DialectLevel source (P5). |
 | create | — | `Editions/IDiagnosticSink.cs`, `Editions/EditionDiagnostic.cs`, `Editions/EditionSeverity.cs`, `Editions/EditionSeverityPolicy.cs` | Structured diagnostics + the ONE severity policy consumed by all three emit layers (P2/P4/P6). |
 | move | `Validation/EditionCodes.cs` | `Editions/EditionCodes.cs` | Band constants must be visible to the frontend. |
@@ -303,7 +303,7 @@ unconditionally through `EditionContext.Removed`) and implementor latitude (`--s
 | delete | `Frontend/Parsing/EditionGateHints.cs` (207 loc) | — (the residue folds into superset parse + bind-time `ConstructRegistry.Check` gating funnelled through the `VersionConformancePass`; the vendor JSON/XML `COBOL0313` disposition relocates to `CobolErrorStrategy` as a token-keyed vendor hint) | Eliminate the reverse-engineering table (P1/P3). |
 | refactor | `Frontend/Parsing/CobolParserCoreBase.cs` | add `EditionInfo Edition`; `is85/2002/2014/2023` delegate to `Edition.Has` (used only by the two load-bearing forward-detects) | Single DialectLevel source (P5). |
 | refactor | `Frontend/Preprocessor/ReferenceFormatProcessor.cs` (`EditionGates` inner class) & `CopyProcessor` | consume `EditionSeverityPolicy` + `ConstructRegistry.Check` over a shared sink; delete the inline `if(permissive)` | One severity policy (P2). |
-| refactor (×5) | inline gates `StatementBinder.Accept.cs:45` (0816), `StatementBinder.cs:1229` (0803), `AlterSwitches.cs:119/137` (0811/0810), `Call.cs:176` (0882) | `constructs.json` rows (pinned codes) + `ConstructRegistry.Check` call sites | Kill the parallel gating mechanism; put them in the matrix (P4). |
+| refactor (×5) | inline gates `StatementBinder.Accept.cs:45` (0816), `StatementBinder.cs:1229` (0803), `AlterSwitches.cs:119/137` (0811/0810), `Call.cs:176` (0882) | `constructs/` rows (pinned codes) + `ConstructRegistry.Check` call sites | Kill the parallel gating mechanism; put them in the matrix (P4). |
 | absorb + delete | `Validation/EditionValidator.cs` | the `VersionConformancePass` (its §2023:8.9 reserved-word funnel moves into the pass) | One edition-gating funnel; shared metadata + sink (P9). |
 | rename | generated ns `legacy-root.Generated` (in assembly `WiseOwl.Cobol.Frontend`) | `WiseOwl.Cobol.Frontend.Generated` (the Frontend csproj's one `<AntlrNamespace>` property, passed to `Invoke-Antlr4CSharp.ps1`) | Remove the stale legacy namespace/alias (adjacent cleanup; enables clean `Editions`/`Frontend` refs). |
 | create | — | `scripts/doc_audits.py` (`docchecks/vcr.py`) + `VersionBehaviorMatrixTests` | Harness-driven VCR status + behavior-variant gating (P8). |
@@ -330,7 +330,7 @@ Ordered, each step ends green:
    that wraps `EditionInfo` + a `List<string>`-backed `IDiagnosticSink` and exposes the old
    `Error/Warning/Removed/Diagnostics/Warnings/DialectLevel/MaxDigits` members unchanged. All 290 call
    sites compile untouched. Run full battery. *(No behavior change — pure relocation + adapter.)*
-2. **Generate the registry.** Add the source generator (or MSBuild gen), enrich `constructs.json`
+2. **Generate the registry.** Add the source generator (or MSBuild gen), enrich `constructs/`
    with `display`/`citation`/`diagnosticCode`, delete the hand-written `Entries`. The drift test flips
    to "generator output == committed snapshot". Run battery. *(No behavior change.)*
 3. **Introduce `Constructs.*` id consts** at call sites (mechanical find/replace of magic strings).
@@ -391,7 +391,7 @@ behavior.
 - **R3 — Source generator toolchain burden** (must regen portably on both OSes, fail the build on
   failure, java+pwsh already prerequisites for ANTLR). *Mitigation:* Q1 fallback to an MSBuild
   pre-build script mirroring the proven `gen-reserved-words.ps1` discipline.
-- **R4 — Enriching `constructs.json` with `display`/`citation` could desync from ISO wording.**
+- **R4 — Enriching `constructs/` with `display`/`citation` could desync from ISO wording.**
   *Mitigation:* the citations move verbatim from the current `ConstructDialectStatus` rows; the drift
   test now guards the *rendered* doc too.
 - **R5 — `EditionInfo` as a `record struct` threaded widely** risks accidental defaulting (a `default`

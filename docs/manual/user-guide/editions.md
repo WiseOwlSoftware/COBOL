@@ -81,6 +81,6 @@ extensions; see [Migrating](../../migrating/).
 Every edition-dependent behavior is derived from the standards themselves. The conformance statement's section 3 records
 the choices the standard leaves to the implementor, edition by edition. The edition matrix, which states for each
 construct the edition that introduced it, the edition that removed or obsoleted it and the diagnostic code involved, is
-the repository file `tests/version-matrix/constructs.json`, and `docs/VERSION_CHANGE_REFERENCE.md` lists each change
+the repository file `tests/version-matrix/constructs/`, and `docs/VERSION_CHANGE_REFERENCE.md` lists each change
 between editions with the clause that makes it. A generated edition matrix is planned as a chapter of this manual and
 will replace the file as the place to look up a construct.

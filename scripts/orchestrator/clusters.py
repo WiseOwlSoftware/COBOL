@@ -211,7 +211,7 @@ def fold_unsited(raw: Mapping[str, Any], notes: Mapping[str, Note]) -> dict[str,
     """fix_clusters.py's output with every UNSITED note made a group of its own (kb/Work PB4566), the rule the campaign
     lane already follows (campaign_clusters: "a note declaring no site file is a group of its own"). fix_clusters
     resolves a site only against .agent-fleet.json's `src` and `ext` and lists the rest under `unsited`; the planner
-    read `clusters` alone, so a ready defect sited in a data file (PB3600 on tests/version-matrix/constructs.json, PB3957
+    read `clusters` alone, so a ready defect sited in a data file (PB3600 on tests/version-matrix/constructs/, PB3957
     on reserved-words.json) was planned by no wave while the ledger counted it as a group. The group's collision set is
     its note's DECLARED set (declare_fix_lane), so its partition is the same as any cluster's. Returns `clusters` only:
     no reader sees an `unsited` list it could drop."""

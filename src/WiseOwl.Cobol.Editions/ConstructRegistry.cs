@@ -11,10 +11,10 @@ namespace WiseOwl.Cobol.Editions;
 /// </summary>
 public static partial class ConstructRegistry
 {
-    // Entries (the constructs.json rendering) is the generated partial half — ConstructRegistry.g.cs.
+    // Entries (the the construct catalogue rendering) is the generated partial half — ConstructRegistry.g.cs.
     private static Dictionary<string, ConstructDialectStatus>? _byId;
 
-    /// <summary>Look up a registry entry by its constructs.json row id.</summary>
+    /// <summary>Look up a registry entry by its the construct catalogue row id.</summary>
     public static ConstructDialectStatus? Find(string id) =>
         (_byId ??= Entries.ToDictionary(e => e.Id, StringComparer.Ordinal)).GetValueOrDefault(id);
 

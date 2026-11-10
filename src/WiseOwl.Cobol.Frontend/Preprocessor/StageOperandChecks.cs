@@ -18,7 +18,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// omitted branch, the stage that would have parsed it never ran, and <c>&gt;&gt;TURN GARBAGE ON</c> compiled clean there.
 /// <para>A check-only entry parses the operand exactly as the stage does for a compiled line, reports what the stage
 /// reports on its own channel, and applies nothing: it reads no timeline and changes no state. <b>One entry per owner
-/// stage</b>; the owner is named by the catalog row (<c>directiveOperand.owner</c> in <c>constructs.json</c>), so a new
+/// stage</b>; the owner is named by the catalog row (<c>directiveOperand.owner</c> in <c>constructs/</c>), so a new
 /// Stage row whose owner is neither the driver nor registered here fails
 /// <c>CompilerDirectiveCatalogDriftTests.EveryStageOwner_HasACheckOnlyEntryOrIsTheDriver</c>, and the next case is the
 /// entry and nothing else.</para>

@@ -854,7 +854,7 @@ only from 2023). Golden `2023/pb1083_repository_all_cobol_words`; negatives `pb1
 
 **The edition of the omission is the edition of its declaration (kb/Work PB2589).** The REPOSITORY FUNCTION entry
 (§2023:12.3.8.2's intrinsic-function-specifier and user-defined-function-specifier — three grammar alternatives, one
-construct) is a 2002 introduction: the constructs.json row `repository-function-2002`, gated at the declaration by
+construct) is a 2002 introduction: the the construct catalogue row `repository-function-2002`, gated at the declaration by
 `VersionConformancePass.ParseArm.VisitRepositoryEntry` beside its CLASS / INTERFACE / PROGRAM / PROPERTY siblings
 (COBOL0900), so a program below 2002 cannot write the declaration that §2023:8.4.3.2.3 SR2 requires before FUNCTION may
 be omitted. `KeywordOmittedFunction` is inert where the row is not available and the reserved-name arm names the

@@ -455,7 +455,7 @@ jobs:
       - name: Inventory view — every held edition's catalog joined with its store, nothing refused (inventory_view.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/inventory_view.py --check
-      - name: Edition gates — every constructs.json window and grammar version predicate rests on a lineage edge (edition_gates.py --check)
+      - name: Edition gates — every the construct catalogue window and grammar version predicate rests on a lineage edge (edition_gates.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/edition_gates.py --check
       - name: Spec corrections — every flag, Addendum entry, printed form and page agree (verify_publishable.py)

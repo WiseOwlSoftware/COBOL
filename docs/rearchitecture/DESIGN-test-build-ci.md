@@ -34,7 +34,7 @@ Every later section describes one mechanism of it in detail.
 2. **The landing reads that record and gates nothing** (`python scripts/orchestrator/enqueue.py land <branch>`, §3.17.2
    step 3; kb/Work PB3612, PB4331). It refuses a tip no GREEN record covers (exit 14) and, before it reads the record
    and before every later write of the worktree, a gate of the worktree that runs or is starting (exit 12, whatever
-   record exists, kb/Work PB4204); it merges `origin/main` in through the merge drivers, stamps the DEVLOG entry, runs
+   record exists, kb/Work PB4204); it merges `origin/main` in with plain git (`git_merge.py`), stamps the DEVLOG entry, runs
    the landing checks and queues one pull request in GitHub's merge queue. It never gates the merged head, a true
    textual merge in a shared file included, and a lane MANDATORY-PRACTICES I10 does not review gates its own tip.
 3. **The pull request's own run is the cheap jobs** (`changes` and `ci-gate`, plus `toolchain-cache` on a push to main;
@@ -295,7 +295,7 @@ job's one home is the nightly: the weighted-shard step (PB4329) took it out of t
 NIST programs in-process.
 
 ### 1.5 Drift discipline (a genuine strength — preserve it)
-`ConstructRegistryDriftTests` binds `constructs.json` ↔ in-code `ConstructRegistry` both directions;
+`ConstructRegistryDriftTests` binds `constructs/` ↔ in-code `ConstructRegistry` both directions;
 `conformance-suite/harness/generate.py --check` refuses every on-disk file no test declares (it replaced the corpus's
 `Manifest_CoversEveryProgram_NoOverlap`, kb/Work PB3177);
 `ReservedWordsDriftTests` binds `reserved-words.json`. Nothing silently undiscovered.
@@ -1570,28 +1570,32 @@ one-file-per-entry DEVLOG stand.
    under a running gate); the lane retries it once the lock is free. A lane I10 does not review gates its own tip.
    Then **MERGE `origin/main` into the branch** — not a rebase (a branch that merged a same-file predecessor carries conflict
    resolutions in its merge commits, which a rebase discards and asks for again, and the queue lands by merge commit anyway)
-   **THROUGH THE MERGE DRIVERS** (`scripts/merge_drivers.py`, kb/Work PB3610): the files two landings both edit are merged by
-   key, not by line: the keyed catalogues (`constructs.json`), the work notes two branches append to, the runtime ABI pin
-   (`RuntimeAbi.pin`, measured by `scripts/abi_pin.py` on the merged tree before the merge commit) and the public-API baselines
-   (`src/**/PublicAPI.*.txt`, a SET of symbol lines). `DRIVERS` is the registry, `.gitattributes` repeats its patterns,
-   `merge_drivers.py --check` (which its `--self-test` runs on the real tree) holds the two together, and git is given the drivers on its command
-   line (`-c merge.<name>.driver=…`) and the attributes with them (`-c attr.tree=…`), so no checkout carries configuration that
-   can go stale. A new driver lands alone (DESIGN-orchestrator-loop.md 16.9). The review's coverage rule reads the same
-   `is_drivers_merge`, built on `merged_tree` (kb/Work PB3713). PROSE HAS NO DRIVER, ON PURPOSE (kb/Work PB3643):
-   `merge_drivers.py --hunks <file>…` replays history's merges and showed that over `CONFORMANCE.md`,
-   `DESIGN-runtime-library.md` and this document 115 conflict hunks were two sides REVISING text the base already held (against
-   3 where both inserted at one place), so a union merge would keep a stale paragraph beside its replacement in a document that
-   describes the current compiler; such a conflict is a decision about what the text now says, the finisher's. What is left in
-   conflict is real: exit 4, the merge is aborted, the report gains `BLOCKED: enqueue … conflict in <files>`, and a
-   `cobol-finisher` resolves with `git merge origin/main`. A CLEAN merge that could not be COMPLETED is no
-   conflict (kb/Work PB3673): `merge_drivers.merge` answers `clean`, `conflicts` or `incomplete` (abi_pin's `Failure(cause, why)`),
-   and the cause is read from the `merge-*` rows of `gate.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a held build output,
-   a full disk, no SDK) is exit 2, retried once by the lane; `merge-failed` (BRANCH: the merged tree's pin, build or measuring
-   test) is exit 5, a finisher's. THE QUEUE'S CONFLICTS ARE SEEN BEFORE THEY HAPPEN (kb/Work PB3723): GitHub's merge group runs
-   no driver and removes an entry that conflicts (`merge_conflict`) with no event any reader sees, so
-   `merge_drivers.foresee_queue` replays that build with git's own line merge (`probe(drivers=False)`) on the queue's own order
-   and heads, `prune_worktrees.foresee_queued` asks it on every survey, and a queued head that conflicts reads BOUNCED (a
-   FORESEEN CONFLICT) while the entry ahead is still queued. The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`,
+   **WITH PLAIN GIT** (`scripts/git_merge.py`; owner decision kb/Work PB5110, 2026-11-10: "No custom merge drivers are
+   required"). The custom merge drivers of kb/Work PB3610 are deleted, with the `.gitattributes` block, the DRIVER FILE QUEUED
+   hold (kb/Work PB5109) and `driver_files_free`: GitHub's merge queue runs plain git, so a driver could not protect a landing
+   there and every branch that shared a driver-covered file with an open pull request had to wait. Every shared registry is one
+   file per ENTRY, so two landings that each add an entry add two files and git merges them: the construct catalogue
+   (`tests/version-matrix/constructs/<id>.json`, `scripts/spec/construct_store.py`), the traceability inventory
+   (`inventory_store.py`), WiseOwl's refusals and compile options, and a work note's addenda (a finding, lead or landing
+   paragraph added to a note after it is filed is a file `kb/Work/<id>/<yyyy-mm-dd>-<slug>.md`, which `work.py` reads as
+   part of the note; the note file itself is edited only for its frontmatter and by its owner). `compact_notes.py` folds a
+   note's addenda back into the note when no open pull request, worktree or dispatched group touches it, so the file count
+   stays small and the fold can never create a conflict. The runtime ABI pin and the public-API baselines change only with the
+   compiler surface; a conflict in them is the finisher's, resolved by regenerating (`abi_pin.py bump`, `repin` or `settle`;
+   `RuntimeAbiPinDriftTests` and RS0016/RS0017 refuse a wrong resolution), and `landing_check.py` stops on a public-API symbol
+   listed twice (RS0025), which plain git keeps when two branches add the same symbol at different places.
+   `RegistryShapeDriftTests` refuses a `merge=` attribute and a registry file two entries share. The review's coverage rule
+   reads `git_merge.is_clean_merge`, built on `merged_tree` (kb/Work PB3713). PROSE HAS NO DRIVER EITHER (kb/Work PB3643): a
+   conflict in `CONFORMANCE.md` or a design document is a decision about what the text now says, the finisher's. What is left
+   in conflict is real: exit 4, the merge is aborted, the report gains `BLOCKED: enqueue … conflict in <files>`, and a
+   `cobol-finisher` resolves with `git merge origin/main`. A merge git REFUSED with no file in conflict is no conflict
+   (kb/Work PB3673): `git_merge.merge` answers `clean`, `conflicts` or `incomplete` (abi_pin's `Failure(cause, why)`), and the
+   cause is read from the `merge-*` rows of `gate.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a lock, a full disk, a worktree
+   git would overwrite) is exit 2, retried once by the lane; `merge-failed` (BRANCH) is exit 5, a finisher's, and has no producer
+   since the merge no longer settles the pin. THE QUEUE'S CONFLICTS ARE SEEN BEFORE THEY HAPPEN (kb/Work PB3723): GitHub's merge
+   group removes an entry that conflicts (`merge_conflict`) with no event any reader sees, so `git_merge.foresee_queue` replays
+   that build with git's own merge on the queue's own order and heads, `prune_worktrees.foresee_queued` asks it on every survey,
+   and a queued head that conflicts reads BOUNCED (a FORESEEN CONFLICT) while the entry ahead is still queued. The landing's last line, `=== ENQUEUE: <OUTCOME> (<branch>) ===`,
    has ONE home, `scripts/verdict_line.py` (kb/Work PB3714), and `landing_rules.py --self-test` keeps every other script from spelling
    the prefix.
    Then `devlog.py stamp` numbers the entry (once: a stamped entry keeps its number, PB3123) and the landing checks run
@@ -1830,7 +1834,7 @@ doc and some thirty Unit and Conformance classes read CONFORMANCE.md, VERSION_CH
 README and the design docs, so a one-word edit to a document ran the build and the three whole populations (the test phase's
 median over 61 gates: 12.7 minutes) to learn nothing about the compiler. A document cannot change what the compiler does; it
 can only disagree with a fact it states. Each reader became one of three things:
-- **A check over the Markdown alone** (a README against a register, the VCR against `constructs.json` and the ISO text, the user
+- **A check over the Markdown alone** (a README against a register, the VCR against `constructs/` and the ISO text, the user
   manual's frontmatter and links, the boolean-store determination carried word for word in three places): the **DOC AUDITS**
   gate audit, `scripts/doc_audits.py --check` with one module per subject under `scripts/docchecks/`, run in every lane and in
   every merge group, each check a pure function of the text it judges and a self-test that plants every violation.

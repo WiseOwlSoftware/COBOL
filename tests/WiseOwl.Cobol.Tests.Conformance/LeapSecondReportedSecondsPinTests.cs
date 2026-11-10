@@ -36,7 +36,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// l1g4_leap_second_off_reported_seconds (2023) and l1g4_leap_second_off_explicit_2002 are LAYOUT witnesses only: on a
 /// live clock they cannot fail on a seconds value above 59.</para>
 ///
-/// <para>Editions: the directive's floor is 2002 (constructs.json leap-second-directive-2002). FORMATTED-CURRENT-DATE
+/// <para>Editions: the directive's floor is 2002 (the construct catalogue leap-second-directive-2002). FORMATTED-CURRENT-DATE
 /// is a 2014 intrinsic (IntrinsicCatalog), so the 2002 arms read ACCEPT TIME and CURRENT-DATE only.</para>
 /// </summary>
 public sealed class LeapSecondReportedSecondsPinTests

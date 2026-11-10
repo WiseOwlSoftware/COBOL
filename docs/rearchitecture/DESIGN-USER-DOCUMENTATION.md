@@ -17,7 +17,7 @@ met by reference to other documents.
 | §2023:4.2.5 | Implementor-defined language elements | `docs/CONFORMANCE.md` §7 (Annex A.1 register, 182/182) + §3 determinations |
 | §2023:4.2.6 | Processor-dependent language elements | `docs/CONFORMANCE.md` §2 (Annex A.3) + §4 documented non-support |
 | §2023:4.2.10 | Nonstandard extensions | `docs/CONFORMANCE.md`, `GnuCOBOL extensions.md`, dialect gating |
-| §2023:4.2.12 / §2023:4.2.13 | Archaic / obsolete elements | `constructs.json` + `VERSION_CHANGE_REFERENCE.md` (edition matrix) |
+| §2023:4.2.12 / §2023:4.2.13 | Archaic / obsolete elements | `constructs/` + `VERSION_CHANGE_REFERENCE.md` (edition matrix) |
 
 The facts exist; what is missing is a USER-facing presentation, versioned with the compiler.
 
@@ -84,7 +84,7 @@ Every behavioral statement on a hand-written page was run on the compiler it des
 - *Conformance statement* (§2023:4.2.5, §2023:4.2.6, §2023:4.2.10) — from `docs/CONFORMANCE.md` §2–§5, §7 and the traceability
   inventory: the implementor-defined register, processor-dependent dispositions, optional-module (A.4) claims,
   documented non-support with its warning codes, and the limits.
-- *Edition matrix* (§2023:4.2.12, §2023:4.2.13) — from `constructs.json` + `VERSION_CHANGE_REFERENCE.md`: per construct, the
+- *Edition matrix* (§2023:4.2.12, §2023:4.2.13) — from `constructs/` + `VERSION_CHANGE_REFERENCE.md`: per construct, the
   introducing edition, archaic/obsolete status, and what `--std` does with it.
 - *Command-line reference* — from `CliOptions` (one source for `--help` and the page).
 - *Diagnostics reference* — from the diagnostic catalog: one entry per `COBOL####` code with severity, the rule it
@@ -94,7 +94,7 @@ Every behavioral statement on a hand-written page was run on the compiler it des
 ## §5 Drift tests (what keeps "generated" true)
 
 One drift test per generator, in the Conformance or Unit assembly: regenerate into a temp directory and compare with
-`docs/manual/reference/`; a new diagnostic code, CLI option, `constructs.json` row or CONFORMANCE.md determination
+`docs/manual/reference/`; a new diagnostic code, CLI option, `constructs/` row or CONFORMANCE.md determination
 without its page is RED. Every citation a generated page prints passes `cite.py --check` (the generator runs it).
 
 The hand-written pages outside `reference/` are kept true by `UserManualDriftTests` (Unit), which derives from the

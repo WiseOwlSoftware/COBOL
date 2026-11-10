@@ -11,7 +11,7 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// The P2.5 drift check: <c>tests/version-matrix/constructs.json</c> is THE single source, and the two
+/// The P2.5 drift check: <c>tests/version-matrix/constructs/</c> is THE single source, and the two
 /// generated build-outputs (<c>ConstructRegistry.g.cs</c> / <c>Constructs.g.cs</c>, emitted by
 /// <c>scripts/gen-constructs.ps1</c>) must be IN SYNC with it — so an edit to the json without a regen is a
 /// CI failure, never a silent stale build. This mirrors the ReservedWordsDriftTests discipline. (The former
@@ -37,7 +37,7 @@ public sealed class ConstructRegistryDriftTests
             e.TryGetProperty("expectDiagnostic", out var d) ? d.GetString() : null))];
     }
 
-    /// <summary>Kebab constructs.json id → the PascalCase identifier the generator emits (must match
+    /// <summary>Kebab the construct catalogue id → the PascalCase identifier the generator emits (must match
     /// <c>To-Pascal</c> in scripts/gen-constructs.ps1).</summary>
     private static string Pascal(string id) =>
         string.Concat(id.Split('-').Select(s => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..]));
@@ -56,7 +56,7 @@ public sealed class ConstructRegistryDriftTests
         foreach (var (id, r) in rows)
         {
             var e = reg[id];
-            // The generated Entries must reproduce EVERY constructs.json field verbatim (staleness guard).
+            // The generated Entries must reproduce EVERY the construct catalogue field verbatim (staleness guard).
             Assert.True(e.IntroducedIn == r.IntroducedIn && e.RemovedIn == r.RemovedIn && e.ObsoleteIn == r.ObsoleteIn,
                 $"drift on {id}: registry ({e.IntroducedIn},{e.RemovedIn?.ToString() ?? "-"},{e.ObsoleteIn?.ToString() ?? "-"}) "
                 + $"vs json ({r.IntroducedIn},{r.RemovedIn?.ToString() ?? "-"},{r.ObsoleteIn?.ToString() ?? "-"})");

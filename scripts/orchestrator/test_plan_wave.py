@@ -2715,7 +2715,7 @@ def unsited(*ids):
 
 
 # AN UNSITED READY DEFECT IS A GROUP OF ITS OWN (kb/Work PB4566): fix_clusters lists a note whose sites resolve to no
-# indexed source file under `unsited`, and the planner read `clusters` alone, so PB3600 (sited on constructs.json) and
+# indexed source file under `unsited`, and the planner read `clusters` alone, so PB3600 (sited on the construct catalogue) and
 # PB3957 (reserved-words.json) were planned by no wave for two steered waves while the ledger counted them as groups.
 fu = fold_unsited({"clusters": [cl("src/X/Misc2.cs", "PB11")], "unsited": ["PB9"]}, notes)
 check("fold_unsited: the clusters stay first and each unsited note becomes a one-note group carrying its own harm, area "
