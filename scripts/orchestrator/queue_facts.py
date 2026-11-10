@@ -8,8 +8,8 @@
 Nothing else asks GitHub about a pull request's place in the queue. This docstring names no count of callers (a count
 rots, kb/Work PB3744): `grep -rn "queue_facts.<operation>" scripts` finds the callers of an operation. `read` answers the
 branch survey (prune_worktrees.live_survey: ENQUEUED, NOT QUEUED, BOUNCED), the landing lane's queue watch (land_lane.py
-tick, kb/Work PB3527), which takes the facts the survey read on the same tick, and the driver-file hold
-(enqueue.driver_file_holders, which land_lane.driver_files_free asks again on every exit-16 wait tick, kb/Work PB3642).
+tick, kb/Work PB3527), which takes the facts the survey read on the same tick. No landing is held on a file another
+open pull request shares (owner, kb/Work PB5109).
 
 WHAT ONE READ RETURNS ({head branch: PullRequest}, or None when GitHub could not be asked):
   - ONE GraphQL query: the merge queue's own entries on main (`mergeQueue(branch: "main")`, the queue's record of who

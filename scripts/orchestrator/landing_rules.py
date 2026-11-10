@@ -254,7 +254,6 @@ DECLARED: dict[str, tuple[str, ...]] = {
             'UNCLASSIFIED',
         'queue watch: an INFRA red is re-queued ONCE by the lane (no agent: the branch is no enqueue-unit work while '
             'its watch runs), recorded with its class; a MERGE red ends the watch BOUNCED with its class',
-        'exit 16 (an open pull request changes a merge-driver file the branch changes too): a retry-when-free class',
     ),
     'scripts/orchestrator/queue_facts.py': (
         'auto-merge on is NOT in the queue',
@@ -331,15 +330,8 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'land: a branch carrying the stamped entry of a merged predecessor whose pull request is still OPEN into main',
         'land: GitHub that cannot list the open pull requests is exit 9',
         "land: once the predecessor's pull request has merged the same head lands",
-        "driver files: for EVERY pattern of merge_drivers.DRIVERS, an open pull request that changes the pattern's "
-            'file',
-        "driver files: a pull request changing other files, or the branch's own pull request",
-        'driver files: a branch that changes no driver-covered file never asks GitHub',
-        'land: a branch whose driver-merged file an open pull request changes too waits: exit 16',
-        'land: another landing holding the queue-entry lock past the wait is exit 2',
-        'driver files: a pull request the queue BOUNCED, that CONFLICTS with main or whose required check FAILED '
-            'holds nothing',
-        'land: once the open pull request has merged, or when it was bounced out of the queue',
+        'land: a branch whose driver-merged files an open pull request IN the queue changes too is stamped and '
+            'queued',
     ),
     'scripts/orchestrator/ruleset.py': (
         'a live ruleset equal to the committed one, the queue present and no classic protection, is ACTIVE',
