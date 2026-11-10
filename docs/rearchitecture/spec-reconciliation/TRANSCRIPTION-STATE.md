@@ -104,19 +104,22 @@ layer.
    groups") and the void between the logical and the physical bottom of form. Column positions cannot come
    from the page the same way when a wrapped printed label is drawn on one line; size those from content.
 
-## ISO's own defects — transcribed AS PRINTED, deliberately
+## ISO's own defects — corrected, every one attributed
 
-Confirmed by rendering the page at 600 dpi, not by reading the text layer. Do not "fix" them silently; each is
-an Addendum candidate, an owner call.
+The owner's rule (2026-11-09, kb/Work PB5045): the transcription is the most accurate version of the
+specification. An evident misprint in the printed standard is corrected in place, flagged there with a `> ⚠
+**CORRECTED — see the Addendum (Cn).**` note that quotes the printed form and its printed page, and listed in the
+Addendum, so every correction is reversible; nothing incorrect stays because the original printed it. Only a
+defect whose correct reading is NOT certain is transcribed as printed, and it too is listed (the Addendum's
+"Defects recorded but NOT corrected"). Confirm a misprint on the page rendered from the PDF, never from the text
+layer. `scripts/spec/verify_publishable.py` refuses a flag without an entry and an entry without its flag.
 
-| printed | should be | where |
-|---|---|---|
-| `i-O` (lower-case i) | `I-O` | §8.9 reserved words |
-| `I-OICONTROL` | `I-O-CONTROL` | §8.9 reserved words |
-| `EMD-START` | `END-START` | §8.9 — **already corrected**, Addendum C1 |
-| `END-PERFORM, END-RECEIVE, END-READ` | alphabetical order | §8.9 — the printed list is out of order here |
+The 8.9 reserved-word list carried these misprints, all now corrected: `EMD-START` (C1), `i-O` and
+`I-OICONTROL` (C15), and four entries out of alphabetical order, `BY`, `END-READ`, `FALSE` and `SELF` (C16).
+`scripts/spec/repairs/reserved_word_gaps.py --check` holds the list to the printed page through the C1 and C15
+forms.
 
-**`>>IF` vs `>> IF` is NOT a defect and belongs in no such table** — the standard prints both because **BOTH ARE
+**`>>IF` vs `>> IF` is NOT a defect and is corrected nowhere** — the standard prints both because **BOTH ARE
 LEGAL, and it says so twice.** §2023:7.3.3 SR5: "A compiler directive is composed of the compiler directive indicator,
 *optionally followed by the COBOL character space*, followed by compiler-instruction. The compiler directive
 indicator shall be treated as though it were followed by a space if no space is specified after the

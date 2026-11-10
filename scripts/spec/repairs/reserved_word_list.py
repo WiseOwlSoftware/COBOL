@@ -25,9 +25,9 @@ contains U+2013. The PDF text layer returns U+FFFD here (an unmapped glyph — s
 en dash was a guess, and the same list on printed folio 215 extracts a plain `-`. The evidence it had already
 caused damage downstream: `gen-reserved-words.ps1` carries `.Replace([char]0x2013, '-')` to undo it.
 
-NOT REPAIRED, DELIBERATELY — `i-O` and `I-OICONTROL` are printed exactly so (rendered and inspected at 600
-dpi). They are ISO's own typesetting defects, not ours, and the transcription reproduces the printed page.
-They are Addendum candidates, an owner call, not a silent edit.
+NOT THIS SCRIPT'S REPAIR — `i-O` and `I-OICONTROL` are printed exactly so (rendered and inspected at 600 dpi):
+they are ISO's own typesetting defects, not transcription slips, so they are corrected as attributed departures
+from the printed page, flagged in place and listed in the Addendum (C15), never by a repair script.
 
     python scripts/spec/repairs/reserved_word_list.py            # report
     python scripts/spec/repairs/reserved_word_list.py --apply
@@ -49,7 +49,7 @@ SPEC_MD = spec_pdf.markdown(2023)
 
 HEAD = re.compile(r"^#{2,}\s+8\.9\s+Reserved words\s*$")
 NEXT = re.compile(r'^<a id="section-8-10')
-WORD = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")           # `i-O` is printed lower-case; match it as printed
+WORD = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")           # either case: the printed list carried a lower-case `i-O` (C15)
 EN_DASH = "–"
 
 

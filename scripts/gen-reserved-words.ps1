@@ -138,11 +138,9 @@ for ($i = $start + 1; $i -lt $end; $i++) {
     # blockquote. Strip the bullet and the code fence before matching; the word regex below is unchanged.
     $t = Normalize-SpecWordLine $lines[$i]
     if ($t.Length -eq 0) { continue }
+    # The printed list's misprints (EMD-START, i-O, I-OICONTROL) are corrected in the transcription itself, each an
+    # attributed departure in its Addendum (C1, C15): the words are read as they stand, with no remap here.
     $t = $t.Replace([char]0x2013, '-').Replace([char]0x2014, '-').ToUpperInvariant()
-    switch ($t) {                                   # OCR remaps (DEVLOG 578 scout findings)
-        'EMD-START'   { $t = 'END-START' }
-        'I-OICONTROL' { $t = 'I-O-CONTROL' }
-    }
     # OCR line-splits: a long word wraps as 'STEM-' + an '&NBSP;&NBSP;FRAGMENT' continuation line
     # (the FLOAT-NOT-A-NUMBER-QUIET/-SIGNALING pair, DEVLOG 585) — join stem + next non-empty line.
     # ⛔ THE CONTINUATION NEEDS THE SAME NORMALIZATION AS THE STEM (kb/Work PB250). The transcription
