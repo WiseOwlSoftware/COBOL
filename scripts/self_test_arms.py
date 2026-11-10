@@ -95,6 +95,13 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a GREEN code-lane run, then a commit that changes only inert paths, is GREEN with NO fetch',
         'a GREEN code-lane run, then a commit that touches one path a test may read, runs EVERYTHING',
         'a composed gate whose audits are RED is RED with nothing run',
+        # kb/Work PB5205: a population step is keyed by its inputs
+        'an audit that turns RED after every test host has exited',
+        'a run RED only for a hung self-test, then a tooling-only difference (one population key)',
+        'a run RED only for a hung self-test, then a difference in one path a compiler test or the build may read',
+        'a GREEN run, then a tooling-only difference (one population key)',
+        'a GREEN run that ran no post-build self-test does not answer a change that touches a script',
+        'the population key: a docs/kb or tooling-lane edit leaves it equal',
         '--await reads the verdict file',
         'the measured tree leaves out coord.NEVER_WORK',
         'a relative run name resolves against the worktree that gated it',
