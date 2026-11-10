@@ -7,3 +7,5 @@ tree (fc15c9ace5) waited 24 minutes for a slot and re-ran all 63,000 cases for 5
 only that every case ran green at the pushed head, so a re-gate at an unchanged tree and toolchain can compose with the earlier
 run's passes and re-run only its reds, non-observations and unrun cases. PB5099 records the decision and what gate.py,
 enqueue.py and the gate skill owe for it.
+
+The operator added two things on the same branch. PB5099 gains Mythos's sibling case: a commit that changes only inert paths on top of a GREEN code-lane run also re-runs the whole population, and it should compose the same way. PB5100 is filed: the rolling wave starts 6 implementers against a gate pool of 3 slots (C waited 1,601 s, PB5060's re-gate 1,448 s), and its concurrency should be derived from the pool, not hand-set.
