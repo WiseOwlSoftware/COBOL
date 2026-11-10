@@ -15,6 +15,11 @@ Mechanism: nothing asked the declarations, only references. New `DataBinder.Name
 - COBOL6863, `--std 85` only. §1985:VI.5.8.3 SR14: an index-name is a unique word within the program. 2002 and later qualify an
   index-name (Annex F item 108), so two tables may each declare one spelling and only an unqualified reference is ambiguous.
 
+The first gate (two reds) found one existing test written against an illegal program: `ApplyCommitEnclosingFileTests.
+TwoGlobalFilesRecordsOfOneName_AreToldApartByTheFileQualifier` declared records named R in two GLOBAL files, a record of a GLOBAL
+file possessing the global attribute. It now names F1's record R1, and asserts the same-name pair draws COBOL6862. The facts file
+`tests/doc-facts/compiler-facts.json` was regenerated for the two codes.
+
 Goldens: `pb5073_global_name_unique_beside_qualified_locals` (85 to 2023) and refused `pb5073-global-data-name-duplicated` (all
 four editions); `pb5073_index_name_twice_qualified` (2002 and later) and refused `pb5073-index-name-declared-twice-85`.
 No inventory row is closed (the 1985 rows do not exist yet; the 2023 catalog has no row for the §2023:8.4.2.1 sentence, so the
