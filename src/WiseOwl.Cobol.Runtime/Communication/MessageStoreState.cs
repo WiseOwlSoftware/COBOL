@@ -103,8 +103,10 @@ internal sealed class MessageStoreState
     internal (string[] Path, StoredMessage Message)? TakeFromQueue(string[] path) =>
         _definitions.FindQueue(path) is { } queue ? _tables!.TakeQueueMessage(queue.Path) : null;
 
+    /// <summary>§1985:XIV.3.3.4 GR4: ENABLE I-O TERMINAL activates the logical path between the terminal and the program, and
+    /// DISABLE I-O TERMINAL deactivates it (§1985:XIV.3.2.4 GR5): a disabled terminal gives a RECEIVE no message, which stays queued for the ENABLE.</summary>
     internal (string[] Path, StoredMessage Message)? TakeFromTerminal(string name) =>
-        _definitions.Terminal(name) is not null && _tables!.TakeTerminalMessage(name) is { } message ? ([name], message) : null;
+        FindTerminal(name) is { Enabled: true } && _tables!.TakeTerminalMessage(name) is { } message ? ([name], message) : null;
 
     internal void TransmitLater(string device, StoredMessage message) => _transmissions.Add((device, message));
 

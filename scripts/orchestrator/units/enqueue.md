@@ -76,12 +76,9 @@ leads, the records and the ledger.
      nothing is red, kb/Work PB3527, PB3662; or exit 13: another
      `land` of the branch holds the worktree's land lock, nothing ran and nothing is red, kb/Work PB3310; or exit 15,
      `PREDECESSOR QUEUED`: the branch merged a predecessor whose pull request is still open and carries its stamped DEVLOG
-     entry beside its own, nothing queued and nothing red, kb/Work PB3145; or exit 16, `DRIVER FILE QUEUED`: an open
-     pull request changes a merge-driver file the branch changes too, nothing stamped or queued and nothing red,
-     kb/Work PB3642) and
+     entry beside its own, nothing queued and nothing red, kb/Work PB3145) and
      `RETRY-ONCE` (a first exit 2 or 9, or a runner that DIED): the lane's own; it retries them (exit 12 once the gate lock is free, exit 13 once the land lock is free, exit 15 once no
-     open pull request owns a DEVLOG entry the branch carries, exit 16 once no open pull request changes a merge-driver
-     file the branch changes too).
+     open pull request owns a DEVLOG entry the branch carries).
      Nothing to do here.
    - `HALT` (exit 8, `QUEUE NOT ACTIVE`): the lane starts no landing until the operator runs `land_lane.py clear-halt`
      once `ruleset.py check` reports ACTIVE; it already named it in the operator's mailbox. Land nothing another way:
