@@ -1,0 +1,12 @@
+{
+ "id": "record-lock-phrase-2002",
+ "description": "A record-lock phrase on READ/WRITE/REWRITE (ISO 14.9.30/14.9.51/14.9.35; WITH LOCK / WITH NO LOCK / IGNORING LOCK / ADVANCING ON LOCK) - explicit MANUAL locking + the IGNORING-LOCK bypass. 2002 introduction; 0900 below 2002.",
+ "display": "a record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK / ADVANCING ON LOCK)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.30.2 / §2023:14.9.51.2 / §2023:14.9.35.2 (the LOCK phrases of the general formats); 2002 introduction; §2023:14.9.30.3 SR4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWRL.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS RELATIVE\n               ACCESS MODE IS RANDOM RELATIVE KEY IS K\n               LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       WORKING-STORAGE SECTION.\n       01 K PIC 9(4).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE 1 TO K.\n           READ F WITH LOCK.\n           STOP RUN.\n"
+}

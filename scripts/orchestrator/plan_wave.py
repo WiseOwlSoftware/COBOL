@@ -122,8 +122,7 @@ shape. RUNNING work HOLDS a group by `hold` (kb/Work PB4452, the owner 2026-11-0
 file typically will merge without conflict"): only where a member of one matches a member of the other (source_units.
 meet), so a shared FILE, or a file either side claims whole (an index-found caller, a site named whole), holds nothing;
 git's merge at landing is the authority on a conflict, and a finisher repairs a real one. Two claims MEET by `collision`
-(a file either claims whole, or a member of one that matches a member of the other, never a file a merge driver merges
-by key, merge_drivers.covered_by_driver) to GROUP: within a wave and against a FINISHED branch, where meeting on a file is
+(a file either claims whole, or a member of one that matches a member of the other) to GROUP: within a wave and against a FINISHED branch, where meeting on a file is
 what makes one step (kb/Work PB4396). Two groups on DIFFERENT MEMBERS of one file run side by side, and git's three-way
 merge combines their branches (the owner: "Developers do this all the time"). A note's declared set (declared_sets, the one computation, on one explicit IndexPolicy, kb/Work PB3203) is its
 STRUCTURED sites only, read by ONE reader (work.note_sites): the paths of its Code site / Site / Sites blocks with the
@@ -1116,8 +1115,8 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
         if not view["notes"]:
             print(f"=== CLUSTER {a.cluster} LANDED: every one of its {view['named']} note(s) is landed or retired ===")
             return 0
-        texts = {r["id"]: f.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n")
-                 for r in view["notes"] if (f := REPO / "kb" / "Work" / f"{r['id']}.md").is_file()}
+        texts = {r["id"]: t.replace("\r\n", "\n")
+                 for r in view["notes"] if (t := work.note_text(r["id"], REPO / "kb" / "Work")) is not None}
         tiers = {r["id"]: r["tier"] for r in view["notes"]}   # the effective tiers: the placement order (PB3638)
         # A CAMPAIGN WHOSE GROUPS ALWAYS RUN OVER IS SPLIT SMALLER (kb/Work PB4944): its recorded pace sets the group size
         cap, why = group_sizes.campaign_cap(cdir, a.cluster, notes_cap(rules))

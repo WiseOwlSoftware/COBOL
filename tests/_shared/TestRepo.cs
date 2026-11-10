@@ -78,6 +78,28 @@ internal static class TestRepo
     /// <summary><c>tests/version-matrix/</c> — constructs, reserved words, the traceability inventory.</summary>
     public static string VersionMatrix(params string[] segments) => Tests(["version-matrix", .. segments]);
 
+    /// <summary>The directory of the version-matrix construct catalogue: one JSON file per construct,
+    /// <c>tests/version-matrix/constructs/&lt;id&gt;.json</c> (kb/Work PB5110; scripts/spec/construct_store.py).</summary>
+    public static string ConstructsDir => VersionMatrix("constructs");
+
+    /// <summary>Every construct of the catalogue, one row per file in ordinal file-name order (the order
+    /// <c>scripts/gen-constructs.ps1</c> and <c>construct_store.py</c> read). The one reader: a test that wants the
+    /// catalogue asks here, never a path.</summary>
+    public static IReadOnlyList<System.Text.Json.JsonElement> ConstructRows() => s_constructRows.Value;
+
+    private static readonly Lazy<IReadOnlyList<System.Text.Json.JsonElement>> s_constructRows = new(() =>
+    {
+        var files = Directory.GetFiles(ConstructsDir, "*.json");
+        Array.Sort(files, (a, b) => string.CompareOrdinal(Path.GetFileName(a), Path.GetFileName(b)));
+        var rows = new List<System.Text.Json.JsonElement>(files.Length);
+        foreach (string file in files)
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(file));
+            rows.Add(doc.RootElement.Clone());
+        }
+        return rows;
+    });
+
     /// <summary><c>tests/nist/</c> — the NIST CCVS corpus, its manifest and its goldens.</summary>
     public static string Nist(params string[] segments) => Tests(["nist", .. segments]);
 

@@ -1,0 +1,12 @@
+{
+ "id": "options-float-binary-2014",
+ "description": "The FLOAT-BINARY clause of the OPTIONS paragraph (§2023:11.9.8) — a 2014 clause of the 2002 paragraph (own introduction arm, P10 Step 12)",
+ "display": "OPTIONS FLOAT-BINARY",
+ "diagnosticCode": "COBOL0900",
+ "expectDiagnostic": "COBOL0900",
+ "citation": "ISO §2023:11.9.8",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "2014 introduction (§2023:11.9.8)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OFBP10AS.\nOPTIONS.\n    FLOAT-BINARY IS HIGH-ORDER-LEFT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+}

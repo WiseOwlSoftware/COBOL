@@ -1,0 +1,12 @@
+{
+ "id": "literal-length-8191-2014",
+ "description": "The literal LENGTH bound (ISO §2023:8.3.3.2.3 SR1 alphanumeric, 8.3.3.4.3 SR1 boolean, 8.3.3.5.3 SR1 national; 8.8.3.2 SR2-SR4 for a concatenation's result): 8,191 character positions in the 2023 text, 160 below COBOL-2014 - a RELAXATION, so a 161-position literal compiles at 2014 and 2023 and is rejected below 2014 with COBOL0814 (also under --permissive: a length error, not a removed construct), the word-length row's posture. A literal longer than 8,191 positions is rejected at EVERY edition. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.43; the repo holds no 1985, 2002 or 2014 text, ratified decision #1), by the method of owner decision kb/Work R61: GnuCOBOL 3.2's per-standard dialect files carry literal-length 160 in cobol85.conf AND cobol2002.conf and 8191 in cobol2014.conf; Annex E (2014 to 2023) lists no change, so 2014 = 2023. ONE bound, CobolLiteral.MaxPositions(edition), read by LiteralScreen (every literal token) and by ConcatFolder.ResultLengthViolation (kb/Work PB1615).",
+ "display": "a literal longer than 160 character positions",
+ "diagnosticCode": "COBOL0814",
+ "citation": "ISO §2023:8.3.3.2.3 SR1 / §2023:8.3.3.4.3 SR1 / §2023:8.3.3.5.3 SR1 / §2023:8.8.3.2 SR2-SR4 (8,191 character positions) - the bound below 2014 is DERIVED (VCR row 7.43)",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0814",
+ "vcr": "VCR row 7.43 (literal length bound 160 -> 8,191 at 2014); kb/Work PB1615",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMLL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(200).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\" TO W.\n    STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "free-2002",
+ "status": "active",
+ "description": "FREE statement (release ALLOCATEd storage), ISO §2023:14.9.15 - introduced 2002. ACTIVE as of Phase-4b increment 2 (DEVLOG 617): per-operand GR1 three-way (release-and-null / NULL no-op / nonfatal EC-STORAGE-NOT-ALLOC through the TurnState-gated status block); SR1 data-pointer operands only (the vendor FREE based-item form rejects 0869); a freed cell's dangling aliases fail loud at the next dereference (EC-BOUND-PTR).",
+ "display": "FREE",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.15",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    FREE P.\n    STOP RUN.\n"
+}

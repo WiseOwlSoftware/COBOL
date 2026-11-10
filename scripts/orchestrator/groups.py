@@ -39,7 +39,7 @@ def continuation_pred(reps: list[Report], shared: dict[str, list[str]]) -> str:
     return ("CONTINUATION (one step per file, kb/Work PB4396; the file-set partition, PB2807): " + "; ".join(
         f"{r.slug} ({r.lead}) finished on branch {r.branch} (worktree {r.worktree or 'removed'}, head {r.head or '?'}), "
         f"which changes {', '.join(shared.get(r.branch or '', [])[:3])}" for r in reps)
-        + ". Your work is planned ONTO those branches: before touching code, merge each of them into yours with `python scripts/merge_drivers.py merge <branch> --keep` (never a rebase, never a cherry-pick, never a bare `git merge`: the merge drivers of kb/Work PB3610 keep both sides of a keyed catalogue), "
+        + ". Your work is planned ONTO those branches: before touching code, merge each of them into yours with `git merge <branch>` (never a rebase, never a cherry-pick), "
           "read each report's \"For the next implementer\" section, and build on its work. They land ONCE, with "
           "your branch: the branch survey holds each IN FLIGHT while this dispatch continues it, even one reviewed "
           "CLEAN (MANDATORY-PRACTICES O2), so your report covers their work too; write your own DEVLOG pending entry "
@@ -276,13 +276,13 @@ def finisher_pred(rep: Report | None, branch: str | None, cls: str, nid_list: li
         return (f"{FINISH_FIRST}the branch review of {rep.slug} ({rep.lead}) found {rep.review.findings} finding(s) at "
                 f"head {rep.review.sha}: the records of kind `finding` in {rep.review.file} "
                 f"(`python scripts/orchestrator/review_findings.py show {rep.review.file}`). Its branch {rep.branch} "
-                f"(worktree {rep.worktree or 'removed'}) is {cls}: `python scripts/merge_drivers.py merge {rep.branch} --keep` into your branch"
+                f"(worktree {rep.worktree or 'removed'}) is {cls}: `git merge {rep.branch}` into your branch"
                 + (f" (it is also contained in {carried_by}, whose report does not answer these findings and which may "
                    f"land its commits first: merge {rep.branch} only, never {carried_by}; kb/Work PB3150)"
                    if carried_by else "")
                 + f", and read {rep.path} and its \"For the next implementer\" section. " + FINDINGS_ANSWER)
     where = (f"Its branch {rep.branch} (worktree {rep.worktree or 'removed'}, head {rep.head or '?'}) is {cls}. "
-             + (f"It is contained in {carried_by}, which carries its work to main: `python scripts/merge_drivers.py merge {carried_by} --keep` into your "
+             + (f"It is contained in {carried_by}, which carries its work to main: `git merge {carried_by}` into your "
                 f"branch (never cherry-pick {rep.branch}: its commits would land twice) and re-gate before new work."
                 if carried_by else
                 f"{replay_clause(replay).strip()} {UNLANDED_RULE}".strip()
@@ -351,8 +351,8 @@ def group_requirements(groups: Sequence[Group], cluster_of: Mapping[str, Any], n
 
     def of(lead: str) -> list[str]:
         if lead not in read:
-            f = notes_dir / f"{lead}.md"
-            read[lead] = campaign_requirements(f.read_text(encoding="utf-8")) if f.is_file() else []
+            text = work.note_text(lead, notes_dir)  # the note AND its addenda: an owner addition is an addendum file
+            read[lead] = campaign_requirements(text) if text is not None else []
         return read[lead]
 
     out = []

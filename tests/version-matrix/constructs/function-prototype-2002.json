@@ -1,0 +1,13 @@
+{
+ "id": "function-prototype-2002",
+ "status": "active",
+ "description": "A FUNCTION-ID ... IS PROTOTYPE separate-compilation function prototype (ISO §2023:11.5 Format 2 / §2023:10.6 / §2023:12.3.8). A signature-only unit - LINKAGE-only data division + a header-only PROCEDURE DIVISION (§2023:10.6.2 SR4) - registers a signature but emits no runtime module; a same-name in-group DEFINITION (GR11a) or a separately-compiled sibling assembly is the activation target (§2023:8.4.3.2.4 GR6b -> EC-FUNCTION-NOT-FOUND on absence). LIVE (Phase 4c M2-UDF-3, DEVLOG 624). The IS PROTOTYPE tail is the `prototypePhrase` rule shared with PROGRAM-ID Format 2; below 2002 VersionConformancePass ParseArm.VisitPrototypePhrase names the edition (0900) on recognition (kb/Work PB894).",
+ "display": "a FUNCTION-ID … IS PROTOTYPE (separate-compilation function prototype)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.5 Format 2 / §2023:10.6 / §2023:12.3.8; §2023:10.6.2 SR4 (a signature-only unit); §2023:8.4.3.2.4 GR6b (EC-FUNCTION-NOT-FOUND)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 UDF catalog (PHASE4_RECONCILIATION M2-UDF-3); 2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+ "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. FPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(6).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nEND FUNCTION FPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. VMFP1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION FPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(6).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = FUNCTION FPROTO(7).\n    STOP RUN.\nEND PROGRAM VMFP1.\nIDENTIFICATION DIVISION.\nFUNCTION-ID. FPROTO.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(6).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nP.\n    COMPUTE L-R = L-X * L-X.\n    GOBACK.\nEND FUNCTION FPROTO.\n"
+}

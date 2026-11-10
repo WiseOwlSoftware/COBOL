@@ -1,0 +1,13 @@
+{
+ "id": "exit-program-archaic-2023",
+ "description": "EXIT PROGRAM — ARCHAIC in ISO 2023 (Annex F.1 / §2023:4.2.12; VCR row 89): 0903 WARNING at ≥2023, the element remains conforming (compiles at every edition).",
+ "display": "the EXIT PROGRAM statement",
+ "diagnosticCode": "COBOL0903",
+ "citation": "ARCHAIC in ISO 2023 (Annex F.1; §2023:4.2.12; VCR row 89) — warning only, the element remains conforming",
+ "introducedIn": 85,
+ "removedIn": null,
+ "obsoleteIn": 2023,
+ "expectDiagnostic": "COBOL0903",
+ "vcr": "VCR row 89 (Annex F.1 archaic)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XP.\nPROCEDURE DIVISION.\nMAIN.\n    EXIT PROGRAM.\n    STOP RUN.\n"
+}

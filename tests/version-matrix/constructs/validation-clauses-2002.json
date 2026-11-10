@@ -1,0 +1,13 @@
+{
+ "id": "validation-clauses-2002",
+ "description": "The VALIDATE facility's data description syntax - the ISO §2023:13.16.2 validation-clauses group (CLASS §2023:13.18.11, DEFAULT §2023:13.18.17, DESTINATION §2023:13.18.18, INVALID WHEN §2023:13.18.31, PRESENT WHEN format 2 §2023:13.18.41, VARYING's validation leg §2023:13.18.64, VALIDATE-STATUS / VAL-STATUS §2023:13.18.62) and the §2023:13.18.63 format-5 content-validation tail of a level-88 VALUE clause ([IS|ARE] {VALID|INVALID} [WHEN condition-1]). A COBOL-2002 introduction with the facility: §2023:8.9 reserves DEFAULT, PRESENT, VALID, VALIDATE-STATUS and VAL-STATUS from 2002, and COBOL-85 has no such clauses. DECLINED (Annex A.4.14; docs/CONFORMANCE.md §4 item 3): from 2002 DeclinedFacilityPass refuses each clause by name with COBOL1708, so the row is refused at every edition, by its introduction gate below 2002 and by the decline from it. The grammar arms are the UNION grammar (kb/Work PB5007 removed the {is2002()}? construct gates PB2291 recorded) and the VersionConformancePass parse arms (VisitValidationClause, VisitValidateValidPhrase) name the edition on RECOGNITION. A COBOL-85 program that declares DEFAULT, PRESENT or VALID as a name keeps it: the reservation gate retypes every occurrence of the declared word to a user-defined word (kb/Work PB655, PB4958).",
+ "display": "a data description clause of the VALIDATE facility",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.16.2 validation-clauses / §2023:13.18.63 format 5 (Annex A.4.14, declined); §2023:13.18.63.4 GR25",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "declined": "COBOL1708",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only; §2023:8.9 reserves DEFAULT, PRESENT, VALID, VALIDATE-STATUS and VAL-STATUS from 2002)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWVCL.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 WS-REC PIC X(4) DEFAULT IS \"AB\".\n       PROCEDURE DIVISION.\n       MAIN-P.\n           STOP RUN.\n"
+}

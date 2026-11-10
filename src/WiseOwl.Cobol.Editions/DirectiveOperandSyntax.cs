@@ -26,7 +26,7 @@ public enum DirectiveOperandForm
 }
 
 /// <summary>
-/// One directive's OPERAND syntax — the column <c>constructs.json</c> gained beside <c>directiveWords</c> at
+/// One directive's OPERAND syntax — the column <c>constructs/</c> gained beside <c>directiveWords</c> at
 /// kb/Work PB794, so that "which words may follow this directive word" is DATA on the same row that already
 /// carries "from which edition may this directive word appear at all".
 ///

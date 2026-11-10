@@ -1,0 +1,12 @@
+{
+ "id": "numval-c-locale-phrase-2002",
+ "description": "The LOCALE keyword of FUNCTION NUMVAL-C / TEST-NUMVAL-C (argument-1 LOCALE [locale-name-1] [ANYCASE]), ISO 15.68.2 / 15.94.2 - introduced 2002 with the locale facility (Annex A.4.9 item 12; kb/Work PB64 T6): argument-1 read under the named-else-current LC_MONETARY locale (15.68.3 r5). ONE row covers both functions - 15.94.3 r1 imports 15.68.3 whole. NUMVAL-C itself is 1985; the keyword is gated in the binder (BindNumvalCFamily) like case-function-locale-phrase-2014.",
+ "display": "the LOCALE keyword of NUMVAL-C / TEST-NUMVAL-C",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:15.68.2 / §2023:15.94.2 (the LOCALE keyword); §2023:15.68.3 r5",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the locale facility; kb/Work PB64 T6)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T6NL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC S9(7)V99.\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N = FUNCTION NUMVAL-C(\"1234.56\" LOCALE).\n    STOP RUN.\n"
+}

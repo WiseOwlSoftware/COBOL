@@ -1,0 +1,13 @@
+{
+ "id": "function-definition-2002",
+ "status": "active",
+ "description": "A FUNCTION-ID paragraph opening a user-defined function definition (ISO §2023:11.5 Format 1 / §2023:10.6.1 function-definition) and its END FUNCTION marker (§2023:10.7.2) - COBOL-2002 introductions: X3.23-1985 has neither the paragraph nor the end-marker alternative (kb/Work PB988, row FMT-10.7.2). Below 2002 VersionConformancePass ParseArm.VisitFunctionIdParagraph names the edition (0900) on recognition. The prototype format (IS PROTOTYPE) is its own row, function-prototype-2002, fired on the prototypePhrase node, so a prototype is gated once. END FUNCTION closing a PROGRAM-ID unit is §2023:10.6.1's keyword rule (COBOL2274) at every edition, so no END FUNCTION reaches an accepted COBOL-85 source.",
+ "display": "a FUNCTION-ID paragraph (user-defined function definition)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.5 Format 1 / §2023:10.6.1 / §2023:10.7.2 (END FUNCTION user-function-name-1)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only); user-defined functions arrive with the FUNCTION-ID paragraph",
+ "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. FDDBL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(4).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nP.\n    COMPUTE L-R = L-X * 2.\n    GOBACK.\nEND FUNCTION FDDBL.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. VMFD1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION FDDBL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = FUNCTION FDDBL(21).\n    STOP RUN.\nEND PROGRAM VMFD1.\n"
+}

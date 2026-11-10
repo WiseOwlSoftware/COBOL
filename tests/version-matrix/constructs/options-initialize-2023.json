@@ -1,0 +1,12 @@
+{
+ "id": "options-initialize-2023",
+ "description": "The INITIALIZE clause of the OPTIONS paragraph (§2023:11.9.10) — a 2023 clause of the 2002 OPTIONS paragraph (Annex E §2023:E.3.3 item 33 lists it among the 2014→2023 additions that use already-reserved words, so it is NEW in 2023, not a 2014 clause; VCR row 76 disposition 'new-feature-gate')",
+ "display": "OPTIONS INITIALIZE",
+ "diagnosticCode": "COBOL0900",
+ "expectDiagnostic": "COBOL0900",
+ "citation": "ISO §2023:11.9.10 — COBOL-2023 introduction (Annex E §2023:E.3.3 item 33)",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "vcr": "2023 introduction (§2023:11.9.10; Annex E §2023:E.3.3 item 33)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OINP10AS.\nOPTIONS.\n    INITIALIZE WORKING-STORAGE SECTION TO SPACES.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+}

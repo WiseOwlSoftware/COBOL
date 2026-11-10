@@ -37,18 +37,6 @@ tests/nist/valid-files/** -text
 # The repo-local NuGet feed (nuget-feed/README.md, kb/Work PB3504) holds a package, a zip archive: stored as-is.
 nuget-feed/*.nupkg binary
 
-# ⛔ THE FILES TWO LANDINGS BOTH EDIT ARE MERGED BY DRIVER, NOT BY LINE (kb/Work PB3610; scripts/merge_drivers.py, whose
-# DRIVERS registry is the SSOT for this block and whose `--check` holds the two together). Landings conflicted on keyed
-# catalogues two branches had each added an entry to, on the work notes two branches appended to, and on the runtime
-# ABI pin; each conflict cost a finisher cycle to do what a program does exactly. git runs a driver only when both sides
-# changed the file, and only when the merge passes `-c merge.<name>.driver=…`: `enqueue.py land` and
-# `scripts/merge_drivers.py merge <ref>` do (merge_drivers.config_args); a bare `git merge` falls back to a line merge.
-tests/version-matrix/constructs.json merge=cobol-keyed-constructs
-kb/Work/PB*.md merge=cobol-work-note
-src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin merge=cobol-abi-pin
-# The public-API baselines (Microsoft.CodeAnalysis.PublicApiAnalyzers) are SETS of symbol lines under one `#nullable
-# enable` header (kb/Work PB3727; DESIGN-orchestrator-loop.md section 16.9): a line either side added is kept, a line
-# either side removed is gone, the header stays first and the rest is sorted, so two branches that each add a member are
-# no conflict. A line union, the rule here before, kept a line one side removed and once kept a symbol twice (PB3694,
-# RS0025 in the Release build); a stale line still fails the build (RS0017), so the gate sees a wrong set.
-src/**/PublicAPI.*.txt merge=cobol-keyed-publicapi
+# NO MERGE DRIVERS (kb/Work PB5110, owner 2026-11-10): no `merge=` attribute names a custom driver. Every shared registry is one file
+# per entry (the construct catalogue, the inventory, the refusals, a work note's addenda), so plain git merges two landings
+# here and in GitHub's merge queue alike; `RegistryShapeDriftTests` refuses a `merge=` attribute and a registry file two entries share.

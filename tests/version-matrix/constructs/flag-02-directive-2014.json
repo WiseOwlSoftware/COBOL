@@ -1,0 +1,26 @@
+{
+ "id": "flag-02-directive-2014",
+ "directiveWords": [
+  "FLAG-02"
+ ],
+ "directivePlacement": {
+  "rule": "betweenClauses",
+  "citation": "§2023:7.3.14.3 SR1",
+  "text": "The FLAG-02 directive may be specified only between clauses in divisions other than the procedure division and only between statements in the procedure division"
+ },
+ "directiveOperand": {
+  "form": "stage",
+  "owner": "FlagDirectiveProcessor",
+  "citation": "ISO §2023:7.3.14.2 general format: a list of syntax-option words with ON/OFF (§2023:7.3.14.3 GR4 names the options) — a structured operand, diagnosed by its own stage as COBOL1622."
+ },
+ "description": "The >>FLAG-02 { ALL | option... } { ON | OFF } migration-flagging directive (ISO §2023:7.3.14) — introduced in COBOL-2014 to flag 2002-to-2014 incompatibilities (GR1; the directive references the 2014 edition, and Annex E.2 item 5 lists only FLAG-14 as new to 2023, so FLAG-02 predates 2023). It is OBSOLETE (NOT removed) in COBOL-2023 — §2023:7.3.14.1 NOTE: 'an obsolete element in this Working Draft International Standard and is to be deleted from the next edition'. Per §2023:4.2.13 an implementation SHALL SUPPORT obsolete elements, so at 2023 it STILL COMPILES and carries the COBOL0903 obsolete warning (never a 0902 removal error). Modeled introducedIn=2014 + obsoleteIn=2023: the introduction gate rejects below 2014, the obsolete gate warns at 2023.",
+ "display": ">>FLAG-02 directive",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:7.3.14; §2023:7.3.14.1 NOTE (obsolete in 2023); §2023:4.2.13 (obsolete elements shall be supported + warned)",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "obsoleteIn": 2023,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR rows 91/96/115 (FLAG-02 directive — 2014 introduction, obsolete 2023)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLG02.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n       >>FLAG-02 I-O-STATUS-07 ON\n           DISPLAY \"Y\".\n           STOP RUN.\n"
+}

@@ -4,18 +4,16 @@
     python scripts/verdict_line.py --self-test
 
 Every `enqueue.py land` ends on ONE line, `=== ENQUEUE: <OUTCOME> (<branch>) ===` (MANDATORY-PRACTICES P2: an agent
-blocks on it), and three programs touch that line: `enqueue.py` WRITES it, the landing lane (`land_lane.py`) READS its
-outcome out of a run's log to classify the attempt, and `merge_drivers.py` reads the files a CONFLICT outcome names out
-of the landing logs. Until PB3714 the prefix was a literal in each of the three and the line's grammar a regex in the
-second, so a change to the line's shape (a field, a terminator) had to be made in all three and no test failed when one
+blocks on it), and two programs touch that line: `enqueue.py` WRITES it and the landing lane (`land_lane.py`) READS its
+outcome out of a run's log to classify the attempt. Until PB3714 the prefix was a literal in each of three programs and the
+line's grammar a regex in the second, so a change to the line's shape (a field, a terminator) had to be made in all of them and no test failed when one
 was missed: a writer and a reader could drift apart unseen.
 
-This module is a LEAF (of the repository it imports only `standard_streams`, itself a leaf, kb/Work PB3637), so `merge_drivers.py` (which `enqueue.py` imports) can use
+This module is a LEAF (of the repository it imports only `standard_streams`, itself a leaf, kb/Work PB3637), so `git_merge.py` (which `enqueue.py` imports) can use
 it without importing the landing script. It owns:
   * the line: `PREFIX`, `render(outcome, branch)` (the one writer) and `parse(line)` / `outcomes(text)` (the readers);
-  * the CONFLICT outcome inside it: `conflict_outcome(files)` (the one writer: `enqueue.py land`'s exit 4 and
-    `merge_drivers.py merge`) and `outcome_files(outcome)` / `conflict_files(text)` (the readers: the lane's conflict
-    brief, the drivers' coverage report).
+  * the CONFLICT outcome inside it: `conflict_outcome(files)` (the one writer: `enqueue.py land`'s exit 4) and
+    `outcome_files(outcome)` (the reader: the lane's conflict brief).
 `scripts/orchestrator/landing_rules.py` holds the rule: no other file under scripts/ spells the prefix in a literal.
 """
 from __future__ import annotations
@@ -68,11 +66,6 @@ def outcome_files(outcome: str | None) -> list[str]:
     return [f.strip() for f in m["files"].split(",") if f.strip()] if m else []
 
 
-def conflict_files(text: str) -> list[str]:
-    """The files the CONFLICT verdict lines of a landing log `text` name, in order."""
-    return [f for o in outcomes(text) for f in outcome_files(o)]
-
-
 def self_test() -> int:
     failures: list[str] = []
 
@@ -97,9 +90,6 @@ def self_test() -> int:
     expect("the CONFLICT outcome reads back its own files; any other outcome, and None, names none",
            outcome_files(conflict_outcome(["scripts/x.py", "kb/a.json"])) == ["scripts/x.py", "kb/a.json"]
            and outcome_files("GATE RED (Windows) on x") == [] and outcome_files(None) == [])
-    clog = render(conflict_outcome(["tests/version-matrix/constructs.json", "src/A.cs"]), "b") + "\n" + render("ENQUEUED", "b")
-    expect("conflict_files: the files the CONFLICT lines of a log name, through the same line parser",
-           conflict_files(clog) == ["tests/version-matrix/constructs.json", "src/A.cs"], repr(conflict_files(clog)))
     print(f"=== VERDICT LINE SELF-TEST: {'RED' if failures else 'GREEN'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
 

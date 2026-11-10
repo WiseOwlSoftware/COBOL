@@ -1,0 +1,13 @@
+{
+ "id": "repository-program-2002",
+ "status": "active",
+ "description": "The REPOSITORY PROGRAM entry — §2023:12.3.8.2's program-specifier `PROGRAM program-prototype-name-1 [AS literal-3]`, the ONE surface that declares a program-prototype-name, which a Format-2 CALL (§2023:14.9.4.3 SR16) and a CANCEL (§2023:14.9.5.3 SR3) then reference — introduced 2002. Introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry, beside its CLASS/INTERFACE/PROPERTY siblings; below 2002 the gate names the edition (COBOL0900).",
+ "display": "the REPOSITORY PROGRAM entry",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.8.2 (program-specifier); §2023:14.9.4.3 SR16; §2023:14.9.5.3 SR3",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "kb/Work PB237 — the program-prototype declaration surface",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RPGQX IS PROTOTYPE.\nPROCEDURE DIVISION.\nEND PROGRAM RPGQX.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. RPGQ1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    PROGRAM RPGQX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM RPGQ1.\n"
+}

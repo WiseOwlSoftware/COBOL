@@ -1,0 +1,12 @@
+{
+ "id": "relative-key-clause-alone-2002",
+ "description": "A RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 112: \"RELATIVE KEY clause. A RELATIVE KEY clause may be specified by itself in a file control entry. Previously, RELATIVE KEY was required to be specified as a phrase of the ACCESS MODE clause.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, VersionConformancePass.ParseArm.VisitRelativeKeyClause (kb/Work PB4305; VCR row 7.47).",
+ "display": "a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.4.5.13.2; ISO/IEC 1989:2002 Annex F.2 item 112",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 112)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRKA.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"VMRKA\"\n        ORGANIZATION IS RELATIVE\n        RELATIVE KEY IS RK.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 RK PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

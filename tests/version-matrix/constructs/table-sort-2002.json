@@ -1,0 +1,12 @@
+{
+ "id": "table-sort-2002",
+ "description": "The Format-2 in-place table SORT - a 2002 introduction, recognized syntactically (a SORT with neither USING/GIVING nor INPUT/OUTPUT procedures is the F2 shape). Folded from the inline SortBinder gate (Exec Step E).",
+ "display": "SORT of a table (Format 2)",
+ "diagnosticCode": "COBOL0870",
+ "citation": "ISO §2023:14.9.40.3 SR13 (Format 2 - the in-place table sort; COBOL-85 SORT operates on sort-merge files only)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0870",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWTSRT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T.\n  05 E OCCURS 3 TIMES PIC 9.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"312\" TO T.\n    SORT E ON ASCENDING KEY E.\n    STOP RUN.\n"
+}

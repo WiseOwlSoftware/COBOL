@@ -1,0 +1,12 @@
+{
+ "id": "file-organization-record-sequential-2023",
+ "description": "ORGANIZATION IS RECORD SEQUENTIAL (ISO §2023:12.4.5.10.3 GR3) — the written-out RECORD word of the §2023:12.4.5.10.2 {LINE|RECORD} SEQUENTIAL inner choice, introduced 2023 with line sequential; the bare SEQUENTIAL spelling (RECORD is an optional word, §2023:5.2.3) stays legal at every edition",
+ "display": "ORGANIZATION RECORD SEQUENTIAL",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.4.5.10.2 (RECORD not underlined — rendered PDF p.357); §2023:9.1.7.2 splits sequential files into record- and line-delimited types",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2023 introduction — the {LINE|RECORD} inner brace exists only because the Foreword's \"Line Sequential file organization\" split sequential files in two (§2023:9.1.7.2); before 2023 the format printed a lone SEQUENTIAL; no VCR row",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRS.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrs\" ORGANIZATION IS RECORD SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"A\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+}

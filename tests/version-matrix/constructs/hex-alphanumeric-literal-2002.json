@@ -1,0 +1,12 @@
+{
+ "id": "hex-alphanumeric-literal-2002",
+ "description": "The hexadecimal alphanumeric literal X\"...\" (ISO §2023:8.3.3.2.2 format 2: X followed by hex-character-sequence-1 between quotation symbols; §2023:8.3.3.2.3 SR5/SR6 its digits and pairing). ANSI X3.23-1985 has no hexadecimal literal - its nonnumeric literal is the quoted form only - so X\"...\" in a COBOL-85 source is a later edition's construct, exactly as its national and boolean twins NX\"...\" / BX\"...\" are (national-data-2002 / boolean-data-2002). THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.29; the repo holds no 1985/2002/2014 text, ratified decision #1): the 2002/2014 standards' substantive-changes list (as IBM reproduces it) carries 'Hexadecimal literals: The ability was added to specify alphanumeric, boolean, and national literals using hexadecimal (radix 16) notation' - ONE item for all three forms, whose national and boolean members GnuCOBOL's dialect files place at 2002 (cobol85.conf hexadecimal-national-literals / hexadecimal-boolean: unconformable; cobol2002.conf: ok); and none of the 459 NIST CCVS-85 programs writes one. Gated position-blind on the TOKEN by LiteralScreen.GateFormat (kb/Work PB1545), because no data gate covers an X literal in the VALUE clause of an alphanumeric item.",
+ "display": "the hexadecimal alphanumeric literal X\"...\"",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.3.3.2.2 format 2; a COBOL-2002 introduction (derived: VCR row 7.29); §2023:8.3.3.2.3 SR5",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "hexadecimal literals (2002 substantive change); VCR row 7.29",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMHEXL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC XX VALUE X\"4142\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+}

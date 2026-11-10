@@ -445,7 +445,7 @@ propertyClause
 // fileGlobalExternalClause above, which is this clause's other arm (kb/Work PB511).
 // ⚠ `AS literal-1` is the SHARED externalizedNamePhrase, never a local `AS literal` of its own: PB303's
 // landing made that rule the ONE surface and VersionConformancePass ParseArm.VisitExternalizedNamePhrase the
-// ONE COBOL-2002 introduction gate (constructs.json externalized-name-as-2002), so a new AS site is gated by
+// ONE COBOL-2002 introduction gate (the construct catalogue externalized-name-as-2002), so a new AS site is gated by
 // writing `externalizedNamePhrase?` and NOTHING else. §2023:13.18.22.3 SR3 narrows the literal at bind
 // (ExternalizedName.Screen → COBOL2156) and §2023:13.18.22.4 GR5 makes it the record's externalized name.
 externalClause
@@ -498,7 +498,7 @@ globalClause
 // TYPE clause (ISO §2023:13.18.57; the TYPEDEF clause it names is §2023:13.18.58): PROVISIONAL COBOL-2002 edge — the former {is2023()}? gate was
 // PROVABLY wrong (ISO-validation, DEVLOG 582: TYPEDEF has ~33 hits in the 2023 spec body yet ZERO Annex E
 // 2014→2023 change rows ⇒ it predates 2023). The 2002-vs-2014 refinement is blocked on the older standards
-// (roadmap decision 1 provisional policy; tests/version-matrix/constructs.json row type-clause-2002).
+// (roadmap decision 1 provisional policy; tests/version-matrix/constructs/ row type-clause-2002).
 // ⛔ THE OPTIONAL WORD IS `TO`, NOT `IS` (kb/Work PB889). §2023:13.18.57.2 Format 1 prints `TYPE TO type-name-1` with TYPE
 // underlined and TO not (rendered PDF page 524, printed folio 494) — §2023:5.2.3 makes an un-underlined uppercase word an
 // OPTIONAL word. The rule used to read `TYPE IS? IDENTIFIER`, so the standard's own spelling `TYPE TO T` was rejected
@@ -1036,7 +1036,7 @@ initializeCategory
 // at 85, 2002, 2014 or 2023 and has no reserved-words.json row); they were the sole consumer of the hard EDITED
 // lexer token, which shadowed IDENTIFIER and made `01 EDITED PIC X.` a COBOL0001 at every edition. Both are gone.
 // EDITION GATING IS NOT HERE: the words that ISO §2023:8.9 reserves above 85 are admitted unconditionally and named by
-// VersionConformancePass.VisitInitializeStatement (COBOL0900 with the per-word constructs.json row), because
+// VersionConformancePass.VisitInitializeStatement (COBOL0900 with the per-word the construct catalogue row), because
 // this position only ever takes a category-name — no user-defined word can reach it, so there is nothing for a
 // `userWordHere` predicate to disambiguate and a named gate beats a "no viable alternative".
 initializeCategoryName

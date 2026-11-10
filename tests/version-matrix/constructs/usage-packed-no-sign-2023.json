@@ -1,0 +1,12 @@
+{
+ "id": "usage-packed-no-sign-2023",
+ "description": "USAGE PACKED-DECIMAL WITH NO SIGN (ISO §2023:13.18.60.4 GR11) — a COBOL-2023 addition: the packed item reserves no trailing sign nibble (storage = ceil(Digits/2) bytes), the value is always zero-or-positive, and SR31 forbids an 'S' picture. NO SIGN is a modifier on Usage.Packed (which exists at every edition) so the gate is recognition-based on the parsed noSignPhrase, not a resolved-usage key.",
+ "display": "USAGE PACKED-DECIMAL WITH NO SIGN",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.2 / §2023:13.18.60.4 GR11; SR31; §2023:E.3.2 item 5; §2023:13.18.40.3 SR31",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 42 (NO SIGN phrase — 2023 introduction)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NOSGN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(6) PACKED-DECIMAL WITH NO SIGN.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 12 TO W.\n    STOP RUN.\n"
+}

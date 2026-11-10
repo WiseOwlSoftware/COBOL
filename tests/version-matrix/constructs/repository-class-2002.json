@@ -1,0 +1,12 @@
+{
+ "id": "repository-class-2002",
+ "description": "REPOSITORY paragraph CLASS entry (declares a referenced OO class), ISO 12.3.8 - introduced 2002. Grammar-gated (repositoryEntry {is2002()}?); below 2002 the W1.5 parse-layer mapping (EditionGateHints) names the edition (COBOL0900).",
+ "display": "the REPOSITORY CLASS entry",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.8 (OO)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 OO surface; W1.5 parse-layer mapping (DEVLOG 594)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15N.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS BASE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

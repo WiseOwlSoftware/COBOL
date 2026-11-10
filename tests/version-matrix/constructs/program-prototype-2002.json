@@ -1,0 +1,13 @@
+{
+ "id": "program-prototype-2002",
+ "status": "active",
+ "description": "A PROGRAM-ID ... IS PROTOTYPE program prototype definition (ISO §2023:11.10.2 Format 2 / §2023:10.6.1 program-prototype; kb/Work PB894). A signature-only source unit - the §2023:10.6.2 SR4 restrictions (LINKAGE-only data division, header-only procedure division, no I-O section / OBJECT-COMPUTER / ARITHMETIC, restricted SPECIAL-NAMES) are screened by the ONE prototype-body screen shared with the function prototype - that registers no runtime module; a REPOSITORY `PROGRAM name` specifier resolves to it by §2023:12.3.8.4 GR10 b) when no in-group definition shares its externalized name. The grammar tail is the shared `prototypePhrase`; the introduction gate is VersionConformancePass ParseArm.VisitPrototypePhrase, recognition-fired.",
+ "display": "a PROGRAM-ID … IS PROTOTYPE (program prototype definition)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.10.2 Format 2 / §2023:10.6.1 / §2023:10.6.2 / §2023:12.3.8.4 GR10 b)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "kb/Work PB894; dated with its twin function-prototype-2002 and the REPOSITORY PROGRAM specifier repository-program-2002 that is its only consumer; PROTOTYPE reserved from 2002 (user-word-prototype-2002)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\nPROCEDURE DIVISION USING L-X.\nEND PROGRAM PPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. VMPP1.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM VMPP1.\n"
+}

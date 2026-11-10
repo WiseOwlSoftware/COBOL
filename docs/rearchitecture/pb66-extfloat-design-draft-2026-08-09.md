@@ -29,11 +29,11 @@ Companion docs (this doc defers to them and must be merged into them on landing)
 `docs/DATA_MODEL_DESIGN.md` (the category/storage register — PB66 names it as the owning doc),
 `docs/NUMERIC_DESIGN.md` (D1 the Int128 engine, D3 the arithmetic modes, D7/D16/D18 the float lane),
 `docs/rearchitecture/DESIGN-version-conformance-pipeline.md` (the one edition gate),
-`docs/rearchitecture/DESIGN-edition-framework.md` (`constructs.json` rows).
+`docs/rearchitecture/DESIGN-edition-framework.md` (`constructs/` rows).
 
 > **The standard has no term "external floating-point".** It calls this construct a **floating-point
 > numeric-edited item** (§2023:13.18.40.4 GR13 b) and never uses "external floating-point" anywhere in the 2023 text
-> (`grep` over `specs/ISO_COBOL_2023.md`: 0 occurrences). Every diagnostic, comment, doc line and `constructs.json`
+> (`grep` over `specs/ISO_COBOL_2023.md`: 0 occurrences). Every diagnostic, comment, doc line and `constructs/`
 > field this wave touches adopts the standard's term; "external floating-point" survives only as a
 > parenthetical in the `PB66` note and in the legacy diagnostic string that §12 replaces.
 
@@ -276,7 +276,7 @@ specified as floating-point" has a working literal channel to build the VALUE ru
 rows, all GAP; §2023:13.18.40.4 — 19 rows, all GAP; §2023:13.18.40.5 — 15 rows, all GAP; §2023:14.6.8.4 — 2 rows, both GAP with
 a blank verdict; §2023:15.43.4 r1 and §2023:15.58.4 r1 — the two `NOT-IMPLEMENTED` rows PB66 owns.
 
-**Metadata defect found while writing this design.** `tests/version-matrix/constructs.json`, row
+**Metadata defect found while writing this design.** `tests/version-matrix/constructs/`, row
 `pic-external-float-2002`, carries `"source": "… 01 W-E PIC +9V99E+99. …"`. **That picture is illegal**: Table 10
 row `E` has no `V` column (§1.2). When the row flips to `status: active` the gate program must become a legal
 mask (`PIC +9.99E+99`), otherwise the edition-gate test would assert the right diagnostic for the wrong reason —
@@ -831,11 +831,11 @@ covers what happens at `--std 2002`.
 
 | `--std` | Behaviour |
 |---|---|
-| **85** | `COBOL0900` — "a floating-point numeric-edited PICTURE (the symbol E) requires COBOL-2002 (targeting COBOL-85)". Unchanged mechanism: the `constructs.json` row `pic-external-float-2002` with `introducedIn: 2002`, fired by `VersionConformancePass`'s `GateData` enumerator. **The `SkeletonGate` carrier is DELETED** — it exists only because `PicInfo.Recovery` erased the category; once the analyzer returns a real `PicCategory.NumericEdited` the enumerator keys on `Pic.IsFloatEdited`, exactly as the National/Boolean rows key on `Pic.Category`. (`PicInfo.SkeletonGate`'s doc-comment names external float as one of its two users; after this wave only `NationalEdited2002` remains, and the property's comment must say so.) |
+| **85** | `COBOL0900` — "a floating-point numeric-edited PICTURE (the symbol E) requires COBOL-2002 (targeting COBOL-85)". Unchanged mechanism: the `constructs/` row `pic-external-float-2002` with `introducedIn: 2002`, fired by `VersionConformancePass`'s `GateData` enumerator. **The `SkeletonGate` carrier is DELETED** — it exists only because `PicInfo.Recovery` erased the category; once the analyzer returns a real `PicCategory.NumericEdited` the enumerator keys on `Pic.IsFloatEdited`, exactly as the National/Boolean rows key on `Pic.Category`. (`PicInfo.SkeletonGate`'s doc-comment names external float as one of its two users; after this wave only `NationalEdited2002` remains, and the property's comment must say so.) |
 | **2002** | Fully live. §2023:15.43.4/§2023:15.58.4 r1 in the 2014 wording did not yet exist, so `COBOL1648` is issued citing **§2023:8.8.1.3 + Annex A.3** (the implementor-defined intermediate and the processor-dependent capability) rather than §2023:15.43.4 r1. The *test* is identical — the constraint is physical, not editorial: the compiler cannot return a value its intermediate cannot hold. |
 | **2014 / 2023** | Fully live; `COBOL1648` cites §2023:15.43.4 r1 / §2023:15.58.4 r1. |
 
-`constructs.json` row changes: `status: pending → active`, `diagnosticCode`/`expectDiagnostic` unchanged
+`constructs/` row changes: `status: pending → active`, `diagnosticCode`/`expectDiagnostic` unchanged
 (`COBOL0900`), `description` rewritten (drop "silent-misbinds"/"Phase 6"), `display` → "a floating-point
 numeric-edited PICTURE (the symbol E)", `citation` → "ISO §2023:13.18.40.4 GR13 b", and **`source` corrected from the
 illegal `PIC +9V99E+99` to `PIC +9.99E+99`** (§2).
@@ -858,7 +858,7 @@ COBOL1641 · next free = COBOL1643").
 | `COBOL1646` | significand digit positions outside 1..36 | §2023:13.18.40.3 SR15 |
 | `COBOL1647` | a `VALUE` literal for a floating-point format that is a non-zero **fixed-point** numeric literal | §2023:13.18.63.3 SR6 |
 | `COBOL1648` | `HIGHEST-`/`LOWEST-ALGEBRAIC` argument-1's extreme value is outside the intermediate data item's range for the mode in effect | §2023:15.43.4 r1 / §2023:15.58.4 r1 (≥2014); §2023:8.8.1.3 + Annex A.3 (2002) |
-| existing `COBOL0900` | below COBOL-2002 | `constructs.json` row |
+| existing `COBOL0900` | below COBOL-2002 | `constructs/` row |
 | existing SIGN validation | a `SIGN` clause on the entry | §2023:13.18.52.3 SR1 |
 
 `COBOL0899` for this construct is **retired** — the whole point of the wave. The `DiagnosticCatalog` /
@@ -983,7 +983,7 @@ decides and the divergence is recorded, not adopted.
 | `CodeGen/DataDivision/RecordStructEmitter` | emit the per-item `static readonly CobolEdit.FloatMask` (D-EF6) |
 | `Runtime/Values/Numeric/CobolEdit.cs` | `FloatMask`, `FormatFloat`, `TryFormatFloat`, `DeEditFloat`, `FloatStoreOutcome` |
 | `Runtime/Values/Numeric/CobolDec.cs:23` | note the exact-representation use beside the arithmetic-entry comment |
-| `tests/version-matrix/constructs.json` | `pic-external-float-2002` → active; **fix the illegal `source` picture** |
+| `tests/version-matrix/constructs/` | `pic-external-float-2002` → active; **fix the illegal `source` picture** |
 | `tests/version-matrix/traceability-inventory.json` | `RV-15.43.4-1`, `RV-15.58.4-1` → CONFORMS + `test-ref`; the §2023:13.18.40.3/.4/.5 and §2023:14.6.8.4 rows become adjudicable |
 | `docs/DATA_MODEL_DESIGN.md` · `docs/NUMERIC_DESIGN.md` · `docs/CONFORMANCE.md` · `docs/DIAGNOSTICS.md` · `docs/DOC_INDEX.md` | merge this design; record D-EF8's pinned undefined-behaviour choice |
 | `kb/Work/PB66.md` | `status: open → closed` in the landing commit |

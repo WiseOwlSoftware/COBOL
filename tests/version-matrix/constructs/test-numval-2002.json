@@ -1,0 +1,13 @@
+{
+ "id": "test-numval-2002",
+ "status": "active",
+ "description": "The TEST validator quartet FUNCTION TEST-DATE-YYYYMMDD (ISO 15.90) / TEST-DAY-YYYYDDD (15.91) / TEST-NUMVAL (15.93) / TEST-NUMVAL-C (15.94). LIVE (P11 Step 6): the date pair is an if/else-if verdict chain (year before month before day; codes 0/1/2[/3] confirmed by D.31.3.8/9); the NUMVAL pair is a THREE-leg verdict - 0 (r1a) / the 1-based first-error position (r1b, incl. the verbatim '0 1'->3 embedded-space sub-note and the arithmetic-mode digit caps: 31 native, 34 SDIDI) / LENGTH+1 (r1c: zero-length, all-spaces, incomplete like ' +.') - realized as position-reporting scanners beside the value parsers (the TestNumvalF discipline). TEST-NUMVAL-C rides the ONE BindNumvalCFamily bespoke bind (the 15.68.3-r3 currency injection + the r4f ANYCASE fold, shared with NUMVAL-C). 2002 introductions (15.90/15.91 carry direct in-spec attribution, D.31.3.1); below 2002 the D8 catalog window rejects by name+edition (COBOL1502).",
+ "display": "FUNCTION TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD / TEST-NUMVAL / TEST-NUMVAL-C (the validators)",
+ "diagnosticCode": "COBOL1502",
+ "citation": "ISO §2023:15.90/§2023:15.91/§2023:15.93/§2023:15.94; §2023:15.94.3 r1 → §2023:15.68.3 (ANYCASE r4f)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL1502",
+ "vcr": "M2 catalog validators; 2002 introduction — TEST-DATE/TEST-DAY direct in-spec attribution @D.31.3.1 (non-provisional); TEST-NUMVAL/-C the 2002 standard",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMTESTVAL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 R2 PIC 9(2).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(20240229)\n    COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(2024366)\n    COMPUTE R2 = FUNCTION TEST-NUMVAL(\"123.45\")\n    COMPUTE R2 = FUNCTION TEST-NUMVAL-C(\"$1,234.56\")\n    DISPLAY R2\n    STOP RUN.\n"
+}

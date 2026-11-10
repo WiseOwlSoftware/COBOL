@@ -1,0 +1,12 @@
+{
+ "id": "usage-float-decimal34-2014",
+ "status": "pending",
+ "description": "USAGE FLOAT-DECIMAL-34 (ISO/IEC 60559:2020 decimal128, §2023:13.18.60.4 GR18) — a COBOL-2014 introduction that is PROCESSOR-DEPENDENT (Annex A.3 item 19). PENDING: .NET has no IEEE 754 decimal128 type and GR18 pins the format, so WiseOwl COBOL documents it as non-support (rejected loud, COBOL1564); this row would activate if the pinned format is implemented.",
+ "display": "USAGE FLOAT-DECIMAL-34",
+ "diagnosticCode": "COBOL1564",
+ "citation": "ISO §2023:13.18.60.4 GR18 (decimal128); Annex A.3 item 19 (processor-dependent); non-support COBOL1564",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "2014 introduction (§2023:13.18.60.4 GR18 FLOAT-DECIMAL-34 = IEEE decimal128); Annex A.3 item 19 processor-dependent",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FD34.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-DECIMAL-34.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

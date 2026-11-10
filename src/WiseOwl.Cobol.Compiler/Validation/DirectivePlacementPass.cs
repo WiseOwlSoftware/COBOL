@@ -11,7 +11,7 @@ namespace WiseOwl.Cobol.Validation;
 
 /// <summary>
 /// THE POSITION PASS for the placement rules of the §2023:7.3 directives that need the PARSE TREE (kb/Work PB1005,
-/// PB1065, PB1377, PB1378). Each rule is DATA on the directive's <c>constructs.json</c> row
+/// PB1065, PB1377, PB1378). Each rule is DATA on the directive's <c>constructs/</c> row
 /// (<see cref="ConstructDialectStatus.Placement"/>), so this pass is written once and a directive with one of these
 /// restrictions is one row field:
 /// <list type="bullet">

@@ -1,0 +1,12 @@
+{
+ "id": "accept-four-digit-year-2002",
+ "description": "The four-digit-year temporal ACCEPT phrases - a 2002 introduction. Folded from the inline AcceptDisplayBinder gate (Exec Step E).",
+ "display": "ACCEPT FROM DATE YYYYMMDD / DAY YYYYDDD",
+ "diagnosticCode": "COBOL0815",
+ "citation": "ISO §2023:14.9.1.2 (the YYYYMMDD and YYYYDDD phrases; the 1985 formats list only bare DATE / DAY / DAY-OF-WEEK / TIME); §2023:14.9.1.4 GR8",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0815",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWA4Y.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 W PIC 9(8).\nPROCEDURE DIVISION.\nMAIN.\n    ACCEPT W FROM DATE YYYYMMDD.\n    STOP RUN.\n"
+}

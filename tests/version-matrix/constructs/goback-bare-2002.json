@@ -1,0 +1,12 @@
+{
+ "id": "goback-bare-2002",
+ "description": "GOBACK itself is a 2002 introduction; a GOBACK RETURNING is gated by goback-returning-2002 (its more-specific 0900 subsumes this row - the pass fires this row only for a BARE GOBACK). Folded from the inline CallBinder gate (Exec Step E).",
+ "display": "the GOBACK statement",
+ "diagnosticCode": "COBOL0880",
+ "citation": "ISO §2023:14.9.18.2 (§2023:14.9.16 in 2002); COBOL-85 uses STOP RUN / EXIT PROGRAM",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0880",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWGBK.\nPROCEDURE DIVISION.\nMAIN.\n    GOBACK.\n"
+}

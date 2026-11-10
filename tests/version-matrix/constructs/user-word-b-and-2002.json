@@ -1,0 +1,12 @@
+{
+ "id": "user-word-b-and-2002",
+ "description": "The word B-AND as a user-defined word - 8.9 interval encoding: user-definable at 85 (the operator did not exist), reserved since 2002 (ReservedWords.Table rows cover all four B-operators). cobolWord admits the token; the funnel rejects 0901 at >=2002.",
+ "display": "the word B-AND as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable at 85, reserved since 2002",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "8.9 (2002 introduction); ReservedWords.Table B-AND/B-OR/B-XOR/B-NOT rows",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWBAND.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 B-AND PIC 9.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

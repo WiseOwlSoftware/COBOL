@@ -1,0 +1,13 @@
+{
+ "id": "interface-definition-2002",
+ "status": "active",
+ "description": "An interface definition (INTERFACE-ID compilation unit), ISO 11.5/11.6 - introduced 2002 (OO). Grammar-gated in compilationGroup; below 2002 the W1.5 parse-layer mapping names the edition (0900); LIVE at the INTERFACE wave: emits a real C# interface whose members are the prototypes' signatures, prototype LINKAGE bound per 10.6.2 SR4, class conformance via the binder-authoritative 9.3.8.2.3 pass (0841).",
+ "display": "an interface definition (INTERFACE-ID compilation unit)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.5/§2023:11.6 (OO); §2023:10.6.2 SR4 (prototype LINKAGE); §2023:11.8.4 GR2; §2023:9.3.8.2.3",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 606)",
+ "source": "IDENTIFICATION DIVISION.\nINTERFACE-ID. IFQ1.\nPROCEDURE DIVISION.\nMETHOD-ID. PING.\nPROCEDURE DIVISION.\nEND METHOD PING.\nEND INTERFACE IFQ1.\n"
+}

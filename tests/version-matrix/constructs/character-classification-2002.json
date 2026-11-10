@@ -1,0 +1,12 @@
+{
+ "id": "character-classification-2002",
+ "description": "The OBJECT-COMPUTER CHARACTER CLASSIFICATION clause (CHARACTER CLASSIFICATION {IS locale-phrase-1 [locale-phrase-2] | {FOR ALPHANUMERIC IS locale-phrase-1 | FOR NATIONAL IS locale-phrase-2}...}), ISO 12.3.6.2 - introduced 2002 with the locale facility (Annex A.4.9 item 7; kb/Work PB64 T5). Each phrase is LOCALE (the locale current at the module's activation - 12.3.6.4 GR5b/GR8, 14.6.6 r2), SYSTEM-DEFAULT, USER-DEFAULT or a SPECIAL-NAMES locale-name (12.3.6.3 SR3); the classification's LC_CTYPE drives UPPER-CASE / LOWER-CASE without a LOCALE phrase and the ALPHABETIC class tests (GR7). Parse-arm gated on recognition (VisitCharacterClassificationClause; CLASSIFICATION is a context-sensitive word matched by text).",
+ "display": "the OBJECT-COMPUTER CHARACTER CLASSIFICATION clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.6.2 (the CHARACTER CLASSIFICATION clause); §2023:12.3.6.3 SR3; §2023:12.3.6.4 GR5-GR8",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the locale facility; kb/Work PB64 T5 - the classification is resolved at activation)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T5CCR.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. X CHARACTER CLASSIFICATION IS USER-DEFAULT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "boolean-data-2002",
+ "status": "active",
+ "description": "Boolean data (PICTURE symbol 1 / USAGE BIT, ISO 8.5.2.5 Boolean category / 13.18.40 / 13.18.60). LIVE (Phase 4a track (a)): compiles at 2002+ (one alphanumeric '0'/'1' character per boolean position, the 13.18.40.4 GR14 R14 license, D-B1; MOVE zero-fill 14.6.8.6; equality-only relations 8.8.4.2.2); below 2002 the introduction gate rejects (COBOL0900). The B-AND/B-OR/B-XOR/B-NOT operator leg is track (a) increment 2.",
+ "display": "boolean data (PICTURE symbol 1 / USAGE BIT)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.5.2.5 (Boolean category) / §2023:13.18.40 / §2023:13.18.60; one '0'/'1' char per position; the boolean-operators leg is boolean-operators-2002",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 catalog national/boolean; roadmap Phase 4a + D4; skeleton (W2)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BOOLD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-B PIC 1(8).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "report-occurs-2002",
+ "status": "active",
+ "description": "The OCCURS clause in a report group description entry (§2023:13.18.38 format 3 — OCCURS [integer-1 TO] integer-2 TIMES [DEPENDING ON data-name-1] [STEP integer-3]): a REPEATING ENTRY, which §2023:13.18.38.4 GR10 makes \"define integer-2 distinct report items\", GR11 gives every repetition the same PICTURE/VALUE/JUSTIFIED/BLANK WHEN ZERO/GROUP INDICATE effect, GR12 spaces by the STEP phrase and GR13 counts by the DEPENDING operand. LIVE ON BOTH AXES (kb/Work PB565): the binder REPLAYS the entry's subtree once per repetition, so §2023:13.18.63.4 GR21's import of GR9 (a VALUE reaches every occurrence) and GR22's OCCURS-DEPENDING suppressor both ride it. The entry's AXIS is fixed by the clause it carries — a LINE clause on the entry or in its subtree repeats it VERTICALLY (GR10c/GR10d, GR12c/GR12d), anything else horizontally (GR10a/GR10b, GR12a/GR12b) — and integer-3 displaces on that axis only. The COBOL-85 report group description entry had no OCCURS clause at all.",
+ "display": "OCCURS (report group description — a repeating entry)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.38.2 format 3 / §2023:13.18.38.3 SR10/SR16/SR24–SR27 / §2023:13.18.38.4 GR10–GR13",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 RW addition (the 85 report group description entry has no OCCURS clause; the repeating-entry family — multiple LINE/COLUMN, VARYING, PRESENT WHEN — all enter at 2002)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRMO1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrmo1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nREPORT SECTION.\nRD R-1 PAGE LIMIT IS 20 LINES.\n01 D-1 TYPE DE.\n   03 LINE PLUS 1.\n      05 COLUMN 1 PIC X(2) OCCURS 3 TIMES STEP 3 VALUE \"OK\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
+}

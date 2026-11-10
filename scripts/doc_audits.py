@@ -12,7 +12,7 @@ note"). Some thirty Unit and Conformance classes read docs/CONFORMANCE.md, VERSI
 the README and the design docs, so a one-word edit to a document made the whole population run (about 13 minutes, a build
 and three assemblies) to learn nothing about the compiler. A document cannot change what the compiler does; it can only
 disagree with a fact, and the fact is one of three things:
-  1. another document or a script's data (a README summarizing a register, the VCR's anchors against constructs.json):
+  1. another document or a script's data (a README summarizing a register, the VCR's anchors against the construct catalogue):
      a check HERE, over the Markdown alone;
   2. a fact the COMPILER holds (the dynamic-length maximum, the implementor-defined exception names, the command line's
      options): `tests/doc-facts/compiler-facts.json`, written by the Unit test DocumentedFactsDriftTests and held equal to

@@ -1,0 +1,13 @@
+{
+ "id": "arithmetic-standard-binary-2014",
+ "status": "pending",
+ "description": "OPTIONS ARITHMETIC IS STANDARD-BINARY (binary128 intermediates, §2023:8.8.1.4) — a 2014 keyword of the 2002 ARITHMETIC clause, designated OBSOLETE by the 2023 text (§2023:8.8.1.4.1 NOTE 1 / Annex F.2 item 3). PENDING: the mode is documented-unsupported at every edition that has it (COBOL0806, DataBinder — a binary128 SDIDI has no exact .NET carrier), so the row has no compiling cell; the VisitArithmeticMethod parse arm still owns the 0900 introduction edge below 2014 (the two-obligation rule's diagnostic half). Activation contract: a real standard-binary intermediate implementation.",
+ "display": "ARITHMETIC IS STANDARD-BINARY",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:11.9.5 / §2023:8.8.1.4; obsolete §2023:8.8.1.4.1 NOTE 1 / Annex F.2 item 3 (VCR row 93)",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "obsoleteIn": 2023,
+ "vcr": "2014 introduction; obsolete-in-2023 (VCR row 93 / Annex F.2 item 3)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SBPROG.\nOPTIONS.\n    ARITHMETIC IS STANDARD-BINARY.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9V9(5).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = 1 / 8.\n    DISPLAY W.\n    STOP RUN.\n"
+}

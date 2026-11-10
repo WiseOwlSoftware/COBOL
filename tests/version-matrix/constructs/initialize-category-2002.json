@@ -1,0 +1,13 @@
+{
+ "id": "initialize-category-2002",
+ "description": "The COBOL-2002 INITIALIZE category-names - BOOLEAN, DATA-POINTER, NATIONAL, NATIONAL-EDITED, OBJECT-REFERENCE and PROGRAM-POINTER, the six of the printed thirteen (ISO 14.9.20.2 'where category-name is:') that entered with the 2002 data categories and that ISO 8.9 reserves from 2002. Gated on RECOGNITION in the VersionConformancePass parse arm (VisitInitializeCategoryName), so the edition is named whether or not the operands resolve. kb/Work PB415.",
+ "display": "INITIALIZE category-name (2002 words)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.20.2 (category-name) / §2023:8.9 (reserved from 2002); §2023:14.9.20.3 SR3",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "status": "active",
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the 2002 data categories: national, boolean, pointer, object-reference)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWICAT2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n  05 N1 PIC N(3) VALUE N\"abc\".\n  05 A1 PIC X(3) VALUE \"xyz\".\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE G REPLACING NATIONAL DATA BY N\"zzz\".\n    STOP RUN.\n"
+}

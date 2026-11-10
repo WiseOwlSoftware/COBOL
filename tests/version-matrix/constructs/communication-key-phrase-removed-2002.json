@@ -1,0 +1,12 @@
+{
+ "id": "communication-key-phrase-removed-2002",
+ "description": "The WITH KEY phrase of the ENABLE and DISABLE statements, the password the COBOL-85 communication module prints (CCVS-85 CM101M, CM102M, CM201M write it; CM303M flags it as obsolete there). ISO/IEC 1989:2002 A.2.2.1 and A.2.3.1 print neither statement with it, and Table A.1 has no status 40 for an invalid key. The 1985 text is not held: CCVS-85 is the witness of its presence, the 2002 general formats of its removal. kb/Work PB4677.",
+ "display": "the KEY phrase of the ENABLE and DISABLE statements",
+ "diagnosticCode": "COBOL0902",
+ "citation": "ISO/IEC 1989:2002 A.2.2.1, A.2.3.1 (no KEY phrase); §1985:XIV.3.2.4 GR7, §1985:XIV.3.3.4 GR6 (the password, REMOVED); CCVS-85 CM303M (obsolete at 85); VCR Table 7",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CDK.\nDATA DIVISION.\nCOMMUNICATION SECTION.\nCD C FOR INPUT SYMBOLIC QUEUE IS Q.\nPROCEDURE DIVISION.\nMAIN.\n    ENABLE INPUT C WITH KEY \"PW\".\n    STOP RUN.\n"
+}

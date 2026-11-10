@@ -1,0 +1,20 @@
+{
+ "id": "page-directive-2002",
+ "description": "The >>PAGE [comment-text-1] compiler directive (ISO §2023:7.3.19) - page ejection plus documentation for the source listing. §2023:7.3.19.4 GR3 says a PAGE directive has no effect when no source listing is produced, so recognize-and-consume is the conforming disposition. The introduction gate rejects the directive word below 2002. The §2023:7.3 compiler-directive facility is a COBOL-2002 introduction: COBOL-85 has no compiler directives at all, so a '>>' line cannot occur in a conforming COBOL-85 source. The edition edge below 2023 is DERIVED, not quoted (VCR Table 7's discipline, rows 7.19/7.20 - the repo holds no 2002 or 2014 text, ratified decision #1): the derivation is (a) the M2 post-85 feature catalog in docs/ISO2023_CONFORMANCE_PLAN.md, which places '*>' inline comments, >>SOURCE FORMAT, conditional compilation and 'recognize-and-ignore of the other standard >> directives' in COBOL-2002, (b) the sibling row leap-second-directive-2002, already landed on the same derivation (kb/Work PB65), and (c) Annex E, which itemizes the 2014->2023 delta and does NOT list this directive among the additions, so it predates 2023. Overturnable in one line if the 2002/2014 text is ever acquired.",
+ "display": ">>PAGE directive",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:7.3.19; the §2023:7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
+ "directiveWords": [
+  "PAGE"
+ ],
+ "directiveOperand": {
+  "form": "text",
+  "operandRequired": false,
+  "citation": "ISO §2023:7.3.19.2 general format: >> PAGE [ comment-text-1 ] — bracketed, so the operand is optional; §2023:7.3.19.3 SR2 states that comment-text-1 'is not checked syntactically', which is why this row's content check is the standard's own decision rather than a gap."
+ },
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "compiler directives (§2023:7.3) - 2002 introduction",
+ "source": "       >>PAGE PB725 PAGE DIRECTIVE\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725PG.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n"
+}

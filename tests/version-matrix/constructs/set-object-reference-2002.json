@@ -1,0 +1,13 @@
+{
+ "id": "set-object-reference-2002",
+ "status": "active",
+ "description": "SET ... TO object-reference (ISO 14.9.39 Format 5) - introduced 2002 (OO). Bound-arm gated: every SET ... TO shape parses as the one setToStatement rule (kb/Work PB4231), and the receivers' RESOLVED object-reference category selects Format 5 in SetFormatSelection (BindSetToNull for a NULL sender, BindSetTo for every other), so the gate fires on the BoundSetObjectRef node (0900). SR8/SR9/SR12/SR13 violations are COBOL0867; LIVE as of the universal wave (D-U7, DEVLOG 608).",
+ "display": "SET TO object-reference (Format 5)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39.3 SR8 and §2023:14.9.39.3 SR9 (Format 5, OO)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 608)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SORQ1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    SET W TO NULL.\n    STOP RUN.\n"
+}
