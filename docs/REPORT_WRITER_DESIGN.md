@@ -547,7 +547,10 @@ off-by-one through every later counter check.
   (counter occurrence, addend occurrence), with the report GROUP that contains the addend — `CobolReport.AddRolled`
   on the counter's engine, stored on the source group (`ReportGroup.Rolled`), because the two may belong to
   DIFFERENT reports — and performed by that group's prologue (`BeginGroup` → `ApplyRolled`, skipped on an OR PAGE
-  reprint, which is the same instance printed again). It is the SAME closure a GENERATE-driven term builds
+  reprint, which is the same instance printed again). The prologue performs the group's OWN counter arithmetic (crossfoot and
+  roll forward: the addend is a counter of the group, or the counter is the group's own, `crossFoot`) BEFORE its USE BEFORE
+  REPORTING declarative (§1985:XIII.3.20.4 GR10 a)/b)) and a data entry's contribution into ANOTHER group's counter AFTER it,
+  so a detail declarative that computes the entry's SOURCE is added as computed (kb/Work PB5127). It is the SAME closure a GENERATE-driven term builds
   (`ReportWriterEmitter.SumAddition` — GR3's ADD with ON SIZE ERROR), over a value bound once every report's
   operands are (`ReportWriterBinder.BindRolledValues`: the counter occurrence's content as a `ReportSumCounterPlace`
   read, or the SOURCE/VALUE operand as a number). Registrations are emitted after EVERY engine is constructed

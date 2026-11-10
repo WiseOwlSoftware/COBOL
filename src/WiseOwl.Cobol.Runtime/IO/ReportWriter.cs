@@ -184,7 +184,12 @@ public sealed class ReportGroup(ReportGroupKind kind, string name, int controlLe
     /// <summary>One rolled addition: add <paramref name="Apply"/>'s result into counter <paramref name="SumId"/> of
     /// <paramref name="Target"/> when the group is processed — unless the addend entry is absent in this
     /// presentation's snapshot at <paramref name="PresentSlot"/> (§2023:13.18.54.4 GR11; −1 = always present).</summary>
-    internal readonly record struct RolledAddition(CobolReport Target, int SumId, int PresentSlot, Func<Int128, Int128> Apply);
+    /// <paramref name="CrossFoot"/> marks the additions that are the group's OWN sum-counter arithmetic — the addend is a
+    /// sum counter of this group (roll forward) or the counter added into is defined in this group (crossfoot) — which
+    /// precede the group's USE BEFORE REPORTING declarative (§1985:XIII.3.20.4 GR10 a)/b); §2023:14.9.49.4 GR9 b)). Any
+    /// other addition is a data entry's contribution into ANOTHER group's counter (a detail's SOURCE added into its
+    /// control footing's total): it follows the declarative, which may compute the entry's source (kb/Work PB5127).</summary>
+    internal readonly record struct RolledAddition(CobolReport Target, int SumId, int PresentSlot, Func<Int128, Int128> Apply, bool CrossFoot);
 
     /// <summary>The group's NEXT GROUP clause (ISO §2023:13.18.37; §2023:13.15.3 SR6 — level 1 only), null when none.</summary>
     public ReportNextGroup? NextGroup { get; set; }
@@ -611,8 +616,8 @@ public sealed class CobolReport(
     /// a result of a PRESENT WHEN clause or an OCCURS clause with the DEPENDING phrase … is not added into the sum
     /// counter during the processing of that instance of the report group" (GR11); −1 = unconditional. The source group
     /// may belong to ANOTHER report's engine (SR4 g)): the group carries its target.</summary>
-    public void AddRolled(ReportGroup source, int sumId, int presentSlot, Func<Int128, Int128> apply) =>
-        source.Rolled.Add(new ReportGroup.RolledAddition(this, sumId, presentSlot, apply));
+    public void AddRolled(ReportGroup source, int sumId, int presentSlot, Func<Int128, Int128> apply, bool crossFoot) =>
+        source.Rolled.Add(new ReportGroup.RolledAddition(this, sumId, presentSlot, apply, crossFoot));
 
     /// <summary>One SUM group's UPON on a detail of ANOTHER report (ISO §2023:13.18.54.4 GR7 c) 2) — "whenever any GENERATE
     /// statement is executed for a detail referenced by the UPON phrase", the detail being of a different report
@@ -640,10 +645,10 @@ public sealed class CobolReport(
     /// order they were registered (the binder orders a chain of rolled totals so a counter's own additions precede
     /// its being read, §2023:13.18.54.4 GR6: "The additions necessary to compute its value are completed before the adding
     /// of the operand into the current sum counter"). An entry absent in THIS presentation's snapshot adds nothing.</summary>
-    private static void ApplyRolled(ReportGroup group)
+    private static void ApplyRolled(ReportGroup group, bool crossFoot)
     {
         foreach (var r in group.Rolled)
-            if (group.IsPresent(r.PresentSlot))
+            if (r.CrossFoot == crossFoot && group.IsPresent(r.PresentSlot))
                 r.Target.Accumulate(r.SumId, r.Apply);
     }
 
@@ -1377,13 +1382,17 @@ public sealed class CobolReport(
         // (§2023:13.18.54.4 GR11), so a group that owes any takes one BEFORE the declarative; the group's printing then
         // takes its own AFTER it (below), because a declarative decides its group's presence (kb/Work PB367b — the
         // order the standard leaves to the implementor between GR9 d) and §2023:13.18.41.4 GR2).
-        if (!reprint && group.Rolled.Count > 0)
+        bool rolls = !reprint && group.Rolled.Count > 0;
+        if (rolls)
         {
             group.SnapshotPresence();
-            ApplyRolled(group);
+            ApplyRolled(group, crossFoot: true);
         }
         bool suppressed = RunBeforeReporting(group);   // §2023:14.9.49 GR8; true ⇒ a §2023:14.9.45 SUPPRESS executed
         first = BeginPresentation(group);
+        // A data entry's contribution into ANOTHER group's counter follows the declarative (which may compute the entry's
+        // SOURCE) and reads the presentation's ONE snapshot, taken after it (§2023:13.18.54.4 GR11).
+        if (rolls) ApplyRolled(group, crossFoot: false);
         if (first >= 0 && !suppressed) return true;
         EndOfGroupSumReset(group);
         return false;

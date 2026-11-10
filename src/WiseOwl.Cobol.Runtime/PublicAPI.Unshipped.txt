@@ -1097,3 +1097,5 @@ WiseOwl.Cobol.Runtime.DebugCause.SortInput = 4 -> WiseOwl.Cobol.Runtime.DebugCau
 WiseOwl.Cobol.Runtime.DebugCause.SortOutput = 5 -> WiseOwl.Cobol.Runtime.DebugCause
 WiseOwl.Cobol.Runtime.DebugCause.MergeOutput = 6 -> WiseOwl.Cobol.Runtime.DebugCause
 WiseOwl.Cobol.Runtime.DebugCause.UseProcedure = 7 -> WiseOwl.Cobol.Runtime.DebugCause
+*REMOVED*WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply) -> void
+WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply, bool crossFoot) -> void
