@@ -25,6 +25,7 @@ only the fenced ones would leave the worst-transcribed third behind, in the old 
     python scripts/spec/sweep_figures.py --check --edition 2002   # another edition (default 2023)
     python scripts/spec/sweep_figures.py --edition 1985 --cross-check --ledger F   # a scan: the two drawings compared
     python scripts/spec/sweep_figures.py --edition 1985 --apply   # a scan: the agreed and decided figures written
+    python scripts/spec/sweep_figures.py --edition 1985 --identity   # a scan: every verdict names its block (no PDF; the gate's audit)
 
 A SCANNED EDITION (1985) has no text layer, so its figures are found and worded by the transcription's own drawing and
 regenerated from the measured ink (`regenerated`). A figure is written only when it is decided (`decide`): the two
@@ -601,6 +602,37 @@ def figure_ordinals(drawn: list[Drawn]) -> list[int]:
     return out
 
 
+def moved_under_verdict(d: Drawn, figure: int, verdict: Verdict) -> str | None:
+    """Why `verdict` no longer names the block `d` (figure `figure` of its page), or None when it does: the ONE identity
+    check, run by `decide` with the PDF and by `--identity` without it (kb/Work PB5052)."""
+    if tuple(d.rows) in (verdict.drawn,) + ((verdict.lines,) if verdict.lines else ()):
+        return None
+    return (f"the verdict on figure {figure} of page {d.page} decides a block that begins "
+            f"{verdict.drawn[0]!r}, but figure {figure} of that page is now the block that begins "
+            f"{(d.rows or [''])[0]!r}: the transcription moved under the verdict "
+            f"(the verdict's drawn_lines {list(verdict.drawn)!r}, the block {list(d.rows)!r})")
+
+
+def identity_check(edition: int, lines: list[str]) -> int:
+    """`--identity` (a scanned edition; kb/Work PB5052): every verdict names the block of the transcription its page and
+    ordinal say, and no verdict names a missing figure. It reads the Markdown and the verdict files only, never the PDF,
+    so the gate runs it where the licensed scan is absent: `--check` (which measures the page) is the nightly's."""
+    every = drawn_figures(lines, page_furniture(edition))
+    blocks = {(d.page, k): d for d, k in zip(every, figure_ordinals(every))}
+    problems = []
+    for key, verdict in sorted(load_verdicts(verdicts_dir(edition)).items()):
+        d = blocks.get(key)
+        if d is None:
+            problems.append(f"figure {key[1]} of page {key[0]}: the verdict names no drawn figure")
+        elif (moved := moved_under_verdict(d, key[1], verdict)):
+            problems.append(moved)
+    for p in problems:
+        print(f"  {p}")
+    state = "clean" if not problems else f"{len(problems)} verdict(s) no longer name their block"
+    print(f"IDENTITY: {state} - {len(blocks)} drawn figures, the {edition} edition's verdicts held to the transcription.")
+    return 1 if problems else 0
+
+
 def decide(d: Drawn, figure: int, body: list[str] | None, bad: list, diff: dict | None,
            verdict: Verdict | None) -> tuple[list[str] | None, str]:
     """What a scanned edition's `<pre>` block is written as, and why:
@@ -616,10 +648,8 @@ def decide(d: Drawn, figure: int, body: list[str] | None, bad: list, diff: dict 
     if verdict is not None:
         # The block the ordinal names holds either the lines the refuter decided on, or (written) the decided figure;
         # a `not-a-format` block stays as drawn. Any other block is a different one, shifted under the ordinal.
-        if tuple(d.rows) not in (verdict.drawn,) + ((verdict.lines,) if verdict.lines else ()):
-            sys.exit(f"FATAL: the verdict on figure {figure} of page {d.page} decides a block that begins "
-                     f"{verdict.drawn[0]!r}, but figure {figure} of that page is now the block that begins "
-                     f"{(d.rows or [''])[0]!r}: the transcription moved under the verdict")
+        if (moved := moved_under_verdict(d, figure, verdict)):
+            sys.exit(f"FATAL: {moved}")
         return (None, NOT_A_FORMAT) if verdict.decided == NOT_A_FORMAT else (list(verdict.lines), "verdict")
     if not d.general_format:
         return None, "unclassified"
@@ -773,6 +803,27 @@ def self_test() -> int:
           (exits(lambda: decide(after[1], 1, house, [], none, fd)) or "").startswith("FATAL: the verdict on figure 1 of page 202"))
     check("the shifted block's verdict decides it while its ordinal stands",
           decide(before[1], 1, house, [], none, fd) == (["<u>FD</u> <u>file-name</u>"], "verdict"))
+    check("the identity check names a shifted block and passes the verdict's own", moved_under_verdict(after[1], 1, fd) is not None
+          and moved_under_verdict(before[1], 1, fd) is None)
+    # kb/Work PB5052: `--identity` reads no PDF, so the gate holds every verdict to the transcription.
+    drawn_page = ["## Page 200", "<pre>", "Data Division", "<u>GENERAL FORMAT FOR DATA DIVISION</u>", "</pre>"]
+    drawn_rows = tuple(drawn_figures(drawn_page, furniture)[0].rows)
+    with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+        root = pathlib.Path(tmp) / "docs" / "rearchitecture" / "spec-reconciliation" / "figures-1985"
+        root.mkdir(parents=True)
+        stale = {"page": 200, "figure": 0, "drawn_lines": ["Data Division", "GENERAL FORMAT FOR DATA DIVISION"],
+                 "decided": NOT_A_FORMAT, "reason": "running head"}
+        (root / "p200-0.json").write_text(json.dumps(stale), encoding="utf-8", newline="\n")
+        saved = spec_pdf.REPO
+        spec_pdf.REPO = pathlib.Path(tmp)
+        try:
+            stale_rc = identity_check(1985, drawn_page)
+            (root / "p200-0.json").write_text(json.dumps(dict(stale, drawn_lines=list(drawn_rows))), encoding="utf-8", newline="\n")
+            current_rc = identity_check(1985, drawn_page)
+        finally:
+            spec_pdf.REPO = saved
+    check("--identity refuses a verdict whose drawn_lines lack the transcription's markup, and passes the current one",
+          (stale_rc, current_rc) == (1, 0), f"{stale_rc} {current_rc}")
     example = got[3]
     check("an agreed example is never rewritten", decide(example, 0, ["01 TABLE-1."], [], none, None) == (None, "unclassified"))
     nf = Verdict(306, 0, tuple(example.rows), NOT_A_FORMAT, (), "a COBOL example of a table")
@@ -862,6 +913,8 @@ def main() -> int:
     ap.add_argument("--report", action="store_true", help="show what would change; write nothing")
     ap.add_argument("--apply", action="store_true", help="rewrite the transcription in place")
     ap.add_argument("--check", action="store_true", help="regenerate and diff against the file (regression gate)")
+    ap.add_argument("--identity", action="store_true",
+                    help="a scanned edition: every verdict names its block of the transcription (no PDF; kb/Work PB5052)")
     ap.add_argument("--cross-check", action="store_true",
                     help="a scanned edition: regenerate each drawn figure and compare the two drawings (kb/Work PB4849)")
     ap.add_argument("--ledger", help="with --cross-check: write every figure's result to this JSON file")
@@ -872,6 +925,10 @@ def main() -> int:
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    if args.identity:
+        if spec_pdf.geometry(args.edition) != "raster":
+            sys.exit(f"FATAL: --identity is a scanned edition's; the {args.edition} edition has no figure verdicts")
+        return identity_check(args.edition, spec_pdf.markdown(args.edition).read_text(encoding="utf-8").splitlines())
     if spec_pdf.geometry(args.edition) == "raster":
         modes = [m for m in ("cross_check", "report", "apply", "check") if getattr(args, m)]
         if len(modes) != 1:
