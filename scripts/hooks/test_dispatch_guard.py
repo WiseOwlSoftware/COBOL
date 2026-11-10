@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-# SELF-TEST-POPULATION: tree — it walks the tracked markdown files with git over the whole repository
-"""Self-test for dispatch_guard.py — a fleet dispatch without the workstream skill, or an implementer/finisher dispatch
-without a checked brief, is blocked; a compliant dispatch and every other role pass.
-Run: python scripts/hooks/test_dispatch_guard.py   (needs the tools/claude-skills submodule, like check_practices.py;
-CI's fleet-practices step runs it after `git submodule update --init tools/claude-skills`.)"""
+"""Self-test for dispatch_guard.py — a loop unit launches no fleet after its supervisor's STOP-UNIT, and the hook refuses
+nothing else: how a session delegates is its own judgment (kb/Work PB5112).
+Run: python scripts/hooks/test_dispatch_guard.py"""
 import json
 import os
 import pathlib
@@ -17,134 +15,68 @@ from standard_streams import ensure_utf8  # noqa: E402
 ensure_utf8()
 
 HOOK = pathlib.Path(__file__).with_name("dispatch_guard.py")
-REPO = pathlib.Path(__file__).resolve().parents[2]
-FINISHER = REPO / ".claude" / "skills" / "workstream" / "templates" / "finisher-brief.md"
-RENDERER = REPO / ".claude" / "skills" / "workstream" / "make_dispatch_specs.py"
 TMP = scratch_dir("test-dispatch-guard-")
-
-# The implementer's ONE instruction file is a RENDERED spec (kb/Work PB3777: no template brief remains for it), so the
-# admitted implementer cases name a spec the real renderer wrote and check_practices passes.
-COORD = TMP / "coord"   # rule 0 reads STOP-UNIT there, and the spec's report path is in its scratch\reports: never the real coordination directory from a test
+COORD = TMP / "coord"   # the hook reads STOP-UNIT there: never the real coordination directory from a test
 COORD.mkdir()
-(TMP / "groups.json").write_text(json.dumps({
-    "wave": "1", "base": "abc", "scratch": str(TMP), "stop_file": str(TMP / "STOP-w1"),
-    "groups": [{"letter": "b", "slug": "w1b", "group": "G", "notes": "PB1", "lead": "PB1", "codes": "COBOL0001",
-                "root": "one root", "files": "`kb/Work/PB1.md`", "body": "the notes", "file_set": ["scripts/hooks/x.py"]}]}),
-    encoding="utf-8", newline="\n")
-rendered = subprocess.run([sys.executable, str(RENDERER), str(TMP / "groups.json"), "--no-record"],
-                          capture_output=True, text=True, timeout=300, encoding="utf-8", errors="replace",
-                          env={k: v for k, v in os.environ.items() if k != "COBOL_LOOP_UNIT"} | {"COBOL_COORD_DIR": str(COORD)})
-SPEC = TMP / "msg-w1-b.txt"
-if not SPEC.is_file() or "=== PRACTICES CHECK: GREEN ===" not in rendered.stdout:
-    print("FAIL: the renderer wrote no spec check_practices passes:\n" + (rendered.stdout + rendered.stderr)[-1500:])
-    sys.exit(1)
-
-WITH_SKILL = TMP / "with.jsonl"
-WITH_SKILL.write_text(json.dumps({"type": "tool_use", "name": "Skill", "input": {"skill": "workstream"}}) + "\n",
+TRANSCRIPT = TMP / "session.jsonl"   # a session that loaded no skill at all: nothing the hook reads any more
+TRANSCRIPT.write_text(json.dumps({"type": "tool_use", "name": "Bash", "input": {"command": "ls"}}) + "\n",
                       encoding="utf-8", newline="\n")
-WITHOUT_SKILL = TMP / "without.jsonl"
-WITHOUT_SKILL.write_text(json.dumps({"type": "tool_use", "name": "Skill", "input": {"skill": "gate"}}) + "\n",
-                         encoding="utf-8", newline="\n")
-BAD_SPEC = TMP / "msg-w1-a.txt"
-BAD_SPEC.write_text("a hand-written brief that drops every mandatory practice\n", encoding="utf-8", newline="\n")
 
 
-def agent(role: str, prompt: str, transcript: pathlib.Path) -> dict:
+def agent(role: str, prompt: str) -> dict:
     return {"tool_name": "Agent", "tool_input": {"subagent_type": role, "prompt": prompt},
-            "transcript_path": str(transcript)}
+            "transcript_path": str(TRANSCRIPT)}
 
 
-CASES = [
-    ("implementer, skill not loaded", agent("cobol-implementer", f"Follow {SPEC}", WITHOUT_SKILL), True),
-    ("implementer, inline brief", agent("cobol-implementer", "Fix PB1 and PB2 as follows ...", WITH_SKILL), True),
-    ("implementer, unchecked rendered spec", agent("cobol-implementer", f"Follow {BAD_SPEC}", WITH_SKILL), True),
-    ("implementer, rendered spec, skill loaded", agent("cobol-implementer", f"Follow {SPEC}", WITH_SKILL), False),
-    # kb/Work PB3777: a template brief is no instruction file for an implementer (the finisher's is the one that remains)
-    ("implementer, a finisher's template brief", agent("cobol-implementer", f"Follow {FINISHER}", WITH_SKILL), True),
-    # kb/Work PB3023: the finisher is the judgment role that lands (the lander retired with the train)
-    ("finisher, skill not loaded", agent("cobol-finisher", f"Follow {FINISHER}", WITHOUT_SKILL), True),
-    ("finisher, inline brief", agent("cobol-finisher", "Resolve the conflict in x.cs and land it", WITH_SKILL), True),
-    ("finisher, template brief, skill loaded", agent("cobol-finisher", f"Follow {FINISHER}", WITH_SKILL), False),
-    ("workflow, skill not loaded", {"tool_name": "Workflow", "tool_input": {}, "transcript_path": str(WITHOUT_SKILL)}, True),
-    ("workflow, skill loaded", {"tool_name": "Workflow", "tool_input": {}, "transcript_path": str(WITH_SKILL)}, False),
-    ("read-only role needs no spec", agent("cobol-refuter", "Try to overturn this verdict", WITHOUT_SKILL), False),
-    ("mechanical role needs no spec", agent("cobol-clerk", "File these notes", WITHOUT_SKILL), False),
-    ("other tool is not guarded", {"tool_name": "Bash", "tool_input": {"command": "ls"}}, False),
-    ("no transcript cannot be judged", {"tool_name": "Workflow", "tool_input": {}}, False),
-]
+WORKFLOW = {"tool_name": "Workflow", "tool_input": {"script": "export const meta = {}"}, "transcript_path": str(TRANSCRIPT)}
+IMPLEMENTER = agent("cobol-implementer", "Fix PB1 at its root; the note names the site.")   # an inline brief
+FINISHER = agent("cobol-finisher", "Resolve the conflict in x.cs and land it")
+REFUTER = agent("cobol-refuter", "Try to overturn this verdict")
+
+# The cases choose the session kind themselves (UNIT adds COBOL_LOOP_UNIT), so the caller's own kind never leaks in: a gate
+# run inside a loop unit made the "attended session" case a loop unit and turned this self-test red on a correct hook
+# (kb/Work PB2702).
+ATTENDED = {k: v for k, v in os.environ.items() if k != "COBOL_LOOP_UNIT"} | {"COBOL_COORD_DIR": str(COORD)}
+UNIT = dict(ATTENDED, COBOL_LOOP_UNIT="wave")
 
 
-# The cases choose the session kind themselves (UNIT_ENV adds COBOL_LOOP_UNIT), so the caller's own kind never leaks in:
-# a gate run inside a loop unit (an enqueue unit's finisher has COBOL_LOOP_UNIT=enqueue) made the "attended session" case a loop
-# unit and turned this self-test red on a correct hook (kb/Work PB2702).
-ENV = {k: v for k, v in os.environ.items() if k != "COBOL_LOOP_UNIT"} | {"COBOL_COORD_DIR": str(COORD)}
-# The practices check's verdict decides every case, never the clock (kb/Work PB3536): under a loaded gate the hook's 60 s
-# hang guard expired on the "unchecked rendered spec" case, and the hook then PASSED it (red in a gate, green alone).
-ENV["COBOL_DISPATCH_CHECK_WAIT_S"] = "86400"
-
-
-def blocked(payload: dict) -> bool:
-    r = subprocess.run([sys.executable, str(HOOK)], input=json.dumps(payload), capture_output=True, text=True,
-                       timeout=180, env=ENV)
+def blocked(payload: object, env: dict) -> bool:
+    r = subprocess.run([sys.executable, str(HOOK)], input=payload if isinstance(payload, str) else json.dumps(payload),
+                       capture_output=True, text=True, timeout=180, env=env)
     return r.returncode == 2
 
 
-fails = [(n, e) for n, p, e in CASES if blocked(p) != e]
-# a practices check that gives no verdict in time REFUSES the dispatch (never passes it): a planted 1 us wait expires
-# before the check can start, on a brief that would otherwise pass
-expired = subprocess.run([sys.executable, str(HOOK)], capture_output=True, text=True, timeout=180,
-                         input=json.dumps(agent("cobol-implementer", f"Follow {SPEC}", WITH_SKILL)),
-                         env=dict(ENV, COBOL_DISPATCH_CHECK_WAIT_S="0.000001"))
-if not (expired.returncode == 2 and "gave no verdict within" in expired.stderr):
-    fails.append(("a practices check with no verdict in time refuses the dispatch", True))
-# kb/Work PB3186: the hook writes NO dispatch ledger. Its retired rule 3 recorded every note id an admitted dispatch's
-# prompt (and the files it named) mentioned, with the union of their file sets; the ledger is the planner's and the spec
-# renderer's alone (dispatch_ledger.record_dispatch, through make_dispatch_specs.py).
-LEDGER = COORD / "inflight-groups.json"
-HAND_BRIEF = TMP / "hand-brief.md"
-HAND_BRIEF.write_text("# Brief\nAuthor kb/Work PB2296 step 1.\n", encoding="utf-8", newline="\n")
-WRITES_NONE = [
-    ("a write-capable hand dispatch", agent("general-purpose", "Author PB2296 step 1 by hand", WITH_SKILL)),
-    ("a dispatch naming only its brief file", agent("general-purpose", f"Your brief is {HAND_BRIEF}. Read it first.",
-                                                     WITH_SKILL)),
-    ("an admitted implementer", agent("cobol-implementer", f"Follow {SPEC} for PB2296", WITH_SKILL)),
-    ("an admitted Workflow", {"tool_name": "Workflow", "transcript_path": str(WITH_SKILL),
-                              "tool_input": {"script": "wf_rolling_wave.js",
-                                             "args": {"groups": [{"letter": "a", "notes": ["PB2296"]}]}}}),
+# No rule about delegating (kb/Work PB5112): with no skill loaded and a hand-written brief, every dispatch passes.
+FREE = [
+    ("attended: a Workflow with no skill loaded passes", WORKFLOW, ATTENDED, False),
+    ("attended: an implementer with an inline brief passes", IMPLEMENTER, ATTENDED, False),
+    ("attended: a finisher with an inline brief passes", FINISHER, ATTENDED, False),
+    ("attended: a read-only role passes", REFUTER, ATTENDED, False),
+    ("loop unit, no STOP-UNIT: a Workflow passes", WORKFLOW, UNIT, False),
+    ("loop unit, no STOP-UNIT: an implementer passes", IMPLEMENTER, UNIT, False),
+    ("another tool is not guarded", {"tool_name": "Bash", "tool_input": {"command": "ls"}}, UNIT, False),
+    ("unparseable input never wedges a session", "not json", UNIT, False),
 ]
-LEDGER.unlink(missing_ok=True)
-for n, p in WRITES_NONE:
-    blocked(p)
-    if LEDGER.exists():
-        fails.append((f"{n} writes no dispatch ledger (PB3186)", False))
-        LEDGER.unlink()
-# rule 0 (kb/Work PB2597): in a LOOP UNIT (COBOL_LOOP_UNIT set by the supervisor) with STOP-UNIT present, no fleet
-# launch: a Workflow and an implementer or finisher are refused even with the skill loaded and a checked brief; a read-only
-# role still passes; an attended session (no COBOL_LOOP_UNIT) sharing the coordination directory is never refused for it
-WF_OK = {"tool_name": "Workflow", "tool_input": {}, "transcript_path": str(WITH_SKILL)}
-
-
-def blocked_env(payload: dict, env: dict) -> bool:
-    r = subprocess.run([sys.executable, str(HOOK)], input=json.dumps(payload), capture_output=True, text=True,
-                       timeout=180, env=env)
-    return r.returncode == 2
-
-
-UNIT_ENV = dict(ENV, COBOL_LOOP_UNIT="wave")
-STOP_CASES = [
-    ("loop unit after STOP-UNIT: Workflow refused", WF_OK, UNIT_ENV, True),
-    ("loop unit after STOP-UNIT: implementer refused", agent("cobol-implementer", f"Follow {SPEC}", WITH_SKILL), UNIT_ENV, True),
-    ("loop unit after STOP-UNIT: finisher refused", agent("cobol-finisher", f"Follow {FINISHER}", WITH_SKILL), UNIT_ENV, True),
-    ("loop unit after STOP-UNIT: a read-only role passes", agent("cobol-refuter", "Refute this", WITH_SKILL), UNIT_ENV, False),
-    ("attended session, the loop's STOP-UNIT present: Workflow passes", WF_OK, ENV, False),
+# The one rule (kb/Work PB2597): in a LOOP UNIT with STOP-UNIT present, no fleet launch; a read-only role still passes, and
+# an attended session sharing the coordination directory is never refused.
+STOPPED = [
+    ("loop unit after STOP-UNIT: a Workflow is refused", WORKFLOW, UNIT, True),
+    ("loop unit after STOP-UNIT: an implementer is refused", IMPLEMENTER, UNIT, True),
+    ("loop unit after STOP-UNIT: a finisher is refused", FINISHER, UNIT, True),
+    ("loop unit after STOP-UNIT: a read-only role passes", REFUTER, UNIT, False),
+    ("attended session, the loop's STOP-UNIT present: a Workflow passes", WORKFLOW, ATTENDED, False),
+    ("attended session, the loop's STOP-UNIT present: an implementer passes", IMPLEMENTER, ATTENDED, False),
 ]
-STOP_CASES_AFTER = [("loop unit, no STOP-UNIT: Workflow passes", WF_OK, UNIT_ENV, False)]
+
+fails = [n for n, p, env, want in FREE if blocked(p, env) != want]
 (COORD / "STOP-UNIT").write_text("", encoding="utf-8", newline="\n")
-fails += [(n, e) for n, p, env, e in STOP_CASES if blocked_env(p, env) != e]
+fails += [n for n, p, env, want in STOPPED if blocked(p, env) != want]
 (COORD / "STOP-UNIT").unlink()
-fails += [(n, e) for n, p, env, e in STOP_CASES_AFTER if blocked_env(p, env) != e]
-for n, e in fails:
-    print(f"FAIL: expected {'BLOCK' if e else 'PASS'}: {n}")
-TOTAL = len(CASES) + len(STOP_CASES) + len(STOP_CASES_AFTER) + len(WRITES_NONE) + 1  # + the expired check
+# The hook writes nothing (kb/Work PB3186): the coordination directory holds what the test put there, and no more.
+if sorted(p.name for p in COORD.iterdir()):
+    fails.append("the hook wrote into the coordination directory")
+for n in fails:
+    print(f"FAIL: {n}")
+TOTAL = len(FREE) + len(STOPPED) + 1
 print(f"dispatch guard self-test: {TOTAL - len(fails)}/{TOTAL} cases OK")
 sys.exit(1 if fails else 0)

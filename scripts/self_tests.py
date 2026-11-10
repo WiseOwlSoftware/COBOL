@@ -144,7 +144,7 @@ from standard_streams import ensure_utf8
 REPO = Path(__file__).resolve().parents[1]
 FLAG = "--self-test"
 VERDICT = "=== SELF-TESTS: "
-#: The submodule `check_practices.py` lives in (test_dispatch_guard.py, test_plan_wave.py import it).
+#: The submodule `check_practices.py` lives in (test_plan_wave.py imports it).
 SUBMODULE = "tools/claude-skills"
 #: ⛔ A HANG DETECTOR, NEVER A VERDICT ON SPEED (module docstring): counted from the moment the self-test holds its
 #: budget place, so waiting behind other gates never counts, and set far above every PASS measured — the slowest,
