@@ -166,14 +166,32 @@ class ProcessJob:
         return self.popen.wait(timeout)
 
     def alive(self) -> list[int]:
-        """The pids of the tree still running (the root's included while it runs). POSIX knows only whether the group
-        has a member, so it answers [the group's id] or []."""
+        """The pids of the tree still running (the root's included while it runs). Running is `detached.pid_alive`'s,
+        the scripts' one liveness probe: a zombie holds nothing and is dead (kb/Work PB5206). On Linux the group's members
+        are read from /proc and each is asked; `killpg(pgid, 0)` alone answers for a zombie too, and a killed orphan
+        stays one until whatever adopted it reaps it (a CI runner's subreaper reaps late: the merge group of #1475 read
+        the killed grandchild as still in the tree). Where there is no /proc the group signal is all there is."""
         if not IS_WINDOWS:
-            try:
-                os.killpg(self.popen.pid, 0)
-            except (ProcessLookupError, PermissionError):
-                return []
-            return [self.popen.pid]
+            from detached import pid_alive  # noqa: PLC0415  (this directory's: the one liveness probe, kb/Work PB4008)
+            pgid = self.popen.pid
+            if not os.path.isdir("/proc/self"):
+                try:
+                    os.killpg(pgid, 0)
+                except (ProcessLookupError, PermissionError):
+                    return []
+                return [pgid]
+            members = []
+            for entry in os.listdir("/proc"):
+                if not entry.isdigit():
+                    continue
+                try:
+                    with open(f"/proc/{entry}/stat", encoding="ascii", errors="replace") as fh:
+                        fields = fh.read().rsplit(") ", 1)[1].split()
+                except (OSError, IndexError):
+                    continue   # exited between the listing and the read
+                if int(fields[2]) == pgid and pid_alive(int(entry)):   # fields: state, ppid, pgrp, ...
+                    members.append(int(entry))
+            return sorted(members)
         if self._job is None:
             return []
         ids = _PROCESS_ID_LIST()
@@ -224,6 +242,14 @@ def _self_test() -> int:
 
     from detached import pid_alive  # this directory's: the one liveness probe (kb/Work PB4008)
 
+    if sys.platform.startswith("linux"):
+        # Adopt this test's orphans and do not reap them until the end (kb/Work PB5206): a killed orphan then stays a
+        # zombie, as under a CI runner's late-reaping subreaper, so the zombie case runs on every host, not only on one
+        # whose init is slow. PR_SET_CHILD_SUBREAPER = 36.
+        import ctypes  # noqa: PLC0415
+        if ctypes.CDLL(None, use_errno=True).prctl(36, 1, 0, 0, 0) != 0:
+            fails.append("prctl(PR_SET_CHILD_SUBREAPER) failed")
+
     def until_dead(pid: int) -> None:
         """Wait for `pid` to die, with no limit: a tree the kill does not end is the hang detector's (no wall clock)."""
         while pid_alive(pid):
@@ -247,6 +273,11 @@ def _self_test() -> int:
                 until_dead(grand)
                 check("kill reaches the orphaned grandchild (taskkill /T cannot)", pid_alive(grand), False)
                 check("nothing of the tree is left after kill", job.alive(), [])
+                if sys.platform.startswith("linux"):
+                    state = open(f"/proc/{grand}/stat", encoding="ascii").read().rsplit(") ", 1)[1][:1] \
+                        if os.path.exists(f"/proc/{grand}/stat") else "gone"
+                    check("the killed orphan is an unreaped zombie here, the case alive() must call dead", state, "Z")
+                    os.waitpid(grand, 0)   # reap it now that the case is checked
 
         # A root still running past its wait is TimeoutExpired, and the block's end kills it and its child.
         with open(os.path.join(d, "out2.txt"), "w", encoding="utf-8", newline="\n") as out:
