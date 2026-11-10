@@ -460,9 +460,14 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     /// (GENERATE report-name) and the file half of §2023:14.9.16.3 SR3 (GENERATE data-name). The report itself is
     /// visible only because it is GLOBAL (<see cref="ReportScope.Visible"/>); the statement drives output to
     /// its FILE, which a contained program may reference only when the FD is GLOBAL too (§2023:13.18.27.3 SR3). Null
-    /// when the statement may proceed — the report is this unit's own, or its file is GLOBAL.</summary>
+    /// when the statement may proceed — the report is this unit's own, or its file is GLOBAL.
+    /// <para>The rule begins at 2002 (kb/Work PB5080): §2002:14.8.20.2 SR2 (INITIATE), §2002:14.8.42.2 SR2 (TERMINATE),
+    /// §2002:14.8.15.2 SR3/SR4 (GENERATE) carry it word for word. The 1985 statements have only "Report-name-1 must be
+    /// defined by a report description entry" (§1985:XIII.4.4.3 SR1, §1985:XIII.4.7.3 SR1), and a global name may be
+    /// referenced by every contained program without describing it again (§1985:X.4.6.4 GR2), so a 1985 compilation
+    /// asks nothing here.</para></summary>
     private BoundStatement? RejectContainedReportFile(ReportModel report, string where, string rule) =>
-        ctx.Data.State.Reports.Depth(report) > 0 && report.File is { IsGlobal: false } file
+        ctx.Edition.Edition.Has(2002) && ctx.Data.State.Reports.Depth(report) > 0 && report.File is { IsGlobal: false } file
             ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ContainedReportFileNotGlobal,
                 $"{where}: report '{report.Name}' is defined in a containing program and its file description entry "
                 + $"'{file.CobolName}' does not contain a GLOBAL clause; the file description entry associated with a "

@@ -74,8 +74,22 @@ public sealed class GlobalReportScopeTests
     [InlineData("TERMINATE R-1.", "§2023:14.9.46.3 SR2")]
     public void AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused(string stmt, string rule)
     {
-        var d = BindDiagnostics(Group(rdGlobal: true, fdGlobal: false, "", "", "           " + stmt), 85);
+        var d = BindDiagnostics(Group(rdGlobal: true, fdGlobal: false, "", "", "           " + stmt), 2002);
         Assert.Single(d, x => x.Contains("COBOL2392") && x.Contains(rule));
+    }
+
+    /// <summary>The FD-GLOBAL rule begins at 2002 (§2002:14.8.20.2 SR2, §2002:14.8.42.2 SR2, §2002:14.8.15.2 SR3/SR4);
+    /// 1985 asks only that the report-name be defined by a report description entry (§1985:XIII.4.4.3 SR1,
+    /// §1985:XIII.4.7.3 SR1) and lets a contained program reference a global name (§1985:X.4.6.4 GR2) (kb/Work PB5080).</summary>
+    [Theory]
+    [InlineData("GENERATE DET-1.")]
+    [InlineData("GENERATE R-1.")]
+    [InlineData("INITIATE R-1.")]
+    [InlineData("TERMINATE R-1.")]
+    public void AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsAcceptedAt1985(string stmt)
+    {
+        var d = BindDiagnostics(Group(rdGlobal: true, fdGlobal: false, "", "", "           " + stmt), 85);
+        Assert.DoesNotContain(d, x => x.Contains("COBOL2392"));
     }
 
     [Theory]

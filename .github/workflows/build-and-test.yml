@@ -490,6 +490,9 @@ jobs:
       - name: Derivation register — every live derivation stands (audit_derivations.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/audit_derivations.py --check
+      - name: Figure verdicts 1985 — every verdict names its block of the transcription (sweep_figures.py --edition 1985 --identity)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/sweep_figures.py --edition 1985 --identity
       # THE lanes' classification against the tree (kb/Work PB2878, PB4395): every entry names a tracked path, and every
       # script the build or a compiler test is seen to read is CODE_READS, so a tooling-lane change never skips a compiler
       # test that reads it. An audit, for the reason the conflict-marker check is one; its Linux test runs' twin is the watch.
