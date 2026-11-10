@@ -1,4 +1,4 @@
-## PB5053: the 2023 reserved-word list's misprints corrected and attributed (C15, C16)
+## Entry 3397 — 2026-11-09 16:18 PST — PB5053: the 2023 reserved-word list's misprints corrected and attributed (C15, C16)
 
 Under the owner's most-accurate-text rule (kb/Work PB5045), the misprints TRANSCRIPTION-STATE.md still kept "as
 printed" in the §2023:8.9 reserved-word list are corrected in place, each flagged with the printed form and page and
@@ -18,3 +18,4 @@ listed in the Addendum.
 - **TRANSCRIPTION-STATE.md**'s "ISO's own defects" section now states the rule (corrected, flagged, listed,
   reversible; only an uncertain reading stays as printed). `>>IF` / `>> IF` remains as printed: both are legal.
 - No inventory row: `closes_rows: []` with its reason.
+
