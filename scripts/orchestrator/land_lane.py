@@ -1743,16 +1743,16 @@ def self_test() -> int:
         pw.git("commit", "--quiet", "-m", "the branch's own work")
         pred_listing = {"number": 701, "headRefName": "pred", "headRefOid": predecessor_oid,
                         "files": [{"path": "DEVLOG/0050-pb9-the-predecessor.md"}]}
-        github: dict[str, Any] = {"open": [pred_listing], "fail": False, "bounced": set()}
+        github: dict[str, Any] = {"open": [pred_listing], "fail": False}
 
         def planted_gh(args: list[str]) -> tuple[int, str, str]:
             """GitHub as enqueue.py reads it: the listing of the open pull requests and queue_facts.read's two calls, each
-            open pull request with auto-merge on unless its number is in github["bounced"] (the queue removed it)."""
+            open pull request with auto-merge on."""
             import queue_facts  # noqa: PLC0415
             if args[:2] in (["repo", "view"], ["api", "graphql"]):
                 return (1, "", "rate limited") if github["fail"] else queue_facts.fake([
                     queue_facts.node(pr["number"], pr["headRefName"], pr["headRefOid"],
-                                     **({"removed": "FAILED_CHECKS"} if pr["number"] in github["bounced"] else {"auto": "t"}))
+                                     auto="t")
                     for pr in github["open"]])(args)
             assert args[:2] == ["pr", "list"] and PR_LIST_FIELDS in args, args
             return (1, "", "rate limited") if github["fail"] else (0, json.dumps(github["open"]), "")

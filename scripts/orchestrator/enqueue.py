@@ -1808,12 +1808,10 @@ def self_test() -> int:
                 ScratchRepo(w).git("commit", "--quiet", "-m", "DEVLOG 51: stamp the entry")
             return 0
 
-        def listing_gh(listed: list[tuple[int, str, str, list[str]]], log: list[list[str]], fail: bool = False,
-                       states: dict[int, dict] | None = None, queue_down: bool = False) -> Gh:
+        def listing_gh(listed: list[tuple[int, str, str, list[str]]], log: list[list[str]], fail: bool = False) -> Gh:
             """GitHub as `open_predecessors` reads it: `pr list --json PR_LIST_FIELDS`, each pull
             request's number, branch, current head and the files it changes, and queue_facts.read's two calls (the
-            repository and the one GraphQL query: every listed pull request has auto-merge on, as the queueing leaves it,
-            unless `states` plants other `queue_facts.node` arguments by number; `queue_down`: GitHub cannot answer them).
+            repository and the one GraphQL query: every listed pull request has auto-merge on, as the queueing leaves it).
             Any other call is the queue's: answered like fake_gh."""
             def gh(args: list[str]) -> tuple[int, str, str]:
                 log.append(list(args))
@@ -1822,9 +1820,7 @@ def self_test() -> int:
                         [{"number": n, "headRefName": h, "headRefOid": o, "files": [{"path": f} for f in files]}
                          for n, h, o, files in listed]), "")
                 if args[:2] in (["repo", "view"], ["api", "graphql"]):
-                    if queue_down:
-                        return 1, "", "GraphQL: rate limited"
-                    return queue_facts.fake([queue_facts.node(n, h, o, **(states or {}).get(n, {"auto": "2026-10-25T10:00:00Z"}))
+                    return queue_facts.fake([queue_facts.node(n, h, o, auto="2026-10-25T10:00:00Z")
                                              for n, h, o, _files in listed])(args)
                 return fake_gh([], log)(args)
             return gh
@@ -2013,8 +2009,7 @@ def self_test() -> int:
             root, "drv", drv.path, review=reviewed, tested=proved, gh=gh, state=active, checks=lambda w, s, b: 0,
             stamp=kw.pop("stamp", stamp_drv), blocked=record, say=lines.append, **kw)
         log_shared: list[list[str]] = []
-        rc_shared = drv_land(listing_gh([(920, "other", "o", list(samples.values()))], log_shared,
-                                        states={920: {"in_queue": True}}), measure=lambda w, b, n: None)
+        rc_shared = drv_land(listing_gh([(920, "other", "o", list(samples.values()))], log_shared), measure=lambda w, b, n: None)
         expect("land: a branch whose driver-merged files an open pull request IN the queue changes too is stamped and "
                "queued (exit 0, ENQUEUED): a shared file is never a hold, and no file list is asked for (kb/Work PB5109)",
                rc_shared == 0 and lines[-1].startswith(verdict_line.PREFIX + "ENQUEUED")
