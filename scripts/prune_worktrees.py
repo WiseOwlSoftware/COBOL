@@ -1456,14 +1456,14 @@ def abandon_records(branches: list[str], work_dir: pathlib.Path) -> dict[str, st
     most notes never say the word)."""
     records = {b: re.compile(branch_name(b).pattern + RECORD_GAP + r'\babandoned\b', re.I) for b in branches}
     found: dict[str, str] = {}
-    for p in sorted(work_dir.glob('*.md')):
+    for p in sorted([*work_dir.glob('*.md'), *work_dir.glob('*/*.md')]):   # a note and its addenda (kb/Work PB5110)
         text = p.read_text(encoding='utf-8', errors='replace')
         if 'abandoned' not in text.lower():
             continue
         lines = text.splitlines()
         for b, record in records.items():
             if b not in found and any(record.search(l) for l in lines):
-                found[b] = p.stem
+                found[b] = p.stem if p.parent == work_dir else p.parent.name
     return found
 
 
