@@ -1,4 +1,4 @@
-## INSPECT at --std 85 enforces its size rules over data items and refuses a repeated CONVERTING character (PB5089, PB5103)
+## Entry 3431 — 2026-11-10 05:32 PST — INSPECT at --std 85 enforces its size rules over data items and refuses a repeated CONVERTING character (PB5089, PB5103)
 
 **PB5103.** §1985:VI.6.18.3 SR7, SR8 and SR9 are syntax rules: the size of literal-3 or the data item of identifier-5 must equal that of literal-1 or identifier-3, a CHARACTERS replacement must be one character, and CONVERTING's operands must be equal in size. The binder asked them of literals only, so at --std 85 `REPLACING ALL WS-F BY WS-T1` (two characters against one), `CHARACTERS BY` a two-character item and `CONVERTING` of unequal items compiled and used the first character. Re-probe on the build: all three exit 0 with no diagnostic. From 2002 the same words are general rules that set EC-RANGE-INSPECT-SIZE at run time (§2023:14.9.22.4 GR14, GR15, GR22), so the identifier arm is gated on one predicate, `StatementValidation.InspectSizeRulesCoverDataItems` (`DialectLevel < 2002`), and reads the data item's static width through the one width reader, `IntrinsicBinder.KnownWidth` (now internal). Both checks keep COBOL0846; its descriptor now cites the 1985 rules, and the message cites the 1985 rule number at --std 85 (REPLACING is SR7 there, SR6 in 2023).
 
@@ -9,3 +9,4 @@
 **Self-review.** One mechanism per job (one predicate, one width reader, one rule per citation); no copy of the size rule; no allocation beyond the small set in the diagnostic path's repeated-character scan. A later 1985 INSPECT rule (SR5 level-1 one-character restriction) is outside these notes.
 
 **First gate red, fixed.** `InspectDifferentialTests.Convert_DuplicateFromCharacter_FirstOccurrenceWins` compiled the repeated literal at 85 (now SR10-illegal), so it is spec-pinned at 2002 and its 85 golden deleted; `KnownWidthTotalityDriftTests` re-pointed at the now-internal `KnownWidth`; `tests/doc-facts/compiler-facts.json` regenerated for COBOL6859.
+
