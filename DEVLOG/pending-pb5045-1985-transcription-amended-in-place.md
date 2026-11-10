@@ -11,7 +11,9 @@ REDEFINES syntax rule 6 prints `the data-name referenced by data-name-2` where i
 SET general rule 2 prints `index-name-1` for index-name-2's own table (PB5031: general rule 3a provides for the two
 indexing different tables); and the REWRITE rule of all three I-O modules copies the WRITE rule's `associated output
 file`, though a REWRITE file is open in the I-O mode. Six stay, because they read right (`multiplier` names the BY
-operand). The MOVE category list without alphanumeric is Addendum 1's own correction (row VI-104 (T)).
+operand). The MOVE category list without alphanumeric is Addendum 1's own correction (row VI-104 (T)). A sixth, found
+on the way and raised as a review lead (R1-3), is corrected too (C338): page 107 (II-23) prints `may.call` in 6.4.1.2's
+first item, a stray period the rendered page shows.
 
 **Amendment 1, Addendum 1.** Every change row of its pages A-1 to A-24 (PDF 831-854) is applied where it belongs, in
 its order, each read on its rendered page first: 141 Errata entries (C36-C176) for the table of contents, Section I's
@@ -49,12 +51,29 @@ and a row that adds a rule the body lacks, which is reported). The regenerated c
 Reference Modification rules to IV.4.3.8.4 behind Amendment 1's Function-Identifier, the INSPECT, RECORD and WRITE
 general rules, Amendment 1's and 2's added rules into the body, the three deleted 1.3.7 paragraphs out. The scan
 manifest follows (the deleted paragraphs out, four extended appendix lists recounted, Amendment 1's new list in IV.4.2.2.1
-admitted as syntax rules). The store moved with it through one `record_verdicts.py --edition 1985` batch: 128 change
-records restated on the ids that now name their rules and 25 withdrawn, through the new WITHDRAW record (a record the
-view refuses because its rule is gone or its id now names another rule; `record_verdicts` had no way to answer the view's
-own "move or withdraw" refusal). A record whose rule an amendment changed in place carries its change record onto the
-amended text; whether each such classification against 2023 still holds is a re-adjudication the report hands on.
-The inventory view is green; 1985 GAP 1052 to 1048 with the two new IV.4.2.2.1 rows.
+admitted as syntax rules). The store moved with it through one `record_verdicts.py --edition 1985` batch, through the
+new WITHDRAW record (a record the view refuses because its rule is gone or its id now names another rule;
+`record_verdicts` had no way to answer the view's own "move or withdraw" refusal): 31 change records restated on the ids
+that now name their rules, each only where the rule's text there is the text the record was decided against, and 115
+withdrawn. Of those, 97 are records whose rule an amendment or a misprint correction changed in place: each was decided
+against the printed text, so it is withdrawn and its row left for re-adjudication against the amended text, never
+carried (kb/Work PB698's drift refusal). The first batch of this branch had carried them, stamping the amended text's
+digest on a record decided against the old one; branch review round 1 refused that (R1-2), and the store was rewound to
+main's and moved again. The inventory view is green; 1985 GAP 1052 (main) to 1081: the withdrawn rows are among the view's 134 unclassified
+1985 rules, waiting for re-adjudication.
+
+**The amendment rows the catalog could not see** (review R1-1). Page 931 printed IX-30, IX-30 and IX-31 as dash-joined
+prose, which neither change-row shape reads, so `parse` swallowed them as IX-27's new text and indexed READ GR10 and GR11
+recorded no amendment while their sequential and relative siblings did. `rule_catalog_1985.CHANGE_UNREAD` now makes a line
+that opens with a page cell in neither row shape a finding, never text. The sweep it ran found twelve more: Amendment 1's
+IV-21 to IV-23 rows on pages 841 to 843 and Amendment 2's XVII-80 on page 942, printed without their page cell's bold.
+Each was read on its rendered page; page 931 is one table, the others the bold row form pages 839 and 844 already use
+(LEDGER-1985 claim p931-0 APPLIED, twelve `change-row-shape` sweeps). Reading them exposed two more gaps in
+`resolve_change`: a lowercase "New paragraph 4.3.8.4.4" named no paragraph, and a change to a general format recorded
+nothing, as no change ever had. `CHANGE_PARAGRAPH` reads both cases, and `record_format_change` records a change to a
+format on its FMT row (a change to a format the catalog does not harvest, Section V's skeleton or a paragraph 2.1, names
+no row). Ten rows gained `amended_by`: FMT IV.4.3.8.2.2, IV.4.3.8.4.2, VI.6.16.2 and XIV.2.2.2, SR IV.4.3.8.2.3-7 and
+IV.4.3.8.4.3-5, GR IV.4.3.8.4.4-1 and -3, and GR IX.4.5.4-10 and -11. The self-test plants each case.
 
 **Left as found.** `sweep_figures.py --edition 1985 --check` fails on main at page 200's figure verdict (no audit runs it);
 it is kb/Work PB5052, filed on main from the previous wave's report.

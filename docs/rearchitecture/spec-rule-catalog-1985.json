@@ -154,7 +154,7 @@
    "page": 107,
    "folio": "II-23",
    "band": "",
-   "text": "Any calling program may.call any separately compiled program in the run unit.",
+   "text": "Any calling program may call any separately compiled program in the run unit.",
    "provisional": "none"
   },
   {
@@ -1518,7 +1518,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 167,
    "folio": "IV-21",
@@ -1672,7 +1674,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 167,
    "folio": "IV-21",
@@ -1936,7 +1940,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 168,
    "folio": "IV-22",
@@ -2046,7 +2052,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 168,
    "folio": "IV-22",
@@ -2068,7 +2076,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 168,
    "folio": "IV-22",
@@ -2112,7 +2122,9 @@
    "sublist": 1,
    "box": "none",
    "level": null,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 169,
    "folio": "IV-23",
@@ -10419,7 +10431,9 @@
    "sublist": 1,
    "box": "none",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23b-1993"
+   ],
    "status": "normal",
    "page": 322,
    "folio": "VI-90",
@@ -27468,7 +27482,9 @@
    "sublist": 1,
    "box": "part",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23b-1993"
+   ],
    "status": "normal",
    "page": 500,
    "folio": "IX-30",
@@ -27490,7 +27506,9 @@
    "sublist": 1,
    "box": "none",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23b-1993"
+   ],
    "status": "normal",
    "page": 501,
    "folio": "IX-31",
@@ -41757,7 +41775,9 @@
    "sublist": 1,
    "box": "part",
    "level": 1,
-   "amended_by": [],
+   "amended_by": [
+    "X3.23a-1989"
+   ],
    "status": "normal",
    "page": 661,
    "folio": "XIV-3",

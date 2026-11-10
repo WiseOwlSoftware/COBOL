@@ -136,14 +136,26 @@ BOX_GLYPHS = re.compile(r"[╔╗╚╝║═]")
 #: base folio, an Amendment 1 folio in parentheses, or both (`VI-104<br>(A-12)`).
 CHANGE_ROW = re.compile(r"^\|\s*(?P<page>[^|]*?)\s*\|\s*(?P<change>[^|].*?)\s*\|\s*$")
 #: A change row of a table page the transcription prints without the table's pipes (Addendum 1, PDF page 839: "**IV-4**
-#: Paragraph 4.2.1, rule (4), change ..."): the page cell in bold, then the change.
-CHANGE_PROSE_ROW = re.compile(r"^\*\*(?P<page>\(?(?:[IVX]+|[A-F])-\d+\)?(?:\s*\(T\))?)\*\*\s+(?P<change>\S.*?)\s*$")
+#: Paragraph 4.2.1, rule (4), change ..."): the page cell in bold, then the change; a cell may span pages ("**IV-22 thru
+#: IV-24** Renumber paragraphs ...", page 841).
+CHANGE_PROSE_ROW = re.compile(r"^\*\*(?P<page>\(?(?:[IVX]+|[A-F])-\d+\)?(?: thru \(?(?:[IVX]+|[A-F])-\d+\)?)?(?:\s*\(T\))?)"
+                              r"\*\*\s+(?P<change>\S.*?)\s*$")
 #: The table's column heads repeated at a page top without the table's pipes ("**Page No.** **Description of Change**").
 CHANGE_HEADER = re.compile(r"^\**Page No\.")
+#: A line of a change table that OPENS WITH A PAGE CELL but is in neither row shape ("IX-30 — Paragraph 4.5.4 ...",
+#: "IV-21 Paragraph 4.3.8.2.3, ..."): a change row transcribed as prose, which no reader would count and the open row
+#: would swallow as its own new text, so a change the transcription applied in place would record no amendment
+#: (kb/Work PB5045). It is a finding, never read.
+CHANGE_UNREAD = re.compile(r"^\(?(?:[IVX]+|[A-F])-\d+\)?(?:\s+thru\s+\(?(?:[IVX]+|[A-F])-\d+\)?)?\s+(?:[—–-]\s+)?[A-Z]")
 CHANGE_PAGE = re.compile(r"(?P<amd>\()?(?P<folio>(?:[IVX]+|[A-F])-\d+)\)?")
-CHANGE_PARAGRAPH = re.compile(r"\bParagraphs? (?P<num>\d+(?:\.\d+)*)")
+#: The paragraph a change names: "Paragraph 4.5.4 ...", or "New paragraph 4.3.8.4.4, ..." (X3.23a-1989 IV-22).
+CHANGE_PARAGRAPH = re.compile(r"\b[Pp]aragraphs? (?P<num>\d+(?:\.\d+)*)")
 CHANGE_RULE = re.compile(r"\b(?:(?P<kind>syntax|general|arguments?|returned values?) )?rules? \(?(?P<n>\d+)\)?(?![\d.])",
                          re.IGNORECASE)
+#: A change to a GENERAL FORMAT, read from a directive with its quoted text dropped: "replace the general format", "delete
+#: the box around the general format", "general format of the IF statement, delete ...", "in format 3" — never "the first
+#: paragraph after the general format beginning with ...", which changes the prose below the format.
+CHANGE_FORMAT = re.compile(r"(?<!after )\bthe general format\b|\bgeneral format of\b|\bin format \d+\b", re.IGNORECASE)
 #: A change that ADDS a rule: "add the following as the new general rule 4", "add new syntax rule 4 as follows" (X3.23a-1989
 #: X-27, XIV-26), "as new syntax rule 5", "as a new general rule 12" (never "as a new last paragraph for general rule 7", which amends rule 7).
 CHANGE_ADDS = re.compile(r"\b(?:as (?:the |a )?|add )new (?P<kind>syntax|general|arguments?|returned values?) rule (?P<n>\d+)",
@@ -176,6 +188,7 @@ class Catalog:
     one_level_boxes: list[str] = dataclasses.field(default_factory=list)     # a box in a module with one level
     changes: int = 0                                                          # amendment change rows read
     unresolved: list[tuple[str, str, str]] = dataclasses.field(default_factory=list)  # (document, page, change)
+    unread: list[str] = dataclasses.field(default_factory=list)   # a change row in neither row shape (CHANGE_UNREAD)
     stale: list[str] = dataclasses.field(default_factory=list)   # an adjudication the transcription no longer needs
     #: THE CONTENT-KEYED SCAN (kb/Work PB29): every paragraph whose heading names no rule block and whose body carries a
     #: numbered list, by citation ⇒ {title, ordinals, lists, longest}; and the manifest's record of them (`declared`).
@@ -202,7 +215,7 @@ class Catalog:
 
     def findings(self) -> int:
         return (len(self.empty) + len(self.unrecognised) + len(self.unexplained) + len(self.one_level_boxes)
-                + len(self.unresolved) + len(self.stale) + len(self.duplicates())
+                + len(self.unresolved) + len(self.unread) + len(self.stale) + len(self.duplicates())
                 + len(self.shared_citations())
                 + self.drift()[1] + len(self.untyped) + len(self.uncitable) + len(self.standing))
 
@@ -357,6 +370,9 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
                 if open_change:
                     change_rows.append((amendment, row["page"], row["change"]))
                 open_change = open_change and row["change"].endswith(":") and "<br>" not in row["change"]
+            elif CHANGE_UNREAD.match(line):
+                cat.unread.append(f"page {page}: {line.strip()[:90]}")
+                open_change = False
             elif open_change and not ANY_HEADING.match(line) and not CHANGE_HEADER.match(line):
                 # A change whose new text the table prints BELOW its row ("add the following as the new general
                 # rule 19:", then the rule as prose): the text is the row's, as a `<br><br>` cell would carry it.
@@ -501,6 +517,8 @@ def resolve_change(cat: Catalog, doc: str, cell: str, change: str) -> None:
         return
     rule = CHANGE_RULE.search(directive)
     if rule is None:
+        if CHANGE_FORMAT.search(re.sub(r'"[^"]*"', "", directive)) is not None:
+            record_format_change(cat, doc, cell, change, pages, para)
         return
     kind = KINDS.get(canonical_title(f"{rule['kind']} rule")) if rule["kind"] else None
     n = int(rule["n"])
@@ -522,6 +540,34 @@ def resolve_change(cat: Catalog, doc: str, cell: str, change: str) -> None:
         if doc not in found[0]["amended_by"]:
             found[0]["amended_by"].append(doc)
     else:
+        cat.unresolved.append((doc, cell, change[:100]))
+
+
+def record_format_change(cat: Catalog, doc: str, cell: str, change: str, pages: list[tuple[str, bool]],
+                         para: re.Match | None) -> None:
+    """Record amendment `doc` on the general format (the FMT row) one change row names ("Paragraph 4.3.8.2.2, replace the
+    general format ...", "Paragraph 6.16.2, general format of the IF statement, delete ...", "... in format 3." on a
+    page cell's folio): a format is a row of the catalog as a rule is, so a change to it is recorded the same way, and
+    a change that could name more than one row is reported (kb/Work PB5045). A change to a format that is no row names
+    nothing the catalog holds and is left alone, as a heading is: the catalog harvests a format from its "General
+    Format" paragraph only, so Section V's skeleton (V-15, V-24) and the unheaded format of a section's paragraph 2.1
+    (X3.23a-1989 VII-6) have none."""
+    found = []
+    for folio, in_amendment in pages:
+        sec = "A" if in_amendment else folio.split("-")[0]
+        for r in cat.rules:
+            if r["kind"] != "FMT" or r["document"] not in (BASE, AMENDMENT_1) or r["section"] != sec:
+                continue
+            if para is not None:
+                if para["num"] not in (r["paragraph"], r["paragraph"].rsplit(".", 1)[0]):
+                    continue
+            elif r["folio"] != folio:
+                continue
+            found.append(r)
+    if len(found) == 1:
+        if doc not in found[0]["amended_by"]:
+            found[0]["amended_by"].append(doc)
+    elif found:
         cat.unresolved.append((doc, cell, change[:100]))
 
 
@@ -547,6 +593,8 @@ def summary(cat: Catalog) -> list[str]:
                          ("ordinal(s) that neither continue nor restart their list", cat.unexplained),
                          ("box(es) inside a module that has one level", cat.one_level_boxes),
                          ("amendment change(s) naming a rule this catalog cannot find", cat.unresolved),
+                         ("amendment change row(s) transcribed in neither row shape (CHANGE_UNREAD): no amendment "
+                          "is recorded for them", cat.unread),
                          ("adjudication(s) the transcription no longer supports", cat.stale),
                          ("DUPLICATE id(s): the inventory key is not unique (a paragraph transcribed twice, or a "
                           "list the ordinals above broke)", cat.duplicates()),
@@ -840,6 +888,12 @@ A-33
 
 a. its item.
 
+VI-26 — Paragraph 5.7.4 of the level-number, general rule 1, change to read: planted, a row in neither shape.
+
+**VI-26** New paragraph 5.8.2, replace the general format with the following:
+
+**VI-25 thru VI-26** Renumber paragraphs 5.7 thru 5.8, planted.
+
 B-1
 """
 
@@ -905,8 +959,16 @@ def self_test() -> int:
           by["1989-AR-A.2.5.3-1"]["amended_by"] == [AMENDMENT_2])
     check("a change naming no rule is no finding, one naming an absent rule is, and so is one adding a rule the body "
           "lacks (a change not applied in place)",
-          cat.changes == 8 and [cell for _d, cell, _c in cat.unresolved] == ["VI-26", "VI-25"]
+          cat.changes == 10 and [cell for _d, cell, _c in cat.unresolved] == ["VI-26", "VI-25"]
           and "general rule 9" in cat.unresolved[1][2])
+    check("a change row in neither row shape is a finding, never swallowed as the open row's new text (review R1-1, "
+          "kb/Work PB5045)",
+          len(cat.unread) == 1 and cat.unread[0].startswith("page 913: VI-26 — Paragraph 5.7.4")
+          and by["1985-GR-VI.5.7.4-1"]["amended_by"] == [])
+    check("a change to a general format records itself on the FMT row, its paragraph read from 'New paragraph'",
+          by["1985-FMT-VI.5.8.2"]["amended_by"] == [AMENDMENT_2] and by["1985-FMT-VI.5.7.2"]["amended_by"] == [])
+    check("a bold page cell may span pages ('VI-25 thru VI-26') and is read as one row",
+          not any("Renumber" in u for u in cat.unread))
     check("a change row printed without the table's pipes is read, its rule named in parentheses",
           by["1985-SR-VI.5.7.3-1"]["amended_by"] == [AMENDMENT_1])
     check("a rule the new text of a change mentions is no rule the change names (XVII-93's '(See 5.7.3, rule 1')",

@@ -3117,8 +3117,22 @@
    "kind": "table",
    "where": "Page No. / Description of Change layout, entries IX-30, IX-30, IX-31",
    "batch": "REFUTED",
-   "decision": "REFUTED",
-   "reason": "the adversarial verify pass refuted it: Page numbers and descriptions are all transcribed correctly; table vs dash-joined is only a Markdown rendering choice."
+   "decision": "APPLIED",
+   "reason": "applied (kb/Work PB5045, review R1-1): the rendered page prints IX-30, IX-30 and IX-31 as rows of the same Page No. / Description of Change table as IX-27; dash-joined prose is no change row the catalog reads (rule_catalog_1985.CHANGE_UNREAD), so their amendment of IX.4.5.4 GR10 and GR11 was dropped. The page is one table, each row's new text in its cell.",
+   "edits": [
+    {
+     "was": "IX-30 — Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read:",
+     "now": "| IX-30 | Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read:"
+    },
+    {
+     "was": "IX-30 — Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following: \"If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.\"",
+     "now": "| IX-30 | Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following: \"If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.\" |"
+    },
+    {
+     "was": "IX-31 — Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following:",
+     "now": "| IX-31 | Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following:"
+    }
+   ]
   },
   {
    "page": 938,
@@ -7116,6 +7130,78 @@
    "sweep": "table-head-underlines(PB5041)",
    "was": "| Argument Type | Function Type |",
    "now": "| <u>Argument Type</u> | <u>Function Type</u> |"
+  },
+  {
+   "page": 841,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-21 Paragraph 4.3.8.2.2, replace the general format with the following:",
+   "now": "**IV-21** Paragraph 4.3.8.2.2, replace the general format with the following:"
+  },
+  {
+   "page": 841,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-21 Paragraph 4.3.8.2.3, add new syntax rule 7 as follows:",
+   "now": "**IV-21** Paragraph 4.3.8.2.3, add new syntax rule 7 as follows:"
+  },
+  {
+   "page": 841,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-22 thru IV-24 Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively.",
+   "now": "**IV-22 thru IV-24** Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively."
+  },
+  {
+   "page": 841,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-22 Add the following as new paragraph 4.3.8.3:",
+   "now": "**IV-22** Add the following as new paragraph 4.3.8.3:"
+  },
+  {
+   "page": 842,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-22 New paragraph 4.3.8.4, change the title to \"Reference-Modifier\".",
+   "now": "**IV-22** New paragraph 4.3.8.4, change the title to \"Reference-Modifier\"."
+  },
+  {
+   "page": 842,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-22 New paragraph 4.3.8.4.2, replace the general format with the following:",
+   "now": "**IV-22** New paragraph 4.3.8.4.2, replace the general format with the following:"
+  },
+  {
+   "page": 842,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-22 New paragraph 4.3.8.4.3, add the following as new syntax rule 5:",
+   "now": "**IV-22** New paragraph 4.3.8.4.3, add the following as new syntax rule 5:"
+  },
+  {
+   "page": 842,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-22 New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read: \"Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.\"",
+   "now": "**IV-22** New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read: \"Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.\""
+  },
+  {
+   "page": 842,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-23 New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence: \"If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table.\"",
+   "now": "**IV-23** New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence: \"If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table.\""
+  },
+  {
+   "page": 842,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-23 New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c:",
+   "now": "**IV-23** New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c:"
+  },
+  {
+   "page": 843,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "IV-23 New paragraph 4.3.8.5, change to read:",
+   "now": "**IV-23** New paragraph 4.3.8.5, change to read:"
+  },
+  {
+   "page": 942,
+   "sweep": "change-row-shape(PB5045)",
+   "was": "XVII-80 Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A:",
+   "now": "**XVII-80** Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A:"
   }
  ],
  "boxes": [

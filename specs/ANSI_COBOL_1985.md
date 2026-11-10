@@ -4756,7 +4756,9 @@ The names assigned to each of the separately compiled programs which constitute 
 
 In the following, the calling program may or may not possess any of the program attributes, it may either be separately compiled or not, and it may either be contained within programs or contain other programs:
 
-(1) Any calling program may.call any separately compiled program in the run unit.
+(1) Any calling program may call any separately compiled program in the run unit.
+
+> ⚠ **CORRECTED — see the Errata (C338).** The standard prints `(1) Any calling program may.call any separately compiled program in the run unit.` (page 107, folio II-23). A stray period between two words of the sentence, an evident misprint (kb/Work PB5045). Corrected to `(1) Any calling program may call any separately compiled program in the run unit.`.
 
 (2) A calling program may call any program which is directly contained within the calling program.
 
@@ -30888,7 +30890,7 @@ A-10
 
 <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
-IV-21 Paragraph 4.3.8.2.2, replace the general format with the following:
+**IV-21** Paragraph 4.3.8.2.2, replace the general format with the following:
 
 <pre style="line-height:1">
                       ╭ <u>ALL</u>                               ╮
@@ -30902,13 +30904,13 @@ IV-21 Paragraph 4.3.8.2.2, replace the general format with the following:
                       ╰               └ ╰ - ╯           ┘ ╯
 </pre>
 
-IV-21 Paragraph 4.3.8.2.3, add new syntax rule 7 as follows:
+**IV-21** Paragraph 4.3.8.2.3, add new syntax rule 7 as follows:
 
 (7) The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified. (See page A-28, Arguments.)
 
-IV-22 thru IV-24 Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively.
+**IV-22 thru IV-24** Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively.
 
-IV-22 Add the following as new paragraph 4.3.8.3:
+**IV-22** Add the following as new paragraph 4.3.8.3:
 
 **4.3.8.3 Function-Identifier**
 
@@ -30948,9 +30950,9 @@ b. Where the rules associated with the general formats require the data item bei
 
 (2) At the time reference is made to a function, its arguments are evaluated individually in the order specified in the list of arguments, from left to right. An argument being evaluated may itself be a function-identifier or may be an expression containing function-identifiers. There is no restriction preventing the function referenced in evaluating an argument from being the same function as that for which the argument is specified.
 
-IV-22 New paragraph 4.3.8.4, change the title to "Reference-Modifier".
+**IV-22** New paragraph 4.3.8.4, change the title to "Reference-Modifier".
 
-IV-22 New paragraph 4.3.8.4.2, replace the general format with the following:
+**IV-22** New paragraph 4.3.8.4.2, replace the general format with the following:
 
 <pre style="line-height:1">
 ╭ data-name-1                                    ╮
@@ -30960,15 +30962,15 @@ IV-22 New paragraph 4.3.8.4.2, replace the general format with the following:
 
 NOTE: Data-name-1 and FUNCTION function-name-1 (argument-1) are shown in the above format to provide context and are not part of the reference-modifier.
 
-IV-22 New paragraph 4.3.8.4.3, add the following as new syntax rule 5:
+**IV-22** New paragraph 4.3.8.4.3, add the following as new syntax rule 5:
 
 (5) The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.
 
-IV-22 New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read: "Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position."
+**IV-22** New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read: "Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position."
 
-IV-23 New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence: "If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table."
+**IV-23** New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence: "If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table."
 
-IV-23 New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c:
+**IV-23** New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c:
 
 c. If reference modification is specified in a function reference, the reference modification is evaluated immediately after evaluation of the function.
 
@@ -30982,7 +30984,7 @@ A-12
 | IV-23 | New paragraph 4.3.8.4.4, general rule 4, paragraphs a and b, replace four occurrences of "the data item referenced by data-name-1" by "the data item referenced by data-name-1 or function-name-1 and its arguments, if any". |
 | IV-23 | New paragraph 4.3.8.4.4, general rule 5, second sentence, replace the word "It" by "When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item". |
 
-IV-23 New paragraph 4.3.8.5, change to read:
+**IV-23** New paragraph 4.3.8.5, change to read:
 
 **4.3.8.5 Identifier**
 
@@ -33587,23 +33589,10 @@ ANSI X3.23b-1993
 
 | Page No. | Description of Change |
 |---|---|
-| IX-27 | Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, add the following as the new general rule 19: |
-
-(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:
-
-a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.
-
-b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page IX-39, The USE Statement.)
-
-IX-30 — Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read:
-
-b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1 control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.
-
-IX-30 — Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following: "If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed."
-
-IX-31 — Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following:
-
-b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page IX-39, The USE Statement.)
+| IX-27 | Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, add the following as the new general rule 19:<br><br>(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:<br><br>a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.<br><br>b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page IX-39, The USE Statement.) |
+| IX-30 | Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read:<br><br>b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1 control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored. |
+| IX-30 | Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following: "If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed." |
+| IX-31 | Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following:<br><br>b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page IX-39, The USE Statement.) |
 
 B-19
 
@@ -33854,7 +33843,7 @@ The benefits to be derived from the additional facility provided through the add
 
 The X3J4 COBOL Technical Committee believes that any one-time difficulties caused by this change ultimately will be more than offset by the facility provided by this change.
 
-XVII-80 Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A:
+**XVII-80** Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A:
 
 **2.2B SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT)**
 
@@ -40419,6 +40408,17 @@ A rule number misprinted in Amendment 2's new item 30 (its page 959, folio B-47,
 | **This transcription** | `the index replaced by Amendment 2's (pages B-49 through B-64), held once where Amendment 2 prints it (under AMENDMENT 2, `# INDEX`, PDF pages 961 to 976)` |
 
 Amendment 2 (ANSI X3.23b-1993), its change for page XVIII-1 (page 960, folio B-48), applied in place: "Replace the index on pages XVIII-1 through XVIII-13 with the index on pages B-49 through B-64." The base index's entries are deleted from pages 807 to 819 (each keeps its running header and folio), and this transcription holds the replacement once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2). Addendum 1's additions to the base index (its rows XVIII-1 through XVIII-13) are superseded by this replacement and are not applied (kb/Work PB5045).
+
+<a id="errata-c338"></a>
+
+### C338 · page 107 (folio II-23) · Section II, 6.4.1.2 Scope of the CALL Statement, item 1 · `may.call` → `may call`
+
+| | |
+|---|---|
+| **Printed** | `(1) Any calling program may.call any separately compiled program in the run unit.` |
+| **This transcription** | `(1) Any calling program may call any separately compiled program in the run unit.` |
+
+A stray period between two words of the sentence: the rendered page prints `may.call`, which no reading of the sentence uses, and items 2 to 4 of the same list print `may call`; an evident misprint (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 
