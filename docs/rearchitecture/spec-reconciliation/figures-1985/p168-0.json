@@ -2,11 +2,11 @@
  "page": 168,
  "figure": 0,
  "drawn_lines": [
-  "data-name-1 (leftmost-character-position: [length])"
+  "<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]"
  ],
  "decided": "drawn",
  "figure_lines": [
-  "data-name-1 ( leftmost-character-position: [ length ] )"
+  "<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]"
  ],
- "reason": "The printed page sets this one-line format exactly as the batch drew it (its words, underlines and typed delimiters); the measurer could not locate or pair it. Drawn in the house style."
+ "reason": "The figure is an amendment's text applied in place, not the base page's ink: Errata C95, Section IV, a new paragraph 4.3.8.3 (Function-Identifier) (kb/Work PB5045). It is drawn as the amendment prints it."
 }

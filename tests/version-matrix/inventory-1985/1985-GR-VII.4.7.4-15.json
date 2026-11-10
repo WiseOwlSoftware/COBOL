@@ -1,14 +1,14 @@
 {
  "rule-id": "1985-GR-VII.4.7.4-15",
- "rule-digest": "501c2f3ff681",
+ "rule-digest": "494c6579b8dd",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.51.4-25"
+   "GR-14.9.51.4-24"
   ],
   "bridge": true,
-  "reason": "1985: \"If the ADVANCING phrase is used, advancing is provided as follows:\"; 2023: \"If the physical file does not support vertical positioning, the ADVANCING and END-OF-PAGE phrases are ignored.\". 2023 adds cases: the phrases are ignored on files without vertical positioning, and both AFTER and BEFORE may be used together. It drops the implementor-defined page repositioning sentence.",
+  "reason": "1985: \"a. The standard ending reel/unit label procedure. ... c. The standard beginning reel/unit label procedure.\"; 2023: \"a reel/unit swap occurs and the current volume pointer is updated to point to the next reel/unit existing for the physical file.\". 2023 keeps the reel/unit swap and the volume pointer update at end of reel/unit, but no longer requires the standard ending and beginning reel/unit label procedures.",
   "source": "audit-1985/state-route"
  }
 }

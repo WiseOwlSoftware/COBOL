@@ -1,0 +1,16 @@
+{
+ "page": 380,
+ "figure": 0,
+ "drawn_lines": [
+  "<u>INPUT-OUTPUT</u> <u>SECTION</u>.",
+  "<u>FILE-CONTROL</u>. { file-control-entry } …",
+  "[ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "<u>INPUT-OUTPUT</u> <u>SECTION</u>.",
+  "<u>FILE-CONTROL</u>. { file-control-entry } …",
+  "[ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ]"
+ ],
+ "reason": "The figure is an amendment's text applied in place, not the base page's ink: Errata C132, Section VII, paragraph 2.1, the general format of the Input-Output Section (kb/Work PB5045). It is drawn as the amendment prints it."
+}

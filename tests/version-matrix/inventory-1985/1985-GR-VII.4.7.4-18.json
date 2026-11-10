@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-18",
+ "rule-digest": "a23b7b937743",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.51.4-26",
+   "GR-14.9.51.4-27",
+   "GR-13.18.34.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985 confines the end-of-page condition to 'a given WRITE statement with the END-OF-PAGE phrase'; a WRITE without it only repositions on automatic page overflow. §2023:14.9.51.4 GR26 raises an end-of-page condition for any WRITE to a LINAGE file whose lines 'do not fit within the current page body' (the footing case only when FOOTING is specified, §2023:13.18.34.4 GR1), and §2023:14.9.51.4 GR27 sets EC-I-O-EOP or EC-I-O-EOP-OVERFLOW and, without the phrase, transfers control to an exception-checking PERFORM WHEN or an applicable USE declarative. The overflow threshold is also restated ('equal to or exceeds the page size' against 1985 'would cause the LINAGE-COUNTER to exceed integer-1'). Different requirement.",
+  "source": "adjudicate-712/slice-17"
+ }
+}

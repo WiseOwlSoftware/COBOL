@@ -1,17 +1,14 @@
 {
  "rule-id": "1985-GR-VII.4.7.4-16",
- "rule-digest": "bd9edcf73b8e",
+ "rule-digest": "501c2f3ff681",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.51.4-26",
-   "GR-14.9.51.4-27",
-   "GR-14.9.51.4-25",
-   "GR-13.18.34.4-2"
+   "GR-14.9.51.4-25"
   ],
   "bridge": true,
-  "reason": "Kept core: §2023:14.9.51.4 GR26 a) the logical end of the page is reached when LINAGE-COUNTER 'is equal to or exceeds the page size' (the LINAGE page size, §2023:13.18.34.4 GR2), and §2023:14.9.51.4 GR27 b) 'If the END-OF-PAGE phrase is specified, control is transferred to imperative-statement-1'. Changed: §2023:14.9.51.4 GR25 'If the physical file does not support vertical positioning, the ADVANCING and END-OF-PAGE phrases are ignored'; 1985 GR16 runs imperative-statement-1 whenever the LINAGE logical end is reached, and no 1985 rule ignores the phrase (1985 GR15 h covers only PAGE without LINAGE). 2023 also sets EC-I-O-EOP-OVERFLOW (GR27 a).",
-  "source": "adjudicate-712/slice-17"
+  "reason": "1985: \"If the ADVANCING phrase is used, advancing is provided as follows:\"; 2023: \"If the physical file does not support vertical positioning, the ADVANCING and END-OF-PAGE phrases are ignored.\". 2023 adds cases: the phrases are ignored on files without vertical positioning, and both AFTER and BEFORE may be used together. It drops the implementor-defined page repositioning sentence.",
+  "source": "audit-1985/state-route"
  }
 }
