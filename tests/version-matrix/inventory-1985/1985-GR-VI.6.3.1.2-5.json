@@ -1,0 +1,23 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.2-5",
+ "rule-digest": "cfaf114d8994",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-8.8.4.4.2",
+   "SR-8.8.4.4.3-1",
+   "SR-8.8.4.4.3-3",
+   "SR-8.8.4.4.3-4",
+   "SR-8.8.4.4.3-8",
+   "GR-8.8.4.4.4-1",
+   "GR-8.8.4.4.4-2",
+   "GR-8.8.4.4.4-3",
+   "GR-13.18.52.4-5",
+   "GR-13.18.52.4-6"
+  ],
+  "bridge": true,
+  "reason": "The catalog row carries item (5) and the rest of the class condition: its format, the operand rule, NOT, and the five tests. Two amendments changed it in place. Amendment 1 (X3.23a-1989, Errata C126) replaced \"The usage of the operand being tested must be described as DISPLAY.\" with §1985:VI.6.3.1.2 GR5 \"Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function.\" Amendment 2 (X3.23b-1993, Errata C218 and C219) added the zero-length results: \"When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.\" and \"When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.\" 2023 carries both additions: §2023:8.8.4.4.4 GR1 \"If the data item referenced by identifier-1 is a zero-length item, the truth value of the class condition without the word NOT is false.\" with §2023:8.8.4.4.4 GR2 \"If the word NOT is specified, the truth value is reversed.\", and the function-identifier sentence in §2023:8.8.4.4.3 SR3. The operand rules still differ, in both directions. Lifted: 1985 requires DISPLAY usage for every test and says \"The NUMERIC test cannot be used with an item whose data description describes the item as alphabetic or as a group item composed of elementary items whose data description indicates the presence of operational sign(s).\"; §2023:8.8.4.4.3 SR8 has only \"If the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is display or national or whose category is numeric.\", so 2023 accepts NUMERIC on a numeric item of any usage, on an alphabetic item and on a group with signed items, and §2023:8.8.4.4.3 SR3 admits national operands, \"identifier-1 shall reference a data-item whose usage is display or national. If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function.\" Added: 1985 bars the alphabetic and class-name tests only from numeric items (\"The ALPHABETIC test cannot be used with an item whose data description describes the item as numeric.\", \"The class-name-1 test must not be used with an item whose data description describes the item as numeric.\"), where §2023:8.8.4.4.3 SR4 says they \"shall not be specified if the category of the data item referenced by identifier-1 is boolean, numeric, or numeric-edited\", so a numeric-edited operand 1985 accepts is refused. §2023:8.8.4.4.3 SR1 restates part of the usage bar by class (\"Identifier-1 shall not reference a data item of class index, message-tag, object, or pointer\"). The format §2023:8.8.4.4.2 adds alphabet-name-1, BOOLEAN and the floating-point and range tests to the five 1985 tests. The tests themselves are kept in §2023:8.8.4.4.4 GR3, except that the alphabetic tests gain a case: \"If a locale is in effect for character classification, the condition is true if the content of the data item referenced by identifier-1 consists only of characters identified as alphabetic in locale category LC_CTYPE of the current locale.\" Class-name-1 is the same (1985 \"if it consists entirely of the characters listed in the definition of class-name-1 in the SPECIAL-NAMES paragraph\"; 2023 GR3 f) \"consists entirely of the characters listed in the definition of class-name-1 in the SPECIAL-NAMES paragraph\"), and so is the NUMERIC sign test (2023 GR3 n) \"the condition is true if the presence or absence of an operational sign in the content of the data item referenced by identifier-1 is in agreement with the data description of identifier-1\"), with valid signs as in 1985 (\"the implementor defines what constitutes valid sign(s) for data items not described with the SIGN IS SEPARATE clause\"): §2023:13.18.52.4 GR5 \"The implementor defines what constitutes valid signs for data items.\" and §2023:13.18.52.4 GR6 \"The operational signs for positive and negative are the basic special characters '+' and '-', respectively.\"",
+  "source": "readjudicate-amended-1985/slice-05"
+ }
+}

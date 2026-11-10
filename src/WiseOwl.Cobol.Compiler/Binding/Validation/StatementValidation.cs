@@ -110,6 +110,21 @@ internal readonly record struct CorrespondingOperandRule(
         GroupKinds.Alphanumeric | GroupKinds.National | GroupKinds.VariableLength | GroupKinds.StronglyTyped;
 }
 
+/// <summary>Which of an arithmetic statement's items the COBOL-85 composite of operands superimposes
+/// (§1985:VI.6.4.4 item 2: "the superimposition of specified operands in a statement"; each statement names its
+/// own). ADD and SUBTRACT use every operand (§1985:VI.6.6.3 SR3 a, §1985:VI.6.26.3 SR3 a; format 2 less the items
+/// after GIVING, which the caller leaves out of the receivers), MULTIPLY and DIVIDE the RECEIVING items only
+/// (§1985:VI.6.20.3 SR3; DIVIDE except the REMAINDER item, §1985:VI.6.11.3 SR3). From COBOL-2002 on the compiler counts
+/// every operand whatever this says (the 2023 text: §2023:14.9.26.3 SR4, "determined by using all of the operands").</summary>
+internal enum CompositeMembers
+{
+    /// <summary>Every operand and every receiver of the statement.</summary>
+    AllOperands,
+
+    /// <summary>The receiving data items alone at COBOL-85.</summary>
+    ReceivingItems85,
+}
+
 /// <summary>
 /// The edition-INVARIANT syntax-rule check catalog lifted out of the verb binders (P7 Step 10; the phase
 /// doc's §Step 10). The contract (fixed at 10c, the AS-BUILT PLAN's convention): every <c>Check*</c> is a
@@ -1160,9 +1175,10 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §2023:14.7.7 rule 2, NATIVE arithmetic, the four
     /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §2023:8.8.1.2 r7): the hypothetical item
     /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
-    /// edition's digit cap (18 at COBOL-85; the 2023 text says 31). Float/binary-native operands are excluded
+    /// edition's digit cap (18 at COBOL-85, §1985:VI.6.4.4 item 2; 31 from 2002). Float/binary-native operands are excluded
     /// (rule 2b — the composite is then over the remaining operands).</summary>
-    public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers)
+    public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers,
+        CompositeMembers members = CompositeMembers.AllOperands)
     {
         if (data.Procedure.Options.Over(data.State.Configuration.Options).Arithmetic != ArithmeticMode.Native) return true;   // §2023:14.7.7 r2 applies to native only
         int maxInt = 0, maxFrac = 0;
@@ -1204,7 +1220,8 @@ internal sealed class StatementValidation(DataBinder data)
                     break;
             }
         }
-        foreach (var e in operands) OfExpr(e);
+        bool receiversOnly = members is CompositeMembers.ReceivingItems85 && data.Edition.Edition.Year < 2002;
+        if (!receiversOnly) foreach (var e in operands) OfExpr(e);
         foreach (var r in receivers)
             if (r.Place.Item.Pic is { } rp && InComposite(rp))
             {
@@ -1212,15 +1229,18 @@ internal sealed class StatementValidation(DataBinder data)
                 Shape(rd, rs);
             }
 
-        // The cap is 31 at EVERY edition (ISO §2023:14.7.7 rule 2 a) — the 2023 text). A COBOL-85-specific tightening to
-        // 18 was considered and REFUTED by the conformance corpus itself: CCVS-85 NC101A multiplies 9(3)V9(3) by
-        // 9(18) (composite 21) as a deliberate SIZE ERROR test, and every conforming '85 implementation accepts
-        // it — so the 18-digit figure does not govern the composite (it caps '85 PICTURE/literal capacity only).
+        // The cap is the edition's digit capacity: 31 from COBOL-2002 (§2023:14.7.7 rule 2 a)) and 18 at COBOL-85
+        // (§1985:VI.6.4.4 item 2: "must not contain more than 18 decimal digits"). The earlier "31 at every edition"
+        // rested on CCVS-85 NC101A (MULTIPLY 9(3)V9(3) BY 9(18)), but at 85 that composite is its one receiver, 18
+        // digits (§1985:VI.6.20.3 SR3), so the program conforms to the 18-digit cap (kb/Work PB5075).
         int composite = maxInt + maxFrac;
-        if (composite <= 31) return true;
+        int cap = data.Edition.MaxDigits;
+        if (composite <= cap) return true;
         data.Edition.Error(DiagnosticCatalog.ArithmeticCompositeTooWide,
             $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
-            + "ISO/IEC 1989 caps the composite of operands at 31 digits (§2023:14.7.7 rule 2 a))");
+            + (cap == 18
+                ? "ISO/IEC 1989:1985 caps the composite of operands at 18 digits (§1985:VI.6.4.4 item 2)"
+                : "ISO/IEC 1989 caps the composite of operands at 31 digits (§2023:14.7.7 rule 2 a))"));
         return false;
     }
 
@@ -1670,7 +1690,8 @@ internal sealed class StatementValidation(DataBinder data)
     /// </list>
     /// The rules that pair the TAPE PHRASE with the mode (SR5/SR6) are <see cref="CheckOpenTapePhrase"/>'s; SR8 is
     /// <see cref="CheckOpenSharingAllOther"/>'s; SR9 (I-O with a FORMAT clause) is discharged by the FORMAT
-    /// clause's documented non-support (Annex A.4.8). Pure: false when a rule was violated and reported; the
+    /// clause's documented non-support (Annex A.4.8). The X3.23-1985 multiple file reel rules (§1985:VII.4.3.3 SR2,
+    /// §1985:VII.4.3.4 GR20 d) read the file's <see cref="FileModel.MultipleFileReels"/>. Pure: false when a rule was violated and reported; the
     /// statement still binds (a screen, not a branch — the compile has already failed).</summary>
     public bool CheckOpenModeForFile(FileModel file, BoundOpenMode mode)
     {
@@ -1696,6 +1717,26 @@ internal sealed class StatementValidation(DataBinder data)
                 $"OPEN EXTEND '{file.CobolName}' — the file description entry specifies a LINAGE clause, which "
                 + "EXTEND does not admit (ISO §2023:14.9.27.3 SR2)");
             ok = false;
+        }
+        // The X3.23-1985 multiple file reel rules (kb/Work PB5086): the MULTIPLE FILE TAPE clause is the program's statement
+        // that a file shares a reel (§1985:VII.2.11.3 GR1), which OPEN's SR2 and GR20 d then read.
+        if (file.MultipleFileReels.Count > 0)
+        {
+            if (mode is BoundOpenMode.Extend)
+            {
+                data.Edition.Error(DiagnosticCatalog.OpenExtendMultipleFileReel,
+                    $"OPEN EXTEND '{file.CobolName}' — the file is named in a MULTIPLE FILE TAPE clause, so it resides on a "
+                    + "multiple file reel, for which the EXTEND phrase must not be specified (§1985:VII.4.3.3 SR2)");
+                ok = false;
+            }
+            foreach (var member in file.MultipleFileReels.SelectMany(r => r.Members).Distinct().Where(f => !f.IsSequential))
+            {
+                data.Edition.Error(DiagnosticCatalog.OpenMultipleFileReelNotSequential,
+                    $"OPEN {OpenModeFace(mode)} '{file.CobolName}' — the file resides on a multiple file reel with "
+                    + $"'{member.CobolName}', whose organization is {member.OrganizationFace}; each of the files of a multiple "
+                    + "file reel must be a sequential file (§1985:VII.4.3.4 GR20 d)");
+                ok = false;
+            }
         }
         return ok;
     }

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-FMT-VI.6.16.2",
+ "rule-digest": "f8032a15b182",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "FMT-14.9.19.2"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993, its change for page VI-90: 'delete the braces surrounding statement-1; delete the ellipsis following statement-1', and the same for statement-2) leaves §1985:VI.6.16.2 as IF condition-1 THEN {statement-1 | NEXT SENTENCE} {ELSE statement-2 [END-IF] | ELSE NEXT SENTENCE | END-IF}. Read with §1985:VI.6.16.3 SR3 ('If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified') it admits statements closed by END-IF, with or without ELSE, and statements or NEXT SENTENCE with an ELSE alternative and no END-IF. §2023:14.9.19.2 prints exactly these as 'Format 1 (delimited)' and 'Format 2 (historic)'. Format 2 brackets the ELSE phrase where 1985 omits it by §1985:VI.6.16.3 SR2 ('The ELSE NEXT SENTENCE phrase may be omitted if it immediately precedes the terminal period of the sentence'), which 2023 also keeps (§2023:14.9.19.3 SR3); an undelimited IF with no ELSE can stand only where the period ends it (a following ELSE or END-IF would be its own), so the bracket admits nothing more. With the ellipsis deleted the format no longer rests on §2023:14.9.19.3 SR1 ('Statement-1 and statement-2 represent either one or more imperative statements or a conditional statement optionally preceded by one or more imperative statements'), which carries 1985 SR1, as §2023:14.9.19.3 SR3 carries 1985 SR2, so SR-14.9.19.3-1 and SR-14.9.19.3-3 are left out. NEXT SENTENCE is only marked archaic. No program accepted by one edition is refused by the other.",
+  "source": "readjudicate-amended-1985/slice-01"
+ }
+}
