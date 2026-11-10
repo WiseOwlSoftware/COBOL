@@ -741,6 +741,11 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
         for f in ("id", "kind", "status", "area"):
             if not it.get(f):
                 bad.append(f'{it["_file"]}: missing {f}')
+        # ONE NOTE PER FILE, NAMED BY ITS ID (kb/Work PB5110): no file is shared by two notes, so two branches that each
+        # file a note add two files and plain git merges them
+        if it.get("id") and it["_file"] != f'{it["id"]}.md':
+            bad.append(f'{it["_file"]}: the note\'s id is {it["id"]!r}, so its file is {it["id"]}.md — one note per file, '
+                       f'named by its id (kb/Work PB5110)')
         if it.get("kind") not in KINDS:
             bad.append(f'{it["_file"]}: kind {it.get("kind")!r} not in {sorted(KINDS)}')
         if it.get("status") not in STATUSES:

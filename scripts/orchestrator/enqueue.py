@@ -32,14 +32,13 @@ cannot decide (a conflict, an untested tip, a red gate, a queue bounce).
   2. `git fetch` origin's main and, when the branch does not already contain it, MERGE it into the branch (never a
      rebase: a branch that merged a same-file predecessor or a sibling carries conflict resolutions in its merge
      commits, which a rebase throws away and asks for again; the queue lands by merge commit anyway, so the branch's
-     history stays as written). THROUGH THE MERGE DRIVERS (scripts/merge_drivers.py, kb/Work PB3610): the keyed
-     catalogues two landings both add to (constructs.json), the work
-     notes they both append to and the runtime ABI pin are merged by key, not by line, and a merge that changed the pin
-     measures the merged tree (abi_pin.py settle) before its merge commit, so none of those is a conflict. A conflict
-     is aborted, the branch's report gains `BLOCKED: … conflict in <files>`, and the exit is 4: a finisher resolves it.
-     A CLEAN merge that could not be COMPLETED is no conflict (kb/Work PB3673: a pin settle whose measuring build met a
-     DLL another process held used to end `CONFLICT in …RuntimeAbi.pin` and cost a finisher for a merge with nothing to
-     resolve): merge_drivers.merge says so (`Merged.incomplete`, abi_pin's Failure) and the cause's class is the gate's
+     history stays as written). WITH PLAIN GIT (scripts/git_merge.py, owner decision kb/Work PB5110: "No custom merge
+     drivers are required"): every shared registry is one file per entry (the construct catalogue, the inventory, the
+     refusals, a work note's addenda), so two landings never edit one file for an addition and git merges them, here and
+     in the merge queue alike. A conflict is aborted, the branch's report gains `BLOCKED: … conflict in <files>`, and the exit is 4: a finisher resolves it.
+     A merge git REFUSED, with no file in conflict, is no conflict (kb/Work PB3673: a refusal used to end `CONFLICT in
+     …` and cost a finisher for a merge with nothing to resolve): git_merge.merge says so (`Merged.incomplete`, abi_pin's
+     Failure) and the cause's class is the gate's
      one classification (gate.NOT_RUN_CAUSES, the `merge-*` rows). An ENVIRONMENT cause (`merge-blocked`: a
      build output locked by another process, a full disk, no SDK, git's refusal of the merge commit) is exit 2 with NO
      report line, the verdict `MERGE NOT COMPLETED`: the lane retries it once and a second at this head is the
@@ -183,7 +182,7 @@ import coord  # noqa: E402
 import devlog  # noqa: E402  (scripts/: the one definition of a landing's new entry, its pending entries and its stamp)
 import gate_slot  # noqa: E402  (the OS lock: the land lock)
 import landing_measure  # noqa: E402
-import merge_drivers  # noqa: E402  (scripts/: the merge drivers and the one merge of main into a branch, kb/Work PB3610)
+import git_merge  # noqa: E402  (scripts/: the one merge of main into a branch, plain git, kb/Work PB3610, PB5110)
 import queue_facts  # noqa: E402  (THE reader of GitHub's facts about the open pull requests and the merge queue)
 import ruleset  # noqa: E402
 import verdict_line  # noqa: E402  (scripts/: the one home of the `=== ENQUEUE: ` verdict line, kb/Work PB3714)
@@ -650,14 +649,13 @@ def fetch_main(wt: pathlib.Path) -> str | None:
     return None if f.returncode == 0 else f"git fetch origin main failed: {f.stderr.strip()}"
 
 
-def merge_main(wt: pathlib.Path, branch: str, base: str) -> merge_drivers.Merged:
-    """MERGE the fetched main into the branch when the branch does not already contain it (steps 2 and 4), through the
-    merge drivers (merge_drivers.merge: the keyed catalogues, the work notes and the runtime ABI pin are merged by key,
-    kb/Work PB3610). `clean` when the branch now contains main; else the conflicted files, or why a clean merge could not
-    be completed (the ABI pin could not be settled: kb/Work PB3673), with the merge aborted and the branch unchanged."""
+def merge_main(wt: pathlib.Path, branch: str, base: str) -> git_merge.Merged:
+    """MERGE the fetched main into the branch when the branch does not already contain it (steps 2 and 4), with plain git
+    (git_merge.merge, kb/Work PB5110). `clean` when the branch now contains main; else the conflicted files, or why git
+    refused (kb/Work PB3673), with the merge aborted and the branch unchanged."""
     if _git(wt, "merge-base", "--is-ancestor", base, "HEAD").returncode == 0:
-        return merge_drivers.Merged()
-    return merge_drivers.merge(wt, base, f"Merge origin/main into {branch} (enqueue.py)")
+        return git_merge.Merged()
+    return git_merge.merge(wt, base, f"Merge origin/main into {branch} (enqueue.py)")
 
 
 def one_line(text: str, limit: int) -> str:
@@ -670,8 +668,8 @@ def one_line(text: str, limit: int) -> str:
 #: was written by a gate older than this lander, merge main in first and gate the merged head.
 REMEDY_GATE_TIP = "A finisher runs `pwsh scripts/build-local.ps1 -Priority BelowNormal` on the tip"
 REMEDY_OLD_GATE = ("The branch's own gate driver is older than this lander's reading, so gating the tip again writes the "
-                   "same record: a finisher merges origin/main into the branch first (`python scripts/merge_drivers.py "
-                   "merge origin/main`), then runs `pwsh scripts/build-local.ps1 -Priority BelowNormal` on the merged head")
+                   "same record: a finisher merges origin/main into the branch first (`git merge "
+                   "origin/main`), then runs `pwsh scripts/build-local.ps1 -Priority BelowNormal` on the merged head")
 
 
 class Tested(NamedTuple):
@@ -759,7 +757,7 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
          review: Callable[[str, pathlib.Path, str], str | None] = review_gate,
          busy: Callable[[pathlib.Path], str] = gate_busy,
          tested: Callable[[pathlib.Path, str, str], Tested] = tested_locally,
-         merge: Callable[[pathlib.Path, str, str], merge_drivers.Merged] = merge_main,
+         merge: Callable[[pathlib.Path, str, str], git_merge.Merged] = merge_main,
          measure: Callable[[pathlib.Path, str, int], None] | None = None,
          lane: str | None = None, dry_run: bool = False, say: Say = print) -> int:
     """THE landing step (module doc); the collaborators are parameters so the self-test drives every exit arm.
@@ -798,12 +796,11 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
                           f"{one_line(failure.why, 300)}")
         blocked(branch, wt, f"BLOCKED: enqueue — bringing origin/main in {when} was clean, but it could not be completed "
                             f"because of the merged tree itself ([{cause.tag}]: {cause.what}; kb/Work PB3673): "
-                            f"{one_line(failure.why, 600)}. A finisher runs `python scripts/merge_drivers.py merge origin/main "
-                            f"--keep` (the merge stays in progress), removes the cause the line names, runs `python "
-                            f"scripts/abi_pin.py settle --stage`, commits and re-gates")
+                            f"{one_line(failure.why, 600)}. A finisher runs `git merge origin/main` (the merge stays "
+                            f"in progress), removes the cause the line names, commits and re-gates")
         return end(EXIT_MERGE_INCOMPLETE, f"MERGE NOT COMPLETED, BRANCH-CARRIED ({when}) — [{cause.tag}]: {one_line(failure.why, 300)}")
 
-    def stopped(merged: merge_drivers.Merged, when: str) -> int:
+    def stopped(merged: git_merge.Merged, when: str) -> int:
         """The landing's end for a merge of main that did not come out clean: its conflicts, or why it was not completed."""
         return incomplete(merged.incomplete, when) if merged.incomplete else conflicted(list(merged.conflicts), when)
     blocked = blocked or (lambda b, w, line: record_blocked(b, w, line, say))
@@ -1314,14 +1311,14 @@ def self_test() -> int:
                f"{rc_conflict} {notes[-1:]}")
         fix.git("reset", "--quiet", "--hard", fix_tip)
 
-        # kb/Work PB3673: a CLEAN merge of main that could not be completed is no conflict. The merge is planted (merge_drivers
-        # has its own arms for the git side): a pin settle the host blocked (an ENVIRONMENT cause) and one the merged tree
-        # failed (a BRANCH cause), each by the class gate.NOT_RUN_CAUSES gives its tag.
+        # kb/Work PB3673: a merge that could not be completed is no conflict. The merge is planted (git_merge has its own
+        # arms for the git side): a refusal the host made (an ENVIRONMENT cause) and one the merged tree made (a BRANCH
+        # cause), each by the class gate.NOT_RUN_CAUSES gives its tag.
         host_blocked = abi_pin.Failure(abi_pin.MERGE_BLOCKED, "the measuring run exited 1:" + chr(10)
                                        + "error MSB3027: Could not copy SourceGen.dll. The file is locked by: csharp-ls (1)")
         tree_failed = abi_pin.Failure(abi_pin.MERGE_FAILED, "the measuring run exited 1:" + chr(10)
                                       + "error CS0103: The name 'x' does not exist in the current context")
-        planted = lambda failure: (lambda w, b, base: merge_drivers.Merged(incomplete=failure))   # noqa: E731
+        planted = lambda failure: (lambda w, b, base: git_merge.Merged(incomplete=failure))   # noqa: E731
         stamped, notes[:] = [], []
         rc_env = run_land(stamped=stamped, merge=planted(host_blocked))
         env_line = lines[-1]
@@ -1348,9 +1345,9 @@ def self_test() -> int:
                and gate.NOT_RUN_CAUSES[abi_pin.MERGE_FAILED].carried == gate.BRANCH)
         calls: list[int] = []
 
-        def late_environment(w: pathlib.Path, b: str, base: str) -> merge_drivers.Merged:   # the catch-up merge (step 4) is the second
+        def late_environment(w: pathlib.Path, b: str, base: str) -> git_merge.Merged:   # the catch-up merge (step 4) is the second
             calls.append(1)
-            return merge_drivers.Merged(incomplete=host_blocked) if len(calls) == 2 else merge_main(w, b, base)
+            return git_merge.Merged(incomplete=host_blocked) if len(calls) == 2 else merge_main(w, b, base)
         log, notes[:] = [], []
         rc_late_env = run_land(gh=fake_gh([], log), stamped=stamped, merge=late_environment)
         expect("land: the same arm at the catch-up merge while the landing queues: exit 2, MERGE NOT COMPLETED (while the "
@@ -1360,27 +1357,25 @@ def self_test() -> int:
                f"{rc_late_env} {log} {lines[-1:]}")
         fix.git("reset", "--quiet", "--hard", fix_tip)
 
-        # kb/Work PB3610: two landings that each add an entry to a keyed catalogue are no conflict. Main gains the
-        # catalogue and its .gitattributes line; the branch merges them in; then both sides add a member.
-        keyed = lambda *ks: ("{" + chr(10) + ' "constructs": [' + chr(10) + (", " + chr(10)).join(f'  {{ "id": "{k}", "v": 1 }}' for k in ks)  # noqa: E731
-                             + chr(10) + " ]" + chr(10) + "}" + chr(10))
-        main_moves(".gitattributes", "catalogue.json merge=cobol-keyed-constructs" + chr(10))
-        main_moves("catalogue.json", keyed("a"))
+        # kb/Work PB5110: two landings that each ADD an entry to a registry add two FILES (one file per entry), which plain
+        # git merges: main gains one entry, the branch merges it in and adds a second, then main adds a third.
+        main_moves("entry-a.json", "{}" + chr(10))
         assert fetch_main(lw) is None
         rc_in = merge_main(lw, "fix", "refs/remotes/origin/main")
-        (lw / "catalogue.json").write_text(keyed("a", "ours"), encoding="utf-8", newline="\n")
-        fix.git("commit", "--quiet", "-am", "the branch adds a member")
-        main_moves("catalogue.json", keyed("a", "theirs"))
+        (lw / "entry-ours.json").write_text("{}" + chr(10), encoding="utf-8", newline="\n")
+        fix.git("add", "entry-ours.json")
+        fix.git("commit", "--quiet", "-m", "the branch adds an entry")
+        main_moves("entry-theirs.json", "{}" + chr(10))
         assert fetch_main(lw) is None
         plain = fix.run("merge", "--no-commit", "--no-ff", "refs/remotes/origin/main")
         fix.run("merge", "--abort")
-        rc_keyed = merge_main(lw, "fix", "refs/remotes/origin/main")
-        got = ({e["id"] for e in json.loads((lw / "catalogue.json").read_text(encoding="utf-8"))["constructs"]}
-               if rc_keyed.clean else set())
-        expect("land: both sides adding a member to a keyed catalogue is merged by key, where a plain git merge conflicts "
-               "(merge_main goes through the merge drivers; kb/Work PB3610)",
-               rc_in.clean and plain.returncode != 0 and rc_keyed.clean and got == {"a", "ours", "theirs"}
-               and not dirty_paths(lw), f"{rc_in} {plain.returncode} {rc_keyed} {got}")
+        rc_files = merge_main(lw, "fix", "refs/remotes/origin/main")
+        got = sorted(p.name for p in lw.glob("entry-*.json"))
+        expect("land: both sides adding an entry to a registry is no conflict, in plain git and in merge_main (one file "
+               "per entry; kb/Work PB5110)",
+               rc_in.clean and plain.returncode == 0 and rc_files.clean
+               and got == ["entry-a.json", "entry-ours.json", "entry-theirs.json"] and not dirty_paths(lw),
+               f"{rc_in} {plain.returncode} {rc_files} {got}")
         fix.git("reset", "--quiet", "--hard", fix_tip)
 
         stamped = []
@@ -1492,10 +1487,10 @@ def self_test() -> int:
                and not schema2.ok and schema2.stale and "schema 2" in schema2.text
                and not still_dirty.ok and not still_dirty.stale and "uncommitted" in still_dirty.text
                and not red_not_old.ok and not red_not_old.stale and "uncommitted" in red_not_old.text
-               and rc_old == EXIT_UNTESTED and len(old_notes) == 1 and "merge_drivers.py merge origin/main" in old_notes[0]
+               and rc_old == EXIT_UNTESTED and len(old_notes) == 1 and "git merge origin/main" in old_notes[0]
                and "older than this lander" in old_notes[0] and "uncommitted" not in old_notes[0]
                and rc_dirty_land == EXIT_UNTESTED and len(dirty_notes) == 1 and REMEDY_GATE_TIP in dirty_notes[0]
-               and "merge_drivers.py" not in dirty_notes[0],
+               and "git merge" not in dirty_notes[0],
                f"{pre_pb3612} {schema3_current} {schema2} {still_dirty} {red_not_old} "
                f"{old_notes} {dirty_notes}")
 
@@ -1986,16 +1981,18 @@ def self_test() -> int:
                rc_merged == 0 and lines[-1].startswith(verdict_line.PREFIX + "NOTHING TO LAND")
                and not stamped_merged and not log_merged, f"{rc_merged} {lines[-1:]} {stamped_merged} {log_merged}")
         # ── a shared file never holds a branch (owner, kb/Work PB5109) ─────────────────────────────────────────────────
-        # A branch that changes a file of EVERY merge driver's pattern, while another open pull request IN the queue
-        # changes the same files, is stamped and queued like any other: git merges the two, and a merge group that does
-        # conflict bounces the pull request, which a finisher fixes then. Nothing here asks GitHub which files it lists.
-        samples = {d.name: p.replace("*", "9999") for d in merge_drivers.DRIVERS for p in d.patterns}
+        # A branch that changes the files two landings most often both edit (a work note, a public-API baseline, the
+        # runtime ABI pin), while another open pull request IN the queue changes the same files, is stamped and queued like
+        # any other: git merges the two, and a merge group that does conflict bounces the pull request, which a finisher
+        # fixes then. Nothing here asks GitHub which files it lists.
+        samples = {"note": "kb/Work/PB9999.md", "api": "src/Lib/PublicAPI.Unshipped.txt",
+                   "pin": "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin"}
         drv = scratch.worktree(root / "drv-wt", branch="drv", start="main")
         for rel in samples.values():
             (drv.path / rel).parent.mkdir(parents=True, exist_ok=True)
             (drv.path / rel).write_text(f"the branch's {rel}", encoding="utf-8", newline="\n")
         drv.git("add", "-A")
-        drv.git("commit", "--quiet", "-m", "the branch changes every driver-covered file")
+        drv.git("commit", "--quiet", "-m", "the branch changes the commonly shared files")
         drv_tip = drv.git("rev-parse", "HEAD")
 
         def stamp_drv(w: pathlib.Path, b: str) -> int:
@@ -2010,7 +2007,7 @@ def self_test() -> int:
             stamp=kw.pop("stamp", stamp_drv), blocked=record, say=lines.append, **kw)
         log_shared: list[list[str]] = []
         rc_shared = drv_land(listing_gh([(920, "other", "o", list(samples.values()))], log_shared), measure=lambda w, b, n: None)
-        expect("land: a branch whose driver-merged files an open pull request IN the queue changes too is stamped and "
+        expect("land: a branch whose shared files an open pull request IN the queue changes too is stamped and "
                "queued (exit 0, ENQUEUED): a shared file is never a hold, and no file list is asked for (kb/Work PB5109)",
                rc_shared == 0 and lines[-1].startswith(verdict_line.PREFIX + "ENQUEUED")
                and any(a[:2] == ["pr", "create"] for a in log_shared)
@@ -2070,9 +2067,9 @@ def self_test() -> int:
            "measure=lambda branch, pr: measure_landing(cwd, branch, pr, a.changes, None)" in code
            and "measure=lambda wt, branch, pr: measure_landing(wt, branch, pr, None, 0)" in code
            and "landing_measure.record_enqueued(" in code)
-    expect("shape: main is merged in through merge_drivers.merge, never a bare merge, and the CONFLICT outcome has its "
-           "one writer (verdict_line.conflict_outcome; kb/Work PB3610, PB3714)",
-           "merge_drivers.merge(wt, base," in code and '"merge", "--no-edit"' not in code
+    expect("shape: main is merged in through git_merge.merge, never a bare merge, and the CONFLICT outcome has its "
+           "one writer (verdict_line.conflict_outcome; kb/Work PB3610, PB3714, PB5110)",
+           "git_merge.merge(wt, base," in code and '"merge", "--no-edit"' not in code
            and "verdict_line.conflict_outcome(files)" in code)
     holds = [w for w in ("covered_by_driver(", "queue_facts.read(", "FILES_LISTED else", "queue-entry")
              if w in code]

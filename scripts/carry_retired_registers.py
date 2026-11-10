@@ -2,7 +2,7 @@
 """carry_retired_registers.py — CARRY A MERGE'S EDITS OF A RETIRED SINGLE-FILE REGISTER INTO ITS PER-ENTRY FILES
 (kb/Work PB4147, PB4148; the finisher's CONFLICT stop, .claude/skills/workstream/templates/finisher-brief.md).
 
-    python scripts/carry_retired_registers.py [--repo DIR]   # in a merge left in progress (`merge_drivers.py merge <ref> --keep`)
+    python scripts/carry_retired_registers.py [--repo DIR]   # in a merge left in progress (`git merge <ref>`)
     python scripts/carry_retired_registers.py --self-test
 
 WHY. Three registers that landings edited are one file per entry now, so two branches never share a file: WiseOwl's
@@ -148,7 +148,7 @@ def _blob(repo: pathlib.Path, blob: str) -> str:
 def carry(repo: pathlib.Path, out=print) -> int:
     """Carry every retired register's modify/delete in the merge in progress in `repo` (module doc); the exit code."""
     if subprocess.run(["git", "rev-parse", "-q", "--verify", "MERGE_HEAD"], cwd=repo, capture_output=True).returncode:
-        out("carry: no merge in progress (run `python scripts/merge_drivers.py merge <ref> --keep` first)")
+        out("carry: no merge in progress (run `git merge <ref>` first)")
         return 2
     worst = 0
     for reg in REGISTERS:

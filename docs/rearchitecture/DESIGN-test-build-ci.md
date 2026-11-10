@@ -1583,7 +1583,7 @@ one-file-per-entry DEVLOG stand.
    3 where both inserted at one place), so a union merge would keep a stale paragraph beside its replacement in a document that
    describes the current compiler; such a conflict is a decision about what the text now says, the finisher's. What is left in
    conflict is real: exit 4, the merge is aborted, the report gains `BLOCKED: enqueue … conflict in <files>`, and a
-   `cobol-finisher` resolves with `merge_drivers.py merge origin/main --keep`. A CLEAN merge that could not be COMPLETED is no
+   `cobol-finisher` resolves with `git merge origin/main`. A CLEAN merge that could not be COMPLETED is no
    conflict (kb/Work PB3673): `merge_drivers.merge` answers `clean`, `conflicts` or `incomplete` (abi_pin's `Failure(cause, why)`),
    and the cause is read from the `merge-*` rows of `gate.NOT_RUN_CAUSES`: `merge-blocked` (ENVIRONMENT: a held build output,
    a full disk, no SDK) is exit 2, retried once by the lane; `merge-failed` (BRANCH: the merged tree's pin, build or measuring

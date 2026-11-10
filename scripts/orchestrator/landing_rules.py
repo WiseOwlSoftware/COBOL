@@ -7,7 +7,7 @@ DESIGN-test-build-ci.md sections 3.17.2, 3.17.6 and 3.17.8; DESIGN-orchestrator-
 
 Each rule here once was a C# class in the compiler's test assembly (LandingLaneDriftTests, LandingPipelineDriftTests,
 LandingMeasureDriftTests, MergeDriverDriftTests): a pipeline rule, checked by a test only a build could run. A rule
-about ONE script's own code is that script's self-test now (enqueue.py, land_lane.py, merge_drivers.py, abi_pin.py,
+about ONE script's own code is that script's self-test now (enqueue.py, land_lane.py, git_merge.py, abi_pin.py,
 git_batch.py); what is left spans files, and lives here:
 
   * DECLARED: every arm the landing scripts' self-tests must still declare (a self-test quietly reduced to its happy
@@ -26,8 +26,8 @@ git_batch.py); what is left spans files, and lives here:
     current file names them; no committed arch-oracle record describes one branch's tree; and a second Linux gate of
     one tree answers BUSY before it registers itself.
   * THE INSTRUMENT IS RECORDED RIGHT (kb/Work PB3028): the retired train writer is deleted and nothing names it.
-  * MAIN IS MERGED IN THROUGH THE DRIVERS (kb/Work PB3610, PB3713): the survey's LANDED proof and every brief an
-    agent merges main by never spell a bare `git merge`.
+  * MAIN IS MERGED IN BY PLAIN GIT (kb/Work PB3610, PB3713, PB5110): the survey's LANDED proof reads git_merge's one
+    definition of a clean merge, and no brief an agent merges main by names a merge driver.
 
 The sweeps read the tracked tree as a POPULATION (the header's declaration, scripts/self_tests.py): no set of paths
 bounds them, so the runner keys this self-test's PASS on the whole tree. This file names every pattern it forbids, so
@@ -329,7 +329,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'land: a branch carrying the stamped entry of a merged predecessor whose pull request is still OPEN into main',
         'land: GitHub that cannot list the open pull requests is exit 9',
         "land: once the predecessor's pull request has merged the same head lands",
-        'land: a branch whose driver-merged files an open pull request IN the queue changes too is stamped and '
+        'land: a branch whose shared files an open pull request IN the queue changes too is stamped and '
             'queued',
     ),
     'scripts/orchestrator/ruleset.py': (
@@ -369,60 +369,27 @@ DECLARED: dict[str, tuple[str, ...]] = {
             'not list, and cancels nothing unseen',
         'every outcome exits 0 (housekeeping never decides a verdict); a usage error exits 2',
     ),
-    'scripts/merge_drivers.py': (
-        'keyed: entries each side ADDED are both kept',
-        'keyed: an entry both sides changed DIFFERENTLY is a real conflict',
-        'keyed: a raw',
-        'keyed rows: an array of objects is keyed by a member',
-        'keyed nested: entries at a deeper indentation inside a member are keyed too',
-        'note: frontmatter merges per key and the bodies by union',
-        'publicapi: lines each side added are both kept',
-        'publicapi: a line one side removed is gone',
-        'publicapi: the header stays first and the rest is sorted',
-        'publicapi: the same line added by both is one line',
-        'publicapi: baseline_duplicates names a symbol listed twice in one file',
-        "publicapi: is_symbol_baseline reads the SYMBOL_SET_DRIVER row's pattern",
-        'git: a public-API baseline both branches changed merges through its driver as a set',
-        "git: a branch cut with the old attributes (merge=union) merges a baseline through the registry's driver",
-        "patterns: a driver's pattern names a path as git does",
-        'hunks: two insertions at one place are an INSERTION hunk',
-        'hunks: the history replay counts a merge both parents changed',
-        "hunks: a merge that took one parent's file whole is counted",
-        'git: WITHOUT the drivers the same merge conflicts (the premise)',
-        'git: merge() brings main in through the drivers',
-        "git: merge-tree with config_args reproduces the merge's tree",
+    'scripts/git_merge.py': (
+        'dry run: two branches that each ADD a file beside one note and edit different files merge clean',
+        'dry run: a ref git cannot read is None',
+        'merge: both branches',
         "tree: merged_tree is that merge's tree",
-        "tree: an entry main already holds beside its own merges to main's tree",
-        'git: keep leaves a conflicting merge IN PROGRESS',
-        'pin: both branches raised the major 17 -> 18: the merge makes it 19',
-        'pin: a settle that fails aborts the merge, the branch unchanged, and is NOT a conflict',
-        'pin: keep (a finisher) leaves a merge whose pin could not be settled IN PROGRESS',
-        'coverage: is_drivers_merge accepts the merge with its pin settled',
-        'coverage: a merge whose pin is MEASURED (its header names UNMEASURED only in prose)',
-        'conflicts: the dry run lists nothing where the drivers merge',
-        'conflicts: a keyed file whose driver DECLINES (one entry both sides changed differently) is listed',
-        'conflicts: a ref git cannot read is None',
+        'merge: a ref the branch already contains is no conflict and no new commit',
+        'dry run: a file both sides edited on one line is listed',
+        'merge: a conflict names the file; the merge is aborted, the branch unchanged',
+        'merge: keep leaves a conflicting merge IN PROGRESS',
+        'merge: a refusal git makes with no file in conflict is `incomplete`',
         'queue: an entry that conflicts on the entries ahead that stay is foreseen',
         'queue: the simulation touches no worktree',
-        "queue: the simulation merges as GitHub's merge group does, with no driver",
-        "conflicts: the landing logs' CONFLICT lines name their files",
-        "new driver: a branch that gives a pattern a driver main's attributes do not yet give it AND changes a file",
-        "new driver: the same file back at main's bytes passes",
-        "new driver: a changed file whose driver main's attributes already assign, and a file no pattern governs",
-        "new driver: a main that moved since the branch was cut is not the branch's change",
-        'new driver: a pattern main re-pointed since the branch was cut',
-        "new driver: where the checkout has no such ref (CI's has no origin/main) the answer is a REASON",
-        "check: the registry and this repository's .gitattributes agree",
+        'queue: two entries that each add a file beside one note are no conflict',
     ),
     'scripts/abi_pin.py': (
-        'merge: a counter both sides raised by one is raised by two',
-        'unmeasured: a pin whose header names UNMEASURED only in its prose is measured',
-        'settle: the merged counters are written into the props and RuntimeAbi.cs BEFORE the measurement',
+        "settle: the pin's counters are written into the props and RuntimeAbi.cs BEFORE the measurement",
         'settle: a measurement that fails, or writes nothing, is the reason',
         'failure: a build output another process holds (MSB3027, MSB3021), a full disk and a command that cannot '
             'start are MERGE_BLOCKED',
         "failure: MSBuild's transient copy-retry WARNING (MSB3026, which carries the held-file phrases) is no cause",
-        "settle: an owned file that lacks the line the settle rewrites is the merged tree's (MERGE_FAILED)",
+        "settle: an owned file that lacks the line the settle rewrites is the tree's own (MERGE_FAILED)",
         'bump: the named counter rises by one',
     ),
     'scripts/verdict_line.py': (
@@ -431,7 +398,6 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a line that is not a verdict line parses to None',
         'outcomes: every verdict line of a log in order',
         'the CONFLICT outcome reads back its own files',
-        'conflict_files: the files the CONFLICT lines of a log name',
     ),
 }
 
@@ -624,20 +590,23 @@ def self_test() -> int:
     expect("the retired train writer is deleted and nothing names it: a second writer of the old file would split the "
            "instrument", ok and not (REPO / RETIRED_TRAIN_WRITER).exists(), detail)
 
-    # Main is merged in through the drivers (kb/Work PB3610, PB3713).
+    # Main is merged in by plain git (kb/Work PB3610, PB3713, PB5110).
     prune = read("scripts/prune_worktrees.py")
-    expect("the review's coverage rule and the survey's LANDED proof merge as the landing does (merge_drivers."
-           "is_drivers_merge, merged_tree), never a plain merge-tree of their own",
-           "merge_drivers.is_drivers_merge(" in prune and "merge_drivers.merged_tree(" in prune
+    expect("the review's coverage rule and the survey's LANDED proof merge as the landing does (git_merge."
+           "is_clean_merge, merged_tree), never a plain merge-tree of their own",
+           "git_merge.is_clean_merge(" in prune and "git_merge.merged_tree(" in prune
            and "'merge" + "-tree'" not in prune)
     briefs = ("scripts/orchestrator/groups.py", ".claude/skills/workstream/templates/wf_rolling_wave.js",
               ".claude/skills/workstream/templates/finisher-brief.md",
               ".claude/skills/workstream/templates/golden-lane-brief.md")
-    bare = "`git" + " merge "
-    loose = [rel for rel in briefs if bare in read(rel) or "\\" + bare in read(rel)
-             or "merge_drivers.py merge" not in read(rel)]
-    expect("every brief that merges main tells the agent `python scripts/merge_drivers.py merge <ref>`, never a bare "
-           "merge", not loose, ", ".join(loose))
+    drivers = "merge_" + "drivers"
+    loose = [rel for rel in briefs if drivers in read(rel) or "git merge" not in read(rel)]
+    expect("every brief that merges main tells the agent `git merge <ref>`, and none names a merge driver (kb/Work PB5110)",
+           not loose, ", ".join(loose))
+    stale = [rel for rel in ("scripts/orchestrator/enqueue.py", "scripts/orchestrator/land_lane.py", "scripts/prune_worktrees.py")
+             if drivers in read(rel)]
+    expect("no landing script names the retired merge drivers: the shared registries are one file per entry (kb/Work PB5110)",
+           not stale and not (REPO / "scripts" / (drivers + ".py")).exists(), ", ".join(stale))
 
     print(f"=== landing_rules.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0

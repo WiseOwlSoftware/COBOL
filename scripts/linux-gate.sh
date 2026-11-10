@@ -299,7 +299,7 @@ on_signal() {
 # THE CLONE'S origin/main IS THE TREE'S (kb/Work PB3825, branch review R1-1). A `--shared` clone of the tree's repository has
 # the SOURCE repository's local `main` branch as its refs/remotes/origin/main, and nothing advances a local `main`; the tree's
 # own origin/main (what the Windows half and the landing read) is usually ahead. A tool that reads origin/main inside the clone
-# (merge_drivers.py --check, which its own --self-test runs on the real tree) would measure a different main than the Windows
+# (a script's self-test that runs git over origin/main on the real tree) would measure a different main than the Windows
 # half and turn the gate RED for a branch cut from a newer origin/main. So each clone's origin/main is set to the tree's sha (the
 # clone reads the same object store), and DELETED when the tree has none: a tool then says "not checked", never reads local `main`.
 pin_origin_main() {   # <clone> <the tree's origin/main sha, or empty>

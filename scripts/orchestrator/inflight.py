@@ -33,7 +33,6 @@ sys.path.insert(0, str(HERE.parent / "spec"))
 sys.path.insert(0, str(HERE.parent / "arch"))
 import coord  # noqa: E402
 import git_batch  # noqa: E402  (scripts/: the batched git reads, one process for many objects, kb/Work PB3582)
-import merge_drivers  # noqa: E402  (scripts/: covered_by_driver, the files merged by key, which never meet)
 import source_units  # noqa: E402  (scripts/arch/: the units of a file, the units a diff touches, the name match)
 from reports import Report, answers, ledger_slug  # noqa: E402  (the report reader: "a dispatch returned")
 if TYPE_CHECKING:
@@ -373,12 +372,9 @@ def collision_set(primary: str, declared: list[Claim]) -> Claim:
 def unit_meet(f: str, mine: Claim, theirs: Claim) -> str | None:
     """Whether two claims meet on the file `f` both hold, and on what: `f` when either claims it whole, `f#<member>`
     when a member of one matches a member of the other (source_units.match: `collision` meets `inflight.collision`,
-    a type meets its members, a section its subsections), None when their members are disjoint. A file a merge driver
-    merges by key (merge_drivers.covered_by_driver: constructs.json, the work
-    notes) never meets: two landings both editing it merge by entry, the rule enqueue.py's re-gate already reads
-    (kb/Work PB3610, PB3612)."""
-    if merge_drivers.covered_by_driver(f):
-        return None
+    a type meets its members, a section its subsections), None when their members are disjoint. NO FILE IS EXEMPT
+    (kb/Work PB5110): the shared registries are one file per entry, so plain git merges two landings' additions and a file
+    both change is a real meeting."""
     a, b = mine.members.get(f), theirs.members.get(f)
     if a is None or b is None:
         return f
