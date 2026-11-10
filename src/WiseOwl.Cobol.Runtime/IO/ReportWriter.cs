@@ -881,7 +881,9 @@ public sealed class CobolReport(
             // print CFs minor→break, then restore the new current values and print CHs break→minor.
             ArmGroupIndicate();   // §2023:13.18.28.4 GR1c — a control break re-arms every detail group
             var current = SaveCurrentRestorePriors();
-            ProcessControlFootings(breakLevel);
+            _footingPhaseCurrent = current;
+            try { ProcessControlFootings(breakLevel); }
+            finally { _footingPhaseCurrent = null; }
             for (int i = 0; i < _controls.Count; i++)
             {
                 _controls[i].Set(current[i]);
@@ -1056,15 +1058,18 @@ public sealed class CobolReport(
             if (_controls.Count > 0 && _controls[0].Prior is not null)
             {
                 current = SaveCurrentRestorePriors();   // GR3a
+                _footingPhaseCurrent = current;
                 // GR3b — minor → major, "as though a control break has been sensed in the most major control data item", so the
                 // most major footing is the one §2023:13.18.37.4 GR1 lets apply its NEXT GROUP clause.
-                ProcessControlFootings(0);
+                try { ProcessControlFootings(0); }
+                finally { _footingPhaseCurrent = null; }
             }
             // §2023:13.18.57.4 GR6f: the page footing prints as the last report group on EACH page — including the
             // final page (exception GR6f 2: a last page occupied only by an RF on a page by itself — the RF's LINE
             // NEXT PAGE form, whose own page feed PresentHeadingFooting takes after this PF). When an RF not on a
-            // page by itself follows, the PF is "immediately followed by" it.
-            if (_pageFooting is not null) PresentPageFooting();
+            // page by itself follows, the PF is "immediately followed by" it. At --std 85 it is NOT a control footing
+            // or the report footing, so its references see the CURRENT control values (§1985:XIII.3.20.4 GR13 b/c).
+            if (_pageFooting is not null) WithPageGroupControlValues(current, PresentPageFooting);
             if (_reportFooting is { } rf) PresentHeadingFooting(rf);   // GR3c
             if (current is not null)
                 for (int i = 0; i < _controls.Count; i++) _controls[i].Set(current[i]);   // GR3d — LAST
@@ -1337,8 +1342,9 @@ public sealed class CobolReport(
     }
 
     /// <summary>⛔ THE ONE PROLOGUE OF EVERY GROUP PRESENTATION — body, page heading, page footing, report heading
-    /// and report footing alike. It runs the group's USE BEFORE REPORTING declarative (§2023:14.9.49.4 GR8), takes the
-    /// group's presence snapshot (<see cref="BeginPresentation"/>), and answers whether the group has anything to
+    /// and report footing alike. It takes the group's presence snapshot (<see cref="BeginPresentation"/>), performs the
+    /// group's own sum additions (<see cref="ApplyRolled"/>), runs the group's USE BEFORE REPORTING declarative
+    /// (§2023:14.9.49.4 GR8, after the additions per GR9 b), and answers whether the group has anything to
     /// PRINT. When it has not, the group's processing still ENDS, so its end-of-group sum reset (§2023:13.18.54.4 GR2)
     /// runs here:
     /// <list type="bullet">
@@ -1358,15 +1364,20 @@ public sealed class CobolReport(
     /// ended group's total standing, and a page footing's page total never restarted.</summary>
     private bool BeginGroup(ReportGroup group, out int first, bool reprint = false)
     {
-        bool suppressed = RunBeforeReporting(group);   // §2023:14.9.49 GR8; true ⇒ a §2023:14.9.45 SUPPRESS executed
+        // ⛔ THE GROUP'S OWN SUM ADDITIONS PRECEDE ITS USE PROCEDURE. §1985:XIII.3.20.4 GR10 a)–c) orders a control
+        // footing's processing: a) crossfoot, b) roll forward, c) "the USE procedure is executed"; §2023:14.9.49.4 GR9 b)
+        // invokes the declarative "After incrementing sum counters defined in the report group". A USE procedure that
+        // reads (or SUPPRESSes on) its group's crossfooted or rolled totals therefore sees them current, never the
+        // previous instance's (kb/Work PB5127). The presence snapshot §2023:13.18.54.4 GR11 reads is taken first,
+        // once per presentation (§2023:13.18.41.4 GR2).
         first = BeginPresentation(group);
         // §2023:13.18.54.4 GR7 a)/b) — a rolled total is added when the group is PROCESSED, before any of its lines is
         // printed, whether or not anything prints (a SUPPRESSed group and a dummy group are still processed, and
         // SUPPRESS inhibits only printing, page advance, NEXT GROUP and LINE-COUNTER changes — see SuppressPrinting).
-        // The snapshot §2023:13.18.54.4 GR11 reads was just taken.
         // An OR PAGE reprint of a control heading is the same instance printed again, not a second processing
         // (the reset it skips, `PresentBody`), so it adds nothing.
         if (!reprint) ApplyRolled(group);
+        bool suppressed = RunBeforeReporting(group);   // §2023:14.9.49 GR8; true ⇒ a §2023:14.9.45 SUPPRESS executed
         if (first >= 0 && !suppressed) return true;
         EndOfGroupSumReset(group);
         return false;
@@ -1400,14 +1411,51 @@ public sealed class CobolReport(
     /// 0, (f) the page heading — and then the control headings written with OR PAGE (§2023:13.18.57.4 GR6 c), see
     /// <see cref="PresentOrPageHeadings"/>). <paramref name="causing"/> is the body group whose presentation needed
     /// the advance: the headings reprinted depend on it.</summary>
-    private void AdvancePage(ReportGroup causing)
+    private void AdvancePage(ReportGroup causing) =>
+        WithPageGroupControlValues(_footingPhaseCurrent, () =>
+        {
+            if (_pageFooting is not null) PresentPageFooting();              // GR6a
+            PageFeed();                                                      // GR6b–e
+            EvaluateCode();                                                  // GR6c — §2023:13.18.12.4 GR3
+            if (_pageHeading is not null) PresentPageHeading();              // GR6f
+            PresentOrPageHeadings(causing);                                  // §2023:13.18.57.4 GR6 c)
+        });
+
+    /// <summary>⛔ WHICH CONTROL VALUES A PAGE GROUP SEES WHILE A CONTROL FOOTING'S PHASE HAS THE PRIORS IN PLACE (kb/Work
+    /// PB5128; <see cref="DialectBehavior.ControlFootingPageGroupsSeePriorControlValues"/>). §2023:13.18.16.4 GR4 a), and
+    /// the 2002 text it carries forward, give "any reference to a control data item" while the footings print the PRIOR
+    /// value, and say so of a page heading or page footing a footing's page advance reaches. §1985:XIII.3.20.4 GR13 a)
+    /// and b) give the prior values ONLY to a control footing's own USE procedure and SOURCE clauses (and, at TERMINATE,
+    /// the report footing's); GR13 c): "All other data item references within report groups and their USE procedures
+    /// access the current values that are contained within the data items at the time the report group is processed".
+    /// So at --std 85 the page footing, the page heading and the OR PAGE control headings that page advance (or the
+    /// TERMINATE page footing) processes see <paramref name="current"/> — the values saved at the break — and the priors
+    /// are put back for the footing's own lines. <paramref name="current"/> is null outside a footing phase (and with
+    /// no CONTROL clause): nothing to exchange. Two passes, as <see cref="SaveCurrentRestorePriors"/>: controls may
+    /// share bytes (§2023:13.18.16.3 SR6).</summary>
+    private void WithPageGroupControlValues(string[]? current, Action present)
     {
-        if (_pageFooting is not null) PresentPageFooting();                  // GR6a
-        PageFeed();                                                          // GR6b–e
-        EvaluateCode();                                                      // GR6c — §2023:13.18.12.4 GR3
-        if (_pageHeading is not null) PresentPageHeading();                  // GR6f
-        PresentOrPageHeadings(causing);                                      // §2023:13.18.57.4 GR6 c)
+        if (current is null || DialectBehaviors.IsActive(DialectBehavior.ControlFootingPageGroupsSeePriorControlValues, Edition))
+        {
+            present();
+            return;
+        }
+        var priors = new string[_controls.Count];
+        for (int i = 0; i < _controls.Count; i++) priors[i] = _controls[i].Get();
+        for (int i = 0; i < _controls.Count; i++) _controls[i].Set(current[i]);
+        try { present(); }
+        finally { for (int i = 0; i < _controls.Count; i++) _controls[i].Set(priors[i]); }
     }
+
+    /// <summary>The control values saved at a control break (or at TERMINATE's GR3a), non-null exactly while that break's
+    /// control footings are being processed — the footing phase during which the control items hold their PRIORS
+    /// (§2023:13.18.16.4 GR4 a)). Read by <see cref="AdvancePage"/> through <see cref="WithPageGroupControlValues"/>.</summary>
+    private string[]? _footingPhaseCurrent;
+
+    /// <summary>The ISO edition the program was compiled for (the CLI's <c>--std</c>: 85 / 2002 / 2014 / 2023), baked in
+    /// by the generated construction like <see cref="FileConnector.Edition"/>; the argument every
+    /// <see cref="DialectBehaviors.IsActive"/> question of this engine is asked with.</summary>
+    public int Edition { get; init; } = 2023;
 
     /// <summary>⛔ ISO §2023:13.18.57.4 GR6 c) — "The OR PAGE phrase causes the associated control heading to be printed
     /// in addition after each page advance, following any page heading, provided that the page advance did not
