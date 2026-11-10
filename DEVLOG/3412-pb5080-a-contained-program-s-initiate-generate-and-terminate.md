@@ -1,7 +1,8 @@
-## PB5080: a contained program's INITIATE, GENERATE and TERMINATE of a GLOBAL report no longer need a GLOBAL FD at --std 85
+## Entry 3412 — 2026-11-09 22:45 PST — PB5080: a contained program's INITIATE, GENERATE and TERMINATE of a GLOBAL report no longer need a GLOBAL FD at --std 85
 
 `ReportWriterBinder.RejectContainedReportFile` enforced "the file description entry associated with report-name-1 shall contain a GLOBAL clause" at every edition. That rule begins at 2002 (§2002:14.8.20.2 SR2 INITIATE, §2002:14.8.42.2 SR2 TERMINATE, §2002:14.8.15.2 SR3/SR4 GENERATE; each checked with `cite.py --check`). 1985 has only "Report-name-1 must be defined by a report description entry" (§1985:XIII.4.4.3 SR1, §1985:XIII.4.7.3 SR1) and lets a contained program reference a global name without describing it again (§1985:X.4.6.4 GR2), so a legal 1985 program was refused with COBOL2392 citing §2023.
 
 Re-probe on this build: the note's repro (with a detail group and FIRST DETAIL added) was refused at `--std 85` with three COBOL2392 errors. The fix asks `ctx.Edition.Edition.Has(2002)` in the one check all four callers share. After it, `--std 85` compiles and runs the program (the report file receives `BODY`, `REPORT DONE` displays) and `--std 2002` still refuses all three statements.
 
 Goldens: `cases/14.9.21-INITIATE/pb5080-contained-report-local-fd-85` (accept 85, computed output `INNER DONE` / `REPORT DONE`) and the refusal `pb5080-contained-report-local-fd-2002` (2002, 2014, 2023). The older refusal `pb369-contained-report-file-not-global` no longer lists 85. No inventory rows closed (the inventory has no 1985 rows yet). Sibling sweep: the one check serves INITIATE, TERMINATE and both GENERATE forms; `DataBinder` has no other contained-report file rule.
+
