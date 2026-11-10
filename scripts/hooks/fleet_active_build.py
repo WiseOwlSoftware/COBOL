@@ -1142,7 +1142,7 @@ def self_test() -> int:
             ("text block with no stop_reason, 5 s ago -> LIVE (message still being written)",
              [tool_use, tool_res, ended], 5, True),
             ("ordinary tool result 5 s ago -> LIVE", [tool_use, tool_res], 5, True),
-            ("finished, then resumed: a new tool call 5 s ago -> LIVE", [final, tool_use], 5, True),
+            ("workflow return, then more work: a tool call 5 s ago -> LIVE", [tool_use, returned, tool_use], 5, True),
         ]:
             p = transcript(name.split()[0] + str(age), records, age)
             if not records:
