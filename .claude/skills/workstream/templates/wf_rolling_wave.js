@@ -8,7 +8,7 @@ export const meta = {
   ],
 }
 
-// args: { scratch, wave, stop_file, global_stop, concurrency (6), groups: [{letter, lead, notes, codes}],
+// args: { scratch, wave, stop_file, global_stop, concurrency (model_rules.json wave.concurrency, 3), groups: [{letter, lead, notes, codes}],
 //         review_fix_rounds (2), reviewer_ceiling_min (90), gate_fix_rounds (1), gate_await_wait_s (540),
 //         gate_await_windows (one per 9 minutes of the ceiling); each group may carry requirements: {campaign lead: [string]} }
 // THE WAVE STARTS NO LANDER (kb/Work PB3023; DESIGN-test-build-ci.md section 3.17.5): it produces DONE branches reviewed
