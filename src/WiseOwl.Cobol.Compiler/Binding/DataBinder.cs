@@ -594,8 +594,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // binds here, with its operand bound (kb/Work PB1231).
         Constants.BindRemainingConstants();
 
-        // The declaration-uniqueness rules (kb/Work PB5073), once this unit's own names are all declared.
-        ScreenNameUniqueness();
+        // The index-name declaration-uniqueness rule (kb/Work PB5073; the GLOBAL data-name one is CheckGlobalNameUniquenessPass, on the composed forest), once this unit's own names are all declared.
+        ScreenIndexNameUniqueness();
 
         // The containers' GLOBAL data and reports (§2023:13.18.27.4 GR1/GR2), now that this unit's own names are all
         // declared and before any clause of this data division resolves the names it uses (BindResolve).

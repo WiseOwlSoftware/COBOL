@@ -10,8 +10,11 @@ Mechanism: nothing asked the declarations, only references. New `DataBinder.Name
 - COBOL6862, every edition. §2023:8.4.2.1 (the same sentence as §1985:IV.4.3.8.1; §1985:X.4.6.3 SR2 states it for two GLOBAL
   items): a name the GLOBAL clause makes global is no other data item's name in the element. The global entry is the record that
   carries the clause (or whose FD does); the subordinates of two global records stay a qualification matter, as
-  `pb1047-two-globals-one-element-ambiguous` pins (§2023:8.4.6.2.1 3) b) 1.). TYPE / SAME AS copies are not "described in the
-  source element" and are left out. Reported at the later entry of the pair.
+  `pb1047-two-globals-one-element-ambiguous` pins (§2023:8.4.6.2.1 3) b) 1.). Reported at the later entry of the pair. A TYPE
+  or SAME AS copy IS a data item of the element ("as though ... coded in place", §2023:13.18.57.4 GR1, §2023:13.18.49.4 GR1;
+  branch review R1-1 caught a first version that exempted copies), so the GLOBAL screen is `CheckGlobalNameUniquenessPass`,
+  run right after ExpandTypes on the composed forest; a GLOBAL name inherited from a container stays out. Golden
+  `pb5073-global-data-name-duplicated-by-type-copy` (refused at 2023). The index-name screen stays in `Bind`.
 - COBOL6863, `--std 85` only. §1985:VI.5.8.3 SR14: an index-name is a unique word within the program. 2002 and later qualify an
   index-name (Annex F item 108), so two tables may each declare one spelling and only an unqualified reference is ambiguous.
 

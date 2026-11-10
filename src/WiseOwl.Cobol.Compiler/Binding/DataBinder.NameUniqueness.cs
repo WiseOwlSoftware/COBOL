@@ -12,13 +12,6 @@ namespace WiseOwl.Cobol.Binding;
 /// COBOL1639); these rules are about the DECLARATIONS, so an unreferenced duplicate is refused too.</summary>
 public sealed partial class DataBinder
 {
-    /// <summary>The two declaration-uniqueness screens, in one pass over the unit's own names.</summary>
-    private void ScreenNameUniqueness()
-    {
-        ScreenGlobalNameUniqueness();
-        ScreenIndexNameUniqueness();
-    }
-
     /// <summary>⛔ A GLOBAL data-name names no other data item of its source element, whatever the dialect. §2023:8.4.2.1: "The
     /// same name shall not be used both as the name of an item possessing the global attribute and as the name of any other data
     /// item described in the source element that describes that global data item." (the 1985 and 2002 texts carry the same
@@ -29,10 +22,13 @@ public sealed partial class DataBinder
     /// global. The data-names subordinate to it possess the attribute too (§2023:13.18.27.4 GR1), but §2023:8.4.6.2.1 3) b) 1.
     /// leaves two such subordinates of one element a name to be qualified, never a declaration to refuse
     /// (conformance:pb1047-two-globals-one-element-ambiguous), so the screen names the entries that write the clause. A
-    /// description a TYPE or SAME AS clause copied in is not "described in the source element" beside the entries written
-    /// there, and is left out (<see cref="DataItem.ClonedFrom"/>).</para>
+    /// description a TYPE or SAME AS clause copied in IS a data item of the source element: "as though the type description
+    /// had been coded in place" (§2023:13.18.57.4 GR1; SAME AS, §2023:13.18.49.4 GR1), so the screen runs on the COMPOSED
+    /// forest (<see cref="Passes.CheckGlobalNameUniquenessPass"/>, after ExpandTypes) and counts the copies. A GLOBAL name a
+    /// CONTAINER declared and this unit inherited (<see cref="ForestSlice.DeclaringDepth"/> above 0) is another source
+    /// element's and is left out.</para>
     /// <para>The pair is reported once, at the LATER entry of the two, where the user can edit it.</para></summary>
-    private void ScreenGlobalNameUniqueness()
+    internal void ScreenGlobalNameUniqueness()
     {
         foreach (var (name, items) in State.Forest.ByName)
         {
@@ -41,9 +37,9 @@ public sealed partial class DataBinder
             for (int i = 0; i < items.Count; i++)
             {
                 var item = items[i];
-                if (item.ClonedFrom is not null) continue;
+                if (State.Forest.DeclaringDepth(item) != 0) continue;
                 bool global = item.Parent is null && IsGlobalRecord(item);
-                bool another = i > 0 && items.Take(i).Any(static p => p.ClonedFrom is null);
+                bool another = i > 0 && items.Take(i).Any(p => State.Forest.DeclaringDepth(p) == 0);
                 if (another && (global || firstGlobal is not null))
                 {
                     using var _ = Edition.At(item.DeclaredAt);
@@ -64,7 +60,7 @@ public sealed partial class DataBinder
     /// condition-names" (ISO/IEC 1989:2002 Annex F item 108), so two tables may each declare one spelling and a
     /// REFERENCE that fails to tell them apart is the §2023:8.4.2.2.3 SR1 ambiguity (COBOL1639, the index-name resolver).
     /// The second and later declaration of a spelling is reported, one entry writing it twice included.</summary>
-    private void ScreenIndexNameUniqueness()
+    internal void ScreenIndexNameUniqueness()
     {
         if (Edition.DialectLevel >= 2002) return;
         var seen = new HashSet<string>(CobolNames.Comparer);
