@@ -17,10 +17,23 @@ Check 'dry run started nothing' $r.runs 0
 Check 'dry run says what it would do' ($r.out -match "would run unit 'wave'") $true
 Check 'dry run names the model' ($r.out -match '--model opus') $true
 
+# 1b. the meter a supervisor under test reads is its fixture HOME's, never the developer's (kb/Work PB5155): a fresh
+#     reading planted there is the one its budget line reports
+$meter = Join-Path $FxHome '.claude/rate-limits.json'
+Set-Content -Path $meter -Encoding utf8 -Value (@{ measured_at = (Get-Date).ToUniversalTime().ToString('o')
+                                                    rate_limits = @{ seven_day = @{ used_percentage = 3 } } } | ConvertTo-Json -Depth 4)
+$r = Run-Orch 'fixturemeter' 'good' @('-DryRun', '-Unit', 'wave')
+Check 'the budget line reports the reading planted in the fixture HOME' ($r.out -match 'budget \(account1\): weekly 3(\.0+)? %') $true
+Remove-Item $meter
+
 # 2. one unit runs, its handoff is validated and archived, its usage recorded
 $r = Run-Orch 'one' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0')
 Check 'one unit exit' $r.code 0
 Check 'one unit ran once' $r.runs 1
+# kb/Work PB5155: the supervisor under test reads no real account's live meter (it runs in the fixture HOME), so its budget
+# line says no reading anchors the week. With the developer's real meter in reach this is false whenever that reading is
+# fresh, and over the allowance the case used to wait for tomorrow.
+Check 'one unit: no live meter reading is in reach' ($r.out -match 'no account1 reading anchors this week') $true
 Check 'units.jsonl line' $r.units.Count 1
 Check 'handoff outcome recorded' $r.units[0].handoff_outcome 'done'
 Check 'calls counted once per message id' $r.units[0].calls 2

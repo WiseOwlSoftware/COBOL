@@ -23,6 +23,15 @@ $FakePython = Join-Path $Here 'testdata/fake-python.ps1'
 $NoGh = Join-Path $Root 'no-gh'
 New-Item -ItemType Directory -Force -Path $NoGh | Out-Null
 Set-Content -Path (Join-Path $NoGh 'gh.cmd') -Encoding ascii -Value '@echo gh: the orchestrate self-tests never reach GitHub (kb/Work PB4046) 1>&2& exit /b 1'
+# NO SUPERVISOR UNDER TEST READS A REAL ACCOUNT'S LIVE METER (kb/Work PB5155). budget.py takes the account's reading from
+# `<config dir>/rate-limits.json`, which the status line of the developer's own sessions writes, and the default config
+# dir is `~/.claude`. So with the developer's account over its daily allowance and that reading fresh, budget.py answered
+# hold-day and EVERY case's supervisor waited for tomorrow: 13 self-tests hung in each of five gates on 2026-11-09/10,
+# green again whenever the reading was stale or under the allowance. Run-Orch therefore runs each supervisor in a fixture
+# HOME that holds no reading, with CLAUDE_CONFIG_DIR unset; a case that sets its own HOME (the account part) keeps it.
+$FxHome = Join-Path $Root 'home'
+New-Item -ItemType Directory -Force -Path (Join-Path $FxHome '.claude') | Out-Null
+$script:RealHome = $env:USERPROFILE
 $script:fails = @()
 $script:checked = 0
 # A failed check quotes the lines of the newest run's output that say WHY (kb/Work PB4046: the adopt part's restart
@@ -51,10 +60,18 @@ function Run-Orch([string]$case, [string]$mode, [string[]]$extra, [scriptblock]$
     $repo = if ($extra -contains '-RepoDir') { @() } else { @('-RepoDir', $FxRepo) }
     $path = $env:PATH
     $env:PATH = "$NoGh$([IO.Path]::PathSeparator)$path"
+    $userHome = $env:USERPROFILE
+    $configDir = $env:CLAUDE_CONFIG_DIR
+    if ($userHome -eq $script:RealHome) { $env:USERPROFILE = $FxHome }
+    Remove-Item Env:CLAUDE_CONFIG_DIR -ErrorAction SilentlyContinue
     try {
         $out = & pwsh -NoProfile -File $Orch -ClaudeExe $Fake -CoordDir $coord -TelemetryDir $Tele -BackoffBaseSeconds 0 -IdleCloseSeconds 1 @repo @extra 2>&1
         $code = $LASTEXITCODE
-    } finally { $env:PATH = $path }
+    } finally {
+        $env:PATH = $path
+        $env:USERPROFILE = $userHome
+        if ($null -ne $configDir) { $env:CLAUDE_CONFIG_DIR = $configDir }
+    }
     $runs = if (Test-Path $mark) { @(Get-Content $mark).Count } else { 0 }
     $units = if (Test-Path (Join-Path $coord 'units.jsonl')) { @(Get-Content (Join-Path $coord 'units.jsonl') | ForEach-Object { $_ | ConvertFrom-Json }) } else { @() }
     $script:lastRun = [pscustomobject]@{ case = $case; code = $code; out = ($out -join "`n"); runs = $runs; units = $units; coord = $coord }
