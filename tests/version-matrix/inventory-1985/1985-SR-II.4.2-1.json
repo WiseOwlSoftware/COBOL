@@ -5,11 +5,10 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "SR-13.18.63.3-12",
-   "SR-13.18.63.3-16"
+   "SR-13.18.63.3-12"
   ],
   "bridge": true,
-  "reason": "The redefinition technique (separate VALUE-bearing entries, then a REDEFINES entry giving the table structure) is still accepted. 1985 bars VALUE in the OCCURS-repeated entries after the REDEFINES entry; 2023 'The VALUE clause shall not be specified in a data description entry that contains a REDEFINES clause or in an entry that is subordinate to an entry containing a REDEFINES clause' (§2023:13.18.63.3 SR12), applied to the table format by §2023:13.18.63.3 SR16, refuses those entries. The wider ban is not new: 1985 VI.5.15.6 GR2 already barred VALUE under any REDEFINES entry. Same requirement, compile-time in both.",
-  "source": "adjudicate-712/slice-27"
+  "reason": "1985: 'The subordinate entries, following the REDEFINES entry, which are repeated due to OCCURS clauses, must not contain VALUE clauses.' §2023:13.18.63.3 SR12: 'The VALUE clause shall not be specified in a data description entry that contains a REDEFINES clause or in an entry that is subordinate to an entry containing a REDEFINES clause' refuses those entries; the wider ban is 1985's own (VI.5.15.6 GR2). ADJUDICATED 2026-11-10 (band-85 slice 13): §2023:13.18.63.3 SR16 removed; it applies rules 10 to 15 to the table format, VALUE ... FROM ( subscript-1 ), which no 1985 program can write.",
+  "source": "band-85/slice-13"
  }
 }
