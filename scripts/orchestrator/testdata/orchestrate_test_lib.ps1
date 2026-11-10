@@ -27,11 +27,18 @@ Set-Content -Path (Join-Path $NoGh 'gh.cmd') -Encoding ascii -Value '@echo gh: t
 # `<config dir>/rate-limits.json`, which the status line of the developer's own sessions writes, and the default config
 # dir is `~/.claude`. So with the developer's account over its daily allowance and that reading fresh, budget.py answered
 # hold-day and EVERY case's supervisor waited for tomorrow: 13 self-tests hung in each of five gates on 2026-11-09/10,
-# green again whenever the reading was stale or under the allowance. Run-Orch therefore runs each supervisor in a fixture
-# HOME that holds no reading, with CLAUDE_CONFIG_DIR unset; a case that sets its own HOME (the account part) keeps it.
+# green again whenever the reading was stale or under the allowance. So the WHOLE test process, from the moment a part
+# loads this library, runs in a fixture HOME that holds no reading, and the developer's own account selection
+# (CLAUDE_CONFIG_DIR) is dropped: every supervisor a case starts inherits that, through Run-Orch or by its own launch (the
+# lane and startup parts start theirs themselves, and a per-launch isolation missed both: review R1-1 of w20261984a). A
+# case that needs another HOME or an account selection sets it itself (the account part), and its checks can still fail.
+# git reads its global configuration from HOME, so the developer's is named explicitly unless the runner already gave one.
+$script:RealHome = $env:USERPROFILE
 $FxHome = Join-Path $Root 'home'
 New-Item -ItemType Directory -Force -Path (Join-Path $FxHome '.claude') | Out-Null
-$script:RealHome = $env:USERPROFILE
+if (-not $env:GIT_CONFIG_GLOBAL) { $env:GIT_CONFIG_GLOBAL = Join-Path $script:RealHome '.gitconfig' }
+$env:USERPROFILE = $FxHome
+Remove-Item Env:CLAUDE_CONFIG_DIR -ErrorAction SilentlyContinue
 $script:fails = @()
 $script:checked = 0
 # A failed check quotes the lines of the newest run's output that say WHY (kb/Work PB4046: the adopt part's restart
@@ -60,18 +67,10 @@ function Run-Orch([string]$case, [string]$mode, [string[]]$extra, [scriptblock]$
     $repo = if ($extra -contains '-RepoDir') { @() } else { @('-RepoDir', $FxRepo) }
     $path = $env:PATH
     $env:PATH = "$NoGh$([IO.Path]::PathSeparator)$path"
-    $userHome = $env:USERPROFILE
-    $configDir = $env:CLAUDE_CONFIG_DIR
-    if ($userHome -eq $script:RealHome) { $env:USERPROFILE = $FxHome }
-    Remove-Item Env:CLAUDE_CONFIG_DIR -ErrorAction SilentlyContinue
     try {
         $out = & pwsh -NoProfile -File $Orch -ClaudeExe $Fake -CoordDir $coord -TelemetryDir $Tele -BackoffBaseSeconds 0 -IdleCloseSeconds 1 @repo @extra 2>&1
         $code = $LASTEXITCODE
-    } finally {
-        $env:PATH = $path
-        $env:USERPROFILE = $userHome
-        if ($null -ne $configDir) { $env:CLAUDE_CONFIG_DIR = $configDir }
-    }
+    } finally { $env:PATH = $path }
     $runs = if (Test-Path $mark) { @(Get-Content $mark).Count } else { 0 }
     $units = if (Test-Path (Join-Path $coord 'units.jsonl')) { @(Get-Content (Join-Path $coord 'units.jsonl') | ForEach-Object { $_ | ConvertFrom-Json }) } else { @() }
     $script:lastRun = [pscustomobject]@{ case = $case; code = $code; out = ($out -join "`n"); runs = $runs; units = $units; coord = $coord }
