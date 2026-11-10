@@ -12,8 +12,9 @@ namespace WiseOwl.Cobol.Runtime;
 /// </summary>
 public enum DebugCause
 {
-    /// <summary>A plain PERFORM / GO TO / altered GO TO transfer to the procedure — DEBUG-CONTENTS is SPACES
-    /// (X3.23-1985; DB101A "DBCONT-HOLD EQUAL TO SPACE"). The default (0), so an unset field renders SPACES.</summary>
+    /// <summary>A GO TO / altered GO TO transfer to the procedure — DEBUG-CONTENTS is SPACES (§1985:XV.3.2.4 GR18
+    /// gives the GO TO no DEBUG-CONTENTS, GR11 leaves it SPACES; DB101A "DBCONT-HOLD EQUAL TO SPACE"). The default (0),
+    /// so an unset field renders SPACES.</summary>
     Transfer = 0,
 
     /// <summary>First execution of the FIRST nondeclarative procedure — DEBUG-CONTENTS "START PROGRAM"
@@ -23,9 +24,25 @@ public enum DebugCause
     /// <summary>Sequential fall-through into the procedure — DEBUG-CONTENTS "FALL THROUGH" (DB101A).</summary>
     FallThrough,
 
-    /// <summary>The 2nd..nth iteration of a PERFORM … TIMES/UNTIL/VARYING whose range is the procedure —
-    /// DEBUG-CONTENTS "PERFORM LOOP" (DB101A, "PERFORM LOOP-ROUTINE FIVE TIMES").</summary>
+    /// <summary>The transfer of control from a PERFORM statement's control mechanism to the procedure, on every
+    /// execution of the range and the first included — DEBUG-CONTENTS "PERFORM LOOP" (§1985:XV.3.2.4 GR20; DB101A,
+    /// "PERFORM LOOP-ROUTINE." and "PERFORM LOOP-ROUTINE FIVE TIMES.").</summary>
     PerformLoop,
+
+    /// <summary>The implicit transfer of control to a SORT statement's INPUT PROCEDURE — DEBUG-CONTENTS "SORT INPUT"
+    /// (§1985:XV.3.2.4 GR19 c 1).</summary>
+    SortInput,
+
+    /// <summary>The implicit transfer of control to a SORT statement's OUTPUT PROCEDURE — DEBUG-CONTENTS "SORT OUTPUT"
+    /// (§1985:XV.3.2.4 GR19 c 2).</summary>
+    SortOutput,
+
+    /// <summary>The implicit transfer of control to a MERGE statement's OUTPUT PROCEDURE — DEBUG-CONTENTS "MERGE OUTPUT"
+    /// (§1985:XV.3.2.4 GR19 c 3).</summary>
+    MergeOutput,
+
+    /// <summary>The execution of a USE procedure — DEBUG-CONTENTS "USE PROCEDURE" (§1985:XV.3.2.4 GR21 c).</summary>
+    UseProcedure,
 }
 
 /// <summary>
@@ -195,13 +212,16 @@ public sealed class DebugItem(int contentsWidth = DebugItem.MinContentsWidth)
     }
 
     /// <summary>The DEBUG-CONTENTS token for a procedure-trigger cause (X3.23-1985; the DB101A-witnessed taxonomy).
-    /// The SORT INPUT/OUTPUT, MERGE OUTPUT and USE PROCEDURE causes are staged — a program combining an active
-    /// debugging declarative with those is rejected COBOL1571 at bind, so they never reach here.</summary>
+    /// Each is a literal of §1985:XV.3.2.4 GR16 to GR22.</summary>
     private static string ContentsFor(DebugCause cause) => cause switch
     {
         DebugCause.StartProgram => "START PROGRAM",
         DebugCause.FallThrough => "FALL THROUGH",
         DebugCause.PerformLoop => "PERFORM LOOP",
+        DebugCause.SortInput => "SORT INPUT",
+        DebugCause.SortOutput => "SORT OUTPUT",
+        DebugCause.MergeOutput => "MERGE OUTPUT",
+        DebugCause.UseProcedure => "USE PROCEDURE",
         _ => "",   // Transfer — SPACES (a plain PERFORM / GO TO transfer)
     };
 

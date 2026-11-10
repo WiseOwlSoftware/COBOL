@@ -40,11 +40,11 @@ public sealed class ProcedureRangeDeclarativesDriftTests
         string builder = File.ReadAllText(
             TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "ProcedureTableBuilder.cs"));
         Assert.Single(Regex.Matches(builder, @"new ResolvedProcedure\("));
-        Assert.Contains("private static ProcedureResolution Found(PcRange range, SectionInfo? section)", builder);
+        Assert.Contains("private static ProcedureResolution Found(PcRange range, SectionInfo? section, bool isSection = false)", builder);
 
         string resolution = File.ReadAllText(
             TestRepo.Src("WiseOwl.Cobol.Compiler", "Binding", "Procedure", "ProcedureResolution.cs"));
-        Assert.Contains("internal readonly record struct ResolvedProcedure(PcRange Range, SectionInfo? Section)",
+        Assert.Contains("internal readonly record struct ResolvedProcedure(PcRange Range, SectionInfo? Section, bool IsSection = false)",
             resolution);
         Assert.Contains("public bool IsDeclarative => Section is { IsDeclarative: true };", resolution);
     }

@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.3.4-2",
+ "rule-digest": "bd0dd14a5e91",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.8.4.13-2"
+  ],
+  "bridge": true,
+  "reason": "KEPT: §1985:VI.6.3.4 GR2, as Amendment 1 (X3.23a-1989, Addendum 1) numbered it and added 'and functions': 'Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent.' §2023:8.8.4.13 GR2 has the same two sentences word for word; only the cross-reference differs ('See page VI-52, Formation and Evaluation Rules' against 'See 8.8.1, Arithmetic expressions'). The 1985 row's closing paragraph ('Application of the above rules is shown in figures 1 through 4 located on the following pages. These figures are not intended to dictate implementation.') and its figures are illustration that 2023 omits; no requirement goes with them. The XOR operator 2023 adds to the clause is in its opening paragraph (§2023:8.8.4.13 'only the logical operator 'EXCLUSIVE-OR' or 'XOR''), not in this rule. The 1985 level-2 box is no difference.",
+  "source": "classify-unrecorded-1985/slice-04"
+ }
+}

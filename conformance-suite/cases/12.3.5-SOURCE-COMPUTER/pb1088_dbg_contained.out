@@ -1,3 +1,4 @@
 OUTER
+N=MAIN                          C=START PROGRAM
 N=P-IN                          C=START PROGRAM
 INNER

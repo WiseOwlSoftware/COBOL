@@ -2267,7 +2267,7 @@ public static class DiagnosticCatalog
         "COBOL1571", "debug-sub-facility-staged", EditionSeverity.Error,
         "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES, data-name (incl. ALL REFERENCES OF), "
         + "file-name and cd-name trigger legs + the DEBUG-ITEM special register are modeled at --std 85; "
-        + "the SORT/MERGE INPUT/OUTPUT-procedure DEBUG-CONTENTS cause is staged — rejected loud rather than compiled with a missing/stale trigger.",
+        + "an operand that no rule classifies as one of them is rejected loud rather than compiled with a missing trigger.",
         "VCR Table 7 row 7.17 (X3.23-1985 debug module)");
     public static readonly DiagnosticDescriptor MergeInSortMergeProc = new(
         "COBOL1572", "merge-in-sort-merge-proc", EditionSeverity.Error,

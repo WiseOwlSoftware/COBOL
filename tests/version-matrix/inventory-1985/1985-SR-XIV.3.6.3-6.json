@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-SR-XIV.3.6.3-6",
+ "rule-digest": "baafb7255537",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "1985 (rule added by Amendment 1, X3.23a-1989, Errata C159): 'If identifier-1 is a function-identifier, it must reference an alphanumeric function' (§1985:XIV.3.6.3 SR6), on the FROM operand of the Communication module's SEND cd-name-1 ('Cd-name-1 must reference an output CD or input-output CD', §1985:XIV.3.6.3 SR1). 2023 has no communication facility and no cd-name: its SEND 'sends a message to a message server run unit' (§2023:14.9.38.1), a different statement, whose one rule on identifier-1 lists clauses its description 'shall not contain' (§2023:14.9.38.3 SR3). No 2023 rule restricts a function-identifier in a SEND, so the requirement is dropped with the feature, as the statement's other syntax rules were.",
+  "source": "classify-unrecorded-1985/slice-05"
+ }
+}

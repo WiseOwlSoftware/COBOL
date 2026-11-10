@@ -64,7 +64,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             else if (so.InputProcedure is { IsEmpty: false } ip)   // an EMPTY procedure releases nothing (kb/Work PB440)
             {
                 w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: false)};   // §2023:14.9.32.4 GR1 — RELEASE is legal from here to the sequence phase");
-                Statements.EmitProcedureRange(ip, "   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
+                dispatch.EmitDebugCause(w, "SortInput", so.SourceLine);   // X3.23-1985 USE FOR DEBUGGING GR19 c 1
+                Statements.EmitProcedureRange(ip,"   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
             }
 
             // Phase b — sequence (GR9b).
@@ -79,7 +80,8 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             else if (so.OutputProcedure is { IsEmpty: false } op)
             {
                 w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: true)};   // §2023:14.9.34.4 GR1 — RETURN is legal until the statement ends");
-                Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)");
+                dispatch.EmitDebugCause(w, "SortOutput", so.SourceLine);   // X3.23-1985 USE FOR DEBUGGING GR19 c 2
+                Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR14— RETURNs request the next sorted record)");
             }
 
             // The statement's end: "the SORT statement is terminated" skips the REMAINING implicit transfers and the
@@ -221,6 +223,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             else if (mg.OutputProcedure is { IsEmpty: false } op)
             {
                 w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: true)};   // §2023:14.9.34.4 GR1 — RETURN is legal until the statement ends");
+                dispatch.EmitDebugCause(w, "MergeOutput", mg.SourceLine);   // X3.23-1985 USE FOR DEBUGGING GR19 c 3
                 Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR9)");
             }
             if (closeAfterOutputProcedure)

@@ -7958,18 +7958,19 @@ The following is a list of COBOL reserved words for the seven required modules a
 | CHARACTERS | DISPLAY | FOR | LOW-VALUE |
 | CLASS | DIVIDE | FROM | LOW-VALUES |
 | CLOCK-UNITS | DIVISION | FUNCTION | |
-| CLOSE | DOWN | GENERATE | MEMORY |
-| COBOL | DUPLICATES | GIVING | MERGE |
-| CODE | DYNAMIC | GLOBAL | MESSAGE |
-| CODE-SET | | GO | MODE |
-| COLLATING | EGI | GREATER | MODULES |
-| COLUMN | ELSE | GROUP | MOVE |
-| COMMA | EMI | | MULTIPLE |
-| COMMON | ENABLE | HEADING | MULTIPLY |
-| COMMUNICATION | END | HIGH-VALUE | |
-| COMP | END-ADD | HIGH-VALUES | NATIVE |
-| COMPUTATIONAL | END-CALL | | NEGATIVE |
-| COMPUTE | END-COMPUTE | I-O | NEXT |
+| CLOSE | DOWN | | MEMORY |
+| COBOL | DUPLICATES | GENERATE | MERGE |
+| CODE | DYNAMIC | GIVING | MESSAGE |
+| CODE-SET | | GLOBAL | MODE |
+| COLLATING | EGI | GO | MODULES |
+| COLUMN | ELSE | GREATER | MOVE |
+| COMMA | EMI | GROUP | MULTIPLE |
+| COMMON | ENABLE | | MULTIPLY |
+| COMMUNICATION | END | HEADING | |
+| COMP | END-ADD | HIGH-VALUE | NATIVE |
+| COMPUTATIONAL | END-CALL | HIGH-VALUES | NEGATIVE |
+| COMPUTE | END-COMPUTE | | NEXT |
+| | | I-O | |
 
 > ⚠ **CORRECTED — see the Errata (C207).** The standard prints `FROM, GENERATE (no FUNCTION between them)` (page 191, folio IV-45). Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, add the word FUNCTION between the words FROM and GENERATE in the list of COBOL reserved words" (kb/Work PB5045). Corrected to `FROM, FUNCTION, GENERATE`.
 
@@ -14714,7 +14715,7 @@ Nucleus - SET
 
 If index-name-2 is specified, the value of the index before the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-2.
 
-> ⚠ **CORRECTED — see the Errata (C32).** The standard prints `must correspond to an occurrence number of an element in the table associated with index-name-1.` (page 360, folio VI-128). An operand misprinted: the sentence is about index-name-2, whose value must index its own table. Each of the rule's three sentences pairs an index with its own table (index-name-1 after the SET, index-name-3 before and after), and an occurrence number means something only in the table the index is associated with (§1985:VI.6.23.4 GR1); general rule 3a converts index-name-2's value when it is related to a different table than index-name-1 (§1985:VI.6.23.4 GR3), a conversion that reads index-name-2's value as an occurrence number of its own table; and §2023:14.9.39.4 GR2 b) speaks of the table element associated with index-name-2 (kb/Work PB5031, PB5045, PB5051). Corrected to `must correspond to an occurrence number of an element in the table associated with index-name-2.`.
+> ⚠ **CORRECTED — see the Errata (C32).** The standard prints `must correspond to an occurrence number of an element in the table associated with index-name-1.` (page 360, folio VI-128). An operand misprinted: the sentence is about index-name-2, whose value must index its own table. Each of the rule's three sentences pairs an index with its own table (index-name-1 after the SET, index-name-3 before and after), and an occurrence number means something only in the table the index is associated with (§1985:VI.6.23.4 GR1); general rule 3a converts index-name-2's value when it is related to a different table than index-name-1 (§1985:VI.6.23.4 GR3), a conversion that reads index-name-2's value as an occurrence number of its own table; and §2023:14.9.39.4 GR2a3b speaks of the table element associated with index-name-2 (kb/Work PB5031, PB5045, PB5051). Corrected to `must correspond to an occurrence number of an element in the table associated with index-name-2.`.
 
 If index-name-3 is specified, the value of the index both before and after the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-3.
 
@@ -37052,7 +37053,7 @@ A real word printed for another: a data-name references no data-name, and the ru
 | **Printed** | `must correspond to an occurrence number of an element in the table associated with index-name-1.` |
 | **This transcription** | `must correspond to an occurrence number of an element in the table associated with index-name-2.` |
 
-An operand misprinted: the sentence is about index-name-2, whose value must index its own table. Each of the rule's three sentences pairs an index with its own table (index-name-1 after the SET, index-name-3 before and after), and an occurrence number means something only in the table the index is associated with (§1985:VI.6.23.4 GR1); general rule 3a converts index-name-2's value when it is related to a different table than index-name-1 (§1985:VI.6.23.4 GR3), a conversion that reads index-name-2's value as an occurrence number of its own table; and §2023:14.9.39.4 GR2 b) speaks of the table element associated with index-name-2 (kb/Work PB5031, PB5045, PB5051).
+An operand misprinted: the sentence is about index-name-2, whose value must index its own table. Each of the rule's three sentences pairs an index with its own table (index-name-1 after the SET, index-name-3 before and after), and an occurrence number means something only in the table the index is associated with (§1985:VI.6.23.4 GR1); general rule 3a converts index-name-2's value when it is related to a different table than index-name-1 (§1985:VI.6.23.4 GR3), a conversion that reads index-name-2's value as an occurrence number of its own table; and §2023:14.9.39.4 GR2a3b speaks of the table element associated with index-name-2 (kb/Work PB5031, PB5045, PB5051).
 
 <a id="errata-c33"></a>
 

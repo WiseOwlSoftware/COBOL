@@ -1,4 +1,5 @@
+N=MAIN                          C=START PROGRAM
 N=P-START                       C=START PROGRAM
-N=P-LOOP                        C=
+N=P-LOOP                        C=PERFORM LOOP
 N=P-LOOP                        C=PERFORM LOOP
 N=P-END                         C=

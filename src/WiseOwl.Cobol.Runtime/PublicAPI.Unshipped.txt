@@ -1089,3 +1089,7 @@ static readonly WiseOwl.Cobol.Runtime.MessageTag.Null -> WiseOwl.Cobol.Runtime.M
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryIndexOutcome.ToString() -> string
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.Equals(object obj) -> bool
 ~override WiseOwl.Cobol.Runtime.Repository.RepositoryUnitRow.ToString() -> string
+WiseOwl.Cobol.Runtime.DebugCause.SortInput = 4 -> WiseOwl.Cobol.Runtime.DebugCause
+WiseOwl.Cobol.Runtime.DebugCause.SortOutput = 5 -> WiseOwl.Cobol.Runtime.DebugCause
+WiseOwl.Cobol.Runtime.DebugCause.MergeOutput = 6 -> WiseOwl.Cobol.Runtime.DebugCause
+WiseOwl.Cobol.Runtime.DebugCause.UseProcedure = 7 -> WiseOwl.Cobol.Runtime.DebugCause

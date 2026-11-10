@@ -325,10 +325,14 @@ internal sealed class DispatchState
     /// dispatcher emission; a class unit owns no debug facility.</summary>
     public bool DebugActive { get; set; }
 
-    /// <summary>The debug trigger subjects keyed by their nondeclarative pc (empty unless <see cref="DebugActive"/>):
-    /// the dispatch-method emission injects a <c>__RunDebug(...)</c> at each subject case's entry.</summary>
-    public IReadOnlyDictionary<int, BoundDebugSubject> DebugByPc { get; set; } =
-        new Dictionary<int, BoundDebugSubject>();
+    /// <summary>The debug trigger subjects grouped by their pc (empty unless <see cref="DebugActive"/>), a section subject and its first paragraph sharing one:
+    /// the dispatch-method emission injects a <c>__RunDebug(...)</c> per subject at the case entry.</summary>
+    public ILookup<int, BoundDebugSubject> DebugByPc { get; set; } =
+        Enumerable.Empty<BoundDebugSubject>().ToLookup(s => s.SubjectPc);
+
+    /// <summary>A debug subject is a USE procedure (§1985:XV.3.2.4 GR21): each statement then records its line before it runs
+    /// (<c>__dbgLine</c>), the DEBUG-LINE of the statement that "causes execution of the USE procedure".</summary>
+    public bool DebugUseProcedure { get; set; }
 
     /// <summary>Emit a DEBUG-CONTENTS cause + DEBUG-LINE assignment at a transfer of control, but ONLY when the
     /// debug facility is active (else nothing — the zero-scaffolding gate). <paramref name="cause"/> is a

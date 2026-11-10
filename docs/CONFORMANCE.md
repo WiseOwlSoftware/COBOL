@@ -2295,6 +2295,25 @@ of an unsupported facility.
   `conformance-test:DebugFacilityTests.OperandNamingAnUnsubscriptedTableElement_At85_IsTheElementSubject`,
   `conformance-test:DebugFacilityTests.ProcedureNameUnderTheWrongQualifier_At85_NamesNoProcedure`.
 
+- **D-DEBUG-PROCEDURE — when a procedure-name or ALL PROCEDURES USE FOR DEBUGGING section runs, and what DEBUG-ITEM holds** (kb/Work PB5083). The
+  text is X3.23-1985's Debug module, USE FOR DEBUGGING general rules 3, 4, 9 and 13 to 22 (§1985:XV.3.2.4); the design is `docs/CONTROL_FLOW_DESIGN.md`
+  D20. **Determination (the text decides, no latitude):** one procedure-name is one trigger point. A paragraph-name subject runs the section immediately
+  before that paragraph executes; a section-name subject runs it once, when control reaches the section's first paragraph, with DEBUG-NAME the
+  section (GR3 a, GR13), so control entering the section at a later paragraph, by a GO TO or by a qualified reference `P2 OF S2`, runs nothing
+  (GR9: a qualifier is no reference). ALL PROCEDURES is every procedure-name outside a debugging section, sections and paragraphs, the declarative
+  sections that are not debugging sections included (GR4), so a section and its first paragraph are two triggers, the section first (the order CCVS
+  DB105A's name list shows); a paragraph-name omitted is no procedure-name. DEBUG-NAME is the name as the USE statement wrote it, qualifiers joined
+  by OF or IN (GR13). DEBUG-CONTENTS by cause: 'START PROGRAM' for the first execution of the first nondeclarative procedure (GR16); the TO phrase's
+  procedure-name as the ALTER wrote it, for the section run immediately after an ALTER that references the subject, DEBUG-LINE the ALTER (GR3 b,
+  GR17; DEBUG-CONTENTS is widened to the longest such name, GR15); spaces for a GO TO (GR18); 'SORT INPUT', 'SORT OUTPUT' and 'MERGE OUTPUT' for the
+  implicit transfer to the procedure a SORT or MERGE names, DEBUG-LINE the statement (GR19); 'PERFORM LOOP' on EVERY execution of a PERFORM's range, the
+  first included (GR20: §1985:IV.4.4.2 puts the control mechanism's transfer on each execution, and CCVS DB101A's SIMPLE-PERFORM-TEST and
+  PERF-ITERATION-TEST read 'PERFORM LOOP' for the first); 'USE PROCEDURE' for a USE procedure about to execute, DEBUG-LINE the statement that causes it
+  (GR21); 'FALL THROUGH' for the implicit transfer from the previous paragraph (GR22). **Latitude (the text is silent; CLAUDE.md rule 1):** where a
+  section and its first paragraph are both subjects they share the cause of the one transfer that reached them, START PROGRAM included. Witnesses:
+  `conformance:cases/_unassigned/pb5083-debug-section-subject`, `-alter`, `-sort-merge`, `-perform-loop`, `-use-procedure`, and the refusal below 1985
+  `conformance:wiseowl/diagnostics/pb5083-debug-section-subject-removed-2002`.
+
 - **D-DEBUG-DATA — when a data-name, ALL REFERENCES OF or cd-name USE FOR DEBUGGING section runs** (kb/Work PB4810, PB4759, PB4808).
   ISO/IEC 1989:2023 prints nothing on the facility, so the text is X3.23-1985's Debug module (the owner's copy,
   `specs-private/ANSI_COBOL_1985.pdf`, PDF pages 693-698), USE FOR DEBUGGING general rules 5-9 and 23-24 and syntax rules 6, 9, 10 and
