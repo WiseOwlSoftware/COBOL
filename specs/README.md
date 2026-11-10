@@ -46,8 +46,12 @@ the printed page, or listed without its printed page. It runs in every gate and 
 
 `ANSI_COBOL_1985.md` follows the same convention (kb/Work PB4972). Its closing section is the **Errata**, because the
 1985 text already has an Addendum of its own (Amendment 1's Addendum 1). Its flags say `see the Errata (Cn)` and name
-the PDF page, the `## Page N` heading of that file, with the printed folio after it. The acknowledgment is reproduced
-exactly as printed in every copy and is never corrected.
+the PDF page, the `## Page N` heading of that file, with the printed folio after it. The 1985 text is also kept current
+with its two amendments applied in place (owner 2026-11-09, kb/Work PB5045): every change row of Amendment 1's Addendum
+1 and of Amendment 2 is applied where it belongs, in the amendments' own order, flagged and listed in the Errata the same
+way with the amendment, its row and its page; the amendments themselves stay transcribed in full under their headings
+as the record of what each changed. The acknowledgment is reproduced exactly as printed in every copy and is never
+corrected.
 
 ## A note on page numbers
 

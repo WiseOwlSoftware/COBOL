@@ -56,6 +56,11 @@ A WITNESS-ONLY record — `{"rule-id": "...", "test-ref": "..."}`, with no verdi
 witnesses to a row that is already adjudicated and restates nothing, so it is safe to re-apply on a merged tree
 after another batch has re-adjudicated the same row (a full record there would silently revert it).
 
+A WITHDRAWAL — `{"rule-id": "...", "withdraw": "<why>"}` — takes out of the store a record the view refuses because
+its rule is gone (an amendment deleted it) or moved (its id now names another rule, or no rule): a renumbered rule's
+adjudication moves as a record on its new id plus the withdrawal of the old one (kb/Work PB5045). A record the view
+accepts is never withdrawn, and a withdrawn id takes no other record in the same run.
+
 ALL-OR-NOTHING. Every record in every named batch is validated before ANY of them is merged, and the merge itself
 writes through a temp file and an atomic replace. A batch that is half-right leaves the inventory untouched rather
 than half-adjudicated — a partially applied batch is the worst outcome available here, because the rows that DID
@@ -85,7 +90,7 @@ from collections import Counter
 
 from inventory_schema import (NEWEST, RETIRED_WITNESS_MARK, WITNESS_FIELDS, Edition, edition, load_schema, prose_of,
                               resites, retired_symbols_left_in_prose, statement_losses, witness_losses, witness_shape_error)
-from inventory_store import REPO, inventory_dir, record_of, write_store
+from inventory_store import REPO, inventory_dir, read_store, record_of, write_store
 import inventory_view  # noqa: E402  (THE view: the rows a batch is validated against and written from; kb/Work PB4992)
 import lineage  # noqa: E402  (THE definition of an older edition's change record and its state; kb/Work PB4993)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
@@ -94,6 +99,37 @@ from standard_streams import ensure_utf8  # noqa: E402
 #: The record-level CONTROL fields: they steer the write and are never stored on the row as themselves.
 RETIRE, RETIRE_REASON = "retire-witnesses", "retire-reason"
 CONTROL = (RETIRE, RETIRE_REASON)
+#: A WITHDRAWAL, `{"rule-id": "<id>", "withdraw": "<why>"}`: a store record the view refuses because its rule is gone
+#: or renumbered (kb/Work PB5045) leaves the store: the record of a rule the catalog no longer has (a rule an amendment
+#: deleted, or one whose id changed), or the record a catalog id holds of OTHER text (its rule moved to another id and
+#: the id now names a different rule, which stays unadjudicated until a record decides it). It names nothing else; a
+#: renumbered rule's adjudication moves by a record on its NEW id restating it (decided against the text it has now), so
+#: a move is that record plus the withdrawal of the old id.
+WITHDRAW = "withdraw"
+
+
+def withdrawal_errors(records: list[tuple[pathlib.Path, int, dict]], catalog: dict[str, str],
+                      stored: set[str], drifted: set[str]) -> list[str]:
+    """Every shape violation of the batch's withdrawals: one names only a rule-id and its reason, no other record of the
+    batch names its rule, the store holds a record of it, and the view refuses that record (its rule is not in the
+    catalog, or the record was decided against other text: a record the view accepts is re-adjudicated, never
+    withdrawn)."""
+    bad = []
+    named = Counter(rec.get("rule-id", "") for _, _, rec in records)
+    for path, i, rec in records:
+        if WITHDRAW not in rec:
+            continue
+        where, rid = f"{path.name}[{i}]", rec.get("rule-id", "")
+        if set(rec) != {"rule-id", WITHDRAW} or not isinstance(rec[WITHDRAW], str) or not rec[WITHDRAW].strip():
+            bad.append(f"{where}: a withdrawal carries only its rule-id and a non-empty '{WITHDRAW}' reason")
+        if named[rid] > 1:
+            bad.append(f"{where}: '{rid}' is withdrawn and recorded in one run")
+        if rid in catalog and rid in stored and rid not in drifted:
+            bad.append(f"{where}: the view accepts the record of '{rid}': re-adjudicate it, a withdrawal is for a record "
+                       f"whose rule is gone or moved")
+        if rid not in stored:
+            bad.append(f"{where}: the store holds no record of '{rid}': a withdrawal of nothing")
+    return bad
 
 # ⛔ THE PRINTED GATE CARRIES ITS OWN POPULATION GUARD (kb/Work PB751). This constant is never executed here —
 # it is an instruction handed to a HUMAN — but the hazard travels with the text: vstest answers a filter that
@@ -379,7 +415,22 @@ def main() -> int:
     # The view's refusals stand, but for a rule this batch RE-ADJUDICATES (a verdict or a change record): its new record
     # is decided against the catalog's text as it is, and carries that text's digest (kb/Work PB698).
     readjudicated = {rec.get("rule-id") for _, _, rec in records if rec.get("verdict") or rec.get("next")}
-    inventory_view.refuse(ed.year, [p for p in view.problems if not (p.drifted and p.rule_id in readjudicated)])
+    # A WITHDRAWAL answers the view's refusal of a record whose rule is gone or moved: the store keeps only the catalog's
+    # rows, so the record of a rule the catalog no longer has goes when the store is written, and a catalog row whose
+    # record was of other text is left unadjudicated.
+    withdrawn = {rec["rule-id"]: rec[WITHDRAW] for _, _, rec in records if WITHDRAW in rec and "rule-id" in rec}
+    drifted = {p.rule_id for p in view.problems if p.drifted}
+    if bad := withdrawal_errors(records, catalog, set(read_store(inventory_dir(ed))), drifted):
+        print(f"⛔ {len(bad)} withdrawal violation(s) — NOTHING was written:\n")
+        for b in bad:
+            print(f"   {b}")
+        return 1
+    inventory_view.refuse(ed.year, [p for p in view.problems if not (p.drifted and p.rule_id in readjudicated)
+                                    and p.rule_id not in withdrawn])
+    for rid in withdrawn.keys() & by_id.keys():
+        by_id[rid].update(ed.blank())
+        by_id[rid]["state"] = inventory_view.state_of(ed, by_id[rid], schema, targets)
+    records = [(path, i, rec) for path, i, rec in records if WITHDRAW not in rec]
 
     if bad := validate(records, schema, catalog, by_id, ed, targets):
         print(f"⛔ {len(bad)} shape violation(s) — NOTHING was written:\n")
@@ -433,6 +484,9 @@ def main() -> int:
         return 1
 
     print(f"records        : {len(records)} across {len(args.batches)} batch file(s)")
+    print(f"withdrawn      : {len(withdrawn)}")
+    for rid, why in sorted(withdrawn.items()):
+        print(f"    ⓘ WITHDRAWN {rid}: {why}")
     print(f"rows changed   : {changed}")
     print(f"witnesses      : +{added['test-ref']} test-ref, +{added['code-location']} code-location added; "
           f"{len(retired)} retired, {len(resited)} re-sited")

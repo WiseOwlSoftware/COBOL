@@ -7,8 +7,11 @@
 This document is a transcription of **American National Standard X3.23-1985, *American National Standard for
 Information Systems — Programming Language — COBOL*** (now ANSI INCITS 23-1985 (R2001)), together with its two
 amendments: **ANSI X3.23a-1989, *Intrinsic Function Module for COBOL***, and **ANSI X3.23b-1993, *Correction Amendment
-for COBOL***. Each amendment follows the standard under its own heading (`AMENDMENT 1` and `AMENDMENT 2`), as it was
-published: an amendment is never merged into the text it amends. The standard is reproduced under the permission it
+for COBOL***. **The text of the standard is kept current with every amendment applied in place**: Amendment 1 first,
+then Amendment 2, in the order Amendment 2's own preamble prescribes, so the base text reads as the amended standard
+("amended third Standard COBOL", in Amendment 2's words). Each amendment is also transcribed in full under its own
+heading (`AMENDMENT 1` and `AMENDMENT 2`), as it was published, as the record of what it changed; Amendment 1's
+Section A, the Intrinsic Function module, is held there once. The standard is reproduced under the permission it
 grants on its own page 3 (PDF page 3), in the CODASYL acknowledgment:
 
 > Any organization interested in reproducing the COBOL standard and specifications in whole or in part, using ideas
@@ -41,11 +44,16 @@ publications.
 ---
 
 > **About this transcription.** American National Standard X3.23-1985 and its amendments are the authoritative text;
-> where this transcription and the published standard differ, **the published standard governs**. The words, the
-> punctuation and the spelling are transcribed as printed, with one exception: a misspelling or a damaged letter on the
-> printed page is corrected in place, flagged there with a ⚠ note that quotes the printed form, and listed with its
-> page in the **Errata** at the end of this document, so that any correction can be reversed. The acknowledgment is
-> never corrected (the acknowledgment above omits two periods because the printed page does).
+> where this transcription and the published standard differ, **the published standard governs**. This transcription
+> is the most accurate version of the specification its maintainers can make, and it is kept current: **every change
+> Amendment 1 and Amendment 2 make to the text is applied in place**, and an evident misprint (a misspelling, a damaged
+> letter, a real word printed for another, an operand the rule's own sense shows is the wrong one) is corrected; a
+> wording that is the standard's deliberate requirement, however odd, stays as printed. **Every modification is
+> attributed**: a ⚠ note where it is made quotes what the printed page prints and names the source of the change (the
+> amendment, its change row and its page, or the sense and the evidence for it), and the **Errata** at the end of this
+> document lists it with its page, so each reads as an update and can be traced to, or reversed against, the printed
+> page. The words, the punctuation and the spelling are otherwise transcribed as printed. The acknowledgment is never
+> corrected (the acknowledgment above omits two periods because the printed page does).
 >
 > **The pages are kept.** The source is a scan, and the transcription was made and reconciled page by page against
 > the rendered page, so each `## Page N` heading opens the text of PDF page N. The printed folios (`VI-21`, `XVII-3`)
@@ -259,15 +267,27 @@ i
 
 # Preface
 
-This document provides the definition of the programming language features that make up American National Standard X3.23-1985.
+> ⚠ **CORRECTED — see the Errata (C1).** The standard prints `This document piovides the definition` (page 7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `provides`. Amendment 2 has since replaced the Preface this sentence opened with its own (C177): the correction is kept as the record of the printed page.
 
-> ⚠ **CORRECTED — see the Errata (C1).** The standard prints `This document piovides the definition` (page 7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `provides`.
+This amendment, the second to the document entitled *American National Standard for Information Systems – Programming Language – COBOL,* ANSI X3.23-1985, ISO 1989:1985, presents correction of errors and clarification of ambiguities in *Programming Language COBOL.*
 
-Within this document, the following terms are used·
+The first amendment to ANSI X3.23-1985, ISO 1989:1985, entitled, *American National Standard for Information Systems – Programming Language – Intrinsic Function Module for COBOL*, ANSI X3.23a-1989 and *Programming Languages – COBOL – Amendment 1: Intrinsic Function Module*, ISO 1989/Amendment 1, must be applied to ANSI X3.23-1985 (or ISO 1989:1985) before applying the corrections identified in this second amendment.
 
-- "First Standard COBOL" refers to American National Standard X3.23-1968
-- "Second Standard COBOL" refers to American National Standard X3 23-1974, which superseded American National Standard X3 23-1968
-- "Third Standard COBOL" or "Standard COBOL" refers to American National Standard X3.23-1985, which supersedes American National Standard X3.23-1974
+Within this document:
+
+– "First Standard COBOL" refers to ANSI X3.23-1968, ISO R-1989:1972.
+
+– "Second Standard COBOL" refers to ANSI X3.23-1974, ISO 1989:1978, which superseded first Standard COBOL.
+
+– "Third Standard COBOL" refers to ANSI COBOL X3.23-1985, ISO 1989:1985, which superseded second Standard COBOL.
+
+– Both "Amendment 1" and "Intrinsic Function Amendment" refer to ANSI X3.23a-1989, ISO 1989:1985/Amd.1:1992.
+
+– Both "Amendment 2" and "Correction Amendment" refer to ANSI X3.23b-1993, ISO 1989:1985/Amd.2:1993.
+
+– "Amended third Standard COBOL" refers to third Standard COBOL updated first with the content of amendment 1 and then with the content of amendment 2. The terms "Standard COBOL" and "COBOL" also refer to amended third Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C177).** The standard prints `This document provides the definition of the programming language features that make up American National Standard X3.23-1985. Within this document, the following terms are used: First, Second and Third Standard COBOL (the 1985 Preface)` (page 7). Amendment 2 (ANSI X3.23b-1993), its change for page Preface (page 913, folio B-1), applied in place: "Replace with preface from page iv of this document" (page 912): the Preface's text and its list of terms; the list of the members of X3J4 that follows it is not the Preface's and stays (kb/Work PB5045). Corrected to `This amendment, the second to the document ... (the preface of Amendment 2, page iv, above)`.
 
 ## Page 8
 
@@ -387,6 +407,9 @@ i
 | 5. | Shared Memory Area ................................................... | II-17 |
 | 6. | Program and Run Unit Organization and Communication ............ | II-18 |
 | 7. | Communication Facility ............................................... | II-28 |
+| 8. | Intrinsic Function Facility .......................................... | II-36 |
+
+> ⚠ **CORRECTED — see the Errata (C36).** The standard prints `| 7. | Communication Facility ... | II-28 |` (page 10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page ii (page 831, folio A-1), applied in place: "Add the following after the entry for section II, paragraph 7" (kb/Work PB5045). Corrected to `| 8. | Intrinsic Function Facility ... | II-36 |`.
 
 <u>SECTION III: GLOSSARY</u>
 
@@ -451,7 +474,9 @@ Chapter 1:  Introduction to the Nucleus Module
 |---|---|---|
 | 1.1 | Function .................................................. | VI-1 |
 | 1.2 | Level Characteristics ..................................... | VI-1 |
-| 1.3 | Level Restrictions on Overall Language .................... | VI-1 |
+| 1.3 | Restrictions on Overall Language .......................... | VI-1 |
+
+> ⚠ **CORRECTED — see the Errata (C37).** The standard prints `Level Restrictions on Overall Language` (page 11). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page iii (page 831, folio A-1), applied in place: "Change the entry for section VI, paragraph 1.3 to read" (kb/Work PB5045). Corrected to `Restrictions on Overall Language`.
 
 Chapter 2:  A COBOL Source Program
 
@@ -956,6 +981,68 @@ Chapter 3:  Procedure Division in the Segmentation Module
 | 3.2 | Segment-Numbers ................................................. | XVI-7 |
 | 3.3 | Restrictions on Program Flow .................................... | XVI-8 |
 
+<u>SECTION A: INTRINSIC FUNCTION MODULE</u>
+
+Chapter 1:  Introduction to the Intrinsic Function Module
+
+| | | |
+|---|---|---|
+| 1.1 | Purpose of Intrinsic Function Module . . . . . . . . . . . . . . . . . . . . . . | A-27 |
+| 1.2 | Function-Name . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . | A-27 |
+
+Chapter 2:  General Description
+
+| | | |
+|---|---|---|
+| 2.1 | Function Definition and Returned Value | A-27 |
+| 2.2 | Arguments | A-28 |
+| 2.3 | Types of Functions | A-29 |
+| 2.4 | Definitions of Functions | A-29 |
+| 2.5 | ACOS | A-33 |
+| 2.6 | ANNUITY | A-34 |
+| 2.7 | ASIN | A-35 |
+| 2.8 | ATAN | A-36 |
+| 2.9 | CHAR | A-37 |
+| 2.10 | COS | A-38 |
+| 2.11 | CURRENT-DATE | A-39 |
+| 2.12 | DATE-OF-INTEGER | A-41 |
+| 2.13 | DAY-OF-INTEGER | A-42 |
+| 2.14 | FACTORIAL | A-43 |
+| 2.15 | INTEGER | A-44 |
+| 2.16 | INTEGER-OF-DATE | A-45 |
+| 2.17 | INTEGER-OF-DAY | A-46 |
+| 2.18 | INTEGER-PART | A-47 |
+| 2.19 | LENGTH | A-48 |
+| 2.20 | LOG | A-49 |
+| 2.21 | LOG10 | A-50 |
+| 2.22 | LOWER-CASE | A-51 |
+| 2.23 | MAX | A-52 |
+| 2.24 | MEAN | A-53 |
+| 2.25 | MEDIAN | A-54 |
+| 2.26 | MIDRANGE | A-55 |
+| 2.27 | MIN | A-56 |
+| 2.28 | MOD | A-57 |
+| 2.29 | NUMVAL | A-58 |
+| 2.30 | NUMVAL-C | A-59 |
+| 2.31 | ORD | A-60 |
+| 2.32 | ORD-MAX | A-61 |
+| 2.33 | ORD-MIN | A-62 |
+| 2.34 | PRESENT-VALUE | A-63 |
+| 2.35 | RANDOM | A-64 |
+| 2.36 | RANGE | A-65 |
+| 2.37 | REM | A-66 |
+| 2.38 | REVERSE | A-67 |
+| 2.39 | SIN | A-68 |
+| 2.40 | SQRT | A-69 |
+| 2.41 | STANDARD-DEVIATION | A-70 |
+| 2.42 | SUM | A-71 |
+| 2.43 | TAN | A-72 |
+| 2.44 | UPPER-CASE | A-73 |
+| 2.45 | VARIANCE | A-74 |
+| 2.46 | WHEN-COMPILED | A-75 |
+
+> ⚠ **CORRECTED — see the Errata (C178).** The standard prints `3.3 Restrictions on Program Flow ... XVI-8 (the last entry for the Segmentation module)` (page 18). Amendment 2 (ANSI X3.23b-1993), its change for page x (page 913, folio B-1), applied in place: "Add the following after the last entry for the Segmentation module in the table of contents", its entries continuing on page 914 (folio B-2) (kb/Work PB5045). Corrected to `SECTION A: INTRINSIC FUNCTION MODULE, Chapter 1 (1.1, 1.2) and Chapter 2 (2.1 to 2.46), above`.
+
 x
 
 ## Page 19
@@ -999,6 +1086,12 @@ Chapter 3: The Standardization of COBOL
 | 3.2 | USA Standard COBOL 1968 ......................................... | XVII-11 |
 | 3.3 | American National Standard COBOL 1974 ........................... | XVII-12 |
 | 3.4 | American National Standard COBOL 1985 ........................... | XVII-12 |
+| 3.5 | American National Standard COBOL 1985, Addendum 1 ............... | XVII-13 |
+| 3.6 | American National Standard COBOL 1985, Amendment 2 .............. | XVII-13 |
+
+> ⚠ **CORRECTED — see the Errata (C38).** The standard prints `| 3.4 | American National Standard COBOL 1985 ... | XVII-12 |` (page 19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 3.4" (kb/Work PB5045). Corrected to `| 3.5 | American National Standard COBOL 1985, Addendum 1 ... | XVII-13 |`.
+
+> ⚠ **CORRECTED — see the Errata (C179).** The standard prints `3.5 American National Standard COBOL 1985, Addendum 1 ... XVII-13` (page 19). Amendment 2 (ANSI X3.23b-1993), its change for page xi (A-1) (page 915, folio B-3), applied in place: "Add the following after the entry for 3.5" (kb/Work PB5045). Corrected to `3.6 American National Standard COBOL 1985, Amendment 2 ... XVII-13`.
 
 Chapter 4: International Standardization of COBOL
 
@@ -1007,6 +1100,12 @@ Chapter 4: International Standardization of COBOL
 | 4.1 | ISO Recommendation R-1989-1972 for COBOL ....................... | XVII-14 |
 | 4.2 | ISO Standard 1989-1978 for COBOL ................................ | XVII-14 |
 | 4.3 | ISO Standard 1989-1985 for COBOL ................................ | XVII-15 |
+| 4.4 | ISO 1989:1985/Amd.1:1992 ........................................ | XVII-15 |
+| 4.5 | ISO 1989:1985/Amd.2:1994 ........................................ | XVII-15 |
+
+> ⚠ **CORRECTED — see the Errata (C39).** The standard prints `| 4.3 | ISO Standard 1989-1985 for COBOL ... | XVII-15 |` (page 19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 4.3" (kb/Work PB5045). Corrected to `| 4.4 | ISO Standard 1989-1985 for COBOL, Addendum 1 ... | XVII-15 |`.
+
+> ⚠ **CORRECTED — see the Errata (C180).** The standard prints `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1 ... XVII-15` (page 19). Amendment 2 (ANSI X3.23b-1993), its change for page xi (A-1) (page 915, folio B-3), applied in place: "Replace the entry for 4.4 with the following" (kb/Work PB5045). Corrected to `4.4 ISO 1989:1985/Amd.1:1992 ... XVII-15 ¶ 4.5 ISO 1989:1985/Amd.2:1994 ... XVII-15`.
 
 <u>APPENDIX B: DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL</u>
 
@@ -1029,8 +1128,14 @@ Chapter 2: Substantive Changes
 
 | | | |
 |---|---|---|
-| 2.1 | Substantive Changes Not Affecting Existing Programs ............ | XVII-42 |
-| 2.2 | Substantive Changes Potentially Affecting Existing Programs .... | XVII-51 |
+| 2.1 | Substantive Changes Not Affecting Existing Programs (Third Standard COBOL) ............ | XVII-42 |
+| 2.1A | Substantive Changes Not Affecting Existing Programs (Intrinsic Function Amendment) ... | XVII-50 |
+| 2.1B | Substantive Changes Not Affecting Existing Programs (Correction Amendment) ............ | XVII-50 |
+| 2.2 | Substantive Changes Potentially Affecting Existing Programs (Third Standard COBOL) .... | XVII-51 |
+| 2.2A | Substantive Changes Potentially Affecting Existing Programs (Intrinsic Function Amendment) | XVII-80 |
+| 2.2B | Substantive Changes Potentially Affecting Existing Programs (Correction Amendment) .... | XVII-80 |
+
+> ⚠ **CORRECTED — see the Errata (C181).** The standard prints `2.1 Substantive Changes Not Affecting Existing Programs ... XVII-42 ¶ 2.2 Substantive Changes Potentially Affecting Existing Programs ... XVII-51` (page 20). Amendment 2 (ANSI X3.23b-1993), its change for page xii (page 915, folio B-3), applied in place: "Replace the entries for 2.1 and 2.2 with the following" (kb/Work PB5045). Corrected to `2.1, 2.1A, 2.1B, 2.2, 2.2A, 2.2B (above)`.
 
 <u>APPENDIX C: LANGUAGE ELEMENT LISTS</u>
 
@@ -1063,7 +1168,11 @@ The scope of this standard is to specify both the form and interpretation of pro
 
 ### 1.2 STRUCTURE OF LANGUAGE SPECIFICATIONS
 
-The organization of COBOL specifications in this standard is based on a functional processing module concept. The standard defines 11 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, and Segmentation. Nine of the modules have the elements within the module divided into level 1 elements and level 2 elements. Level 1 elements of a module are a subset of level 2 elements of the same module. Two of the modules contain only level 1 elements.
+The organization of COBOL specifications in this standard is based on a functional processing module concept. The standard defines 12 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, Segmentation, and Intrinsic Function. Nine of the modules have the elements within the module divided into level 1 elements and level 2 elements. Level 1 elements of a module are a subset of level 2 elements of the same module. Three of the modules contain only level 1 elements.
+
+> ⚠ **CORRECTED — see the Errata (C40).** The standard prints `The standard defines 11 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, and Segmentation.` (page 21, folio I-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-1 (page 831, folio A-1), applied in place: "Paragraph 1.2, first paragraph, second sentence, change to read" (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C41).** The standard prints `Two of the modules contain only level 1 elements.` (page 21, folio I-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-1 (page 831, folio A-1), applied in place: "Paragraph 1.2, first paragraph, last sentence, change to read" (kb/Work PB5045). Corrected to `Three of the modules contain only level 1 elements.`.
 
 The Nucleus module contains the language elements for internal processing of data within the basic structure of the four divisions of a program. The Nucleus also contains the language elements for the definition and access of tables. The elements of the Nucleus are divided into two levels. Nucleus level 1 supplies elements that perform basic internal operations, i.e., the more elementary options of the various clauses and verbs. Nucleus level 2 provides elements for more extensive and sophisticated internal processing capabilities.
 
@@ -1099,15 +1208,25 @@ The Debug module provides a means by which the user can specify his debugging al
 
 The Segmentation module provides for the overlaying at object time of Procedure Division sections. The elements of the Segmentation module are divided into two levels. Segmentation level 1 provides for section segment-numbers and fixed segment limits. Segmentation level 2 adds the capability for varying the segment limit.
 
+The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program. The Intrinsic Function module contains only level 1 elements.
+
+> ⚠ **CORRECTED — see the Errata (C42).** The standard prints `Segmentation level 2 adds the capability for varying the segment limit.` (page 23, folio I-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 831, folio A-1), applied in place: "Paragraph 1.2, add the following paragraph after the last paragraph" (kb/Work PB5045). Corrected to the text above.
+
 ## 1.3 ORGANIZATION OF DOCUMENT
 
-This document is divided into eighteen sections. Section I is composed of the introduction, a summary of elements by module, and a summary of elements by COBOL division. Section II presents concepts pertaining to the use and organization of features within the COBOL language. Section III is composed of a glossary defining terms in accordance with their meaning in COBOL.
+This document is divided into nineteen sections. Section I is composed of the introduction, a summary of elements by module, and a summary of elements by COBOL division. Section II presents concepts pertaining to the use and organization of features within the COBOL language. Section III is composed of a glossary defining terms in accordance with their meaning in COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C43).** The standard prints `This document is divided into eighteen sections.` (page 23, folio I-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, first paragraph, first sentence, change to read: '...into nineteen sections.'" (kb/Work PB5045). Corrected to `This document is divided into nineteen sections.`.
 
 Section IV contains a presentation of overall language considerations. Section V contains a composite language skeleton.
 
-Sections VI through XVI contain specifications for the eleven functional processing modules. Within these sections, specifications unique to level 2 of the modules are enclosed in boxes.
+Sections VI through XVI and section A contain specifications for the twelve functional processing modules. Within these sections, specifications unique to level 2 of the modules are enclosed in boxes.
 
-Sections II through XVI comprise the detailed specifications of Standard COBOL.
+> ⚠ **CORRECTED — see the Errata (C44).** The standard prints `Sections VI through XVI contain specifications for the eleven functional processing modules.` (page 23, folio I-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, third paragraph, first sentence, change to read: 'Sections VI through XVI and section A contain specifications for the twelve functional...'" (kb/Work PB5045). Corrected to `Sections VI through XVI and section A contain specifications for the twelve functional processing modules.`.
+
+Sections II through XVI and section A comprise the detailed specifications of Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C45).** The standard prints `Sections II through XVI comprise the detailed specifications of Standard COBOL.` (page 23, folio I-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, fourth paragraph, change to read: 'Sections II through XVI and section A comprise the detailed...'" (kb/Work PB5045). Corrected to `Sections II through XVI and section A comprise the detailed specifications of Standard COBOL.`.
 
 Section XVII contains the appendices to the document. Section XVIII contains the index for the document.
 
@@ -1127,7 +1246,9 @@ Introduction
 
 COBOL and their occurrences within the various modules. Those elements which are not completely contained within one level of a module are shown in sufficient detail to specify the location of each subelement. For example, the READ statement appears in level 1 of the Sequential I-O module, the Relative I-O module, and the Indexed I-O module. Because certain phrases of the READ statement appear only in level 2 of these modules; the subelements of the READ statement are listed separately (see page I-59).
 
-The schematic diagram on page I-5 is a graphic representation of the 11 functional processing modules forming the content of Standard COBOL. This schematic diagram shows the hierarchy of levels within each functional processing module. Within the schematic diagram a shorthand notation (such as 2 INX 0,2) indicates the hierarchical position of any level within the functional processing module as well as the number of levels into which the elements of the module have been divided. This shorthand notation is composed of, from left to right, a one-digit number indicating the level's position in the hierarchy, a three-character module abbreviation, and a two-digit number indicating the minimum and maximum levels of the module to which the level belongs. The number zero indicates a null level for the lowest level within a module. For example, 2 INX 0,2 indicates that this level is the second non-null level (level 2) of the Indexed I-O module which contains a null level and two non-null levels (level 1 and level 2). 2 NUC 1,2 indicates that this level is the second non-null level of the Nucleus module which contains two non-null levels (level 1 and level 2).
+The schematic diagram on page I-5 is a graphic representation of the 12 functional processing modules forming the content of Standard COBOL. This schematic diagram shows the hierarchy of levels within each functional processing module. Within the schematic diagram a shorthand notation (such as 2 INX 0,2) indicates the hierarchical position of any level within the functional processing module as well as the number of levels into which the elements of the module have been divided. This shorthand notation is composed of, from left to right, a one-digit number indicating the level's position in the hierarchy, a three-character module abbreviation, and a two-digit number indicating the minimum and maximum levels of the module to which the level belongs. The number zero indicates a null level for the lowest level within a module. For example, 2 INX 0,2 indicates that this level is the second non-null level (level 2) of the Indexed I-O module which contains a null level and two non-null levels (level 1 and level 2). 2 NUC 1,2 indicates that this level is the second non-null level of the Nucleus module which contains two non-null levels (level 1 and level 2).
+
+> ⚠ **CORRECTED — see the Errata (C46).** The standard prints `is a graphic representation of the 11 functional processing modules` (page 24, folio I-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-4 (page 832, folio A-2), applied in place: "Paragraph 1.4, fourth paragraph, first sentence, change to read: '...representation of the 12 functional processing modules...'" (kb/Work PB5045). Corrected to `is a graphic representation of the 12 functional processing modules`.
 
 The three-character module abbreviations are as follows:
 
@@ -1144,6 +1265,9 @@ The three-character module abbreviations are as follows:
 | COM | Communication |
 | DEB | Debug |
 | SEG | Segmentation |
+| ITR | Intrinsic Function |
+
+> ⚠ **CORRECTED — see the Errata (C47).** The standard prints `| SEG | Segmentation |` (page 24, folio I-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-4 (page 832, folio A-2), applied in place: "Paragraph 1.4, fifth paragraph, add to the list: ITR Intrinsic Function" (kb/Work PB5045). Corrected to `| SEG | Segmentation | ¶ | ITR | Intrinsic Function |`.
 
 I-4
 
@@ -1155,7 +1279,7 @@ Introduction
 <tr>
 <th rowspan="2" colspan="2"></th>
 <th colspan="7">REQUIRED MODULES<br>(Required in Subsets)</th>
-<th colspan="4">OPTIONAL MODULES<br>(Not Required in Subsets)</th>
+<th colspan="5">OPTIONAL MODULES<br>(Not Required in Subsets)</th>
 </tr>
 <tr>
 <th>Nucleus</th>
@@ -1169,6 +1293,7 @@ Introduction
 <th>Communication</th>
 <th>Debug</th>
 <th>Segmentation</th>
+<th>Intrinsic<br>Function</th>
 </tr>
 <tr>
 <td rowspan="3">COBOL SUBSETS</td>
@@ -1184,6 +1309,7 @@ Introduction
 <td rowspan="2">2 COM 0,2</td>
 <td rowspan="2">2 DEB 0,2</td>
 <td rowspan="2">2 SEG 0,2</td>
+<td rowspan="3">1 ITR 0,1</td>
 </tr>
 <tr>
 <td>Intermediate</td>
@@ -1210,6 +1336,8 @@ Introduction
 </tr>
 </table>
 
+> ⚠ **CORRECTED — see the Errata (C48).** The standard prints `OPTIONAL MODULES (Not Required in Subsets): Report Writer, Communication, Debug, Segmentation` (page 25, folio I-5). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-5 (page 832, folio A-2), applied in place: "Change diagram to include the Intrinsic Function module as shown on the next page of this addendum" (the diagram of page 833, folio A-3: an Intrinsic Function column, 1 ITR 0,1, spanning the three subsets) (kb/Work PB5045). Corrected to `OPTIONAL MODULES (Not Required in Subsets): Report Writer, Communication, Debug, Segmentation, Intrinsic Function (1 ITR 0,1)`.
+
 I-5
 
 ## Page 26
@@ -1218,11 +1346,15 @@ Implementation Definition
 
 ## 1.5 DEFINITION OF AN IMPLEMENTATION OF STANDARD COBOL
 
-This document provides a definition of the language features that comprise Standard COBOL. Standard COBOL consists of 11 modules, seven of which are required and four of which are optional. Paragraph 1.5 and its subparagraphs identify the criteria which must be met in order for a valid claim to be made that an implementation conforms to Standard COBOL.
+This document provides a definition of the language features that comprise Standard COBOL. Standard COBOL consists of 12 modules, seven of which are required and five of which are optional. (It is the intention of X3J4 to require the Intrinsic Function module in the next complete revision of Standard COBOL.) Paragraph 1.5 and its subparagraphs identify the criteria which must be met in order for a valid claim to be made that an implementation conforms to Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C49).** The standard prints `Standard COBOL consists of 11 modules, seven of which are required and four of which are optional.` (page 26, folio I-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-6 (page 834, folio A-4), applied in place: "Paragraph 1.5, second sentence, change 'consists of 11 modules, seven of which are required and four of which are optional.' to ..." (kb/Work PB5045). Corrected to `Standard COBOL consists of 12 modules, seven of which are required and five of which are optional. (It is the intention of X3J4 to require the Intrinsic Function module in the next complete revision of Standard COBOL.)`.
 
 ### 1.5.1 Definition of Subsets
 
-The three subsets of Standard COBOL are: the high subset, the intermediate subset, and the minimum subset. Each subset is composed of a level of the seven required modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, and Source Text Manipulation. In terms of the schematic diagram on page I-5, a subset of Standard COBOL is represented by one of the three horizontal rows within the required module columns. The four optional modules (Report Writer, Communication, Debug, and Segmentation) are not required in the three subsets of Standard COBOL.
+The three subsets of Standard COBOL are: the high subset, the intermediate subset, and the minimum subset. Each subset is composed of a level of the seven required modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, and Source Text Manipulation. In terms of the schematic diagram on page I-5, a subset of Standard COBOL is represented by one of the three horizontal rows within the required module columns. The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not required in the three subsets of Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C50).** The standard prints `The four optional modules (Report Writer, Communication, Debug, and Segmentation) are not required` (page 26, folio I-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-6 (page 834, folio A-4), applied in place: "Paragraph 1.5.1, first paragraph, last sentence, change to read: 'The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not...'" (kb/Work PB5045). Corrected to `The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not required`.
 
 The high subset of Standard COBOL is composed of all language elements of the highest level of all required modules, that is:
 
@@ -1294,11 +1426,17 @@ An implementation that includes language elements in addition to the subset and 
 
 Documentation associated with an implementation must identify any standard extensions (language elements not defined in the supported subset or supported levels of optional modules but defined elsewhere in Standard COBOL) or nonstandard extensions (language elements or functions not defined in Standard COBOL) that are included in the implementation.
 
-A conforming implementation of Standard COBOL must provide a warning mechanism, which optionally may be invoked by the user at compile time to indicate, if appropriate, that a program contains nonstandard extensions that are included in the implementation.
+A conforming implementation of Standard COBOL must provide a warning mechanism, which optionally may be invoked by the user at compile time to indicate, if appropriate, that a program contains nonstandard extensions that are included in the implementation. This warning mechanism is required to flag only extensions that are syntactically distinguishable.
+
+> ⚠ **CORRECTED — see the Errata (C182).** The standard prints `that a program contains nonstandard extensions that are included in the implementation.` (page 28, folio I-8). Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.2 entitled Extension Language Elements, last paragraph, add the following as the new last sentence" (kb/Work PB5045). Corrected to `that a program contains nonstandard extensions that are included in the implementation. This warning mechanism is required to flag only extensions that are syntactically distinguishable.`.
 
 #### 1.5.2.5.3 Reserved Words
 
-An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules. (See page IV-45, COBOL Reserved Words.)
+An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specifications of the seven required modules and the five optional modules. (See page IV-45, COBOL Reserved Words.)
+
+> ⚠ **CORRECTED — see the Errata (C51).** The standard prints `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules. (See page IV-45, COBOL Reserved Words.)` (page 28, folio I-8). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-8 (page 834, folio A-4), applied in place: "Paragraph 1.5.2.5.3, change to read" (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C183).** The standard prints `An implementation of Standard COBOL must recognize ... the four optional modules. (See page IV-45, COBOL Reserved Words.) (as printed; Amendment 1 changed it first, C51)` (page 28, folio I-8). Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.3 entitled Reserved Words, change to read"; the paragraph as Amendment 1 changed it (C51) is replaced (kb/Work PB5045). Corrected to `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specifications of the seven required modules and the five optional modules. (See page IV-45, COBOL Reserved Words.)`.
 
 #### 1.5.2.5.4 Character Substitution
 
@@ -1357,6 +1495,9 @@ The following is a list of the summary of elements by module shown on pages I-11
 - Pages I-36 and I-37: Summary of elements in the Communication module
 - Page I-38: Summary of elements in the Debug module
 - Page I-39: Summary of elements in the Segmentation module
+- Page I-39: Summary of elements in the Intrinsic Function module
+
+> ⚠ **CORRECTED — see the Errata (C52).** The standard prints `- Page I-39: Summary of elements in the Segmentation module` (page 30, folio I-10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-10 (page 834, folio A-4), applied in place: "Paragraph 2.1, last paragraph, add the following to the list" (kb/Work PB5045). Corrected to `- Page I-39: Summary of elements in the Intrinsic Function module`.
 
 I-10
 
@@ -1455,7 +1596,7 @@ Nucleus Element Summary
 | &nbsp;&nbsp;Continuation of COBOL word, numeric literal, PICTURE character-string ................................ | N | X |
 | &nbsp;Blank lines ................................................... | X | X |
 | &nbsp;Comment lines | | |
-| &nbsp;&nbsp;Asterisk (8) comment line ................................... | X | X |
+| &nbsp;&nbsp;Asterisk (\*) comment line ................................... | X | X |
 | &nbsp;&nbsp;Slant (/) comment line ...................................... | X | X |
 | &nbsp;Debugging line with D in indicator area ....................... | X | X |
 | <u>Source Program Structure</u> | | |
@@ -1464,6 +1605,12 @@ Nucleus Element Summary
 | &nbsp;Data Division optional ........................................ | X | X |
 | &nbsp;Procedure Division optional ................................... | X | X |
 | &nbsp;End program header ............................................ | N | X |
+
+> ⚠ **CORRECTED — see the Errata (C53).** The standard prints `| &nbsp;Reference modification ........................................ | N | X |` (page 32, folio I-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (page 834, folio A-4), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045). Corrected to `Reference-modifier`.
+
+> ⚠ **CORRECTED — see the Errata (C54).** The standard prints `| &nbsp;&nbsp;Asterisk (8) comment line ................................... | X | X |` (page 32, folio I-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (T) (page 834, folio A-4), applied in place: "Under 'Reference Format', change 'Asterisk (8) comment line' to 'Asterisk (\*) comment line'", a typographical error (kb/Work PB5045). Corrected to `Asterisk (*) comment line`.
+
+> ⚠ **CORRECTED — see the Errata (C184).** The standard prints `Reference modification (as printed; Amendment 1 changed it to Reference-modifier, C53)` (page 32, folio I-12). Amendment 2 (ANSI X3.23b-1993), its change for page I-12 (A-4) (page 915, folio B-3), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'": Amendment 2 restores the printed entry Amendment 1 changed (C53) (kb/Work PB5045). Corrected to `Reference modification`.
 
 I-12
 
@@ -2695,6 +2842,62 @@ Segmentation Element Summary
 | All sections with the same segment-number must<br>&nbsp;&nbsp;&nbsp;be together in the source program ........................... | Z | N |
 | Sections with the same segment-number need not be<br>&nbsp;&nbsp;&nbsp;physically contiguous in the source program ................. | N | Z |
 
+<u>SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE</u>
+
+| ELEMENT | LEVEL 1 |
+|---|---|
+| <u>LANGUAGE CONCEPTS</u> | |
+| <u>Character-Strings</u> | |
+| COBOL words | |
+| Function-name | X |
+| <u>Uniqueness of Reference</u> | |
+| Function-Identifier | X |
+| <u>PROCEDURE DIVISION</u> | |
+| ACOS function | X |
+| ANNUITY function | X |
+| ASIN function | X |
+| ATAN function | X |
+| CHAR function | X |
+| COS function | X |
+| CURRENT-DATE function | X |
+| DATE-OF-INTEGER function | X |
+| DAY-OF-INTEGER function | X |
+| FACTORIAL function | X |
+| INTEGER function | X |
+| INTEGER-OF-DATE function | X |
+| INTEGER-OF-DAY function | X |
+| INTEGER-PART function | X |
+| LENGTH function | X |
+| LOG function | X |
+| LOG10 function | X |
+| LOWER-CASE function | X |
+| MAX function | X |
+| MEAN function | X |
+| MEDIAN function | X |
+| MIDRANGE function | X |
+| MIN function | X |
+| MOD function | X |
+| NUMVAL function | X |
+| NUMVAL-C function | X |
+| ORD function | X |
+| ORD-MAX function | X |
+| ORD-MIN function | X |
+| PRESENT-VALUE function | X |
+| RANDOM function | X |
+| RANGE function | X |
+| REM function | X |
+| REVERSE function | X |
+| SIN function | X |
+| SQRT function | X |
+| STANDARD-DEVIATION function | X |
+| SUM function | X |
+| TAN function | X |
+| UPPER-CASE function | X |
+| VARIANCE function | X |
+| WHEN-COMPILED function | X |
+
+> ⚠ **CORRECTED — see the Errata (C55).** The standard prints `SUMMARY OF ELEMENTS IN THE SEGMENTATION MODULE (the last list of page I-39)` (page 59, folio I-39). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-39 (page 834, folio A-4), applied in place: "After the Segmentation module list, add the Intrinsic Function module list shown on the next page of this addendum" (page 835, folio A-5) (kb/Work PB5045). Corrected to `SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE (the list above)`.
+
 I-39
 
 ## Page 60
@@ -2722,6 +2925,9 @@ The column titled "MODULE" specifies the module and the level within that module
 | COM | Communication |
 | DEB | Debug |
 | SEG | Segmentation |
+| ITR | Intrinsic Function |
+
+> ⚠ **CORRECTED — see the Errata (C56).** The standard prints `SEG Segmentation` (page 60, folio I-40). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-40 (page 836, folio A-6), applied in place: "Paragraph 3.1, second paragraph, add the following to the list: ITR Intrinsic Function" (kb/Work PB5045). Corrected to `SEG Segmentation ¶ ITR Intrinsic Function`.
 
 The level of an element within the module is indicated by the number preceding the three-character abbreviation of the module. For example, 2 NUC indicates that the element is a level 2 element within the Nucleus and 1 INX indicates that the element is a level 1 element within the Indexed I-O module. The letter Z follows the three-character abbreviation of the module if the element is an obsolete element in Standard COBOL that is to be deleted from the next revision of Standard COBOL.
 
@@ -2748,7 +2954,7 @@ Language Concepts Element Summary
 | &nbsp;Characters used in words 0-9 A-Z - (hyphen) .......................... | 1 NUC |
 | &nbsp;Characters used in punctuation " ( ) . , ; space ..................... | 1 NUC |
 | &nbsp;Characters used in punctuation : (colon) ............................. | 2 NUC |
-| &nbsp;Characters used in punctuation = ..................................... | 1 STM |
+| &nbsp;Characters used in punctuation = ..................................... | 2 STM |
 | &nbsp;Characters used in editing B + - . , Z \* $ 0 CR DB / ................ | 1 NUC |
 | &nbsp;Characters used in arithmetic operations + - \* / \*\* ................. | 2 NUC |
 | &nbsp;Characters used in relation conditions = &gt; &lt; &gt;= &lt;= .................. | 1 NUC |
@@ -2789,6 +2995,8 @@ Language Concepts Element Summary
 | &nbsp;&nbsp;&nbsp;Symbolic-character ................................................... | 2 NUC |
 | &nbsp;&nbsp;&nbsp;Text-name ............................................................ | 1 STM |
 
+> ⚠ **CORRECTED — see the Errata (C57).** The standard prints `| &nbsp;Characters used in punctuation = ..................................... | 1 STM |` (page 61, folio I-41). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-41 (T) (page 836, folio A-6), applied in place: "Under 'Character Set', change entry in MODULE column for 'Characters used in punctuation =' from '1 STM' to '2 STM'", a typographical error (kb/Work PB5045). Corrected to `| &nbsp;Characters used in punctuation = ..................................... | 2 STM |`.
+
 I-41
 
 ## Page 62
@@ -2827,6 +3035,7 @@ Language Concepts Element Summary
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LINE-COUNTER | 1 RPW |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PAGE-COUNTER | 1 RPW |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DEBUG-ITEM | 1 DEB Z |
+| &nbsp;&nbsp;Function-names ............................................. | 1 ITR |
 | &nbsp;Literals | |
 | &nbsp;&nbsp;Numeric literals: &nbsp;1 through 18 digits | 1 NUC |
 | &nbsp;&nbsp;Nonnumeric literals: &nbsp;1 through 160 characters | 1 NUC |
@@ -2844,7 +3053,16 @@ Language Concepts Element Summary
 | &nbsp;&nbsp;Subscripting with a data-name | 1 NUC |
 | &nbsp;&nbsp;Subscripting with an index-name | 1 NUC |
 | &nbsp;&nbsp;Relative subscripting | 1 NUC |
+| &nbsp;Function-identifier | 1 ITR |
 | &nbsp;Reference modification | 2 NUC |
+
+> ⚠ **CORRECTED — see the Errata (C58).** The standard prints `Literals` (page 62, folio I-42). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Literals'; align the word 'Function-names' one position to the right of the word 'Literals': Function-names ... 1 ITR" (kb/Work PB5045). Corrected to `Function-names ... 1 ITR ¶ Literals`.
+
+> ⚠ **CORRECTED — see the Errata (C59).** The standard prints `| &nbsp;Reference modification | 2 NUC |` (page 62, folio I-42). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045). Corrected to `| &nbsp;Reference-modifier | 2 NUC |`.
+
+> ⚠ **CORRECTED — see the Errata (C60).** The standard prints `Reference-modifier` (page 62, folio I-42). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier': Function-identifier ... 1 ITR" (kb/Work PB5045). Corrected to `Function-identifier ... 1 ITR ¶ Reference-modifier`.
+
+> ⚠ **CORRECTED — see the Errata (C185).** The standard prints `Reference modification (as printed; Amendment 1 changed it to Reference-modifier, C59)` (page 62, folio I-42). Amendment 2 (ANSI X3.23b-1993), its change for page I-42 (A-6) (page 915, folio B-3), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'": Amendment 2 restores the printed entry Amendment 1 changed (C59) (kb/Work PB5045). Corrected to `Reference modification`.
 
 I-42
 
@@ -2926,7 +3144,7 @@ Environment Division Element Summary
 | &nbsp;&nbsp;Computer-name | 1 NUC |
 | &nbsp;&nbsp;MEMORY SIZE clause | 1 NUC Z |
 | &nbsp;&nbsp;PROGRAM COLLATING SEQUENCE clause | 1 NUC |
-| &nbsp;&nbsp;SEGMENT-LIMIT clause | 1 SEG Z |
+| &nbsp;&nbsp;SEGMENT-LIMIT clause | 2 SEG Z |
 | &nbsp;SPECIAL-NAMES paragraph | 1 NUC |
 | &nbsp;&nbsp;ALPHABET clause | 1 NUC |
 | &nbsp;&nbsp;&nbsp;STANDARD-1 option | 1 NUC |
@@ -2962,6 +3180,8 @@ Environment Division Element Summary
 | | 1 INX |
 | | 1 SRT |
 | | 1 RPW |
+
+> ⚠ **CORRECTED — see the Errata (C61).** The standard prints `| &nbsp;&nbsp;SEGMENT-LIMIT clause | 1 SEG Z |` (page 65, folio I-45). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-45 (T) (page 836, folio A-6), applied in place: "Under 'OBJECT-COMPUTER paragraph', change entry in MODULE column for 'SEGMENT-LIMIT clause' from '1 SEG Z' to '2 SEG Z'", a typographical error (kb/Work PB5045). Corrected to `| &nbsp;&nbsp;SEGMENT-LIMIT clause | 2 SEG Z |`.
 
 I-45
 
@@ -3181,7 +3401,7 @@ Data Division Element Summary
 | GROUP INDICATE clause | 1 RPW |
 | JUSTIFIED clause | 1 NUC<br>1 RPW |
 | Level-number clause | 1 NUC |
-| &nbsp;01 through 49; level-number may be 1 or 1 digits | 1 NUC<br>1 RPW |
+| &nbsp;01 through 49; level-number may be 1 or 2 digits | 1 NUC<br>1 RPW |
 | &nbsp;66 | 2 NUC |
 | &nbsp;77 | 1 NUC |
 | &nbsp;88 | 2 NUC |
@@ -3205,6 +3425,8 @@ Data Division Element Summary
 | &nbsp;May be nested | 2 NUC |
 | RENAMES clause | 2 NUC |
 | SIGN clause | 1 NUC<br>1 RPW |
+
+> ⚠ **CORRECTED — see the Errata (C62).** The standard prints `| &nbsp;01 through 49; level-number may be 1 or 1 digits | 1 NUC<br>1 RPW |` (page 71, folio I-51). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-51 (T) (page 836, folio A-6), applied in place: "In the line following 'Level-number clause', change 'may be 1 or 1 digits' to 'may be 1 or 2 digits'", a typographical error (kb/Work PB5045). Corrected to `level-number may be 1 or 2 digits`.
 
 I-51
 
@@ -3311,44 +3533,90 @@ Procedure Division Element Summary
 | Arithmetic statements | 1 NUC |
 | &nbsp;Arithmetic operands limited to 18 digits | 1 NUC |
 | &nbsp;Composite of operands limited to 18 digits | 1 NUC |
-| ACCEPT statement | 1 NUC |
-| &nbsp;Identifier | 1 NUC |
-| &nbsp;Only one transfer of data | 1 NUC |
-| &nbsp;No restriction on number of transfers of data | 2 NUC |
-| &nbsp;FROM mnemonic-name phrase | 2 NUC |
-| &nbsp;FROM DATE/DAY/DAY-OF-WEEK/TIME phrase | 2 NUC |
-| ACCEPT MESSAGE COUNT statement | 1 COM |
-| ADD statement | 1 NUC |
-| &nbsp;Identifier/literal | 1 NUC |
-| &nbsp;Identifier/literal series | 1 NUC |
-| &nbsp;TO identifier | 1 NUC |
-| &nbsp;TO identifier series | 1 NUC |
-| &nbsp;TO identifier/literal GIVING identifier | 1 NUC |
-| &nbsp;TO identifier/literal GIVING identifier series | 1 NUC |
-| &nbsp;ROUNDED phrase | 1 NUC |
-| &nbsp;ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;END-ADD phrase | 1 NUC |
-| &nbsp;CORRESPONDING phrase | 2 NUC |
-| ALTER statement | 1 NUC Z |
-| &nbsp;Only one procedure-name | 1 NUC Z |
-| &nbsp;Procedure-name series | 2 NUC Z |
-| CALL statement | 1 IPC |
-| &nbsp;Literal | 1 IPC |
-| &nbsp;Identifier | 2 IPC |
-| &nbsp;USING phrase | 1 IPC |
-| &nbsp;&nbsp;Identifier | 1 IPC |
-| &nbsp;&nbsp;&nbsp;At least 5 operands permitted | 1 IPC |
-| &nbsp;&nbsp;&nbsp;No limit on number of operands permitted | 2 IPC |
-| &nbsp;&nbsp;BY REFERENCE phrase | 2 IPC |
-| &nbsp;&nbsp;BY CONTENT phrase | 2 IPC |
-| &nbsp;ON OVERFLOW phrase | 2 IPC |
-| &nbsp;ON EXCEPTION phrase | 2 IPC |
-| &nbsp;NOT ON EXCEPTION phrase | 2 IPC |
-| &nbsp;END-CALL phrase | 1 IPC |
-| CANCEL statement | 2 IPC |
-| &nbsp;Literal | 2 IPC |
-| &nbsp;Identifier | 2 IPC |
+| Intrinsic functions | |
+| &nbsp;ACOS function | 1 ITR |
+| &nbsp;ANNUITY function | 1 ITR |
+| &nbsp;ASIN function | 1 ITR |
+| &nbsp;ATAN function | 1 ITR |
+| &nbsp;CHAR function | 1 ITR |
+| &nbsp;COS function | 1 ITR |
+| &nbsp;CURRENT-DATE function | 1 ITR |
+| &nbsp;DATE-OF-INTEGER function | 1 ITR |
+| &nbsp;DAY-OF-INTEGER function | 1 ITR |
+| &nbsp;FACTORIAL function | 1 ITR |
+| &nbsp;INTEGER function | 1 ITR |
+| &nbsp;INTEGER-OF-DATE function | 1 ITR |
+| &nbsp;INTEGER-OF-DAY function | 1 ITR |
+| &nbsp;INTEGER-PART function | 1 ITR |
+| &nbsp;LENGTH function | 1 ITR |
+| &nbsp;LOG function | 1 ITR |
+| &nbsp;LOG10 function | 1 ITR |
+| &nbsp;LOWER-CASE function | 1 ITR |
+| &nbsp;MAX function | 1 ITR |
+| &nbsp;MEAN function | 1 ITR |
+| &nbsp;MEDIAN function | 1 ITR |
+| &nbsp;MIDRANGE function | 1 ITR |
+| &nbsp;MIN function | 1 ITR |
+| &nbsp;MOD function | 1 ITR |
+| &nbsp;NUMVAL function | 1 ITR |
+| &nbsp;NUMVAL-C function | 1 ITR |
+| &nbsp;ORD function | 1 ITR |
+| &nbsp;ORD-MAX function | 1 ITR |
+| &nbsp;ORD-MIN function | 1 ITR |
+| &nbsp;PRESENT-VALUE function | 1 ITR |
+| &nbsp;RANDOM function | 1 ITR |
+| &nbsp;RANGE function | 1 ITR |
+| &nbsp;REM function | 1 ITR |
+| &nbsp;REVERSE function | 1 ITR |
+| &nbsp;SIN function | 1 ITR |
+| &nbsp;SQRT function | 1 ITR |
+| &nbsp;STANDARD-DEVIATION function | 1 ITR |
+| &nbsp;SUM function | 1 ITR |
+| &nbsp;TAN function | 1 ITR |
+| &nbsp;UPPER-CASE function | 1 ITR |
+| &nbsp;VARIANCE function | 1 ITR |
+| &nbsp;WHEN-COMPILED function | 1 ITR |
+| Statements | |
+| &nbsp;ACCEPT statement | 1 NUC |
+| &nbsp;&nbsp;Identifier | 1 NUC |
+| &nbsp;&nbsp;Only one transfer of data | 1 NUC |
+| &nbsp;&nbsp;No restriction on number of transfers of data | 2 NUC |
+| &nbsp;&nbsp;FROM mnemonic-name phrase | 2 NUC |
+| &nbsp;&nbsp;FROM DATE/DAY/DAY-OF-WEEK/TIME phrase | 2 NUC |
+| &nbsp;ACCEPT MESSAGE COUNT statement | 1 COM |
+| &nbsp;ADD statement | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal series | 1 NUC |
+| &nbsp;&nbsp;TO identifier | 1 NUC |
+| &nbsp;&nbsp;TO identifier series | 1 NUC |
+| &nbsp;&nbsp;TO identifier/literal GIVING identifier | 1 NUC |
+| &nbsp;&nbsp;TO identifier/literal GIVING identifier series | 1 NUC |
+| &nbsp;&nbsp;ROUNDED phrase | 1 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;END-ADD phrase | 1 NUC |
+| &nbsp;&nbsp;CORRESPONDING phrase | 2 NUC |
+| &nbsp;ALTER statement | 1 NUC Z |
+| &nbsp;&nbsp;Only one procedure-name | 1 NUC Z |
+| &nbsp;&nbsp;Procedure-name series | 2 NUC Z |
+| &nbsp;CALL statement | 1 IPC |
+| &nbsp;&nbsp;Literal | 1 IPC |
+| &nbsp;&nbsp;Identifier | 2 IPC |
+| &nbsp;&nbsp;USING phrase | 1 IPC |
+| &nbsp;&nbsp;&nbsp;Identifier | 1 IPC |
+| &nbsp;&nbsp;&nbsp;&nbsp;At least 5 operands permitted | 1 IPC |
+| &nbsp;&nbsp;&nbsp;&nbsp;No limit on number of operands permitted | 2 IPC |
+| &nbsp;&nbsp;&nbsp;BY REFERENCE phrase | 2 IPC |
+| &nbsp;&nbsp;&nbsp;BY CONTENT phrase | 2 IPC |
+| &nbsp;&nbsp;ON OVERFLOW phrase | 2 IPC |
+| &nbsp;&nbsp;ON EXCEPTION phrase | 2 IPC |
+| &nbsp;&nbsp;NOT ON EXCEPTION phrase | 2 IPC |
+| &nbsp;&nbsp;END-CALL phrase | 1 IPC |
+| &nbsp;CANCEL statement | 2 IPC |
+| &nbsp;&nbsp;Literal | 2 IPC |
+| &nbsp;&nbsp;Identifier | 2 IPC |
+
+> ⚠ **CORRECTED — see the Errata (C63).** The standard prints `ACCEPT statement 1 NUC` (page 74, folio I-54). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-54 (page 836, folio A-6), applied in place: "Add the following before the entry for 'ACCEPT statement'": the entry Intrinsic functions, the 42 function entries of pages 836 and 837 (folios A-6 and A-7), each 1 ITR, and the entry Statements (kb/Work PB5045). Corrected to `Intrinsic functions, ACOS function ... WHEN-COMPILED function (each 1 ITR), Statements, ACCEPT statement`.
 
 I-54
 
@@ -3360,50 +3628,50 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| CLOSE statement ............................................................ | 1 SEQ |
+| &nbsp;CLOSE statement ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;File-name ............................................................ | 1 SEQ |
+| &nbsp;&nbsp;File-name ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;File-name series ............................................................ | 1 SEQ |
+| &nbsp;&nbsp;File-name series ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;REEL/UNIT phrase ............................................................ | 1 SEQ |
+| &nbsp;&nbsp;REEL/UNIT phrase ............................................................ | 1 SEQ |
 | | 1 RPW |
-| &nbsp;&nbsp;FOR REMOVAL phrase ............................................................ | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;FOR REMOVAL phrase ............................................................ | 2 SEQ |
 | | 1 RPW |
-| &nbsp;WITH NO REWIND phrase ............................................................ | 2 SEQ |
+| &nbsp;&nbsp;WITH NO REWIND phrase ............................................................ | 2 SEQ |
 | | 1 RPW |
-| &nbsp;WITH LOCK phrase ............................................................ | 2 SEQ |
+| &nbsp;&nbsp;WITH LOCK phrase ............................................................ | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| COMPUTE statement ............................................................ | 2 NUC |
-| &nbsp;Arithmetic expression ............................................................ | 2 NUC |
-| &nbsp;Identifier series ............................................................ | 2 NUC |
-| &nbsp;ROUNDED phrase ............................................................ | 2 NUC |
-| &nbsp;ON SIZE ERROR phrase ............................................................ | 2 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase ............................................................ | 2 NUC |
-| &nbsp;END-COMPUTE phrase ............................................................ | 2 NUC |
-| CONTINUE statement ............................................................ | 1 NUC |
-| DELETE statement ............................................................ | 1 REL |
+| &nbsp;COMPUTE statement ............................................................ | 2 NUC |
+| &nbsp;&nbsp;Arithmetic expression ............................................................ | 2 NUC |
+| &nbsp;&nbsp;Identifier series ............................................................ | 2 NUC |
+| &nbsp;&nbsp;ROUNDED phrase ............................................................ | 2 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase ............................................................ | 2 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase ............................................................ | 2 NUC |
+| &nbsp;&nbsp;END-COMPUTE phrase ............................................................ | 2 NUC |
+| &nbsp;CONTINUE statement ............................................................ | 1 NUC |
+| &nbsp;DELETE statement ............................................................ | 1 REL |
 | | 1 INX |
-| &nbsp;INVALID KEY phrase ............................................................ | 1 REL |
+| &nbsp;&nbsp;INVALID KEY phrase ............................................................ | 1 REL |
 | | 1 INX |
-| &nbsp;NOT INVALID KEY phrase ............................................................ | 1 REL |
+| &nbsp;&nbsp;NOT INVALID KEY phrase ............................................................ | 1 REL |
 | | 1 INX |
-| &nbsp;END-DELETE phrase ............................................................ | 1 REL |
+| &nbsp;&nbsp;END-DELETE phrase ............................................................ | 1 REL |
 | | 1 INX |
-| DISABLE statement ............................................................ | 2 COM |
-| &nbsp;INPUT phrase ............................................................ | 2 COM |
-| &nbsp;&nbsp;TERMINAL phrase ............................................................ | 2 COM |
-| &nbsp;I-O TERMINAL phrase ............................................................ | 2 COM |
-| &nbsp;OUTPUT phrase ............................................................ | 2 COM |
-| &nbsp;WITH KEY phrase ............................................................ | 2 COM Z |
+| &nbsp;DISABLE statement ............................................................ | 2 COM |
+| &nbsp;&nbsp;INPUT phrase ............................................................ | 2 COM |
+| &nbsp;&nbsp;&nbsp;TERMINAL phrase ............................................................ | 2 COM |
+| &nbsp;&nbsp;I-O TERMINAL phrase ............................................................ | 2 COM |
+| &nbsp;&nbsp;OUTPUT phrase ............................................................ | 2 COM |
+| &nbsp;&nbsp;WITH KEY phrase ............................................................ | 2 COM Z |
 
 I-55
 
@@ -3415,49 +3683,49 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| DISPLAY statement ...................................................... | 1 NUC |
-| &nbsp;Only one transfer of data ............................................ | 1 NUC |
-| &nbsp;No restriction on number of transfers of data ........................ | 2 NUC |
-| &nbsp;Identifier/literal ................................................... | 1 NUC |
-| &nbsp;Identifier/literal series ............................................ | 1 NUC |
-| &nbsp;UPON mnemonic-name phrase ............................................ | 2 NUC |
-| &nbsp;WITH NO ADVANCING phrase ............................................. | 2 NUC |
-| DIVIDE statement ....................................................... | 1 NUC |
-| &nbsp;BY identifier/literal ................................................ | 1 NUC |
-| &nbsp;INTO identifier ...................................................... | 1 NUC |
-| &nbsp;INTO identifier series ............................................... | 1 NUC |
-| &nbsp;GIVING identifier .................................................... | 1 NUC |
-| &nbsp;GIVING identifier series ............................................. | 1 NUC |
-| &nbsp;ROUNDED phrase ....................................................... | 1 NUC |
-| &nbsp;REMAINDER phrase ..................................................... | 2 NUC |
-| &nbsp;ON SIZE ERROR phrase ................................................. | 1 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase ............................................. | 1 NUC |
-| &nbsp;END-DIVIDE phrase .................................................... | 1 NUC |
-| ENABLE statement ....................................................... | 2 COM |
-| &nbsp;INPUT phrase ......................................................... | 2 COM |
-| &nbsp;&nbsp;TERMINAL phrase ..................................................... | 2 COM |
-| &nbsp;I-O TERMINAL phrase .................................................. | 2 COM |
-| &nbsp;OUTPUT phrase ........................................................ | 2 COM |
-| &nbsp;WITH KEY phrase ...................................................... | 2 COM Z |
-| EVALUATE statement ..................................................... | 2 NUC |
-| &nbsp;Identifier/literal ................................................... | 2 NUC |
-| &nbsp;Arithmetic expression ................................................ | 2 NUC |
-| &nbsp;Conditional expression ............................................... | 2 NUC |
-| &nbsp;TRUE/FALSE ........................................................... | 2 NUC |
-| &nbsp;&nbsp;ALSO phrase ......................................................... | 2 NUC |
-| &nbsp;WHEN phrase .......................................................... | 2 NUC |
-| &nbsp;&nbsp;ALSO phrase ......................................................... | 2 NUC |
-| &nbsp;WHEN OTHER phrase .................................................... | 2 NUC |
-| &nbsp;END-EVALUATE phrase .................................................. | 2 NUC |
-| EXIT statement ......................................................... | 1 NUC |
-| EXIT PROGRAM statement ................................................. | 1 IPC |
-| GENERATE statement ..................................................... | 1 RPW |
-| &nbsp;Data-name ............................................................ | 1 RPW |
-| &nbsp;Report-name .......................................................... | 1 RPW |
-| GO TO statement ........................................................ | 1 NUC |
-| &nbsp;Procedure-name is required ........................................... | 1 NUC |
-| &nbsp;Procedure-name is optional ........................................... | 2 NUC Z |
-| &nbsp;DEPENDING ON phrase .................................................. | 1 NUC |
+| &nbsp;DISPLAY statement ...................................................... | 1 NUC |
+| &nbsp;&nbsp;Only one transfer of data ............................................ | 1 NUC |
+| &nbsp;&nbsp;No restriction on number of transfers of data ........................ | 2 NUC |
+| &nbsp;&nbsp;Identifier/literal ................................................... | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal series ............................................ | 1 NUC |
+| &nbsp;&nbsp;UPON mnemonic-name phrase ............................................ | 2 NUC |
+| &nbsp;&nbsp;WITH NO ADVANCING phrase ............................................. | 2 NUC |
+| &nbsp;DIVIDE statement ....................................................... | 1 NUC |
+| &nbsp;&nbsp;BY identifier/literal ................................................ | 1 NUC |
+| &nbsp;&nbsp;INTO identifier ...................................................... | 1 NUC |
+| &nbsp;&nbsp;INTO identifier series ............................................... | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier .................................................... | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier series ............................................. | 1 NUC |
+| &nbsp;&nbsp;ROUNDED phrase ....................................................... | 1 NUC |
+| &nbsp;&nbsp;REMAINDER phrase ..................................................... | 2 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase ................................................. | 1 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase ............................................. | 1 NUC |
+| &nbsp;&nbsp;END-DIVIDE phrase .................................................... | 1 NUC |
+| &nbsp;ENABLE statement ....................................................... | 2 COM |
+| &nbsp;&nbsp;INPUT phrase ......................................................... | 2 COM |
+| &nbsp;&nbsp;&nbsp;TERMINAL phrase ..................................................... | 2 COM |
+| &nbsp;&nbsp;I-O TERMINAL phrase .................................................. | 2 COM |
+| &nbsp;&nbsp;OUTPUT phrase ........................................................ | 2 COM |
+| &nbsp;&nbsp;WITH KEY phrase ...................................................... | 2 COM Z |
+| &nbsp;EVALUATE statement ..................................................... | 2 NUC |
+| &nbsp;&nbsp;Identifier/literal ................................................... | 2 NUC |
+| &nbsp;&nbsp;Arithmetic expression ................................................ | 2 NUC |
+| &nbsp;&nbsp;Conditional expression ............................................... | 2 NUC |
+| &nbsp;&nbsp;TRUE/FALSE ........................................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;ALSO phrase ......................................................... | 2 NUC |
+| &nbsp;&nbsp;WHEN phrase .......................................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;ALSO phrase ......................................................... | 2 NUC |
+| &nbsp;&nbsp;WHEN OTHER phrase .................................................... | 2 NUC |
+| &nbsp;&nbsp;END-EVALUATE phrase .................................................. | 2 NUC |
+| &nbsp;EXIT statement ......................................................... | 1 NUC |
+| &nbsp;EXIT PROGRAM statement ................................................. | 1 IPC |
+| &nbsp;GENERATE statement ..................................................... | 1 RPW |
+| &nbsp;&nbsp;Data-name ............................................................ | 1 RPW |
+| &nbsp;&nbsp;Report-name .......................................................... | 1 RPW |
+| &nbsp;GO TO statement ........................................................ | 1 NUC |
+| &nbsp;&nbsp;Procedure-name is required ........................................... | 1 NUC |
+| &nbsp;&nbsp;Procedure-name is optional ........................................... | 2 NUC Z |
+| &nbsp;&nbsp;DEPENDING ON phrase .................................................. | 1 NUC |
 
 I-56
 
@@ -3469,53 +3737,53 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| IF statement | 1 NUC |
-| &nbsp;Only imperative statements | 1 NUC |
-| &nbsp;Imperative and/or conditional statements | 2 NUC |
-| &nbsp;Nested IF statements | 1 NUC |
-| &nbsp;THEN optional word | 1 NUC |
-| &nbsp;NEXT SENTENCE phrase | 1 NUC |
-| &nbsp;ELSE phrase | 1 NUC |
-| &nbsp;END-IF phrase | 1 NUC |
-| INITIALIZE statement | 2 NUC |
-| &nbsp;Identifier series | 2 NUC |
-| &nbsp;REPLACING phrase | 2 NUC |
-| &nbsp;REPLACING series | 2 NUC |
-| INITIATE statement | 1 RPW |
-| INSPECT statement | 1 NUC |
-| &nbsp;Only single character data item | 1 NUC |
-| &nbsp;Multi-character data item | 2 NUC |
-| &nbsp;TALLYING phrase | 1 NUC |
-| &nbsp;&nbsp;BEFORE/AFTER phrase | 1 NUC |
-| &nbsp;&nbsp;BEFORE/AFTER phrase series | 2 NUC |
-| &nbsp;TALLYING phrase series | 2 NUC |
-| &nbsp;REPLACING phrase | 1 NUC |
-| &nbsp;&nbsp;BEFORE/AFTER phrase | 1 NUC |
-| &nbsp;&nbsp;BEFORE/AFTER phrase series | 2 NUC |
-| &nbsp;REPLACING phrase series | 2 NUC |
-| &nbsp;TALLYING and REPLACING phrase | 1 NUC |
-| &nbsp;CONVERTING phrase | 2 NUC |
-| MERGE statement | 1 SRT |
-| &nbsp;ASCENDING/DESCENDING KEY phrase | 1 SRT |
-| &nbsp;COLLATING SEQUENCE phrase | 1 SRT |
-| &nbsp;USING phrase | 1 SRT |
-| &nbsp;OUTPUT PROCEDURE phrase | 1 SRT |
-| &nbsp;&nbsp;Procedure-name | 1 SRT |
-| &nbsp;GIVING phrase | 1 SRT |
-| MOVE statement | 1 NUC |
-| &nbsp;TO identifier | 1 NUC |
-| &nbsp;TO identifier series | 1 NUC |
-| &nbsp;CORRESPONDING phrase | 2 NUC |
-| &nbsp;De-editing of numeric edited items | 2 NUC |
-| MULTIPLY statement | 1 NUC |
-| &nbsp;BY identifier | 1 NUC |
-| &nbsp;BY identifier series | 1 NUC |
-| &nbsp;GIVING identifier | 1 NUC |
-| &nbsp;GIVING identifier series | 1 NUC |
-| &nbsp;ROUNDED phrase | 1 NUC |
-| &nbsp;ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;END-MULTIPLY phrase | 1 NUC |
+| &nbsp;IF statement | 1 NUC |
+| &nbsp;&nbsp;Only imperative statements | 1 NUC |
+| &nbsp;&nbsp;Imperative and/or conditional statements | 2 NUC |
+| &nbsp;&nbsp;Nested IF statements | 1 NUC |
+| &nbsp;&nbsp;THEN optional word | 1 NUC |
+| &nbsp;&nbsp;NEXT SENTENCE phrase | 1 NUC |
+| &nbsp;&nbsp;ELSE phrase | 1 NUC |
+| &nbsp;&nbsp;END-IF phrase | 1 NUC |
+| &nbsp;INITIALIZE statement | 2 NUC |
+| &nbsp;&nbsp;Identifier series | 2 NUC |
+| &nbsp;&nbsp;REPLACING phrase | 2 NUC |
+| &nbsp;&nbsp;REPLACING series | 2 NUC |
+| &nbsp;INITIATE statement | 1 RPW |
+| &nbsp;INSPECT statement | 1 NUC |
+| &nbsp;&nbsp;Only single character data item | 1 NUC |
+| &nbsp;&nbsp;Multi-character data item | 2 NUC |
+| &nbsp;&nbsp;TALLYING phrase | 1 NUC |
+| &nbsp;&nbsp;&nbsp;BEFORE/AFTER phrase | 1 NUC |
+| &nbsp;&nbsp;&nbsp;BEFORE/AFTER phrase series | 2 NUC |
+| &nbsp;&nbsp;TALLYING phrase series | 2 NUC |
+| &nbsp;&nbsp;REPLACING phrase | 1 NUC |
+| &nbsp;&nbsp;&nbsp;BEFORE/AFTER phrase | 1 NUC |
+| &nbsp;&nbsp;&nbsp;BEFORE/AFTER phrase series | 2 NUC |
+| &nbsp;&nbsp;REPLACING phrase series | 2 NUC |
+| &nbsp;&nbsp;TALLYING and REPLACING phrase | 1 NUC |
+| &nbsp;&nbsp;CONVERTING phrase | 2 NUC |
+| &nbsp;MERGE statement | 1 SRT |
+| &nbsp;&nbsp;ASCENDING/DESCENDING KEY phrase | 1 SRT |
+| &nbsp;&nbsp;COLLATING SEQUENCE phrase | 1 SRT |
+| &nbsp;&nbsp;USING phrase | 1 SRT |
+| &nbsp;&nbsp;OUTPUT PROCEDURE phrase | 1 SRT |
+| &nbsp;&nbsp;&nbsp;Procedure-name | 1 SRT |
+| &nbsp;&nbsp;GIVING phrase | 1 SRT |
+| &nbsp;MOVE statement | 1 NUC |
+| &nbsp;&nbsp;TO identifier | 1 NUC |
+| &nbsp;&nbsp;TO identifier series | 1 NUC |
+| &nbsp;&nbsp;CORRESPONDING phrase | 2 NUC |
+| &nbsp;&nbsp;De-editing of numeric edited items | 2 NUC |
+| &nbsp;MULTIPLY statement | 1 NUC |
+| &nbsp;&nbsp;BY identifier | 1 NUC |
+| &nbsp;&nbsp;BY identifier series | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier series | 1 NUC |
+| &nbsp;&nbsp;ROUNDED phrase | 1 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;END-MULTIPLY phrase | 1 NUC |
 
 I-57
 
@@ -3527,55 +3795,55 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| OPEN statement ........................................................ | 1 SEQ |
+| &nbsp;OPEN statement ........................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;File-name ........................................................ | 1 SEQ |
+| &nbsp;&nbsp;File-name ........................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;File-name series ................................................. | 1 SEQ |
+| &nbsp;&nbsp;File-name series ................................................. | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;INPUT phrase ..................................................... | 1 SEQ |
+| &nbsp;&nbsp;INPUT phrase ..................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;WITH NO REWIND ................................................ | 2 SEQ |
-| &nbsp;&nbsp;REVERSED phrase ............................................... | 2 SEQ Z |
-| &nbsp;OUTPUT phrase .................................................... | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;WITH NO REWIND ................................................ | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;REVERSED phrase ............................................... | 2 SEQ Z |
+| &nbsp;&nbsp;OUTPUT phrase .................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;WITH NO REWIND phrase ......................................... | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;WITH NO REWIND phrase ......................................... | 2 SEQ |
 | | 1 RPW |
-| &nbsp;I-O phrase ....................................................... | 1 SEQ |
+| &nbsp;&nbsp;I-O phrase ....................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;EXTEND phrase .................................................... | 2 SEQ |
+| &nbsp;&nbsp;EXTEND phrase .................................................... | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| &nbsp;INPUT, OUTPUT, and I-O series .................................... | 1 SEQ |
+| &nbsp;&nbsp;INPUT, OUTPUT, and I-O series .................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;EXTEND series .................................................... | 2 SEQ |
+| &nbsp;&nbsp;EXTEND series .................................................... | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
-| PERFORM statement ..................................................... | 1 NUC |
-| &nbsp;Procedure-name is optional ....................................... | 1 NUC |
-| &nbsp;THROUGH procedure-name phrase .................................... | 1 NUC |
-| &nbsp;Imperative-statement option ...................................... | 1 NUC |
-| &nbsp;END-PERFORM phrase ............................................... | 1 NUC |
-| &nbsp;TIMES phrase ..................................................... | 1 NUC |
-| &nbsp;UNTIL phrase ..................................................... | 1 NUC |
-| &nbsp;&nbsp;TEST BEFORE/AFTER phrase ...................................... | 2 NUC |
-| &nbsp;VARYING phrase ................................................... | 2 NUC |
-| &nbsp;&nbsp;TEST BEFORE/AFTER phrase ...................................... | 2 NUC |
-| &nbsp;&nbsp;AFTER phrase .................................................. | 2 NUC |
-| &nbsp;&nbsp;&nbsp;At least 6 AFTER phrases permitted ......................... | 2 NUC |
-| PURGE statement ....................................................... | 2 COM |
+| &nbsp;PERFORM statement ..................................................... | 1 NUC |
+| &nbsp;&nbsp;Procedure-name is optional ....................................... | 1 NUC |
+| &nbsp;&nbsp;THROUGH procedure-name phrase .................................... | 1 NUC |
+| &nbsp;&nbsp;Imperative-statement option ...................................... | 1 NUC |
+| &nbsp;&nbsp;END-PERFORM phrase ............................................... | 1 NUC |
+| &nbsp;&nbsp;TIMES phrase ..................................................... | 1 NUC |
+| &nbsp;&nbsp;UNTIL phrase ..................................................... | 1 NUC |
+| &nbsp;&nbsp;&nbsp;TEST BEFORE/AFTER phrase ...................................... | 2 NUC |
+| &nbsp;&nbsp;VARYING phrase ................................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;TEST BEFORE/AFTER phrase ...................................... | 2 NUC |
+| &nbsp;&nbsp;&nbsp;AFTER phrase .................................................. | 2 NUC |
+| &nbsp;&nbsp;&nbsp;&nbsp;At least 6 AFTER phrases permitted ......................... | 2 NUC |
+| &nbsp;PURGE statement ....................................................... | 2 COM |
 
 I-58
 
@@ -3587,34 +3855,34 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| READ statement ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;NEXT phrase ........................................................... | 2 SEQ<br>2 REL<br>2 INX |
-| &nbsp;INTO phrase ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;AT END phrase ......................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;NOT AT END phrase ..................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;KEY phrase ............................................................ | 2 INX |
-| &nbsp;INVALID KEY phrase .................................................... | 1 REL<br>1 INX |
-| &nbsp;NOT INVALID KEY phrase ................................................ | 1 REL<br>1 INX |
-| &nbsp;END-READ phrase ....................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| RECEIVE statement ....................................................... | 1 COM |
-| &nbsp;MESSAGE phrase ........................................................ | 1 COM |
-| &nbsp;SEGMENT phrase ........................................................ | 2 COM |
-| &nbsp;INTO phrase ........................................................... | 1 COM |
-| &nbsp;NO DATA phrase ........................................................ | 1 COM |
-| &nbsp;WITH DATA phrase ...................................................... | 1 COM |
-| &nbsp;END-RECEIVE phrase .................................................... | 1 COM |
-| RELEASE statement ....................................................... | 1 SRT |
-| &nbsp;FROM phrase ........................................................... | 1 SRT |
-| RETURN statement ........................................................ | 1 SRT |
-| &nbsp;INTO phrase ........................................................... | 1 SRT |
-| &nbsp;AT END phrase ......................................................... | 1 SRT |
-| &nbsp;NOT AT END phrase ..................................................... | 1 SRT |
-| &nbsp;END-RETURN phrase ..................................................... | 1 SRT |
-| REWRITE statement ....................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;FROM phrase ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
-| &nbsp;INVALID KEY phrase .................................................... | 1 REL<br>1 INX |
-| &nbsp;NOT INVALID KEY phrase ................................................ | 1 REL<br>1 INX |
-| &nbsp;END-REWRITE phrase .................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;READ statement ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;NEXT phrase ........................................................... | 2 SEQ<br>2 REL<br>2 INX |
+| &nbsp;&nbsp;INTO phrase ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;AT END phrase ......................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;NOT AT END phrase ..................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;KEY phrase ............................................................ | 2 INX |
+| &nbsp;&nbsp;INVALID KEY phrase .................................................... | 1 REL<br>1 INX |
+| &nbsp;&nbsp;NOT INVALID KEY phrase ................................................ | 1 REL<br>1 INX |
+| &nbsp;&nbsp;END-READ phrase ....................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;RECEIVE statement ....................................................... | 1 COM |
+| &nbsp;&nbsp;MESSAGE phrase ........................................................ | 1 COM |
+| &nbsp;&nbsp;SEGMENT phrase ........................................................ | 2 COM |
+| &nbsp;&nbsp;INTO phrase ........................................................... | 1 COM |
+| &nbsp;&nbsp;NO DATA phrase ........................................................ | 1 COM |
+| &nbsp;&nbsp;WITH DATA phrase ...................................................... | 1 COM |
+| &nbsp;&nbsp;END-RECEIVE phrase .................................................... | 1 COM |
+| &nbsp;RELEASE statement ....................................................... | 1 SRT |
+| &nbsp;&nbsp;FROM phrase ........................................................... | 1 SRT |
+| &nbsp;RETURN statement ........................................................ | 1 SRT |
+| &nbsp;&nbsp;INTO phrase ........................................................... | 1 SRT |
+| &nbsp;&nbsp;AT END phrase ......................................................... | 1 SRT |
+| &nbsp;&nbsp;NOT AT END phrase ..................................................... | 1 SRT |
+| &nbsp;&nbsp;END-RETURN phrase ..................................................... | 1 SRT |
+| &nbsp;REWRITE statement ....................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;FROM phrase ........................................................... | 1 SEQ<br>1 REL<br>1 INX |
+| &nbsp;&nbsp;INVALID KEY phrase .................................................... | 1 REL<br>1 INX |
+| &nbsp;&nbsp;NOT INVALID KEY phrase ................................................ | 1 REL<br>1 INX |
+| &nbsp;&nbsp;END-REWRITE phrase .................................................... | 1 SEQ<br>1 REL<br>1 INX |
 
 I-59
 
@@ -3626,44 +3894,44 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| SEARCH statement | 2 NUC |
-| &nbsp;VARYING phrase | 2 NUC |
-| &nbsp;AT END phrase | 2 NUC |
-| &nbsp;WHEN phrase | 2 NUC |
-| &nbsp;WHEN phrase series | 2 NUC |
-| &nbsp;END-SEARCH phrase | 2 NUC |
-| SEARCH ALL statement | 2 NUC |
-| &nbsp;AT END phrase | 2 NUC |
-| &nbsp;WHEN phrase | 2 NUC |
-| &nbsp;END-SEARCH phrase | 2 NUC |
-| SEND statement | 1 COM |
-| &nbsp;FROM identifier phrase (portion of a message) | 2 COM |
-| &nbsp;FROM identifier phrase (complete message) | 1 COM |
-| &nbsp;WITH identifier phrase | 2 COM |
-| &nbsp;WITH ESI phrase | 2 COM |
-| &nbsp;WITH EMI phrase | 1 COM |
-| &nbsp;WITH EGI phrase | 1 COM |
-| &nbsp;BEFORE/AFTER ADVANCING phrase | 1 COM |
-| &nbsp;&nbsp;Integer LINE/LINES | 1 COM |
-| &nbsp;&nbsp;Identifier LINE/LINES | 1 COM |
-| &nbsp;&nbsp;Mnemonic-name | 2 COM |
-| &nbsp;&nbsp;PAGE | 1 COM |
-| &nbsp;REPLACING LINE phrase | 2 COM |
-| SET statement | 1 NUC |
-| &nbsp;Index-name/identifier TO | 1 NUC |
-| &nbsp;Index-name UP BY/DOWN BY | 1 NUC |
-| &nbsp;Mnemonic-name TO ON/OFF | 1 NUC |
-| &nbsp;Condition-name TO TRUE | 2 NUC |
-| SORT statement | 1 SRT |
-| &nbsp;ASCENDING/DESCENDING KEY phrase | 1 SRT |
-| &nbsp;DUPLICATES phrase | 1 SRT |
-| &nbsp;COLLATING SEQUENCE phrase | 1 SRT |
-| &nbsp;INPUT PROCEDURE phrase | 1 SRT |
-| &nbsp;&nbsp;Procedure-name | 1 SRT |
-| &nbsp;USING phrase | 1 SRT |
-| &nbsp;OUTPUT PROCEDURE phrase | 1 SRT |
-| &nbsp;&nbsp;Procedure-name | 1 SRT |
-| &nbsp;GIVING phrase | 1 SRT |
+| &nbsp;SEARCH statement | 2 NUC |
+| &nbsp;&nbsp;VARYING phrase | 2 NUC |
+| &nbsp;&nbsp;AT END phrase | 2 NUC |
+| &nbsp;&nbsp;WHEN phrase | 2 NUC |
+| &nbsp;&nbsp;WHEN phrase series | 2 NUC |
+| &nbsp;&nbsp;END-SEARCH phrase | 2 NUC |
+| &nbsp;SEARCH ALL statement | 2 NUC |
+| &nbsp;&nbsp;AT END phrase | 2 NUC |
+| &nbsp;&nbsp;WHEN phrase | 2 NUC |
+| &nbsp;&nbsp;END-SEARCH phrase | 2 NUC |
+| &nbsp;SEND statement | 1 COM |
+| &nbsp;&nbsp;FROM identifier phrase (portion of a message) | 2 COM |
+| &nbsp;&nbsp;FROM identifier phrase (complete message) | 1 COM |
+| &nbsp;&nbsp;WITH identifier phrase | 2 COM |
+| &nbsp;&nbsp;WITH ESI phrase | 2 COM |
+| &nbsp;&nbsp;WITH EMI phrase | 1 COM |
+| &nbsp;&nbsp;WITH EGI phrase | 1 COM |
+| &nbsp;&nbsp;BEFORE/AFTER ADVANCING phrase | 1 COM |
+| &nbsp;&nbsp;&nbsp;Integer LINE/LINES | 1 COM |
+| &nbsp;&nbsp;&nbsp;Identifier LINE/LINES | 1 COM |
+| &nbsp;&nbsp;&nbsp;Mnemonic-name | 2 COM |
+| &nbsp;&nbsp;&nbsp;PAGE | 1 COM |
+| &nbsp;&nbsp;REPLACING LINE phrase | 2 COM |
+| &nbsp;SET statement | 1 NUC |
+| &nbsp;&nbsp;Index-name/identifier TO | 1 NUC |
+| &nbsp;&nbsp;Index-name UP BY/DOWN BY | 1 NUC |
+| &nbsp;&nbsp;Mnemonic-name TO ON/OFF | 1 NUC |
+| &nbsp;&nbsp;Condition-name TO TRUE | 2 NUC |
+| &nbsp;SORT statement | 1 SRT |
+| &nbsp;&nbsp;ASCENDING/DESCENDING KEY phrase | 1 SRT |
+| &nbsp;&nbsp;DUPLICATES phrase | 1 SRT |
+| &nbsp;&nbsp;COLLATING SEQUENCE phrase | 1 SRT |
+| &nbsp;&nbsp;INPUT PROCEDURE phrase | 1 SRT |
+| &nbsp;&nbsp;&nbsp;Procedure-name | 1 SRT |
+| &nbsp;&nbsp;USING phrase | 1 SRT |
+| &nbsp;&nbsp;OUTPUT PROCEDURE phrase | 1 SRT |
+| &nbsp;&nbsp;&nbsp;Procedure-name | 1 SRT |
+| &nbsp;&nbsp;GIVING phrase | 1 SRT |
 
 I-60
 
@@ -3675,42 +3943,42 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| START statement | 2 REL<br>2 INX |
-| &nbsp;KEY phrase | 2 REL<br>2 INX |
-| &nbsp;&nbsp;EQUAL TO | 2 REL<br>2 INX |
-| &nbsp;&nbsp;= | 2 REL<br>2 INX |
-| &nbsp;&nbsp;GREATER THAN | 2 REL<br>2 INX |
-| &nbsp;&nbsp;&gt; | 2 REL<br>2 INX |
-| &nbsp;&nbsp;NOT LESS THAN | 2 REL<br>2 INX |
-| &nbsp;&nbsp;NOT &lt; | 2 REL<br>2 INX |
-| &nbsp;&nbsp;GREATER THAN OR EQUAL TO | 2 REL<br>2 INX |
-| &nbsp;&nbsp;&gt;= | 2 REL<br>2 INX |
-| &nbsp;INVALID KEY phrase | 2 REL<br>2 INX |
-| &nbsp;NOT INVALID KEY phrase | 2 REL<br>2 INX |
-| &nbsp;END-START phrase | 2 REL<br>2 INX |
-| STOP statement | 1 NUC |
-| &nbsp;RUN | 1 NUC |
-| &nbsp;Literal | 1 NUC Z |
-| STRING statement | 2 NUC |
-| &nbsp;DELIMITED BY series | 2 NUC |
-| &nbsp;WITH POINTER phrase | 2 NUC |
-| &nbsp;ON OVERFLOW phrase | 2 NUC |
-| &nbsp;NOT ON OVERFLOW phrase | 2 NUC |
-| &nbsp;END-STRING phrase | 2 NUC |
-| SUBTRACT statement | 1 NUC |
-| &nbsp;Identifier/literal | 1 NUC |
-| &nbsp;Identifier/literal series | 1 NUC |
-| &nbsp;FROM identifier | 1 NUC |
-| &nbsp;FROM identifier series | 1 NUC |
-| &nbsp;GIVING identifier | 1 NUC |
-| &nbsp;GIVING identifier series | 1 NUC |
-| &nbsp;ROUNDED phrase | 1 NUC |
-| &nbsp;ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
-| &nbsp;END-SUBTRACT phrase | 1 NUC |
-| &nbsp;CORRESPONDING phrase | 2 NUC |
-| SUPPRESS statement | 1 RPW |
-| TERMINATE statement | 1 RPW |
+| &nbsp;START statement | 2 REL<br>2 INX |
+| &nbsp;&nbsp;KEY phrase | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;EQUAL TO | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;= | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;GREATER THAN | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;&gt; | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;NOT LESS THAN | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;NOT &lt; | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;GREATER THAN OR EQUAL TO | 2 REL<br>2 INX |
+| &nbsp;&nbsp;&nbsp;&gt;= | 2 REL<br>2 INX |
+| &nbsp;&nbsp;INVALID KEY phrase | 2 REL<br>2 INX |
+| &nbsp;&nbsp;NOT INVALID KEY phrase | 2 REL<br>2 INX |
+| &nbsp;&nbsp;END-START phrase | 2 REL<br>2 INX |
+| &nbsp;STOP statement | 1 NUC |
+| &nbsp;&nbsp;RUN | 1 NUC |
+| &nbsp;&nbsp;Literal | 1 NUC Z |
+| &nbsp;STRING statement | 2 NUC |
+| &nbsp;&nbsp;DELIMITED BY series | 2 NUC |
+| &nbsp;&nbsp;WITH POINTER phrase | 2 NUC |
+| &nbsp;&nbsp;ON OVERFLOW phrase | 2 NUC |
+| &nbsp;&nbsp;NOT ON OVERFLOW phrase | 2 NUC |
+| &nbsp;&nbsp;END-STRING phrase | 2 NUC |
+| &nbsp;SUBTRACT statement | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal | 1 NUC |
+| &nbsp;&nbsp;Identifier/literal series | 1 NUC |
+| &nbsp;&nbsp;FROM identifier | 1 NUC |
+| &nbsp;&nbsp;FROM identifier series | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier | 1 NUC |
+| &nbsp;&nbsp;GIVING identifier series | 1 NUC |
+| &nbsp;&nbsp;ROUNDED phrase | 1 NUC |
+| &nbsp;&nbsp;ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;NOT ON SIZE ERROR phrase | 1 NUC |
+| &nbsp;&nbsp;END-SUBTRACT phrase | 1 NUC |
+| &nbsp;&nbsp;CORRESPONDING phrase | 2 NUC |
+| &nbsp;SUPPRESS statement | 1 RPW |
+| &nbsp;TERMINATE statement | 1 RPW |
 
 I-61
 
@@ -3722,55 +3990,55 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| UNSTRING statement ........................................................ | 2 NUC |
-| &nbsp;DELIMITED BY phrase ...................................................... | 2 NUC |
-| &nbsp;DELIMITER IN phrase ...................................................... | 2 NUC |
-| &nbsp;COUNT IN phrase .......................................................... | 2 NUC |
-| &nbsp;WITH POINTER phrase ...................................................... | 2 NUC |
-| &nbsp;TALLYING phrase .......................................................... | 2 NUC |
-| &nbsp;ON OVERFLOW phrase ....................................................... | 2 NUC |
-| &nbsp;NOT ON OVERFLOW phrase ................................................... | 2 NUC |
-| &nbsp;END-UNSTRING phrase ...................................................... | 2 NUC |
-| USE statement ............................................................ | 1 SEQ |
+| &nbsp;UNSTRING statement ........................................................ | 2 NUC |
+| &nbsp;&nbsp;DELIMITED BY phrase ...................................................... | 2 NUC |
+| &nbsp;&nbsp;DELIMITER IN phrase ...................................................... | 2 NUC |
+| &nbsp;&nbsp;COUNT IN phrase .......................................................... | 2 NUC |
+| &nbsp;&nbsp;WITH POINTER phrase ...................................................... | 2 NUC |
+| &nbsp;&nbsp;TALLYING phrase .......................................................... | 2 NUC |
+| &nbsp;&nbsp;ON OVERFLOW phrase ....................................................... | 2 NUC |
+| &nbsp;&nbsp;NOT ON OVERFLOW phrase ................................................... | 2 NUC |
+| &nbsp;&nbsp;END-UNSTRING phrase ...................................................... | 2 NUC |
+| &nbsp;USE statement ............................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
 | | 1 DEB Z |
-| &nbsp;EXCEPTION/ERROR PROCEDURE phrase ......................................... | 1 SEQ |
+| &nbsp;&nbsp;EXCEPTION/ERROR PROCEDURE phrase ......................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
-| &nbsp;&nbsp;ON file-name ............................................................. | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
+| &nbsp;&nbsp;&nbsp;ON file-name ............................................................. | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;ON file-name series ...................................................... | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;ON file-name series ...................................................... | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;ON INPUT ................................................................. | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;ON INPUT ................................................................. | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;ON OUTPUT ................................................................ | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;ON OUTPUT ................................................................ | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | | 1 RPW |
-| &nbsp;&nbsp;ON I-O ................................................................... | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;ON I-O ................................................................... | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;&nbsp;ON EXTEND ................................................................ | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;ON EXTEND ................................................................ | 2 SEQ |
 | | 2 REL |
 | | 2 INX |
 | | 1 RPW |
-| &nbsp;BEFORE REPORTING phrase .................................................. | 1 RPW |
-| &nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
-| &nbsp;FOR DEBUGGING phrase ..................................................... | 1 DEB Z |
-| &nbsp;&nbsp;Procedure-name ........................................................... | 1 DEB Z |
-| &nbsp;&nbsp;ALL PROCEDURES ........................................................... | 1 DEB Z |
-| &nbsp;&nbsp;ALL REFERENCES OF identifier-1 ........................................... | 2 DEB Z |
-| &nbsp;&nbsp;Cd-name .................................................................. | 2 DEB Z |
-| &nbsp;&nbsp;File-name ................................................................ | 2 DEB Z |
+| &nbsp;&nbsp;BEFORE REPORTING phrase .................................................. | 1 RPW |
+| &nbsp;&nbsp;&nbsp;GLOBAL phrase ............................................................ | 2 IPC |
+| &nbsp;&nbsp;FOR DEBUGGING phrase ..................................................... | 1 DEB Z |
+| &nbsp;&nbsp;&nbsp;Procedure-name ........................................................... | 1 DEB Z |
+| &nbsp;&nbsp;&nbsp;ALL PROCEDURES ........................................................... | 1 DEB Z |
+| &nbsp;&nbsp;&nbsp;ALL REFERENCES OF identifier-1 ........................................... | 2 DEB Z |
+| &nbsp;&nbsp;&nbsp;Cd-name .................................................................. | 2 DEB Z |
+| &nbsp;&nbsp;&nbsp;File-name ................................................................ | 2 DEB Z |
 
 I-62
 
@@ -3782,24 +4050,24 @@ Procedure Division Element Summary
 
 | ELEMENT | MODULE |
 |---|---|
-| WRITE statement | 1 SEQ |
+| &nbsp;WRITE statement | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;FROM phrase | 1 SEQ |
+| &nbsp;&nbsp;FROM phrase | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
-| &nbsp;BEFORE/AFTER ADVANCING phrase | 1 SEQ |
-| &nbsp;&nbsp;Integer LINE/LINES | 1 SEQ |
-| &nbsp;&nbsp;Identifier LINE/LINES | 1 SEQ |
-| &nbsp;&nbsp;Mnemonic-name | 2 SEQ |
-| &nbsp;&nbsp;PAGE | 1 SEQ |
-| &nbsp;AT END-OF-PAGE/EOP phrase | 2 SEQ |
-| &nbsp;NOT AT END-OF-PAGE/EOP phrase | 2 SEQ |
-| &nbsp;INVALID KEY phrase | 1 REL |
+| &nbsp;&nbsp;BEFORE/AFTER ADVANCING phrase | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;Integer LINE/LINES | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;Identifier LINE/LINES | 1 SEQ |
+| &nbsp;&nbsp;&nbsp;Mnemonic-name | 2 SEQ |
+| &nbsp;&nbsp;&nbsp;PAGE | 1 SEQ |
+| &nbsp;&nbsp;AT END-OF-PAGE/EOP phrase | 2 SEQ |
+| &nbsp;&nbsp;NOT AT END-OF-PAGE/EOP phrase | 2 SEQ |
+| &nbsp;&nbsp;INVALID KEY phrase | 1 REL |
 | | 1 INX |
-| &nbsp;NOT INVALID KEY phrase | 1 REL |
+| &nbsp;&nbsp;NOT INVALID KEY phrase | 1 REL |
 | | 1 INX |
-| &nbsp;END-WRITE phrase | 1 SEQ |
+| &nbsp;&nbsp;END-WRITE phrase | 1 SEQ |
 | | 1 REL |
 | | 1 INX |
 | <u>Segmentation</u> | |
@@ -3818,6 +4086,8 @@ Procedure Division Element Summary
 | REPLACE statement | 2 STM |
 | &nbsp;Pseudo-text BY pseudo-text | 2 STM |
 | &nbsp;OFF | 2 STM |
+
+> ⚠ **CORRECTED — see the Errata (C64).** The standard prints `END-WRITE phrase` (page 83, folio I-63). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-54 thru I-63 (page 837, folio A-7), applied in place: "Indent all lines following the newly inserted 'Statements' entry beginning with 'ACCEPT statement' and ending with 'END-WRITE phrase'": every element line of pages 74 to 83 from ACCEPT statement to END-WRITE phrase is indented one position (`&nbsp;`) more than the page prints it (kb/Work PB5045). Corrected to `END-WRITE phrase, indented one position`.
 
 I-63
 
@@ -3845,7 +4115,9 @@ When describing the capabilities of COBOL programs to manipulate files, the foll
 
 2.1 FILE ATTRIBUTES
 
-A file has several attributes which apply to the file at the time it is created and cannot be changed throughout the lifetime of the file. The primary attribute is the organization of the file, which describes its logical structure. There are three organizations: sequential, relative, and indexed. Other fixed attributes of the file provided by the COBOL program are prime record key, alternate record keys, code set, the minimum and maximum logical record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the blocking factor, the padding character, and the record delimiter.
+A file has several attributes which apply to the file at the time it is created and cannot be changed throughout the lifetime of the file. The primary attribute is the organization of the file, which describes its logical structure. There are three organizations: sequential, relative, and indexed. Other fixed attributes of the file provided by the COBOL program are prime record key, alternate record keys, code set, the minimum and maximum logical record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.
+
+> ⚠ **CORRECTED — see the Errata (C186).** The standard prints `sequence of the keys for indexed files, the blocking factor, the padding character` (page 85, folio II-1). Amendment 2 (ANSI X3.23b-1993), its change for page II-1 (page 916, folio B-4), applied in place: "Paragraph 2.1 entitled File Attributes, change a portion of the last sentence from 'sequence of the keys for indexed files, the blocking factor, the padding character' to 'sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character'" (kb/Work PB5045). Corrected to `sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character`.
 
 2.1.1 Sequential Organization
 
@@ -4216,7 +4488,9 @@ II-13
 
 Concepts - Table Handling
 
-(3) The value of selected table elements may be specified using VALUE clauses.
+(3) Every occurrence of an element in a table can be assigned the same initial value using the VALUE clause.
+
+> ⚠ **CORRECTED — see the Errata (C187).** The standard prints `(3) The value of selected table elements may be specified using VALUE clauses.` (page 98, folio II-14). Amendment 2 (ANSI X3.23b-1993), its change for page II-14 (page 916, folio B-4), applied in place: "Paragraph 4.2 entitled Initial Values of Tables, change numbered item 3 at the top of page II-14 to read" (kb/Work PB5045). Corrected to `(3) Every occurrence of an element in a table can be assigned the same initial value using the VALUE clause.`.
 
 ### 4.3 REFERENCES TO TABLE ITEMS
 
@@ -4474,13 +4748,17 @@ The CALL statement may be used to call a program which is not written in COBOL, 
 
 In order to call a program, a CALL statement identifies the program's name. The names assigned to programs which directly or indirectly are contained within another program must be unique.
 
-The names assigned to each of the separately compiled program which constitute a run unit must also be unique.
+The names assigned to each of the separately compiled programs which constitute a run unit must also be unique.
+
+> ⚠ **CORRECTED — see the Errata (C65).** The standard prints `The names assigned to each of the separately compiled program which constitute` (page 107, folio II-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-23 (T) (page 837, folio A-7), applied in place: "Paragraph 6.4.1.1, entitled 'Names of Programs', second paragraph, first line, change 'compiled program' to 'compiled programs'", a typographical error (kb/Work PB5045). Corrected to `The names assigned to each of the separately compiled programs which constitute`.
 
 #### 6.4.1.2 Scope of the CALL Statement
 
 In the following, the calling program may or may not possess any of the program attributes, it may either be separately compiled or not, and it may either be contained within programs or contain other programs:
 
-(1) Any calling program may.call any separately compiled program in the run unit.
+(1) Any calling program may call any separately compiled program in the run unit.
+
+> ⚠ **CORRECTED — see the Errata (C338).** The standard prints `(1) Any calling program may.call any separately compiled program in the run unit.` (page 107, folio II-23). A stray period between two words of the sentence, an evident misprint (kb/Work PB5045). Corrected to `(1) Any calling program may call any separately compiled program in the run unit.`.
 
 (2) A calling program may call any program which is directly contained within the calling program.
 
@@ -4556,7 +4834,9 @@ Only the positions of the data-names are significant, not the names themselves.
 
 The calling program controls the methods by which a called program evaluates the values of the parameters passed to it and by which the called program returns results as modified parameter values.
 
-The individual parameters referenced in the CALL statement's USING phrase may be passed either by reference or by content. A called program is allowed to access and modify the value of the data item referenced in the calling program's CALL statement as a parameter passed by reference. This permission to access and modify a data item in the calling program is denied to the called program if the data item is specified in the CALL statement as a parameter passed by content. The value of the parameter is evaluated when the CALL statement is executed and is presented to the called program. This value may be changed by the called program during the course of its execution, but the value of the corresponding data item in the calling program is not modified. Thus a parameter passed by reference may be used by a called program to return to the calling program whereas a parameter passed by content cannot be so used.
+The individual parameters referenced in the CALL statement's USING phrase may be passed either by reference or by content. A called program is allowed to access and modify the value of the data item referenced in the calling program's CALL statement as a parameter passed by reference. This permission to access and modify a data item in the calling program is denied to the called program if the data item is specified in the CALL statement as a parameter passed by content. The value of the parameter is evaluated when the CALL statement is executed and is presented to the called program. This value may be changed by the called program during the course of its execution, but the value of the corresponding data item in the calling program is not modified. Thus a parameter passed by reference may be used by a called program to return a result to the calling program whereas a parameter passed by content cannot be so used.
+
+> ⚠ **CORRECTED — see the Errata (C66).** The standard prints `may be used by a called program to return to the calling program` (page 109, folio II-25). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-25 (T) (page 837, folio A-7), applied in place: "Paragraph 6.4.2.2, entitled 'Value of Parameters', second paragraph, penultimate line, change 'may be used by a called program to return to the' to 'may be used by a called program to return a result to the'", a typographical error (kb/Work PB5045). Corrected to `may be used by a called program to return a result to the calling program`.
 
 The parameters referenced in a called program's Procedure Division header must be described in the Linkage Section of that program's Data Division.
 
@@ -4925,7 +5205,15 @@ II-35
 
 ## Page 120
 
-<!-- This page is blank; it contains no standard text. -->
+## 8. INTRINSIC FUNCTION FACILITY
+
+Data processing problems frequently require the use of values which are not directly accessible in the data storage associated with the object program. These data values must be derived through performing some operations on other data. A function represents a temporary data item whose value is derived automatically at the time of reference during the execution of the object program.
+
+The value returned by a function is considered to be a data value. A mechanism is provided at object time to assign a data value to a function when it is referenced. In order to determine the value of a function, the evaluation mechanism may require access to data values provided by the referencing program. These data values are provided by specifying parameters, known as arguments, when referencing the function. Specific functions may place constraints on these arguments such as range, data types, or size, etc. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined.
+
+> ⚠ **CORRECTED — see the Errata (C67).** The standard prints `(page II-36, a blank page)` (page 120). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-35 (page 837, folio A-7), applied in place: "Add the following on page II-36 after paragraph 7.6: 8. INTRINSIC FUNCTION FACILITY" and its two paragraphs; page II-36 is printed blank (kb/Work PB5045). Corrected to `8. INTRINSIC FUNCTION FACILITY (the two paragraphs above)`.
+
+> ⚠ **CORRECTED — see the Errata (C188).** The standard prints `If, at the time a function is referenced, ... the returned value for the function is undefined. (Amendment 1's sentence, C67)` (page 120). Amendment 2 (ANSI X3.23b-1993), its change for page II-35 (A-7) (page 916, folio B-4), applied in place: "Paragraph 8 entitled Intrinsic Function Facility, second paragraph, replace the last sentence with the following" (kb/Work PB5045). Corrected to `..., then the result of such a reference is undefined.`.
 
 # SECTION III: GLOSSARY
 
@@ -4939,7 +5227,9 @@ Glossary
 
 The terms in this section are defined in accordance with their meaning in COBOL, and may not have the same meaning for other languages.
 
-These definitions are also intended as either reference or introductory material to be reviewed prior to reading the detailed language specifications that follow. For this reason, these definitions are, in most instances, brief and do not include detailed syntactical rules. Complete specifications for elements defined in this section can be located in Sections IV through XVI of this document.
+These definitions are also intended as either reference or introductory material to be reviewed prior to reading the detailed language specifications that follow. For this reason, these definitions are, in most instances, brief and do not include detailed syntactical rules. Complete specifications for elements defined in this section can be located in Sections IV through XVI and Section A of this document.
+
+> ⚠ **CORRECTED — see the Errata (C189).** The standard prints `Complete specifications for elements defined in this section can be located in Sections IV through XVI of this document.` (page 121, folio III-1). Amendment 2 (ANSI X3.23b-1993), its change for page III-1 (page 916, folio B-4), applied in place: "Paragraph 1 entitled Introduction, second paragraph, change the last sentence to read" (kb/Work PB5045). Corrected to `Complete specifications for elements defined in this section can be located in Sections IV through XVI and Section A of this document.`.
 
 ### 2. <u>DEFINITIONS</u>
 
@@ -4955,7 +5245,15 @@ These definitions are also intended as either reference or introductory material
 
 <u>Alphanumeric Character</u>. Any character in the computer's character set.
 
+<u>Alphanumeric Function</u>. A function whose value is composed of a string of one or more characters from the computer's character set.
+
+> ⚠ **CORRECTED — see the Errata (C68).** The standard prints `Alphanumeric Character (the entry it follows)` (page 121, folio III-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Alphanumeric Function. A function whose value is composed of a string of one or more characters from the computer's character set.`.
+
 <u>Alternate Record Key</u>. A key, other than the prime record key, whose contents identify a record within an indexed file.
+
+<u>Argument</u>. An identifier, a literal, or an arithmetic expression that specifies a value to be used in the evaluation of a function.
+
+> ⚠ **CORRECTED — see the Errata (C69).** The standard prints `Alternate Record Key (the entry it follows)` (page 121, folio III-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Argument. An identifier, a literal, or an arithmetic expression that specifies a value to be used in the evaluation of a function.`.
 
 <u>Arithmetic Expression</u>. An identifier of a numeric elementary item, a numeric literal, such identifiers and literals separated by arithmetic operators, two arithmetic expressions separated by an arithmetic operator, or an arithmetic expression enclosed in parentheses.
 
@@ -5053,7 +5351,9 @@ Glossary
 
 NOTE 1: In the cases where an implementation does not provide all of the COBOL character set to be graphically represented, substitute graphics may be specified by the implementor to replace the characters not represented. The COBOL character set graphics are a subset of American National Standard X3.4-1977, Code for Information Interchange. With the exception of '$', they are also a subset of the graphics defined for the International Reference Version of International Standard ISO 646-1973, 7-Bit Coded Character Set for Information Processing Interchange.
 
-NOTE 2: When the computer character set includes lowercase letters, they may be used in character-strings. Except when used in nonnumeric literals and some PICTURE symbols, each lowercase letter is equivalent to the corresponding uppercase letter.
+NOTE 2: When the computer character set includes lowercase letters, they may be used in character-strings and text words. Except when used in nonnumeric literals and some PICTURE symbols, each lowercase letter is equivalent to the corresponding uppercase letter.
+
+> ⚠ **CORRECTED — see the Errata (C190).** The standard prints `they may be used in character-strings. Except when used in nonnumeric literals and some PICTURE symbols` (page 124, folio III-4). Amendment 2 (ANSI X3.23b-1993), its change for page III-4 (page 916, folio B-4), applied in place: "Definition of COBOL Character Set, NOTE 2, first sentence, change 'they may be used in character-strings.' to 'they may be used in character-strings and text words.'" (kb/Work PB5045). Corrected to `they may be used in character-strings and text words. Except when used in nonnumeric literals and some PICTURE symbols`.
 
 <u>COBOL Word</u>. A character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. (See page IV-5, COBOL Words.)
 
@@ -5151,7 +5451,9 @@ Glossary
 
 <u>Data Description Entry</u>. An entry, in the Data Division of a COBOL program, that is composed of a level-number followed by a data-name, if required, and then followed by a set of data clauses, as required.
 
-<u>Data Item</u>. A unit of data (excluding literals) defined by the COBOL program.
+<u>Data Item</u>. A unit of data (excluding literals) defined by a COBOL program or by the rules for function evaluation.
+
+> ⚠ **CORRECTED — see the Errata (C74).** The standard prints `Data Item. A unit of data (excluding literals) defined by the COBOL program.` (page 127, folio III-7). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to `Data Item. A unit of data (excluding literals) defined by a COBOL program or by the rules for function evaluation.`.
 
 <u>Data-Name</u>. A user-defined word that names a data item described in a data description entry. When used in the general formats, 'data-name' represents a word which must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of the format.
 
@@ -5279,13 +5581,25 @@ Glossary
 
 <u>File Section</u>. The section of the Data Division that contains file description entries and sort-merge file description entries together with their associated record descriptions.
 
-<u>Fixed File Attributes</u>. Information about a file which is established when a file is created and cannot subsequently be changed during the existence of the file. These attributes include the organization of the file (sequential, relative, or indexed), the prime record key, the alternate record keys, the code set, the minimum and maximum record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the blocking factor, the padding character, and the record delimiter.
+<u>Fixed File Attributes</u>. Information about a file which is established when a file is created and cannot subsequently be changed during the existence of the file. These attributes include the organization of the file (sequential, relative, or indexed), the prime record key, the alternate record keys, the code set, the minimum and maximum record size, the record type (fixed or variable), the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.
+
+> ⚠ **CORRECTED — see the Errata (C191).** The standard prints `the collating sequence of the keys for indexed files, the blocking factor, the padding character, and the record delimiter.` (page 130, folio III-10). Amendment 2 (ANSI X3.23b-1993), its change for page III-10 (page 916, folio B-4), applied in place: "Definition of Fixed File Attributes, sixth line, change 'the blocking factor' to 'the minimum and maximum physical record size'" (kb/Work PB5045). Corrected to `the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.`.
 
 <u>Fixed Length Record</u>. A record associated with a file whose file description or sort-merge description entry requires that all records contain the same number of character positions.
 
 <u>Footing Area</u>. The position of the page body adjacent to the bottom margin.
 
 <u>Format</u>. A specific arrangement of a set of data.
+
+<u>Function</u>. A temporary data item whose value is determined by invoking a mechanism provided by the implementor at the time the function is referenced during the execution of a statement.
+
+<u>Function-Identifier</u>. A syntactically correct combination of character-strings and separators that references a function. The data item represented by a function is uniquely identified by a function-name with its arguments, if any. A function-identifier may include a reference-modifier. A function-identifier that references an alphanumeric function may be specified anywhere in the general formats that an identifier may be specified, subject to certain restrictions. A function-identifier that references an integer or numeric function may be referenced anywhere in the general formats that an arithmetic expression may be specified. (See page IV-22, Function-Identifier.)
+
+<u>Function-Name</u>. A word that names a mechanism provided by the implementor to determine the value of a function.
+
+> ⚠ **CORRECTED — see the Errata (C70).** The standard prints `Format (the entry it follows)` (page 130, folio III-10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Function. A temporary data item whose value is determined by invoking a mechanism provided by the implementor at the time the function is referenced during the execution of a statement.`.
+
+> ⚠ **CORRECTED — see the Errata (C71).** The standard prints `Function (the entry they follow)` (page 130, folio III-10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Function-Identifier. ... (See page IV-22, Function-Identifier.) ¶ Function-Name. A word that names a mechanism provided by the implementor to determine the value of a function.`.
 
 <u>Global Name</u>. A name which is declared in only one program but which may be referenced from that program and from any program contained within that program. Condition-names, data-names, file-names, record-names, report-names, and some special registers may be global names. (See page X-6, Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names; page X-18, general rule 1 concerning LINAGE-COUNTER; and page X-22, general rule 1 concerning LINE-COUNTER and PAGE-COUNTER.)
 
@@ -5307,7 +5621,9 @@ Glossary
 
 <u>I-O Status</u>. A conceptual entity which contains the two-character value indicating the resulting status of an input-output operation. This value is made available to the program through the use of the FILE STATUS clause in the file control entry for the file.
 
-<u>Identifier</u>. A syntactically correct combination of a data-name, with its qualifiers, subscripts, and reference modifiers, as required for uniqueness of reference, that names a data item. The rules for 'identifier' associated with the general formats may, however, specifically prohibit qualification, subscripting, or reference modification.
+<u>Identifier</u>. A syntactically correct combination of character-strings and separators that names a data item. When referencing a data item which is not a function, an identifier consists of a data-name, together with its qualifiers, subscripts, and reference-modifier, as required for uniqueness of reference. When referencing a data item which is a function, a function-identifier is used. The rules for 'identifier' associated with general formats may, however, specifically prohibit reference to functions, qualification, subscripting, or reference modification.
+
+> ⚠ **CORRECTED — see the Errata (C75).** The standard prints `Identifier. A syntactically correct combination of a data-name, with its qualifiers, subscripts, and reference modifiers, as required for uniqueness of reference, that names a data item. The rules for 'identifier' associated with the general formats may, however, specifically prohibit qualification, subscripting, or reference modification.` (page 131, folio III-11). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to the text above.
 
 <u>Imperative Statement</u>. A statement that either begins with an imperative verb and specifies an unconditional action to be taken or is a conditional statement that is delimited by its explicit scope terminator (delimited scope statement). An imperative statement may consist of a sequence of imperative statements.
 
@@ -5347,7 +5663,23 @@ Glossary
 
 <u>Input Procedure</u>. A set of statements, to which control is given during the execution of a SORT statement, for the purpose of controlling the release of specified records to be sorted.
 
-<u>Integer</u>. A numeric literal or a numeric data item that does not include any digit position to the right of the assumed decimal point. When the term 'integer' appears in general formats, integer must not be a numeric data item, and must not be signed, nor zero unless explicitly allowed by the rules of that format.
+<u>Integer</u>. (1) A numeric literal that does not include any digit positions to the right of the decimal point.
+
+(2) A numeric data item defined in the Data Division that does not include any digit positions to the right of the decimal point.
+
+(3) An integer function.
+
+> ⚠ **CORRECTED — see the Errata (C192).** The standard prints `(3) A numeric function whose definition provides that all digits ... (Amendment 1's item, C76)` (page 132, folio III-12). Amendment 2 (ANSI X3.23b-1993), its change for page III-12 (A-9) (page 916, folio B-4), applied in place: "Definition of Integer, item 3, change to read: 'An integer function.'" (kb/Work PB5045). Corrected to `(3) An integer function.`.
+
+Where the term 'integer' appears in the general formats, integer must be a numeric literal which is an integer, and it must be neither signed nor zero unless explicitly allowed by the rules for that format.
+
+> ⚠ **CORRECTED — see the Errata (C76).** The standard prints `Integer. A numeric literal or a numeric data item that does not include any digit position to the right of the assumed decimal point. When the term 'integer' appears in general formats, integer must not be a numeric data item, and must not be signed, nor zero unless explicitly allowed by the rules of that format.` (page 132, folio III-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (the definition continues on page 839, folio A-9) (kb/Work PB5045). Corrected to `Integer. (1) ... (2) ... (3) ... (the definition above)`.
+
+<u>Integer Function</u>. A function whose class and category are numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.
+
+> ⚠ **CORRECTED — see the Errata (C72).** The standard prints `Integer (the entry it follows)` (page 132, folio III-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Integer Function. A function whose category is numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.`.
+
+> ⚠ **CORRECTED — see the Errata (C193).** The standard prints `Integer Function. A function whose category is numeric ... (Amendment 1's entry, C72)` (page 132, folio III-12). Amendment 2 (ANSI X3.23b-1993), its change for page III-12 (A-8) (page 916, folio B-4), applied in place: "Definition of Integer Function, change 'A function whose category is numeric ...' to 'A function whose class and category are numeric ...'" (kb/Work PB5045). Corrected to `Integer Function. A function whose class and category are numeric ...`.
 
 <u>Internal Data</u>. The data described in a program excluding all external data items and external file connectors. Items described in the Linkage Section of a program are treated as internal data.
 
@@ -5363,7 +5695,9 @@ Glossary
 
 <u>Key of Reference</u>. The key, either prime or alternate, currently being used to access records within an indexed file.
 
-<u>Key Word</u>. A reserved word whose presence is required when the format in which the word appears is used in a source program.
+<u>Key Word</u>. A reserved word or function-name whose presence is required when the format in which the word appears is used in a source program.
+
+> ⚠ **CORRECTED — see the Errata (C77).** The standard prints `Key Word. A reserved word whose presence is required when the format in which the word appears is used in a source program.` (page 132, folio III-12). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to `Key Word. A reserved word or function-name whose presence is required when the format in which the word appears is used in a source program.`.
 
 III-12
 
@@ -5458,6 +5792,10 @@ Glossary
 <u>Nonnumeric Literal</u>. A literal bounded by quotation marks. The string of characters may include any character in the computer's character set.
 
 <u>Numeric Character</u>. A character that belongs to the following set of digits: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9.
+
+<u>Numeric Function</u>. A function whose class and category are numeric but which for some possible evaluation does not satisfy the requirements of an integer function.
+
+> ⚠ **CORRECTED — see the Errata (C73).** The standard prints `Numeric Character (the entry it follows)` (page 135, folio III-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045). Corrected to `Numeric Function. A function whose class and category are numeric but which for some possible evaluation does not satisfy the requirements of an integer function.`.
 
 <u>Numeric Item</u>. A data item whose description restricts its content to a value represented by characters chosen from the digits '0' through '9'; if signed, the item may also contain a '+', '-', or other representation of an operational sign. (See VI-42, The SIGN Clause.)
 
@@ -5620,7 +5958,9 @@ Glossary
 
 <u>Reference Format</u>. A format that provides a standard method for describing COBOL source programs.
 
-<u>Reference Modifier</u>. The leftmost-character-position and length used to establish and reference a data item. (See page IV-22, Reference Modification.)
+<u>Reference-Modifier</u>. A syntactically correct combination of character-strings and separators that defines a unique data item. It includes a delimiting left parenthesis separator, the leftmost character position, a colon separator, optionally a length, and a delimiting right parenthesis separator. (See page IV-22, Reference-Modifier.)
+
+> ⚠ **CORRECTED — see the Errata (C80).** The standard prints `Reference Modifier. The leftmost-character-position and length used to establish and reference a data item. (See page IV-22, Reference Modification.)` (page 139, folio III-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-19 (page 839, folio A-9), applied in place: "Replace the definition for Reference Modifier with the following" (kb/Work PB5045). Corrected to `Reference-Modifier. A syntactically correct combination of character-strings and separators that defines a unique data item. ... (See page IV-22, Reference-Modifier.)`.
 
 <u>Relation</u>. The term is synonymous with relational operator.
 
@@ -5814,7 +6154,9 @@ Glossary
 
 <u>Subprogram</u>. A program which is the object of a CALL statement combined at object time with the calling program to produce a run unit. The term is synonymous with called program.
 
-<u>Subscript</u>. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, which identifies a particular element in a table.
+<u>Subscript</u>. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, that identifies a particular element in a table. A subscript may be the word ALL when the subscripted identifier is used as a function argument. (See page A-28, Arguments.)
+
+> ⚠ **CORRECTED — see the Errata (C78).** The standard prints `Subscript. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, which identifies a particular element in a table.` (page 144, folio III-24). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to the text above.
 
 <u>Subscripted Data-Name</u>. An identifier that is composed of a data-name followed by one or more subscripts enclosed in parentheses.
 
@@ -5846,7 +6188,9 @@ Glossary
 
 (2) A literal including, in the case of nonnumeric literals, the opening quotation mark and the closing quotation mark which bound the literal.
 
-(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal.
+(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal. One or both of the bounding separators may be a pseudo-text delimiter.
+
+> ⚠ **CORRECTED — see the Errata (C194).** The standard prints `(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal.` (page 145, folio III-25). Amendment 2 (ANSI X3.23b-1993), its change for page III-25 (page 916, folio B-4), applied in place: "Definition of Text Word, item 3, add the following as a new last sentence" (kb/Work PB5045). Corrected to `(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal. One or both of the bounding separators may be a pseudo-text delimiter.`.
 
 <u>Top Margin</u>. An empty area which precedes the page body.
 
@@ -5876,7 +6220,9 @@ Glossary
 
 <u>Volume</u>. A discrete portion of a storage medium, the dimensions of which are determined by each implementor, that contains part of a file, all of a file, or any number of files. The term is synonymous with reel and unit.
 
-<u>Word</u>. A character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. (See page IV-5, COBOL Words.)
+<u>Word</u>. A character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. (See page IV-5, COBOL Words.)
+
+> ⚠ **CORRECTED — see the Errata (C79).** The standard prints `Word. A character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. (See page IV-5, COBOL Words.)` (page 146, folio III-26). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045). Corrected to `Word. A character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. (See page IV-5, COBOL Words.)`.
 
 <u>Working-Storage Section</u>. The section of the Data Division that describes working storage data items, composed either of noncontiguous items or working storage records or of both.
 
@@ -5940,7 +6286,9 @@ Options are indicated in a general format or a portion of a general format by ve
 
 In text, other than general formats, the ellipsis (...) shows omission of a word or words when such omission does not impair comprehension. This is the conventional meaning of the ellipsis, and the use becomes apparent in context.
 
-In the general format, the ellipsis (...) represents the position at which the user elects repetition of a portion of a format. The portion of the format that may be repeated is determined as follows:
+In the general formats, the ellipsis (...) represents the position at which the user elects repetition of a portion of a format. The portion of the format that may be repeated is determined as follows:
+
+> ⚠ **CORRECTED — see the Errata (C81).** The standard prints `In the general format, the ellipsis (...) represents` (page 148, folio IV-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-2 (T) (page 839, folio A-9), applied in place: "Paragraph 2.1.5 entitled 'Ellipses', second paragraph, first line, change 'In the general format,' to 'In the general formats,'", a typographical error (kb/Work PB5045). Corrected to `In the general formats, the ellipsis (...) represents`.
 
 Given ... (the ellipsis) in a format, scanning right to left, determine the ] (right bracket) or } (right brace) delimiter immediately to the left of the ... (ellipsis); continue scanning right to left and determine the logically matching [ (left bracket) or { (left brace) delimiter; the ... (ellipsis) applies to the portion of the format between the determined pair of delimiters.
 
@@ -5986,7 +6334,9 @@ The most basic and indivisible unit of the language is the character. The set of
 
 Certain of the characters comprising the COBOL character set may not be graphically represented in definitions of national and international standard character sets. In these instances, a substitute graphic may be specified to replace the character(s) not represented.
 
-When a character set contains fewer than 51 characters, double characters must be substituted for the single characters. This double character substitution is an obsolete feature in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+When a character set contains fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double characters must be substituted for the single characters. This double character substitution is an obsolete feature in Standard COBOL because it is to be deleted from the next revision of Standard COBOL.
+
+> ⚠ **CORRECTED — see the Errata (C82).** The standard prints `When a character set contains fewer than 51 characters, double characters` (page 150, folio IV-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (T) (page 839, folio A-9), applied in place: "Paragraph 4.1, entitled 'Character Set', third paragraph, first line, change 'fewer than 51 characters, double' to 'fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double'", a typographical error (kb/Work PB5045). Corrected to `When a character set contains fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double characters`.
 
 4.2 LANGUAGE STRUCTURE
 
@@ -6002,7 +6352,11 @@ A separator is a character or two contiguous characters formed according to the 
 
 (3) The punctuation character period, when followed by a space is a separator. It must be used only to indicate the end of a sentence, or as shown in formats.
 
-(4) The punctuation characters right and left parentheses are separators. Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, reference modifiers, arithmetic expressions, or conditions.
+(4) The punctuation characters right and left parentheses are separators. Except in pseudo-text, parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions.
+
+> ⚠ **CORRECTED — see the Errata (C83).** The standard prints `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, reference modifiers, arithmetic expressions, or conditions.` (page 150, folio IV-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (page 839, folio A-9), applied in place: "Paragraph 4.2.1, rule (4), change second sentence to read" (kb/Work PB5045). Corrected to `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions.`.
+
+> ⚠ **CORRECTED — see the Errata (C195).** The standard prints `Parentheses may appear only in balanced pairs` (page 150, folio IV-4). Amendment 2 (ANSI X3.23b-1993), its change for page IV-4 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.1 entitled Separators, rule 4, change second sentence from: 'Parentheses may appear only ...' to 'Except in pseudo-text, parentheses may appear only ...'" (kb/Work PB5045). Corrected to `Except in pseudo-text, parentheses may appear only in balanced pairs`.
 
 IV-4
 
@@ -6010,7 +6364,9 @@ IV-4
 
 Character-Strings
 
-(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space or left parenthesis; a closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, or right parenthesis.
+(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter. A closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, right parenthesis, or closing pseudo-text delimiter. Separators immediately preceding the opening quotation mark are not part of the opening separator quotation mark. Separators immediately following the closing quotation mark are not part of the closing separator quotation mark.
+
+> ⚠ **CORRECTED — see the Errata (C196).** The standard prints `(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space or left parenthesis; a closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, or right parenthesis.` (page 151, folio IV-5). Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (page 917, folio B-5), applied in place: "Paragraph 4.2.1 entitled Separators, change rule 5 to read" (kb/Work PB5045). Corrected to the text above.
 
 (6) Pseudo-text delimiters are separators. An opening pseudo-text delimiter must be immediately preceded by a space; a closing pseudo-text delimiter must be immediately followed by one of the separators space, comma, semicolon, or period.
 
@@ -6038,7 +6394,11 @@ A character-string is a character or a sequence of contiguous characters which f
 
 #### 4.2.2.1 COBOL Words
 
-A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. Each character of a COBOL word is selected from the set of letters, digits, and the hyphen. The hyphen may not appear as the first or last character. Each lowercase letter is
+A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word that is not a special character word is selected from the set of letters, digits, and the hyphen; the hyphen may not appear as the first or last character in such words. Each lowercase letter is
+
+> ⚠ **CORRECTED — see the Errata (C84).** The standard prints `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word.` (page 151, folio IV-5). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the paragraph as Amendment 1 prints it; it runs on to page 152 (kb/Work PB5045). Corrected to `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name.`.
+
+> ⚠ **CORRECTED — see the Errata (C197).** The standard prints `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word is selected from the set of letters, digits, and the hyphen. The hyphen may not appear as the first or last character. Each lowercase letter is (Amendment 1's text, C84)` (page 151, folio IV-5). Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.2.1, entitled COBOL Words, replace the paragraph with the following", which continues on page 152 (kb/Work PB5045). Corrected to the text above.
 
 IV-5
 
@@ -6046,7 +6406,25 @@ IV-5
 
 User-Defined Words
 
-considered to be equivalent to its corresponding uppercase letter. Within a source program, reserved words and user-defined words form disjoint sets; reserved words and system-names form disjoint sets; system-names and user-defined words form intersecting sets. The same COBOL word may be used as a system-name and as a user-defined word within a source program; and the class of a specific occurrence of this COBOL word is determined by the context of the clause or phrase in which it occurs.
+considered to be equivalent to its corresponding uppercase letter.
+
+Within a source program the following apply:
+
+(1) For all COBOL words excluding the words LENGTH, RANDOM, and SUM:
+
+a. Reserved words form disjoint sets with user-defined words, system-names, and function-names.
+
+b. Function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word. The classification of a specific occurrence of such COBOL words is determined by the context of the clause or phrase in which it occurs.
+
+(2) For the COBOL words LENGTH, RANDOM, and SUM:
+
+a. The reserved words LENGTH, RANDOM, and SUM form an identical set with the function-names LENGTH, RANDOM, and SUM. The same COBOL word LENGTH, RANDOM, or SUM may be used as a function-name and as a reserved word. The classification of a specific occurrence of such COBOL words is determined by the context in which it occurs.
+
+b. The COBOL words LENGTH, RANDOM, and SUM form disjoint sets with user-defined words and system-names. The COBOL words LENGTH, RANDOM, and SUM may not be used as a system-name or as a user-defined word regardless of context.
+
+> ⚠ **CORRECTED — see the Errata (C85).** The standard prints `reserved words and system-names form disjoint sets; system-names and user-defined words form intersecting sets. The same COBOL word may be used as a system-name and as a user-defined word within a source program; and the class of a specific occurrence of this COBOL word is determined` (page 152, folio IV-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the rest of the paragraph as Amendment 1 prints it (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C198).** The standard prints `considered to be equivalent to its corresponding uppercase letter. Within a source program, reserved words and user-defined words form disjoint sets; reserved words and system-names form disjoint sets; reserved words and function-names form disjoint sets; function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word within a source program; and the class of a specific occurrence of the COBOL word is determined by the context of the clause or phrase in which it occurs. (Amendment 1's text, C85)` (page 152, folio IV-6). Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.2.1, entitled COBOL Words, replace the paragraph with the following", its text on page 917 (folio B-5) and page 918 (folio B-6) (kb/Work PB5045). Corrected to `considered to be equivalent to its corresponding uppercase letter. ¶ Within a source program the following apply: (1) a. b. (2) a. b. (above)`.
 
 #### 4.2.2.1.1 User-Defined Words
 
@@ -6206,6 +6584,14 @@ There are four special registers:
 
 Certain reserved words are used to name and reference specific constant values. These reserved words are specified on page IV-10, Figurative Constant Values.
 
+#### 4.2.2.1.4 Function-Names
+
+A function-name is a word that is one of a specified list of words which may be used in COBOL source programs. With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word. (See page A-29, Definitions of Functions.)
+
+> ⚠ **CORRECTED — see the Errata (C86).** The standard prints `4.2.2.2 Literals (the paragraph it precedes)` (page 155, folio IV-9). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-9 (page 840, folio A-10), applied in place: "Add the following before paragraph 4.2.2.2: 4.2.2.1.4 Function-Names" (kb/Work PB5045). Corrected to `4.2.2.1.4 Function-Names. A function-name is a word that is one of a specified list of words ...`.
+
+> ⚠ **CORRECTED — see the Errata (C199).** The standard prints `The same word, in a different context, may appear in a program as a user-defined word or a system-name. (Amendment 1's sentence, C86)` (page 155, folio IV-9). Amendment 2 (ANSI X3.23b-1993), its change for page IV-9 (A-10) (page 918, folio B-6), applied in place: "Paragraph 4.2.2.1.4 entitled Function-Names, change the second sentence to read" (kb/Work PB5045). Corrected to `With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word.`.
+
 ### 4.2.2.2 Literals
 
 A literal is a character-string whose value is implied by an ordered set of characters of which the literal is composed or by specification of a reserved word which references a figurative constant. Every literal belongs to one of two types: nonnumeric or numeric.
@@ -6284,7 +6670,9 @@ The figurative constant value and the reserved words used to reference them are 
 
 When a figurative constant represents a string of one or more characters, the length of the string is determined by the compiler from context according to the following rules:
 
-(1) When a figurative constant is specified in a VALUE clause, or when a figurative constant is associated with another data item (e.g., when the figurative constant is moved to or compared with another data item), the string of characters specified by the figurative constant is repeated character by character on the right until the size of the resultant string is greater than or equal to the number of character positions in the associated data item. This resultant string is then truncated from the right until it is equal to the number of character positions in the associated data item. This is done prior to and independent of the application of any JUSTIFIED clause that may be associated with the data item.
+(1) When a figurative constant is specified in a VALUE clause, or when a figurative constant is associated with another data item (e.g., when the figurative constant is moved to or compared with another data item), the string of characters specified by the figurative constant is repeated character by character on the right until the size of the resultant string is greater than or equal to the number of character positions in the associated data item. This resultant string is then truncated from the right until the number of character positions remaining is equal either to 1 or to the number of character positions in the associated data item, whichever is greater. This is done prior to and independent of the application of any JUSTIFIED clause that may be associated with the data item.
+
+> ⚠ **CORRECTED — see the Errata (C200).** The standard prints `This resultant string is then truncated from the right until it is equal to the number of character positions in the associated data item.` (page 157, folio IV-11). Amendment 2 (ANSI X3.23b-1993), its change for page IV-11 (page 918, folio B-6), applied in place: "Paragraph 4.2.2.2.3 entitled Figurative Constant Values, second occurrence of a paragraph numbered (1), penultimate sentence, change in part" (kb/Work PB5045). Corrected to `This resultant string is then truncated from the right until the number of character positions remaining is equal either to 1 or to the number of character positions in the associated data item, whichever is greater.`.
 
 (2) When a figurative constant, other than ALL literal, is not associated with another data item as when the figurative constant appears in a DISPLAY, STOP, STRING, or UNSTRING statement, the length of the string is one character.
 
@@ -6400,7 +6788,13 @@ Entries that specify condition-names, to be associated with particular values of
 
 ### 4.3.3 Concept of Classes of Data
 
-There are five categories of data items. (See page VI-29, The PICTURE Clause.) These are grouped into three classes: alphabetic, numeric, and alphanumeric. For alphabetic and numeric, the classes and categories are synonymous. The alphanumeric class includes the categories of alphanumeric edited, numeric edited, and alphanumeric (without editing). Every elementary item belongs to one of the classes and further to one of the categories. The class of a group item is treated at object time as alphanumeric regardless of the class of elementary items subordinate to that group item. The following table depicts the relationship of the class and categories of data items.
+There are five categories of data items. (See page VI-29, The PICTURE Clause.) These are grouped into three classes: alphabetic, numeric, and alphanumeric. For alphabetic and numeric, the classes and categories are synonymous. The alphanumeric class includes the categories of alphanumeric edited, numeric edited, and alphanumeric (without editing). Every elementary item belongs to one of the classes and further to one of the categories. The class of a group item is treated at object time as alphanumeric regardless of the class of elementary items subordinate to that group item.
+
+Every data item which is a function is an elementary item, and belongs to one of the categories alphanumeric or numeric, and to the corresponding class; the category of each function is determined by the definition of the function. This definition is made in these specifications. (See page A-27, Intrinsic Function Module.)
+
+The following table depicts the relationship of the class and categories of data items.
+
+> ⚠ **CORRECTED — see the Errata (C87).** The standard prints `The following table depicts the relationship of the class and categories of data items.` (page 161, folio IV-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-15 (page 840, folio A-10), applied in place: "Paragraph 4.3.3, delete the last sentence and add the following new paragraphs"; the deleted sentence is the second new paragraph (kb/Work PB5045). Corrected to `Every data item which is a function is an elementary item, ... (See page A-27, Intrinsic Function Module.) ¶ The following table depicts the relationship of the class and categories of data items.`.
 
 | LEVEL OF ITEM | CLASS | CATEGORY |
 |---|---|---|
@@ -6419,7 +6813,13 @@ Character Representation and Radix
 
 The value of a numeric item may be represented in either binary or decimal form depending on the equipment. In addition there are several ways of expressing decimal. Since these representations are actually combinations of bits, they are commonly called binary-coded decimal forms. The selection of radix is generally dependent upon the arithmetic capability of the computer. If more than one arithmetic radix is provided, the selection is dependent upon the specification of the USAGE clause. The binary-coded decimal form is also used to represent characters and symbols that are alphanumeric items. The selection of the proper binary-coded alphanumeric or binary-coded decimal form is dependent upon the capability of the computer and its external media.
 
-When a computer provides more than one means of representing data, the standard data format must be used if not otherwise specified by the data description. If both the external medium and the computer are capable of handling more than one form of data representation, or if there is no external medium associated with the data, the selection is dependent on factors included in USAGE, PICTURE, etc., clauses. Each implementor provides a complete explanation of the possible forms on the computer for which COBOL is implemented. The method used in selecting the proper data form is also provided to allow the programmer to anticipate and/or control the selection.
+When a computer provides more than one means of representing data, the standard data format must be used for data items other than integer and numeric functions, if not otherwise specified by the data description. If both the external medium and the computer are capable of handling more than one form of data representation, or if there is no external medium associated with the data, the selection is dependent on factors included in USAGE, PICTURE, etc., clauses. Each implementor provides a complete explanation of the possible forms on the computer for which COBOL is implemented. The method used in selecting the proper data form is also provided to allow the programmer to anticipate and/or control the selection.
+
+> ⚠ **CORRECTED — see the Errata (C88).** The standard prints `the standard data format must be used if not otherwise specified by the data description.` (page 162, folio IV-16). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-16 (page 840, folio A-10), applied in place: "Paragraph 4.3.4, second paragraph, replace first sentence with the following" (kb/Work PB5045). Corrected to `the standard data format must be used for data items other than integer and numeric functions, if not otherwise specified by the data description.`.
+
+An alphanumeric function is always represented in the standard data format. The size of an alphanumeric function in standard data format characters is determined by the definition of the function. The implementor specifies the representation of integer and numeric functions, and this representation need not be the standard data format. Integer and numeric functions may be used only in arithmetic expressions. An integer or numeric function represents the value resulting from the evaluation of the function without the restriction on composite of operands and/or receiving data items. Each implementor will indicate the techniques used in evaluating integer and numeric functions.
+
+> ⚠ **CORRECTED — see the Errata (C89).** The standard prints `The size of an elementary data item or a group item is the number of characters in standard data format of the item. (the paragraph it precedes)` (page 162, folio IV-16). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-16 (page 840, folio A-10), applied in place: "Paragraph 4.3.4, add the following new paragraph preceding the last paragraph" (kb/Work PB5045). Corrected to the text above.
 
 The size of an elementary data item or a group item is the number of characters in standard data format of the item. Synchronization and usage may cause a difference between this size and that required for internal representation.
 
@@ -6482,6 +6882,10 @@ IV-17
 Qualification
 
 not allow the reference in one of those programs to differentiate between the two identically named resources, then certain conventions which limit the scope of names apply. These conventions ensure that the resource identified is that described in the program containing the reference. (See page X-4, Scope of Names.)
+
+When the resource named is a function, the function definition may require the user to specify in the reference to the function a value or set of values for one or more parameters which determine the value of the function for that particular reference. This is accomplished through the specification of arguments as described in the following paragraphs.
+
+> ⚠ **CORRECTED — see the Errata (C90).** The standard prints `Unless otherwise specified by the rules for a statement, any subscripting and reference modification are evaluated only once (the paragraph it precedes)` (page 164, folio IV-18). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-18 (page 840, folio A-10), applied in place: "Paragraph 4.3.8, add the following new paragraph preceding the last paragraph" (kb/Work PB5045). Corrected to the text above.
 
 Unless otherwise specified by the rules for a statement, any subscripting and reference modification are evaluated only once as the first operation of the execution of that statement.
 
@@ -6608,11 +7012,18 @@ Subscripts are used when reference is made to an individual element within a tab
 4.3.8.2.2 General Format
 
 <pre style="line-height:1">
-                           ╭ integer-1                      ╮
-╭ condition-name-1 ╮    (  ┤ data-name-2 [{±} integer-2]    ├ …   )
-┤                  ├       │                                │
-╰ data-name-1      ╯       ╰ index-name-1 [{±} integer-3]   ╯
+                      ╭ <u>ALL</u>                               ╮
+                      │                                   │
+                      │ integer-1                         │
+╭ condition-name-1 ╮  │               ┌ ╭ + ╮           ┐ │
+┤                  ├ (┤ data-name-2   │ ┤   ├ integer-2 │ ├ …  )
+╰ data-name-1      ╯  │               └ ╰ - ╯           ┘ │
+                      │               ┌ ╭ + ╮           ┐ │
+                      │ index-name-1  │ ┤   ├ integer-3 │ │
+                      ╰               └ ╰ - ╯           ┘ ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C91).** The standard prints `the general format of subscripting without ALL` (page 167, folio IV-21). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.2, replace the general format with the following" (kb/Work PB5045). Corrected to `the general format above, with ALL`.
 
 4.3.8.2.3 Syntax Rules
 
@@ -6636,6 +7047,10 @@ d. In the KEY IS phrase of an OCCURS clause.
 
 (6) Integer-1 may be signed and, if signed, it must be positive.
 
+(7) The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified. (See page A-28, Arguments.)
+
+> ⚠ **CORRECTED — see the Errata (C92).** The standard prints `(6) Integer-1 may be signed and, if signed, it must be positive.` (page 167, folio IV-21). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.3, add new syntax rule 7 as follows" (kb/Work PB5045). Corrected to `(7) The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified. (See page A-28, Arguments.)`.
+
 4.3.8.2.4 General Rules
 
 (1) The value of the subscript must be a positive integer. The lowest possible occurrence number represented by a subscript is 1. The first element of any given dimension of a table is referenced by an occurrence number of 1. Each successive element within that dimension of the table is referenced by occurrence numbers of 2, 3, ... . The highest permissible occurrence number for
@@ -6654,19 +7069,66 @@ any given dimension of the table is the maximum number of occurrences of the ite
 
 (4) If integer-2 or integer-3 is specified, the value of the subscript is determined by incrementing by the value of integer-2 or integer-3 (when the operator + is used) or by decrementing by the value of integer-2 or integer-3 (when the operator - is used) either the occurrence number represented by the value of the index referenced by index-name-1 or the value of the data item referenced by data-name-2.
 
-#### 4.3.8.3 Reference Modification
+#### 4.3.8.3 Function-Identifier
 
 ##### 4.3.8.3.1 Function
 
-Reference modification defines a data item by specifying a leftmost character and length for the data item.
+> ⚠ **CORRECTED — see the Errata (C201).** The standard prints `4.3.8.3.1 Purpose of a Function-Identifier (Amendment 1's title, C95)` (page 168, folio IV-22). Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-11) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.3.1 change the title from Purpose of a Function-Identifier to Function" (kb/Work PB5045). Corrected to `4.3.8.3.1 Function`.
+
+A function-identifier is a syntactically correct combination of character-strings and separators that uniquely references the data item resulting from the evaluation of a function.
 
 ##### 4.3.8.3.2 General Format
 
 <pre style="line-height:1">
-data-name-1 ( leftmost-character-position: [ length ] )
+<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]
 </pre>
 
 ##### 4.3.8.3.3 Syntax Rules
+
+(1) Argument-1 must be an identifier, a literal, or an arithmetic expression. Specific rules governing the number, class, and category of argument-1 are given in the definition of each function. (See page A-27, Intrinsic Function Module.)
+
+(2) A reference-modifier may be specified only for functions of the category alphanumeric.
+
+(3) A function-identifier which references an alphanumeric function may be specified anywhere in the general formats that an identifier is permitted and where the rules associated with the general formats do not specifically prohibit reference to functions, except as follows:
+
+
+a. As a receiving operand of any statement.
+
+b. Where the rules associated with the general formats require the data item being referenced to have particular characteristics (such as class and category, usage, size, sign, and permissible values) and the evaluation of the function according to its definition and the particular arguments specified would not have these characteristics.
+
+(4) A function-identifier which references an integer or numeric function may be used only in an arithmetic expression.
+
+##### 4.3.8.3.4 General Rules
+
+(1) The class and other characteristics of the function being referenced are determined by the function definition. (See page A-27, Intrinsic Functions.)
+
+(2) At the time reference is made to a function, its arguments are evaluated individually in the order specified in the list of arguments, from left to right. An argument being evaluated may itself be a function-identifier or may be an expression containing function-identifiers. There is no restriction preventing the function referenced in evaluating an argument from being the same function as that for which the argument is specified.
+
+> ⚠ **CORRECTED — see the Errata (C95).** The standard prints `4.3.8.3 Reference Modification (the paragraph now numbered 4.3.8.4)` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 841, folio A-11), applied in place: "Add the following as new paragraph 4.3.8.3: 4.3.8.3 Function-Identifier", which runs on to page 842 (folio A-12) (kb/Work PB5045). Corrected to `4.3.8.3 Function-Identifier, its Purpose, General Format, Syntax Rules (1) to (4) and General Rules (1) and (2), above`.
+
+#### 4.3.8.4 Reference Modification
+
+> ⚠ **CORRECTED — see the Errata (C96).** The standard prints `4.3.8.3 Reference Modification` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4, change the title to 'Reference-Modifier'" (kb/Work PB5045). Corrected to `4.3.8.4 Reference-Modifier`.
+
+> ⚠ **CORRECTED — see the Errata (C202).** The standard prints `4.3.8.3 Reference Modification (Amendment 1 renumbered it 4.3.8.4 and retitled it Reference-Modifier, C93, C96)` (page 168, folio IV-22). Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-12) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.4, change the title from Reference-Modifier to Reference Modification" (kb/Work PB5045). Corrected to `4.3.8.4 Reference Modification`.
+
+##### 4.3.8.4.1 Function
+
+Reference modification defines a data item by specifying a leftmost character and length for the data item.
+
+##### 4.3.8.4.2 General Format
+
+<pre style="line-height:1">
+╭ data-name-1                                    ╮
+┤                                                ├ (leftmost-character-position:[length])
+╰ <u>FUNCTION</u> function-name-1 [({argument-1} …   )] ╯
+</pre>
+
+NOTE: Data-name-1 and FUNCTION function-name-1 (argument-1) are shown in the above format to provide context and are not part of the reference-modifier.
+
+> ⚠ **CORRECTED — see the Errata (C97).** The standard prints `data-name-1 ( leftmost-character-position: [ length ] )` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.2, replace the general format with the following" (kb/Work PB5045). Corrected to `the general format above, with FUNCTION function-name-1, and its NOTE`.
+
+##### 4.3.8.4.3 Syntax Rules
 
 (1) Data-name-1 must reference a data item whose usage is DISPLAY.
 
@@ -6676,9 +7138,17 @@ data-name-1 ( leftmost-character-position: [ length ] )
 
 (4) Data-name-1 may be qualified or subscripted.
 
-##### 4.3.8.3.4 General Rules
+(5) The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.
 
-(1) Each character of a data item referenced by data-name-1 is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position. The leftmost position is assigned the ordinal number one. If the data description entry for data-name-1 contains a SIGN IS SEPARATE clause, the sign position is assigned an ordinal number within that data item.
+> ⚠ **CORRECTED — see the Errata (C98).** The standard prints `(4) Data-name-1 may be qualified or subscripted.` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.3, add the following as new syntax rule 5" (kb/Work PB5045). Corrected to `(5) The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.`.
+
+##### 4.3.8.4.4 General Rules
+
+> ⚠ **CORRECTED — see the Errata (C93).** The standard prints `4.3.8.3 Reference Modification, 4.3.8.3.1 Function, 4.3.8.3.2 General Format, 4.3.8.3.3 Syntax Rules, 4.3.8.3.4 General Rules` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045). Corrected to `4.3.8.4, 4.3.8.4.1 to 4.3.8.4.4`.
+
+(1) Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position. The leftmost position is assigned the ordinal number one. If the data description entry for data-name-1 contains a SIGN IS SEPARATE clause, the sign position is assigned an ordinal number within that data item.
+
+> ⚠ **CORRECTED — see the Errata (C99).** The standard prints `(1) Each character of a data item referenced by data-name-1 is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.` (page 168, folio IV-22). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read" (kb/Work PB5045). Corrected to `(1) Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.`.
 
 (2) If the data item referenced by data-name-1 is described as numeric, numeric edited, alphabetic, or alphanumeric edited, it is operated upon for purposes of reference modification as if it were redefined as an alphanumeric data item of the same size as the data item referenced by data-name-1.
 
@@ -6690,31 +7160,61 @@ Identifier
 
 (3) Reference modification for an operand is evaluated as follows:
 
-a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts.
+a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts. If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table.
+
+> ⚠ **CORRECTED — see the Errata (C100).** The standard prints `a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts.` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence" (kb/Work PB5045). Corrected to the text above.
 
 b. If the subscripting is not specified for the operand, the reference modification is evaluated at the time subscripting would be evaluated if subscripts had been specified.
 
-(4) Reference modification creates a unique data item which is a subset of the data item referenced by data-name-1. This unique data item is defined as follows:
+c. If reference modification is specified in a function reference, the reference modification is evaluated immediately after evaluation of the function.
 
-a. The evaluation of leftmost-character-position specifies the ordinal position of the leftmost character of the unique data item in relation to the leftmost character of the data item referenced by data-name-1. Evaluation of leftmost-character-position must result in a positive nonzero integer less than or equal to the number of characters in the data item referenced by data-name-1.
+> ⚠ **CORRECTED — see the Errata (C101).** The standard prints `b. If the subscripting is not specified for the operand, ...` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c" (kb/Work PB5045). Corrected to `c. If reference modification is specified in a function reference, the reference modification is evaluated immediately after evaluation of the function.`.
 
-b. The evaluation of length specifies the size of the data item to be used in the operation. The evaluation of length must result in a positive nonzero integer. The sum of leftmost-character-position and length minus the value one must be less than or equal to the number of characters in the data item referenced by data-name-1. If length is not specified, the unique data item extends from and includes the character identified by leftmost-character-position up to and including the rightmost character of the data item referenced by data-name-1.
+(4) Reference modification creates a unique data item that is a subset of the data item referenced by data-name-1 or by function-name-1 and its arguments, if any. This unique data item is defined as follows:
 
-(5) The unique data item is considered an elementary data item without the JUSTIFIED clause. It has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric.
+> ⚠ **CORRECTED — see the Errata (C102).** The standard prints `(4) Reference modification creates a unique data item which is a subset of the data item referenced by data-name-1.` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 4, change the first sentence to read" (kb/Work PB5045). Corrected to `(4) Reference modification creates a unique data item that is a subset of the data item referenced by data-name-1 or by function-name-1 and its arguments, if any.`.
 
-#### 4.3.8.4 Identifier
+a. The evaluation of leftmost-character-position specifies the ordinal position of the leftmost character of the unique data item in relation to the leftmost character of the data item referenced by data-name-1 or function-name-1 and its arguments, if any. Evaluation of leftmost-character-position must result in a positive nonzero integer less than or equal to the number of characters in the data item referenced by data-name-1 or function-name-1 and its arguments, if any.
 
-An identifier is a term used to reflect a data-name that, if not unique in a program, must be followed by a syntactically correct combination of qualifiers, subscripts, or reference modifiers necessary for uniqueness of reference. (See page X-4, Scope of Names.)
+b. The evaluation of length specifies the size of the data item to be used in the operation. The evaluation of length must result in a positive nonzero integer. The sum of leftmost-character-position and length minus the value one must be less than or equal to the number of characters in the data item referenced by data-name-1 or function-name-1 and its arguments, if any. If length is not specified, the unique data item extends from and includes the character identified by leftmost-character-position up to and including the rightmost character of the data item referenced by data-name-1 or function-name-1 and its arguments, if any.
 
-The general format for identifier is:
+> ⚠ **CORRECTED — see the Errata (C103).** The standard prints `the data item referenced by data-name-1` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 4, paragraphs a and b, replace four occurrences of 'the data item referenced by data-name-1' by 'the data item referenced by data-name-1 or function-name-1 and its arguments, if any'" (kb/Work PB5045). Corrected to `the data item referenced by data-name-1 or function-name-1 and its arguments, if any`.
+
+(5) The unique data item is considered an elementary data item without the JUSTIFIED clause. When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric.
+
+> ⚠ **CORRECTED — see the Errata (C104).** The standard prints `without the JUSTIFIED clause. It has the same class and category` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 5, second sentence, replace the word 'It' by 'When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item'" (kb/Work PB5045). Corrected to `without the JUSTIFIED clause. When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item has the same class and category`.
+
+#### 4.3.8.5 Identifier
+
+##### 4.3.8.5.1 Function
+
+An identifier is a syntactically correct sequence of character-strings and separators used to reference data uniquely.
+
+When a data item other than a function is being referenced, identifier is a term used to reflect that a data-name, if not unique in a program, must be followed by a syntactically correct combination of qualifiers, subscripts, or reference modifiers necessary for uniqueness of reference. (See page X-4, Scope of Names.)
+
+##### 4.3.8.5.2 General Format
+
+<u>Format 1</u>:
 
 <pre style="line-height:1">
-            ┌╭<u>IN</u> ╮              ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮┐
-data-name-1 │┤   ├ data-name-2  │ …   │┤  ├ ┤file-name-1   ├│
-            └╰<u>OF</u> ╯              ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯┘
-
-   [({subscript}  …   )]  [(leftmost-character-position: [length])]
+function-identifier-1
 </pre>
+
+<u>Format 2</u>:
+
+<pre style="line-height:1">
+            ┌╭<u>IN</u>╮             ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮ ┐
+data-name-1 │┤  ├ data-name-2 │ …   │┤  ├ ┤file-name-1   ├ │
+            └╰<u>OF</u>╯             ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯ ┘
+
+     [({subscript} …   )] [reference-modifier]
+</pre>
+
+##### 4.3.8.5.3 Syntax Rules
+
+(1) The words IN and OF are equivalent.
+
+> ⚠ **CORRECTED — see the Errata (C105).** The standard prints `4.3.8.4 Identifier: An identifier is a term used to reflect a data-name that, if not unique in a program, must be followed by ... (the 1985 paragraph and its general format)` (page 169, folio IV-23). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.5, change to read: 4.3.8.5 Identifier"; the paragraph is the one the renumbering of the change for pages IV-22 thru IV-24 (page 841, folio A-11) makes 4.3.8.5 (kb/Work PB5045). Corrected to `4.3.8.5 Identifier, its Function, General Format (formats 1 and 2) and Syntax Rule (1), above`.
 
 IV-23
 
@@ -6722,7 +7222,9 @@ IV-23
 
 Condition-Name
 
-### 4.3.8.5 Condition-Name
+### 4.3.8.6 Condition-Name
+
+> ⚠ **CORRECTED — see the Errata (C94).** The standard prints `### 4.3.8.5 Condition-Name` (page 170, folio IV-24). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045). Corrected to `### 4.3.8.6 Condition-Name`.
 
 If explicitly referenced, a condition-name must be unique or be made unique through qualification and/or subscripting except when the scope of names conventions by themselves ensure uniqueness of reference. (See page X-4, Scope of Names.)
 
@@ -6828,7 +7330,9 @@ The implicit scope terminators are the following:
 
 (1) At the end of any sentence, the separator period which terminates the scope of all previous statements not yet terminated.
 
-(2) Within any statement containing another statement, the next phrase of the containing statement following the contained statement terminates the scope of any unterminated contained statement. Examples of such phrases are ELSE, WHEN, NOT AT END, etc.
+(2) Within any statement containing another statement, the next phrase of the containing statement following the contained statement terminates the scope of any unterminated contained statement.
+
+> ⚠ **CORRECTED — see the Errata (C203).** The standard prints `Examples of such phrases are ELSE, WHEN, NOT AT END, etc.` (page 173, folio IV-27). Amendment 2 (ANSI X3.23b-1993), its change for page IV-27 (page 918, folio B-6), applied in place: "Paragraph 4.4.4 entitled Explicit and Implicit Scope Terminators, last paragraph, item 2, delete the last sentence that reads: 'Examples of such phrases are ELSE, WHEN, NOT AT END, etc.'" (kb/Work PB5045). Corrected to `(deleted)`.
 
 IV-27
 
@@ -7180,7 +7684,9 @@ A conditional sentence is a conditional statement, optionally preceded by an imp
 
 #### 6.4.2.2.1 Definition of Compiler Directing Statement
 
-A compiler directing statement consists of a compiler directing verb and its operands. The compiler directing verbs are COPY, REPLACE, and USE (see page XII-2, The COPY Statement; page XII-6, The REPLACE Statement; and the USE Statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5). A compiler directing statement causes the compiler to take a specific action during compilation.
+A compiler directing statement consists of a compiler directing verb and its operands. The compiler directing verbs are COPY, ENTER, REPLACE, and USE (see page XII-2, The COPY Statement; page VI-83, The ENTER Statement; page XII-6, The REPLACE Statement; and the USE statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5). A compiler directing statement causes the compiler to take a specific action during compilation.
+
+> ⚠ **CORRECTED — see the Errata (C204).** The standard prints `The compiler directing verbs are COPY, REPLACE, and USE (see page XII-2, The COPY Statement; page XII-6, The REPLACE Statement; and the USE Statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5).` (page 184, folio IV-38). Amendment 2 (ANSI X3.23b-1993), its change for page IV-38 (page 919, folio B-7), applied in place: "Paragraph 6.4.2.2.1 entitled Definition of Compiler Directing Statement, second sentence, change to read" (kb/Work PB5045). Corrected to the text above.
 
 #### 6.4.2.2.2 Definition of Compiler Directing Sentence
 
@@ -7337,7 +7843,9 @@ Reference Format
 
 7.2.5 Pseudo-Text
 
-The character-strings and separators comprising pseudo-text may start in either area A or area B. If, however, there is a hyphen in the indicator area of a line which follows the opening pseudo-text delimiter, area A of the line must be blank; and the normal rules for continuation of lines apply to the formation of text words. (See page IV-42, Continuation of Lines.)
+The text words and the separator space comprising pseudo-text may start in either area A or area B. If, however, there is a hyphen in the indicator area of a line which follows the opening pseudo-text delimiter, area A of the line must be blank; and the normal rules for continuation of lines apply to the formation of text words. (See page IV-42, Continuation of Lines.)
+
+> ⚠ **CORRECTED — see the Errata (C205).** The standard prints `The character-strings and separators comprising pseudo-text` (page 189, folio IV-43). Amendment 2 (ANSI X3.23b-1993), its change for page IV-43 (page 919, folio B-7), applied in place: "Paragraph 7.2.5 entitled Pseudo-Text, change a portion of the first sentence from 'The character-strings and separators comprising' to 'The text words and the separator space comprising'" (kb/Work PB5045). Corrected to `The text words and the separator space comprising pseudo-text`.
 
 7.3 DIVISION, SECTION, PARAGRAPH FORMATS
 
@@ -7401,6 +7909,12 @@ COBOL Reserved Words
 
 ## 8. <u>COBOL RESERVED WORDS</u>
 
+The following is a list of COBOL reserved words for the seven required modules and the five optional modules.
+
+> ⚠ **CORRECTED — see the Errata (C106).** The standard prints `8. COBOL RESERVED WORDS (the heading the list follows)` (page 191, folio IV-45). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-45 (page 843, folio A-13), applied in place: "Paragraph 8, insert the following before the list of reserved words" (kb/Work PB5045). Corrected to `The following is a list of COBOL reserved words for the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation.`.
+
+> ⚠ **CORRECTED — see the Errata (C206).** The standard prints `The following is a list ... and the four optional modules of Report Writer, Communication, Debug, and Segmentation. (Amendment 1's sentence, C106)` (page 191, folio IV-45). Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (A-13) (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, change the first paragraph to read" (kb/Work PB5045). Corrected to `The following is a list of COBOL reserved words for the seven required modules and the five optional modules.`.
+
 | | | | |
 |---|---|---|---|
 | ACCEPT | CONFIGURATION | END-DELETE | I-O-CONTROL |
@@ -7443,7 +7957,7 @@ COBOL Reserved Words
 | CHARACTER | DISABLE | FOOTING | LOCK |
 | CHARACTERS | DISPLAY | FOR | LOW-VALUE |
 | CLASS | DIVIDE | FROM | LOW-VALUES |
-| CLOCK-UNITS | DIVISION | | |
+| CLOCK-UNITS | DIVISION | FUNCTION | |
 | CLOSE | DOWN | GENERATE | MEMORY |
 | COBOL | DUPLICATES | GIVING | MERGE |
 | CODE | DYNAMIC | GLOBAL | MESSAGE |
@@ -7456,6 +7970,8 @@ COBOL Reserved Words
 | COMP | END-ADD | HIGH-VALUES | NATIVE |
 | COMPUTATIONAL | END-CALL | | NEGATIVE |
 | COMPUTE | END-COMPUTE | I-O | NEXT |
+
+> ⚠ **CORRECTED — see the Errata (C207).** The standard prints `FROM, GENERATE (no FUNCTION between them)` (page 191, folio IV-45). Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, add the word FUNCTION between the words FROM and GENERATE in the list of COBOL reserved words" (kb/Work PB5045). Corrected to `FROM, FUNCTION, GENERATE`.
 
 IV-45
 
@@ -7508,6 +8024,10 @@ COBOL Reserved Words
 | PURGE | SECURITY | THAN | &gt;= |
 | | SEGMENT | THEN | &lt;= |
 | QUEUE | SEGMENT-LIMIT | THROUGH | |
+
+> ⚠ **CORRECTED — see the Errata (C107).** The standard prints `QUEUE SEGMENT-LIMIT THROUGH (the last row of the list)` (page 192, folio IV-46). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-46 (page 844, folio A-14), applied in place: "Paragraph 8, insert the following after the list of reserved words" (kb/Work PB5045). Corrected to `The following is a list of COBOL reserved words for the optional Intrinsic Function module. ¶ FUNCTION`.
+
+> ⚠ **CORRECTED — see the Errata (C208).** The standard prints `The following is a list of COBOL reserved words for the optional Intrinsic Function module. FUNCTION (Amendment 1's text, C107)` (page 192, folio IV-46). Amendment 2 (ANSI X3.23b-1993), its change for page IV-46 (A-14) (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, delete the following text" (kb/Work PB5045). Corrected to `(deleted)`.
 
 IV-46
 
@@ -7612,10 +8132,10 @@ Environment Division
      │ ┤literal-1│╰<u>THRU</u>   ╯           │├ …  ││
      ╰ ╰         └{<u>ALSO</u> literal-3} …  ┘╯    ╯┘
 
-   ┌<u>SYMBOLIC</u> CHARACTERS ╭╭{symbolic-character-1} …   ╭IS ╮ {integer-1} …   ╮ …  ╮┐
-   │                    │┤                           ┤   ├                 ├    ││
-   │                    ┤╰                           ╰ARE╯                 ╯    ├│
-   └                    ╰ [<u>IN</u> alphabet-name-2]                                  ╯┘ …
+   ┌<u>SYMBOLIC</u> CHARACTERS  ╭{symbolic-character-1} …   ╭IS ╮ {integer-1} …   ╮ …   ┐
+   │                     ┤                           ┤   ├                 ├     │
+   │                     ╰                           ╰ARE╯                 ╯     │
+   └                      [<u>IN</u> alphabet-name-2]                                   ┘ …
 
    ┌<u>CLASS</u> class-name-1 IS ╭literal-4 ┌╭<u>THROUGH</u>╮ literal-5┐╮ …  ┐ …
    │                      ┤          │┤       ├          │├    │
@@ -7625,6 +8145,8 @@ Environment Division
 
    [<u>DECIMAL-POINT</u> IS <u>COMMA</u>].]]]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C108).** The standard prints `SYMBOLIC CHARACTERS { {symbolic-character-1} ... {IS|ARE} {integer-1} ... } ... [IN alphabet-name-2] } ... (two sets of braces)` (page 195, folio V-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-3 (T) (page 844, folio A-14), applied in place: "SYMBOLIC CHARACTERS clause, delete outermost set of braces", a typographical error (kb/Work PB5045). Corrected to `the format above, its outermost braces deleted`.
 
 V-3
 
@@ -7782,7 +8304,7 @@ V-6
 │ <u>RESERVE</u> integer-1 │       │ │
 └                   └ AREAS ┘ ┘
 
-[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ]
+[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]
 
 ┌                      ╭ data-name-1 ╮ ┐
 │ <u>PADDING</u> CHARACTER IS ┤             ├ │
@@ -7795,6 +8317,8 @@ V-6
 [ <u>ACCESS</u> MODE IS <u>SEQUENTIAL</u> ]
 [ FILE <u>STATUS</u> IS data-name-2 ] .
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C109).** The standard prints `[ [ ORGANIZATION IS ] SEQUENTIAL ] ]` (page 199, folio V-7). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-7 (T) (page 844, folio A-14), applied in place: "ORGANIZATION clause, delete second occurrence of a right bracket after the word SEQUENTIAL", a typographical error (kb/Work PB5045). Corrected to `[ [ ORGANIZATION IS ] SEQUENTIAL ]`.
 
 V-7
 
@@ -8135,11 +8659,15 @@ Data Division - Communication Description Entry
                           │      [<u>END</u> <u>KEY</u> IS data-name-9]                │
                           │      [<u>STATUS</u> <u>KEY</u> IS data-name-10]            │
                           │      [MESSAGE <u>COUNT</u> IS data-name-11]]        │
-                          │ [data-name-1, data-name-2, data-name-3,      │
-                          │      data-name-4, data-name-5, data-name-6,  │
-                          │      data-name-7, data-name-8, data-name-9,  │
-                          └      data-name-10, data-name-11]             ┘
+                          │ [data-name-1 data-name-2 data-name-3         │
+                          │      data-name-4 data-name-5 data-name-6     │
+                          │      data-name-7 data-name-8 data-name-9     │
+                          └      data-name-10 data-name-11]              ┘ .
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C110).** The standard prints `data-name-10, data-name-11] ┘` (page 207, folio V-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-15 (T) (page 844, folio A-14), applied in place: "Insert a terminal period following the last bracket in format 1", a typographical error (kb/Work PB5045). Corrected to `┘ .`.
+
+> ⚠ **CORRECTED — see the Errata (C111).** The standard prints `[data-name-1, data-name-2, data-name-3, ... data-name-10, data-name-11]` (page 207, folio V-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-15 (T) (page 844, folio A-14), applied in place: "Delete the commas between data-name-1 through data-name-11, inclusively, in format 1", a typographical error (kb/Work PB5045). Corrected to `[data-name-1 data-name-2 data-name-3 ... data-name-10 data-name-11]`.
 
 V-15
 
@@ -8179,10 +8707,14 @@ Data Division - Communication Description Entry
                          │                                             │
                          │      [<u>STATUS</u> <u>KEY</u> IS data-name-6]]           │
                          │                                             │
-                         │ [data-name-1, data-name-2, data-name-3,     │
+                         │ [data-name-1 data-name-2 data-name-3        │
                          │                                             │
-                         └      data-name-4, data-name-5, data-name-6] ┘
+                         └      data-name-4 data-name-5 data-name-6]   ┘ .
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C112).** The standard prints `data-name-4, data-name-5, data-name-6] ┘` (page 208, folio V-16). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-16 (T) (page 844, folio A-14), applied in place: "Insert a terminal period following the last bracket in format 3", a typographical error (kb/Work PB5045). Corrected to `┘ .`.
+
+> ⚠ **CORRECTED — see the Errata (C113).** The standard prints `[data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, data-name-6]` (page 208, folio V-16). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-16 (T) (page 844, folio A-14), applied in place: "Delete the commas between data-name-1 through data-name-6, inclusively, in format 3", a typographical error (kb/Work PB5045). Corrected to `[data-name-1 data-name-2 data-name-3 data-name-4 data-name-5 data-name-6]`.
 
 V-16
 
@@ -8643,11 +9175,13 @@ Verb Formats (EXIT - INSPECT)
 </pre>
 
 <pre style="line-height:1">
-                    ╭ {statement-1} …   ╮ ╭ <u>ELSE</u> {statement-2} …   [<u>END-IF</u>] ╮
+                    ╭ statement-1       ╮ ╭ <u>ELSE</u> statement-2       [<u>END-IF</u>] ╮
                     ┤                   ├ │                                 │
 <u>IF</u> condition-1 THEN ╰ <u>NEXT</u> <u>SENTENCE</u>     ╯ ┤ <u>ELSE</u> <u>NEXT</u> <u>SENTENCE</u>              ├
                                           ╰ <u>END-IF</u>                          ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C209).** The standard prints `IF condition-1 THEN { {statement-1} ... | NEXT SENTENCE } { ELSE {statement-2} ... [END-IF] | ... }` (page 216, folio V-24). Amendment 2 (ANSI X3.23b-1993), its change for page V-24 (page 919, folio B-7), applied in place: "General format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2" (kb/Work PB5045). Corrected to `IF condition-1 THEN { statement-1 | NEXT SENTENCE } { ELSE statement-2 [END-IF] | ... }`.
 
 <pre style="line-height:1">
 <u>INITIALIZE</u>  {identifier-1} …
@@ -8867,7 +9401,7 @@ Verb Formats (PERFORM - READ)
 
     ┌       ╭ identifier-5 ╮      ╭ identifier-6 ╮                      ┐
     │ <u>AFTER</u> ┤              ├ <u>FROM</u> ┤ index-name-4 ├                      │
-    │       ╰ literal-3    ╯      ╰ literal-3    ╯                      │
+    │       ╰ index-name-3 ╯      ╰ literal-3    ╯                      │
     │                                                                   │ …
     │            ╭ identifier-7 ╮                                       │
     │         <u>BY</u> ┤              ├ <u>UNTIL</u> condition-2                     │
@@ -8875,6 +9409,8 @@ Verb Formats (PERFORM - READ)
 
    [ imperative-statement-1 <u>END-PERFORM</u> ]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C114).** The standard prints `AFTER { identifier-5 / literal-3 } FROM { identifier-6 / index-name-4 / literal-3 }` (page 219, folio V-27). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-27 (T) (page 844, folio A-14), applied in place: "PERFORM format, AFTER phrase, change 'literal-3' immediately after the reserved word AFTER to 'index-name-3'", a typographical error (kb/Work PB5045). Corrected to `AFTER { identifier-5 / index-name-3 } FROM ...`.
 
 <pre style="line-height:1">
 <u>PURGE</u> cd-name-1
@@ -8935,7 +9471,10 @@ AT <u>END</u> imperative-statement-1
 
 <pre style="line-height:1">
 S <u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
+[ <u>END-REWRITE</u> ]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C115).** The standard prints `S REWRITE record-name-1 [ FROM identifier-1 ]` (page 220, folio V-28). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-28 (T) (page 844, folio A-14), applied in place: "Insert '[END-REWRITE]' at the end of the first REWRITE statement", a typographical error (kb/Work PB5045). Corrected to `S REWRITE record-name-1 [ FROM identifier-1 ] [ END-REWRITE ]`.
 
 <pre style="line-height:1">
 RI <u>REWRITE</u> record-name-1 [ <u>FROM</u> identifier-1 ]
@@ -9426,26 +9965,150 @@ Miscellaneous Formats
 <u>SUBSCRIPTING</u>:
 
 <pre style="line-height:1">
-╭ condition-name-1 ╮   ╭ integer-1                    ╮
-┤                  ├ ( ┤ data-name-2 [{±} integer-2]  ├ …   )
-╰ data-name-1      ╯   ╰ index-name-1 [{±} integer-3] ╯
+                      ╭ <u>ALL</u>                               ╮
+                      │                                   │
+                      │ integer-1                         │
+╭ condition-name-1 ╮  │               ┌ ╭ + ╮           ┐ │
+┤                  ├ (┤ data-name-2   │ ┤   ├ integer-2 │ ├ …  )
+╰ data-name-1      ╯  │               └ ╰ - ╯           ┘ │
+                      │               ┌ ╭ + ╮           ┐ │
+                      │ index-name-1  │ ┤   ├ integer-3 │ │
+                      ╰               └ ╰ - ╯           ┘ ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C116).** The standard prints `the format of subscripting without ALL` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Change the format for subscripting to read" (kb/Work PB5045). Corrected to `the format above, with ALL`.
+
+<u>FUNCTION-IDENTIFIER</u>:
+
+<pre style="line-height:1">
+<u>FUNCTION</u> function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]
+</pre>
+
+> ⚠ **CORRECTED — see the Errata (C117).** The standard prints `REFERENCE MODIFICATION (the format it precedes)` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Add the following after the format for subscripting: FUNCTION-IDENTIFIER" (kb/Work PB5045). Corrected to `FUNCTION-IDENTIFIER: FUNCTION function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]`.
 
 <u>REFERENCE MODIFICATION</u>:
 
 <pre style="line-height:1">
-data-name-1 ( leftmost-character-position: [ length ] )
+╭ data-name-1                                    ╮
+┤                                                ├ (leftmost-character-position:[length])
+╰ <u>FUNCTION</u> function-name-1 [({argument-1} …   )] ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C118).** The standard prints `data-name-1 ( leftmost-character-position: [ length ] )` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Change the format for reference modification to read" (kb/Work PB5045). Corrected to `the format above, with FUNCTION function-name-1`.
 
 <u>IDENTIFIER</u>:
 
-<pre style="line-height:1">
-             ┌╭<u>IN</u> ╮              ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮┐
-data-name-1  │┤   ├  data-name-2 │ …   │┤  ├ ┤file-name-1   ├│
-             └╰<u>OF</u> ╯              ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯┘
+<u>Format 1</u>:
 
-     [({subscript } …   )]  [(leftmost-character-position: [length])]
+<pre style="line-height:1">
+function-identifier-1
 </pre>
+
+<u>Format 2</u>:
+
+<pre style="line-height:1">
+                                   ┌     ╭cd-name-1     ╮ ┐
+            ┌╭<u>IN</u>╮            ┐     │╭<u>IN</u>╮ │              │ │
+data-name-1 │┤  ├ data-name-2│ …   │┤  ├ ┤file-name-1   ├ │
+            └╰<u>OF</u>╯            ┘     │╰<u>OF</u>╯ │              │ │
+                                   └     ╰report-name-1 ╯ ┘
+
+     [({subscript} …   )] [reference-modifier]
+</pre>
+
+> ⚠ **CORRECTED — see the Errata (C119).** The standard prints `data-name-1 [ {IN|OF} data-name-2 ] ... [ {IN|OF} {cd-name-1|file-name-1|report-name-1} ] [({subscript} ...)] [(leftmost-character-position: [length])]` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, folio A-15), applied in place: "Change the format for identifier to read" (kb/Work PB5045). Corrected to `Format 1: function-identifier-1; Format 2 (above)`.
+
+## <u>GENERAL FORMAT FOR INTRINSIC FUNCTIONS</u>
+
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ACOS</u> (argument-1)
+
+<u>FUNCTION</u> <u>ANNUITY</u> (argument-1 argument-2)
+
+<u>FUNCTION</u> <u>ASIN</u> (argument-1)
+
+<u>FUNCTION</u> <u>ATAN</u> (argument-1)
+
+<u>FUNCTION</u> <u>CHAR</u> (argument-1)
+
+<u>FUNCTION</u> <u>COS</u> (argument-1)
+
+<u>FUNCTION</u> <u>CURRENT-DATE</u>
+
+<u>FUNCTION</u> <u>DATE-OF-INTEGER</u> (argument-1)
+
+<u>FUNCTION</u> <u>DAY-OF-INTEGER</u> (argument-1)
+
+<u>FUNCTION</u> <u>FACTORIAL</u> (argument-1)
+
+<u>FUNCTION</u> <u>INTEGER</u> (argument-1)
+
+<u>FUNCTION</u> <u>INTEGER-OF-DATE</u> (argument-1)
+
+<u>FUNCTION</u> <u>INTEGER-OF-DAY</u> (argument-1)
+
+<u>FUNCTION</u> <u>INTEGER-PART</u> (argument-1)
+
+<u>FUNCTION</u> <u>LENGTH</u> (argument-1)
+
+<u>FUNCTION</u> <u>LOG</u> (argument-1)
+
+<u>FUNCTION</u> <u>LOG10</u> (argument-1)
+
+<u>FUNCTION</u> <u>LOWER-CASE</u> (argument-1)
+
+<u>FUNCTION</u> <u>MAX</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MEAN</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MEDIAN</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MIDRANGE</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MIN</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>MOD</u> (argument-1 argument-2)
+
+<u>FUNCTION</u> <u>NUMVAL</u> (argument-1)
+
+<u>FUNCTION</u> <u>NUMVAL-C</u> (argument-1 [argument-2])
+</pre>
+
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>ORD</u> (argument-1)
+
+<u>FUNCTION</u> <u>ORD-MAX</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>ORD-MIN</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>PRESENT-VALUE</u> (argument-1 {argument-2} …  )
+
+<u>FUNCTION</u> <u>RANDOM</u> [(argument-1)]
+
+<u>FUNCTION</u> <u>RANGE</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>REM</u> (argument-1 argument-2)
+
+<u>FUNCTION</u> <u>REVERSE</u> (argument-1)
+
+<u>FUNCTION</u> <u>SIN</u> (argument-1)
+
+<u>FUNCTION</u> <u>SQRT</u> (argument-1)
+
+<u>FUNCTION</u> <u>STANDARD-DEVIATION</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>SUM</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>TAN</u> (argument-1)
+
+<u>FUNCTION</u> <u>UPPER-CASE</u> (argument-1)
+
+<u>FUNCTION</u> <u>VARIANCE</u> ({argument-1} …   )
+
+<u>FUNCTION</u> <u>WHEN-COMPILED</u>
+</pre>
+
+> ⚠ **CORRECTED — see the Errata (C120).** The standard prints `(the end of page V-38)` (page 230, folio V-38). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, folio A-15), applied in place: "Insert after page V-38 the contents of pages A-16 and A-17 which contain the general format for functions" (pages 846 and 847) (kb/Work PB5045). Corrected to `GENERAL FORMAT FOR INTRINSIC FUNCTIONS: FUNCTION ACOS (argument-1) ... FUNCTION WHEN-COMPILED`.
 
 V-38
 
@@ -9551,7 +10214,9 @@ Nucleus level 1 provides limited capabilities for the SPECIAL-NAMES paragraph an
 
 ║Nucleus level 2 provides full capabilities for the SPECIAL-NAMES paragraph and the data description entry. Within the Procedure Division, the Nucleus level 2 provides full capabilities for the ACCEPT, ADD, ALTER, COMPUTE, DISPLAY, DIVIDE, EVALUATE, IF, INITIALIZE, INSPECT, MOVE, MULTIPLY, PERFORM, SEARCH, SET, STRING, SUBTRACT, and UNSTRING statements. Nucleus level 2 provides full capabilities for qualification, data-name formation, and figurative constants. Nucleus level 2 provides a capability for accessing items in up to seven-dimensional tables.║
 
-### 1.3 LEVEL RESTRICTIONS ON OVERALL LANGUAGE
+### 1.3 RESTRICTIONS ON OVERALL LANGUAGE
+
+> ⚠ **CORRECTED — see the Errata (C121).** The standard prints `### 1.3 LEVEL RESTRICTIONS ON OVERALL LANGUAGE` (page 233, folio VI-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-1 (page 848, folio A-18), applied in place: "Paragraph 1.3, change title to read: 'RESTRICTIONS ON OVERALL LANGUAGE'" (kb/Work PB5045). Corrected to `### 1.3 RESTRICTIONS ON OVERALL LANGUAGE`.
 
 #### 1.3.1 Character Set
 
@@ -9575,11 +10240,19 @@ The figurative constants that may be used in level 1 are: ZERO, ZEROS, ZEROES, S
 
 One, two or three subscripts are permitted in level 1. ║One through seven subscripts are permitted in level 2.║
 
-### ║1.3.5 Reference Modification║
+### 1.3.5 Function-Identifier
+
+The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.
+
+> ⚠ **CORRECTED — see the Errata (C123).** The standard prints `1.3.6 Reference Modification (the paragraph it precedes)` (page 234, folio VI-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "add new paragraph 1.3.5 without boxing as follows: 1.3.5 Function-Identifier" (kb/Work PB5045). Corrected to `1.3.5 Function-Identifier. The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.`.
+
+### ║1.3.6 Reference Modification║
 
 ║Reference modification is permitted in level 2 only.║
 
-### 1.3.6 Reference Format
+### 1.3.7 Reference Format
+
+> ⚠ **CORRECTED — see the Errata (C122).** The standard prints `1.3.5 Reference Modification, 1.3.6 Reference Format` (page 234, folio VI-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "Renumber paragraphs 1.3.5 and 1.3.6 to 1.3.6 and 1.3.7, respectively" (kb/Work PB5045). Corrected to `1.3.6 Reference Modification, 1.3.7 Reference Format`.
 
 In level 1 a word, numeric literal, or PICTURE character-string cannot be broken in such a way that part of it appears in a continuation line. ║In level 2 a word, numeric literal, or PICTURE character-string can be broken in such a way that part of it appears on a continuation line.║
 
@@ -9931,10 +10604,10 @@ The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; c
     │║ ┤literal-1│╰<u>THRU</u>   ╯           │├ …  ║││
     ╰╚ ╰         └{<u>ALSO</u> literal-3} …  ┘╯    ╝╯┘
 
-  ╔┌<u>SYMBOLIC</u> CHARACTERS ╭╭{symbolic-character-1} …   ╭IS ╮ {integer-1} …   ╮ …  ╮┐  ╗
-  ║│                    │┤                           ┤   ├                 ├    ││  ║
-  ║│                    ┤╰                           ╰ARE╯                 ╯    ├│  ║
-  ╚└                    ╰ [<u>IN</u> alphabet-name-2]                                  ╯┘ …╝
+  ╔┌<u>SYMBOLIC</u> CHARACTERS  ╭{symbolic-character-1} …   ╭IS ╮ {integer-1} …   ╮ …   ┐  ╗
+  ║│                     ┤                           ┤   ├                 ├     │  ║
+  ║│                     ╰                           ╰ARE╯                 ╯     │  ║
+  ╚└                      [<u>IN</u> alphabet-name-2]                                   ┘ …╝
 
   ┌<u>CLASS</u> class-name-1 IS ╭literal-4 ┌╭<u>THROUGH</u>╮ literal-5┐╮ …  ┐ …
   │                      ┤          │┤       ├          │├    │
@@ -9944,6 +10617,8 @@ The SPECIAL-NAMES paragraph provides a means for specifying the currency sign; c
 
   [<u>DECIMAL-POINT</u> IS <u>COMMA</u>].]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C124).** The standard prints `SYMBOLIC CHARACTERS { {symbolic-character-1} ... {IS|ARE} {integer-1} ... } ... [IN alphabet-name-2] } ... (two sets of braces)` (page 245, folio VI-13). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-13 (T) (page 848, folio A-18), applied in place: "Paragraph 4.5.2, SYMBOLIC CHARACTERS clause, delete outermost set of braces", a typographical error (kb/Work PB5045). Corrected to `the format above, its outermost braces deleted`.
 
 ## 4.5.3 Syntax Rules
 
@@ -10009,7 +10684,9 @@ b. If the NATIVE phrase is specified, the native character code set or native co
 
 c. If the implementor-name-2 phrase is specified, the character code set or collating sequence identified is that defined by the implementor. The implementor also defines the correspondence between characters of the character code set specified by implementor-name-2 and the characters of the native character code set.
 
-║d. If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause (see page VII-24, The CODE-SET Clause). The collating sequence identified is that defined according to the following rules:║
+║d. If the literal phrase is specified, the alphabet-name may not be referenced in a CODE-SET clause (see page VII-24, The CODE-SET Clause). The character code set and/or collating sequence identified is that defined according to the following rules:║
+
+> ⚠ **CORRECTED — see the Errata (C210).** The standard prints `The collating sequence identified is that defined` (page 247, folio VI-15). Amendment 2 (ANSI X3.23b-1993), its change for page VI-15 (page 919, folio B-7), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, second sentence, change 'The collating sequence identified' to 'The character code set and/or collating sequence identified'" (shaded, level 2: the sentence stands in the level-2 box) (kb/Work PB5045). Corrected to `The character code set and/or collating sequence identified is that defined`.
 
 ║1\) The value of each literal specifies:║
 
@@ -10027,9 +10704,15 @@ Nucleus - SPECIAL-NAMES
 
 ║3\) Any characters within the native collating sequence, which are not explicitly specified in the literal phrase, assume a position, in the collating sequence being specified, greater than any of the explicitly specified characters. The relative order within the set of these unspecified characters is unchanged from the native collating sequence.║
 
-║4\) If the THROUGH phrase is specified, the set of contiguous characters in the native character set beginning with the character specified by the value of literal-1, and ending with the character specified by the value of literal-2, is assigned a successive ascending position in the collating sequence being specified. In addition, the set of contiguous characters specified by a given THROUGH phrase may specify characters of the native character set in either ascending or descending sequence.║
+║4\) If a character code set is being specified, the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase.║
 
-║5\) If the ALSO phrase is specified, the characters of the native character set specified by the value of literal-1 and literal-3 are assigned to the same ordinal position in the collating sequence being specified or in the character code set that is used to represent the data, and if alphabet-name-1 is referenced in a SYMBOLIC CHARACTERS clause, only literal-1 is used to represent the character in the native character set.║
+> ⚠ **CORRECTED — see the Errata (C212).** The standard prints `4) If the THROUGH phrase ... 5) If the ALSO phrase ...` (page 248, folio VI-16). Amendment 2 (ANSI X3.23b-1993), its change for page VI-16 (page 920, folio B-8), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, renumber subitems 4 and 5 to new subitems 5 and 6. Insert the following as the new subitem 4" (shaded: level 2, boxed) (kb/Work PB5045). Corrected to `4) If a character code set is being specified, ... (new) 5) If the THROUGH phrase ... 6) If the ALSO phrase ...`.
+
+║5\) If the THROUGH phrase is specified, the contiguous characters in the native character set, beginning with the character specified by literal-1 and ending with the character specified by literal-2, are each assigned a successive ascending collating position in the collating sequence being specified and/or a successive ascending ordinal number in the character code set being specified. In addition, the set of contiguous characters specified by a given THROUGH phrase may specify characters of the native character set in either ascending or descending sequence.║
+
+> ⚠ **CORRECTED — see the Errata (C211).** The standard prints `If the THROUGH phrase is specified, the set of contiguous characters ... is assigned a successive ascending position in the collating sequence being specified.` (page 248, folio VI-16). Amendment 2 (ANSI X3.23b-1993), its change for page VI-16 (page 920, folio B-8), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, subitem 4, replace the first sentence (Beginning 'If the THROUGH phrase is specified') with the following new sentence" (shaded: level 2, in the box) (kb/Work PB5045). Corrected to `If the THROUGH phrase is specified, the contiguous characters ... are each assigned a successive ascending collating position ... and/or a successive ascending ordinal number in the character code set being specified.`.
+
+║6\) If the ALSO phrase is specified, the characters of the native character set specified by the value of literal-1 and literal-3 are assigned to the same ordinal position in the collating sequence being specified or in the character code set that is used to represent the data, and if alphabet-name-1 is referenced in a SYMBOLIC CHARACTERS clause, only literal-1 is used to represent the character in the native character set.║
 
 ║(5) The character that has the highest ordinal position in the program collating sequence is associated with the figurative constant HIGH-VALUE, except when this figurative constant is specified as a literal in the SPECIAL-NAMES paragraph. If more than one character has the highest position in the program collating sequence, the last character specified is associated with the figurative constant HIGH-VALUE.║
 
@@ -10168,11 +10851,11 @@ level-number ┌data-name-1┐
     ┌ <u>OCCURS</u> integer-2 TIMES                                        ┐
     │╔      ┌╭<u>ASCENDING</u> ╮                         ┐                ╗│
     │║      │┤          ├                         │                ║│
-    │║      └╰<u>DESCENDING</u>╯ KEY IS {data-name-3} …  ┘ …              ║│
-    │║                                                             ║│
-    │║       [<u>INDEXED</u> BY {index-name-1} …   ]                      ║│
-    │║                                                             ║│
-    │║<u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-4 ║│
+    │╚      └╰<u>DESCENDING</u>╯ KEY IS {data-name-3} …  ┘ …              ╝│
+    │                                                               │
+    │        [<u>INDEXED</u> BY {index-name-1} …   ]                       │
+    │                                                               │
+    │╔<u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-4 ╗│
     │║      ┌╭<u>ASCENDING</u> ╮                         ┐                ║│
     │║      │┤          ├                         │                ║│
     │║      └╰<u>DESCENDING</u>╯ KEY IS {data-name-3} …  ┘ …              ║│
@@ -10191,6 +10874,8 @@ level-number ┌data-name-1┐
 
     [<u>VALUE</u> IS literal-1].
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C125).** The standard prints `the OCCURS clause with one box from ASCENDING through the second INDEXED BY` (page 252, folio VI-20). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-20 (T) (page 848, folio A-18), applied in place: "Paragraph 5.3.2 of the OCCURS clause, delete the box around the first occurrence of '[INDEXED BY {index-name-1} ...]'", a typographical error (kb/Work PB5045). Corrected to `the box split: ASCENDING ... KEY, then (unboxed) INDEXED BY, then the DEPENDING ON format boxed`.
 
 VI-20
 
@@ -10572,7 +11257,7 @@ Nucleus - PICTURE
 
 (8) The functions of the symbols used to describe an elementary item are explained as follows:
 
-> ⚠ **CORRECTED — see the Errata (C20).** The standard prints `explain as follows` (page 263, folio VI-31): a real word printed for another on the printed page. Corrected to `explained`.
+> ⚠ **CORRECTED — see the Errata (C20).** The standard prints `explain as follows` (page 263, folio VI-31): a real word printed for another on the printed page. Corrected to `explained`. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page VI-31 (T) (page 848, folio A-18): "change 'explain' to 'explained'", a typographical error (kb/Work PB5045).
 
 A Each 'A' in the character-string represents a character position which can contain only an alphabetic character and is counted in the size of the item.
 
@@ -10584,9 +11269,13 @@ In certain operations that reference a data item whose PICTURE character-string 
 
 a. Any operation requiring a numeric sending operand.
 
-b. A MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.
+b. An elementary MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.
 
-c. A MOVE statement where the sending operand is numeric edited and its PICTURE character-string contains the symbol 'P' and the receiving operand is numeric or numeric edited.
+> ⚠ **CORRECTED — see the Errata (C213).** The standard prints `b. A MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.` (page 263, folio VI-31). Amendment 2 (ANSI X3.23b-1993), its change for page VI-31 (page 920, folio B-8), applied in place: "Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of symbol 'P', second paragraph, change subparagraph b to read" (kb/Work PB5045). Corrected to `b. An elementary MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.`.
+
+║c. A MOVE statement where the sending operand is numeric edited and its PICTURE character-string contains the symbol 'P' and the receiving operand is numeric or numeric edited.║
+
+> ⚠ **CORRECTED — see the Errata (C214).** The standard prints `c. A MOVE statement where the sending operand is numeric edited and its PICTURE character-string contains the symbol 'P' and the receiving operand is numeric or numeric edited. (not boxed)` (page 263, folio VI-31). Amendment 2 (ANSI X3.23b-1993), its change for page VI-31 (page 920, folio B-8), applied in place: "Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of the symbol 'P', second paragraph, shade subparagraph c": shading is the amendment's mark of level 2, the box of this transcription (kb/Work PB5045). Corrected to `the item boxed`.
 
 d. A comparison operation where both operands are numeric.
 
@@ -10691,7 +11380,9 @@ decimal point, represented by the symbol 'V' and the actual decimal point, repre
 
 (7) Floating insertion editing. The currency symbol and editing sign control symbols '+' and '-' are the floating insertion characters and as such are mutually exclusive in a given PICTURE character-string.
 
-Floating insertion editing is indicated in a PICTURE character-string by using a string of at least two of the floating insertion characters. This string of floating insertion characters may contain any of the simple insertion characters or have simple insertion characters immediately to the right of this string. These simple insertion characters are part of the floating string. When the floating insertion character is the currency symbol, this string of floating insertion characters may have the fixed insertion characters 'CR' and 'DB' immediately to the right of this string.
+Floating insertion editing is indicated in a PICTURE character-string by using a string of at least two of the floating insertion characters. This string of floating insertion characters may contain any of the simple insertion characters or have simple insertion characters immediately to the right of this string. These simple insertion characters are part of the floating string. When the floating insertion character is the currency symbol, this string of floating insertion characters may have one of the editing sign control symbols '+', '-', 'CR', or 'DB' immediately to the right of this string.
+
+> ⚠ **CORRECTED — see the Errata (C215).** The standard prints `this string of floating insertion characters may have the fixed insertion characters 'CR' and 'DB' immediately to the right of this string.` (page 266, folio VI-34). Amendment 2 (ANSI X3.23b-1993), its change for page VI-34 (page 920, folio B-8), applied in place: "Paragraph 5.9.5, editing rules of the PICTURE clause, editing rule 7, second paragraph, change last sentence" (kb/Work PB5045). Corrected to `this string of floating insertion characters may have one of the editing sign control symbols '+', '-', 'CR', or 'DB' immediately to the right of this string.`.
 
 The leftmost character of the floating insertion string represents the leftmost limit of the floating symbols in the data item. The rightmost character of the floating string represents the rightmost limit of the floating symbols in the data item.
 
@@ -10768,15 +11459,17 @@ Nucleus - PICTURE
 | Floating Insertion Symbols | {Z \*} | x | x | x | x | | x | | | x | x | | | | | | | | | | | |
 | | {Z \*} | x | x | x | x | x | x | | | x | x | x | | | | | | | | x | | x |
 | | {+ –} | x | x | x | x | | | | | x | | | x | | | | | | | | | |
-| | {+ –} | x | x | x | x | x | | | | x | | | x | x | | | | | | x | | x |
+| | {+ –} | x | x | x | x | x | | | | x | | | x | x | | | | | | x | |  |
 | | cs | x | x | x | x | | x | | | | | | | | x | | | | | | | |
-| | cs | x | x | x | x | x | x | | | | | | | | x | x | | | | x | | x |
+| | cs | x | x | x | x | x | x | | | | | | | | x | x | | | | x | |  |
 | Other Symbols | 9 | x | x | x | x | x | x | | | x | x | | x | | x | | x | x | x | x | | x |
 | | A X | x | x | x | | | | | | | | | | | | | x | x | | | | |
 | | S | | | | | | | | | | | | | | | | | | | | | |
 | | V | x | x | x | x | | x | | | x | x | | x | | x | | x | | x | | x | |
 | | P | x | x | x | x | | x | | | x | x | | x | | x | | x | | x | | x | |
 | | P | | | | | | x | | | x | | | | | | | | | x | x | | x |
+
+> ⚠ **CORRECTED — see the Errata (C216).** The standard prints `x at (P, the lower floating {+ –}) and at (P, the lower floating cs)` (page 269, folio VI-37). Amendment 2 (ANSI X3.23b-1993), its change for page VI-37 (page 921, folio B-9), applied in place: "Paragraph 5.9.6, PICTURE precedence chart, delete the symbol 'X' at the following two intersections": the right-most P under Other Symbols (top) with the lower {±} and with the lower cs for Floating Insertion Symbols (side) (kb/Work PB5045). Corrected to `the two x deleted`.
 
 VI-37
 
@@ -10812,7 +11505,9 @@ NOTE: Level-number, data-name-1, and FILLER are shown in the above format to imp
 
 (5) The data description entry for data-name-2 cannot contain an OCCURS clause. ║However, data-name-2 may be subordinate to an item whose data description entry contains an OCCURS clause. In this case, the reference to data-name-2 in the REDEFINES clause may not be subscripted. Neither the original definition nor the redefinition can include a variable occurrence data item.║
 
-(6) If the data item referenced by data-name-2 is either declared to be an external data record or is specified with a level-number other than 01, the number of character positions it contains must be greater than or equal to the number of character positions in the data item referenced by the subject of this entry. If the data-name referenced by data-name-2 is specified with a level-number of 01 and is not declared to be an external data record, there is no such constraint.
+(6) If the data item referenced by data-name-2 is either declared to be an external data record or is specified with a level-number other than 01, the number of character positions it contains must be greater than or equal to the number of character positions in the data item referenced by the subject of this entry. If the data item referenced by data-name-2 is specified with a level-number of 01 and is not declared to be an external data record, there is no such constraint.
+
+> ⚠ **CORRECTED — see the Errata (C31).** The standard prints `If the data-name referenced by data-name-2 is specified` (page 270, folio VI-38). A real word printed for another: a data-name references no data-name, and the rule's own first sentence prints `the data item referenced by data-name-2`, the item its second sentence speaks of (kb/Work PB5045). Corrected to `If the data item referenced by data-name-2 is specified`.
 
 ║(7) Data-name-2 must not be qualified even if it is not unique since no ambiguity of reference exists in this case because of the required placement of the REDEFINES clause within the source program.║
 
@@ -11183,7 +11878,7 @@ Nucleus - VALUE
 
 (6) A format 1 VALUE clause specified in a data description entry that contains an OCCURS clause or in an entry that is subordinate to an OCCURS clause causes every occurrence of the associated data item to be assigned the specified value.
 
-> ⚠ **CORRECTED — see the Errata (C21).** The standard prints `or in a entry that is subordinate` (page 282, folio VI-50): a real word printed for another on the printed page. Corrected to `an entry`.
+> ⚠ **CORRECTED — see the Errata (C21).** The standard prints `or in a entry that is subordinate` (page 282, folio VI-50): a real word printed for another on the printed page. Corrected to `an entry`. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page VI-50 (T) (page 848, folio A-18): "change 'or in a entry' to 'or in an entry'", a typographical error (kb/Work PB5045).
 
 VI-50
 
@@ -11398,7 +12093,9 @@ Relation tests may be made only between:
 
 (1) Two index-names. The result is the same as if the corresponding occurrence numbers were compared.
 
-(2) An index-name and a data item (other than an index data item) or literal. The occurrence number that corresponds to the value of the index-name is compared to the data item or literal.
+(2) An index-name and a numeric data item or numeric literal. The occurrence number that corresponds to the value of the index-name is compared to the data item or literal.
+
+> ⚠ **CORRECTED — see the Errata (C217).** The standard prints `(2) An index-name and a data item (other than an index data item) or literal.` (page 288, folio VI-56). Amendment 2 (ANSI X3.23b-1993), its change for page VI-56 (page 921, folio B-9), applied in place: "Paragraph 6.3.1.1.3 entitled Comparisons Involving Index-Names and/or Index Data Items, change the first sentence of subparagraph 2 to read" (kb/Work PB5045). Corrected to `(2) An index-name and a numeric data item or numeric literal.`.
 
 (3) An index data item and an index-name or another index data item. The actual values are compared without conversion.
 
@@ -11434,9 +12131,15 @@ identifier-1 IS [<u>NOT</u>]   ┤ <u>ALPHABETIC-LOWER</u> ├
                          ╰ class-name-1     ╯
 </pre>
 
-The usage of the operand being tested must be described as DISPLAY.
+Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.
 
-When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g., NOT NUMERIC is a truth test for determining that an operand is nonnumeric.
+> ⚠ **CORRECTED — see the Errata (C126).** The standard prints `The usage of the operand being tested must be described as DISPLAY.` (page 289, folio VI-57). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-57 (page 848, folio A-18), applied in place: "Paragraph 6.3.1.2, replace the first paragraph after the general format beginning with 'The usage of the operand...'" (kb/Work PB5045). Corrected to `Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function.`.
+
+> ⚠ **CORRECTED — see the Errata (C218).** The standard prints `Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. (Amendment 1's paragraph, C126)` (page 289, folio VI-57). Amendment 2 (ANSI X3.23b-1993), its change for page VI-57 (A-18) (page 921, folio B-9), applied in place: "Paragraph 6.3.1.2 entitled Class Condition, replace the first paragraph after the general format beginning with 'Identifier-1 must reference' and the second paragraph after the general format beginning with 'When used, NOT and' with the following": the first paragraph (kb/Work PB5045). Corrected to `... When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.`.
+
+When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g. NOT NUMERIC is a truth test for determining that an operand is nonnumeric. When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.
+
+> ⚠ **CORRECTED — see the Errata (C219).** The standard prints `When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g., NOT NUMERIC is a truth test for determining that an operand is nonnumeric.` (page 289, folio VI-57). Amendment 2 (ANSI X3.23b-1993), its change for page VI-57 (A-18) (page 921, folio B-9), applied in place: the same change, its second paragraph (kb/Work PB5045). Corrected to `... When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.`.
 
 The NUMERIC test cannot be used with an item whose data description describes the item as alphabetic or as a group item composed of elementary items whose data description indicates the presence of operational sign(s). If the data description of the item being tested does not indicate the presence of an operational sign, the item being tested is determined to be numeric only if the content is numeric and an operational sign is not present. If the data description of the item does indicate the presence of an operational sign, the item being tested is determined to be numeric only if the content is numeric and a valid operational sign is present. Valid operational signs for data items described with the SIGN IS SEPARATE clause are the standard data format characters + and -; the implementor defines what constitutes valid sign(s) for data items not described with the SIGN IS SEPARATE clause.
 
@@ -11612,7 +12315,9 @@ Nucleus - Order of Evaluation of Conditions
 
 ║(1) The constituent connected conditions within a hierarchical level are evaluated in order from left to right, and evaluation of that hierarchical level terminates as soon as a truth value for it is determined regardless of whether all the constituent connected conditions within that hierarchical level have been evaluated.║
 
-║Values are established for arithmetic expressions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent. (See page VI-52, Formation and Evaluation Rules.)║
+║(2) Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated. Similarly, negated conditions are evaluated if and when it is necessary to evaluate the complex condition that they represent. (See page VI-52, Formation and Evaluation Rules.)║
+
+> ⚠ **CORRECTED — see the Errata (C127).** The standard prints `║Values are established for arithmetic expressions if and when` (page 294, folio VI-62). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-62 (page 848, folio A-18), applied in place: "Paragraph 6.3.4, penultimate paragraph: a. Insert '(2)' at the beginning of the paragraph and indent 3 spaces. b. Change the first sentence in part to read: 'Values are established for arithmetic expressions and functions if and when...'" (kb/Work PB5045). Corrected to `║(2) Values are established for arithmetic expressions and functions if and when`.
 
 ║Application of the above rules is shown in figures 1 through 4 located on the following pages. These figures are not intended to dictate implementation.║
 
@@ -11898,7 +12603,9 @@ in both cases, 'temp' is an intermediate result item provided by the implementor
 
 ### 6.4.7 Incompatible Data
 
-Except for the class condition, when the content of a data item is referenced in the Procedure Division and the content of that data item is not compatible with the class specified for that data item by its PICTURE clause, then the result of such a reference is undefined. (See page VI-56, Class Condition.)
+Except for the class condition, when the content of a data item is referenced in the Procedure Division and the content of that data item is not compatible with the class specified for that data item by its PICTURE clause or function definition, then the result of such a reference is undefined. (See page VI-56, Class Condition.)
+
+> ⚠ **CORRECTED — see the Errata (C128).** The standard prints `specified for that data item by its PICTURE clause, then the result` (page 302, folio VI-70). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-70 (page 848, folio A-18), applied in place: "Paragraph 6.4.7, change in part to read: '...PICTURE clause or function definition, then the result...'" (kb/Work PB5045). Corrected to `specified for that data item by its PICTURE clause or function definition, then the result`.
 
 VI-70
 
@@ -12599,11 +13306,13 @@ The IF statement causes a condition (see page VI-54, Conditional Expressions) to
 ### 6.16.2 General Format
 
 <pre style="line-height:1">
-                    ╭ {statement-1} …   ╮ ╭ <u>ELSE</u> {statement-2} …     [<u>END-IF</u>] ╮
+                    ╭ statement-1       ╮ ╭ <u>ELSE</u> statement-2         [<u>END-IF</u>] ╮
                     ┤                   ├ │                                   │
 <u>IF</u> condition-1 THEN ╰ <u>NEXT</u> <u>SENTENCE</u>     ╯ ┤ <u>ELSE</u> <u>NEXT</u> <u>SENTENCE</u>                ├
                                           ╰ <u>END-IF</u>                            ╯
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C220).** The standard prints `IF condition-1 THEN { {statement-1} ... | NEXT SENTENCE } { ELSE {statement-2} ... [END-IF] | ... }` (page 322, folio VI-90). Amendment 2 (ANSI X3.23b-1993), its change for page VI-90 (page 921, folio B-9), applied in place: "Paragraph 6.16.2, general format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2" (kb/Work PB5045). Corrected to `IF condition-1 THEN { statement-1 | NEXT SENTENCE } { ELSE statement-2 [END-IF] | ... }`.
 
 ### 6.16.3 Syntax Rules
 
@@ -12635,17 +13344,23 @@ VI-90
 
 Nucleus - IF
 
-b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence.
+b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence. This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.
+
+> ⚠ **CORRECTED — see the Errata (C221).** The standard prints `b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence.` (page 323, folio VI-91). Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 921, folio B-9), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 2b, add the following as the new last sentence" (kb/Work PB5045). Corrected to the text above.
 
 c. If the condition is false and statement-2 is specified, statement-1 or its surrogate NEXT SENTENCE is ignored, control is transferred to the first statement of statement-2, and execution continues according to the rules for each statement specified in statement-2. If a procedure branching ║or conditional statement║ is executed which causes an explicit transfer of control, control is explicitly transferred in accordance with the rules of that statement. Upon completion of the execution of statement-2, control passes to the end of the IF statement.
 
 d. If the condition is false and the ELSE phrase is not specified, statement-1 is ignored and control passes to the end of the IF statement.
 
-e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence.
+e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence. This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.
+
+> ⚠ **CORRECTED — see the Errata (C222).** The standard prints `e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence.` (page 323, folio VI-91). Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 922, folio B-10), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 2e, add the following as the new last sentence" (kb/Work PB5045). Corrected to the text above.
 
 (3) Statement-1 and/or statement-2 may contain an IF statement. In this case, the IF statement is said to be nested. More detailed rules on nesting are given in the appropriate paragraph. (See page IV-40, Scope of Statements.)
 
-IF statements within IF statements may be considered as paired IF, ELSE, and END-IF combinations, proceeding from left to right. Thus, any ELSE or END-IF encountered is considered to apply to the immediately preceding IF that has not been already paired with an ELSE or END-IF.
+IF statements within IF statements are considered matched IF, ELSE, and END-IF ordered combinations, proceeding from left to right. Thus, any ELSE encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE or has not been ║implicitly or║ explicitly terminated. Any END-IF encountered is matched with the nearest preceding IF that has not been ║implicitly or║ explicitly terminated.
+
+> ⚠ **CORRECTED — see the Errata (C223).** The standard prints `IF statements within IF statements may be considered as paired IF, ELSE, and END-IF combinations, proceeding from left to right. Thus, any ELSE or END-IF encountered is considered to apply to the immediately preceding IF that has not been already paired with an ELSE or END-IF.` (page 323, folio VI-91). Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 922, folio B-10), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 3, second paragraph, replace with the following" (its two shaded phrases boxed) (kb/Work PB5045). Corrected to `IF statements within IF statements are considered matched IF, ELSE, and END-IF ordered combinations, ... (above)`.
 
 VI-91
 
@@ -12818,7 +13533,9 @@ Nucleus - INSPECT
 
 (7) The size of literal-3 or the data item referenced by identifier-5 must be equal to the size of literal-1 or the data item referenced by identifier-3. When a figurative constant is used as literal-3, the size of the figurative constant is equal to the size of literal-1 or the size of the data item referenced by identifier-3.
 
-(8) When the CHARACTERS phrase is used, literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length.
+(8) When the CHARACTERS phrase is used, literal-3 or the size of the data item referenced by identifier-5 must be one character in length.
+
+> ⚠ **CORRECTED — see the Errata (C224).** The standard prints `(8) When the CHARACTERS phrase is used, literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length.` (page 327, folio VI-95). Amendment 2 (ANSI X3.23b-1993), its change for page VI-95 (page 922, folio B-10), applied in place: "Paragraph 6.18.3 of the INSPECT statement, change syntax rule 8 to read" (kb/Work PB5045). Corrected to `(8) When the CHARACTERS phrase is used, literal-3 or the size of the data item referenced by identifier-5 must be one character in length.`.
 
 ║<u>FORMAT 4</u>:║
 
@@ -12836,25 +13553,41 @@ Nucleus - INSPECT
 
 <u>ALL FORMATS</u>:
 
-(1) Inspection (which includes the comparison cycle, the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/or replacing) begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right to the rightmost character position as described in general rules 5 through 7.
+(1) For the purpose of determining its length, identifier-1 is treated as if it were a sending data item. (See page VI-26, The OCCURS Clause).
 
-(2) For use in the INSPECT statement, the content of the data item referenced by identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 will be treated as follows:
+> ⚠ **CORRECTED — see the Errata (C230).** The standard prints `(no rule before the old general rule 1)` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: the same change: its new general rule 1 (kb/Work PB5045). Corrected to `(1) For the purpose of determining its length, identifier-1 is treated as if it were a sending data item. (See page VI-26, The OCCURS Clause).`.
+
+(2) Inspection (which includes the comparison cycle, the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/or replacing) begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right to the rightmost character position as described in general rules 6 through 8.
+
+> ⚠ **CORRECTED — see the Errata (C231).** The standard prints `general rules 5 through 7.` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 2, last line, change 'general rules 5 through 7.' to 'general rules 6 through 8.'" (kb/Work PB5045). Corrected to `general rules 6 through 8.`.
+
+(3) For use in the INSPECT statement, the content of the data item referenced by identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 will be treated as follows:
 
 a. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference an alphabetic or alphanumeric data item, the INSPECT statement treats the contents of each such identifier as a character-string.
 
-b. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference alphanumeric edited, numeric edited, or unsigned numeric data items, the data item is inspected as though it had been redefined as alphanumeric (see general rule 2a) and the INSPECT statement had been written to reference the redefined data item.
+b. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference alphanumeric edited, numeric edited, or unsigned numeric data items, the data item is inspected as though it had been redefined as alphanumeric (see general rule 3a) and the INSPECT statement had been written to reference the redefined data item.
 
-c. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference a signed numeric data item, the data item is inspected as though it had been moved to an unsigned numeric data item with length equal to the length of the signed item excluding any separate sign position, and then the rules in general rule 2b had been applied. (See page VI-103, The MOVE Statement.) If identifier-1 is a signed numeric item, the original value of the sign is retained upon completion of the INSPECT statement.
+> ⚠ **CORRECTED — see the Errata (C232).** The standard prints `(see general rule 2a)` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 3b, fourth line, change '(see general rule 2a)' to '(see general rule 3a)'" (kb/Work PB5045). Corrected to `(see general rule 3a)`.
 
-(3) In general rules 5 through 17, all references to literal-1, literal-2, literal-3, literal-4, or literal-5 apply equally to the content of the data item referenced by identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 respectively.
+c. If any of identifier-1, identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 reference a signed numeric data item, the data item is inspected as though it had been moved to an unsigned numeric data item with length equal to the length of the signed item excluding any separate sign position, and then the rules in general rule 3b had been applied. (See page VI-103, The MOVE Statement.) If identifier-1 is a signed numeric item, the original value of the sign is retained upon completion of the INSPECT statement.
 
-(4) Subscripting associated with any identifier is evaluated only once as the first operation in the execution of the INSPECT statement.
+> ⚠ **CORRECTED — see the Errata (C233).** The standard prints `in general rule 2b` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 3c, fifth line, change 'in general rule 2b' to 'in general rule 3b'" (kb/Work PB5045). Corrected to `in general rule 3b`.
+
+(4) in general rules 6 through 19, all references to literal-1, literal-2, literal-3, literal-4, or literal-5 apply equally to the content of the data item referenced by identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 respectively.
+
+> ⚠ **CORRECTED — see the Errata (C234).** The standard prints `In general rules 5 through 17,` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 4, first line, change 'In general rules 5 through 17' to 'in general rules 6 through 19'" (the amendment prints the lowercase 'in') (kb/Work PB5045). Corrected to `in general rules 6 through 19,`.
+
+(5) If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated only once as the first operation in the execution of the INSPECT statement.
+
+> ⚠ **CORRECTED — see the Errata (C129).** The standard prints `(4) Subscripting associated with any identifier is evaluated only once` (page 328, folio VI-96). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-96 (page 848, folio A-18), applied in place: "Paragraph 6.18.4, general rule 4, change in part to read: 'If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated...'" (kb/Work PB5045). Corrected to `(4) If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated only once`.
 
 <u>FORMATS 1 AND 2</u>:
 
-(5) During inspection of the content of the data item referenced by identifier-1, each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2).
+(6) During inspection of the content of the data item referenced by identifier-1, each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2).
 
-(6) The comparison operation to determine the occurrence of literal-1 to be tallied or to be replaced, occurs as follows:
+(7) The comparison operation to determine the occurrence of literal-1 to be tallied or to be replaced, occurs as follows:
+
+> ⚠ **CORRECTED — see the Errata (C225).** The standard prints `general rules (1) to (6) as printed` (page 328, folio VI-96). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
 VI-96
 
@@ -12866,21 +13599,35 @@ a. The operands of the TALLYING or REPLACING phrase are considered in the order 
 
 1\) If neither LEADING nor FIRST is specified; or
 
-2\) If the LEADING adjective applies to literal-1 and literal-1 is a leading occurrence as defined in general rules 10 and 13; or
+2\) If the LEADING adjective applies to literal-1 and literal-1 is a leading occurrence as defined in general rules 12 and 15; or
 
-3\) If the FIRST adjective applies to literal-1 and literal-1 is the first occurrence as defined in general rule 13.
+> ⚠ **CORRECTED — see the Errata (C235).** The standard prints `is a leading occurrence as defined in general rules 10 and 13; or` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7a, subitem 2, change 'general rules 10 and 13' to 'general rules 12 and 15'" (kb/Work PB5045). Corrected to `is a leading occurrence as defined in general rules 12 and 15; or`.
+
+3\) If the FIRST adjective applies to literal-1 and literal-1 is the first occurrence as defined in general rule 15.
+
+> ⚠ **CORRECTED — see the Errata (C236).** The standard prints `is the first occurrence as defined in general rule 13.` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7a, subitem 3, change 'defined in general rule 13' to 'defined in general rule 15'" (kb/Work PB5045). Corrected to `is the first occurrence as defined in general rule 15.`.
 
 b. If no match occurs in the comparison of the first literal-1, the comparison is repeated with each successive literal-1, if any, until either a match is found or there is no next successive literal-1. When there is no next successive literal-1, the character position in the data item referenced by identifier-1 immediately to the right of the leftmost character position considered in the last comparison cycle is considered as the leftmost character position, and the comparison cycle begins again with the first literal-1.
 
-c. Whenever a match occurs, tallying or replacing takes place as described in general rules 10 and 13. The character position in the data item referenced by identifier-1 immediately to the right of the rightmost character position that participated in the match is now considered to be the leftmost character position of the data item referenced by identifier-1, and the comparison cycle starts again with the first literal-1.
+c. Whenever a match occurs, tallying or replacing takes place as described in general rules 12 and 15. The character position in the data item referenced by identifier-1 immediately to the right of the rightmost character position that participated in the match is now considered to be the leftmost character position of the data item referenced by identifier-1, and the comparison cycle starts again with the first literal-1.
+
+> ⚠ **CORRECTED — see the Errata (C237).** The standard prints `tallying or replacing takes place as described in general rules 10 and 13.` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7c, second line, change 'in general rules 10 and 13' to 'in general rules 12 and 15'" (kb/Work PB5045). Corrected to `tallying or replacing takes place as described in general rules 12 and 15.`.
 
 d. The comparison operation continues until the rightmost character position of the data item referenced by identifier-1 has participated in a match or has been considered as the leftmost character position. When this occurs, inspection is terminated.
 
-e. If the CHARACTERS phrase is specified, an implied one character operand participates in the cycle described in paragraphs 6a through 6d above as if it had been specified by literal-1, except that no comparison to the content of the data item referenced by identifier-1 takes place. This implied character is considered always to match the leftmost character of the content of the data item referenced by identifier-1 participating in the current comparison cycle.
+e. If the CHARACTERS phrase is specified, an implied one character operand participates in the cycle described in general rules 7a through 7d above as if it had been specified by literal-1, except that no comparison to the content of the data item referenced by identifier-1 takes place. This implied character is considered always to match the leftmost character of the content of the data item referenced by identifier-1 participating in the current comparison cycle.
 
-(7) The comparison operation defined in general rule 6 is restricted by the BEFORE and AFTER phrase as follows:
+> ⚠ **CORRECTED — see the Errata (C238).** The standard prints `participates in the cycle described in paragraphs 6a through 6d above` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7e, second line, change 'paragraphs 6a through 6d' to 'general rules 7a through 7d'" (kb/Work PB5045). Corrected to `participates in the cycle described in general rules 7a through 7d above`.
 
-a. If neither the BEFORE nor AFTER phrase is specified, literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as described in general rule 6. Literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching at the leftmost character position of identifier-1.
+(8) The comparison operation defined in general rule 7 is restricted by the BEFORE and AFTER phrase as follows:
+
+> ⚠ **CORRECTED — see the Errata (C226).** The standard prints `general rules (7) to (7) as printed` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
+
+> ⚠ **CORRECTED — see the Errata (C239).** The standard prints `(8) The comparison operation defined in general rule 6 is restricted` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8, first line, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045). Corrected to `(8) The comparison operation defined in general rule 7 is restricted`.
+
+a. If neither the BEFORE nor AFTER phrase is specified, literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as described in general rule 7. Literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching at the leftmost character position of identifier-1.
+
+> ⚠ **CORRECTED — see the Errata (C240).** The standard prints `the comparison operation as described in general rule 6.` (page 329, folio VI-97). Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8a, third line, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045). Corrected to `the comparison operation as described in general rule 7.`.
 
 b. If the BEFORE phrase is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles which involve that portion of the content of the data item referenced by identifier-1 from its leftmost character position up to, but not including, the
 
@@ -12890,25 +13637,37 @@ VI-97
 
 Nucleus - INSPECT
 
-first occurrence of literal-2 within the content of the data item referenced by identifier-1. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 6 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as though the BEFORE phrase had not been specified.
+first occurrence of literal-2 within the content of the data item referenced by identifier-1. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 7 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as though the BEFORE phrase had not been specified.
 
-c. If the AFTER phrase is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles which involve that portion of the content of the data item referenced by identifier-1 from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2 within the content of the data item referenced by identifier-1 to the rightmost character position of the data item referenced by identifier-1. This is the character position at which literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 6 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase is never eligible to participate in the comparison operation.
+> ⚠ **CORRECTED — see the Errata (C241).** The standard prints `the comparison operation described in general rule 6 is begun` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8b, eighth line from end of paragraph, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045). Corrected to `the comparison operation described in general rule 7 is begun`.
+
+c. If the AFTER phrase is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles which involve that portion of the content of the data item referenced by identifier-1 from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2 within the content of the data item referenced by identifier-1 to the rightmost character position of the data item referenced by identifier-1. This is the character position at which literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching. The position of this first occurrence is determined before the first cycle of the comparison operation described in general rule 7 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase is never eligible to participate in the comparison operation.
 
 > ⚠ **CORRECTED — see the Errata (C23).** The standard prints `CHARACTERS phrase participate only` (page 330, folio VI-98): a real word printed for another on the printed page. Corrected to `participates`.
 
+> ⚠ **CORRECTED — see the Errata (C242).** The standard prints `the comparison operation described in general rule 6 is begun` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8c, seventh line from end of paragraph, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045). Corrected to `the comparison operation described in general rule 7 is begun`.
+
 <u>FORMAT 1</u>:
 
-(8) The required words ALL and LEADING are adjectives that apply to each succeeding literal-1 until the next adjective appears.
+(9) Identifier-1 is a sending data item.
 
-(9) The content of the data item referenced by identifier-2 is not initialized by the execution of the INSPECT statement.
+> ⚠ **CORRECTED — see the Errata (C243).** The standard prints `FORMAT 1: (the header the rule follows)` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4 of the INSPECT statement, add the following as the new general rule 9 located immediately after the header FORMAT 1" (kb/Work PB5045). Corrected to `(9) Identifier-1 is a sending data item.`.
 
-(10) The rules for tallying are as follows:
+(10) The required words ALL and LEADING are adjectives that apply to each succeeding literal-1 until the next adjective appears.
+
+(11) The content of the data item referenced by identifier-2 is not initialized by the execution of the INSPECT statement.
+
+(12) The rules for tallying are as follows:
+
+> ⚠ **CORRECTED — see the Errata (C227).** The standard prints `general rules (8) to (10) as printed` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
 a. If the ALL phrase is specified, the content of the data item referenced by identifier-2 is incremented by one for each occurrence of literal-1 matched within the content of the data item referenced by identifier-1.
 
 b. If the LEADING phrase is specified, the content of the data item referenced by identifier-2 is incremented by one for the first and each subsequent contiguous occurrence of literal-1 matched within the content of the data item referenced by identifier-1, provided that the leftmost such occurrence is at the point where comparison began in the first comparison cycle in which literal-1 was eligible to participate.
 
-c. If the CHARACTERS phrase is specified, the content of the data item referenced by identifier-2 is incremented by one for each character matched, in the sense of general rule 6e, within the content of the data item referenced by identifier-1.
+c. If the CHARACTERS phrase is specified, the content of the data item referenced by identifier-2 is incremented by one for each character matched, in the sense of general rule 7e, within the content of the data item referenced by identifier-1.
+
+> ⚠ **CORRECTED — see the Errata (C244).** The standard prints `in the sense of general rule 6e` (page 330, folio VI-98). Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 12c, third line, change 'in general rule 6e' to 'in general rule 7e'" (kb/Work PB5045). Corrected to `in the sense of general rule 7e`.
 
 VI-98
 
@@ -12916,15 +13675,17 @@ VI-98
 
 Nucleus - INSPECT
 
-(11) If identifier-1, identifier-3, or identifier-4 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
+(13) If identifier-1, identifier-3, or identifier-4 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
 
 <u>FORMAT 2</u>:
 
-(12) The required words ALL, LEADING, and FIRST are adjectives that apply to each succeeding BY phrase until the next adjective appears.
+(14) The required words ALL, LEADING, and FIRST are adjectives that apply to each succeeding BY phrase until the next adjective appears.
 
-(13) The rules for replacement are as follows:
+(15) The rules for replacement are as follows:
 
-a. When the CHARACTERS phrase is specified, each character matched, in the sense of general rule 6e, in the content of the data item referenced by identifier-1 is replaced by literal-3.
+a. When the CHARACTERS phrase is specified, each character matched, in the sense of general rule 7e, in the content of the data item referenced by identifier-1 is replaced by literal-3.
+
+> ⚠ **CORRECTED — see the Errata (C245).** The standard prints `in the sense of general rule 6e` (page 331, folio VI-99). Amendment 2 (ANSI X3.23b-1993), its change for page VI-99 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 15a, second line, change 'in general rule 6e to 'in general rule 7e'" (the amendment prints no closing quotation mark after 6e) (kb/Work PB5045). Corrected to `in the sense of general rule 7e`.
 
 b. When the adjective ALL is specified, each occurrence of literal-1 matched in the content of the data item referenced by identifier-1 is replaced by literal-3.
 
@@ -12932,15 +13693,17 @@ c. When the adjective LEADING is specified, the first and each successive contig
 
 d. When the adjective FIRST is specified, the leftmost occurrence of literal-1 matched within the content of the data item referenced by identifier-1 is replaced by literal-3. This rule applies to each successive specification of the FIRST phrase regardless of the value of literal-1.
 
-(14) If identifier-3, identifier-4, or identifier-5 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
+(16) If identifier-3, identifier-4, or identifier-5 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)
 
 <u>FORMAT 3</u>:
 
-(15) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements specifying the same identifier-1 had been written with one statement being a format 1 statement with TALLYING phrases identical to those specified in the format 3 statement, and the other statement being a format 2 statement with REPLACING phrases identical to those specified in the format 3 statement. The general rules given for matching and counting apply to the format 1 statement and the general rules given for matching and replacing apply to the format 2 statement. Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement.
+(17) A format 3 INSPECT statement is interpreted and executed as though two successive INSPECT statements specifying the same identifier-1 had been written with one statement being a format 1 statement with TALLYING phrases identical to those specified in the format 3 statement, and the other statement being a format 2 statement with REPLACING phrases identical to those specified in the format 3 statement. The general rules given for matching and counting apply to the format 1 statement and the general rules given for matching and replacing apply to the format 2 statement. Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement.
 
 ║<u>FORMAT 4</u>:║
 
-║(16) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement specifying the same identifier-1 had been written with a series of ALL phrases, one for each character of literal-4. The effect is as if each of these ALL phrases referenced, as literal-1, a single character║
+║(18) A format 4 INSPECT statement is interpreted and executed as though a format 2 INSPECT statement specifying the same identifier-1 had been written with a series of ALL phrases, one for each character of literal-4. The effect is as if each of these ALL phrases referenced, as literal-1, a single character║
+
+> ⚠ **CORRECTED — see the Errata (C228).** The standard prints `general rules (11) to (16) as printed` (page 331, folio VI-99). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
 VI-99
 
@@ -12950,7 +13713,9 @@ Nucleus - INSPECT
 
 ║of literal-4 and referenced, as literal-3, the corresponding single character of literal-5. Correspondence between the characters of literal-4 and the characters of literal-5 is by ordinal position within the data item.║
 
-║(17) If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)║
+║(19) If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See page VI-69, Overlapping Operands.)║
+
+> ⚠ **CORRECTED — see the Errata (C229).** The standard prints `general rules (17) to (17) as printed` (page 332, folio VI-100). Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045). Corrected to `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19`.
 
 ### 6.18.5 Examples
 
@@ -13125,7 +13890,9 @@ The MOVE statement transfers data, in accordance with the rules of editing, to o
 
 (2) Literal-1 or the content of the data item referenced by identifier-1 is moved to the data item referenced by each identifier-2 ║in the order in which it is specified. The rules referring to identifier-2 also apply to the other receiving areas.║ Any length evaluation or subscripting associated with identifier-2 is evaluated immediately before the data is moved to the respective data item.
 
-Any subscripting associated with identifier-1 is evaluated only once, immediately before data is moved to the first of the receiving operands. The length of the data item referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of the receiving operands.
+If identifier-1 is reference modified, subscripted, or is a function-identifier, the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is moved to the first of the receiving operands. The length of the data item referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of the receiving operands.
+
+> ⚠ **CORRECTED — see the Errata (C130).** The standard prints `Any subscripting associated with identifier-1 is evaluated only once, immediately before data is moved to the first of the receiving operands.` (page 335, folio VI-103). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-103 (page 848, folio A-18), applied in place: "Paragraph 6.19.4, general rule 2, second paragraph, change the first sentence to read" (kb/Work PB5045). Corrected to `If identifier-1 is reference modified, subscripted, or is a function-identifier, the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is moved to the first of the receiving operands.`.
 
 VI-103
 
@@ -13151,7 +13918,9 @@ MOVE temp to c (b)
 
 where 'temp' is an intermediate result item provided by the implementor.
 
-(3) Any move in which the receiving operand is an elementary item and the sending operand is either a literal or an elementary item is an elementary move. Every elementary item belongs to one of the following categories: numeric, alphabetic, numeric edited, alphanumeric edited. (See page VI-29, The PICTURE Clause.) Numeric literals belong to the category numeric and nonnumeric literals belong to the category alphanumeric. The figurative constant ZERO (ZEROS, ZEROES), when moved to a numeric or numeric edited item, belongs to the category numeric. In all other cases, it belongs to the category alphanumeric. The figurative constant SPACE (SPACES) belongs to the category alphabetic. All other figurative constants belong to the category alphanumeric.
+(3) Any move in which the receiving operand is an elementary item and the sending operand is either a literal or an elementary item is an elementary move. Every elementary item belongs to one of the following categories: numeric, alphabetic, alphanumeric, numeric edited, alphanumeric edited. (See page VI-29, The PICTURE Clause.) Numeric literals belong to the category numeric and nonnumeric literals belong to the category alphanumeric. The figurative constant ZERO (ZEROS, ZEROES), when moved to a numeric or numeric edited item, belongs to the category numeric. In all other cases, it belongs to the category alphanumeric. The figurative constant SPACE (SPACES) belongs to the category alphabetic. All other figurative constants belong to the category alphanumeric.
+
+> ⚠ **CORRECTED — see the Errata (C131).** The standard prints `categories: numeric, alphabetic, numeric edited, alphanumeric edited.` (page 336, folio VI-104). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-104 (T) (page 848, folio A-18), applied in place: "Paragraph 6.19.4 of the MOVE statement, general rule 3, fourth line, change 'alphabetic, numeric edited,' to 'alphabetic, alphanumeric, numeric edited,'", a typographical error (the category list without alphanumeric, a lead of kb/Work PB4984) (kb/Work PB5045). Corrected to `categories: numeric, alphabetic, alphanumeric, numeric edited, alphanumeric edited.`.
 
 The following rules apply to an elementary move between these categories:
 
@@ -13459,7 +14228,9 @@ Nucleus - PERFORM
 
 c. Format 3 is the PERFORM ... UNTIL. The specified set of statements is performed until the condition specified by the UNTIL phrase is true. When the condition is true, control is transferred to the end of the PERFORM statement. If the condition is true when the PERFORM statement is entered, ║and the TEST BEFORE phrase is specified or implied,║ no transfer to procedure-name-1 takes place, and control is passed to the end of the PERFORM statement. ║If the TEST AFTER phrase is specified, the PERFORM statement functions as if the TEST BEFORE phrase were specified except that the condition is tested after the specified set of statements has been executed. Any subscripting or reference modification associated with the operands specified in condition-1 is evaluated each time the condition is tested.║
 
-║d. Format 4 is the PERFORM ... VARYING. This variation of the PERFORM statement is used to augment the values referenced by one or more identifiers or index-names in an orderly fashion during the execution of a PERFORM statement. In the following discussion, every reference to identifier as the object of the VARYING, AFTER, and FROM (current value) phrases also refers to index-names. If index-name-1 or index-name-3 is specified, the value of the associated index at the beginning of the PERFORM statement must be set to an occurrence number of an element in the table. If index-name-2 or index-name-4 is specified, the value of the data item referenced by identifier-2 or identifier-5 at the beginning of the PERFORM statement must be equal to an occurrence number of an element in a table associated with index-name-2 or index-name-4. Subsequent augmentation, as described below, of index-name-1 or index-name-3 must not result in the associated index being set to a value outside the range of the table associated with index-name-1 or index-name-3; except that, at the completion of the PERFORM statement, the index associated with index-name-1 may contain a value that is outside the range of the associated table by one increment or decrement value. If identifier-2 or identifier-5 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is set or augmented. If identifier-3, identifier-4, identifier-6, or identifier-7 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is used in a setting or augmenting operation. Any subscripting or reference modification associated with the operands specified in condition-1 or condition-2 is evaluated each time the condition is tested.║
+║d. Format 4 is the PERFORM ... VARYING. This variation of the PERFORM statement is used to augment the values referenced by one or more identifiers or index-names in an orderly fashion during the execution of a PERFORM statement. In the following discussion, every reference to identifier as the object of the VARYING, AFTER, and FROM (current value) phrases also refers to index-names. If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-1 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-1. If index-name-3 is specified, the value of identifier-6, index-name-4, or literal-3 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-3. Subsequent augmentation, as described below, of index-name-1 or index-name-3 must not result in the associated index being set to a value outside the range of the table associated with index-name-1 or index-name-3; except that, at the completion of the PERFORM statement, the index associated with index-name-1 may contain a value that is outside the range of the associated table by one increment or decrement value. If identifier-2 or identifier-5 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is set or augmented. If identifier-3, identifier-4, identifier-6, or identifier-7 is subscripted, the subscripts are evaluated each time the content of the data item referenced by the identifier is used in a setting or augmenting operation. Any subscripting or reference modification associated with the operands specified in condition-1 or condition-2 is evaluated each time the condition is tested.║
+
+> ⚠ **CORRECTED — see the Errata (C246).** The standard prints `If index-name-1 or index-name-3 is specified, the value of the associated index at the beginning of the PERFORM statement must be set to an occurrence number of an element in the table. If index-name-2 or index-name-4 is specified, the value of the data item referenced by identifier-2 or identifier-5 at the beginning of the PERFORM statement must be equal to an occurrence number of an element in a table associated with index-name-2 or index-name-4.` (page 345, folio VI-113). Amendment 2 (ANSI X3.23b-1993), its change for page VI-113 (page 924, folio B-12), applied in place: "Paragraph 6.21.4 of the PERFORM statement, general rule 10d, change the fourth and fifth sentences to read" (shaded: level 2, the rule stands in its box) (kb/Work PB5045). Corrected to the text above.
 
 ║Representations of the actions of several types of format 4 PERFORM statements are given in figures 1 through 4 on pages VI-114 through VI-119. These are not intended to dictate implementation.║
 
@@ -13799,7 +14570,9 @@ Nucleus - SEARCH
 
 ║a. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is greater than the highest permissible occurrence number for identifier-1, the search is terminated immediately. The number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause. (See VI-26, The OCCURS Clause.) Then, if the AT END phrase is specified, imperative-statement-1 is executed; if the AT END phrase is not specified, control passes to the end of the SEARCH statement.║
 
-║b. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is not greater than the highest permissible occurrence number for identifier-1 (the number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause), the SEARCH statement operates by evaluating the conditions in the order that they are written, making use of the index settings, wherever specified, to determine the occurrence of those items to be tested. If none of the conditions is satisfied, the index-name for identifier-1 is incremented to obtain reference to the next occurrence. The process is then repeated using the new index-name settings unless the new value of the index-name settings for identifier-1 corresponds to a table element outside the permissible range of occurrence values, in which case the search terminates as indicated in 2a above. If one of the conditions is satisfied upon its evaluation, the search terminates immediately, and control passes to the imperative statement associated with that condition, if present, or, if the NEXT SENTENCE phrase is associated with that condition, to the next executable sentence; the index-name remains set at the occurrence which caused the condition to be satisfied.║
+║b. If, at the start of execution of the SEARCH statement, the index-name associated with identifier-1 contains a value that corresponds to an occurrence number that is not greater than the highest permissible occurrence number for identifier-1 (the number of occurrences of identifier-1, the last of which is the highest permissible, is discussed in the OCCURS clause), the SEARCH statement operates by evaluating the conditions in the order that they are written, making use of the index settings, wherever specified, to determine the occurrence of those items to be tested. If none of the conditions is satisfied, the index-name for identifier-1 is incremented to obtain reference to the next occurrence. The process is then repeated using the new index-name settings unless the new value of the index-name settings for identifier-1 corresponds to a table element outside the permissible range of occurrence values, in which case the search terminates as indicated in 2a above. If one of the conditions is satisfied upon its evaluation, the search terminates immediately, and control passes to the imperative statement associated with that condition, if present, or, if the NEXT SENTENCE phrase is associated with that condition, to the next executable sentence; the index-name remains set at the occurrence which caused the condition to be satisfied. When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║
+
+> ⚠ **CORRECTED — see the Errata (C247).** The standard prints `the index-name remains set at the occurrence which caused the condition to be satisfied.║` (page 356, folio VI-124). Amendment 2 (ANSI X3.23b-1993), its change for page VI-124 (page 924, folio B-12), applied in place: "Paragraph 6.22.4 of the SEARCH statement, general rule 2b, add the following as the new last sentence" (shaded: level 2, in the rule's box) (kb/Work PB5045). Corrected to the text above.
 
 ║(3) In a format 2 SEARCH statement, the results of the SEARCH ALL operation are predictable only when:║
 
@@ -13807,7 +14580,9 @@ Nucleus - SEARCH
 
 ║b. The contents of the key(s) referenced in the WHEN phrase are sufficient to identify a unique table element.║
 
-║(4) If format 2 of the SEARCH statement is used, a nonserial type of search operation may take place; the initial setting of the index-name for identifier-1 is ignored and its setting is varied during the search operation in a manner specified by the implementor, with the restriction that at no time is it set to a value that exceeds the value which corresponds to the last element of the table, or that is less than the value that corresponds to the first element of the table. The length of the table is discussed in the OCCURS clause. (See page VI-26, The OCCURS Clause.) If any of the conditions specified in the WHEN phrase cannot be satisfied for any setting of the index within the permitted range, control is passed to imperative-statement-1 of the AT END phrase, when specified, or to the end of the SEARCH statement when this phrase is not specified; in either case the final setting of the index is not predictable. If all the conditions can be satisfied, the index indicates an occurrence that allows the conditions to be satisfied, and control passes to imperative-statement-2, if specified, or to the next executable sentence if the NEXT SENTENCE phrase is specified.║
+║(4) If format 2 of the SEARCH statement is used, a nonserial type of search operation may take place; the initial setting of the index-name for identifier-1 is ignored and its setting is varied during the search operation in a manner specified by the implementor, with the restriction that at no time is it set to a value that exceeds the value which corresponds to the last element of the table, or that is less than the value that corresponds to the first element of the table. The length of the table is discussed in the OCCURS clause. (See page VI-26, The OCCURS Clause.) If any of the conditions specified in the WHEN phrase cannot be satisfied for any setting of the index within the permitted range, control is passed to imperative-statement-1 of the AT END phrase, when specified, or to the end of the SEARCH statement when this phrase is not specified; in either case the final setting of the index is not predictable. If all the conditions can be satisfied, the index indicates an occurrence that allows the conditions to be satisfied, and control passes to imperative-statement-2, if specified, or to the next executable sentence if the NEXT SENTENCE phrase is specified. When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║
+
+> ⚠ **CORRECTED — see the Errata (C248).** The standard prints `or to the next executable sentence if the NEXT SENTENCE phrase is specified.║` (page 356, folio VI-124). Amendment 2 (ANSI X3.23b-1993), its change for page VI-124 (page 924, folio B-12), applied in place: "Paragraph 6.22.4 of the SEARCH statement, general rule 4, add the following as the new last sentence" (shaded: level 2, in the rule's box) (kb/Work PB5045). Corrected to the text above.
 
 VI-124
 
@@ -13937,7 +14712,9 @@ Nucleus - SET
 
 (2) If index-name-1 is specified, the value of the index after the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-1. The value of the index associated with an index-name after the execution of a PERFORM or SEARCH statement may be set to an occurrence number that is outside the range of its associated table. (See page VI-109, The PERFORM Statement, and page VI-122, The SEARCH Statement.)
 
-If index-name-2 is specified, the value of the index before the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-1.
+If index-name-2 is specified, the value of the index before the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-2.
+
+> ⚠ **CORRECTED — see the Errata (C32).** The standard prints `must correspond to an occurrence number of an element in the table associated with index-name-1.` (page 360, folio VI-128). An operand misprinted: the sentence is about index-name-2, whose value must index its own table. General rule 3a provides for index-name-2 being related to a different table than index-name-1 (§1985:VI.6.23.4 GR3), which the printed operand would make unreachable, and §2023:14.9.39.4 GR2 b) speaks of the table element associated with index-name-2 (kb/Work PB5031, PB5045). Corrected to `must correspond to an occurrence number of an element in the table associated with index-name-2.`.
 
 If index-name-3 is specified, the value of the index both before and after the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-3.
 
@@ -14564,17 +15341,9 @@ a. I-O Status = 9x. An implementor-defined condition exists. This condition must
 
 The at end condition can occur as a result of the execution of a READ statement. (See page VII-44. The READ Statement.)
 
-### 1.3.7 The File Attribute Conflict Condition
+### ║1.3.7 Special Register LINAGE-COUNTER║
 
-The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page VII-39, The OPEN Statement; page VII-48, The REWRITE Statement; and page VII-52, The WRITE Statement.)
-
-When the file attribute conflict condition is recognized, these actions take place in the following order:
-
-(1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page VII-2, I-O Status.)
-
-(2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.
-
-### ║1.3.8 Special Register LINAGE-COUNTER║
+> ⚠ **CORRECTED — see the Errata (C249).** The standard prints `1.3.7 The File Attribute Conflict Condition (its three paragraphs and two numbered items) ... 1.3.8 Special Register LINAGE-COUNTER` (page 379, folio VII-5). Amendment 2 (ANSI X3.23b-1993), its change for page VII-5 (page 924, folio B-12), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition; renumber paragraph 1.3.8 entitled Special Register LINAGE-COUNTER as new paragraph 1.3.7" (kb/Work PB5045). Corrected to `(paragraph 1.3.7 deleted) 1.3.7 Special Register LINAGE-COUNTER`.
 
 ║The reserved word LINAGE-COUNTER is a name for a line counter generated by the presence of a LINAGE clause in a file description entry. (See page VII-27, The LINAGE Clause.) The implicit description is that of an unsigned integer whose size is equal to the size of integer-1 or the data item referenced by data-name-1 in the LINAGE clause. LINAGE-COUNTER may be referenced only in Procedure Division statements; however, only the input-output control system may change the value of LINAGE-COUNTER.║
 
@@ -14595,8 +15364,10 @@ The general format of the Input-Output Section is shown below.
 <pre style="line-height:1">
 <u>INPUT-OUTPUT</u> <u>SECTION</u>.
 <u>FILE-CONTROL</u>. { file-control-entry } …
-║ [ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ] ║
+[ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ]
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C132).** The standard prints `║ [ I-O-CONTROL. [ input-output-control-entry ] ] ║` (page 380, folio VII-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-6 (T) (page 849, folio A-19), applied in place: "Paragraph 2.1, in the Input-Output Section of the Sequential I-O module, delete the box around the general format", a typographical error (kb/Work PB5045). Corrected to `[ I-O-CONTROL. [ input-output-control-entry ] ]`.
 
 VII-6
 
@@ -15482,6 +16253,10 @@ Sequential I-O - RECORD
 
 ║c. If data-name-1 is not specified and the record does contain a variable occurrence data item, by the sum of the fixed portion and that portion of the table described by the number of occurrences at the time of execution of the output statement.║
 
+║If the number of character positions in the logical record to be written is less than integer-2 or greater than integer-3, the output statement is unsuccessful and, except during execution of a RELEASE statement, the associated I-O status is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.)║
+
+> ⚠ **CORRECTED — see the Errata (C250).** The standard prints `(general rule 10 ends with item c)` (page 406, folio VII-32). Amendment 2 (ANSI X3.23b-1993), its change for page VII-32 (page 924, folio B-12), applied in place: "Paragraph 3.8.4 of the RECORD clause, general rule 10, add the following as a new last paragraph" (shaded: level 2, boxed) (kb/Work PB5045). Corrected to the text above.
+
 ║(11) If data-name-1 is specified, after the successful execution of a READ or RETURN statement for the file, the contents of the data item referenced by data-name-1 will indicate the number of character positions in the record just read.║
 
 ║(12) If the INTO phrase is specified in the READ or RETURN statement, the number of character positions in the current record that participate as the sending data items in the implicit MOVE statement is determined by the following conditions:║
@@ -15492,9 +16267,13 @@ Sequential I-O - RECORD
 
 <u>FORMAT 3</u>:
 
-(13) When format 3 of the RECORD clause is used, integer-4 and integer-5 refer to the minimum number of characters in the smallest size data record and the maximum number of characters in the largest size data record, respectively. However, in this case, the size of each data record is completely defined in the record description entry.
+(13) It is implementor defined whether format 3 of the RECORD clause produces fixed length records or variable length records.
 
-(14) The size of each data record is specified in terms of the number of character positions required to store the logical record, regardless of the types of characters used to represent the items within the logical record. The size of a record is determined by the sum of the number of characters in all fixed length elementary items plus the sum of the maximum number of characters in any variable length item subordinate to the record. This sum may be different from the actual size of the record; see page IV-16, Selection of Character Representation and Radix; page VI-44, The SYNCHRONIZED Clause; page VI-46, The USAGE Clause.
+(14) When format 3 of the RECORD clause is used, integer-4 and integer-5 refer to the minimum number of characters in the smallest size data record and the maximum number of characters in the largest size data record, respectively. However, in this case, the size of each data record is completely defined in the record description entry.
+
+> ⚠ **CORRECTED — see the Errata (C251).** The standard prints `(13) When format 3 of the RECORD clause is used, ... (14) The size of each data record ...` (page 406, folio VII-32). Amendment 2 (ANSI X3.23b-1993), its change for page VII-32 (page 924, folio B-12), applied in place: "Paragraph 3.8.4 of the RECORD clause, renumber general rules 13 and 14 as new general rules 14 and 15. Add the following as new general rule 13 after the header FORMAT 3" (kb/Work PB5045). Corrected to `(13) It is implementor defined ... (14) When format 3 of the RECORD clause is used, ... (15) The size of each data record ...`.
+
+(15) The size of each data record is specified in terms of the number of character positions required to store the logical record, regardless of the types of characters used to represent the items within the logical record. The size of a record is determined by the sum of the number of characters in all fixed length elementary items plus the sum of the maximum number of characters in any variable length item subordinate to the record. This sum may be different from the actual size of the record; see page IV-16, Selection of Character Representation and Radix; page VI-44, The SYNCHRONIZED Clause; page VI-46, The USAGE Clause.
 
 VII-32
 
@@ -15680,13 +16459,13 @@ If label records are specified for the file, the labels are processed according 
 
 F. Close Reel/Unit
 
-<u>Input Files and Input-Output Files</u>:
+<u>Input Files and Input-Output Files (Reel/Unit Media)</u>:
 
-The following operations take place:
+1\) If the current reel/unit is the last or only reel/unit for the file, there is no reel/unit swap, the current volume pointer remains unchanged, and the file position indicator is set to indicate that no next reel/unit exists.
 
-1\) If the current reel/unit is the last or only reel/unit for the file or the reel is on a non-reel/unit medium, there is no reel/unit swap and the current volume pointer remains unchanged.
+2\) If another reel/unit exists for the file, a reel/unit swap occurs, the current volume pointer is updated to point to the next reel/unit existing in the file, the standard beginning reel/unit label procedure is executed, and the file position indicator is set to one less than the number of the first record existing on the new current volume. If no data records exist for the current volume, another reel/unit swap occurs.
 
-2\) If another reel/unit exists for the file, a reel/unit swap occurs, the current volume pointer is updated to point to the next reel/unit existing in the file, and the standard beginning reel/unit label procedure is executed. If no data records exist for the current volume, another reel/unit swap occurs.
+> ⚠ **CORRECTED — see the Errata (C252).** The standard prints `Input Files and Input-Output Files: ... (two numbered operations)` (page 411, folio VII-37). Amendment 2 (ANSI X3.23b-1993), its change for page VII-37 (page 925, folio B-13), applied in place: "Paragraph 4.2.4 of the CLOSE statement in the Sequential I-O module, general rule 3, change paragraph F to read as follows": its input and input-output files (kb/Work PB5045). Corrected to the text above.
 
 <u>Output Files (Reel/Unit Media)</u>:
 
@@ -15706,9 +16485,11 @@ Sequential I-O - CLOSE
 
 4\) The next executed WRITE statement that references that file directs the next logical data record to the next reel/unit of the file.
 
-<u>Output Files (Non-Reel/Unit Media)</u>:
+<u>Input Files, Input-Output Files, and Output Files (Non-Reel/Unit Media)</u>:
 
-Execution of this statement is considered successful. The file remains in the open mode, and no action takes place except as specified in general rule 4.
+Execution of this statement is considered successful. The file remains in the open mode, the file position indicator is unchanged, and no action takes place except as specified in general rule 4.
+
+> ⚠ **CORRECTED — see the Errata (C253).** The standard prints `<u>Output Files (Non-Reel/Unit Media)</u>: ¶ Execution of this statement is considered successful. The file remains in the open mode, and no action takes place except as specified in general rule 4.` (page 412, folio VII-38). Amendment 2 (ANSI X3.23b-1993), its change for page VII-37 (page 925, folio B-13), applied in place: "Paragraph 4.2.4 of the CLOSE statement in the Sequential I-O module, general rule 3, change paragraph F to read as follows": its non-reel/unit media (the output files on reel/unit media read as before) (kb/Work PB5045). Corrected to the text above.
 
 G. Rewind
 
@@ -15819,7 +16600,9 @@ b. When the OUTPUT phrase is specified, the execution of the OPEN statement caus
 
 The behavior of the OPEN statement when label records are specified but not present, or when label records are not specified but are present, is undefined.
 
-(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)
+(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)
+
+> ⚠ **CORRECTED — see the Errata (C254).** The standard prints `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)` (page 415, folio VII-41). Amendment 2 (ANSI X3.23b-1993), its change for page VII-41 (page 926, folio B-14), applied in place: "Paragraph 4.3.4 of the OPEN statement in the Sequential I-O module, general rule 8, change to read" (kb/Work PB5045). Corrected to the text above.
 
 ║(9) The NO REWIND and REVERSED phrases must only be used with:║
 
@@ -15912,6 +16695,14 @@ c. To point to the new reel/unit for an unavailable output, I-O, ║or extend║
 
 (25) The minimum and maximum record sizes for a file are established at the time the file is created and must not subsequently be changed.
 
+(26) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:
+
+a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.
+
+b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page VII-50, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C255).** The standard prints `(the general rules end with rule 25)` (page 417, folio VII-43). Amendment 2 (ANSI X3.23b-1993), its change for page VII-43 (page 926, folio B-14), applied in place: "Paragraph 4.3.4 of the OPEN statement in the Sequential I-O module, add the following as the new general rule 26" (kb/Work PB5045). Corrected to the text above.
+
 VII-43
 
 ## Page 418
@@ -16003,9 +16794,13 @@ c. The standard beginning reel/unit label procedure.
 
 a. A value, derived from the setting of the file position indicator, is placed into the I-O status associated with file-name-1 to indicate the at end condition. (See page VII-2, I-O Status.)
 
-b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.
+b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.
 
-c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with this file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+> ⚠ **CORRECTED — see the Errata (C256).** The standard prints `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` (page 420, folio VII-46). Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 926, folio B-14), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, replace general rule 10b with the following" (kb/Work PB5045). Corrected to the text above.
+
+c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+
+> ⚠ **CORRECTED — see the Errata (C257).** The standard prints `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with this file-name-1, and that procedure is executed.` (page 420, folio VII-46). Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 926, folio B-14), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, general rule 10c, change the first sentence to read" (kb/Work PB5045). Corrected to `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.`.
 
 When the at end condition occurs, execution of the READ statement is unsuccessful.
 
@@ -16013,7 +16808,9 @@ When the at end condition occurs, execution of the READ statement is unsuccessfu
 
 a. The file position indicator is set and the I-O status associated with file-name-1 is updated.
 
-b. If an exception condition which is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file name-1. (See page VII-50, The USE Statement.)
+b. If an exception condition that is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page VII-50, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C258).** The standard prints `b. If an exception condition which is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file name-1. (See page VII-50, The USE Statement.)` (page 420, folio VII-46). Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 927, folio B-15), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, replace general rule 11b with the following" (kb/Work PB5045). Corrected to the text above.
 
 c. If no exception condition exists, the record is made available in the record area and any implicit move resulting from the presence of an INTO phrase is executed. Control is transferred to the end of the READ statement or to imperative-statement-2, if specified. In the latter case, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the READ statement.
 
@@ -16051,7 +16848,11 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.5.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C133).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 422, folio VII-48). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-48 (page 849, folio A-19), applied in place: "Paragraph 4.5.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C259).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 422, folio VII-48). Amendment 2 (ANSI X3.23b-1993), its change for page VII-48 (A-19) (page 927, folio B-15), applied in place: "Paragraph 4.5.3 of the REWRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's, C138) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -16061,7 +16862,9 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 (2) The last input-output statement executed for the associated file prior to the execution of the REWRITE statement must have been a successfully executed READ statement. The mass storage control system (MSCS) logically replaces the record that was accessed by the READ statement.
 
-(3) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
+(3) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available to the program as a record of other files referenced in the same SAME RECORD AREA clause as the associated I-O file, as well as the file associated with record-name-1.║
+
+> ⚠ **CORRECTED — see the Errata (C33).** The standard prints `as the associated output file, as well as the file associated with record-name-1` (page 422, folio VII-48). A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:VII.4.5.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045). Corrected to `as the associated I-O file, as well as the file associated with record-name-1`.
 
 (4) The result of the execution of a REWRITE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified:
 
@@ -16119,7 +16922,9 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (2) The USE statement is never executed; it merely defines the conditions calling for the execution of the USE procedures.
 
-(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.
+(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.
+
+> ⚠ **CORRECTED — see the Errata (C260).** The standard prints `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` (page 424, folio VII-50). Amendment 2 (ANSI X3.23b-1993), its change for page VII-50 (page 927, folio B-15), applied in place: "Paragraph 4.6.3 of the USE statement in the Sequential I-O module, syntax rule 3, change to read" (kb/Work PB5045). Corrected to `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.`.
 
 (4) The words ERROR and EXCEPTION are synonymous and may be used interchangeably.
 
@@ -16198,7 +17003,11 @@ The WRITE statement releases a logical record for an output file. It can also be
 
 ### 4.7.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C134).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 426, folio VII-52). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-52 (page 849, folio A-19), applied in place: "Paragraph 4.7.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C261).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 426, folio VII-52). Amendment 2 (ANSI X3.23b-1993), its change for page VII-52 (A-19) (page 927, folio B-15), applied in place: "Paragraph 4.7.3 of the WRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -16248,9 +17057,9 @@ b. The same WRITE statement without the FROM phrase.
 
 ║(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.)║
 
-║(9) If, during the execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:║
+║(9) If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 after execution of the input-output operation.║
 
-║a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.║
+> ⚠ **CORRECTED — see the Errata (C262).** The standard prints `║(9) If, during the execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:║ ¶ ║a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.║ (its subparagraph b on page 428)` (page 427, folio VII-53). Amendment 2 (ANSI X3.23b-1993), its change for page VII-53 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, replace general rule 9, including subparagraphs a and b, with the following" (shaded: level 2, boxed) (kb/Work PB5045). Corrected to `║(9) If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 after execution of the input-output operation.║`.
 
 VII-53
 
@@ -16258,15 +17067,19 @@ VII-53
 
 Sequential I-O - WRITE
 
-║b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.║
+> ⚠ **CORRECTED — see the Errata (C263).** The standard prints `║b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.║` (page 428, folio VII-54). Amendment 2 (ANSI X3.23b-1993), its change for page VII-53 (page 927, folio B-15), applied in place: the same change: its subparagraph b, on page 428 (kb/Work PB5045). Corrected to `(deleted: general rule 9 replaced, above)`.
 
-(10) The END-WRITE phrase delimits the scope of the WRITE statement. (See page IV-40, Scope of Statements.)
+(10) If the execution of the WRITE statement is unsuccessful, the I-O status of the file-name associated with record-name-1 is updated and control is transferred according to the rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to the file-name associated with record-name-1. (See page VII-50, The USE Statement).
 
-(11) The successor relationship of a sequential file is established by the order of execution of WRITE statements when the file is created. The relationship does not change ║except when records are added to the end of a file.║
+> ⚠ **CORRECTED — see the Errata (C266).** The standard prints `(no rule 10 after the renumbering)` (page 428, folio VII-54). Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 928, folio B-16), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, add the following as the new general rule 10" (kb/Work PB5045). Corrected to the text above.
 
-║(12) When a sequential file is open in the extend mode, the execution of the WRITE statement will add records to the end of the file as though the file were open in the output mode. If there are records in the file, the first record written after the execution of the OPEN statement with the EXTEND phrase is the successor of the last record in the file.║
+(11) The END-WRITE phrase delimits the scope of the WRITE statement. (See page IV-40, Scope of Statements.)
 
-(13) When an attempt is made to write beyond the externally defined boundaries of a sequential file, an exception condition exists and the contents of the record area are unaffected. The following actions take place:
+(12) The successor relationship of a sequential file is established by the order of execution of WRITE statements when the file is created. The relationship does not change ║except when records are added to the end of a file.║
+
+║(13) When a sequential file is open in the extend mode, the execution of the WRITE statement will add records to the end of the file as though the file were open in the output mode. If there are records in the file, the first record written after the execution of the OPEN statement with the EXTEND phrase is the successor of the last record in the file.║
+
+(14) When an attempt is made to write beyond the externally defined boundaries of a sequential file, an exception condition exists and the contents of the record area are unaffected. The following actions take place:
 
 a. The value of the I-O status of the file-name associated with record-name-1 is set to a value indicating a boundary violation. (See page VII-2, I-O Status.)
 
@@ -16274,7 +17087,7 @@ b. If a USE AFTER STANDARD EXCEPTION declarative is explicitly or implicitly spe
 
 c. If a USE AFTER STANDARD EXCEPTION declarative is not explicitly or implicitly specified for the file-name associated with record-name-1, the result is undefined.
 
-(14) If the end of reel/unit is recognized and the externally defined boundaries of the file have not been exceeded, the following operations are executed:
+(15) If the end of reel/unit is recognized and the externally defined boundaries of the file have not been exceeded, the following operations are executed:
 
 a. The standard ending reel/unit label procedure.
 
@@ -16282,7 +17095,9 @@ b. A reel/unit swap. The current volume pointer is updated to point to the next 
 
 c. The standard beginning reel/unit label procedure.
 
-(15) ║Both║ the ADVANCING phrase ║and the END-OF-PAGE phrase║ allow control of the vertical positioning of each line on a representation of a printed page. If the ADVANCING phrase is not used, automatic advancing will be provided by the implementor to act as if the user had specified AFTER ADVANCING 1 LINE. If the ADVANCING phrase is used, advancing is provided as follows:
+(16) ║Both║ the ADVANCING phrase ║and the END-OF-PAGE phrase║ allow control of the vertical positioning of each line on a representation of a printed page. If the ADVANCING phrase is not used, automatic advancing will be provided by the implementor to act as if the user had specified AFTER ADVANCING 1 LINE. If the ADVANCING phrase is used, advancing is provided as follows:
+
+> ⚠ **CORRECTED — see the Errata (C264).** The standard prints `general rules (10) ... as printed` (page 428, folio VII-54). Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, renumber general rules 10 through 17 as new general rules 11 through 18" (kb/Work PB5045). Corrected to `each renumbered one higher`.
 
 a. If integer-1 or the value of the data item referenced by identifier-2 is positive, the representation of the printed page is advanced the number of lines equal to that value.
 
@@ -16306,9 +17121,11 @@ f. If the AFTER phrase is used, the line is presented after the representation o
 
 h. If PAGE is specified ║and the LINAGE clause is not specified in the associated file description entry,║ the record is presented on the physical page before or after (depending on the phrase used) the device is repositioned to the next physical page. The repositioning to the next physical page is accomplished in accordance with an implementor-defined technique. If physical page has no meaning in conjunction with a specific device, advancing will be provided by the implementor to act as if the user had specified BEFORE or AFTER (depending on the phrase used) ADVANCING 1 LINE.
 
-║(16) If the logical end of the representation of the printed page is reached during the execution of a WRITE statement with the END-OF-PAGE phrase, imperative-statement-1 specified in the END-OF-PAGE phrase is executed. The logical end is specified in the LINAGE clause associated with record-name-1.║
+║(17) If the logical end of the representation of the printed page is reached during the execution of a WRITE statement with the END-OF-PAGE phrase, imperative-statement-1 specified in the END-OF-PAGE phrase is executed. The logical end is specified in the LINAGE clause associated with record-name-1.║
 
-║(17) An end-of-page condition occurs when the execution of a given WRITE statement with the END-OF-PAGE phrase causes printing or spacing within the footing area of a page body. This occurs when the execution of such a WRITE statement causes the LINAGE-COUNTER to equal or exceed the value specified by integer-2 or the data item referenced by data-name-2 of the LINAGE clause if specified. In this case, the WRITE statement is executed and then imperative-statement-1 in the END-OF-PAGE phrase is executed.║
+║(18) An end-of-page condition occurs when the execution of a given WRITE statement with the END-OF-PAGE phrase causes printing or spacing within the footing area of a page body. This occurs when the execution of such a WRITE statement causes the LINAGE-COUNTER to equal or exceed the value specified by integer-2 or the data item referenced by data-name-2 of the LINAGE clause if specified. In this case, the WRITE statement is executed and then imperative-statement-1 in the END-OF-PAGE phrase is executed.║
+
+> ⚠ **CORRECTED — see the Errata (C265).** The standard prints `general rules ║(16) ... as printed` (page 429, folio VII-55). Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, renumber general rules 10 through 17 as new general rules 11 through 18" (kb/Work PB5045). Corrected to `each renumbered one higher`.
 
 ║An automatic page overflow condition occurs when the execution of a given WRITE statement (with or without an END-OF-PAGE phrase) cannot be fully accommodated within the current page body.║
 
@@ -16524,9 +17341,7 @@ If the invalid key condition does not exist after the execution of the input-out
 
 The at end condition can occur as a result of the execution of a READ statement. (See page VIII-26, The READ Statement.)
 
-### 1.3.7 The File Attribute Conflict Condition
-
-The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page VIII-21, The OPEN Statement; page VIII-30, The REWRITE Statement; and page VIII-37, The WRITE Statement.)
+> ⚠ **CORRECTED — see the Errata (C267).** The standard prints `### 1.3.7 The File Attribute Conflict Condition The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page VIII-21, The OPEN Statement; page VIII-30, The REWRITE Statement; and page VIII-37, The WRITE Statement.)` (page 436, folio VIII-6). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-6 (page 928, folio B-16), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition that appears on the bottom of page VIII-6 and on the top of page VIII-7" (kb/Work PB5045). Corrected to `(paragraph 1.3.7 deleted)`.
 
 VIII-6
 
@@ -16534,11 +17349,7 @@ VIII-6
 
 Relative I-O - Introduction
 
-When the file attribute conflict condition is recognized, these actions take place in the following order:
-
-(1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page VIII-2, I-O Status.)
-
-(2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.
+> ⚠ **CORRECTED — see the Errata (C268).** The standard prints `When the file attribute conflict condition is recognized, these actions take place in the following order: ¶ (1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page VIII-2, I-O Status.) ¶ (2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.` (page 437, folio VIII-7). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-6 (page 928, folio B-16), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition that appears on the bottom of page VIII-6 and on the top of page VIII-7" (kb/Work PB5045). Corrected to `(deleted)`.
 
 VIII-7
 
@@ -17066,7 +17877,9 @@ b. When the OUTPUT phrase is specified, the execution of the OPEN statement caus
 
 The behavior of the OPEN statement when label records are specified but not present, or when label records are not specified but are present, is undefined.
 
-(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VIII-6, The File Attribute Conflict Condition.)
+(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)
+
+> ⚠ **CORRECTED — see the Errata (C269).** The standard prints `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VIII-6, The File Attribute Conflict Condition.)` (page 454, folio VIII-24). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-24 (page 928, folio B-16), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Relative I-O module, general rule 8, change to read" (kb/Work PB5045). Corrected to the text above.
 
 ║(9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.║
 
@@ -17114,6 +17927,14 @@ The successful execution of an OPEN statement with the OUTPUT phrase creates the
 (17) If more than one file-name is specified in an OPEN statement, the result of executing this OPEN statement is the same as if a separate OPEN statement had been written for each file-name in the same order as specified in the OPEN statement.
 
 (18) The minimum and maximum record sizes for a file are established at the time the file is created and must not subsequently be changed.
+
+(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:
+
+a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.
+
+b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page VIII-35, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C270).** The standard prints `(the general rules end with rule 18)` (page 455, folio VIII-25). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-25 (page 928, folio B-16), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Relative I-O module, add the following as the new general rule 19" (kb/Work PB5045). Corrected to the text above.
 
 VIII-25
 
@@ -17217,9 +18038,13 @@ b. The current record is moved from the record area to the area specified by ide
 
 a. A value, derived from the setting of the file position indicator, is placed into the I-O status associated with file-name-1 to indicate the at end condition. (See page VIII-2, I-O Status.)
 
-b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.
+b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.
 
-c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+> ⚠ **CORRECTED — see the Errata (C271).** The standard prints `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` (page 458, folio VIII-28). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-28 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, general rule 10b, change to read" (kb/Work PB5045). Corrected to the text above.
+
+c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+
+> ⚠ **CORRECTED — see the Errata (C272).** The standard prints `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed.` (page 458, folio VIII-28). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-28 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, general rule 10c, change the first sentence to read" (kb/Work PB5045). Corrected to `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.`.
 
 When the at end condition occurs, execution of the READ statement is unsuccessful.
 
@@ -17233,7 +18058,9 @@ VIII-28
 
 Relative I-O - READ
 
-b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page VIII-35, The USE Statement.)
+b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page VIII-35, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C273).** The standard prints `b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page VIII-35, The USE Statement.)` (page 459, folio VIII-29). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-29 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, replace general rule 11b with the following" (kb/Work PB5045). Corrected to the text above.
 
 c. If no exception condition exists, the record is made available in the record area and any implicit move resulting from the presence of an INTO phrase is executed. Control is transferred to the end of the READ statement or to imperative-statement-2, if specified. In the latter case, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the READ statement.
 
@@ -17272,13 +18099,19 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.6.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C135).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 460, folio VIII-30). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C274).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 460, folio VIII-30). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-30 (A-19) (page 929, folio B-17), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Relative I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
 (3) The INVALID KEY and the NOT INVALID KEY phrases must not be specified for a REWRITE statement which references a relative file in sequential access mode.
 
-(4) The INVALID KEY phrase must be specified in the REWRITE statement for relative files in the random ║or dynamic║ access mode, and for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.
+(4) The INVALID KEY phrase must be specified in the REWRITE statement for relative files in the random ║or dynamic║ access mode for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.
+
+> ⚠ **CORRECTED — see the Errata (C136).** The standard prints `access mode, and for which an appropriate USE AFTER STANDARD EXCEPTION procedure` (page 460, folio VIII-30). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 4 in part to read: '...mode for which...'", a typographical error (kb/Work PB5045). Corrected to `access mode for which an appropriate USE AFTER STANDARD EXCEPTION procedure`.
 
 ### 4.6.4 General Rules
 
@@ -17296,7 +18129,9 @@ VIII-30
 
 Relative I-O - REWRITE
 
-║referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
+║referenced in the same SAME RECORD AREA clause as the associated I-O file, as well as the file associated with record-name-1.║
+
+> ⚠ **CORRECTED — see the Errata (C34).** The standard prints `as the associated output file, as well as the file associated with record-name-1` (page 461, folio VIII-31). A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:VIII.4.6.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045). Corrected to `as the associated I-O file, as well as the file associated with record-name-1`.
 
 (5) The result of the execution of a REWRITE statement with the FROM phrase is equivalent to the execution of the following statements in the order specified:
 
@@ -17431,7 +18266,9 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (2) The USE statement is never executed; it merely defines the conditions calling for the execution of the USE procedures.
 
-(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.
+(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.
+
+> ⚠ **CORRECTED — see the Errata (C275).** The standard prints `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` (page 465, folio VIII-35). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-35 (page 929, folio B-17), applied in place: "Paragraph 4.8.3 of the USE statement in the Relative I-O module, syntax rule 3, change to read" (kb/Work PB5045). Corrected to `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.`.
 
 (4) The words ERROR and EXCEPTION are synonymous and may be used interchangeably.
 
@@ -17496,7 +18333,11 @@ The WRITE statement releases a logical record for an output or input-output file
 
 ### 4.9.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C137).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 467, folio VIII-37). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-37 (page 849, folio A-19), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C276).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 467, folio VIII-37). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-37 (A-19) (page 930, folio B-18), applied in place: "Paragraph 4.9.3 of the WRITE statement in the Relative I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -17534,11 +18375,9 @@ Relative I-O - WRITE
 
 ║(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page VIII-2, I-O Status.)║
 
-(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, the invalid key condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:
+(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page VIII-5, The Invalid Key Condition.)
 
-a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.
-
-b. If the execution of the WRITE statement is unsuccessful for a reason other than an invalid key condition, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.
+> ⚠ **CORRECTED — see the Errata (C277).** The standard prints `(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, ... as follows: a. ... b. ...` (page 468, folio VIII-38). Amendment 2 (ANSI X3.23b-1993), its change for page VIII-38 (page 930, folio B-18), applied in place: "Paragraph 4.9.4 of the WRITE statement in the Relative I-O module, replace general rule 9, including subparagraphs a and b, with the following" (kb/Work PB5045). Corrected to `(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page VIII-5, The Invalid Key Condition.)`.
 
 (10) The END-WRITE phrase delimits the scope of the WRITE statement. (See page IV-40, Scope of Statements.)
 
@@ -17684,7 +18523,15 @@ a. I-O Status = 10. A sequential READ statement is attempted and no next logical
 
 a. I-O Status = 21. A sequence error exists for a sequentially accessed indexed file. The prime record key value has been changed by the program between the successful execution of a READ statement and the execution of the next REWRITE statement for that file, or the ascending sequence requirements for successive record key values are violated. (See page IX-41, The WRITE Statement.)
 
-b. I-O Status = 22. An attempt is made to write or rewrite a record that would create a duplicate prime record key ║or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.║
+b. I-O Status = 22. An attempt is made ║either:║
+
+║1)║ to write a record that would create a duplicate prime record key║; or║
+
+║2) to write or rewrite a record that would create a duplicate alternate record key when the DUPLICATES phrase is not specified for that alternate record key║.
+
+> ⚠ **CORRECTED — see the Errata (C138).** The standard prints `An attempt is made to write or rewrite a record that would create a duplicate prime record key` (page 474, folio IX-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-4 (T) (page 849, folio A-19), applied in place: "Paragraph 1.3.4, entitled 'I-O Status', second occurrence of a paragraph numbered (3), subparagraph b, first line, box 'or rewrite'", a typographical error (kb/Work PB5045). Corrected to `An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key`.
+
+> ⚠ **CORRECTED — see the Errata (C278).** The standard prints `b. I-O Status = 22. An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key ║or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.║` (page 474, folio IX-4). Amendment 2 (ANSI X3.23b-1993), its change for page IX-4 (page 930, folio B-18), applied in place: "Paragraph 1.3.4, I-O status in the Indexed I-O module, item 3b for I-O status 22, change to read" (its shaded words boxed: level 2) (kb/Work PB5045). Corrected to the text above.
 
 c. I-O Status = 23. This condition exists because:
 
@@ -17774,7 +18621,7 @@ If the invalid key condition does not exist after the execution of the input-out
 
 (2) If no exception condition exists, control is transferred to the end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified. In the latter case, execution continues according to the rules for each statement specified in that imperative-statement. If a procedure branching or conditional statement which
 
-> ⚠ **CORRECTED — see the Errata (C28).** The standard prints `If not exception condition exists` (page 476, folio IX-6): a real word printed for another on the printed page. Corrected to `no`.
+> ⚠ **CORRECTED — see the Errata (C28).** The standard prints `If not exception condition exists` (page 476, folio IX-6): a real word printed for another on the printed page. Corrected to `no`. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page IX-6 (T) (page 849, folio A-19): "change 'If not exception' to 'If no exception'", a typographical error (kb/Work PB5045).
 
 IX-6
 
@@ -17788,15 +18635,10 @@ causes explicit transfer of control is executed, control is transferred in accor
 
 The at end condition can occur as a result of the execution of a READ statement. (See page IX-28, The READ Statement.)
 
-### 1.3.7 The File Attribute Conflict Condition
 
-The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page IX-23, The OPEN Statement; page IX-33, The REWRITE Statement; an page IX-41, The WRITE Statement.)
+> ⚠ **CORRECTED — see the Errata (C279).** The standard prints `1.3.7 The File Attribute Conflict Condition (its three paragraphs and two numbered items, the first paragraph as Amendment 1 corrected it, C139)` (page 477, folio IX-7). Amendment 2 (ANSI X3.23b-1993), its change for page IX-7 (page 930, folio B-18), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition." Amendment 1's correction of its first paragraph goes with it (C139) (kb/Work PB5045). Corrected to `(paragraph 1.3.7 deleted)`.
 
-When the file attribute conflict condition is recognized, these actions take place in the following order:
-
-(1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page IX-2, I-O Status.)
-
-(2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.
+> ⚠ **CORRECTED — see the Errata (C139).** Amendment 1 corrected the last line of this paragraph 1.3.7's first paragraph (`; an page` to `; and page`, page 477, folio IX-7); Amendment 2 then deleted the whole paragraph (C279), so the corrected text no longer stands here.
 
 IX-7
 
@@ -18403,7 +19245,9 @@ Indexed I-O - OPEN
 
 The behavior of the OPEN statement when label records are specified but not present, or when label records are not specified but are present, is undefined.
 
-(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page IX-7, The File Attribute Conflict Condition.)
+(8) If during the execution of the OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)
+
+> ⚠ **CORRECTED — see the Errata (C280).** The standard prints `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page IX-7, The File Attribute Conflict Condition.)` (page 496, folio IX-26). Amendment 2 (ANSI X3.23b-1993), its change for page IX-26 (page 930, folio B-18), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, general rule 8, change to read" (kb/Work PB5045). Corrected to the text above.
 
 ║(9) If a file opened with the INPUT phrase is an optional file which is not present, the OPEN statement sets the file position indicator to indicate that an optional input file is not present.║
 
@@ -18449,6 +19293,14 @@ The successful execution of an OPEN statement with the OUTPUT phrase creates the
 (17) If more than one file-name is specified in an OPEN statement, the result of executing this OPEN statement is the same as if a separate OPEN statement had been written for each file-name in the same order as specified in the OPEN statement.
 
 (18) The minimum and maximum record sizes for a file are established at the time the file is created and must not subsequently be changed.
+
+(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:
+
+a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.
+
+b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page IX-39, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C281).** The standard prints `(the general rules end with rule 18)` (page 497, folio IX-27). Amendment 2 (ANSI X3.23b-1993), its change for page IX-27 (page 931, folio B-19), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, add the following as the new general rule 19" (kb/Work PB5045). Corrected to the text above.
 
 IX-27
 
@@ -18562,9 +19414,13 @@ b. The current record is moved from the record area to the area specified by ide
 
 a. A value, derived from the setting of the file position indicator, is placed into the I-O status associated with file-name-1 to indicate the at end condition. (See page IX-2, I-O Status.)
 
-b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.
+b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1 control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.
 
-c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+> ⚠ **CORRECTED — see the Errata (C282).** The standard prints `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` (page 500, folio IX-30). Amendment 2 (ANSI X3.23b-1993), its change for page IX-30 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read" (the amendment prints no comma after 'imperative-statement-1' in its last sentence, as its sequential and relative rows do; the text follows the amendment) (kb/Work PB5045). Corrected to the text above.
+
+c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed. Return from that procedure is to the next executable statement following the end of the READ statement.
+
+> ⚠ **CORRECTED — see the Errata (C283).** The standard prints `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed.` (page 500, folio IX-30). Amendment 2 (ANSI X3.23b-1993), its change for page IX-30 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following" (kb/Work PB5045). Corrected to `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.`.
 
 IX-30
 
@@ -18578,7 +19434,9 @@ When the at end condition occurs, execution of the READ statement is unsuccessfu
 
 a. The file position indicator is set and the I-O status associated with file-name-1 is updated.
 
-b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page IX-39, The USE Statement.)
+b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page IX-39, The USE Statement.)
+
+> ⚠ **CORRECTED — see the Errata (C284).** The standard prints `b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page IX-39, The USE Statement.)` (page 501, folio IX-31). Amendment 2 (ANSI X3.23b-1993), its change for page IX-31 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following" (kb/Work PB5045). Corrected to the text above.
 
 c. If no exception condition exists, the record is made available in the record area and any implicit move resulting from the presence of an INTO phrase is executed. Control is transferred to the end of the READ statement or to imperative-statement-2, if specified. In the latter case, execution continues according to the rules for each statement specified in imperative-statement-2. If a procedure branching or conditional statement which causes explicit transfer of control is executed, control is transferred in accordance with the rules for that statement; otherwise, upon completion of the execution of imperative-statement-2, control is transferred to the end of the READ statement.
 
@@ -18627,11 +19485,17 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 ### 4.6.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C140).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 503, folio IX-33). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C285).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 503, folio IX-33). Amendment 2 (ANSI X3.23b-1993), its change for page IX-33 (A-19) (page 932, folio B-20), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Indexed I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
-(3) The INVALID KEY and the NOT INVALID KEY phrases must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name.
+(3) The INVALID KEY phrase must be specified in the REWRITE statement for indexed files for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.
+
+> ⚠ **CORRECTED — see the Errata (C141).** The standard prints `(3) The INVALID KEY and the NOT INVALID KEY phrases must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name.` (page 503, folio IX-33). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Indexed I-O module, syntax rule 3, change to read", a typographical error (kb/Work PB5045). Corrected to `(3) The INVALID KEY phrase must be specified in the REWRITE statement for indexed files for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.`.
 
 ### 4.6.4 General Rules
 
@@ -18641,7 +19505,9 @@ The REWRITE statement logically replaces a record existing in a mass storage fil
 
 (3) In level 1, the number of character positions in the record referenced by record-name-1 must be equal to the number of character positions in the record being replaced. ║In level 2, the number of character positions in the record referenced by record-name-1 may or may not be equal to the number of character positions in the record being replaced.║
 
-(4) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is available to the program as a record of other files referenced in the SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1.║
+(4) The logical record released by a successful execution of the REWRITE statement is no longer available in the record area ║unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is available to the program as a record of other files referenced in the SAME RECORD AREA clause as the associated I-O file, as well as the file associated with record-name-1.║
+
+> ⚠ **CORRECTED — see the Errata (C35).** The standard prints `as the associated output file, as well as the file associated with record-name-1` (page 503, folio IX-33). A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:IX.4.6.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045). Corrected to `as the associated I-O file, as well as the file associated with record-name-1`.
 
 IX-33
 
@@ -18822,7 +19688,9 @@ The USE statement specifies procedures for input-output error handling that are 
 
 (2) The USE statement is never executed; it merely defines the conditions calling for the execution of the USE procedures.
 
-(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.
+(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.
+
+> ⚠ **CORRECTED — see the Errata (C286).** The standard prints `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` (page 509, folio IX-39). Amendment 2 (ANSI X3.23b-1993), its change for page IX-39 (page 932, folio B-20), applied in place: "Paragraph 4.8.3 of the USE statement in the Indexed I-O module, syntax rule 3, change to read" (kb/Work PB5045). Corrected to `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.`.
 
 (4) The words ERROR and EXCEPTION are synonymous and may be used interchangeably.
 
@@ -18888,7 +19756,11 @@ The WRITE statement releases a logical record for an output or input-output file
 
 ### 4.9.3 Syntax Rules
 
-(1) Record-name-1 and identifier-1 must not refer to the same storage area.
+(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C142).** The standard prints `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 511, folio IX-41). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-41 (page 850, folio A-20), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045). Corrected to `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C287).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 511, folio IX-41). Amendment 2 (ANSI X3.23b-1993), its change for page IX-41 (A-20) (page 932, folio B-20), applied in place: "Paragraph 4.9.3 of the WRITE statement in the Indexed I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 (2) Record-name-1 is the name of a logical record in the File Section of the Data Division and may be qualified.
 
@@ -18928,11 +19800,9 @@ in the area referenced by record-name-1 is not available ║except as specified 
 
 ║(8) The number of character positions in the record referenced by record-name-1 must not be larger than the largest or smaller than the smallest number of character positions allowed by the RECORD IS VARYING clause associated with the file-name associated with record-name-1. In either of these cases the execution of the WRITE statement is unsuccessful, the WRITE operation does not take place, the content of the record area is unaffected and the I-O status of the file associated with record-name-1 is set to a value indicating the cause of the condition. (See page IX-2, I-O Status.)║
 
-(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, the invalid key condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:
+(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page IX-6, The Invalid Key Condition.)
 
-a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.
-
-b. If the execution of the WRITE statement is unsuccessful for a reason other than an invalid key condition, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.
+> ⚠ **CORRECTED — see the Errata (C288).** The standard prints `(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, ... as follows: a. ... b. ...` (page 512, folio IX-42). Amendment 2 (ANSI X3.23b-1993), its change for page IX-42 (page 932, folio B-20), applied in place: "Paragraph 4.9.4 of the WRITE statement in the Indexed I-O module, general rule 9, including subparagraphs a and b, change to read" (kb/Work PB5045). Corrected to `(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page IX-6, The Invalid Key Condition.)`.
 
 (10) The END-WRITE phrase delimits the scope of the WRITE statement. (See page IV-40, Scope of Statements.)
 
@@ -18986,7 +19856,9 @@ Inter-Program Communication - Introduction
 
 ### 1.1 FUNCTION
 
-The Inter-Program Communication module provides a facility by which a program can communicate with one or more programs. This communication is provided by: (a) the ability to transfer control from one program to another within a run unit and (b) the ability to pass parameters between programs to make certain data value available to a called program. ║The Inter-Program Communication module also permits communication between two programs by the sharing of data and the sharing of files.║
+The Inter-Program Communication module provides a facility by which a program can communicate with one or more programs. This communication is provided by: (a) the ability to transfer control from one program to another within a run unit and (b) the ability to pass parameters between programs to make certain data values available to a called program. ║The Inter-Program Communication module also permits communication between two programs by the sharing of data and the sharing of files.║
+
+> ⚠ **CORRECTED — see the Errata (C143).** The standard prints `to make certain data value available to a called program` (page 515, folio X-1). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-1 (T) (page 850, folio A-20), applied in place: "Paragraph 1.1, Function for Inter-Program Communication module, fifth line, change 'data value available' to 'data values available'", a typographical error (kb/Work PB5045). Corrected to `to make certain data values available to a called program`.
 
 ### 1.2 LEVEL CHARACTERISTICS
 
@@ -19032,7 +19904,9 @@ If a data-name, a file-name, or a condition-name declared in a data description 
 
 Accessible data items usually require that certain representations of data be stored. File connectors usually require that certain information concerning files be stored. The storage associated with a data item or a file connector may be ║external or║ internal to the program in which the object is declared.
 
-║A data item or file connector is external if the storage associated with that object is associated with the run unit rather than with any particular program within the run unit. An external object may be referenced by any program in the run unit which describes the object. References to an external object from different programs using separate descriptions of the object are always to the same object. In a run unit, there is only one representative of an external object.║
+║A data item or file connector is external if the storage associated with that object is associated with the run unit rather than with any particular program within the run unit. An external object may be referenced by any program in the run unit which describes the object. References to an external object from different programs using separate descriptions of the object are always to the same object. In a run unit, there is only one representation of an external object.║
+
+> ⚠ **CORRECTED — see the Errata (C144).** The standard prints `there is only one representative of an external object.` (page 516, folio X-2). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-2 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.4, entitled 'External Objects and Internal Objects', second paragraph, last sentence, change 'representative' to 'representation'", a typographical error (kb/Work PB5045). Corrected to `there is only one representation of an external object.`.
 
 An object is internal if the storage associated with that object is associated only with the program which describes the object.
 
@@ -19111,7 +19985,9 @@ The following types of user-defined words when they are declared in a Communicat
 2. data-name
 3. record-name
 
-The following types of names, when they are declared within a Configuration Section, may be referenced only by statements and entries either in that program which contains a Configuration Section or in any program contained within that program:
+The following types of names, when they are declared within a Configuration Section, may be referenced only by statements and entries ║either║ in that program ║which contains a Configuration Section or in any program contained within that program║:
+
+> ⚠ **CORRECTED — see the Errata (C145).** The standard prints `statements and entries either in that program which contains a Configuration Section or in any program contained within that program:` (page 519, folio X-5). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-5 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.8, entitled 'Scope of Names', second paragraph on page X-5, second line, box the word 'either'. In the same paragraph, third and fourth lines, box 'which contains a Configuration Section or in any program contained within that program'", a typographical error (kb/Work PB5045). Corrected to `statements and entries ║either║ in that program ║which contains a Configuration Section or in any program contained within that program║:`.
 
 1. alphabet-name
 2. class-name
@@ -19145,7 +20021,9 @@ X-5
 
 Inter-Program Communication - Introduction
 
-(3) If the program-name is that of a program which is separately compiled, that program-name may be referenced by statements included in any other program in the run unit, except programs it directly or indirectly contains.
+(3) If the program-name is that of a program which is separately compiled, that program-name may be referenced by statements included in any other program in the run unit, ║except programs it directly or indirectly contains║.
+
+> ⚠ **CORRECTED — see the Errata (C146).** The standard prints `in the run unit, except programs it directly or indirectly contains.` (page 520, folio X-6). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-6 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.8.1, entitled 'Conventions for Program-Names', rule 3, box 'except programs it directly or indirectly contains'", a typographical error (kb/Work PB5045). Corrected to `in the run unit, ║except programs it directly or indirectly contains║.`.
 
 ### 1.3.8.2 Conventions for Condition-Names, Data-Names, File-Names, Record-Names, and Report-Names
 
@@ -19181,7 +20059,9 @@ Inter-Program Communication - Introduction
 
 ### ║1.3.8.3 Conventions for Index-Names║
 
-║If a data item possessing either or both the external or global attributes includes a table accessed with an index, that index also possesses correspondingly either or both attributes. Therefore, the scope of an index-name is identical to that of the data-name which names the table whose index is named by that index-name and the scope of name rules for data-names apply. Index-names cannot be qualified.║
+║If a data item possessing the global attribute includes a table described with an index-name, that index-name also possesses the global attribute. Therefore, the scope of an index-name is identical to that of the data-name which names the table whose index is named by that index-name and the scope of name rules for data-names apply. Index-names cannot be qualified.║
+
+> ⚠ **CORRECTED — see the Errata (C289).** The standard prints `║If a data item possessing either or both the external or global attributes includes a table accessed with an index, that index also possesses correspondingly either or both attributes.` (page 521, folio X-7). Amendment 2 (ANSI X3.23b-1993), its change for page X-7 (page 932, folio B-20), applied in place: "Paragraph 1.3.8.3, Conventions for Index-Names, change the first sentence to read" (shaded: level 2, the paragraph's box) (kb/Work PB5045). Corrected to `║If a data item possessing the global attribute includes a table described with an index-name, that index-name also possesses the global attribute.`.
 
 X-7
 
@@ -19279,9 +20159,11 @@ A program is in the initial state:
 
 ║(2) The first time the program is called after the execution of a CANCEL statement referencing the program or a CANCEL statement referencing a program that directly or indirectly contains the program.║
 
-(3) Every time the program is called, if it possesses the initial attribute.
+║(3) Every time the program is called, if it possesses the initial attribute.║
 
-(4) The first time the program is called after the execution of a CALL statement referencing a program that possesses the initial attribute, and that directly or indirectly contains the program.
+║(4) The first time the program is called after the execution of a CALL statement referencing a program that possesses the initial attribute, and that directly or indirectly contains the program.║
+
+> ⚠ **CORRECTED — see the Errata (C147).** The standard prints `(3) Every time the program is called ... (4) The first time the program is called after the execution of a CALL statement ... (not boxed)` (page 524, folio X-10). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-10 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4.2, entitled 'Programs in the Initial State', box numbered paragraphs 3 and 4", a typographical error (kb/Work PB5045). Corrected to `║(3) ...║ ║(4) ...║`.
 
 X-10
 
@@ -19652,9 +20534,13 @@ Inter-Program Communication - Data Description Entry
 
 ### 4.3.1 Function
 
-Within the Inter-Program Communication module, a level 01 data description entry within the Working-Storage Section or File Section determines whether the data record and its subordinate data items have local names or global names.
+Within the Inter-Program Communication module, a level 01 data description entry within the Working-Storage Section or File Section determines whether the data record and its subordinate data items have local names ║or global names║.
 
-Within the Inter-Program Communication module, a level 01 data description entry in the Working-Storage Section determines the internal or external attribute of the data record and its subordinate data items.
+> ⚠ **CORRECTED — see the Errata (C148).** The standard prints `have local names or global names.` (page 535, folio X-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-19 (T) (page 850, folio A-20), applied in place: "Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, first paragraph, last line, box 'or global names'", a typographical error (kb/Work PB5045). Corrected to `have local names ║or global names║.`.
+
+Within the Inter-Program Communication module, a level 01 data description entry in the Working-Storage Section determines the internal ║or external║ attribute of the data record and its subordinate data items.
+
+> ⚠ **CORRECTED — see the Errata (C149).** The standard prints `determines the internal or external attribute of the data record` (page 535, folio X-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-19 (T) (page 850, folio A-20), applied in place: "Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, second paragraph, second line, box 'or external'", a typographical error (kb/Work PB5045). Corrected to `determines the internal ║or external║ attribute of the data record`.
 
 X-19
 
@@ -19811,7 +20697,9 @@ Inter-Program Communication - EXTERNAL
 
 ║(2) In the same program, the data-name specified as the subject of the entry whose level-number is 01 that includes the EXTERNAL clause must not be the same data-name specified for any other data description entry which includes the EXTERNAL clause.║
 
-║(3) The VALUE clause must not be used in any data description entry which includes, or is subordinate to, an entry which includes the EXTERNAL clause. The VALUE clause may be specified for condition-name entries associated with such data description entries.║
+║(3) The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause. The VALUE clause may be specified for condition-name entries associated with such data description entries.║
+
+> ⚠ **CORRECTED — see the Errata (C290).** The standard prints `║(3) The VALUE clause must not be used in any data description entry which includes, or is subordinate to, an entry which includes the EXTERNAL clause.` (page 539, folio X-23). Amendment 2 (ANSI X3.23b-1993), its change for page X-23 (page 932, folio B-20), applied in place: "Paragraph 4.5.3 of the EXTERNAL clause, syntax rule 3, change the first sentence to read" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `║(3) The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause.`.
 
 ### ║4.5.4 General Rules║
 
@@ -19955,6 +20843,10 @@ The CALL statement causes control to be transferred from one object program to a
 
 (3) Each of the operands in the USING phrase must have been defined as a data item in the File Section, Working-Storage Section, Communication Section, or Linkage Section, and must be a level 01 data item, a level 77 data item, or an elementary data item.
 
+(4) Identifier-2 must not be a function-identifier.
+
+> ⚠ **CORRECTED — see the Errata (C150).** The standard prints `(3) Each of the operands in the USING phrase ... or an elementary data item.` (page 543, folio X-27). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-27 (page 850, folio A-20), applied in place: "Paragraph 5.2.3, add new syntax rule 4 as follows" (kb/Work PB5045). Corrected to `(4) Identifier-2 must not be a function-identifier.`.
+
 5.2.4 General Rules
 
 (1) Literal-1 ║or the content of the data item referenced by identifier-1║ is the name of the called program. The program in which the CALL statement appears is the calling program. If the program being called is a COBOL program, literal-1 ║or the content of the data item referenced by identifier-1║ must contain the program-name contained in the PROGRAM-ID paragraph of the called program. If the program being called is not a COBOL program, the rules for formation of the program-name are defined by the implementor.
@@ -20015,7 +20907,9 @@ On all other entries into the called program, the states and positioning of all 
 
 (9) If the program being called is a COBOL program, the USING phrase is included in the CALL statement only if there is a USING phrase in the Procedure Division header of the called program, in which case the number of operands in each USING phrase must be identical. If the program being called is other than a COBOL program, the use of the USING phrase is defined by the implementor.
 
-(10) The sequence of appearance of the data-names in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the data-names used by the calling and called programs. This correspondence is positional and not by name equivalence; the first data-name in one USING phrase corresponds to the first data-name in the other, the second to the second, etc.
+(10) The sequence of appearance of the parameters in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the parameters used by the calling and called programs. This correspondence is positional and not by name equivalence; the first parameter in one USING phrase corresponds to the first parameter in the other, the second to the second, etc.
+
+> ⚠ **CORRECTED — see the Errata (C151).** The standard prints `(10) The sequence of appearance of the data-names in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the data-names used by the calling and called programs. This correspondence is positional and not by name equivalence; the first data-name in one USING phrase corresponds to the first data-name in the other` (page 545, folio X-29). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-29 (T) (page 850, folio A-20), applied in place: "Paragraph 5.2.4 of the CALL statement, general rule 10, change two occurrences of 'data-names' to 'parameters'; also change two occurrences of 'data-name' to 'parameter'", a typographical error (kb/Work PB5045). Corrected to the text above.
 
 (11) The values of the parameters referenced in the USING phrase of the CALL statement are made available to the called program at the time the CALL statement is executed.
 
@@ -20128,6 +21022,10 @@ The EXIT PROGRAM statement marks the logical end of a called program.
 (2) The execution of an EXIT PROGRAM statement in a called program which does not possess the initial attribute causes execution to continue with the next executable statement following the CALL statement in the calling program. The program state of the calling program is not altered and is identical to that which existed at the time it executed the CALL statement except that the contents of data items and the contents of data files shared between the calling and called program may have been changed. The program state of the called program is not altered except that the ends of the ranges of all PERFORM statements executed by that called program are considered to have been reached.
 
 ║(3) Besides the actions specified in general rule 2, the execution of an EXIT PROGRAM statement in a called program which possesses the initial attribute is equivalent also to executing a CANCEL statement referencing that program. (See page X-31, The CANCEL Statement.)║
+
+║(4) An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase is specified, except within a program called while executing within the range of that declarative procedure.║
+
+> ⚠ **CORRECTED — see the Errata (C291).** The standard prints `(the general rules end with rule 3)` (page 549, folio X-33). Amendment 2 (ANSI X3.23b-1993), its change for page X-33 (page 932, folio B-20), applied in place: "Paragraph 5.4.4 of the EXIT PROGRAM statement, add the following as the new general rule 4" (shaded: level 2, boxed) (kb/Work PB5045). Corrected to the text above.
 
 X-33
 
@@ -20481,7 +21379,9 @@ The MERGE statement combines two or more identically sequenced files on a set of
 
 (2) File-name-1 must be described in a sort-merge file description entry in the Data Division.
 
-(3) If the file referenced by file-name-1 contains variable length records, the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be less than the smallest record nor greater than the largest record described for file-name-1. If the file referenced by file-name-1 contains fixed length records, the size of the records contained in the file referenced by file-name-2 and file-name-3 must not be greater than the largest record described for file-name-1.
+(3) If the file referenced by file-name-1 contains variable length records, the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be less than the smallest record nor greater than the largest record described for file-name-1. If the file referenced by file-name-1 contains fixed length records, the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be greater than the largest record described for file-name-1.
+
+> ⚠ **CORRECTED — see the Errata (C152).** The standard prints `the size of the records contained in the file referenced by file-name-2 and file-name-3 must not be greater` (page 560, folio XI-8). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XI-8 (T) (page 850, folio A-20), applied in place: "Paragraph 4.1.3 of the MERGE statement, syntax rule 3, fifth line, change 'in the file' to 'in the files'", a typographical error (kb/Work PB5045). Corrected to `the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be greater`.
 
 (4) Data-name-1 is a key data-name. Key data-names are subject to the following rules:
 
@@ -20553,7 +21453,9 @@ b. Second, the collating sequence established as the program collating sequence.
 
 a. The processing of the file is initiated. The initiation is performed as if an OPEN statement with the INPUT phrase had been executed. If an output procedure is specified, this initiation is performed before control passes to the output procedure.
 
-b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed.
+b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed. If the file referenced by file-name-1 is described with variable length records, the size of any record written to file-name-1 is the size of that record when it was read from file-name-2 or file-name-3, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1.
+
+> ⚠ **CORRECTED — see the Errata (C292).** The standard prints `b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed.` (page 562, folio XI-10). Amendment 2 (ANSI X3.23b-1993), its change for page XI-10 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7b, add the following as the new last sentence for the paragraph" (kb/Work PB5045). Corrected to the text above.
 
 XI-10
 
@@ -20561,9 +21463,15 @@ XI-10
 
 Sort-Merge - MERGE
 
-c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure.
+c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure. For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement.
+
+> ⚠ **CORRECTED — see the Errata (C293).** The standard prints `If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure.` (page 563, folio XI-11). Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7c, add the following as a new last sentence after the words '... the last statement in the output procedure.'" (kb/Work PB5045). Corrected to the text above.
 
 These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed.
+
+The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 or file-name-3 is undefined upon completion of the MERGE statement.
+
+> ⚠ **CORRECTED — see the Errata (C294).** The standard prints `These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed.` (page 563, folio XI-11). Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7, add the following as a new last paragraph for general rule 7" (kb/Work PB5045). Corrected to `The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 or file-name-3 is undefined upon completion of the MERGE statement.`.
 
 (8) The output procedure may consist of any procedure needed to select, modify, or copy the records that are made available one at a time by the RETURN statement in merged order from the file referenced by file-name-1. The range includes all statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the output procedure, as well as all statements in declarative procedures that are executed as a result of the execution of statements in the range of the output procedure. The range of the output procedure must not cause the execution of any MERGE, RELEASE, or SORT statement. (See page IV-25, Explicit and Implicit Specifications.)
 
@@ -20575,7 +21483,9 @@ These implicit functions are performed such that any associated USE AFTER EXCEPT
 
 a. The processing of the file is initiated. The initiation is performed as if an OPEN statement with the OUTPUT phrase had been executed.
 
-b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed.
+b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed. If the file referenced by file-name-4 is described with variable length records, the size of any record written to file-name-4 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-4.
+
+> ⚠ **CORRECTED — see the Errata (C295).** The standard prints `b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed.` (page 563, folio XI-11). Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11b, add the following as the new last sentence for the first paragraph" (kb/Work PB5045). Corrected to the text above.
 
 For a relative file, the relative key data item for the first record returned contains the value '1'; for the second record returned, the value '2', etc. After execution of the MERGE statement, the content of the relative key data item indicates the last record returned to the file.
 
@@ -20587,7 +21497,13 @@ Sort-Merge - MERGE
 
 c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed.
 
-These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-4. On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 11c above.
+These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-4. On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-4 is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 11c above.
+
+The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the MERGE statement for which the GIVING phrase is specified.
+
+> ⚠ **CORRECTED — see the Errata (C296).** The standard prints `any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed;` (page 564, folio XI-12). Amendment 2 (ANSI X3.23b-1993), its change for page XI-12 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11, last paragraph, sixth line, change in part" (kb/Work PB5045). Corrected to `any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-4 is executed;`.
+
+> ⚠ **CORRECTED — see the Errata (C297).** The standard prints `(general rule 11 ends with the paragraph above)` (page 564, folio XI-12). Amendment 2 (ANSI X3.23b-1993), its change for page XI-12 (page 934, folio B-22), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11, add the following as a new last paragraph for general rule 11" (kb/Work PB5045). Corrected to the text above.
 
 (12) If the file referenced by file-name-4 contains only fixed length records, any record in the file referenced by file-name-1 containing fewer character positions than that fixed length is space filled on the right beginning with the first character position after the last character in the record when that record is returned to the file referenced by file-name-4.
 
@@ -20629,7 +21545,11 @@ The RELEASE statement transfers records to the initial phase of a sort operation
 
 (2) A RELEASE statement may be used only within the range of an input procedure associated with a SORT statement for the file-name whose sort-merge file description entry contains record-name-1.
 
-(3) Record-name-1 and identifier-1 must not refer to the same storage area.
+(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.
+
+> ⚠ **CORRECTED — see the Errata (C153).** The standard prints `(3) Record-name-1 and identifier-1 must not refer to the same storage area.` (page 565, folio XI-13). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XI-13 (page 850, folio A-20), applied in place: "Paragraph 4.2.3, change syntax rule 3 to read" (kb/Work PB5045). Corrected to `(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.`.
+
+> ⚠ **CORRECTED — see the Errata (C298).** The standard prints `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` (page 565, folio XI-13). Amendment 2 (ANSI X3.23b-1993), its change for page XI-13 (A-20) (page 934, folio B-22), applied in place: "Paragraph 4.2.3 of the RELEASE statement in the Sort-Merge module, syntax rule 3, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045). Corrected to `Record-name-1 and identifier-1 must not reference the same storage area.`.
 
 ### 4.2.4 General Rules
 
@@ -20836,13 +21756,15 @@ referenced by file-name-3 must not be in the open mode. When this phase terminat
 
 a. The processing of the file is initiated. The initiation is performed as if an OPEN statement with the INPUT phrase had been executed.
 
-b. The logical records are obtained and released to the sort operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed.
+b. The logical records are obtained and released to the sort operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed. If the file referenced by file-name-1 is described with variable length records, the size of any record released to file-name-1 is the size of that record when it was read from file-name-2, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1.
 
-For a relative file, the content of the relative key data item is undefined after the execution of the SORT statement if file-name-2 is not referenced in the GIVING phrase.
-
-c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. This termination is performed before the file referenced by file-name-1 is sequenced by the SORT statement.
+c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed. This termination is performed before the file referenced by file-name-1 is sequenced by the SORT statement. For a relative file, the content of the relative key data item associated with file-name-2 is undefined after the execution of the SORT statement if file-name-2 is not referenced in the GIVING phrase.
 
 These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-2.
+
+The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 is undefined upon completion of the SORT statement.
+
+> ⚠ **CORRECTED — see the Errata (C299).** The standard prints `b. The logical records are obtained ... (to the end of general rule 9: its paragraph For a relative file, item c and the paragraph These implicit functions)` (page 571, folio XI-19). Amendment 2 (ANSI X3.23b-1993), its change for page XI-19 (page 934, folio B-22), applied in place: "Paragraph 4.4.4 of the SORT statement, beginning of general rule 9b to the end of general rule 9, replace with the following" (kb/Work PB5045). Corrected to `b. ... c. ... These implicit functions ... The value of the data item referenced by the DEPENDING ON phrase ... (above)`.
 
 (10) The output procedure may consist of any procedure needed to select, modify, or copy the records that are made available one at a time by the RETURN statement in sorted order from the file referenced by file-name-1. The range includes all statements that are executed as the result of a transfer of control by CALL, EXIT, GO TO, and PERFORM statements in the range of the output procedure, as well as all statements in declarative procedures that are executed as a result of the execution of statements in the range of the output procedure. The range of the output procedure must not cause the execution of any MERGE,
 
@@ -20860,13 +21782,21 @@ RELEASE, or SORT statement. (See page IV-25, Explicit and Implicit Specification
 
 a. The processing of the file is initiated. The initiation is performed as if an OPEN statement with the OUTPUT phrase had been executed. This initiation is performed after the execution of any input procedure.
 
-b. The sorted logical records are returned and written onto the file. The records are written as if a WRITE statement without any optional phrases had been execution.
+b. The sorted logical records are returned and written onto the file. The records are written as if a WRITE statement without any optional phrases had been executed. If the file referenced by file-name-3 is described with variable length records, the size of any record written to file-name-3 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-3.
+
+> ⚠ **CORRECTED — see the Errata (C300).** The standard prints `phrases had been execution.` (page 572, folio XI-20). Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 934, folio B-22), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12b, first paragraph, last sentence, change 'phrases had been execution.' to 'phrases had been executed.'" (kb/Work PB5045). Corrected to `phrases had been executed.`.
+
+> ⚠ **CORRECTED — see the Errata (C301).** The standard prints `... phrases had been executed.` (page 572, folio XI-20). Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 935, folio B-23), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12b, add the following as the new last sentence in the first paragraph" (kb/Work PB5045). Corrected to the text above.
 
 For a relative file, the relative key data item for the first record returned contains the value '1'; for the second record returned, the value '2', etc. After execution of the SORT statement, the content of the relative key data item indicates the last record returned to the file.
 
 c. The processing of the file is terminated. The termination is performed as if a CLOSE statement without optional phrases had been executed.
 
-These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-3. On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above.
+These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed; however, the execution of such a USE procedure must not cause the execution of any statement manipulating the file referenced by, or accessing the record area associated with, file-name-3. On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-3 is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above.
+
+The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the SORT statement for which the GIVING phrase is specified.
+
+> ⚠ **CORRECTED — see the Errata (C302).** The standard prints `On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above.` (page 572, folio XI-20). Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 935, folio B-23), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12, last paragraph, last sentence beginning with 'On the first attempt', replace with the following" (the replacement is that sentence and a new paragraph) (kb/Work PB5045). Corrected to the text above.
 
 (13) If the file referenced by file-name-3 contains only fixed length records, any record in the file referenced by file-name-1 containing fewer character positions than that fixed length is space filled on the right beginning with the first character position after the last character in the record when that record is returned to the file referenced by file-name-3.
 
@@ -20991,7 +21921,9 @@ Source Text Manipulation - COPY
 
 ║a. The leftmost library text word which is not a separator comma or a separator semicolon is the first text word used for comparison. Any text word or space preceding this text word is copied into the source program. Starting with the first text word for comparison and first pseudo-text-1, identifier-1, word-1, or literal-1 that was specified in the REPLACING phrase, the entire REPLACING phrase operand that precedes the reserved word BY is compared to an equivalent number of contiguous library text words.║
 
-║b. Pseudo-text-1, identifier-1, word-1, or literal-1 match the library text if, and only if, the ordered sequence of text words that forms pseudo-text-1, identifier-1, word-1, or literal-1 is equal, character for character, to the ordered sequence of library text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the library text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space.║
+║b. Pseudo-text-1, identifier-1, word-1, or literal-1 match the library text if, and only if, the ordered sequence of text words that forms pseudo-text-1, identifier-1, word-1, or literal-1 is equal, character for character, to the ordered sequence of library text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the library text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space. Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)║
+
+> ⚠ **CORRECTED — see the Errata (C303).** The standard prints `(no such sentence)` (page 577, folio XII-3). Amendment 2 (ANSI X3.23b-1993), its change for page XII-3 (page 935, folio B-23), applied in place: "Paragraph 2.4 of the COPY statement, general rule 5b, add the following as the new last sentence" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)`.
 
 ║c. If no match occurs, the comparison is repeated with each next successive pseudo-text-1, identifier-1, word-1, or literal-1, if any, in the REPLACING phrase until either a match is found or there is no next successive REPLACING operand.║
 
@@ -21009,7 +21941,9 @@ Source Text Manipulation - COPY
 
 ║(6) Comment lines or blank lines occurring in the library text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the library text, if any, and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines appearing in pseudo-text-2 are copied into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement.║ Comment lines or blank lines appearing in library text are copied into the resultant source program unchanged ║with the following exception: a comment line or blank line in library text is not copied if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.║
 
-(7) Debugging lines are permitted within library text ║and pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area. A debugging line is specified within pseudo-text if the debugging line begins in the source program after the opening pseudo-text-delimiter but before the matching closing pseudo-text-delimiter.║
+(7) Debugging lines are permitted within library text ║and pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area. A debugging line is specified within pseudo-text if the debugging line begins in the source program after the opening pseudo-text delimiter but before the matching closing pseudo-text delimiter.║
+
+> ⚠ **CORRECTED — see the Errata (C154).** The standard prints `after the opening pseudo-text-delimiter but before the matching closing pseudo-text-delimiter.` (page 578, folio XII-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4 of the COPY statement, general rule 7, fifth and sixth lines, change two occurrences of 'pseudo-text-delimiter' to 'pseudo-text delimiter'", a typographical error (kb/Work PB5045). Corrected to `after the opening pseudo-text delimiter but before the matching closing pseudo-text delimiter.`.
 
 (8) The syntactic correctness of the library text cannot be independently determined. Except for COPY ║and REPLACE║ statements, the syntactic correctness of the entire COBOL source program cannot be determined until all COPY ║and REPLACE║ statements have been completely processed.
 
@@ -21017,7 +21951,9 @@ Source Text Manipulation - COPY
 
 Library text must conform to the rules for COBOL reference format.
 
-If additional lines are introduced into the source program as a result of a COPY statement, each text word introduced appears on a debugging line if the COPY statement begins on a debugging line or if the text word being introduced appears on a debugging line in library text. ║When a text word║
+If additional lines are introduced into the source program as a result of a COPY statement, each text word introduced appears on a debugging line if the COPY statement begins on a debugging line or if the text word being introduced appears on a debugging line in library text. ║When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except║
+
+> ⚠ **CORRECTED — see the Errata (C155).** The standard prints `║When a text word║` (page 578, folio XII-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4 of the COPY statement, general rule 9, third paragraph, fourth line, change 'When a text word' to 'When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except'", a typographical error (kb/Work PB5045). Corrected to `║When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except║`.
 
 XII-4
 
@@ -21030,6 +21966,10 @@ Source Text Manipulation - COPY
 ║(10) For purposes of compilation, text words after replacement are placed in the source program according to the rules for reference format. (See page IV-41, Reference Format.) When copying text words of pseudo-text-2 into the source program, additional spaces may be introduced only between text words where there already exists a space (including the assumed space between source lines).║
 
 ║(11) If additional lines are introduced into the source program as a result of the processing of COPY statements, the indicator area of the introduced line contains the same character as the line on which the text being replaced begins, unless that line contains a hyphen, in which case the introduced line contains a space. In the case where a literal is continued onto an introduced line which is not a debugging line, a hyphen is placed in the indicator area.║
+
+(12) The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.
+
+> ⚠ **CORRECTED — see the Errata (C304).** The standard prints `(the general rules end with rule 11)` (page 579, folio XII-5). Amendment 2 (ANSI X3.23b-1993), its change for page XII-5 (page 935, folio B-23), applied in place: "Paragraph 2.4 of the COPY statement, add the following as a new general rule 12" (kb/Work PB5045). Corrected to `(12) The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.`.
 
 XII-5
 
@@ -21091,13 +22031,17 @@ Source Text Manipulation - REPLACE
 
 ║(4) Any REPLACE statements contained in a source program are processed after the processing of any COPY statements contained in a source program.║
 
-║(5) The text produced as a result of the processing of a REPLACE statement must not contain a REPLACE statement.║
+║(5) The text produced as a result of the processing of a REPLACE statement must contain neither a COPY statement nor a REPLACE statement.║
+
+> ⚠ **CORRECTED — see the Errata (C305).** The standard prints `║(5) The text produced as a result of the processing of a REPLACE statement must not contain a REPLACE statement.║` (page 581, folio XII-7). Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 935, folio B-23), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 5, change to read" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `║(5) The text produced as a result of the processing of a REPLACE statement must contain neither a COPY statement nor a REPLACE statement.║`.
 
 ║(6) The comparison operation to determine text replacement occurs in the following manner:║
 
 ║a. Starting with the leftmost source program text word and the first pseudo-text-1, pseudo-text-1 is compared to an equivalent number of contiguous source program text words.║
 
-║b. Pseudo-text-1 matches the source program text if, and only if, the ordered sequence of text words that forms pseudo-text-1 is equal, character for character, to the ordered sequence of source program text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the source program text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space.║
+║b. Pseudo-text-1 matches the source program text if, and only if, the ordered sequence of text words that forms pseudo-text-1 is equal, character for character, to the ordered sequence of source program text words. For purposes of matching, each occurrence of a separator comma, semicolon, or space in pseudo-text-1 or in the source program text is considered to be a single space. Each sequence of one or more space separators is considered to be a single space. Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)║
+
+> ⚠ **CORRECTED — see the Errata (C306).** The standard prints `(no such sentence)` (page 581, folio XII-7). Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 936, folio B-24), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 6b, add the following as the new last sentence" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)`.
 
 ║c. If no match occurs, the comparison is repeated with each next successive occurrence of pseudo-text-1, until either a match is found or there is no next successive occurrence of pseudo-text-1.║
 
@@ -21107,7 +22051,9 @@ Source Text Manipulation - REPLACE
 
 ║f. The comparison operation continues until the rightmost text word in the source program text which is within the scope of the REPLACE statement has either participated in a match or been considered as a leftmost source program text word and participated in a complete comparison cycle.║
 
-║(7) Comment lines or blank lines occurring in the source program text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the source program text and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement. A comment line or blank line in source program text is not replaced if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.║
+║(7) Comment lines or blank lines occurring in the source program text and in pseudo-text-1 are ignored for purposes of matching; and the sequence of text words in the source program text and in pseudo-text-1 is determined by the rules for reference format. (See page IV-41, Reference Format Representation.) Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged whenever pseudo-text-2 is placed into the source program as a result of text replacement. A comment line or blank line in source program text is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.║
+
+> ⚠ **CORRECTED — see the Errata (C307).** The standard prints `A comment line or blank line in source program text is not replaced if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.` (page 581, folio XII-7). Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 936, folio B-24), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 7, change the last sentence to read" (shaded: level 2, the rule's box) (kb/Work PB5045). Corrected to `A comment line or blank line in source program text is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.`.
 
 ║(8) Debugging lines are permitted in pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area.║
 
@@ -22282,7 +23228,9 @@ a. The first print line of the body group is presented on the line number specif
 
 b. If the value in LINE-COUNTER is equal to or greater than the line number specified by the FIRST DETAIL phrase of the PAGE clause, and if no body group has previously been presented on the page to which the report is currently positioned, then the first print line of the current body group is presented on the line immediately following the line indicated by the value contained in LINE-COUNTER.
 
-If the value in LINE-COUNTER is equal to or greater than the line number specified by the FIRST DETAIL phrase of the PAGE clause, and if a body group has previously been presented on the page to which the report is currently positioned, then the first print line of the current page group is presented on the line that is obtained by adding the content of LINE-COUNTER and the integer of the first LINE NUMBER clause of the current body group.
+If the value in LINE-COUNTER is equal to or greater than the line number specified by the FIRST DETAIL phrase of the PAGE clause, and if a body group has previously been presented on the page to which the report is currently positioned, then the first print line of the current body group is presented on the line that is obtained by adding the content of LINE-COUNTER and the integer of the first LINE NUMBER clause of the current body group.
+
+> ⚠ **CORRECTED — see the Errata (C308).** The standard prints `the first print line of the current page group is presented` (page 614, folio XIII-34). Amendment 2 (ANSI X3.23b-1993), its change for page XIII-34 (page 936, folio B-24), applied in place: "Paragraph 3.10.8 entitled Body Group Presentation Rules, rule 4b, second paragraph, fourth line, change 'current page group' to 'current body group'" (kb/Work PB5045). Corrected to `the first print line of the current body group is presented`.
 
 If the value in LINE-COUNTER is less than the line number specified by the FIRST DETAIL phrase of the PAGE clause, then the first print line of the body group is presented on the line specified by the FIRST DETAIL phrase.
 
@@ -23497,7 +24445,9 @@ a. When the OUTPUT phrase is specified, the execution of the OPEN statement caus
 
 The behavior of the OPEN statement when label records are specified but not present, or when label records are not specified but are present, is undefined.
 
-(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)
+(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)
+
+> ⚠ **CORRECTED — see the Errata (C309).** The standard prints `(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)` (page 649, folio XIII-71). Amendment 2 (ANSI X3.23b-1993), its change for page XIII-71 (page 936, folio B-24), applied in place: "Paragraph 4.5.4 of the OPEN statement in the Report Writer module, general rule 6, change to read" (kb/Work PB5045). Corrected to the text above.
 
 (7) The NO REWIND phrase must only be used with:
 
@@ -23728,7 +24678,9 @@ The USE BEFORE REPORTING statement specifies Procedure Division statements that 
 
 (1) A USE BEFORE REPORTING statement, when present, must immediately follow a section header in the declaratives portion of the Procedure Division and must appear in a sentence by itself. The remainder of the section must consist of zero, one, or more procedural paragraphs that define the procedures to be used.
 
-(2) Identifier-1 must reference a report group. Identifier-1 must not appear in more than one USE BEFORE REPORTING statement.
+(2) Identifier-1 must reference a report group. The same identifier-1 must not appear in more than one USE BEFORE REPORTING statement within the same Procedure Division.
+
+> ⚠ **CORRECTED — see the Errata (C310).** The standard prints `(2) Identifier-1 must reference a report group. Identifier-1 must not appear in more than one USE BEFORE REPORTING statement.` (page 656, folio XIII-78). Amendment 2 (ANSI X3.23b-1993), its change for page XIII-78 (page 936, folio B-24), applied in place: "Paragraph 4.9.3 of the USE BEFORE REPORTING statement, syntax rule 2, change to read" (kb/Work PB5045). Corrected to `(2) Identifier-1 must reference a report group. The same identifier-1 must not appear in more than one USE BEFORE REPORTING statement within the same Procedure Division.`.
 
 (3) The GENERATE, INITIATE, or TERMINATE statements must not appear in a paragraph within a USE BEFORE REPORTING procedure. A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or TERMINATE statements in its range.
 
@@ -23845,12 +24797,14 @@ The communication description entry specifies the interface area between the mes
                           │    [<u>END</u> <u>KEY</u> IS data-name-9]                  │
                           │    [<u>STATUS</u> <u>KEY</u> IS data-name-10]              │
                           │    [MESSAGE <u>COUNT</u> IS data-name-11]]          │
-                          │╔[data-name-1, data-name-2, data-name-3,     ╗│
-                          │║    data-name-4, data-name-5, data-name-6,  ║│
-                          │║    data-name-7, data-name-8, data-name-9,  ║│
-                          │╚    data-name-10, data-name-11]             ╝│
+                          │╔[data-name-1 data-name-2 data-name-3        ╗│
+                          │║    data-name-4 data-name-5 data-name-6     ║│
+                          │║    data-name-7 data-name-8 data-name-9     ║│
+                          │╚    data-name-10 data-name-11]              ╝│
                           └                                              ┘
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C156).** The standard prints `[data-name-1, data-name-2, data-name-3, ... data-name-10, data-name-11]` (page 661, folio XIV-3). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-3 (T) (page 851, folio A-21), applied in place: "Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-11, inclusively, in format 1", a typographical error (kb/Work PB5045). Corrected to `[data-name-1 data-name-2 data-name-3 ... data-name-10 data-name-11]`.
 
 XIV-3
 
@@ -23890,10 +24844,12 @@ Communication - CD Entry
      FOR ║[<u>INITIAL</u>]║ <u>I-O</u>   │    [<u>TEXT</u> <u>LENGTH</u> IS data-name-4]              │ .
                            │    [<u>END</u> <u>KEY</u> IS data-name-5]                  │
                            │    [<u>STATUS</u> <u>KEY</u> IS data-name-6]]              │
-                           │╔[data-name-1, data-name-2, data-name-3,     ╗│
-                           │╚    data-name-4, data-name-5, data-name-6]  ╝│
+                           │╔[data-name-1 data-name-2 data-name-3        ╗│
+                           │╚    data-name-4 data-name-5 data-name-6]    ╝│
                            └                                              ┘
 </pre>
+
+> ⚠ **CORRECTED — see the Errata (C157).** The standard prints `[data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, data-name-6]` (page 662, folio XIV-4). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-4 (T) (page 851, folio A-21), applied in place: "Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-6, inclusively, in format 3", a typographical error (kb/Work PB5045). Corrected to `[data-name-1 data-name-2 data-name-3 data-name-4 data-name-5 data-name-6]`.
 
 **2.2.3 Syntax Rules**
 
@@ -24379,7 +25335,9 @@ XIV-18
 
 Communication - DISABLE
 
-║(4) When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE) and all of its associated queues and sub-queues are deactivated.║
+║(4) When the INPUT phrase with the optional word TERMINAL is specified, the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues and sub-queues are deactivated.║
+
+> ⚠ **CORRECTED — see the Errata (C158).** The standard prints `referenced by data-name-7 (SYMBOLIC SOURCE) and all of its associated queues` (page 677, folio XIV-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-19 (T) (page 851, folio A-21), applied in place: "Paragraph 3.2.4 of the DISABLE statement, general rule 4, third line, change 'SOURCE)' to 'SOURCE))'", a typographical error (kb/Work PB5045). Corrected to `referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues`.
 
 ║(5) When the I-O TERMINAL phrase is specified, the logical path between the source (as defined by the content of the data item referenced by data-name-3 (SYMBOLIC TERMINAL)) and the program is deactivated.║
 
@@ -24607,6 +25565,10 @@ The SEND statement causes a message, ║a message segment, or a portion of a mes
 ║(4) When the mnemonic-name phrase is used, the name is identified with a particular feature specified by the implementor. The mnemonic-name is defined in the SPECIAL-NAMES paragraph in the Environment Division.║
 
 (5) Integer-1 or the value of the data item referenced by identifier-3 may be zero.
+
+(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function.
+
+> ⚠ **CORRECTED — see the Errata (C159).** The standard prints `(5) Integer-1 or the value of the data item referenced by identifier-3 may be zero.` (page 684, folio XIV-26). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-26 (page 851, folio A-21), applied in place: "Paragraph 3.6.3, add new syntax rule 6 as follows" (kb/Work PB5045). Corrected to `(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function.`.
 
 ### 3.6.4 General Rules
 
@@ -24884,7 +25846,9 @@ The USE FOR DEBUGGING statement identifies the user items that are to be monitor
 
 ║(9) Identifier-1 must not reference any data item defined in the Report Section except sum counters.║
 
-║(10) If the data description entry of the data item referenced by identifier-1 contains an OCCURS clause or is subordinate to a data description entry that contains an OCCURS clause, identifier-1 must be specified without the subscripting or indexing normally required.║
+║(10) If the data description entry of the data item referenced by identifier-1 contains an OCCURS clause or is subordinate to a data description entry that contains an OCCURS clause, identifier-1 must be specified without the subscripting normally required.║
+
+> ⚠ **CORRECTED — see the Errata (C160).** The standard prints `identifier-1 must be specified without the subscripting or indexing normally required.` (page 693, folio XV-5). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XV-5 (T) (page 851, folio A-21), applied in place: "Paragraph 3.2.3 of the USE FOR DEBUGGING statement, syntax rule 10, last line, delete 'or indexing'", a typographical error (kb/Work PB5045). Corrected to `identifier-1 must be specified without the subscripting normally required.`.
 
 (11) References to the special register DEBUG-ITEM are restricted to references from within a debugging section.
 
@@ -25378,6 +26342,8 @@ If a SORT statement appears in an independent segment, then any input procedures
 
 (2) Wholly within the same independent segment as that SORT statement.
 
+> ⚠ **CORRECTED — see the Errata (C176).** The standard prints `(the end of Section XVI, page XVI-9)` (page 707, folio XVI-9). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVI-9 (page 854, folio A-24), applied in place: "Insert after section XVI pages A-27 through A-76 containing the Intrinsic Function module". Section A is that module, and this transcription holds it once, where Amendment 1 prints it (under AMENDMENT 1, `SECTION A: INTRINSIC FUNCTION MODULE`, with Amendment 2's changes to it applied there): it stands after Section XVI in the amended standard, and its rules are cited §1989:A (docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.1) (kb/Work PB5045). Corrected to `Section A, the Intrinsic Function Module, inserted after Section XVI`.
+
 XVI-9
 
 ## Page 708
@@ -25720,7 +26686,9 @@ The major changes incorporated in the COBOL specifications within the CODASYL CO
 
 (11) The deletion of the CORRESPONDING option.
 
-(12) The inclusion of an EXIT PROGRAM statement.
+(12) The inclusion of an EXIT PERFORM statement.
+
+> ⚠ **CORRECTED — see the Errata (C161).** The standard prints `(12) The inclusion of an EXIT PROGRAM statement.` (page 716, folio XVII-8). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-8 (T) (page 851, folio A-21), applied in place: "Paragraph 2.11, entitled 'CODASYL COBOL JOURNAL OF DEVELOPMENT 1981', item 12, change 'PROGRAM' to 'PERFORM'", a typographical error (kb/Work PB5045). Corrected to `(12) The inclusion of an EXIT PERFORM statement.`.
 
 (13) A change to the COLUMN clause in the report writer.
 
@@ -25874,6 +26842,31 @@ In April 1985 X3J4 approved the final version of the draft proposed X3.23 Americ
 
 The revised X3.23 American National Standard COBOL proposed by X3 was approved by the Board of Standards Review of the American National Standards Institute (ANSI) in September 1985 as an American National Standard. The specifications of this American National Standard are published in the American National Standards Institute document X3.23-1985.
 
+## 3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1
+
+The X3J4 COBOL Technical Committee of the Accredited Standards Committee X3 was charged with the responsibility to develop addenda to American National Standard COBOL X3.23-1985 as a means of adding upward compatible language extensions. In June 1985, X3J4 began the task of preparing the first addendum. Language extensions considered for inclusion in Addendum 1 were taken from the CODASYL COBOL Journal of Development 1984.
+
+In January 1987 X3J4 approved the content and format for the first draft proposed Addendum 1 to American National Standard COBOL X3.23-1985 and recommended to X3 that it be published for public review and comment. X3J4 held two public review and comment periods in which comments were received from the data processing community on the content of the draft proposed Addendum 1 to American National Standard COBOL X3.23-1985. X3J4 reviewed and responded to all comments received during these two public review periods.
+
+In October 1988 X3J4 approved the final version of the draft proposed Addendum 1 to American National Standard COBOL X3.23-1985 and forwarded the document to the X3 committee for processing. The X3 committee then voted in favor of the acceptability of the draft proposed Addendum 1 to American National Standard COBOL X3.23-1985. This X3 vote also forwarded the proposed Addendum 1 for American National Standard COBOL X3.23-1985 to the American National Standards Institute for final approval.
+
+Addendum 1 to American National Standard COBOL X3.23-1985 proposed by X3 was approved by the American National Standards Institute on September 13, 1989 as an
+ addendum to American National Standard COBOL X3.23-1985. The specifications of this approved Addendum 1 are published in the American National Standards Institute document X3.23a-1989.
+
+## 3.6 AMERICAN NATIONAL STANDARD COBOL 1985, AMENDMENT 2
+
+The X3J4 COBOL Technical Committee of the Accredited Standards Committee X3 was charged with the responsibility of developing an amendment to ANSI X3.23-1985 as a means of resolving ambiguities and correcting errors found therein. In December 1987, X3J4 began the task of preparing an amendment to ANSI X3.23-1985. Errors were corrected which were found during the interpretation of ANSI X3.23-1985.
+
+In January 1990 X3J4 approved the content and format for the draft proposed Amendment 2 to ANSI X3.23-1985 and recommended to X3 that it be published for public review and comment. X3J4 held this public review and comment period during which comments were received from the data processing community on the content of the draft proposed Amendment 2 to ANSI X3.23-1985. X3J4 reviewed and responded to all comments received during this public review period.
+
+Additional errors in X3.23-1985 and X3.23a-1989 (the Intrinsic Function Amendment) were identified and corrections were included in the draft proposed Correction Amendment as a result of public review comments. X3J4 agreed that only ambiguities and errors which were identified by October 17, 1990 would be considered for inclusion in the amendment.
+
+> ⚠ **CORRECTED — see the Errata (C162).** The standard prints `The revised X3.23 American National Standard COBOL proposed by X3 was approved b ... (the last paragraph of 3.4)` (page 721, folio XVII-13). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-13 (page 851, folio A-21), applied in place: "Add the following after paragraph 3.4: 3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1", which runs on to page 852 (folio A-22) (kb/Work PB5045). Corrected to `3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1 (the four paragraphs above)`.
+
+> ⚠ **CORRECTED — see the Errata (C318).** The standard prints `X3.23A-1989.` (page 721, folio XVII-13). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-13 (A-22) (page 938, folio B-26), applied in place: "Paragraph 3.5, last paragraph, last line, change 'X3.23A-1989' to 'X3.23a-1989'" (paragraph 3.5 is Amendment 1's, C162) (kb/Work PB5045). Corrected to `X3.23a-1989.`.
+
+> ⚠ **CORRECTED — see the Errata (C319).** The standard prints `(paragraph 3.5 ends the subsection)` (page 721, folio XVII-13). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-13 (A-22) (page 938, folio B-26), applied in place: "Add the following after paragraph 3.5" (kb/Work PB5045). Corrected to `3.6 AMERICAN NATIONAL STANDARD COBOL 1985, AMENDMENT 2 (the three paragraphs above)`.
+
 XVII-13
 
 ## Page 722
@@ -25907,6 +26900,24 @@ History of COBOL
 During X3J4's work on the revision of American National Standard COBOL X3.23-1974, close and continuous liaison was maintained with the international COBOL community through ISO/TC 97/SC 5 COBOL Experts Group (CEG). The draft proposed revision of American National Standard COBOL X3.23-1974 was presented to ISO/TC 97/SC 5 in October 1981 as a proposed revision of ISO 1989-1978, Programming Language - COBOL. ISO/TC 97/SC 5 unanimously approved a resolution to send the proposed revision of ISO 1989-1978 COBOL to the central secretariat for registration as a draft proposal and for circulation to SC 5 primary members for a comment period closing February 13, 1982.
 
 The draft revision of ISO Standard 1989 for COBOL was circulated to all the ISO member bodies for inquiry. This revised ISO Standard 1989 was accepted by the ISO Council in 1985. The resulting ISO Standard was called ISO Standard 1989-1985 for COBOL.
+
+4.4 ISO 1989:1985/Amd.1:1992
+
+> ⚠ **CORRECTED — see the Errata (C320).** The standard prints `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1` (page 723, folio XVII-15). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-15 (A-22) (page 938, folio B-26), applied in place: "Paragraph 4.4, change the heading to read" (paragraph 4.4 is Amendment 1's, C163) (kb/Work PB5045). Corrected to `4.4 ISO 1989:1985/Amd.1:1992`.
+
+At its meeting in Vienna, Austria, in February 1984, ISO Technical Committee 97, Subcommittee 22, Working Group 4 on COBOL resolved to propose addenda for upward compatible language extensions to ISO Standard 1989-1985 for COBOL. The purpose of proposing addenda of upward compatible language extensions instead of embarking immediately on a revision to Standard COBOL was to provide the language enhancements in a more timely manner, e.g., in a two to five year time frame rather than a five to ten year, or longer, time frame. At this same meeting ISO/TC97/SC22 Working Group 4 recommended that the United States be requested to provide draft documents for the addenda. The recommendations of ISO/TC97/SC22 Working Group 4 were approved and the work of developing the addenda was assigned to X3J4.
+
+During X3J4's work on Addendum 1 for Standard COBOL, close and continuous liaison was maintained with the international community through ISO/IEC JTC1/SC22 Working Group 4. The draft document was presented for review and comment to ISO/IEC JTC1/SC22 in March 1987 as a draft proposed Addendum 1 to ISO Standard 1989-1985 for COBOL. ISO/IEC JTC1/SC22 unanimously approved a resolution to send the proposed Addendum 1 to ISO Standard 1989-1985 for COBOL to the Central Secretariat for registration as a draft international standard (DIS). The DIS Addendum 1 to ISO Standard 1989-1985 for COBOL was circulated to all the ISO member bodies for inquiry. Addendum 1 to ISO Standard 1989-1985 for COBOL was accepted by the ISO Council.
+
+4.5 ISO 1989:1985/Amd.2:1994
+
+In February 1987, the convenor of ISO Technical Committee 97, Subcommittee 22, Working Group 4 on COBOL, forwarded to the SC22 Secretariat the results of a letter ballot to subdivide the COBOL project and produce an amendment to ISO 1989:1985 to resolve identified ambiguities and correct identified errors. At the same time ISO/TC97/SC22 Working Group 4 recommended that the United States be requested to provide draft documents for the amendment. The recommendations of ISO/TC97/SC22 Working Group 4 were approved and the work of developing the amendment was assigned to X3J4.
+
+During X3J4's work on Amendment 2, close and continuous liaison was maintained with the international community through ISO/IEC JTC1/SC22 Working Group 4. The draft document was presented for review and comment to ISO/IEC JTC1/SC22 in March 1990 as a draft proposed Amendment 2 to ISO 1989:1985 for COBOL. In October 1990, ISO/IEC JTC1/SC22 Working Group 4 for COBOL approved a resolution to revise the draft document in response to international comments. Working Group 4 for COBOL agreed that only ambiguities and errors which were identified by October 17, 1990 would be considered for inclusion in the amendment.
+
+> ⚠ **CORRECTED — see the Errata (C163).** The standard prints `The draft revision of ISO Standard 1989 for COBOL was circulated to all the ISO ... (the last paragraph of 4.3)` (page 723, folio XVII-15). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-15 (page 852, folio A-22), applied in place: "Add the following after paragraph 4.3: 4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1" (kb/Work PB5045). Corrected to `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1 (the two paragraphs above)`.
+
+> ⚠ **CORRECTED — see the Errata (C321).** The standard prints `(paragraph 4.4 ends the subsection)` (page 723, folio XVII-15). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-15 (A-22) (page 939, folio B-27), applied in place: "Add the following after paragraph 4.4" (kb/Work PB5045). Corrected to `4.5 ISO 1989:1985/Amd.2:1994 (the two paragraphs above)`.
 
 XVII-15
 
@@ -25978,6 +26989,7 @@ Language Concepts Difference Summary
 | Maximum of 30 characters ..................................... | 1 NUC | 1 NUC | |
 | System-names and user-defined words must be disjoint sets ...... | 1 NUC | N | |
 | System-names and user-defined words form intersecting sets ..... | N | 1 NUC | |
+| Function-names, system-names, and user-defined words form intersecting sets ...... | N | 1 ITR | |
 | User-defined words | | | |
 | Alphabet-name .............................................. | 1 NUC | 1 NUC | |
 | Cd-name .................................................... | 1 COM | 1 COM | |
@@ -25997,6 +27009,8 @@ Language Concepts Difference Summary
 | Mnemonic-name .............................................. | 1 NUC | 1 NUC | |
 | Paragraph-name ............................................. | 1 NUC | 1 NUC | |
 | Program-name ............................................... | 1 NUC | 1 NUC | |
+
+> ⚠ **CORRECTED — see the Errata (C164).** The standard prints `User-defined words (the entry it precedes)` (page 725, folio XVII-17). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-17 (page 852, folio A-22), applied in place: "Add the following before the entry for 'User-defined words'; align the word 'Function-names' with the word 'User-defined'" (kb/Work PB5045). Corrected to `Function-names, system-names, and user-defined words form intersecting sets ... N 1 ITR`.
 
 XVII-17
 
@@ -26048,6 +27062,7 @@ Language Concepts Difference Summary
 | LINE-COUNTER ............................................... | 1 RPW | 1 RPW | |
 | PAGE-COUNTER ............................................... | 1 RPW | 1 RPW | |
 | DEBUG-ITEM ................................................. | 1 DEB | 1 DEB | Z |
+| &nbsp;Function-names .............................................. | N | 1 ITR | |
 | Literals | | | |
 | Numeric literals: 1 through 18 digits ......................... | 1 NUC | 1 NUC | |
 | Nonnumeric literals: 1 through 120 characters ................. | 1 NUC | N | |
@@ -26055,6 +27070,8 @@ Language Concepts Difference Summary
 | Nonnumeric literals: Length applies to representation in object program ...................... | N | 1 NUC | |
 | PICTURE character-strings ......................................... | 1 NUC | 1 NUC | |
 | Comment-entries ................................................... | 1 NUC | 1 NUC | Z |
+
+> ⚠ **CORRECTED — see the Errata (C165).** The standard prints `Literals (the entry it precedes)` (page 726, folio XVII-18). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-18 (page 852, folio A-22), applied in place: "Add the following before the entry for 'Literals'; align the word 'Function-names' one position to the right of the word 'Literals'" (kb/Work PB5045). Corrected to `Function-names ... N 1 ITR`.
 
 XVII-18
 
@@ -26082,14 +27099,15 @@ Language Concepts Difference Summary
 | 7 levels ........................................................ | N | 2 NUC |
 | Relative subscripting ........................................... | N | 1 NUC |
 | Relative indexing ............................................... | 1 TBL | 1 NUC |
-| Reference modification .......................................... | N | 2 NUC |
+| Function-identifier ............................................. | N | 1 ITR |
+| Reference modification ............................................ | N | 2 NUC |
 | <u>Reference Format</u> | | |
 | Sequence number ................................................. | 1 NUC | 1 NUC |
 | Must be digits .................................................. | 1 NUC | N |
 | May be any character in computer character set ................ | N | 1 NUC |
 | Continuation of lines | | |
 | Continuation of nonnumeric literal ............................ | 1 NUC | 1 NUC |
-| Continuation of COBOL word, numeric literal ................... | 2 NUC | 1 NUC |
+| Continuation of COBOL word, numeric literal ................... | 2 NUC | 2 NUC |
 | Continuation of PICTURE character-string ...................... | N | 2 NUC |
 | Intervening comment lines allowed ............................. | N | 1 NUC |
 | Intervening blank lines allowed ............................... | N | 1 NUC |
@@ -26105,6 +27123,14 @@ Language Concepts Difference Summary
 | Procedure Division optional ..................................... | N | 1 NUC |
 | End program header .............................................. | N | 2 NUC |
 | Nested source programs .......................................... | N | 2 IPC |
+
+> ⚠ **CORRECTED — see the Errata (C166).** The standard prints `Reference modification` (page 727, folio XVII-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (page 852, folio A-22), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045). Corrected to `Reference-modifier`.
+
+> ⚠ **CORRECTED — see the Errata (C167).** The standard prints `Reference-modifier (the entry it precedes)` (page 727, folio XVII-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (page 852, folio A-22), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier'" (kb/Work PB5045). Corrected to `Function-identifier ... N 1 ITR`.
+
+> ⚠ **CORRECTED — see the Errata (C168).** The standard prints `Continuation of COBOL word, numeric literal ... 2 NUC 1 NUC` (page 727, folio XVII-19). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (T) (page 852, folio A-22), applied in place: "Under 'Reference Format', change entry in 3RD STD column for 'Continuation of COBOL word, numeric literal' from '1 NUC' to '2 NUC'", a typographical error (kb/Work PB5045). Corrected to `... 2 NUC 2 NUC`.
+
+> ⚠ **CORRECTED — see the Errata (C322).** The standard prints `| Reference-modifier .............................................. | N | 2 NUC |` (page 727, folio XVII-19). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-19 (A-22) (page 939, folio B-27), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'" (the entry is Amendment 1's, C166) (kb/Work PB5045). Corrected to `| Reference modification ............................................ | N | 2 NUC |`.
 
 XVII-19
 
@@ -26637,6 +27663,49 @@ Procedure Division Difference Summary
 | Arithmetic statements | 1 NUC | 1 NUC |
 | &nbsp;Arithmetic operands limited to 18 digits | 1 NUC | 1 NUC |
 | &nbsp;Composite of operands limited to 18 digits | 1 NUC | 1 NUC |
+| Intrinsic functions | N | 1 ITR |
+| &nbsp;&nbsp;ACOS function | N | 1 ITR |
+| &nbsp;&nbsp;ANNUITY function | N | 1 ITR |
+| &nbsp;&nbsp;ASIN function | N | 1 ITR |
+| &nbsp;&nbsp;ATAN function | N | 1 ITR |
+| &nbsp;&nbsp;CHAR function | N | 1 ITR |
+| &nbsp;&nbsp;COS function | N | 1 ITR |
+| &nbsp;&nbsp;CURRENT-DATE function | N | 1 ITR |
+| &nbsp;&nbsp;DATE-OF-INTEGER function | N | 1 ITR |
+| &nbsp;&nbsp;DAY-OF-INTEGER function | N | 1 ITR |
+| &nbsp;&nbsp;FACTORIAL function | N | 1 ITR |
+| &nbsp;&nbsp;INTEGER function | N | 1 ITR |
+| &nbsp;&nbsp;INTEGER-OF-DATE function | N | 1 ITR |
+| &nbsp;&nbsp;INTEGER-OF-DAY function | N | 1 ITR |
+| &nbsp;&nbsp;INTEGER-PART function | N | 1 ITR |
+| &nbsp;&nbsp;LENGTH function | N | 1 ITR |
+| &nbsp;&nbsp;LOG function | N | 1 ITR |
+| &nbsp;&nbsp;LOG10 function | N | 1 ITR |
+| &nbsp;&nbsp;LOWER-CASE function | N | 1 ITR |
+| &nbsp;&nbsp;MAX function | N | 1 ITR |
+| &nbsp;&nbsp;MEAN function | N | 1 ITR |
+| &nbsp;&nbsp;MEDIAN function | N | 1 ITR |
+| &nbsp;&nbsp;MIDRANGE function | N | 1 ITR |
+| &nbsp;&nbsp;MIN function | N | 1 ITR |
+| &nbsp;&nbsp;MOD function | N | 1 ITR |
+| &nbsp;&nbsp;NUMVAL function | N | 1 ITR |
+| &nbsp;&nbsp;NUMVAL-C function | N | 1 ITR |
+| &nbsp;&nbsp;ORD function | N | 1 ITR |
+| &nbsp;&nbsp;ORD-MAX function | N | 1 ITR |
+| &nbsp;&nbsp;ORD-MIN function | N | 1 ITR |
+| &nbsp;&nbsp;PRESENT-VALUE function | N | 1 ITR |
+| &nbsp;&nbsp;RANDOM function | N | 1 ITR |
+| &nbsp;&nbsp;RANGE function | N | 1 ITR |
+| &nbsp;&nbsp;REM function | N | 1 ITR |
+| &nbsp;&nbsp;REVERSE function | N | 1 ITR |
+| &nbsp;&nbsp;SIN function | N | 1 ITR |
+| &nbsp;&nbsp;SQRT function | N | 1 ITR |
+| &nbsp;&nbsp;STANDARD-DEVIATION function | N | 1 ITR |
+| &nbsp;&nbsp;SUM function | N | 1 ITR |
+| &nbsp;&nbsp;TAN function | N | 1 ITR |
+| &nbsp;&nbsp;UPPER-CASE function | N | 1 ITR |
+| &nbsp;&nbsp;VARIANCE function | N | 1 ITR |
+| &nbsp;&nbsp;WHEN-COMPILED function | N | 1 ITR |
 | ACCEPT statement | 1 NUC | 1 NUC |
 | &nbsp;Identifier | 1 NUC | 1 NUC |
 | &nbsp;Only one transfer of data | 1 NUC | 1 NUC |
@@ -26662,6 +27731,8 @@ Procedure Division Difference Summary
 | ALTER statement | 1 NUC | 1 NUC Z |
 | &nbsp;Only one procedure-name | 1 NUC | 1 NUC Z |
 | &nbsp;Procedure-name series | 2 NUC | 2 NUC Z |
+
+> ⚠ **CORRECTED — see the Errata (C169).** The standard prints `ACCEPT statement (the entry it precedes)` (page 739, folio XVII-31). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-31 (page 853, folio A-23), applied in place: "Add the following before the entry for 'ACCEPT statement'": the entry Intrinsic functions and its 42 function entries, each N 1 ITR (kb/Work PB5045). Corrected to `Intrinsic functions N 1 ITR, ACOS function ... WHEN-COMPILED function (each N 1 ITR)`.
 
 XVII-31
 
@@ -27177,7 +28248,9 @@ Substantive Changes (Not Affecting)
 
 ## 2. <u>SUBSTANTIVE CHANGES</u>
 
-### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS
+### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)
+
+> ⚠ **CORRECTED — see the Errata (C323).** The standard prints `### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS` (page 750, folio XVII-42). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-42 (page 939, folio B-27), applied in place: "Change the title of paragraph 2.1 to" (kb/Work PB5045). Corrected to `### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)`.
 
 The following is a list of the changes of substance included in third Standard COBOL that are new features not impacting existing programs; for example, a new verb or an additional capability for an old verb.
 
@@ -27443,13 +28516,45 @@ Substantive Changes (Not Affecting)
 
 (107) <u>NOT INVALID KEY phrase of WRITE statement (1 REL, 1 INX)</u>. The NOT INVALID KEY phrase provides the programmer with the capability to specify procedures to be executed when an invalid key condition does not exist for the WRITE statement.
 
+### 2.1A SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT)
+
+The following is a list of the changes of substance introduced by the Intrinsic Function Amendment that are new features not impacting existing programs.
+
+> ⚠ **CORRECTED — see the Errata (C324).** The standard prints `(item 107 is followed by item 108)` (page 758, folio XVII-50). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (page 939, folio B-27), applied in place: "Insert the following as the new paragraph 2.1A following item 107 of paragraph 2.1" (kb/Work PB5045). Corrected to `2.1A SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT) (its heading and first paragraph)`.
+
+(1) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.
+
+### 2.1B SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT)
+
+The following is a list of the changes of substance introduced by the Correction Amendment that are new features not impacting existing programs.
+
+(1) **INSPECT statement (1 NUC).** For Format 1 of the INSPECT statement, identifier-1 is a sending data item.
+
+(2) **INSPECT statement (2 NUC).** The item in the BEFORE or AFTER phrase of an INSPECT statement with the REPLACING CHARACTERS phrase may be longer than one character.
+
+(3) **MAX function (1 ITR).** If more than one argument is specified, a mixture of alphabetic and alphanumeric arguments is permitted.
+
+(4) **MIN function (1 ITR).** If more than one argument is specified, a mixture of alphabetic and alphanumeric arguments is permitted.
+
+(5) **ORD-MAX function (1 ITR).** If more than one argument is specified, a mixture of alphabetic and alphanumeric arguments is permitted.
+
+(6) **ORD-MIN function (1 ITR).** If more than one argument is specified, a mixture of alphabetic and alphanumeric arguments is permitted.
+
+> ⚠ **CORRECTED — see the Errata (C170).** The standard prints `(107) NOT INVALID KEY phrase of WRITE statement (1 REL, 1 INX) ... (the item it follows)` (page 758, folio XVII-50). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-50 (page 853, folio A-23), applied in place: "Add the following after item 107" (kb/Work PB5045). Corrected to `(108) Intrinsic Function Module (1 ITR). The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.`.
+
+> ⚠ **CORRECTED — see the Errata (C325).** The standard prints `(108) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.` (page 758, folio XVII-50). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (A-23) (page 940, folio B-28), applied in place: "Renumber item 108 as the new item 1 under paragraph 2.1A" (item 108 is Amendment 1's) (kb/Work PB5045). Corrected to `(1) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.`.
+
+> ⚠ **CORRECTED — see the Errata (C326).** The standard prints `(paragraph 2.1A ends with its item 1)` (page 758, folio XVII-50). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (page 940, folio B-28), applied in place: "Insert the following as the new paragraph 2.1B following item 1 of paragraph 2.1A" (kb/Work PB5045). Corrected to `2.1B SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT) (its heading, first paragraph and items 1 to 6)`.
+
 XVII-50
 
 ## Page 759
 
 Substantive Changes (Potentially Affecting)
 
-## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS
+## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)
+
+> ⚠ **CORRECTED — see the Errata (C327).** The standard prints `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS` (page 759, folio XVII-51). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-51 (page 940, folio B-28), applied in place: "Change the title of paragraph 2.2 to" (kb/Work PB5045). Corrected to `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)`.
 
 This section contains a list of the changes of substance included in third Standard COBOL that are new features or changes that could impact existing programs; for example, the addition of a rule for a previously undefined situation or the change of a rule for an existing verb. Associated with each item in this list is a justification for the presence of that change in third Standard COBOL. See the preface to this document for the definition of the terms "first Standard COBOL", "second Standard COBOL", and "third Standard COBOL" as they are used in this section.
 
@@ -27901,6 +29006,8 @@ Under second Standard COBOL, PARA3 will be executed 8 times with the following v
 
 Under third Standard COBOL, PARA3 will be executed 6 times with the following values:
 
+> ⚠ **CORRECTED — see the Errata (C171).** The standard prints `Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.` (page 772, folio XVII-64). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-64 (T) (page 854, folio A-24), applied in place: "Substantive change 26, entitled 'PERFORM statement', prior to the last paragraph on the page, delete: 'Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.'", a typographical error (the sentences repeat the two that precede the values) (kb/Work PB5045). Corrected to `(deleted)`.
+
 | | | | | | | |
 |---|---|---|---|---|---|---|
 | X: | 1 | 1 | 1 | 2 | 2 | 3 |
@@ -27914,8 +29021,6 @@ One would expect the above example to perform the same as the following example:
       PARA2.
           PERFORM PARA3 VARYING Y FROM X BY 1 UNTIL Y IS GREATER THAN 3.
 </pre>
-
-Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.
 
 The X3J4 COBOL Technical Committee believes that few existing programs will be affected by this change. The situation where one VARYING variable depends on another is useful for processing half of a matrix along the diagonal; the rules in third Standard COBOL specify this function properly while the rules in second Standard COBOL did not specify this function properly.
 
@@ -28129,7 +29234,9 @@ In third Standard COBOL, the rules based on the file position indicator are stra
 
 The only two cases where this change in concepts may affect programs are described in the next two items (item 37 and item 38). These only occur in very unusual sequences of operations on files in the dynamic access mode.
 
-(37) <u>File position indicator (2 REL, 2 INX)</u>. For a relative or indexed file in the dynamic access made, execution of an OPEN I-O statement followed by one or more WRITE statements and then a READ NEXT statement will cause the READ statement to access the first record in the file at the time of execution of the READ statement.
+(37) <u>File position indicator (2 REL, 2 INX)</u>. For a relative or indexed file in the dynamic access mode, execution of an OPEN I-O statement followed by one or more WRITE statements and then a READ NEXT statement will cause the READ statement to access the first record in the file at the time of execution of the READ statement.
+
+> ⚠ **CORRECTED — see the Errata (C172).** The standard prints `in the dynamic access made, execution` (page 778, folio XVII-70). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-70 (T) (page 854, folio A-24), applied in place: "Substantive change 37, entitled 'File position indicator', first paragraph, second line, change 'access made' to 'access mode'", a typographical error (kb/Work PB5045). Corrected to `in the dynamic access mode, execution`.
 
 <u>Justification</u>:
 
@@ -28177,7 +29284,11 @@ Second Standard COBOL semantics for this situation were the subject of a request
 | END-ADD | END-UNSTRING | TEST |
 | END-CALL | END-WRITE | THEN |
 | END-COMPUTE | EVALUATE | TRUE |
-| END-DELETE | | |
+| END-DELETE | |  |
+
+> ⚠ **CORRECTED — see the Errata (C173).** The standard prints `the reserved words added in item 39, without FUNCTION` (page 779, folio XVII-71). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-71 (page 854, folio A-24), applied in place: "Add the word FUNCTION to the list of reserved words in item 39" (kb/Work PB5045). Corrected to `the list with FUNCTION after FALSE`.
+
+> ⚠ **CORRECTED — see the Errata (C328).** The standard prints `the list with FUNCTION after FALSE (Amendment 1, C173)` (page 779, folio XVII-71). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-71 (A-24) (page 940, folio B-28), applied in place: "Substantive change 39, entitled Reserved words, delete the word FUNCTION" (the word Amendment 1 added, C173) (kb/Work PB5045). Corrected to `the list without FUNCTION`.
 
 <u>Justification</u>:
 
@@ -28287,7 +29398,9 @@ f. <u>I-O status = 35</u>. An OPEN statement with the INPUT phrase is attempted 
 
 Second Standard COBOL requires that the OPTIONAL phrase must be specified for input files that are not necessarily present each time the object program is executed. It does not specify what happens when a file which is not declared as optional is absent. The new I-O status value of 35 allows the user to test for this condition.
 
-g. <u>I-O status = 37</u>. An OPEN statement is attempted on a file which is required to be a mass storage file but is not.
+g. **I-O status = 37.** A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. (See paragraph 2.2B, item 22, for further explanation.)
+
+> ⚠ **CORRECTED — see the Errata (C329).** The standard prints `g. <u>I-O status = 37</u>. An OPEN statement is attempted on a file which is required to be a mass storage file but is not.` (page 783, folio XVII-75). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-75 (page 940, folio B-28), applied in place: "Change item 40g concerning I-O status 37 to read" (kb/Work PB5045). Corrected to `g. **I-O status = 37.** A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. (See paragraph 2.2B, item 22, for further explanation.)`.
 
 <u>Justification</u>:
 
@@ -28470,6 +29583,34 @@ d. <u>Communication error key value = A through Z</u>. Implementor-defined condi
 <u>Justification</u>:
 
 The MCS has detected an implementor-defined error condition not covered by an existing communication error key value. In second Standard COBOL, the implementor could not provide such information to the user.
+
+(43) **RECORD clause (1 SEQ, 1 REL, 1 INX, 1 RPW).** Files specified using the RECORD CONTAINS integer-1 CHARACTERS clause are always fixed format files that contain only fixed length records. (See paragraph 2.2B, item 3, for further explanation.)
+
+(44) **Floating insertion editing (1 NUC).** If all numeric character positions in the PICTURE character-string are represented by a floating insertion character, at least one of the insertion characters must be to the left of the decimal point. (See paragraph 2.2B, item 4, for further explanation.)
+
+(45) **Size error condition without ON SIZE ERROR phrase (1 NUC).** If a size error condition occurs and an ON SIZE ERROR phrase has not been specified, the program will continue and the value of any affected resultant identifier is undefined. (See paragraph 2.2B, item 8, for further explanation.)
+
+(46) **Multiple results in arithmetic statements (1 NUC).** A temporary data item is always used in evaluating arithmetic statements with multiple receiving fields. (See paragraph 2.2B, item 9, for further explanation.)
+
+(47) **COPY REPLACING statement (2 STM).** The characters right and left parentheses are always text words in third Standard COBOL even when they are not separators. Therefore, they will be processed as individual text words by a COPY REPLACING statement. (See paragraph 2.2B, item 12, for further explanation.)
+
+### 2.2A SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT)
+
+The following is a list of the changes of substance introduced by the Intrinsic Function Amendment that are changes that could impact existing programs.
+
+(1) **Reserved word FUNCTION (1 NUC).** The word FUNCTION must be recognized as a reserved word if the Intrinsic Function module is included in an implementation. (This change was subsequently modified; see paragraph 2.2B, item 1.)
+
+**Justification:**
+
+The benefits to be derived from the additional facility provided through the addition of the reserved word FUNCTION were considered to outweigh the inconvenience caused by removing this word from the set of user-defined words.
+
+The X3J4 COBOL Technical Committee believes that any one-time difficulties caused by this change ultimately will be more than offset by the facility provided by this change.
+
+> ⚠ **CORRECTED — see the Errata (C330).** The standard prints `(paragraph 2.2 ends with item 42)` (page 788, folio XVII-80). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 941, folio B-29), applied in place: "Paragraph 2.2, insert the following items after item 42d" (kb/Work PB5045). Corrected to `(43) RECORD clause ... (44) ... (45) ... (46) ... (47) COPY REPLACING statement ... (above)`.
+
+> ⚠ **CORRECTED — see the Errata (C331).** The standard prints `(paragraph 2.2 ends with item 47)` (page 788, folio XVII-80). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 941, folio B-29), applied in place: "Insert the following as the new paragraph 2.2A following the last new item at the end of paragraph 2.2", its item 1 printed on page 942 (folio B-30) (kb/Work PB5045). Corrected to `2.2A SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT) (its heading, first paragraph and item 1 with its justification)`.
+
+> ⚠ **CORRECTED — see the Errata (C332).** The standard prints `(paragraph 2.2A ends with its item 1)` (page 788, folio XVII-80). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 942, folio B-30), applied in place: "Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A". Paragraph 2.2B runs over seventeen pages of Amendment 2, with its examples; this transcription holds it once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2): it stands here, after 2.2A, in the amended standard (kb/Work PB5045). Corrected to the text above.
 
 XVII-80
 
@@ -28864,6 +30005,24 @@ Implementor-Defined Element List
 
 (80) <u>SEND statement</u>. If mnemonic-name-1 is specified, characters transmitted to the communication device are positioned according to the rules specified by the implementor for that communication device. (See 3.6.4, general rule 15c, on page XIV-29.)
 
+(81) <u>Integer and Numeric Functions</u>. The implementor specifies the representation of integer and numeric functions, and this representation need not be the standard data format. (See 4.3.4, second occurrence of page number IV-16, on page A-10.)
+
+(82) <u>Types of Functions</u>. The characteristics of the returned value are defined by the implementor. (See 2.3, paragraphs 2 and 3, on page A-29.)
+
+(83) <u>CHAR function</u>. If the current program collating sequence was not specified by the ALPHABET clause, the implementor determines the value. (See 2.9.4, rule 2, on page A-37.)
+
+(84) <u>RANDOM function</u>. If the first reference to this function in the run unit does not specify argument-1, the seed value is defined by the implementor. (See 2.35.3, rule 3, on page A-64.)
+
+(85) **ALPHABET clause in SPECIAL-NAMES paragraph.** The implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase. (See 4.5.4, general rule 4d, subitem 4 on page VI-16.)
+
+(86) **OPEN statement.** The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. (See 4.3.4 general rule 8, on page VII-41; 4.4.4, general rule 8, on page VIII-24; 4.4.4, general rule 8, on page IX-26; 4.5.4, general rule 6, on page XIII-71.)
+
+(87) **RANDOM function.** The implementor will specify the subset of the domain of argument-1 values that will yield distinct sequences of pseudo-random numbers. (See 2.35.4, rule 3, on page A-64.)
+
+> ⚠ **CORRECTED — see the Errata (C174).** The standard prints `(80) SEND statement ... (the item they follow)` (page 801, folio XVII-93). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-93 (page 854, folio A-24), applied in place: "Add the following after item 80" (kb/Work PB5045). Corrected to `(81) Integer and Numeric Functions ... (82) Types of Functions ... (83) CHAR function ... (84) RANDOM function ...`.
+
+> ⚠ **CORRECTED — see the Errata (C333).** The standard prints `(the list ends with item 84)` (page 801, folio XVII-93). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-93 (A-24) (page 958, folio B-46), applied in place: "Insert items 85 through 87 after item 84 in the Implementor-Defined Language Element List" (item 84 is Amendment 1's) (kb/Work PB5045). Corrected to `(85) ALPHABET clause in SPECIAL-NAMES paragraph ... (86) OPEN statement ... (87) RANDOM function ... (above)`.
+
 XVII-93
 
 ## Page 802
@@ -29000,6 +30159,30 @@ Undefined Element List
 
 (28) <u>SEND statement</u>. If the value of the data item referenced by identifier-3 is negative, the results are undefined. (See 3.6.4, general rule 15b, on page XIV-29.)
 
+(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined. (See 1.2.2, on page A-27.)
+
+(30) **MERGE statement.** For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement. (See 4.1.4, general rule 7c, on page XI-11.)
+
+> ⚠ **CORRECTED — see the Errata (C336).** The standard prints `(See 4.1.4, general rule 17c, on page XI-11.)` (page 806, folio XVII-98). A rule number misprinted in Amendment 2's new item 30 (its page 959, folio B-47, prints 'general rule 17c'): the MERGE statement has thirteen general rules, and the sentence item 30 restates ("For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement") is the one Amendment 2 adds to general rule 7c on page XI-11 (C293), so the reference is general rule 7c (kb/Work PB5045). Corrected to `(See 4.1.4, general rule 7c, on page XI-11.)`.
+
+(31) **MERGE statement.** The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 or file-name-3 is undefined upon completion of the MERGE statement. (See 4.1.4, general rule 7, on page XI-11.)
+
+(32) **MERGE statement.** The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the MERGE statement for which the GIVING phrase is specified. (See 4.1.4, general rule 11, on page XI-12.)
+
+(33) **SORT statement.** For a relative file, the content of the relative key data item associated with file-name-2 is undefined after the execution of the SORT statement if file-name-2 is not referenced in the GIVING phrase. (See 4.4.4, general rule 9c, on page XI-19.)
+
+(34) **SORT statement.** The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 is undefined upon completion of the SORT statement. (See 4.4.4, general rule 9, on page XI-19.)
+
+(35) **SORT statement.** The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the SORT statement for which the GIVING phrase is specified. (See 4.4.4, general rule 12, on page XI-20.)
+
+(36) **Intrinsic functions.** The evaluation of an ALL subscript must result in at least one argument, otherwise the result of the reference to the function-identifier is undefined. (See 2.2 on page A-29.)
+
+> ⚠ **CORRECTED — see the Errata (C175).** The standard prints `(28) SEND statement ... (the item it follows)` (page 806, folio XVII-98). Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-98 (page 854, folio A-24), applied in place: "Add the following after item 28" (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C334).** The standard prints `(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined. (See 1.2.2, on page A-27.)` (page 806, folio XVII-98). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-98 (A-24) (page 959, folio B-47), applied in place: "In the change to page XVII-98 inserting item 29 in the Undefined Language Elements List, replace the first sentence after the header Intrinsic functions with the following" (item 29 is Amendment 1's) (kb/Work PB5045). Corrected to the text above.
+
+> ⚠ **CORRECTED — see the Errata (C335).** The standard prints `(the list ends with item 29)` (page 806, folio XVII-98). Amendment 2 (ANSI X3.23b-1993), its change for page XVII-98 (A-24) (page 959, folio B-47), applied in place: "Insert the following after item 29 in the Undefined Language Element List" (kb/Work PB5045). Corrected to `(30) MERGE statement ... (36) Intrinsic functions ... (above)`.
+
 XVII-98
 
 # SECTION XVIII: INDEX
@@ -29010,122 +30193,7 @@ Index
 
 # INDEX
 
-'A' PICTURE symbol, VI-31
-Abbreviated combined relation conditions, VI-60
-ACCEPT MESSAGE COUNT statement, XIV-17
-   USE FOR DEBUGGING statement, XV-7
-ACCEPT statement, VI-71
-   Imperative statement, IV-39
-   Mnemonic-name, VI-13
-   SPECIAL-NAMES paragraph, VI-13
-ACCESS MODE clause
-   DYNAMIC, VIII-8, VIII-10, IX-8, IX-10
-   RANDOM, VIII-8, VIII-10, IX-8, IX-10
-   SEQUENTIAL, VII-7, VII-9, VIII-8, VIII-10, IX-8,
-      IX-10, XIII-3
-Access modes, VII-1, VIII-2, IX-2
-Accessing data and files, II-19
-ADD statement, VI-73
-   Composite of operands, VI-69
-   COMPUTE statement, VI-76
-   Conditional statement, IV-37
-   CORRESPONDING (CORR), VI-68
-   Data conversion, VI-69
-   Decimal alignment, VI-69
-   Imperative statement, IV-39
-   Maximum operand size, VI-69
-   Multiple results, VI-69
-ADD CORRESPONDING (ADD CORR) statement,  VI-68,
-      VI-73
-Additional language elements, I-7
-ADVANCING phrase
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-AFTER phrase
-   INSPECT statement, VI-94
-   PERFORM statement, VI-109, VI-110
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-Algebraic sign, IV-16
-Alignment of data, IV-16
-   Synchronization, IV-17
-ALL
-   Figurative constant, IV-11
-   INSPECT statement, VI-94
-   SEARCH statement, VI-122
-   UNSTRING, VI-136
-   USE FOR DEBUGGING statement, XV-5
-ALL literal, IV-11
-   INSPECT statement, VI-95
-   STOP statement, VI-130
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-ALL PROCEDURES phrase, XV-5
-ALL REFERENCES OF phrase, XV-5
-ALPHABET clause, VI-13
-Alphabet-name, III-1, IV-6, VI-13
-   CODE-SET clause, VII-24
-   MERGE statement, XI-8
-   SORT statement, XI-16
-
-ALPHABETIC
-   Class condition,·VI-57
-   INITIALIZE statement, VI-92
-Alphabetic category, IV-15, VI-29, VI-48,
-      VI-104
-Alphabetic class, IV-15, VI-56
-Alphabetic data item, VI-29
-ALPHABETIC-LOWER, VI-57
-ALPHABETIC-UPPER, VI-57
-ALPHANUMERIC, VI-92
-Alphanumeric category, IV-15, VI-29, VI-48,
-      VI-104
-Alphanumeric character, III-1
-Alphanumeric class, IV-15
-Alphanumeric data item, VI-30
-ALPHANUMERIC-EDITED, VI-92
-Alphanumeric edited category, IV-15, VI-29,
-      VI-48, VI-104
-Alphanumeric edited data item, VI-30
-ALSO phrase
-   ALPHABET clause, VI-13
-   EVALUATE statement, VI-84
-ALTER statement, VI-75
-   GO TO statement, VI-89
-   Imperative statement, IV-39
-   Initial state of program, X-10
-   Segmentation, XVI-8
-   Transfer of control, IV-26
-   USE FOR DEBUGGING statement, XV-6
-ALTERNATE RECORD KEY clause, IX-8, IX-11
-AND
-   Abbreviated combined relation condition,
-      VI-61
-   Combined condition, VI-59
-   Evaluation order, VI-61
-   Logical operator, VI-59
-   SEARCH statement, VI-122
-ANY, VI-84
-Area A, IV-41
-Area B, IV-41
-Arithmetic expression, VI-51
-   COMPUTE statement, VI-76
-   EVALUATE statement, VI-84
-   Relation condition, VI-54
-   SEARCH statement, VI-122
-   Sign condition, VI-58
-Arithmetic operator, IV-9, VI-52
-Arithmetic statement, III-2, VI-69
-ASCENDING KEY phrase
-   MERGE statement, XI-8
-   OCCURS clause, VI-26
-   SORT statement, XI-16
-ASSIGN clause
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Sequential I-O module, VII-7
-   Sort-Merge module, XI-2
+> ⚠ **CORRECTED — see the Errata (C337).** The standard prints `the index on pages XVIII-1 through XVIII-13 (PDF pages 807 to 819)` (page 807, folio XVIII-1). Amendment 2 (ANSI X3.23b-1993), its change for page XVIII-1 (page 960, folio B-48), applied in place: "Replace the index on pages XVIII-1 through XVIII-13 with the index on pages B-49 through B-64." The base index's entries are deleted from pages 807 to 819 (each keeps its running header and folio), and this transcription holds the replacement once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2). Addendum 1's additions to the base index (its rows XVIII-1 through XVIII-13) are superseded by this replacement and are not applied (kb/Work PB5045). Corrected to `the index replaced by Amendment 2's (pages B-49 through B-64), held once where Amendment 2 prints it (under AMENDMENT 2, `# INDEX`, PDF pages 961 to 976)`.
 
 XVIII-1
 
@@ -29133,298 +30201,11 @@ XVIII-1
 
 Index
 
-Asterisk (*) comment line, IV-42
-Asterisk (*) PICTURE symbol, VI-32, VI-35
-At end condition, VII-5, VIII-6, IX-7
-   READ statement, VII-46, VIII-28, IX-30
-   RETURN statement, XI-14
-AT END phrase
-   READ statement, VII-44, VIII-26, IX-28
-   RETURN statement, XI-14
-   SEARCH statement, VI-122
-AT END-OF-PAGE phrase, VII-52
-AUTHOR paragraph, VI-6
-
-'B' PICTURE symbol, VI-31, VI-33
-BEFORE phrase
-   INSPECT statement, VI-94
-   PERFORM statement, VI-109, VI-110
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-BINARY, VI-46
-Binary arithmetic operators, VI-52
-Blank line, IV-42
-BLANK WHEN ZERO clause, VI-22
-   PICTURE clause, VI-29
-   Report group description entry, XIII-21
-   USAGE IS INDEX clause, VI-46
-   VALUE clause, VI-49
-BLOCK CONTAINS clause
-   Indexed I-O module, IX-16
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22, VII-23
-Body group presentation rules, XIII-32
-Braces, IV-2
-Brackets, IV-2
-BY
-   COPY statement, XII-2
-   DIVIDE statement, VI-80
-   INITIALIZE statement, VI-92
-   INSPECT statement, VI-94
-   MULTIPLY statement, VI-107
-   PERFORM statement, VI-110
-BY CONTENT phrase, X-27
-BY REFERENCE phrase, X-27
-
-CALL statement, X-27
-   CANCEL statement, X-31
-   Conditional statement, IV-37
-   EXIT PROGRAM statement, X-33
-   Imperative statement, IV-39
-   Linkage Section, X-13
-   PERFORM statement, VI-120
-   Procedure Division header, X-25
-   Transfer of Control, II-23, IV-26
-Called program, III-2, X-27
-Calling program, III-2, X-27
-CANCEL statement, X-31
-   CALL statement, X-29
-   EXIT PROGRAM statement, X-33
-   Imperative statement, IV-39
-Category of data, IV-15
-   Editing, VI-33
-   MOVE statement, VI-104
-   Nonnumeric literal, IV-10
-   Numeric literal, IV-10
-   PICTURE clause, VI-29
-   VALUE clause, VI-48
-CD entry, XIV-3
-CD level indicator, III-13, XIV-3, XIV-4
-   Reference format, IV-43
-Cd-name, III-3, IV-6, XIV-3, XIV-4, XV-5
-CF, XIII-55
-
-CH, XIII-55
-Character, IV-4
-   Alphabetic, III-1
-   Alphanumeric, III-1
-   Editing, III-8
-   Numeric, III-15
-   Punctuation, III-18, IV-4
-   Relation, III-19
-   Special, III-23
-Character representation, IV-16
-Character set, IV-4
-   Restriction, VI-1
-Character-string, IV-5
-Character substitution, I-8, IV-4
-CHARACTERS
-   BLOCK CONTAINS clause, VII-23
-   INSPECT statement, VI-94
-   MEMORY SIZE clause, VI-11
-   RECORD clause, VII-30
-Choice indicators, IV-2
-CLASS clause, VI-13, VI-16, VI-56
-Class condition, VI-56
-Class-name, III-3, IV-6, VI-13, VI-16, VI-57
-Class of data, IV-15
-Clause, III-3
-CLOCK-UNITS phrase, VII-17, VII-18
-CLOSE statement
-   Imperative statement, IV-39
-   Indexed I-O module, IX-19
-   Relative I-O module, VIII-17
-   Report Writer module, XIII-63
-   Sequential I-O module, VII-35
-   STOP statement, VI-130
-COBOL character set, III-3, IV-4
-COBOL development, XVII-1
-COBOL Journal of Development, XVII-2
-COBOL library, XII-2
-COBOL reserved words, IV-45
-COBOL source program, IV-29, VI-3
-COBOL standardization, XVII-11
-COBOL word, IV-5
-CODASYL, XVII-1
-CODASYL COBOL Committee, XVII-2
-CODE clause, XIII-11, XIII-14
-CODE-SET clause
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22, VII-24
-COLLATING SEQUENCE phrase
-   ALPHABET clause, VI-15
-   MERGE statement, XI-8
-   SORT statement, XI-16
-Colon, IV-5
-   Restriction, VI-1
-COLUMN NUMBER clause, XIII-21, XIII-42
-Combined condition, VI-59
-Comma
-   DECIMAL-POINT IS COMMA clause, VI-13, VI-17
-   Interchangeable with semicolon, IV-2
-   PICTURE symbol, VI-32, VI-33
-   Separator, IV-4
-Comment-entry, IV-12, VI-6
-   DATE-COMPILED paragraph, VI-8
-Comment line, lV-42
-   Library text, XII-4, XII-7
-COMMON clause, X-12
-Common program, II-22, X-3, X-12
-Communication concepts, II-28
-Communication description entry, III-4, IV-34,
-      XIV-2, XIV-3
-Communication module, XIV-1
-   Element summary, I-36
-
 XVIII-2
 
 ## Page 809
 
 Index
-
-Communication Section, IV-33, XIV-2
-Communication status key conditions, XIV-14
-Compile time switch, VI-141, XV-2
-Compiler directing sentence, IV-38
-Compiler directing statement, IV-38
-Complex condition, VI-59
-Composite language skeleton, V-1
-COMPUTATIONAL (COMP), VI-46
-COMPUTE statement, VI-76
-&nbsp;&nbsp;&nbsp;Composite of operands, VI-69
-&nbsp;&nbsp;&nbsp;Conditional statement, IV-37
-&nbsp;&nbsp;&nbsp;Data conversion, VI-69
-&nbsp;&nbsp;&nbsp;Decimal alignment, VI-69
-&nbsp;&nbsp;&nbsp;Imperative statement, IV-39
-&nbsp;&nbsp;&nbsp;Maximum operand size, VI-69
-&nbsp;&nbsp;&nbsp;Multiple results, VI-69
-Computer-name, IV-8, VI-10, VI-11
-Concepts, II-1
-Condition, VI-54
-&nbsp;&nbsp;&nbsp;Abbreviated combined relation condition,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VI-60
-&nbsp;&nbsp;&nbsp;Class condition, VI-56
-&nbsp;&nbsp;&nbsp;Combined condition, VI-59
-&nbsp;&nbsp;&nbsp;Complex condition, VI-59
-&nbsp;&nbsp;&nbsp;Condition-name condition, VI-58
-&nbsp;&nbsp;&nbsp;EVALUATE statement, VI-84
-&nbsp;&nbsp;&nbsp;Evaluation rules, VI-61
-&nbsp;&nbsp;&nbsp;IF statement, VI-90
-&nbsp;&nbsp;&nbsp;Negated condition, VI-59
-&nbsp;&nbsp;&nbsp;PERFORM UNTIL statement, VI-109, VI-110
-&nbsp;&nbsp;&nbsp;Relation condition, VI-54
-&nbsp;&nbsp;&nbsp;SEARCH statement, VI-122
-&nbsp;&nbsp;&nbsp;Sign condition, VI-58
-&nbsp;&nbsp;&nbsp;Simple condition, VI-54
-&nbsp;&nbsp;&nbsp;Switch-status condition, VI-58
-Condition-name, IV-6, IV-7, IV-24
-&nbsp;&nbsp;&nbsp;Condition-name condition, VI-58
-&nbsp;&nbsp;&nbsp;Conventions, X-6
-&nbsp;&nbsp;&nbsp;Level-number 88, IV-14
-&nbsp;&nbsp;&nbsp;Qualified, IV-19
-&nbsp;&nbsp;&nbsp;RERUN clause, VII-17, VII-18
-&nbsp;&nbsp;&nbsp;SEARCH statement, VI-122
-&nbsp;&nbsp;&nbsp;SET statement, VI-127
-&nbsp;&nbsp;&nbsp;SPECIAL-NAMES paragraph, VI-13
-&nbsp;&nbsp;&nbsp;Subscripted, IV-21
-&nbsp;&nbsp;&nbsp;Switch-status condition, VI-58
-&nbsp;&nbsp;&nbsp;Uniqueness, IV-24
-&nbsp;&nbsp;&nbsp;VALUE clause, VI-49
-Condition-name condition, VI-58
-Condition-name data description entry, VI-21,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VI-25, VI-49
-Conditional expression, VI-54
-&nbsp;&nbsp;&nbsp;EVALUATE statement, VI-85
-&nbsp;&nbsp;&nbsp;PERFORM statement, VI-111
-&nbsp;&nbsp;&nbsp;SEARCH statement, VI-123
-Conditional phrase, IV-37
-Conditional sentence, IV-38
-Conditional statement, IV-37
-Conditional variable, III-6, VI-58, VI-127
-&nbsp;&nbsp;&nbsp;FILLER, VI-23
-Configuration Section, IV-31
-&nbsp;&nbsp;&nbsp;Nucleus, VI-9
-Conforming implementation, I-6
-Conforming source program, I-9
-Contained programs, X-1, X-8
-Continuation line, IV-42
-Continuation of lines, IV-42
-&nbsp;&nbsp;&nbsp;Comment-entries, VI-6, VI-8
-CONTINUE statement, VI-77
-Continued line, IV-42
-CONTROL clause, XIII-11, XIII-15
-
-Control break
-&nbsp;&nbsp;&nbsp;CONTROL clause, XIII-15
-&nbsp;&nbsp;&nbsp;GENERATE statement, XIII-66
-&nbsp;&nbsp;&nbsp;GROUP INDICATE clause, XIII-44
-&nbsp;&nbsp;&nbsp;TYPE clause, XIII-56
-CONTROL FOOTING (CF), XIII-55
-CONTROL HEADING (CH), XIII-55
-CONVERTING, VI-95
-COPY statement, XII-2
-&nbsp;&nbsp;&nbsp;Compiler directing statement, IV-38
-CORRESPONDING (CORR) phrase, VI-68
-&nbsp;&nbsp;&nbsp;ADD statement, VI-73
-&nbsp;&nbsp;&nbsp;MOVE statement, VI-103
-&nbsp;&nbsp;&nbsp;ON SIZE ERROR phrase, VI-68
-&nbsp;&nbsp;&nbsp;SUBTRACT statement, VI-134
-COUNT IN phrase, VI-136
-CR PICTURE symbol, VI-32, VI-34
-Currency PICTURE symbol, VI-32, VI-34
-Currency sign, III-6, VI-17, VI-34
-CURRENCY SIGN clause, VI-13, VI-17, VI-34
-Currency symbol, III-6, VI-17, VI-33
-Current volume pointer, II-5, VII-2
-
-Data description entry, III-7, VI-20
-&nbsp;&nbsp;&nbsp;Inter-Program Communication module, X-19
-&nbsp;&nbsp;&nbsp;Working-Storage Section, VI-18
-Data Division, IV-33
-&nbsp;&nbsp;&nbsp;Communication module, XIV-2
-&nbsp;&nbsp;&nbsp;Element summary, I-48
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-16
-&nbsp;&nbsp;&nbsp;Inter-Program Communication module, X-13
-&nbsp;&nbsp;&nbsp;Nucleus, VI-18
-&nbsp;&nbsp;&nbsp;Reference format, IV-43
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-14
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-6
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-21
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-6
-Data Division entries, IV-43
-Data-name, III-7, IV-6, VI-23, XIII-20,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;XIII-43
-&nbsp;&nbsp;&nbsp;Conventions, X-6
-&nbsp;&nbsp;&nbsp;Identifier, IV-23
-&nbsp;&nbsp;&nbsp;Qualified, IV-19
-&nbsp;&nbsp;&nbsp;Subscripted, IV-21
-DATA BY phrase, VI-92
-DATA RECORDS clause
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-16
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-14
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-22, VII-25
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-7
-DATE, VI-72
-DATE-COMPILED paragraph, VI-8
-DATE-WRITTEN paragraph, VI-6
-DAY, VI-72
-DAY-OF-WEEK, VI-72
-DB PICTURE symbol, VI-32, VI-34
-DE, XIII-55
-DEBUG-CONTENTS, XV-8
-DEBUG-ITEM, IV-9, XV-1, XV-8
-DEBUG-LINE, XV-8
-Debug module, XV-1
-&nbsp;&nbsp;&nbsp;Element summary, I-38
-DEBUG-NAME, XV-8
-DEBUG-SUB-1, XV-8
-DEBUG-SUB-2, XV-8
-DEBUG-SUB-3, XV-8
-Debugging line, VI-141
-&nbsp;&nbsp;&nbsp;Library text, XII-4, XII-7
-DEBUGGING MODE clause, VI-10, XV-2, XV-3
-Debugging section, XV-5
 
 XVIII-3
 
@@ -29432,298 +30213,11 @@ XVIII-3
 
 Index
 
-Decimal point
-   Actual, VI-32
-   Alignment, IV-16
-   Assumed, VI-32
-DECIMAL POINT IS COMMA clause, VI-13, VI-17,
-      VI-33
-Declarative sentence, III-7
-Declaratives, IV-35
-   Reference format, IV-44
-   USE BEFORE REPORTING statement, XIII-78
-   USE FOR DEBUGGING statement, XV-5
-   USE statement, VII-50, VIII-35, IX-39
-Declarative procedures
-   Debug module, XV-4
-   Indexed I-O module, IX-18
-   PERFORM statement, VI-121
-   Relative I-O module, VIII-16
-   Report Writer module, XIII-62
-   Sequential I-O module, VII-34
-   USE BEFORE REPORTING statement, XIII-78
-   USE FOR DEBUGGING statement, XV-5
-   USE statement, VII-50, VIII-35, IX-39
-De-editing, VI-104
-Definitions, III-1
-DELETE statement
-   Indexed I-O module, IX-21
-   Relative I-O module, VIII-19
-DELIMITED BY phrase
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-Delimited scope statement, IV-39
-DELIMITER IN phrase, VI-136
-Delimiters
-   Character-string, IV-5
-   Pseudo-text, III-18, IV-5
-DEPENDING phrase
-   GO TO statement, VI-89
-   OCCURS clause, VI-26
-   RECORD clause, VII-30
-DESCENDING KEY phrase
-   MERGE statement, XI-8
-   OCCURS clause, VI-26
-   SORT statement, XI-16
-DESTINATION COUNT clause, XIV-4
-DESTINATION TABLE OCCURS clause, XIV-4
-DETAIL (DE), XIII-55
-Development of COBOL, XVII-1
-Differences between current standard & draft
-   proposed revision, XVII-16
-DISABLE statement, XIV-18
-DISPLAY in USAGE clause, VI-46
-DISPLAY statement, VI-78
-   Figurative constant, IV-11
-   Imperative statement, IV-39
-   Mnemonic-name, VI-13
-DIVIDE statement, VI-80
-   Composite of operands, VI-69
-   COMPUTE statement, VI-76
-   Conditional statement, IV-37
-   Data conversion, VI-69
-   Decimal alignment, VI-69
-   Imperative statement, IV-39
-   Maximum operand size, VI-69
-   Multiple results, VI-69
-Division, III-8, IV-30
-Division header, III-8, IV-43
-Double character substitution, IV-4
-DOWN BY, VI-127
-DUPLICATES phrase
-   ALTERNATE RECORD KEY clause, IX-8, IX-11
-   SORT statement, XI-16
-
-Dynamic access, II-4, VIII-2, IX-2
-
-Editing, VI-104
-Editing characters, III-8
-Editing rules, VI-33
-Editing sign, IV-16, VI-32
-Editing sign control symbols, VI-32
-EGI, XIV-26
-Element summary by COBOL division, I-40
-Element summary by module, I-10
-Elementary item, IV-14
-   MOVE statement, VI-104
-   Noncontiguous, VI-18
-   PICTURE clause, VI-29
-Elementary move, VI-104
-Ellipsis, IV-2
-ELSE clause, VI-90
-EMI, XIV-26
-ENABLE statement, XIV-20
-END-ADD phrase, VI-73
-END-CALL phrase, X-27
-END-COMPUTE phrase, VI-76
-END DECLARATIVES, IV-35, IV-44
-END-DELETE phrase, VIII-19, IX-21
-END-DIVIDE phrase, VI-80
-END-EVALUATE phrase, VI-84
-END-IF phrase, VI-90
-END KEY clause, XIV-3, XIV-4
-END-MULTIPLY phrase, VI-107
-End of COBOL source program, IV-29, VI-3
-End of group indicator (EGI), XIV-26
-End of message indicator (EMI), XIV-26
-END-OF-PAGE phrase, VII-52
-END OF REEL/UNIT phrase, VII-15, VII-17
-End of segment indicator (ESI), XIV-26
-END-PERFORM phrase, VI-109, VI-110
-END PROGRAM, VI-5
-End program header
-   Inter-Program Communication module, X-8
-      X-11
-   Nucleus, VI-5
-   Reference format, IV-44
-END-READ phrase, VII-44, VIII-26, IX-28
-END-RECEIVE phrase, XIV-23
-END-RETURN phrase, XI-14
-END-REWRITE phrase, VIII-30, IX-33
-END-SEARCH phrase, VI-122
-END-START phrase, VIII-33, IX-36
-END-STRING phrase, VI-131
-END-SUBTRACT phrase, VI-134
-END-WRITE phrase, VII-52, VIII-37, IX-41
-ENTER COBOL, VI-83
-ENTER statement, I-9,VI-83
-Entry, III-8
-Environment Division, IV-31
-   Debug module, XV-3
-   Element summary, I-45
-   Indexed I-O module, IX-8
-   Nucleus, VI-9
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Segmentation module, XVI-4
-   Sequential I-O module, VII-6
-   Sort-Merge module, XI-2
-EQUAL TO relation, VI-54, VI-122, VIII-33,
-      IX-36
-EOP phrase, VII-52
-ERROR KEY clause, XIV-4
-Error key values, XIV-16
-ERROR PROCEDURES, VII-50, VIII-35, IX-39,
-      X-34, XIII-76
-
 XVIII-4
 
 ## Page 811
 
 Index
-
-ESI, XIV-26
-EVALUATE statement, VI-84
-   Conditional expression, VI-54
-Exception declarative, II-7
-Exception handling, II-6
-EXCEPTION PROCEDURE, VII-50, VIII-35, IX-39,
-      X-34, XIII-76
-Execution, IV-35
-EXIT statement, VI-88
-   Imperative statement, IV-39
-   PERFORM statement, VI-120
-EXIT PROGRAM statement, X-33
-   CANCEL statement, X-31
-   PERFORM statement, VI-120
-   Transfer of control, IV-26
-Explicit specifications, IV-25
-Exponentiation, VI-52
-EXTEND phrase
-   OPEN statement, VII-39, VIII-21, IX-23, XIII-70
-   USE statement, VII-50, VIII-35, IX-39, XIII-76
-Extension language elements, I-8
-EXTERNAL clause, X-23
-   OCCURS clause, VI-27
-External objects, X-2
-External switch, IV-28, VI-13, VI-15, VI-127
-Externally provided functions, I-7
-
-FALSE, VI-84
-FD level indicator, III-13
-   Indexed I-O module, IX-16
-   Inter-Program Communication module, X-15
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22
-Figurative constant, IV-9, IV-10
-   DISPLAY statement, VI-78
-   INSPECT statement, VI-95
-   MOVE statement, VI-104
-   Restriction, VI-2
-   STOP statement, VI-130
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-File, II-1
-   Attributes, II-1
-   Conceptual characteristics, IV-13
-   Physical aspects, IV-13
-File attribute conflict condition, VII-5,
-      VIII-6, IX-7
-File connector, III-9
-   File control entry, VII-8, VIII-8, IX-9
-   OPEN statement, VII-40, VIII-22, IX-24
-File control entry, III-9, IV-32
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report writer module, XIII-3
-   Sequential I-O module, VII-7
-   Sort-Merge module, XI-2
-FILE-CONTROL paragraph, III-9, IV-31
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Sequential I-O module, VII-7
-   Sort-Merge module, XI-2
-File description entry, III-10, IV-34
-   Indexed I-O module, IX-16
-   Inter-Program Communication module, X-15
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-6, XIII-7
-   Sequential I-O module, VII-21, VII-22
-File-name, III-10, IV-6, VII-7, VIII-8, IX-8,
-      XI-7, XIII-3
-File-name conventions, X-6
-File operations, II-5
-File position indicator, II-5, VII-2, VIII-2,
-      IX-2
-File processing, II-3
-File Section, IV-33
-   Indexed I-O module, IX-16
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-6
-   Sequential I-O module, VII-21
-   Sort-Merge module, XI-6
-   VALUE clause, VI-49
-FILE STATUS clause
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Sequential I-O module, VII-7, VII-10
-FILLER, VI-23
-   CORRESPONDING, VI-68
-   SYNCHRONIZED, VI-45
-FINAL
-   CONTROL clause, XIII-15
-   SUM clause, XIII-52
-   TYPE clause, XIII-55
-FIRST, VI-94
-FIRST DETAIL, XIII-17
-Fixed insertion editing, VI-34
-Fixed length records, II-3, VII-31
-Fixed overlayable segments, XVI-1
-Fixed permanent segments, XVI-2
-Floating insertion editing, VI-34
-FOOTING, VII-27, XIII-17
-FOR, VI-94
-FOR REMOVAL phrase, VII-35, XIII-63
-Format punctuation, IV-2
-FROM phrase
-   ACCEPT statement, VI-71
-   PERFORM VARYING statement, VI-110
-   RELEASE statement, XI-13
-   REWRITE statement, VII-48, VIII-30, IX-33
-   SEND statement, XIV-26
-   SUBTRACT statement, VI-134
-   WRITE statement, VII-52, VIII-37, IX-41
-
-General format, IV-1
-General rules, IV-3
-GENERATE statement, XIII-66
-   Imperative statement, IV-39
-Generic terms, IV-1
-GIVING phrase
-   ADD statement, VI-73
-   DIVIDE statement, VI-80
-   MERGE statement, XI-8
-   MULTIPLY statement, VI-107
-   SORT statement, XI-16
-   SUBTRACT statement, VI-134
-GLOBAL clause, X-24, X-34, X-35
-   OCCURS clause, VI-27
-Global names, X-2
-Glossary of COBOL terms, III-1
-GO TO statement, VI-89
-   Imperative statement, IV-39
-   Initial state of program, X-10
-   PERFORM statement, VI-120
-   SEARCH statement, VI-126
-GREATER THAN relation, VI-54, VIII-33, IX-36
-Group, IV-14
-GROUP INDICATE clause, XIII-21, XIII-44
-
-Hardware dependent language element list, XVII-94
-Hardware dependent language elements, I-8
 
 XVIII-5
 
@@ -29731,293 +30225,13 @@ XVIII-5
 
 # Index
 
-HEADING phrase, XIII-17
-High subset, I-6
-HIGH-VALUE/HIGH-VALUES, IV-11
-   SPECIAL-NAMES paragraph, VI-16
-History of COBOL, XVII-1
-Hyphen (-) continuation line, IV-42
-
-Identification Division, IV-30
-   Element summary, I-44
-   Inter-Program Communication module, X-12
-   Nucleus, VI-6
-Identifier, IV-23, IV-35
-IF statement, VI-90
-   Conditional expression, VI-54
-   Conditional statement, IV-37
-   Imperative statement, IV-39
-   SEARCH statement, VI-123
-Imperative sentence, IV-39
-Imperative statement, IV-39
-Implementation of Standard COBOL, I-6
-Implementor-defined language element list,
-      XVII-87
-Implementor-defined record types, II-3
-Implementor-defined specifications, I-7
-Implementor-name, IV-8
-   ALPHABET clause, VI-13
-   ASSIGN clause, VII-7, VIII-8, IX-8, XI-2,
-      XIII-3
-   RECORD DELIMITER clause, VII-13
-   RERUN clause, VII-17
-   SPECIAL-NAMES paragraph, VI-13
-   VALUE OF clause, VII-33
-Implicit specifications, IV-25
-Implied relational operator, VI-61
-Implied subject, VI-61
-IN, IV-19, IV-20, XII-2
-Incompatible data, VI-70
-Indentation, IV-44
-Independent segments, XVI-2
-Index, III-11, IV-21, IV-22
-INDEX in USAGE clause, VI-46
-Index data item, VI-47
-   Condition-name, VI-21
-   CONTROL clause, XIII-15
-   Initial value, VI-19
-   INITIALIZE statement, VI-92
-   MOVE statement, VI-103
-   PICTURE clause, VI-29
-   Relation condition, VI-56
-   SEARCH statement, VI-123
-   SET statement, VI-127
-Index-name, III-11, IV-6, IV-21
-   Conventions, X-7
-   OCCURS clause, VI-26
-   PERFORM statement, VI-110
-   Relation condition, VI-56
-   SEARCH statement, VI-122
-   SET statement, VI-127
-INDEXED BY phrase, VI-26, VI-27, XIV-4
-Indexed file, IX-1
-Indexed I-O module, IX-1
-   Element summary, I-25
-Indexed organization, II-2, IX-1, IX-13
-Indicator area, IV-41
-INITIAL clause, X-12
-INITIAL phrase
-   Communication description entry, XIV-3,
-      XIV-4
-   INSPECT statement, VI-94
-Initial program, II-22, X-3
-Initial state of program, X-10
-
-Initial values
-   File Section, VII-21, XI-6
-   Linkage Section, X-14
-   Working-Storage Section, VI-19
-INITIALIZE statement, VI-92
-INITIATE statement, XIII-69
-   Imperative statement, IV-39
-In-line PERFORM statement, VI-111
-Input-Output Section, IV-31
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Report Writer module, XIII-3
-   Sequential I-O module, VII-6
-   Sort-Merge module, XI-2
-Input-output statement, III-12
-INPUT phrase
-   Communication description entry, XIV-3
-   DISABLE statement, XIV-18
-   ENABLE statement, XIV-20
-   OPEN statement, VII-39, VIII-21, IX-23
-   USE statement, VII-50, VIII-35, IX-39
-INPUT PROCEDURE phrase, XI-16
-INSPECT statement, VI-94
-   Imperative statement, IV-39
-INSTALLATION paragraph, VI-6
-Integer, III-12
-Inter-program communication concepts, II-22
-Inter-Program Communication module, X-1
-   Element summary, I-28
-Intermediate subset, I-6
-International standardization of COBOL, XVII-14
-International Organization for
-   Standardization (ISO), XVII-14
-Internal objects, X-2
-INTO
-   DIVIDE statement, VI-80
-   READ statement, VII-44, VIII-26, IX-28
-   RECEIVE statement, XIV-23
-   RETURN statement, XI-14
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-Intra-program communication, II-26
-INVALID KEY condition, VIII-5, IX-6
-   DELETE statement, VIII-19, IX-21
-   READ statement, VIII-26, IX-28
-   REWRITE statement, VIII-30, IX-33
-   START statement, VIII-33, IX-36
-   WRITE statement, VIII-37, IX-41
-I-O-CONTROL paragraph, III-10
-   Indexed I-O module, IX-15
-   Relative I-O module, VIII-13
-   Report Writer module, XIII-5
-   Sequential I-O module, VII-15
-   Sort-Merge module, XI-3
-I-O phrase
-   Communication description entry, XIV-4
-   OPEN statement, VII-39, VIII-21, IX-23
-   USE statement, VII-50, VIII-35, IX-39
-I-O status, II-7
-   FILE STATUS clause, VII-10
-   Indexed I-O module, IX-2
-   Relative I-O module, VIII-2
-   Sequential I-O module, VII-2
-I-O TERMINAL phrase, XIV-18, XIV-20
-
 XVIII-6
 
 ## Page 813
 
 Index
 
-JUSTIFIED (JUST) clause, VI-24
-   Condition-name, VI-21
-   Figurative constant, IV-11
-   Report group description entry, XIII-21
-   Standard alignment, IV-17
-   STRING statement, VI-131
-   USAGE IS INDEX clause, VI-46
-   VALUE clause, VI-49
-
-> ⚠ **CORRECTED — see the Errata (C19).** The standard prints `Report group desçription entry` (page 813, folio XVIII-7): a damaged letter on the printed page, which the transcription had reproduced. Corrected to `description`.
-
-KEY data-names
-   MERGE statement, XI-8
-   SORT statement, XI-16
-KEY phrase
-   DISABLE statement, XIV-18
-   ENABLE statement, XIV-20
-   MERGE statement, XI-8
-   OCCURS clause, VI-26
-   READ statement, IX-28
-   SEARCH statement, VI-123
-   SORT statement, XI-16
-   START statement, VIII-33, IX-36
-Key word, IV-1, IV-8
-
-LABEL RECORDS clause
-   Indexed I-O module, IX-16
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22, VII-26
-Language concepts, IV-4
-   Element summary, I-41
-   Language-name, III-13, IV-8, VI-83
-Language structure, IV-4
-LAST DETAIL phrase, XIII-17
-LEADING
-   INSPECT statement, VI-94
-   SIGN clause, VI-42
-LEFT, VI-44
-LESS THAN relation, VI-54, VIII-33, IX-36
-Level concept, IV-14
-Level indicator, IV-43
-Level-number, III-13, IV-6, IV-7, IV-14,
-      VI-21, VI-25
-   Data description entry, VI-20
-   Notation, IV-2
-   Reference format, IV-44
-   Report group description entry, XIII-20,
-      XIII-45
-Leveling of module elements, I-1
-Library, XII-2
-Library-name, III-13, IV-6, XII-2
-Library text, III-13, XII-2
-LIMIT/LIMITS, XIII-17
-LINAGE clause, VII-27, X-15
-Linage concepts, II-5
-LINAGE-COUNTER, VII-5, VII-28, VII-55
-   Qualified, IV-19, IV-20
-   Special register IV-9
-LINE-COUNTER, XIII-1, XIII-13
-   Qualified, IV-19, IV-20
-   Special register, IV-9
-LINE/LINES
-   PAGE clause, XIII-17
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-LINE NUMBER clause, XIII-20, XIII-21, XIII-46
-LINES AT BOTTOM phrase, VII-27
-LINES AT TOP phrase, VII-27
-Linkage Section, IV-33, X-13
-   VALUE clause, VI-49
-List of elements by COBOL division, I-40
-List of elements by module, I-10
-
-Literal, IV-9
-   ALPHABET clause, VI-13, VI-15
-   CURRENCY SIGN clause, VI-13, VI-17
-   STOP statement, VI-130
-Local names, X-2
-LOCK phrase, VII-35, VIII-17, IX-19, XIII-63
-Logical operator, VI-59
-   Precedence, VI-60
-Logical record, II-2, IV-13, VII-23
-LOW-VALUE/LOW-VALUES, IV-11
-   SPECIAL-NAMES paragraph, VI-16
-Lowercase letters, IV-5, VI-29, VI-56
-
-MCS, II-28
-MEMORY SIZE clause, VI-11
-Merge file, XI-1
-MERGE statement, XI-8
-   Imperative statement, IV-39
-   Segmentation, XVI-8
-   Transfer of control, IV-26
-Merging, II-6
-Message concepts, II-32
-Message control system, II-28
-   STOP statement, VI-130
-MESSAGE COUNT clause, XIV-3
-MESSAGE DATE clause, XIV-3, XIV-4
-MESSAGE phrase, XIV-23
-MESSAGE TIME clause, XIV-3, XIV-4
-Minimum subset, I-6
-Minus (-) PICTURE symbol, VI-32, VI-34, VI-35
-Mnemonic-name, IV-6, IV-7
-   ACCEPT statement, VI-71
-   DISPLAY statement, VI-78
-   SEND statement, XIV-26
-   SET statement, VI-127
-   SPECIAL-NAMES paragraph, VI-13
-   WRITE statement, VII-52
-Module abbreviations, I-4
-Module chart, I-5
-Module concept, I-1
-MODULES, VI-11
-MOVE statement, VI-103
-   CORRESPONDING (CORR), VI-68
-   Imperative statement, IV-39
-   Index data item, VI-47
-MOVE CORRESPONDING (MOVE CORR) statement, VI-103
-MULTIPLE FILE TAPE clause, VII-15, VII-16, XIII-5
-Multiple results in arithmetics, VI-69
-MULTIPLY statement, VI-107
-   Composite of operands, VI-69
-   COMPUTE statement, VI-76
-   Conditional statement, IV-37
-   Data conversion, VI-69
-   Decimal alignment, VI-69
-   Imperative statement, IV-39
-   Maximum operand size, VI-69
-   Multiple results, VI-69
-
-NATIVE phrase, VI-13, VI-15
-Native character set, III-14, VI-15
-Native collating sequence, III-14, VI-15
-NEGATIVE, VI-58
-Negated condition, VI-59
-Nested source programs, X-1, X-8
-Nested statements, IV-40
-NEXT phrase
-   Indexed I-O module, IX-28
-   Relative I-O module, VIII-26
-   Sequential I-O module, VII-44
-NEXT GROUP clause, XIII-20, XIII-48
+> ⚠ **CORRECTED — see the Errata (C19).** The standard prints `Report group desçription entry` (page 813, folio XVIII-7), a damaged letter in the index entry under JUSTIFIED (JUST) clause, corrected to `description`; Amendment 2 then replaced the whole index (C337), so the corrected entry no longer stands here.
 
 XVIII-7
 
@@ -30025,300 +30239,11 @@ XVIII-7
 
 Index
 
-NEXT PAGE phrase
-   LINE NUMBER clause, XIII-46
-   NEXT GROUP clause, XIII-48
-NEXT SENTENCE phrase
-   IF statement, VI-90
-   SEARCH statement, VI-122
-NO DATA phrase, XIV-23
-NO REWIND phrase, VII-35, VII-39, XIII-63,
-      XIII-70
-Noncontiguous elementary item, VI-18, X-13
-   Level-number 77, VI-25
-Nonnumeric comparison, VI-55
-Nonnumeric literal, IV-9
-   Continuation, IV-42
-NOT
-   EVALUATE statement, VI-84
-   Logical operator, VI-59
-   Relational operator, VI-55
-NOT AT END-OF-PAGE phrase, VII-52
-NOT AT EOP phrase, VII-52
-NOT AT END phrase
-   Implicit scope terminator, IV-27
-   READ statement, VII-44
-   RETURN statement, XI-14
-NOT INVALID KEY phrase
-   DELETE statement, VIII-19, IX-21
-   READ statement, VIII-26, IX-28
-   REWRITE statement, VIII-30, IX-33
-   START statement, VIII-33, IX-36
-   WRITE statement, VIII-37, IX-41
-NOT ON EXCEPTION phrase, X-27
-NOT ON OVERFLOW phrase
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-NOT ON SIZE ERROR phrase
-   ADD statement, VI-73
-   COMPUTE statement, VI-76
-   DIVIDE statement, VI-80
-   MULTIPLY statement, VI-107
-   SUBTRACT statement, VI-134
-Notation rules, IV-1
-Nucleus, VI-1
-   Element summary, I-11
-NUMERIC
-   Class condition, VI-57
-   INITIALIZE statement, VI-92
-Numeric category, IV-15, VI-29, VI-48, VI-104
-Numeric character, III-15
-Numeric class, IV-15, VI-56
-Numeric comparison, VI-55
-Numeric data item, VI-30
-NUMERIC-EDITED, VI-92
-Numeric edited category, IV-15, VI-29, VI-48,
-      VI-104
-Numeric edited data item, VI-30
-Numeric literal, IV-10, VI-104
-
-OBJECT-COMPUTER paragraph, VI-11, XVI-4
-Object time switch, XV-2
-Obsolete language element, I-7
-Obsolete language element list, XVII-81
-Occurrence number, IV-21, VI-124, VI-128
-OCCURS clause, VI-26
-   CORRESPONDING phrase, VI-68
-   INITIALIZE statement, VI-92
-   MOVE statement, VI-104
-   REDEFINES clause, VI-38
-   RENAMES clause, VI-40
-   SEARCH statement, VI-123
-   SET statement, VI-128
-   SYNCHRONIZED clause, VI-45
-   VALUE clause, VI-50
-
-OF, IV-19, IV-20, XII-2
-OFF, VI-127
-OFF STATUS phrase, VI-13
-ON, VI-127
-ON EXCEPTION phrase, X-27
-ON OVERFLOW phrase
-   CALL statement, X-27
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-ON phrase, VII-17, VIII-13, IX-15
-ON SIZE ERROR phrase, VI-67
-   ADD statement, VI-73
-   COMPUTE statement, VI-76
-   DIVIDE statement, VI-80
-   MULTIPLY statement, VI-107
-   SUBTRACT statement, VI-134
-Open mode, II-4, VII-39, VIII-21, IX-23,
-      XIII-70
-OPEN statement
-   Imperative statement, IV-39
-   Indexed I-O module, IX-23
-   Relative I-O module, VIII-21
-   Report Writer module, XIII-70
-   Sequential I-O module, VII-39
-Operational sign, IV-16
-Operator
-   Arithmetic, IV-9, VI-52
-   Logical, VI-59
-   Relational, VI-54, VI-55
-Optional modules, I-6
-OPTIONAL phrase
-   Indexed I-O module, IX-8
-   Relative I-O module, VIII-8
-   Sequential I-O module, VII-7
-Optional word, IV-9
-OR phrase, VI-136
-OR
-   Abbreviated combined relation condition,
-      VI-61
-   Combined condition, VI-59
-   Evaluation order, VI-61
-   Logical operator, VI-59
-ORGANIZATION IS INDEXED clause, IX-13
-ORGANIZATION IS RELATIVE clause, VIII-12
-ORGANIZATION IS SEQUENTIAL clause, VII-11, XIII-3
-OTHER, VI-84
-Out-of-line PERFORM statement, VI-111
-OUTPUT phrase
-   Communication description entry, XIV-4
-   DISABLE statement, XIV-18
-   ENABLE statement, XIV-20
-   OPEN statement, VII-39, VIII-21, IX-23,
-      XIII-70
-   USE statement, VII-50, VIII-35, IX-39
-OUTPUT PROCEDURE phrase, XI-8, XI-16
-Overall language consideration, IV-1
-OVERFLOW phrase
-   CALL statement, X-27
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-Overlapping operands, VI-69
-
-'P' PICTURE symbol, VI-31
-   USAGE clause, VI-46
-PACKED-DECIMAL, VI-46
-PADDING CHARACTER clause, VII-7, VII-12, XIII-3
-PAGE
-   SEND statement, XIV-26
-   WRITE statement, VII-52
-PAGE clause, XIII-11, XIII-17
-
 XVIII-8
 
 ## Page 815
 
 Index
-
-PAGE-COUNTER, XIII-1, XIII-12
-&nbsp;&nbsp;&nbsp;Qualified, IV-19, IV-20
-&nbsp;&nbsp;&nbsp;Special register, IV-9
-PAGE FOOTING (PF), XIII-55
-Page footing presentation rules, XIII-37
-PAGE HEADING (PH), XIII-55
-Page heading group presentation rules, XIII-30
-Paragraph, IV-35, IV-43
-Paragraph header, III-17, IV-43
-Paragraph-name, IV-6, IV-7, IV-35
-&nbsp;&nbsp;&nbsp;Qualified, IV-19
-&nbsp;&nbsp;&nbsp;Reference format, IV-43
-Parentheses
-&nbsp;&nbsp;&nbsp;Arithmetic expression, VI-53
-&nbsp;&nbsp;&nbsp;Condition, VI-60
-&nbsp;&nbsp;&nbsp;PICTURE clause, VI-30
-&nbsp;&nbsp;&nbsp;Separators, IV-4
-&nbsp;&nbsp;&nbsp;Subscripting, IV-21
-PERFORM statement, VI-109
-&nbsp;&nbsp;&nbsp;Conditional expression, VI-54
-&nbsp;&nbsp;&nbsp;Imperative statement, IV-39
-&nbsp;&nbsp;&nbsp;Segmentation, XVI-8
-&nbsp;&nbsp;&nbsp;SET statement, VI-128
-&nbsp;&nbsp;&nbsp;Transfer of control, IV-26
-Period, IV-3
-&nbsp;&nbsp;&nbsp;DECIMAL-POINT IS COMMA clause, VI-17
-&nbsp;&nbsp;&nbsp;PICTURE symbol, VI-32, VI-33
-&nbsp;&nbsp;&nbsp;Separator, IV-4
-PF, XIII-55
-PH, XIII-55
-Phrase, III-17
-Physical record, IV-13, VII-23
-PICTURE character-string, IV-12
-PICTURE (PIC) clause, VI-29
-&nbsp;&nbsp;&nbsp;BLANK WHEN ZERO clause, VI-22
-&nbsp;&nbsp;&nbsp;CURRENCY SIGN clause, VI-17
-&nbsp;&nbsp;&nbsp;DECIMAL POINT IS COMMA clause, VI-17
-&nbsp;&nbsp;&nbsp;Linkage Section, X-13
-&nbsp;&nbsp;&nbsp;Report group description entry, XIII-21
-&nbsp;&nbsp;&nbsp;SIGN clause, VI-42
-&nbsp;&nbsp;&nbsp;STRING statement, VI-131
-&nbsp;&nbsp;&nbsp;SYNCHRONIZED clause, VI-44
-&nbsp;&nbsp;&nbsp;UNSTRING statement, VI-136
-&nbsp;&nbsp;&nbsp;USAGE clause, VI-46
-&nbsp;&nbsp;&nbsp;Working-Storage Section, VI-18
-PLUS phrase
-&nbsp;&nbsp;&nbsp;LINE NUMBER clause, XIII-46
-&nbsp;&nbsp;&nbsp;NEXT GROUP clause, XIII-48
-Plus (+) PICTURE symbol, VI-32, VI-34, VI-35
-POINTER phrase
-&nbsp;&nbsp;&nbsp;STRING statement, VI-131
-&nbsp;&nbsp;&nbsp;UNSTRING statement, VI-136
-POSITION phrase, VII-16
-POSITIVE, VI-58
-Precedence rules for PICTURE character-string,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VI-36
-Presentation rules tables, XIII-24
-Prime record key, IX-14
-Procedure, IV-35
-Procedure branching statement, III-17, IV-26
-Procedure Division, IV-35
-&nbsp;&nbsp;&nbsp;Communication module, XIV-17
-&nbsp;&nbsp;&nbsp;Debug module, XV-4
-&nbsp;&nbsp;&nbsp;Element summary, I-53
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-18
-&nbsp;&nbsp;&nbsp;Inter-Program Communication module, X-25
-&nbsp;&nbsp;&nbsp;Nucleus, VI-51
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-16
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-62
-&nbsp;&nbsp;&nbsp;Segmentation module, XVI-6
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-34
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-8
-
-Procedure Division header, IV-36, X-25
-Procedure-name, III-18
-&nbsp;&nbsp;&nbsp;GO TO statement, VI-89
-&nbsp;&nbsp;&nbsp;MERGE statement, XI-8
-&nbsp;&nbsp;&nbsp;PERFORM statement, VI-109
-&nbsp;&nbsp;&nbsp;SORT statement, XI-16
-&nbsp;&nbsp;&nbsp;USE FOR DEBUGGING statement, XV-5
-PROGRAM-ID paragraph
-&nbsp;&nbsp;&nbsp;Inter-Program Communication module, X-12
-&nbsp;&nbsp;&nbsp;Nucleus, VI-7
-Program-name, III-18, IV-6
-&nbsp;&nbsp;&nbsp;Conventions, X-5
-&nbsp;&nbsp;&nbsp;End program header, X-11
-&nbsp;&nbsp;&nbsp;PROGRAM-ID paragraph, VI-7, X-12
-PROGRAM COLLATING SEQUENCE clause, VI-11
-&nbsp;&nbsp;&nbsp;ALPHABET clause, VI-15
-Program & run unit organization, II-18
-Program classes, II-22
-Program segments, XVI-1
-Pseudo-text, XII-2, XII-6
-Pseudo-text delimiters, III-18, IV-5, IV-43
-Pseudo-text format, IV-43
-Punctuation characters, III-18
-&nbsp;&nbsp;&nbsp;Format punctuation, IV-2
-&nbsp;&nbsp;&nbsp;Separators, IV-4
-PURGE statement, XIV-22
-
-Qualification, IV-18
-&nbsp;&nbsp;&nbsp;Restriction, VI-1
-Queue, III-18
-Queue concepts, II-32
-Queue hierarchy, II-33
-Quotation mark
-&nbsp;&nbsp;&nbsp;Separator, IV-5
-QUOTE, QUOTES, IV-11
-
-Random access, II-4, VIII-2, IX-2
-RD entry, XIII-10, XIII-11
-RD level indicator, III-13, X-22, XIII-11
-&nbsp;&nbsp;&nbsp;Reference format, IV-43
-READ statement
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-28
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-26
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-44
-RECEIVE statement, XIV-23
-Record
-&nbsp;&nbsp;&nbsp;Concepts, IV-14
-&nbsp;&nbsp;&nbsp;Fixed length records, II-3
-&nbsp;&nbsp;&nbsp;Implementor-defined record types, II-3
-&nbsp;&nbsp;&nbsp;Linkage records, X-14
-&nbsp;&nbsp;&nbsp;Logical, II-2, IV-13
-&nbsp;&nbsp;&nbsp;Physical, IV-13
-&nbsp;&nbsp;&nbsp;Variable length records, II-3
-&nbsp;&nbsp;&nbsp;Working storage records, VI-18
-RECORD clause
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-16
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-14
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-7
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-22, VII-30
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-7
-RECORD CONTAINS clause
-&nbsp;&nbsp;&nbsp;Indexed I-O module, IX-16
-&nbsp;&nbsp;&nbsp;Relative I-O module, VIII-14
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-7
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-22, VII-30
-&nbsp;&nbsp;&nbsp;Sort-Merge module, XI-7
-RECORD DELIMITER clause
-&nbsp;&nbsp;&nbsp;Report Writer module, XIII-3
-&nbsp;&nbsp;&nbsp;Sequential I-O module, VII-7, VII-13
-Record description entry, III-19, IV-33,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IV-34
 
 XVIII-9
 
@@ -30326,300 +30251,11 @@ XVIII-9
 
 # Index
 
-Record description structure, VI-19, VII-21,
-  XI-6, XIV-2
-RECORD KEY clause, IX-14
-Record-name, III-19, IV-6
-  Conventions, X-6
-RECORDS, VII-23
-RECORDS phrase, VII-17, VII-18
-RECORD VARYING clause, VII-22, VII-30,
-  VIII-14, IX-16, XI-7
-REDEFINES clause, VI-38
-  CORRESPONDING phrase, VI-68
-  INITIALIZE statement, VI-93
-  Procedure Division header, X-25
-  SYNCHRONIZED clause, VI-44
-  VALUE clause, VI-49
-REEL, VII-35, XIII-63
-Reference format, IV-41
-  Restriction, VI-2
-  Text-words, XII-4
-Reference modification, IV-22
-  Restriction, VI-2
-  STRING statement, VI-131
-  UNSTRING statement, VI-136
-  USE FOR DEBUGGING statement, XV-5
-Relation character, IV-9
-Relation condition, VI-54
-  Abbreviated combined, VI-60
-  Indexed data item, VI-46
-  Nonnumeric operands, VI-55
-  Numeric operands, VI-55
-Relational operator, VI-54, VI-55
-Relative file, VIII-1
-Relative I-O module, VIII-1
-  Element summary, I-22
-RELATIVE KEY phrase, VIII-8, VIII-10
-Relative organization, II-2, VIII-1, VIII-12
-Relative record number, VIII-1, VIII-10
-RELEASE statement, XI-13
-  Imperative statement, IV-39
-Relative subscripting, IV-22
-REMAINDER phrase, VI-80
-REMOVAL phrase, VII-35, XIII-63
-RENAMES clause, VI-21, VI-40
-  CORRESPONDING phrase, VI-68
-  INITIALIZE statement, VI-92
-  Level-number, IV-15, VI-25
-  PICTURE clause, VI-29
-REPLACE statement, XII-6
-  Compiler directing statement, IV-38
-REPLACING LINE phrase, XIV-26
-REPLACING phrase
-  COPY statement, XII-2
-  INITIALIZE statement, VI-92
-  INSPECT statement, VI-94
-REPORT clause, XIII-9
-Report description entry, III-20, X-22,
-  XIII-10, XIII-11
-Report file, XIII-1, XIII-3
-REPORT FOOTING (RF), XIII-55
-Report footing presentation rules, XIII-39
-Report group description entry, III-20,
-  XIII-10, XIII-20
-REPORT HEADING (RH), XIII-55
-Report heading group presentation rules, XIII-27
-Report-name, III-21, IV-6, XIII-9, XIII-11,
-  XIII-66, XIII-75
-  Conventions, X-6
-Report Section, IV-33, XIII-10
-Report writer concepts, II-8
-Report Writer module, XIII-1
-  Element summary, I-33
-
-Required words, IV-8
-RERUN clause
-  Indexed I-O module, IX-15
-  Relative I-O module, VIII-13
-  Sequential I-O module, VII-15, VII-17
-RESERVE clause
-  Indexed I-O module, IX-8
-  Relative I-O module, VIII-8
-  Report Writer module, XIII-3
-  Sequential I-O module, VII-7, VII-14
-Reserved word, IV-8, IV-45
-  Implementation, I-8
-Reserved word list, IV-45
-RESET phrase, XIII-52
-RETURN statement, XI-14
-  Conditional statement, IV-37
-REVERSED phrase, VII-39
-REWRITE statement
-  Indexed I-O module, IX-33
-  Relative I-O module, VIII-30
-  Sequential I-O module, VII-48
-RF, XIII-55
-RH, XIII-55
-RIGHT, VI-24, VI-44
-ROUNDED phrase, VI-67
-  ADD statement, VI-73
-  COMPUTE statement, VI-76
-  DIVIDE statement, VI-80
-  MULTIPLY statement, VI-107
-  SUBTRACT statement, VI-134
-Routine-name, III-21, IV-6, VI-83
-Rules, IV-3
-RUN, VI-130
-
-'S' PICTURE symbol, VI-31
-  SIGN clause, VI-42
-  USAGE clause, VI-46
-SAME clause
-  Indexed I-O module, IX-15
-  Relative I-O module, VIII-13
-  Report Writer module, XIII-5
-  Sequential I-O module, VII-15, VII-19
-SAME RECORD AREA clause
-  Indexed I-O module, IX-15
-  Relative I-O module, VIII-13
-  Sequential I-O module, VII-15, VII-19
-  Sort-Merge module, XI-3, XI-4
-SAME SORT AREA clause, XI-3, XI-4
-SAME SORT-MERGE AREA clause, XI-3, XI-4
-Scope of names, X-4
-Scope of statements, IV-40
-Scope terminators, IV-27, IV-40
-SD level indicator, III-13, XI-6, XI-7
-  Reference format, IV-43
-SEARCH statement, VI-122
-  Conditional expression, VI-54
-  SET statement, VI-128
-  USAGE IS INDEX clause, VI-46
-Section, IV-35, IV-43
-Section header, III-22, IV-43
-Section-name, IV-6, IV-7
-SECURITY paragraph, VI-6
-Segment, XVI-1
-SEGMENT-LIMIT clause, XVI-5
-Segment-number, III-22, IV-6, XVI-7
-SEGMENT phrase, XIV-23
-Segmentation classification, XVI-2
-Segmentation control, XVI-3
-Segmentation module, XVI-1
-  Element summary, I-39
-
 XVIII-10
 
 ## Page 817
 
 Index
-
-SELECT clause
-  Indexed I-O module, IX-8
-  Relative I-O module, VIII-8
-  Report Writer module, XIII-3
-  Sequential I-O module, VII-7
-  Sort-Merge module, XI-2
-Semicolon, IV-2, IV-4
-  Interchangeable with comma, IV-2
-SEND statement, XIV-26
-  Mnemonic-name, VI-13
-  SPECIAL-NAMES paragraph, VI-13
-  STOP statement, VI-130
-Sentence, IV-35, IV-37, IV-43
-SEPARATE CHARACTER phrase, VI-42
-Separator, IV-4
-  Restriction, VI-1
-SEQUENCE clause, VI-11
-Sequence number, IV-42
-Sequence number area, IV-41
-Sequential access, II-3, VII-1, VIII-2, IX-2
-Sequential file, VII-1
-Sequential I-O module, VII-1
-  Element summary, I-19
-Sequential organization, II-1, VII-1, VII-11
-SET statement, VI-127
-  Imperative statement, IV-39
-  SPECIAL-NAMES paragraph, VI-15
-Shared memory area, II-17
-Sharing data, X-4
-Sharing files, X-4
-SIGN clause, VI-42
-  Class condition, VI-57
-  MOVE statement, VI-105
-  Operational sign, IV-16
-  PICTURE clause, VI-31
-  Report group description entry, XIII-21,
-    XIII-49
-Sign condition, VI-58
-Simple condition, VI-54
-Simple insertion editing, VI-33
-Single character substitution, IV-4
-SIZE, VI-11, VI-131
-SIZE ERROR phrase, VI-67
-  ADD statement, VI-73
-  COMPUTE statement, VI-76
-  DIVIDE statement, VI-80
-  MULTIPLY statement, VI-107
-  SUBTRACT statement, VI-134
-Slant (/) comment line, IV-42
-Sort file, XI-1
-SORT statement, XI-16
-  Imperative statement, IV-39
-  Segmentation, XVI-9
-  Transfer of control, IV-26
-Sort-merge file description entry, III-23,
-    XI-6, XI-7
-Sort-Merge module, XI-1
-  Element summary, I-30
-Sorting, II-5
-SOURCE clause, XIII-21, XIII-51
-SOURCE-COMPUTER paragraph, VI-10
-  WITH DEBUGGING MODE phrase, XV-3
-Source program, IV-29, VI-3
-  COPY statement, XII-2
-  Separately compiled, VI-4
-Source text manipulation module, XII-1
-  Element summary, I-32
-Space, IV-4
-SPACE/SPACES, IV-11, VI-104
-Special character, III-23, IV-3
-Special-character words, IV-3, IV-9
-Special insertion editing, VI-33
-
-SPECIAL-NAMES paragraph, VI-13
-  ACCEPT statement, VI-71
-  Condition-name, IV-7
-  DISPLAY statement, VI-78
-  Mnemonic-name, IV-7
-  SEND statement, XIV-26
-  Switch-status condition, VI-58
-  WRITE statement, VII-52
-Special registers, IV-9
-  DEBUG-ITEM, XV-1
-  LINAGE-COUNTER, VII-5
-  LINE-COUNTER, XIII-1
-  PAGE-COUNTER, XIII-1
-Standard alignment rules, IV-16
-Standard COBOL, I-6
-Standard data format, III-24, IV-13
-Standard language element acceptance, I-7
-STANDARD-1 phrase
-  ALPHABET clause, VI-13, VI-15
-  RECORD DELIMITER clause, VII-13
-STANDARD-2 phrase, VI-13, VI-15
-Standardization of COBOL, XVII-11
-START statement
-  Indexed I-O module, IX-36
-  Relative I-O module, VIII-33
-Statement, IV-35, IV-37
-STATUS KEY clause, XIV-3, XIV-4
-STOP statement, VI-130
-  Figurative constant, IV-11
-  Imperative statement, IV-39
-  Transfer of control, IV-26
-STRING statement, VI-131
-  Figurative constant, IV-11
-  Imperative statement, IV-39
-Subscripting, IV-21
-  Concepts, II-14
-  Condition-name, IV-24
-  Conditional variable, IV-24
-  MOVE statement, VI-103
-  Qualified, IV-21
-  Report Section, XIII-2
-  Restriction, VI-2
-  SET statement, VI-128
-Subsets of Standard COBOL, I-5
-Substantive changes, XVII-42
-Substitute language elements, I-7
-SUBTRACT statement, VI-134
-  Composite of operands, VI-69
-  COMPUTE statement, VI-76
-  Conditional statement, IV-37
-  CORRESPONDING (CORR), VI-68
-  Data conversion, VI-69
-  Decimal alignment, VI-69
-  Imperative statement, IV-39
-  Maximum operand size, VI-69
-  Multiple results, VI-69
-SUBTRACT CORRESPONDING (SUBTRACT CORR), VI-68,
-    VI-134
-SUM clause, XIII-21, XIII-52
-Summary of elements by COBOL division, I-40
-Summary of elements by module, I-10
-Summary of differences, XVII-16
-SUPPRESS statement, XIII-74
-  Imperative statement, IV-39
-Switch-status condition, VI-58
-Symbolic-character, III-24, IV-6
-Symbolic-character figurative constant, IV-11
-SYMBOLIC CHARACTERS clause, VI-13
-SYMBOLIC DESTINATION clause, XIV-4
-SYMBOLIC QUEUE clause, XIV-3
-SYMBOLIC SOURCE clause, XIV-3
-SYMBOLIC SUB-QUEUE-1 clause, XIV-3
 
 XVIII-11
 
@@ -30627,192 +30263,11 @@ XVIII-11
 
 Index
 
-SYMBOLIC SUB-QUEUE-2 clause, XIV-3
-SYMBOLIC SUB-QUEUE-3 clause, XIV-3
-SYMBOLIC TERMINAL clause, XIV-4
-SYNCHRONIZED (SYNC) clause, VI-44
-   Elementary data item, VI-21
-   VALUE clause, VI-49
-Syntax rules, IV-3
-System-name, IV-8
-
-Table, II-12, VI-122, VI-127
-Table definition, II-12
-Table element, II-12, VI-122, VI-127
-Table handling, II-12, VI-127
-TALLYING phrase
-   INSPECT statement, VI-94
-   UNSTRING statement, VI-136
-TERMINAL phrase, XIV-18, XIV-20
-TERMINATE statement, XIII-75
-TEST AFTER phrase, VI-109, VI-110
-TEST BEFORE phrase, VI-109, VI-110
-TEXT LENGTH clause, XIV-3, XIV-4
-Text-name, III-25, IV-6, XII-2
-   Qualified, IV-19
-Text word, III-25, XII-2
-THEN, VI-90
-THROUGH (THRU)
-   ALPHABET clause, VI-13
-   EVALUATE statement, VI-84
-   MERGE statement, XI-8
-   PERFORM statement, VI-109
-   RENAMES clause, VI-40
-   SORT statement, XI-16
-   VALUE clause, VI-48
-TIME, VI-72
-TIMES, VI-109
-TRAILING, VI-42
-Transaction communication, II-35
-Transfer of control, II-23, IV-25
-TRUE, VI-84, VI-127
-TYPE clause, XIII-20, XIII-55
-
-Unary arithmetic operator, VI-52
-Unary minus, VI-52
-Unary plus, VI-52
-Undefined language element list, XVII-96
-Uniqueness of reference, IV-17
-UNIT, VII-35, XIII-63
-UNSTRING statement, VI-136
-   Figurative constant, IV-11
-   Imperative statement, IV-39
-UNTIL phrase, VI-109, VI-110
-UP BY, VI-127
-UPON phrase
-   DISPLAY statement, VI-78
-   SUM clause, XIII-52
-Uppercase letters, IV-6, VI-29, VI-56
-USAGE clause, VI-46
-   Class condition, VI-57
-   INSPECT statement, VI-95
-   Relation condition, VI-54
-   Report group description entry, XIII-20,
-      XIII-21, XIII-60
-   SIGN clause, VI-42
-   STRING statement, VI-131
-   SYNCHRONIZED clause, VI-44
-   UNSTRING statement, VI-136
-   VALUE clause, VI-49
-USAGE IS INDEX clause, VI-46
-   CORRESPONDING phrase, VI-68
-   SEARCH statement, VI-123
-   Working-Storage Section, VI-18
-
-USE statement
-   Compiler directing statement, IV-38
-   Declaratives, IV-35
-   Indexed I-O module, IX-39
-   Inter-Program Communication module, X-34
-   Relative I-O module, VIII-35
-   Report Writer module, XIII-76
-   Sequential I-O module, VII-50
-USE BEFORE REPORTING statement, X-35, XIII-78
-USE FOR DEBUGGING statement, XV-5
-User-defined words, IV-6
-   Restrictions, VI-1
-USING phrase in CALL statement, X-27
-   Index data item, VI-46
-USING phrase in MERGE statement, XI-8
-USING phrase in Procedure Division header, X-25
-   Index data item, VI-46
-USING phrase in SORT statement, XI-16
-
-'V' PICTURE symbol, VI-32
-   USAGE clause, VI-46
-VALUE clause, VI-48
-   Report Writer module, XIII-21, XIII-61
-   SET statement, VI-129
-VALUE OF clause
-   Indexed I-O module, IX-16
-   Relative I-O module, VIII-14
-   Report Writer module, XIII-7
-   Sequential I-O module, VII-22, VII-33
-Variable length records, II-3, VII-30
-Variable occurrence data item, III-26, VI-27,
-      VI-50
-VARYING IN SIZE phrase, VII-30
-VARYING phrase
-   PERFORM statement, VI-110
-   SEARCH statement, VI-122
-Verb, III-26
-
-WHEN phrase
-   EVALUATE statement, VI-84
-   SEARCH statement, VI-122
-WITH DATA phrase, XIV-23
-WITH DEBUGGING MODE clause, VI-10, XV-2,
-      XV-3
-WITH DUPLICATES phrase
-   ALTERNATE RECORD KEY clause, IX-8, IX-11
-   SORT statement, XI-16
-WITH EGI phrase, XIV-26
-WITH EMI phrase, XIV-26
-WITH ESI phrase, XIV-26
-WITH FOOTING phrase, VII-27
-WITH identifier phrase, XIV-26
-WITH KEY phrase, XIV-18, XIV-20
-WITH LOCK phrase, VII-35, VIII-17, IX-19,
-      XIII-63
-WITH NO ADVANCING phrase, VI-78
-WITH NO REWIND phrase, VII-35, VII-39, XIII-63,
-      XIII-70
-WITH POINTER phrase
-   STRING statement, VI-131
-   UNSTRING statement, VI-136
-WITH TEST phrase, VI-109
-Word, IV-1
-WORDS, VI-11
-Working-Storage Section, IV-33, VI-18
-   VALUE clause, VI-49
-
 XVIII-12
 
 ## Page 819
 
 Index
-
-WRITE statement
-   Conditional statement, IV-37
-   Imperative statement, IV-39
-   Indexed I-O module, IX-41
-   Mnemonic-name, VI-13
-   Relative I-O module, VIII-37
-   Sequential I-O module, VII-52
-   SPECIAL-NAMES paragraph, VI-13
-'X' PICTURE symbol, VI-32
-
-'Z' PICTURE symbol, VI-32, VI-35
-ZERO/ZEROS/ZEROES, IV-11, VI-104
-ZERO in sign condition, VI-58
-Zero suppression editing, VI-35
-
-'0' PICTURE symbol, VI-32, VI-33
-'9' PICTURE symbol, VI-32, VI-46
-'01' entry, IV-14, VI-25, XIII-20
-'66' RENAMES data description entry, VI-21,
-      VI-25, VI-40
-'77' item description entry, VI-18, VI-25,
-      X-13
-'88' condition-name data description entry,
-      VI-21, VI-25
-
-\> relation, VI-54
-< relation, VI-54
-= relation, VI-54
-\+ operator, VI-52
-\+ PICTURE symbol, VI-32, VI-34, VI-35
-\- continuation line, IV-42
-\- operator, VI-52
-\- PICTURE symbol, VI-32, VI-34, VI-35
-\* comment line, IV-42
-\* operator, VI-52
-\* PICTURE symbol, VI-32, VI-35
-/ comment line, IV-42
-/ operator, VI-52
-/ PICTURE symbol, VI-32, VI-33
-\*\* operator, VI-52
-== pseudo-text delimiter, III-18, IV-42
 
 XVIII-13
 
@@ -31435,7 +30890,7 @@ A-10
 
 <u>Page No.</u> | <u>Change to ANSI X3.23-1985 and ISO 1989-1985</u>
 
-IV-21 Paragraph 4.3.8.2.2, replace the general format with the following:
+**IV-21** Paragraph 4.3.8.2.2, replace the general format with the following:
 
 <pre style="line-height:1">
                       ╭ <u>ALL</u>                               ╮
@@ -31449,13 +30904,13 @@ IV-21 Paragraph 4.3.8.2.2, replace the general format with the following:
                       ╰               └ ╰ - ╯           ┘ ╯
 </pre>
 
-IV-21 Paragraph 4.3.8.2.3, add new syntax rule 7 as follows:
+**IV-21** Paragraph 4.3.8.2.3, add new syntax rule 7 as follows:
 
 (7) The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified. (See page A-28, Arguments.)
 
-IV-22 thru IV-24 Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively.
+**IV-22 thru IV-24** Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively.
 
-IV-22 Add the following as new paragraph 4.3.8.3:
+**IV-22** Add the following as new paragraph 4.3.8.3:
 
 **4.3.8.3 Function-Identifier**
 
@@ -31495,9 +30950,9 @@ b. Where the rules associated with the general formats require the data item bei
 
 (2) At the time reference is made to a function, its arguments are evaluated individually in the order specified in the list of arguments, from left to right. An argument being evaluated may itself be a function-identifier or may be an expression containing function-identifiers. There is no restriction preventing the function referenced in evaluating an argument from being the same function as that for which the argument is specified.
 
-IV-22 New paragraph 4.3.8.4, change the title to "Reference-Modifier".
+**IV-22** New paragraph 4.3.8.4, change the title to "Reference-Modifier".
 
-IV-22 New paragraph 4.3.8.4.2, replace the general format with the following:
+**IV-22** New paragraph 4.3.8.4.2, replace the general format with the following:
 
 <pre style="line-height:1">
 ╭ data-name-1                                    ╮
@@ -31507,15 +30962,15 @@ IV-22 New paragraph 4.3.8.4.2, replace the general format with the following:
 
 NOTE: Data-name-1 and FUNCTION function-name-1 (argument-1) are shown in the above format to provide context and are not part of the reference-modifier.
 
-IV-22 New paragraph 4.3.8.4.3, add the following as new syntax rule 5:
+**IV-22** New paragraph 4.3.8.4.3, add the following as new syntax rule 5:
 
 (5) The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.
 
-IV-22 New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read: "Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position."
+**IV-22** New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read: "Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position."
 
-IV-23 New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence: "If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table."
+**IV-23** New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence: "If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table."
 
-IV-23 New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c:
+**IV-23** New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c:
 
 c. If reference modification is specified in a function reference, the reference modification is evaluated immediately after evaluation of the function.
 
@@ -31529,7 +30984,7 @@ A-12
 | IV-23 | New paragraph 4.3.8.4.4, general rule 4, paragraphs a and b, replace four occurrences of "the data item referenced by data-name-1" by "the data item referenced by data-name-1 or function-name-1 and its arguments, if any". |
 | IV-23 | New paragraph 4.3.8.4.4, general rule 5, second sentence, replace the word "It" by "When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item". |
 
-IV-23 New paragraph 4.3.8.5, change to read:
+**IV-23** New paragraph 4.3.8.5, change to read:
 
 **4.3.8.5 Identifier**
 
@@ -32052,7 +31507,9 @@ In the Intrinsic Function module, a function is a temporary data item whose valu
 
 #### 1.2.2 Value Returned by a Function
 
-The value returned by a function is considered to be a data value. A mechanism is provided at object time to assign a data value to a function when it is referenced. In order to determine the function's value, the evaluation mechanism may require access to data values provided by the referencing program. These data values are provided by specifying parameters, known as arguments, when referencing the function. Specific functions may place constraints on these arguments, such as range, etc. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined.
+The value returned by a function is considered to be a data value. A mechanism is provided at object time to assign a data value to a function when it is referenced. In order to determine the function's value, the evaluation mechanism may require access to data values provided by the referencing program. These data values are provided by specifying parameters, known as arguments, when referencing the function. Specific functions may place constraints on these arguments, such as range, etc. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined.
+
+> ⚠ **CORRECTED — see the Errata (C311).** The standard prints `If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined.` (page 857, folio A-27). Amendment 2 (ANSI X3.23b-1993), its change for page (A-27) (page 936, folio B-24), applied in place: "Paragraph 1.2.2 entitled Value Returned by a Function, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined.`.
 
 #### 1.2.3 Function-Identifier
 
@@ -32094,7 +31551,9 @@ Arguments may be required to have a certain class or a subset of a certain class
 
 (4) Integer. An arithmetic expression which will always result in an integer value must be specified. The value of the arithmetic expression, including operational sign, is used in determining the value of the function.
 
-The rules for a function may place constraints on the permissible values for arguments in order to permit meaningful determination of the function's value. If, at the time a function is referenced, the arguments specified for that reference do not have values within the permissible range, the returned value for the function is undefined.
+The rules for a function may place constraints on the permissible values for arguments in order to permit meaningful determination of the function's value. If, at the time a function is referenced, the arguments specified for that reference do not have values within the permissible range, then the result of such a reference is undefined.
+
+> ⚠ **CORRECTED — see the Errata (C312).** The standard prints `do not have values within the permissible range, the returned value for the function is undefined.` (page 858, folio A-28). Amendment 2 (ANSI X3.23b-1993), its change for page (A-28) (page 937, folio B-25), applied in place: "Paragraph 2.2 entitled Arguments, first paragraph after the numbered item 4, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `do not have values within the permissible range, then the result of such a reference is undefined.`.
 
 When the definition of a function permits an argument to be repeated a variable number of times, a table may be referenced by specifying the data-name and any qualifiers that identify the table, followed immediately by subscripting where one or more of the subscripts is the word ALL.
 
@@ -32106,7 +31565,9 @@ A-28
 
 Intrinsic Function - Types of Functions
 
-the ALL subscript is associated with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause. The evaluation of an ALL subscript must result in at least one argument, otherwise the returned value is undefined.
+the ALL subscript is associated with an OCCURS DEPENDING ON clause, the range of values is determined by the object of the OCCURS DEPENDING ON clause. The evaluation of an ALL subscript must result in at least one argument, otherwise the result of the reference to the function-identifier is undefined.
+
+> ⚠ **CORRECTED — see the Errata (C313).** The standard prints `otherwise the returned value is undefined.` (page 859, folio A-29). Amendment 2 (ANSI X3.23b-1993), its change for page (A-29) (page 937, folio B-25), applied in place: "Paragraph 2.2 entitled Arguments, last paragraph, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `otherwise the result of the reference to the function-identifier is undefined.`.
 
 ## 2.3 TYPES OF FUNCTIONS
 
@@ -32791,7 +32252,9 @@ The MAX function returns the content of the argument-1 that contains the maximum
 
 ### 2.23.3 Arguments
 
-(1) If more than one argument-1 is specified, all arguments must be of the same class.
+(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
+
+> ⚠ **CORRECTED — see the Errata (C314).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 882, folio A-52). Amendment 2 (ANSI X3.23b-1993), its change for page (A-52) (page 937, folio B-25), applied in place: "Paragraph 2.23.3 of the MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
 ### 2.23.4 Returned Values
 
@@ -32912,7 +32375,9 @@ The MIN function returns the content of the argument-1 that contains the minimum
 
 ### 2.27.3 Arguments
 
-(1) If more than one argument-1 is specified, all arguments must be of the same class.
+(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
+
+> ⚠ **CORRECTED — see the Errata (C315).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 886, folio A-56). Amendment 2 (ANSI X3.23b-1993), its change for page (A-56) (page 937, folio B-25), applied in place: "Paragraph 2.27.3 of the MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
 ### 2.27.4 Returned Values
 
@@ -33115,7 +32580,9 @@ The ORD-MAX function returns a value that is the ordinal number of the argument-
 
 ### 2.32.3 Arguments
 
-(1) If more than one argument-1 is specified, all arguments must be of the same class.
+(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
+
+> ⚠ **CORRECTED — see the Errata (C316).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 891, folio A-61). Amendment 2 (ANSI X3.23b-1993), its change for page (A-61) (page 937, folio B-25), applied in place: "Paragraph 2.32.3 of the ORD-MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
 ### 2.32.4 Returned Values
 
@@ -33145,7 +32612,9 @@ The ORD-MIN function returns a value that is the ordinal number of the argument 
 
 ### 2.33.3 Arguments
 
-(1) If more than one argument-1 is specified, all arguments must be of the same class.
+(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.
+
+> ⚠ **CORRECTED — see the Errata (C317).** The standard prints `(1) If more than one argument-1 is specified, all arguments must be of the same class.` (page 892, folio A-62). Amendment 2 (ANSI X3.23b-1993), its change for page (A-62) (page 937, folio B-25), applied in place: "Paragraph 2.33.3 of the ORD-MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045). Corrected to `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.`.
 
 ### 2.33.4 Returned Values
 
@@ -34120,23 +33589,10 @@ ANSI X3.23b-1993
 
 | Page No. | Description of Change |
 |---|---|
-| IX-27 | Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, add the following as the new general rule 19: |
-
-(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:
-
-a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.
-
-b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page IX-39, The USE Statement.)
-
-IX-30 — Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read:
-
-b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1 control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.
-
-IX-30 — Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following: "If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed."
-
-IX-31 — Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following:
-
-b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page IX-39, The USE Statement.)
+| IX-27 | Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, add the following as the new general rule 19:<br><br>(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order:<br><br>a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful.<br><br>b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page IX-39, The USE Statement.) |
+| IX-30 | Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read:<br><br>b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1 control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored. |
+| IX-30 | Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following: "If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed." |
+| IX-31 | Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following:<br><br>b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page IX-39, The USE Statement.) |
 
 B-19
 
@@ -34387,7 +33843,7 @@ The benefits to be derived from the additional facility provided through the add
 
 The X3J4 COBOL Technical Committee believes that any one-time difficulties caused by this change ultimately will be more than offset by the facility provided by this change.
 
-XVII-80 Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A:
+**XVII-80** Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A:
 
 **2.2B SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT)**
 
@@ -36851,11 +36307,12 @@ B-64
 > **This section is NOT part of American National Standard X3.23-1985 or its amendments.** It is supplied by
 > the publisher of this transcription.
 
-This transcription is the working copy of the standard for the project that keeps it, and **correctness rules
-over faithfulness to a typographical error**: where the printed page carries a misspelling, or a letter the
-printing damaged, the word is corrected in place. **Every departure is listed here with the printed form and the
-page, so that any correction can be reversed** if it later proves mistaken. The published standard remains
-authoritative: where this transcription and the published standard differ, **the published standard governs**.
+This transcription is the most accurate version of the specification its maintainers can make (owner, 2026-11-09,
+kb/Work PB5045): **an amendment's change is applied where it belongs, an evident misprint is corrected, and incorrect
+text is never kept because the printed page carries it.** **Every departure from the printed page is listed here
+with the printed form, the page and the source of the change**, so that each reads as an update and any correction can
+be reversed if it later proves mistaken. The published standard remains authoritative: where this transcription and
+the published standard differ, **the published standard governs**.
 
 Each correction is flagged where it was made with a ⚠ note that quotes the printed form verbatim, so a quotation
 of either form is found in the same paragraph (`scripts/spec/cite.py --check` accepts both) and the rule
@@ -36867,6 +36324,18 @@ printed form or page each fail it.
 > **Page numbers here are PDF pages**, the `## Page N` headings of this transcription, because the scanned
 > standard numbers its pages per section (`XIII-56`). The printed folio follows where the page prints one.
 
+**The kinds.** `damage` and `spelling`: a letter the printing damaged or a misspelling. `word`: a real word printed
+for another. `sense`: an operand or a term the rule's own sense shows is the wrong one, with the evidence (the same
+rule's other words, the rules around it, or a later edition's checked citation). `amendment-1` and `amendment-2`: a
+change of Amendment 1's Addendum 1 (ANSI X3.23a-1989) or of Amendment 2 (ANSI X3.23b-1993) applied in place, the
+entry naming the amendment's change row (its `Page No.` cell) and the PDF page that prints the row; the amendment's
+own text, transcribed in full under its heading, is the record of the change. Every change row is applied in the order
+the amendment lists it, Amendment 1 before Amendment 2 (Amendment 2's preamble, page 913), and each was read on its
+rendered page first. A row that changes only what this transcription does not draw (the indentation of a rule item:
+Addendum 1's rows VI-105 (T) and IX-3 (T); the fourth period of an ellipsis the general format draws as one `…`:
+row XIII-7 (T)) changes nothing here and has no entry. Addendum 1's additions to the index (rows XVIII-1 thru
+XVIII-13) are superseded by Amendment 2's replacement of the whole index (its row XVIII-1).
+
 C1 to C19 were found by a scan of the transcription for rare words one letter from a common word, and by a
 sweep of the body for every accented or foreign letter (U+00C0 to U+024F, and the dotless i), and each was read on the rendered page before it was corrected (kb/Work
 PB4972). A damaged letter the transcription reproduced is listed here too: the printed page shows it, so the
@@ -36876,12 +36345,13 @@ C20 to C30 (kind `word`) are misprints that turn one real word into another, whi
 them: the `misprints` pass of `scripts/spec/audit_batch.py` proofread every one of the 2,255 rules of the 1985 rule
 catalog, 1,863 of them beside the 2023 rules an earlier reader had paired with them and 392 (a rule of a module 2023
 dropped, or one no 2023 rule states) for their own sense alone. It reported 26 candidates. Each was read on the rendered
-page, and a candidate was corrected only when the page prints it and the sentence's own sense (or the same paragraph's
-other uses of the word) shows which word was meant. A candidate that is the standard's own requirement, however odd,
-stays as printed: an operand the sense seems to want changed (`index-name-1` where `index-name-2` reads better), a
-category list that omits one, a term the editions use differently. So do two candidates that Amendment 2 corrects in
-its own list of changes (page 934, folio XI-20, `had been execution`; page 936, folio XIII-34, `current page group`):
-the amendment is the standard's correction, and its text is the rule (kb/Work PB4984).
+page (kb/Work PB4984), and C31 to C35 are the candidates the owner's rule then re-judged on their pages (kb/Work PB5045):
+a candidate is corrected when the page prints it and the sentence's own sense, the same paragraph, or a later revision
+shows which word was meant, and stays as printed when it is the standard's own requirement or a wording that reads
+right (`multiplier` in the MULTIPLY statement names the BY operand; `next more significant key`, `whenever 'literal'
+appears`, `specific conventions`, `on the reel or file` and `allowed for the RECORD IS VARYING clause` read as the
+standard means them). Two candidates are corrected by Amendment 2 itself (page 934, folio XI-20, `had been execution`;
+page 936, folio XIII-34, `current page group`), and three by Amendment 1 (C20, C21 and C28 name its rows).
 
 **This list is still not known to be complete.** The reader read the catalog only (its syntax, general, argument and
 returned-value rules and 210 general formats): the prose outside them (the introductions, the Function paragraphs, the
@@ -36924,6 +36394,313 @@ it is taken as the rule of 1985.
 | [C28](#errata-c28) | 476 | IX-6 | Section IX, the invalid key condition, the second rule 2 | `not` | `no` | word |
 | [C29](#errata-c29) | 586 | XIII-4 | Section XIII, the file control entry, general rule 3 | `reference` | `referenced` | word |
 | [C30](#errata-c30) | 614 | XIII-34 | Section XIII, the body group presentation rules, rule 4, item b | `printer line` | `print line` | word |
+| [C31](#errata-c31) | 270 | VI-38 | Section VI, the REDEFINES clause, syntax rule 6 | `the data-name referenced` | `the data item referenced` | word |
+| [C32](#errata-c32) | 360 | VI-128 | Section VI, the SET statement, general rule 2, its second paragraph | `associated with index-name-1` | `associated with index-name-2` | sense |
+| [C33](#errata-c33) | 422 | VII-48 | Section VII, the REWRITE statement, general rule 3 | `the associated output file` | `the associated I-O file` | sense |
+| [C34](#errata-c34) | 461 | VIII-31 | Section VIII, the REWRITE statement, general rule 4 | `the associated output file` | `the associated I-O file` | sense |
+| [C35](#errata-c35) | 503 | IX-33 | Section IX, the REWRITE statement, general rule 4 | `the associated output file` | `the associated I-O file` | sense |
+| [C36](#errata-c36) | 10 | — | the table of contents, Section II | `(no entry 8)` | `8. Intrinsic Function Facility` | amendment-1 |
+| [C37](#errata-c37) | 11 | — | the table of contents, Section VI, entry 1.3 | `Level Restrictions on Overall Language` | `Restrictions on Overall Language` | amendment-1 |
+| [C38](#errata-c38) | 19 | — | the table of contents, Appendix A, Chapter 3 | `(no entry 3.5)` | `3.5 American National Standard COBOL 1985, Addendum 1` | amendment-1 |
+| [C39](#errata-c39) | 19 | — | the table of contents, Appendix A, Chapter 4 | `(no entry 4.4)` | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1` | amendment-1 |
+| [C40](#errata-c40) | 21 | I-1 | Section I, paragraph 1.2, first paragraph, second sentence | `defines 11 functional processing modules` | `defines 12 ... and Intrinsic Function` | amendment-1 |
+| [C41](#errata-c41) | 21 | I-1 | Section I, paragraph 1.2, first paragraph, last sentence | `Two of the modules contain only level 1 elements.` | `Three of the modules contain only level 1 elements.` | amendment-1 |
+| [C42](#errata-c42) | 23 | I-3 | Section I, paragraph 1.2, a new last paragraph | `(no paragraph)` | `The Intrinsic Function module provides ...` | amendment-1 |
+| [C43](#errata-c43) | 23 | I-3 | Section I, paragraph 1.3, first paragraph, first sentence | `This document is divided into eighteen sections.` | `This document is divided into nineteen sections.` | amendment-1 |
+| [C44](#errata-c44) | 23 | I-3 | Section I, paragraph 1.3, third paragraph, first sentence | `Sections VI through XVI contain specifications for the elev…` | `Sections VI through XVI and section A contain specification…` | amendment-1 |
+| [C45](#errata-c45) | 23 | I-3 | Section I, paragraph 1.3, fourth paragraph | `Sections II through XVI comprise the detailed specification…` | `Sections II through XVI and section A comprise the detailed…` | amendment-1 |
+| [C46](#errata-c46) | 24 | I-4 | Section I, paragraph 1.4, fourth paragraph, first sentence | `is a graphic representation of the 11 functional processing…` | `is a graphic representation of the 12 functional processing…` | amendment-1 |
+| [C47](#errata-c47) | 24 | I-4 | Section I, paragraph 1.4, fifth paragraph, the list of module abbreviations | `(no ITR entry)` | `ITR Intrinsic Function` | amendment-1 |
+| [C48](#errata-c48) | 25 | I-5 | Section I, the schematic diagram of the modules | `four optional module columns` | `Intrinsic Function column added` | amendment-1 |
+| [C49](#errata-c49) | 26 | I-6 | Section I, paragraph 1.5, second sentence | `Standard COBOL consists of 11 modules, seven of which are r…` | `Standard COBOL consists of 12 modules, seven of which are r…` | amendment-1 |
+| [C50](#errata-c50) | 26 | I-6 | Section I, paragraph 1.5.1, first paragraph, last sentence | `The four optional modules (Report Writer, Communication, De…` | `The five optional modules (Report Writer, Communication, De…` | amendment-1 |
+| [C51](#errata-c51) | 28 | I-8 | Section I, paragraph 1.5.2.5.3 (Reserved Words) | `An implementation of Standard COBOL must recognize as reser…` | `An implementation of Standard COBOL must recognize as reser…` | amendment-1 |
+| [C52](#errata-c52) | 30 | I-10 | Section I, paragraph 2.1, last paragraph, the list of summaries | `(no entry)` | `Page I-39: ... Intrinsic Function module` | amendment-1 |
+| [C53](#errata-c53) | 32 | I-12 | Section I, the Nucleus module summary, Language Concepts | `&nbsp;Reference modification ............................…` | `&nbsp;Reference-modifier ................................…` | amendment-1 |
+| [C54](#errata-c54) | 32 | I-12 | Section I, the Nucleus module summary, under Reference Format | `Asterisk (8) comment line` | `Asterisk (*) comment line` | amendment-1 |
+| [C55](#errata-c55) | 59 | I-39 | Section I, after the Segmentation module summary | `(no Intrinsic Function list)` | `SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE` | amendment-1 |
+| [C56](#errata-c56) | 60 | I-40 | Section I, paragraph 3.1, second paragraph, the table of module abbreviations | `(no ITR entry)` | `ITR Intrinsic Function` | amendment-1 |
+| [C57](#errata-c57) | 61 | I-41 | Section I, the division summary, Character Set | `Characters used in punctuation = 1 STM` | `2 STM` | amendment-1 |
+| [C58](#errata-c58) | 62 | I-42 | Section I, the division summary, Language Concepts, before Literals | `(no entry)` | `Function-names 1 ITR` | amendment-1 |
+| [C59](#errata-c59) | 62 | I-42 | Section I, the division summary, Uniqueness of Reference | `Reference modification` | `Reference-modifier` | amendment-1 |
+| [C60](#errata-c60) | 62 | I-42 | Section I, the division summary, Uniqueness of Reference, before Reference-modifier | `(no entry)` | `Function-identifier 1 ITR` | amendment-1 |
+| [C61](#errata-c61) | 65 | I-45 | Section I, the division summary, OBJECT-COMPUTER paragraph | `SEGMENT-LIMIT clause 1 SEG Z` | `2 SEG Z` | amendment-1 |
+| [C62](#errata-c62) | 71 | I-51 | Section I, the division summary, the line following Level-number clause | `level-number may be 1 or 1 digits` | `level-number may be 1 or 2 digits` | amendment-1 |
+| [C63](#errata-c63) | 74 | I-54 | Section I, the division summary, Procedure Division, before ACCEPT statement | `(no Intrinsic functions entries)` | `Intrinsic functions ... Statements` | amendment-1 |
+| [C64](#errata-c64) | 83 | I-63 | Section I, the division summary, Procedure Division, ACCEPT statement (page 74) to END-WRITE phrase | `ACCEPT statement ... END-WRITE phrase` | `each indented one position` | amendment-1 |
+| [C65](#errata-c65) | 107 | II-23 | Section II, paragraph 6.4.1.1 (Names of Programs), second paragraph | `compiled program` | `compiled programs` | amendment-1 |
+| [C66](#errata-c66) | 109 | II-25 | Section II, paragraph 6.4.2.2 (Value of Parameters), second paragraph | `to return to the` | `to return a result to the` | amendment-1 |
+| [C67](#errata-c67) | 120 | — | Section II, a new paragraph 8 on page II-36, after paragraph 7.6 | `(blank page)` | `8. INTRINSIC FUNCTION FACILITY` | amendment-1 |
+| [C68](#errata-c68) | 121 | III-1 | Section III, the glossary, the new entry Alphanumeric Function | `(no entry)` | `Alphanumeric Function` | amendment-1 |
+| [C69](#errata-c69) | 121 | III-1 | Section III, the glossary, the new entry Argument | `(no entry)` | `Argument` | amendment-1 |
+| [C70](#errata-c70) | 130 | III-10 | Section III, the glossary, the new entry Function | `(no entry)` | `Function` | amendment-1 |
+| [C71](#errata-c71) | 130 | III-10 | Section III, the glossary, the new entries Function-Identifier and Function-Name | `(no entries)` | `Function-Identifier, Function-Name` | amendment-1 |
+| [C72](#errata-c72) | 132 | III-12 | Section III, the glossary, the new entry Integer Function | `(no entry)` | `Integer Function` | amendment-1 |
+| [C73](#errata-c73) | 135 | III-15 | Section III, the glossary, the new entry Numeric Function | `(no entry)` | `Numeric Function` | amendment-1 |
+| [C74](#errata-c74) | 127 | III-7 | Section III, the glossary, the entry Data Item | `Data Item (1985 definition)` | `Data Item (amended)` | amendment-1 |
+| [C75](#errata-c75) | 131 | III-11 | Section III, the glossary, the entry Identifier | `Identifier (1985 definition)` | `Identifier (amended)` | amendment-1 |
+| [C76](#errata-c76) | 132 | III-12 | Section III, the glossary, the entry Integer | `Integer (1985 definition)` | `Integer (amended)` | amendment-1 |
+| [C77](#errata-c77) | 132 | III-12 | Section III, the glossary, the entry Key Word | `Key Word (1985 definition)` | `Key Word (amended)` | amendment-1 |
+| [C78](#errata-c78) | 144 | III-24 | Section III, the glossary, the entry Subscript | `Subscript (1985 definition)` | `Subscript (amended)` | amendment-1 |
+| [C79](#errata-c79) | 146 | III-26 | Section III, the glossary, the entry Word | `Word (1985 definition)` | `Word (amended)` | amendment-1 |
+| [C80](#errata-c80) | 139 | III-19 | Section III, the glossary, the entry Reference Modifier | `Reference Modifier (1985 definition)` | `Reference-Modifier (amended)` | amendment-1 |
+| [C81](#errata-c81) | 148 | IV-2 | Section IV, paragraph 2.1.5 (Ellipses), second paragraph | `In the general format,` | `In the general formats,` | amendment-1 |
+| [C82](#errata-c82) | 150 | IV-4 | Section IV, paragraph 4.1 (Character Set), third paragraph | `fewer than 51 characters, double` | `fewer than 52 characters (...), double` | amendment-1 |
+| [C83](#errata-c83) | 150 | IV-4 | Section IV, paragraph 4.2.1 (Separators), rule 4, second sentence | `delimiting subscripts, reference modifiers` | `delimiting subscripts, a list of function arguments, refere…` | amendment-1 |
+| [C84](#errata-c84) | 151 | IV-5 | Section IV, paragraph 4.2.2.1 (COBOL Words), its first sentence | `a system-name, or a reserved word.` | `a system-name, a reserved word, or a function-name.` | amendment-1 |
+| [C85](#errata-c85) | 152 | IV-6 | Section IV, paragraph 4.2.2.1 (COBOL Words), the rest of the paragraph | `system-names and user-defined words form intersecting sets` | `function-names, system-names, and user-defined words ...` | amendment-1 |
+| [C86](#errata-c86) | 155 | IV-9 | Section IV, a new paragraph 4.2.2.1.4 (Function-Names) | `(no paragraph 4.2.2.1.4)` | `4.2.2.1.4 Function-Names` | amendment-1 |
+| [C87](#errata-c87) | 161 | IV-15 | Section IV, paragraph 4.3.3 (Concept of Classes of Data) | `(the last sentence)` | `two new paragraphs` | amendment-1 |
+| [C88](#errata-c88) | 162 | IV-16 | Section IV, paragraph 4.3.4, second paragraph, first sentence | `must be used if not otherwise` | `must be used for data items other than integer and numeric…` | amendment-1 |
+| [C89](#errata-c89) | 162 | IV-16 | Section IV, paragraph 4.3.4, a new paragraph before the last | `(no paragraph)` | `An alphanumeric function is always represented ...` | amendment-1 |
+| [C90](#errata-c90) | 164 | IV-18 | Section IV, paragraph 4.3.8, a new paragraph before the last | `(no paragraph)` | `When the resource named is a function, ...` | amendment-1 |
+| [C91](#errata-c91) | 167 | IV-21 | Section IV, paragraph 4.3.8.2.2, the general format of subscripting | `(1985 format)` | `(format with ALL)` | amendment-1 |
+| [C92](#errata-c92) | 167 | IV-21 | Section IV, paragraph 4.3.8.2.3, a new syntax rule 7 | `(no rule 7)` | `(7) The subscript ALL may be used only ...` | amendment-1 |
+| [C93](#errata-c93) | 168 | IV-22 | Section IV, paragraph 4.3.8.3 (Reference Modification) and its subparagraphs, renumbered | `4.3.8.3 Reference Modification` | `4.3.8.4` | amendment-1 |
+| [C94](#errata-c94) | 170 | IV-24 | Section IV, paragraph 4.3.8.5 (Condition-Name), renumbered | `4.3.8.5 Condition-Name` | `4.3.8.6 Condition-Name` | amendment-1 |
+| [C95](#errata-c95) | 168 | IV-22 | Section IV, a new paragraph 4.3.8.3 (Function-Identifier) | `(no paragraph 4.3.8.3)` | `4.3.8.3 Function-Identifier` | amendment-1 |
+| [C96](#errata-c96) | 168 | IV-22 | Section IV, paragraph 4.3.8.4, its title | `Reference Modification` | `Reference-Modifier` | amendment-1 |
+| [C97](#errata-c97) | 168 | IV-22 | Section IV, paragraph 4.3.8.4.2, the general format of reference modification | `data-name-1 ( leftmost-character-position: [ length ] )` | `(format with FUNCTION)` | amendment-1 |
+| [C98](#errata-c98) | 168 | IV-22 | Section IV, paragraph 4.3.8.4.3, a new syntax rule 5 | `(no rule 5)` | `(5) The function referenced by function-name-1 ...` | amendment-1 |
+| [C99](#errata-c99) | 168 | IV-22 | Section IV, paragraph 4.3.8.4.4, general rule 1, first sentence | `referenced by data-name-1 is assigned` | `referenced by data-name-1 or by function-name-1 and its arg…` | amendment-1 |
+| [C100](#errata-c100) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 3a, a new last sentence | `after evaluation of the subscripts.` | `... If an ALL subscript is specified ...` | amendment-1 |
+| [C101](#errata-c101) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 3, a new item c | `(no item c)` | `c. If reference modification is specified in a function ref…` | amendment-1 |
+| [C102](#errata-c102) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 4, first sentence | `which is a subset of the data item referenced by data-name-…` | `that is a subset ... or by function-name-1 and its argument…` | amendment-1 |
+| [C103](#errata-c103) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 4, items a and b | `the data item referenced by data-name-1` | `... or function-name-1 and its arguments, if any` | amendment-1 |
+| [C104](#errata-c104) | 169 | IV-23 | Section IV, paragraph 4.3.8.4.4, general rule 5, second sentence | `It has the same class` | `When a function is referenced, ... When data-name-1 is spec…` | amendment-1 |
+| [C105](#errata-c105) | 169 | IV-23 | Section IV, paragraph 4.3.8.4 (Identifier), renumbered 4.3.8.5 and changed | `4.3.8.4 Identifier (1985 text)` | `4.3.8.5 Identifier (amended)` | amendment-1 |
+| [C106](#errata-c106) | 191 | IV-45 | Section IV, paragraph 8, before the list of reserved words | `(no sentence)` | `The following is a list of COBOL reserved words ...` | amendment-1 |
+| [C107](#errata-c107) | 192 | IV-46 | Section IV, paragraph 8, after the list of reserved words | `(no list)` | `The following is a list ... Intrinsic Function module. FUNC…` | amendment-1 |
+| [C108](#errata-c108) | 195 | V-3 | Section V, the SPECIAL-NAMES paragraph format, the SYMBOLIC CHARACTERS clause | `two sets of braces` | `outermost set deleted` | amendment-1 |
+| [C109](#errata-c109) | 199 | V-7 | Section V, the file control entry format, the ORGANIZATION clause | `[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ]` | `[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]` | amendment-1 |
+| [C110](#errata-c110) | 207 | V-15 | Section V, the communication description entry, format 1, its end | `(no period)` | `a terminal period` | amendment-1 |
+| [C111](#errata-c111) | 207 | V-15 | Section V, the communication description entry, format 1, the data-name list | `data-name-1, data-name-2, ...` | `data-name-1 data-name-2 ...` | amendment-1 |
+| [C112](#errata-c112) | 208 | V-16 | Section V, the communication description entry, format 3, its end | `(no period)` | `a terminal period` | amendment-1 |
+| [C113](#errata-c113) | 208 | V-16 | Section V, the communication description entry, format 3, the data-name list | `data-name-1, data-name-2, ...` | `data-name-1 data-name-2 ...` | amendment-1 |
+| [C114](#errata-c114) | 219 | V-27 | Section V, the PERFORM statement format, the AFTER phrase | `AFTER ... literal-3` | `AFTER ... index-name-3` | amendment-1 |
+| [C115](#errata-c115) | 220 | V-28 | Section V, the first REWRITE statement format | `(no END-REWRITE)` | `[ END-REWRITE ]` | amendment-1 |
+| [C116](#errata-c116) | 230 | V-38 | Section V, the miscellaneous formats, SUBSCRIPTING | `(1985 format)` | `(format with ALL)` | amendment-1 |
+| [C117](#errata-c117) | 230 | V-38 | Section V, the miscellaneous formats, after SUBSCRIPTING | `(no format)` | `FUNCTION-IDENTIFIER` | amendment-1 |
+| [C118](#errata-c118) | 230 | V-38 | Section V, the miscellaneous formats, REFERENCE MODIFICATION | `(1985 format)` | `(format with FUNCTION)` | amendment-1 |
+| [C119](#errata-c119) | 230 | V-38 | Section V, the miscellaneous formats, IDENTIFIER | `(1985 format)` | `(formats 1 and 2)` | amendment-1 |
+| [C120](#errata-c120) | 230 | V-38 | Section V, after page V-38, the general format for intrinsic functions | `(no format)` | `GENERAL FORMAT FOR INTRINSIC FUNCTIONS` | amendment-1 |
+| [C121](#errata-c121) | 233 | VI-1 | Section VI, paragraph 1.3, its title | `LEVEL RESTRICTIONS ON OVERALL LANGUAGE` | `RESTRICTIONS ON OVERALL LANGUAGE` | amendment-1 |
+| [C122](#errata-c122) | 234 | VI-2 | Section VI, paragraphs 1.3.5 and 1.3.6, renumbered | `1.3.5, 1.3.6` | `1.3.6, 1.3.7` | amendment-1 |
+| [C123](#errata-c123) | 234 | VI-2 | Section VI, a new paragraph 1.3.5 (Function-Identifier), not boxed | `(no paragraph 1.3.5)` | `1.3.5 Function-Identifier` | amendment-1 |
+| [C124](#errata-c124) | 245 | VI-13 | Section VI, paragraph 4.5.2, the SYMBOLIC CHARACTERS clause | `two sets of braces` | `outermost set deleted` | amendment-1 |
+| [C125](#errata-c125) | 252 | VI-20 | Section VI, paragraph 5.3.2, the OCCURS clause, the first INDEXED BY phrase | `INDEXED BY boxed` | `INDEXED BY not boxed` | amendment-1 |
+| [C126](#errata-c126) | 289 | VI-57 | Section VI, paragraph 6.3.1.2 (Class Condition), the first paragraph after the general format | `The usage of the operand being tested must be described as…` | `Identifier-1 must reference a data item whose usage is expl…` | amendment-1 |
+| [C127](#errata-c127) | 294 | VI-62 | Section VI, paragraph 6.3.4, the penultimate paragraph | `Values are established for arithmetic expressions if and wh…` | `(2) Values are established for arithmetic expressions and f…` | amendment-1 |
+| [C128](#errata-c128) | 302 | VI-70 | Section VI, paragraph 6.4.7 | `PICTURE clause, then the result` | `PICTURE clause or function definition, then the result` | amendment-1 |
+| [C129](#errata-c129) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), general rule 4 | `Subscripting associated with any identifier is evaluated` | `If any identifier is subscripted or is a function-identifie…` | amendment-1 |
+| [C130](#errata-c130) | 335 | VI-103 | Section VI, paragraph 6.19.4 (MOVE), general rule 2, second paragraph, first sentence | `Any subscripting associated with identifier-1 is evaluated…` | `If identifier-1 is reference modified, subscripted, or is a…` | amendment-1 |
+| [C131](#errata-c131) | 336 | VI-104 | Section VI, paragraph 6.19.4 (MOVE), general rule 3 | `alphabetic, numeric edited,` | `alphabetic, alphanumeric, numeric edited,` | amendment-1 |
+| [C132](#errata-c132) | 380 | VII-6 | Section VII, paragraph 2.1, the general format of the Input-Output Section | `║ [ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ] ║` | `[ <u>I-O-CONTROL</u>. [ input-output-control-entry ] ]` | amendment-1 |
+| [C133](#errata-c133) | 422 | VII-48 | Section VII, paragraph 4.5.3 (REWRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C134](#errata-c134) | 426 | VII-52 | Section VII, paragraph 4.7.3 (WRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C135](#errata-c135) | 460 | VIII-30 | Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C136](#errata-c136) | 460 | VIII-30 | Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 4 | `access mode, and for which` | `access mode for which` | amendment-1 |
+| [C137](#errata-c137) | 467 | VIII-37 | Section VIII, paragraph 4.9.3 (WRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C138](#errata-c138) | 474 | IX-4 | Section IX, paragraph 1.3.4 (I-O Status), the second (3), item b | `write or rewrite` | `write ║or rewrite║` | amendment-1 |
+| [C139](#errata-c139) | 477 | IX-7 | Section IX, paragraph 1.3.7, first paragraph, last line | `; an page` | `; and page` | amendment-1 |
+| [C140](#errata-c140) | 503 | IX-33 | Section IX, paragraph 4.6.3 (REWRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C141](#errata-c141) | 503 | IX-33 | Section IX, paragraph 4.6.3 (REWRITE), syntax rule 3 | `(3) The INVALID KEY and the NOT INVALID KEY phrases must be…` | `(3) The INVALID KEY phrase must be specified in the REWRITE…` | amendment-1 |
+| [C142](#errata-c142) | 511 | IX-41 | Section IX, paragraph 4.9.3 (WRITE), syntax rule 1 | `(1) Record-name-1 and identifier-1 must not refer to the sa…` | `(1) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C143](#errata-c143) | 515 | X-1 | Section X, paragraph 1.1 (Function) | `data value available` | `data values available` | amendment-1 |
+| [C144](#errata-c144) | 516 | X-2 | Section X, paragraph 1.3.4 (External Objects and Internal Objects), second paragraph | `representative` | `representation` | amendment-1 |
+| [C145](#errata-c145) | 519 | X-5 | Section X, paragraph 1.3.8 (Scope of Names), the second paragraph on page X-5 | `either ... which contains a Configuration Section ...` | `║either║ ... ║which contains ... that program║` | amendment-1 |
+| [C146](#errata-c146) | 520 | X-6 | Section X, paragraph 1.3.8.1 (Conventions for Program-Names), rule 3 | `except programs it directly or indirectly contains` | `║except programs ... contains║` | amendment-1 |
+| [C147](#errata-c147) | 524 | X-10 | Section X, paragraph 2.4.2 (Programs in the Initial State), items 3 and 4 | `(3), (4) not boxed` | `(3), (4) boxed` | amendment-1 |
+| [C148](#errata-c148) | 535 | X-19 | Section X, paragraph 4.3.1 (Function), first paragraph | `or global names` | `║or global names║` | amendment-1 |
+| [C149](#errata-c149) | 535 | X-19 | Section X, paragraph 4.3.1 (Function), second paragraph | `or external` | `║or external║` | amendment-1 |
+| [C150](#errata-c150) | 543 | X-27 | Section X, paragraph 5.2.3 (CALL), a new syntax rule 4 | `(no rule 4)` | `(4) Identifier-2 must not be a function-identifier.` | amendment-1 |
+| [C151](#errata-c151) | 545 | X-29 | Section X, paragraph 5.2.4 (CALL), general rule 10 | `data-names, data-name` | `parameters, parameter` | amendment-1 |
+| [C152](#errata-c152) | 560 | XI-8 | Section XI, paragraph 4.1.3 (MERGE), syntax rule 3 | `in the file` | `in the files` | amendment-1 |
+| [C153](#errata-c153) | 565 | XI-13 | Section XI, paragraph 4.2.3 (RELEASE), syntax rule 3 | `(3) Record-name-1 and identifier-1 must not refer to the sa…` | `(3) If identifier-1 is a function-identifier, it must refer…` | amendment-1 |
+| [C154](#errata-c154) | 578 | XII-4 | Section XII, paragraph 2.4 (COPY), general rule 7 | `pseudo-text-delimiter (twice)` | `pseudo-text delimiter` | amendment-1 |
+| [C155](#errata-c155) | 578 | XII-4 | Section XII, paragraph 2.4 (COPY), general rule 9, third paragraph | `When a text word` | `When a text word specified in the BY phrase is introduced,…` | amendment-1 |
+| [C156](#errata-c156) | 661 | XIV-3 | Section XIV, paragraph 2.2.2 (communication description entry), format 1 | `data-name-1, data-name-2, ...` | `data-name-1 data-name-2 ...` | amendment-1 |
+| [C157](#errata-c157) | 662 | XIV-4 | Section XIV, paragraph 2.2.2 (communication description entry), format 3 | `data-name-1, data-name-2, ...` | `data-name-1 data-name-2 ...` | amendment-1 |
+| [C158](#errata-c158) | 677 | XIV-19 | Section XIV, paragraph 3.2.4 (DISABLE), general rule 4 | `SOURCE)` | `SOURCE))` | amendment-1 |
+| [C159](#errata-c159) | 684 | XIV-26 | Section XIV, paragraph 3.6.3 (SEND), a new syntax rule 6 | `(no rule 6)` | `(6) If identifier-1 is a function-identifier ...` | amendment-1 |
+| [C160](#errata-c160) | 693 | XV-5 | Section XV, paragraph 3.2.3 (USE FOR DEBUGGING), syntax rule 10 | `subscripting or indexing` | `subscripting` | amendment-1 |
+| [C161](#errata-c161) | 716 | XVII-8 | Appendix A of Section XVII, paragraph 2.11 (CODASYL COBOL Journal of Development 1981), item 12 | `EXIT PROGRAM` | `EXIT PERFORM` | amendment-1 |
+| [C162](#errata-c162) | 721 | XVII-13 | Appendix A of Section XVII, a new paragraph 3.5 | `(no paragraph 3.5)` | `3.5 American National Standard COBOL 1985, Addendum 1` | amendment-1 |
+| [C163](#errata-c163) | 723 | XVII-15 | Appendix A of Section XVII, a new paragraph 4.4 | `(no paragraph 4.4)` | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1` | amendment-1 |
+| [C164](#errata-c164) | 725 | XVII-17 | Appendix B of Section XVII, the summary table, before User-defined words | `(no entry)` | `Function-names, system-names, and user-defined words ...` | amendment-1 |
+| [C165](#errata-c165) | 726 | XVII-18 | Appendix B of Section XVII, the summary table, before Literals | `(no entry)` | `Function-names N 1 ITR` | amendment-1 |
+| [C166](#errata-c166) | 727 | XVII-19 | Appendix B of Section XVII, the summary table, Reference modification | `Reference modification ..................................…` | `Reference-modifier ......................................…` | amendment-1 |
+| [C167](#errata-c167) | 727 | XVII-19 | Appendix B of Section XVII, the summary table, before Reference-modifier | `(no entry)` | `Function-identifier N 1 ITR` | amendment-1 |
+| [C168](#errata-c168) | 727 | XVII-19 | Appendix B of Section XVII, the summary table, under Reference Format | `Continuation of COBOL word, numeric literal .............…` | `Continuation of COBOL word, numeric literal .............…` | amendment-1 |
+| [C169](#errata-c169) | 739 | XVII-31 | Appendix B of Section XVII, the summary table, before ACCEPT statement | `(no entries)` | `Intrinsic functions ...` | amendment-1 |
+| [C170](#errata-c170) | 758 | XVII-50 | Appendix B of Section XVII, the substantive changes not affecting existing programs, a new item 108 | `(no item 108)` | `(108) Intrinsic Function Module (1 ITR)` | amendment-1 |
+| [C171](#errata-c171) | 772 | XVII-64 | Appendix B of Section XVII, substantive change 26 (PERFORM statement) | `Under second Standard COBOL, PARA3 ... as shown above.` | `(deleted)` | amendment-1 |
+| [C172](#errata-c172) | 778 | XVII-70 | Appendix B of Section XVII, substantive change 37 (File position indicator) | `access made` | `access mode` | amendment-1 |
+| [C173](#errata-c173) | 779 | XVII-71 | Appendix B of Section XVII, substantive change 39 (Reserved words), its list | `(no FUNCTION)` | `FUNCTION` | amendment-1 |
+| [C174](#errata-c174) | 801 | XVII-93 | Appendix C of Section XVII, the implementor-defined language element list, new items 81 to 84 | `(no items 81 to 84)` | `(81) to (84)` | amendment-1 |
+| [C175](#errata-c175) | 806 | XVII-98 | Appendix C of Section XVII, the undefined language element list, a new item 29 | `(no item 29)` | `(29) Intrinsic functions` | amendment-1 |
+| [C176](#errata-c176) | 707 | XVI-9 | after Section XVI, the Intrinsic Function module (Section A) | `(Section XVI ends)` | `Section A follows` | amendment-1 |
+| [C177](#errata-c177) | 7 | — | the standard's Preface | `the 1985 Preface` | `Amendment 2's preface` | amendment-2 |
+| [C178](#errata-c178) | 18 | — | the table of contents, after Section XVI | `(no Section A)` | `SECTION A: INTRINSIC FUNCTION MODULE` | amendment-2 |
+| [C179](#errata-c179) | 19 | — | the table of contents, Appendix A, Chapter 3 | `(no entry 3.6)` | `3.6 ... Amendment 2` | amendment-2 |
+| [C180](#errata-c180) | 19 | — | the table of contents, Appendix A, Chapter 4 | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1` | `4.4 ISO 1989:1985/Amd.1:1992, 4.5 ISO 1989:1985/Amd.2:1994` | amendment-2 |
+| [C181](#errata-c181) | 20 | — | the table of contents, Appendix B, Chapter 2 | `2.1, 2.2` | `2.1, 2.1A, 2.1B, 2.2, 2.2A, 2.2B` | amendment-2 |
+| [C182](#errata-c182) | 28 | I-8 | Section I, paragraph 1.5.2.5.2 (Extension Language Elements), last paragraph | `(no last sentence)` | `This warning mechanism is required to flag only extensions…` | amendment-2 |
+| [C183](#errata-c183) | 28 | I-8 | Section I, paragraph 1.5.2.5.3 (Reserved Words) | `An implementation of Standard COBOL must recognize as reser…` | `An implementation of Standard COBOL must recognize as reser…` | amendment-2 |
+| [C184](#errata-c184) | 32 | I-12 | Section I, the Nucleus module summary, Language Concepts | `Reference-modifier` | `Reference modification` | amendment-2 |
+| [C185](#errata-c185) | 62 | I-42 | Section I, the division summary, Uniqueness of Reference | `Reference-modifier` | `Reference modification` | amendment-2 |
+| [C186](#errata-c186) | 85 | II-1 | Section II, paragraph 2.1 (File Attributes), the last sentence | `the blocking factor` | `the minimum and maximum physical record size` | amendment-2 |
+| [C187](#errata-c187) | 98 | II-14 | Section II, paragraph 4.2 (Initial Values of Tables), item 3 | `(3) The value of selected table elements may be specified u…` | `(3) Every occurrence of an element in a table can be assign…` | amendment-2 |
+| [C188](#errata-c188) | 120 | — | Section II, paragraph 8 (Intrinsic Function Facility), second paragraph, last sentence | `the returned value for the function is undefined` | `then the result of such a reference is undefined` | amendment-2 |
+| [C189](#errata-c189) | 121 | III-1 | Section III, paragraph 1 (Introduction), second paragraph, last sentence | `Sections IV through XVI of` | `Sections IV through XVI and Section A of` | amendment-2 |
+| [C190](#errata-c190) | 124 | III-4 | Section III, the glossary, COBOL Character Set, NOTE 2, first sentence | `used in character-strings.` | `used in character-strings and text words.` | amendment-2 |
+| [C191](#errata-c191) | 130 | III-10 | Section III, the glossary, Fixed File Attributes | `the blocking factor` | `the minimum and maximum physical record size` | amendment-2 |
+| [C192](#errata-c192) | 132 | III-12 | Section III, the glossary, Integer, item 3 | `(3) A numeric function whose definition provides that all d…` | `(3) An integer function.` | amendment-2 |
+| [C193](#errata-c193) | 132 | III-12 | Section III, the glossary, Integer Function | `whose category is numeric` | `whose class and category are numeric` | amendment-2 |
+| [C194](#errata-c194) | 145 | III-25 | Section III, the glossary, Text Word, item 3 | `(no last sentence)` | `One or both of the bounding separators may be a pseudo-text…` | amendment-2 |
+| [C195](#errata-c195) | 150 | IV-4 | Section IV, paragraph 4.2.1 (Separators), rule 4, second sentence | `Parentheses may appear only` | `Except in pseudo-text, parentheses may appear only` | amendment-2 |
+| [C196](#errata-c196) | 151 | IV-5 | Section IV, paragraph 4.2.1 (Separators), rule 5 | `(5) The punctuation character quotation mark is a separator…` | `(5) The punctuation character quotation mark is a separator…` | amendment-2 |
+| [C197](#errata-c197) | 151 | IV-5 | Section IV, paragraph 4.2.2.1 (COBOL Words), the paragraph as far as page IV-5 prints it | `Each character of a COBOL word is selected` | `... that is not a special character word is selected ...` | amendment-2 |
+| [C198](#errata-c198) | 152 | IV-6 | Section IV, paragraph 4.2.2.1 (COBOL Words), the rest of the paragraph | `Within a source program, reserved words ... form disjoint s…` | `Within a source program the following apply: (1) ... (2) ...` | amendment-2 |
+| [C199](#errata-c199) | 155 | IV-9 | Section IV, paragraph 4.2.2.1.4 (Function-Names), second sentence | `The same word, in a different context, may appear in a prog…` | `With the exception of the words LENGTH, RANDOM, and SUM, a…` | amendment-2 |
+| [C200](#errata-c200) | 157 | IV-11 | Section IV, paragraph 4.2.2.2.3 (Figurative Constant Values), the second (1), penultimate sentence | `until it is equal to the number of character positions` | `until the number of character positions remaining is equal…` | amendment-2 |
+| [C201](#errata-c201) | 168 | IV-22 | Section IV, paragraph 4.3.8.3.1, its title | `Purpose of a Function-Identifier` | `Function` | amendment-2 |
+| [C202](#errata-c202) | 168 | IV-22 | Section IV, paragraph 4.3.8.4, its title | `Reference-Modifier` | `Reference Modification` | amendment-2 |
+| [C203](#errata-c203) | 173 | IV-27 | Section IV, paragraph 4.4.4 (Explicit and Implicit Scope Terminators), last paragraph, item 2 | `Examples of such phrases are ELSE, WHEN, NOT AT END, etc.` | `(deleted)` | amendment-2 |
+| [C204](#errata-c204) | 184 | IV-38 | Section IV, paragraph 6.4.2.2.1 (Definition of Compiler Directing Statement), second sentence | `COPY, REPLACE, and USE` | `COPY, ENTER, REPLACE, and USE` | amendment-2 |
+| [C205](#errata-c205) | 189 | IV-43 | Section IV, paragraph 7.2.5 (Pseudo-Text), first sentence | `The character-strings and separators comprising` | `The text words and the separator space comprising` | amendment-2 |
+| [C206](#errata-c206) | 191 | IV-45 | Section IV, paragraph 8 (COBOL Reserved Words), first paragraph | `the four optional modules of ...` | `the five optional modules.` | amendment-2 |
+| [C207](#errata-c207) | 191 | IV-45 | Section IV, paragraph 8 (COBOL Reserved Words), the list | `(no FUNCTION)` | `FUNCTION` | amendment-2 |
+| [C208](#errata-c208) | 192 | IV-46 | Section IV, paragraph 8 (COBOL Reserved Words), after the list | `The following is a list ... Intrinsic Function module. FUNC…` | `(deleted)` | amendment-2 |
+| [C209](#errata-c209) | 216 | V-24 | Section V, the general format of the IF statement | `{statement-1} …, {statement-2} …` | `statement-1, statement-2` | amendment-2 |
+| [C210](#errata-c210) | 247 | VI-15 | Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, second sentence | `The collating sequence identified` | `The character code set and/or collating sequence identified` | amendment-2 |
+| [C211](#errata-c211) | 248 | VI-16 | Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, subitem 4, first sentence | `If the THROUGH phrase is specified, the set of ...` | `... and/or a successive ascending ordinal number ...` | amendment-2 |
+| [C212](#errata-c212) | 248 | VI-16 | Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, subitems 4 to 6 | `subitems 4, 5` | `new subitem 4; 5, 6` | amendment-2 |
+| [C213](#errata-c213) | 263 | VI-31 | Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item b | `b. A MOVE statement` | `b. An elementary MOVE statement` | amendment-2 |
+| [C214](#errata-c214) | 263 | VI-31 | Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item c | `c. (not boxed)` | `c. (boxed)` | amendment-2 |
+| [C215](#errata-c215) | 266 | VI-34 | Section VI, paragraph 5.9.5 (PICTURE editing rules), editing rule 7, second paragraph, last sentence | `the fixed insertion characters 'CR' and 'DB'` | `one of the editing sign control symbols '+', '-', 'CR', or…` | amendment-2 |
+| [C216](#errata-c216) | 269 | VI-37 | Section VI, paragraph 5.9.6, the PICTURE precedence chart | `x, x` | `(deleted)` | amendment-2 |
+| [C217](#errata-c217) | 288 | VI-56 | Section VI, paragraph 6.3.1.1.3, item 2, first sentence | `a data item (other than an index data item) or literal` | `a numeric data item or numeric literal` | amendment-2 |
+| [C218](#errata-c218) | 289 | VI-57 | Section VI, paragraph 6.3.1.2 (Class Condition), the first paragraph after the general format | `(no zero-length sentence)` | `... zero-length group item ... always false.` | amendment-2 |
+| [C219](#errata-c219) | 289 | VI-57 | Section VI, paragraph 6.3.1.2 (Class Condition), the second paragraph after the general format | `(no zero-length sentence)` | `... zero-length group item ... always true.` | amendment-2 |
+| [C220](#errata-c220) | 322 | VI-90 | Section VI, paragraph 6.16.2, the general format of the IF statement | `{statement-1} …, {statement-2} …` | `statement-1, statement-2` | amendment-2 |
+| [C221](#errata-c221) | 323 | VI-91 | Section VI, paragraph 6.16.4 (IF), general rule 2b | `(no last sentence)` | `This has the effect of causing a transfer of control to an…` | amendment-2 |
+| [C222](#errata-c222) | 323 | VI-91 | Section VI, paragraph 6.16.4 (IF), general rule 2e | `(no last sentence)` | `This has the effect of causing a transfer of control ...` | amendment-2 |
+| [C223](#errata-c223) | 323 | VI-91 | Section VI, paragraph 6.16.4 (IF), general rule 3, second paragraph | `may be considered as paired ...` | `are considered matched ... ordered combinations ...` | amendment-2 |
+| [C224](#errata-c224) | 327 | VI-95 | Section VI, paragraph 6.18.3 (INSPECT), syntax rule 8 | `(8) When the CHARACTERS phrase is used, literal-2, literal-…` | `(8) When the CHARACTERS phrase is used, literal-3 or the si…` | amendment-2 |
+| [C225](#errata-c225) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), general rules 1 to 6, renumbered | `(1) ... (6)` | `renumbered` | amendment-2 |
+| [C226](#errata-c226) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), general rules 7 to 7, renumbered | `(7) ... (7)` | `renumbered` | amendment-2 |
+| [C227](#errata-c227) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), general rules 8 to 10, renumbered | `(8) ... (10)` | `renumbered` | amendment-2 |
+| [C228](#errata-c228) | 331 | VI-99 | Section VI, paragraph 6.18.4 (INSPECT), general rules 11 to 16, renumbered | `(11) ... (16)` | `renumbered` | amendment-2 |
+| [C229](#errata-c229) | 332 | VI-100 | Section VI, paragraph 6.18.4 (INSPECT), general rules 17 to 17, renumbered | `(17) ... (17)` | `renumbered` | amendment-2 |
+| [C230](#errata-c230) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), a new general rule 1 | `(no rule 1)` | `(1) For the purpose of determining its length, ...` | amendment-2 |
+| [C231](#errata-c231) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 2, last line | `general rules 5 through 7.` | `general rules 6 through 8.` | amendment-2 |
+| [C232](#errata-c232) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 3b | `(see general rule 2a)` | `(see general rule 3a)` | amendment-2 |
+| [C233](#errata-c233) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 3c | `in general rule 2b` | `in general rule 3b` | amendment-2 |
+| [C234](#errata-c234) | 328 | VI-96 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 4, first line | `In general rules 5 through 17` | `in general rules 6 through 19` | amendment-2 |
+| [C235](#errata-c235) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 7a, subitem 2 | `general rules 10 and 13` | `general rules 12 and 15` | amendment-2 |
+| [C236](#errata-c236) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 7a, subitem 3 | `defined in general rule 13` | `defined in general rule 15` | amendment-2 |
+| [C237](#errata-c237) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 7c | `in general rules 10 and 13` | `in general rules 12 and 15` | amendment-2 |
+| [C238](#errata-c238) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 7e | `paragraphs 6a through 6d` | `general rules 7a through 7d` | amendment-2 |
+| [C239](#errata-c239) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 8, first line | `in general rule 6` | `in general rule 7` | amendment-2 |
+| [C240](#errata-c240) | 329 | VI-97 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 8a | `in general rule 6` | `in general rule 7` | amendment-2 |
+| [C241](#errata-c241) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 8b | `in general rule 6` | `in general rule 7` | amendment-2 |
+| [C242](#errata-c242) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 8c | `in general rule 6` | `in general rule 7` | amendment-2 |
+| [C243](#errata-c243) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), a new general rule 9 after the header FORMAT 1 | `(no rule 9)` | `(9) Identifier-1 is a sending data item.` | amendment-2 |
+| [C244](#errata-c244) | 330 | VI-98 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 12c | `general rule 6e` | `general rule 7e` | amendment-2 |
+| [C245](#errata-c245) | 331 | VI-99 | Section VI, paragraph 6.18.4 (INSPECT), new general rule 15a | `general rule 6e` | `general rule 7e` | amendment-2 |
+| [C246](#errata-c246) | 345 | VI-113 | Section VI, paragraph 6.21.4 (PERFORM), general rule 10d, the fourth and fifth sentences | `If index-name-1 or index-name-3 is specified, ...` | `If index-name-1 is specified, ... index-name-3 ...` | amendment-2 |
+| [C247](#errata-c247) | 356 | VI-124 | Section VI, paragraph 6.22.4 (SEARCH), general rule 2b | `(no last sentence)` | `When control is passed to the next executable sentence, ...` | amendment-2 |
+| [C248](#errata-c248) | 356 | VI-124 | Section VI, paragraph 6.22.4 (SEARCH), general rule 4 | `(no last sentence)` | `When control is passed to the next executable sentence, ...` | amendment-2 |
+| [C249](#errata-c249) | 379 | VII-5 | Section VII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, 1.3.8 renumbered 1.3.7 | `1.3.7 The File Attribute Conflict Condition; 1.3.8 LINAGE-C…` | `(deleted); 1.3.7 LINAGE-COUNTER` | amendment-2 |
+| [C250](#errata-c250) | 406 | VII-32 | Section VII, paragraph 3.8.4 (RECORD), general rule 10, a new last paragraph | `(no last paragraph)` | `If the number of character positions in the logical record…` | amendment-2 |
+| [C251](#errata-c251) | 406 | VII-32 | Section VII, paragraph 3.8.4 (RECORD), general rules 13 and 14 renumbered 14 and 15, a new general rule 13 | `(13), (14)` | `new (13); (14), (15)` | amendment-2 |
+| [C252](#errata-c252) | 411 | VII-37 | Section VII, paragraph 4.2.4 (CLOSE), general rule 3, paragraph F, input and input-output files | `Input Files and Input-Output Files: The following operation…` | `Input Files and Input-Output Files (Reel/Unit Media): 1) ..…` | amendment-2 |
+| [C253](#errata-c253) | 412 | VII-38 | Section VII, paragraph 4.2.4 (CLOSE), general rule 3, paragraph F, non-reel/unit media | `Output Files (Non-Reel/Unit Media): ...` | `Input Files, Input-Output Files, and Output Files (Non-Reel…` | amendment-2 |
+| [C254](#errata-c254) | 415 | VII-41 | Section VII, paragraph 4.3.4 (OPEN), general rule 8 | `(See page VII-5, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
+| [C255](#errata-c255) | 417 | VII-43 | Section VII, paragraph 4.3.4 (OPEN), a new general rule 26 | `(no rule 26)` | `(26) If the execution of the OPEN statement is unsuccessful…` | amendment-2 |
+| [C256](#errata-c256) | 420 | VII-46 | Section VII, paragraph 4.4.4 (READ), general rule 10b | `b. If the AT END phrase is specified ... USE AFTER STANDARD…` | `b. ... the AT END imperative-statement-1. ... NOT AT END ph…` | amendment-2 |
+| [C257](#errata-c257) | 420 | VII-46 | Section VII, paragraph 4.4.4 (READ), general rule 10c, first sentence | `a USE AFTER STANDARD EXCEPTION procedure must be associated…` | `a USE AFTER EXCEPTION procedure must be associated with the…` | amendment-2 |
+| [C258](#errata-c258) | 420 | VII-46 | Section VII, paragraph 4.4.4 (READ), general rule 11b | `b. If an exception condition which is not an at end conditi…` | `b. If an exception condition that is not an at end conditio…` | amendment-2 |
+| [C259](#errata-c259) | 422 | VII-48 | Section VII, paragraph 4.5.3 (REWRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C260](#errata-c260) | 424 | VII-50 | Section VII, paragraph 4.6.3 (USE), syntax rule 3 | `(3) Appearance of file-name-1 in a USE statement must not c…` | `(3) The same file-name must not appear in more than one USE…` | amendment-2 |
+| [C261](#errata-c261) | 426 | VII-52 | Section VII, paragraph 4.7.3 (WRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C262](#errata-c262) | 427 | VII-53 | Section VII, paragraph 4.7.4 (WRITE), general rule 9 and its subparagraph a | `(9) ... at the appropriate time as follows: a. ...` | `(9) If, during the successful execution ... after execution…` | amendment-2 |
+| [C263](#errata-c263) | 428 | VII-54 | Section VII, paragraph 4.7.4 (WRITE), general rule 9, subparagraph b | `b. If the execution of the WRITE statement is unsuccessful,…` | `(deleted)` | amendment-2 |
+| [C264](#errata-c264) | 428 | VII-54 | Section VII, paragraph 4.7.4 (WRITE), general rules renumbered (page 428) | `(10) ... (17)` | `(11) ... (18)` | amendment-2 |
+| [C265](#errata-c265) | 429 | VII-55 | Section VII, paragraph 4.7.4 (WRITE), general rules renumbered (page 429) | `(16), (17)` | `(17), (18)` | amendment-2 |
+| [C266](#errata-c266) | 428 | VII-54 | Section VII, paragraph 4.7.4 (WRITE), a new general rule 10 | `(no rule 10)` | `(10) If the execution of the WRITE statement is unsuccessfu…` | amendment-2 |
+| [C267](#errata-c267) | 436 | VIII-6 | Section VIII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, its page VIII-6 part | `1.3.7 The File Attribute Conflict Condition ...` | `(deleted)` | amendment-2 |
+| [C268](#errata-c268) | 437 | VIII-7 | Section VIII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, its page VIII-7 part | `When the file attribute conflict condition is recognized, .…` | `(deleted)` | amendment-2 |
+| [C269](#errata-c269) | 454 | VIII-24 | Section VIII, paragraph 4.4.4 (OPEN), general rule 8 | `(See page VIII-6, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
+| [C270](#errata-c270) | 455 | VIII-25 | Section VIII, paragraph 4.4.4 (OPEN), a new general rule 19 | `(no rule 19)` | `(19) If the execution of the OPEN statement is unsuccessful…` | amendment-2 |
+| [C271](#errata-c271) | 458 | VIII-28 | Section VIII, paragraph 4.5.4 (READ), general rule 10b | `b. If the AT END phrase is specified ... USE AFTER STANDARD…` | `b. ... the AT END imperative-statement-1. ... NOT AT END ph…` | amendment-2 |
+| [C272](#errata-c272) | 458 | VIII-28 | Section VIII, paragraph 4.5.4 (READ), general rule 10c, first sentence | `a USE AFTER STANDARD EXCEPTION procedure must be associated…` | `a USE AFTER EXCEPTION procedure must be associated with the…` | amendment-2 |
+| [C273](#errata-c273) | 459 | VIII-29 | Section VIII, paragraph 4.5.4 (READ), general rule 11b | `b. If an exception condition which is not ... applicable to…` | `b. If an exception condition that is not ... referenced by…` | amendment-2 |
+| [C274](#errata-c274) | 460 | VIII-30 | Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C275](#errata-c275) | 465 | VIII-35 | Section VIII, paragraph 4.8.3 (USE), syntax rule 3 | `(3) Appearance of file-name-1 in a USE statement must not c…` | `(3) The same file-name must not appear in more than one USE…` | amendment-2 |
+| [C276](#errata-c276) | 467 | VIII-37 | Section VIII, paragraph 4.9.3 (WRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C277](#errata-c277) | 468 | VIII-38 | Section VIII, paragraph 4.9.4 (WRITE), general rule 9 and its subparagraphs a and b | `(9) ... at the appropriate time as follows: a. ... b. ...` | `(9) Transfer of control following the successful or unsucce…` | amendment-2 |
+| [C278](#errata-c278) | 474 | IX-4 | Section IX, paragraph 1.3.4 (I-O Status), item 3b, I-O status 22 | `b. I-O Status = 22. An attempt is made to write ║or rewrite…` | `b. I-O Status = 22. An attempt is made ║either:║ ║1)║ ... ║…` | amendment-2 |
+| [C279](#errata-c279) | 477 | IX-7 | Section IX, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted | `1.3.7 The File Attribute Conflict Condition ...` | `(deleted)` | amendment-2 |
+| [C280](#errata-c280) | 496 | IX-26 | Section IX, paragraph 4.4.4 (OPEN), general rule 8 | `(See page IX-7, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
+| [C281](#errata-c281) | 497 | IX-27 | Section IX, paragraph 4.4.4 (OPEN), a new general rule 19 | `(no rule 19)` | `(19) If the execution of the OPEN statement is unsuccessful…` | amendment-2 |
+| [C282](#errata-c282) | 500 | IX-30 | Section IX, paragraph 4.5.4 (READ), general rule 10b | `b. If the AT END phrase is specified ... USE AFTER STANDARD…` | `b. ... the AT END imperative-statement-1. ... NOT AT END ph…` | amendment-2 |
+| [C283](#errata-c283) | 500 | IX-30 | Section IX, paragraph 4.5.4 (READ), general rule 10c, first sentence | `a USE AFTER STANDARD EXCEPTION procedure must be associated…` | `a USE AFTER EXCEPTION procedure must be associated with the…` | amendment-2 |
+| [C284](#errata-c284) | 501 | IX-31 | Section IX, paragraph 4.5.4 (READ), general rule 11b | `b. If an exception condition which is not ... applicable to…` | `b. If an exception condition that is not ... referenced by…` | amendment-2 |
+| [C285](#errata-c285) | 503 | IX-33 | Section IX, paragraph 4.6.3 (REWRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C286](#errata-c286) | 509 | IX-39 | Section IX, paragraph 4.8.3 (USE), syntax rule 3 | `(3) Appearance of file-name-1 in a USE statement must not c…` | `(3) The same file-name must not appear in more than one USE…` | amendment-2 |
+| [C287](#errata-c287) | 511 | IX-41 | Section IX, paragraph 4.9.3 (WRITE), syntax rule 1, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C288](#errata-c288) | 512 | IX-42 | Section IX, paragraph 4.9.4 (WRITE), general rule 9 and its subparagraphs a and b | `(9) ... at the appropriate time as follows: a. ... b. ...` | `(9) Transfer of control following the successful or unsucce…` | amendment-2 |
+| [C289](#errata-c289) | 521 | X-7 | Section X, paragraph 1.3.8.3 (Conventions for Index-Names), first sentence | `either or both the external or global attributes ... an ind…` | `the global attribute ... an index-name ...` | amendment-2 |
+| [C290](#errata-c290) | 539 | X-23 | Section X, paragraph 4.5.3 (EXTERNAL), syntax rule 3, first sentence | `entry which includes, or is subordinate to, an entry which…` | `entry that includes, or is subordinate to an entry that inc…` | amendment-2 |
+| [C291](#errata-c291) | 549 | X-33 | Section X, paragraph 5.4.4 (EXIT PROGRAM), a new general rule 4 | `(no rule 4)` | `(4) An EXIT PROGRAM statement must not be executed while ...` | amendment-2 |
+| [C292](#errata-c292) | 562 | XI-10 | Section XI, paragraph 4.1.4 (MERGE), general rule 7b | `(no last sentence)` | `If the file referenced by file-name-1 is described with var…` | amendment-2 |
+| [C293](#errata-c293) | 563 | XI-11 | Section XI, paragraph 4.1.4 (MERGE), general rule 7c | `(no last sentence)` | `For a relative file, the content of the relative key data i…` | amendment-2 |
+| [C294](#errata-c294) | 563 | XI-11 | Section XI, paragraph 4.1.4 (MERGE), general rule 7, a new last paragraph | `(no last paragraph)` | `The value of the data item referenced by the DEPENDING ON p…` | amendment-2 |
+| [C295](#errata-c295) | 563 | XI-11 | Section XI, paragraph 4.1.4 (MERGE), general rule 11b, first paragraph | `(no last sentence)` | `If the file referenced by file-name-4 is described with var…` | amendment-2 |
+| [C296](#errata-c296) | 564 | XI-12 | Section XI, paragraph 4.1.4 (MERGE), general rule 11, last paragraph | `any USE AFTER STANDARD EXCEPTION/ERROR procedure specified…` | `any USE AFTER EXCEPTION procedure associated with the file…` | amendment-2 |
+| [C297](#errata-c297) | 564 | XI-12 | Section XI, paragraph 4.1.4 (MERGE), general rule 11, a new last paragraph | `(no last paragraph)` | `The value of the data item referenced by the DEPENDING ON p…` | amendment-2 |
+| [C298](#errata-c298) | 565 | XI-13 | Section XI, paragraph 4.2.3 (RELEASE), syntax rule 3, second sentence | `When identifier-1 is not a function-identifier, record-name…` | `Record-name-1 and identifier-1 must not reference the same…` | amendment-2 |
+| [C299](#errata-c299) | 571 | XI-19 | Section XI, paragraph 4.4.4 (SORT), general rule 9b to the end of general rule 9 | `9b ... end of general rule 9` | `9b, 9c and two paragraphs, as the amendment reads` | amendment-2 |
+| [C300](#errata-c300) | 572 | XI-20 | Section XI, paragraph 4.4.4 (SORT), general rule 12b, first paragraph, last sentence | `phrases had been execution.` | `phrases had been executed.` | amendment-2 |
+| [C301](#errata-c301) | 572 | XI-20 | Section XI, paragraph 4.4.4 (SORT), general rule 12b, first paragraph | `(no last sentence)` | `If the file referenced by file-name-3 is described with var…` | amendment-2 |
+| [C302](#errata-c302) | 572 | XI-20 | Section XI, paragraph 4.4.4 (SORT), general rule 12, last paragraph, last sentence | `any USE AFTER STANDARD EXCEPTION/ERROR procedure specified…` | `any USE AFTER EXCEPTION procedure associated with the file…` | amendment-2 |
+| [C303](#errata-c303) | 577 | XII-3 | Section XII, paragraph 2.4 (COPY), general rule 5b | `(no last sentence)` | `Each lowercase letter is equivalent to the corresponding up…` | amendment-2 |
+| [C304](#errata-c304) | 579 | XII-5 | Section XII, paragraph 2.4 (COPY), a new general rule 12 | `(no rule 12)` | `(12) The text produced as a result of the complete processi…` | amendment-2 |
+| [C305](#errata-c305) | 581 | XII-7 | Section XII, paragraph 3.4 (REPLACE), general rule 5 | `must not contain a REPLACE statement` | `must contain neither a COPY statement nor a REPLACE stateme…` | amendment-2 |
+| [C306](#errata-c306) | 581 | XII-7 | Section XII, paragraph 3.4 (REPLACE), general rule 6b | `(no last sentence)` | `Each lowercase letter is equivalent to the corresponding up…` | amendment-2 |
+| [C307](#errata-c307) | 581 | XII-7 | Section XII, paragraph 3.4 (REPLACE), general rule 7, last sentence | `is not replaced if` | `is not placed into the resultant program if` | amendment-2 |
+| [C308](#errata-c308) | 614 | XIII-34 | Section XIII, paragraph 3.10.8 (Body Group Presentation Rules), rule 4b, second paragraph | `current page group` | `current body group` | amendment-2 |
+| [C309](#errata-c309) | 649 | XIII-71 | Section XIII, paragraph 4.5.4 (OPEN), general rule 6 | `(See page VII-5, The File Attribute Conflict Condition.)` | `The implementor defines which ... (See page II-1, File Attr…` | amendment-2 |
+| [C310](#errata-c310) | 656 | XIII-78 | Section XIII, paragraph 4.9.3 (USE BEFORE REPORTING), syntax rule 2 | `Identifier-1 must not appear in more than one USE BEFORE RE…` | `The same identifier-1 must not appear in more than one USE…` | amendment-2 |
+| [C311](#errata-c311) | 857 | A-27 | Section A, paragraph 1.2.2 (Value Returned by a Function), last sentence | `the returned value for the function is undefined.` | `then the result of such a reference is undefined.` | amendment-2 |
+| [C312](#errata-c312) | 858 | A-28 | Section A, paragraph 2.2 (Arguments), the first paragraph after item 4, last sentence | `the returned value for the function is undefined.` | `then the result of such a reference is undefined.` | amendment-2 |
+| [C313](#errata-c313) | 859 | A-29 | Section A, paragraph 2.2 (Arguments), the last paragraph, last sentence | `otherwise the returned value is undefined.` | `otherwise the result of the reference to the function-ident…` | amendment-2 |
+| [C314](#errata-c314) | 882 | A-52 | Section A, paragraph 2.23.3 (MAX function), argument rule 1 | `... must be of the same class.` | `... of the same class with the exception that mixing of ...…` | amendment-2 |
+| [C315](#errata-c315) | 886 | A-56 | Section A, paragraph 2.27.3 (MIN function), argument rule 1 | `... must be of the same class.` | `... of the same class with the exception that mixing of ...…` | amendment-2 |
+| [C316](#errata-c316) | 891 | A-61 | Section A, paragraph 2.32.3 (ORD-MAX function), argument rule 1 | `... must be of the same class.` | `... of the same class with the exception that mixing of ...…` | amendment-2 |
+| [C317](#errata-c317) | 892 | A-62 | Section A, paragraph 2.33.3 (ORD-MIN function), argument rule 1 | `... must be of the same class.` | `... of the same class with the exception that mixing of ...…` | amendment-2 |
+| [C318](#errata-c318) | 721 | XVII-13 | Appendix A of Section XVII, paragraph 3.5, last paragraph, last line | `X3.23A-1989.` | `X3.23a-1989.` | amendment-2 |
+| [C319](#errata-c319) | 721 | XVII-13 | Appendix A of Section XVII, a new paragraph 3.6 | `(no paragraph 3.6)` | `3.6 American National Standard COBOL 1985, Amendment 2` | amendment-2 |
+| [C320](#errata-c320) | 723 | XVII-15 | Appendix A of Section XVII, paragraph 4.4, its heading | `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1` | `4.4 ISO 1989:1985/Amd.1:1992` | amendment-2 |
+| [C321](#errata-c321) | 723 | XVII-15 | Appendix A of Section XVII, a new paragraph 4.5 | `(no paragraph 4.5)` | `4.5 ISO 1989:1985/Amd.2:1994` | amendment-2 |
+| [C322](#errata-c322) | 727 | XVII-19 | Appendix B of Section XVII, the summary of elements, the entry Reference-modifier | `Reference-modifier` | `Reference modification` | amendment-2 |
+| [C323](#errata-c323) | 750 | XVII-42 | Appendix B of Section XVII, the title of paragraph 2.1 | `2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS` | `... (THIRD STANDARD COBOL)` | amendment-2 |
+| [C324](#errata-c324) | 758 | XVII-50 | Appendix B of Section XVII, a new paragraph 2.1A after item 107 | `(no paragraph 2.1A)` | `2.1A ... (INTRINSIC FUNCTION AMENDMENT)` | amendment-2 |
+| [C325](#errata-c325) | 758 | XVII-50 | Appendix B of Section XVII, item 108, renumbered item 1 of paragraph 2.1A | `(108)` | `(1)` | amendment-2 |
+| [C326](#errata-c326) | 758 | XVII-50 | Appendix B of Section XVII, a new paragraph 2.1B after item 1 of paragraph 2.1A | `(no paragraph 2.1B)` | `2.1B ... (CORRECTION AMENDMENT), items 1-6` | amendment-2 |
+| [C327](#errata-c327) | 759 | XVII-51 | Appendix B of Section XVII, the title of paragraph 2.2 | `2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROG…` | `... (THIRD STANDARD COBOL)` | amendment-2 |
+| [C328](#errata-c328) | 779 | XVII-71 | Appendix B of Section XVII, substantive change 39 (Reserved words), its list | `FUNCTION` | `(deleted)` | amendment-2 |
+| [C329](#errata-c329) | 783 | XVII-75 | Appendix B of Section XVII, substantive change 40g (I-O status 37) | `g. I-O status = 37. An OPEN statement is attempted on a fil…` | `g. I-O status = 37. ... will not support the open mode spec…` | amendment-2 |
+| [C330](#errata-c330) | 788 | XVII-80 | Appendix B of Section XVII, paragraph 2.2, new items 43 to 47 after item 42d | `(no items 43-47)` | `(43) ... (47)` | amendment-2 |
+| [C331](#errata-c331) | 788 | XVII-80 | Appendix B of Section XVII, a new paragraph 2.2A at the end of paragraph 2.2 | `(no paragraph 2.2A)` | `2.2A ... (INTRINSIC FUNCTION AMENDMENT), item 1` | amendment-2 |
+| [C332](#errata-c332) | 788 | XVII-80 | Appendix B of Section XVII, a new paragraph 2.2B after paragraph 2.2A | `(paragraph 2.2A ends)` | `2.2B follows (held under Amendment 2, pages 942-958)` | amendment-2 |
+| [C333](#errata-c333) | 801 | XVII-93 | Appendix C of Section XVII, the Implementor-Defined Language Element List, new items 85 to 87 | `(no items 85-87)` | `(85) ALPHABET clause ..., (86) OPEN statement, (87) RANDOM…` | amendment-2 |
+| [C334](#errata-c334) | 806 | XVII-98 | Appendix C of Section XVII, the Undefined Language Element List, item 29 (Intrinsic functions), first sentence | `the returned value for the function is undefined.` | `then the result of such a reference is undefined.` | amendment-2 |
+| [C335](#errata-c335) | 806 | XVII-98 | Appendix C of Section XVII, the Undefined Language Element List, new items 30 to 36 | `(no items 30-36)` | `(30) ... (36)` | amendment-2 |
+| [C336](#errata-c336) | 806 | XVII-98 | Appendix C of Section XVII, the Undefined Language Element List, item 30 (MERGE statement) | `general rule 17c` | `general rule 7c` | sense |
+| [C337](#errata-c337) | 807 | XVIII-1 | Section XVIII, the index | `the index of pages XVIII-1 to XVIII-13` | `Amendment 2's index, pages B-49 to B-64 (PDF 961-976)` | amendment-2 |
 
 <a id="errata-c1"></a>
 
@@ -36934,7 +36711,7 @@ it is taken as the rule of 1985.
 | **Printed** | `This document piovides the definition` |
 | **This transcription** | `This document provides the definition` |
 
-A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page.
+A damaged letter on the printed page, which the transcription had reproduced, read on the rendered page. Amendment 2 has since replaced the Preface this sentence opened with its own (C177): the correction is kept as the record of the printed page.
 
 <a id="errata-c2"></a>
 
@@ -37143,7 +36920,7 @@ A damaged letter on the printed page, which the transcription had reproduced, re
 | **Printed** | `explain as follows` |
 | **This transcription** | `explained as follows` |
 
-A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page VI-31 (T) (page 848, folio A-18): "change 'explain' to 'explained'", a typographical error (kb/Work PB5045).
 
 <a id="errata-c21"></a>
 
@@ -37154,7 +36931,7 @@ A real word printed for another, which no spelling check sees: found by the misp
 | **Printed** | `or in a entry that is subordinate` |
 | **This transcription** | `or in an entry that is subordinate` |
 
-A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page VI-50 (T) (page 848, folio A-18): "change 'or in a entry' to 'or in an entry'", a typographical error (kb/Work PB5045).
 
 <a id="errata-c22"></a>
 
@@ -37231,7 +37008,7 @@ A real word printed for another, which no spelling check sees: found by the misp
 | **Printed** | `If not exception condition exists` |
 | **This transcription** | `If no exception condition exists` |
 
-A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page. Amendment 1 (ANSI X3.23a-1989), Addendum 1, makes the same correction, its change for page IX-6 (T) (page 849, folio A-19): "change 'If not exception' to 'If no exception'", a typographical error (kb/Work PB5045).
 
 <a id="errata-c29"></a>
 
@@ -37254,6 +37031,3394 @@ A real word printed for another, which no spelling check sees: found by the misp
 | **This transcription** | `the first print line of` |
 
 A real word printed for another, which no spelling check sees: found by the misprints pass and read on the rendered page.
+
+<a id="errata-c31"></a>
+
+### C31 · page 270 (folio VI-38) · Section VI, the REDEFINES clause, syntax rule 6 · `the data-name referenced` → `the data item referenced`
+
+| | |
+|---|---|
+| **Printed** | `If the data-name referenced by data-name-2 is specified` |
+| **This transcription** | `If the data item referenced by data-name-2 is specified` |
+
+A real word printed for another: a data-name references no data-name, and the rule's own first sentence prints `the data item referenced by data-name-2`, the item its second sentence speaks of (kb/Work PB5045).
+
+<a id="errata-c32"></a>
+
+### C32 · page 360 (folio VI-128) · Section VI, the SET statement, general rule 2, its second paragraph · `associated with index-name-1` → `associated with index-name-2`
+
+| | |
+|---|---|
+| **Printed** | `must correspond to an occurrence number of an element in the table associated with index-name-1.` |
+| **This transcription** | `must correspond to an occurrence number of an element in the table associated with index-name-2.` |
+
+An operand misprinted: the sentence is about index-name-2, whose value must index its own table. General rule 3a provides for index-name-2 being related to a different table than index-name-1 (§1985:VI.6.23.4 GR3), which the printed operand would make unreachable, and §2023:14.9.39.4 GR2 b) speaks of the table element associated with index-name-2 (kb/Work PB5031, PB5045).
+
+<a id="errata-c33"></a>
+
+### C33 · page 422 (folio VII-48) · Section VII, the REWRITE statement, general rule 3 · `the associated output file` → `the associated I-O file`
+
+| | |
+|---|---|
+| **Printed** | `as the associated output file, as well as the file associated with record-name-1` |
+| **This transcription** | `as the associated I-O file, as well as the file associated with record-name-1` |
+
+A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:VII.4.5.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045).
+
+<a id="errata-c34"></a>
+
+### C34 · page 461 (folio VIII-31) · Section VIII, the REWRITE statement, general rule 4 · `the associated output file` → `the associated I-O file`
+
+| | |
+|---|---|
+| **Printed** | `as the associated output file, as well as the file associated with record-name-1` |
+| **This transcription** | `as the associated I-O file, as well as the file associated with record-name-1` |
+
+A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:VIII.4.6.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045).
+
+<a id="errata-c35"></a>
+
+### C35 · page 503 (folio IX-33) · Section IX, the REWRITE statement, general rule 4 · `the associated output file` → `the associated I-O file`
+
+| | |
+|---|---|
+| **Printed** | `as the associated output file, as well as the file associated with record-name-1` |
+| **This transcription** | `as the associated I-O file, as well as the file associated with record-name-1` |
+
+A slip of the printed page: the sentence is the WRITE statement's, but the file of a REWRITE statement is open in the I-O mode (general rule 1, §1985:IX.4.6.4 GR1), never an output file; §2023:14.9.35.4 GR6 names it as file-name-1 or the file-name associated with record-name-1 (kb/Work PB5045).
+
+<a id="errata-c36"></a>
+
+### C36 · page 10 · the table of contents, Section II · `(no entry 8)` → `8. Intrinsic Function Facility`
+
+| | |
+|---|---|
+| **Printed** | `7. Communication Facility ... II-28` |
+| **This transcription** | `8. Intrinsic Function Facility ... II-36` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page ii (page 831, folio A-1), applied in place: "Add the following after the entry for section II, paragraph 7" (kb/Work PB5045).
+
+<a id="errata-c37"></a>
+
+### C37 · page 11 · the table of contents, Section VI, entry 1.3 · `Level Restrictions on Overall Language` → `Restrictions on Overall Language`
+
+| | |
+|---|---|
+| **Printed** | `Level Restrictions on Overall Language` |
+| **This transcription** | `Restrictions on Overall Language` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page iii (page 831, folio A-1), applied in place: "Change the entry for section VI, paragraph 1.3 to read" (kb/Work PB5045).
+
+<a id="errata-c38"></a>
+
+### C38 · page 19 · the table of contents, Appendix A, Chapter 3 · `(no entry 3.5)` → `3.5 American National Standard COBOL 1985, Addend…`
+
+| | |
+|---|---|
+| **Printed** | `3.4 American National Standard COBOL 1985 ... XVII-12` |
+| **This transcription** | `3.5 American National Standard COBOL 1985, Addendum 1 ... XVII-13` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 3.4" (kb/Work PB5045).
+
+<a id="errata-c39"></a>
+
+### C39 · page 19 · the table of contents, Appendix A, Chapter 4 · `(no entry 4.4)` → `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1`
+
+| | |
+|---|---|
+| **Printed** | `4.3 ISO Standard 1989-1985 for COBOL ... XVII-15` |
+| **This transcription** | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1 ... XVII-15` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page xi (page 831, folio A-1), applied in place: "Add the following after the entry for 4.3" (kb/Work PB5045).
+
+<a id="errata-c40"></a>
+
+### C40 · page 21 (folio I-1) · Section I, paragraph 1.2, first paragraph, second sentence · `defines 11 functional processing modules` → `defines 12 ... and Intrinsic Function`
+
+| | |
+|---|---|
+| **Printed** | `The standard defines 11 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, and Segmentation.` |
+| **This transcription** | `The standard defines 12 functional processing modules: Nucleus, Sequential I-O, Relative I-O, Indexed I-O, Inter-Program Communication, Sort-Merge, Source Text Manipulation, Report Writer, Communication, Debug, Segmentation, and Intrinsic Function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-1 (page 831, folio A-1), applied in place: "Paragraph 1.2, first paragraph, second sentence, change to read" (kb/Work PB5045).
+
+<a id="errata-c41"></a>
+
+### C41 · page 21 (folio I-1) · Section I, paragraph 1.2, first paragraph, last sentence · `Two of the modules contain only level 1 elements.` → `Three of the modules contain only level 1 element…`
+
+| | |
+|---|---|
+| **Printed** | `Two of the modules contain only level 1 elements.` |
+| **This transcription** | `Three of the modules contain only level 1 elements.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-1 (page 831, folio A-1), applied in place: "Paragraph 1.2, first paragraph, last sentence, change to read" (kb/Work PB5045).
+
+<a id="errata-c42"></a>
+
+### C42 · page 23 (folio I-3) · Section I, paragraph 1.2, a new last paragraph · `(no paragraph)` → `The Intrinsic Function module provides ...`
+
+| | |
+|---|---|
+| **Printed** | `Segmentation level 2 adds the capability for varying the segment limit.` |
+| **This transcription** | `The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program. The Intrinsic Function module contains only level 1 elements.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 831, folio A-1), applied in place: "Paragraph 1.2, add the following paragraph after the last paragraph" (kb/Work PB5045).
+
+<a id="errata-c43"></a>
+
+### C43 · page 23 (folio I-3) · Section I, paragraph 1.3, first paragraph, first sentence · `This document is divided into eighteen sections.` → `This document is divided into nineteen sections.`
+
+| | |
+|---|---|
+| **Printed** | `This document is divided into eighteen sections.` |
+| **This transcription** | `This document is divided into nineteen sections.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, first paragraph, first sentence, change to read: '...into nineteen sections.'" (kb/Work PB5045).
+
+<a id="errata-c44"></a>
+
+### C44 · page 23 (folio I-3) · Section I, paragraph 1.3, third paragraph, first sentence · `Sections VI through XVI contain specifications fo…` → `Sections VI through XVI and section A contain spe…`
+
+| | |
+|---|---|
+| **Printed** | `Sections VI through XVI contain specifications for the eleven functional processing modules.` |
+| **This transcription** | `Sections VI through XVI and section A contain specifications for the twelve functional processing modules.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, third paragraph, first sentence, change to read: 'Sections VI through XVI and section A contain specifications for the twelve functional...'" (kb/Work PB5045).
+
+<a id="errata-c45"></a>
+
+### C45 · page 23 (folio I-3) · Section I, paragraph 1.3, fourth paragraph · `Sections II through XVI comprise the detailed spe…` → `Sections II through XVI and section A comprise th…`
+
+| | |
+|---|---|
+| **Printed** | `Sections II through XVI comprise the detailed specifications of Standard COBOL.` |
+| **This transcription** | `Sections II through XVI and section A comprise the detailed specifications of Standard COBOL.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-3 (page 832, folio A-2), applied in place: "Paragraph 1.3, fourth paragraph, change to read: 'Sections II through XVI and section A comprise the detailed...'" (kb/Work PB5045).
+
+<a id="errata-c46"></a>
+
+### C46 · page 24 (folio I-4) · Section I, paragraph 1.4, fourth paragraph, first sentence · `is a graphic representation of the 11 functional…` → `is a graphic representation of the 12 functional…`
+
+| | |
+|---|---|
+| **Printed** | `is a graphic representation of the 11 functional processing modules` |
+| **This transcription** | `is a graphic representation of the 12 functional processing modules` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-4 (page 832, folio A-2), applied in place: "Paragraph 1.4, fourth paragraph, first sentence, change to read: '...representation of the 12 functional processing modules...'" (kb/Work PB5045).
+
+<a id="errata-c47"></a>
+
+### C47 · page 24 (folio I-4) · Section I, paragraph 1.4, fifth paragraph, the list of module abbreviations · `(no ITR entry)` → `ITR Intrinsic Function`
+
+| | |
+|---|---|
+| **Printed** | `SEG Segmentation` |
+| **This transcription** | `SEG Segmentation ¶ ITR Intrinsic Function` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-4 (page 832, folio A-2), applied in place: "Paragraph 1.4, fifth paragraph, add to the list: ITR Intrinsic Function" (kb/Work PB5045).
+
+<a id="errata-c48"></a>
+
+### C48 · page 25 (folio I-5) · Section I, the schematic diagram of the modules · `four optional module columns` → `Intrinsic Function column added`
+
+| | |
+|---|---|
+| **Printed** | `OPTIONAL MODULES (Not Required in Subsets): Report Writer, Communication, Debug, Segmentation` |
+| **This transcription** | `OPTIONAL MODULES (Not Required in Subsets): Report Writer, Communication, Debug, Segmentation, Intrinsic Function (1 ITR 0,1)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-5 (page 832, folio A-2), applied in place: "Change diagram to include the Intrinsic Function module as shown on the next page of this addendum" (the diagram of page 833, folio A-3: an Intrinsic Function column, 1 ITR 0,1, spanning the three subsets) (kb/Work PB5045).
+
+<a id="errata-c49"></a>
+
+### C49 · page 26 (folio I-6) · Section I, paragraph 1.5, second sentence · `Standard COBOL consists of 11 modules, seven of w…` → `Standard COBOL consists of 12 modules, seven of w…`
+
+| | |
+|---|---|
+| **Printed** | `Standard COBOL consists of 11 modules, seven of which are required and four of which are optional.` |
+| **This transcription** | `Standard COBOL consists of 12 modules, seven of which are required and five of which are optional. (It is the intention of X3J4 to require the Intrinsic Function module in the next complete revision of Standard COBOL.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-6 (page 834, folio A-4), applied in place: "Paragraph 1.5, second sentence, change 'consists of 11 modules, seven of which are required and four of which are optional.' to ..." (kb/Work PB5045).
+
+<a id="errata-c50"></a>
+
+### C50 · page 26 (folio I-6) · Section I, paragraph 1.5.1, first paragraph, last sentence · `The four optional modules (Report Writer, Communi…` → `The five optional modules (Report Writer, Communi…`
+
+| | |
+|---|---|
+| **Printed** | `The four optional modules (Report Writer, Communication, Debug, and Segmentation) are not required` |
+| **This transcription** | `The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not required` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-6 (page 834, folio A-4), applied in place: "Paragraph 1.5.1, first paragraph, last sentence, change to read: 'The five optional modules (Report Writer, Communication, Debug, Segmentation, and Intrinsic Function) are not...'" (kb/Work PB5045).
+
+<a id="errata-c51"></a>
+
+### C51 · page 28 (folio I-8) · Section I, paragraph 1.5.2.5.3 (Reserved Words) · `An implementation of Standard COBOL must recogniz…` → `An implementation of Standard COBOL must recogniz…`
+
+| | |
+|---|---|
+| **Printed** | `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules. (See page IV-45, COBOL Reserved Words.)` |
+| **This transcription** | `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specification of the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation. An implementation of Standard COBOL need not recognize any new reserved words introduced by the optional Intrinsic Function module until that module is included in the implementation. (See page IV-45, COBOL Reserved Words.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-8 (page 834, folio A-4), applied in place: "Paragraph 1.5.2.5.3, change to read" (kb/Work PB5045).
+
+<a id="errata-c52"></a>
+
+### C52 · page 30 (folio I-10) · Section I, paragraph 2.1, last paragraph, the list of summaries · `(no entry)` → `Page I-39: ... Intrinsic Function module`
+
+| | |
+|---|---|
+| **Printed** | `- Page I-39: Summary of elements in the Segmentation module` |
+| **This transcription** | `- Page I-39: Summary of elements in the Intrinsic Function module` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-10 (page 834, folio A-4), applied in place: "Paragraph 2.1, last paragraph, add the following to the list" (kb/Work PB5045).
+
+<a id="errata-c53"></a>
+
+### C53 · page 32 (folio I-12) · Section I, the Nucleus module summary, Language Concepts · `&nbsp;Reference modification ..................…` → `&nbsp;Reference-modifier ......................…`
+
+| | |
+|---|---|
+| **Printed** | `Reference modification` |
+| **This transcription** | `Reference-modifier` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (page 834, folio A-4), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045).
+
+<a id="errata-c54"></a>
+
+### C54 · page 32 (folio I-12) · Section I, the Nucleus module summary, under Reference Format · `Asterisk (8) comment line` → `Asterisk (*) comment line`
+
+| | |
+|---|---|
+| **Printed** | `Asterisk (8) comment line` |
+| **This transcription** | `Asterisk (*) comment line` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-12 (T) (page 834, folio A-4), applied in place: "Under 'Reference Format', change 'Asterisk (8) comment line' to 'Asterisk (\*) comment line'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c55"></a>
+
+### C55 · page 59 (folio I-39) · Section I, after the Segmentation module summary · `(no Intrinsic Function list)` → `SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MOD…`
+
+| | |
+|---|---|
+| **Printed** | `SUMMARY OF ELEMENTS IN THE SEGMENTATION MODULE (the last list of page I-39)` |
+| **This transcription** | `SUMMARY OF ELEMENTS IN THE INTRINSIC FUNCTION MODULE (the list above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-39 (page 834, folio A-4), applied in place: "After the Segmentation module list, add the Intrinsic Function module list shown on the next page of this addendum" (page 835, folio A-5) (kb/Work PB5045).
+
+<a id="errata-c56"></a>
+
+### C56 · page 60 (folio I-40) · Section I, paragraph 3.1, second paragraph, the table of module abbreviations · `(no ITR entry)` → `ITR Intrinsic Function`
+
+| | |
+|---|---|
+| **Printed** | `SEG Segmentation` |
+| **This transcription** | `SEG Segmentation ¶ ITR Intrinsic Function` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-40 (page 836, folio A-6), applied in place: "Paragraph 3.1, second paragraph, add the following to the list: ITR Intrinsic Function" (kb/Work PB5045).
+
+<a id="errata-c57"></a>
+
+### C57 · page 61 (folio I-41) · Section I, the division summary, Character Set · `Characters used in punctuation = 1 STM` → `2 STM`
+
+| | |
+|---|---|
+| **Printed** | `&nbsp;Characters used in punctuation = ..................................... 1 STM` |
+| **This transcription** | `&nbsp;Characters used in punctuation = ..................................... 2 STM` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-41 (T) (page 836, folio A-6), applied in place: "Under 'Character Set', change entry in MODULE column for 'Characters used in punctuation =' from '1 STM' to '2 STM'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c58"></a>
+
+### C58 · page 62 (folio I-42) · Section I, the division summary, Language Concepts, before Literals · `(no entry)` → `Function-names 1 ITR`
+
+| | |
+|---|---|
+| **Printed** | `Literals` |
+| **This transcription** | `Function-names ... 1 ITR ¶ Literals` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Literals'; align the word 'Function-names' one position to the right of the word 'Literals': Function-names ... 1 ITR" (kb/Work PB5045).
+
+<a id="errata-c59"></a>
+
+### C59 · page 62 (folio I-42) · Section I, the division summary, Uniqueness of Reference · `Reference modification` → `Reference-modifier`
+
+| | |
+|---|---|
+| **Printed** | `&nbsp;Reference modification 2 NUC` |
+| **This transcription** | `&nbsp;Reference-modifier 2 NUC` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045).
+
+<a id="errata-c60"></a>
+
+### C60 · page 62 (folio I-42) · Section I, the division summary, Uniqueness of Reference, before Reference-modifier · `(no entry)` → `Function-identifier 1 ITR`
+
+| | |
+|---|---|
+| **Printed** | `Reference-modifier` |
+| **This transcription** | `Function-identifier ... 1 ITR ¶ Reference-modifier` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-42 (page 836, folio A-6), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier': Function-identifier ... 1 ITR" (kb/Work PB5045).
+
+<a id="errata-c61"></a>
+
+### C61 · page 65 (folio I-45) · Section I, the division summary, OBJECT-COMPUTER paragraph · `SEGMENT-LIMIT clause 1 SEG Z` → `2 SEG Z`
+
+| | |
+|---|---|
+| **Printed** | `&nbsp;&nbsp;SEGMENT-LIMIT clause 1 SEG Z` |
+| **This transcription** | `&nbsp;&nbsp;SEGMENT-LIMIT clause 2 SEG Z` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-45 (T) (page 836, folio A-6), applied in place: "Under 'OBJECT-COMPUTER paragraph', change entry in MODULE column for 'SEGMENT-LIMIT clause' from '1 SEG Z' to '2 SEG Z'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c62"></a>
+
+### C62 · page 71 (folio I-51) · Section I, the division summary, the line following Level-number clause · `level-number may be 1 or 1 digits` → `level-number may be 1 or 2 digits`
+
+| | |
+|---|---|
+| **Printed** | `&nbsp;01 through 49; level-number may be 1 or 1 digits 1 NUC<br>1 RPW` |
+| **This transcription** | `level-number may be 1 or 2 digits` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-51 (T) (page 836, folio A-6), applied in place: "In the line following 'Level-number clause', change 'may be 1 or 1 digits' to 'may be 1 or 2 digits'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c63"></a>
+
+### C63 · page 74 (folio I-54) · Section I, the division summary, Procedure Division, before ACCEPT statement · `(no Intrinsic functions entries)` → `Intrinsic functions ... Statements`
+
+| | |
+|---|---|
+| **Printed** | `ACCEPT statement 1 NUC` |
+| **This transcription** | `Intrinsic functions, ACOS function ... WHEN-COMPILED function (each 1 ITR), Statements, ACCEPT statement` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-54 (page 836, folio A-6), applied in place: "Add the following before the entry for 'ACCEPT statement'": the entry Intrinsic functions, the 42 function entries of pages 836 and 837 (folios A-6 and A-7), each 1 ITR, and the entry Statements (kb/Work PB5045).
+
+<a id="errata-c64"></a>
+
+### C64 · page 83 (folio I-63) · Section I, the division summary, Procedure Division, ACCEPT statement (page 74) to END-WRITE phrase · `ACCEPT statement ... END-WRITE phrase` → `each indented one position`
+
+| | |
+|---|---|
+| **Printed** | `END-WRITE phrase` |
+| **This transcription** | `END-WRITE phrase, indented one position` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page I-54 thru I-63 (page 837, folio A-7), applied in place: "Indent all lines following the newly inserted 'Statements' entry beginning with 'ACCEPT statement' and ending with 'END-WRITE phrase'": every element line of pages 74 to 83 from ACCEPT statement to END-WRITE phrase is indented one position (`&nbsp;`) more than the page prints it (kb/Work PB5045).
+
+<a id="errata-c65"></a>
+
+### C65 · page 107 (folio II-23) · Section II, paragraph 6.4.1.1 (Names of Programs), second paragraph · `compiled program` → `compiled programs`
+
+| | |
+|---|---|
+| **Printed** | `The names assigned to each of the separately compiled program which constitute` |
+| **This transcription** | `The names assigned to each of the separately compiled programs which constitute` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-23 (T) (page 837, folio A-7), applied in place: "Paragraph 6.4.1.1, entitled 'Names of Programs', second paragraph, first line, change 'compiled program' to 'compiled programs'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c66"></a>
+
+### C66 · page 109 (folio II-25) · Section II, paragraph 6.4.2.2 (Value of Parameters), second paragraph · `to return to the` → `to return a result to the`
+
+| | |
+|---|---|
+| **Printed** | `may be used by a called program to return to the calling program` |
+| **This transcription** | `may be used by a called program to return a result to the calling program` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-25 (T) (page 837, folio A-7), applied in place: "Paragraph 6.4.2.2, entitled 'Value of Parameters', second paragraph, penultimate line, change 'may be used by a called program to return to the' to 'may be used by a called program to return a result to the'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c67"></a>
+
+### C67 · page 120 · Section II, a new paragraph 8 on page II-36, after paragraph 7.6 · `(blank page)` → `8. INTRINSIC FUNCTION FACILITY`
+
+| | |
+|---|---|
+| **Printed** | `(page II-36, a blank page)` |
+| **This transcription** | `8. INTRINSIC FUNCTION FACILITY (the two paragraphs above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page II-35 (page 837, folio A-7), applied in place: "Add the following on page II-36 after paragraph 7.6: 8. INTRINSIC FUNCTION FACILITY" and its two paragraphs; page II-36 is printed blank (kb/Work PB5045).
+
+<a id="errata-c68"></a>
+
+### C68 · page 121 (folio III-1) · Section III, the glossary, the new entry Alphanumeric Function · `(no entry)` → `Alphanumeric Function`
+
+| | |
+|---|---|
+| **Printed** | `Alphanumeric Character (the entry it follows)` |
+| **This transcription** | `Alphanumeric Function. A function whose value is composed of a string of one or more characters from the computer's character set.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c69"></a>
+
+### C69 · page 121 (folio III-1) · Section III, the glossary, the new entry Argument · `(no entry)` → `Argument`
+
+| | |
+|---|---|
+| **Printed** | `Alternate Record Key (the entry it follows)` |
+| **This transcription** | `Argument. An identifier, a literal, or an arithmetic expression that specifies a value to be used in the evaluation of a function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c70"></a>
+
+### C70 · page 130 (folio III-10) · Section III, the glossary, the new entry Function · `(no entry)` → `Function`
+
+| | |
+|---|---|
+| **Printed** | `Format (the entry it follows)` |
+| **This transcription** | `Function. A temporary data item whose value is determined by invoking a mechanism provided by the implementor at the time the function is referenced during the execution of a statement.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c71"></a>
+
+### C71 · page 130 (folio III-10) · Section III, the glossary, the new entries Function-Identifier and Function-Name · `(no entries)` → `Function-Identifier, Function-Name`
+
+| | |
+|---|---|
+| **Printed** | `Function (the entry they follow)` |
+| **This transcription** | `Function-Identifier. ... (See page IV-22, Function-Identifier.) ¶ Function-Name. A word that names a mechanism provided by the implementor to determine the value of a function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c72"></a>
+
+### C72 · page 132 (folio III-12) · Section III, the glossary, the new entry Integer Function · `(no entry)` → `Integer Function`
+
+| | |
+|---|---|
+| **Printed** | `Integer (the entry it follows)` |
+| **This transcription** | `Integer Function. A function whose category is numeric and whose definition provides that all digits to the right of the decimal point are zero in the returned value for any possible evaluation of the function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c73"></a>
+
+### C73 · page 135 (folio III-15) · Section III, the glossary, the new entry Numeric Function · `(no entry)` → `Numeric Function`
+
+| | |
+|---|---|
+| **Printed** | `Numeric Character (the entry it follows)` |
+| **This transcription** | `Numeric Function. A function whose class and category are numeric but which for some possible evaluation does not satisfy the requirements of an integer function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Insert the following terms into the glossary at the appropriate position in the alphabetic sequence" (kb/Work PB5045).
+
+<a id="errata-c74"></a>
+
+### C74 · page 127 (folio III-7) · Section III, the glossary, the entry Data Item · `Data Item (1985 definition)` → `Data Item (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Data Item. A unit of data (excluding literals) defined by the COBOL program.` |
+| **This transcription** | `Data Item. A unit of data (excluding literals) defined by a COBOL program or by the rules for function evaluation.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c75"></a>
+
+### C75 · page 131 (folio III-11) · Section III, the glossary, the entry Identifier · `Identifier (1985 definition)` → `Identifier (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Identifier. A syntactically correct combination of a data-name, with its qualifiers, subscripts, and reference modifiers, as required for uniqueness of reference, that names a data item. The rules for 'identifier' associated with the general formats may, however, specifically prohibit qualification, subscripting, or reference modification.` |
+| **This transcription** | `Identifier. A syntactically correct combination of character-strings and separators that names a data item. When referencing a data item which is not a function, an identifier consists of a data-name, together with its qualifiers, subscripts, and reference-modifier, as required for uniqueness of reference. When referencing a data item which is a function, a function-identifier is used. The rules for 'identifier' associated with general formats may, however, specifically prohibit reference to functions, qualification, subscripting, or reference modification.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c76"></a>
+
+### C76 · page 132 (folio III-12) · Section III, the glossary, the entry Integer · `Integer (1985 definition)` → `Integer (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Integer. A numeric literal or a numeric data item that does not include any digit position to the right of the assumed decimal point. When the term 'integer' appears in general formats, integer must not be a numeric data item, and must not be signed, nor zero unless explicitly allowed by the rules of that format.` |
+| **This transcription** | `Integer. (1) ... (2) ... (3) ... (the definition above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 838, folio A-8), applied in place: "Replace the definitions as follows" (the definition continues on page 839, folio A-9) (kb/Work PB5045).
+
+<a id="errata-c77"></a>
+
+### C77 · page 132 (folio III-12) · Section III, the glossary, the entry Key Word · `Key Word (1985 definition)` → `Key Word (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Key Word. A reserved word whose presence is required when the format in which the word appears is used in a source program.` |
+| **This transcription** | `Key Word. A reserved word or function-name whose presence is required when the format in which the word appears is used in a source program.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c78"></a>
+
+### C78 · page 144 (folio III-24) · Section III, the glossary, the entry Subscript · `Subscript (1985 definition)` → `Subscript (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Subscript. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, which identifies a particular element in a table.` |
+| **This transcription** | `Subscript. An occurrence number represented by either an integer, a data-name optionally followed by an integer with the operator + or -, or an index-name optionally followed by an integer with the operator + or -, that identifies a particular element in a table. A subscript may be the word ALL when the subscripted identifier is used as a function argument. (See page A-28, Arguments.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c79"></a>
+
+### C79 · page 146 (folio III-26) · Section III, the glossary, the entry Word · `Word (1985 definition)` → `Word (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Word. A character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word. (See page IV-5, COBOL Words.)` |
+| **This transcription** | `Word. A character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. (See page IV-5, COBOL Words.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-1 thru III-26 (page 839, folio A-9), applied in place: "Replace the definitions as follows" (kb/Work PB5045).
+
+<a id="errata-c80"></a>
+
+### C80 · page 139 (folio III-19) · Section III, the glossary, the entry Reference Modifier · `Reference Modifier (1985 definition)` → `Reference-Modifier (amended)`
+
+| | |
+|---|---|
+| **Printed** | `Reference Modifier. The leftmost-character-position and length used to establish and reference a data item. (See page IV-22, Reference Modification.)` |
+| **This transcription** | `Reference-Modifier. A syntactically correct combination of character-strings and separators that defines a unique data item. ... (See page IV-22, Reference-Modifier.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page III-19 (page 839, folio A-9), applied in place: "Replace the definition for Reference Modifier with the following" (kb/Work PB5045).
+
+<a id="errata-c81"></a>
+
+### C81 · page 148 (folio IV-2) · Section IV, paragraph 2.1.5 (Ellipses), second paragraph · `In the general format,` → `In the general formats,`
+
+| | |
+|---|---|
+| **Printed** | `In the general format, the ellipsis (...) represents` |
+| **This transcription** | `In the general formats, the ellipsis (...) represents` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-2 (T) (page 839, folio A-9), applied in place: "Paragraph 2.1.5 entitled 'Ellipses', second paragraph, first line, change 'In the general format,' to 'In the general formats,'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c82"></a>
+
+### C82 · page 150 (folio IV-4) · Section IV, paragraph 4.1 (Character Set), third paragraph · `fewer than 51 characters, double` → `fewer than 52 characters (...), double`
+
+| | |
+|---|---|
+| **Printed** | `When a character set contains fewer than 51 characters, double characters` |
+| **This transcription** | `When a character set contains fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double characters` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (T) (page 839, folio A-9), applied in place: "Paragraph 4.1, entitled 'Character Set', third paragraph, first line, change 'fewer than 51 characters, double' to 'fewer than 52 characters (all characters of the COBOL character set except the lowercase letters), double'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c83"></a>
+
+### C83 · page 150 (folio IV-4) · Section IV, paragraph 4.2.1 (Separators), rule 4, second sentence · `delimiting subscripts, reference modifiers` → `delimiting subscripts, a list of function argumen…`
+
+| | |
+|---|---|
+| **Printed** | `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, reference modifiers, arithmetic expressions, or conditions.` |
+| **This transcription** | `Parentheses may appear only in balanced pairs of left and right parentheses delimiting subscripts, a list of function arguments, reference modifiers, arithmetic expressions, or conditions.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-4 (page 839, folio A-9), applied in place: "Paragraph 4.2.1, rule (4), change second sentence to read" (kb/Work PB5045).
+
+<a id="errata-c84"></a>
+
+### C84 · page 151 (folio IV-5) · Section IV, paragraph 4.2.2.1 (COBOL Words), its first sentence · `a system-name, or a reserved word.` → `a system-name, a reserved word, or a function-nam…`
+
+| | |
+|---|---|
+| **Printed** | `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, or a reserved word.` |
+| **This transcription** | `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the paragraph as Amendment 1 prints it; it runs on to page 152 (kb/Work PB5045).
+
+<a id="errata-c85"></a>
+
+### C85 · page 152 (folio IV-6) · Section IV, paragraph 4.2.2.1 (COBOL Words), the rest of the paragraph · `system-names and user-defined words form intersec…` → `function-names, system-names, and user-defined wo…`
+
+| | |
+|---|---|
+| **Printed** | `reserved words and system-names form disjoint sets; system-names and user-defined words form intersecting sets. The same COBOL word may be used as a system-name and as a user-defined word within a source program; and the class of a specific occurrence of this COBOL word is determined` |
+| **This transcription** | `reserved words and system-names form disjoint sets; reserved words and function-names form disjoint sets; function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word within a source program; and the class of a specific occurrence of the COBOL word is determined` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-5 (page 839, folio A-9), applied in place: "Paragraph 4.2.2.1, replace with the following": the rest of the paragraph as Amendment 1 prints it (kb/Work PB5045).
+
+<a id="errata-c86"></a>
+
+### C86 · page 155 (folio IV-9) · Section IV, a new paragraph 4.2.2.1.4 (Function-Names) · `(no paragraph 4.2.2.1.4)` → `4.2.2.1.4 Function-Names`
+
+| | |
+|---|---|
+| **Printed** | `4.2.2.2 Literals (the paragraph it precedes)` |
+| **This transcription** | `4.2.2.1.4 Function-Names. A function-name is a word that is one of a specified list of words ...` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-9 (page 840, folio A-10), applied in place: "Add the following before paragraph 4.2.2.2: 4.2.2.1.4 Function-Names" (kb/Work PB5045).
+
+<a id="errata-c87"></a>
+
+### C87 · page 161 (folio IV-15) · Section IV, paragraph 4.3.3 (Concept of Classes of Data) · `(the last sentence)` → `two new paragraphs`
+
+| | |
+|---|---|
+| **Printed** | `The following table depicts the relationship of the class and categories of data items.` |
+| **This transcription** | `Every data item which is a function is an elementary item, ... (See page A-27, Intrinsic Function Module.) ¶ The following table depicts the relationship of the class and categories of data items.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-15 (page 840, folio A-10), applied in place: "Paragraph 4.3.3, delete the last sentence and add the following new paragraphs"; the deleted sentence is the second new paragraph (kb/Work PB5045).
+
+<a id="errata-c88"></a>
+
+### C88 · page 162 (folio IV-16) · Section IV, paragraph 4.3.4, second paragraph, first sentence · `must be used if not otherwise` → `must be used for data items other than integer an…`
+
+| | |
+|---|---|
+| **Printed** | `the standard data format must be used if not otherwise specified by the data description.` |
+| **This transcription** | `the standard data format must be used for data items other than integer and numeric functions, if not otherwise specified by the data description.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-16 (page 840, folio A-10), applied in place: "Paragraph 4.3.4, second paragraph, replace first sentence with the following" (kb/Work PB5045).
+
+<a id="errata-c89"></a>
+
+### C89 · page 162 (folio IV-16) · Section IV, paragraph 4.3.4, a new paragraph before the last · `(no paragraph)` → `An alphanumeric function is always represented ...`
+
+| | |
+|---|---|
+| **Printed** | `The size of an elementary data item or a group item is the number of characters in standard data format of the item. (the paragraph it precedes)` |
+| **This transcription** | `An alphanumeric function is always represented in the standard data format. The size of an alphanumeric function in standard data format characters is determined by the definition of the function. The implementor specifies the representation of integer and numeric functions, and this representation need not be the standard data format. Integer and numeric functions may be used only in arithmetic expressions. An integer or numeric function represents the value resulting from the evaluation of the function without the restriction on composite of operands and/or receiving data items. Each implementor will indicate the techniques used in evaluating integer and numeric functions.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-16 (page 840, folio A-10), applied in place: "Paragraph 4.3.4, add the following new paragraph preceding the last paragraph" (kb/Work PB5045).
+
+<a id="errata-c90"></a>
+
+### C90 · page 164 (folio IV-18) · Section IV, paragraph 4.3.8, a new paragraph before the last · `(no paragraph)` → `When the resource named is a function, ...`
+
+| | |
+|---|---|
+| **Printed** | `Unless otherwise specified by the rules for a statement, any subscripting and reference modification are evaluated only once (the paragraph it precedes)` |
+| **This transcription** | `When the resource named is a function, the function definition may require the user to specify in the reference to the function a value or set of values for one or more parameters which determine the value of the function for that particular reference. This is accomplished through the specification of arguments as described in the following paragraphs.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-18 (page 840, folio A-10), applied in place: "Paragraph 4.3.8, add the following new paragraph preceding the last paragraph" (kb/Work PB5045).
+
+<a id="errata-c91"></a>
+
+### C91 · page 167 (folio IV-21) · Section IV, paragraph 4.3.8.2.2, the general format of subscripting · `(1985 format)` → `(format with ALL)`
+
+| | |
+|---|---|
+| **Printed** | `the general format of subscripting without ALL` |
+| **This transcription** | `the general format above, with ALL` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.2, replace the general format with the following" (kb/Work PB5045).
+
+<a id="errata-c92"></a>
+
+### C92 · page 167 (folio IV-21) · Section IV, paragraph 4.3.8.2.3, a new syntax rule 7 · `(no rule 7)` → `(7) The subscript ALL may be used only ...`
+
+| | |
+|---|---|
+| **Printed** | `(6) Integer-1 may be signed and, if signed, it must be positive.` |
+| **This transcription** | `(7) The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified. (See page A-28, Arguments.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-21 (page 841, folio A-11), applied in place: "Paragraph 4.3.8.2.3, add new syntax rule 7 as follows" (kb/Work PB5045).
+
+<a id="errata-c93"></a>
+
+### C93 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.3 (Reference Modification) and its subparagraphs, renumbered · `4.3.8.3 Reference Modification` → `4.3.8.4`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3 Reference Modification, 4.3.8.3.1 Function, 4.3.8.3.2 General Format, 4.3.8.3.3 Syntax Rules, 4.3.8.3.4 General Rules` |
+| **This transcription** | `4.3.8.4, 4.3.8.4.1 to 4.3.8.4.4` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045).
+
+<a id="errata-c94"></a>
+
+### C94 · page 170 (folio IV-24) · Section IV, paragraph 4.3.8.5 (Condition-Name), renumbered · `4.3.8.5 Condition-Name` → `4.3.8.6 Condition-Name`
+
+| | |
+|---|---|
+| **Printed** | `### 4.3.8.5 Condition-Name` |
+| **This transcription** | `### 4.3.8.6 Condition-Name` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 thru IV-24 (page 841, folio A-11), applied in place: "Renumber paragraphs 4.3.8.3 thru 4.3.8.5 to 4.3.8.4 thru 4.3.8.6, respectively" (kb/Work PB5045).
+
+<a id="errata-c95"></a>
+
+### C95 · page 168 (folio IV-22) · Section IV, a new paragraph 4.3.8.3 (Function-Identifier) · `(no paragraph 4.3.8.3)` → `4.3.8.3 Function-Identifier`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3 Reference Modification (the paragraph now numbered 4.3.8.4)` |
+| **This transcription** | `4.3.8.3 Function-Identifier, its Purpose, General Format, Syntax Rules (1) to (4) and General Rules (1) and (2), above` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 841, folio A-11), applied in place: "Add the following as new paragraph 4.3.8.3: 4.3.8.3 Function-Identifier", which runs on to page 842 (folio A-12) (kb/Work PB5045).
+
+<a id="errata-c96"></a>
+
+### C96 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4, its title · `Reference Modification` → `Reference-Modifier`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3 Reference Modification` |
+| **This transcription** | `4.3.8.4 Reference-Modifier` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4, change the title to 'Reference-Modifier'" (kb/Work PB5045).
+
+<a id="errata-c97"></a>
+
+### C97 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4.2, the general format of reference modification · `data-name-1 ( leftmost-character-position: [ leng…` → `(format with FUNCTION)`
+
+| | |
+|---|---|
+| **Printed** | `data-name-1 ( leftmost-character-position: [ length ] )` |
+| **This transcription** | `the general format above, with FUNCTION function-name-1, and its NOTE` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.2, replace the general format with the following" (kb/Work PB5045).
+
+<a id="errata-c98"></a>
+
+### C98 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4.3, a new syntax rule 5 · `(no rule 5)` → `(5) The function referenced by function-name-1 ...`
+
+| | |
+|---|---|
+| **Printed** | `(4) Data-name-1 may be qualified or subscripted.` |
+| **This transcription** | `(5) The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.3, add the following as new syntax rule 5" (kb/Work PB5045).
+
+<a id="errata-c99"></a>
+
+### C99 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4.4, general rule 1, first sentence · `referenced by data-name-1 is assigned` → `referenced by data-name-1 or by function-name-1 a…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Each character of a data item referenced by data-name-1 is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.` |
+| **This transcription** | `(1) Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-22 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c100"></a>
+
+### C100 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 3a, a new last sentence · `after evaluation of the subscripts.` → `... If an ALL subscript is specified ...`
+
+| | |
+|---|---|
+| **Printed** | `a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts.` |
+| **This transcription** | `a. If subscripting is specified for the operand, the reference modification is evaluated immediately after evaluation of the subscripts. If an ALL subscript is specified for an operand, the reference-modifier is applied to each of the implicitly specified elements of the table.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, general rule 3a, add the following new last sentence" (kb/Work PB5045).
+
+<a id="errata-c101"></a>
+
+### C101 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 3, a new item c · `(no item c)` → `c. If reference modification is specified in a fu…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the subscripting is not specified for the operand, ...` |
+| **This transcription** | `c. If reference modification is specified in a function reference, the reference modification is evaluated immediately after evaluation of the function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 842, folio A-12), applied in place: "New paragraph 4.3.8.4.4, general rule 3, add the following as new rule c" (kb/Work PB5045).
+
+<a id="errata-c102"></a>
+
+### C102 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 4, first sentence · `which is a subset of the data item referenced by…` → `that is a subset ... or by function-name-1 and it…`
+
+| | |
+|---|---|
+| **Printed** | `(4) Reference modification creates a unique data item which is a subset of the data item referenced by data-name-1.` |
+| **This transcription** | `(4) Reference modification creates a unique data item that is a subset of the data item referenced by data-name-1 or by function-name-1 and its arguments, if any.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 4, change the first sentence to read" (kb/Work PB5045).
+
+<a id="errata-c103"></a>
+
+### C103 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 4, items a and b · `the data item referenced by data-name-1` → `... or function-name-1 and its arguments, if any`
+
+| | |
+|---|---|
+| **Printed** | `the data item referenced by data-name-1` |
+| **This transcription** | `the data item referenced by data-name-1 or function-name-1 and its arguments, if any` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 4, paragraphs a and b, replace four occurrences of 'the data item referenced by data-name-1' by 'the data item referenced by data-name-1 or function-name-1 and its arguments, if any'" (kb/Work PB5045).
+
+<a id="errata-c104"></a>
+
+### C104 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4.4, general rule 5, second sentence · `It has the same class` → `When a function is referenced, ... When data-name…`
+
+| | |
+|---|---|
+| **Printed** | `without the JUSTIFIED clause. It has the same class and category` |
+| **This transcription** | `without the JUSTIFIED clause. When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item has the same class and category` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.4.4, general rule 5, second sentence, replace the word 'It' by 'When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item'" (kb/Work PB5045).
+
+<a id="errata-c105"></a>
+
+### C105 · page 169 (folio IV-23) · Section IV, paragraph 4.3.8.4 (Identifier), renumbered 4.3.8.5 and changed · `4.3.8.4 Identifier (1985 text)` → `4.3.8.5 Identifier (amended)`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.4 Identifier: An identifier is a term used to reflect a data-name that, if not unique in a program, must be followed by ... (the 1985 paragraph and its general format)` |
+| **This transcription** | `4.3.8.5 Identifier, its Function, General Format (formats 1 and 2) and Syntax Rule (1), above` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-23 (page 843, folio A-13), applied in place: "New paragraph 4.3.8.5, change to read: 4.3.8.5 Identifier"; the paragraph is the one the renumbering of the change for pages IV-22 thru IV-24 (page 841, folio A-11) makes 4.3.8.5 (kb/Work PB5045).
+
+<a id="errata-c106"></a>
+
+### C106 · page 191 (folio IV-45) · Section IV, paragraph 8, before the list of reserved words · `(no sentence)` → `The following is a list of COBOL reserved words .…`
+
+| | |
+|---|---|
+| **Printed** | `8. COBOL RESERVED WORDS (the heading the list follows)` |
+| **This transcription** | `The following is a list of COBOL reserved words for the seven required modules and the four optional modules of Report Writer, Communication, Debug, and Segmentation.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-45 (page 843, folio A-13), applied in place: "Paragraph 8, insert the following before the list of reserved words" (kb/Work PB5045).
+
+<a id="errata-c107"></a>
+
+### C107 · page 192 (folio IV-46) · Section IV, paragraph 8, after the list of reserved words · `(no list)` → `The following is a list ... Intrinsic Function mo…`
+
+| | |
+|---|---|
+| **Printed** | `QUEUE SEGMENT-LIMIT THROUGH (the last row of the list)` |
+| **This transcription** | `The following is a list of COBOL reserved words for the optional Intrinsic Function module. ¶ FUNCTION` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IV-46 (page 844, folio A-14), applied in place: "Paragraph 8, insert the following after the list of reserved words" (kb/Work PB5045).
+
+<a id="errata-c108"></a>
+
+### C108 · page 195 (folio V-3) · Section V, the SPECIAL-NAMES paragraph format, the SYMBOLIC CHARACTERS clause · `two sets of braces` → `outermost set deleted`
+
+| | |
+|---|---|
+| **Printed** | `SYMBOLIC CHARACTERS { {symbolic-character-1} ... {ISARE} {integer-1} ... } ... [IN alphabet-name-2] } ... (two sets of braces)` |
+| **This transcription** | `the format above, its outermost braces deleted` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-3 (T) (page 844, folio A-14), applied in place: "SYMBOLIC CHARACTERS clause, delete outermost set of braces", a typographical error (kb/Work PB5045).
+
+<a id="errata-c109"></a>
+
+### C109 · page 199 (folio V-7) · Section V, the file control entry format, the ORGANIZATION clause · `[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] ]` → `[ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ]`
+
+| | |
+|---|---|
+| **Printed** | `[ [ ORGANIZATION IS ] SEQUENTIAL ] ]` |
+| **This transcription** | `[ [ ORGANIZATION IS ] SEQUENTIAL ]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-7 (T) (page 844, folio A-14), applied in place: "ORGANIZATION clause, delete second occurrence of a right bracket after the word SEQUENTIAL", a typographical error (kb/Work PB5045).
+
+<a id="errata-c110"></a>
+
+### C110 · page 207 (folio V-15) · Section V, the communication description entry, format 1, its end · `(no period)` → `a terminal period`
+
+| | |
+|---|---|
+| **Printed** | `data-name-10, data-name-11] ┘` |
+| **This transcription** | `┘ .` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-15 (T) (page 844, folio A-14), applied in place: "Insert a terminal period following the last bracket in format 1", a typographical error (kb/Work PB5045).
+
+<a id="errata-c111"></a>
+
+### C111 · page 207 (folio V-15) · Section V, the communication description entry, format 1, the data-name list · `data-name-1, data-name-2, ...` → `data-name-1 data-name-2 ...`
+
+| | |
+|---|---|
+| **Printed** | `[data-name-1, data-name-2, data-name-3, ... data-name-10, data-name-11]` |
+| **This transcription** | `[data-name-1 data-name-2 data-name-3 ... data-name-10 data-name-11]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-15 (T) (page 844, folio A-14), applied in place: "Delete the commas between data-name-1 through data-name-11, inclusively, in format 1", a typographical error (kb/Work PB5045).
+
+<a id="errata-c112"></a>
+
+### C112 · page 208 (folio V-16) · Section V, the communication description entry, format 3, its end · `(no period)` → `a terminal period`
+
+| | |
+|---|---|
+| **Printed** | `data-name-4, data-name-5, data-name-6] ┘` |
+| **This transcription** | `┘ .` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-16 (T) (page 844, folio A-14), applied in place: "Insert a terminal period following the last bracket in format 3", a typographical error (kb/Work PB5045).
+
+<a id="errata-c113"></a>
+
+### C113 · page 208 (folio V-16) · Section V, the communication description entry, format 3, the data-name list · `data-name-1, data-name-2, ...` → `data-name-1 data-name-2 ...`
+
+| | |
+|---|---|
+| **Printed** | `[data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, data-name-6]` |
+| **This transcription** | `[data-name-1 data-name-2 data-name-3 data-name-4 data-name-5 data-name-6]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-16 (T) (page 844, folio A-14), applied in place: "Delete the commas between data-name-1 through data-name-6, inclusively, in format 3", a typographical error (kb/Work PB5045).
+
+<a id="errata-c114"></a>
+
+### C114 · page 219 (folio V-27) · Section V, the PERFORM statement format, the AFTER phrase · `AFTER ... literal-3` → `AFTER ... index-name-3`
+
+| | |
+|---|---|
+| **Printed** | `AFTER { identifier-5 / literal-3 } FROM { identifier-6 / index-name-4 / literal-3 }` |
+| **This transcription** | `AFTER { identifier-5 / index-name-3 } FROM ...` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-27 (T) (page 844, folio A-14), applied in place: "PERFORM format, AFTER phrase, change 'literal-3' immediately after the reserved word AFTER to 'index-name-3'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c115"></a>
+
+### C115 · page 220 (folio V-28) · Section V, the first REWRITE statement format · `(no END-REWRITE)` → `[ END-REWRITE ]`
+
+| | |
+|---|---|
+| **Printed** | `S REWRITE record-name-1 [ FROM identifier-1 ]` |
+| **This transcription** | `S REWRITE record-name-1 [ FROM identifier-1 ] [ END-REWRITE ]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-28 (T) (page 844, folio A-14), applied in place: "Insert '[END-REWRITE]' at the end of the first REWRITE statement", a typographical error (kb/Work PB5045).
+
+<a id="errata-c116"></a>
+
+### C116 · page 230 (folio V-38) · Section V, the miscellaneous formats, SUBSCRIPTING · `(1985 format)` → `(format with ALL)`
+
+| | |
+|---|---|
+| **Printed** | `the format of subscripting without ALL` |
+| **This transcription** | `the format above, with ALL` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Change the format for subscripting to read" (kb/Work PB5045).
+
+<a id="errata-c117"></a>
+
+### C117 · page 230 (folio V-38) · Section V, the miscellaneous formats, after SUBSCRIPTING · `(no format)` → `FUNCTION-IDENTIFIER`
+
+| | |
+|---|---|
+| **Printed** | `REFERENCE MODIFICATION (the format it precedes)` |
+| **This transcription** | `FUNCTION-IDENTIFIER: FUNCTION function-name-1 [ ( { argument-1 } … ) ] [ reference-modifier ]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Add the following after the format for subscripting: FUNCTION-IDENTIFIER" (kb/Work PB5045).
+
+<a id="errata-c118"></a>
+
+### C118 · page 230 (folio V-38) · Section V, the miscellaneous formats, REFERENCE MODIFICATION · `(1985 format)` → `(format with FUNCTION)`
+
+| | |
+|---|---|
+| **Printed** | `data-name-1 ( leftmost-character-position: [ length ] )` |
+| **This transcription** | `the format above, with FUNCTION function-name-1` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 844, folio A-14), applied in place: "Change the format for reference modification to read" (kb/Work PB5045).
+
+<a id="errata-c119"></a>
+
+### C119 · page 230 (folio V-38) · Section V, the miscellaneous formats, IDENTIFIER · `(1985 format)` → `(formats 1 and 2)`
+
+| | |
+|---|---|
+| **Printed** | `data-name-1 [ {INOF} data-name-2 ] ... [ {INOF} {cd-name-1file-name-1report-name-1} ] [({subscript} ...)] [(leftmost-character-position: [length])]` |
+| **This transcription** | `Format 1: function-identifier-1; Format 2 (above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, folio A-15), applied in place: "Change the format for identifier to read" (kb/Work PB5045).
+
+<a id="errata-c120"></a>
+
+### C120 · page 230 (folio V-38) · Section V, after page V-38, the general format for intrinsic functions · `(no format)` → `GENERAL FORMAT FOR INTRINSIC FUNCTIONS`
+
+| | |
+|---|---|
+| **Printed** | `(the end of page V-38)` |
+| **This transcription** | `GENERAL FORMAT FOR INTRINSIC FUNCTIONS: FUNCTION ACOS (argument-1) ... FUNCTION WHEN-COMPILED` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page V-38 (page 845, folio A-15), applied in place: "Insert after page V-38 the contents of pages A-16 and A-17 which contain the general format for functions" (pages 846 and 847) (kb/Work PB5045).
+
+<a id="errata-c121"></a>
+
+### C121 · page 233 (folio VI-1) · Section VI, paragraph 1.3, its title · `LEVEL RESTRICTIONS ON OVERALL LANGUAGE` → `RESTRICTIONS ON OVERALL LANGUAGE`
+
+| | |
+|---|---|
+| **Printed** | `### 1.3 LEVEL RESTRICTIONS ON OVERALL LANGUAGE` |
+| **This transcription** | `### 1.3 RESTRICTIONS ON OVERALL LANGUAGE` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-1 (page 848, folio A-18), applied in place: "Paragraph 1.3, change title to read: 'RESTRICTIONS ON OVERALL LANGUAGE'" (kb/Work PB5045).
+
+<a id="errata-c122"></a>
+
+### C122 · page 234 (folio VI-2) · Section VI, paragraphs 1.3.5 and 1.3.6, renumbered · `1.3.5, 1.3.6` → `1.3.6, 1.3.7`
+
+| | |
+|---|---|
+| **Printed** | `1.3.5 Reference Modification, 1.3.6 Reference Format` |
+| **This transcription** | `1.3.6 Reference Modification, 1.3.7 Reference Format` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "Renumber paragraphs 1.3.5 and 1.3.6 to 1.3.6 and 1.3.7, respectively" (kb/Work PB5045).
+
+<a id="errata-c123"></a>
+
+### C123 · page 234 (folio VI-2) · Section VI, a new paragraph 1.3.5 (Function-Identifier), not boxed · `(no paragraph 1.3.5)` → `1.3.5 Function-Identifier`
+
+| | |
+|---|---|
+| **Printed** | `1.3.6 Reference Modification (the paragraph it precedes)` |
+| **This transcription** | `1.3.5 Function-Identifier. The availability of function-identifiers is dependent on whether the Intrinsic Function module is supported by the implementation.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-2 (page 848, folio A-18), applied in place: "add new paragraph 1.3.5 without boxing as follows: 1.3.5 Function-Identifier" (kb/Work PB5045).
+
+<a id="errata-c124"></a>
+
+### C124 · page 245 (folio VI-13) · Section VI, paragraph 4.5.2, the SYMBOLIC CHARACTERS clause · `two sets of braces` → `outermost set deleted`
+
+| | |
+|---|---|
+| **Printed** | `SYMBOLIC CHARACTERS { {symbolic-character-1} ... {ISARE} {integer-1} ... } ... [IN alphabet-name-2] } ... (two sets of braces)` |
+| **This transcription** | `the format above, its outermost braces deleted` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-13 (T) (page 848, folio A-18), applied in place: "Paragraph 4.5.2, SYMBOLIC CHARACTERS clause, delete outermost set of braces", a typographical error (kb/Work PB5045).
+
+<a id="errata-c125"></a>
+
+### C125 · page 252 (folio VI-20) · Section VI, paragraph 5.3.2, the OCCURS clause, the first INDEXED BY phrase · `INDEXED BY boxed` → `INDEXED BY not boxed`
+
+| | |
+|---|---|
+| **Printed** | `the OCCURS clause with one box from ASCENDING through the second INDEXED BY` |
+| **This transcription** | `the box split: ASCENDING ... KEY, then (unboxed) INDEXED BY, then the DEPENDING ON format boxed` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-20 (T) (page 848, folio A-18), applied in place: "Paragraph 5.3.2 of the OCCURS clause, delete the box around the first occurrence of '[INDEXED BY {index-name-1} ...]'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c126"></a>
+
+### C126 · page 289 (folio VI-57) · Section VI, paragraph 6.3.1.2 (Class Condition), the first paragraph after the general format · `The usage of the operand being tested must be des…` → `Identifier-1 must reference a data item whose usa…`
+
+| | |
+|---|---|
+| **Printed** | `The usage of the operand being tested must be described as DISPLAY.` |
+| **This transcription** | `Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-57 (page 848, folio A-18), applied in place: "Paragraph 6.3.1.2, replace the first paragraph after the general format beginning with 'The usage of the operand...'" (kb/Work PB5045).
+
+<a id="errata-c127"></a>
+
+### C127 · page 294 (folio VI-62) · Section VI, paragraph 6.3.4, the penultimate paragraph · `Values are established for arithmetic expressions…` → `(2) Values are established for arithmetic express…`
+
+| | |
+|---|---|
+| **Printed** | `║Values are established for arithmetic expressions if and when` |
+| **This transcription** | `║(2) Values are established for arithmetic expressions and functions if and when` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-62 (page 848, folio A-18), applied in place: "Paragraph 6.3.4, penultimate paragraph: a. Insert '(2)' at the beginning of the paragraph and indent 3 spaces. b. Change the first sentence in part to read: 'Values are established for arithmetic expressions and functions if and when...'" (kb/Work PB5045).
+
+<a id="errata-c128"></a>
+
+### C128 · page 302 (folio VI-70) · Section VI, paragraph 6.4.7 · `PICTURE clause, then the result` → `PICTURE clause or function definition, then the r…`
+
+| | |
+|---|---|
+| **Printed** | `specified for that data item by its PICTURE clause, then the result` |
+| **This transcription** | `specified for that data item by its PICTURE clause or function definition, then the result` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-70 (page 848, folio A-18), applied in place: "Paragraph 6.4.7, change in part to read: '...PICTURE clause or function definition, then the result...'" (kb/Work PB5045).
+
+<a id="errata-c129"></a>
+
+### C129 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), general rule 4 · `Subscripting associated with any identifier is ev…` → `If any identifier is subscripted or is a function…`
+
+| | |
+|---|---|
+| **Printed** | `(4) Subscripting associated with any identifier is evaluated only once` |
+| **This transcription** | `(4) If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated only once` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-96 (page 848, folio A-18), applied in place: "Paragraph 6.18.4, general rule 4, change in part to read: 'If any identifier is subscripted or is a function-identifier, the subscript or function-identifier is evaluated...'" (kb/Work PB5045).
+
+<a id="errata-c130"></a>
+
+### C130 · page 335 (folio VI-103) · Section VI, paragraph 6.19.4 (MOVE), general rule 2, second paragraph, first sentence · `Any subscripting associated with identifier-1 is…` → `If identifier-1 is reference modified, subscripte…`
+
+| | |
+|---|---|
+| **Printed** | `Any subscripting associated with identifier-1 is evaluated only once, immediately before data is moved to the first of the receiving operands.` |
+| **This transcription** | `If identifier-1 is reference modified, subscripted, or is a function-identifier, the reference modifier, subscript, or function-identifier is evaluated only once, immediately before data is moved to the first of the receiving operands.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-103 (page 848, folio A-18), applied in place: "Paragraph 6.19.4, general rule 2, second paragraph, change the first sentence to read" (kb/Work PB5045).
+
+<a id="errata-c131"></a>
+
+### C131 · page 336 (folio VI-104) · Section VI, paragraph 6.19.4 (MOVE), general rule 3 · `alphabetic, numeric edited,` → `alphabetic, alphanumeric, numeric edited,`
+
+| | |
+|---|---|
+| **Printed** | `categories: numeric, alphabetic, numeric edited, alphanumeric edited.` |
+| **This transcription** | `categories: numeric, alphabetic, alphanumeric, numeric edited, alphanumeric edited.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VI-104 (T) (page 848, folio A-18), applied in place: "Paragraph 6.19.4 of the MOVE statement, general rule 3, fourth line, change 'alphabetic, numeric edited,' to 'alphabetic, alphanumeric, numeric edited,'", a typographical error (the category list without alphanumeric, a lead of kb/Work PB4984) (kb/Work PB5045).
+
+<a id="errata-c132"></a>
+
+### C132 · page 380 (folio VII-6) · Section VII, paragraph 2.1, the general format of the Input-Output Section · `║ [ <u>I-O-CONTROL</u>. [ input-output-control-en…` → `[ <u>I-O-CONTROL</u>. [ input-output-control-entr…`
+
+| | |
+|---|---|
+| **Printed** | `║ [ I-O-CONTROL. [ input-output-control-entry ] ] ║` |
+| **This transcription** | `[ I-O-CONTROL. [ input-output-control-entry ] ]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-6 (T) (page 849, folio A-19), applied in place: "Paragraph 2.1, in the Input-Output Section of the Sequential I-O module, delete the box around the general format", a typographical error (kb/Work PB5045).
+
+<a id="errata-c133"></a>
+
+### C133 · page 422 (folio VII-48) · Section VII, paragraph 4.5.3 (REWRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-48 (page 849, folio A-19), applied in place: "Paragraph 4.5.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c134"></a>
+
+### C134 · page 426 (folio VII-52) · Section VII, paragraph 4.7.3 (WRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VII-52 (page 849, folio A-19), applied in place: "Paragraph 4.7.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c135"></a>
+
+### C135 · page 460 (folio VIII-30) · Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c136"></a>
+
+### C136 · page 460 (folio VIII-30) · Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 4 · `access mode, and for which` → `access mode for which`
+
+| | |
+|---|---|
+| **Printed** | `access mode, and for which an appropriate USE AFTER STANDARD EXCEPTION procedure` |
+| **This transcription** | `access mode for which an appropriate USE AFTER STANDARD EXCEPTION procedure` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-30 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 4 in part to read: '...mode for which...'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c137"></a>
+
+### C137 · page 467 (folio VIII-37) · Section VIII, paragraph 4.9.3 (WRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page VIII-37 (page 849, folio A-19), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c138"></a>
+
+### C138 · page 474 (folio IX-4) · Section IX, paragraph 1.3.4 (I-O Status), the second (3), item b · `write or rewrite` → `write ║or rewrite║`
+
+| | |
+|---|---|
+| **Printed** | `An attempt is made to write or rewrite a record that would create a duplicate prime record key` |
+| **This transcription** | `An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-4 (T) (page 849, folio A-19), applied in place: "Paragraph 1.3.4, entitled 'I-O Status', second occurrence of a paragraph numbered (3), subparagraph b, first line, box 'or rewrite'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c139"></a>
+
+### C139 · page 477 (folio IX-7) · Section IX, paragraph 1.3.7, first paragraph, last line · `; an page` → `; and page`
+
+| | |
+|---|---|
+| **Printed** | `page IX-33, The REWRITE Statement; an page IX-41` |
+| **This transcription** | `page IX-33, The REWRITE Statement; and page IX-41` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-7 (T) (page 849, folio A-19), applied in place: "Paragraph 1.3.7, first paragraph, last line, change 'an' to 'and'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c140"></a>
+
+### C140 · page 503 (folio IX-33) · Section IX, paragraph 4.6.3 (REWRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (page 849, folio A-19), applied in place: "Paragraph 4.6.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c141"></a>
+
+### C141 · page 503 (folio IX-33) · Section IX, paragraph 4.6.3 (REWRITE), syntax rule 3 · `(3) The INVALID KEY and the NOT INVALID KEY phras…` → `(3) The INVALID KEY phrase must be specified in t…`
+
+| | |
+|---|---|
+| **Printed** | `(3) The INVALID KEY and the NOT INVALID KEY phrases must be specified if an applicable USE AFTER STANDARD EXCEPTION procedure is not specified for the associated file-name.` |
+| **This transcription** | `(3) The INVALID KEY phrase must be specified in the REWRITE statement for indexed files for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-33 (T) (page 849, folio A-19), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Indexed I-O module, syntax rule 3, change to read", a typographical error (kb/Work PB5045).
+
+<a id="errata-c142"></a>
+
+### C142 · page 511 (folio IX-41) · Section IX, paragraph 4.9.3 (WRITE), syntax rule 1 · `(1) Record-name-1 and identifier-1 must not refer…` → `(1) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(1) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(1) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page IX-41 (page 850, folio A-20), applied in place: "Paragraph 4.9.3, change syntax rule 1 to read" (kb/Work PB5045).
+
+<a id="errata-c143"></a>
+
+### C143 · page 515 (folio X-1) · Section X, paragraph 1.1 (Function) · `data value available` → `data values available`
+
+| | |
+|---|---|
+| **Printed** | `to make certain data value available to a called program` |
+| **This transcription** | `to make certain data values available to a called program` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-1 (T) (page 850, folio A-20), applied in place: "Paragraph 1.1, Function for Inter-Program Communication module, fifth line, change 'data value available' to 'data values available'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c144"></a>
+
+### C144 · page 516 (folio X-2) · Section X, paragraph 1.3.4 (External Objects and Internal Objects), second paragraph · `representative` → `representation`
+
+| | |
+|---|---|
+| **Printed** | `there is only one representative of an external object.` |
+| **This transcription** | `there is only one representation of an external object.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-2 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.4, entitled 'External Objects and Internal Objects', second paragraph, last sentence, change 'representative' to 'representation'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c145"></a>
+
+### C145 · page 519 (folio X-5) · Section X, paragraph 1.3.8 (Scope of Names), the second paragraph on page X-5 · `either ... which contains a Configuration Section…` → `║either║ ... ║which contains ... that program║`
+
+| | |
+|---|---|
+| **Printed** | `statements and entries either in that program which contains a Configuration Section or in any program contained within that program:` |
+| **This transcription** | `statements and entries ║either║ in that program ║which contains a Configuration Section or in any program contained within that program║:` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-5 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.8, entitled 'Scope of Names', second paragraph on page X-5, second line, box the word 'either'. In the same paragraph, third and fourth lines, box 'which contains a Configuration Section or in any program contained within that program'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c146"></a>
+
+### C146 · page 520 (folio X-6) · Section X, paragraph 1.3.8.1 (Conventions for Program-Names), rule 3 · `except programs it directly or indirectly contains` → `║except programs ... contains║`
+
+| | |
+|---|---|
+| **Printed** | `in the run unit, except programs it directly or indirectly contains.` |
+| **This transcription** | `in the run unit, ║except programs it directly or indirectly contains║.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-6 (T) (page 850, folio A-20), applied in place: "Paragraph 1.3.8.1, entitled 'Conventions for Program-Names', rule 3, box 'except programs it directly or indirectly contains'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c147"></a>
+
+### C147 · page 524 (folio X-10) · Section X, paragraph 2.4.2 (Programs in the Initial State), items 3 and 4 · `(3), (4) not boxed` → `(3), (4) boxed`
+
+| | |
+|---|---|
+| **Printed** | `(3) Every time the program is called ... (4) The first time the program is called after the execution of a CALL statement ... (not boxed)` |
+| **This transcription** | `║(3) ...║ ║(4) ...║` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-10 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4.2, entitled 'Programs in the Initial State', box numbered paragraphs 3 and 4", a typographical error (kb/Work PB5045).
+
+<a id="errata-c148"></a>
+
+### C148 · page 535 (folio X-19) · Section X, paragraph 4.3.1 (Function), first paragraph · `or global names` → `║or global names║`
+
+| | |
+|---|---|
+| **Printed** | `have local names or global names.` |
+| **This transcription** | `have local names ║or global names║.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-19 (T) (page 850, folio A-20), applied in place: "Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, first paragraph, last line, box 'or global names'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c149"></a>
+
+### C149 · page 535 (folio X-19) · Section X, paragraph 4.3.1 (Function), second paragraph · `or external` → `║or external║`
+
+| | |
+|---|---|
+| **Printed** | `determines the internal or external attribute of the data record` |
+| **This transcription** | `determines the internal ║or external║ attribute of the data record` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-19 (T) (page 850, folio A-20), applied in place: "Paragraph 4.3.1, Function for data description entry in the Inter-Program Communication module, second paragraph, second line, box 'or external'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c150"></a>
+
+### C150 · page 543 (folio X-27) · Section X, paragraph 5.2.3 (CALL), a new syntax rule 4 · `(no rule 4)` → `(4) Identifier-2 must not be a function-identifie…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Each of the operands in the USING phrase ... or an elementary data item.` |
+| **This transcription** | `(4) Identifier-2 must not be a function-identifier.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-27 (page 850, folio A-20), applied in place: "Paragraph 5.2.3, add new syntax rule 4 as follows" (kb/Work PB5045).
+
+<a id="errata-c151"></a>
+
+### C151 · page 545 (folio X-29) · Section X, paragraph 5.2.4 (CALL), general rule 10 · `data-names, data-name` → `parameters, parameter`
+
+| | |
+|---|---|
+| **Printed** | `(10) The sequence of appearance of the data-names in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the data-names used by the calling and called programs. This correspondence is positional and not by name equivalence; the first data-name in one USING phrase corresponds to the first data-name in the other` |
+| **This transcription** | `(10) The sequence of appearance of the parameters in the USING phrase of the CALL statement and in the corresponding USING phrase in the called program's Procedure Division header determines the correspondence between the parameters used by the calling and called programs. This correspondence is positional and not by name equivalence; the first parameter in one USING phrase corresponds to the first parameter in the other` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page X-29 (T) (page 850, folio A-20), applied in place: "Paragraph 5.2.4 of the CALL statement, general rule 10, change two occurrences of 'data-names' to 'parameters'; also change two occurrences of 'data-name' to 'parameter'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c152"></a>
+
+### C152 · page 560 (folio XI-8) · Section XI, paragraph 4.1.3 (MERGE), syntax rule 3 · `in the file` → `in the files`
+
+| | |
+|---|---|
+| **Printed** | `the size of the records contained in the file referenced by file-name-2 and file-name-3 must not be greater` |
+| **This transcription** | `the size of the records contained in the files referenced by file-name-2 and file-name-3 must not be greater` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XI-8 (T) (page 850, folio A-20), applied in place: "Paragraph 4.1.3 of the MERGE statement, syntax rule 3, fifth line, change 'in the file' to 'in the files'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c153"></a>
+
+### C153 · page 565 (folio XI-13) · Section XI, paragraph 4.2.3 (RELEASE), syntax rule 3 · `(3) Record-name-1 and identifier-1 must not refer…` → `(3) If identifier-1 is a function-identifier, it…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Record-name-1 and identifier-1 must not refer to the same storage area.` |
+| **This transcription** | `(3) If identifier-1 is a function-identifier, it must reference an alphanumeric function. When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XI-13 (page 850, folio A-20), applied in place: "Paragraph 4.2.3, change syntax rule 3 to read" (kb/Work PB5045).
+
+<a id="errata-c154"></a>
+
+### C154 · page 578 (folio XII-4) · Section XII, paragraph 2.4 (COPY), general rule 7 · `pseudo-text-delimiter (twice)` → `pseudo-text delimiter`
+
+| | |
+|---|---|
+| **Printed** | `after the opening pseudo-text-delimiter but before the matching closing pseudo-text-delimiter.` |
+| **This transcription** | `after the opening pseudo-text delimiter but before the matching closing pseudo-text delimiter.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4 of the COPY statement, general rule 7, fifth and sixth lines, change two occurrences of 'pseudo-text-delimiter' to 'pseudo-text delimiter'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c155"></a>
+
+### C155 · page 578 (folio XII-4) · Section XII, paragraph 2.4 (COPY), general rule 9, third paragraph · `When a text word` → `When a text word specified in the BY phrase is in…`
+
+| | |
+|---|---|
+| **Printed** | `║When a text word║` |
+| **This transcription** | `║When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except║` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XII-4 (T) (page 850, folio A-20), applied in place: "Paragraph 2.4 of the COPY statement, general rule 9, third paragraph, fourth line, change 'When a text word' to 'When a text word specified in the BY phrase is introduced, it appears on a debugging line if the first library text word being replaced is specified on a debugging line. Except'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c156"></a>
+
+### C156 · page 661 (folio XIV-3) · Section XIV, paragraph 2.2.2 (communication description entry), format 1 · `data-name-1, data-name-2, ...` → `data-name-1 data-name-2 ...`
+
+| | |
+|---|---|
+| **Printed** | `[data-name-1, data-name-2, data-name-3, ... data-name-10, data-name-11]` |
+| **This transcription** | `[data-name-1 data-name-2 data-name-3 ... data-name-10 data-name-11]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-3 (T) (page 851, folio A-21), applied in place: "Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-11, inclusively, in format 1", a typographical error (kb/Work PB5045).
+
+<a id="errata-c157"></a>
+
+### C157 · page 662 (folio XIV-4) · Section XIV, paragraph 2.2.2 (communication description entry), format 3 · `data-name-1, data-name-2, ...` → `data-name-1 data-name-2 ...`
+
+| | |
+|---|---|
+| **Printed** | `[data-name-1, data-name-2, data-name-3, data-name-4, data-name-5, data-name-6]` |
+| **This transcription** | `[data-name-1 data-name-2 data-name-3 data-name-4 data-name-5 data-name-6]` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-4 (T) (page 851, folio A-21), applied in place: "Paragraph 2.2.2 of the communication description entry, delete the commas between data-name-1 through data-name-6, inclusively, in format 3", a typographical error (kb/Work PB5045).
+
+<a id="errata-c158"></a>
+
+### C158 · page 677 (folio XIV-19) · Section XIV, paragraph 3.2.4 (DISABLE), general rule 4 · `SOURCE)` → `SOURCE))`
+
+| | |
+|---|---|
+| **Printed** | `referenced by data-name-7 (SYMBOLIC SOURCE) and all of its associated queues` |
+| **This transcription** | `referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-19 (T) (page 851, folio A-21), applied in place: "Paragraph 3.2.4 of the DISABLE statement, general rule 4, third line, change 'SOURCE)' to 'SOURCE))'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c159"></a>
+
+### C159 · page 684 (folio XIV-26) · Section XIV, paragraph 3.6.3 (SEND), a new syntax rule 6 · `(no rule 6)` → `(6) If identifier-1 is a function-identifier ...`
+
+| | |
+|---|---|
+| **Printed** | `(5) Integer-1 or the value of the data item referenced by identifier-3 may be zero.` |
+| **This transcription** | `(6) If identifier-1 is a function-identifier, it must reference an alphanumeric function.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XIV-26 (page 851, folio A-21), applied in place: "Paragraph 3.6.3, add new syntax rule 6 as follows" (kb/Work PB5045).
+
+<a id="errata-c160"></a>
+
+### C160 · page 693 (folio XV-5) · Section XV, paragraph 3.2.3 (USE FOR DEBUGGING), syntax rule 10 · `subscripting or indexing` → `subscripting`
+
+| | |
+|---|---|
+| **Printed** | `identifier-1 must be specified without the subscripting or indexing normally required.` |
+| **This transcription** | `identifier-1 must be specified without the subscripting normally required.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XV-5 (T) (page 851, folio A-21), applied in place: "Paragraph 3.2.3 of the USE FOR DEBUGGING statement, syntax rule 10, last line, delete 'or indexing'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c161"></a>
+
+### C161 · page 716 (folio XVII-8) · Appendix A of Section XVII, paragraph 2.11 (CODASYL COBOL Journal of Development 1981), item 12 · `EXIT PROGRAM` → `EXIT PERFORM`
+
+| | |
+|---|---|
+| **Printed** | `(12) The inclusion of an EXIT PROGRAM statement.` |
+| **This transcription** | `(12) The inclusion of an EXIT PERFORM statement.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-8 (T) (page 851, folio A-21), applied in place: "Paragraph 2.11, entitled 'CODASYL COBOL JOURNAL OF DEVELOPMENT 1981', item 12, change 'PROGRAM' to 'PERFORM'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c162"></a>
+
+### C162 · page 721 (folio XVII-13) · Appendix A of Section XVII, a new paragraph 3.5 · `(no paragraph 3.5)` → `3.5 American National Standard COBOL 1985, Addend…`
+
+| | |
+|---|---|
+| **Printed** | `The revised X3.23 American National Standard COBOL proposed by X3 was approved b ... (the last paragraph of 3.4)` |
+| **This transcription** | `3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1 (the four paragraphs above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-13 (page 851, folio A-21), applied in place: "Add the following after paragraph 3.4: 3.5 AMERICAN NATIONAL STANDARD COBOL 1985, ADDENDUM 1", which runs on to page 852 (folio A-22) (kb/Work PB5045).
+
+<a id="errata-c163"></a>
+
+### C163 · page 723 (folio XVII-15) · Appendix A of Section XVII, a new paragraph 4.4 · `(no paragraph 4.4)` → `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1`
+
+| | |
+|---|---|
+| **Printed** | `The draft revision of ISO Standard 1989 for COBOL was circulated to all the ISO ... (the last paragraph of 4.3)` |
+| **This transcription** | `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1 (the two paragraphs above)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-15 (page 852, folio A-22), applied in place: "Add the following after paragraph 4.3: 4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1" (kb/Work PB5045).
+
+<a id="errata-c164"></a>
+
+### C164 · page 725 (folio XVII-17) · Appendix B of Section XVII, the summary table, before User-defined words · `(no entry)` → `Function-names, system-names, and user-defined wo…`
+
+| | |
+|---|---|
+| **Printed** | `User-defined words (the entry it precedes)` |
+| **This transcription** | `Function-names, system-names, and user-defined words form intersecting sets ... N 1 ITR` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-17 (page 852, folio A-22), applied in place: "Add the following before the entry for 'User-defined words'; align the word 'Function-names' with the word 'User-defined'" (kb/Work PB5045).
+
+<a id="errata-c165"></a>
+
+### C165 · page 726 (folio XVII-18) · Appendix B of Section XVII, the summary table, before Literals · `(no entry)` → `Function-names N 1 ITR`
+
+| | |
+|---|---|
+| **Printed** | `Literals (the entry it precedes)` |
+| **This transcription** | `Function-names ... N 1 ITR` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-18 (page 852, folio A-22), applied in place: "Add the following before the entry for 'Literals'; align the word 'Function-names' one position to the right of the word 'Literals'" (kb/Work PB5045).
+
+<a id="errata-c166"></a>
+
+### C166 · page 727 (folio XVII-19) · Appendix B of Section XVII, the summary table, Reference modification · `Reference modification ........................…` → `Reference-modifier ............................…`
+
+| | |
+|---|---|
+| **Printed** | `Reference modification` |
+| **This transcription** | `Reference-modifier` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (page 852, folio A-22), applied in place: "Change the entry for 'Reference modification' to 'Reference-modifier'" (kb/Work PB5045).
+
+<a id="errata-c167"></a>
+
+### C167 · page 727 (folio XVII-19) · Appendix B of Section XVII, the summary table, before Reference-modifier · `(no entry)` → `Function-identifier N 1 ITR`
+
+| | |
+|---|---|
+| **Printed** | `Reference-modifier (the entry it precedes)` |
+| **This transcription** | `Function-identifier ... N 1 ITR` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (page 852, folio A-22), applied in place: "Add the following before the entry for 'Reference-modifier'; align the word 'Function-identifier' with the word 'Reference-modifier'" (kb/Work PB5045).
+
+<a id="errata-c168"></a>
+
+### C168 · page 727 (folio XVII-19) · Appendix B of Section XVII, the summary table, under Reference Format · `Continuation of COBOL word, numeric literal ...…` → `Continuation of COBOL word, numeric literal ...…`
+
+| | |
+|---|---|
+| **Printed** | `Continuation of COBOL word, numeric literal ... 2 NUC 1 NUC` |
+| **This transcription** | `... 2 NUC 2 NUC` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-19 (T) (page 852, folio A-22), applied in place: "Under 'Reference Format', change entry in 3RD STD column for 'Continuation of COBOL word, numeric literal' from '1 NUC' to '2 NUC'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c169"></a>
+
+### C169 · page 739 (folio XVII-31) · Appendix B of Section XVII, the summary table, before ACCEPT statement · `(no entries)` → `Intrinsic functions ...`
+
+| | |
+|---|---|
+| **Printed** | `ACCEPT statement (the entry it precedes)` |
+| **This transcription** | `Intrinsic functions N 1 ITR, ACOS function ... WHEN-COMPILED function (each N 1 ITR)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-31 (page 853, folio A-23), applied in place: "Add the following before the entry for 'ACCEPT statement'": the entry Intrinsic functions and its 42 function entries, each N 1 ITR (kb/Work PB5045).
+
+<a id="errata-c170"></a>
+
+### C170 · page 758 (folio XVII-50) · Appendix B of Section XVII, the substantive changes not affecting existing programs, a new item 108 · `(no item 108)` → `(108) Intrinsic Function Module (1 ITR)`
+
+| | |
+|---|---|
+| **Printed** | `(107) NOT INVALID KEY phrase of WRITE statement (1 REL, 1 INX) ... (the item it follows)` |
+| **This transcription** | `(108) Intrinsic Function Module (1 ITR). The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-50 (page 853, folio A-23), applied in place: "Add the following after item 107" (kb/Work PB5045).
+
+<a id="errata-c171"></a>
+
+### C171 · page 772 (folio XVII-64) · Appendix B of Section XVII, substantive change 26 (PERFORM statement) · `Under second Standard COBOL, PARA3 ... as shown a…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.` |
+| **This transcription** | `(deleted)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-64 (T) (page 854, folio A-24), applied in place: "Substantive change 26, entitled 'PERFORM statement', prior to the last paragraph on the page, delete: 'Under second Standard COBOL, PARA3 will be executed 8 times as shown above. Under third Standard COBOL, PARA3 will be executed 6 times as shown above.'", a typographical error (the sentences repeat the two that precede the values) (kb/Work PB5045).
+
+<a id="errata-c172"></a>
+
+### C172 · page 778 (folio XVII-70) · Appendix B of Section XVII, substantive change 37 (File position indicator) · `access made` → `access mode`
+
+| | |
+|---|---|
+| **Printed** | `in the dynamic access made, execution` |
+| **This transcription** | `in the dynamic access mode, execution` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-70 (T) (page 854, folio A-24), applied in place: "Substantive change 37, entitled 'File position indicator', first paragraph, second line, change 'access made' to 'access mode'", a typographical error (kb/Work PB5045).
+
+<a id="errata-c173"></a>
+
+### C173 · page 779 (folio XVII-71) · Appendix B of Section XVII, substantive change 39 (Reserved words), its list · `(no FUNCTION)` → `FUNCTION`
+
+| | |
+|---|---|
+| **Printed** | `the reserved words added in item 39, without FUNCTION` |
+| **This transcription** | `the list with FUNCTION after FALSE` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-71 (page 854, folio A-24), applied in place: "Add the word FUNCTION to the list of reserved words in item 39" (kb/Work PB5045).
+
+<a id="errata-c174"></a>
+
+### C174 · page 801 (folio XVII-93) · Appendix C of Section XVII, the implementor-defined language element list, new items 81 to 84 · `(no items 81 to 84)` → `(81) to (84)`
+
+| | |
+|---|---|
+| **Printed** | `(80) SEND statement ... (the item they follow)` |
+| **This transcription** | `(81) Integer and Numeric Functions ... (82) Types of Functions ... (83) CHAR function ... (84) RANDOM function ...` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-93 (page 854, folio A-24), applied in place: "Add the following after item 80" (kb/Work PB5045).
+
+<a id="errata-c175"></a>
+
+### C175 · page 806 (folio XVII-98) · Appendix C of Section XVII, the undefined language element list, a new item 29 · `(no item 29)` → `(29) Intrinsic functions`
+
+| | |
+|---|---|
+| **Printed** | `(28) SEND statement ... (the item it follows)` |
+| **This transcription** | `(29) Intrinsic functions. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined. (See 1.2.2, on page A-27.)` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVII-98 (page 854, folio A-24), applied in place: "Add the following after item 28" (kb/Work PB5045).
+
+<a id="errata-c176"></a>
+
+### C176 · page 707 (folio XVI-9) · after Section XVI, the Intrinsic Function module (Section A) · `(Section XVI ends)` → `Section A follows`
+
+| | |
+|---|---|
+| **Printed** | `(the end of Section XVI, page XVI-9)` |
+| **This transcription** | `Section A, the Intrinsic Function Module, inserted after Section XVI` |
+
+Amendment 1 (ANSI X3.23a-1989), Addendum 1, its change for page XVI-9 (page 854, folio A-24), applied in place: "Insert after section XVI pages A-27 through A-76 containing the Intrinsic Function module". Section A is that module, and this transcription holds it once, where Amendment 1 prints it (under AMENDMENT 1, `SECTION A: INTRINSIC FUNCTION MODULE`, with Amendment 2's changes to it applied there): it stands after Section XVI in the amended standard, and its rules are cited §1989:A (docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.1) (kb/Work PB5045).
+
+<a id="errata-c177"></a>
+
+### C177 · page 7 · the standard's Preface · `the 1985 Preface` → `Amendment 2's preface`
+
+| | |
+|---|---|
+| **Printed** | `This document provides the definition of the programming language features that make up American National Standard X3.23-1985. Within this document, the following terms are used: First, Second and Third Standard COBOL (the 1985 Preface)` |
+| **This transcription** | `This amendment, the second to the document ... (the preface of Amendment 2, page iv, above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page Preface (page 913, folio B-1), applied in place: "Replace with preface from page iv of this document" (page 912): the Preface's text and its list of terms; the list of the members of X3J4 that follows it is not the Preface's and stays (kb/Work PB5045).
+
+<a id="errata-c178"></a>
+
+### C178 · page 18 · the table of contents, after Section XVI · `(no Section A)` → `SECTION A: INTRINSIC FUNCTION MODULE`
+
+| | |
+|---|---|
+| **Printed** | `3.3 Restrictions on Program Flow ... XVI-8 (the last entry for the Segmentation module)` |
+| **This transcription** | `SECTION A: INTRINSIC FUNCTION MODULE, Chapter 1 (1.1, 1.2) and Chapter 2 (2.1 to 2.46), above` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page x (page 913, folio B-1), applied in place: "Add the following after the last entry for the Segmentation module in the table of contents", its entries continuing on page 914 (folio B-2) (kb/Work PB5045).
+
+<a id="errata-c179"></a>
+
+### C179 · page 19 · the table of contents, Appendix A, Chapter 3 · `(no entry 3.6)` → `3.6 ... Amendment 2`
+
+| | |
+|---|---|
+| **Printed** | `3.5 American National Standard COBOL 1985, Addendum 1 ... XVII-13` |
+| **This transcription** | `3.6 American National Standard COBOL 1985, Amendment 2 ... XVII-13` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page xi (A-1) (page 915, folio B-3), applied in place: "Add the following after the entry for 3.5" (kb/Work PB5045).
+
+<a id="errata-c180"></a>
+
+### C180 · page 19 · the table of contents, Appendix A, Chapter 4 · `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1` → `4.4 ISO 1989:1985/Amd.1:1992, 4.5 ISO 1989:1985/A…`
+
+| | |
+|---|---|
+| **Printed** | `4.4 ISO Standard 1989-1985 for COBOL, Addendum 1 ... XVII-15` |
+| **This transcription** | `4.4 ISO 1989:1985/Amd.1:1992 ... XVII-15 ¶ 4.5 ISO 1989:1985/Amd.2:1994 ... XVII-15` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page xi (A-1) (page 915, folio B-3), applied in place: "Replace the entry for 4.4 with the following" (kb/Work PB5045).
+
+<a id="errata-c181"></a>
+
+### C181 · page 20 · the table of contents, Appendix B, Chapter 2 · `2.1, 2.2` → `2.1, 2.1A, 2.1B, 2.2, 2.2A, 2.2B`
+
+| | |
+|---|---|
+| **Printed** | `2.1 Substantive Changes Not Affecting Existing Programs ... XVII-42 ¶ 2.2 Substantive Changes Potentially Affecting Existing Programs ... XVII-51` |
+| **This transcription** | `2.1, 2.1A, 2.1B, 2.2, 2.2A, 2.2B (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page xii (page 915, folio B-3), applied in place: "Replace the entries for 2.1 and 2.2 with the following" (kb/Work PB5045).
+
+<a id="errata-c182"></a>
+
+### C182 · page 28 (folio I-8) · Section I, paragraph 1.5.2.5.2 (Extension Language Elements), last paragraph · `(no last sentence)` → `This warning mechanism is required to flag only e…`
+
+| | |
+|---|---|
+| **Printed** | `that a program contains nonstandard extensions that are included in the implementation.` |
+| **This transcription** | `that a program contains nonstandard extensions that are included in the implementation. This warning mechanism is required to flag only extensions that are syntactically distinguishable.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.2 entitled Extension Language Elements, last paragraph, add the following as the new last sentence" (kb/Work PB5045).
+
+<a id="errata-c183"></a>
+
+### C183 · page 28 (folio I-8) · Section I, paragraph 1.5.2.5.3 (Reserved Words) · `An implementation of Standard COBOL must recogniz…` → `An implementation of Standard COBOL must recogniz…`
+
+| | |
+|---|---|
+| **Printed** | `An implementation of Standard COBOL must recognize ... the four optional modules. (See page IV-45, COBOL Reserved Words.) (as printed; Amendment 1 changed it first, C51)` |
+| **This transcription** | `An implementation of Standard COBOL must recognize as reserved words all of the COBOL reserved words occurring in the specifications of the seven required modules and the five optional modules. (See page IV-45, COBOL Reserved Words.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page I-8 (page 915, folio B-3), applied in place: "Paragraph 1.5.2.5.3 entitled Reserved Words, change to read"; the paragraph as Amendment 1 changed it (C51) is replaced (kb/Work PB5045).
+
+<a id="errata-c184"></a>
+
+### C184 · page 32 (folio I-12) · Section I, the Nucleus module summary, Language Concepts · `Reference-modifier` → `Reference modification`
+
+| | |
+|---|---|
+| **Printed** | `Reference modification (as printed; Amendment 1 changed it to Reference-modifier, C53)` |
+| **This transcription** | `Reference modification` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page I-12 (A-4) (page 915, folio B-3), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'": Amendment 2 restores the printed entry Amendment 1 changed (C53) (kb/Work PB5045).
+
+<a id="errata-c185"></a>
+
+### C185 · page 62 (folio I-42) · Section I, the division summary, Uniqueness of Reference · `Reference-modifier` → `Reference modification`
+
+| | |
+|---|---|
+| **Printed** | `Reference modification (as printed; Amendment 1 changed it to Reference-modifier, C59)` |
+| **This transcription** | `Reference modification` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page I-42 (A-6) (page 915, folio B-3), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'": Amendment 2 restores the printed entry Amendment 1 changed (C59) (kb/Work PB5045).
+
+<a id="errata-c186"></a>
+
+### C186 · page 85 (folio II-1) · Section II, paragraph 2.1 (File Attributes), the last sentence · `the blocking factor` → `the minimum and maximum physical record size`
+
+| | |
+|---|---|
+| **Printed** | `sequence of the keys for indexed files, the blocking factor, the padding character` |
+| **This transcription** | `sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page II-1 (page 916, folio B-4), applied in place: "Paragraph 2.1 entitled File Attributes, change a portion of the last sentence from 'sequence of the keys for indexed files, the blocking factor, the padding character' to 'sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character'" (kb/Work PB5045).
+
+<a id="errata-c187"></a>
+
+### C187 · page 98 (folio II-14) · Section II, paragraph 4.2 (Initial Values of Tables), item 3 · `(3) The value of selected table elements may be s…` → `(3) Every occurrence of an element in a table can…`
+
+| | |
+|---|---|
+| **Printed** | `(3) The value of selected table elements may be specified using VALUE clauses.` |
+| **This transcription** | `(3) Every occurrence of an element in a table can be assigned the same initial value using the VALUE clause.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page II-14 (page 916, folio B-4), applied in place: "Paragraph 4.2 entitled Initial Values of Tables, change numbered item 3 at the top of page II-14 to read" (kb/Work PB5045).
+
+<a id="errata-c188"></a>
+
+### C188 · page 120 · Section II, paragraph 8 (Intrinsic Function Facility), second paragraph, last sentence · `the returned value for the function is undefined` → `then the result of such a reference is undefined`
+
+| | |
+|---|---|
+| **Printed** | `If, at the time a function is referenced, ... the returned value for the function is undefined. (Amendment 1's sentence, C67)` |
+| **This transcription** | `..., then the result of such a reference is undefined.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page II-35 (A-7) (page 916, folio B-4), applied in place: "Paragraph 8 entitled Intrinsic Function Facility, second paragraph, replace the last sentence with the following" (kb/Work PB5045).
+
+<a id="errata-c189"></a>
+
+### C189 · page 121 (folio III-1) · Section III, paragraph 1 (Introduction), second paragraph, last sentence · `Sections IV through XVI of` → `Sections IV through XVI and Section A of`
+
+| | |
+|---|---|
+| **Printed** | `Complete specifications for elements defined in this section can be located in Sections IV through XVI of this document.` |
+| **This transcription** | `Complete specifications for elements defined in this section can be located in Sections IV through XVI and Section A of this document.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-1 (page 916, folio B-4), applied in place: "Paragraph 1 entitled Introduction, second paragraph, change the last sentence to read" (kb/Work PB5045).
+
+<a id="errata-c190"></a>
+
+### C190 · page 124 (folio III-4) · Section III, the glossary, COBOL Character Set, NOTE 2, first sentence · `used in character-strings.` → `used in character-strings and text words.`
+
+| | |
+|---|---|
+| **Printed** | `they may be used in character-strings. Except when used in nonnumeric literals and some PICTURE symbols` |
+| **This transcription** | `they may be used in character-strings and text words. Except when used in nonnumeric literals and some PICTURE symbols` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-4 (page 916, folio B-4), applied in place: "Definition of COBOL Character Set, NOTE 2, first sentence, change 'they may be used in character-strings.' to 'they may be used in character-strings and text words.'" (kb/Work PB5045).
+
+<a id="errata-c191"></a>
+
+### C191 · page 130 (folio III-10) · Section III, the glossary, Fixed File Attributes · `the blocking factor` → `the minimum and maximum physical record size`
+
+| | |
+|---|---|
+| **Printed** | `the collating sequence of the keys for indexed files, the blocking factor, the padding character, and the record delimiter.` |
+| **This transcription** | `the collating sequence of the keys for indexed files, the minimum and maximum physical record size, the padding character, and the record delimiter.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-10 (page 916, folio B-4), applied in place: "Definition of Fixed File Attributes, sixth line, change 'the blocking factor' to 'the minimum and maximum physical record size'" (kb/Work PB5045).
+
+<a id="errata-c192"></a>
+
+### C192 · page 132 (folio III-12) · Section III, the glossary, Integer, item 3 · `(3) A numeric function whose definition provides…` → `(3) An integer function.`
+
+| | |
+|---|---|
+| **Printed** | `(3) A numeric function whose definition provides that all digits ... (Amendment 1's item, C76)` |
+| **This transcription** | `(3) An integer function.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-12 (A-9) (page 916, folio B-4), applied in place: "Definition of Integer, item 3, change to read: 'An integer function.'" (kb/Work PB5045).
+
+<a id="errata-c193"></a>
+
+### C193 · page 132 (folio III-12) · Section III, the glossary, Integer Function · `whose category is numeric` → `whose class and category are numeric`
+
+| | |
+|---|---|
+| **Printed** | `Integer Function. A function whose category is numeric ... (Amendment 1's entry, C72)` |
+| **This transcription** | `Integer Function. A function whose class and category are numeric ...` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-12 (A-8) (page 916, folio B-4), applied in place: "Definition of Integer Function, change 'A function whose category is numeric ...' to 'A function whose class and category are numeric ...'" (kb/Work PB5045).
+
+<a id="errata-c194"></a>
+
+### C194 · page 145 (folio III-25) · Section III, the glossary, Text Word, item 3 · `(no last sentence)` → `One or both of the bounding separators may be a p…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal.` |
+| **This transcription** | `(3) Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators, which is neither a separator nor a literal. One or both of the bounding separators may be a pseudo-text delimiter.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page III-25 (page 916, folio B-4), applied in place: "Definition of Text Word, item 3, add the following as a new last sentence" (kb/Work PB5045).
+
+<a id="errata-c195"></a>
+
+### C195 · page 150 (folio IV-4) · Section IV, paragraph 4.2.1 (Separators), rule 4, second sentence · `Parentheses may appear only` → `Except in pseudo-text, parentheses may appear only`
+
+| | |
+|---|---|
+| **Printed** | `Parentheses may appear only in balanced pairs` |
+| **This transcription** | `Except in pseudo-text, parentheses may appear only in balanced pairs` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-4 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.1 entitled Separators, rule 4, change second sentence from: 'Parentheses may appear only ...' to 'Except in pseudo-text, parentheses may appear only ...'" (kb/Work PB5045).
+
+<a id="errata-c196"></a>
+
+### C196 · page 151 (folio IV-5) · Section IV, paragraph 4.2.1 (Separators), rule 5 · `(5) The punctuation character quotation mark is a…` → `(5) The punctuation character quotation mark is a…`
+
+| | |
+|---|---|
+| **Printed** | `(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space or left parenthesis; a closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, or right parenthesis.` |
+| **This transcription** | `(5) The punctuation character quotation mark is a separator. An opening quotation mark must be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter. A closing quotation mark, when paired with an opening quotation mark, must be immediately followed by one of the separators space, comma, semicolon, period, right parenthesis, or closing pseudo-text delimiter. Separators immediately preceding the opening quotation mark are not part of the opening separator quotation mark. Separators immediately following the closing quotation mark are not part of the closing separator quotation mark.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (page 917, folio B-5), applied in place: "Paragraph 4.2.1 entitled Separators, change rule 5 to read" (kb/Work PB5045).
+
+<a id="errata-c197"></a>
+
+### C197 · page 151 (folio IV-5) · Section IV, paragraph 4.2.2.1 (COBOL Words), the paragraph as far as page IV-5 prints it · `Each character of a COBOL word is selected` → `... that is not a special character word is selec…`
+
+| | |
+|---|---|
+| **Printed** | `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word is selected from the set of letters, digits, and the hyphen. The hyphen may not appear as the first or last character. Each lowercase letter is (Amendment 1's text, C84)` |
+| **This transcription** | `A COBOL word is a character-string of not more than 30 characters which forms a user-defined word, a system-name, a reserved word, or a function-name. Each character of a COBOL word that is not a special character word is selected from the set of letters, digits, and the hyphen; the hyphen may not appear as the first or last character in such words. Each lowercase letter is` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.2.1, entitled COBOL Words, replace the paragraph with the following", which continues on page 152 (kb/Work PB5045).
+
+<a id="errata-c198"></a>
+
+### C198 · page 152 (folio IV-6) · Section IV, paragraph 4.2.2.1 (COBOL Words), the rest of the paragraph · `Within a source program, reserved words ... form…` → `Within a source program the following apply: (1)…`
+
+| | |
+|---|---|
+| **Printed** | `considered to be equivalent to its corresponding uppercase letter. Within a source program, reserved words and user-defined words form disjoint sets; reserved words and system-names form disjoint sets; reserved words and function-names form disjoint sets; function-names, system-names, and user-defined words form intersecting sets. The same COBOL word may be used as a function-name, as a system-name, and as a user-defined word within a source program; and the class of a specific occurrence of the COBOL word is determined by the context of the clause or phrase in which it occurs. (Amendment 1's text, C85)` |
+| **This transcription** | `considered to be equivalent to its corresponding uppercase letter. ¶ Within a source program the following apply: (1) a. b. (2) a. b. (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-5 (A-9) (page 917, folio B-5), applied in place: "Paragraph 4.2.2.1, entitled COBOL Words, replace the paragraph with the following", its text on page 917 (folio B-5) and page 918 (folio B-6) (kb/Work PB5045).
+
+<a id="errata-c199"></a>
+
+### C199 · page 155 (folio IV-9) · Section IV, paragraph 4.2.2.1.4 (Function-Names), second sentence · `The same word, in a different context, may appear…` → `With the exception of the words LENGTH, RANDOM, a…`
+
+| | |
+|---|---|
+| **Printed** | `The same word, in a different context, may appear in a program as a user-defined word or a system-name. (Amendment 1's sentence, C86)` |
+| **This transcription** | `With the exception of the words LENGTH, RANDOM, and SUM, a word that is a function-name may appear in different contexts in a program as either a system-name or as a user-defined word.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-9 (A-10) (page 918, folio B-6), applied in place: "Paragraph 4.2.2.1.4 entitled Function-Names, change the second sentence to read" (kb/Work PB5045).
+
+<a id="errata-c200"></a>
+
+### C200 · page 157 (folio IV-11) · Section IV, paragraph 4.2.2.2.3 (Figurative Constant Values), the second (1), penultimate sentence · `until it is equal to the number of character posi…` → `until the number of character positions remaining…`
+
+| | |
+|---|---|
+| **Printed** | `This resultant string is then truncated from the right until it is equal to the number of character positions in the associated data item.` |
+| **This transcription** | `This resultant string is then truncated from the right until the number of character positions remaining is equal either to 1 or to the number of character positions in the associated data item, whichever is greater.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-11 (page 918, folio B-6), applied in place: "Paragraph 4.2.2.2.3 entitled Figurative Constant Values, second occurrence of a paragraph numbered (1), penultimate sentence, change in part" (kb/Work PB5045).
+
+<a id="errata-c201"></a>
+
+### C201 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.3.1, its title · `Purpose of a Function-Identifier` → `Function`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3.1 Purpose of a Function-Identifier (Amendment 1's title, C95)` |
+| **This transcription** | `4.3.8.3.1 Function` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-11) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.3.1 change the title from Purpose of a Function-Identifier to Function" (kb/Work PB5045).
+
+<a id="errata-c202"></a>
+
+### C202 · page 168 (folio IV-22) · Section IV, paragraph 4.3.8.4, its title · `Reference-Modifier` → `Reference Modification`
+
+| | |
+|---|---|
+| **Printed** | `4.3.8.3 Reference Modification (Amendment 1 renumbered it 4.3.8.4 and retitled it Reference-Modifier, C93, C96)` |
+| **This transcription** | `4.3.8.4 Reference Modification` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-22 (A-12) (page 918, folio B-6), applied in place: "Paragraph 4.3.8.4, change the title from Reference-Modifier to Reference Modification" (kb/Work PB5045).
+
+<a id="errata-c203"></a>
+
+### C203 · page 173 (folio IV-27) · Section IV, paragraph 4.4.4 (Explicit and Implicit Scope Terminators), last paragraph, item 2 · `Examples of such phrases are ELSE, WHEN, NOT AT E…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `Examples of such phrases are ELSE, WHEN, NOT AT END, etc.` |
+| **This transcription** | `(deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-27 (page 918, folio B-6), applied in place: "Paragraph 4.4.4 entitled Explicit and Implicit Scope Terminators, last paragraph, item 2, delete the last sentence that reads: 'Examples of such phrases are ELSE, WHEN, NOT AT END, etc.'" (kb/Work PB5045).
+
+<a id="errata-c204"></a>
+
+### C204 · page 184 (folio IV-38) · Section IV, paragraph 6.4.2.2.1 (Definition of Compiler Directing Statement), second sentence · `COPY, REPLACE, and USE` → `COPY, ENTER, REPLACE, and USE`
+
+| | |
+|---|---|
+| **Printed** | `The compiler directing verbs are COPY, REPLACE, and USE (see page XII-2, The COPY Statement; page XII-6, The REPLACE Statement; and the USE Statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5).` |
+| **This transcription** | `The compiler directing verbs are COPY, ENTER, REPLACE, and USE (see page XII-2, The COPY Statement; page VI-83, The ENTER Statement; page XII-6, The REPLACE Statement; and the USE statement on pages VII-50, VIII-35, IX-39, XIII-76, XIII-78, and XV-5).` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-38 (page 919, folio B-7), applied in place: "Paragraph 6.4.2.2.1 entitled Definition of Compiler Directing Statement, second sentence, change to read" (kb/Work PB5045).
+
+<a id="errata-c205"></a>
+
+### C205 · page 189 (folio IV-43) · Section IV, paragraph 7.2.5 (Pseudo-Text), first sentence · `The character-strings and separators comprising` → `The text words and the separator space comprising`
+
+| | |
+|---|---|
+| **Printed** | `The character-strings and separators comprising pseudo-text` |
+| **This transcription** | `The text words and the separator space comprising pseudo-text` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-43 (page 919, folio B-7), applied in place: "Paragraph 7.2.5 entitled Pseudo-Text, change a portion of the first sentence from 'The character-strings and separators comprising' to 'The text words and the separator space comprising'" (kb/Work PB5045).
+
+<a id="errata-c206"></a>
+
+### C206 · page 191 (folio IV-45) · Section IV, paragraph 8 (COBOL Reserved Words), first paragraph · `the four optional modules of ...` → `the five optional modules.`
+
+| | |
+|---|---|
+| **Printed** | `The following is a list ... and the four optional modules of Report Writer, Communication, Debug, and Segmentation. (Amendment 1's sentence, C106)` |
+| **This transcription** | `The following is a list of COBOL reserved words for the seven required modules and the five optional modules.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (A-13) (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, change the first paragraph to read" (kb/Work PB5045).
+
+<a id="errata-c207"></a>
+
+### C207 · page 191 (folio IV-45) · Section IV, paragraph 8 (COBOL Reserved Words), the list · `(no FUNCTION)` → `FUNCTION`
+
+| | |
+|---|---|
+| **Printed** | `FROM, GENERATE (no FUNCTION between them)` |
+| **This transcription** | `FROM, FUNCTION, GENERATE` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, add the word FUNCTION between the words FROM and GENERATE in the list of COBOL reserved words" (kb/Work PB5045).
+
+<a id="errata-c208"></a>
+
+### C208 · page 192 (folio IV-46) · Section IV, paragraph 8 (COBOL Reserved Words), after the list · `The following is a list ... Intrinsic Function mo…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `The following is a list of COBOL reserved words for the optional Intrinsic Function module. FUNCTION (Amendment 1's text, C107)` |
+| **This transcription** | `(deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IV-46 (A-14) (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, delete the following text" (kb/Work PB5045).
+
+<a id="errata-c209"></a>
+
+### C209 · page 216 (folio V-24) · Section V, the general format of the IF statement · `{statement-1} …, {statement-2} …` → `statement-1, statement-2`
+
+| | |
+|---|---|
+| **Printed** | `IF condition-1 THEN { {statement-1} ... NEXT SENTENCE } { ELSE {statement-2} ... [END-IF] ... }` |
+| **This transcription** | `IF condition-1 THEN { statement-1 NEXT SENTENCE } { ELSE statement-2 [END-IF] ... }` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page V-24 (page 919, folio B-7), applied in place: "General format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2" (kb/Work PB5045).
+
+<a id="errata-c210"></a>
+
+### C210 · page 247 (folio VI-15) · Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, second sentence · `The collating sequence identified` → `The character code set and/or collating sequence…`
+
+| | |
+|---|---|
+| **Printed** | `The collating sequence identified is that defined` |
+| **This transcription** | `The character code set and/or collating sequence identified is that defined` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-15 (page 919, folio B-7), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, second sentence, change 'The collating sequence identified' to 'The character code set and/or collating sequence identified'" (shaded, level 2: the sentence stands in the level-2 box) (kb/Work PB5045).
+
+<a id="errata-c211"></a>
+
+### C211 · page 248 (folio VI-16) · Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, subitem 4, first sentence · `If the THROUGH phrase is specified, the set of ...` → `... and/or a successive ascending ordinal number…`
+
+| | |
+|---|---|
+| **Printed** | `If the THROUGH phrase is specified, the set of contiguous characters ... is assigned a successive ascending position in the collating sequence being specified.` |
+| **This transcription** | `If the THROUGH phrase is specified, the contiguous characters ... are each assigned a successive ascending collating position ... and/or a successive ascending ordinal number in the character code set being specified.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-16 (page 920, folio B-8), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, subitem 4, replace the first sentence (Beginning 'If the THROUGH phrase is specified') with the following new sentence" (shaded: level 2, in the box) (kb/Work PB5045).
+
+<a id="errata-c212"></a>
+
+### C212 · page 248 (folio VI-16) · Section VI, paragraph 4.5.4 (SPECIAL-NAMES), general rule 4d, subitems 4 to 6 · `subitems 4, 5` → `new subitem 4; 5, 6`
+
+| | |
+|---|---|
+| **Printed** | `4) If the THROUGH phrase ... 5) If the ALSO phrase ...` |
+| **This transcription** | `4) If a character code set is being specified, ... (new) 5) If the THROUGH phrase ... 6) If the ALSO phrase ...` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-16 (page 920, folio B-8), applied in place: "Paragraph 4.5.4 of SPECIAL-NAMES paragraph, general rule 4d, renumber subitems 4 and 5 to new subitems 5 and 6. Insert the following as the new subitem 4" (shaded: level 2, boxed) (kb/Work PB5045).
+
+<a id="errata-c213"></a>
+
+### C213 · page 263 (folio VI-31) · Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item b · `b. A MOVE statement` → `b. An elementary MOVE statement`
+
+| | |
+|---|---|
+| **Printed** | `b. A MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.` |
+| **This transcription** | `b. An elementary MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-31 (page 920, folio B-8), applied in place: "Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of symbol 'P', second paragraph, change subparagraph b to read" (kb/Work PB5045).
+
+<a id="errata-c214"></a>
+
+### C214 · page 263 (folio VI-31) · Section VI, paragraph 5.9.4 (PICTURE), general rule 8, symbol P, second paragraph, item c · `c. (not boxed)` → `c. (boxed)`
+
+| | |
+|---|---|
+| **Printed** | `c. A MOVE statement where the sending operand is numeric edited and its PICTURE character-string contains the symbol 'P' and the receiving operand is numeric or numeric edited. (not boxed)` |
+| **This transcription** | `the item boxed` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-31 (page 920, folio B-8), applied in place: "Paragraph 5.9.4 of the PICTURE clause, general rule 8, explanation of the symbol 'P', second paragraph, shade subparagraph c": shading is the amendment's mark of level 2, the box of this transcription (kb/Work PB5045).
+
+<a id="errata-c215"></a>
+
+### C215 · page 266 (folio VI-34) · Section VI, paragraph 5.9.5 (PICTURE editing rules), editing rule 7, second paragraph, last sentence · `the fixed insertion characters 'CR' and 'DB'` → `one of the editing sign control symbols '+', '-',…`
+
+| | |
+|---|---|
+| **Printed** | `this string of floating insertion characters may have the fixed insertion characters 'CR' and 'DB' immediately to the right of this string.` |
+| **This transcription** | `this string of floating insertion characters may have one of the editing sign control symbols '+', '-', 'CR', or 'DB' immediately to the right of this string.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-34 (page 920, folio B-8), applied in place: "Paragraph 5.9.5, editing rules of the PICTURE clause, editing rule 7, second paragraph, change last sentence" (kb/Work PB5045).
+
+<a id="errata-c216"></a>
+
+### C216 · page 269 (folio VI-37) · Section VI, paragraph 5.9.6, the PICTURE precedence chart · `x, x` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `x at (P, the lower floating {+ –}) and at (P, the lower floating cs)` |
+| **This transcription** | `the two x deleted` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-37 (page 921, folio B-9), applied in place: "Paragraph 5.9.6, PICTURE precedence chart, delete the symbol 'X' at the following two intersections": the right-most P under Other Symbols (top) with the lower {±} and with the lower cs for Floating Insertion Symbols (side) (kb/Work PB5045).
+
+<a id="errata-c217"></a>
+
+### C217 · page 288 (folio VI-56) · Section VI, paragraph 6.3.1.1.3, item 2, first sentence · `a data item (other than an index data item) or li…` → `a numeric data item or numeric literal`
+
+| | |
+|---|---|
+| **Printed** | `(2) An index-name and a data item (other than an index data item) or literal.` |
+| **This transcription** | `(2) An index-name and a numeric data item or numeric literal.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-56 (page 921, folio B-9), applied in place: "Paragraph 6.3.1.1.3 entitled Comparisons Involving Index-Names and/or Index Data Items, change the first sentence of subparagraph 2 to read" (kb/Work PB5045).
+
+<a id="errata-c218"></a>
+
+### C218 · page 289 (folio VI-57) · Section VI, paragraph 6.3.1.2 (Class Condition), the first paragraph after the general format · `(no zero-length sentence)` → `... zero-length group item ... always false.`
+
+| | |
+|---|---|
+| **Printed** | `Identifier-1 must reference a data item whose usage is explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric function. (Amendment 1's paragraph, C126)` |
+| **This transcription** | `... When the class condition does not include the word NOT and identifier-1 is a zero-length group item, the result of the class test is always false.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-57 (A-18) (page 921, folio B-9), applied in place: "Paragraph 6.3.1.2 entitled Class Condition, replace the first paragraph after the general format beginning with 'Identifier-1 must reference' and the second paragraph after the general format beginning with 'When used, NOT and' with the following": the first paragraph (kb/Work PB5045).
+
+<a id="errata-c219"></a>
+
+### C219 · page 289 (folio VI-57) · Section VI, paragraph 6.3.1.2 (Class Condition), the second paragraph after the general format · `(no zero-length sentence)` → `... zero-length group item ... always true.`
+
+| | |
+|---|---|
+| **Printed** | `When used, NOT and the next key word specify one class condition that defines the class test to be executed for truth value; e.g., NOT NUMERIC is a truth test for determining that an operand is nonnumeric.` |
+| **This transcription** | `... When the class condition includes the word NOT and identifier-1 is a zero-length group item, the result of the class test is always true.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-57 (A-18) (page 921, folio B-9), applied in place: the same change, its second paragraph (kb/Work PB5045).
+
+<a id="errata-c220"></a>
+
+### C220 · page 322 (folio VI-90) · Section VI, paragraph 6.16.2, the general format of the IF statement · `{statement-1} …, {statement-2} …` → `statement-1, statement-2`
+
+| | |
+|---|---|
+| **Printed** | `IF condition-1 THEN { {statement-1} ... NEXT SENTENCE } { ELSE {statement-2} ... [END-IF] ... }` |
+| **This transcription** | `IF condition-1 THEN { statement-1 NEXT SENTENCE } { ELSE statement-2 [END-IF] ... }` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-90 (page 921, folio B-9), applied in place: "Paragraph 6.16.2, general format of the IF statement, delete the braces surrounding statement-1; delete the ellipsis following statement-1; delete the braces surrounding statement-2; delete the ellipsis following statement-2" (kb/Work PB5045).
+
+<a id="errata-c221"></a>
+
+### C221 · page 323 (folio VI-91) · Section VI, paragraph 6.16.4 (IF), general rule 2b · `(no last sentence)` → `This has the effect of causing a transfer of cont…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence.` |
+| **This transcription** | `b. If the condition is true and the NEXT SENTENCE phrase is specified instead of statement-1, the ELSE phrase, if specified, is ignored and control passes to the next executable sentence. This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 921, folio B-9), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 2b, add the following as the new last sentence" (kb/Work PB5045).
+
+<a id="errata-c222"></a>
+
+### C222 · page 323 (folio VI-91) · Section VI, paragraph 6.16.4 (IF), general rule 2e · `(no last sentence)` → `This has the effect of causing a transfer of cont…`
+
+| | |
+|---|---|
+| **Printed** | `e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence.` |
+| **This transcription** | `e. If the condition is false and the ELSE NEXT SENTENCE phrase is specified, statement-1 is ignored and control passes to the next executable sentence. This has the effect of causing a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 922, folio B-10), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 2e, add the following as the new last sentence" (kb/Work PB5045).
+
+<a id="errata-c223"></a>
+
+### C223 · page 323 (folio VI-91) · Section VI, paragraph 6.16.4 (IF), general rule 3, second paragraph · `may be considered as paired ...` → `are considered matched ... ordered combinations .…`
+
+| | |
+|---|---|
+| **Printed** | `IF statements within IF statements may be considered as paired IF, ELSE, and END-IF combinations, proceeding from left to right. Thus, any ELSE or END-IF encountered is considered to apply to the immediately preceding IF that has not been already paired with an ELSE or END-IF.` |
+| **This transcription** | `IF statements within IF statements are considered matched IF, ELSE, and END-IF ordered combinations, ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-91 (page 922, folio B-10), applied in place: "Paragraph 6.16.4 of the IF statement, general rule 3, second paragraph, replace with the following" (its two shaded phrases boxed) (kb/Work PB5045).
+
+<a id="errata-c224"></a>
+
+### C224 · page 327 (folio VI-95) · Section VI, paragraph 6.18.3 (INSPECT), syntax rule 8 · `(8) When the CHARACTERS phrase is used, literal-2…` → `(8) When the CHARACTERS phrase is used, literal-3…`
+
+| | |
+|---|---|
+| **Printed** | `(8) When the CHARACTERS phrase is used, literal-2, literal-3, or the size of the data item referenced by identifier-4, identifier-5 must be one character in length.` |
+| **This transcription** | `(8) When the CHARACTERS phrase is used, literal-3 or the size of the data item referenced by identifier-5 must be one character in length.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-95 (page 922, folio B-10), applied in place: "Paragraph 6.18.3 of the INSPECT statement, change syntax rule 8 to read" (kb/Work PB5045).
+
+<a id="errata-c225"></a>
+
+### C225 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), general rules 1 to 6, renumbered · `(1) ... (6)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (1) to (6) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c226"></a>
+
+### C226 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), general rules 7 to 7, renumbered · `(7) ... (7)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (7) to (7) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c227"></a>
+
+### C227 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), general rules 8 to 10, renumbered · `(8) ... (10)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (8) to (10) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c228"></a>
+
+### C228 · page 331 (folio VI-99) · Section VI, paragraph 6.18.4 (INSPECT), general rules 11 to 16, renumbered · `(11) ... (16)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (11) to (16) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c229"></a>
+
+### C229 · page 332 (folio VI-100) · Section VI, paragraph 6.18.4 (INSPECT), general rules 17 to 17, renumbered · `(17) ... (17)` → `renumbered`
+
+| | |
+|---|---|
+| **Printed** | `general rules (17) to (17) as printed` |
+| **This transcription** | `each renumbered: old 1-7 are 2-8, old 8-17 are 10-19` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4 of the INSPECT statement, insert the following as a new general rule 1 and renumber old general rules 1 through 7 as new general rules 2 through 8; renumber old general rules 8 through 17 as new general rules 10 through 19" (kb/Work PB5045).
+
+<a id="errata-c230"></a>
+
+### C230 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), a new general rule 1 · `(no rule 1)` → `(1) For the purpose of determining its length, ...`
+
+| | |
+|---|---|
+| **Printed** | `(no rule before the old general rule 1)` |
+| **This transcription** | `(1) For the purpose of determining its length, identifier-1 is treated as if it were a sending data item. (See page VI-26, The OCCURS Clause).` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: the same change: its new general rule 1 (kb/Work PB5045).
+
+<a id="errata-c231"></a>
+
+### C231 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 2, last line · `general rules 5 through 7.` → `general rules 6 through 8.`
+
+| | |
+|---|---|
+| **Printed** | `general rules 5 through 7.` |
+| **This transcription** | `general rules 6 through 8.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 2, last line, change 'general rules 5 through 7.' to 'general rules 6 through 8.'" (kb/Work PB5045).
+
+<a id="errata-c232"></a>
+
+### C232 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 3b · `(see general rule 2a)` → `(see general rule 3a)`
+
+| | |
+|---|---|
+| **Printed** | `(see general rule 2a)` |
+| **This transcription** | `(see general rule 3a)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 3b, fourth line, change '(see general rule 2a)' to '(see general rule 3a)'" (kb/Work PB5045).
+
+<a id="errata-c233"></a>
+
+### C233 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 3c · `in general rule 2b` → `in general rule 3b`
+
+| | |
+|---|---|
+| **Printed** | `in general rule 2b` |
+| **This transcription** | `in general rule 3b` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 3c, fifth line, change 'in general rule 2b' to 'in general rule 3b'" (kb/Work PB5045).
+
+<a id="errata-c234"></a>
+
+### C234 · page 328 (folio VI-96) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 4, first line · `In general rules 5 through 17` → `in general rules 6 through 19`
+
+| | |
+|---|---|
+| **Printed** | `In general rules 5 through 17,` |
+| **This transcription** | `in general rules 6 through 19,` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-96 (page 922, folio B-10), applied in place: "Paragraph 6.18.4, new general rule 4, first line, change 'In general rules 5 through 17' to 'in general rules 6 through 19'" (the amendment prints the lowercase 'in') (kb/Work PB5045).
+
+<a id="errata-c235"></a>
+
+### C235 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 7a, subitem 2 · `general rules 10 and 13` → `general rules 12 and 15`
+
+| | |
+|---|---|
+| **Printed** | `is a leading occurrence as defined in general rules 10 and 13; or` |
+| **This transcription** | `is a leading occurrence as defined in general rules 12 and 15; or` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7a, subitem 2, change 'general rules 10 and 13' to 'general rules 12 and 15'" (kb/Work PB5045).
+
+<a id="errata-c236"></a>
+
+### C236 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 7a, subitem 3 · `defined in general rule 13` → `defined in general rule 15`
+
+| | |
+|---|---|
+| **Printed** | `is the first occurrence as defined in general rule 13.` |
+| **This transcription** | `is the first occurrence as defined in general rule 15.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7a, subitem 3, change 'defined in general rule 13' to 'defined in general rule 15'" (kb/Work PB5045).
+
+<a id="errata-c237"></a>
+
+### C237 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 7c · `in general rules 10 and 13` → `in general rules 12 and 15`
+
+| | |
+|---|---|
+| **Printed** | `tallying or replacing takes place as described in general rules 10 and 13.` |
+| **This transcription** | `tallying or replacing takes place as described in general rules 12 and 15.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7c, second line, change 'in general rules 10 and 13' to 'in general rules 12 and 15'" (kb/Work PB5045).
+
+<a id="errata-c238"></a>
+
+### C238 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 7e · `paragraphs 6a through 6d` → `general rules 7a through 7d`
+
+| | |
+|---|---|
+| **Printed** | `participates in the cycle described in paragraphs 6a through 6d above` |
+| **This transcription** | `participates in the cycle described in general rules 7a through 7d above` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 7e, second line, change 'paragraphs 6a through 6d' to 'general rules 7a through 7d'" (kb/Work PB5045).
+
+<a id="errata-c239"></a>
+
+### C239 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 8, first line · `in general rule 6` → `in general rule 7`
+
+| | |
+|---|---|
+| **Printed** | `(8) The comparison operation defined in general rule 6 is restricted` |
+| **This transcription** | `(8) The comparison operation defined in general rule 7 is restricted` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8, first line, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045).
+
+<a id="errata-c240"></a>
+
+### C240 · page 329 (folio VI-97) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 8a · `in general rule 6` → `in general rule 7`
+
+| | |
+|---|---|
+| **Printed** | `the comparison operation as described in general rule 6.` |
+| **This transcription** | `the comparison operation as described in general rule 7.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-97 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8a, third line, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045).
+
+<a id="errata-c241"></a>
+
+### C241 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 8b · `in general rule 6` → `in general rule 7`
+
+| | |
+|---|---|
+| **Printed** | `the comparison operation described in general rule 6 is begun` |
+| **This transcription** | `the comparison operation described in general rule 7 is begun` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8b, eighth line from end of paragraph, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045).
+
+<a id="errata-c242"></a>
+
+### C242 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 8c · `in general rule 6` → `in general rule 7`
+
+| | |
+|---|---|
+| **Printed** | `the comparison operation described in general rule 6 is begun` |
+| **This transcription** | `the comparison operation described in general rule 7 is begun` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 8c, seventh line from end of paragraph, change 'in general rule 6' to 'in general rule 7'" (kb/Work PB5045).
+
+<a id="errata-c243"></a>
+
+### C243 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), a new general rule 9 after the header FORMAT 1 · `(no rule 9)` → `(9) Identifier-1 is a sending data item.`
+
+| | |
+|---|---|
+| **Printed** | `FORMAT 1: (the header the rule follows)` |
+| **This transcription** | `(9) Identifier-1 is a sending data item.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4 of the INSPECT statement, add the following as the new general rule 9 located immediately after the header FORMAT 1" (kb/Work PB5045).
+
+<a id="errata-c244"></a>
+
+### C244 · page 330 (folio VI-98) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 12c · `general rule 6e` → `general rule 7e`
+
+| | |
+|---|---|
+| **Printed** | `in the sense of general rule 6e` |
+| **This transcription** | `in the sense of general rule 7e` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-98 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 12c, third line, change 'in general rule 6e' to 'in general rule 7e'" (kb/Work PB5045).
+
+<a id="errata-c245"></a>
+
+### C245 · page 331 (folio VI-99) · Section VI, paragraph 6.18.4 (INSPECT), new general rule 15a · `general rule 6e` → `general rule 7e`
+
+| | |
+|---|---|
+| **Printed** | `in the sense of general rule 6e` |
+| **This transcription** | `in the sense of general rule 7e` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-99 (page 923, folio B-11), applied in place: "Paragraph 6.18.4, new general rule 15a, second line, change 'in general rule 6e to 'in general rule 7e'" (the amendment prints no closing quotation mark after 6e) (kb/Work PB5045).
+
+<a id="errata-c246"></a>
+
+### C246 · page 345 (folio VI-113) · Section VI, paragraph 6.21.4 (PERFORM), general rule 10d, the fourth and fifth sentences · `If index-name-1 or index-name-3 is specified, ...` → `If index-name-1 is specified, ... index-name-3 ...`
+
+| | |
+|---|---|
+| **Printed** | `If index-name-1 or index-name-3 is specified, the value of the associated index at the beginning of the PERFORM statement must be set to an occurrence number of an element in the table. If index-name-2 or index-name-4 is specified, the value of the data item referenced by identifier-2 or identifier-5 at the beginning of the PERFORM statement must be equal to an occurrence number of an element in a table associated with index-name-2 or index-name-4.` |
+| **This transcription** | `If index-name-1 is specified, the value of identifier-3, index-name-2, or literal-1 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-1. If index-name-3 is specified, the value of identifier-6, index-name-4, or literal-3 at the beginning of the execution of the PERFORM statement must correspond to an occurrence number of an element in the table associated with index-name-3.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-113 (page 924, folio B-12), applied in place: "Paragraph 6.21.4 of the PERFORM statement, general rule 10d, change the fourth and fifth sentences to read" (shaded: level 2, the rule stands in its box) (kb/Work PB5045).
+
+<a id="errata-c247"></a>
+
+### C247 · page 356 (folio VI-124) · Section VI, paragraph 6.22.4 (SEARCH), general rule 2b · `(no last sentence)` → `When control is passed to the next executable sen…`
+
+| | |
+|---|---|
+| **Printed** | `the index-name remains set at the occurrence which caused the condition to be satisfied.║` |
+| **This transcription** | `the index-name remains set at the occurrence which caused the condition to be satisfied. When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-124 (page 924, folio B-12), applied in place: "Paragraph 6.22.4 of the SEARCH statement, general rule 2b, add the following as the new last sentence" (shaded: level 2, in the rule's box) (kb/Work PB5045).
+
+<a id="errata-c248"></a>
+
+### C248 · page 356 (folio VI-124) · Section VI, paragraph 6.22.4 (SEARCH), general rule 4 · `(no last sentence)` → `When control is passed to the next executable sen…`
+
+| | |
+|---|---|
+| **Printed** | `or to the next executable sentence if the NEXT SENTENCE phrase is specified.║` |
+| **This transcription** | `or to the next executable sentence if the NEXT SENTENCE phrase is specified. When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VI-124 (page 924, folio B-12), applied in place: "Paragraph 6.22.4 of the SEARCH statement, general rule 4, add the following as the new last sentence" (shaded: level 2, in the rule's box) (kb/Work PB5045).
+
+<a id="errata-c249"></a>
+
+### C249 · page 379 (folio VII-5) · Section VII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, 1.3.8 renumbered 1.3.7 · `1.3.7 The File Attribute Conflict Condition; 1.3.…` → `(deleted); 1.3.7 LINAGE-COUNTER`
+
+| | |
+|---|---|
+| **Printed** | `1.3.7 The File Attribute Conflict Condition (its three paragraphs and two numbered items) ... 1.3.8 Special Register LINAGE-COUNTER` |
+| **This transcription** | `(paragraph 1.3.7 deleted) 1.3.7 Special Register LINAGE-COUNTER` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-5 (page 924, folio B-12), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition; renumber paragraph 1.3.8 entitled Special Register LINAGE-COUNTER as new paragraph 1.3.7" (kb/Work PB5045).
+
+<a id="errata-c250"></a>
+
+### C250 · page 406 (folio VII-32) · Section VII, paragraph 3.8.4 (RECORD), general rule 10, a new last paragraph · `(no last paragraph)` → `If the number of character positions in the logic…`
+
+| | |
+|---|---|
+| **Printed** | `(general rule 10 ends with item c)` |
+| **This transcription** | `║If the number of character positions in the logical record to be written is less than integer-2 or greater than integer-3, the output statement is unsuccessful and, except during execution of a RELEASE statement, the associated I-O status is set to a value indicating the cause of the condition. (See page VII-2, I-O Status.)║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-32 (page 924, folio B-12), applied in place: "Paragraph 3.8.4 of the RECORD clause, general rule 10, add the following as a new last paragraph" (shaded: level 2, boxed) (kb/Work PB5045).
+
+<a id="errata-c251"></a>
+
+### C251 · page 406 (folio VII-32) · Section VII, paragraph 3.8.4 (RECORD), general rules 13 and 14 renumbered 14 and 15, a new general rule 13 · `(13), (14)` → `new (13); (14), (15)`
+
+| | |
+|---|---|
+| **Printed** | `(13) When format 3 of the RECORD clause is used, ... (14) The size of each data record ...` |
+| **This transcription** | `(13) It is implementor defined ... (14) When format 3 of the RECORD clause is used, ... (15) The size of each data record ...` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-32 (page 924, folio B-12), applied in place: "Paragraph 3.8.4 of the RECORD clause, renumber general rules 13 and 14 as new general rules 14 and 15. Add the following as new general rule 13 after the header FORMAT 3" (kb/Work PB5045).
+
+<a id="errata-c252"></a>
+
+### C252 · page 411 (folio VII-37) · Section VII, paragraph 4.2.4 (CLOSE), general rule 3, paragraph F, input and input-output files · `Input Files and Input-Output Files: The following…` → `Input Files and Input-Output Files (Reel/Unit Med…`
+
+| | |
+|---|---|
+| **Printed** | `Input Files and Input-Output Files: ... (two numbered operations)` |
+| **This transcription** | `Input Files and Input-Output Files (Reel/Unit Media): 1) ... the file position indicator is set to indicate that no next reel/unit exists. 2) ... the file position indicator is set to one less than the number of the first record existing on the new current volume. ...` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-37 (page 925, folio B-13), applied in place: "Paragraph 4.2.4 of the CLOSE statement in the Sequential I-O module, general rule 3, change paragraph F to read as follows": its input and input-output files (kb/Work PB5045).
+
+<a id="errata-c253"></a>
+
+### C253 · page 412 (folio VII-38) · Section VII, paragraph 4.2.4 (CLOSE), general rule 3, paragraph F, non-reel/unit media · `Output Files (Non-Reel/Unit Media): ...` → `Input Files, Input-Output Files, and Output Files…`
+
+| | |
+|---|---|
+| **Printed** | `<u>Output Files (Non-Reel/Unit Media)</u>: ¶ Execution of this statement is considered successful. The file remains in the open mode, and no action takes place except as specified in general rule 4.` |
+| **This transcription** | `<u>Input Files, Input-Output Files, and Output Files (Non-Reel/Unit Media)</u>: ¶ Execution of this statement is considered successful. The file remains in the open mode, the file position indicator is unchanged, and no action takes place except as specified in general rule 4.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-37 (page 925, folio B-13), applied in place: "Paragraph 4.2.4 of the CLOSE statement in the Sequential I-O module, general rule 3, change paragraph F to read as follows": its non-reel/unit media (the output files on reel/unit media read as before) (kb/Work PB5045).
+
+<a id="errata-c254"></a>
+
+### C254 · page 415 (folio VII-41) · Section VII, paragraph 4.3.4 (OPEN), general rule 8 · `(See page VII-5, The File Attribute Conflict Cond…` → `The implementor defines which ... (See page II-1,…`
+
+| | |
+|---|---|
+| **Printed** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)` |
+| **This transcription** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-41 (page 926, folio B-14), applied in place: "Paragraph 4.3.4 of the OPEN statement in the Sequential I-O module, general rule 8, change to read" (kb/Work PB5045).
+
+<a id="errata-c255"></a>
+
+### C255 · page 417 (folio VII-43) · Section VII, paragraph 4.3.4 (OPEN), a new general rule 26 · `(no rule 26)` → `(26) If the execution of the OPEN statement is un…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 25)` |
+| **This transcription** | `(26) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order: ¶ a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful. ¶ b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page VII-50, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-43 (page 926, folio B-14), applied in place: "Paragraph 4.3.4 of the OPEN statement in the Sequential I-O module, add the following as the new general rule 26" (kb/Work PB5045).
+
+<a id="errata-c256"></a>
+
+### C256 · page 420 (folio VII-46) · Section VII, paragraph 4.4.4 (READ), general rule 10b · `b. If the AT END phrase is specified ... USE AFTE…` → `b. ... the AT END imperative-statement-1. ... NOT…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` |
+| **This transcription** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 926, folio B-14), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, replace general rule 10b with the following" (kb/Work PB5045).
+
+<a id="errata-c257"></a>
+
+### C257 · page 420 (folio VII-46) · Section VII, paragraph 4.4.4 (READ), general rule 10c, first sentence · `a USE AFTER STANDARD EXCEPTION procedure must be…` → `a USE AFTER EXCEPTION procedure must be associate…`
+
+| | |
+|---|---|
+| **Printed** | `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with this file-name-1, and that procedure is executed.` |
+| **This transcription** | `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 926, folio B-14), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, general rule 10c, change the first sentence to read" (kb/Work PB5045).
+
+<a id="errata-c258"></a>
+
+### C258 · page 420 (folio VII-46) · Section VII, paragraph 4.4.4 (READ), general rule 11b · `b. If an exception condition which is not an at e…` → `b. If an exception condition that is not an at en…`
+
+| | |
+|---|---|
+| **Printed** | `b. If an exception condition which is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file name-1. (See page VII-50, The USE Statement.)` |
+| **This transcription** | `b. If an exception condition that is not an at end condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page VII-50, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-46 (page 927, folio B-15), applied in place: "Paragraph 4.4.4 of the READ statement in the Sequential I-O module, replace general rule 11b with the following" (kb/Work PB5045).
+
+<a id="errata-c259"></a>
+
+### C259 · page 422 (folio VII-48) · Section VII, paragraph 4.5.3 (REWRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-48 (A-19) (page 927, folio B-15), applied in place: "Paragraph 4.5.3 of the REWRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's, C138) (kb/Work PB5045).
+
+<a id="errata-c260"></a>
+
+### C260 · page 424 (folio VII-50) · Section VII, paragraph 4.6.3 (USE), syntax rule 3 · `(3) Appearance of file-name-1 in a USE statement…` → `(3) The same file-name must not appear in more th…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` |
+| **This transcription** | `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-50 (page 927, folio B-15), applied in place: "Paragraph 4.6.3 of the USE statement in the Sequential I-O module, syntax rule 3, change to read" (kb/Work PB5045).
+
+<a id="errata-c261"></a>
+
+### C261 · page 426 (folio VII-52) · Section VII, paragraph 4.7.3 (WRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-52 (A-19) (page 927, folio B-15), applied in place: "Paragraph 4.7.3 of the WRITE statement in the Sequential I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c262"></a>
+
+### C262 · page 427 (folio VII-53) · Section VII, paragraph 4.7.4 (WRITE), general rule 9 and its subparagraph a · `(9) ... at the appropriate time as follows: a. ...` → `(9) If, during the successful execution ... after…`
+
+| | |
+|---|---|
+| **Printed** | `║(9) If, during the execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 at the appropriate time as follows:║ ¶ ║a. If the execution of the WRITE statement is successful, after the record is written and after updating the I-O status of the file-name associated with record-name-1.║ (its subparagraph b on page 428)` |
+| **This transcription** | `║(9) If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 after execution of the input-output operation.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-53 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, replace general rule 9, including subparagraphs a and b, with the following" (shaded: level 2, boxed) (kb/Work PB5045).
+
+<a id="errata-c263"></a>
+
+### C263 · page 428 (folio VII-54) · Section VII, paragraph 4.7.4 (WRITE), general rule 9, subparagraph b · `b. If the execution of the WRITE statement is uns…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `║b. If the execution of the WRITE statement is unsuccessful, after updating the I-O status of the file-name associated with record-name-1, and after executing the procedure, if any, specified by a USE AFTER STANDARD EXCEPTION PROCEDURE statement applicable to the file-name associated with record-name-1.║` |
+| **This transcription** | `(deleted: general rule 9 replaced, above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-53 (page 927, folio B-15), applied in place: the same change: its subparagraph b, on page 428 (kb/Work PB5045).
+
+<a id="errata-c264"></a>
+
+### C264 · page 428 (folio VII-54) · Section VII, paragraph 4.7.4 (WRITE), general rules renumbered (page 428) · `(10) ... (17)` → `(11) ... (18)`
+
+| | |
+|---|---|
+| **Printed** | `general rules (10) ... as printed` |
+| **This transcription** | `each renumbered one higher` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, renumber general rules 10 through 17 as new general rules 11 through 18" (kb/Work PB5045).
+
+<a id="errata-c265"></a>
+
+### C265 · page 429 (folio VII-55) · Section VII, paragraph 4.7.4 (WRITE), general rules renumbered (page 429) · `(16), (17)` → `(17), (18)`
+
+| | |
+|---|---|
+| **Printed** | `general rules ║(16) ... as printed` |
+| **This transcription** | `each renumbered one higher` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 927, folio B-15), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, renumber general rules 10 through 17 as new general rules 11 through 18" (kb/Work PB5045).
+
+<a id="errata-c266"></a>
+
+### C266 · page 428 (folio VII-54) · Section VII, paragraph 4.7.4 (WRITE), a new general rule 10 · `(no rule 10)` → `(10) If the execution of the WRITE statement is u…`
+
+| | |
+|---|---|
+| **Printed** | `(no rule 10 after the renumbering)` |
+| **This transcription** | `(10) If the execution of the WRITE statement is unsuccessful, the I-O status of the file-name associated with record-name-1 is updated and control is transferred according to the rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to the file-name associated with record-name-1. (See page VII-50, The USE Statement).` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VII-54 (page 928, folio B-16), applied in place: "Paragraph 4.7.4 of the WRITE statement in the Sequential I-O module, add the following as the new general rule 10" (kb/Work PB5045).
+
+<a id="errata-c267"></a>
+
+### C267 · page 436 (folio VIII-6) · Section VIII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, its page VIII-6 part · `1.3.7 The File Attribute Conflict Condition ...` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `### 1.3.7 The File Attribute Conflict Condition The file attribute conflict condition can result from the execution of an OPEN, REWRITE, or WRITE statement. When the file attribute conflict condition occurs, execution of the input-output statement that recognized the condition is unsuccessful and the file is not affected. (See page VIII-21, The OPEN Statement; page VIII-30, The REWRITE Statement; and page VIII-37, The WRITE Statement.)` |
+| **This transcription** | `(paragraph 1.3.7 deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-6 (page 928, folio B-16), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition that appears on the bottom of page VIII-6 and on the top of page VIII-7" (kb/Work PB5045).
+
+<a id="errata-c268"></a>
+
+### C268 · page 437 (folio VIII-7) · Section VIII, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted, its page VIII-7 part · `When the file attribute conflict condition is rec…` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `When the file attribute conflict condition is recognized, these actions take place in the following order: ¶ (1) A value is placed in the I-O status associated with the file-name to indicate the file attribute conflict condition. (See page VIII-2, I-O Status.) ¶ (2) A USE AFTER EXCEPTION procedure, if any, associated with the file-name is executed.` |
+| **This transcription** | `(deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-6 (page 928, folio B-16), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition that appears on the bottom of page VIII-6 and on the top of page VIII-7" (kb/Work PB5045).
+
+<a id="errata-c269"></a>
+
+### C269 · page 454 (folio VIII-24) · Section VIII, paragraph 4.4.4 (OPEN), general rule 8 · `(See page VIII-6, The File Attribute Conflict Con…` → `The implementor defines which ... (See page II-1,…`
+
+| | |
+|---|---|
+| **Printed** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VIII-6, The File Attribute Conflict Condition.)` |
+| **This transcription** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-24 (page 928, folio B-16), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Relative I-O module, general rule 8, change to read" (kb/Work PB5045).
+
+<a id="errata-c270"></a>
+
+### C270 · page 455 (folio VIII-25) · Section VIII, paragraph 4.4.4 (OPEN), a new general rule 19 · `(no rule 19)` → `(19) If the execution of the OPEN statement is un…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 18)` |
+| **This transcription** | `(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order: ¶ a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful. ¶ b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page VIII-35, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-25 (page 928, folio B-16), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Relative I-O module, add the following as the new general rule 19" (kb/Work PB5045).
+
+<a id="errata-c271"></a>
+
+### C271 · page 458 (folio VIII-28) · Section VIII, paragraph 4.5.4 (READ), general rule 10b · `b. If the AT END phrase is specified ... USE AFTE…` → `b. ... the AT END imperative-statement-1. ... NOT…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` |
+| **This transcription** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1, control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-28 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, general rule 10b, change to read" (kb/Work PB5045).
+
+<a id="errata-c272"></a>
+
+### C272 · page 458 (folio VIII-28) · Section VIII, paragraph 4.5.4 (READ), general rule 10c, first sentence · `a USE AFTER STANDARD EXCEPTION procedure must be…` → `a USE AFTER EXCEPTION procedure must be associate…`
+
+| | |
+|---|---|
+| **Printed** | `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed.` |
+| **This transcription** | `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-28 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, general rule 10c, change the first sentence to read" (kb/Work PB5045).
+
+<a id="errata-c273"></a>
+
+### C273 · page 459 (folio VIII-29) · Section VIII, paragraph 4.5.4 (READ), general rule 11b · `b. If an exception condition which is not ... app…` → `b. If an exception condition that is not ... refe…`
+
+| | |
+|---|---|
+| **Printed** | `b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page VIII-35, The USE Statement.)` |
+| **This transcription** | `b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page VIII-35, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-29 (page 929, folio B-17), applied in place: "Paragraph 4.5.4 of the READ statement in the Relative I-O module, replace general rule 11b with the following" (kb/Work PB5045).
+
+<a id="errata-c274"></a>
+
+### C274 · page 460 (folio VIII-30) · Section VIII, paragraph 4.6.3 (REWRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-30 (A-19) (page 929, folio B-17), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Relative I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c275"></a>
+
+### C275 · page 465 (folio VIII-35) · Section VIII, paragraph 4.8.3 (USE), syntax rule 3 · `(3) Appearance of file-name-1 in a USE statement…` → `(3) The same file-name must not appear in more th…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` |
+| **This transcription** | `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-35 (page 929, folio B-17), applied in place: "Paragraph 4.8.3 of the USE statement in the Relative I-O module, syntax rule 3, change to read" (kb/Work PB5045).
+
+<a id="errata-c276"></a>
+
+### C276 · page 467 (folio VIII-37) · Section VIII, paragraph 4.9.3 (WRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-37 (A-19) (page 930, folio B-18), applied in place: "Paragraph 4.9.3 of the WRITE statement in the Relative I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c277"></a>
+
+### C277 · page 468 (folio VIII-38) · Section VIII, paragraph 4.9.4 (WRITE), general rule 9 and its subparagraphs a and b · `(9) ... at the appropriate time as follows: a. ..…` → `(9) Transfer of control following the successful…`
+
+| | |
+|---|---|
+| **Printed** | `(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, ... as follows: a. ... b. ...` |
+| **This transcription** | `(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page VIII-5, The Invalid Key Condition.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page VIII-38 (page 930, folio B-18), applied in place: "Paragraph 4.9.4 of the WRITE statement in the Relative I-O module, replace general rule 9, including subparagraphs a and b, with the following" (kb/Work PB5045).
+
+<a id="errata-c278"></a>
+
+### C278 · page 474 (folio IX-4) · Section IX, paragraph 1.3.4 (I-O Status), item 3b, I-O status 22 · `b. I-O Status = 22. An attempt is made to write ║…` → `b. I-O Status = 22. An attempt is made ║either:║…`
+
+| | |
+|---|---|
+| **Printed** | `b. I-O Status = 22. An attempt is made to write ║or rewrite║ a record that would create a duplicate prime record key ║or a duplicate alternate record key without the DUPLICATES phrase in an indexed file.║` |
+| **This transcription** | `b. I-O Status = 22. An attempt is made ║either:║ ¶ ║1)║ to write a record that would create a duplicate prime record key║; or║ ¶ ║2) to write or rewrite a record that would create a duplicate alternate record key when the DUPLICATES phrase is not specified for that alternate record key║.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-4 (page 930, folio B-18), applied in place: "Paragraph 1.3.4, I-O status in the Indexed I-O module, item 3b for I-O status 22, change to read" (its shaded words boxed: level 2) (kb/Work PB5045).
+
+<a id="errata-c279"></a>
+
+### C279 · page 477 (folio IX-7) · Section IX, paragraph 1.3.7 (The File Attribute Conflict Condition) deleted · `1.3.7 The File Attribute Conflict Condition ...` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `1.3.7 The File Attribute Conflict Condition (its three paragraphs and two numbered items, the first paragraph as Amendment 1 corrected it, C139)` |
+| **This transcription** | `(paragraph 1.3.7 deleted)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-7 (page 930, folio B-18), applied in place: "Delete paragraph 1.3.7 entitled The File Attribute Conflict Condition." Amendment 1's correction of its first paragraph goes with it (C139) (kb/Work PB5045).
+
+<a id="errata-c280"></a>
+
+### C280 · page 496 (folio IX-26) · Section IX, paragraph 4.4.4 (OPEN), general rule 8 · `(See page IX-7, The File Attribute Conflict Condi…` → `The implementor defines which ... (See page II-1,…`
+
+| | |
+|---|---|
+| **Printed** | `(8) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page IX-7, The File Attribute Conflict Condition.)` |
+| **This transcription** | `(8) If during the execution of the OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-26 (page 930, folio B-18), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, general rule 8, change to read" (kb/Work PB5045).
+
+<a id="errata-c281"></a>
+
+### C281 · page 497 (folio IX-27) · Section IX, paragraph 4.4.4 (OPEN), a new general rule 19 · `(no rule 19)` → `(19) If the execution of the OPEN statement is un…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 18)` |
+| **This transcription** | `(19) If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order: ¶ a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful. ¶ b. Any applicable USE AFTER EXCEPTION procedure is executed. (See page IX-39, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-27 (page 931, folio B-19), applied in place: "Paragraph 4.4.4 of the OPEN statement in the Indexed I-O module, add the following as the new general rule 19" (kb/Work PB5045).
+
+<a id="errata-c282"></a>
+
+### C282 · page 500 (folio IX-30) · Section IX, paragraph 4.5.4 (READ), general rule 10b · `b. If the AT END phrase is specified ... USE AFTE…` → `b. ... the AT END imperative-statement-1. ... NOT…`
+
+| | |
+|---|---|
+| **Printed** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to imperative-statement-1 in the AT END phrase. Any USE AFTER STANDARD EXCEPTION procedure associated with file-name-1 is not executed.` |
+| **This transcription** | `b. If the AT END phrase is specified in the statement causing the condition, control is transferred to the AT END imperative-statement-1. Any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1 is not executed. Execution then continues according to the rules for each statement specified in imperative-statement-1. If a procedure branching or conditional statement that causes explicit transfer of control is executed, control is transferred in accordance with the rules of that statement; otherwise, upon completion of the execution of imperative-statement-1 control is transferred to the end of the READ statement and the NOT AT END phrase, if specified, is ignored.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-30 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10b, change to read" (the amendment prints no comma after 'imperative-statement-1' in its last sentence, as its sequential and relative rows do; the text follows the amendment) (kb/Work PB5045).
+
+<a id="errata-c283"></a>
+
+### C283 · page 500 (folio IX-30) · Section IX, paragraph 4.5.4 (READ), general rule 10c, first sentence · `a USE AFTER STANDARD EXCEPTION procedure must be…` → `a USE AFTER EXCEPTION procedure must be associate…`
+
+| | |
+|---|---|
+| **Printed** | `c. If the AT END phrase is not specified, a USE AFTER STANDARD EXCEPTION procedure must be associated with file-name-1, and that procedure is executed.` |
+| **This transcription** | `c. If the AT END phrase is not specified, a USE AFTER EXCEPTION procedure must be associated with the file connector referenced by file-name-1, and that procedure is executed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-30 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, general rule 10c, replace the first sentence with the following" (kb/Work PB5045).
+
+<a id="errata-c284"></a>
+
+### C284 · page 501 (folio IX-31) · Section IX, paragraph 4.5.4 (READ), general rule 11b · `b. If an exception condition which is not ... app…` → `b. If an exception condition that is not ... refe…`
+
+| | |
+|---|---|
+| **Printed** | `b. If an exception condition which is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable to file-name-1. (See page IX-39, The USE Statement.)` |
+| **This transcription** | `b. If an exception condition that is not an at end or an invalid key condition exists, control is transferred according to rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-1. (See page IX-39, The USE Statement.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-31 (page 931, folio B-19), applied in place: "Paragraph 4.5.4 of the READ statement in the Indexed I-O module, replace general rule 11b with the following" (kb/Work PB5045).
+
+<a id="errata-c285"></a>
+
+### C285 · page 503 (folio IX-33) · Section IX, paragraph 4.6.3 (REWRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-33 (A-19) (page 932, folio B-20), applied in place: "Paragraph 4.6.3 of the REWRITE statement in the Indexed I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c286"></a>
+
+### C286 · page 509 (folio IX-39) · Section IX, paragraph 4.8.3 (USE), syntax rule 3 · `(3) Appearance of file-name-1 in a USE statement…` → `(3) The same file-name must not appear in more th…`
+
+| | |
+|---|---|
+| **Printed** | `(3) Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure.` |
+| **This transcription** | `(3) The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-39 (page 932, folio B-20), applied in place: "Paragraph 4.8.3 of the USE statement in the Indexed I-O module, syntax rule 3, change to read" (kb/Work PB5045).
+
+<a id="errata-c287"></a>
+
+### C287 · page 511 (folio IX-41) · Section IX, paragraph 4.9.3 (WRITE), syntax rule 1, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-41 (A-20) (page 932, folio B-20), applied in place: "Paragraph 4.9.3 of the WRITE statement in the Indexed I-O module, syntax rule 1, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c288"></a>
+
+### C288 · page 512 (folio IX-42) · Section IX, paragraph 4.9.4 (WRITE), general rule 9 and its subparagraphs a and b · `(9) ... at the appropriate time as follows: a. ..…` → `(9) Transfer of control following the successful…`
+
+| | |
+|---|---|
+| **Printed** | `(9) If, during the execution of a WRITE statement with the NOT INVALID KEY phrase, ... as follows: a. ... b. ...` |
+| **This transcription** | `(9) Transfer of control following the successful or unsuccessful execution of the WRITE operation depends on the presence or absence of the INVALID KEY and NOT INVALID KEY phrases. (See page IX-6, The Invalid Key Condition.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page IX-42 (page 932, folio B-20), applied in place: "Paragraph 4.9.4 of the WRITE statement in the Indexed I-O module, general rule 9, including subparagraphs a and b, change to read" (kb/Work PB5045).
+
+<a id="errata-c289"></a>
+
+### C289 · page 521 (folio X-7) · Section X, paragraph 1.3.8.3 (Conventions for Index-Names), first sentence · `either or both the external or global attributes…` → `the global attribute ... an index-name ...`
+
+| | |
+|---|---|
+| **Printed** | `║If a data item possessing either or both the external or global attributes includes a table accessed with an index, that index also possesses correspondingly either or both attributes.` |
+| **This transcription** | `║If a data item possessing the global attribute includes a table described with an index-name, that index-name also possesses the global attribute.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page X-7 (page 932, folio B-20), applied in place: "Paragraph 1.3.8.3, Conventions for Index-Names, change the first sentence to read" (shaded: level 2, the paragraph's box) (kb/Work PB5045).
+
+<a id="errata-c290"></a>
+
+### C290 · page 539 (folio X-23) · Section X, paragraph 4.5.3 (EXTERNAL), syntax rule 3, first sentence · `entry which includes, or is subordinate to, an en…` → `entry that includes, or is subordinate to an entr…`
+
+| | |
+|---|---|
+| **Printed** | `║(3) The VALUE clause must not be used in any data description entry which includes, or is subordinate to, an entry which includes the EXTERNAL clause.` |
+| **This transcription** | `║(3) The VALUE clause must not be used in any data description entry that includes, or is subordinate to an entry that includes, the EXTERNAL clause.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page X-23 (page 932, folio B-20), applied in place: "Paragraph 4.5.3 of the EXTERNAL clause, syntax rule 3, change the first sentence to read" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c291"></a>
+
+### C291 · page 549 (folio X-33) · Section X, paragraph 5.4.4 (EXIT PROGRAM), a new general rule 4 · `(no rule 4)` → `(4) An EXIT PROGRAM statement must not be execute…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 3)` |
+| **This transcription** | `║(4) An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase is specified, except within a program called while executing within the range of that declarative procedure.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page X-33 (page 932, folio B-20), applied in place: "Paragraph 5.4.4 of the EXIT PROGRAM statement, add the following as the new general rule 4" (shaded: level 2, boxed) (kb/Work PB5045).
+
+<a id="errata-c292"></a>
+
+### C292 · page 562 (folio XI-10) · Section XI, paragraph 4.1.4 (MERGE), general rule 7b · `(no last sentence)` → `If the file referenced by file-name-1 is describe…`
+
+| | |
+|---|---|
+| **Printed** | `b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed.` |
+| **This transcription** | `b. The logical records are obtained and released to the merge operation. Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed. If the file referenced by file-name-1 is described with variable length records, the size of any record written to file-name-1 is the size of that record when it was read from file-name-2 or file-name-3, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the sort-merge file description entry for file-name-1.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-10 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7b, add the following as the new last sentence for the paragraph" (kb/Work PB5045).
+
+<a id="errata-c293"></a>
+
+### C293 · page 563 (folio XI-11) · Section XI, paragraph 4.1.4 (MERGE), general rule 7c · `(no last sentence)` → `For a relative file, the content of the relative…`
+
+| | |
+|---|---|
+| **Printed** | `If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure.` |
+| **This transcription** | `If an output procedure is specified, this termination is not performed until after control passes the last statement in the output procedure. For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7c, add the following as a new last sentence after the words '... the last statement in the output procedure.'" (kb/Work PB5045).
+
+<a id="errata-c294"></a>
+
+### C294 · page 563 (folio XI-11) · Section XI, paragraph 4.1.4 (MERGE), general rule 7, a new last paragraph · `(no last paragraph)` → `The value of the data item referenced by the DEPE…`
+
+| | |
+|---|---|
+| **Printed** | `These implicit functions are performed such that any associated USE AFTER EXCEPTION/ERROR procedures are executed.` |
+| **This transcription** | `The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the file description entry for file-name-2 or file-name-3 is undefined upon completion of the MERGE statement.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 7, add the following as a new last paragraph for general rule 7" (kb/Work PB5045).
+
+<a id="errata-c295"></a>
+
+### C295 · page 563 (folio XI-11) · Section XI, paragraph 4.1.4 (MERGE), general rule 11b, first paragraph · `(no last sentence)` → `If the file referenced by file-name-4 is describe…`
+
+| | |
+|---|---|
+| **Printed** | `b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed.` |
+| **This transcription** | `b. The merged logical records are returned and written onto the file. Each record is written as if a WRITE statement without any optional phrases had been executed. If the file referenced by file-name-4 is described with variable length records, the size of any record written to file-name-4 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-4.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-11 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11b, add the following as the new last sentence for the first paragraph" (kb/Work PB5045).
+
+<a id="errata-c296"></a>
+
+### C296 · page 564 (folio XI-12) · Section XI, paragraph 4.1.4 (MERGE), general rule 11, last paragraph · `any USE AFTER STANDARD EXCEPTION/ERROR procedure…` → `any USE AFTER EXCEPTION procedure associated with…`
+
+| | |
+|---|---|
+| **Printed** | `any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed;` |
+| **This transcription** | `any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-4 is executed;` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-12 (page 933, folio B-21), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11, last paragraph, sixth line, change in part" (kb/Work PB5045).
+
+<a id="errata-c297"></a>
+
+### C297 · page 564 (folio XI-12) · Section XI, paragraph 4.1.4 (MERGE), general rule 11, a new last paragraph · `(no last paragraph)` → `The value of the data item referenced by the DEPE…`
+
+| | |
+|---|---|
+| **Printed** | `(general rule 11 ends with the paragraph above)` |
+| **This transcription** | `The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the MERGE statement for which the GIVING phrase is specified.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-12 (page 934, folio B-22), applied in place: "Paragraph 4.1.4 of the MERGE statement, general rule 11, add the following as a new last paragraph for general rule 11" (kb/Work PB5045).
+
+<a id="errata-c298"></a>
+
+### C298 · page 565 (folio XI-13) · Section XI, paragraph 4.2.3 (RELEASE), syntax rule 3, second sentence · `When identifier-1 is not a function-identifier, r…` → `Record-name-1 and identifier-1 must not reference…`
+
+| | |
+|---|---|
+| **Printed** | `When identifier-1 is not a function-identifier, record-name-1 and identifier-1 must not reference the same storage area.` |
+| **This transcription** | `Record-name-1 and identifier-1 must not reference the same storage area.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-13 (A-20) (page 934, folio B-22), applied in place: "Paragraph 4.2.3 of the RELEASE statement in the Sort-Merge module, syntax rule 3, second sentence, change to read" (the sentence is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c299"></a>
+
+### C299 · page 571 (folio XI-19) · Section XI, paragraph 4.4.4 (SORT), general rule 9b to the end of general rule 9 · `9b ... end of general rule 9` → `9b, 9c and two paragraphs, as the amendment reads`
+
+| | |
+|---|---|
+| **Printed** | `b. The logical records are obtained ... (to the end of general rule 9: its paragraph For a relative file, item c and the paragraph These implicit functions)` |
+| **This transcription** | `b. ... c. ... These implicit functions ... The value of the data item referenced by the DEPENDING ON phrase ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-19 (page 934, folio B-22), applied in place: "Paragraph 4.4.4 of the SORT statement, beginning of general rule 9b to the end of general rule 9, replace with the following" (kb/Work PB5045).
+
+<a id="errata-c300"></a>
+
+### C300 · page 572 (folio XI-20) · Section XI, paragraph 4.4.4 (SORT), general rule 12b, first paragraph, last sentence · `phrases had been execution.` → `phrases had been executed.`
+
+| | |
+|---|---|
+| **Printed** | `phrases had been execution.` |
+| **This transcription** | `phrases had been executed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 934, folio B-22), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12b, first paragraph, last sentence, change 'phrases had been execution.' to 'phrases had been executed.'" (kb/Work PB5045).
+
+<a id="errata-c301"></a>
+
+### C301 · page 572 (folio XI-20) · Section XI, paragraph 4.4.4 (SORT), general rule 12b, first paragraph · `(no last sentence)` → `If the file referenced by file-name-3 is describe…`
+
+| | |
+|---|---|
+| **Printed** | `... phrases had been executed.` |
+| **This transcription** | `... phrases had been executed. If the file referenced by file-name-3 is described with variable length records, the size of any record written to file-name-3 is the size of that record when it was read from file-name-1, regardless of the content of the data item referenced by the DEPENDING ON phrase of either a RECORD IS VARYING clause or an OCCURS clause specified in the file description entry for file-name-3.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 935, folio B-23), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12b, add the following as the new last sentence in the first paragraph" (kb/Work PB5045).
+
+<a id="errata-c302"></a>
+
+### C302 · page 572 (folio XI-20) · Section XI, paragraph 4.4.4 (SORT), general rule 12, last paragraph, last sentence · `any USE AFTER STANDARD EXCEPTION/ERROR procedure…` → `any USE AFTER EXCEPTION procedure associated with…`
+
+| | |
+|---|---|
+| **Printed** | `On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER STANDARD EXCEPTION/ERROR procedure specified for the file is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above.` |
+| **This transcription** | `On the first attempt to write beyond the externally defined boundaries of the file, any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-3 is executed; if control is returned from that USE procedure or if no such USE procedure is specified, the processing of the file is terminated as in paragraph 12c above. ¶ The value of the data item referenced by the DEPENDING ON phrase of a RECORD IS VARYING clause specified in the sort-merge file description entry for file-name-1 is undefined upon completion of the SORT statement for which the GIVING phrase is specified.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XI-20 (page 935, folio B-23), applied in place: "Paragraph 4.4.4 of the SORT statement, general rule 12, last paragraph, last sentence beginning with 'On the first attempt', replace with the following" (the replacement is that sentence and a new paragraph) (kb/Work PB5045).
+
+<a id="errata-c303"></a>
+
+### C303 · page 577 (folio XII-3) · Section XII, paragraph 2.4 (COPY), general rule 5b · `(no last sentence)` → `Each lowercase letter is equivalent to the corres…`
+
+| | |
+|---|---|
+| **Printed** | `(no such sentence)` |
+| **This transcription** | `Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-3 (page 935, folio B-23), applied in place: "Paragraph 2.4 of the COPY statement, general rule 5b, add the following as the new last sentence" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c304"></a>
+
+### C304 · page 579 (folio XII-5) · Section XII, paragraph 2.4 (COPY), a new general rule 12 · `(no rule 12)` → `(12) The text produced as a result of the complet…`
+
+| | |
+|---|---|
+| **Printed** | `(the general rules end with rule 11)` |
+| **This transcription** | `(12) The text produced as a result of the complete processing of a COPY statement must not contain a COPY statement.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-5 (page 935, folio B-23), applied in place: "Paragraph 2.4 of the COPY statement, add the following as a new general rule 12" (kb/Work PB5045).
+
+<a id="errata-c305"></a>
+
+### C305 · page 581 (folio XII-7) · Section XII, paragraph 3.4 (REPLACE), general rule 5 · `must not contain a REPLACE statement` → `must contain neither a COPY statement nor a REPLA…`
+
+| | |
+|---|---|
+| **Printed** | `║(5) The text produced as a result of the processing of a REPLACE statement must not contain a REPLACE statement.║` |
+| **This transcription** | `║(5) The text produced as a result of the processing of a REPLACE statement must contain neither a COPY statement nor a REPLACE statement.║` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 935, folio B-23), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 5, change to read" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c306"></a>
+
+### C306 · page 581 (folio XII-7) · Section XII, paragraph 3.4 (REPLACE), general rule 6b · `(no last sentence)` → `Each lowercase letter is equivalent to the corres…`
+
+| | |
+|---|---|
+| **Printed** | `(no such sentence)` |
+| **This transcription** | `Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set. (See page III-3, Definition of COBOL Character Set.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 936, folio B-24), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 6b, add the following as the new last sentence" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c307"></a>
+
+### C307 · page 581 (folio XII-7) · Section XII, paragraph 3.4 (REPLACE), general rule 7, last sentence · `is not replaced if` → `is not placed into the resultant program if`
+
+| | |
+|---|---|
+| **Printed** | `A comment line or blank line in source program text is not replaced if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.` |
+| **This transcription** | `A comment line or blank line in source program text is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XII-7 (page 936, folio B-24), applied in place: "Paragraph 3.4 of the REPLACE statement, general rule 7, change the last sentence to read" (shaded: level 2, the rule's box) (kb/Work PB5045).
+
+<a id="errata-c308"></a>
+
+### C308 · page 614 (folio XIII-34) · Section XIII, paragraph 3.10.8 (Body Group Presentation Rules), rule 4b, second paragraph · `current page group` → `current body group`
+
+| | |
+|---|---|
+| **Printed** | `the first print line of the current page group is presented` |
+| **This transcription** | `the first print line of the current body group is presented` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XIII-34 (page 936, folio B-24), applied in place: "Paragraph 3.10.8 entitled Body Group Presentation Rules, rule 4b, second paragraph, fourth line, change 'current page group' to 'current body group'" (kb/Work PB5045).
+
+<a id="errata-c309"></a>
+
+### C309 · page 649 (folio XIII-71) · Section XIII, paragraph 4.5.4 (OPEN), general rule 6 · `(See page VII-5, The File Attribute Conflict Cond…` → `The implementor defines which ... (See page II-1,…`
+
+| | |
+|---|---|
+| **Printed** | `(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. (See page VII-5, The File Attribute Conflict Condition.)` |
+| **This transcription** | `(6) If during the execution of an OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of fixed file attributes may vary depending on the organization and/or storage medium of the file. (See page II-1, File Attributes.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XIII-71 (page 936, folio B-24), applied in place: "Paragraph 4.5.4 of the OPEN statement in the Report Writer module, general rule 6, change to read" (kb/Work PB5045).
+
+<a id="errata-c310"></a>
+
+### C310 · page 656 (folio XIII-78) · Section XIII, paragraph 4.9.3 (USE BEFORE REPORTING), syntax rule 2 · `Identifier-1 must not appear in more than one USE…` → `The same identifier-1 must not appear in more tha…`
+
+| | |
+|---|---|
+| **Printed** | `(2) Identifier-1 must reference a report group. Identifier-1 must not appear in more than one USE BEFORE REPORTING statement.` |
+| **This transcription** | `(2) Identifier-1 must reference a report group. The same identifier-1 must not appear in more than one USE BEFORE REPORTING statement within the same Procedure Division.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XIII-78 (page 936, folio B-24), applied in place: "Paragraph 4.9.3 of the USE BEFORE REPORTING statement, syntax rule 2, change to read" (kb/Work PB5045).
+
+<a id="errata-c311"></a>
+
+### C311 · page 857 (folio A-27) · Section A, paragraph 1.2.2 (Value Returned by a Function), last sentence · `the returned value for the function is undefined.` → `then the result of such a reference is undefined.`
+
+| | |
+|---|---|
+| **Printed** | `If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined.` |
+| **This transcription** | `If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-27) (page 936, folio B-24), applied in place: "Paragraph 1.2.2 entitled Value Returned by a Function, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c312"></a>
+
+### C312 · page 858 (folio A-28) · Section A, paragraph 2.2 (Arguments), the first paragraph after item 4, last sentence · `the returned value for the function is undefined.` → `then the result of such a reference is undefined.`
+
+| | |
+|---|---|
+| **Printed** | `do not have values within the permissible range, the returned value for the function is undefined.` |
+| **This transcription** | `do not have values within the permissible range, then the result of such a reference is undefined.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-28) (page 937, folio B-25), applied in place: "Paragraph 2.2 entitled Arguments, first paragraph after the numbered item 4, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c313"></a>
+
+### C313 · page 859 (folio A-29) · Section A, paragraph 2.2 (Arguments), the last paragraph, last sentence · `otherwise the returned value is undefined.` → `otherwise the result of the reference to the func…`
+
+| | |
+|---|---|
+| **Printed** | `otherwise the returned value is undefined.` |
+| **This transcription** | `otherwise the result of the reference to the function-identifier is undefined.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-29) (page 937, folio B-25), applied in place: "Paragraph 2.2 entitled Arguments, last paragraph, replace the last sentence with the following" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c314"></a>
+
+### C314 · page 882 (folio A-52) · Section A, paragraph 2.23.3 (MAX function), argument rule 1 · `... must be of the same class.` → `... of the same class with the exception that mix…`
+
+| | |
+|---|---|
+| **Printed** | `(1) If more than one argument-1 is specified, all arguments must be of the same class.` |
+| **This transcription** | `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-52) (page 937, folio B-25), applied in place: "Paragraph 2.23.3 of the MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c315"></a>
+
+### C315 · page 886 (folio A-56) · Section A, paragraph 2.27.3 (MIN function), argument rule 1 · `... must be of the same class.` → `... of the same class with the exception that mix…`
+
+| | |
+|---|---|
+| **Printed** | `(1) If more than one argument-1 is specified, all arguments must be of the same class.` |
+| **This transcription** | `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-56) (page 937, folio B-25), applied in place: "Paragraph 2.27.3 of the MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c316"></a>
+
+### C316 · page 891 (folio A-61) · Section A, paragraph 2.32.3 (ORD-MAX function), argument rule 1 · `... must be of the same class.` → `... of the same class with the exception that mix…`
+
+| | |
+|---|---|
+| **Printed** | `(1) If more than one argument-1 is specified, all arguments must be of the same class.` |
+| **This transcription** | `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-61) (page 937, folio B-25), applied in place: "Paragraph 2.32.3 of the ORD-MAX function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c317"></a>
+
+### C317 · page 892 (folio A-62) · Section A, paragraph 2.33.3 (ORD-MIN function), argument rule 1 · `... must be of the same class.` → `... of the same class with the exception that mix…`
+
+| | |
+|---|---|
+| **Printed** | `(1) If more than one argument-1 is specified, all arguments must be of the same class.` |
+| **This transcription** | `(1) If more than one argument-1 is specified, all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page (A-62) (page 937, folio B-25), applied in place: "Paragraph 2.33.3 of the ORD-MIN function in the Intrinsic Function module, argument rule 1, change to read" (Section A is Amendment 1's text) (kb/Work PB5045).
+
+<a id="errata-c318"></a>
+
+### C318 · page 721 (folio XVII-13) · Appendix A of Section XVII, paragraph 3.5, last paragraph, last line · `X3.23A-1989.` → `X3.23a-1989.`
+
+| | |
+|---|---|
+| **Printed** | `X3.23A-1989.` |
+| **This transcription** | `X3.23a-1989.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-13 (A-22) (page 938, folio B-26), applied in place: "Paragraph 3.5, last paragraph, last line, change 'X3.23A-1989' to 'X3.23a-1989'" (paragraph 3.5 is Amendment 1's, C162) (kb/Work PB5045).
+
+<a id="errata-c319"></a>
+
+### C319 · page 721 (folio XVII-13) · Appendix A of Section XVII, a new paragraph 3.6 · `(no paragraph 3.6)` → `3.6 American National Standard COBOL 1985, Amendm…`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 3.5 ends the subsection)` |
+| **This transcription** | `3.6 AMERICAN NATIONAL STANDARD COBOL 1985, AMENDMENT 2 (the three paragraphs above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-13 (A-22) (page 938, folio B-26), applied in place: "Add the following after paragraph 3.5" (kb/Work PB5045).
+
+<a id="errata-c320"></a>
+
+### C320 · page 723 (folio XVII-15) · Appendix A of Section XVII, paragraph 4.4, its heading · `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1` → `4.4 ISO 1989:1985/Amd.1:1992`
+
+| | |
+|---|---|
+| **Printed** | `4.4 ISO STANDARD 1989-1985 FOR COBOL, ADDENDUM 1` |
+| **This transcription** | `4.4 ISO 1989:1985/Amd.1:1992` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-15 (A-22) (page 938, folio B-26), applied in place: "Paragraph 4.4, change the heading to read" (paragraph 4.4 is Amendment 1's, C163) (kb/Work PB5045).
+
+<a id="errata-c321"></a>
+
+### C321 · page 723 (folio XVII-15) · Appendix A of Section XVII, a new paragraph 4.5 · `(no paragraph 4.5)` → `4.5 ISO 1989:1985/Amd.2:1994`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 4.4 ends the subsection)` |
+| **This transcription** | `4.5 ISO 1989:1985/Amd.2:1994 (the two paragraphs above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-15 (A-22) (page 939, folio B-27), applied in place: "Add the following after paragraph 4.4" (kb/Work PB5045).
+
+<a id="errata-c322"></a>
+
+### C322 · page 727 (folio XVII-19) · Appendix B of Section XVII, the summary of elements, the entry Reference-modifier · `Reference-modifier` → `Reference modification`
+
+| | |
+|---|---|
+| **Printed** | `Reference-modifier .............................................. N 2 NUC` |
+| **This transcription** | `Reference modification ............................................ N 2 NUC` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-19 (A-22) (page 939, folio B-27), applied in place: "Change the entry for 'Reference-modifier' to 'Reference modification'" (the entry is Amendment 1's, C166) (kb/Work PB5045).
+
+<a id="errata-c323"></a>
+
+### C323 · page 750 (folio XVII-42) · Appendix B of Section XVII, the title of paragraph 2.1 · `2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PR…` → `... (THIRD STANDARD COBOL)`
+
+| | |
+|---|---|
+| **Printed** | `### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS` |
+| **This transcription** | `### 2.1 SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-42 (page 939, folio B-27), applied in place: "Change the title of paragraph 2.1 to" (kb/Work PB5045).
+
+<a id="errata-c324"></a>
+
+### C324 · page 758 (folio XVII-50) · Appendix B of Section XVII, a new paragraph 2.1A after item 107 · `(no paragraph 2.1A)` → `2.1A ... (INTRINSIC FUNCTION AMENDMENT)`
+
+| | |
+|---|---|
+| **Printed** | `(item 107 is followed by item 108)` |
+| **This transcription** | `2.1A SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT) (its heading and first paragraph)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (page 939, folio B-27), applied in place: "Insert the following as the new paragraph 2.1A following item 107 of paragraph 2.1" (kb/Work PB5045).
+
+<a id="errata-c325"></a>
+
+### C325 · page 758 (folio XVII-50) · Appendix B of Section XVII, item 108, renumbered item 1 of paragraph 2.1A · `(108)` → `(1)`
+
+| | |
+|---|---|
+| **Printed** | `(108) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.` |
+| **This transcription** | `(1) <u>Intrinsic Function Module (1 ITR)</u>. The Intrinsic Function module provides the capability to reference a data item whose value is derived automatically at the time of reference during the execution of the object program.` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (A-23) (page 940, folio B-28), applied in place: "Renumber item 108 as the new item 1 under paragraph 2.1A" (item 108 is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c326"></a>
+
+### C326 · page 758 (folio XVII-50) · Appendix B of Section XVII, a new paragraph 2.1B after item 1 of paragraph 2.1A · `(no paragraph 2.1B)` → `2.1B ... (CORRECTION AMENDMENT), items 1-6`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 2.1A ends with its item 1)` |
+| **This transcription** | `2.1B SUBSTANTIVE CHANGES NOT AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT) (its heading, first paragraph and items 1 to 6)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-50 (page 940, folio B-28), applied in place: "Insert the following as the new paragraph 2.1B following item 1 of paragraph 2.1A" (kb/Work PB5045).
+
+<a id="errata-c327"></a>
+
+### C327 · page 759 (folio XVII-51) · Appendix B of Section XVII, the title of paragraph 2.2 · `2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXI…` → `... (THIRD STANDARD COBOL)`
+
+| | |
+|---|---|
+| **Printed** | `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS` |
+| **This transcription** | `## 2.2 SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (THIRD STANDARD COBOL)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-51 (page 940, folio B-28), applied in place: "Change the title of paragraph 2.2 to" (kb/Work PB5045).
+
+<a id="errata-c328"></a>
+
+### C328 · page 779 (folio XVII-71) · Appendix B of Section XVII, substantive change 39 (Reserved words), its list · `FUNCTION` → `(deleted)`
+
+| | |
+|---|---|
+| **Printed** | `the list with FUNCTION after FALSE (Amendment 1, C173)` |
+| **This transcription** | `the list without FUNCTION` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-71 (A-24) (page 940, folio B-28), applied in place: "Substantive change 39, entitled Reserved words, delete the word FUNCTION" (the word Amendment 1 added, C173) (kb/Work PB5045).
+
+<a id="errata-c329"></a>
+
+### C329 · page 783 (folio XVII-75) · Appendix B of Section XVII, substantive change 40g (I-O status 37) · `g. I-O status = 37. An OPEN statement is attempte…` → `g. I-O status = 37. ... will not support the open…`
+
+| | |
+|---|---|
+| **Printed** | `g. <u>I-O status = 37</u>. An OPEN statement is attempted on a file which is required to be a mass storage file but is not.` |
+| **This transcription** | `g. **I-O status = 37.** A permanent error exists because an OPEN statement is attempted on a file and that file will not support the open mode specified in the OPEN statement. (See paragraph 2.2B, item 22, for further explanation.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-75 (page 940, folio B-28), applied in place: "Change item 40g concerning I-O status 37 to read" (kb/Work PB5045).
+
+<a id="errata-c330"></a>
+
+### C330 · page 788 (folio XVII-80) · Appendix B of Section XVII, paragraph 2.2, new items 43 to 47 after item 42d · `(no items 43-47)` → `(43) ... (47)`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 2.2 ends with item 42)` |
+| **This transcription** | `(43) RECORD clause ... (44) ... (45) ... (46) ... (47) COPY REPLACING statement ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 941, folio B-29), applied in place: "Paragraph 2.2, insert the following items after item 42d" (kb/Work PB5045).
+
+<a id="errata-c331"></a>
+
+### C331 · page 788 (folio XVII-80) · Appendix B of Section XVII, a new paragraph 2.2A at the end of paragraph 2.2 · `(no paragraph 2.2A)` → `2.2A ... (INTRINSIC FUNCTION AMENDMENT), item 1`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 2.2 ends with item 47)` |
+| **This transcription** | `2.2A SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (INTRINSIC FUNCTION AMENDMENT) (its heading, first paragraph and item 1 with its justification)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 941, folio B-29), applied in place: "Insert the following as the new paragraph 2.2A following the last new item at the end of paragraph 2.2", its item 1 printed on page 942 (folio B-30) (kb/Work PB5045).
+
+<a id="errata-c332"></a>
+
+### C332 · page 788 (folio XVII-80) · Appendix B of Section XVII, a new paragraph 2.2B after paragraph 2.2A · `(paragraph 2.2A ends)` → `2.2B follows (held under Amendment 2, pages 942-9…`
+
+| | |
+|---|---|
+| **Printed** | `(paragraph 2.2A ends with its item 1)` |
+| **This transcription** | `paragraph 2.2B, SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS (CORRECTION AMENDMENT), follows: its first paragraph and items 1 to 23 are held once, where Amendment 2 prints them (under AMENDMENT 2, pages 942 to 958, folios B-30 to B-46)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-80 (page 942, folio B-30), applied in place: "Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A". Paragraph 2.2B runs over seventeen pages of Amendment 2, with its examples; this transcription holds it once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2): it stands here, after 2.2A, in the amended standard (kb/Work PB5045).
+
+<a id="errata-c333"></a>
+
+### C333 · page 801 (folio XVII-93) · Appendix C of Section XVII, the Implementor-Defined Language Element List, new items 85 to 87 · `(no items 85-87)` → `(85) ALPHABET clause ..., (86) OPEN statement, (8…`
+
+| | |
+|---|---|
+| **Printed** | `(the list ends with item 84)` |
+| **This transcription** | `(85) ALPHABET clause in SPECIAL-NAMES paragraph ... (86) OPEN statement ... (87) RANDOM function ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-93 (A-24) (page 958, folio B-46), applied in place: "Insert items 85 through 87 after item 84 in the Implementor-Defined Language Element List" (item 84 is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c334"></a>
+
+### C334 · page 806 (folio XVII-98) · Appendix C of Section XVII, the Undefined Language Element List, item 29 (Intrinsic functions), first sentence · `the returned value for the function is undefined.` → `then the result of such a reference is undefined.`
+
+| | |
+|---|---|
+| **Printed** | `(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, the returned value for the function is undefined. (See 1.2.2, on page A-27.)` |
+| **This transcription** | `(29) <u>Intrinsic functions</u>. If, at the time a function is referenced, the arguments specified for that reference do not have values that comply with the specified constraints, then the result of such a reference is undefined. (See 1.2.2, on page A-27.)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-98 (A-24) (page 959, folio B-47), applied in place: "In the change to page XVII-98 inserting item 29 in the Undefined Language Elements List, replace the first sentence after the header Intrinsic functions with the following" (item 29 is Amendment 1's) (kb/Work PB5045).
+
+<a id="errata-c335"></a>
+
+### C335 · page 806 (folio XVII-98) · Appendix C of Section XVII, the Undefined Language Element List, new items 30 to 36 · `(no items 30-36)` → `(30) ... (36)`
+
+| | |
+|---|---|
+| **Printed** | `(the list ends with item 29)` |
+| **This transcription** | `(30) MERGE statement ... (36) Intrinsic functions ... (above)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVII-98 (A-24) (page 959, folio B-47), applied in place: "Insert the following after item 29 in the Undefined Language Element List" (kb/Work PB5045).
+
+<a id="errata-c336"></a>
+
+### C336 · page 806 (folio XVII-98) · Appendix C of Section XVII, the Undefined Language Element List, item 30 (MERGE statement) · `general rule 17c` → `general rule 7c`
+
+| | |
+|---|---|
+| **Printed** | `(See 4.1.4, general rule 17c, on page XI-11.)` |
+| **This transcription** | `(See 4.1.4, general rule 7c, on page XI-11.)` |
+
+A rule number misprinted in Amendment 2's new item 30 (its page 959, folio B-47, prints 'general rule 17c'): the MERGE statement has thirteen general rules, and the sentence item 30 restates ("For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement") is the one Amendment 2 adds to general rule 7c on page XI-11 (C293), so the reference is general rule 7c (kb/Work PB5045).
+
+<a id="errata-c337"></a>
+
+### C337 · page 807 (folio XVIII-1) · Section XVIII, the index · `the index of pages XVIII-1 to XVIII-13` → `Amendment 2's index, pages B-49 to B-64 (PDF 961-…`
+
+| | |
+|---|---|
+| **Printed** | `the index on pages XVIII-1 through XVIII-13 (PDF pages 807 to 819)` |
+| **This transcription** | `the index replaced by Amendment 2's (pages B-49 through B-64), held once where Amendment 2 prints it (under AMENDMENT 2, `# INDEX`, PDF pages 961 to 976)` |
+
+Amendment 2 (ANSI X3.23b-1993), its change for page XVIII-1 (page 960, folio B-48), applied in place: "Replace the index on pages XVIII-1 through XVIII-13 with the index on pages B-49 through B-64." The base index's entries are deleted from pages 807 to 819 (each keeps its running header and folio), and this transcription holds the replacement once, where Amendment 2 prints it, as it holds Section A once where Amendment 1 prints it (C176; docs/rearchitecture/DESIGN-spec-conformance-review.md section 10.2). Addendum 1's additions to the base index (its rows XVIII-1 through XVIII-13) are superseded by this replacement and are not applied (kb/Work PB5045).
+
+<a id="errata-c338"></a>
+
+### C338 · page 107 (folio II-23) · Section II, 6.4.1.2 Scope of the CALL Statement, item 1 · `may.call` → `may call`
+
+| | |
+|---|---|
+| **Printed** | `(1) Any calling program may.call any separately compiled program in the run unit.` |
+| **This transcription** | `(1) Any calling program may call any separately compiled program in the run unit.` |
+
+A stray period between two words of the sentence: the rendered page prints `may.call`, which no reading of the sentence uses, and items 2 to 4 of the same list print `may call`; an evident misprint (kb/Work PB5045).
 
 ## Defects recorded but NOT corrected
 

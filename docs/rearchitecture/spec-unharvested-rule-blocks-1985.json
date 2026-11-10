@@ -15,9 +15,9 @@
  ],
  "measured": "2026-11-07",
  "totals": {
-  "clauses": 90,
-  "ordinals": 756,
-  "rules": 53,
+  "clauses": 89,
+  "ordinals": 777,
+  "rules": 52,
   "not-rules": 37
  },
  "blocks": {
@@ -152,6 +152,15 @@
    "disposition": "rules",
    "kind": "SR",
    "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'A separator is a character or two contiguous characters formed according to the following rules': each a restriction on how source text is written (where a space, a quotation mark or a pseudo-text delimiter may stand). The amendments name them 'rule 4' and 'rule 5' (X3.23a-1989 IV-4, X3.23b-1993 IV-4 and IV-5), and the 2023 manifest admits 8.3.5 Separators SR. Kind SR by IV.3.1 of the 1985 standard: the items restrict how words or elements may be written or where they may appear. "
+  },
+  "§1985:IV.4.2.2.1": {
+   "title": "COBOL Words",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "rules",
+   "kind": "SR",
+   "why": "ADMITTED 2026-11-09 (kb/Work PB5045: Amendment 1's Addendum 1 adds the list, row IV-5, applied in place). Lead-in: 'Within a source program the following apply'. Item 1 states which COBOL words form disjoint or intersecting sets for all words but LENGTH, RANDOM and SUM, item 2 that those three are reserved words and function-names and never user-defined words or system-names: each restricts which word a program may write where. Kind SR by IV.3.2 of the 1985 standard: the items define or clarify how words may be arranged, as IV.4.2.1 Separators is admitted."
   },
   "§1985:IV.4.2.2.1.3": {
    "title": "Reserved Words",
@@ -379,9 +388,9 @@
   },
   "§1985:VI.6.3.4": {
    "title": "Order of Evaluation of Conditions",
-   "ordinals": 1,
+   "ordinals": 2,
    "lists": 1,
-   "longest": 1,
+   "longest": 2,
    "disposition": "rules",
    "kind": "GR",
    "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'the evaluation of the conditions within an entire complex condition begins at the left ... and proceeds according to the following rule recursively applied': the order of evaluation, as the 2023 manifest admits 8.8.4.13 'Order of evaluation of conditions' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
@@ -444,15 +453,6 @@
    "kind": "GR",
    "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Two lists: 'I-O status expresses one of the following conditions upon completion of the input-output operation' and 'The following is a list of the values placed in the I-O status for the previously named conditions'. They define each condition and the status values the implementation sets, as the 2023 manifest admits 9.1.13.2 to 9.1.13.11 GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
   },
-  "§1985:VII.1.3.7": {
-   "title": "The File Attribute Conflict Condition",
-   "ordinals": 2,
-   "lists": 1,
-   "longest": 2,
-   "disposition": "rules",
-   "kind": "GR",
-   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-in: 'When the file attribute conflict condition is recognized, these actions take place in the following order'. The items define what the object program does. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
-  },
   "§1985:VIII.1.3.4": {
    "title": "I-O Status",
    "ordinals": 12,
@@ -471,15 +471,6 @@
    "kind": "GR",
    "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Lead-ins: 'If the invalid key condition exists after the execution of the input-output operation ..., the following actions occur in the order shown' and its converse. The items define the actions, as the 2023 manifest admits 9.1.14 'Invalid key condition' GR. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
   },
-  "§1985:VIII.1.3.7": {
-   "title": "The File Attribute Conflict Condition",
-   "ordinals": 2,
-   "lists": 1,
-   "longest": 2,
-   "disposition": "rules",
-   "kind": "GR",
-   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The relative I-O module's file attribute conflict condition: as VII.1.3.7. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
-  },
   "§1985:IX.1.3.4": {
    "title": "I-O Status",
    "ordinals": 12,
@@ -497,15 +488,6 @@
    "disposition": "rules",
    "kind": "GR",
    "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The indexed I-O module's invalid key condition: as VIII.1.3.5. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
-  },
-  "§1985:IX.1.3.7": {
-   "title": "The File Attribute Conflict Condition",
-   "ordinals": 2,
-   "lists": 1,
-   "longest": 2,
-   "disposition": "rules",
-   "kind": "GR",
-   "why": "ADMITTED 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). The indexed I-O module's file attribute conflict condition: as VII.1.3.7. Kind GR by IV.3.2 of the 1985 standard: the items define the meaning of an element or its effect at execution or compilation. "
   },
   "§1985:X.1.3.6": {
    "title": "Sharing Data",
@@ -809,9 +791,9 @@
   },
   "§1985:B.2.2": {
    "title": "SUBSTANTIVE CHANGES POTENTIALLY AFFECTING EXISTING PROGRAMS",
-   "ordinals": 42,
+   "ordinals": 47,
    "lists": 1,
-   "longest": 42,
+   "longest": 47,
    "disposition": "not-rules",
    "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix B, DIFFERENCES BETWEEN SECOND AND THIRD STANDARD COBOL: each item describes a change from the 1974 standard and names the paragraph that specifies it; the requirement is that paragraph's row."
   },
@@ -825,9 +807,9 @@
   },
   "§1985:C.2": {
    "title": "IMPLEMENTOR-DEFINED LANGUAGE ELEMENT LIST",
-   "ordinals": 80,
+   "ordinals": 87,
    "lists": 1,
-   "longest": 80,
+   "longest": 87,
    "disposition": "not-rules",
    "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix C, the implementor-defined language element list: each item names an element whose rules are completed by the implementor and points to them ('(See 4.2.2.1.2 on page IV-8.)'); an index of rules counted where they are stated. Unlike the 2023 standard's Annex A.1, whose items each say 'shall be documented', no 1985 item states a documentation requirement."
   },
@@ -841,9 +823,9 @@
   },
   "§1985:C.4": {
    "title": "UNDEFINED LANGUAGE ELEMENT LIST",
-   "ordinals": 28,
+   "ordinals": 36,
    "lists": 1,
-   "longest": 28,
+   "longest": 36,
    "disposition": "not-rules",
    "why": "NOT-RULES 2026-11-07 (kb/Work PB4886, the 1985 arm of the content-keyed scan; the 2023 manifest's test). Appendix C, the undefined language element list: an index of situations whose results the rules elsewhere leave undefined, each pointing to its rule."
   },

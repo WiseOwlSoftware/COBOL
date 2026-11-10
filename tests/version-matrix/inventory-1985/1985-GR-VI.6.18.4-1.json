@@ -1,14 +1,13 @@
 {
  "rule-id": "1985-GR-VI.6.18.4-1",
- "rule-digest": "d94183c42879",
+ "rule-digest": "7ef5e2af3c60",
  "next": {
-  "kind": "CHANGED",
+  "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.22.4-3"
+   "GR-14.9.22.4-1"
   ],
   "bridge": true,
-  "reason": "1985: inspection 'begins at the leftmost character position ... and proceeds from left to right to the rightmost character position'. §2023:14.9.22.4 GR3 repeats this and adds 'unless BACKWARD is specified, in which case ... begins at the rightmost character position ... and proceeds from right to left'. INSPECT BACKWARD, refused by the 1985 format, is accepted: a case added.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "audit-1985/state-route"
  }
 }
