@@ -3669,6 +3669,31 @@ check("PB3652: the scan fails on a planted direct call",
       replay_callers({"scripts/orchestrator/x.py": "prune_worktrees.replays(branches, carriers, rank, graph)"}),
       ["scripts/orchestrator/x.py"])
 
+# PB5100: A WAVE'S CONCURRENCY IS DERIVED FROM THE GATE POOL IT FEEDS, never hand-set. Expected from the note: a planted cap
+# of 3 with nothing held yields 3 workers; a held slot or a waiting ticket (another lane's gate) takes one away; never
+# fewer than 1; model_rules.json states no `concurrency` (a second, hand-set number that could exceed the cap).
+import gate_slot  # noqa: E402
+
+
+def pool_state(cap, held=0, waiting=0):
+    d = pathlib.Path("slots")
+    return gate_slot.SlotState(d, gate_slot.GateSettings(d), cap, {k: f"gate {k}" for k in range(1, held + 1)},
+                               [(k, "implementer", f"w{k}") for k in range(1, waiting + 1)])
+
+
+check("PB5100: a planted cap of 3 with an idle pool yields 3 implementers", pw.wave_concurrency(pool_state(3))[0], 3)
+check("PB5100: the cap in force is the ceiling (5 -> 5, 2 -> 2)",
+      (pw.wave_concurrency(pool_state(5))[0], pw.wave_concurrency(pool_state(2))[0]), (5, 2))
+check("PB5100: a held slot and a waiting ticket each take one worker away",
+      (pw.wave_concurrency(pool_state(3, held=1))[0], pw.wave_concurrency(pool_state(3, held=1, waiting=1))[0]), (2, 1))
+check("PB5100: a saturated pool still leaves one worker, so the wave progresses",
+      pw.wave_concurrency(pool_state(3, held=3, waiting=4))[0], 1)
+check("PB5100: the derivation is stated", "gate cap 3 - 1 slot(s) held" in pw.wave_concurrency(pool_state(3, held=1))[1], True)
+check("PB5100: model_rules.json carries no hand-set wave concurrency", "concurrency" in LIVE_RULES["wave"], False)
+check("PB5100: the planner passes the derived value, never a rules key",
+      "rules[" + chr(34) + "wave" + chr(34) + "][" + chr(34) + "concurrency" + chr(34) + "]"
+      in pathlib.Path(pw.__file__).read_text(encoding="utf-8"), False)
+
 for f in fails:
     print("FAIL:", f)
 print(f"plan_wave self-test: {len(checked) - len(fails)}/{len(checked)} checks OK")

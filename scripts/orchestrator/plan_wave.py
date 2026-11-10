@@ -196,6 +196,7 @@ sys.path.insert(0, str(HERE.parent / "spec"))
 import adopt_main  # noqa: E402  (the adopted commit: the floor this planner refuses to plan below, kb/Work PB2699)
 import alloc  # noqa: E402
 import coord  # noqa: E402
+import gate_slot  # noqa: E402  (the gate pool a wave's implementers feed: its cap and live holders, kb/Work PB5100)
 import group_sizes  # noqa: E402  (a campaign's measured group size, kb/Work PB4944)
 import work  # noqa: E402  (cluster_order: the ONE reader of cluster: and blocked_by:)
 from standard_streams import ensure_utf8  # noqa: E402
@@ -1000,6 +1001,16 @@ def main(argv: list[str] | None = None) -> int:
         return plan_main(argv, stack)
 
 
+def wave_concurrency(state: "gate_slot.SlotState") -> tuple[int, str]:
+    """The implementers one wave may run at once, DERIVED from the gate pool they feed (kb/Work PB5100): the pool's cap in
+    force, less the slots held and the tickets waiting now (another lane's gates: this planner runs before the wave starts
+    any of its own), never fewer than one. Gates are 86 % of a group's fix-to-review time (kb/Work PB4888), so an
+    implementer beyond the free slots only holds a model session open while its gate queues. Returns (workers, why)."""
+    n = max(1, state.cap - len(state.held) - len(state.waiting))
+    return n, (f"gate cap {state.cap} - {len(state.held)} slot(s) held - {len(state.waiting)} ticket(s) waiting, "
+               "at least 1")
+
+
 def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--wave", default="next", help="the wave number, or next (default): the allocator's next wave "
@@ -1266,8 +1277,10 @@ def plan_main(argv: list[str] | None, stack: contextlib.ExitStack) -> int:
     print(f"make_dispatch_specs.py + check_practices.py: {'GREEN' if rc == 0 else 'RED'}")
     if rc:
         return rc
+    workers, why_workers = wave_concurrency(gate_slot.GateSlots.for_repo(REPO).state())
+    print(f"  concurrency {workers}: {why_workers}")
     args = {"scratch": str(scratch), "wave": wave, "stop_file": str(stop_file), "global_stop": str(coord.global_stop(a.coord)),
-            "concurrency": rules["wave"]["concurrency"],
+            "concurrency": workers,
             "authorization": a.authorization,
             "groups": [{k: j[k] for k in ("letter", "lead", "notes", "codes", "model", "after", "requirements") if k in j}
                        for j in gjson]}

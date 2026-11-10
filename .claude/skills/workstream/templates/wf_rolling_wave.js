@@ -8,7 +8,7 @@ export const meta = {
   ],
 }
 
-// args: { scratch, wave, stop_file, global_stop, concurrency (model_rules.json wave.concurrency, 3), groups: [{letter, lead, notes, codes}],
+// args: { scratch, wave, stop_file, global_stop, concurrency (plan_wave.py wave_concurrency: the gate cap less the held slots and waiting tickets, at least 1), groups: [{letter, lead, notes, codes}],
 //         review_fix_rounds (2), reviewer_ceiling_min (90), gate_fix_rounds (1), gate_await_wait_s (540),
 //         gate_await_windows (one per 9 minutes of the ceiling); each group may carry requirements: {campaign lead: [string]} }
 // THE WAVE STARTS NO LANDER (kb/Work PB3023; DESIGN-test-build-ci.md section 3.17.5): it produces DONE branches reviewed
@@ -25,7 +25,7 @@ const W = args.wave
 // plan_wave.py writes both; a hand-written args file must too.
 if (!args.stop_file || !args.global_stop) throw new Error('pass args.stop_file (this fleet\'s STOP-<scope>) and args.global_stop (plan_wave.py writes both)')
 const STOP_LINE = `check for ${args.global_stop} (the owner's global stop) and ${args.stop_file} (this fleet's own stop); if EITHER exists, `
-if (!Number.isInteger(args.concurrency) || args.concurrency < 1) throw new Error('pass args.concurrency (plan_wave.py writes model_rules.json wave.concurrency)')
+if (!Number.isInteger(args.concurrency) || args.concurrency < 1) throw new Error('pass args.concurrency (plan_wave.py derives it from the gate pool, kb/Work PB5100)')
 const CONC = args.concurrency
 // kb/Work/PB1704: a model call can HANG. Wave 70's group C agent finished and gated its work, then never produced
 // another token; nothing noticed for 90 minutes and the wave waited on it (a workflow cannot stop one of its
