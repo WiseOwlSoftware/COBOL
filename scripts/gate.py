@@ -599,7 +599,7 @@ class Host:
         if live is not None and live.stopping.is_set():
             return None, "", 0.0
         # ⛔ A FILE, NEVER A PIPE (kb/Work PB5098): a pipe an orphaned grandchild still holds blocks its reader forever
-        with tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace") as fh:
+        with tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace", newline="\n") as fh:
             with process_job.ProcessJob.start([sys.executable, *cmd], cwd=self.repo, stdout=fh, stderr=subprocess.STDOUT,
                                               **spawn()) as p:
                 if live is not None:

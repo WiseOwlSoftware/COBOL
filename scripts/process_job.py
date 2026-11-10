@@ -244,7 +244,7 @@ def _self_test() -> int:
         sleeper = [sys.executable, "-c", "import time; time.sleep(600)"]
         root_code = ("import subprocess, sys; p = subprocess.Popen(" + repr(sleeper) + ", stdin=subprocess.DEVNULL); "
                      f"open({pidfile!r}, 'w').write(str(p.pid))")
-        with open(os.path.join(d, "out.txt"), "w", encoding="utf-8") as out:
+        with open(os.path.join(d, "out.txt"), "w", encoding="utf-8", newline="\n") as out:
             job = ProcessJob.start([sys.executable, "-c", root_code], stdout=out, stderr=out, stdin=subprocess.DEVNULL)
             with job:
                 rc = job.wait(120)
@@ -264,7 +264,7 @@ def _self_test() -> int:
                 check("nothing of the tree is left after kill", job.alive(), [])
 
         # A root still running past its wait is TimeoutExpired, and the block's end kills it and its child.
-        with open(os.path.join(d, "out2.txt"), "w", encoding="utf-8") as out:
+        with open(os.path.join(d, "out2.txt"), "w", encoding="utf-8", newline="\n") as out:
             hold = [sys.executable, "-c", "import subprocess, sys, time; subprocess.Popen(" + repr(sleeper)
                     + ", stdin=subprocess.DEVNULL); time.sleep(600)"]
             with ProcessJob.start(hold, stdout=out, stderr=out, stdin=subprocess.DEVNULL) as job:

@@ -676,7 +676,7 @@ class Runner:
             return p.read_text(encoding="utf-8", errors="replace") if p.exists() else ""
 
         try:
-            with open(out_path, "w", encoding="utf-8") as fo, open(err_path, "w", encoding="utf-8") as fe:
+            with open(out_path, "w", encoding="utf-8", newline="\n") as fo, open(err_path, "w", encoding="utf-8", newline="\n") as fe:
                 job = process_job.ProcessJob.start(test.command(), cwd=self.repo, env=env, stdin=subprocess.DEVNULL,
                                                    stdout=fo, stderr=fe)
                 with job:
