@@ -420,7 +420,10 @@ public sealed class CorpusManifestTests
         }
         Assert.True(unknown.Count == 0, $"BEHAVIOR ids that are not DialectBehaviors ids: {string.Join(", ", unknown)}");
 
-        string root = CorpusManifest.EditionGoldenRoot;
+        // Spelled through TestRepo so the walk guard (TrackedTreeScopeDriftTests) follows the root to tests/nist, which
+        // holds no test host's build output; held equal to the selector's own root.
+        string root = TestRepo.Nist("valid-editions");
+        Assert.Equal(CorpusManifest.EditionGoldenRoot, root);
         var onDisk = Directory.Exists(root)
             ? Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
                 .Select(f => Path.GetRelativePath(root, f).Replace('\\', '/'))
