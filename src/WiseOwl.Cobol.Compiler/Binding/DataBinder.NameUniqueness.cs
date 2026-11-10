@@ -60,7 +60,7 @@ public sealed partial class DataBinder
     /// condition-names" (ISO/IEC 1989:2002 Annex F item 108), so two tables may each declare one spelling and a
     /// REFERENCE that fails to tell them apart is the §2023:8.4.2.2.3 SR1 ambiguity (COBOL1639, the index-name resolver).
     /// The second and later declaration of a spelling is reported, one entry writing it twice included.</summary>
-    internal void ScreenIndexNameUniqueness()
+    private void ScreenIndexNameUniqueness()
     {
         if (Edition.DialectLevel >= 2002) return;
         var seen = new HashSet<string>(CobolNames.Comparer);
