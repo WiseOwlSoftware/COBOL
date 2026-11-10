@@ -1,4 +1,4 @@
-## PB5073: a GLOBAL data-name and an index-name are asked for uniqueness at their declaration
+## Entry 3435 — 2026-11-10 07:06 PST — PB5073: a GLOBAL data-name and an index-name are asked for uniqueness at their declaration
 
 Re-probe on the Debug build: a GLOBAL data-name shared with another item of its element (`01 DUP-NAME GLOBAL` beside `02 DUP-NAME`),
 two `01 DUP-ITEM GLOBAL` entries, two tables `INDEXED BY IX`, and one entry `INDEXED BY IX IX` all compiled and ran at `--std 85`
@@ -27,3 +27,4 @@ Goldens: `pb5073_global_name_unique_beside_qualified_locals` (85 to 2023) and re
 four editions); `pb5073_index_name_twice_qualified` (2002 and later) and refused `pb5073-index-name-declared-twice-85`.
 No inventory row is closed (the 1985 rows do not exist yet; the 2023 catalog has no row for the §2023:8.4.2.1 sentence, so the
 GLOBAL goldens witness SR-13.18.27.3-1, the nearest row).
+
