@@ -17,7 +17,7 @@ landing and cost a finisher cycle (about 100 k tokens and a re-gate) to do what 
 entries. Two branches that each ADD an entry to a keyed catalogue touch the same neighbourhood, which a line merge calls a
 conflict although the answer is always both entries.
 A REGISTRY OF ENTRIES NEEDS NO DRIVER WHEN EACH ENTRY IS A FILE (kb/Work PB4147). The merge queue runs no driver, so a keyed
-file two open pull requests both edit is admitted one at a time (`enqueue.py` DRIVER FILE QUEUED, exit 16): WiseOwl's
+file two open pull requests both edit can conflict inside a merge group and bounce one of them: WiseOwl's
 refusals and compile options (`conformance-suite/wiseowl/diagnostics/<test id>.json`, `options/`) were one such file, 61
 of the landing lane's 79 holds, and are one file per test now, so two refusals never share a file. The traceability
 inventory was the second (10 holds; kb/Work PB4148) and is one file per row, `tests/version-matrix/inventory/<rule-id>.json`
@@ -1204,7 +1204,7 @@ def self_test() -> int:
                and not covered_by_driver("x/kb/Work/PB1.md") and not covered_by_driver("x/src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin")
                and not covered_by_driver("kb/Work/sub/PB1.md") and covered_by_driver("kb/Work/PB1.md")
                # kb/Work PB4147: WiseOwl's refusals and options are one file per test, so no driver governs them and a
-               # landing that adds one is never held behind another (enqueue.driver_file_holders asks covered_by_driver)
+               # landing that adds one never conflicts with another inside a merge group
                and not covered_by_driver("conformance-suite/wiseowl/diagnostics/pb1-a.json")
                and not covered_by_driver("conformance-suite/wiseowl/options/pb1-a.json"))
         # kb/Work PB3825: a new driver lands alone. `main` here stands for origin/main (the function's `main` argument).
