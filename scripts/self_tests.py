@@ -1378,6 +1378,13 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
             while pid_alive(pid):  # no limit: a tree the kill does not end is the hang detector's (no wall clock)
                 time.sleep(0.1)
             return True
+        # The stop above may come before a loaded host has started the grandchild (review R2-1): the whole-tree proof
+        # re-runs the hung self-test with a doubled hang limit until its grandchild recorded its pid, so the check
+        # never reads a slow start as a surviving tree; no limit on the doubling (no wall clock in a verdict).
+        limit = 1.0
+        while not (pids / "hang.pid").exists():
+            limit *= 2
+            gate(False, [], hang_after_s=limit, which=[found["test_hang.py"]])
         check("arm: the HANG stop kills the hung self-test's WHOLE tree, its grandchild included (kb/Work PB5098)",
               tree_dead("hang.pid"), True)
         orphan = gate(False, [], which=[found["test_orphan.py"]])

@@ -32,6 +32,8 @@ import subprocess
 import sys
 import time
 
+from standard_streams import ensure_utf8  # this directory's: UTF-8 standard streams, called first in __main__
+
 IS_WINDOWS = os.name == "nt"
 
 if IS_WINDOWS:
@@ -269,6 +271,7 @@ def _self_test() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     if sys.argv[1:] == ["--self-test"]:
         sys.exit(_self_test())
     print(__doc__)
