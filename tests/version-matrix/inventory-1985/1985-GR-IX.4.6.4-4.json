@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-4",
+ "rule-digest": "265809f157df",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-6",
+   "GR-14.9.35.4-10"
+  ],
+  "bridge": true,
+  "reason": "No amendment touches this rule; its text changed by a misprint correction (the C35 flag): the page prints 'as the associated output file, as well as the file associated with record-name-1', the WRITE statement's words, corrected to 'as the associated I-O file' (§1985:IX.4.6.4 GR4). The rule reads: the released record 'is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause', and is then available as a record of the other files of that clause (§1985:IX.4.6.4 GR4). 2023 states the same: 'is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available as a record of other file-names referenced in the same SAME RECORD AREA clause as file-name-1 or the file-name associated with record-name-1, as well as the file associated with record-name-1' (§2023:14.9.35.4 GR6), and restates the unavailability in 'the information in the area referenced by record-name-1 is not available except as specified for the SAME RECORD AREA clause as indicated in General rule 6' (§2023:14.9.35.4 GR10). 2023 names the file the corrected 1985 text means, the one the REWRITE addresses, never an output file. Its 'file-name-1' only names that file for the FILE phrase, which 1985's REWRITE format does not have and whose own record carries; this rule refuses nothing and gives the same result for every REWRITE 1985 accepts.",
+  "source": "readjudicate-amended-1985/slice-02"
+ }
+}

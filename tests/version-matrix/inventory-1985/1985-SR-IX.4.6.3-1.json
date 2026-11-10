@@ -1,0 +1,18 @@
+{
+ "rule-id": "1985-SR-IX.4.6.3-1",
+ "rule-digest": "1c8dcb866f87",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.35.3-9",
+   "GR-14.9.35.4-7",
+   "GR-14.9.35.4-10",
+   "GR-14.6.10-1",
+   "GR-14.6.10-2"
+  ],
+  "bridge": true,
+  "reason": "Amendment X3.23a-1989 added the function sentence and X3.23b-1993 made the storage sentence unconditional again: 'If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area' (§1985:IX.4.6.3 SR1). Both halves differ in 2023. (1) §2023:14.9.35.3 SR9: 'If identifier-1 references a function and the FILE phrase is not specified, identifier-1 shall reference an alphanumeric, boolean, or national function'; words that differ: 'alphanumeric function' against 'alphanumeric, boolean, or national function', a widened range. (2) 2023 has no syntax rule refusing shared storage. The implicit MOVE of §2023:14.9.35.4 GR7 governs instead; its NOTE 2 says the overlapping-operand rules 'apply to any cases in which the storage area identified by identifier-1 and the record area associated with file-name-1 share any part of their storage areas' and 'The result of execution of the REWRITE statement is undefined if the result of execution of the implicit MOVE statement described in General rule 7a is undefined'. Those rules give 'the result of the statement is undefined' for items not described by the same entry (§2023:14.6.10 GR1) and 'the same as if the data items shared no part of their respective storage areas' for the same entry (§2023:14.6.10 GR2); §2023:14.9.35.4 GR10 allows for the case ('provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description'). A compile-time refusal became an accepted program whose result is defined or undefined; no exception condition.",
+  "source": "readjudicate-amended-1985/slice-09"
+ }
+}

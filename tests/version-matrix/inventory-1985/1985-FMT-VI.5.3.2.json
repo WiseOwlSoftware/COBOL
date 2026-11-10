@@ -1,0 +1,26 @@
+{
+ "rule-id": "1985-FMT-VI.5.3.2",
+ "rule-digest": "3fa6992c7553",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-13.16.2",
+   "FMT-13.18.8.2",
+   "FMT-13.18.20.2",
+   "FMT-13.18.32.2",
+   "FMT-13.18.33.2",
+   "FMT-13.18.38.2",
+   "FMT-13.18.40.2",
+   "FMT-13.18.44.2",
+   "FMT-13.18.45.2",
+   "FMT-13.18.52.2",
+   "FMT-13.18.55.2",
+   "FMT-13.18.60.2",
+   "FMT-13.18.63.2"
+  ],
+  "bridge": true,
+  "reason": "Amendment 1 (X3.23a-1989, its change for page VI-20 (T): 'delete the box around the first occurrence' of [INDEXED BY {index-name-1} ...]) moved a level-2 box only, a typographical error; the syntax is what it was and the box is no difference. §1985:VI.5.3.2 Format 1 is level-number [data-name-1 | FILLER] [REDEFINES] [PICTURE] [USAGE BINARY | COMPUTATIONAL | COMP | DISPLAY | INDEX | PACKED-DECIMAL] [SIGN] [OCCURS, fixed or DEPENDING ON] [SYNCHRONIZED] [JUSTIFIED] [BLANK WHEN ZERO] [VALUE 'IS literal-1']; Format 2 is 66 RENAMES; Format 3 is 88 VALUE(S). §2023:13.16.2 carries all three (Format 3 as '88 condition-name-1 value-clause'), spelling REDEFINES, BLANK WHEN ZERO, JUSTIFIED, SIGN and SYNCHRONIZED in place and naming 'entry-name-clause' and the occurs, picture, usage and value clauses, whose formats are §2023:13.18.20.2, §2023:13.18.38.2, §2023:13.18.40.2, §2023:13.18.60.2 and §2023:13.18.63.2; the clause formats §2023:13.18.8.2 (BLANK WHEN ZERO), §2023:13.18.32.2 (JUSTIFIED), §2023:13.18.33.2 ('level-number'), §2023:13.18.44.2 (REDEFINES), §2023:13.18.45.2 ('66 data-name-1' RENAMES), §2023:13.18.52.2 (SIGN) and §2023:13.18.55.2 (SYNCHRONIZED) restate the parts the entry format spells in place. Every 1985 entry keeps its meaning, but 2023 accepts entries the 1985 format refuses: TYPEDEF, ALIGNED, ANY LENGTH, BASED, CONSTANT RECORD, DYNAMIC LENGTH, GROUP-USAGE, PROPERTY, SAME AS, SELECT WHEN, TYPE 'type-name-1', 'validation-clauses' and 'Format 4 (validation)', and through the named clauses the new usages, the dynamic-capacity OCCURS and the table VALUE. EXTERNAL and GLOBAL are not among the additions: the 1985 inter-program format has them (§1985:X.4.3.2). Compile-time only.",
+  "source": "readjudicate-amended-1985/slice-01"
+ }
+}

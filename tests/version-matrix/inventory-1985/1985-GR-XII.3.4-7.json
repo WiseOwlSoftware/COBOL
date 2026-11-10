@@ -1,0 +1,17 @@
+{
+ "rule-id": "1985-GR-XII.3.4-7",
+ "rule-digest": "cd1e5ee420cd",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-6.5-2",
+   "GR-6.1-2",
+   "GR-7.2.4.4-8",
+   "GR-7.2.4.4-9"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993) changed the last sentence from 'is not replaced' to §1985:XII.3.4 GR7 'is not placed into the resultant program if that comment line or blank line appears within the sequence of text words that match pseudo-text-1'. 2023 agrees with that sentence and with the matching part ('are ignored for purposes of matching'): §2023:6.5 GR2 'If the line is a comment line or a blank line, that line is logically discarded', applied to fixed form by §2023:6.1 GR2 a) ('as though the lines had been logically converted from fixed form to free form'), and §2023:7.2.4.4 GR8 c) 6 'Comments, if any, are treated as a single space'. The result still differs for pseudo-text-2: 1985 'Comment lines or blank lines in pseudo-text-2 are placed into the resultant program unchanged'; §2023:7.2.4.4 GR9 the text REPLACE produces 'shall not contain a COPY statement, a REPLACE statement, a SOURCE FORMAT directive, a comment, or a blank line'. The resultant text differs; the compiled program's meaning does not.",
+  "source": "readjudicate-amended-1985/slice-08"
+ }
+}

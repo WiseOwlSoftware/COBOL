@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Validation;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
 
@@ -93,14 +94,14 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         {
             var b = GivingSendingOperand("MULTIPLY", "BY", "§2023:14.9.26.2 Format 2", byOps);
             var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.26.3 SR2");
-            ctx.Validation.CheckComposite("MULTIPLY", [a, b], recv);
+            ctx.Validation.CheckComposite("MULTIPLY", [a, b], recv, CompositeMembers.ReceivingItems85);
             return new BoundMultiplyGiving(a, b, recv, sizeErr);
         }
         // In-place: each BY operand is itself the receiver (target ← target × a).
         if (!Format1Receivers("MULTIPLY", "§2023:14.9.26.2", byOps))
             return BoundRejected.Reported(ctx.Edition);
         var byRecv = host.Expr.Receivers(byOps, editedOk: false, "§2023:14.9.26.3 SR1");
-        ctx.Validation.CheckComposite("MULTIPLY", [a], byRecv);
+        ctx.Validation.CheckComposite("MULTIPLY", [a], byRecv, CompositeMembers.ReceivingItems85);
         return new BoundMultiplyBy(a, byRecv, sizeErr);
     }
 
@@ -144,7 +145,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             if (host.Expr.ResolveReceiving(rem.receivingIdentifier()) is not { } r0
                 || host.Expr.ScreenResultant(r0, rem.receivingIdentifier(), editedOk: true, "§2023:14.9.12.3 SR2") is not { } r)
                 return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.receivingIdentifier().GetText()}'");
-            ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients);
+            ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients, CompositeMembers.ReceivingItems85);
             ctx.Data.Procedure.ClaimInterleavedReceiver(r);   // the quotient was claimed with the other Receivers (ExpressionBinder.ReceiverOf)
             return new BoundDivideRemainder(dividend, divisor, quotients[0], r, sizeErr);
         }
@@ -155,20 +156,20 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             {
                 var dividendX = GivingSendingOperand("DIVIDE", "INTO", "§2023:14.9.12.2 Format 2", into);
                 var recv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.12.3 SR2");
-                ctx.Validation.CheckComposite("DIVIDE", [dividendX, a], recv);
+                ctx.Validation.CheckComposite("DIVIDE", [dividendX, a], recv, CompositeMembers.ReceivingItems85);
                 return new BoundDivideGiving(dividendX, a, recv, sizeErr);
             }
             if (!Format1Receivers("DIVIDE", "§2023:14.9.12.2", into))
                 return BoundRejected.Reported(ctx.Edition);   // a receiver-less BoundDivideInto crashed the emitter (targets.Max on empty)
             var intoRecv = host.Expr.Receivers(into, editedOk: false, "§2023:14.9.12.3 SR1");
-            ctx.Validation.CheckComposite("DIVIDE", [a], intoRecv);
+            ctx.Validation.CheckComposite("DIVIDE", [a], intoRecv, CompositeMembers.ReceivingItems85);
             return new BoundDivideInto(a, intoRecv, sizeErr);   // target ← target ÷ a
         }
         if (by is not null && div.arithmeticGivingPhrase() is { } gv)
         {
             var divisorX = GivingSendingOperand("DIVIDE", "BY", "§2023:14.9.12.2 Format 3", by);
             var recv = host.Expr.Receivers(gv.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.12.3 SR2");
-            ctx.Validation.CheckComposite("DIVIDE", [a, divisorX], recv);
+            ctx.Validation.CheckComposite("DIVIDE", [a, divisorX], recv, CompositeMembers.ReceivingItems85);
             return new BoundDivideGiving(a, divisorX, recv, sizeErr);
         }
         if (by is not null)

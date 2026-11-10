@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XII.2.4-5",
+ "rule-digest": "2b7f2ea2a1fd",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-7.2.3.4-9"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993) added to 5b 'Each lowercase letter is equivalent to the corresponding uppercase letter as specified for the COBOL character set' (§1985:XII.2.4 GR5; that definition, §1985:III.2, excepts 'nonnumeric literals and some PICTURE symbols'), so case folding is no longer a 2023 addition: §2023:7.2.3.4 GR9 c) 3 has it 'Except when used in the non-hexadecimal formats of alphanumeric and national literals'. The comparison cycle is the same, but the operands differ. 1985 compares 'Pseudo-text-1, identifier-1, word-1, or literal-1'; 2023 compares 'pseudo-text-1 or partial-word-1' only (§2023:E.2: 'Removal of support for non-pseudo-text operands in the replacing phrase of the COPY statement') and adds partial matching, 'When the LEADING phrase is specified, partial-word-1 matches the library text only if', which 1985 refuses. 2023 also adds matching equivalences 1985's 'equal, character for character' lacks: 'each alphanumeric character is equivalent to its corresponding national character', 'The two representations of the quotation symbol match', and 'Each occurrence of a compiler directive line is treated as a single space'.",
+  "source": "readjudicate-amended-1985/slice-08"
+ }
+}
