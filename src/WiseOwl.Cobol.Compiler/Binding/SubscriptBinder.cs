@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Cst;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -115,6 +116,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort);
         if (e is null) return refs.SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
         ScreenIndexNameAssociation(item, ixNames);   // §2023:8.4.2.3.3 SR4 (kb/Work PB459)
+        if (!refs.Probing) ScreenCobol85SubscriptDataNames(subCtx);   // §1985:IV.4.3.8.2.3 SR5 (kb/Work PB5074)
         if (subject switch
             {
                 TableSubject.Sort => ScreenTableSubjectArity(dref, item, e.Count),
@@ -125,6 +127,31 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         indexExprs = e;
         if (!refs.Probing) _enclosingCapture?.Offer(item, e, data.Procedure.PendingPreOps.Since(preOpMark), data.Procedure.PropertyOps.Since(propertyMark));
         return null;
+    }
+
+    /// <summary>⛔ §1985:IV.4.3.8.2.3 SR5's DESCRIPTION HALF (kb/Work PB5074): "Data-name-2 may be qualified and must be a
+    /// numeric elementary item representing an integer." The parse arm (<c>VersionConformancePass.ParseArm.VisitSubscriptPart</c>)
+    /// asks the SHAPE of a 1985 subscript; whether the data-name of <c>data-name-2 [{+|-} integer-2]</c> is an integer is a
+    /// question of its description, so it is asked here, where the item is known. A numeric item with a digit position
+    /// right of the decimal point (<c>PIC 9V9</c>) is no 1985 integer (§1985:III.2, Integer (2)), and the subscript it
+    /// writes is an arithmetic expression, the 2002 form (ISO/IEC 1989:2002 Annex F.2 item 133): the same construct row,
+    /// <c>subscript-arithmetic-expression-2002</c>, answers both halves. A non-numeric item is §2023:8.8.1.1's refusal
+    /// (COBOL0844, <see cref="ScreenPositionOperandClass"/>) at every edition, so only the scale is asked.</summary>
+    private void ScreenCobol85SubscriptDataNames(Core.SubscriptPartContext subCtx)
+    {
+        if (ConstructRegistry.IsAvailable(data.Edition.Edition, Constructs.SubscriptArithmeticExpression2002)
+            || subCtx.subscriptList() is not { } list) return;
+        foreach (var written in list.subscriptItem())
+        {
+            if (!WiseOwl.Cobol.Validation.VersionConformancePass.IsCobol85Subscript(written)) continue;   // the shape half's, reported there
+            if (written.functionArgument()?.arithmeticExpression()?.additiveExpression().multiplicativeExpression() is not [var first, ..]
+                || first.powerExpression() is not [var power] || power.unaryExpression() is not [var unary]
+                || unary.primaryExpression()?.dataReference() is not { } name
+                || refs.ProbeDeclaration(name) is not { Pic.Scale: > 0 }) continue;
+            using var _ = data.Edition.At(name);
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition.Sink, Constructs.SubscriptArithmeticExpression2002,
+                $"the subscript {DataBinder.WrittenText(written)}, whose data-name {DataBinder.WrittenText(name)} is not an integer");
+        }
     }
 
     /// <summary>⛔ THE ENCLOSING OCCURRENCE A SEARCH'S WHEN PHRASES NAME (kb/Work PB3365; ISO §2023:14.9.37.4 GR1: "The

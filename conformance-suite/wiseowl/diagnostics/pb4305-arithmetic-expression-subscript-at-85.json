@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "COBOL0900: a subscript that is an arithmetic expression other than an integer, a data-name or an index-name, each optionally followed by + or - an integer requires COBOL-2002"}
+{"refuse-at": ["85"], "expect": "COBOL0900: a subscript that is not a COBOL-85 positive integer, integer data-name or index-name, each optionally followed by + or - an unsigned nonzero integer requires COBOL-2002"}

@@ -9304,6 +9304,17 @@ public static class DiagnosticCatalog
         + "§2023:13.18.54.4 GR6.)",
         "ISO §1985:XIII.3.19.3 SR1");
 
+    /// <summary>COBOL6817 — an X3.23-1985 STOP literal-1 that is an ALL figurative constant or a numeric literal other than
+    /// an unsigned integer (kb/Work PB5074). Emitted by ControlFlowBinder.ScreenStopLiteral where the STOP literal statement
+    /// exists (COBOL-85; from 2002 the statement is COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor StopLiteralOperand = new(
+        "COBOL6817", "stop-literal-operand", EditionSeverity.Error,
+        "The literal of an X3.23-1985 STOP literal statement breaks one of its syntax rules. §1985:VI.6.24.3 SR1: "
+        + "\"Literal-1 must not be a figurative constant that begins with the word ALL.\" SR3: \"If literal-1 is numeric, "
+        + "then it must be an unsigned integer.\" A signed numeric literal, or one with a digit position right of the "
+        + "decimal point, is not an unsigned integer.",
+        "X3.23-1985 STOP statement syntax rules 1 and 3 (§1985:VI.6.24.3)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

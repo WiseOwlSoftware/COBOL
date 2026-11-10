@@ -4,6 +4,7 @@ using Antlr4.Runtime.Tree;
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
@@ -32,11 +33,38 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         // §2023:8.8.3.3 GR3: a concatenation expression stands anywhere a literal of its class may — fold a
         // STOP literal-1 concat to the equivalent single literal before decoding (GetText on the whole
         // literal context would glue the operands and mis-decode).
-        return stop.literal() is { } slit
-            ? new BoundStopLiteral(slit.nonNumericLiteral()?.concatenationExpression() is { } ce
-                ? ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.LiteralEnv).Value
-                : CobolLiteral.Decode(slit.GetText()))
-            : new BoundStop(BindTerminationStatus(stop.statusPhrase()));
+        if (stop.literal() is not { } slit) return new BoundStop(BindTerminationStatus(stop.statusPhrase()));
+        ScreenStopLiteral(slit);
+        var nn = slit.nonNumericLiteral();
+        return new BoundStopLiteral(nn?.concatenationExpression() is { } ce
+            ? ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.LiteralEnv).Value
+            // A keyword figurative constant is communicated as the value it represents (§1985:IV.4.2.2.2.3: SPACE
+            // "Represents one or more of the character space from the computer's character set"), one character as in
+            // DISPLAY, never as its spelling
+            // (kb/Work PB5074: STOP SPACE displayed the word SPACE).
+            : nn?.figurativeConstant() is { } fig
+              && ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, ctx.Data.LiteralEnv) is { } c
+                ? c.ToString()
+                : CobolLiteral.Decode(slit.GetText()));
+    }
+
+    /// <summary>The two X3.23-1985 rules on the STOP statement's literal-1 (kb/Work PB5074): §1985:VI.6.24.3 SR1 "Literal-1
+    /// must not be a figurative constant that begins with the word ALL." and SR3 "If literal-1 is numeric, then it must be
+    /// an unsigned integer." STOP literal is COBOL-85's alone (removed by ISO/IEC 1989:2002, row
+    /// <c>stop-literal-removed-2002</c>), so the rules are asked only where the statement exists; a later edition's
+    /// COBOL0902 is the whole answer there.</summary>
+    private void ScreenStopLiteral(Core.LiteralContext slit)
+    {
+        if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.StopLiteralRemoved2002)) return;
+        string? broken = slit.nonNumericLiteral()?.figurativeConstant()?.ALL() is not null
+            ? "SR1: \"Literal-1 must not be a figurative constant that begins with the word ALL.\""
+            : slit.numericLiteral() is { } num && !WiseOwl.Cobol.Validation.IntegerOperandRules.IsUnsignedIntegerLiteral(num.signedNumericLiteral())
+                ? "SR3: \"If literal-1 is numeric, then it must be an unsigned integer.\""
+                : null;
+        if (broken is null) return;
+        using var _ = ctx.Edition.At(slit);
+        ctx.Edition.Error(DiagnosticCatalog.StopLiteralOperand,
+            $"STOP {DataBinder.WrittenText(slit)}: the literal breaks §1985:VI.6.24.3 {broken}");
     }
 
     /// <summary>Decode a shared <c>statusPhrase</c> (<c>WITH? (ERROR|NORMAL) (STATUS (dataReference|literal)?)?</c>,
