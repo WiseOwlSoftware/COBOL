@@ -2295,6 +2295,25 @@ of an unsupported facility.
   `conformance-test:DebugFacilityTests.OperandNamingAnUnsubscriptedTableElement_At85_IsTheElementSubject`,
   `conformance-test:DebugFacilityTests.ProcedureNameUnderTheWrongQualifier_At85_NamesNoProcedure`.
 
+- **D-DEBUG-PROCEDURE — when a procedure-name or ALL PROCEDURES USE FOR DEBUGGING section runs, and what DEBUG-ITEM holds** (kb/Work PB5083). The
+  text is X3.23-1985's Debug module, USE FOR DEBUGGING general rules 3, 4, 9 and 13 to 22 (§1985:XV.3.2.4); the design is `docs/CONTROL_FLOW_DESIGN.md`
+  D20. **Determination (the text decides, no latitude):** one procedure-name is one trigger point. A paragraph-name subject runs the section immediately
+  before that paragraph executes; a section-name subject runs it once, when control reaches the section's first paragraph, with DEBUG-NAME the
+  section (GR3 a, GR13), so control entering the section at a later paragraph, by a GO TO or by a qualified reference `P2 OF S2`, runs nothing
+  (GR9: a qualifier is no reference). ALL PROCEDURES is every procedure-name outside a debugging section, sections and paragraphs, the declarative
+  sections that are not debugging sections included (GR4), so a section and its first paragraph are two triggers, the section first (the order CCVS
+  DB105A's name list shows); a paragraph-name omitted is no procedure-name. DEBUG-NAME is the name as the USE statement wrote it, qualifiers joined
+  by OF or IN (GR13). DEBUG-CONTENTS by cause: 'START PROGRAM' for the first execution of the first nondeclarative procedure (GR16); the TO phrase's
+  procedure-name as the ALTER wrote it, for the section run immediately after an ALTER that references the subject, DEBUG-LINE the ALTER (GR3 b,
+  GR17; DEBUG-CONTENTS is widened to the longest such name, GR15); spaces for a GO TO (GR18); 'SORT INPUT', 'SORT OUTPUT' and 'MERGE OUTPUT' for the
+  implicit transfer to the procedure a SORT or MERGE names, DEBUG-LINE the statement (GR19); 'PERFORM LOOP' on EVERY execution of a PERFORM's range, the
+  first included (GR20: §1985:IV.4.4.2 puts the control mechanism's transfer on each execution, and CCVS DB101A's SIMPLE-PERFORM-TEST and
+  PERF-ITERATION-TEST read 'PERFORM LOOP' for the first); 'USE PROCEDURE' for a USE procedure about to execute, DEBUG-LINE the statement that causes it
+  (GR21); 'FALL THROUGH' for the implicit transfer from the previous paragraph (GR22). **Latitude (the text is silent; CLAUDE.md rule 1):** where a
+  section and its first paragraph are both subjects they share the cause of the one transfer that reached them, START PROGRAM included. Witnesses:
+  `conformance:cases/_unassigned/pb5083-debug-section-subject`, `-alter`, `-sort-merge`, `-perform-loop`, `-use-procedure`, and the refusal below 1985
+  `conformance:wiseowl/diagnostics/pb5083-debug-section-subject-removed-2002`.
+
 - **D-DEBUG-DATA — when a data-name, ALL REFERENCES OF or cd-name USE FOR DEBUGGING section runs** (kb/Work PB4810, PB4759, PB4808).
   ISO/IEC 1989:2023 prints nothing on the facility, so the text is X3.23-1985's Debug module (the owner's copy,
   `specs-private/ANSI_COBOL_1985.pdf`, PDF pages 693-698), USE FOR DEBUGGING general rules 5-9 and 23-24 and syntax rules 6, 9, 10 and
@@ -3347,6 +3366,24 @@ draws the obsolete-element warning COBOL0903; from 2014 it is removed, COBOL0902
 | A portion left at the end of the run unit (2002 B.2 item 53; 14.5.10 rule 2) | It lives in the run unit and is gone with it, as is the remainder of a message begun |
 | A negative ADVANCING identifier (2002 B.2 item 54) | Ignored with the rest of the phrase |
 | The KEY phrase at COBOL-85 | The password of an endpoint defined with `key`; a wrong value is status 40 and takes no action, as CCVS-85 CM102M expects. An endpoint with no `key` admits any value. The 1985 text is not held: CCVS-85 is the witness |
+
+### 3.4 The MULTIPLE FILE TAPE clause at COBOL-85 (kb/Work PB5086)
+
+The clause (§1985:VII.2.11) is an obsolete element, deleted from 2002 (COBOL0902, VCR Table 7 row 7.6), and it depends on a reel type of device (§1985:p.XVII-94 item 7).
+WiseOwl COBOL claims no reel device, so the clause's function, the placement of files on a reel, is a null facility (§1985:I.1.5.2.5.1: "Language elements that pertain to
+specific hardware components for which support is not claimed need not be implemented."). The syntax rules of the statements that read it are not the clause's function, and
+they are enforced: the clause is the source program's statement that its files share a reel (§1985:VII.2.11.3 GR1: "required when more than one file shares the same
+physical reel of tape"), and every file it names resides on a multiple file reel for the rules below.
+
+| Item | Determination |
+|---|---|
+| OPEN … EXTEND of a file in the clause (§1985:VII.4.3.3 SR2) | COBOL6814, at the OPEN statement. The rule holds for a clause that names one file: the clause states that the file shares a reel with files the program does not use (§1985:VII.2.11.3 GR1) |
+| A MERGE naming two files of one clause (§1985:XI.4.1.3 SR6) | COBOL6815, at the MERGE statement. SORT has the opposite rule (§1985:XI.4.4.3 SR7) and is not checked |
+| A file of the clause that is not sequential (§1985:VII.4.3.4 GR20 d: "Each of the files must be a sequential file.") | COBOL6816, at any OPEN that references a file of the set. The rule is a general rule and decidable from the source text, so it is refused at compile time |
+| The other general rules of §1985:VII.4.3.4 GR20 (a, c: one file open at a time; the position numbers) | A null facility: no file is placed on a reel, so no order of opening or position constrains a disk file |
+
+Basis, CLAUDE.md rule 1: the ISO text decides (the 1985 text, held in `specs/ANSI_COBOL_1985.md`), and it states the three rules as rules of the OPEN and MERGE statements, whose
+elements the compiler fully supports. The hardware exemption lets an implementation omit the clause's function; it does not suspend rules stated of other statements.
 
 ## 4. Documented non-support facilities (§2023:4.2.6 / §2023:4.2.7 / §2023:4.2.13)
 

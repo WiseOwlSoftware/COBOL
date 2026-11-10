@@ -471,6 +471,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // conformance pass — which has no parse tree — positions its bound-arm diagnostics from it. A node the verb
         // binder returned from a nested statement keeps that statement's own.
         if (!core.At.IsSet) core.At = data.Edition.Cursor;
+        if (core.DebugLine == 0 && Ctx.Table.DebugsUseProcedure) core.DebugLine = Ctx.SourceLine(s);   // §1985:XV.3.2.4 GR21 a
         // ISO §2023:14.9.14.3 SR1, §2023:14.9.17.3 SR2, §2023:14.9.42.3 SR1 (kb/Work PB397) — the three rules stated over a
         // statement SEQUENCE (a bare EXIT alone in its paragraph; a Format 1 GO TO and a STOP RUN last in their
         // consecutive sequence of imperative statements, kb/Work PB2610), asked HERE because this is the one funnel every statement passes through and the position is a

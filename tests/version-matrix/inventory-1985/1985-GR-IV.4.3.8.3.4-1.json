@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.3.4-1",
+ "rule-digest": "11a39450d96b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.2.4-1"
+  ],
+  "bridge": true,
+  "reason": "1985: \"The class and other characteristics of the function being referenced are determined by the function definition\" (§1985:IV.4.3.8.3.4 GR1). 2023: \"If intrinsic-function-name-1 is specified, the temporary data item is an elementary data item whose description and category are specified by the definition of that intrinsic function in Clause 15\" (§2023:8.4.3.2.4 GR1). The same requirement for every function 1985 has, the intrinsic functions: the definition of the function fixes the class and description of its result. The 1985 rule refuses no program; the further paragraphs of the 2023 rule say the same of user-defined functions and function pointers (the RETURNING item of the prototype), syntax that other 2023 rules add.",
+  "source": "classify-unrecorded-1985/slice-02"
+ }
+}

@@ -1,0 +1,25 @@
+{
+ "rule-id": "1985-GR-VI.5.9.4-8",
+ "rule-digest": "c02982279f8f",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.40.4-14",
+   "SR-13.18.40.3-12",
+   "SR-13.18.40.3-13",
+   "SR-13.18.40.3-14",
+   "SR-13.18.40.3-16",
+   "SR-13.18.40.3-17",
+   "SR-13.18.40.3-18",
+   "SR-13.18.40.3-19",
+   "SR-13.18.40.3-23",
+   "GR-12.3.7.4-13",
+   "GR-12.3.7.4-14",
+   "GR-13.18.52.4-4"
+  ],
+  "bridge": true,
+  "reason": "The amendments changed nothing that separates the editions: Amendment 1 (X3.23a-1989, page VI-31) corrected 'explain' to 'explained'; Amendment 2 (X3.23b-1993, page VI-31) made operation b 'An elementary MOVE statement where the sending operand is numeric and its PICTURE character-string contains the symbol 'P'' (§1985:VI.5.9.4 GR8), now the words of §2023:13.18.40.4 GR14 ('An elementary move operation where the sending operand is numeric and its picture character-string contains one or more symbols 'P''), and shaded c as level 2, which is no difference. §2023:13.18.40.4 GR14 restates each symbol (B, P with the algebraic-value operations a to d, S, V, X, Z, 9, 0, /, comma, period, + - CR DB, *, cs), with §2023:13.18.40.3 SR16 and §2023:13.18.40.3 SR17 (P placement, P and '.' exclusive), §2023:13.18.40.3 SR19 (V beside the P string), §2023:13.18.40.3 SR18 (S first), §2023:13.18.40.3 SR12 ('V' and '.' 'may appear only once in character-string-1'), §2023:13.18.40.3 SR23 (sign symbols exclusive), §2023:13.18.40.3 SR13 and §2023:12.3.7.4 GR14 (the DECIMAL-POINT IS COMMA exchange), §2023:12.3.7.4 GR13 (the currency symbol) and §2023:13.18.52.4 GR4 (S gives neither representation nor position). Two requirements differ. 1985: 'Each 'A' in the character-string represents a character position which can contain only an alphabetic character'; 2023: 'Each symbol 'A' represents a character position that shall contain any character from the computer's alphanumeric character set'. 1985: 'Scaling position characters are counted in determining the maximum number of digit positions (18) in numeric edited items or numeric items'; 2023: 'each symbol 'P' is counted in the maximum number of digit positions', which §2023:13.18.40.3 SR14 sets at 'shall range from 1 through 31', so a picture of 19 to 31 digit positions, refused in 1985, is accepted. The symbols E, N, 1 and character-1, and a currency string longer than one character, are 2023 syntax.",
+  "source": "readjudicate-amended-1985/slice-03"
+ }
+}

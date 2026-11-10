@@ -1,0 +1,7 @@
+MAIN
+DEBUG [ERR-PROC                      ] [USE PROCEDURE]
+IN ERR-PROC
+AFTER READ 1
+DEBUG [ERR-PROC                      ] [USE PROCEDURE]
+IN ERR-PROC
+DONE

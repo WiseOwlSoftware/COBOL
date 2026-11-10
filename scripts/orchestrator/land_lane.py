@@ -873,10 +873,13 @@ def red_facts(att: dict[str, Any], pr: Any, fetch: Callable[[str, pathlib.Path],
     if not proof.ok or proof.run is None:
         return dataclasses.replace(facts, no_record=proof.text)
     rec = gate.read_record(proof.run) or {}
-    measured = proof.run.parent / str(rec["reused_from"]) if rec.get("reused_from") else proof.run
+    # THE RUNS THAT HOLD THE EVIDENCE (kb/Work PB5099): the run that measured the head and, for a composed verdict, the
+    # earlier runs of the same code state whose passes it counts (`gate.measuring_runs`, the one resolution).
+    measuring = gate.measuring_runs(proof.run)
+    measured = measuring[0] if measuring else proof.run
     if rec.get("lane") in inert_lane.TEST_FREE_LANES:
         return dataclasses.replace(facts, record=measured.name, test_free=str(rec["lane"]))
-    trx = sorted(measured.glob("*.trx"))
+    trx = sorted(t for m in measuring for t in m.glob("*.trx"))
     if not trx:
         return dataclasses.replace(facts, no_record=f"the gate run {measured.name} that measured the head keeps no test "
                                                     "results (pruned, or a reused run's source is gone)")
@@ -2420,6 +2423,32 @@ def self_test() -> int:
                and not pruned.record and "keeps no test results" in pruned.no_record
                and classify_red(pruned)[0] == lm.UNCLASSIFIED and "gone" in gone.unobserved and fetched == ["w18"] * 6,
                f"{ran_green} {other_pr} {reused} {pruned} {gone} {fetched}")
+
+        # A COMPOSED verdict (kb/Work PB5099): its evidence is the run that retried the red cases AND the earlier run of the
+        # same code state whose passes it counted, so a bounce's red case that only the earlier run listed is read there.
+        wt18c = root / "wt-w18c"
+        first_run = wt18c / gate.RUN_ROOT / "000001-20261031T000000Z"
+        retry_run = first_run.parent / "000002-20261031T010000Z"
+        first_run.mkdir(parents=True)
+        retry_run.mkdir()
+        (first_run / "verdict.json").write_text(json.dumps({
+            "schema": gate.RECORD_SCHEMA, "verdict": "RED", "line": "=== planted ===", "exit_code": 1, "head": "h18",
+            "tree": "T", "head_tree": "T", "lane": "full"}), encoding="utf-8", newline="\n")
+        (retry_run / "verdict.json").write_text(json.dumps({
+            "schema": gate.RECORD_SCHEMA, "verdict": "GREEN", "line": "=== planted ===", "exit_code": 0, "head": "h18",
+            "tree": "T", "head_tree": "T", "tree_end": "T", "lane": "full", "composed_from": [first_run.name]}),
+            encoding="utf-8", newline="\n")
+        tp.synthetic_trx(first_run / "Unit.trx", [("A.Pass", ["Passed"]), ("A.Retried", ["Failed"])])
+        tp.synthetic_trx(retry_run / "Unit.trx", [("A.Retried", ["Passed"])])
+        att18c = {"branch": "w18c", "worktree": str(wt18c), "end_head": "h18"}
+        bounce_dir = wt18c / gate.CI_BOUNCE_RESULTS
+        plant_bounce(893, [("A.Pass", ["Failed"])])
+        composed = red_facts(att18c, pr18, fetch)
+        expect("red_facts: a composed verdict is read through every run that holds its evidence (gate.measuring_runs): a red "
+               "case that ran GREEN only in the earlier run it composed with is RUNNER, not absent from the branch's "
+               "population (kb/Work PB5099)",
+               composed.record == retry_run.name and composed.listed == {"A.Pass", "A.Retried"}
+               and classify_red(composed)[0] == lm.RUNNER, str(composed))
 
         c18 = fresh("reds")
         names18 = ["infra", "merge", "same", "fails"]

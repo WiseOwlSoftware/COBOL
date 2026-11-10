@@ -16,7 +16,7 @@ internal static class BackendContract
     [
         new(NeutralKind.CobolWord,
         [
-            "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDebugTarget.Name", "Bound.BoundDeclarative.SectionName", "Bound.BoundExceptionMatch.OpenMode",
+            "Bound.BoundAlterEntry.NewName", "Bound.BoundDebugSubject.SubjectName", "Bound.BoundDebugTarget.Name", "Bound.BoundDeclarative.SectionName", "Bound.BoundExceptionMatch.OpenMode",
             "Bound.BoundMethod.CobolName", "Bound.BoundNumLiteral.FoldedFunction", "Bound.BoundNumericLiteral.FoldedFunction",
             "Bound.BoundParagraph.CobolName", "Bound.BoundProgramAddress.Prototype", "Bound.BoundRangeMembership.Alphabet", "Bound.BoundSendToServer.ServerName",
             "Bound.BoundSetSwitches.Switches", "Bound.BoundSwitchCondition.ImplementorName",

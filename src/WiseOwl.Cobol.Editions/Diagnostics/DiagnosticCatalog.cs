@@ -2267,7 +2267,7 @@ public static class DiagnosticCatalog
         "COBOL1571", "debug-sub-facility-staged", EditionSeverity.Error,
         "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES, data-name (incl. ALL REFERENCES OF), "
         + "file-name and cd-name trigger legs + the DEBUG-ITEM special register are modeled at --std 85; "
-        + "the SORT/MERGE INPUT/OUTPUT-procedure DEBUG-CONTENTS cause is staged — rejected loud rather than compiled with a missing/stale trigger.",
+        + "an operand that no rule classifies as one of them is rejected loud rather than compiled with a missing trigger.",
         "VCR Table 7 row 7.17 (X3.23-1985 debug module)");
     public static readonly DiagnosticDescriptor MergeInSortMergeProc = new(
         "COBOL1572", "merge-in-sort-merge-proc", EditionSeverity.Error,
@@ -8092,6 +8092,35 @@ public static class DiagnosticCatalog
         + "dialects.",
         "VCR Table 7 row 7.6 (X3.23-1985 MULTIPLE FILE TAPE clause)");
 
+    // kb/Work PB5086: the MULTIPLE FILE TAPE clause's membership was parsed and dropped, so the three rules that read it had
+    // nothing to ask. Emitted by StatementValidation.CheckOpenModeForFile (EXTEND, GR20 d) and SortBinder.ScreenMultipleFileReels
+    // (MERGE), wherever the clause compiles (from 2002 it is also COBOL0902, removed).
+    public static readonly DiagnosticDescriptor OpenExtendMultipleFileReel = new(
+        "COBOL6814", "open-extend-multiple-file-reel", EditionSeverity.Error,
+        "An OPEN statement's EXTEND phrase names a file that a MULTIPLE FILE TAPE clause places on a multiple file reel. "
+        + "X3.23-1985 syntax rule 2 of OPEN: \"The EXTEND phrase must not be specified for a multiple file reel.\" The clause "
+        + "is the source text that states which files share a reel (\"required when more than one file shares the same "
+        + "physical reel of tape\"), and the rule is the OPEN statement's, not the clause's: it holds whatever the "
+        + "processor's reel support.",
+        "X3.23-1985 OPEN syntax rule 2 (§1985:VII.4.3.3 SR2; §1985:VII.2.11.3 GR1; VCR Table 7 row 7.6)");
+
+    public static readonly DiagnosticDescriptor MergeFilesOnOneReel = new(
+        "COBOL6815", "merge-files-on-one-reel", EditionSeverity.Error,
+        "A MERGE statement names two files that one MULTIPLE FILE TAPE clause places on the same multiple file reel. "
+        + "X3.23-1985 MERGE syntax rule 6: \"No two files specified in any one MERGE statement may reside on the same "
+        + "multiple file reel.\" The SORT statement has the opposite rule (the files referenced by file-name-2 and "
+        + "file-name-3 may reside on the same multiple file reel), so only MERGE refuses the pair.",
+        "X3.23-1985 MERGE syntax rule 6 (§1985:XI.4.1.3 SR6; VCR Table 7 row 7.6)");
+
+    public static readonly DiagnosticDescriptor OpenMultipleFileReelNotSequential = new(
+        "COBOL6816", "open-multiple-file-reel-not-sequential", EditionSeverity.Error,
+        "An OPEN statement references a file on a multiple file reel, and a file of that reel is not a sequential file. "
+        + "X3.23-1985 OPEN general rule 20: \"Whenever a set of files resides on a multiple file reel, and one of this set "
+        + "of files is referenced in an OPEN statement, the following rules apply: ... d. Each of the files must be a "
+        + "sequential file.\" The set is what the MULTIPLE FILE TAPE clause names; a relative or indexed file in it "
+        + "breaks the rule at every OPEN of any file of the set.",
+        "X3.23-1985 OPEN general rule 20 d (§1985:VII.4.3.4 GR20; VCR Table 7 row 7.6)");
+
     // kb/Work PB4919: `RERUN ON SYSRR EVERY 100 RECORDS.` compiled clean at --std 85, because the grammar transcribed the
     // RECORDS arm as `integer-1 RECORDS [OF file-name-2]`. Emitted by FileControlBinder.ScreenRerunClauses at every edition:
     // from 2002 the clause is also COBOL0902 (removed), and a removed clause written without its file is malformed too.
@@ -8477,9 +8506,10 @@ public static class DiagnosticCatalog
     /// <summary>COBOL0805 — arithmetic composite too wide (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor ArithmeticCompositeTooWide = new(
         "COBOL0805", "arithmetic-composite-too-wide", EditionSeverity.Error,
-        "The composite of the operands of an arithmetic statement spans more than 31 digits. §2023:14.7.7 rule 2 a): \"the "
-        + "composite of operands shall not contain more than 31 digits.\" The cap is 31 at every edition.",
-        "ISO §2023:14.7.7 rule 2 a)");
+        "The composite of the operands of an arithmetic statement spans more than 31 digits (18 at COBOL-85). §2023:14.7.7 rule 2 a): \"the "
+        + "composite of operands shall not contain more than 31 digits.\" §1985:VI.6.4.4 item 2: \"must not contain more than 18 "
+        + "decimal digits\"; the 1985 MULTIPLY and DIVIDE composite superimposes the receiving data items only.",
+        "ISO §2023:14.7.7 rule 2 a); §1985:VI.6.4.4 item 2");
 
     /// <summary>COBOL0806 — arithmetic standard binary unsupported (kb/Work PB4463).</summary>
     public static readonly DiagnosticDescriptor ArithmeticStandardBinaryUnsupported = new(

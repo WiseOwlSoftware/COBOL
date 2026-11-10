@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-3",
+ "rule-digest": "9343c624046e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-4"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993) only renumbered this rule (old GR2) and its references ('see general rule 2a' to 3a, 'in general rule 2b' to 3b). §1985:VI.6.18.4 GR3 a) 'alphabetic or alphanumeric data item' as 'a character-string', b) edited and unsigned numeric items 'inspected as though it had been redefined as alphanumeric', c) a signed numeric item moved to an unsigned one, 'the original value of the sign is retained', recur in §2023:14.9.22.4 GR4 a), b) and d). 2023 adds 'alphabetic, alphanumeric, boolean, or national data item' and c) for usage national; this rule refuses neither (§1985:VI.6.18.3 SR1 requires 'USAGE IS DISPLAY'), and every item 1985 can describe is treated the same.",
+  "source": "readjudicate-amended-1985/slice-04"
+ }
+}

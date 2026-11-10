@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-9",
+ "rule-digest": "b7793e0bb7a7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-12"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993) replaced 9b to the end of the rule, adding the variable-length size sentence and 'is undefined upon completion of the SORT statement' for the DEPENDING ON item of file-name-2; §2023:14.9.40.4 GR12 carries both word for word, so neither is a difference any longer. The USING model is otherwise the same (implicit OPEN INPUT, CLOSE before sequencing, relative key undefined, USE procedures not touching file-name-2), but the requirement differs: §1985:XI.4.4.4 GR9 'as if a READ statement with the NEXT and the AT END phrases had been executed', §2023:14.9.40.4 GR12 'with the NEXT phrase, the IGNORING LOCK phrase, and the AT END phrase', and an OPEN 'with the INPUT phrase and the SHARING WITH READ ONLY phrase' under SHARING ALL. 2023 adds results 1985 lacks: after a nonfatal OPEN exception 'the SORT statement continues as if the exception condition did not exist', and a record too large or too small for file-name-1, which §1985:XI.4.4.3 SR3 only forbids ('must not be less than the smallest record nor larger than the largest record described for file-name-1'), sets 'the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the SORT statement is terminated'.",
+  "source": "readjudicate-amended-1985/slice-08"
+ }
+}

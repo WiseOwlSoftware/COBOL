@@ -156,7 +156,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (!ScreenTransferRecordSizes(file, usingFiles, givingFiles, merge: false)) return BoundRejected.Reported(ctx.Edition);   // SR5, SR11
 
         return new BoundSort(file, keys, s.sortDuplicatesPhrase() is not null, collating,
-            usingFiles, inputProc, givingFiles, outputProc, SortVaryingOf(file));
+            usingFiles, inputProc, givingFiles, outputProc, SortVaryingOf(file), ctx.SourceLine(s));
     }
 
     /// <summary>Bind the Format-2 in-place TABLE sort (ISO §2023:14.9.40 GR18–GR24) over the typed element array.
@@ -442,6 +442,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                 return BoundRejected.Reported(ctx.Edition);
             }
         if (!ScreenSameClauses(file, usingFiles, givingFiles, merge: true)) return BoundRejected.Reported(ctx.Edition);   // SR11
+        if (!ScreenMultipleFileReels(file, usingFiles, givingFiles)) return BoundRejected.Reported(ctx.Edition);         // §1985:XI.4.1.3 SR6
         if (!ScreenIndexedGivingKey(keys, givingFiles, merge: true)) return BoundRejected.Reported(ctx.Edition);         // SR10
         if (!ScreenTransferRecordSizes(file, usingFiles, givingFiles, merge: true)) return BoundRejected.Reported(ctx.Edition);   // SR3, SR12
         // VCR 27 (2014→2023): a MERGE newly PROHIBITED inside another MERGE's output procedure / a file-SORT's input
@@ -449,7 +450,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // procedure-range cross-pass in VersionConformancePass.GateSortMergeProcedures (the paragraph-pc ranges are
         // available on this BoundMerge/BoundSort). Below 2023 the runtime EC-SORT-MERGE-ACTIVE raise in
         // CobolSort.Init covers the dynamic case when checking is enabled (kb/Work PB1036).
-        return new BoundMerge(file, keys, collating, usingFiles, givingFiles, outputProc, SortVaryingOf(file));
+        return new BoundMerge(file, keys, collating, usingFiles, givingFiles, outputProc, SortVaryingOf(file), ctx.SourceLine(m));
     }
 
     // ── RELEASE (ISO §2023:14.9.32) ─────────────────────────────────────────────────────────────────────────────
@@ -927,6 +928,26 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (why is null) continue;
             ctx.Validation.RejectStatementOperand($"{verb} files {string.Join(", ", named.Select(f => $"'{f.CobolName}'"))} "
                 + $"are named in one SAME clause: {why} ({rule})");
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>⛔ §1985:XI.4.1.3 SR6 — "No two files specified in any one MERGE statement may reside on the same multiple
+    /// file reel." The files that reside on one reel are those one MULTIPLE FILE TAPE clause names (§1985:VII.2.11.3 GR1),
+    /// recorded as <see cref="FileModel.MultipleFileReels"/> (kb/Work PB5086). MERGE's alone: SORT's USING files may share
+    /// a reel (§1985:XI.4.4.3 SR7). Returns false when a violation was REPORTED.</summary>
+    private bool ScreenMultipleFileReels(FileModel sd, IReadOnlyList<FileModel> usingFiles, IReadOnlyList<FileModel> givingFiles)
+    {
+        var statement = usingFiles.Concat(givingFiles).Prepend(sd).Distinct().ToList();
+        foreach (var reel in statement.SelectMany(f => f.MultipleFileReels).Distinct())
+        {
+            var named = statement.Where(reel.Members.Contains).ToList();
+            if (named.Count < 2) continue;
+            ctx.Edition.Error(DiagnosticCatalog.MergeFilesOnOneReel,
+                $"MERGE files {string.Join(", ", named.Select(f => $"'{f.CobolName}'"))} are named in one MULTIPLE FILE TAPE "
+                + "clause and so reside on the same multiple file reel: \"No two files specified in any one MERGE statement "
+                + "may reside on the same multiple file reel\" (§1985:XI.4.1.3 SR6)");
             return false;
         }
         return true;

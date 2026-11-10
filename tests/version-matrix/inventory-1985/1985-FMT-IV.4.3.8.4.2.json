@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-FMT-IV.4.3.8.4.2",
+ "rule-digest": "9345b71e39f7",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "FMT-8.4.3.3.2",
+   "SR-8.4.3.3.3-2",
+   "SR-8.4.3.3.3-3"
+  ],
+  "bridge": true,
+  "reason": "Amendment 1 (X3.23a-1989, its change for page IV-22: 'New paragraph 4.3.8.4.2, replace the general format with the following') added FUNCTION function-name-1 [({argument-1} ...)] beside data-name-1, with the NOTE that both 'are shown in the above format to provide context and are not part of the reference-modifier' (§1985:IV.4.3.8.4.2), so a reference-modified function is no longer a 2023 addition. §2023:8.4.3.3.2 writes 'identifier-1( leftmost-position : [ length ] )'; the modifier itself is the same (leftmost-character-position renamed). The base differs: identifier-1 is any identifier whose item §2023:8.4.3.3.3 SR1 admits ('Identifier-1 shall reference a data item that is one of the following'), less only 'Identifier-1 shall not be a reference-modification format identifier' (§2023:8.4.3.3.3 SR3), so 2023 accepts for example a reference-modified inline method invocation (§2023:8.4.3.1.2 'Format 4 (inline-method-invocation)'; 'An inline method invocation references a temporary data item', §2023:8.4.3.4.4 GR1), which the 1985 format's data-name-1 or FUNCTION function-name-1 does not admit. §2023:8.4.3.3.3 SR2 ('If identifier-1 is a function-identifier, it shall reference an alphanumeric, boolean, or national function') states the format's function alternative, and SR3 its exclusion of an already reference-modified base. Every 1985 form keeps its meaning; cases are added, and no refusal became an exception condition.",
+  "source": "readjudicate-amended-1985/slice-01"
+ }
+}

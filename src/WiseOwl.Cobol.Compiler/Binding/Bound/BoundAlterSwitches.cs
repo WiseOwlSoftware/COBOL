@@ -21,13 +21,15 @@ public sealed record BoundSwitchCondition(string ImplementorName, bool TestsOn) 
 
 /// <summary>One <c>ALTER proc-1 TO [PROCEED TO] proc-2</c> entry, fully resolved: assign <paramref name="NewPc"/>
 /// into the target paragraph's alterable-GO-TO field (CONTROL_FLOW_DESIGN D4 — a mutable static int per
-/// altered paragraph, NOT the legacy slot table).</summary>
-public sealed record BoundAlterEntry(string AlterField, int NewPc);
+/// altered paragraph, NOT the legacy slot table). <paramref name="AlteredPc"/> is that paragraph's pc and
+/// <paramref name="NewName"/> the procedure-name-2 as written, which an ALTER debug trigger reports as DEBUG-CONTENTS
+/// (§1985:XV.3.2.4 GR17 c).</summary>
+public sealed record BoundAlterEntry(string AlterField, int NewPc, int AlteredPc, string NewName);
 
 /// <summary><c>ALTER</c> (ANSI X3.23-1985 ¶VI.6 — obsolete there; DELETED by ISO/IEC 1989:2002; the 2023 standard
 /// has no ALTER and its GO TO has only Formats 1–2, §2023:14.9.17): each entry replaces the GO TO target of the named
 /// single-GO-TO paragraph. The most recent ALTER executed governs subsequent transfers.</summary>
-public sealed record BoundAlter(IReadOnlyList<BoundAlterEntry> Entries) : BoundStatement;
+public sealed record BoundAlter(IReadOnlyList<BoundAlterEntry> Entries, int SourceLine = 0) : BoundStatement;
 
 /// <summary>A GO TO inside an ALTER-target paragraph (written-target or target-less): transfer to the CURRENT
 /// value of the paragraph's <paramref name="AlterField"/> (D4 — <c>__pc = _alter_X; break;</c>).

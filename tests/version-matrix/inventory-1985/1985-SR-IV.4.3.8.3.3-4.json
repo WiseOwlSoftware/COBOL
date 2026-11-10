@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.3.3-4",
+ "rule-digest": "6f1bbec58b60",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.2.3-1",
+   "GR-15.2-4",
+   "GR-15.2-5"
+  ],
+  "bridge": true,
+  "reason": "1985 (the rule comes from Amendment 1, X3.23a-1989): \"A function-identifier which references an integer or numeric function may be used only in an arithmetic expression\" (§1985:IV.4.3.8.3.3 SR4). 2023 lifts the limit: a function \"may be used anywhere a sending data item of that class and category may be specified\" (§2023:15.2, lead text with no catalog row), and of numeric and of integer functions it says \"These are of the class and category numeric\" (§2023:15.2 GR4, §2023:15.2 GR5). So 2023 accepts a numeric or integer function wherever a numeric sending operand is allowed (MOVE FUNCTION MAX (A B) TO C), which 1985 refuses. What survives of the refusal is \"A function-identifier shall not be specified as a receiving operand\" (§2023:8.4.3.2.3 SR1).",
+  "source": "classify-unrecorded-1985/slice-02"
+ }
+}

@@ -117,7 +117,8 @@ layer. `scripts/spec/verify_publishable.py` refuses a flag without an entry and 
 The 8.9 reserved-word list carried these misprints, all now corrected: `EMD-START` (C1), `i-O` and
 `I-OICONTROL` (C15), and four entries out of alphabetical order, `BY`, `END-READ`, `FALSE` and `SELF` (C16).
 `scripts/spec/repairs/reserved_word_gaps.py --check` holds the list to the printed page through the C1 and C15
-forms.
+forms, and `verify_publishable.py` holds its order (`scripts/spec/reserved_word_order.py`, kb/Work PB5060): every
+adjacent pair of words in order, with the two pairs C16 keeps as printed named in that script's 2023 row.
 
 **`>>IF` vs `>> IF` is NOT a defect and is corrected nowhere** — the standard prints both because **BOTH ARE
 LEGAL, and it says so twice.** §2023:7.3.3 SR5: "A compiler directive is composed of the compiler directive indicator,
@@ -182,6 +183,18 @@ reads differently from the batch's drawing is neither drawing), with the Errata 
 The 19 corrections of 2026-11-08 came from a scan for rare words one edit from a common word and a sweep of the body
 for every accented or foreign letter (U+00C0 to U+024F, the dotless i), each read on the rendered page; the scan finds a misprint that makes a non-word, not one that makes
 another real word.
+
+**The reserved-word list (Section IV, paragraph 8; PDF pages 191 and 192) is swept and held to its order** (kb/Work
+PB5060). Read against the rendered pages, the printed list has no misprint and no entry out of order, and its 350
+words are the set the compiler reserves at COBOL-85 (`tests/version-matrix/reserved-words.json`, taken from GnuCOBOL's
+list, an independent source); so it needed no Errata entry. The transcription keeps the printed columns, one table per
+page read down each column, with an empty cell for the blank line the page leaves between two initial letters.
+`verify_publishable.py --edition 1985` holds both (`scripts/spec/reserved_word_order.py`): every adjacent pair of
+words in order, where a hyphen and a digit sort before a letter, the special-character words last, and inside a
+column one blank between two letter groups and none inside one. A word an amendment adds goes in its place in its
+column and keeps the blank after its letter group (Amendment 2's FUNCTION, C207, had taken the place of the blank
+before GENERATE; the ledger's sweep `reserved-word-letter-gap(PB5060)` records the repair). The 2002 list has no row
+in that script until the 2002 transcription is reconciled.
 
 **A printed page the scan lacks holds a reconstruction until the page is obtained** (owner 2026-11-09, kb/Work PB4952).
 The scan lacks folios XIII-30 and XIII-31 (paragraph 3.10.7, the page heading group presentation rules, and its Table 2),

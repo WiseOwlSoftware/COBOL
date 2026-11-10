@@ -213,6 +213,45 @@ public sealed class GateLegDriftTests
         }
     }
 
+    // ── The retry hook (kb/Work PB5099): a re-gate of a measured tree runs only the cases the file names ───────────
+
+    /// <summary>The retry file is unset or empty (no narrowing), read whole-line and exact (a name keeps its spaces and
+    /// every character), skipping only empty lines; a missing file or one naming no case is refused, never read as "run
+    /// everything". The cases it keeps are those whose display name it names, in their order; a name no case has
+    /// selects nothing (the gate's population check, not the host, names it NEVER RAN).</summary>
+    [Fact]
+    public void Only_RunsExactlyTheNamedCases_AndRefusesAFileThatNamesNone()
+    {
+        Assert.Null(GateOnly.Read(_ => null));
+        Assert.Null(GateOnly.Read(_ => ""));
+        string dir = ScratchDirectory.Create("gate-only-");
+        try
+        {
+            string file = Path.Combine(dir, "only.txt");
+            File.WriteAllText(file, "N.Class.Method(a: \"x \")\n\nN.Class.Plain\nN.Class.Method(a: \"y\")\n");
+            GateOnly only = GateOnly.Read(n => n == GateOnly.Variable ? file : null)!;
+            Assert.Equal(3, only.Names.Count);
+            var assembly = new TestAssembly(Reflector.Wrap(typeof(GateLegDriftTests).Assembly));
+            var collection = new TestCollection(assembly, null, "planted");
+            ITestCase Case(string name) => new PlantedCase(name, MethodIn(collection));
+            var cases = new List<ITestCase>
+            {
+                Case("N.Class.Plain"), Case("N.Class.Method(a: \"x\")"), Case("N.Class.Method(a: \"x \")"),
+                Case("N.Class.Other"), Case("N.Class.Method(a: \"y\")"),
+            };
+            Assert.Equal(new[] { "N.Class.Plain", "N.Class.Method(a: \"x \")", "N.Class.Method(a: \"y\")" },
+                only.CasesOf(cases).Select(c => c.DisplayName));
+            File.WriteAllText(file, "\n\n");
+            var none = Assert.Throws<GateOnlyException>(() => GateOnly.Read(_ => file));
+            Assert.Contains("names no case", none.Message, StringComparison.Ordinal);
+            Assert.ThrowsAny<IOException>(() => GateOnly.Read(_ => file + ".absent"));
+        }
+        finally
+        {
+            ScratchDirectory.Remove(dir);
+        }
+    }
+
     [Fact]
     public void Shard_TheWeightsReader_RefusesEveryMalformedFile()
     {

@@ -63,7 +63,7 @@ public sealed record BoundSort(
     IReadOnlyList<BoundSortMergeKey> Keys, bool DuplicatesInOrder, SortCollation Collating,
     IReadOnlyList<FileModel> Using, PcRange? InputProcedure,
     IReadOnlyList<FileModel> Giving, PcRange? OutputProcedure,
-    SortVaryingInfo? Varying) : BoundStatement, IBoundSortVarying;
+    SortVaryingInfo? Varying, int SourceLine = 0) : BoundStatement, IBoundSortVarying;
 
 /// <summary><c>SORT data-name-2 …</c> (ISO §2023:14.9.40 Format 2, COBOL-2002+): the in-place table sort over the typed
 /// element array (DESIGN §8.2 — the one sanctioned divergence from the image store: Format 2 operates on
@@ -135,7 +135,7 @@ public sealed record BoundMerge(
     IReadOnlyList<BoundSortMergeKey> Keys, SortCollation Collating,
     IReadOnlyList<FileModel> Using,
     IReadOnlyList<FileModel> Giving, PcRange? OutputProcedure,
-    SortVaryingInfo? Varying) : BoundStatement, IBoundSortVarying;
+    SortVaryingInfo? Varying, int SourceLine = 0) : BoundStatement, IBoundSortVarying;
 
 /// <summary><c>RELEASE record-name-1 [FROM x]</c> (ISO §2023:14.9.32): release the SD record's image to the initial
 /// phase of the active sort (GR2). FROM ≡ <c>MOVE x TO record-name-1</c> then the same RELEASE (GR4). A varying SD

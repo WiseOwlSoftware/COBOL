@@ -27,6 +27,11 @@ and the acknowledgment's wording, is keyed by edition below, and an edition with
      and confidence, accepted as editorial, and refused once its printed page is transcribed (`check_reconstructions`).
      No tool-harness markup leaked into the text (`HARNESS_TAG`).
 
+  5. **Its reserved-word list keeps the order the standard prints it in** (kb/Work PB5053, PB5060): every adjacent pair
+     of words in order, and the printed blank between letter groups where the transcription keeps the columns. The
+     rules, the per-edition readers and the pairs kept as printed are `reserved_word_order.py`'s; an edition whose
+     list has not been swept (2002) has no row there and is named, not checked.
+
 THE WHOLE TRACKED TREE, TOO (owner 2026-11-05: redact the stamp everywhere, history included). The repository is
 public, and a reconciliation agent once quoted the stamp, purchaser's name and order number included, into its ledger.
 `check_tree` therefore reads EVERY tracked file, as the index holds it, for the personally identifying pieces of a stamp:
@@ -56,6 +61,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from cite import CORRECTION_NOTE  # noqa: E402  — ONE definition of what an editorial correction note looks like
 import cite  # noqa: E402  (THE reconstruction notes and their reader, kb/Work PB4952)
 import citation  # noqa: E402  (THE printed folio of the 1985 structure)
+import reserved_word_order  # noqa: E402  (THE order of a reserved-word list, kb/Work PB5060)
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -541,6 +547,13 @@ def main(edition: int = spec_pdf.DEFAULT_EDITION) -> int:
     failures.extend(check_reconstructions(text.splitlines(), edition))
     if edition in LEDGER:
         failures.extend(check_ledger(text, json.loads((REPO / LEDGER[edition]).read_text(encoding="utf-8"))))
+    if edition in reserved_word_order.LISTS:
+        order = reserved_word_order.check(text, edition)
+        print("\nreserved-word list — in the printed order:")
+        print("\n".join(f"  ✗ {finding}" for finding in order) or "  ✓ every adjacent pair, and the letter groups")
+        failures.extend(order)
+    else:
+        print(f"\nreserved-word list — the {edition} list is not swept (kb/Work PB5060), so its order is not checked")
     failures.extend(check_tree())
 
     if failures:

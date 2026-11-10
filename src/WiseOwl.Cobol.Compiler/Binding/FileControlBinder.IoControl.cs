@@ -105,13 +105,22 @@ public sealed partial class FileControlBinder
     /// <c>MULTIPLE FILE TAPE CONTAINS.</c>, which the parser already refuses. The grammar keeps the list optional on
     /// purpose: a required list would send the bare clause to the I-O-CONTROL error production, whose COBOL1970 ("not
     /// a clause") is false, and would lose the clause's COBOL0902 from 2002 on. Asked at every edition: the clause is
-    /// otherwise parsed and ignored (a reel-sharing description has nothing to do on disk storage).</summary>
+    /// otherwise a null facility (a reel-sharing description has nothing to do on disk storage) once it has recorded its
+    /// membership on its files (<see cref="FileModel.MultipleFileReels"/>) for the rules that read it.</summary>
     private void ScreenMultipleFileClause(Core.MultipleFileClauseContext multiple)
     {
         // Each file-name-1 is a reference to a file (§1985:VII.2.11.3 GR1 names the files "used in the object program"),
         // so it resolves like every other file-name (kb/Work PB4945's sweep): `MULTIPLE FILE TAPE CONTAINS NOSUCH` compiled clean.
+        var onReel = new List<FileModel>();
         foreach (var entry in multiple.multipleFileTapeEntry())
-            if (entry.fileName() is { } name) ResolveIoControlFile(name, "the MULTIPLE FILE clause");
+            if (entry.fileName() is { } name && ResolveIoControlFile(name, "the MULTIPLE FILE clause") is { } file
+                && !onReel.Contains(file))
+                onReel.Add(file);
+        // ⛔ The clause is the source program's statement that these files share a reel (§1985:VII.2.11.3 GR1), and the
+        // statements that read it are fully supported elements: OPEN's SR2 and GR20 d, MERGE's SR6 (kb/Work PB5086). The
+        // hardware exemption (§1985:I.1.5.2.5.1) excuses the clause's FUNCTION (a reel on disk storage), not those rules.
+        var reel = new MultipleFileReel(onReel);
+        foreach (var file in onReel) file.MultipleFileReels.Add(reel);
         if (multiple.multipleFileTapeEntry().Length > 0) return;
         Edition.Error(DiagnosticCatalog.MultipleFileNamesNoFile,
             "the MULTIPLE FILE clause names no file: its format is MULTIPLE FILE [TAPE] [CONTAINS] "
@@ -133,11 +142,6 @@ public sealed partial class FileControlBinder
             + "which uniquely identifies that resource\")");
         return null;
     }
-
-    /// <summary>Whether <paramref name="file"/> is "a sequentially organized file" (§1985:VII.2.12.3 SR1, SR2): every
-    /// organization but RELATIVE and INDEXED, LINE SEQUENTIAL included (a sequential organization whose records are lines).</summary>
-    private static bool IsSequentiallyOrganized(FileModel file) =>
-        file.Organization is FileOrganization.Sequential or FileOrganization.LineSequential;
 
     /// <summary>The X3.23-1985 RERUN clauses of one I-O-CONTROL paragraph against the clause's general format
     /// (§1985:VII.2.12.2) and its five syntax rules (§1985:VII.2.12.3; kb/Work PB4919, PB4945). The Relative and Indexed
@@ -172,7 +176,7 @@ public sealed partial class FileControlBinder
             if (on is not null && _host.State.VisibleFiles.TryGetValue(on.GetText(), out var named))
             {
                 onFile = named;
-                if (!IsSequentiallyOrganized(named))
+                if (!named.IsSequential)
                     using (Edition.At(on))
                         Edition.Error(DiagnosticCatalog.RerunFileNotSequential,
                             $"the RERUN clause's ON phrase names '{named.CobolName}', whose organization is {named.OrganizationFace} "
@@ -184,7 +188,7 @@ public sealed partial class FileControlBinder
                 // The grammar requires the file on this arm; a parse that recovered without it has already been reported.
                 if (every.fileName() is not { } reelName || ResolveIoControlFile(reelName, "the RERUN clause") is not { } reel)
                     continue;
-                if (!IsSequentiallyOrganized(reel))
+                if (!reel.IsSequential)
                     Edition.Error(DiagnosticCatalog.RerunFileNotSequential,
                         $"the RERUN clause's END OF {(every.REEL() is not null ? "REEL" : "UNIT")} phrase names '{reel.CobolName}', "
                         + $"whose organization is {reel.OrganizationFace} (§1985:VII.2.12.3 SR2: \"The END OF REEL/UNIT phrase "

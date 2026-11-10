@@ -1,0 +1,14 @@
+{
+ "rule-id": "1989-RV-A.2.42.4-3",
+ "rule-digest": "491b4b58cc84",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.88.4-1"
+  ],
+  "bridge": true,
+  "reason": "1989 SUM: 'If the argument-1 series are not all integers, a numeric value is returned.' (§1989:A.2.42.4 RV3), matching its type table row 'Numeric (some arguments may be integer)' -> Numeric (§1989:A.2.42.1). 2023 prints the same row, 'Numeric (some arguments may be integer)' -> Numeric (§2023:15.88.1), and defines the value by 'The equivalent arithmetic expression is as follows:' (argument-11 + argument-12 + ... + argument-1n) (§2023:15.88.4 RV1): the sum of numeric arguments that are not all integers is a numeric value. Same programs accepted (argument-1 of class numeric in both), same result. The 15.88.1 type table is prose with no catalog row (kb/Work PB479); the returned-value rule is the catalog carrier, as for the sibling 1989-RV-A.2.42.4-2.",
+  "source": "classify-unrecorded-1985/slice-06"
+ }
+}

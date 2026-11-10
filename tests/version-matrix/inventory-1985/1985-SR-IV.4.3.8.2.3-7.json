@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.2.3-7",
+ "rule-digest": "a39e6215f4b0",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.3.3-6",
+   "SR-8.4.2.3.3-7"
+  ],
+  "bridge": true,
+  "reason": "§1985:IV.4.3.8.2.3 SR7 (added by Amendment 1, X3.23a-1989; Errata C92): \"The subscript ALL may be used only when the subscripted identifier is used as a function argument and may not be used when condition-name-1 is specified.\" 2023 splits it in two and adds a case. §2023:8.4.2.3.3 SR6: \"The subscript ALL may be used only: — When the subscripted identifier is used as an intrinsic function argument, or — as the rightmost or only subscript of a table in the table format of a SORT statement.\" §2023:8.4.2.3.3 SR7: \"ALL shall not be specified if qualified-condition-name-1 is specified.\" The words that differ: \"or — as the rightmost or only subscript of a table in the table format of a SORT statement\", a use of ALL that 1985 refuses and 2023 accepts (a lifted restriction). The function-argument case and the condition-name prohibition are the same.",
+  "source": "classify-unrecorded-1985/slice-01"
+ }
+}

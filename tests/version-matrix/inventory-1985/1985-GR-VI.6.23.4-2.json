@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VI.6.23.4-2",
+ "rule-digest": "2bda94d4d2d5",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.39.4-2",
+   "GR-14.9.39.4-4",
+   "GR-13.18.38.4-2"
+  ],
+  "bridge": true,
+  "reason": "The rule's text changed by a misprint correction, not by an amendment (Errata C32, kb/Work PB5031 and PB5045): its second paragraph now names index-name-2's own table, §1985:VI.6.23.4 GR2 \"the value of the index before the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-2\". With that reading 1985 confines every SET index operand to its table: \"the value of the index after the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-1\", and for UP BY and DOWN BY \"the value of the index both before and after the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-3\". 2023 lifts all three restrictions. §2023:14.9.39.4 GR2 sets index-name-1 from an expression, an identifier or index-name-2 \"even if that occurrence is not a valid occurrence within this table\", and refuses only a value that \"is outside the limit specified in General rule 2 of 13.18.38, OCCURS clause\" (for index-name-2, \"Otherwise, if the value that corresponds to the occurrence number of the table element associated with index-name-2 is outside the limit specified in General rule 2 of 13.18.38, OCCURS clause\"); §2023:14.9.39.4 GR4 does the same for index-name-3, \"even if that occurrence is not a valid occurrence within this table\". That limit is an implementor range wider than the table, §2023:13.18.38.4 GR2 \"This range shall include at least the value corresponding to the occurrence number (1 - integer-2)\" through twice integer-2, and going outside it is an exception condition, not a refusal: \"the EC-RANGE-INDEX exception condition is set to exist\" (§2023:14.9.39.4 GR4, likewise GR2). So 2023 accepts SET statements that leave or find an index outside its table, which the 1985 rule refuses. The 1985 remark that an index \"after the execution of a PERFORM or SEARCH statement may be set to an occurrence number that is outside the range of its associated table\" survives as §2023:13.18.38.4 GR2 \"An index may be modified only by a PERFORM VARYING statement, a SEARCH statement, and a SET statement.\" with the same implementor range.",
+  "source": "readjudicate-amended-1985/slice-05"
+ }
+}

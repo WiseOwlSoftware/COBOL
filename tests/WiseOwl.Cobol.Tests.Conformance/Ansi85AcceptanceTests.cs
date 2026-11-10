@@ -158,8 +158,8 @@ public sealed class Ansi85AcceptanceTests
 
     /// <summary>WITH DEBUGGING MODE present: the debugging section IS compiled AND, with the object-time switch ON
     /// (RunUnit.DebugMode default true — the CCVS posture), the ON ALL PROCEDURES declarative FIRES just before each
-    /// nondeclarative procedure. Here M1 is the sole nondeclarative procedure (its first execution → "START
-    /// PROGRAM"), so the debug section runs before M1's body.</summary>
+    /// procedure-name (§1985:XV.3.2.4 GR4: sections and paragraphs). Here MAIN and M1 are the nondeclarative procedures,
+    /// entered together by the program's start ("START PROGRAM" for each), so the debug section runs twice before M1's body.</summary>
     [Fact]
     public void UseForDebugging_SwitchPresent_AllProcedures_FiresTheDeclarative() => AssertRuns("""
         IDENTIFICATION DIVISION.
@@ -182,7 +182,7 @@ public sealed class Ansi85AcceptanceTests
             DISPLAY W.
             DISPLAY "DEBUG-OK".
             STOP RUN.
-        """, "DBG START PROGRAM\n3\nDEBUG-OK");
+        """, "DBG START PROGRAM\nDBG START PROGRAM\n3\nDEBUG-OK");
 
     /// <summary>WITHOUT the switch, X3.23-1985 compiles debugging sections as if they were COMMENT lines —
     /// so even DEBUG-* register references inside must compile (the DB103M shape: no switch, 95 register
