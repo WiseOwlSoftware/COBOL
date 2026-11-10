@@ -2,16 +2,17 @@
  "page": 322,
  "figure": 0,
  "drawn_lines": [
-  "                    ⎧{statement-1} ...⎫ ⎧<u>ELSE</u> {statement-2} ...   [<u>END-IF</u>]⎫",
-  "<u>IF</u> condition-1 THEN ⎩<u>NEXT</u> <u>SENTENCE</u>    ⎭ ⎨<u>ELSE</u> <u>NEXT</u> <u>SENTENCE</u>               ⎬",
-  "                                        ⎩<u>END-IF</u>                           ⎭"
- ],
- "decided": "drawn",
- "figure_lines": [
-  "                    ╭ {statement-1} …   ╮ ╭ <u>ELSE</u> {statement-2} …     [<u>END-IF</u>] ╮",
+  "                    ╭ statement-1       ╮ ╭ <u>ELSE</u> statement-2         [<u>END-IF</u>] ╮",
   "                    ┤                   ├ │                                   │",
   "<u>IF</u> condition-1 THEN ╰ <u>NEXT</u> <u>SENTENCE</u>     ╯ ┤ <u>ELSE</u> <u>NEXT</u> <u>SENTENCE</u>                ├",
   "                                          ╰ <u>END-IF</u>                            ╯"
  ],
- "reason": "The printed page sets IF condition-1 THEN {{statement-1} ... / NEXT SENTENCE} {ELSE {statement-2} ... [END-IF] / ELSE NEXT SENTENCE / END-IF}, IF, ELSE, NEXT SENTENCE and END-IF underlined, as the batch drew it. Redrawn in the house style."
+ "decided": "drawn",
+ "figure_lines": [
+  "                    ╭ statement-1       ╮ ╭ <u>ELSE</u> statement-2         [<u>END-IF</u>] ╮",
+  "                    ┤                   ├ │                                   │",
+  "<u>IF</u> condition-1 THEN ╰ <u>NEXT</u> <u>SENTENCE</u>     ╯ ┤ <u>ELSE</u> <u>NEXT</u> <u>SENTENCE</u>                ├",
+  "                                          ╰ <u>END-IF</u>                            ╯"
+ ],
+ "reason": "The figure is an amendment's text applied in place, not the base page's ink: Errata C220, Section VI, paragraph 6.16.2, the general format of the IF statement (kb/Work PB5045). It is drawn as the amendment prints it."
 }

@@ -1,0 +1,20 @@
+{
+ "page": 169,
+ "figure": 1,
+ "drawn_lines": [
+  "            ┌╭<u>IN</u>╮             ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮ ┐",
+  "data-name-1 │┤  ├ data-name-2 │ …   │┤  ├ ┤file-name-1   ├ │",
+  "            └╰<u>OF</u>╯             ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯ ┘",
+  "",
+  "     [({subscript} …   )] [reference-modifier]"
+ ],
+ "decided": "drawn",
+ "figure_lines": [
+  "            ┌╭<u>IN</u>╮             ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮ ┐",
+  "data-name-1 │┤  ├ data-name-2 │ …   │┤  ├ ┤file-name-1   ├ │",
+  "            └╰<u>OF</u>╯             ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯ ┘",
+  "",
+  "     [({subscript} …   )] [reference-modifier]"
+ ],
+ "reason": "The figure is an amendment's text applied in place, not the base page's ink: Errata C105, Section IV, paragraph 4.3.8.4 (Identifier), renumbered 4.3.8.5 and changed (kb/Work PB5045). It is drawn as the amendment prints it."
+}

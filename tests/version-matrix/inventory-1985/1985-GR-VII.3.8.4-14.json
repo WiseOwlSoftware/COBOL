@@ -1,15 +1,13 @@
 {
  "rule-id": "1985-GR-VII.3.8.4-14",
- "rule-digest": "43e2e71f3c12",
+ "rule-digest": "14dd53dfce7e",
  "next": {
-  "kind": "CHANGED",
-  "to": [
-   "GR-13.18.43.4-3",
-   "GR-13.18.43.4-1"
-  ],
-  "reason": "1985 counts 'the number of character positions required to store the logical record', computes it as the sum of characters in the fixed elementary items plus the maximum of each variable-length item, and warns 'This sum may be different from the actual size of the record' (citing SYNCHRONIZED and USAGE). §2023:13.18.43.4 GR3 keeps the same sum in bytes ('the number of bytes required to store the logical record') but closes the gap: 'Implicit filler positions, if any, are included in the size', and §2023:13.18.43.4 GR1 makes every RECORD integer 'a record size in terms of bytes'. 1985 GR5 adds synchronization FILLER only to the format 2 bounds; for this general size 1985 left the counted sum and the stored size free to differ, where 2023 makes the size the stored size. Where USAGE or SYNCHRONIZED make them differ, the size compared with the RECORD integers differs.",
+  "kind": "KEPT",
   "edition": 2023,
+  "to": [
+   "GR-13.18.43.4-18"
+  ],
   "bridge": true,
-  "source": "adjudicate-712/slice-15"
+  "source": "audit-1985/state-route"
  }
 }

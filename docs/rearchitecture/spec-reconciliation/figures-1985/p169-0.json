@@ -2,19 +2,11 @@
  "page": 169,
  "figure": 0,
  "drawn_lines": [
-  "            ┌⎧<u>IN</u>⎫              ┐     ┌⎧<u>IN</u>⎫ ⎧cd-name-1     ⎫┐",
-  "data-name-1 │⎨  ⎬ data-name-2  │ ... │⎨  ⎬ ⎨file-name-1   ⎬│",
-  "            └⎩<u>OF</u>⎭              ┘     └⎩<u>OF</u>⎭ ⎩report-name-1 ⎭┘",
-  "",
-  "   [({subscript} ... )]  [(leftmost-character-position: [length])]"
+  "function-identifier-1"
  ],
  "decided": "drawn",
  "figure_lines": [
-  "            ┌╭<u>IN</u> ╮              ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮┐",
-  "data-name-1 │┤   ├ data-name-2  │ …   │┤  ├ ┤file-name-1   ├│",
-  "            └╰<u>OF</u> ╯              ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯┘",
-  "",
-  "   [({subscript}  …   )]  [(leftmost-character-position: [length])]"
+  "function-identifier-1"
  ],
- "reason": "The printed page bears the batch's drawing out: data-name-1 [{IN/OF} data-name-2] ... [{IN/OF} {cd-name-1/file-name-1/report-name-1}], then [({subscript} ... )] [(leftmost-character-position: [length])]; IN and OF underlined. Redrawn in the house style."
+ "reason": "The figure is an amendment's text applied in place, not the base page's ink: Errata C105, Section IV, paragraph 4.3.8.4 (Identifier), renumbered 4.3.8.5 and changed (kb/Work PB5045). It is drawn as the amendment prints it."
 }

@@ -1,15 +1,14 @@
 {
  "rule-id": "1985-GR-VI.6.18.4-7",
- "rule-digest": "891eb760ead7",
+ "rule-digest": "50cd9db19902",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.22.4-9",
-   "GR-14.9.22.4-3"
+   "GR-14.9.22.4-8"
   ],
   "bridge": true,
-  "reason": "1985 GR7 a)-c) recur in §2023:14.9.22.4 GR9, outside its BACKWARD and zero-length identifier-4 branches (neither reachable from 1985 syntax). 1985 b) reads 'from its leftmost character position up to, but not including, the first occurrence'; 2023 b) reads 'the first character position that is eligible to participate up to, but not including, the first occurrence encountered of literal-2', and §2023:14.9.22.4 GR3 fixes where that occurrence is found: 'the establishment of boundaries for the BEFORE or AFTER phrase, and the mechanism for tallying and/or replacing) begins at the leftmost character position'. With BEFORE and AFTER both specified the region is the same intersection, so every 1985 INSPECT means the same.",
+  "reason": "1985 GR6 a)-e) (the comparison cycle: operands left to right, start at the leftmost position, advance on no match and past a match, termination, the implied CHARACTERS operand) recur in §2023:14.9.22.4 GR8 ('The operands of the TALLYING or REPLACING phrase are considered in the order they are specified in the INSPECT statement from left to right'); every addition is an 'if BACKWARD is specified' branch, syntax the 1985 rule does not refuse (the format does). Cross-references renumbered. 2023 GR3 restates 1985 GR4's scan direction and GR7 restates 1985 GR5, so neither carries this rule.",
   "source": "adjudicate-712-r2/slice-05"
  }
 }

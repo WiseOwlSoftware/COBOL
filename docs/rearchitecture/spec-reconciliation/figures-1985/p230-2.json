@@ -2,19 +2,15 @@
  "page": 230,
  "figure": 2,
  "drawn_lines": [
-  "             ┌⎧<u>IN</u>⎫              ┐     ┌⎧<u>IN</u>⎫ ⎧cd-name-1     ⎫┐",
-  "data-name-1  │⎨  ⎬  data-name-2 │ ... │⎨  ⎬ ⎨file-name-1   ⎬│",
-  "             └⎩<u>OF</u>⎭              ┘     └⎩<u>OF</u>⎭ ⎩report-name-1 ⎭┘",
-  "",
-  "     [({subscript} ... )]  [(leftmost-character-position: [length])]"
+  "╭ data-name-1                                    ╮",
+  "┤                                                ├ (leftmost-character-position:[length])",
+  "╰ <u>FUNCTION</u> function-name-1 [({argument-1} …   )] ╯"
  ],
  "decided": "drawn",
  "figure_lines": [
-  "             ┌╭<u>IN</u> ╮              ┐     ┌╭<u>IN</u>╮ ╭cd-name-1     ╮┐",
-  "data-name-1  │┤   ├  data-name-2 │ …   │┤  ├ ┤file-name-1   ├│",
-  "             └╰<u>OF</u> ╯              ┘     └╰<u>OF</u>╯ ╰report-name-1 ╯┘",
-  "",
-  "     [({subscript } …   )]  [(leftmost-character-position: [length])]"
+  "╭ data-name-1                                    ╮",
+  "┤                                                ├ (leftmost-character-position:[length])",
+  "╰ <u>FUNCTION</u> function-name-1 [({argument-1} …   )] ╯"
  ],
- "reason": "The printed page (MISCELLANEOUS FORMATS, IDENTIFIER) sets the identifier format as the batch drew it: data-name-1 [{IN/OF} data-name-2] ... [{IN/OF} {cd-name-1/file-name-1/report-name-1}] and the subscript and reference-modification brackets. Drawn in the house style (figure_reading.restyle)."
+ "reason": "The figure is an amendment's text applied in place, not the base page's ink: Errata C118, Section V, the miscellaneous formats, REFERENCE MODIFICATION (kb/Work PB5045). It is drawn as the amendment prints it."
 }

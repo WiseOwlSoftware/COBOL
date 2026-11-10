@@ -1,6 +1,6 @@
 {
- "rule-id": "1993-GR-X.5.4.4-4",
- "rule-digest": "e901a4057048",
+ "rule-id": "1985-GR-X.5.4.4-4",
+ "rule-digest": "143ebc1b178e",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
