@@ -67,7 +67,7 @@
            WRITE CobolReport
            CLOSE CobolFile
            OPEN INPUT CobolFile
-           READ CobolFile
+           READ CobolFile AT END CONTINUE END-READ
            CLOSE CobolFile
            DISPLAY CobolReport
            STOP RUN.

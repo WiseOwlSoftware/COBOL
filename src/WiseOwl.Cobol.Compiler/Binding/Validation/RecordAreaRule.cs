@@ -1,9 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Binding.Model;
 
-/// <summary>The five statements whose FROM or INTO operand may not be the file's own record area (kb/Work PB5077).</summary>
-public enum RecordAreaVerb { Read, Return, Write, Rewrite, Release }
+namespace WiseOwl.Cobol.Binding.Validation;
 
 /// <summary>
 /// ⛔ <b>THE ONE WORDING AND SCOPE OF "THE OPERAND SHALL NOT BE THE FILE'S RECORD AREA"</b> (kb/Work PB5077). X3.23-1985 and

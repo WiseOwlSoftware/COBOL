@@ -8,8 +8,10 @@ carry AT END or INVALID KEY when no applicable USE AFTER STANDARD EXCEPTION proc
 is one type, `ExceptionPhraseRequirement`, asked at the five keyed binders and the sequential READ. Which statements need the phrase
 is the question FLAG-14 d already asked ("can be specified with an INVALID KEY phrase"), so `FlagConformancePass.AdmitsInvalidKey` moved
 to `IoPhraseAdmission` and both passes read it; the sequential READ adds AT END. "Applicable" is §1985:VII.4.6.4 GR5: a declarative
-naming the file, or one for an open mode the file can be in when the verb runs, in this program or a containing one (GR1). A USE ON
-OUTPUT therefore does not cover a READ, and a contained program's READ is covered by its container's declarative. The container's
+naming the file, or one for an open mode, in this program or a containing one (GR1). My first reading let a mode declarative cover only
+the verbs the mode suits (a USE ON OUTPUT not a READ); CCVS-85 SQ148A refuted it: it READs a file open OUTPUT on purpose and the OUTPUT
+declarative takes the status 47. A mode declarative now covers every statement, since the rule refuses statements and a program that might
+be covered is not refused. A contained program's READ is covered by its container's declarative. The container's
 declaratives arrive through a lazy `ContainerUses` that `BinderDriver` sets on each contained unit's binder.
 
 **PB5077, the operand rule (COBOL6827, 85, 2002 and 2014).** READ INTO and RETURN INTO may not receive into the file's record area;
@@ -24,9 +26,20 @@ operand and another file's record stay legal. `RecordAreaRule` holds the edition
 per verb and organization (the 1985 text repeats the rule in three modules); the verb is a new column on `FromPhraseRules` and
 `IntoPhraseRules`.
 
+**What the gate found.** The first full gate failed 60 tests, every one COBOL6826: the 1985 corpus was full of programs that
+omit the phrase, which no earlier compiler said. CCVS-85 SQ148A was the one that corrected the design (a mode declarative covers
+every statement). The rest were our own tests, written when `accept: [85]` meant "compiles at 85". They were migrated, not exempted:
+227 statements in 48 conformance programs now carry `AT END CONTINUE`, `INVALID KEY CONTINUE` or the right pair, each with its
+`END-` terminator (a bare phrase inside a longer sentence draws COBOL2796); the phrase is `INVALID KEY` for a random read and
+`AT END` for a sequential one, because the other draws COBOL1720. `pb3830_phrase_format_selectors` keeps its inner statements
+phrase-free, since the association rule is what it tests, and gets a do-nothing `USE` procedure instead. `l1c11_invalid_key_no_phrase_no_use`
+pins the no-phrase behavior of 2023:9.1.14 GR4, so it is accepted from 2002 only. Six inline programs in `KeyedIoDifferentialTests`,
+`ClauseOperandQualificationSpecTests` and `Ansi85AcceptanceTests` were patched the same way; the four differential goldens are named by
+a hash of the source, so they were renamed with it (their expected output did not change). `RecordAreaRule` moved to `Binding.Validation`
+(its text-returning members are diagnostic wording, and the backend contract refused them under `Binding.Model`).
+
 **Witnesses.** Conformance: the legal sides `pb5076_sequential_read_without_at_end_covered_by_use`,
 `pb5076_keyed_statements_without_phrases_covered_by_use_io` and `pb5077_from_into_outside_the_record_area` (run at all four editions),
-the 2023 acceptance `pb5077_from_own_record_area_accepted_2023`, seven `pb5076-*-85` refusals (one per verb, and a USE ON OUTPUT that does
-not cover a READ) and five `pb5077-*` refusals (one per verb, refused at 85, 2002 and 2014). `IoExceptionPhraseRequirementTests` pins the scope:
+the 2023 acceptance `pb5077_from_own_record_area_accepted_2023`, six `pb5076-*-85` refusals (one per verb) and five `pb5077-*` refusals (one per verb, refused at 85, 2002 and 2014). `IoExceptionPhraseRequirementTests` pins the scope:
 every USE mode against every verb, the access-mode qualification of DELETE and REWRITE, a contained program, and the record-area boundaries.
 Design: D31 of `docs/FILES_DESIGN.md`.

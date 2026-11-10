@@ -14,7 +14,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// (the operand rule stays, §2002:14.8.29.2 SR2; the phrase rule goes) and 2023 (neither).
 /// <para>The one-verb-per-file goldens in <c>conformance-suite/cases</c> pin the refusal of each statement; THIS class pins the
 /// rule's SCOPE, the questions a golden cannot ask cheaply: which USE declarative is "applicable" to which verb
-/// (§1985:VII.4.6.4 GR5: the named file, or the open mode the file can be in when the verb executes), a containing program's
+/// (§1985:VII.4.6.4 GR5: the named file, or any open mode), a containing program's
 /// declarative (§1985:VII.4.6.4 GR1), the access-mode qualification of DELETE and REWRITE, and which operands are "the
 /// same storage area" as the record area.</para>
 /// </summary>
@@ -85,39 +85,30 @@ public sealed class IoExceptionPhraseRequirementTests
     public void KeyedStatementWithItsPhrase_IsAcceptedAt85(string statement)
         => AssertAccepted(Check(85, Indexed(null, statement)));
 
-    // §1985:VII.4.6.4 GR5: a USE for the named file covers every verb; a USE for a mode covers the verbs a file can run in
-    // that mode: READ and START in INPUT or I-O, WRITE in OUTPUT, I-O or EXTEND, REWRITE and DELETE in I-O.
-    [Theory]
-    [InlineData("XF", "READ XF.", true)]
-    [InlineData("XF", "WRITE XREC.", true)]
-    [InlineData("XF", "REWRITE XREC.", true)]
-    [InlineData("XF", "DELETE XF.", true)]
-    [InlineData("XF", "START XF KEY IS EQUAL TO XK.", true)]
-    [InlineData("OF2", "READ XF.", false)]            // another file's procedure is not applicable
-    [InlineData("OF2", "WRITE XREC.", false)]
-    [InlineData("I-O", "READ XF.", true)]
-    [InlineData("I-O", "WRITE XREC.", true)]
-    [InlineData("I-O", "REWRITE XREC.", true)]
-    [InlineData("I-O", "DELETE XF.", true)]
-    [InlineData("I-O", "START XF KEY IS EQUAL TO XK.", true)]
-    [InlineData("INPUT", "READ XF.", true)]
-    [InlineData("INPUT", "START XF KEY IS EQUAL TO XK.", true)]
-    [InlineData("INPUT", "WRITE XREC.", false)]       // a file open INPUT cannot be written
-    [InlineData("INPUT", "REWRITE XREC.", false)]
-    [InlineData("INPUT", "DELETE XF.", false)]
-    [InlineData("OUTPUT", "WRITE XREC.", true)]
-    [InlineData("OUTPUT", "READ XF.", false)]         // a file open OUTPUT cannot be read
-    [InlineData("OUTPUT", "REWRITE XREC.", false)]
-    [InlineData("OUTPUT", "DELETE XF.", false)]
-    [InlineData("OUTPUT", "START XF KEY IS EQUAL TO XK.", false)]
-    [InlineData("EXTEND", "WRITE XREC.", true)]
-    [InlineData("EXTEND", "READ XF.", false)]
-    [InlineData("EXTEND", "REWRITE XREC.", false)]
-    public void UseDeclarativeCoversTheVerbsItsScopeReaches(string useOn, string statement, bool covered)
+    // §1985:VII.4.6.4 GR5: a USE for the named file covers every statement of it, and a USE for an open mode covers every
+    // statement of every file: the file may be in any mode when a statement runs, one the statement does not suit included
+    // (a READ of a file open OUTPUT raises status 47, which a USE ON OUTPUT procedure takes; CCVS-85 SQ148A). A USE for
+    // another file covers nothing.
+    public static TheoryData<string, string> UseAndStatement()
     {
-        var r = Check(85, Indexed(useOn, statement));
-        if (covered) AssertAccepted(r); else AssertRefused(r, "COBOL6826");
+        var data = new TheoryData<string, string>();
+        foreach (string use in new[] { "XF", "I-O", "INPUT", "OUTPUT", "EXTEND" })
+            foreach (string statement in new[] { "READ XF.", "WRITE XREC.", "REWRITE XREC.", "DELETE XF.", "START XF KEY IS EQUAL TO XK." })
+                data.Add(use, statement);
+        return data;
     }
+
+    [Theory]
+    [MemberData(nameof(UseAndStatement))]
+    public void UseDeclarativeForTheFileOrAMode_CoversEveryStatement(string useOn, string statement)
+        => AssertAccepted(Check(85, Indexed(useOn, statement)));
+
+    [Theory]
+    [InlineData("READ XF.")]
+    [InlineData("WRITE XREC.")]
+    [InlineData("START XF KEY IS EQUAL TO XK.")]
+    public void UseDeclarativeForAnotherFile_CoversNothing(string statement)
+        => AssertRefused(Check(85, Indexed("OF2", statement)), "COBOL6826");
 
     // The access mode qualifies DELETE and REWRITE of a relative file (§1985:VIII.4.3.3 SR2, §1985:VIII.4.6.3 SR4): where
     // the phrase cannot be written (sequential access) there is nothing to require; a sequential file never raises an

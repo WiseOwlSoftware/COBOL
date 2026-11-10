@@ -79,19 +79,19 @@
            DISPLAY "W2=" FS
            CLOSE F1
            OPEN INPUT F2
-           READ F2
+           READ F2 AT END CONTINUE END-READ
            PERFORM UNTIL FS NOT = "00"
                ADD 1 TO N
                DISPLAY "R2=[" R2 (1:10) "]"
-               READ F2
+               READ F2 AT END CONTINUE END-READ
            END-PERFORM
            DISPLAY "RECORDS=" N " FS=" FS
            CLOSE F2
            OPEN INPUT F1
-           READ F1
+           READ F1 AT END CONTINUE END-READ
            PERFORM UNTIL FS NOT = "00"
                DISPLAY "R1=[" R1 "]"
-               READ F1
+               READ F1 AT END CONTINUE END-READ
            END-PERFORM
            CLOSE F1
            OPEN OUTPUT FIN
@@ -102,9 +102,9 @@
            CLOSE FIN
            SORT SRT ON ASCENDING KEY SK USING FIN GIVING FOUT
            OPEN INPUT FOUT
-           READ FOUT
+           READ FOUT AT END CONTINUE END-READ
            DISPLAY "OUT=[" OUT-REC "]"
-           READ FOUT
+           READ FOUT AT END CONTINUE END-READ
            DISPLAY "OUT=[" OUT-REC "]"
            CLOSE FOUT
            STOP RUN.

@@ -1389,7 +1389,7 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
 /// <param name="StrongReceiverCite">The verb's strongly-typed-receiver rule — §2023:14.9.30.3 SR2 / §2023:14.9.34.3 SR3.</param>
 /// <param name="StrongReceiverCount">That rule's record-area count requirement, quoted.</param>
 /// <param name="EntryFace">How the description entry names itself in a message — "FD" / "SD".</param>
-/// <param name="AreaVerb">The verb's place in <see cref="RecordAreaRule"/>: identifier-1 shall not be the file's record area
+/// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
 /// at the editions before COBOL-2023 (kb/Work PB5077).</param>
 public sealed record IntoPhraseRules(
     string Statement,

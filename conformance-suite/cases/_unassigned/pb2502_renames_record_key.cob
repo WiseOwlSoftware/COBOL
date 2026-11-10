@@ -60,32 +60,42 @@
        MAIN.
            OPEN OUTPUT F.
            MOVE "aaBBcccXXYYdddd" TO R.
-           WRITE R.
+           WRITE R INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "W1=" WS-FS.
            MOVE "zzAAbbbWWVVeeee" TO R.
-           WRITE R.
+           WRITE R INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "W2=" WS-FS.
            MOVE "yyBBcccQQRRffff" TO R.
-           WRITE R.
+           WRITE R INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "W3=" WS-FS.
            CLOSE F.
            OPEN INPUT F.
            MOVE "AAbbb" TO KR.
-           READ F.
+           READ F INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "KR AAbbb->" P.
            MOVE "XXYY" TO AR.
-           READ F KEY IS AR.
+           READ F KEY IS AR INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "AR XXYY->" P.
            MOVE "eeee" TO KD.
-           READ F KEY IS KD.
+           READ F KEY IS KD INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "KD eeee->" P.
            MOVE "AAbbb" TO KR.
-           START F KEY IS EQUAL TO KR.
-           READ F NEXT.
+           START F KEY IS EQUAL TO KR INVALID KEY CONTINUE END-START
+           .
+           READ F NEXT AT END CONTINUE END-READ
+           .
            DISPLAY "NEXT " P.
-           READ F NEXT.
+           READ F NEXT AT END CONTINUE END-READ
+           .
            DISPLAY "NEXT " P.
-           READ F NEXT.
+           READ F NEXT AT END CONTINUE END-READ
+           .
            DISPLAY "END " WS-FS.
            CLOSE F.
            STOP RUN.

@@ -77,37 +77,37 @@
            OPEN OUTPUT FR
            MOVE 2 TO WS-RK
            MOVE "REL-2" TO FR-REC
-           WRITE FR-REC
+           WRITE FR-REC INVALID KEY CONTINUE END-WRITE
            MOVE 1 TO WS-RK
            MOVE "REL-1" TO FR-REC
-           WRITE FR-REC
+           WRITE FR-REC INVALID KEY CONTINUE END-WRITE
            CLOSE FR
            OPEN OUTPUT FI
            MOVE "K2" TO FI-K
            MOVE "IDX-2" TO FI-D
-           WRITE FI-REC
+           WRITE FI-REC INVALID KEY CONTINUE END-WRITE
            MOVE "K1" TO FI-K
            MOVE "IDX-1" TO FI-D
-           WRITE FI-REC
+           WRITE FI-REC INVALID KEY CONTINUE END-WRITE
            CLOSE FI
            OPEN INPUT FS
-           READ FS
+           READ FS AT END CONTINUE END-READ
            DISPLAY "FS " FS-REC
-           READ FS
+           READ FS AT END CONTINUE END-READ
            DISPLAY "FS " FS-REC " " ST-S
            CLOSE FS
            OPEN INPUT FR
            MOVE 1 TO WS-RK
-           READ FR
+           READ FR INVALID KEY CONTINUE END-READ
            DISPLAY "FR " FR-REC
            MOVE 2 TO WS-RK
-           READ FR
+           READ FR INVALID KEY CONTINUE END-READ
            DISPLAY "FR " FR-REC " " ST-R
            CLOSE FR
            OPEN INPUT FI
-           READ FI NEXT RECORD
+           READ FI NEXT RECORD AT END CONTINUE END-READ
            DISPLAY "FI " FI-K " " FI-D
-           READ FI NEXT RECORD
+           READ FI NEXT RECORD AT END CONTINUE END-READ
            DISPLAY "FI " FI-K " " FI-D " " ST-I
            CLOSE FI
            STOP RUN.

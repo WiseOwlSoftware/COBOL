@@ -52,11 +52,14 @@
        MAIN.
            OPEN OUTPUT IXF.
            MOVE "A1" TO IX-K. MOVE "ZZ" TO IX-ALT. MOVE "ONE " TO IX-DATA.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "A2" TO IX-K. MOVE "ZZ" TO IX-ALT. MOVE "TWO " TO IX-DATA.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "A3" TO IX-K. MOVE "YY" TO IX-ALT. MOVE "TRI " TO IX-DATA.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE IXF.
            OPEN INPUT IXF.
            DISPLAY "PRIME WALK:".
@@ -68,8 +71,10 @@
            END-PERFORM.
            CLOSE IXF.
            OPEN OUTPUT RLF.
-           MOVE 1 TO WS-RK. MOVE "R-01" TO RL-REC. WRITE RL-REC.
-           MOVE 2 TO WS-RK. MOVE "R-02" TO RL-REC. WRITE RL-REC.
+           MOVE 1 TO WS-RK. MOVE "R-01" TO RL-REC. WRITE RL-REC INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE 2 TO WS-RK. MOVE "R-02" TO RL-REC. WRITE RL-REC INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE RLF.
            OPEN INPUT RLF.
            DISPLAY "RELATIVE READS:".

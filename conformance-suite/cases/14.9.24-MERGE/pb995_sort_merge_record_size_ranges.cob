@@ -107,7 +107,7 @@
            SORT SW1 ASCENDING KEY S1K USING IN1 GIVING OU1
            OPEN INPUT OU1
            PERFORM 4 TIMES
-               READ OU1
+               READ OU1 AT END CONTINUE END-READ
                DISPLAY "1 [" O1R "]"
            END-PERFORM
            CLOSE OU1
@@ -120,7 +120,7 @@
            SORT SW2 ASCENDING KEY S2K USING IN2 GIVING OU2
            OPEN INPUT OU2
            PERFORM 3 TIMES
-               READ OU2
+               READ OU2 AT END CONTINUE END-READ
                DISPLAY "2 [" O2A "] " L2O
            END-PERFORM
            CLOSE OU2
@@ -136,7 +136,7 @@
            MERGE SW3 ASCENDING KEY S3K USING MA MB GIVING MO
            OPEN INPUT MO
            PERFORM 4 TIMES
-               READ MO
+               READ MO AT END CONTINUE END-READ
                DISPLAY "3 [" MOR "] " L3
            END-PERFORM
            CLOSE MO

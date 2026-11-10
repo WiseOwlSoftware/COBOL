@@ -2320,15 +2320,18 @@ statement's conditional phrases; it is a no-op from `Year >= 2002`. It has two h
 need a phrase is the rule's scope: where the phrase can be written — `IoPhraseAdmission.AdmitsInvalidKey`, the same question FLAG-14 d
 (`FlagConformancePass`) asks of the same statements, so the two share one function — and a sequential file's READ, which needs AT END.
 WHEN a procedure is "applicable" is the USE statement's scope (§1985:VII.4.6.4 GR5): a declarative that names the file, or whose
-open mode the file can be in when the verb executes (READ and START: INPUT or I-O; WRITE: OUTPUT, I-O or EXTEND; REWRITE and
-DELETE: I-O), in this program or in a containing one (GR1: the declaratives of "the separately compiled program" apply, and a contained
-program is part of its container's). `BinderDriver` hands each contained unit a lazy `ContainerUses` over its containers' bound
-declaratives. **Rejected readings:** any declarative counts (a USE ON OUTPUT does not apply to a READ, §1985:VII.4.6.4 GR5 c);
-reading the requirement at the parse tree in `FlagConformancePass` (a flag pass runs only with a FLAG directive and resolves names a
+open mode (INPUT, OUTPUT, I-O, EXTEND), in this program or in a containing one (GR1: the declaratives of "the separately compiled
+program" apply, and a contained program is part of its container's). `BinderDriver` hands each contained unit a lazy `ContainerUses`
+over its containers' bound declaratives. A mode declarative covers every statement, because the file may be in any mode when a statement
+runs, one the statement does not suit included: a READ of a file open OUTPUT raises status 47, which a USE ON OUTPUT procedure takes
+(§1985:VII.4.6.4 GR5 c), and CCVS-85's SQ148A is written on it. **Rejected readings:** a mode declarative applies only to the verbs the
+mode suits (the first implementation; SQ148A refuted it, and the rule refuses statements, so a program that might be covered is not
+refused); reading the requirement at the parse tree in `FlagConformancePass` (a flag pass runs only with a FLAG directive and resolves names a
 second time); a Removed-seam warning under --permissive (the omission is no tolerated dialect: COBOL1850's reasoning for the
-RETURN AT END). Witnesses: `conformance:cases/14.9.30-READ/pb5076_*` (the legal side, run at every edition) and seven
-`pb5076-*-85` refusals; `IoExceptionPhraseRequirementTests` pins the scope (every mode against every verb, the access-mode
-qualification, the contained program).
+RETURN AT END). Witnesses: `conformance:cases/14.9.30-READ/pb5076_*` (the legal side, run at every edition) and six
+`pb5076-*-85` refusals; `IoExceptionPhraseRequirementTests` pins the scope (every mode and the file name against every verb, another
+file's declarative, the access-mode qualification, the contained program). The 1985 corpus held 49 conformance programs and six inline test programs that omit the phrase with no
+declarative; they now carry it, or are accepted from 2002 only where their point is the exception path with no phrase.
 
 **(b) The FROM / INTO operand is not the file's record area — COBOL-85, 2002 and 2014.** READ and RETURN: "The storage area
 associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area" (§1985:IX.4.5.3 SR1,

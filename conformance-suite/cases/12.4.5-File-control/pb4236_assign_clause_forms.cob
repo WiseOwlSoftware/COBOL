@@ -59,7 +59,8 @@
            CLOSE F-SQ.
            OPEN OUTPUT F-RL.
            MOVE "REL01" TO RL-REC.
-           WRITE RL-REC.
+           WRITE RL-REC INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE F-RL.
            OPEN INPUT F-RL.
            READ F-RL AT END MOVE "EOF" TO RL-REC END-READ.

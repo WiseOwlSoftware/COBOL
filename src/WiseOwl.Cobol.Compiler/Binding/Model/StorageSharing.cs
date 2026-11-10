@@ -42,7 +42,7 @@ internal static class StorageSharing
 
     /// <summary>⛔ THE OTHER QUESTION, asked of a FILE's record area (kb/Work PB5077): does <paramref name="operand"/> name the
     /// record area of <paramref name="file"/> — "the same storage area" that §1985:IX.4.5.3 SR1 and §2002:14.8.29.2 SR2
-    /// forbid a READ INTO identifier-1 (and RETURN INTO, WRITE FROM, REWRITE FROM, RELEASE FROM: <see cref="RecordAreaRule"/>)?
+    /// forbid a READ INTO identifier-1 (and RETURN INTO, WRITE FROM, REWRITE FROM, RELEASE FROM: <c>RecordAreaRule</c>)?
     /// It is EXACT where <see cref="MayShare"/> is conservative, because the rule REFUSES the statement: a false positive
     /// rejects legal source, so a storage the compiler cannot place as the whole area is not "the same".
     /// <para>The operand names the area when it is (1) a record description entry of the file or of a file that shares its

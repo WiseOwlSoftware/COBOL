@@ -72,54 +72,80 @@
            OPEN OUTPUT S-FILE Q-FILE D-FILE.
            MOVE "AAAAA" TO S-REC Q-REC D-REC.
            MOVE 1 TO D-KEY.
-           WRITE S-REC. WRITE Q-REC. WRITE D-REC.
+           WRITE S-REC. WRITE Q-REC INVALID KEY CONTINUE END-WRITE
+           . WRITE D-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "BBBBB" TO S-REC Q-REC D-REC.
            MOVE 2 TO D-KEY.
-           WRITE S-REC. WRITE Q-REC. WRITE D-REC.
+           WRITE S-REC. WRITE Q-REC INVALID KEY CONTINUE END-WRITE
+           . WRITE D-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "CCCCC" TO S-REC Q-REC D-REC.
            MOVE 3 TO D-KEY.
-           WRITE S-REC. WRITE Q-REC. WRITE D-REC.
+           WRITE S-REC. WRITE Q-REC INVALID KEY CONTINUE END-WRITE
+           . WRITE D-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "DDDDD" TO S-REC Q-REC D-REC.
            MOVE 4 TO D-KEY.
-           WRITE S-REC. WRITE Q-REC. WRITE D-REC.
+           WRITE S-REC. WRITE Q-REC INVALID KEY CONTINUE END-WRITE
+           . WRITE D-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE S-FILE Q-FILE D-FILE.
       *> Sequential organization.
            OPEN I-O S-FILE.
-           READ S-FILE. READ S-FILE.
+           READ S-FILE AT END CONTINUE END-READ
+           . READ S-FILE AT END CONTINUE END-READ
+           .
            MOVE "22222" TO S-REC.
            REWRITE S-REC.
            MOVE S-ST TO W-ST.
-           READ S-FILE.
+           READ S-FILE AT END CONTINUE END-READ
+           .
            DISPLAY "SEQ ST=" W-ST " NEXT=" S-REC.
            CLOSE S-FILE.
       *> Relative organization, sequential access.
            OPEN I-O Q-FILE.
-           READ Q-FILE. READ Q-FILE.
+           READ Q-FILE AT END CONTINUE END-READ
+           . READ Q-FILE AT END CONTINUE END-READ
+           .
            MOVE "22222" TO Q-REC.
            REWRITE Q-REC.
            MOVE Q-ST TO W-ST.
-           READ Q-FILE.
+           READ Q-FILE AT END CONTINUE END-READ
+           .
            DISPLAY "RSQ ST=" W-ST " NEXT=" Q-REC.
            CLOSE Q-FILE.
       *> Relative organization, dynamic access.
            OPEN I-O D-FILE.
            MOVE 1 TO D-KEY.
-           READ D-FILE.
+           READ D-FILE INVALID KEY CONTINUE END-READ
+           .
            MOVE 3 TO D-KEY.
            MOVE "33333" TO D-REC.
-           REWRITE D-REC.
+           REWRITE D-REC INVALID KEY CONTINUE END-REWRITE
+           .
            MOVE D-ST TO W-ST.
-           READ D-FILE NEXT RECORD.
+           READ D-FILE NEXT RECORD AT END CONTINUE END-READ
+           .
            DISPLAY "RDY ST=" W-ST " NEXT=" D-REC.
            CLOSE D-FILE.
       *> Read-back.
            OPEN INPUT S-FILE Q-FILE D-FILE.
-           READ S-FILE. READ S-FILE.
+           READ S-FILE AT END CONTINUE END-READ
+           . READ S-FILE AT END CONTINUE END-READ
+           .
            DISPLAY "SEQ2=" S-REC.
-           READ Q-FILE. READ Q-FILE.
+           READ Q-FILE AT END CONTINUE END-READ
+           . READ Q-FILE AT END CONTINUE END-READ
+           .
            DISPLAY "RSQ2=" Q-REC.
            MOVE 3 TO D-KEY.
-           READ D-FILE.
+           READ D-FILE INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "RDY3=" D-REC.
            CLOSE S-FILE Q-FILE D-FILE.
            STOP RUN.

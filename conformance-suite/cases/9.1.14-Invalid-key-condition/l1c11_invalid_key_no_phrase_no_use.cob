@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c11_invalid_key_no_phrase_no_use
       *> rules: [GR-9.1.14-1, GR-9.1.14-4]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -114,19 +114,19 @@
            DISPLAY "I1 WRITE=" IF-ST
            CLOSE VF FF GF IF1
            OPEN INPUT VF FF GF IF1
-           READ VF
+           READ VF AT END CONTINUE END-READ
            DISPLAY "V1 READ=" VF-ST " LEN=" VF-LEN
                    " [" VF-LONG (1:VF-LEN) "]"
-           READ VF
+           READ VF AT END CONTINUE END-READ
            DISPLAY "V2 READ=" VF-ST " LEN=" VF-LEN
                    " [" VF-LONG (1:VF-LEN) "]"
-           READ FF
+           READ FF AT END CONTINUE END-READ
            DISPLAY "F1 READ=" FF-ST " [" FF-LONG "]"
-           READ FF
+           READ FF AT END CONTINUE END-READ
            DISPLAY "F2 READ=" FF-ST " [" FF-LONG "]"
-           READ GF INTO WS-GF
+           READ GF INTO WS-GF AT END CONTINUE END-READ
            DISPLAY "G1 READ=" GF-ST " [" WS-GF "]"
-           READ IF1
+           READ IF1 AT END CONTINUE END-READ
            DISPLAY "I1 READ=" IF-ST " [" IF-LONG "]"
            CLOSE VF FF GF IF1
            STOP RUN.
