@@ -416,24 +416,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (IsAncestorOf(control, item)) return "is a data item subordinate to the control data item";
         // c) — a redefinition or renaming of ANY PART of the control data item. Neither ancestry nor descent holds here, so a
         // shared byte can come only through a REDEFINES or a RENAMES: the question is the STORAGE overlap the layout proves
-        // (StorageExtent), never the shape of the REDEFINES chains. A RENAMES item spans From through Thru, every item
-        // between them included. An extent the compiler cannot prove (a table, a variable-length item) is not asked.
-        if (ExtentOf(item) is { } itemExtent && StorageExtent.OfItem(control) is { } controlExtent && itemExtent.Overlaps(controlExtent))
+        // (StorageExtent), never the shape of the REDEFINES chains. A RENAMES item is the storage its alias covers, and a
+        // table element is every one of its occurrences (a table that redefines the control data item redefines part of
+        // it if ANY occurrence shares a byte). An extent the compiler cannot prove (a variable-length item) is not asked.
+        if (StorageExtent.OfEveryOccurrence(item) is { } itemExtents && StorageExtent.OfItem(control) is { } controlExtent
+            && itemExtents.Overlaps(controlExtent))
             return item.Renames is not null ? "is a renaming of part of the control data item"
                 : "is a redefinition of part of the control data item";
         return null;
-    }
-
-    /// <summary>The storage extent of a SOURCE operand's item: its own, or for a level-66 RENAMES item the span of
-    /// <c>From</c> through <c>Thru</c> (§2023:13.18.45.4 GR2: the items between them are part of the alias); null when unprovable.</summary>
-    private static StorageExtent? ExtentOf(DataItem item)
-    {
-        if (item.Renames is not { From: { } from } renames) return StorageExtent.OfItem(item);
-        if (StorageExtent.OfItem(from) is not { } first) return null;
-        if (renames.Thru is not { } thru) return first;
-        if (StorageExtent.OfItem(thru) is not { } last || !ReferenceEquals(first.Area, last.Area)) return null;
-        int start = Math.Min(first.Start, last.Start);
-        return new StorageExtent(first.Area, start, Math.Max(first.Start + first.Length, last.Start + last.Length) - start);
     }
 
     private static bool IsAncestorOf(DataItem ancestor, DataItem item)

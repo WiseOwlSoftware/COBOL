@@ -95,7 +95,7 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     private ExceptionPhraseRequirement? _exceptionPhrases;
     public ExceptionPhraseRequirement ExceptionPhrases => _exceptionPhrases ??= new(this);
 
-    /// <summary>The USE declaratives of the containing programs, nearest container first — read lazily by
+    /// <summary>The GLOBAL USE declaratives of the containing programs (§1985:X.5.5.4 GR1 b), nearest container first — read lazily by
     /// <see cref="ExceptionPhraseRequirement"/> because a container is bound before the programs it contains, and the answer
     /// is wanted only when a statement omits its phrase. Null for a program no other program contains (and in unit-test direct
     /// construction). Set once by <c>BinderDriver.BindUnitProcedure</c>.</summary>

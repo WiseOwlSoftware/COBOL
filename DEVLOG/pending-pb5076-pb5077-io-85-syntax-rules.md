@@ -8,7 +8,8 @@ carry AT END or INVALID KEY when no applicable USE AFTER STANDARD EXCEPTION proc
 is one type, `ExceptionPhraseRequirement`, asked at the five keyed binders and the sequential READ. Which statements need the phrase
 is the question FLAG-14 d already asked ("can be specified with an INVALID KEY phrase"), so `FlagConformancePass.AdmitsInvalidKey` moved
 to `IoPhraseAdmission` and both passes read it; the sequential READ adds AT END. "Applicable" is §1985:VII.4.6.4 GR5: a declarative
-naming the file, or one for an open mode, in this program or a containing one (GR1). My first reading let a mode declarative cover only
+naming the file, or one for an open mode, in this program or, written GLOBAL, a containing one (§1985:X.5.5.4 GR1 b; the branch
+review found the first cut counted a container's USE without GLOBAL, which no contained statement selects). My first reading let a mode declarative cover only
 the verbs the mode suits (a USE ON OUTPUT not a READ); CCVS-85 SQ148A refuted it: it READs a file open OUTPUT on purpose and the OUTPUT
 declarative takes the status 47. A mode declarative now covers every statement, since the rule refuses statements and a program that might
 be covered is not refused. A contained program's READ is covered by its container's declarative. The container's

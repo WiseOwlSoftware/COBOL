@@ -10,9 +10,10 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// result open, so WiseOwl COBOL documents what it does, and a rule that depends on overlap needs the overlap
 /// to be a FACT the binder can read, not a guess the emitter makes. This is that fact. It is known only where the
 /// compiler can prove it: both operands live in ONE storage area (a REDEFINES class, §2023:13.18.44, or one record) and
-/// every offset and length is a constant. An operand under OCCURS, a dynamic or variable-length item, a USAGE
-/// NATIONAL or BIT operand, a reference modification with a run-time bound, or a RENAMES span answers
-/// <see langword="null"/>, and a null is "not provably overlapping" — never "disjoint".</para>
+/// every offset and length is a constant. A dynamic or variable-length item, a USAGE NATIONAL or BIT operand, or a
+/// reference modification with a run-time bound answers <see langword="null"/>, and a null is "not provably overlapping" —
+/// never "disjoint". An operand under OCCURS has no ONE extent (<see cref="OfItem"/> answers null); the storage of all its
+/// occurrences is <see cref="OfEveryOccurrence"/>.</para>
 /// <para>The geometry is <see cref="RecordLayout.OffsetInRecord"/>'s — the ONE offset walk the SORT/MERGE key
 /// windows already ride — so the answer cannot disagree with the emitted record layout.</para></summary>
 /// <param name="Area">The storage area's identity: the REDEFINES class's canonical item when the record belongs to
@@ -47,16 +48,93 @@ public readonly record struct StorageExtent(DataItem Area, int Start, int Length
         return new StorageExtent(inner.Area, inner.Start + start - 1, len);
     }
 
-    /// <summary>The static extent of one data item (its whole occurrence), or null when not provable (see the type's summary).</summary>
+    /// <summary>The static extent of one data item (its whole occurrence), or null when not provable (see the type's
+    /// summary). A level-66 alias is the storage of its data-name-2 (§2023:13.18.45.4 GR1) or, with THROUGH, the span its
+    /// synthesized alphanumeric picture covers from data-name-2's first byte (GR2): <see cref="RecordLayout.OffsetInRecord"/>
+    /// places it at data-name-2 and its width is the span's.</summary>
     public static StorageExtent? OfItem(DataItem item)
     {
-        if (item.IsDynamicLength || item.IsAnyLength || VariableLengthCompatibility.IsVariableLength(item)) return null;
-        if (item.Pic is { Usage: Usage.National or Usage.Bit } || item.HasBitDescendant) return null;
-        DataItem root = item;
-        while (root.Parent is { } parent) root = parent;
-        DataItem area = root.Class?.Canonical ?? root;
+        if (!IsProvable(item)) return null;
+        DataItem area = AreaOf(item);
         return RecordLayout.OffsetInRecord(area, item) is { } off
             ? new StorageExtent(area, off, RecordLayout.PhysicalOccurrenceWidth(item))
             : null;
+    }
+
+    /// <summary>The storage of EVERY occurrence of <paramref name="item"/>: <see cref="OfItem"/> for an item no OCCURS clause
+    /// governs, and for a table element (the item or an ancestor carries OCCURS) its occurrence with every subscript 1 and
+    /// the stride and count of each OCCURS level, so a rule that asks whether ANY occurrence shares storage with another
+    /// extent (a redefinition "of any part" of an item, §1985:XIII.3.20.3 SR5 c) has an exact answer. Null when not
+    /// provable (see the type's summary).</summary>
+    public static OccurrenceExtents? OfEveryOccurrence(DataItem item)
+    {
+        if (!item.IsTableElement) return OfItem(item) is { } single ? new OccurrenceExtents(single, []) : null;
+        if (!IsProvable(item)) return null;
+        // The occurrence strides, outermost first, and the outermost table's parent, which has ONE position.
+        var levels = new List<OccurrenceLevel>();
+        DataItem? outerParent = null;
+        for (DataItem? x = item; x is not null; x = x.Parent)
+        {
+            if (x.Occurs is not { } count) continue;
+            levels.Insert(0, new OccurrenceLevel(RecordLayout.PhysicalOccurrenceWidth(x), count));
+            outerParent = x.Parent;
+        }
+        if (outerParent is null) return null;
+        DataItem area = AreaOf(item);
+        if (RecordLayout.OffsetInRecord(area, outerParent) is not { } parentOff
+            || RecordLayout.OffsetInRootWithEveryIndexOne(outerParent) is not { } parentInRoot
+            || RecordLayout.OffsetInRootWithEveryIndexOne(item) is not { } itemInRoot) return null;
+        return new OccurrenceExtents(
+            new StorageExtent(area, parentOff + itemInRoot - parentInRoot, RecordLayout.PhysicalOccurrenceWidth(item)), levels);
+    }
+
+    private static bool IsProvable(DataItem item) =>
+        !(item.IsDynamicLength || item.IsAnyLength || VariableLengthCompatibility.IsVariableLength(item))
+        && item.Pic is not { Usage: Usage.National or Usage.Bit } && !item.HasBitDescendant;
+
+    private static DataItem AreaOf(DataItem item)
+    {
+        DataItem root = item;
+        while (root.Parent is { } parent) root = parent;
+        return root.Class?.Canonical ?? root;
+    }
+}
+
+/// <summary>One OCCURS level of a table element's position: the bytes one occurrence of the table entry spans
+/// (<paramref name="Stride"/>) and how many occurrences it has (<paramref name="Count"/>, the maximum of a variable table).</summary>
+public readonly record struct OccurrenceLevel(int Stride, int Count);
+
+/// <summary>The storage of every occurrence of a data item (<see cref="StorageExtent.OfEveryOccurrence"/>): the occurrence
+/// whose every subscript is 1 (<paramref name="First"/>), and each OCCURS level on its path outermost first; occurrence
+/// (i1, …, ik) starts at <c>First.Start + Σ (ij − 1) × Stride_j</c> and is <c>First.Length</c> bytes long.</summary>
+public sealed record OccurrenceExtents(StorageExtent First, IReadOnlyList<OccurrenceLevel> Levels)
+{
+    /// <summary>Does any occurrence share at least one byte with <paramref name="other"/>? Exact: occurrences whose
+    /// enclosing span lies wholly before or after <paramref name="other"/> are skipped a level at a time, so the walk visits
+    /// only the occurrences near it.</summary>
+    public bool Overlaps(StorageExtent other)
+    {
+        if (!ReferenceEquals(First.Area, other.Area)) return false;
+        // reach[k]: how far past an occurrence's start of levels k.. the item's last byte can lie.
+        var reach = new long[Levels.Count + 1];
+        reach[Levels.Count] = First.Length;
+        for (int k = Levels.Count - 1; k >= 0; k--)
+            reach[k] = reach[k + 1] + (long)(Levels[k].Count - 1) * Levels[k].Stride;
+        long otherEnd = (long)other.Start + other.Length;
+        return Any(0, First.Start);
+
+        bool Any(int level, long start)
+        {
+            if (start + reach[level] <= other.Start || start >= otherEnd) return false;
+            if (level == Levels.Count) return true;   // one occurrence, and it overlaps
+            var (stride, count) = Levels[level];
+            for (int i = 0; i < count; i++)
+            {
+                long s = start + (long)i * stride;
+                if (s >= otherEnd) break;
+                if (Any(level + 1, s)) return true;
+            }
+            return false;
+        }
     }
 }

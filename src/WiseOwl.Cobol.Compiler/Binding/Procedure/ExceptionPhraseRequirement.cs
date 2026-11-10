@@ -25,9 +25,9 @@ using Core = CobolParserCore;
 /// file open in the named mode): a declarative that names the file, or one scoped to an open mode (INPUT, OUTPUT, I-O,
 /// EXTEND), for the file may be in any mode when a statement executes, one the statement does not suit included (a READ
 /// of a file open OUTPUT raises status 47, which a USE ON OUTPUT procedure takes; CCVS-85's SQ148A is that program).
-/// A declarative of a containing program counts too: "Only a declarative within the separately compiled program that
-/// contains the statement" is invoked (§1985:VII.4.6.4 GR1), and a contained program is part of its container's
-/// separately compiled program. The test is the most permissive reading of "applicable" that is still static, because
+/// A declarative of a containing program counts when it is written with the GLOBAL phrase, the only kind a contained
+/// program's statement selects outside its own program (§1985:X.5.5.4 GR1 b and c; <c>BinderDriver.ContainerUsesOf</c>
+/// yields exactly those). The test is the most permissive reading of "applicable" that is still static, because
 /// the rule refuses the statement and a program that might be covered is not refused.</para>
 /// <para>One instance per bound unit (<see cref="BinderContext.ExceptionPhrases"/>); every verb binder of the keyed and
 /// sequential arms calls <see cref="Require"/> with the phrase fact its own parse tree spells.</para>
@@ -66,7 +66,7 @@ internal sealed class ExceptionPhraseRequirement(BinderContext ctx)
             : invalidKey;
     }
 
-    /// <summary>Does a USE declarative of this unit (or a containing program's) apply to <paramref name="file"/>: it names the
+    /// <summary>Does a USE declarative of this unit (or a containing program's GLOBAL one) apply to <paramref name="file"/>: it names the
     /// file, or it is scoped to an open mode (INPUT, OUTPUT, I-O, EXTEND). The file may be in ANY mode when a statement
     /// executes, a mode the statement does not suit included: a READ of a file open OUTPUT raises status 47, which a USE
     /// ON OUTPUT procedure takes (§1985:VII.4.6.4 GR5 c), and CCVS-85's SQ148A is written on exactly that. So a mode

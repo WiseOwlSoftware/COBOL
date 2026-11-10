@@ -1209,15 +1209,19 @@ internal sealed class BinderDriver
         for (var u = unit; u is not null; u = u.Parent) yield return u;
     }
 
-    /// <summary>The USE declaratives of the programs that contain <paramref name="unit"/>, nearest first (§1985:VII.4.6.4 GR1:
-    /// the declaratives of "the separately compiled program that contains the statement" are the ones invoked, and a
-    /// contained program belongs to its container's separately compiled program). A container binds before the programs
-    /// it contains, so its declaratives are known when a statement of <paramref name="unit"/> asks (kb/Work PB5076).</summary>
+    /// <summary>The USE declaratives of the programs that contain <paramref name="unit"/> that a statement of
+    /// <paramref name="unit"/> can select, nearest first: only those written with the GLOBAL phrase (§1985:X.5.5.4 GR1 b:
+    /// "The declarative in which the GLOBAL phrase is specified and which is within the program directly containing the
+    /// program which was last examined for a qualifying declarative", applied outward by GR1 c; the run time's outward walk
+    /// selects the same set, <c>UseTierEmitter.EmitScopeTiers</c>' globalOnly). A container's declarative without GLOBAL is
+    /// never executed for a contained program's statement, so it is not applicable to it. A container binds before the
+    /// programs it contains, so its declaratives are known when a statement of <paramref name="unit"/> asks (kb/Work PB5076).</summary>
     private static IEnumerable<BoundDeclarative> ContainerUsesOf(BoundUnit unit)
     {
         for (var u = unit.Parent; u is not null; u = u.Parent)
             foreach (var d in u.Bound?.Declaratives ?? [])
-                yield return d;
+                if (d.Global)
+                    yield return d;
     }
 
     /// <summary>The user-defined functions ONE source element may reference, by the function-prototype-name it

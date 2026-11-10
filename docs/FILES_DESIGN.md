@@ -2320,9 +2320,9 @@ statement's conditional phrases; it is a no-op from `Year >= 2002`. It has two h
 need a phrase is the rule's scope: where the phrase can be written — `IoPhraseAdmission.AdmitsInvalidKey`, the same question FLAG-14 d
 (`FlagConformancePass`) asks of the same statements, so the two share one function — and a sequential file's READ, which needs AT END.
 WHEN a procedure is "applicable" is the USE statement's scope (§1985:VII.4.6.4 GR5): a declarative that names the file, or whose
-open mode (INPUT, OUTPUT, I-O, EXTEND), in this program or in a containing one (GR1: the declaratives of "the separately compiled
-program" apply, and a contained program is part of its container's). `BinderDriver` hands each contained unit a lazy `ContainerUses`
-over its containers' bound declaratives. A mode declarative covers every statement, because the file may be in any mode when a statement
+open mode (INPUT, OUTPUT, I-O, EXTEND), in this program or, written with the GLOBAL phrase, in a containing one (§1985:X.5.5.4 GR1 b and c:
+outside its own program a statement selects only "The declarative in which the GLOBAL phrase is specified"; the run time's outward
+walk selects the same set). `BinderDriver` hands each contained unit a lazy `ContainerUses` over its containers' bound GLOBAL declaratives. A mode declarative covers every statement, because the file may be in any mode when a statement
 runs, one the statement does not suit included: a READ of a file open OUTPUT raises status 47, which a USE ON OUTPUT procedure takes
 (§1985:VII.4.6.4 GR5 c), and CCVS-85's SQ148A is written on it. **Rejected readings:** a mode declarative applies only to the verbs the
 mode suits (the first implementation; SQ148A refuted it, and the rule refuses statements, so a program that might be covered is not

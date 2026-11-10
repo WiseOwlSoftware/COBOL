@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <para>The one-verb-per-file goldens in <c>conformance-suite/cases</c> pin the refusal of each statement; THIS class pins the
 /// rule's SCOPE, the questions a golden cannot ask cheaply: which USE declarative is "applicable" to which verb
 /// (§1985:VII.4.6.4 GR5: the named file, or any open mode), a containing program's
-/// declarative (§1985:VII.4.6.4 GR1), the access-mode qualification of DELETE and REWRITE, and which operands are "the
+/// GLOBAL declarative (§1985:X.5.5.4 GR1 b), the access-mode qualification of DELETE and REWRITE, and which operands are "the
 /// same storage area" as the record area.</para>
 /// </summary>
 public sealed class IoExceptionPhraseRequirementTests
@@ -156,24 +156,32 @@ public sealed class IoExceptionPhraseRequirementTests
     public void SequentialReadWithoutAtEnd_IsRefused_AndInvalidKeyIsNotItsPhrase()
         => AssertRefused(Check(85, Sequential("READ SF.")), "COBOL6826");
 
-    // §1985:VII.4.6.4 GR1: the declaratives of "the separately compiled program that contains the statement" are invoked,
-    // and a contained program belongs to its container's separately compiled program.
-    [Fact]
-    public void ContainingProgramsUseDeclarative_CoversAContainedProgramsStatement()
-    {
-        string[] source =
-        [
-            "IDENTIFICATION DIVISION.", "PROGRAM-ID. PARENT.", "ENVIRONMENT DIVISION.", "INPUT-OUTPUT SECTION.", "FILE-CONTROL.",
-            "    SELECT SF ASSIGN TO \"SF.DAT\" ORGANIZATION IS SEQUENTIAL.",
-            "DATA DIVISION.", "FILE SECTION.", "FD  SF GLOBAL.", "01  SREC PIC X(4).",
-            "PROCEDURE DIVISION.", "DECLARATIVES.", "U1 SECTION.", "    USE AFTER STANDARD EXCEPTION PROCEDURE ON SF.",
-            "U1-P.", "    EXIT.", "END DECLARATIVES.", "MAIN-SECT SECTION.", "MAIN-PARA.", "    OPEN INPUT SF.", "    CALL \"CHILD\".",
-            "    CLOSE SF.", "    STOP RUN.",
-            "IDENTIFICATION DIVISION.", "PROGRAM-ID. CHILD.", "PROCEDURE DIVISION.", "CHILD-PARA.", "    READ SF.",
-            "    EXIT PROGRAM.", "END PROGRAM CHILD.", "END PROGRAM PARENT.",
-        ];
-        AssertAccepted(Check(85, source));
-    }
+    // §1985:X.5.5.4 GR1: a contained program's statement selects its own declaratives (a), then "The declarative in which
+    // the GLOBAL phrase is specified and which is within the program directly containing the program which was last
+    // examined" (b), outward (c). So a containing program's USE GLOBAL is applicable and its USE without GLOBAL is not.
+    private static string[] ContainerWithUse(string useVerbPhrase, string useOn) =>
+    [
+        "IDENTIFICATION DIVISION.", "PROGRAM-ID. PARENT.", "ENVIRONMENT DIVISION.", "INPUT-OUTPUT SECTION.", "FILE-CONTROL.",
+        "    SELECT SF ASSIGN TO \"SF.DAT\" ORGANIZATION IS SEQUENTIAL.",
+        "DATA DIVISION.", "FILE SECTION.", "FD  SF GLOBAL.", "01  SREC PIC X(4).",
+        "PROCEDURE DIVISION.", "DECLARATIVES.", "U1 SECTION.", $"    {useVerbPhrase} STANDARD EXCEPTION PROCEDURE ON {useOn}.",
+        "U1-P.", "    EXIT.", "END DECLARATIVES.", "MAIN-SECT SECTION.", "MAIN-PARA.", "    OPEN INPUT SF.", "    CALL \"CHILD\".",
+        "    CLOSE SF.", "    STOP RUN.",
+        "IDENTIFICATION DIVISION.", "PROGRAM-ID. CHILD.", "PROCEDURE DIVISION.", "CHILD-PARA.", "    READ SF.",
+        "    EXIT PROGRAM.", "END PROGRAM CHILD.", "END PROGRAM PARENT.",
+    ];
+
+    [Theory]
+    [InlineData("SF")]
+    [InlineData("INPUT")]
+    public void ContainingProgramsGlobalUseDeclarative_CoversAContainedProgramsStatement(string useOn)
+        => AssertAccepted(Check(85, ContainerWithUse("USE GLOBAL AFTER", useOn)));
+
+    [Theory]
+    [InlineData("SF")]
+    [InlineData("INPUT")]
+    public void ContainingProgramsUseDeclarativeWithoutGlobal_CoversNoContainedProgramsStatement(string useOn)
+        => AssertRefused(Check(85, ContainerWithUse("USE AFTER", useOn)), "COBOL6826");
 
     [Fact]
     public void ContainedProgramsStatementWithNoUseAnywhere_IsRefused()
