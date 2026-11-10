@@ -1050,6 +1050,7 @@ class Carry:
     green: Path | None = None
     green_record: dict | None = None
     inert_paths: list[str] = field(default_factory=list)
+    red_hosts: set[str] = field(default_factory=set)   # assemblies whose host was RED in a run whose passes are carried
 
 
 def measuring_runs(run: Path) -> list[Path]:
@@ -1238,6 +1239,7 @@ class Gate:
         if not out.tree or not out.toolchain:
             return None
         runs: list[str] = []
+        red_hosts: set[str] = set()
         passed = {asm: Counter() for asm in GATED_ASSEMBLIES}
         for p in reversed(run_dirs(self.run_root)):
             rec = read_record(p) if p != current else None
@@ -1265,7 +1267,8 @@ class Gate:
                 runs.append(p.name)
                 for asm, names in found.items():
                     passed[asm] |= names
-        return Carry(runs, passed) if runs else None
+                red_hosts |= {r["asm"] for r in rec.get("runs") or [] if isinstance(r, dict) and r.get("red") and r.get("asm") in found}
+        return Carry(runs, passed, red_hosts=red_hosts) if runs else None
 
     def _beside(self, out: Outcome, name: str, work: Callable[[], tuple[list[str], list[str]]]) -> None:
         """Start `work` BESIDE the gate's critical path (kb/Work PB2880): a step that needs nothing the critical path
@@ -1322,9 +1325,11 @@ class Gate:
                 return p
         return None
 
-    def _prune(self, current: Path) -> None:
+    def _prune(self, current: Path, keep: tuple[str, ...] | list[str] = ()) -> None:
+        """Delete the oldest runs past KEEP_RUNS, never `current` and never a run the verdict composes with (`keep`, the
+        record's `composed_from`: DESIGN-test-build-ci §3.14.12 item 5, the record names runs a reader must find)."""
         for p in run_dirs(self.run_root)[:-KEEP_RUNS]:
-            if p != current:
+            if p != current and p.name not in keep:
                 shutil.rmtree(p, ignore_errors=True)
 
     def _gate(self, out: Outcome, label: str, started: float, run: Path) -> Outcome:
@@ -1468,6 +1473,13 @@ class Gate:
         (ONLY_CASES); an assembly with none left has no file and no host. Returns the files by assembly, and records the
         runs this gate composes with and how many cases it carries; None when the carried passes cover no listed case."""
         lefts = {asm: not_passed(listings[asm], carry.passed[asm]) for asm in GATED_ASSEMBLIES}
+        for asm in carry.red_hosts:
+            if not lefts[asm]:
+                # ⛔ A HOST THAT WENT RED WITH EVERY CASE PASSED (a class or collection cleanup failure, a crash after the
+                # last result, a report with no verdict line) left no case to retry, and "nothing left" would compose its
+                # RED into a GREEN: the host runs the whole assembly again, so a deterministic host failure stays RED.
+                carry.passed[asm] = Counter()
+                lefts[asm] = {n: c for n, c in listings[asm].items()}
         to_run = {asm: sum(left.values()) for asm, left in lefts.items()}
         carried = {asm: sum(listings[asm].values()) - to_run[asm] for asm in GATED_ASSEMBLIES}
         if not any(carried.values()):
@@ -1532,7 +1544,7 @@ class Gate:
         self._check_populations(out, listings, run, carry if only is not None else None)
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
         out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`reusable`)
-        self._prune(run)
+        self._prune(run, out.composed_from)
         return self._verdict(out, run)
 
     def _pool_listings(self, spawn: Spawn) -> dict[str, concurrent.futures.Future]:
@@ -1847,7 +1859,7 @@ class FakeHost(Host):
         log.append(f"{'Failed!' if red else 'Passed!'}  - Failed:     {failed}, Passed:     {passed}, Skipped:     0, "
                    f"Total:     {len(cases)}, Duration: 1 s - WiseOwl.Cobol.Tests.{asm}.dll (net10.0)")
         (run / f"{asm}.log").write_text("\n".join(log) + "\n", encoding="utf-8", newline="\n")
-        return 1 if red else 0
+        return 1 if red or (asm == "Conformance" and "cleanup-red" in self.plant) else 0   # cleanup-red: all Passed, exit 1
 
 
 def self_test() -> int:
@@ -2502,6 +2514,25 @@ def self_test() -> int:
             and fix_rec["carried"]["Unit"] == 4 and hf.growth == [] and [p.name for p in measuring_runs(run_dirs(d / "runs")[-1])]
             == [run_dirs(d / "runs")[-1].name, run_dirs(d / "runs")[1].name, run_dirs(d / "runs")[0].name],
             str(fix_rec["composed_from"]))
+        d = root / "compose-cleanup"
+        d.mkdir()
+        cl1, _ = regate(d, plant={"cleanup-red"})
+        cl2, hcl = regate(d, plant={"cleanup-red"})
+        arm("a host that went RED with every case Passed (a cleanup failure) leaves no case to retry, so the retry runs the "
+            "whole assembly again and a deterministic host failure stays RED (review R1-1)",
+            cl1.verdict == "RED" and cl2.verdict == "RED" and sorted(hcl.envs) == ["Conformance"]
+            and len((run_dirs(d / "runs")[-1] / "only-Conformance.txt").read_text(encoding="utf-8").splitlines()) == 6
+            and cl2.populations["Conformance"].carried == 0 and "Conformance RED" in cl2.line, cl2.line)
+        d = root / "compose-prune"
+        d.mkdir()
+        regate(d, plant={"red"})
+        for i in range(4):   # four runs that measured nothing (killed, refused) between the RED run and its retry
+            (d / "runs" / f"2026012{i}T000000Z-00000{i + 2}").mkdir()
+        fixed, _ = regate(d)
+        names = [p.name for p in run_dirs(d / "runs")]
+        arm("the retry's prune never deletes a run its verdict composes with (review R1-2)",
+            fixed.verdict == "GREEN" and bool(fixed.composed_from) and all(n in names for n in fixed.composed_from)
+            and len(measuring_runs(run_dirs(d / "runs")[-1])) == 1 + len(fixed.composed_from), f"{fixed.composed_from} {names}")
         d = root / "compose-code"
         d.mkdir()
         regate(d, plant={"red"})

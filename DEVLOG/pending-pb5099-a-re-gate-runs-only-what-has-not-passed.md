@@ -31,3 +31,7 @@ test_population.py 42 arms (3 new), land_lane.py (a composed record read through
 
 **Not changed.** The slot wait before a retry (1,448 s in the note) belongs to the gate cap. The old arm that expected another base
 to force a re-run of the same tree now expects COMPOSED: a base only decides the lane, and a landing's merged main is another tree.
+
+## Review round 1
+
+R1-1 (blocking, fixed): a host that went RED with every trx case Passed (cleanup failure, crash after the last result) left no case to retry, and the composition turned its RED into GREEN. `Gate.carry` now records `red_hosts` and `_retry` runs such an assembly whole again when the carried passes leave nothing, carrying none of its passes. R1-2 (lead, fixed in the same file): `_prune` never deletes a run the verdict composes with (`composed_from`). Two new gate self-test arms (90 total).
