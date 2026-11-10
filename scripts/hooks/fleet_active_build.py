@@ -650,11 +650,50 @@ def live_agent_transcripts(session_id: str) -> list:
 
 
 def is_live(path: pathlib.Path, now: float) -> bool:
-    """Written within WINDOW_SECONDS, or ending on an unanswered tool call written within TOOL_WINDOW_SECONDS."""
+    """Not finished (kb/Work PB5204), and written within WINDOW_SECONDS or ending on an unanswered tool call written
+    within TOOL_WINDOW_SECONDS. The windows are for an agent whose state the transcript cannot state; a transcript that
+    records its agent's end is read, never timed."""
+    if finished(path):
+        return False
     age = now - path.stat().st_mtime
     if age <= WINDOW_SECONDS:
         return True
     return age <= TOOL_WINDOW_SECONDS and pending_tool_call(path)
+
+
+def finished(path: pathlib.Path) -> bool:
+    """Does the transcript END on its agent's last record (kb/Work PB5204)? Two records say an agent has stopped: an
+    assistant message whose `stop_reason` is `end_turn` (an Agent-tool subagent's final answer) and a tool result
+    marked `toolEndsTurn` (a workflow agent's StructuredOutput return). Measured 2026-11-10: every one of wave
+    refute-85's ten finished workflow agents ended on the second, and the session's finished subagents on the first,
+    yet the 120 s write window held a build for a refuter whose workflow had already returned. An assistant record
+    without a `stop_reason` is one block of a message still being written, so it does not count. Any parse problem
+    => False, which leaves the windows in force: this removes liveness only where the transcript states the end.
+    A finished background subagent that is resumed (SendMessage) appends records after the end, so it is live again."""
+    try:
+        with path.open("rb") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            f.seek(max(0, size - TAIL_BYTES))
+            tail = f.read().decode("utf-8", errors="replace")
+    except OSError:
+        return False
+    for line in reversed(tail.splitlines()):
+        try:
+            rec = json.loads(line)
+        except ValueError:
+            continue
+        if rec.get("type") not in ("assistant", "user"):
+            continue
+        message = rec.get("message") or {}
+        content = message.get("content")
+        kinds = {c.get("type") for c in content if isinstance(c, dict)} if isinstance(content, list) else set()
+        if rec.get("type") == "assistant":
+            return message.get("stop_reason") == "end_turn" and "tool_use" not in kinds
+        if "tool_result" in kinds:
+            return rec.get("toolEndsTurn") is True
+        return False
+    return False
 
 
 def pending_tool_call(path: pathlib.Path) -> bool:
@@ -1073,6 +1112,10 @@ def self_test() -> int:
         tool_use = {"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "t1", "name": "Bash"}]}}
         tool_res = {"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "t1"}]}}
         ended = {"type": "assistant", "message": {"content": [{"type": "text", "text": "done"}]}}
+        final = {"type": "assistant", "message": {"stop_reason": "end_turn", "content": [{"type": "text", "text": "x"}]}}
+        returned = {"type": "user", "toolEndsTurn": True, "message": {"content": [{"type": "tool_result",
+                                                                                   "tool_use_id": "t1"}]}}
+        note = {"type": "attachment", "attachment": {}}
         now = time.time()
 
         def transcript(name: str, records: list, age: float) -> pathlib.Path:
@@ -1090,6 +1133,13 @@ def self_test() -> int:
             # A KILLED agent also leaves a dangling tool call: bounded, so it cannot deny forever.
             ("dangling tool call older than any tool can run -> not live", [tool_res, tool_use], 900, False),
             ("unparseable tail, quiet 5 min -> not live (old rule stands)", [], 300, False),
+            # PB5204: a transcript that states its agent's end is read, not timed.
+            ("final answer (end_turn) written 5 s ago -> not live", [tool_use, tool_res, final], 5, False),
+            ("workflow return (toolEndsTurn) written 5 s ago -> not live", [tool_use, returned, note], 5, False),
+            ("text block with no stop_reason, 5 s ago -> LIVE (message still being written)",
+             [tool_use, tool_res, ended], 5, True),
+            ("ordinary tool result 5 s ago -> LIVE", [tool_use, tool_res], 5, True),
+            ("finished, then resumed: a new tool call 5 s ago -> LIVE", [final, tool_use], 5, True),
         ]:
             p = transcript(name.split()[0] + str(age), records, age)
             if not records:
