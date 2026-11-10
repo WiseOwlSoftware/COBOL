@@ -76,11 +76,12 @@ re-gate after a test-only fix skip recompilation.
 split into four fresh ~198-turn landers model at **140 M — 53 % less**. (What a lander may batch is *clusters
 inside one landing* — §3.)
 
-**The budget: 1 lander + ≤6 implementers + one 4-wide read-only chunk (≈11 agents).** ⭐ The implementer cap was
+**The budget: ≤`wave.concurrency` implementers (model_rules.json: 3, the gate-slot cap, since 2026-11-10, kb/Work
+PB5100's interim; PB5100 derives it from the free gate slots) + one 4-wide read-only chunk.** History: the implementer cap was
 **raised from 3 to 6 by owner decision on 2026-09-05** (`kb/Work/PB468` Q4), on the measurement that the 3-slot lane ran
 at ~100 % utilization all morning while the lander sat idle half the time (≈48 min per implementer, ≈33 min per
 four-cluster landing); six implementers saturate one lander with five- or six-cluster trains, which is the band above.
-⛔ **Fill the six slots ONE GROUP PER SUBSYSTEM** (a group per the paragraph above; formerly one item) (the top of `work.py next` for each of binding, codegen, frontend/grammar,
+⛔ **Fill the slots ONE GROUP PER SUBSYSTEM** (a group per the paragraph above; formerly one item) (the top of `work.py next` for each of binding, codegen, frontend/grammar,
 runtime, io …), never six items down the rank list: twelve consecutive file-I/O clusters on 2026-09-05 forced serial
 branches, a six-conflict mid-flight merge (~70 turns) and measured-overlap manifests for every train. It is an
 error-containment cap, and ⓜ it is TOKENS, not slots, that the weekly limit rations — so the budget is a default,

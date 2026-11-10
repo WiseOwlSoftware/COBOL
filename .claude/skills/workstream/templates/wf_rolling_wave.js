@@ -25,7 +25,8 @@ const W = args.wave
 // plan_wave.py writes both; a hand-written args file must too.
 if (!args.stop_file || !args.global_stop) throw new Error('pass args.stop_file (this fleet\'s STOP-<scope>) and args.global_stop (plan_wave.py writes both)')
 const STOP_LINE = `check for ${args.global_stop} (the owner's global stop) and ${args.stop_file} (this fleet's own stop); if EITHER exists, `
-const CONC = args.concurrency || 6
+if (!Number.isInteger(args.concurrency) || args.concurrency < 1) throw new Error('pass args.concurrency (plan_wave.py writes model_rules.json wave.concurrency)')
+const CONC = args.concurrency
 // kb/Work/PB1704: a model call can HANG. Wave 70's group C agent finished and gated its work, then never produced
 // another token; nothing noticed for 90 minutes and the wave waited on it (a workflow cannot stop one of its
 // own agents). An implementer not back after `implementer_ceiling_min` (default 240) is recorded STALLED and the
