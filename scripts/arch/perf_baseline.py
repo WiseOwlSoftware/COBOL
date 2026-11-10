@@ -532,6 +532,9 @@ def gate_rows(run_dirs: list[str]) -> tuple[dict, list[dict]]:
             raise MeasurementError(f"{path} is {v.get('verdict')}: only a GREEN gate ran the whole population")
         if v.get("reused_from"):  # kb/Work PB3536: a re-gate of an unchanged tree answers from a record, running nothing
             raise MeasurementError(f"{path} REUSED the verdict of run {v['reused_from']} and ran nothing: pass that run")
+        if v.get("composed_from"):  # kb/Work PB5099: a retry ran only the cases an earlier run had not passed
+            raise MeasurementError(f"{path} COMPOSED its verdict with run(s) {', '.join(v['composed_from'])} and ran only "
+                                   "part of the population: pass a run that ran all of it")
         if v.get("lane") != "full":  # kb/Work PB2878: the inert lane runs the audits and no test
             raise MeasurementError(f"{path} is a gate of the {v.get('lane')} lane: only the full lane ran the population")
         t = v["timings"]
@@ -869,6 +872,8 @@ def self_test() -> int:
         # a re-gate of an unchanged tree answers from a recorded verdict, running nothing (kb/Work PB3536)
         refuses("refuses a gate run that REUSED another run's verdict (it ran nothing)",
                 {"reused_from": "000001-20261022T000000Z"}, "REUSED")
+        refuses("refuses a gate run that COMPOSED its verdict with an earlier run's passes (it ran part of the "
+                "population, kb/Work PB5099)", {"composed_from": ["000001-20261022T000000Z"]}, "COMPOSED")
         refuses("refuses a gate of the inert lane (it ran the audits and no test)", {"lane": "inert"}, "inert lane")
         refuses("refuses a record of another schema (its timings measured another gate)",
                 {"schema": gate.RECORD_SCHEMA - 1}, "schema")
