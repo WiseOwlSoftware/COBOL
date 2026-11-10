@@ -559,7 +559,29 @@ public sealed class IndexedConnector : KeyedConnector
         _lastReadPrime = found.Prime;
         NoteRecordRead(found.Record.Image, found.Record.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(found.Record.Image);
+        // §1985:IX.1.3.4 item (1) b) — '02' for ANY READ whose key of reference equals the same key in the next record, so a random
+        // READ of an alternate key's duplicate set answers it at COBOL-85; from 2002 only the sequential READ does
+        // (§2023:14.9.30.4 GR27 — DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, VERSION_CHANGE_REFERENCE row 7.54).
+        if (keyIndex >= 0 && !DialectBehaviors.IsActive(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, Edition)
+            && NextRecordDuplicatesKey(keyIndex, found, out bool duplicateFollows) == StoreStatus.Ok && duplicateFollows)
+            return ReadSucceeded(FileStatusCode.DuplicateAlternateKey);
         return ReadSucceeded(FileStatusCode.Success);
+    }
+
+    /// <summary>Whether the record after <paramref name="found"/> in alternate key <paramref name="keyIndex"/>'s order (key
+    /// part, then release ordinal — §2023:14.9.30.4 GR26) has an equal key part: a seek strictly past the entry, selection
+    /// only. Serves the COBOL-85 random READ's '02' (§1985:IX.1.3.4 item (1) b)); the sequential READ reads the same fact
+    /// through <see cref="SelectSequentialRecord"/>'s look-ahead from its own cursor.</summary>
+    private StoreStatus NextRecordDuplicatesKey(int keyIndex, Found found, out bool duplicateFollows)
+    {
+        duplicateFollows = false;
+        var status = _st.Seek(keyIndex, _orders, CompositeKeyOrder.Compose(found.KeyPart, found.Ordinal),
+            SeekRelation.GreaterThan, prefix: false, out var cursor);
+        if (status != StoreStatus.Ok || cursor is null) return status;
+        var order = OrderOf(keyIndex);
+        status = Resolve(cursor, keyIndex, forward: true, part => order.Compare(part, found.KeyPart) == 0, out var adjacent);
+        duplicateFollows = adjacent is not null;
+        return status;
     }
 
     // ── WRITE / REWRITE / DELETE (ISO §2023:14.9.51 / §2023:14.9.35 / §2023:14.9.10) ───────────────────────────────────────

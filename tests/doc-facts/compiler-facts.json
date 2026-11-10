@@ -54,6 +54,10 @@
     {
       "id": "perform-varying-after-init-inner-first",
       "vcrRow": "7.53"
+    },
+    {
+      "id": "indexed-duplicate-key-status-sequential-only",
+      "vcrRow": "7.54"
     }
   ],
   "nonstandardExtensionIds": [

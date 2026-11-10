@@ -83,6 +83,14 @@ public enum DialectBehavior
     /// 2002 text being worded as 2023 is. The consumer is <c>ControlFlowBinder.BindVarying</c>, which sets
     /// <c>PerformVarying.AugmentOuterFirst</c> for the emitter.</summary>
     PerformVaryingInitInnerBeforeAugmentOuter = 3,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.30.4 GR27 a) — '02' is set only when "an indexed file is being sequentially
+    /// accessed" and the key of reference's next record has the same key; the 2002 text words it the same (a READ with the
+    /// NEXT or PREVIOUS phrase). §1985:IX.1.3.4 item (1) b) names no access mode: "For a READ statement, the key value for
+    /// the current key of reference is equal to the value of the same key in the next record within the current key of
+    /// reference", so at <c>--std 85</c> a random READ (format 2, a KEY phrase) of an alternate key that has duplicates
+    /// also answers '02' (kb/Work PB5117). The consumer is <c>IndexedConnector.ReadRandom</c>.</summary>
+    IndexedDuplicateKeyStatusSequentialOnly = 4,
 }
 
 /// <summary>
@@ -126,6 +134,10 @@ public static class DialectBehaviors
             "7.53", "14.9.28.4 GR13 e) 2", "§1985:VI.6.21.4 GR10 d) 1",
             "a TEST BEFORE PERFORM VARYING ... AFTER step sets the inner variable to its initialization value before "
             + "augmenting the outer one only from COBOL-2002; COBOL-85 augments the outer variable first"),
+        new(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, "indexed-duplicate-key-status-sequential-only", 2002,
+            "7.54", "14.9.30.4 GR27", "§1985:IX.1.3.4 item (1) b)",
+            "I-O status 02 for a READ whose key of reference equals the next record's key is set only by a sequential "
+            + "READ from COBOL-2002; COBOL-85 also sets it for a random READ of an alternate key's duplicate set"),
     ];
 
     static DialectBehaviors()
