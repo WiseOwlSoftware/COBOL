@@ -60,7 +60,7 @@ from spec_pdf import BOX_SIDE  # noqa: E402  (THE side of a level-2 box, kb/Work
 # THE shapes of an editorial note (a correction, R66; a reconstruction's opening and closing, kb/Work PB4952): never rule
 # text. A reconstruction's own text IS read, its rows marked provisional (`reconstructed`).
 from cite import EDITORIAL_NOTE, RECONSTRUCTED, RECONSTRUCTED_END, reconstructed  # noqa: E402
-from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  (THE spelling of a general-format heading, kb/Work PB284)
+from spec_headings import GENERAL_FORMAT_NOUN, GENERAL_FORMAT_TITLE  # noqa: E402  (THE spelling of a general-format heading, kb/Work PB284)
 # THE singular form of a block title, THE kind table, any Markdown heading, and a printed band inside a rule list
 # ("FORMAT 2", "SEQUENTIAL FILES"): the 2023 arm's, one definition each.
 from extract_rule_catalog import ANY_HEADING, GROUP_LABEL, KINDS, canonical_title  # noqa: E402
@@ -155,7 +155,8 @@ CHANGE_RULE = re.compile(r"\b(?:(?P<kind>syntax|general|arguments?|returned valu
 #: A change to a GENERAL FORMAT, read from a directive with its quoted text dropped: "replace the general format", "delete
 #: the box around the general format", "general format of the IF statement, delete ...", "in format 3" — never "the first
 #: paragraph after the general format beginning with ...", which changes the prose below the format.
-CHANGE_FORMAT = re.compile(r"(?<!after )\bthe general format\b|\bgeneral format of\b|\bin format \d+\b", re.IGNORECASE)
+CHANGE_FORMAT = re.compile(rf"(?<!after )\bthe {GENERAL_FORMAT_NOUN}\b|\b{GENERAL_FORMAT_NOUN} of\b|\bin format \d+\b",
+                           re.IGNORECASE)
 #: A change that ADDS a rule: "add the following as the new general rule 4", "add new syntax rule 4 as follows" (X3.23a-1989
 #: X-27, XIV-26), "as new syntax rule 5", "as a new general rule 12" (never "as a new last paragraph for general rule 7", which amends rule 7).
 CHANGE_ADDS = re.compile(r"\b(?:as (?:the |a )?|add )new (?P<kind>syntax|general|arguments?|returned values?) rule (?P<n>\d+)",
