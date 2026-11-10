@@ -810,8 +810,10 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
 - ⛔ **Sound by construction: every discovered test case runs exactly once.** One host per assembly runs all of it; the
   gate CHECKS it on every run by name (§3.14.4) and a drift test proves the check fires.
 - ⛔ **Nothing narrows a gate's host.** The one variable a test host's framework reads from the gate,
-  `WISEOWL_COBOL_GATE_FIRST`, only ORDERS (§3.14.2); CI's shard variable `WISEOWL_COBOL_SHARD` divides a merge-group run
-  whose union `ci-gate` checks (§1.4); every other caller scrubs both and the MSBuild VSTest channels, and every
+  `WISEOWL_COBOL_GATE_FIRST`, only ORDERS (§3.14.2); the other, `WISEOWL_COBOL_GATE_ONLY`, names the cases a RE-GATE of
+  a code state an earlier run measured still has to run, and the population check composes the passes that run carried
+  (§3.14.12 item 5); CI's shard variable `WISEOWL_COBOL_SHARD` divides a merge-group run
+  whose union `ci-gate` checks (§1.4); every other caller scrubs all three and the MSBuild VSTest channels, and every
   whole-assembly run — the battery and CI as well as the gate — asserts its population with one tool (§3.14.4).
 - **GREEN only when every host is green and every population is exact.** A gate is done only on `GREEN`.
 - **The verdict line counts the whole population, by discovered case:** `=== BUILD-LOCAL GATE: GREEN — Conformance
@@ -825,7 +827,8 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
 - **A gate outlives its caller, and a measured tree is gated once** (kb/Work PB3536; §3.14.12): it runs DETACHED in its
   run directory and its verdict file is the one thing any reader waits on, and a re-gate of an unchanged tree answers
   from the recorded GREEN, saying `REUSED` (never from a record of schema below 5, which a gate before PB4328 wrote and
-  which may be a `LEG 1 ONLY` one).
+  which may be a `LEG 1 ONLY` one); a re-gate of a code state that was gated before runs only what that run did not
+  pass (`COMPOSED`, kb/Work PB5099; §3.14.12 item 5).
 
 #### 3.14.2 The order: the classes red last time first, then longest first (kb/Work PB4328)
 
@@ -1291,6 +1294,40 @@ since, so nothing ran (run <this run>); that gate: … ===`. It is the self-test
 keyed on what was measured rather than on a branch or a head; a RED is never reused. A reused record carries its own seconds
 (`timings.wall_s`), so `landing_measure.py` counts what each gate cost.
 
+**5. Composition: a re-gate runs only what has not passed (kb/Work PB5099, owner 2026-11-09: "If only one test failed, any
+retry should test only that one case").** THE RULE (CLAUDE.md "Testing", 2026-10-31) asks that every case the merge group runs
+on Windows already ran green AT THE PUSHED HEAD on this host under the same `toolchain.env`, never that it ran green in ONE
+run. Wave 20261972's gate of tree fc15c9ace5 went RED on one harness non-observation among 63,000 cases and the re-gate of
+the same tree spent 58 more minutes running the 63,000 again. `Gate.carry` is the composition rule: an EARLIER RUN of this
+worktree counts when it is a full-lane run (schema 5 on) that measured its own tree and did not see it change while it ran
+(`tree` equals `tree_end`; an audit-stopped run has no `tree_end` and counts for nothing), ran under THIS toolchain (`toolchain`
+equals), is not itself a REUSED record, and its tree IS this tree or differs from it only in paths `inert_lane.py classify`
+calls inert (`Host.code_state_diff`: the one place that asks, `[]` for the same tree, None for any path a test or the build may
+read). A tree that changed in one such path runs everything, as before: there is no composition across two code states.
+Then, by the newest qualifying run's verdict:
+  * a GREEN one measured the whole population: nothing is left to run. The gate runs only its audits (they read the tree, and
+    an inert commit is exactly what they audit), takes no corpus fetch, slot, build or host, and says `GREEN — COMPOSED (kb/Work
+    PB5099): run <it> measured this code state GREEN (its tree … <is it | differs from it in n path(s), all inert …>), so its
+    populations stand`. Its record keeps `lane: full` and names the run(s) in `composed_from`, flattened (the GREEN run and the
+    runs it composed with). The same tree again is then REUSED from this record (item 4); a base other than the earlier run's no
+    longer forces a re-run, because a base only decides the lane.
+  * otherwise every earlier qualifying run's PASSES (`test_population.passed_cases`: a definition with a Passed result and no
+    Failed one; a failed case, a harness non-observation and a skip are not passes) are carried. The gate still takes the slot
+    and builds, lists the population first (about 2 s per assembly), writes for each assembly the listed names the carried
+    passes do not cover to `<run>/only-<assembly>.txt` and hands the path to that assembly's host as `WISEOWL_COBOL_GATE_ONLY`
+    (`host_env`, the one place a host's environment is made); an assembly with nothing left has no host. The test framework's
+    `GateOnly` (tests/_shared/GateLegs.cs, beside `GateShard`) runs exactly the discovered cases whose display names the file
+    holds, and refuses the run (every case an execution error) when the file is unreadable or names none. Discovery never sees
+    it, so `--list-tests` is still the whole population.
+The population check composes the same way: `test_population.check(..., carried=)` counts a carried pass as ran only when this
+run did not repeat that name and the listing printed it, so a case neither carried nor run is still a named NEVER RAN, a
+retried case is judged by the retry alone, and the verdict line says `N carried from run(s) …`. The record writes
+`composed_from` and `carried`; a composed gate writes no growth sample (§3.14.13) and `perf_baseline` refuses it (it ran part of
+the population). `gate.measuring_runs` is the ONE resolution of the run directories that hold a verdict's evidence (the run
+that measured it, or the one a REUSED record names, and `composed_from`); the landing lane's classification of a merge-queue
+red reads the branch's trx through it. The earlier runs' trx stay as long as `KEEP_RUNS` keeps the runs: a pruned source costs
+a larger retry, never a wrong verdict.
+
 #### 3.14.13 The growth trigger, and the program differential it would build (kb/Work PB4333, step 10 of PB4323)
 
 The whole-population gate grows with the suite (Conformance: 10,503 cases on 2026-10-05, 20,406 on 2026-10-31), the owner's
@@ -1300,7 +1337,7 @@ its 20,406 cases (30,609).**
 
 **The mechanism** (`scripts/gate_growth.py`). A gate's `verdict.json` goes with its worktree when the branch lands, so a
 week of them is never on disk at once. `Gate._record_growth` therefore writes one small file per GREEN code-lane gate that
-ran its hosts (a RED, a REUSED verdict and the inert lane are no sample) under `<git common dir>/cobol-gate-growth/`: the
+ran its hosts (a RED, a REUSED or COMPOSED verdict and the inert lane are no sample) under `<git common dir>/cobol-gate-growth/`: the
 run's UTC start, `tests_s` and the Conformance cases discovered. `gate_growth.py status` reads the trailing 7 days and
 prints one line, which `session-probe.ps1` shows every session: **WITHIN**; **FIRED** (the population arm needs no window;
 the time arm needs a complete one); **PARTIAL** (the samples span under 7 days or number under 10: the median is shown, never

@@ -59,6 +59,11 @@ It is GREEN only when every host is green and every population is exact.
     while it ran answers from that record WITHOUT running anything, and says so in its verdict line (`… GREEN — REUSED:
     …`, naming the run that measured it) — the self-test reuse rule (kb/Work PB2914, PB3022) extended to the gate. A RED
     is never reused.
+  * COMPOSED (kb/Work PB5099; `Gate.carry`; DESIGN-test-build-ci.md §3.14.12 item 5): a re-gate of a CODE STATE an earlier
+    run of this worktree measured (the same tree, or one differing only in inert paths, under the same toolchain) runs
+    only what that run did not pass. A GREEN earlier run answers with the audits alone (`GREEN — COMPOSED …`); a RED one
+    leaves its failed, non-observed and unrun cases to the hosts (WISEOWL_COBOL_GATE_ONLY) and the population check
+    composes the rest (`test_population.check`'s `carried`). A tree that changed in any path a test may read runs all.
 
 Exit codes: 0 GREEN (reused or run) · 1 RED (or the build failed) · 2 NOT RUN [<cause>] (the population could not be
 listed, the driver failed, the gate's process DIED with no verdict (`--await`, or the follower): BRANCH, the tree's own
@@ -101,8 +106,8 @@ sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module o
 from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, so never part of a measured tree
 import queue_facts  # noqa: E402  — THE one reader of GitHub's facts: a merge-queue bounce's reds (kb/Work PB3644)
 from test_population import (GATED_ASSEMBLIES, LINUX_GATE_RESULTS, Population, PopulationError,  # noqa: E402
-                             UnreadableTrx, check as check_population, list_population, red_classes, scrubbed_env,
-                             synthetic_listing, synthetic_trx)
+                             UnreadableTrx, check as check_population, list_population, not_passed, passed_cases,
+                             red_classes, scrubbed_env, synthetic_listing, synthetic_trx)
 from standard_streams import ensure_utf8  # noqa: E402
 
 VERDICT = "=== BUILD-LOCAL GATE: "
@@ -111,6 +116,12 @@ VERDICT = "=== BUILD-LOCAL GATE: "
 #: never selects: a class it names that the assembly lacks is ignored, every other class still runs, and the population
 #: check proves both. Its prefix is a scrubbed one (test_population.is_scrubbed), so only this gate hands it to a host.
 FIRST_CLASSES = "WISEOWL_COBOL_GATE_FIRST"
+#: ⛔ THE ONE RETRY CHANNEL TO A TEST HOST (kb/Work PB5099): the path of a file of test display names, one per line, that
+#: the host runs INSTEAD of its whole population (tests/_shared/GateLegs.cs `GateOnly`, the same name). Only a re-gate of a
+#: tree an earlier run of this worktree already measured sets it (`Gate.carry`), for the cases that run did not pass; the
+#: population check then composes the passes it carried (test_population.py `check`'s `carried`), so a case neither
+#: carried nor run is still a named NEVER RAN. Its prefix is a scrubbed one, so only this gate hands it to a host.
+ONLY_CASES = "WISEOWL_COBOL_GATE_ONLY"
 #: Where a merge-queue BOUNCE's test results land (kb/Work PB3644): `queue_facts.fetch_bounce_results`, the one GitHub
 #: reader, downloads the failed merge-group run's trx files of this branch's pull request here, one subdirectory per
 #: artifact, and their red classes go first like the previous run's. No tool WRITES a trx file here, so it is no row.
@@ -521,6 +532,19 @@ class Host:
             return inert_lane.Lane("full", f"the change could not be listed ({e}): the full lane", tooling=True,
                                    reads_tooling=True)
 
+    def code_state_diff(self, earlier: str, now: str) -> list[str] | None:
+        """WHETHER TWO MEASURED TREES ARE ONE CODE STATE (kb/Work PB5099): the paths that differ between them when every
+        one is INERT (scripts/inert_lane.py: no compiler test and no build reads it), `[]` for the same tree, None when
+        any differing path may be read or git cannot say. The passes of a run at `earlier` stand for `now` exactly when
+        this is not None."""
+        if earlier == now:
+            return []
+        try:
+            paths = inert_lane.changed(self.repo, earlier, now)
+        except (subprocess.CalledProcessError, OSError):
+            return None
+        return paths if paths and inert_lane.CLASSIFICATION.classify(paths).inert else None
+
     def head(self) -> str | None:
         try:
             return self.git("rev-parse", "HEAD")
@@ -715,15 +739,18 @@ class Host:
                 self.hosts_live.discard(p)
 
 
-def host_env(first: Path | None, observations: Path) -> dict[str, str]:
+def host_env(first: Path | None, observations: Path, only: Path | None = None) -> dict[str, str]:
     """⛔ THE ONLY PLACE A TEST HOST'S ENVIRONMENT IS MADE (DESIGN-test-build-ci.md §3.14.3): the scrubbed environment — no stray
     WISEOWL_COBOL_GATE_*, WISEOWL_COBOL_SHARD, VSTest* or RunSettingsFilePath, so nothing can narrow the run — in English,
-    with the one ordering channel (FIRST_CLASSES) when this gate has classes to run first. The test harness's observation
+    with the one ordering channel (FIRST_CLASSES) when this gate has classes to run first, and the one retry channel
+    (ONLY_CASES) when this host runs only the cases an earlier run of the tree did not pass. The test harness's observation
     log (every retry and non-observation of a child process, tests/_shared/ProcessObservation.cs) goes to `observations`
     in the run directory, one per host, so a non-observation is read beside the host's own log instead of in one temp
     file every gate on the host appends to (kb/Work PB3108)."""
     order = {FIRST_CLASSES: str(first)} if first is not None else {}
-    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **order, "WISEOWL_COBOL_HARNESS_LOG": str(observations)}
+    retry = {ONLY_CASES: str(only)} if only is not None else {}
+    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **order, **retry,
+            "WISEOWL_COBOL_HARNESS_LOG": str(observations)}
 
 
 # ── a run directory: the gate's pid, its verdict record, and the one way to wait for it (kb/Work PB3536) ──────────
@@ -1006,6 +1033,35 @@ class Outcome:
     #: The toolchain the gate ran under (kb/Work PB4007): toolchain.env's versions of the tools it runs, which this
     #: host's tools reported before anything ran (`Host.toolchain`); None until then.
     toolchain: str | None = None
+    #: THE RUNS THIS GATE COMPOSES WITH (kb/Work PB5099; `Gate.carry`): earlier runs of this worktree at the same code
+    #: state whose passes this verdict counts; and, per assembly, how many cases it carried from them. Empty when the
+    #: gate measured the whole population itself.
+    composed_from: list[str] = field(default_factory=list)
+    carried: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass
+class Carry:
+    """WHAT EARLIER RUNS OF THE SAME CODE STATE LEFT TO COMPOSE WITH (kb/Work PB5099; `Gate.carry`): the runs they are,
+    newest first; the newest GREEN one (its whole population passed: nothing is left to run) with the inert paths that lie
+    between its tree and this one; and, otherwise, each assembly's passes."""
+    runs: list[str]
+    passed: dict[str, Counter]
+    green: Path | None = None
+    green_record: dict | None = None
+    inert_paths: list[str] = field(default_factory=list)
+
+
+def measuring_runs(run: Path) -> list[Path]:
+    """THE RUN DIRECTORIES WHOSE TRX FILES ARE THE EVIDENCE OF `run`'s VERDICT (kb/Work PB5099): the run that measured it
+    (itself, or the one a REUSED record names) and the runs its verdict composed with (`Outcome.composed_from`), those
+    that still exist. The ONE resolution a reader of a gate's test results (the landing lane's classification of a merge
+    queue red) goes through, so a composed GREEN is read by the runs that make it GREEN."""
+    rec = read_record(run) or {}
+    measured = run.parent / str(rec["reused_from"]) if rec.get("reused_from") else run
+    rec = read_record(measured) or {}
+    names = [measured.name, *(n for n in rec.get("composed_from") or [] if isinstance(n, str))]
+    return [p for p in (run.parent / n for n in dict.fromkeys(names)) if p.is_dir()]
 
 
 def run_order(name: str) -> tuple[int, str]:
@@ -1086,9 +1142,10 @@ class Gate:
     def _record_growth(self, out: Outcome, run: Path) -> None:
         """The growth trigger's sample (scripts/gate_growth.py, kb/Work PB4333): a GREEN gate that ran its test hosts
         (`tests_s` is set only then, so the inert lane has none) and measured them itself (a REUSED verdict ran
-        nothing). A sample that cannot be written is said and never changes the verdict: the trigger reads fewer gates."""
+        nothing, and a COMPOSED one ran only the part of the population its earlier runs had not passed, kb/Work PB5099). A sample that cannot be written is said and never changes the verdict: the trigger reads fewer gates."""
         conformance = out.populations.get("Conformance")
-        if out.verdict != "GREEN" or out.reused_from or "tests_s" not in out.timings or conformance is None:
+        if (out.verdict != "GREEN" or out.reused_from or out.composed_from or "tests_s" not in out.timings
+                or conformance is None):
             return
         try:
             self.host.record_growth(run, out.timings["tests_s"], conformance.discovered)
@@ -1165,6 +1222,50 @@ class Gate:
                             f"REUSED (kb/Work PB3536): tree {out.tree[:12]} at head {(out.head or '?')[:12]} was gated "
                             f"in run {out.reused_from} and has not changed since, so nothing ran (run {run.name}); "
                             f"that gate: {out.reused_detail}", 0)
+
+    def carry(self, current: Path, out: Outcome) -> Carry | None:
+        """THE GATE'S COMPOSITION RULE (kb/Work PB5099, owner 2026-11-09: "if only one test failed, any retry should test
+        only that one case"; the reuse rule's sibling): what the earlier runs of this worktree at THIS CODE STATE already
+        passed. THE RULE (CLAUDE.md "Testing", 2026-10-31) asks that every case ran green at the pushed head under the same
+        toolchain, never that it ran green in ONE run. An earlier run counts when it is a full-lane run that measured
+        its own tree (a RED one included, its trx are its results; a REUSED record ran nothing), its tree did not change
+        while it ran, it ran under THIS toolchain, and its tree IS this one or differs only in inert paths
+        (`Host.code_state_diff`: no test reads them). Then:
+          * the newest such run that is GREEN covers the whole population: nothing is left to run (`_composed`);
+          * else every assembly's passes are the union of its trx across them, and `_tested` runs only the cases not in it.
+        A tree that changed in any path a test or the build may read runs everything, as before. None when no run
+        qualifies, and for a tree that could not be measured."""
+        if not out.tree or not out.toolchain:
+            return None
+        runs: list[str] = []
+        passed = {asm: Counter() for asm in GATED_ASSEMBLIES}
+        for p in reversed(run_dirs(self.run_root)):
+            rec = read_record(p) if p != current else None
+            if (rec is None or rec.get("reused_from") or rec.get("lane") != "full" or record_schema(rec) < SCHEMA_WHOLE
+                    or not rec.get("tree") or rec.get("tree_end") != rec["tree"] or rec.get("toolchain") != out.toolchain):
+                continue
+            inert = self.host.code_state_diff(rec["tree"], out.tree)
+            if inert is None:
+                continue
+            if rec.get("exit_code") == 0:
+                if out.tooling and not rec.get("tooling"):
+                    continue   # the post-build self-tests (tooling only) ran in no host of that run, and no build runs here
+                # a GREEN run measured the whole population: nothing is left to run
+                return Carry([p.name, *(n for n in rec.get("composed_from") or [] if isinstance(n, str))], passed,
+                             green=p, green_record=rec, inert_paths=inert)
+            found = {}
+            try:
+                for asm in GATED_ASSEMBLIES:
+                    if (p / f"{asm}.trx").is_file():
+                        found[asm] = passed_cases([p / f"{asm}.trx"])
+            except UnreadableTrx as e:
+                self.say(f"build-local: ⚠ run {p.name}'s passes are not carried ({e})")
+                continue
+            if found:
+                runs.append(p.name)
+                for asm, names in found.items():
+                    passed[asm] |= names
+        return Carry(runs, passed) if runs else None
 
     def _beside(self, out: Outcome, name: str, work: Callable[[], tuple[list[str], list[str]]]) -> None:
         """Start `work` BESIDE the gate's critical path (kb/Work PB2880): a step that needs nothing the critical path
@@ -1271,6 +1372,14 @@ class Gate:
                 return self._audit_red(out, run, "the tooling lane runs the audits and the script self-tests, and one is "
                                        "RED: NO TEST RAN")
             return self._tooling(out, run, lane)
+        # ⭐ THE COMPOSITION RULE (kb/Work PB5099; `carry`): what earlier runs of this worktree at this code state already
+        # passed stands, so a GREEN one answers with the audits alone and a RED one leaves only its reds to run.
+        carry = self.carry(run, out)
+        if carry is not None and carry.green is not None:
+            self._join_beside(out)
+            if out.audit_reds:
+                return self._audit_red(out, run, "the audits are the only work this re-gate has, and one is RED: NO TEST RAN")
+            return self._composed(out, run, started, carry)
         out.reasons += self.host.fetch_corpus(_no_slot, self.say)
         if self._audits_known_red(out):
             return self._audit_red(out, run, "an audit was RED before the slot, the build and any test host: NO TEST RAN")
@@ -1284,7 +1393,7 @@ class Gate:
         out.gate_class = gate_class_from_env()
         out.slot = slot.describe()  # acquire() has printed `gate-slot: took slot k of N …`; the verdict line names it
         try:
-            return self._tested(out, run, slot, started)
+            return self._tested(out, run, slot, started, carry)
         finally:
             slot.release()
 
@@ -1336,8 +1445,47 @@ class Gate:
                             f"self-tests are GREEN, and no build or test host ran · toolchain {out.toolchain} "
                             f"(run {run.name})", 0)
 
-    def _tested(self, out: Outcome, run: Path, slot: Slot, started: float) -> Outcome:
-        """The build, the three whole populations, the checks: the part of the gate the slot rations."""
+    def _composed(self, out: Outcome, run: Path, started: float, carry: Carry) -> Outcome:
+        """A GREEN RUN AT THIS CODE STATE ANSWERS (kb/Work PB5099; `carry`): the audits, which read this tree, were joined
+        GREEN; the populations the earlier run measured stand, because this tree equals its tree or differs from it only in
+        paths no test reads. No corpus fetch, slot, build or test host runs, and the record names the runs it composes
+        with so a reader of the test results (`measuring_runs`) finds them. This gate's verdict says what it measured."""
+        assert carry.green is not None and carry.green_record is not None
+        rec = carry.green_record
+        out.tree_end, out.composed_from = self.host.measured_tree(), carry.runs
+        out.reused_detail = rec.get("reused_detail") or str(rec.get("line", "")).removeprefix(VERDICT).removesuffix(" ===")
+        out.timings["wall_s"] = round(time.monotonic() - started, 1)
+        how = (f"differs from it in {len(carry.inert_paths)} path(s), all inert (no compiler test or build reads them, "
+               f"e.g. {carry.inert_paths[0]})" if carry.inert_paths else "is it")
+        return self._finish(out, run, "GREEN", f"COMPOSED (kb/Work PB5099): run {carry.green.name} measured this code state "
+                            f"GREEN (its tree {str(rec['tree'])[:12]} {how}), so its populations stand; the audits are GREEN "
+                            f"and no corpus fetch, build or test host ran · toolchain {out.toolchain} (run {run.name}); "
+                            f"that gate: {out.reused_detail}", 0)
+
+    def _retry(self, out: Outcome, run: Path, listings: dict[str, Counter], carry: Carry) -> dict[str, Path] | None:
+        """THE RETRY OF A MEASURED CODE STATE (kb/Work PB5099): per assembly, the listed cases the carried passes
+        (`carry`) do not cover, written one name per line to `<run>/only-<assembly>.txt` for the host's retry hook
+        (ONLY_CASES); an assembly with none left has no file and no host. Returns the files by assembly, and records the
+        runs this gate composes with and how many cases it carries; None when the carried passes cover no listed case."""
+        lefts = {asm: not_passed(listings[asm], carry.passed[asm]) for asm in GATED_ASSEMBLIES}
+        to_run = {asm: sum(left.values()) for asm, left in lefts.items()}
+        carried = {asm: sum(listings[asm].values()) - to_run[asm] for asm in GATED_ASSEMBLIES}
+        if not any(carried.values()):
+            return None   # the earlier runs passed nothing this population lists: the whole population runs
+        out.carried, out.composed_from = carried, carry.runs
+        files: dict[str, Path] = {}
+        for asm, left in lefts.items():
+            if left:
+                files[asm] = run / f"only-{asm}.txt"
+                files[asm].write_text("".join(f"{n}\n" for n in left), encoding="utf-8", newline="\n")
+        self.say(f"build-local: this code state was gated before (runs {', '.join(carry.runs)}), so only what it did not "
+                 "pass runs: " + ", ".join(f"{a} {out.carried[a]:,} passed / {to_run[a]:,} to run" for a in GATED_ASSEMBLIES)
+                 + " (kb/Work PB5099)")
+        return files
+
+    def _tested(self, out: Outcome, run: Path, slot: Slot, started: float, carry: Carry | None = None) -> Outcome:
+        """The build, the three whole populations (less what `carry` already passed), the checks: the part of the gate
+        the slot rations."""
         spawn: Spawn = slot.spawn_kwargs
         if self._audits_known_red(out):   # one found while the gate queued for the slot: build nothing
             return self._audit_red(out, run, "an audit was RED while the gate queued for the slot: NO TEST RAN")
@@ -1351,11 +1499,22 @@ class Gate:
         # self-tests that read the BUILT assemblies (kb/Work PB2563, PB4326) run BESIDE the hosts: each only lists tests,
         # and the hosts are the gate's longest step.
         listed = self._pool_listings(spawn)
+        listings: dict[str, Counter] | None = None
+        only: dict[str, Path] | None = None
+        if carry is not None:
+            # A RETRY needs the population first (what the carried passes leave is the listing less them), where a whole
+            # run joins the listings after the hosts: ~2 s each, which the retry's saved minutes repay.
+            try:
+                listings = self._listings(listed, run)
+            except PopulationError as e:
+                return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
+                                    f"the population could not be listed: {e}", 2)
+            only = self._retry(out, run, listings, carry)
         if out.tooling:
             self._beside(out, "post_build_self_tests", lambda: self.host.built_self_tests(spawn))
         first = self._first(out, run)
         hosts_started = time.monotonic()
-        self._run_hosts(out, run, first, spawn, hosts_started)
+        self._run_hosts(out, run, first, spawn, hosts_started, only)
         out.timings["tests_s"] = round(time.monotonic() - hosts_started, 1)
         reds = [r for r in out.runs if r.red]
         if reds:
@@ -1366,11 +1525,11 @@ class Gate:
             return self._audit_red(out, run, "an audit that ran beside the test hosts was RED and STOPPED them: their "
                                    "results are partial and NOT measured")
         try:
-            listings = self._listings(listed, run)
+            listings = listings or self._listings(listed, run)
         except PopulationError as e:
             return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
                                 f"the population could not be listed: {e}", 2)
-        self._check_populations(out, listings, run)
+        self._check_populations(out, listings, run, carry if only is not None else None)
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
         out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`reusable`)
         self._prune(run)
@@ -1433,22 +1592,26 @@ class Gate:
             return f"not kept: {e}"
         return f"kept as {kept.name}"
 
-    def _run_hosts(self, out: Outcome, run: Path, first: Path | None, spawn: Spawn, hosts_started: float) -> None:
+    def _run_hosts(self, out: Outcome, run: Path, first: Path | None, spawn: Spawn, hosts_started: float,
+                   only: dict[str, Path] | None = None) -> None:
         """The three assemblies' whole populations CONCURRENTLY, one host each, each printed through the one leg
-        report (scripts/test_leg_report.py) in a fixed order whatever order they finished in."""
-        self.say(f"build-local: the whole population — {', '.join(GATED_ASSEMBLIES)} concurrently")
+        report (scripts/test_leg_report.py) in a fixed order whatever order they finished in. A RETRY (`only`, `_retry`,
+        kb/Work PB5099) runs the assemblies it left cases in, each its retry file's cases alone, and the others not at all."""
+        asms = [a for a in GATED_ASSEMBLIES if only is None or a in only]
+        self.say(f"build-local: the {'whole population' if only is None else 'cases not yet passed'} — "
+                 f"{', '.join(asms) or 'nothing to run'}{' concurrently' if len(asms) > 1 else ''}")
 
         def one(asm: str) -> tuple[str, int, float, float]:
-            env = host_env(first, run / f"{asm}.observations.log")
+            env = host_env(first, run / f"{asm}.observations.log", only.get(asm) if only else None)
             t = time.monotonic()
             rc = self.host.run_host(asm, run, env, spawn)
             return asm, rc, time.monotonic() - t, time.monotonic() - hosts_started
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(GATED_ASSEMBLIES)) as pool:
-            results = {asm: (rc, wall, fin) for asm, rc, wall, fin in pool.map(one, GATED_ASSEMBLIES)}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max(len(asms), 1)) as pool:
+            results = {asm: (rc, wall, fin) for asm, rc, wall, fin in pool.map(one, asms)}
         if self.host.hosts_live.stopping.is_set():
             return   # stopped by a RED audit (`_audits`): a killed host's log is no report, `_audit_red` ends the gate
-        for asm in GATED_ASSEMBLIES:
+        for asm in asms:
             rc, wall, fin = results[asm]
             # THE ONE RULE for what a host prints (kb/Work PB1573): a green host its verdict line, a red one its
             # COMPLETE output. Its exit code is the host's verdict: 0 green, anything else red.
@@ -1459,15 +1622,17 @@ class Gate:
                 self.say(line)
             out.runs.append(HostRun(asm, rc, rep.returncode != 0, round(wall, 1), round(fin, 1)))
 
-    def _check_populations(self, out: Outcome, listings: dict[str, Counter], run: Path) -> None:
+    def _check_populations(self, out: Outcome, listings: dict[str, Counter], run: Path, carry: Carry | None = None) -> None:
         """Ran equals discovered, by name, per assembly (scripts/test_population.py `check`): its trx against its
-        listing. A host that wrote no trx is UNMEASURED, a RED."""
+        listing, with the passes `carry` brings (a RETRY, kb/Work PB5099: an assembly it ran nothing in has no trx and is
+        all carried). A host that ran and wrote no trx is UNMEASURED, a RED."""
         for asm in GATED_ASSEMBLIES:
             trx = run / f"{asm}.trx"
             try:
-                if not trx.exists():
+                if not trx.exists() and (carry is None or any(r.asm == asm for r in out.runs)):
                     raise PopulationError(f"{asm}: its host wrote no trx")
-                pop = check_population(asm, listings[asm], [str(trx)])
+                pop = check_population(asm, listings[asm], [str(trx)] if trx.exists() else [],
+                                       carried=carry.passed[asm] if carry is not None else None)
             except PopulationError as e:
                 out.reasons.append(f"{asm} POPULATION UNMEASURED ({e})")
                 self.say(f"=== POPULATION {asm}: UNMEASURED — {e} ===")
@@ -1482,7 +1647,10 @@ class Gate:
                            for a in GATED_ASSEMBLIES)
         skipped = sum(p.skipped for p in pops.values())
         first = f"{len(out.first)} class(es) first" if out.first else "no class first"
-        detail = (f"{tally} cases ran (skipped {skipped:,})" + (f" · {out.slot}" if out.slot else "")
+        carried = sum(p.carried for p in pops.values())
+        detail = (f"{tally} cases ran (skipped {skipped:,})"
+                  + (f" · {carried:,} carried from run(s) {', '.join(out.composed_from)} (kb/Work PB5099)" if carried else "")
+                  + (f" · {out.slot}" if out.slot else "")
                   + (f" · toolchain {out.toolchain}" if out.toolchain else "") + f" ({first}; run {run.name})")
         reds = [f"{r.asm} RED" for r in out.runs if r.red]
         problems = reds + out.reasons + [f"{a} POPULATION NOT EXACT" for a in pops if pops[a].defective]
@@ -1509,6 +1677,7 @@ class Gate:
                 "head": out.head, "tree": out.tree, "tree_end": out.tree_end, "base": out.base,
                 "head_tree": out.head_tree, "toolchain": out.toolchain,
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
+                "composed_from": out.composed_from, "carried": out.carried,
                 "slot": out.slot, "gate_class": out.gate_class, "lane": out.lane, "tooling": out.tooling, "first": out.first,
                 "runs": [vars(r) for r in out.runs], "timings": out.timings,
                 "assembly_wall_s": self._assembly_walls(out), "effective_concurrency": self._concurrency(out),
@@ -1530,11 +1699,12 @@ class FakeHost(Host):
     }
 
     def __init__(self, root: Path, lock: Path, plant: set[str] = frozenset(),
-                 trees: list[str | None] | None = None, base: str = "0" * 40):
+                 trees: list[str | None] | None = None, base: str = "0" * 40, inert_from: frozenset[str] = frozenset()):
         """`trees`: the working tree the gate measures, call by call (its start, then its end; the last value
-        repeats); `base`: the planted cut point."""
+        repeats); `base`: the planted cut point; `inert_from`: the earlier trees that differ from this gate's only in
+        inert paths (`code_state_diff`, kb/Work PB5099)."""
         super().__init__(root)
-        self.root, self._lock, self.plant = root, lock, set(plant)
+        self.root, self._lock, self.plant, self.inert_from = root, lock, set(plant), inert_from
         self.trees, self.base_sha = list(trees or ["tree-1"]), base
         self.committed_tree = self.trees[0]  # HEAD's tree: a gate of a clean working tree measures it
         self.slots_taken = 0
@@ -1590,6 +1760,11 @@ class FakeHost(Host):
                                    reads_tooling=True)
         return inert_lane.Lane("full", "planted: the full lane", tooling="tooling" in self.plant,
                                reads_tooling="tooling" in self.plant)
+
+    def code_state_diff(self, earlier, now):
+        """The planted difference between two trees: none for the same tree, one inert path for an `inert_from` tree,
+        else a path a test may read (the classification itself is inert_lane.py's self-test)."""
+        return [] if earlier == now else (["docs/planted.md"] if earlier in self.inert_from else None)
 
     def head(self) -> str | None:
         return "head-1"
@@ -1650,7 +1825,9 @@ class FakeHost(Host):
             self.host_started.set()
             self.hosts_live.stopping.wait(60)
             return 1
-        cases = [(n, ["Passed"]) for n in self.POPULATION[asm]]
+        only = env.get(ONLY_CASES)   # a RETRY (kb/Work PB5099): the host runs exactly the cases its file names
+        names = Path(only).read_text(encoding="utf-8").splitlines() if only else self.POPULATION[asm]
+        cases = [(n, ["Passed"]) for n in self.POPULATION[asm] if n in names]
         red = asm == "Conformance" and "red" in self.plant
         if red:
             cases[0] = (cases[0][0], ["Failed"])
@@ -1781,20 +1958,23 @@ def self_test() -> int:
             torn.verdict == "GREEN" and said(str(bounce / "Unit.trx")) and len(kept) == 1
             and kept[0].name == "unreadable-test-results-Linux-shard-2-Unit.trx.bad", f"{torn.line} {kept}")
 
-        stray = {"WISEOWL_COBOL_GATE_FIRST": "elsewhere", "WISEOWL_COBOL_SHARD": "1/2",
+        stray = {"WISEOWL_COBOL_GATE_FIRST": "elsewhere", "WISEOWL_COBOL_GATE_ONLY": "elsewhere", "WISEOWL_COBOL_SHARD": "1/2",
                  "VSTestTestCaseFilter": "FullyQualifiedName~Nothing"}
         os.environ.update(stray)
         try:
             observations = Path("run") / "Unit.observations.log"
             env = host_env(None, observations)
             ordered = host_env(Path("run") / "first-classes.txt", observations)
+            retried = host_env(None, observations, Path("run") / "only-Unit.txt")
         finally:
             for k in stray:
                 os.environ.pop(k, None)
-        arm("a test host's environment is scrubbed of a stray ordering file, a shard and a VSTest property, and carries "
-            "this gate's own first classes only when it has some",
+        arm("a test host's environment is scrubbed of a stray ordering file, retry file, shard and VSTest property, and "
+            "carries this gate's own first classes and retry file only when it has them",
             not set(stray) & set(env) and ordered[FIRST_CLASSES] == str(Path("run") / "first-classes.txt")
-            and "WISEOWL_COBOL_SHARD" not in ordered and "VSTestTestCaseFilter" not in ordered)
+            and "WISEOWL_COBOL_SHARD" not in ordered and "VSTestTestCaseFilter" not in ordered
+            and ONLY_CASES not in ordered and retried[ONLY_CASES] == str(Path("run") / "only-Unit.txt")
+            and FIRST_CLASSES not in retried)
         arm("a test host writes the harness observation log into the run directory, one file per host (PB3108)",
             env.get("WISEOWL_COBOL_HARNESS_LOG") == str(observations) == ordered.get("WISEOWL_COBOL_HARNESS_LOG"),
             str(env.get("WISEOWL_COBOL_HARNESS_LOG")))
@@ -2289,10 +2469,109 @@ def self_test() -> int:
         edited, _ = regate(d, trees=["tree-1", "tree-edited"])
         after_edit, he = regate(d)
         rebased, hb = regate(d, base="1" * 40)
-        arm("a gate whose tree changed WHILE it ran is never reused, and another base (a landing's merged main) runs",
+        arm("a gate whose tree changed WHILE it ran is never reused, and another base is no answer to reuse (the reuse rule "
+            "reads the base its lane was decided against); the same tree under it composes with the run that measured it "
+            "(kb/Work PB5099: a landing's merged main is another TREE, which always runs)",
             edited.tree == "tree-1" and edited.tree_end == "tree-edited" and "REUSED" not in after_edit.line
-            and "build" in he.events and "REUSED" not in rebased.line and "build" in hb.events,
+            and "build" in he.events and "REUSED" not in rebased.line and "COMPOSED" in rebased.line and hb.events == [],
             f"{after_edit.line} | {rebased.line}")
+
+        # THE COMPOSITION RULE (kb/Work PB5099; owner 2026-11-09: "if only one test failed, any retry should test only
+        # that one case"): a re-gate of a code state an earlier run measured runs only what that run did not pass.
+        d = root / "compose"
+        d.mkdir()
+        red1, _ = regate(d, plant={"red"})
+        again_red, ha = regate(d, plant={"red"})
+        arm("a retry that is still RED is RED (the carried passes hide nothing, the case runs again alone)",
+            again_red.verdict == "RED" and again_red.populations["Conformance"].carried == 5
+            and sorted(ha.envs) == ["Conformance"] and "Conformance RED" in again_red.line, again_red.line)
+        fix, hf = regate(d)
+        fix_rec = read_record(run_dirs(d / "runs")[-1])
+        only_text = (run_dirs(d / "runs")[-1] / "only-Conformance.txt").read_text(encoding="utf-8")
+        arm("a re-gate of a tree whose earlier run was RED runs ONLY that run's red case: one host, one retry file, the "
+            "other assemblies' passes carried, and the verdict is GREEN with every population EXACT",
+            red1.verdict == "RED" and fix.verdict == "GREEN" and sorted(hf.envs) == ["Conformance"]
+            and only_text == "N.Conf.A\n" and hf.envs["Conformance"].get(ONLY_CASES) is not None
+            and all(p.exact for p in fix.populations.values()) and len(fix.populations) == 3
+            and fix.carried == {"Conformance": 5, "Unit": 4, "Characterization": 2}
+            and "Conformance 6/6" in fix.line and "11 carried from run(s)" in fix.line and "build" in hf.events,
+            f"{fix.line} {sorted(hf.envs)} {only_text!r}")
+        arm("the composed record names the runs it composes with and what it carried, writes no growth sample, and "
+            "`measuring_runs` resolves it to the runs that hold its evidence",
+            fix_rec["composed_from"] == [run_dirs(d / "runs")[1].name, run_dirs(d / "runs")[0].name]
+            and fix_rec["carried"]["Unit"] == 4 and hf.growth == [] and [p.name for p in measuring_runs(run_dirs(d / "runs")[-1])]
+            == [run_dirs(d / "runs")[-1].name, run_dirs(d / "runs")[1].name, run_dirs(d / "runs")[0].name],
+            str(fix_rec["composed_from"]))
+        d = root / "compose-code"
+        d.mkdir()
+        regate(d, plant={"red"})
+        code, hc2 = regate(d, trees=["tree-2"])
+        arm("a re-gate of a tree that differs in a path a test may read runs the WHOLE population: no retry file, "
+            "nothing carried, no composition across two code states",
+            code.verdict == "GREEN" and sorted(hc2.envs) == sorted(GATED_ASSEMBLIES) and not code.composed_from
+            and all(ONLY_CASES not in v for v in hc2.envs.values()) and not any(code.carried.values()), code.line)
+        d = root / "compose-toolchain"
+        d.mkdir()
+        regate(d, plant={"red"})
+        stale = run_dirs(d / "runs")[-1]
+        stale_rec = read_record(stale)
+        (stale / VERDICT_FILE).write_text(json.dumps({**stale_rec, "toolchain": "dotnet-sdk 9.0.100, python 3.12.0"}),
+                                          encoding="utf-8", newline="\n")
+        tool, ht = regate(d)
+        arm("a run under another toolchain is never composed with: the whole population runs",
+            tool.verdict == "GREEN" and sorted(ht.envs) == sorted(GATED_ASSEMBLIES) and not tool.composed_from, tool.line)
+        d = root / "compose-moved"
+        d.mkdir()
+        regate(d, plant={"red"}, trees=["tree-1", "tree-edited"])
+        moved, hm = regate(d)
+        arm("a run whose tree changed WHILE it ran contributes no pass: the whole population runs",
+            moved.verdict == "GREEN" and sorted(hm.envs) == sorted(GATED_ASSEMBLIES) and not moved.composed_from, moved.line)
+        d = root / "compose-inert"
+        d.mkdir()
+        green1, _ = regate(d)
+        inert, hi = regate(d, trees=["tree-2"], inert_from=frozenset({"tree-1"}))
+        inert_rec = read_record(run_dirs(d / "runs")[-1])
+        arm("a GREEN code-lane run, then a commit that changes only inert paths, is GREEN with NO fetch, slot, build or "
+            "host: the audits ran, the line says COMPOSED and names the run and the inert path, and the record names it",
+            green1.verdict == "GREEN" and inert.verdict == "GREEN" and inert.exit_code == 0 and hi.events == []
+            and hi.slots_taken == 0 and hi.audited and not inert.runs and hi.envs == {} and hi.growth == []
+            and "COMPOSED (kb/Work PB5099)" in inert.line and "docs/planted.md" in inert.line
+            and inert_rec["composed_from"] == [run_dirs(d / "runs")[0].name] and inert_rec["tree"] == "tree-2"
+            and inert_rec["lane"] == "full", f"{inert.line} {hi.events}")
+        reused_inert, hri = regate(d, trees=["tree-2"], inert_from=frozenset({"tree-1"}))
+        arm("a composed GREEN is itself the answer for a re-gate of its tree (REUSED), and `measuring_runs` still reaches "
+            "the run that measured the tests",
+            "REUSED" in reused_inert.line and hri.events == []
+            and [p.name for p in measuring_runs(run_dirs(d / "runs")[-1])] == [run_dirs(d / "runs")[1].name,
+                                                                              run_dirs(d / "runs")[0].name],
+            reused_inert.line)
+        code_after, hca = regate(d, trees=["tree-3"], inert_from=frozenset({"tree-2"}))
+        arm("an inert-only commit on top of a composed run composes with the run that measured the tests, never through "
+            "the composed one's own (absent) trx",
+            "COMPOSED" in code_after.line and hca.events == []
+            and read_record(run_dirs(d / "runs")[-1])["composed_from"]
+            == [run_dirs(d / "runs")[1].name, run_dirs(d / "runs")[0].name], code_after.line)
+        d = root / "compose-code-after-green"
+        d.mkdir()
+        regate(d)
+        code_green, hcg = regate(d, trees=["tree-2"])
+        arm("a GREEN code-lane run, then a commit that touches one path a test may read, runs EVERYTHING",
+            code_green.verdict == "GREEN" and hcg.events[:3] == ["fetch", "slot", "build"]
+            and sorted(hcg.envs) == sorted(GATED_ASSEMBLIES) and not code_green.composed_from, code_green.line)
+        d = root / "compose-inert-audit"
+        d.mkdir()
+        regate(d)
+        inert_red, hir = regate(d, trees=["tree-2"], inert_from=frozenset({"tree-1"}), plant={"audit"})
+        arm("a composed gate whose audits are RED is RED with nothing run (the audits are the only work it has)",
+            inert_red.verdict == "RED" and hir.events == [] and hir.envs == {} and "RENDERED VIEWS RED" in inert_red.line,
+            inert_red.line)
+        d = root / "compose-inert-red"
+        d.mkdir()
+        regate(d, plant={"red"})
+        inert_retry, hrr = regate(d, trees=["tree-2"], inert_from=frozenset({"tree-1"}))
+        arm("a RED run, then an inert-only commit, retries only the red case: the inert path costs no case",
+            inert_retry.verdict == "GREEN" and sorted(hrr.envs) == ["Conformance"]
+            and inert_retry.carried["Unit"] == 4 and "COMPOSED" not in inert_retry.line, inert_retry.line)
 
         # THE GATE HAS NO LINUX HALF (kb/Work PB4327; owner 2026-10-31, PIPELINE-REVIEW.md section 7): the Linux half of
         # the targeted leg re-ran on WSL the leg Windows had just run, and every merge group runs the whole Linux
