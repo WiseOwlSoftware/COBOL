@@ -7,7 +7,7 @@ refuter/adjudicator brief, and a sentence is forgotten; this makes it structural
 checkpoint files (`<out>/<stage>-<slug>.jsonl`, reports) — those live in the agent's own scratch directory (MANDATORY-PRACTICES P16), which is not a git tree, so
 they pass. Anything unparseable passes (a hook must never wedge an agent), but a git that does not ANSWER in time
 REFUSES the write (kb/Work PB3536): it used to pass it, so under a loaded host a read-only role could write inside a
-tree; dispatch_guard.py's practices check failed open the same way. A refusal wedges nothing: the write is re-issued.
+tree; dispatch_guard.py's former practices check (retired, kb/Work PB5112) failed open the same way. A refusal wedges nothing: the write is re-issued.
 """
 import json
 import os

@@ -75,8 +75,8 @@ tests/_shared/TestRepo.cs is read by drift_rules.py's self-test, the .g4 files b
 one of them turned a self-test red in CI's merge group after a green gate.
 THE ACCEPTED RESIDUE, named (owner 2026-10-31, kb/Work PB4323: a merge-group red may be one of five first-run classes, and
 the CI invariant is weakened knowingly): (a) a DECLARED POPULATION reader: a self-test whose first
-lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a population (test_plan_wave.py and
-test_dispatch_guard.py walk every markdown file), so no set of paths bounds it and the proof
+lines say `# SELF-TEST-POPULATION: tree — <why>` reads the tracked tree as a population (test_plan_wave.py walks
+every markdown file), so no set of paths bounds it and the proof
 does not apply to it. The declaration is checked against the trace (scripts/self_tests.py): one that ran no git command over
 the whole repository (the tracer records a read of directory "") is RED, and a self-test that ran such a command WITHOUT
 the declaration is judged like any other, so its specific reads (abi_pin.py's ABI pin) are
@@ -1143,7 +1143,7 @@ def wiring(root: Path) -> list[str]:
     need("if not whole:" not in runner, "scripts/self_tests.py exempts a whole-tree reader without its declaration")
     need(runner.find("self.classification.unclassified_reads(") < runner.find("self.store.record(test.path"),
          "scripts/self_tests.py records a PASS before the tooling flag's proof")
-    for rel in ("scripts/hooks/test_dispatch_guard.py", "scripts/orchestrator/test_plan_wave.py"):
+    for rel in ("scripts/orchestrator/test_plan_wave.py",):
         need("# SELF-TEST-POPULATION: tree" in text(rel), f"{rel} no longer declares its population")
     return bad
 

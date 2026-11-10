@@ -1,44 +1,24 @@
 #!/usr/bin/env python3
-"""PreToolUse hook (matcher Agent|Workflow) — REFUSE a fleet dispatch unless the `workstream` skill was loaded in this
-session, and refuse an implementer or finisher dispatch whose brief is not a checked, rendered spec or template.
+"""PreToolUse hook (matcher Agent|Workflow) — a unit of the orchestrator loop launches NO fleet once its supervisor has
+signalled the unit's wind-down.
 
-Owner, 2026-09-30, after an orchestrator hand-wrote three implementer briefs from memory and skipped
-.claude/skills/workstream/SKILL.md (MANDATORY-PRACTICES O9): "Reconfigure such that all future sessions cannot skip
-learning this." A sentence in CLAUDE.md or memory was already there and was skipped, so the rule is structural:
+In a unit of the orchestrator loop (the supervisor exports COBOL_LOOP_UNIT), a Workflow call or an implementer or
+finisher Agent call is refused while the supervisor's wind-down signal <coord>/STOP-UNIT exists (kb/Work PB2597): wave
+1038's unit started an eight-implementer Workflow 17 s after STOP-UNIT and the loop's fleet stop, and all eight returned
+SPLIT before any work. An attended session sharing the coordination directory is never refused, and neither is a
+read-only or mechanical role.
 
-  0. In a unit of the orchestrator loop (the supervisor exports COBOL_LOOP_UNIT), a Workflow call or an implementer or
-     finisher Agent call is refused while the supervisor's wind-down signal <coord>/STOP-UNIT exists (kb/Work PB2597).
-  1. Agent (cobol-implementer or cobol-finisher) and Workflow calls need a Skill call for `workstream` earlier in THIS
-     session's transcript (or a /workstream command). The skill is what carries the mandatory practices.
-  2. An Agent call for cobol-implementer or cobol-finisher must name, in its prompt, a RENDERED spec
-     (`msg-w<wave>-<letter>.txt`, from make_dispatch_specs.py: the implementer's ONE instruction file, kb/Work PB3777) or,
-     for a finisher, a brief under workstream/templates, and check_practices.py must print
-     `=== PRACTICES CHECK: GREEN ===` over it. A hand-written inline brief is refused.
+That is the hook's ONE rule. It says nothing about WHEN or HOW a session delegates: the owner removed every such rule on
+2026-11-10 (kb/Work PB5112: "You decide when to delegate"), and with them this hook's former checks that the
+`workstream` skill was loaded and that an implementer's brief was a rendered, checked spec. The skill, the spec renderer
+and `check_practices.py` remain tools a session may use.
 
-Read-only and mechanical roles (refuter, adjudicator, clerk, locator, Explore, general-purpose) pass rule 2; rule 1
-applies to Workflow always. Exit 2 blocks the call and returns stderr to the agent. Anything unparseable passes (a
-hook must never wedge a session), but a practices check that does not ANSWER in time REFUSES the call (kb/Work
-PB3536): it used to pass it, so under a loaded host an unchecked spec went through, which is exactly what rule 2 is for
-(test_dispatch_guard.py's "unchecked rendered spec" case went red inside a gate and green alone, 2026-10-22). A refusal
-wedges nothing: the dispatch is re-issued.
-
-The hook writes NOTHING (kb/Work PB3186). Its rule 3 once recorded every admitted write-capable dispatch in the
-dispatch ledger from a scrape of every note id the prompt and the files it named mentioned, with the union of their
-computed file sets: six entries of 303-910 files on 2026-10-15, naming reference notes as dispatched work, which bound
-fix-lane worktrees to R3 notes and stopped their landings. The ledger is the planner's and the spec renderer's
-(dispatch_ledger.record_dispatch, through make_dispatch_specs.py), each group recorded with its exact file set; an
-attended dispatch made without a rendered group is in flight from its worktree's first edit, and the landing check
-(landing_check.py) is the guarantee behind the planner's partition.
-
-There is no lander to guard (kb/Work PB3023): a branch lands through `scripts/orchestrator/enqueue.py land`, a script, and
-its rule 4 (a lander dispatch named the loop's state) retired with the role; scripts/orchestrator/landing_rules.py --self-test holds
-that no other file opens or queues a pull request.
+Exit 2 blocks the call and returns stderr to the agent. Anything unparseable passes (a hook must never wedge a session).
+The hook writes NOTHING (kb/Work PB3186): the dispatch ledger is the planner's and the spec renderer's.
 """
 import json
 import os
 import pathlib
-import re
-import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "orchestrator"))
@@ -53,80 +33,18 @@ try:
 except Exception:  # noqa: BLE001
     sys.exit(0)
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
-CHECK = REPO / ".claude" / "skills" / "workstream" / "check_practices.py"
-#: How long the practices check may take before the dispatch is REFUSED (never passed): under the hook's own 90 s.
-#: A hang guard, not a verdict: the self-test sets CHECK_WAIT_ENV so that the check's own verdict decides each case,
-#: and plants a tiny value to see the refusal on expiry.
-CHECK_WAIT_ENV = "COBOL_DISPATCH_CHECK_WAIT_S"
-CHECK_WAIT_S = float(os.environ.get(CHECK_WAIT_ENV) or 60)
-TEMPLATES = REPO / ".claude" / "skills" / "workstream" / "templates"
-JUDGMENT_ROLES = {"cobol-implementer", "cobol-finisher"}
-#: The role whose ONLY instruction file is a rendered spec: no template brief remains for it (kb/Work PB3777).
-IMPLEMENTER = "cobol-implementer"
-LOADED = re.compile(
-    r'"skill"\s*:\s*"(?:[\w-]+:)?workstream"'                     # a Skill tool call
-    r'|<command-name>/?workstream</command-name>'                  # the user typed /workstream
-    r'|Base directory for this skill: [^"\\\n]*workstream')        # the skill's own expansion
-
-
-def block(why: str) -> None:
-    print("DISPATCH GUARD: " + why, file=sys.stderr)
-    sys.exit(2)
-
-
-def skill_loaded(transcript: str) -> bool:
-    try:
-        return bool(LOADED.search(pathlib.Path(transcript).read_text(encoding="utf-8", errors="replace")))
-    except OSError:
-        return True  # no readable transcript: cannot judge, never wedge
-
+#: The roles that start write-capable work: with a Workflow, the calls a winding-down unit may not make.
+FLEET_ROLES = {"cobol-implementer", "cobol-finisher"}
 
 tool = data.get("tool_name", "")
 args = data.get("tool_input") or {}
 if tool not in ("Agent", "Workflow"):
     sys.exit(0)
-
 role = args.get("subagent_type", "") if tool == "Agent" else ""
-# Rule 0 (kb/Work PB2597): a unit of the orchestrator loop launches NO fleet once the supervisor has signalled its
-# wind-down. Wave 1038's unit started an eight-implementer Workflow 17 s after STOP-UNIT and the loop's fleet stop, and
-# all eight returned SPLIT before any work. Only a loop unit (the supervisor exports coord.LOOP_UNIT_ENV) is refused; an
-# attended session sharing the coordination directory never is.
-if (tool == "Workflow" or role in JUDGMENT_ROLES) and os.environ.get(coord.LOOP_UNIT_ENV) and coord.stop_unit().exists():
-    block(f"the supervisor has signalled this {os.environ[coord.LOOP_UNIT_ENV]} unit's wind-down ({coord.stop_unit()} "
-          "exists): launch no fleet. Write the handoff naming the plan (its specs and args file are reusable) and every "
-          "branch, then end; a fresh unit launches it (kb/Work PB2597, units/common.md).")
-if tool == "Agent" and role not in JUDGMENT_ROLES:
-    sys.exit(0)
-
-transcript = data.get("transcript_path") or ""
-if transcript and not skill_loaded(transcript):
-    block("this session has not loaded the `workstream` skill. Invoke it with the Skill tool (skill: workstream) and "
-          "follow it BEFORE dispatching any implementer, finisher or fleet: it carries .claude/skills/workstream/"
-          "templates/MANDATORY-PRACTICES.md, the rendered-spec rule (make_dispatch_specs.py, check_practices.py), the "
-          "rolling wave, the meter read and the graceful STOP. Owner 2026-09-30: no session may skip it.")
-
-if tool == "Agent":
-    prompt = args.get("prompt", "")
-    paths = [pathlib.Path(p) for p in re.findall(r"(?:[A-Za-z]:[\\/]|/)[^\s\"'`<>|]+?\.(?:txt|md)", prompt)]
-    specs = [p for p in paths if re.fullmatch(r"msg-w[\w-]+\.txt", p.name) and p.is_file()]
-    briefs = [p for p in paths if role != IMPLEMENTER and p.is_file() and TEMPLATES.resolve() in p.resolve().parents]
-    if not specs and not briefs:
-        block(f"a {role} brief must point at a RENDERED spec (`msg-w<wave>-<letter>.txt` written by "
-              ".claude/skills/workstream/make_dispatch_specs.py)"
-              + ("" if role == IMPLEMENTER else " or at a brief under .claude/skills/workstream/templates, with the "
-                 "substitutions in the prompt")
-              + ". A hand-written inline brief is how the mandatory practices get dropped (MANDATORY-PRACTICES O1, O9).")
-    cmd = [sys.executable, str(CHECK)] + ([str(p) for p in specs] if specs else [])
-    try:
-        out = subprocess.run(cmd, capture_output=True, text=True, timeout=CHECK_WAIT_S, encoding="utf-8",
-                             errors="replace")
-    except subprocess.TimeoutExpired:
-        block(f"check_practices.py gave no verdict within {CHECK_WAIT_S:g} s (a loaded host), so this brief is unchecked "
-              "and the dispatch is refused: re-issue it (kb/Work PB3536 — an unchecked brief is never let through)")
-    except OSError:
-        sys.exit(0)  # no interpreter to run the check at all: the environment is broken, and a hook never wedges
-    if "=== PRACTICES CHECK: GREEN ===" not in out.stdout:
-        block("check_practices.py is not GREEN over this brief:\n" + (out.stdout + out.stderr)[-1500:])
-
+if (tool == "Workflow" or role in FLEET_ROLES) and os.environ.get(coord.LOOP_UNIT_ENV) and coord.stop_unit().exists():
+    print(f"DISPATCH GUARD: the supervisor has signalled this {os.environ[coord.LOOP_UNIT_ENV]} unit's wind-down "
+          f"({coord.stop_unit()} exists): launch no fleet. Write the handoff naming the plan (its specs and args file are "
+          "reusable) and every branch, then end; a fresh unit launches it (kb/Work PB2597, units/common.md).",
+          file=sys.stderr)
+    sys.exit(2)
 sys.exit(0)
