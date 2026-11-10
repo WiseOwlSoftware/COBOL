@@ -7202,6 +7202,12 @@
    "sweep": "change-row-shape(PB5045)",
    "was": "XVII-80 Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A:",
    "now": "**XVII-80** Insert the following as the new paragraph 2.2B after the last item of the new paragraph 2.2A:"
+  },
+  {
+   "page": 191,
+   "sweep": "reserved-word-letter-gap(PB5060)",
+   "was": "| CLOCK-UNITS | DIVISION | FUNCTION | |\n| CLOSE | DOWN | GENERATE | MEMORY |",
+   "now": "| CLOCK-UNITS | DIVISION | FUNCTION | |\n| CLOSE | DOWN | | MEMORY |\n| COBOL | DUPLICATES | GENERATE | MERGE |"
   }
  ],
  "boxes": [
