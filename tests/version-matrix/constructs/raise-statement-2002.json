@@ -1,0 +1,12 @@
+{
+ "id": "raise-statement-2002",
+ "description": "The RAISE statement - a 2002 introduction (the EC model). Folded from the inline EcBinder gate (Exec Step E).",
+ "display": "the RAISE statement",
+ "diagnosticCode": "COBOL0876",
+ "citation": "ISO §2023:14.9.29 (the exception-condition statement; the EC model is 2002+)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0876",
+ "vcr": "2002 introduction (the EC model)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWRAI.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 W PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    IF W = 2 RAISE EXCEPTION EC-USER-ROW END-IF.\n    STOP RUN.\n"
+}

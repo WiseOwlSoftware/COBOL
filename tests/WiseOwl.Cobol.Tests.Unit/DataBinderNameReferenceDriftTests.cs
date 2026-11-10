@@ -52,7 +52,7 @@ public sealed partial class DataBinderNameReferenceDriftTests
             if (file.Contains($"{sep}obj{sep}") || file.Contains($"{sep}bin{sep}")) continue;
             yield return file;
         }
-        yield return TestRepo.VersionMatrix("constructs.json");
+        foreach (string file in Directory.EnumerateFiles(TestRepo.ConstructsDir, "*.json")) yield return file;
     }
 
     [Fact]

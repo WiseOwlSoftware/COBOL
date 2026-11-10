@@ -1,0 +1,12 @@
+{
+ "id": "merge-in-sort-merge-proc-removed-2023",
+ "description": "A MERGE statement in the output procedure of another MERGE, or the input/output procedure of a file-format SORT, is PROHIBITED as of COBOL-2023 (ISO §2023:14.9.24; Annex E.2 item 20 — the prior standard allowed it with conflicting rules, and SORT already disallowed it). A bind-time procedure-range cross-pass (VersionConformancePass.GateSortMergeProcedures) rejects it at >=2023 with COBOL1572; below 2023 the runtime EC-SORT-MERGE-ACTIVE seam is the (checking-off) dynamic net. Modeled as a removedIn=2023 construct (compiles at 85/2002/2014, rejects at 2023).",
+ "display": "MERGE in a SORT/MERGE input or output procedure",
+ "diagnosticCode": "COBOL1572",
+ "citation": "ISO §2023:14.9.24; Annex E.2 item 20; §1985:XI.4.1.3 SR1 (CHANGED)",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "expectDiagnostic": "COBOL1572",
+ "vcr": "VCR row 27 (MERGE-in-SORT/MERGE-procedure — 2023 prohibition)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. MERGEPRO.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F1 ASSIGN TO \"mp1.txt\".\n           SELECT F2 ASSIGN TO \"mp2.txt\".\n           SELECT F3 ASSIGN TO \"mp3.txt\".\n           SELECT F4 ASSIGN TO \"mp4.txt\".\n           SELECT FO ASSIGN TO \"mpo.txt\".\n           SELECT S1 ASSIGN TO \"mps1.tmp\".\n           SELECT S2 ASSIGN TO \"mps2.tmp\".\n       DATA DIVISION.\n       FILE SECTION.\n       SD S1.\n       01 SR1 PIC X(5).\n       SD S2.\n       01 SR2 PIC X(5).\n       FD F1.\n       01 R1 PIC X(5).\n       FD F2.\n       01 R2 PIC X(5).\n       FD F3.\n       01 R3 PIC X(5).\n       FD F4.\n       01 R4 PIC X(5).\n       FD FO.\n       01 RO PIC X(5).\n       PROCEDURE DIVISION.\n       MAIN-PARA.\n           MERGE S1 ON ASCENDING KEY SR1\n               USING F1 F2\n               OUTPUT PROCEDURE OUT-PROC.\n           STOP RUN.\n       OUT-PROC.\n           MERGE S2 ON ASCENDING KEY SR2\n               USING F3 F4\n               GIVING FO.\n"
+}

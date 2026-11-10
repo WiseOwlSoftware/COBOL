@@ -102,7 +102,7 @@ who acts next:
                    after the removal (the head is read at the removal, not by headRefOid alone, which a push moves,
                    kb/Work PB3275): the enqueue unit dispatches ONE finisher
                    with the reason named. A pull request still IN the queue reads BOUNCED too when the queue's simulation
-                   (foresee_queued: merge_drivers.foresee_queue on the queue's entries in order) finds its head
+                   (foresee_queued: git_merge.foresee_queue on the queue's entries in order) finds its head
                    conflicting with an entry ahead of it, or with main: the FORESEEN CONFLICT, which the queue will
                    remove for merge_conflict with no failed run (kb/Work PB3723); Row.foreseen names the entries, and the
                    review lane's conflict finisher takes it while they are still queued. A finisher that fixes the branch returns DONE and lands nothing: its new tip
@@ -132,8 +132,8 @@ commits are ancestors of main and MERGED decides; the rest stays for the branche
 
   MERGED   the branch tip is an ancestor of origin/main.
   LANDED   not an ancestor, but MERGING it into origin/main would change nothing: `git merge-tree --write-tree
-           origin/main <branch>`, through the merge drivers the landing merges with (merge_drivers.merged_tree, kb/Work
-           PB3713), merges cleanly to origin/main's own tree. That is the one proof (train 1039b review):
+           origin/main <branch>`, the merge the landing makes (git_merge.merged_tree, kb/Work PB3713, PB5110), merges
+           cleanly to origin/main's own tree. That is the one proof (train 1039b review):
            the earlier test (every added file and every declared C# name on main) called a branch that only MODIFIED
            existing files LANDED, so an unlanded method-body fix would have been deleted.
            Also LANDED when its own merge would change main but its work reached main as OTHER commits (carried(), kb/Work
@@ -188,7 +188,7 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / 'scripts' / 'orchestrator'))
 import coord  # noqa: E402  (the coordination directory, the live-process probe)
 import git_batch  # noqa: E402  (scripts/: THE batched git reads, one process for many objects, kb/Work PB3582)
-import merge_drivers  # noqa: E402  (scripts/: the merge drivers, THE definition of a clean merge of main, kb/Work PB3610)
+import git_merge  # noqa: E402  (scripts/: THE definition of a clean merge of main, kb/Work PB3610, PB5110)
 from git_batch import Ancestry  # noqa: E402
 import queue_facts  # noqa: E402  (THE reader of GitHub's facts about the open pull requests and the merge queue)
 from queue_facts import PullRequest  # noqa: E402
@@ -237,12 +237,10 @@ def main_names(repo=REPO):
 
 def merges_to_main_unchanged(branch, graph: Ancestry, repo=REPO) -> bool:
     """Would merging `branch` into origin/main leave main's tree exactly as it is? THE MERGE IS THE LANDING'S OWN,
-    through the merge drivers (merge_drivers.merged_tree; kb/Work PB3713): a keyed catalogue another carrier already put
-    the branch's entry into merges by key, where a plain `git merge-tree` conflicts and the branch never read LANDED. Any
-    git failure (unrelated histories, a conflict a driver declines, a missing ref) is a NO: an unproven landing is
-    never LANDED. Main's tree is the graph's, read once a pass."""
+    git's own (git_merge.merged_tree; kb/Work PB3713, PB5110). Any git failure (unrelated histories, a conflict, a
+    missing ref) is a NO: an unproven landing is never LANDED. Main's tree is the graph's, read once a pass."""
     tree = graph.base_tree()
-    return bool(tree) and merge_drivers.merged_tree(repo, ['origin/main', branch]) == tree
+    return bool(tree) and git_merge.merged_tree(repo, ['origin/main', branch]) == tree
 
 
 def uncommitted(path) -> int:
@@ -570,13 +568,14 @@ def register_path(path: str) -> bool:
     `closes_rows` that is wrong fails an audit). THE ONE DEFINITION of a REGISTER-ONLY commit's paths (kb/Work PB3849);
     DESIGN-test-build-ci.md section 3.17.2 step 2 says why they need no gate and no reviewer."""
     note = path.removeprefix('kb/Work/')
-    return path.startswith('DEVLOG/') or (note != path and '/' not in note and note.endswith('.md'))
+    # a note (`PB5083.md`) or one of its addenda (`PB5083/2026-11-10-slug.md`, kb/Work PB5110): work.py reads both
+    return path.startswith('DEVLOG/') or (note != path and note.endswith('.md') and note.count('/') <= 1)
 
 
 def mechanical(commits: list[str], graph: Ancestry, repo=REPO) -> set[str]:
     """The commits (beyond the graph's base) that change nothing a reviewer reads or a test runs: a merge whose tree IS
-    the clean merge of its two parents THROUGH THE MERGE DRIVERS, the runtime ABI pin's measurement aside (no hand
-    resolution: what `enqueue.py land`'s own merge of origin/main makes; merge_drivers.is_drivers_merge, kb/Work PB3610),
+    the clean merge of its two parents (no hand resolution: what `enqueue.py land`'s own merge of origin/main makes;
+    git_merge.is_clean_merge, kb/Work PB3610, PB5110),
     or a REGISTER-ONLY commit: one that changes only DEVLOG/ and `kb/Work/` notes (`register_path`: an entry, its
     stamp, a note's text or frontmatter; kb/Work PB3849). Parents and trees come from the graph; every one-parent
     commit's files from ONE `git diff-tree --stdin` (git_batch.diff_names); a merge costs its one `git merge-tree`
@@ -584,7 +583,7 @@ def mechanical(commits: list[str], graph: Ancestry, repo=REPO) -> set[str]:
     out = set()
     for c in commits:
         parents = graph.parents(c)
-        if len(parents) == 2 and merge_drivers.is_drivers_merge(repo, parents, graph.tree(c)):
+        if len(parents) == 2 and git_merge.is_clean_merge(repo, parents, graph.tree(c)):
             out.add(c)
     singles = [c for c in commits if len(graph.parents(c)) == 1]
     for c, paths in zip(singles, git_batch.diff_names(repo, [(c, graph.parents(c)[0]) for c in singles])):
@@ -775,20 +774,20 @@ def finisher_due(row: Row) -> bool:
     return row.state == 'DECISION' and findings_open(row)
 
 
-def foresee_queued(prs: dict[str, PullRequest] | None, repo=REPO) -> dict[str, merge_drivers.Foreseen]:
+def foresee_queued(prs: dict[str, PullRequest] | None, repo=REPO) -> dict[str, git_merge.Foreseen]:
     """{branch: Foreseen} for each pull request in the merge queue whose head conflicts with main plus the entries ahead
-    of it that stay: the queue's own build, simulated through the merge drivers on the facts the survey read
-    (merge_drivers.foresee_queue; kb/Work PB3723). The queue removes such an entry for `merge_conflict` with no failed
+    of it that stay: the queue's own build, simulated on the facts the survey read
+    (git_merge.foresee_queue; kb/Work PB3723). The queue removes such an entry for `merge_conflict` with no failed
     run, so nothing else sees it before it happens. {} when GitHub was not observed or nothing is queued."""
     entries = sorted(((pr.position, b, pr.head) for b, pr in (prs or {}).items() if pr.in_queue and pr.position and pr.head))
-    return merge_drivers.foresee_queue(repo, 'origin/main', [(b, head) for _, b, head in entries]) if entries else {}
+    return git_merge.foresee_queue(repo, 'origin/main', [(b, head) for _, b, head in entries]) if entries else {}
 
 
 def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours: float = 24,
               live: Callable[[str | None], bool] = live_lock,
               prs: dict[str, PullRequest] | None = None, lane: Lane | None = None,
               now: dt.datetime | None = None,
-              foreseen: dict[str, merge_drivers.Foreseen] | None = None) -> tuple[str, str]:
+              foreseen: dict[str, git_merge.Foreseen] | None = None) -> tuple[str, str]:
     """THE lifecycle rule (module doc), as a pure function of what the survey measured: (state, the evidence). `lane`:
     the landing lane's view (land_lane.view: each branch's newest attempt and its class, the pending re-arms). `prs`:
     queue_facts.read's answer, None when GitHub was not observed (the git-only lifecycle). `now`:
@@ -1456,14 +1455,14 @@ def abandon_records(branches: list[str], work_dir: pathlib.Path) -> dict[str, st
     most notes never say the word)."""
     records = {b: re.compile(branch_name(b).pattern + RECORD_GAP + r'\babandoned\b', re.I) for b in branches}
     found: dict[str, str] = {}
-    for p in sorted(work_dir.glob('*.md')):
+    for p in sorted([*work_dir.glob('*.md'), *work_dir.glob('*/*.md')]):   # a note and its addenda (kb/Work PB5110)
         text = p.read_text(encoding='utf-8', errors='replace')
         if 'abandoned' not in text.lower():
             continue
         lines = text.splitlines()
         for b, record in records.items():
             if b not in found and any(record.search(l) for l in lines):
-                found[b] = p.stem
+                found[b] = p.stem if p.parent == work_dir else p.parent.name
     return found
 
 
@@ -1641,11 +1640,6 @@ def self_test() -> int:
             scratch.git('commit', '-q', '-m', msg, cwd=cwd)
 
         commit('src/A.cs', 'class Alpha {}\n', 'base')
-        # kb/Work PB3713: a keyed catalogue (merge_drivers merges it by key) the LANDED proof merges through the drivers
-        keyed = lambda *ks: ('{\n "constructs": [\n' + ',\n'.join(f'  {{\n   "id": "{k}",\n   "refuse-at": "85"\n  }}' for k in ks)  # noqa: E731
-                             + '\n ]\n}\n')
-        commit('.gitattributes', 'd.json merge=cobol-keyed-constructs\n', 'the driver attribute')
-        commit('d.json', keyed('a', 'c'), 'the catalogue')
         scratch.origin(tmp / 'origin.git')
         scratch.git('push', '-q', 'origin', 'main')
         scratch.git('fetch', '-q', 'origin')
@@ -1655,14 +1649,6 @@ def self_test() -> int:
         commit('src/B.cs', 'class Bravo {}\n', 'bravo')
         scratch.git('switch', '-q', 'main')
         commit('src/B.cs', 'class Bravo {}\n', 'bravo, as the train re-applied it')
-        scratch.git('push', '-q', 'origin', 'main')
-        scratch.git('fetch', '-q', 'origin')
-        # `key-landed` appended `x` to the catalogue; another carrier put `x` on main beside its own `y`: a PLAIN
-        # merge-tree conflicts there, the drivers merge it to main's own tree (kb/Work PB3713)
-        scratch.git('switch', '-q', '-c', 'key-landed', 'main')
-        commit('d.json', keyed('a', 'c', 'x'), 'key-landed')
-        scratch.git('switch', '-q', 'main')
-        commit('d.json', keyed('a', 'c', 'y', 'x'), 'main holds x, beside its own y')
         scratch.git('push', '-q', 'origin', 'main')
         scratch.git('fetch', '-q', 'origin')
         # kb/Work PB3609: MERGED, and TOUCHED A MINUTE AGO (the survey ages every reflog but the FRESH ones below).
@@ -2139,7 +2125,7 @@ def self_test() -> int:
         rows = {r.name: r for r in survey(repo, reports=report_index(rdir, terminal), slugs={'w9999a'}, min_age=180,
                                           stale_hours=24, live=live, coord_dir=landed_coord, prs=None)}
         want = {'merged': 'LANDED', 'merged-own': 'LANDED', 'merged-bare': 'IN FLIGHT', 'merged-ff': 'IN FLIGHT',
-                'landed-content': 'LANDED', 'key-landed': 'LANDED', 'orphan': 'DECISION', 'done-branch': 'WAITING TO LAND',
+                'landed-content': 'LANDED', 'orphan': 'DECISION', 'done-branch': 'WAITING TO LAND',
                 'split-branch': 'DECISION', 'w9999a-ledger': 'IN FLIGHT', 'fresh': 'IN FLIGHT', 'superseded': 'DECISION',
                 'stale-done': 'DECISION', 'resumed': 'DECISION',
                 'dirty-merged': 'DECISION', 'agent-live': 'IN FLIGHT', 'agent-dead': 'LANDED', '(detached) pin': 'DECISION',
@@ -2677,9 +2663,9 @@ def self_test() -> int:
         check([r['report']['path'] for r in printed['rows']] == ['w1a-PB4-report.md', 'w1a-PB3-report.md']
               and printed['landing_order'] == ['b3', 'b5'],
               f'--json prints each row with its report path as a string (kb/Work PB4055): {printed["rows"][:1]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 87 · 26 in flight · 7 waiting for review · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 86 · 26 in flight · 7 waiting for review · '
                                                       '14 waiting to land · 1 stopped · 2 enqueued · 0 not queued · '
-                                                      '0 bounced · 8 landed'),
+                                                      '0 bounced · 7 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
         r0 = dataclasses.replace(rows['orphan'], lock='')
@@ -2719,7 +2705,7 @@ def self_test() -> int:
         n = apply(list(rows.values()), repo=repo, abandon=['orphan', 'split-branch', 'fresh', 'dirty-merged'],
                   work_dir=notes, say=out.append)
         left = set(scratch.git('branch', '--format=%(refname:short)').split())
-        check(n == 8, f'--apply removed {n}, want 8 (6 LANDED + orphan + the origin-only ro-landed): {out}')
+        check(n == 7, f'--apply removed {n}, want 7 (5 LANDED + orphan + the origin-only ro-landed): {out}')
         # kb/Work PB3413: a branch of origin whose work is on main is deleted on origin, with no local branch to remove;
         # an unlanded one and one origin moved on past stay, and the merge queue's are no rows at all
         on_origin = set(git('ls-remote', '--heads', 'origin', cwd=repo).stdout.replace('refs/heads/', '').split()[1::2])
@@ -2769,7 +2755,7 @@ def self_test() -> int:
             scratch.git('branch', '-q', '-D', qn)
         check(not any('gh-readonly-queue' in name for name in rows),
               f'the merge queue\'s own branches are no one\'s work and get no row: {sorted(rows)}')
-        check(not {'merged', 'landed-content', 'agent-dead', 'orphan', 'carried', 'picked', 'key-landed'} & left, f'LANDED/abandoned branches remain: {sorted(left)}')
+        check(not {'merged', 'landed-content', 'agent-dead', 'orphan', 'carried', 'picked'} & left, f'LANDED/abandoned branches remain: {sorted(left)}')
         check('merged-own' in left and any('LANDED, kept: merged-own touched' in l for l in out),
               f'--apply keeps a LANDED branch touched inside --min-age, and says so (kb/Work PB3609): {out}')
         check({b for b, s in want.items() if s != 'LANDED' and b != 'orphan' and not b.startswith('(')

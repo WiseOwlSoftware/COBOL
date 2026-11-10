@@ -1,0 +1,13 @@
+{
+ "id": "repository-interface-2002",
+ "status": "active",
+ "description": "The REPOSITORY INTERFACE entry (ISO 12.3.8) - introduced 2002 (OO). Grammar-gated in repositoryEntry; below 2002 the W1.5 parse-layer mapping names the edition (0900).",
+ "display": "the REPOSITORY INTERFACE entry",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.8 (OO)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 606)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RIFQ1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    INTERFACE IFQX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nEND PROGRAM RIFQ1.\nIDENTIFICATION DIVISION.\nINTERFACE-ID. IFQX.\nPROCEDURE DIVISION.\nMETHOD-ID. SPEAK.\nPROCEDURE DIVISION.\nEND METHOD SPEAK.\nEND INTERFACE IFQX.\n"
+}

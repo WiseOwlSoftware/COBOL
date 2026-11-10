@@ -1,0 +1,13 @@
+{
+ "id": "call-on-overflow-removed-2023",
+ "description": "the CALL ... ON OVERFLOW phrase — the COBOL-74-carried synonym of ON EXCEPTION, valid 85–2014 and REMOVED at 2023 (Annex E.2 item 1c; use ON EXCEPTION). Folded from the inline COBOL0882 binder gate (P2.6b).",
+ "display": "CALL ON OVERFLOW",
+ "diagnosticCode": "COBOL0882",
+ "citation": "ISO 2023 Annex E.2 item 1c (removed 2023; use ON EXCEPTION); §1985:X.5.2.2 (CHANGED); §1985:X.5.2.4 GR3",
+ "introducedIn": 85,
+ "removedIn": 2023,
+ "vcr": "VCR row 3 / Annex E.2 item 1c (removed 2023)",
+ "status": "active",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCO.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"SUB\" ON OVERFLOW CONTINUE.\n    STOP RUN.\n",
+ "expectDiagnostic": "COBOL0882"
+}

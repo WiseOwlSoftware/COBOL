@@ -284,7 +284,7 @@ p5r = pw.plan(notes, CLUSTERS, HALF, rv_reports, lambda b: "UNLANDED", {}, RULES
 g5r = next((g for g in p5r["groups"] if "PB5" in g.notes), None)
 check("a FINDINGS stamp is a finisher whose pred names the findings file and the answer rule",
       (g5r.kind if g5r else None, bool(g5r) and all(s in g5r.pred for s in ("review-w1062-e.jsonl", "no_change_needed",
-                                                                              "merge_drivers.py merge worktree-wf_rv-1"))),
+                                                                              "git merge worktree-wf_rv-1"))),
       ("finisher", True))
 check("a CLEAN stamp awaits landing", p5r["awaiting_landing"].get("worktree-wf_rv-2"), ["PB7"])
 check("a placeholder Review line stamps nothing", parse_review("**Review:** stamped by the branch reviewer"), None)
@@ -648,12 +648,12 @@ check("every mode: an unseen lead's FINDINGS gets its finisher", any(g.notes == 
 for mode, pm in (("every mode", pn), ("drain", pd)):
     g79 = next((g for g in pm["groups"] if g.notes == ["PB79"]), None)
     check(f"{mode}: a carried unseen-lead FINDINGS gets its finisher, its pred naming the carrier (R1-2)",
-          bool(g79) and ("merge_drivers.py merge worktree-wf_dr-5" in g79.pred, "contained in worktree-wf_dr-2" in g79.pred,
+          bool(g79) and ("git merge worktree-wf_dr-5" in g79.pred, "contained in worktree-wf_dr-2" in g79.pred,
                          "never worktree-wf_dr-2" in g79.pred, "review_findings.py show E:/s/r79.jsonl" in g79.pred),
           (True, True, True, True))
 g5n = next((g for g in pn["groups"] if "PB5" in g.notes), None)
 check("every mode: a carried SPLIT's finisher merges its carrier, never cherry-picks it",
-      bool(g5n) and "merge_drivers.py merge worktree-wf_dr-2" in g5n.pred and "never cherry-pick worktree-wf_dr-1" in g5n.pred,
+      bool(g5n) and "git merge worktree-wf_dr-2" in g5n.pred and "never cherry-pick worktree-wf_dr-1" in g5n.pred,
       True)
 check("without --drain nothing waits on the drain", (pn["drain_not_started"], any("DRAIN" in g.pred for g in pn["groups"])),
       ([], False))
@@ -692,7 +692,7 @@ for successor, carried, want in (
                   (g77, ps["awaiting_landing"].get("worktree-wf_f-1")), ([], ["PB77"]))
         else:
             check(f"{mode}: the successor's own FINDINGS gets the next finisher (R1-1)",
-                  [("review-wf_f-1.jsonl" in g.pred, "merge_drivers.py merge worktree-wf_f-1" in g.pred) for g in g77], [(True, True)])
+                  [("review-wf_f-1.jsonl" in g.pred, "git merge worktree-wf_f-1" in g.pred) for g in g77], [(True, True)])
 
 # 6c. A NOTE AN UNREPORTED DISPATCH HOLDS IS NOT PLANNED AGAIN, IN EITHER LANE (kb/Work PB2806): the fix lane read no
 #     ledger, and wave 1044 re-planned seven of the eight groups another session's recorded, unlaunched wave 1045 held.
@@ -1254,6 +1254,17 @@ try:
 except SystemExit as e:  # the campaign clusters by fix_clusters.py's real index: a missing submodule is a FAIL, not a skip
     fc = None
     check("tools/claude-skills submodule present (git submodule update --init tools/claude-skills)", str(e), "")
+# A NOTE'S BODY IS ITS FILE AND ITS ADDENDA (kb/Work PB5110, review R1-1): the landing check's computed file set reads a
+# **Sites:** block that only an addendum carries, so a reopened note claims the files its reopening names
+ADD_REPO = TMP / "addenda-repo"
+(ADD_REPO / "kb" / "Work" / "PB9101").mkdir(parents=True)
+(ADD_REPO / "kb" / "Work" / "PB9101.md").write_text("---" + chr(10) + "id: PB9101" + chr(10) + "---" + chr(10) + "# PB9101" + chr(10),
+                                                    encoding="utf-8", newline=chr(10))
+(ADD_REPO / "kb" / "Work" / "PB9101" / "2026-11-11-reopen.md").write_text(
+    "**Sites:** `scripts/addendum_only.py`" + chr(10), encoding="utf-8", newline=chr(10))
+check("computed_file_set reads a note's addenda: a site named only in an addendum is claimed",
+      "scripts/addendum_only.py" in inb.computed_file_set(ADD_REPO, ["PB9101"], IndexPolicy(TMP / "no-cache-add", regenerate=False)).files,
+      True)
 if fc:
     cnotes = load_notes(CW, {"wrong_answer": 8})
     ctexts = {i: (CW / f"{i}.md").read_text(encoding="utf-8") for i in cnotes}
@@ -1578,6 +1589,12 @@ check("a group is bound by every campaign its notes belong to, one that holds th
 check("a member of a campaign whose lead note has no section is bound by nothing", bound[1], {})
 check("a note naming no campaign (no cluster, a scalar cluster, an unknown note) is bound by nothing",
       group_requirements([rg], {rg.notes[0]: "PB950"}, RQDIR) + group_requirements([rg], {}, RQDIR), [{}, {}])
+# Review R2-1: an owner requirement recorded as an ADDENDUM of a running campaign's lead note reaches the brief.
+(RQDIR / "PB953.md").write_text("# PB953\n\n## Standing requirements\n\n- Lead rule.\n", encoding="utf-8", newline="\n")
+(RQDIR / "PB953").mkdir()
+(RQDIR / "PB953" / "2026-11-12-owner.md").write_text("## Standing requirements\n\n- Owner addition.\n", encoding="utf-8", newline="\n")
+check("a requirement added in a lead note's addendum reaches the group (R2-1)",
+      group_requirements([rg], {rg.notes[0]: ["PB953"]}, RQDIR), [{"PB953": ["Lead rule.", "Owner addition."]}])
 check("a campaign lead naming no note file binds nothing", group_requirements([rg], {rg.notes[0]: ["PB999"]}, RQDIR), [{}])
 check("`always` (the campaign a --cluster wave runs) binds every group, before the notes' own, once",
       group_requirements([rg, rg_other], member_of, RQDIR, ["PB950"]),
@@ -1819,7 +1836,7 @@ check("fix lane: a group meeting only a FINISHED branch is planned as its contin
       (("PB5",) in FG, FG.get(("PB5",)) and FG[("PB5",)].after, FG.get(("PB5",)) and FG[("PB5",)].continues),
       (True, "", ["worktree-done"]))
 check("... its pred says merge that branch first and names the shared file",
-      all(t in FG[("PB5",)].pred for t in ("CONTINUATION", "merge_drivers.py merge", "worktree-done", "w1090c", F_BIND)), True)
+      all(t in FG[("PB5",)].pred for t in ("CONTINUATION", "git merge", "worktree-done", "w1090c", F_BIND)), True)
 # kb/Work PB4396: JOIN IN-FLIGHT WORK. Two groups on two files of ONE finished branch are one continuation of it, never
 # two branches behind it: the first takes the branch's claim, so the second meets it; the record reaches groups.json.
 fl2 = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9")], [], [], lambda b: "ABSENT", {}, RULES,
@@ -2233,6 +2250,13 @@ view = ready_notes_view("open", TMP / "fix-lane-view", FL)
 check("the fix lane reads the open harmed notes that wait on nothing: a landed blocker is no hold, an open one, an owner "
       "status and a chain are; a harmed analysis is in, an unharmed decision or analysis and a process_only defect are not",
       sorted(p.stem for p in view.iterdir()), ["PB801", "PB803", "PB808"])
+# the view's copy of a note carries its addenda, the one file fix_clusters.py reads (kb/Work PB5110, review R1-1)
+(FL / "PB801").mkdir()
+(FL / "PB801" / "2026-11-11-reopen.md").write_text("addendum-only paragraph" + NL, encoding="utf-8", newline="")
+check("a ready note's copy in the fix lane's view carries its addenda",
+      "addendum-only paragraph" in (ready_notes_view("open", TMP / "fix-lane-view-add", FL) / "PB801.md").read_text(encoding="utf-8"), True)
+(FL / "PB801" / "2026-11-11-reopen.md").unlink()
+(FL / "PB801").rmdir()
 # a ready process_only prerequisite of a harmed note joins the view with the harm it owes (kb/Work PB4769); one with no
 # harmed dependent stays hidden, and the register's own file is untouched
 PQ = TMP / "prereq-register"
@@ -2706,8 +2730,8 @@ check("(4) the scan fails on a planted copy of the old whole-text SITE_PATH and 
 
 # 12. THE PARTITION MEETS ON MEMBERS, AND AN EMPTY SET HOLDS NOTHING (kb/Work PB3670, the owner's top priority,
 #     2026-10-24, superseding PB3263's subsystem rule). Two claims meet on a file only when either holds it whole or a
-#     member of one matches a member of the other (scripts/arch/source_units.py); a file a merge driver merges by key
-#     never meets; an EMPTY set (no note declares a site block and no primary file was located, or a dispatch recorded
+#     member of one matches a member of the other (scripts/arch/source_units.py); no file is exempt (PB5110: one file per entry)
+#     so two entries never meet; an EMPTY set (no note declares a site block and no primary file was located, or a dispatch recorded
 #     with no files) meets nothing, in a wave and in flight alike, and the plan names it UNPARTITIONED. Wave w20261032's
 #     groups A (234 files) and B (222) held the owner-approved fuzz fixes PB3664 and PB3665 on files neither touched.
 def unsited(*ids):
@@ -2715,7 +2739,7 @@ def unsited(*ids):
 
 
 # AN UNSITED READY DEFECT IS A GROUP OF ITS OWN (kb/Work PB4566): fix_clusters lists a note whose sites resolve to no
-# indexed source file under `unsited`, and the planner read `clusters` alone, so PB3600 (sited on constructs.json) and
+# indexed source file under `unsited`, and the planner read `clusters` alone, so PB3600 (sited on the construct catalogue) and
 # PB3957 (reserved-words.json) were planned by no wave for two steered waves while the ledger counted them as groups.
 fu = fold_unsited({"clusters": [cl("src/X/Misc2.cs", "PB11")], "unsited": ["PB9"]}, notes)
 check("fold_unsited: the clusters stay first and each unsited note becomes a one-note group carrying its own harm, area "
@@ -2736,9 +2760,10 @@ check("collision: a whole file meets anything on it; different members never mee
        collision(C({"a.cs"}, {"a.cs": ["M"]}), C({"a.cs"}, {"a.cs": ["T.M", "T.N"]})),
        collision(C(set()), C({"a.cs"})), collision(C({"a.cs"}), C(set()))),
       ("a.cs", None, "a.cs#M", None, None))
-check("collision: a file a merge driver merges by key (the constructs catalogue, a work note) never meets",
-      collision(C({"tests/version-matrix/constructs.json", "kb/Work/PB9.md"}),
-                   C({"tests/version-matrix/constructs.json", "kb/Work/PB9.md"})), None)
+check("collision: no file is exempt (kb/Work PB5110): a note file both claim whole meets, where one file per entry "
+      "(a construct, an addendum) never does because two entries are two files",
+      (collision(C({"kb/Work/PB9.md"}), C({"kb/Work/PB9.md"})),
+       collision(C({"kb/Work/PB9/2026-11-10-a.md"}), C({"kb/Work/PB9/2026-11-10-b.md"}))), ("kb/Work/PB9.md", None))
 check("Claim union: a file stays whole when either side claims it whole; members unite otherwise",
       ((C({"a.cs"}, {"a.cs": ["M"]}) | C({"a.cs"}, {"a.cs": ["N"]})).member_lists(),
        (C({"a.cs"}, {"a.cs": ["M"]}) | C({"a.cs"})).member_lists()),
@@ -3102,7 +3127,7 @@ check("PB3746: the fix lane's group on the file the campaign branch holds joins 
 # the running slices never edited. A group is held by RUNNING work only where a member of one matches a member of the
 # other (inflight.hold); `collision` stays the rule of GROUPING and of joining a finished branch.
 check("hold: only a member of one that matches a member of the other holds; a shared file, a file either side claims "
-      "whole, two whole claims, an empty set and a merge-driver file hold nothing",
+      "whole, two whole claims, an empty set and a whole note file hold nothing",
       (hold(C({"a.cs"}, {"a.cs": ["T.M"]}), C({"a.cs"}, {"a.cs": ["T.M"]})),
        hold(C({"a.cs"}, {"a.cs": ["M"]}), C({"a.cs"}, {"a.cs": ["T.M", "T.N"]})),
        hold(C({"a.cs"}, {"a.cs": ["T.M"]}), C({"a.cs"}, {"a.cs": ["T.N"]})),
@@ -3110,7 +3135,7 @@ check("hold: only a member of one that matches a member of the other holds; a sh
        hold(C({"a.cs"}), C({"a.cs"}, {"a.cs": ["T.M"]})),
        hold(C({"a.cs"}), C({"a.cs"})),
        hold(C(set()), C({"a.cs"}, {"a.cs": ["T.M"]})),
-       hold(C({"tests/version-matrix/constructs.json"}, {"tests/version-matrix/constructs.json": ["T"]}), C({"tests/version-matrix/constructs.json"}, {"tests/version-matrix/constructs.json": ["T"]}))),
+       hold(C({"kb/Work/PB9.md"}), C({"kb/Work/PB9.md"}))),
       ("a.cs#T.M", "a.cs#M", None, None, None, None, None, None))
 check("hold: a whole file on one side does not hide a member that meets on another shared file; the first meeting by "
       "name is the label",

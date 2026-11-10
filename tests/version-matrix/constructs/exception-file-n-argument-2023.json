@@ -1,0 +1,12 @@
+{
+ "id": "exception-file-n-argument-2023",
+ "description": "FUNCTION EXCEPTION-FILE-N(file-connector-name) — the national twin of EXCEPTION-FILE's optional file-connector-name argument (ISO §2023:15.29.4 r2), a COBOL-2023 addition (Annex E.3.3 item 26). Same connector-status semantics in the national repertoire. The no-argument base form is 2002; the argument form is gated below 2023.",
+ "display": "FUNCTION EXCEPTION-FILE-N(file-connector-name)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:15.29.3 / §2023:15.29.4 r2; Annex E.3.3 item 26",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 69 (EXCEPTION-FILE-N argument form — 2023 introduction)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. EXCFAN.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"excfan.txt\".\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(5).\n       WORKING-STORAGE SECTION.\n       01 W PIC N(20).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE FUNCTION EXCEPTION-FILE-N(F) TO W.\n           DISPLAY W.\n           STOP RUN.\n"
+}

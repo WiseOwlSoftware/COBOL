@@ -1,0 +1,12 @@
+{
+ "id": "locale-functions-2002",
+ "description": "FUNCTION LOCALE-COMPARE (ISO 15.51), LOCALE-DATE (15.52) and LOCALE-TIME (15.53) - the locale-based comparison returning '<' / '=' / '>' (15.51.4 r5/r6) over the named locale's (else the current LC_COLLATE's) cultural ordering, and the culturally formatted date and time per the locale's d_fmt / t_fmt (15.52.4 r2, 15.53.4 r2; DETERMINATION L10: the culture's short date / long time patterns). LIVE (kb/Work PB64 T4): CobolLocale.Compare / Date / Time over the ONE LocaleCollation carrier and LocaleFacts; the optional locale-name-1 is a SPECIAL-NAMES LOCALE clause's name (COBOL1664 otherwise). Below 2002 the D8 catalog window rejects by name+edition (COBOL1502) - the window is enforced now that the rows' Bind is Runtime (it was suppressed while they were Unsupported). The 2002 edge is the provisional window the catalog inherited (Annex E covers 2014-2023 only; kb/Work R28).",
+ "display": "FUNCTION LOCALE-COMPARE / LOCALE-DATE / LOCALE-TIME",
+ "diagnosticCode": "COBOL1502",
+ "citation": "ISO §2023:15.51 LOCALE-COMPARE; §2023:15.52 LOCALE-DATE; §2023:15.53 LOCALE-TIME; Annex A.4.9 items 2-4 (support IS now claimed); provisional 2002 edge",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL1502",
+ "vcr": "2002 introduction (the locale facility's functions; the edge is the provisional catalog window — the 2023 text proves only presence in 2014, Annex E lists no locale delta)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T4F.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE FR IS \"fr-FR\".\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 R PIC X.\n01 S PIC X(20).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION LOCALE-COMPARE(\"a\" \"b\" FR) TO R.\n    MOVE FUNCTION LOCALE-DATE(\"20260819\") TO S.\n    MOVE FUNCTION LOCALE-TIME(\"130509\" FR) TO S.\n    STOP RUN.\n"
+}

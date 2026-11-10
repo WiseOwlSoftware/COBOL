@@ -1,0 +1,13 @@
+{
+ "id": "usage-float-binary32-2014",
+ "status": "active",
+ "description": "USAGE FLOAT-BINARY-32 (ISO/IEC 60559:2020 binary32, §2023:13.18.60.4 GR14) — a COBOL-2014 introduction. LIVE (P12 wave 3): the pinned IEEE interchange format maps EXACTLY to native float. Compiles at 2014+, COBOL0900 below.",
+ "display": "USAGE FLOAT-BINARY-32",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.60.4 GR14 (USAGE clause; ISO/IEC 60559:2020 binary32)",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2014 introduction (§2023:13.18.60.4 GR14 FLOAT-BINARY-32 = IEEE binary32); reserved-word row FLOAT-BINARY-32 (added 2014)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FB.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-BINARY-32.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

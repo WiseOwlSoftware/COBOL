@@ -91,7 +91,7 @@ source.cob
 
 **Edition conformance is a single dedicated pass** (`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
 Edition gating is ONE mechanism: the grammar declares construct *identity* (a committed-match annotation local to each
-version-gated rule; version *numbers* live only in `constructs.json`), the binder is edition-agnostic (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1), and the
+version-gated rule; version *numbers* live only in `constructs/`), the binder is edition-agnostic (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1), and the
 `VersionConformancePass` over the bound tree is the sole gate — rejecting strict / accepting-inert permissive, and
 HALTING before emit so codegen never runs on an errored tree. Construct introduction is gated there, post-bind, but parser-grammar
 predicates still read the compile edition, under several names. **The sanctioned read is §2023:8.9 WORD STATUS** — whether a

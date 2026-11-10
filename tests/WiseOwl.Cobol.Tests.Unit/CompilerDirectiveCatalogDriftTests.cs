@@ -19,7 +19,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <c>--std 85</c>, an edition that has no compiler directives at all, while their siblings from the same
 /// Annex E.2 item 5 list drew COBOL0900. A name set cannot be wrong about an edition it does not record, and
 /// nothing could have failed. Now the roster IS the <c>directiveWords</c> column of
-/// <c>tests/version-matrix/constructs.json</c>, and <see cref="Roster_Matches_TheSpecSection"/> re-derives it
+/// <c>tests/version-matrix/constructs/</c>, and <see cref="Roster_Matches_TheSpecSection"/> re-derives it
 /// from §2023:7.3 itself, so a directive added to the standard's clause list without a row is a red test rather than
 /// a silent under-rejection.</para>
 /// </summary>
@@ -68,7 +68,7 @@ public sealed class CompilerDirectiveCatalogDriftTests
 
         var missing = spec.Keys.Where(w => !catalog.Contains(w)).Order(StringComparer.Ordinal).ToList();
         Assert.True(missing.Count == 0,
-            $"ISO §2023:7.3 defines {spec.Count} directives; these have NO constructs.json row and are therefore "
+            $"ISO §2023:7.3 defines {spec.Count} directives; these have NO the construct catalogue row and are therefore "
             + $"ungated at every edition: [{string.Join(", ", missing)}] — add a row with directiveWords and "
             + "re-run scripts/gen-constructs.ps1");
 

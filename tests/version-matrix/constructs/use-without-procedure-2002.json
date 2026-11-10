@@ -1,0 +1,12 @@
+{
+ "id": "use-without-procedure-2002",
+ "description": "A USE AFTER STANDARD EXCEPTION/ERROR statement without the word PROCEDURE — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 141: \"USE statement syntax. The word PROCEDURE, previously required, is optional.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, VersionConformancePass.ParseArm.VisitUseStatement, the Format 1 arm (kb/Work PB4305; VCR row 7.47).",
+ "display": "a USE AFTER STANDARD EXCEPTION/ERROR statement without the word PROCEDURE",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.49.2; ISO/IEC 1989:2002 Annex F.2 item 141",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 141)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMUNP.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"VMUNP\".\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nDECLARATIVES.\nD1 SECTION.\n    USE AFTER STANDARD ERROR ON F.\nD1-P.\n    DISPLAY \"ERR\".\nEND DECLARATIVES.\nMAIN SECTION.\nM1.\n    STOP RUN.\n"
+}

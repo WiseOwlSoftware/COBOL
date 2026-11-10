@@ -1,0 +1,13 @@
+{
+ "id": "initialize-category-2014",
+ "description": "The COBOL-2014 INITIALIZE category-name FUNCTION-POINTER (ISO 14.9.20.2) - the one of the printed thirteen that entered with the 2014 USAGE FUNCTION-POINTER category, and that ISO 8.9 reserves from 2014. Same parse-arm gate as initialize-category-2002. kb/Work PB415.",
+ "display": "INITIALIZE FUNCTION-POINTER",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.20.2 (category-name) / §2023:8.9 (reserved from 2014); §2023:14.9.20.3 SR3",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "status": "active",
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2014 introduction (the USAGE FUNCTION-POINTER category; usage-function-pointer-2014 is its twin)",
+ "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. RWIF14D.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-ARG PIC 9(9).\n01 L-RES PIC 9(9).\nPROCEDURE DIVISION USING L-ARG RETURNING L-RES.\nF-MAIN.\n    COMPUTE L-RES = L-ARG * 2\n    GOBACK.\nEND FUNCTION RWIF14D.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. RWICAT14.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION RWIF14D.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FP USAGE FUNCTION-POINTER TO RWIF14D.\n01 FQ USAGE FUNCTION-POINTER TO RWIF14D.\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE FP REPLACING FUNCTION-POINTER DATA BY FQ.\n    STOP RUN.\nEND PROGRAM RWICAT14.\n"
+}

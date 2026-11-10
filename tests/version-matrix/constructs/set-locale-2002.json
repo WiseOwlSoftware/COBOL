@@ -1,0 +1,12 @@
+{
+ "id": "set-locale-2002",
+ "description": "SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME}... | USER-DEFAULT TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}, ISO 14.9.39.2 Format 11 (set-locale) - introduced 2002 with the locale facility (Annex A.4.9 item 9; kb/Work PB64 T1). The category brace carries choice indicators (one or more, each at most once, any order - 5.2.6.4). Parse-arm gated on recognition (VisitSetLocaleStatement): the LC_ shape has no COBOL-85 reading (the underscore is not an '85 word character), so it is recognized at every edition; the USER-DEFAULT-first shape keeps its '85 Format-1 reading below 2002.",
+ "display": "SET LOCALE (set-locale, Format 11)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39.2 Format 11; §2023:14.9.39.3 SR25-SR27; §2023:14.9.39.4 GR21-GR25",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the locale facility; kb/Work PB64 T1 - SET LOCALE over the run unit's LocaleState)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64SL.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE FR IS \"fr-FR\".\nPROCEDURE DIVISION.\nMAIN.\n    SET LOCALE LC_COLLATE TO FR.\n    STOP RUN.\n"
+}

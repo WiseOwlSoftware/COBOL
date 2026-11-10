@@ -1,0 +1,12 @@
+{
+ "id": "options-entry-convention-2014",
+ "description": "The COBOL alternative of the ENTRY-CONVENTION clause of the OPTIONS paragraph (ISO §2023:11.9.7.2 format ENTRY-CONVENTION IS { COBOL | entry-convention-name-1 }; §2023:11.9.7.4 GR2: when COBOL is specified, the naming convention and mapping of method-names and program-names are as specified in 8.3.2.2) — a COBOL-2014 addition: the 2014 FCD format adds the COBOL alternative (t2014.txt:13144-13146, GR2 at 13166), while ISO/IEC 1989:2002 has the clause with only ENTRY-CONVENTION IS entry-convention-name-1 (11.8.5, t2002.txt:10984). The clause itself, with an entry-convention-name, is a 2002 clause: it draws no edition diagnostic at 2002 (WiseOwl defines no entry-convention-name, so COBOL2385 refuses it by name, §2023:11.9.7.4 GR3) (kb/Work PB4611)",
+ "display": "OPTIONS ENTRY-CONVENTION IS COBOL",
+ "diagnosticCode": "COBOL0900",
+ "expectDiagnostic": "COBOL0900",
+ "citation": "ISO §2023:11.9.7.2; §2023:11.9.7.4 GR2",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "vcr": "VCR row 7.50 (the COBOL alternative of ENTRY-CONVENTION - 2014 introduction)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OECP10AS.\nOPTIONS.\n    ENTRY-CONVENTION IS COBOL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+}

@@ -1,0 +1,13 @@
+{
+ "id": "seconds-past-midnight-2014",
+ "status": "active",
+ "description": "FUNCTION SECONDS-PAST-MIDNIGHT (ISO 15.80) - the current local time as seconds past midnight in standard numeric time form (type NUMERIC, fractional seconds; documented 100 ns precision, scale 7, Annex A.1 item 171) on the injectable RunUnit.Clock seam. A 2014 INTRODUCTION, not 2002: the WG4 CD 1.2 (2009) Annex D.2 item 4 lists it among 'the intrinsic functions ... introduced in this committee draft International Standard' (kb/Work R28, decided 2026-08-08 from the archived primary document). Split out of the date-to-yyyymmdd-2002 row, whose other three functions are genuinely 2002.",
+ "display": "FUNCTION SECONDS-PAST-MIDNIGHT",
+ "diagnosticCode": "COBOL1502",
+ "citation": "ISO §2023:15.80 SECONDS-PAST-MIDNIGHT; 2014 introduction per the WG4 CD 1.2 Annex D.2 item 4 new-function list; §2023:15.80.3 r3 documented precision 100 ns (A.1 item 171)",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL1502",
+ "vcr": "kb/Work R28 (2026-08-08): 2014 per the WG4 CD 1.2 Annex D.2 new-function list; previously mis-bundled with the 2002 windowing trio.",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSPM.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 SPM PIC 9(5)V9(7).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE SPM = FUNCTION SECONDS-PAST-MIDNIGHT\n    DISPLAY \"OK\"\n    STOP RUN.\n"
+}

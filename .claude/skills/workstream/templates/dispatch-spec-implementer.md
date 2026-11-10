@@ -17,7 +17,7 @@ Scratch:  {S}\{slug}\   (YOURS ALONE, MANDATORY-PRACTICES P16, kb/Work PB4466: c
 your worktree ONLY there, never in the session scratchpad your environment notes name, which every agent of the session shares and where two agents' `callers.py` collided, and never in the bare wave scratch)
 Report your ACTUAL branch (`git branch --show-current`).
 {pred}
-THE GROUP IS ONE ROOT: {root}. Your contract is each note's `kb/Work/<id>.md` on your tree — {files} — read whole, with the notes they
+THE GROUP IS ONE ROOT: {root}. Your contract is each note's `kb/Work/<id>.md` on your tree — {files} — read whole, each with its addenda `kb/Work/<id>/*.md` when that directory exists, with the notes they
 link: they carry the forensic detail, the citations, the probes and the CODE SITES. ⛔ ORIENT IN ONE CALL, BEFORE READING ANY SOURCE FILE: `python
 tools/claude-skills/skills/agent-fleet/references/orient.py <every source file your notes name>` (a fresh worktree
 has no submodules: if that path is missing, run `git submodule update --init tools/claude-skills` once; the project

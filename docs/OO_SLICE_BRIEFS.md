@@ -977,7 +977,7 @@ sync. Compile/test after every step (feedback_tiered_gates); one failing test at
 > prototypes all share one signature machinery). All three are MANDATORY for a conforming 2023 implementation
 > (§2023:A.4.10 :40408-40414 — only the two INHERITS repetitions and parametric polymorphism are optional).
 > Everything below is 2002-introduced surface: every new grammar rule is `{is2002()}?`-gated with a paired
-> ConstructRegistry row (G1 dual obligation), and `tests/version-matrix/constructs.json` must gain the same
+> ConstructRegistry row (G1 dual obligation), and `tests/version-matrix/constructs/` must gain the same
 > rows in the same commit (ConstructRegistryDriftTests asserts registry↔json equality BOTH directions —
 > `src/WiseOwl.Cobol.Compiler/Validation/ConstructDialectStatus.cs:20-25`).
 
@@ -1271,7 +1271,7 @@ deferred like the CLASS entry's).
    FINAL/OVERRIDE attributes now that they parse (D7 mapping table, deep-dive :109-115).
 5. `CodeGen/CSharpEmitter.Call.cs` — `CallCollectUnits` (:163-188) also collects
    `group.interfaceDefinition()`; `CallEmitRunUnit` emits interfaces before classes (:140).
-6. `Validation/EditionValidator.cs` + `ConstructDialectStatus.cs` + `tests/version-matrix/constructs.json` —
+6. `Validation/EditionValidator.cs` + `ConstructDialectStatus.cs` + `tests/version-matrix/constructs/` —
    rows (all `IntroducedIn: 2002, EditionCodes.Introduction`): `interface-id-2002` (§2023:11.6), `implements-2002`
    (§2023:11.8/§2023:11.4), `property-clause-2002` (§2023:13.18.42), `method-property-selector-2002` (§2023:11.7),
    `method-override-final-2002` (§2023:11.7), `repository-interface-2002`, `repository-property-2002` (§2023:12.3.8).
@@ -1311,7 +1311,7 @@ one per diagnostic): the **PIC 9(4)-vs-9(8) implements case (0837)** — THE cas
 WITH NO SET write → 0839; GET with USING → 0838; get/set description mismatch → 0838; property on OCCURS →
 0838; superclass property-name collision → 0838; property overridden in a subclass dispatches virtually
 (the trap-#1/#2 analog for accessors); duplicate/cyclic interface → 0836; prototype with a WS section → 0836.
-Version-matrix negatives: every new construct at `--std 85` → its 0900 diagnostic (constructs.json rows in
+Version-matrix negatives: every new construct at `--std 85` → its 0900 diagnostic (the construct catalogue rows in
 the same commit — the drift test enforces this). Full battery + `scripts/guard.sh` green before each commit;
 DEVLOG + deep-dive updates (new D-sections for D-I1/D-I2/D-P1/D-P2, the pinned accessor-name choice, and
 flipping the two open-questions bullets at deep-dive :375-376 to SETTLED) ship in the same change set.

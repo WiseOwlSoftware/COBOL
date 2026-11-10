@@ -1,0 +1,22 @@
+{
+ "id": "flag-85-directive-window",
+ "description": "The >>FLAG-85 migration-flagging directive - a compiler-directive WINDOW: introduced with the §2023:7.3 facility in COBOL-2002, classified obsolete by the 2014 standard and REMOVED in COBOL-2023. Annex E.2 item 21 ('Obsolete elements') is the removal record: 'The following features that were classified as obsolete in the previous COBOL standard, have been removed from this Working Draft International Standard: - FLAG-85 - FLAG-NATIVE-ARITHMETIC - Standard Arithmetic - ...', which fixes removedIn=2023 and, by 'classified as obsolete in the previous COBOL standard', obsoleteIn=2014. The 2023 text therefore carries NO general format for this directive and its OPERAND SYNTAX IS NOT DERIVABLE IN-REPO; the row gates the directive WORD, which is what the removal record supports. The introducedIn edge rides the same M2-catalog derivation as its sibling arithmetic-standard-2002 (Annex E.2 item 21's other leg; VCR row 28). Below 2002 the word is COBOL0900, at 2023 COBOL0902, at 2014 the COBOL0903 obsolete warning.",
+ "display": ">>FLAG-85 directive",
+ "diagnosticCode": "COBOL0902",
+ "citation": "Annex E.2 item 21 (removed in 2023, classified obsolete by the previous standard); the §2023:7.3 compiler-directive facility is a COBOL-2002 introduction (M2 catalog derivation, VCR Table 7 discipline)",
+ "directiveWords": [
+  "FLAG-85"
+ ],
+ "directiveOperand": {
+  "form": "text",
+  "operandRequired": false,
+  "citation": "Annex E.2 item 21 removed this directive in 2023, so the 2023 text carries no clause and its operand syntax is NOT derivable in-repo: the row gates the WORD, which is what the removal record supports. Content unchecked by decision, not by omission."
+ },
+ "introducedIn": 2002,
+ "removedIn": 2023,
+ "obsoleteIn": 2014,
+ "expectDiagnostic": "COBOL0902",
+ "expectDiagnosticBelow": "COBOL0900",
+ "vcr": "VCR row 28 (Annex E.2 item 21 removal) + the §2023:7.3 facility's 2002 introduction",
+ "source": "       >>FLAG-85 ALL ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725F8.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n"
+}

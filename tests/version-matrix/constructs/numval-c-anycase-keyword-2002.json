@@ -1,0 +1,12 @@
+{
+ "id": "numval-c-anycase-keyword-2002",
+ "description": "The ANYCASE keyword of FUNCTION NUMVAL-C / TEST-NUMVAL-C (argument-1 [argument-2 | LOCALE [locale-name-1]] [ANYCASE]), ISO 15.68.2 / 15.94.2 - introduced 2002 (kb/Work PB4359): the printed 2002 formats (15.55 / 15.76 of ISO/IEC 1989:2002) already carry [ ANYCASE ], 15.68.3 r4f folds the currency-string match, and ANYCASE is a reserved word only from 2002 (reserved-words.json r85 false), so below 2002 it is an ordinary user-defined word and the keyword is refused by edition. ONE row covers both functions - 15.94.3 r1 imports 15.68.3 whole; TEST-NUMVAL-C is itself a 2002 function (its own COBOL1502 gate answers first below 2002). FIND-STRING and SUBSTITUTE carry ANYCASE too but are 2023 functions whose catalog gate covers the keyword. Gated in the binder (BindNumvalCFamily) like numval-c-locale-phrase-2002.",
+ "display": "the ANYCASE keyword of NUMVAL-C / TEST-NUMVAL-C",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:15.68.2 / §2023:15.94.2 (the ANYCASE keyword); §2023:15.68.3 r4f",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (ANYCASE reserved from 2002; printed in the 2002 NUMVAL-C format; kb/Work PB4359)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB4359NA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC S9(7)V99.\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N = FUNCTION NUMVAL-C(\"$1,234.56\" ANYCASE).\n    STOP RUN.\n"
+}

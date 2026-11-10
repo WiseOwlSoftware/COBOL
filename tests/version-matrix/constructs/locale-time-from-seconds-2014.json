@@ -1,0 +1,12 @@
+{
+ "id": "locale-time-from-seconds-2014",
+ "description": "FUNCTION LOCALE-TIME-FROM-SECONDS (ISO 15.54) - seconds past midnight in standard numeric time form (15.54.3 r1; the 7.3.17 range) formatted per the named locale's (else the current LC_TIME's) t_fmt (15.54.4 r2), a scaled argument carrying its fraction (Annex D.31.4.5's nanosecond note). LIVE (kb/Work PB64 T4): CobolLocale.TimeFromSeconds. Introduced 2014 per the catalog's provisional window (kb/Work R28 - WG4 CD 1.2 Annex D.2); below 2014 the D8 window rejects by name+edition (COBOL1502).",
+ "display": "FUNCTION LOCALE-TIME-FROM-SECONDS",
+ "diagnosticCode": "COBOL1502",
+ "citation": "ISO §2023:15.54 LOCALE-TIME-FROM-SECONDS; Annex A.4.9 item 5; provisional 2014 edge",
+ "introducedIn": 2014,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL1502",
+ "vcr": "2014 introduction (kb/Work R28 - WG4 CD 1.2 Annex D.2; provisional under ratified decision #1)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64T4TS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 S PIC X(20).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION LOCALE-TIME-FROM-SECONDS(47109) TO S.\n    STOP RUN.\n"
+}

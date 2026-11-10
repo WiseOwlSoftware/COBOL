@@ -364,7 +364,7 @@ def conflict_brief(branch: str, worktree: str, files: list[str], *, git: Git, re
            "CONFLICT finisher, who gets it verbatim (units/enqueue.md step 4).",
            f"Bringing {label} ({main_sha[:12] or 'unreadable'}) into {branch} ({tip[:12] or 'unreadable'}, merge "
            f"base {base[:12] or 'unreadable'}) leaves {len(files)} file(s) in conflict: {', '.join(files) or 'none'}.",
-           f"Merge with `python scripts/merge_drivers.py merge {against if against == MAIN else main_sha or against} --keep` and "
+           f"Merge with `git merge {against if against == MAIN else main_sha or against}` and "
            f"resolve each file against BOTH sides' intent: this branch's notes and report, and what {who} gained on the "
            "file, with its notes and reports (finisher-brief.md, CONFLICT). Never take one side wholesale."
            + ("" if against == MAIN else
@@ -433,15 +433,15 @@ def write_conflict_brief(cdir: pathlib.Path, a: dict[str, Any], git: Git | None 
     """Write the brief of a CONFLICT attempt `a` beside the attempt records and return the fields that name it on the
     attempt: `brief` (its path) and `brief_main` (the origin/main it was computed against, so `conflict-brief` serves it
     only while main is still that commit). Its files are the ones the verdict names (verdict_line.outcome_files), or,
-    when the verdict line is unreadable (a log not in UTF-8), the ones the drivers' dry run leaves in conflict against
-    origin/main (merge_drivers.merge_conflicts)."""
-    import merge_drivers  # noqa: PLC0415  (scripts/: the one dry-run merge)
+    when the verdict line is unreadable (a log not in UTF-8), the ones git's dry run leaves in conflict against
+    origin/main (git_merge.merge_conflicts)."""
+    import git_merge  # noqa: PLC0415  (scripts/: the one dry-run merge)
     from reports import load_reports  # noqa: PLC0415  (the one report order, with the dispatch ledger's notes)
     import prune_worktrees  # noqa: PLC0415
     git = git or prune_worktrees.git
     reports = load_reports(coord.reports_dir(str(cdir)), cdir)
     main_sha = main_of(a["worktree"], git)
-    files = verdict_line.outcome_files(a.get("verdict")) or merge_drivers.merge_conflicts(a["worktree"], MAIN) or []
+    files = verdict_line.outcome_files(a.get("verdict")) or git_merge.merge_conflicts(a["worktree"], MAIN) or []
     text = conflict_brief(a["branch"], a["worktree"], files, git=git, reports=reports)
     path = brief_path(cdir, a)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -452,11 +452,11 @@ def write_conflict_brief(cdir: pathlib.Path, a: dict[str, Any], git: Git | None 
 def show_conflict_brief(cdir: pathlib.Path, branch: str, git: Git | None = None, say: Say = print) -> int:
     """`conflict-brief <branch>`: the recorded brief of the branch's latest attempt when it stopped CONFLICT, the branch
     is still at that attempt's end head and origin/main is still the commit the brief was computed against
-    (`brief_main`); otherwise a brief computed now against origin/main through the merge drivers
-    (merge_drivers.merge_conflicts: a pull request the queue BOUNCED as DIRTY, a branch that moved, or a main that
+    (`brief_main`); otherwise a brief computed now against origin/main
+    (git_merge.merge_conflicts: a pull request the queue BOUNCED as DIRTY, a branch that moved, or a main that
     moved), its worktree from the latest attempt or the last survey. Exit 0 with the brief, 1 when there is nothing to
     brief (no worktree, or nothing conflicts)."""
-    import merge_drivers  # noqa: PLC0415  (scripts/: the one dry-run merge)
+    import git_merge  # noqa: PLC0415  (scripts/: the one dry-run merge)
     from reports import load_reports  # noqa: PLC0415  (the one report order, with the dispatch ledger's notes)
     import prune_worktrees  # noqa: PLC0415
     git = git or prune_worktrees.git
@@ -476,7 +476,7 @@ def show_conflict_brief(cdir: pathlib.Path, branch: str, git: Git | None = None,
             and last.get("brief_main") and last.get("brief_main") == main_of(wt, git)):
         say(recorded.read_text(encoding="utf-8").rstrip())
         return 0
-    files = merge_drivers.merge_conflicts(wt, against)
+    files = git_merge.merge_conflicts(wt, against)
     if not files:
         say(f"land lane: {branch}: " + (f"git could not merge-tree it against {label}" if files is None else
                                         f"merging {label} leaves nothing in conflict now: nothing to brief"))
@@ -2508,7 +2508,7 @@ def self_test() -> int:
         # 17. THE CONFLICT BRIEF (kb/Work PB3640): main and the branch both edit scripts/x.py since their merge base;
         #     main also adds a file the branch never touches. The brief names the conflicted file, main's commit on it
         #     (and not the other file), the notes on both sides with their status and newest report.
-        import merge_drivers  # noqa: PLC0415
+        import git_merge  # noqa: PLC0415
         from reports import Report  # noqa: PLC0415
         cbr = ScratchRepo.init(root / "wt-brief")
         fixture_git = lambda *args, cwd=None: cbr.run(*args, cwd=cwd)   # noqa: E731  (the self-test's git: the fixture)
@@ -2526,9 +2526,9 @@ def self_test() -> int:
                                   False, "fix-main", None, "aaaa"),
                          Report(pathlib.Path("w9b-PB9002-report.md"), 9, "w9b", "PB9002", "DONE", ["PB9002"],
                                   False, "wbrief", str(cbr.path), "bbbb")]
-        expect("conflict brief: the drivers' dry run names the file both sides edited, not the one only main added",
-               merge_drivers.merge_conflicts(cbr.path, MAIN) == ["scripts/x.py"],
-               str(merge_drivers.merge_conflicts(cbr.path, MAIN)))
+        expect("conflict brief: git's dry run names the file both sides edited, not the one only main added",
+               git_merge.merge_conflicts(cbr.path, MAIN) == ["scripts/x.py"],
+               str(git_merge.merge_conflicts(cbr.path, MAIN)))
         brief_calls: list[tuple[str, ...]] = []
 
         def counting_git(*args: str, cwd: str | None = None) -> Any:
@@ -2615,24 +2615,6 @@ def self_test() -> int:
         expect("conflict brief: nothing to brief once origin/main merges clean (exit 1, said)",
                show_conflict_brief(c17b, "wdirty", fixture_git, clean_out.append) == 1
                and "nothing to brief" in "".join(clean_out), str(clean_out))
-        # ... and a keyed catalogue whose merge driver DECLINES (one entry both sides changed differently) is a real
-        #     conflict the brief names (PB3640 review R1-1: dropping every driver-covered file read it as nothing).
-        keyed = lambda v: '{\n "constructs": [\n  {\n   "id": "a",\n   "refuse-at": "' + v + '"\n  }\n ]\n}\n'   # noqa: E731
-        diag = "tests/version-matrix/constructs.json"   # a file the registry covers (merge_drivers.covered_by_driver)
-        cbr.commit("WIP checkpoint: PB9002 a keyed file", {".gitattributes": f"{diag} merge=cobol-keyed-constructs\n",
-                                                           diag: keyed("85")})
-        cbr.git("update-ref", MAIN, "HEAD")
-        keyed_base = cbr.git("rev-parse", "HEAD")
-        cbr.commit("WIP checkpoint: PB9001 main's entry a", {diag: keyed("2002")})
-        cbr.git("update-ref", MAIN, "HEAD")
-        cbr.git("reset", "-q", "--hard", keyed_base)
-        cbr.commit("WIP checkpoint: PB9002 the branch's entry a", {diag: keyed("2014")})
-        declined_out: list[str] = []
-        expect("conflict brief: a keyed file the driver declines is named (exit 0), never `nothing to brief`",
-               merge_drivers.covered_by_driver(diag)
-               and show_conflict_brief(c17b, "wdirty", fixture_git, declined_out.append) == 0
-               and f"leaves 1 file(s) in conflict: {diag}" in "".join(declined_out), str(declined_out))
-
         # ... and a QUEUED pull request whose head conflicts with an entry queued ahead of it (the survey's `foreseen`,
         #     kb/Work PB3723): origin/main merges clean, the entry ahead does not, so the brief is against that entry's
         #     head, saying it is queued ahead and how its head is brought in
@@ -2652,7 +2634,7 @@ def self_test() -> int:
                "head, not origin/main (which merges clean): the file, the entry's name, and the merge command for its head",
                show_conflict_brief(c17c, "wq", lambda *a, cwd=None: qbr.run(*a, cwd=cwd), foreseen_out.append) == 0
                and "Bringing wahead" in "".join(foreseen_out) and "leaves 1 file(s) in conflict: scripts/q.py" in "".join(foreseen_out)
-               and f"merge_drivers.py merge {ahead_head} --keep" in "".join(foreseen_out)
+               and f"`git merge {ahead_head}`" in "".join(foreseen_out) and "--keep" not in "".join(foreseen_out)
                and "QUEUED ahead of this one" in "".join(foreseen_out) and "the entry queued ahead" in "".join(foreseen_out),
                "".join(foreseen_out))
 
@@ -2664,7 +2646,7 @@ def self_test() -> int:
         remove_tree(root)
 
     # 14. THE SHAPE OF THIS FILE'S OWN CODE (kb/Work PB3310, PB3640 review R1-1 and R1-3, PB3714, PB5109): exit 13 is a
-    #     wait, no shared file is one, and the conflict brief foresees the merge through the drivers and reads the outcome through
+    #     wait, no shared file is one, and the conflict brief foresees the merge with git's dry run and reads the outcome through
     #     the verdict line's one home. Read from this file's code outside this self-test, which spells what it forbids.
     source = pathlib.Path(__file__).read_text(encoding="utf-8").replace("\r\n", "\n")
     at = source.index("\ndef self_test(")
@@ -2672,9 +2654,9 @@ def self_test() -> int:
     expect("shape: a second land (exit 13) is a WAIT answered by its own reader, and no wait is a shared file (owner, "
            "kb/Work PB5109)",
            EXIT_LAND_BUSY in WAITS and "if rc == EXIT_LAND_BUSY:" in code and "driver_file" not in code and 16 not in WAITS)
-    expect("shape: the conflict brief foresees the merge with merge_drivers.merge_conflicts and reads the outcome with "
+    expect("shape: the conflict brief foresees the merge with git_merge.merge_conflicts and reads the outcome with "
            "verdict_line.outcome_files, never a merge-tree or a CONFLICT parse of its own",
-           "merge_drivers.merge_conflicts(" in code and "verdict_line.outcome_files(" in code
+           "git_merge.merge_conflicts(" in code and "verdict_line.outcome_files(" in code
            and '"merge' + '-tree"' not in code and "CONFLICT" + " in " not in code)
     print(f"=== land_lane.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0

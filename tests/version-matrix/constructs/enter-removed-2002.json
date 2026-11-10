@@ -1,0 +1,12 @@
+{
+ "id": "enter-removed-2002",
+ "description": "ENTER statement (X3.23-1985 Nucleus: ENTER language-name [routine-name]) - other-language entry, comment-equivalent when only COBOL is supported (bound BoundNop at 85; the operands are SYSTEM-names, deliberately not cobolWord - ENTER COBOL is conforming '85 source and COBOL is an '85 reserved word); deleted by ISO 2002.",
+ "display": "the ENTER statement",
+ "diagnosticCode": "COBOL0902",
+ "citation": "obsolete '85 other-language entry deleted by ISO 2002 (§2023:8.9 absence); comment-equivalent at 85; VCR Table 7 row 7.16",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0902",
+ "vcr": "VCR Table 7 row 7.16; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEN1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    ENTER LINKAGE.\n    DISPLAY W.\n    ENTER COBOL.\n    STOP RUN.\n"
+}

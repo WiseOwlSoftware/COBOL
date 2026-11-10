@@ -1,0 +1,13 @@
+{
+ "id": "externalized-name-as-2002",
+ "status": "active",
+ "description": "The AS externalized-name phrase — `[ AS literal-1 ]` on PROGRAM-ID (§2023:11.10.2 Formats 1 and 2), FUNCTION-ID (§2023:11.5.2 Formats 1 and 2), CLASS-ID (§2023:11.3.2), INTERFACE-ID (§2023:11.6.2), METHOD-ID (§2023:11.7.2) and the EXTERNAL clause (§2023:13.18.22.2, on a data description entry and on a file description entry alike — kb/Work PB511). §2023:8.3.2.2 2) gives it its meaning: the literal is the name externalized to the operating environment. X3.23-1985 has NO such phrase anywhere and AS is user-definable there (the user-word-as-2002 twin), so the whole phrase is a 2002 introduction. ONE grammar rule (externalizedNamePhrase) and ONE gate (VersionConformancePass ParseArm.VisitExternalizedNamePhrase) serve every site; below 2002 the gate names the edition (COBOL0900) instead of the bare syntax error the phrase drew before kb/Work PB303. The §2023:12.3.8.2 program-specifier shares the grammar rule and carries its own repository-program-2002 row for the specifier itself.",
+ "display": "the AS externalized-name phrase",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:8.3.2.2 2); §2023:11.10.2 / §2023:11.5.2 / §2023:11.3.2 / §2023:11.6.2 / §2023:11.7.2 / §2023:13.18.22.2 / §2023:13.4.5.2 general formats",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "kb/Work PB303 — the phrase had no grammar surface at all: rejected 2002+ (COBOL0901, AS parsed as a user-defined word) and accepted at '85, the one edition where it does not exist",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. EXNQ1 AS \"EXNQX\".\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

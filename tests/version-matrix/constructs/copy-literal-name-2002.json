@@ -1,0 +1,15 @@
+{
+ "id": "copy-literal-name-2002",
+ "description": "The literal forms of the COPY statement's library-text name and library name (ISO §2023:7.2.3.2: COPY { text-name-1 | literal-1 } [ { OF | IN } { library-name-1 | literal-2 } ]; 7.2.3.3 SR4/SR5 restrict them to alphanumeric literals; 7.2.3.4 GR1 \"Text-name-1 or literal-1 identifies the library text\"). ANSI X3.23-1985's COPY is COPY text-name [ { OF | IN } library-name ] [ REPLACING ... ]: the names are user-defined words only. THE EDGE IS DERIVED, NOT QUOTED (VCR row 7.44; the repo holds no 1985, 2002 or 2014 text, ratified decision #1): none of the NIST CCVS-85 programs or copy library writes a literal library-text name; Micro Focus's COPY reference marks the external-file-name literal as a dialect extension (OSVS, VSC2, MF, COB370), not ANS85; Annex E lists no COPY name change, so it predates 2023; 2002 is the edition that rewrote COPY as a compiler-directing statement and whose literal-1/literal-2 Micro Focus marks ISO2002; GnuCOBOL 3.2 parses a literal name at every -std (silence, not evidence). The row takes the 2002 edge, the one that never refuses a legal 2002 program. ONE gate for both literals, CopyProcessor.GateCopyPhrase (kb/Work PB1601).",
+ "display": "a literal COPY library-text name or library name",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:7.2.3.2 (COPY general format); 7.2.3.3 SR4, SR5; 7.2.3.4 GR1; a COBOL-2002 introduction (derived: VCR row 7.44); §2023:7.2.3.3 SR5",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "ISO §2023:7.2.3.2 literal-1 / literal-2; provisional edge per decision 1; VCR row 7.44",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCLN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\nCOPY \"VMCLNBK\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n",
+ "copybooks": {
+  "VMCLNBK.cpy": "01 W PIC X VALUE \"K\".\n"
+ }
+}

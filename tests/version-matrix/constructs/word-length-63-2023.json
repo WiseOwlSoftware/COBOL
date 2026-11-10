@@ -1,0 +1,12 @@
+{
+ "id": "word-length-63-2023",
+ "description": "COBOL word length ceiling raised to 63 characters (ISO §2023:8.3.2.1) — a COBOL-2023 RELAXATION (E.3.3 item 11: was 31 in 2002/2014, 30 in 1985). A 42-character user-defined word compiles at 2023 and is rejected below 2023 (COBOL1567 — a ceiling that TIGHTENS below 2023, the opposite direction from a new-feature introduction gate). A word longer than 63 characters is rejected at EVERY edition.",
+ "display": "COBOL word up to 63 characters",
+ "diagnosticCode": "COBOL1567",
+ "citation": "ISO §2023:8.3.2.1; Annex E.3.3 item 11 (the 63-character relaxation)",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL1567",
+ "vcr": "VCR row 54 (63-character words — 2023 relaxation)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. WL63.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 THIS-IS-A-FORTY-CHARACTER-LONG-DATANAME-XX PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

@@ -150,7 +150,7 @@ BUSY = "BUSY"
 EXIT_BUSY = 3
 #: A gate that MEASURED NOTHING about the change prints `NOT RUN [<cause>]`, the cause's TAG naming one row of
 #: NOT_RUN_CAUSES, which classifies it ONCE (kb/Work PB3526; review R2-1 of wave 1150). The landing's merge of main into
-#: the branch (merge_drivers.merge: a clean merge, then abi_pin.settle, a build and a measuring test on the merged tree) is
+#: the branch (git_merge.merge: a clean merge, then the merge commit) is
 #: a step that can measure nothing too, and its failure names its cause by the same two classes through the `merge-*` rows
 #: (kb/Work PB3673): a merge that could not be completed for a cause outside the tree is never reported as a CONFLICT.
 #: ENVIRONMENT: a cause outside the code the gated tree carries (the coordination directory's shared gate settings, the host's WSL, Python, .NET SDK or
@@ -198,7 +198,7 @@ NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
                                        "its lock's holder hung) or to start its process detached (scripts/detached.py)"),
     NotRunCause("run", ENVIRONMENT, "`--await` was handed no gate run directory (none at that path: a wrong path, or a "
                                     "run pruned since)"),
-    NotRunCause("merge-blocked", ENVIRONMENT, "the landing's clean merge of main (merge_drivers.merge) could not be "
+    NotRunCause("merge-blocked", ENVIRONMENT, "the landing's merge of main (git_merge.merge) could not be "
                                               "completed for a cause outside the merged tree: the ABI-pin settle's "
                                               "measuring build met a build output locked by another process (MSB3027, "
                                               "MSB3021: a language server or an antivirus scan), a full disk or no .NET "
@@ -338,7 +338,7 @@ AUDITS = (
     # what the view refuses (an adjudication of a dropped rule, a copied catalog field or state, an adjudication decided
     # against other text) and an older edition's illegal change record are refused here, in every lane.
     ("INVENTORY VIEW", ["scripts/spec/inventory_view.py", "--check"]),
-    # kb/Work PB4996: every edition gate of the compiler (a constructs.json window, a grammar version predicate) rests on
+    # kb/Work PB4996: every edition gate of the compiler (a construct catalogue window, a grammar version predicate) rests on
     # an edge the rule lineage proves: a start on a NEW or CHANGED rule, an end on a REMOVED or CHANGED one.
     ("EDITION GATES", ["scripts/spec/edition_gates.py", "--check"]),
     ("SPEC CORRECTIONS", ["scripts/spec/verify_publishable.py"]),

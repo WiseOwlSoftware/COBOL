@@ -1,0 +1,12 @@
+{
+ "id": "alphabet-national-2002",
+ "description": "The UCS-4 / UTF-8 / UTF-16 coded-character-set phrases of the ALPHABET ... FOR NATIONAL clause, ISO 12.3.7.2 - introduced 2002 with the national class (UCS-4 names both a coded set and the ISO 10646-order collating sequence; UTF-8/UTF-16 name coded sets only, Table 6). Context-sensitive words (8.9, ALPHABET-clause scope) recognized BY TEXT in the parse arm (VisitAlphabetClause) - no lexer keywords.",
+ "display": "the ALPHABET UCS-4/UTF-8/UTF-16 phrase (FOR NATIONAL)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.7.2 alphabet-name-clause (the FOR NATIONAL branch); §2023:8.9 context-sensitive words UCS-4/UTF-8/UTF-16; §2023:12.3.7.4 GR7",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the national class; the ALPHABET national branch arrived with it)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15AN.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET UNI FOR NATIONAL IS UCS-4.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

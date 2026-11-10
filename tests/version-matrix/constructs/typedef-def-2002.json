@@ -1,0 +1,12 @@
+{
+ "id": "typedef-def-2002",
+ "description": "A TYPEDEF clause — a type-declaration entry (a named template; no storage), ISO §2023:13.18.58 (data-model D17). LIVE (weak-TYPE spine): compiles at 2002+, COBOL0900 below.",
+ "display": "TYPEDEF clause (a type declaration)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.58",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "TYPEDEF definition §2023:13.18.58; provisional 2002 per decision-1",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. TD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MYTYPE TYPEDEF PIC 9(3).\n01 V TYPE MYTYPE VALUE 42.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY V.\n    STOP RUN.\n"
+}

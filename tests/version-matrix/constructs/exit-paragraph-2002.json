@@ -1,0 +1,12 @@
+{
+ "id": "exit-paragraph-2002",
+ "description": "EXIT PARAGRAPH (ISO §2023:14.9.14.2 Format 4 / §2023:14.9.14.4 GR6) — a COBOL-2002 structured-procedure exit transferring control to the implicit CONTINUE at the end of the current paragraph; introduced 2002 (the 85 EXIT is only Format 1, §2023:14.9.14.3 SR1).",
+ "display": "the EXIT PARAGRAPH statement",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.14.2 Format 4 / §2023:14.9.14.4 GR6 — COBOL-2002 structured-exit introduction (VCR has no 85→2002 rows; derived from the 2002 standard)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEXPAR.\nPROCEDURE DIVISION.\nP1.\n    EXIT PARAGRAPH.\n    DISPLAY \"AFTER\".\nP2.\n    DISPLAY \"P2\".\n    STOP RUN.\n"
+}

@@ -119,7 +119,7 @@ carries a recommendation; §3 records each answer as a `docs/CONFORMANCE.md` det
 The facility exists at COBOL 2023 only. Annex E.3.2, the 2023 standard's list of new features against 2014, opens with it
 ("Asynchronous messaging. A method of allowing communication between run units via messages is provided"), the 2014
 FCD (`specs-drafts/t2014.txt`) has no SEND, RECEIVE, MESSAGE-TAG or EC-MCS text at all, and the repository already
-records it as a 2023 introduction (`constructs.json` `async-messaging-2023` and `usage-message-tag-2023`,
+records it as a 2023 introduction (`constructs/` `async-messaging-2023` and `usage-message-tag-2023`,
 `VERSION_CHANGE_REFERENCE.md` rows 32, 38 and 40).
 
 | Edition | SEND and RECEIVE | USAGE MESSAGE-TAG, EC-MCS names |
@@ -483,7 +483,7 @@ requires a raise site for each, so these retire in the slice that adds the raise
 | `derived-verdicts.mcs-only`, `DerivedVerdictDriftTests.NoAsynchronousMessagingConditionedRow_Diverges` and `TheMcsSelector_IsStillSharp` | `tests/version-matrix/inventory-schema.json`; each slice narrows the selector to the rows still declined, and S4 deletes it |
 | the EC-MCS row of `EcNameResolution.DeclinedEcFamilies`; the EC-MCS entries of `declined-raise-sites.json` | §4.5 |
 | `DocumentedNonSupportWitnessTests.McsFacility_*`, `McsStatements_Below2023_*`, `McsExceptionNames_*` | replaced by the positive and negative witnesses of §7 (the below-2023 gate stays witnessed by `pb374-async-messaging-below-2023`) |
-| `constructs.json`: `usage-message-tag-2023` stops being PENDING; `async-messaging-2023`'s description loses "accepted inert" | |
+| `constructs/`: `usage-message-tag-2023` stops being PENDING; `async-messaging-2023`'s description loses "accepted inert" | |
 
 The traceability inventory rows the decline decides, 31 of them, are re-adjudicated by the slices that implement their
 rules: DOC-A.1-212, FMT-14.9.31.2, FMT-14.9.38.2, GR-8.4.3.10.4-4, GR-8.8.4.2.1-9, GR-13.18.60.4-9, GR-14.6.11-7,
@@ -919,7 +919,7 @@ git grep -l -E "COBOL1578|COBOL1943|COBOL2205|McsFacilityUnsupported|MessageTagU
 ```
 
 At origin/main 7ccb2822b it finds 130 files: 35 under `conformance-suite` (26 in `wiseowl/cases`, among them nine `pb4118-*` and six
-`pb4090-*`), 49 non-C# files under `tests` (45 inventory rows, `inventory-schema.json`, `constructs.json`,
+`pb4090-*`), 49 non-C# files under `tests` (45 inventory rows, `inventory-schema.json`, `constructs/`,
 `conformance-register.json`, `tests/doc-facts/compiler-facts.json`), 16 test classes (among them
 `DeclinedFacilityDriftTests`, `DerivedVerdictDriftTests`, `IntrinsicArgumentClassDriftTests`,
 `UsageClausePhraseDriftTests` and `ValueClauseUsageSetDriftTests`), 22 `src` files and 8 docs. A slice rewrites each hit

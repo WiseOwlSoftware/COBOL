@@ -76,6 +76,7 @@ import pathlib
 import re
 import subprocess
 import sys
+from collections.abc import Sequence
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -387,15 +388,80 @@ def read_note(name: str, text: str) -> tuple[dict | None, str]:
     return None, ""
 
 
+#: An ADDENDUM's file name (kb/Work PB5110): the date it was written, then a slug, so a note's addenda read in the order they
+#: were written and two branches that each add one add two files, never two edits of one.
+ADDENDUM_FILE = re.compile(r"\A\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md\Z")
+
+
+def fold_text(note_text: str, addenda: Sequence[str]) -> str:
+    """THE ONE COMPOSITION of a note and its addenda (kb/Work PB5110): the note's text, then each addendum's text after a
+    blank line, in order. `read_notes` reads a note as this text, and `compact_notes.py` writes this text into the note file
+    when it folds the addenda in, so a fold leaves what this reader returns for the note unchanged. A note with no
+    addendum is its own text."""
+    if not addenda:
+        return note_text
+    return note_text.rstrip(chr(10)) + "".join(chr(10) * 2 + a.strip(chr(10)) for a in addenda) + chr(10)
+
+
+def addendum_dir(work_dir: pathlib.Path, note_file: str) -> pathlib.Path:
+    """Where the addenda of the note file `note_file` (`PB5083.md`) live: the directory of its stem, beside it."""
+    return work_dir / note_file.removesuffix(".md")
+
+
+def read_addenda(work_dir: pathlib.Path, note_file: str) -> tuple[list[tuple[str, str]], list[str]]:
+    """`([(file name, text)] in name order, the refusals)` of the addenda of one note (PB5110). A finding, lead or landing
+    paragraph added to a note after it is filed is a NEW FILE in the note's directory, so two branches that each add one
+    never edit one file. An addendum is plain Markdown: it carries NO frontmatter (the note's frontmatter is the note's
+    own, edited by its owner), and its name is `ADDENDUM_FILE`'s. A file that is neither is a refusal, never skipped: an
+    addendum the register cannot read is a paragraph no reader of it would ever see."""
+    directory = addendum_dir(work_dir, note_file)
+    if not directory.is_dir():
+        return [], []
+    found: list[tuple[str, str]] = []
+    refused: list[str] = []
+    for q in sorted(directory.iterdir(), key=lambda e: e.name):
+        rel = f"{directory.name}/{q.name}"
+        if not q.is_file() or not ADDENDUM_FILE.match(q.name):
+            refused.append(f"{rel}: not an addendum — a note's addendum is a file named <yyyy-mm-dd>-<slug>.md (PB5110)")
+            continue
+        text = q.read_text(encoding="utf-8")
+        if text.startswith("---") or text.startswith("\ufeff"):
+            refused.append(f"{rel}: an addendum carries no frontmatter — the note's own is the only one (PB5110)")
+            continue
+        found.append((q.name, text))
+    return found, refused
+
+
+def note_text(note_id: str, work_dir: pathlib.Path = WORK) -> str | None:
+    """The whole text of the note `note_id` as the register reads it (`fold_text`: its file, then its addenda), or None when
+    `work_dir` has no such file. THE READER for every consumer of a note's BODY outside `read_notes`: the planner's declared
+    sets, the landing check's computed file set, the member-index CLI. A reader of `<id>.md` alone sees a different note
+    than the register does, because a reopen or a landing paragraph is an addendum file (PB5110)."""
+    p = work_dir / f"{note_id}.md"
+    if not p.is_file():
+        return None
+    addenda, _ = read_addenda(work_dir, p.name)
+    return fold_text(p.read_text(encoding="utf-8", errors="replace"), [t for _, t in addenda])
+
+
 def read_notes(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[str]]:
-    """Every note under `work_dir` and a refusal for every file named like a note that is not one (read_note)."""
+    """Every note under `work_dir` and a refusal for every file named like a note that is not one (read_note). A note is its
+    file followed by its addenda (`fold_text`), so a reader of `_body` sees every paragraph of the note, and a directory of
+    addenda with no note beside it, or an addendum that is not one (read_addenda), is a refusal."""
     items, refused = [], []
     for p in sorted(work_dir.glob("*.md")):
-        note, why = read_note(p.name, p.read_text(encoding="utf-8"))
+        addenda, bad = read_addenda(work_dir, p.name)
+        refused += bad
+        note, why = read_note(p.name, fold_text(p.read_text(encoding="utf-8"), [t for _, t in addenda]))
         if note is not None:
+            if addenda:
+                note["_addenda"] = [n for n, _ in addenda]
             items.append(note)
         elif why:
             refused.append(why)
+    for d in sorted(work_dir.iterdir() if work_dir.is_dir() else (), key=lambda e: e.name):
+        if d.is_dir() and not (work_dir / f"{d.name}.md").is_file():
+            refused.append(f"{d.name}/: addenda of a note that does not exist — kb/Work/{d.name}.md is missing (PB5110)")
     return items, refused
 
 
@@ -687,6 +753,11 @@ def register_problems(work_dir: pathlib.Path = WORK) -> tuple[list[dict], list[s
         for f in ("id", "kind", "status", "area"):
             if not it.get(f):
                 bad.append(f'{it["_file"]}: missing {f}')
+        # ONE NOTE PER FILE, NAMED BY ITS ID (kb/Work PB5110): no file is shared by two notes, so two branches that each
+        # file a note add two files and plain git merges them
+        if it.get("id") and it["_file"] != f'{it["id"]}.md':
+            bad.append(f'{it["_file"]}: the note\'s id is {it["id"]!r}, so its file is {it["id"]}.md — one note per file, '
+                       f'named by its id (kb/Work PB5110)')
         if it.get("kind") not in KINDS:
             bad.append(f'{it["_file"]}: kind {it.get("kind")!r} not in {sorted(KINDS)}')
         if it.get("status") not in STATUSES:
@@ -2236,6 +2307,55 @@ def harm_vocabulary_findings(repo: pathlib.Path = REPO) -> list[str]:
     return bad
 
 
+def addendum_findings() -> list[str]:
+    """The addenda arm of the self-test (kb/Work PB5110): a note reads as its file followed by its addenda in name order; its
+    frontmatter stays its file's; a fold (`fold_text`, what compact_notes.py writes) reads back as the same note; and a
+    misnamed addendum, an addendum with frontmatter and a directory with no note are each refused, never skipped."""
+    import tempfile  # noqa: PLC0415
+
+    findings: list[str] = []
+    head = chr(10).join(["---", "id: PB9001", "kind: decision", "status: open", "area: tooling", "---", "# PB9001", "", "body", ""])
+    with tempfile.TemporaryDirectory(prefix="work-addenda-") as tmp:
+        root = pathlib.Path(tmp)
+        (root / "PB9001.md").write_text(head, encoding="utf-8", newline=chr(10))
+        (root / "PB9002.md").write_text(head.replace("PB9001", "PB9002"), encoding="utf-8", newline=chr(10))
+        (root / "PB9001").mkdir()
+        (root / "PB9001" / "2026-11-11-second.md").write_text("**Second.** two" + chr(10), encoding="utf-8", newline=chr(10))
+        (root / "PB9001" / "2026-11-10-first.md").write_text("**First.** one" + chr(10), encoding="utf-8", newline=chr(10))
+        items, refused = read_notes(root)
+        by_id = {it["id"]: it for it in items}
+        body = by_id["PB9001"]["_body"]
+        if refused or not (body.index("body") < body.index("**First.**") < body.index("**Second.**")):
+            findings.append(f"addenda are not read after the note in name order (refused {refused}, body {body!r})")
+        if by_id["PB9001"].get("status") != "open" or by_id["PB9002"]["_body"] != by_id["PB9002"]["_body"].rstrip(chr(10)) + chr(10):
+            findings.append("a note's frontmatter or its addendum-free body changed by reading addenda")
+        text9001 = note_text("PB9001", root) or ""
+        if (not text9001.startswith("---") or not (text9001.index("body") < text9001.index("**First.**") < text9001.index("**Second.**"))
+                or note_text("PB9002", root) != head.replace("PB9001", "PB9002") or note_text("PB9009", root) is not None):
+            findings.append("note_text (the body reader of the planner, the landing check and the member index) differs from the register's note")
+        folded = fold_text((root / "PB9001.md").read_text(encoding="utf-8"),
+                           [t for _, t in read_addenda(root, "PB9001.md")[0]])
+        (root / "PB9001.md").write_text(folded, encoding="utf-8", newline=chr(10))
+        for q in (root / "PB9001").iterdir():
+            q.unlink()
+        (root / "PB9001").rmdir()
+        again, refused2 = read_notes(root)
+        if refused2 or {it["id"]: it["_body"] for it in again}["PB9001"] != body or any("_addenda" in it for it in again):
+            findings.append("folding the addenda into the note changed what the reader returns for the note")
+        (root / "PB9002").mkdir()
+        for name, text, expect in (("notes.md", "x", "not an addendum"), ("2026-11-10-fm.md", "---" + chr(10) + "a: b" + chr(10) + "---", "no frontmatter")):
+            (root / "PB9002" / name).write_text(text, encoding="utf-8", newline=chr(10))
+            if not any(expect in r for r in read_notes(root)[1]):
+                findings.append(f"the addendum {name!r} is not refused ({expect})")
+            (root / "PB9002" / name).unlink()
+        (root / "PB9002").rmdir()
+        (root / "PB9003").mkdir()
+        (root / "PB9003" / "2026-11-10-x.md").write_text("x", encoding="utf-8", newline=chr(10))
+        if not any("PB9003/" in r and "does not exist" in r for r in read_notes(root)[1]):
+            findings.append("a directory of addenda with no note beside it is not refused")
+    return findings
+
+
 def self_test() -> int:
     """Evaluate `tests/version-matrix/work-frontmatter-cases.json` against `parse_frontmatter`.
 
@@ -2275,6 +2395,7 @@ def self_test() -> int:
     findings += scalar_findings(fixture)
     findings += directory_findings(fixture)
     findings += upstream_findings()
+    findings += addendum_findings()
     findings += view_findings()
     findings += process_only_findings()
     findings += site_member_findings()

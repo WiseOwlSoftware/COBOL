@@ -1,0 +1,30 @@
+{
+ "id": "push-directive-2023",
+ "description": "The >>PUSH { directive-name | ALL } compiler directive (ISO §2023:7.3.22) - a COBOL-2023 addition: Annex E.3.3 item 38 ('The PUSH and POP directives are added to allow saving and restoration of the state of compiler directives') and Annex E.2 item 5, which lists PUSH among the compiler-directive words added in 2023. Note the clause pairing: §2023:7.3.20 is POP and §2023:7.3.22 is PUSH. No compiler-directive state WiseOwl COBOL varies is saved today, so the directive is recognized and consumed. The introduction gate rejects the directive word below 2023.",
+ "display": ">>PUSH directive",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:7.3.22; Annex E.2 item 5 + Annex E.3.3 item 38 (compiler-directive words added in 2023)",
+ "directiveWords": [
+  "PUSH"
+ ],
+ "directiveOperand": {
+  "form": "words",
+  "choice": [
+   "ALL"
+  ],
+  "directiveName": true,
+  "excludedDirectives": [
+   "EVALUATE",
+   "IF",
+   "PAGE",
+   "POP",
+   "PUSH"
+  ],
+  "citation": "ISO §2023:7.3.22.2 general format: { directive-name | ALL }, plain braces — exactly one shall be written; §2023:7.3.22.3 SR1 restricts directive-name to 'the name of a compiler directive other than an EVALUATE, IF, PAGE, POP, or PUSH directive', so the admissible names are the catalog's own words minus those five rows."
+ },
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 81 (PUSH and POP directives - 2023 introduction)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725PU.\n       PROCEDURE DIVISION.\n       MAIN.\n       >>PUSH ALL\n           DISPLAY \"X\".\n       >>POP ALL\n           STOP RUN.\n"
+}

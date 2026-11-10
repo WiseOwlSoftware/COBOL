@@ -1,0 +1,13 @@
+{
+ "id": "user-word-as-2002",
+ "status": "active",
+ "description": "The word AS as a user-defined word — user-definable at 85, reserved since 2002 (§2023:8.9; reserved-words.json row AS r85=false r2002..r2023=true). Interval row per the user-word-constant-2002 twin: cobolWord/_dataNameTokens/CheckedTokenTypes-admitted at P10 Step 15 (the constant entry's AS phrase is its only keyword slot).",
+ "display": "the word AS as a user-defined word",
+ "diagnosticCode": "COBOL0901",
+ "citation": "§2023:8.9 interval encoding: user-definable at 85, reserved since 2002",
+ "introducedIn": 85,
+ "removedIn": 2002,
+ "expectDiagnostic": "COBOL0901",
+ "vcr": "reserved-words.json AS (added 2002, GnuCOBOL 2002 list; ISO 2023 §2023:8.9)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWAS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 AS PIC 99 VALUE 9.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY AS.\n    STOP RUN.\n"
+}

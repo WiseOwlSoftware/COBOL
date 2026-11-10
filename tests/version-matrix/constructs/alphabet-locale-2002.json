@@ -1,0 +1,12 @@
+{
+ "id": "alphabet-locale-2002",
+ "description": "The LOCALE phrase of the SPECIAL-NAMES ALPHABET clause (ALPHABET name [FOR ALPHANUMERIC|NATIONAL] IS LOCALE [locale-name-2]), ISO 12.3.7.2 - introduced 2002 with the locale facility (Annex A.4.9 item 10). The named form is the collating sequence of a SPECIAL-NAMES locale-name; the bare form is the locale current at each use (12.3.7.4 GR7e). Parse-arm gated on recognition (VisitAlphabetClause; LOCALE is a plain word below 2002 - a code-name there).",
+ "display": "the ALPHABET LOCALE phrase",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.7.2 alphabet-name-clause (the LOCALE phrase, either branch); §2023:12.3.7.4 GR7e",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the locale facility; kb/Work PB101 - the collation engine and the ALPHABET LOCALE phrase)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB101AL.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. X PROGRAM COLLATING SEQUENCE IS LOC.\nSPECIAL-NAMES.\n    ALPHABET LOC IS LOCALE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

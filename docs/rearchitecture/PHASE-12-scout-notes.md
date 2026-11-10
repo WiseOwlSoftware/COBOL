@@ -187,7 +187,7 @@ SORT/MERGE keys §2023:14.9.40.3 / §2023:14.9.24.3.
 - **[SELF-VERIFIED] The IEEE-754 fidelity inversion (TL;DR #1).** GR13/GR21 cover only the trio; GR14-18 pin the
   standard usages to ISO/IEC 60559:2020. `double`/`System.Decimal` backing of binary128/decimal is non-conforming.
   Route unimplementable formats through Annex A.3 17/19 processor-dependent non-support. The wrong `§2023:13.18.59` citation
-  also lives in `constructs.json` rows and `PicInfo.cs:103` comments — sweep them.
+  also lives in `constructs/` rows and `PicInfo.cs:103` comments — sweep them.
 - **[SCOUT-ONLY] FLOAT-BINARY-32 lexes as ONE IDENTIFIER.** `caseInsensitive` (CobolLexer.g4:7) + `NAME_BODY` alpha
   alt (`[a-z][a-z0-9-]*[a-z0-9]`, :638) matches the full 15-char `FLOAT-BINARY-32` by maximal munch, while
   `FLOAT_BINARY` (:197) matches only 12. Step 7's primary plan (`FLOAT_BINARY integerLiteral?`) CANNOT work — take the
@@ -196,12 +196,12 @@ SORT/MERGE keys §2023:14.9.40.3 / §2023:14.9.24.3.
 - **[SCOUT-ONLY] The E-picture is already staged LOUD — nothing silent remains.** `PictureAnalyzer.Analyze` `case 'E'`
   (PictureAnalyzer.cs:82) → `StagedNotImplemented` COBOL0899 at ≥2002 (:91) + `SkeletonGate = PicExternalFloat2002`
   → COBOL0900 below 2002; pinned by `LoudGuardTests.cs:106` + `DataSkeletonEditionTests.cs:47`. Step 7 replaces the
-  0899 staging with a live floating-point numeric-edited implementation. The `constructs.json` row description that
+  0899 staging with a live floating-point numeric-edited implementation. The `constructs/` row description that
   still says "silent-misbind" is stale.
 - **[SCOUT-ONLY] Row-id collision:** the plan's planned NEW row `usage-external-float-pic-2002` collides with the
-  EXISTING `pic-external-float-2002` (constructs.json:808, pending) — **flip that row**, don't add a duplicate.
+  EXISTING `pic-external-float-2002` (the construct catalogue:808, pending) — **flip that row**, don't add a duplicate.
 - **[SCOUT-ONLY] No VCR/Annex E rows for any float introduction** (Annex E is 2014→2023 only). Cite
-  `reserved-words.json` (`FLOAT-BINARY-*` "added 2014") + `constructs.json` `introducedIn` tags, NOT VCR rows.
+  `reserved-words.json` (`FLOAT-BINARY-*` "added 2014") + `constructs/` `introducedIn` tags, NOT VCR rows.
   Editions themselves hold: trio + E-pic = 2002 (repo-provisional), FLOAT-BINARY/DECIMAL = 2014.
 
 ### Code seams (current line numbers — drifted heavily from the plan)
@@ -245,14 +245,14 @@ SORT/MERGE keys §2023:14.9.40.3 / §2023:14.9.24.3.
   `ProgramPointer` record struct `Control/ProgramPointer.cs:14` (`Null` 17, `SameTarget` 24); resolution on the ONE
   `ProgramTable` (`EntryOf` 173, `CallPointer` 191); SET Format 9 + `SET … TO ENTRY` in `SetBinder.cs` (104/150),
   emit `PtrEmitter.cs:119` / `SetEmitter.cs:46`; test `conformance-suite/cases/13.18.60-USAGE/program_pointer.cob` + 4 negatives;
-  rows `usage-program-pointer-2002` (active, constructs.json:394) + `user-word-program-pointer-2002`. **Row
+  rows `usage-program-pointer-2002` (active, the construct catalogue:394) + `user-word-program-pointer-2002`. **Row
   `program-pointer-2014` exists nowhere but the plan.** Residues: restricted GR25 form (staged loud 0899) + ISO
   `ADDRESS OF PROGRAM` spelling.
 - **[VERIFIED] FUNCTION-POINTER surface done; semantics genuinely 2014.** Token :308; `functionPointerUsage`
   CobolData.g4:399-401 (TO **optional** — ISO requires it, enforce at implement time); `Usage.FunctionPointer`
   PicInfo.cs:102; reject `PictureAnalyzer.cs:324` → `DiagnosticCatalog.UsageFunctionPointer` (0899, catalog:138);
   gate via `VersionConformancePass.cs:279` → `Constructs.UsageFunctionPointer2014`; **pending** row
-  `usage-function-pointer-2014` (constructs.json:407) + `user-word-function-pointer-2014` (active); negative test
+  `usage-function-pointer-2014` (the construct catalogue:407) + `user-word-function-pointer-2014` (active); negative test
   `function-pointer-staged.cob`. **COBOL1552 is unnecessary** (0899 already covers it). Remaining: runtime
   function-address carrier + run-unit function table + SET Format 8 + mandatory-TO + `ADDRESS OF FUNCTION`.
 - **[VERIFIED] Function prototypes already bindable at compile time:** `BinderDriver.BuildUserFunctionTable` (375-418,
@@ -336,7 +336,7 @@ spec §2023:14.9.20) — a separate gap, note it.
   "same-as-2014 (pending)" row does not exist and is not needed. Step 10's commit template "catalogue SAME AS as
   pending" is stale — it's active.
 - **[VERIFIED] TYPEDEF/TYPE/OCCURS DYNAMIC rows all effectively active** (a missing `status` field defaults to
-  `active` per `VersionMatrixTests.cs:42`): `typedef-def-2002` (constructs.json:318), `type-clause-2002` (:306),
+  `active` per `VersionMatrixTests.cs:42`): `typedef-def-2002` (the construct catalogue:318), `type-clause-2002` (:306),
   `same-as-clause-2002` (explicit active, :331), `occurs-dynamic-2014` (:294). No `type-to` row exists — Step 10
   creates it (with `"PENDING"` in the description + `vcr` + `source`).
 - **[VERIFIED] OCCURS DYNAMIC corpus complete:** 10 `dyn_*.cob` in `tests/conformance/2014/`, all enabled; test
@@ -391,7 +391,7 @@ Four corpus dirs, each with a manifest: `2002/` (108 enabled), `2014/` (18 enabl
 `*.cob` (:43); a NEW corpus dir needs an `InlineData` row + `EnabledPositive` wiring. `scripts/guard-fast.sh` EXISTS;
 `scripts/guard.ps1` does NOT (a future P14/P15 deliverable — reword the plan's clause, don't delete the reference).
 Battery figures in the plan's exit criteria (3166/281) are P7-era stale; current = 3521/301/33/NIST 353 (also stale in
-`DESIGN-codegen-backend.md:402`, `DESIGN-data-model.md:351`). `constructs.json` = 149 rows (134 active / 15 pending).
+`DESIGN-codegen-backend.md:402`, `DESIGN-data-model.md:351`). `constructs/` = 149 rows (134 active / 15 pending).
 `VersionMatrixTests` real contracts: `Construct_MatchesEditionExpectation` (:78, active rows only, missing status→active
 :42), `PendingRows_AreCataloguedWithActivationContracts` (:65 — pending needs literal `"PENDING"` in description + `vcr`
 + `source`).

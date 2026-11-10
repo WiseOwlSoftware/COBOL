@@ -1,0 +1,13 @@
+{
+ "id": "pointer-arithmetic-2002",
+ "status": "active",
+ "description": "SET pointer UP/DOWN BY (data-pointer arithmetic), ISO §2023:14.9.39 Format 10 - introduced 2002 (GR20 byte-granular movement; GR18 NULL -> EC-DATA-PTR-NULL; GR19: an amount that does not evaluate to an integer is a runtime EC-SIZE-ADDRESS fatal, and GR20's own arm - a resulting address outside the implementor data-pointer range (DOC-A.1-216) - is EC-RANGE-PTR with the operand unchanged, two rules with two conditions via CobolPtr.UpByAmount). LIVE (Phase-4b increment 2, DEVLOG 617): the D-U7 category re-route on the shared 85 index grammar shape - the 85 index form itself stays ungated.",
+ "display": "SET pointer UP/DOWN BY (data-pointer arithmetic)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39 Format 10 (§2023:14.9.39.4 GR18, GR19, GR20); 2002 introduction (derive from the 2002 standard — Annex E covers 2014→2023 only)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PAMX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(5) VALUE \"HELLO\".\n01 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET P TO ADDRESS OF X.\n    SET P UP BY 2.\n    STOP RUN.\n"
+}

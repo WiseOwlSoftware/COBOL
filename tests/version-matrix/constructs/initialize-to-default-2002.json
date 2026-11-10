@@ -1,0 +1,12 @@
+{
+ "id": "initialize-to-default-2002",
+ "description": "The INITIALIZE THEN TO DEFAULT phrase - a 2002 introduction. Folded from the inline InitializeBinder gate (Exec Step E).",
+ "display": "INITIALIZE TO DEFAULT",
+ "diagnosticCode": "COBOL0832",
+ "citation": "ISO §2023:14.9.20.2 (the DEFAULT phrase is 2002+); §2023:14.9.20.4 GR5",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0832",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWIDEF.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC X(3) VALUE \"ABC\".\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE A THEN TO DEFAULT.\n    STOP RUN.\n"
+}

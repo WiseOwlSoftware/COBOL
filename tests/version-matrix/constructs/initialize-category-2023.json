@@ -1,0 +1,13 @@
+{
+ "id": "initialize-category-2023",
+ "description": "PENDING - the COBOL-2023 INITIALIZE category-name MESSAGE-TAG (ISO 14.9.20.2; ISO 8.9 reserves MESSAGE-TAG from 2023, Annex E.2 item 25). The GATE is live and named from the VersionConformancePass parse arm exactly like its 2002/2014 siblings; the row is pending because no PROGRAM can exercise the ACCEPT side. 14.9.20.3 SR3 requires identifier-2 for a MESSAGE-TAG category-name and SR4 requires that `SET <message-tag item> TO identifier-2` be valid, so a conforming use needs a message-tag DATA ITEM - and the A.4 message-control facility is owner-declined (docs/CONFORMANCE.md 4), so no such item can be declared and every MESSAGE-TAG REPLACING item is refused COBOL1983. Activation is owned by the MCS facility decision, not by this lane. kb/Work PB415.",
+ "display": "INITIALIZE MESSAGE-TAG",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.20.2 (category-name) / §2023:8.9 (reserved from 2023); §2023:14.9.20.3 SR3",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "status": "pending",
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2023 introduction (ISO Annex E.2 item 25 = VCR row 32, the MESSAGE-TAG reserved word)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWICAT23.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MT PIC X(4).\n01 G.\n  05 A1 PIC X(3) VALUE \"xyz\".\nPROCEDURE DIVISION.\nMAIN.\n    INITIALIZE G REPLACING MESSAGE-TAG DATA BY MT.\n    STOP RUN.\n"
+}

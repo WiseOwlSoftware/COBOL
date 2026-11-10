@@ -1,0 +1,14 @@
+{
+ "id": "arithmetic-standard-2002",
+ "description": "ARITHMETIC IS STANDARD - a 2002 introduction (the 2002 standard's OPTIONS ARITHMETIC IS NATIVE|STANDARD) DROPPED by 2023 (Annex E.2 item 21: obsolete-but-present in 2014, removed 2023). A dual-window row: 0900 below 2002, available 2002-2014, 0807 at 2023+; Removed policy = error strict / warning permissive, aligning the removed-construct posture. STANDARD routes to the same CobolDec SDIDI engine as STANDARD-DECIMAL (the standard intermediate for its reachable operands IS the decimal form - DataBinder rationale).",
+ "display": "ARITHMETIC IS STANDARD",
+ "diagnosticCode": "COBOL0807",
+ "citation": "ISO §2023:8.8.1 / Annex E.2 item 21 (2023 defines NATIVE, STANDARD-BINARY, STANDARD-DECIMAL; STANDARD was 2002-2014, removed 2023 - use STANDARD-DECIMAL)",
+ "introducedIn": 2002,
+ "removedIn": 2023,
+ "obsoleteIn": 2014,
+ "expectDiagnostic": "COBOL0807",
+ "vcr": "2002 introduction (M2 catalog + Annex E.2 item 21 back-derivation), obsolete 2014 + 2023 removal (Annex E.2 item 21; VCR row 28)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWAST.\nOPTIONS.\n    ARITHMETIC IS STANDARD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 A PIC 9V9(5).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE A = 2 / 7 * 7.\n    STOP RUN.\n",
+ "expectDiagnosticBelow": "COBOL0900"
+}

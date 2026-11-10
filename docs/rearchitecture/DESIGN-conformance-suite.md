@@ -197,8 +197,8 @@ The file block holds one field, `source-format` (`fixed` or `free`, required; fi
 | `id` | Unique across both trees; letters, digits, `-`, `_`; stable from the first release. Naming neither clause nor file, so a test can move |
 | `rules` | The inventory rows witnessed. A rule 2023 lacks has a qualified id (`GR-A.2.5.3-4@2002`); a facility no held text describes is `construct:<id>` (§3.5). `[]` only in `_unassigned/`. Format points are read from the parse, never written here (§3.4) |
 | `accept` | Editions at which the test compiles and runs with its section equal to its expected section. `{from: <edition>}` means that edition and every later one, so a new edition inherits the test |
-| `constructs` | The `constructs.json` rows the test uses incidentally whose window is not every edition; each accepted edition lies inside each window. The constructs of its rules come from their facilities (§3.5) |
-| `requires` | Optional or processor-dependent elements needed, by stable `constructs.json` module id (`module-report-writer`), never by A.4 number, which differs between editions. The module row records the element's status per edition; a profile not claiming it where it is optional or processor-dependent gets NOT APPLICABLE |
+| `constructs` | The `constructs/` rows the test uses incidentally whose window is not every edition; each accepted edition lies inside each window. The constructs of its rules come from their facilities (§3.5) |
+| `requires` | Optional or processor-dependent elements needed, by stable `constructs/` module id (`module-report-writer`), never by A.4 number, which differs between editions. The module row records the element's status per edition; a profile not claiming it where it is optional or processor-dependent gets NOT APPLICABLE |
 | `implementor-defined` | A.1 items whose enumerated value the output depends on (§3.3) |
 | `files` | Copybooks, data files and other units the test needs, beside the case file |
 | `main` | `yes`: the test runs as the run unit's main program, alone; the only test that may write a STOP statement |
@@ -391,7 +391,7 @@ transcription of PERFORM Format 3 put imperative-statement-1 inside the repeated
 - **Ids are words**: the row, the format number and the point's words where unique (`FMT-14.9.28/f<n>/TEST/BEFORE`);
   only an operand-kind alternative, which prints no word, is keyed by position.
 - **Windows are derived**: a point printing a word first reserved after V (`reserved-words.json`) does not exist at V
-  unless a governing `constructs.json` row says otherwise. 35 of the 176 FMT rows banded from 85 print words first
+  unless a governing `constructs/` row says otherwise. 35 of the 176 FMT rows banded from 85 print words first
   reserved later (`review-feasibility/point_windows.py`).
 - **Each edition's figures**: CALL ... ON OVERFLOW is archaic in the 2002 text (G.1 item 4) and 2023 §2023:14.9.4 prints no
   OVERFLOW, so the catalog also holds the points of the 2002 and FCD figures, matched to 2023 points by their words and
@@ -424,7 +424,7 @@ an edge its source does not speak about:
 | `draft-stated` | a held draft's change list or flag directive names the change | the FCD's E.2 (16 items): 2002\|2014. The 2002 Annex F and FLAG-85's options: the 2002 side of 85\|2002 |
 | `two-texts` | the rule's sentence in two held texts on one side of the edge | the 2002 text and the FCD: the 2014 side of 2014\|2023; the FCD and 2023 where 2002 lacks it: the 2014 side of 2002\|2014 |
 | `one-text` | one held draft alone | the edge on that draft's side |
-| `inferred` | a change list's silence; a committee draft; the compiler's record (`constructs.json`, `IntrinsicCatalog`, `reserved-words.json`, a decided sibling row); NIST-85; a vendor document | any edge, marked. Every 85 fact is `inferred`, its source naming what it rests on |
+| `inferred` | a change list's silence; a committee draft; the compiler's record (`constructs/`, `IntrinsicCatalog`, `reserved-words.json`, a decided sibling row); NIST-85; a vendor document | any edge, marked. Every 85 fact is `inferred`, its source naming what it rests on |
 | `unproven` | a check against the held text of that edition found the edge undecidable | none: the placement is withheld from that edition's portable suite (decision 14) |
 
 A locator into an untracked text is committed as digest and line; `cite.py --text 2002|2014`, a mode S11 adds, checks
@@ -439,7 +439,7 @@ writes it into the manifest, the results and the report, which lists every place
 unplaced there with its evidence; WiseOwl's own manifest still runs it. The `unproven` edges today are PB4608's four
 2014 ones, on which 8 S0b rows rest. A later check that proves or moves one re-places its tests with no hand edit.
 
-**The evidence lives on the facility's window.** A row's `facility` is `construct:<id>` (`constructs.json`),
+**The evidence lives on the facility's window.** A row's `facility` is `construct:<id>` (`constructs/`),
 `function:<NAME>` (`intrinsic-introductions.json`) or `word:<WORD>` (`reserved-words.json`), resolved by one script,
 `scripts/spec/facility.py`. No window is copied, and each window's edges carry their evidence once, so a move like
 PB4609's re-dates every row it bounds (hand lists missed the 7 ENTRY-CONVENTION rows).
@@ -531,7 +531,7 @@ tests/nist/crosswalk/<program>.json    each NIST-85 program's units and disposit
   edit neighbouring lines of one case file, its `.out` or its `.jsonl`, which every branch adding a test to the clause
   now shares. Of 778 landings since 2026-10-21 (main at 04b40a165), 200
   touched a clause folder, and 9 times two consecutive ones touched one folder within an hour
-  (`check17/merge_contention.py`). `merge_drivers.py --self-test` keeps suite paths driver-free.
+  (`check17/merge_contention.py`). `RegistryShapeDriftTests` keeps every registry one file per entry and `.gitattributes` free of `merge=` (kb/Work PB5110).
 - **The generator and its siblings.** `harness/generate.py` (with `harness/cobol_source.py` for facts read from program
   text) is the ONE reader of blocks and `.flagged.jsonl` lines, the one writer of manifests and the one place
   refusals are raised. At 1,936 lines it is already large, so revision 3's derivations go to sibling modules that take

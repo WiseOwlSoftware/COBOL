@@ -1,0 +1,12 @@
+{
+ "id": "options-paragraph-2002",
+ "description": "The OPTIONS paragraph - a 2002 introduction (the 2002 standard added it with the ARITHMETIC clause; Annex E.2 item 21's obsolete-in-2014 Standard Arithmetic back-derives the container; the OPTIONS reserved word is 2002). Below 2002 the binder still returns OptionsModel.Default (silent routing - the pass owns the diagnostic). The 2014-only clauses (DEFAULT ROUNDED / INTERMEDIATE ROUNDING / ENTRY-CONVENTION / FLOAT-BINARY / FLOAT-DECIMAL / INITIALIZE, and the STANDARD-BINARY / STANDARD-DECIMAL keywords) carry their own per-clause 2014 rows (P10 Step 12).",
+ "display": "the OPTIONS paragraph",
+ "diagnosticCode": "COBOL0804",
+ "citation": "ISO §2023:11.9; Annex E.2 item 21",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0804",
+ "vcr": "2002 introduction (M2 catalog + Annex E.2 item 21 back-derivation)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWOPT.\nOPTIONS.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

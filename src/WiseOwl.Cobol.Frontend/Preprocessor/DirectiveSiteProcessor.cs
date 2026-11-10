@@ -15,7 +15,7 @@ namespace WiseOwl.Cobol.Frontend.Preprocessor;
 /// <param name="AllForm">True for a <c>&gt;&gt;PUSH ALL</c> / <c>&gt;&gt;POP ALL</c> — the form §2023:7.3.22.3 SR3 and
 /// §2023:7.3.20.3 SR3 confine to positions between clauses / statements of a compilation unit (kb/Work PB1005).</param>
 /// <param name="NamedRow">For a <c>&gt;&gt;PUSH</c> / <c>&gt;&gt;POP</c> that names a directive (§2023:7.3.20.2 / §2023:7.3.22.2
-/// <c>directive-name</c>): that directive's <c>constructs.json</c> row. §2023:7.3.20.3 SR2 / §2023:7.3.22.3 SR2 — the PUSH or
+/// <c>directive-name</c>): that directive's <c>constructs/</c> row. §2023:7.3.20.3 SR2 / §2023:7.3.22.3 SR2 — the PUSH or
 /// POP "shall not be specified where directive-name must not be specified" — so the named row's placement rule
 /// judges the PUSH/POP too (kb/Work PB1377). Null for every other directive and for the ALL form.</param>
 /// <param name="Column">The 0-based RESULTANT column of the directive's indicator on <paramref name="Line"/> — where a
@@ -60,7 +60,7 @@ public static class DirectiveSiteProcessor
 
     /// <summary>The directive words whose row carries a PLACEMENT rule (<see cref="ConstructDialectStatus.Placement"/>
     /// — kb/Work PB1377, PB1378, PB1065), DERIVED from the catalog so a directive with a new placement restriction
-    /// is one <c>constructs.json</c> field. Their sites are recorded too: the post-parse
+    /// is one <c>constructs/</c> field. Their sites are recorded too: the post-parse
     /// <c>DirectivePlacementPass</c> judges the rules that need the parse tree.</summary>
     private static readonly IReadOnlySet<string> PlacementRuled =
         CompilerDirectiveCatalog.Words.Where(w => CompilerDirectiveCatalog.Find(w)?.Placement is not null)

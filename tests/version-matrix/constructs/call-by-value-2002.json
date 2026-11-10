@@ -1,0 +1,12 @@
+{
+ "id": "call-by-value-2002",
+ "description": "CALL ... USING BY VALUE argument phrase, ISO 14.9.4 - introduced 2002 (BY REFERENCE/BY CONTENT are 85). Gated in ONE place, CallBinder.Format1Narrowing (kb/Work PB4503): below 2002 a Format 1 CALL BY VALUE is this COBOL0900, and under --permissive the vendor extension. Probe spelled as FORMAT 2 (AS NESTED, contained callee with a BY VALUE formal): Format 1 prints no BY VALUE arm and is rejected at every edition since kb/Work PB130/PB132.",
+ "display": "the CALL BY VALUE phrase",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.4.3 SR21 (the BY VALUE phrase)",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "M2 interprogram surface; W1.5 parse-layer mapping (DEVLOG 594)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15Q.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4) VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"SUB1\" AS NESTED USING BY VALUE W.\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. SUB1.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LV PIC 9(4).\nPROCEDURE DIVISION USING BY VALUE LV.\nP.\n    GOBACK.\nEND PROGRAM SUB1.\nEND PROGRAM W15Q.\n"
+}

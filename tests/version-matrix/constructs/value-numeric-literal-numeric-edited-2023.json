@@ -1,0 +1,12 @@
+{
+ "id": "value-numeric-literal-numeric-edited-2023",
+ "description": "A numeric literal, the literal zero included, in the VALUE clause of a numeric-edited item (ISO §2023:13.18.63 SR6) — a COBOL-2023 capability (Annex E.3.3 item 43): the literal is converted to its numeric-edited form per the MOVE rules. Below 2023 a numeric-edited VALUE required an alphanumeric edited-image literal. SR6's last sentence (the integer and decimal forms of the literal zero for either format) separates fixed-point from floating-point formats inside the 2023 permission and exempts nothing below it; only the figurative constant ZERO or ZEROES, which is no numeric literal, is accepted at every edition (kb/Work PB3566).",
+ "display": "numeric-literal VALUE for a numeric-edited item",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.63.3 SR6; Annex E.3.3 item 43",
+ "introducedIn": 2023,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR row 86 (numeric literal for numeric-edited — 2023 introduction)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VNL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 NE PIC $ZZ9.99 VALUE 12.5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY NE.\n    STOP RUN.\n"
+}

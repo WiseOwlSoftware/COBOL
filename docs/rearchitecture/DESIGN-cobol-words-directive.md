@@ -180,7 +180,7 @@ like `FlagState`/`RefModZeroLengthState`.
 
 - **`WiseOwl.Cobol.Editions`** — `CobolWordsMap` (the four normalized operation lists, all words upper-cased);
   `ReservedWordSet` extended with an **overlay** (a `Reserve` set → high-confidence reserved-at-edition, and a
-  `Suppress` set from UNDEFINE + SUBSTITUTE-lit4 → forces `RejectsAt=false`). `constructs.json` row
+  `Suppress` set from UNDEFINE + SUBSTITUTE-lit4 → forces `RejectsAt=false`). `constructs/` row
   `cobol-words-directive-2023` (introducedIn 2023, COBOL0900). Malformed/SR descriptor
   `CobolWordsDirectiveInvalid` = **COBOL1623**.
 - **`WiseOwl.Cobol.Frontend`** — `CobolWordsDirectiveProcessor` (text stage): parse the four options into a
@@ -357,7 +357,7 @@ a no-op and output is byte-identical (the zero-overhead invariant).
 
 - **Incr A — recognition + parse + gate (no behavior).** `CobolWordsMap` + `CobolWordsDirectiveProcessor`
   (parse 4 options, SR1/SR2/SR5, `>>COBOL-WORDS` edition gate 0900), pipeline wiring + `leaveCobolWordsDirectives`,
-  `constructs.json` row + regen, COBOL1623 descriptor. Unit tests (parser) + below-2023 negative golden.
+  `constructs/` row + regen, COBOL1623 descriptor. Unit tests (parser) + below-2023 negative golden.
 - **Incr B — RESERVE + UNDEFINE (reserved-word semantics).** `ReservedWordSet` overlay + thread into
   `VersionConformancePass`; SR3/SR4 semantic validation. RESERVE (0901) + UNDEFINE goldens.
 - **Incr C — token retype (EQUATE / UNDEFINE / SUBSTITUTE).** `CobolWordsRewriter.Plan` applied by the lexer

@@ -1,0 +1,12 @@
+{
+ "id": "lock-mode-clause-2002",
+ "description": "The LOCK MODE clause (ISO 12.4.5.9; LOCK MODE IS MANUAL/AUTOMATIC [WITH LOCK ON [MULTIPLE] RECORD(S)]) - MANUAL locks only on WITH LOCK, AUTOMATIC on every READ. 2002 introduction; 0900 below 2002.",
+ "display": "the LOCK MODE clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.4.5.9 (LOCK MODE IS MANUAL/AUTOMATIC [WITH LOCK ON [MULTIPLE] RECORD(S)]); 2002 introduction",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+ "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWLM.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL\n               LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+}

@@ -1,0 +1,12 @@
+{
+ "id": "special-names-locale-2002",
+ "description": "The SPECIAL-NAMES LOCALE clause (LOCALE locale-name-1 IS {external-locale-name-1 | literal-4}), ISO 12.3.7.2 - introduced 2002 with the locale facility (Annex A.4.9 item 10, the clause half; kb/Work PB64 T1). The locale-name is a user-defined word (8.3.2.2) referenced by ALPHABET ... IS LOCALE locale-name-2 (12.3.7.3 SR24) and SET LOCALE (14.9.39.3 SR26); it holds the external identification only (8.1.5 - the locale is determined at runtime). Parse-arm gated on recognition (VisitLocaleClause): the clause is recognized by SHAPE at every edition (the '85 switch shapes LOCALE IS x / LOCALE ON STATUS are excluded by the predicate), so below 2002 the answer is this introduction diagnostic instead of a parse error at the clause's literal.",
+ "display": "the SPECIAL-NAMES LOCALE clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:12.3.7.2 (the LOCALE clause of the SPECIAL-NAMES general format); §2023:12.3.7.3 SR10/SR11; §2023:12.3.7.4 GR1/GR5",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (the locale facility; kb/Work PB64 T1 - the LOCALE clause declares a locale-name)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PB64LC.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    LOCALE FR IS \"fr-FR\".\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

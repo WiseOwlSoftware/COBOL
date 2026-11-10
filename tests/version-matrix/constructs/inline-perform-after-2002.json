@@ -1,0 +1,12 @@
+{
+ "id": "inline-perform-after-2002",
+ "description": "An AFTER phrase in an inline PERFORM — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 91: \"PERFORM statement. The AFTER phrase is allowed in an inline PERFORM.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, VersionConformancePass.ParseArm.VisitPerformVaryingAfter (kb/Work PB4305; VCR row 7.47).",
+ "display": "an AFTER phrase in an inline PERFORM",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.28.2; ISO/IEC 1989:2002 Annex F.2 item 91",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 91)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMIPA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 I PIC 9.\n01 J PIC 9.\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM VARYING I FROM 1 BY 1 UNTIL I > 2\n            AFTER J FROM 1 BY 1 UNTIL J > 2\n        DISPLAY I J\n    END-PERFORM.\n    STOP RUN.\n"
+}

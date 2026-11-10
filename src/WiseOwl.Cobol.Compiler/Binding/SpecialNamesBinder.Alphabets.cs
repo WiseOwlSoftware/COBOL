@@ -62,7 +62,7 @@ public sealed partial class SpecialNamesBinder
     /// answers, so it is asked once and passed in.</param>
     /// <param name="where">The construct, for the diagnostic ("EVALUATE WHEN range", "condition-name 'X'").</param>
     /// <summary>⛔ THE EDITION GATE OF THE <c>[ IN alphabet-name-1 ]</c> RANGE PHRASE — a COBOL-2002 addition
-    /// (constructs.json <c>range-in-alphabet-2002</c>; the edge is DERIVED and the derivation is the row's, kb/Work
+    /// (the construct catalogue <c>range-in-alphabet-2002</c>; the edge is DERIVED and the derivation is the row's, kb/Work
     /// PB1015). It sits at the one resolver and not in the parse arm because the phrase is decided by SYMBOL: IN is
     /// an optional word (PB983), so `THRU "M" AL` is the phrase only when AL names an alphabet, and an EVALUATE
     /// identifier-4 `IN AL` parses as a qualification until EvaluateBinder peels it (PB843). No recognition-time

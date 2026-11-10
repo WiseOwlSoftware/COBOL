@@ -1,0 +1,12 @@
+{
+ "id": "call-using-group-any-level-2002",
+ "description": "A CALL USING argument that is a group item with a level-number other than 01 or 77 — a COBOL-2002 relaxation of a COBOL-85 restriction, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 10: \"CALL arguments may be elementary or groups with any level number. Formerly, they had to be elementary or have a level number of 1 or 77.\" COBOL-85 is the edition a 2002 Annex F.2 'formerly' statement describes: the owner's decision of 2026-10-31 (kb/Work PB4305) makes the F.2 statements the rule for the 85 edge, as D-SIGN2 (item 124) and PB3683 (item 123) did; GnuCOBOL -std=cobol85 accepts some of them as dialect leniency, which rule 1 places below the ISO text. Gated in ONE place, CallBinder.ScreenCallOperand, once per USING operand (kb/Work PB4305; VCR row 7.47).",
+ "display": "a CALL USING argument that is a group item with a level-number other than 01 or 77",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.4.3 SR3; ISO/IEC 1989:2002 Annex F.2 item 10",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 10)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCLG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n    05 H.\n        10 B PIC X(4) VALUE \"ABCD\".\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"VMCLGSUB\" USING H.\n    STOP RUN.\n"
+}
