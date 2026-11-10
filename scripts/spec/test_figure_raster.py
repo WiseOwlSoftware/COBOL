@@ -637,11 +637,12 @@ def main() -> int:
     fill(img, 43.5, 106.2, 60, 107)
     fill(img, 20, 136.2, 25, 137)                                # MT: a full rule under a word narrower than MONO_RULE_MIN_W
     fill(img, 20, 126.2, 48, 127)                                # MONOHALF: a rule under 70 % of the word
+    fill(img, 70, 136.2, 77, 137)                                # M: a whole rule under a one-glyph word 7 pt wide: the length guard
     hints = [(20, 13, 45, 26.0, "XX"), (49, 13, 56, 26.0, "TO"), (60, 13, 85, 26.0, "YY"),
              (20, 43, 45, 56.0, "QQ"), (49, 43, 53, 56.0, "A"), (57, 43, 82, 56.0, "RR"),
              (95, 13, 107, 26.0, "AA"), (110, 13, 117, 26.0, "IN"), (120, 13, 140, 26.0, "BB"),
              (20, 100, 60, 108.0, "MONO"), (20, 110, 60, 118.0, "MONOBARE"), (20, 120, 60, 128.0, "MONOHALF"),
-             (20, 130, 25, 138.0, "MT")]
+             (20, 130, 25, 138.0, "MT"), (70, 130, 77, 138.0, "M")]
     got = [h[4] for h in R.underlined_hints(img < 128, hints, S)]
     total += 1
     check("a short word is underlined by the rule across its spaces and a monospaced word by its ragged rule",
