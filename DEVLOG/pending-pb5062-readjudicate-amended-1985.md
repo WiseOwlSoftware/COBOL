@@ -1,4 +1,4 @@
-## PB5062: the 95 1985 change records withdrawn for amended text are re-decided against the amended 1985 (GAP 1,081 to 1,044)
+## PB5062 and PB5051: the 95 1985 change records withdrawn for amended text are re-decided against the amended 1985 (GAP 1,081 to 1,044)
 
 When PB5045 applied both amendments to the 1985 transcription in place, 95 change records that had been decided against the
 unamended text were withdrawn. Twelve Mythos 5.2 cobol-adjudicators re-decided all of them against the amended text, the
@@ -12,3 +12,11 @@ several withdrawn reasons called a difference a 2023 addition that the amended 1
 Leads filed: PB5092 (sibling records the re-decision did not reach now disagree with it), PB5093 (the catalog's
 `amended_by` misses or misplaces Amendment 2 on three rows) and PB5094 (`work.py check` cannot take a 1985 rule id in
 `inventory_rows`, so the triage's defect notes list their rows in prose).
+
+Two small items ride along. PB5051: Errata C32 (SET general rule 2, `index-name-1` corrected to `index-name-2`) had
+justified the correction by saying the printed word would make general rule 3a's conversion unreachable, which is unsound,
+because the printed sentence constrains only the value of index-name-2, not its table. The Errata entry and its flag now give
+the sound grounds (each sentence of the rule pairs an index with its own table; an occurrence number means something only in
+its index's table; 3a's conversion reads index-name-2's value in its own table; 2023 names index-name-2's table), and the
+correction stands. MANDATORY-PRACTICES P1 no longer says Mythos's only planned use is the architecture review's R1: it takes
+the work the owner approves for Fable (review lead R1-1 of PR #1435).
