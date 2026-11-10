@@ -30,6 +30,14 @@ namespace WiseOwl.Cobol.Tests.Shared;
 /// single-program tests the shared gate timings name in PB3108 (RelationPairShapeTests, ActivationResourcesTests),
 /// so it carries a multiple of 13 to 32 for load. <c>WISEOWL_COBOL_RUN_TIMEOUT_MS</c> sets it.
 /// </para>
+/// <para>
+/// ⛔ A PROCESS THAT WAITS ON ITS OWN CLOCK STATES THE WAIT (kb/Work PB5154). The unit's load multiple assumes the work is
+/// computation and I/O, which load stretches. A program whose specification IS a wall-clock delay (CCVS CM102M spins on
+/// ACCEPT FROM TIME through three 30-second delays) spends that time whatever the host does, so inside one unit it left
+/// 30 s for everything else: green on the gate host in 91.6 s, killed twice at 120 s on a GitHub Windows runner
+/// (merge-group runs 42835167709 and 42841304077). Such a process gets one unit PLUS its stated wait
+/// (<see cref="OneProcessWaiting"/>): the wait is added, never multiplied, because load neither lengthens nor shortens it.
+/// </para>
 /// </remarks>
 internal sealed class ObservationBudget
 {
@@ -42,31 +50,41 @@ internal sealed class ObservationBudget
     /// <summary>One process that starts no child it waits for: one unit.</summary>
     public static ObservationBudget OneProcess { get; } = For(UnitMs, children: 0, parallel: 1, "one process");
 
+    /// <summary>One process that starts no child and waits <paramref name="ownWait"/> on its own clock by design (the
+    /// delays its specification makes, e.g. CCVS CM102M's three of 30 s): one unit plus that wait (kb/Work PB5154).</summary>
+    public static ObservationBudget OneProcessWaiting(TimeSpan ownWait, string work) =>
+        For(UnitMs, children: 0, parallel: 1, work, ownWait);
+
     /// <summary>A process that runs <paramref name="children"/> child processes, at most <paramref name="parallel"/> at a
     /// time, at the harness unit.</summary>
     public static ObservationBudget ForChildren(int children, int parallel, string work) =>
         For(UnitMs, children, parallel, work);
 
     /// <summary>The rule itself, at an explicit unit: <c>1 + ceil(children / parallel)</c> units of
-    /// <paramref name="unitMs"/>. Only the observer's own tests choose the unit; every other caller takes
-    /// <see cref="UnitMs"/> through <see cref="OneProcess"/> or <see cref="ForChildren"/>.</summary>
-    internal static ObservationBudget For(int unitMs, int children, int parallel, string work)
+    /// <paramref name="unitMs"/>, plus <paramref name="ownWait"/>, the time the process waits on its own clock by design
+    /// (zero for most, <see cref="OneProcessWaiting"/>). Only the observer's own tests choose the unit; every other caller
+    /// takes <see cref="UnitMs"/> through <see cref="OneProcess"/>, <see cref="OneProcessWaiting"/> or
+    /// <see cref="ForChildren"/>.</summary>
+    internal static ObservationBudget For(int unitMs, int children, int parallel, string work, TimeSpan ownWait = default)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(unitMs, 1);
         ArgumentOutOfRangeException.ThrowIfNegative(children);
         ArgumentOutOfRangeException.ThrowIfLessThan(parallel, 1);
         ArgumentException.ThrowIfNullOrWhiteSpace(work);
+        ArgumentOutOfRangeException.ThrowIfLessThan(ownWait, TimeSpan.Zero);
         long units = 1 + ((long)children + parallel - 1) / parallel;
-        return new ObservationBudget(unitMs, units, work);
+        long ownWaitMs = (long)Math.Min(int.MaxValue, Math.Ceiling(ownWait.TotalMilliseconds));
+        return new ObservationBudget(unitMs, units, ownWaitMs, work);
     }
 
-    private ObservationBudget(int unitMs, long units, string work)
+    private ObservationBudget(int unitMs, long units, long ownWaitMs, string work)
     {
         PerUnitMs = unitMs;
         Units = units;
+        OwnWaitMs = ownWaitMs;
         Work = work;
         // Process.WaitForExit takes an int: a budget past int.MaxValue ms (24.8 days) is clamped, never wrapped.
-        Ms = (int)Math.Min(int.MaxValue, units * unitMs);
+        Ms = (int)Math.Min(int.MaxValue, units * unitMs + ownWaitMs);
     }
 
     /// <summary>The unit this budget was computed at.</summary>
@@ -74,6 +92,9 @@ internal sealed class ObservationBudget
 
     /// <summary>The serial units of work: one for the process, one per round of its children.</summary>
     public long Units { get; }
+
+    /// <summary>The time the process waits on its own clock by design, added to the units (kb/Work PB5154); zero for most.</summary>
+    public long OwnWaitMs { get; }
 
     /// <summary>What the process was started to do, in words, for the non-observation report.</summary>
     public string Work { get; }
@@ -83,5 +104,9 @@ internal sealed class ObservationBudget
 
     /// <summary>The budget as a non-observation reports it: the total, the work, and how it was computed.</summary>
     public override string ToString() => string.Create(CultureInfo.InvariantCulture,
-        $"{Ms} ms for {Work} ({Units} unit(s) of {PerUnitMs} ms; WISEOWL_COBOL_RUN_TIMEOUT_MS sets the unit)");
+        $"{Ms} ms for {Work} ({Units} unit(s) of {PerUnitMs} ms{OwnWaitText}; WISEOWL_COBOL_RUN_TIMEOUT_MS sets the unit)");
+
+    private string OwnWaitText => OwnWaitMs > 0
+        ? string.Create(CultureInfo.InvariantCulture, $" + {OwnWaitMs} ms it waits on its own clock")
+        : "";
 }

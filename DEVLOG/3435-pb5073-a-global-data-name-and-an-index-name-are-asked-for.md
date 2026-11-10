@@ -28,3 +28,8 @@ four editions); `pb5073_index_name_twice_qualified` (2002 and later) and refused
 No inventory row is closed (the 1985 rows do not exist yet; the 2023 catalog has no row for the §2023:8.4.2.1 sentence, so the
 GLOBAL goldens witness SR-13.18.27.3-1, the nearest row).
 
+
+Finisher (merge-group bounce of PR #1465, run 42841304077): the one red, CCVS `CM102M_ReportsNoFailure` timing out at 120 s on a
+GitHub Windows runner, was not this change. CM102M waits 90 s on its own clock by design (three 30-second ACCEPT FROM TIME
+delays), which left 30 s of the one-unit harness budget for load. The budget rule now adds a stated own-clock wait to the
+units (`ObservationBudget.OneProcessWaiting`, kb/Work PB5154), and CM102M states its 90 s.
