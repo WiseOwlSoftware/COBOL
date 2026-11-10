@@ -710,7 +710,7 @@ public sealed class DebugFacilityTests
             """;
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
         Assert.True(ok, detail);
-        Assert.Equal("N=[PARA-W OF SEC-A                ]", stdout.Replace("\r", "").TrimEnd('\n'));
+        Assert.Equal("N=[PARA-W OF SEC-A               ]", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
     /// <summary>A SORT INPUT or OUTPUT PROCEDURE that is a debug subject runs the debugging section with the SORT cause: DEBUG-CONTENTS

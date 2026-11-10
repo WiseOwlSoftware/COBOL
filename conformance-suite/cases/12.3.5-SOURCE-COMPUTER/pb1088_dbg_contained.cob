@@ -14,7 +14,8 @@
       *> lines); the object-time switch is ON (the wavef_dbg_proc posture), so the declarative runs before the
       *> contained program's first nondeclarative procedure. Hand-derived stdout:
       *>   OUTER                                  (the container, before the CALL)
-      *>   N=P-IN ... C=START PROGRAM             (first execution of SCINNER's first nondeclarative procedure)
+      *>   N=MAIN ... C=START PROGRAM             (first execution of the contained program's first nondeclarative procedure, the section)
+      *>   N=P-IN ... C=START PROGRAM             (its first paragraph, entered with it; ALL PROCEDURES covers both, general rule 4)
       *>   INNER                                  (P-IN's own DISPLAY)
       *> Before the fix the contained unit reset the switch to its own (absent) clause: OUTER / INNER.
        IDENTIFICATION DIVISION.

@@ -9,11 +9,13 @@
       *> The '85 debug module was deleted by ISO/IEC 1989:2002 and is absent from ISO/IEC 1989:2023, so its
       *> authoritative behavior is the 1985 standard. WITH DEBUGGING MODE compiles the debugging section as real
       *> source (the compile-time switch); the object-time switch is ON (RunUnit.DebugMode, the CCVS posture), so
-      *> the USE FOR DEBUGGING ON ALL PROCEDURES declarative runs just before each nondeclarative procedure and
+      *> the USE FOR DEBUGGING ON ALL PROCEDURES declarative runs just before each procedure-name outside a
+      *> debugging section, sections and paragraphs (X3.23-1985 general rule 4, kb/Work PB5083), and
       *> populates DEBUG-ITEM (DEBUG-NAME + the DEBUG-CONTENTS transfer-cause taxonomy — DB101A witness).
       *> Hand-derived stdout (each DEBUG-CONTENTS token is DB101A-pinned):
-      *>   P-START: first execution of the first nondeclarative procedure -> "START PROGRAM"
-      *>   P-LOOP : PERFORM iteration 1 -> SPACES ; iteration 2 -> "PERFORM LOOP"
+      *>   MAIN   : the first nondeclarative procedure, a section -> "START PROGRAM" (general rule 16)
+      *>   P-START: its first paragraph, entered with it -> "START PROGRAM"
+      *>   P-LOOP : every PERFORM execution -> "PERFORM LOOP" (general rule 20), both iterations
       *>   P-END  : reached by GO TO -> SPACES
        IDENTIFICATION DIVISION.
        PROGRAM-ID. WAVEF-DBG-PROC.
