@@ -741,9 +741,7 @@ internal sealed class VersionConformancePass
         {
             if (number is null || !ConstructRegistry.IsAvailable(_p._edition, construct)) return;
             string text = number.GetText();
-            string digits = text.TrimStart('0');
-            int value = digits.Length is 0 ? 0 : digits.Length > 2 ? int.MaxValue
-                : int.Parse(digits, System.Globalization.CultureInfo.InvariantCulture);
+            int value = Segmentation.ValueOf(number);
             if (value <= max && (value >= min || value == 0)) return;   // a zero below min is the SEGMENT-LIMIT slot's COBOL2386
             using var _ = Sink.At(number);
             _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.SegmentNumberOutOfRange.Code, EditionSeverity.Error,
@@ -1132,8 +1130,9 @@ internal sealed class VersionConformancePass
         }
 
         /// <summary>A section-header segment-number — the '85 Segmentation module's priority number, deleted
-        /// 2002. At 85 its range is checked (<see cref="ScreenSegmentNumber"/>) and the number is otherwise discarded
-        /// (all segments resident; VCR row 7.18 records what that posture does not implement).</summary>
+        /// 2002. At 85 its range is checked here (<see cref="ScreenSegmentNumber"/>); the binder reads the number into the
+        /// section (<see cref="Segmentation.OfHeader"/>) for the module's flow restrictions and the initial state of an
+        /// independent segment (VCR row 7.18, kb/Work PB5084).</summary>
         public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
         {
             if (ctx.integerLiteral() is not null)

@@ -1,0 +1,45 @@
+
+                            FEDERAL COMPILER TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM                          
+                                                                                                                        
+CCVS74 NCC  COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SG203A                                           
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1974          
+                                                                                                                        
+                                                                                                                        
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS                     
+ TESTED               FAIL                                                                                              
+                                                                                                                        
+ ***********************************************************************************************************************
+ FALL THRU IND SEG    PASS  SEGM-TEST-01                  TEST BEGINS IN PARA-67                                        
+ FALL THRU IND SEG    PASS  SEGM-TEST-02                  TEST BEGINS IN PARA-31                                        
+ PERFORM IND SEG      PASS  SEGM-TEST-03                  TEST BEGINS IN PARA-99                                        
+ ALTER OVLY FIXED SEG PASS  SEGM-TEST-04                  TEST BEGINS IN PARA-55                                        
+ ALTER OVLY FIXED SEG PASS  SEGM-TEST-05                  TEST BEGINS IN PARA-56                                        
+ FALL THRU IND SEG    PASS  SEGM-TEST-06                  TEST BEGINS IN PARA-01                                        
+ PERFORM  IND SEG     PASS  SEGM-TEST-07                  TEST BEGINS IN PARA-02                                        
+ ALTER OVLY FIXED SEG PASS  SEGM-TEST-08                  TEST BEGINS IN PARA-35                                        
+ GO TO NON-RES SEG    PASS  SEGM-TEST-09                  TEST BEGINS IN PARA-36                                        
+ INITIAL STATE        PASS  SEGM-TEST-10                  TEST BEGINS IN PARA-37                                        
+ INITIAL STATE        PASS  SEGM-TEST-11                  TEST BEGINS IN PARA-38                                        
+ LAST USED STATE      PASS  SEGM-TEST-12                  TEST BEGINS IN PARA-03                                        
+ LAST USED STATE      PASS  SEGM-TEST-13                  TEST BEGINS IN PARA-04                                        
+ INITIAL STATE        PASS  SEGM-TEST-14                  TEST BEGINS IN PARA-40B                                       
+ INITIAL STATE        PASS  SEGM-TEST-15                  TEST BEGINS IN PARA-68C                                       
+ INITIAL STATE        PASS  SEGM-TEST-16                  TEST BEGINS IN PARA-41A                                       
+ INITIAL STATE        PASS  SEGM-TEST-17                  TEST BEGINS IN PARA-46                                        
+ ALTER RES TO NON-RES PASS  SEGM-TEST-18                  TEST BEGINS IN PARA-47                                        
+ ***********************************************************************************************************************
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                    END OF TEST-  SG203A    NTIS DISTRIBUTION COBOL 74                  
+                                                                                                                        
+                                                    018 OF 018  TESTS WERE EXECUTED SUCCESSFULLY                        
+                                                    NO  TEST(S) FAILED                                                  
+                                                    NO  TEST(S) DELETED                                                 
+                                                    NO  TEST(S) REQUIRE INSPECTION                                      
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1974

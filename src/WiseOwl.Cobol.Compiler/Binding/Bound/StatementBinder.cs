@@ -292,7 +292,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             DebugSubRegisters: table.DebugSubRegisters,
             F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
             F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null,
-            Raising: raising);
+            Raising: raising,
+            Segments: table.SegmentsPerPc(bound.Count));
     }
 
     // ⛔ `OoScopeHint` IS GONE (kb/Work PB390). It appended "names resolve METHOD-LOCALLY (§2023:11.7)" to the four

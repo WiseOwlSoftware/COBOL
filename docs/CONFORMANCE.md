@@ -3428,6 +3428,19 @@ label processing, so LABEL RECORDS and VALUE OF are null facilities in function 
 | VALUE OF data-name-1 | §1985:VII.3.9.3 SR1 and SR2: not subscripted (COBOL2024, the clause-operand capture), not USAGE IS INDEX, and in the Working-Storage Section (COBOL6849); an undefined name is COBOL1639 |
 | DATA RECORDS data-name-1 | §1985:VII.3.5.3 SR1: the name of an 01 record description of the same entry (COBOL6849), in an FD and in an SD |
 
+### 3.8 The COBOL-85 Segmentation module (kb/Work PB5084)
+
+Segmentation is an obsolete optional module of X3.23-1985, deleted from COBOL-2002 (COBOL0902). WiseOwl COBOL keeps every segment
+resident, which §1985:XVI.1.6 permits ("the implementor must provide control transfers to maintain the logical flow specified in
+the source program"), and implements the two rules a program can observe. The design is D4 of `docs/CONTROL_FLOW_DESIGN.md`.
+
+| Item | Determination |
+|---|---|
+| The procedures a PERFORM, SORT or MERGE names | §1985:XVI.3.3.2, XVI.3.3.3 and XVI.3.3.4 are asked of the procedures the statement NAMES (procedure-name-1 through procedure-name-2, in either physical order), and each PERFORM, SORT and MERGE those procedures contain is asked about its own; COBOL6877. Rejected: the closure over the procedures they perform in turn (the range of §1985:VI.6.21.4 GR11): the CCVS-85 segmentation programs SG102A and SG103A, written to be accepted, PERFORM the fixed-portion report paragraphs from inside an independent segment's performed range, and the closure refuses both |
+| An independent segment's initial state | §1985:XVI.1.4.3 and §1985:VI.6.7.4 GR1: its ALTERed GO TOs return to their written targets whenever control enters it from a segment with a different segment-number (falling through, a SORT or MERGE procedure entry, an explicit transfer), and keep their state when control returns to it implicitly or by EXIT PROGRAM. A CALL that re-enters a program is not a transfer from another segment of it: the program is in its last-used state (§1985:X.5.2.4 GR5), its independent segments included. The modified GO TO is the state the 1985 text names as returned (VI.6.7.4 GR1); data is not segmented (§1985:XVI.1.3: "COBOL segmentation deals only with segmentation of procedures"), so nothing else is reset |
+| SEGMENT-LIMIT and fixed overlayable segments | A null facility in function: a fixed overlayable segment "is always made available in its last used state" (§1985:XVI.1.4.2), which is what a resident segment is. Its range is checked (COBOL6819) |
+| --permissive at a later edition | The segment-number is a removed construct, accepted with a warning; it keeps its 1985 run-time meaning (as ALTER does), and the 1985 restrictions are not asked |
+
 ## 4. Documented non-support facilities (§2023:4.2.6 / §2023:4.2.7 / §2023:4.2.13)
 
 The following facilities are **not implemented** (commit and rollback only for the sequential organizations, item 2),

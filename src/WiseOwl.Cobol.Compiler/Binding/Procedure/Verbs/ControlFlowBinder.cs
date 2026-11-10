@@ -555,6 +555,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         bool entersDeclarative = first.IsDeclarative && ctx.Enclosing.Declarative is null;
         if (PerformFormat.SpecifiesVaryingOrTest(p))
             ctx.UntilExit.AddBarringRanges([range], ctx.SourceLine(p));   // §2023:14.9.28.3 SR8 — its range is "under" it
+        Segmentation.CheckProcedures(ctx, range, "PERFORM", "§1985:XVI.3.3.2");
         return new BoundOutOfLinePerform(range, BindPerformControl(p), ctx.SourceLine(p), entersDeclarative);
     }
 

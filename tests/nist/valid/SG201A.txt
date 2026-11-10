@@ -1,0 +1,106 @@
+
+                            FEDERAL COMPILER TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM                          
+                                                                                                                        
+CCVS74 NCC  COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SG201A                                           
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1974          
+                                                                                                                        
+                                                                                                                        
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS                     
+ TESTED               FAIL                                                                                              
+                                                                                                                        
+ ***********************************************************************************************************************
+ SEGMENT-LIMIT        PASS  SEG-TEST-1                                                                                  
+ SEGMENT-LIMIT        PASS  SEG-TEST-2                                                                                  
+ SEGMENT-LIMIT        PASS  SEG-TEST-3                                                                                  
+ SEGMENT-LIMIT        PASS  SEG-TEST-4                                                                                  
+ SEGMENT-LIMIT        PASS  SEG-TEST-5                                                                                  
+ SEGMENT-LIMIT        PASS  SEG-TEST-6                                                                                  
+ SEGMENT-LIMIT        PASS  SEG-TEST-7                                                                                  
+ SEGMENT-LIMIT        PASS  SEG-TEST-8                                                                                  
+ SEGMENT-LIMIT        PASS  SEG-TEST-9                                                                                  
+ SEGMENT-LIMIT        PASS  SEG-TEST-10                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-11                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-12                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-13                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-14                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-15                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-16                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-17                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-18                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-19                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-20                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-21                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-22                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-23                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-24                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-25                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-26                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-27                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-28                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-29                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-30                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-31                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-32                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-33                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-34                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-35                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-36                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-37                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-38                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-39                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-40                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-41                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-42                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-43                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-44                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-45                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-46                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-47                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-48                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-49                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-50                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-51                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-52                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-53                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-54                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-55                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-56                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-57                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-58                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-59                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-60                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-61                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-62                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-63                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-64                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-65                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-66                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-67                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-68                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-69                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-70                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-71                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-72                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-73                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-74                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-75                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-76                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-77                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-78                                                                                 
+ SEGMENT-LIMIT        PASS  SEG-TEST-79                                                                                 
+ ***********************************************************************************************************************
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                    END OF TEST-  SG201A    NTIS DISTRIBUTION COBOL 74                  
+                                                                                                                        
+                                                    079 OF 079  TESTS WERE EXECUTED SUCCESSFULLY                        
+                                                    NO  TEST(S) FAILED                                                  
+                                                    NO  TEST(S) DELETED                                                 
+                                                    NO  TEST(S) REQUIRE INSPECTION                                      
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1974

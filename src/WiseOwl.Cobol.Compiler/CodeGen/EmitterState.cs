@@ -325,6 +325,13 @@ internal sealed class DispatchState
     /// dispatcher emission; a class unit owns no debug facility.</summary>
     public bool DebugActive { get; set; }
 
+    /// <summary>True when the program's dispatcher returns an independent segment's ALTERed GO TOs to their initial state on
+    /// entry from another segment (§1985:XVI.1.4.3; kb/Work PB5084; CONTROL_FLOW_DESIGN D4): the program has an
+    /// independent segment holding an alterable GO TO, which only COBOL-85 can write. Gates the <c>__seg</c> scaffolding,
+    /// so every other program's generated source is unchanged. Set per unit by the dispatcher emission
+    /// (<see cref="AlterSwitchEmitter.EmitSegmentState"/>).</summary>
+    public bool SegmentEntry { get; set; }
+
     /// <summary>The debug trigger subjects grouped by their pc (empty unless <see cref="DebugActive"/>), a section subject and its first paragraph sharing one:
     /// the dispatch-method emission injects a <c>__RunDebug(...)</c> per subject at the case entry.</summary>
     public ILookup<int, BoundDebugSubject> DebugByPc { get; set; } =

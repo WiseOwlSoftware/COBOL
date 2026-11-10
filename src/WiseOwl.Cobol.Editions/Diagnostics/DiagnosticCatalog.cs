@@ -9459,6 +9459,21 @@ public static class DiagnosticCatalog
         + "Working-Storage Section.\"",
         "ISO §1985:VII.3.5.3 SR1; §1985:VII.3.9.3 SR1, SR2");
 
+    /// <summary>COBOL6877 — a statement breaks a restriction the X3.23-1985 Segmentation module places on program flow (kb/Work
+    /// PB5084): an ALTER in another segment refers to a GO TO of an independent segment (§1985:XVI.3.3.1), or the procedures a
+    /// PERFORM, SORT or MERGE names span the fixed portion and an independent segment, two independent segments, or an
+    /// independent segment other than the statement's own (§1985:XVI.3.3.2, XVI.3.3.3, XVI.3.3.4). One descriptor for the
+    /// module's four restrictions, as COBOL6819 holds its three ranges. Emitted by
+    /// <c>Segmentation.CheckAlter</c> and <c>Segmentation.CheckProcedures</c> at COBOL-85, the one edition with segment-numbers.</summary>
+    public static readonly DiagnosticDescriptor SegmentationFlowRestriction = new(
+        "COBOL6877", "segmentation-flow-restriction", EditionSeverity.Error,
+        "A statement breaks a restriction on program flow in a segmented program. §1985:XVI.3.3.1: \"A GO TO statement in a "
+        + "section whose segment-number is greater than or equal to 50 must not be referred to by an ALTER statement in a "
+        + "section with a different segment-number.\" §1985:XVI.3.3.2, XVI.3.3.3 and XVI.3.3.4: the procedures a PERFORM, "
+        + "MERGE or SORT statement executes are \"Totally within non-independent segments\" or \"Wholly contained in a single "
+        + "independent segment\", the statement's own when it is itself in an independent segment.",
+        "X3.23-1985 Segmentation module restrictions on program flow (§1985:XVI.3.3.1 through XVI.3.3.4)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

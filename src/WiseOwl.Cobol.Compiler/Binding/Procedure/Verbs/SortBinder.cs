@@ -133,6 +133,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (SortRange(ipp.procedureName(), "SORT INPUT PROCEDURE", "§2023:14.9.40.2") is not { } ipr)
                 return BoundRejected.Reported(ctx.Edition);   // reported by the ONE procedure-name resolution (kb/Work PB390)
             inputProc = ipr;
+            CheckSegmentation(ipp, ipr, "SORT", "§1985:XVI.3.3.4");
         }
         // Return phase target (GR9c): GIVING file list or OUTPUT PROCEDURE pc range.
         var givingFiles = new List<FileModel>();
@@ -144,6 +145,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (SortRange(opp.procedureName(), "SORT OUTPUT PROCEDURE", "§2023:14.9.40.2") is not { } opr)
                 return BoundRejected.Reported(ctx.Edition);   // reported by the ONE procedure-name resolution (kb/Work PB390)
             outputProc = opr;
+            CheckSegmentation(opp, opr, "SORT", "§1985:XVI.3.3.4");
         }
         if ((usingFiles.Count == 0 && inputProc is null) || (givingFiles.Count == 0 && outputProc is null))
         {
@@ -423,6 +425,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             if (SortRange(opp.procedureName(), "MERGE OUTPUT PROCEDURE", "§2023:14.9.24.2") is not { } opr)
                 return BoundRejected.Reported(ctx.Edition);   // reported by the ONE procedure-name resolution (kb/Work PB390)
             outputProc = opr;
+            CheckSegmentation(opp, opr, "MERGE", "§1985:XVI.3.3.3");
         }
         if (givingFiles.Count == 0 && outputProc is null)
         {
@@ -951,6 +954,15 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             return false;
         }
         return true;
+    }
+
+    /// <summary>Check an INPUT or OUTPUT PROCEDURE against the COBOL-85 Segmentation module's restriction on it (§1985:XVI.3.3.3
+    /// MERGE, XVI.3.3.4 SORT; kb/Work PB5084), each procedure on its own ("any input procedures or output procedures ... must
+    /// appear"), positioned at its phrase.</summary>
+    private void CheckSegmentation(Antlr4.Runtime.ParserRuleContext phrase, PcRange range, string verb, string rule)
+    {
+        using (ctx.Edition.At(phrase))
+            Segmentation.CheckProcedures(ctx, range, verb, rule);
     }
 
     /// <summary>An INPUT/OUTPUT PROCEDURE name pair → the inclusive pc range (ISO §2023:14.9.40 GR10/GR13 — the range

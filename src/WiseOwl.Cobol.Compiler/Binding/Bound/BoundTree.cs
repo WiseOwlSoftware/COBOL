@@ -43,7 +43,12 @@ public sealed record BoundProgram(
     // re-propagates an exception OBJECT (kb/Work PB1119); the whole phrase is §2023:8.13's "exceptions that may be raised by
     // the runtime element", which the unit's repository record states (DESIGN-external-repository §6.1; kb/Work PB2100).
     // Empty for a class unit: each METHOD carries its own (OoMethodSymbol.Raising).
-    IReadOnlyList<RaisingTarget>? Raising = null);
+    IReadOnlyList<RaisingTarget>? Raising = null,
+    // The COBOL-85 segment-number of each pc's section (§1985:XVI.3.2.4 GR1; kb/Work PB5084), null unless a section of the
+    // unit is an independent segment (50 through 99, GR3), which only COBOL-85 can write: the emitter returns an independent
+    // segment's ALTERed GO TOs to their initial state when control enters it from another segment (§1985:XVI.1.4.3;
+    // docs/CONTROL_FLOW_DESIGN.md D4). Built by ProcedureTableBuilder.SegmentsPerPc.
+    IReadOnlyList<int>? Segments = null);
 
 /// <summary>One <c>USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES</c> subject procedure (X3.23-1985 debug
 /// module; deleted 2002, absent ISO 2023 — modeled only at <c>--std 85</c>, VCR Table 7 row 7.17). The emitter
