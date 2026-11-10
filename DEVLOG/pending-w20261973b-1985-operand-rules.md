@@ -19,8 +19,11 @@ alone, so SR1 and SR3 are COBOL6817 there; its keyword figurative constant is no
 (`ConcatFolder.FigurativeChar`). `edition_gates.py`'s `HELD_OPEN` loses the subscript row, which now rests on SR5 and SR6.
 
 **PB5072 (landed).** A VALUE on an entry subordinate to `01 EXT-REC EXTERNAL` compiled at 85: the gate asked the VALUE's own
-entry. The entries of a section are a flat list in the parse tree, so `InExternalRecord` walks back to the record's level-01
-(or 77) entry, and follows a level-01 REDEFINES to the record it redefines (§1985:VI.5.15.3 SR4's "redefinition").
+entry. The entries of a section are a flat list in the parse tree, so the walk decides the record once, at its level-01
+(or 77) entry, and follows a level-01 REDEFINES to the record it redefines (§1985:VI.5.15.3 SR4's "redefinition"). Review
+round 1 (R1-4) found the first shape, a backward scan of the section per VALUE clause, quadratic at every edition (20,000 VALUE
+entries compiled in 60 s against 13 s on main); the per-walk state compiles them in 10-11 s, pinned by
+`ExternalRecordValueGateTests`.
 
 **PB5087 (landed).** A target-less `GO TO.` beside another statement compiled at 85. §1985:VI.6.15.3 SR3 is stated over the
 statement sequence, so it is a row of `PlacementRules` (the funnel's sequence-placement rules, beside the bare EXIT's), with
