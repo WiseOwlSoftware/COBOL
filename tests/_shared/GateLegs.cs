@@ -84,6 +84,16 @@ internal sealed class GateExecutor(AssemblyName assemblyName, ISourceInformation
 
         try
         {
+            GateOnly? only = GateOnly.Read(Environment.GetEnvironmentVariable);
+            mine = only is null ? mine : only.CasesOf(mine);
+        }
+        catch (Exception ex)
+        {
+            return Refuse(cases, ex is GateOnlyException ? ex.Message : $"the retry's case names could not be read: {ex}");
+        }
+
+        try
+        {
             orderer = GateOrderer.For(assemblyKey, TestWeights.Embedded(), Environment.GetEnvironmentVariable);
         }
         catch (Exception ex)
@@ -169,6 +179,43 @@ internal sealed partial record GateShard(int Index, int Count)
 
 /// <summary>A shard variable no host can run.</summary>
 internal sealed class GateShardException(string message) : Exception(message);
+
+/// <summary>THE RETRY HOOK (kb/Work PB5099; docs/rearchitecture/DESIGN-test-build-ci.md section 3.14.12): a re-gate of a
+/// tree an earlier run of this worktree already measured runs only the cases that run did not pass. The gate writes
+/// their display names, one per line, to the file <see cref="Variable"/> names, and the host runs exactly the discovered
+/// cases of those names. Discovery never sees it, like the shard, so <c>--list-tests</c> stays the whole population the
+/// gate checks the composition against (<c>scripts/test_population.py</c> <c>check</c>, its <c>carried</c> passes): a
+/// case neither run nor carried is a named NEVER RAN, never silence. Its prefix is one the population tool scrubs, so
+/// only the gate hands it to a host.</summary>
+internal sealed record GateOnly(IReadOnlySet<string> Names)
+{
+    public const string Variable = "WISEOWL_COBOL_GATE_ONLY";
+
+    /// <summary>The retry <paramref name="environment"/> names, or null when <see cref="Variable"/> is unset or empty
+    /// (Windows cannot hold an empty variable). Throws when the file cannot be read, or names no case: a retry nobody can
+    /// run must refuse the run, never run the whole of it. A name is a whole line (display names carry no line break:
+    /// xunit escapes one), kept exactly, so only an empty line is skipped.</summary>
+    public static GateOnly? Read(Func<string, string?> environment)
+    {
+        string? path = environment(Variable);
+        if (string.IsNullOrEmpty(path))
+        {
+            return null;
+        }
+
+        HashSet<string> names = File.ReadAllLines(path).Where(l => l.Length > 0).ToHashSet(StringComparer.Ordinal);
+        return names.Count > 0
+            ? new GateOnly(names)
+            : throw new GateOnlyException($"{Variable} names the file '{path}', which names no case");
+    }
+
+    /// <summary>The cases of <paramref name="cases"/> the retry names, in their order.</summary>
+    public List<T> CasesOf<T>(IEnumerable<T> cases) where T : ITestCase =>
+        cases.Where(c => Names.Contains(c.DisplayName)).ToList();
+}
+
+/// <summary>A retry file no host can run.</summary>
+internal sealed class GateOnlyException(string message) : Exception(message);
 
 /// <summary>THE WEIGHTS FILE (<c>tests/_shared/test-weights.json</c>, written by <c>scripts/shard_weights.py
 /// generate</c>; kb/Work PB4329): each test class's median seconds in the merge group, by assembly, and the default

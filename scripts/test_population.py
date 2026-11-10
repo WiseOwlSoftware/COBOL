@@ -42,8 +42,10 @@ stays distinct from the character.
 
 ⛔ THE SCRUB (DESIGN-test-build-ci.md §3.14.3). Three channels can make a whole-assembly `dotnet test` run a PART of its assembly while
 exiting 0, and every one of them is an ENVIRONMENT variable:
-  WISEOWL_COBOL_GATE_*     the gate's own channel to a test host (`WISEOWL_COBOL_GATE_FIRST`, the classes its orderer
-                           runs first; scripts/gate.py `FIRST_CLASSES`): only the gate may hand it to a host;
+  WISEOWL_COBOL_GATE_*     the gate's own channels to a test host (`WISEOWL_COBOL_GATE_FIRST`, the classes its orderer
+                           runs first; scripts/gate.py `FIRST_CLASSES`; and `WISEOWL_COBOL_GATE_ONLY`, the cases a
+                           re-gate of a measured tree still has to run, `ONLY_CASES`, whose passes `check` composes
+                           through its `carried`, kb/Work PB5099): only the gate may hand them to a host;
   VSTest*                  MSBuild imports every environment variable as a property, and the VSTest target reads
                            `VSTestTestCaseFilter`, `VSTestSetting`, `VSTestListTests`, … — MEASURED 2026-09-28:
                            `VSTestTestCaseFilter=FullyQualifiedName~Snapshot` narrowed Characterization from 33
@@ -368,6 +370,39 @@ def read_trx(path: str | Path) -> TrxCases:
     return TrxCases(definitions, skipped)
 
 
+def passed_cases(paths: list[str | Path]) -> Counter:
+    """THE CASES THESE TRX FILES PASSED, by definition name in the trx's own spelling (kb/Work PB5099): a definition
+    with at least one Passed result and no Failed one. A failed case, a harness non-observation (a Failed result) and a
+    skipped one (NotExecuted: no Passed) are NOT passes, so a re-gate runs them again. A file that cannot be read raises
+    `UnreadableTrx` naming it."""
+    passed: Counter = Counter()
+    for path in paths:
+        root = trx_root(path)
+        outcomes: dict[str, set[str]] = defaultdict(set)
+        for r in root.iter(TRX_NS + "UnitTestResult"):
+            outcomes[r.get("testId", "")].add(r.get("outcome", ""))
+        for u in root.iter(TRX_NS + "UnitTest"):
+            seen = outcomes[u.get("id", "")]
+            if "Passed" in seen and "Failed" not in seen:
+                passed[u.get("name", "")] += 1
+    return passed
+
+
+def not_passed(listed: Counter, passed: Counter) -> dict[str, int]:
+    """THE CASES A RETRY RUNS (kb/Work PB5099): the listed names (as `--list-tests` prints them) that `passed` (trx
+    spelling, `passed_cases`) does not cover, each with how many of its listed cases are left. A name run at all runs
+    every case of it, so a retry file carries the name once."""
+    left: dict[str, int] = {}
+    pool = Counter(passed)
+    for name in sorted(listed):
+        spelled = trx_spelling(name)
+        covered = min(listed[name], pool[spelled])
+        pool[spelled] -= covered
+        if listed[name] > covered:
+            left[name] = listed[name] - covered
+    return left
+
+
 # ── the check ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 
@@ -382,6 +417,8 @@ class Population:
     ran_twice: Counter
     not_listed: Counter
     stopped_early: bool
+    #: Cases an earlier run of the same tree passed and this check counts as ran (`check`'s `carried`, kb/Work PB5099).
+    carried: int = 0
 
     @property
     def exact(self) -> bool:
@@ -395,8 +432,9 @@ class Population:
         return bool(self.ran_twice or self.not_listed or (self.never_ran and not self.stopped_early))
 
     def verdict_line(self) -> str:
-        tally = (f"{self.ran:,}/{self.discovered:,} cases ran (skipped {self.skipped:,}) across "
-                 f"{self.trx_files} trx")
+        tally = (f"{self.ran:,}/{self.discovered:,} cases ran (skipped {self.skipped:,}"
+                 + (f", {self.carried:,} carried from earlier runs of this tree" if self.carried else "")
+                 + f") across {self.trx_files} trx")
         if self.exact:
             return f"=== POPULATION {self.label}: EXACT — {tally} ==="
         parts = [f"{sum(self.never_ran.values()):,} "
@@ -418,11 +456,15 @@ class Population:
         return lines
 
 
-def check(label: str, listed: Counter, trx_paths: list[str], stopped_early: bool = False) -> Population:
-    """Did the union of `trx_paths` execute exactly `listed`? Raises PopulationError when it cannot tell."""
+def check(label: str, listed: Counter, trx_paths: list[str], stopped_early: bool = False,
+          carried: Counter | None = None) -> Population:
+    """Did the union of `trx_paths` execute exactly `listed`? Raises PopulationError when it cannot tell.
+    `carried` (kb/Work PB5099): passes of EARLIER runs of the same tree (`passed_cases`, trx spelling) that this run did
+    not repeat. A name this run executed is judged by this run alone (its result supersedes), and a carried name the
+    listing never printed is dropped, so a carry can never make a case RAN TWICE or hide a NEVER RAN."""
     if not listed:
         raise PopulationError(f"{label}: the population is EMPTY — a check over nothing can never be clean")
-    if not trx_paths:
+    if not trx_paths and not carried:
         raise PopulationError(f"{label}: no trx file given")
     listed = spelled_as_trx(listed, label)   # ONE SPELLING (kb/Work PB4274): the trx logger's, on both sides
     definitions, skipped = Counter(), Counter()
@@ -432,14 +474,16 @@ def check(label: str, listed: Counter, trx_paths: list[str], stopped_early: bool
             definitions[trx_spelling(n)] += c
         for n, c in cases.skipped.items():
             skipped[trx_spelling(n)] += c
+    kept = ((carried or Counter()) - definitions) & listed   # what this run did not repeat, of what was listed
+    seen = definitions + kept
     over = definitions - listed
     ran_twice = Counter({n: c for n, c in over.items() if n in listed})
     not_listed = Counter({n: c for n, c in over.items() if n not in listed})
     skip_total = sum(skipped.values())
     return Population(label=label, discovered=sum(listed.values()),
-                      ran=sum(definitions.values()) - skip_total, skipped=skip_total, trx_files=len(trx_paths),
-                      never_ran=listed - definitions, ran_twice=ran_twice, not_listed=not_listed,
-                      stopped_early=stopped_early)
+                      ran=sum(seen.values()) - skip_total, skipped=skip_total, trx_files=len(trx_paths),
+                      never_ran=listed - seen, ran_twice=ran_twice, not_listed=not_listed,
+                      stopped_early=stopped_early, carried=sum(kept.values()))
 
 
 # ── the caller audit (DESIGN-test-build-ci.md §3.14.4 arm 6) ────────────────────────────────────────────────────────────────
@@ -712,6 +756,32 @@ def self_test() -> int:
         p = check("defs", listed, [synthetic_trx(d / "defs.trx", full, stray)])
         arm("definitions, not result names: an unserializable theory's per-row results are not cases",
             p.exact, p.verdict_line())
+
+        # THE RETRY OF A MEASURED TREE (kb/Work PB5099): passes carried from an earlier run, the rest run again.
+        first_run = synthetic_trx(d / "first-run.trx", [(n, ok()) for n in population[:3]]
+                                  + [(population[3], ["Failed"]), (population[4], ok()), ("N.C.Skipped", ["NotExecuted"])])
+        carried = passed_cases([first_run])
+        again = not_passed(listed, carried)
+        arm("passed_cases keeps a definition with a Passed result and no Failed one: a failed row, a skip and a "
+            "non-observation are not passes, and the retry names exactly the cases left, once each",
+            carried == Counter(population[:3] + [population[4]]) and again == {trunc: 1, "N.C.Skipped": 1}, str(again))
+        retry = synthetic_trx(d / "retry.trx", [(trunc, ok()), (trunc, ok()), ("N.C.Skipped", ["NotExecuted"])])
+        p = check("retry", listed, [retry], carried=carried)
+        arm("a retry composes with the passes it carried: EXACT, the carried count named on the line, the skip still "
+            "counted skipped", p.exact and p.ran == 5 and p.carried == 3 and p.skipped == 1
+            and "3 carried from earlier runs of this tree" in p.verdict_line(), p.verdict_line())
+        p = check("retry-short", listed, [synthetic_trx(d / "retry-short.trx", [("N.C.Skipped", ["NotExecuted"])])],
+                  carried=carried)
+        arm("a case neither carried nor run again is still NEVER RAN, and a retry that repeats a carried case "
+            "supersedes it instead of running it twice",
+            p.never_ran == Counter({trunc: 1}) and not p.ran_twice
+            and check("repeat", listed, [synthetic_trx(d / "repeat.trx", full)], carried=carried).exact,
+            p.verdict_line())
+        p = check("all-carried", listed, [], carried=carried + Counter({"N.C.Skipped": 1, "N.Not.Listed": 3}))
+        rc, why = rc_of(lambda: check("none", listed, []).exact)
+        arm("a carry the listing never printed is dropped, never a NOT IN THE POPULATION; no trx and no carry is still "
+            "an ERROR", not p.not_listed and p.carried == 5 and rc == RC_ERROR and "no trx file" in why,
+            f"{p.verdict_line()} {why}")
 
         p = check("foreign", listed, [synthetic_trx(d / "foreign.trx", full + [("Other.Assembly.Test", ok())])])
         arm("a definition the listing never printed is NOT IN THE POPULATION", not p.exact
