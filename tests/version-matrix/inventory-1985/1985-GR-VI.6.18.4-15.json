@@ -1,0 +1,15 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-15",
+ "rule-digest": "4030107e1a09",
+ "next": {
+  "kind": "CHANGED",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-17",
+   "GR-14.9.22.4-7"
+  ],
+  "bridge": true,
+  "reason": "Amendment 2 (X3.23b-1993, page VI-99) renumbered this rule (old GR13) and its reference in a ('general rule 6e' to 'general rule 7e'); the requirement is the printed one. a and b recur word for word in §2023:14.9.22.4 GR17 ('each character matched, in the sense of General rule 8e': numbering; 'each occurrence of literal-1 matched in the content of the data item referenced by identifier-1 is replaced by literal-3'). c and d differ. c: §1985:VI.6.18.4 GR15 'provided that the leftmost occurrence is at the point where comparison began', §2023:14.9.22.4 GR17 'provided that the first such occurrence encountered is at the point where comparison began'. d: 1985 'the leftmost occurrence of literal-1 matched within the content of the data item referenced by identifier-1 is replaced by literal-3', 2023 'the leftmost occurrence of literal-1, or, if BACKWARD is specified, the rightmost occurrence of literal-1 matched'. Left to right both name the same occurrence, so every 1985 INSPECT replaces the same characters; under BACKWARD (§2023:14.9.22.2 prints an optional 'BACKWARD' before identifier-1), which 1985 refuses (§1985:VI.6.18.2 prints identifier-1 directly after INSPECT), 2023 d replaces the rightmost occurrence where the 1985 words name the leftmost, and c takes the occurrence first met from the right. d adds its case in the same form as §2023:14.9.22.4 GR3 adds one to 1985-GR-VI.6.18.4-2, and c in the words of 1985-GR-VI.6.18.4-12 b: a case added (family ruling). 'to': GR17 states the whole rule; §2023:14.9.22.4 GR7 states in its own words that 'each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2)', the replacement b spells out.",
+  "source": "pb5092/inspect-leftmost"
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "rule-id": "1985-GR-XII.2.4-7",
+ "rule-digest": "a288f0848400",
+ "next": {
+  "kind": "REMOVED",
+  "edition": 2023,
+  "to": [],
+  "bridge": true,
+  "reason": "Amendment 1 (X3.23a-1989) only respelled 'pseudo-text-delimiter' as 'pseudo-text delimiter' twice, a typographical correction; the requirement is unchanged: §1985:XII.2.4 GR7 'Debugging lines are permitted within library text and pseudo-text', their text words 'participate in the matching rules as if the 'D' did not appear in the indicator area'. 2023 has no debugging lines: the phrase occurs nowhere in the standard, its fixed indicators (§2023:6.2.2) are the comment indicators, the continuation indicator and the space source indicator for 'any line that is not a comment line or a continuation line', and §2023:6.5 GR5 copies only 'a fixed-form line, contains a source indicator, and is not a continuation line'. No 2023 rule lets a 'D' line appear in library text or pseudo-text or has its words take part in matching.",
+  "source": "readjudicate-amended-1985/slice-08"
+ }
+}

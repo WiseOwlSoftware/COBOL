@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.4.4-1",
+ "rule-digest": "f29e4830989f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.3.4-4"
+  ],
+  "bridge": true,
+  "reason": "Amendment 1 (X3.23a-1989, its change for page IV-22: 'New paragraph 4.3.8.4.4, change the first sentence of general rule 1 to read') made the rule 'Each character of a data item referenced by data-name-1 or by function-name-1 and its arguments, if any, is assigned an ordinal number' (§1985:IV.4.3.8.4.4 GR1), counting from one at the leftmost position, a separate sign position included. §2023:8.4.3.3.4 GR4: 'Each position of the data item referenced by identifier-1 is assigned an ordinal number incrementing by one from the leftmost position to the rightmost position', the leftmost being one and a SIGN IS SEPARATE position counted. Identifier-1 covers both the data-name and the function reference the amended rule names. 'Position' for 'character' changes nothing for an item the 1985 rules admit ('Data-name-1 must reference a data item whose usage is DISPLAY', §1985:IV.4.3.8.4.3 SR1, whose own record carries the widening to bit and national items): 'otherwise, positions used in evaluation are character positions' (§2023:8.4.3.3.4 GR5). The rule refuses no program. Same numbering.",
+  "source": "readjudicate-amended-1985/slice-01"
+ }
+}

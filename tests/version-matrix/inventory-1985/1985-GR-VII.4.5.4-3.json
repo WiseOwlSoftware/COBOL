@@ -1,0 +1,16 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-3",
+ "rule-digest": "8833247041ee",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.35.4-6",
+   "GR-14.9.35.4-10",
+   "GR-12.4.6.4.4-2"
+  ],
+  "bridge": true,
+  "reason": "No amendment touched this rule; the in-place change is the transcription's correction C33 (kb/Work PB5045) of a printing slip, 'the associated output file' to 'the associated I-O file'. §1985:VII.4.5.4 GR3 now reads: the record released by a successful REWRITE 'is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause', and it is also a record of the other files of that clause 'as the associated I-O file, as well as the file associated with record-name-1'. §2023:14.9.35.4 GR6 states both sentences: 'is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause', and available as a record of the other file-names of the clause 'as file-name-1 or the file-name associated with record-name-1, as well as the file associated with record-name-1'. The file-name-1 alternative belongs to the FILE phrase, which 1985's general format (not this rule) lacks; for REWRITE record-name-1 the effect is the same. §2023:14.9.35.4 GR10 repeats the unavailability ('is not available except as specified for the SAME RECORD AREA clause') and §2023:12.4.6.4.4 GR2 states the sharing ('A logical record in the shared memory area is a logical record of each file open in the output mode and of the most recently-read file open in the input mode'). The correction removed the only word that differed from 2023.",
+  "source": "readjudicate-amended-1985/slice-06"
+ }
+}

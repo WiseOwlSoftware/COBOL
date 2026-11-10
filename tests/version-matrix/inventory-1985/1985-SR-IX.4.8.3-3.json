@@ -1,0 +1,14 @@
+{
+ "rule-id": "1985-SR-IX.4.8.3-3",
+ "rule-digest": "8e3ed3369b37",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.49.3-8"
+  ],
+  "bridge": true,
+  "reason": "Amendment X3.23b-1993 replaced 'Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure' with 'The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division' (§1985:IX.4.8.3 SR3). §2023:14.9.49.3 SR8, a format 1 syntax rule, has the amended sentence word for word: 'The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within the same procedure division'. The same program is refused, at compile time in both. The 2023 format 3 (USE AFTER EXCEPTION CONDITION ... FILE file-name-2) is syntax 1985 lacks and has its own rule, §2023:14.9.49.3 SR14 ('The same pair of exception-name-2 and file-name-2 shall not be specified in more than one USE statement'); it lifts nothing this rule refuses. The precedence and selection rules the withdrawn record also named answer other 1985 rules (the general rules of §1985:IX.4.8.4), not this one, so they leave the list.",
+  "source": "readjudicate-amended-1985/slice-09"
+ }
+}
