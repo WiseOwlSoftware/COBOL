@@ -1,4 +1,4 @@
-## A control footing's USE procedure runs after its crossfoot and roll-forward, and at --std 85 its page groups see the current control values (PB5127, PB5128)
+## Entry 3447 — 2026-11-10 13:40 PST — A control footing's USE procedure runs after its crossfoot and roll-forward, and at --std 85 its page groups see the current control values (PB5127, PB5128)
 
 Both notes came from the 1985 witness-drafting pass and share one root, `CobolReport` in `src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs`.
 
@@ -9,3 +9,4 @@ Both notes came from the 1985 witness-drafting pass and share one root, `CobolRe
 No inventory rows: the inventory holds no 1985 rows yet (PB5094), so both notes close none (`closes_rows_reason`). Docs: `docs/CONFORMANCE.md` (determination paragraph), `docs/VERSION_CHANGE_REFERENCE.md` (row 7.54), `docs/REPORT_WRITER_DESIGN.md`, `tests/doc-facts/compiler-facts.json`.
 
 **Review round 1 (R1-1, blocking).** The first form of the PB5127 fix moved EVERY rolled addition ahead of the USE declarative, including a detail entry's contribution into its control footing's counter: a detail declarative that computes the entry's SOURCE then added the previous value (0+10+20 where 60 is right). The spec orders only the group's own counter arithmetic (crossfoot; roll forward, §1985:XIII.3.20.4 GR10 a/b; §2023:14.9.49.4 GR9 b) before the declarative. `RolledAddition` now carries `CrossFoot` (the addend is a counter of the group, or the counter is the group's own, decided at emit in `RegisterCrossEngineAdditions`); `BeginGroup` applies those before the declarative and the data-entry contributions after it, on the one presentation snapshot. Golden `pb5127_detail_use_computes_source_before_rolled_addition` (2002+; the 85 refusal of SUM over a SOURCE entry is pb5047).
+
