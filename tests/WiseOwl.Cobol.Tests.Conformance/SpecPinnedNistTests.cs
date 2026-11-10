@@ -11,8 +11,8 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// RE-BASELINED to the conforming output (owner-approved, DEVLOG 569; <c>tests/nist/corpus.tsv</c> marks each row
 /// <c>divergent</c> with its ISO citation), so the programs are ALSO byte-locked in <see cref="NistDifferentialTests"/>;
 /// these pins remain as the citation-bearing documentation of WHY each golden diverges from the legacy.
-/// <para>ONE pin is of a different KIND and is marked as such: <see cref="NC201A_VaryingAfterFromOuterInductionVariable_At1985_RunsSixBodies"/>
-/// pins a PER-EDITION ORDER, not a legacy artefact: NC201A is a COBOL-85 program and the 1985 text orders the two
+/// <para>ONE pair of pins is of a different KIND and is marked as such: <see cref="NC201A_VaryingAfterFromOuterInductionVariable_At1985_RunsSixBodies"/>
+/// and <see cref="NC201A_VaryingAfterFromOuterInductionVariable_From2002_RunsEightBodies"/> pin a PER-EDITION ORDER, not a legacy artefact: NC201A is a COBOL-85 program and the 1985 text orders the two
 /// operations of an AFTER step the way its CCVS check asserts (kb/Work PB5101).</para>
 /// </summary>
 public sealed class SpecPinnedNistTests
@@ -115,19 +115,42 @@ public sealed class SpecPinnedNistTests
     [Fact]
     public void NC201A_VaryingAfterFromOuterInductionVariable_At1985_RunsSixBodies()
     {
+        string output = RunNc201A(85, permissive: false);
+        Assert.Contains("PASS  PFM-TEST-F4-23", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("FAIL*", output, StringComparison.Ordinal);
+        Assert.Contains("059 OF 059  TESTS WERE EXECUTED SUCCESSFULLY", output, StringComparison.Ordinal);
+        Assert.Contains("NO  TEST(S) FAILED", output, StringComparison.Ordinal);
+    }
+
+    /// <summary>NC201A PFM-TEST-F4-23 from 2002 (kb/Work PB436, PB5101): §2023:14.9.28.4 GR13 e) 2 a–c reset the inner
+    /// variable before augmenting the outer one, so the body runs EIGHT times and the CCVS check, which asserts the
+    /// 1985 order, FAILs; that report is the per-edition golden <c>tests/nist/valid-editions/2002/NC201A.txt</c> the
+    /// INV-1-strong run at 2023 compares against (<see cref="CorpusManifest.GoldenPath"/>). The golden masks the
+    /// <c>COMPUTED=</c> operand, so this pin reads the digits.</summary>
+    [Theory]
+    [InlineData(2002)]
+    [InlineData(2023)]
+    public void NC201A_VaryingAfterFromOuterInductionVariable_From2002_RunsEightBodies(int edition)
+    {
+        string output = RunNc201A(edition, permissive: true);
+        Assert.Contains("FAIL* PFM-TEST-F4-23", output, StringComparison.Ordinal);
+        Assert.Contains("COMPUTED=  000000000000000008", output, StringComparison.Ordinal);
+        Assert.Contains("CORRECT =  000000000000000006", output, StringComparison.Ordinal);
+        // And nothing ELSE in NC201A differs: exactly one of its 59 checks fails, and it is this one.
+        Assert.Contains("058 OF 059  TESTS WERE EXECUTED SUCCESSFULLY", output, StringComparison.Ordinal);
+        Assert.Contains("001 TEST(S) FAILED", output, StringComparison.Ordinal);
+    }
+
+    private static string RunNc201A(int edition, bool permissive)
+    {
         string dir = ScratchDirectory.Create("WiseOwlCobol_Pin_");
         try
         {
-            var r = CompiledProgramCache.Compile(CorpusManifest.CompileOptions("NC201A", Path.Combine(dir, "NC201A.dll"), 85, permissive: false, checkOnly: false));
+            var r = CompiledProgramCache.Compile(CorpusManifest.CompileOptions("NC201A", Path.Combine(dir, "NC201A.dll"), edition, permissive, checkOnly: false));
             Assert.True(r.Success, string.Join("\n", r.Errors));
             var (runOk, _, detail) = CutRunner.Run(Path.Combine(dir, "NC201A.dll"), dir);
             Assert.True(runOk, detail);
-            string output = File.ReadAllText(Path.Combine(dir, "nc201a.txt"));
-
-            Assert.Contains("PASS  PFM-TEST-F4-23", output, StringComparison.Ordinal);
-            Assert.DoesNotContain("FAIL*", output, StringComparison.Ordinal);
-            Assert.Contains("059 OF 059  TESTS WERE EXECUTED SUCCESSFULLY", output, StringComparison.Ordinal);
-            Assert.Contains("NO  TEST(S) FAILED", output, StringComparison.Ordinal);
+            return File.ReadAllText(Path.Combine(dir, "nc201a.txt"));
         }
         finally { ScratchDirectory.Remove(dir); }
     }

@@ -358,7 +358,9 @@ public sealed class CorpusManifestTests
     /// behind after a golden is repaired is caught too (feedback_measure_the_selectors_complement).
     /// <para>There is NO declared member today: NC201A, the one that was (PFM-TEST-F4-23 asserts the 1985 order of an
     /// AFTER step, which the compiler applied from 2002 on, kb/Work PB436), passes since it follows the 1985 text at
-    /// <c>--std 85</c> (kb/Work PB5101). The allowance stays for the next CCVS check the text contradicts.</para></summary>
+    /// <c>--std 85</c> (kb/Work PB5101). The allowance stays for the next CCVS check the text contradicts. Its FAIL
+    /// from 2002 is in a per-edition golden, allowed by its <c>BEHAVIOR</c> declaration
+    /// (<see cref="EditionGoldens_AreExactlyTheDeclaredBehaviorEditions"/>).</para></summary>
     [Fact]
     public void GoldensCarryingACcvsFailure_AreExactlyTheDeclaredCcvsDefects()
     {
@@ -386,5 +388,60 @@ public sealed class CorpusManifestTests
             .Select(r => r.Name).Order().ToList();
         Assert.True(notDivergent.Count == 0,
             $"{CcvsDefectMarker} rows must be status `divergent` so their ISO citation is enforced: {string.Join(", ", notDivergent)}");
+    }
+
+    /// <summary>The per-edition report goldens (<c>tests/nist/valid-editions/&lt;E&gt;/&lt;name&gt;.txt</c>,
+    /// <see cref="CorpusManifest.GoldenPath"/>, kb/Work PB5101) are EXACTLY the declared ones, in both directions: a
+    /// row's <c>BEHAVIOR</c> ids are <see cref="WiseOwl.Cobol.Runtime.DialectBehaviors"/> ids, each id's
+    /// <c>ChangedIn</c> E has the file <c>valid-editions/E/&lt;name&gt;.txt</c>, no file exists that no declaration
+    /// asks for, and each file differs from the golden it supersedes (an identical one declares a behaviour change
+    /// the program does not show). The other direction, a program whose output a behaviour change reaches with no
+    /// declaration, is the INV-1-strong run itself: its byte comparison at 2023 is red.
+    /// <para>A per-edition golden may carry a CCVS failure (NC201A's from 2002 does: its check asserts the 1985
+    /// order); the declaration is the allowance, so <see cref="GoldensCarryingACcvsFailure_AreExactlyTheDeclaredCcvsDefects"/>
+    /// reads <c>valid/</c> alone.</para></summary>
+    [Fact]
+    public void EditionGoldens_AreExactlyTheDeclaredBehaviorEditions()
+    {
+        var unknown = new List<string>();
+        var declared = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (CorpusRow row in CorpusManifest.Rows.Where(r => r.Behaviors.Count > 0))
+        {
+            foreach (string id in row.Behaviors)
+            {
+                bool known = false;
+                foreach (WiseOwl.Cobol.Runtime.DialectBehaviors.Row b in WiseOwl.Cobol.Runtime.DialectBehaviors.All)
+                    known |= b.Id == id;
+                if (!known) unknown.Add($"{row.Name}: {id}");
+            }
+            if (unknown.Count == 0)
+                foreach (int e in CorpusManifest.BehaviorEditions(row))
+                    declared.Add($"{e}/{row.Name}");
+        }
+        Assert.True(unknown.Count == 0, $"BEHAVIOR ids that are not DialectBehaviors ids: {string.Join(", ", unknown)}");
+
+        string root = CorpusManifest.EditionGoldenRoot;
+        var onDisk = Directory.Exists(root)
+            ? Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
+                .Select(f => Path.GetRelativePath(root, f).Replace('\\', '/'))
+                .Select(f => f.EndsWith(".txt", StringComparison.Ordinal) ? f[..^4] : f)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase)
+            : [];
+        var missing = declared.Except(onDisk).Order().ToList();
+        var undeclared = onDisk.Except(declared).Order().ToList();
+        Assert.True(missing.Count == 0 && undeclared.Count == 0,
+            $"declared BEHAVIOR editions with no tests/nist/valid-editions golden [{string.Join(", ", missing)}]; "
+            + $"files there no declaration asks for [{string.Join(", ", undeclared)}]");
+
+        var redundant = new List<string>();
+        foreach (string key in declared)
+        {
+            int e = int.Parse(key[..key.IndexOf('/')], System.Globalization.CultureInfo.InvariantCulture);
+            string name = key[(key.IndexOf('/') + 1)..];
+            if (File.ReadAllText(CorpusManifest.GoldenPath(name, e)) == File.ReadAllText(CorpusManifest.GoldenPath(name, e - 1)))
+                redundant.Add(key);
+        }
+        Assert.True(redundant.Count == 0,
+            $"per-edition goldens identical to the golden they supersede: {string.Join(", ", redundant)}");
     }
 }

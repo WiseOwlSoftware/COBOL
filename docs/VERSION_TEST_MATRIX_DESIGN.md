@@ -131,6 +131,13 @@ they cover ~70% of real dialect collisions and exercise all five gating patterns
   each NIST program at 2002/2014/2023 too and
   assert it still compiles (output need not re-match the golden at a later edition unless behavior is edition-invariant,
   which for the nucleus it is — so re-matching the golden is the strong form; start with "still compiles").
+  **Where a gated behaviour variant reaches a NIST program, the strong form compares against that edition's golden**
+  (kb/Work PB5101): the program's `tests/nist/corpus.tsv` row declares `BEHAVIOR <DialectBehaviors id>[,…]:`, and the
+  golden run at edition V reads `tests/nist/valid-editions/<E>/<name>.txt` for the greatest declared `ChangedIn` E ≤ V
+  (else `valid/`), one selection in `CorpusManifest.GoldenPath`. `CorpusManifestTests.EditionGoldens_AreExactlyTheDeclaredBehaviorEditions`
+  holds the files equal to the declarations and each different from the golden it supersedes; an undeclared variant
+  is the INV-1-strong leg's own red. The one member is NC201A (row 7.53: the 1985 order of a PERFORM VARYING AFTER
+  step at 85, the 2002 order from 2002, whose CCVS check then FAILs).
 - **The conformance suite** (`conformance-suite/`, `docs/rearchitecture/DESIGN-conformance-suite.md`, approved by
   the owner 2026-10-14, kb/Work PB3160, revision 3 2026-11-04, PB4614): one tree of tests filed by ISO clause (`cases/<clause>-<Name>/<id>.cob`
   + `<id>.out`; WiseOwl's own behaviour under `wiseowl/cases/`), each opening with a metadata header that names its

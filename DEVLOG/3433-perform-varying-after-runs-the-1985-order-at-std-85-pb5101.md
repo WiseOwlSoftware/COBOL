@@ -22,3 +22,15 @@ row 7.53 records the difference.
 
 Review round 1 (R1-1): the 1985 edge is now a DialectBehaviors member, PerformVaryingInitInnerBeforeAugmentOuter (ChangedIn 2002, VCR row 7.53 carrying its behavior anchor), read by BindVarying through IsActive instead of an inline year test; the stale NC201A sentence in scripts/guard-verdict.sh (R1-2) is corrected.
 
+
+Finisher (merge-group bounce, pull request #1463, runs 42832118572 and 42835167709): the INV-1-strong step of every
+Linux shard re-runs the NIST goldens at `--std 2023 --permissive` and was red on NC201A, `FAIL* PFM-TEST-F4-23` against
+the new all-PASS golden. Not Linux and not Release: the same case is red on Windows Debug with
+`WISEOWL_COBOL_NIST_STD=2023 WISEOWL_COBOL_NIST_PERMISSIVE=1`. The cause is the design: the strong form assumed every
+NIST report is edition-invariant, and PB5101 made NC201A's the first that is not (by a gated DialectBehaviors row). The
+fix is a per-edition NIST golden: a corpus row declares `BEHAVIOR <id>:`, `CorpusManifest.GoldenPath` reads
+`tests/nist/valid-editions/<ChangedIn>/<name>.txt` from that edition on, and
+`CorpusManifestTests.EditionGoldens_AreExactlyTheDeclaredBehaviorEditions` holds the files equal to the declarations.
+NC201A's 2002 golden is its former FAIL report; a new pin reads its COMPUTED=8 at 2002 and 2023. The local gate does
+not run INV-1-strong (kb/Work PB1957 row 42). The Windows shard's CM102M red is a harness timeout of a program that
+busy-waits 90 s inside a 120 s budget, unrelated to this change (CM102M has no VARYING).

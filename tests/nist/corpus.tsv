@@ -8,6 +8,9 @@
 # A divergent row whose note BEGINS `TERMINATES EC-<NAME>` is declared to end its run unit on that fatal exception
 # (the golden records the continuing run); both NIST runners read it: CorpusRow.ExpectedTermination and
 # scripts/guard-population.sh (kb/Work PB1955). Any other divergent row's golden is what WiseOwl COBOL reproduces.
+# A row whose note BEGINS `BEHAVIOR <id>[,<id>...]:` names the DialectBehaviors rows (by Id) that change its output after
+# COBOL-85: a golden run at edition V (INV-1-strong runs at 2023) reads tests/nist/valid-editions/<E>/<name>.txt for the
+# greatest such row's ChangedIn E <= V, and valid/<name>.txt below every E (CorpusRow.Behaviors, CorpusManifest.GoldenPath).
 IC101A	IC	green	-	valid	-
 IC103A	IC	green	-	valid	-
 IC106A	IC	green	-	valid	-
@@ -159,7 +162,7 @@ NC174A	NC	green	-	valid	-
 NC175A	NC	green	-	valid	-
 NC176A	NC	green	-	valid	-
 NC177A	NC	green	-	valid	-
-NC201A	NC	green	-	valid	-
+NC201A	NC	green	-	valid	BEHAVIOR perform-varying-after-init-inner-first: PFM-TEST-F4-23 asserts the 1985 order of a TEST BEFORE AFTER step (six bodies, PASS at 85); from 2002 ISO §2023:14.9.28.4 GR13 e) 2 runs eight and the check FAILs, the golden in tests/nist/valid-editions/2002 (kb/Work PB436, PB5101)
 NC202A	NC	green	-	valid	-
 NC203A	NC	green	-	valid	-
 NC204M	NC	green	-	valid	-

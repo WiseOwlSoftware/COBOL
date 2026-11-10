@@ -1344,12 +1344,15 @@ of an unsupported facility.
   identifier-6" (Figure 2 draws the same order), so the outer variable augments first and the same nest runs **six**
   bodies, leaving A=4 and B=4. The binder records the order in `PerformVarying.AugmentOuterFirst` (edition year below
   2002) and `ControlFlowEmitter.EmitVarying` emits the two operations in that order. NC201A's golden records
-  `PASS PFM-TEST-F4-23` at `--std 85`; no golden carries a CCVS failure now (the `CCVS-DEFECT` allowance remains for a
-  future one). The TEST AFTER arm is unaffected and is **not** symmetric: GR13 c) 4 (and the 1985 text) state the
+  `PASS PFM-TEST-F4-23` at `--std 85`; from 2002 the check FAILs, and that report is the per-edition golden
+  `tests/nist/valid-editions/2002/NC201A.txt` its corpus row declares (`BEHAVIOR perform-varying-after-init-inner-first`),
+  which the INV-1-strong run at 2023 compares against. No `valid/` golden carries a CCVS failure now (the `CCVS-DEFECT`
+  allowance remains for a future one). The TEST AFTER arm is unaffected and is **not** symmetric: GR13 c) 4 (and the 1985 text) state the
   increment BEFORE the reset, and that arm implements exactly it. Witnesses:
   `conformance:cases/14.9.28-PERFORM/pb436_varying_after_from_outer` (2002 and later);
   `conformance:cases/14.9.28-PERFORM/pb5101_varying_after_from_outer_1985`;
-  `SpecPinnedNistTests.NC201A_VaryingAfterFromOuterInductionVariable_At1985_RunsSixBodies`.
+  `SpecPinnedNistTests.NC201A_VaryingAfterFromOuterInductionVariable_At1985_RunsSixBodies` and
+  `NC201A_VaryingAfterFromOuterInductionVariable_From2002_RunsEightBodies` (2002, 2023).
   (kb/Work PB436, PB5101.)
 - **Normal completion of a declarative — "a fatal exception occurs within the scope of the declarative" (§2023:14.6.13.1.2 1),
   spec silent on three points)**: the rule makes a declarative that falls off its end "not complete normally" when a
