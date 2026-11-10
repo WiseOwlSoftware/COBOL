@@ -1,4 +1,4 @@
-## PB5044: the 1985 underline detector judges short words and says what it cannot see
+## Entry 3398 — 2026-11-09 17:07 PST — PB5044: the 1985 underline detector judges short words and says what it cannot see
 
 `figure_raster.underlined_hints` (PB5041) skipped every proportional word under 14 pt and every one-character word, so the
 running head of Amendment 1's change list (`to`, `and`, `ISO`, `No.`) and every short underlined word went unmeasured. The
@@ -17,6 +17,3 @@ Tests. Case 8b of `test_figure_raster.py` plants the monospaced arm (a ragged ru
 inside an underlined phrase and one with feet alone, a rule at the box's top (the comment's fourth negative, now planted)
 and a displaced box, which fails at the old 0.27. Self-test 78/78. No inventory row closed; no compiled program changes.
 
-### Review round 1 (finishing)
-
-The branch review found the monospaced case did not witness the arm: its rule covered 97.5 % of the word, above the proportional 0.96, so deleting the arm still passed. The planted rule is now ragged at 91 % (between MONO_RULE_COVER 0.85 and 0.96), and two whole rules under a 5 pt word and a one-glyph word witness MONO_RULE_MIN_W and the length test. Mutants (cover 0.96, mono = False, the width and length guard removed) each turn the self-test RED. PB5049 and PB5050 were the same review leads filed as separate notes and are flipped to landed with PB5044. The state doc sentence about pages 882, 905 and 869 is reworded so 869 is plainly still missed.
