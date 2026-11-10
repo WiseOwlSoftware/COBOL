@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-XV.3.2.2",
  "rule-digest": "08d8595713fc",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-FMT-XV_3_2_2",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

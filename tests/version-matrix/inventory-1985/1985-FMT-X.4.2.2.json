@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-X.4.2.2",
  "rule-digest": "be8db727cd02",
+ "test-ref": "conformance:cases/X.4.2@1985-FILE-DESCRIPTION-ENTRY-IN-THE-INTER/1985-FMT-X_4_2_2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

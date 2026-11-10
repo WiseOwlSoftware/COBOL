@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIV.3.1.4-2",
  "rule-digest": "05e2bfd727dd",
+ "test-ref": "conformance:cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-GR-XIV_3_1_4-2",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.4.3-2",
  "rule-digest": "5a2a51065454",
+ "test-ref": "conformance:cases/VI.5.4@1985-BLANK-WHEN-ZERO-CLAUSE/1985-SR-VI_5_4_3-2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

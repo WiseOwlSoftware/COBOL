@@ -129,23 +129,31 @@ def compiler_identity(cobol: pathlib.Path) -> dict[str, Any]:
             "assemblies": assemblies_digest(cobol.parent)}
 
 
-def run_drafts(state: pathlib.Path, adapter_path: pathlib.Path, variables: dict[str, str], edition: str, jobs: int,
-               compiler: dict[str, Any]) -> dict[str, Any]:
-    drafts = answers_by_id(state, "drafts")
-    if not drafts:
-        raise SystemExit(f"{TOOL}: {state} has no drafts answers (audit_batch.py plan, submit, collect --pass drafts)")
+def harness_run(root: pathlib.Path, adapter_path: pathlib.Path, variables: dict[str, str], edition: str,
+                tests: dict[str, list[dict[str, Any]]]) -> harness.Run:
+    """The conformance harness's run of drafts' tests (`tests_of`, by rule) staged under `root`, through the adapter at
+    `adapter_path` and its profile: the ONE construction every reader of a draft's outcome judges through (this runner,
+    and the placement of the checked drafts, place_witnesses.py)."""
     adapter, problems = config.load_adapter(adapter_path)
     if adapter is None:
         raise SystemExit(f"{TOOL}: {'; '.join(problems)}")
     profile, problems = config.load_profile(adapter_path.parents[1] / "profiles" / f"{adapter.profile}.json")
     if profile is None:
         raise SystemExit(f"{TOOL}: {'; '.join(problems)}")
+    controls = {t["id"]: t for own in tests.values() for t in own[1:]}
+    return harness.Run(root=root, adapter=adapter, profile=profile, variables={**adapter.variables, **variables},
+                       tests={edition: controls}, work=root / "work", timeout=harness.HANG_GUARD, keep=False)
+
+
+def run_drafts(state: pathlib.Path, adapter_path: pathlib.Path, variables: dict[str, str], edition: str, jobs: int,
+               compiler: dict[str, Any]) -> dict[str, Any]:
+    drafts = answers_by_id(state, "drafts")
+    if not drafts:
+        raise SystemExit(f"{TOOL}: {state} has no drafts answers (audit_batch.py plan, submit, collect --pass drafts)")
     with tempfile.TemporaryDirectory(prefix="drafts-") as scratch:
         root = pathlib.Path(scratch)
         tests = {rid: tests_of(root, rid, drafts[rid]) for rid in sorted(drafts)}
-        controls = {t["id"]: t for own in tests.values() for t in own[1:]}
-        run = harness.Run(root=root, adapter=adapter, profile=profile, variables={**adapter.variables, **variables},
-                          tests={edition: controls}, work=root / "work", timeout=harness.HANG_GUARD, keep=False)
+        run = harness_run(root, adapter_path, variables, edition, tests)
         with ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:
             got = dict(zip(tests, pool.map(lambda rid: judge(run, edition, tests[rid][0]), tests)))
     return {"compiler": compiler, "edition": edition, "runs": got}

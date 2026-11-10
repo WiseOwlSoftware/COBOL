@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-7",
  "rule-digest": "b2a25bcf5a44",
+ "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-7",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

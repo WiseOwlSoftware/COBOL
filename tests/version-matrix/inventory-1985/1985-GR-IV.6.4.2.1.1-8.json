@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.6.4.2.1.1-8",
  "rule-digest": "7f7e0a53bde9",
+ "test-ref": "conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/1985-GR-IV_6_4_2_1_1-8",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

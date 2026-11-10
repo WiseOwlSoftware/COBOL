@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.4.5.3-2",
  "rule-digest": "09c81c6c79be",
+ "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/1985-SR-XIII_4_5_3-2",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

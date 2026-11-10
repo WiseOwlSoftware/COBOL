@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.2.3-6",
  "rule-digest": "56346672c34f",
+ "test-ref": "conformance:cases/VI.6.2@1985-ARITHMETIC-EXPRESSIONS/1985-GR-VI_6_2_3-6",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

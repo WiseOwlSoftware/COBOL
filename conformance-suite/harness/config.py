@@ -71,7 +71,8 @@ class Adapter:
     #: operation -> its argv template; None where the hook performs the operation.
     commands: dict[str, tuple[str, ...] | None]
     #: a diagnostic's line: a regular expression with a `line` group, and optionally a `file` group (a diagnostic
-    #: whose file is not the test's source, such as a copybook's, is not the test's).
+    #: whose file is not the test's source, such as a copybook's, is not the test's) and the `severity` and `code` groups
+    #: a compiler's own refusal is read by (scripts/spec/place_witnesses.py pins the code WiseOwl reports at a line).
     diagnostic: re.Pattern[str]
     #: exit codes that mean the compiler crashed (a negative code, a POSIX signal, always does).
     crash_exit_codes: frozenset[int]

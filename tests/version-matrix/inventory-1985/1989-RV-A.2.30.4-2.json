@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.30.4-2",
  "rule-digest": "2e29841c1c77",
+ "test-ref": "conformance:cases/A.2.30@1985-NUMVAL-C-FUNCTION/1989-RV-A_2_30_4-2",
  "next": {
   "kind": "REMOVED",
   "to": [],

@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.22.2",
  "rule-digest": "546519979943",
+ "test-ref": "conformance:cases/A.2.22@1985-LOWER-CASE-FUNCTION/1989-FMT-A_2_22_2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -24,7 +24,7 @@
   "run": ["dotnet", "{program}.dll"],
   "flag": ["{cobol}", "{source}", "--std", "{std}", "--source-format", "{source-format}", "--flag-extensions",
            "-o", "{program}.dll"],
-  "diagnostic": "^\\s*(?P<file>[^\\s(][^(]*)\\((?P<line>[0-9]+),[0-9]+\\): [a-z]+ [A-Z]+[0-9]+:",
+  "diagnostic": "^\\s*(?P<file>[^\\s(][^(]*)\\((?P<line>[0-9]+),[0-9]+\\): (?P<severity>[a-z]+) (?P<code>[A-Z]+[0-9]+):",
   "crash-exit-codes": [3762504530, 3221225477, 3221225725],
   "environment": {"COBOL_USER_LOCALE": "INVARIANT", "COBOL_SYSTEM_LOCALE": "INVARIANT", "WISEOWL_COBOL_MCS": "{work}"}
 }

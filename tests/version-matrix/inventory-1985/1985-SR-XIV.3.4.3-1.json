@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIV.3.4.3-1",
  "rule-digest": "e4c6eae8bc48",
+ "test-ref": "conformance:cases/XIV.3.4@1985-PURGE-STATEMENT/1985-SR-XIV_3_4_3-1",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

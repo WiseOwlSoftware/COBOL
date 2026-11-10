@@ -1,0 +1,47 @@
+      *>--- conformance-case
+      *> id: 1985-GR-VII_4_7_4-13
+      *> rules: [1985-GR-VII.4.7.4-13]
+      *> accept: [85]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §1985:VII.4.7.4 GR13 (THE WRITE STATEMENT). An output test: the
+      *> program must translate and run at 85 and DISPLAY exactly the
+      *> lines its .out holds, the outcome the rule requires. Placed
+      *> from written and run by the triage of the drafts that did not
+      *> match (a suspect draft corrected) by
+      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
+000100 IDENTIFICATION DIVISION.
+000200 PROGRAM-ID. WREXT.
+000300 ENVIRONMENT DIVISION.
+000400 INPUT-OUTPUT SECTION.
+000500 FILE-CONTROL.
+000600     SELECT OUT-FILE ASSIGN TO OUTFILE
+000700         ORGANIZATION IS SEQUENTIAL.
+000800 DATA DIVISION.
+000900 FILE SECTION.
+001000 FD  OUT-FILE.
+001100 01  OUT-REC PIC X(10).
+001200 WORKING-STORAGE SECTION.
+001300 77  WS-EOF PIC X VALUE "N".
+001400 PROCEDURE DIVISION.
+001500 MAIN-PARA.
+001600     OPEN OUTPUT OUT-FILE.
+001700     MOVE "FIRST" TO OUT-REC.
+001800     WRITE OUT-REC.
+001900     MOVE "SECOND" TO OUT-REC.
+002000     WRITE OUT-REC.
+002100     CLOSE OUT-FILE.
+002200     OPEN EXTEND OUT-FILE.
+002300     MOVE "THIRD" TO OUT-REC.
+002400     WRITE OUT-REC.
+002500     MOVE "FOURTH" TO OUT-REC.
+002600     WRITE OUT-REC.
+002700     CLOSE OUT-FILE.
+002800     OPEN INPUT OUT-FILE.
+002900     PERFORM READ-PARA UNTIL WS-EOF = "Y".
+003000     CLOSE OUT-FILE.
+003100     STOP RUN.
+003200 READ-PARA.
+003300     READ OUT-FILE AT END MOVE "Y" TO WS-EOF.
+003400     IF WS-EOF = "N" DISPLAY OUT-REC.

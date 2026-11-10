@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.29.3-2",
  "rule-digest": "3df3743e649e",
+ "test-ref": "conformance:cases/A.2.29@1985-NUMVAL-FUNCTION/1989-AR-A_2_29_3-2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

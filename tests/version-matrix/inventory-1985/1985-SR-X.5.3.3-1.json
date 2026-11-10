@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-X.5.3.3-1",
  "rule-digest": "e8be1816bc6f",
+ "test-ref": "conformance:cases/X.5.3@1985-CANCEL-STATEMENT/1985-SR-X_5_3_3-1",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

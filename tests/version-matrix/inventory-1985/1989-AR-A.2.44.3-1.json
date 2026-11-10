@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-AR-A.2.44.3-1",
  "rule-digest": "979d36668590",
+ "test-ref": "conformance:cases/A.2.44@1985-UPPER-CASE-FUNCTION/1989-AR-A_2_44_3-1",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

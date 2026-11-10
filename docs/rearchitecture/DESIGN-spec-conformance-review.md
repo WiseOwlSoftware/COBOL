@@ -953,7 +953,11 @@ recorded (759 upheld SAME rules, kb/Work PB4993, and the upheld adjudications, k
 the sample audit of kb/Work PB5008). A record states its `reason` or omits the
 key: an empty reason is not stored (`lineage.next_errors`). A CHANGED or REMOVED rule then takes a verdict of its own
 under `--std=<edition>`, its witness a draft from the drafts pass that `run_drafts.py` ran and the fleet checked against
-the rule text.
+the rule text. A checked draft becomes a conformance test through one script, `place_witnesses.py` (kb/Work PB4995 item
+3; DESIGN-conformance-suite.md §3.5): it judges each again on the build, files it in the rule's own 1985 clause and
+writes a WITNESS-ONLY batch (`{"rule-id", "test-ref"}`) for every placed rule whose verdict is its own. The verdict
+itself stays the adjudicator's: CONFORMS requires the `code-location` a reader of the compiler names (the schema's
+`verdicts`), which no script can derive from a passing test, so a witnessed rule stays a GAP until it is read.
 
 **Everything else is derived from the chains, never written by hand:** each edition's GAP count (the session probe and
 the ledger report one per edition), the conformance statement of each edition (kb/Work PB4885 for 1985), the conformance

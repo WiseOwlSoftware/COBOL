@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-XIV.3.5.2",
  "rule-digest": "03955162c207",
+ "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-FMT-XIV_3_5_2",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

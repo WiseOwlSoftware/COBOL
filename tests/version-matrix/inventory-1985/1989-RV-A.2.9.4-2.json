@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.9.4-2",
  "rule-digest": "c3d5a1f113b6",
+ "test-ref": "conformance:cases/A.2.9@1985-CHAR-FUNCTION/1989-RV-A_2_9_4-2",
  "next": {
   "kind": "CHANGED",
   "to": [

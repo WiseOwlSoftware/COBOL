@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIV.3.6.3-6",
  "rule-digest": "baafb7255537",
+ "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-SR-XIV_3_6_3-6",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,0 +1,42 @@
+      *>--- conformance-case
+      *> id: 1985-GR-VIII_4_4_4-14
+      *> rules: [1985-GR-VIII.4.4.4-14]
+      *> accept: [85]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §1985:VIII.4.4.4 GR14 (THE OPEN STATEMENT). An output test: the
+      *> program must translate and run at 85 and DISPLAY exactly the
+      *> lines its .out holds, the outcome the rule requires. Placed
+      *> from the confirmation pass's redraft (WRONG original) by
+      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
+000100 IDENTIFICATION DIVISION.
+000200 PROGRAM-ID. RELIO.
+000300 ENVIRONMENT DIVISION.
+000400 INPUT-OUTPUT SECTION.
+000500 FILE-CONTROL.
+000600     SELECT REL-FILE ASSIGN TO RELDISK
+000700         ORGANIZATION IS RELATIVE
+000800         ACCESS MODE IS SEQUENTIAL
+000900         FILE STATUS IS WS-STAT.
+001000 DATA DIVISION.
+001100 FILE SECTION.
+001200 FD  REL-FILE
+001300     LABEL RECORDS ARE STANDARD.
+001400 01  REL-REC PIC X(10).
+001500 WORKING-STORAGE SECTION.
+001600 01  WS-STAT PIC XX.
+001700 PROCEDURE DIVISION.
+001800 MAIN-PARA.
+001900     OPEN OUTPUT REL-FILE.
+002000     MOVE "LABELTEST1" TO REL-REC.
+002100     WRITE REL-REC
+               INVALID KEY DISPLAY "WRITE FAILED".
+002200     CLOSE REL-FILE.
+002300     OPEN I-O REL-FILE.
+002400     DISPLAY "OPEN I-O " WS-STAT.
+002500     MOVE SPACES TO REL-REC.
+002600     READ REL-FILE AT END DISPLAY "EOF".
+002700     DISPLAY REL-REC.
+002800     CLOSE REL-FILE.
+002900     STOP RUN.

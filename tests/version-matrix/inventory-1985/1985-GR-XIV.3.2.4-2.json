@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIV.3.2.4-2",
  "rule-digest": "3c602f6db204",
+ "test-ref": "conformance:cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-2",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

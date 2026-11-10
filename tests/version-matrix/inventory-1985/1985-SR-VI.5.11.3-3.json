@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.11.3-3",
  "rule-digest": "397a7b56fce7",
+ "test-ref": "conformance:cases/VI.5.11@1985-RENAMES-CLAUSE/1985-SR-VI_5_11_3-3",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

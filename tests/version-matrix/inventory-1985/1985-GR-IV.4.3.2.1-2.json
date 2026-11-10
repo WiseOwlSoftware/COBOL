@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.3.2.1-2",
  "rule-digest": "25d867298499",
+ "test-ref": "conformance:cases/IV.4.3.2@1985-Concept-of-Levels/1985-GR-IV_4_3_2_1-2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

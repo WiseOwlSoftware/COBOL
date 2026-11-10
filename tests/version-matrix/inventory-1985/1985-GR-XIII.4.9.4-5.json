@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIII.4.9.4-5",
  "rule-digest": "f1af72dd8468",
+ "test-ref": "conformance:cases/XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT/1985-GR-XIII_4_9_4-5",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

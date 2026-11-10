@@ -107,8 +107,11 @@ COMPLETENESS_NAME = "completeness.json"
 TREES = {"cases": Path("cases"), "wiseowl": Path("wiseowl") / "cases"}
 UNASSIGNED = "_unassigned"
 #: A clause folder: the ISO clause number (an annex's letter first, `A.1`), then a hyphen and a name
-#: (`14.9.8-COMPUTE`), or `_unassigned`.
-CLAUSE_FOLDER = re.compile(r"^(?P<clause>(?:[0-9]+|[A-Z])(?:\.[0-9]+)*)-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$")
+#: (`14.9.8-COMPUTE`), or `_unassigned`. The tests of an OLDER held edition's rules sit in a folder of that edition's own
+#: clause, qualified by its year (`VI.6.18@1985-INSPECT-STATEMENT`; a 1985 locator opens with its section's roman numeral,
+#: design §3.5), so a folder of one edition's numbering is never read as another's.
+CLAUSE_FOLDER = re.compile(r"^(?P<clause>(?:[0-9]+|[A-Z]+)(?:\.[0-9]+)*)(?:@(?P<year>[0-9]{4}))?"
+                           r"-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$")
 TEST_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 OPEN_MARK, CLOSE_MARK = "*>--- conformance-case", "*>---"
 #: A metadata line whose text after `*>` opens with this many spaces continues the field before it (§3).
@@ -221,13 +224,25 @@ class Inputs:
     #: wiseowl/options/<id>[.<step file>].json: test id (or `<id>/<step file>`) -> {option: value}, the WiseOwl compile
     #: options of a WiseOwl test.
     options: dict[str, dict[str, str]] = field(default_factory=dict)
+    #: The rules of each OLDER held edition (DESIGN-spec-conformance-review.md §10.2), by id: the edition whose own text
+    #: states the rule. Their rows are in `rows` too (the ids cannot collide: an older id opens with its year).
+    older: dict[str, inventory_schema.Edition] = field(default_factory=dict)
 
     @property
     def editions(self) -> list[str]:
         return self.schema.editions
 
     def band(self, rule_id: str) -> list[str]:
+        """The editions at which the rule exists: the newest edition's row states its band; an older edition's rule is
+        a rule of its own text, at that edition alone (its successor at a later one is another rule, §10.2)."""
+        if rule_id in self.older:
+            return [self.older[rule_id].spelling]
         return self.schema.split(self.rows[rule_id].get("editions", ""), self.schema.editions_sep)
+
+    def year_of(self, rule_id: str) -> int | None:
+        """The year of the older held edition whose rule this is, or None for a rule of the newest edition."""
+        ed = self.older.get(rule_id)
+        return ed.year if ed is not None else None
 
     def window(self, construct: str) -> list[str]:
         """The editions at which a construct exists: introducedIn <= V < removedIn (VERSION_TEST_MATRIX_DESIGN.md §2)."""
@@ -812,15 +827,17 @@ def check_cases(reader: Reader) -> None:
             if not case.rules:
                 reader.refuse(rel, 1, f"a test with no rules belongs in {UNASSIGNED}/ (§4, §6 step 1)")
             m = CLAUSE_FOLDER.match(case.folder)
-            if m and known and not any(inventory_schema.section_matches(m.group("clause"), inputs.rows[r]["section"])
-                                       for r in known):
-                reader.refuse(rel, 1, f"filed under clause {m.group('clause')}, which none of its rules belongs to "
-                                      f"(move it to the clause of its rules)")
+            year = int(m.group("year")) if m and m.group("year") else None
+            if m and known and not any(inputs.year_of(r) == year and inventory_schema.section_matches(
+                    m.group("clause"), inputs.rows[r]["section"]) for r in known):
+                where = f"{m.group('clause')} of {year}" if year else m.group("clause")
+                reader.refuse(rel, 1, f"filed under clause {where}, which none of its rules belongs to (move it to the "
+                                      f"clause of its rules; an older edition's rule to its own clause, `<clause>@<year>`)")
         for e in case.accept:
             for r in known:
                 if e not in inputs.band(r):
                     reader.refuse(rel, 1, f"accepted at {e}, where {r} does not exist (its band is "
-                                          f"{inputs.rows[r]['editions']})")
+                                          f"{','.join(inputs.band(r))})")
         # The construct registry: f(case, V) of VERSION_TEST_MATRIX_DESIGN.md §2.
         windows = {}
         for c in case.constructs:
@@ -922,7 +939,7 @@ def _check_band_against_constructs(reader: Reader, case: Case, known: list[str],
         notes = inputs.rows[r].get("notes", "")
         if any(c in notes for c in windows):
             continue
-        reader.refuse(case.path, 1, f"{r} begins at {band[0]} (its band is {inputs.rows[r]['editions']}), after the "
+        reader.refuse(case.path, 1, f"{r} begins at {band[0]} (its band is {','.join(inputs.band(r))}), after the "
                                     f"introduction ({latest}) of the construct this test is written in "
                                     f"({', '.join(sorted(windows))}): widen the band to the construct's, or, if the rule "
                                     f"arrived later than the construct, name the construct in the row's notes and say "
@@ -954,7 +971,7 @@ def _check_flag(reader: Reader, case: Case, known: list[str], windows: dict[str,
         for r in known:
             if e not in inputs.band(r):
                 reader.refuse(rel, 1, f"flagged at {e}, where {r} does not exist (its band is "
-                                      f"{inputs.rows[r]['editions']}) and none of its constructs is absent")
+                                      f"{','.join(inputs.band(r))}) and none of its constructs is absent")
     # Every flagged test has a control, accepted at every edition it is flagged at (§3.2, §9).
     if case.control is None:
         reader.refuse(rel, 1, "a flagged test names its control, the same program with the violation removed (§3.2)")
@@ -1085,7 +1102,9 @@ def completeness(cases: list[Case], inputs: Inputs) -> dict[str, dict[str, int]]
     for e in inputs.editions:
         counts = dict.fromkeys(WITNESS_KINDS, 0)
         for rule_id, row in inputs.rows.items():
-            if e not in inputs.band(rule_id):
+            # The newest edition's rows, banded: an older edition's rules are counted by its own view (inventory_view.py
+            # --summary), never a second time here beside the newer rules their KEPT records carry into.
+            if rule_id in inputs.older or e not in inputs.band(rule_id):
                 continue
             if row.get("verdict") == NON_SUPPORT:
                 kind = "documented-non-support"
@@ -1227,6 +1246,12 @@ def suite_ids(cases: list[Case], editions: list[str]) -> dict[str, set[str]]:
 def repository_inputs() -> tuple[Inputs, list[Problem]]:
     schema = inventory_schema.load_schema()
     rows = {r["rule-id"]: r for r in inventory_view.inventory()}
+    older = {}
+    for ed in schema.all_editions:
+        if ed.held and not ed.newest:
+            for r in inventory_view.inventory(ed.year, schema):
+                rows[r["rule-id"]] = r
+                older[r["rule-id"]] = ed
     constructs = {c["id"]: (int(c["introducedIn"]), int(c["removedIn"]) if c.get("removedIn") else None)
                   for c in construct_store.read_rows(REPO)}
     a1, problems = load_implementor_defined(IMPLEMENTOR_DEFINED_PATH, rows)
@@ -1246,7 +1271,7 @@ def repository_inputs() -> tuple[Inputs, list[Problem]]:
         schema=schema, rows=rows, constructs=constructs, requirable=annex_names(spec),
         implementor_defined=a1, diagnostics=diagnostics,
         determined=determined, derived=schema.derivation_stands, reserved=reserved_words(), keywords=standard_keywords(spec),
-        options=options)
+        options=options, older=older)
     return inputs, problems
 
 
@@ -1344,6 +1369,9 @@ def _planted_inputs(diagnostics: dict[str, dict[str, Any]] | None = None) -> Inp
         row("RV-2.2.2-1", "2.2.2", "RV", "85,2002,2014,2023"),
         row("GR-1.1.1-6", "1.1.1", "GR", "2002,2014,2023", notes="arrived 2002 though c-old is older: n"),
     )}
+    oldest = schema.edition(1985)
+    older_rule = "1985-GR-VI.1.1.4-1"
+    rows[older_rule] = {"rule-id": older_rule, "section": "VI.1.1.4", "kind": "GR"}
     return Inputs(
         schema=schema, rows=rows, constructs={"c-2002": (2002, None), "c-gone-2002": (85, 2002), "c-old": (85, None)},
         requirable=frozenset({"A.4.11", "A.3-2"}), implementor_defined={9: ("one", "two")},
@@ -1353,7 +1381,7 @@ def _planted_inputs(diagnostics: dict[str, dict[str, Any]] | None = None) -> Inp
         determined=lambda r: r["rule-id"] in ("DOC-A.1-9", "DOC-A.1-10"), derived=lambda r: bool(r.get("derivation")),
         reserved={"85": frozenset({"IDENTIFICATION", "DIVISION", "PROGRAM-ID", "DATA", "WORKING-STORAGE", "SECTION",
                                    "PIC", "VALUE", "PROCEDURE", "DISPLAY", "STOP", "RUN"})},
-        keywords=frozenset({"STOP", "W-E"}))
+        keywords=frozenset({"STOP", "W-E"}), older={older_rule: oldest})
 
 
 def _fixed(header: list[str], body: list[str]) -> str:
@@ -1396,6 +1424,9 @@ def self_test() -> int:
         "cases/1.1.1-Rule/stated-late.cob": _fixed(["id: stated-late", "rules: [GR-1.1.1-6]", "accept: [2002]",
                                                     "constructs: [c-old]", "source-format: fixed"], _PROGRAM),
         "cases/1.1.1-Rule/stated-late.out": "x\n",
+        "cases/VI.1.1@1985-Rule/older.cob": _fixed(["id: older", "rules: [1985-GR-VI.1.1.4-1]", "accept: [85]",
+                                                    "source-format: fixed"], _PROGRAM),
+        "cases/VI.1.1@1985-Rule/older.out": "x\n",
         "cases/1.1.1-Rule/valued.cob": _fixed(["id: valued", "rules: [DOC-A.1-9]", "accept: [85, 2002, 2014, 2023]",
                                                "implementor-defined: [9]", "source-format: fixed"], _PROGRAM),
         "cases/1.1.1-Rule/valued.9=one.out": "1\n",
@@ -1455,8 +1486,11 @@ def self_test() -> int:
             m2023 = json.loads((root / "suites/2023/manifest.json").read_text(encoding="utf-8"))
             mw = json.loads((root / "suites/wiseowl/manifest.json").read_text(encoding="utf-8"))
             ids85 = [t["id"] for t in m85["tests"]]
-            check("arm: the 85 suite holds its accepted, flagged, valued and copying tests, and not a 2002 one",
-                  ids85 == ["accepted", "copying", "flagged", "valued"], ids85)
+            check("arm: the 85 suite holds its accepted, flagged, valued and copying tests and the test of a 1985 rule "
+                  "filed in its own clause, and not a 2002 one",
+                  ids85 == ["accepted", "copying", "flagged", "older", "valued"], ids85)
+            check("arm: a 1985 rule's test is no test of the 2023 suite (the rule exists at 85 alone)",
+                  "older" not in {t["id"] for t in m2023["tests"]}, m2023["tests"])
             pe = {t["id"]: t for t in m2023["tests"]}
             check("arm: a per-edition output is the edition's own file at that edition",
                   pe["per-edition"]["expected-output"] == {"": "cases/1.1.1-Rule/per-edition.2023.out"}, pe)
@@ -1658,6 +1692,18 @@ def self_test() -> int:
         "misfiled": ("cases/1.1.1-Rule/misfiled.cob",
                      _fixed(["id: misfiled", "rules: [RV-2.2.2-1]", "accept: [85]", "source-format: fixed"], _PROGRAM),
                      "filed under clause 1.1.1, which none of its rules belongs to"),
+        "older band": ("cases/VI.1.1@1985-Rule/older-band.cob",
+                       _fixed(["id: older-band", "rules: [1985-GR-VI.1.1.4-1]", "accept: [85, 2002]",
+                               "source-format: fixed"], _PROGRAM),
+                       "accepted at 2002, where 1985-GR-VI.1.1.4-1 does not exist (its band is 85)"),
+        "older rule, newer folder": ("cases/1.1.1-Rule/older-here.cob",
+                                     _fixed(["id: older-here", "rules: [1985-GR-VI.1.1.4-1]", "accept: [85]",
+                                             "source-format: fixed"], _PROGRAM),
+                                     "filed under clause 1.1.1, which none of its rules belongs to"),
+        "newer rule, older folder": ("cases/VI.1.1@1985-Rule/newer-here.cob",
+                                     _fixed(["id: newer-here", "rules: [GR-1.1.1-1]", "accept: [85]",
+                                             "source-format: fixed"], _PROGRAM),
+                                     "filed under clause VI.1.1 of 1985, which none of its rules belongs to"),
         "no rules outside _unassigned": ("cases/1.1.1-Rule/norules.cob",
                                          _fixed(["id: norules", "rules: []", "accept: [85]", "source-format: fixed"],
                                                 _PROGRAM), "a test with no rules belongs in _unassigned/"),
@@ -1817,6 +1863,10 @@ def self_test() -> int:
                  "lint-numeric", "lint-function", "lint-numlit", "lint-upon", "lint-margin", "a1-unknown", "needs",
                  "misfiled", "norules", "mismatch", "field", "unsorted", "runtime", "stray"):
         base[f"cases/1.1.1-Rule/{name}.out"] = "x\n"
+    for name in ("older-here",):
+        base[f"cases/1.1.1-Rule/{name}.out"] = "x\n"
+    for name in ("older-band", "newer-here"):
+        base[f"cases/VI.1.1@1985-Rule/{name}.out"] = "x\n"
     base["cases/1.1.1-Rule/band.2002.out"] = "x\n"
     base["cases/1.1.1-Rule/construct.2002.out"] = "x\n"
     base["cases/1.1.1-Rule/removed.2002.out"] = "x\n"

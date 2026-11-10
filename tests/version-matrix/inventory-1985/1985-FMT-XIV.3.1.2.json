@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-XIV.3.1.2",
  "rule-digest": "b476d738b740",
+ "test-ref": "conformance:cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-FMT-XIV_3_1_2",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

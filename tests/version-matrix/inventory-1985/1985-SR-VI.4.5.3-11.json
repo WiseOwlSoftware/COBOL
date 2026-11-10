@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.4.5.3-11",
  "rule-digest": "d74cc193ca09",
+ "test-ref": "conformance:cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/1985-SR-VI_4_5_3-11",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -52,7 +52,9 @@ and the `test-ref` witnesses the traceability inventory cites as `conformance:<t
 the tests pin.
 
 - **Where.** A test of a rule a program can observe portably goes in `cases/<clause>-<Name>/`, the folder of its
-  rules' clause (`cases/14.9.8-COMPUTE/`). A test of WiseOwl COBOL's own behaviour goes in
+  rules' clause (`cases/14.9.8-COMPUTE/`). A test of a rule of an older held edition (a 1985 rule, named by its own
+  catalog id, `1985-GR-VI.6.18.4-3`) exists at that edition alone and goes in the folder of its own clause, qualified by
+  the year (`cases/VI.6.18@1985-INSPECT-STATEMENT/`; design §3.5). A test of WiseOwl COBOL's own behaviour goes in
   `wiseowl/cases/<clause>-<Name>/`: documented non-support, an implementor-defined value the standard does not
   enumerate, a WiseOwl compile option, free form at 85 (WiseOwl's `--source-format free` extension), a library
   folder (`COPY X OF LIB`, whose location is the implementor's). The generator refuses a file under the removed

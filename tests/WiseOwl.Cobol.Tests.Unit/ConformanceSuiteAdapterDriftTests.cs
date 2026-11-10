@@ -22,7 +22,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// diagnostics with, matches every diagnostic the compiler can report, as the compiler's own formatters render it —
 /// the parse layer's <see cref="FrontendDiagnostic"/> (the COBOL<i>n</i> parser and CBL<i>n</i> COPY codes, and the
 /// parse-layer COBOL#### twins) and the binder's <see cref="EditionContext"/> (every <see cref="DiagnosticCatalog"/>
-/// code) — and reads the file and the line from it. A pattern that missed a code would judge a flagged test FAIL
+/// code) — and reads the file, the line and the code from it. A pattern that missed a code would judge a flagged test FAIL
 /// ("no diagnostic reported") although the compiler flagged the marked line: the pattern once required the catalog's
 /// former prefix and so never saw a parse error (kb/Work PB3175, review R1-2).
 /// </summary>
@@ -74,6 +74,8 @@ public sealed class ConformanceSuiteAdapterDriftTests
                 problems.Add($"{code}: file {m.Groups["file"].Value} read from {rendered}");
             else if (line is { } want && m.Groups["line"].Value != want.ToString(System.Globalization.CultureInfo.InvariantCulture))
                 problems.Add($"{code}: line {m.Groups["line"].Value} read from {rendered}, not {want}");
+            else if (m.Groups["code"].Value != code)   // the code a refusal's placement pins (scripts/spec/place_witnesses.py)
+                problems.Add($"{code}: code {m.Groups["code"].Value} read from {rendered}");
         }
 
         var location = new SourceLocation("PROG.cob", 0, 3, 11);   // 0-based line 3 renders as line 4

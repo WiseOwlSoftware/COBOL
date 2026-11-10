@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VII.2.7.2",
  "rule-digest": "4bb6454c41c6",
+ "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-FMT-VII_2_7_2",
  "next": {
   "kind": "REMOVED",
   "to": [],

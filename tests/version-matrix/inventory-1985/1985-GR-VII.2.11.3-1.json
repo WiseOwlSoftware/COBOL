@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.2.11.3-1",
  "rule-digest": "c9b1012f8e79",
+ "test-ref": "conformance:cases/VII.2.11@1985-MULTIPLE-FILE-TAPE-CLAUSE/1985-GR-VII_2_11_3-1",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
