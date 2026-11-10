@@ -220,9 +220,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): resolve the debug SUBJECTS now that every
         // nondeclarative procedure is in the pc space — the ALL PROCEDURES / procedure-name legs bind to real
         // trigger points; the data-name, ALL REFERENCES OF, file-name and cd-name targets are collected for the statement
-        // binder's funnel to plan against (CONTROL_FLOW_DESIGN D20); the SORT/MERGE
-        // cause taxonomy is staged loud (COBOL1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
-        FinalizeDebug(pd);
+        // binder's funnel to plan against (CONTROL_FLOW_DESIGN D20). No-op unless WITH DEBUGGING MODE collected a debug declarative.
+        FinalizeDebug();
     }
 
     /// <summary>⛔ THE ONE <c>procedure-name</c> OPERAND RESOLUTION for a STATEMENT (kb/Work PB390): resolve, or
@@ -357,15 +356,15 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // the one structure that says which section a pc belongs to, and the same one StatementBinder's per-pc
         // pass and SetAlterBinder read; for a SECTION-name the section IS the answer.
         if (paras.TryResolve(head, out int pc)) return Found(PcRange.At(pc), SectionOfPc(pc));
-        if (sections.TryResolve(head, out var sec)) return Found(sec.Range, sec);
+        if (sections.TryResolve(head, out var sec)) return Found(sec.Range, sec, isSection: true);
         return default;
     }
 
     /// <summary>A resolution that SUCCEEDED, carrying the range together with the section that owns the
     /// denoted procedure — the ONE constructor for the success case, so no path can forget the section
     /// (kb/Work PB433).</summary>
-    private static ProcedureResolution Found(PcRange range, SectionInfo? section) =>
-        new(new ResolvedProcedure(range, section), null);
+    private static ProcedureResolution Found(PcRange range, SectionInfo? section, bool isSection = false) =>
+        new(new ResolvedProcedure(range, section, isSection), null);
 
     /// <summary>The section that owns <paramref name="pc"/> — <see cref="ParaSections"/>, which
     /// <c>AddParagraph</c> and <c>AddAnonymousParagraph</c> fill in lockstep with the pc space. Out of range (a
@@ -564,16 +563,21 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// empty unless a procedure-subject USE FOR DEBUGGING was collected under WITH DEBUGGING MODE.</summary>
     public IReadOnlyList<BoundDebugSubject> DebugSubjects => _debugSubjects;
 
+    /// <summary>Whether a debug subject lies in the declaratives portion - a USE procedure, whose execution a statement causes
+    /// (§1985:XV.3.2.4 GR21), so each statement carries the DEBUG-LINE that cause reports (<see cref="BoundStatement.DebugLine"/>).</summary>
+    public bool DebugsUseProcedure => _debugSubjects.Any(s => s.SubjectPc < _entryPc);
+
     /// <summary>Resolve the collected debug declaratives to trigger SUBJECTS now that the whole pc space exists
     /// (X3.23-1985 debug module, VCR Table 7 row 7.17). <c>ALL PROCEDURES</c> and a bare procedure-name bind to
-    /// real trigger points at NONdeclarative procedures (a debugging declarative is never debugged — the '85
-    /// ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"). The data-name (incl. ALL REFERENCES OF), file-name and
+    /// real trigger points at procedures outside every debugging section (a debugging declarative is never debugged
+    /// — the '85 ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"): a paragraph-name is its pc, a
+    /// section-name its first pc (<see cref="AddDebugSectionSubject"/>). The data-name (incl. ALL REFERENCES OF), file-name and
     /// cd-name operands become <see cref="DebugTargets"/> (<see cref="AddDebugDataTarget"/>, <see cref="AddDebugCdTarget"/>;
     /// the triggers are planned per statement, CONTROL_FLOW_DESIGN D20); a file-name operand is a target too
-    /// (<see cref="AddDebugFileTarget"/>, general rule 2, kb/Work PB4811). A SORT/MERGE INPUT/
-    /// OUTPUT procedure that is also a debug subject is likewise staged (the SORT INPUT/OUTPUT/MERGE OUTPUT
-    /// DEBUG-CONTENTS cause is not modeled — rejecting avoids a silent wrong cause).</summary>
-    private void FinalizeDebug(Core.ProcedureDivisionContext pd)
+    /// (<see cref="AddDebugFileTarget"/>, general rule 2, kb/Work PB4811). A SORT/MERGE INPUT/OUTPUT
+    /// procedure subject needs nothing here: the SORT or MERGE statement sets the cause where it transfers control
+    /// (§1985:XV.3.2.4 GR19, <c>SortEmitter</c>).</summary>
+    private void FinalizeDebug()
     {
         if (_pendingDebug.Count == 0) return;
         foreach (var (section, use) in _pendingDebug)
@@ -583,11 +587,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 // FinalizeDebug runs after every walker, so the operand positions its own diagnostics (kb/Work
                 // PB2034: a refusal names the file and line the user edits).
                 using var _ = ctx.Edition.At(t);
-                if (t.PROCEDURES() is not null)          // ALL PROCEDURES → every nondeclarative procedure
-                {
-                    for (int pc = _entryPc; pc < _paras.Count; pc++)
-                        AddDebugSubject(pc, section);
-                }
+                if (t.PROCEDURES() is not null)          // ALL PROCEDURES → every procedure-name outside a debugging section
+                    AddAllProceduresSubjects(section);
                 else if (t.ALL() is not null)            // ALL [REFERENCES] [OF] identifier-1 → an all-references data-name target
                 {
                     // ALL, not REFERENCES, marks the arm: REFERENCES and OF are the '85 format's optional words,
@@ -619,14 +620,21 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     // method (kb/Work PB466) — USE FOR DEBUGGING ON procedure-name is an explicit reference, so
                     // an ambiguous spelling owes the same diagnostic here as it does at GO TO. The referencing
                     // section is THIS declarative section, which is what §2023:8.4.2.2.1 rule 6 is measured against.
-                    // A range covers both cases the leg needs: a paragraph is (pc, pc), a section is its whole
-                    // paragraph range, and every pc in the range becomes a trigger point either way.
+                    // ⛔ ONE PROCEDURE-NAME IS ONE TRIGGER POINT (§1985:XV.3.2.4 GR3 a: "Immediately before each execution
+                    // of the named procedure"): a paragraph is its own pc, and a SECTION is executed when control
+                    // reaches its FIRST paragraph, so it is one trigger there, named by the section. Treating the section
+                    // as every one of its paragraphs ran the debugging section once per paragraph under the paragraph's
+                    // name (kb/Work PB5083, GR9 and GR16).
                     var subject = ResolveDebugProcedure(dr, section);
                     if (subject.Ambiguity is { } dambiguity)
                         ctx.Validation.RejectAmbiguousProcedureName(dambiguity, "USE FOR DEBUGGING ON");
-                    else if (subject.Range is { } drange)
-                        for (int pc = drange.Start; pc <= drange.End; pc++)
-                            AddDebugSubject(pc, section);
+                    else if (subject.Procedure is { } named)
+                    {
+                        // GR13: DEBUG-NAME holds the name that caused the section to run, "All qualifiers of the name ... separated
+                        // by the word 'IN' or 'OF'": a paragraph subject written P OF S is named so, as the USE statement wrote it.
+                        if (!named.IsSection) AddDebugSubject(named.Range.Start, section, nm);
+                        else if (!named.Range.IsEmpty && named.Section is { } namedSection) AddDebugSectionSubject(namedSection, section);
+                    }
                     else if (NamesDataItem(dr))
                         AddDebugDataTarget(dr, section, DebugTargetKind.DataName);
                     else if (NamesCommunicationDescription(dr))
@@ -641,26 +649,15 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             }
         }
 
-        // General rule 15: DEBUG-CONTENTS is "large enough to contain the data required" — the widest data-name or cd-name target.
+        // General rule 15: DEBUG-CONTENTS is "large enough to contain the data required" — the widest data-name or cd-name target,
+        // and, when a paragraph is a subject, the widest procedure-name-2 of an ALTER (GR17 c: the name is the contents).
+        if (_debugSubjects.Any(s => !s.IsSection))
+            foreach (var para in _paras)
+                foreach (var alter in para.Sentences.SelectMany(sentence => ParseTreeWalk.SelfAndDescendants(sentence)).OfType<Core.AlterStatementContext>())
+                    foreach (var entry in alter.alterEntry())
+                        if (entry.procedureName() is { Length: >= 2 } names)
+                            _debugContentsWidth = Math.Max(_debugContentsWidth, ProcedureNameShape.AsWritten(names[1]).Length);
         ctx.Data.State.Implicit.ActivateDebugRegisters(ctx.Data.TakeUid, _debugContentsWidth);
-
-        // A SORT/MERGE INPUT/OUTPUT procedure that is also a debug subject would trigger with a stale cause — the
-        // SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS taxonomy is not modeled. Reject loud rather than emit a
-        // silent wrong cause (X3.23-1985; the DB2xx SORT/MERGE witnesses are staged).
-        if (_debugSubjects.Count > 0)
-        {
-            var subjectPcs = _debugSubjects.Select(s => s.SubjectPc).ToHashSet();
-            foreach (var (name, phrase, rng) in SortMergeProcedureRanges(pd))
-                if (Enumerable.Range(rng.Start, rng.End - rng.Start + 1).Any(subjectPcs.Contains))
-                {
-                    using var _ = ctx.Edition.At(phrase);   // the INPUT/OUTPUT PROCEDURE phrase (kb/Work PB2034)
-                    ctx.Edition.Error(DiagnosticCatalog.DebugSubFacilityStaged, $"the SORT/MERGE {name} PROCEDURE is also a USE FOR "
-                        + "DEBUGGING subject: the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not "
-                        + "modeled (only the plain-transfer / fall-through / PERFORM-loop / START-PROGRAM causes "
-                        + "are) — X3.23-1985 debug module; VCR Table 7 row 7.17");
-                    break;
-                }
-        }
     }
 
     /// <summary>The operand of a USE FOR DEBUGGING target as a message quotes it: the word and its OF/IN qualifiers
@@ -751,14 +748,44 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         return ctx.Edition.ErrorsRecorded != recorded;
     }
 
-    /// <summary>Record one debug trigger subject (the subject pc's name + source line + the debugging section's
-    /// invokable pc range) — deduplicated so a procedure named twice does not double-fire.</summary>
-    private void AddDebugSubject(int pc, SectionInfo section)
+    /// <summary>Record the paragraph subject at <paramref name="pc"/> (its name, its source line and the debugging
+    /// section's invokable pc range). A paragraph-name omitted (§2023:14.4.3) is no procedure-name for a subject
+    /// to name, and a procedure named twice does not double-fire.</summary>
+    private void AddDebugSubject(int pc, SectionInfo debugging, string? written = null)
     {
-        if (pc < 0 || pc >= _paras.Count) return;
-        if (_debugSubjects.Any(s => s.SubjectPc == pc)) return;
-        _debugSubjects.Add(new BoundDebugSubject(
-            pc, _paras[pc].Cobol, _paraLine[pc], section.StartPc, section.EndPc));
+        if (pc < 0 || pc >= _paras.Count || _paras[pc].Cobol.Length == 0) return;
+        AddDebugSubject(new BoundDebugSubject(
+            pc, written ?? _paras[pc].Cobol, _paraLine[pc], debugging.StartPc, debugging.EndPc));
+    }
+
+    /// <summary>Record a SECTION subject: one trigger point at the section's first pc, named by the section
+    /// (§1985:XV.3.2.4 GR13: DEBUG-NAME is "the name that caused the debugging section to be executed"), so control
+    /// entering the section anywhere else does not run the debugging section (GR9).</summary>
+    private void AddDebugSectionSubject(SectionInfo subject, SectionInfo debugging)
+    {
+        int pc = subject.StartPc;
+        AddDebugSubject(new BoundDebugSubject(
+            pc, subject.Name, _paraLine[pc], debugging.StartPc, debugging.EndPc, IsSection: true));
+    }
+
+    private void AddDebugSubject(BoundDebugSubject subject)
+    {
+        if (_debugSubjects.Any(s => s.SubjectPc == subject.SubjectPc && s.IsSection == subject.IsSection)) return;
+        _debugSubjects.Add(subject);
+    }
+
+    /// <summary>ALL PROCEDURES (§1985:XV.3.2.4 GR4): "the effects described in general rule 3 ... for every
+    /// procedure-name in the program, except those appearing within a debugging section" - each paragraph and each
+    /// section, the declarative sections that are not debugging sections included (a USE procedure is executed, GR21).</summary>
+    private void AddAllProceduresSubjects(SectionInfo debugging)
+    {
+        for (int pc = 0; pc < _paras.Count; pc++)
+        {
+            var owner = _paraSection[pc];
+            if (IsDebuggingSection(owner)) continue;
+            AddDebugSubject(pc, debugging);
+            if (owner is { } sec && sec.StartPc == pc) AddDebugSectionSubject(sec, debugging);
+        }
     }
 
     private readonly List<BoundDebugTarget> _debugTargets = [];
@@ -878,34 +905,6 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>The widest DEBUG-CONTENTS any target needs, as <see cref="FinalizeDebug"/> collects them.</summary>
     private int _debugContentsWidth = WiseOwl.Cobol.Runtime.DebugItem.MinContentsWidth;
-
-    /// <summary>The pc range of each SORT/MERGE INPUT/OUTPUT PROCEDURE in the procedure division (for the debug
-    /// SORT/MERGE-overlap staging check). Resolves the phrase's procedure-name(s) via the ordinary procedure
-    /// table (THRU forms span first..last).</summary>
-    private List<(string Kind, Antlr4.Runtime.ParserRuleContext Phrase, PcRange Range)> SortMergeProcedureRanges(
-        Core.ProcedureDivisionContext pd)
-    {
-        var results = new List<(string, Antlr4.Runtime.ParserRuleContext, PcRange)>();
-        void Add(string kind, Antlr4.Runtime.ParserRuleContext phrase, Core.ProcedureNameContext[] pns)
-        {
-            if (pns.Length == 0) return;
-            if (ResolveProcedureQuiet(pns[0]) is not { } first) return;
-            var last = pns.Length > 1 ? ResolveProcedureQuiet(pns[^1]) : first;
-            if (last is { } l) results.Add((kind, phrase, first.Through(l)));
-        }
-        void Walk(Antlr4.Runtime.Tree.IParseTree node)
-        {
-            switch (node)
-            {
-                case Core.SortInputProcedurePhraseContext ip: Add("INPUT", ip, ip.procedureName()); return;
-                case Core.SortOutputProcedurePhraseContext op: Add("OUTPUT", op, op.procedureName()); return;
-                case Core.MergeOutputProcedurePhraseContext mo: Add("OUTPUT", mo, mo.procedureName()); return;
-            }
-            for (int i = 0; i < node.ChildCount; i++) Walk(node.GetChild(i));
-        }
-        Walk(pd);
-        return results;
-    }
 
     /// <summary>One USE statement's bound trigger scope: Format 1's files/mode (+GLOBAL), Format 2's report
     /// group, Format 3's (exception-name, file) entries, or Format 4's single operand (ISO §2023:14.9.49).</summary>

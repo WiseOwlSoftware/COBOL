@@ -62,6 +62,24 @@ internal sealed class AlterSwitchEmitter(EmitContext ctx, DispatchState dispatch
     {
         foreach (var e in al.Entries)
             ctx.Writer.Line($"{e.AlterField} = {e.NewPc};");
+        EmitDebugTriggers(al);
+    }
+
+    /// <summary>X3.23-1985 USE FOR DEBUGGING, §1985:XV.3.2.4 GR3 b: a debugging section whose subject is procedure-name-1 runs
+    /// "Immediately after the execution of an ALTER statement which references procedure-name-1" - the paragraph subject, not
+    /// a section that contains it (GR9: a qualifier is no reference). GR17: DEBUG-LINE identifies the ALTER statement,
+    /// DEBUG-NAME is procedure-name-1 and DEBUG-CONTENTS "the applicable procedure-name associated with the TO phrase".
+    /// GR7: once per statement for a name written twice, under the TO phrase last in effect.</summary>
+    private void EmitDebugTriggers(BoundAlter al)
+    {
+        if (!dispatch.DebugActive) return;
+        var w = ctx.Writer;
+        foreach (var altered in al.Entries.GroupBy(e => e.AlteredPc))
+            foreach (var subject in dispatch.DebugByPc[altered.Key].Where(s => !s.IsSection))
+            {
+                string name = CsLiteral(subject.SubjectName), contents = CsLiteral(altered.Last().NewName);
+                w.Line($"if (__DebugReady) __RunDebugRef({al.SourceLine}, {name}, {contents}, {subject.SectionStartPc}, {subject.SectionEndPc});");
+            }
     }
 
     // ── SET Format 3 — external switches (ISO §2023:14.9.39 F3 GR5; §2023:12.3.7 GR3) ──────────────────────────────────

@@ -1,0 +1,13 @@
+DEBUG [MAIN-SECT                     ] [START PROGRAM]
+M1
+W2
+M2
+DEBUG [WORK-SECT                     ] [PERFORM LOOP ]
+W1
+W2
+M2B
+PR1
+DEBUG [WORK-SECT                     ] [FALL THROUGH ]
+W1
+W2
+END

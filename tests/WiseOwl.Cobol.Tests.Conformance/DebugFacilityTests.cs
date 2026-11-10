@@ -9,10 +9,10 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// 7.17). The '85 debug module was deleted by ISO/IEC 1989:2002 and is absent from ISO/IEC 1989:2023, so its
 /// authoritative behavior is the 1985 standard; WiseOwl COBOL models it (accepted-and-ACTIVE) only at <c>--std 85</c>
 /// and rejects it ≥2002 (COBOL0902). Implemented: the ON procedure-name / ALL PROCEDURES trigger leg with the
-/// DEBUG-CONTENTS transfer-cause taxonomy (START PROGRAM / SPACES / PERFORM LOOP / FALL THROUGH — DB101A witness)
-/// and DEBUG-NAME, and the data-name, ALL REFERENCES OF, cd-name and file-name triggers (docs/CONTROL_FLOW_DESIGN.md D20; the behavior
-/// matrix is the <c>X3.23-1985-USE-FOR-DEBUGGING</c> conformance goldens; the file-name trigger is general rule 2, kb/Work PB4811).
-/// STAGED loud (COBOL1571): the SORT/MERGE-procedure cause.
+/// DEBUG-CONTENTS cause taxonomy (START PROGRAM / SPACES / PERFORM LOOP / FALL THROUGH — DB101A witness; the ALTER, SORT INPUT, SORT OUTPUT,
+/// MERGE OUTPUT and USE PROCEDURE causes, kb/Work PB5083) and DEBUG-NAME, and the data-name, ALL REFERENCES OF, cd-name and file-name triggers
+/// (docs/CONTROL_FLOW_DESIGN.md D20; the behavior matrix is the <c>X3.23-1985-USE-FOR-DEBUGGING</c> conformance goldens; the file-name trigger
+/// is general rule 2, kb/Work PB4811).
 /// </summary>
 public sealed class DebugFacilityTests
 {
@@ -45,8 +45,9 @@ public sealed class DebugFacilityTests
             STOP RUN.
         """;
 
-    /// <summary>ALL PROCEDURES fires before each nondeclarative procedure; the DEBUG-CONTENTS taxonomy is the
-    /// DB101A-witnessed START PROGRAM / SPACES / PERFORM LOOP set (hand-derived stdout, §X3.23-1985).</summary>
+    /// <summary>ALL PROCEDURES fires before each procedure-name outside a debugging section (§1985:XV.3.2.4 GR4: the section MAIN
+    /// and its first paragraph P-START are two); the DEBUG-CONTENTS taxonomy is the DB101A-witnessed START PROGRAM / SPACES /
+    /// PERFORM LOOP set, a PERFORM's transfer being PERFORM LOOP on every execution of the range (GR20; hand-derived stdout).</summary>
     [Fact]
     public void AllProcedures_At85_FiresWithTheDebugContentsTaxonomy()
     {
@@ -55,12 +56,13 @@ public sealed class DebugFacilityTests
         // CutRunner normalizes (per-line trailing-space trim), so trim the expected lines' trailing spaces too;
         // NM's INTERNAL padding (before "C=") survives the trim, the DEBUG-CONTENTS taxonomy is the observable.
         string[] lines = stdout.Split('\n');
-        Assert.Equal(4, lines.Length);
+        Assert.Equal(5, lines.Length);
         // NM is X(30): name left-justified, right-space-padded. CONT is X(13).
-        Assert.Equal(("N=" + "P-START".PadRight(30) + "C=START PROGRAM").TrimEnd(), lines[0]);
-        Assert.Equal(("N=" + "P-LOOP".PadRight(30) + "C=").TrimEnd(), lines[1]);          // PERFORM iter 1 -> SPACES
-        Assert.Equal(("N=" + "P-LOOP".PadRight(30) + "C=PERFORM LOOP").TrimEnd(), lines[2]); // iter 2 -> PERFORM LOOP
-        Assert.Equal(("N=" + "P-END".PadRight(30) + "C=").TrimEnd(), lines[3]);            // GO TO -> SPACES
+        Assert.Equal(("N=" + "MAIN".PadRight(30) + "C=START PROGRAM").TrimEnd(), lines[0]);
+        Assert.Equal(("N=" + "P-START".PadRight(30) + "C=START PROGRAM").TrimEnd(), lines[1]);
+        Assert.Equal(("N=" + "P-LOOP".PadRight(30) + "C=PERFORM LOOP").TrimEnd(), lines[2]); // iter 1 -> PERFORM LOOP (GR20)
+        Assert.Equal(("N=" + "P-LOOP".PadRight(30) + "C=PERFORM LOOP").TrimEnd(), lines[3]); // iter 2 -> PERFORM LOOP
+        Assert.Equal(("N=" + "P-END".PadRight(30) + "C=").TrimEnd(), lines[4]);            // GO TO -> SPACES
     }
 
     /// <summary>DEBUG-LINE identifies the CAUSING statement (X3.23-1985; DB101A): START PROGRAM → the subject's
@@ -103,7 +105,7 @@ public sealed class DebugFacilityTests
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
         Assert.True(ok, detail);
         string[] lines = stdout.Split('\n');
-        Assert.Equal(4, lines.Length);
+        Assert.Equal(5, lines.Length);
         static (int Line, string Cont) Parse(string s)
         {
             int lb = s.IndexOf("L=[", System.StringComparison.Ordinal) + 3;
@@ -112,20 +114,23 @@ public sealed class DebugFacilityTests
             int cr = s.IndexOf(']', cb);
             return (int.Parse(s[lb..rb].Trim()), s[cb..cr].TrimEnd());
         }
-        var p0 = Parse(lines[0]);   // P-START, START PROGRAM
-        var p1 = Parse(lines[1]);   // P-LOOP iter 1, SPACES
-        var p2 = Parse(lines[2]);   // P-LOOP iter 2, PERFORM LOOP
-        var p3 = Parse(lines[3]);   // P-END, GO TO (SPACES)
+        var p0 = Parse(lines[0]);   // MAIN, START PROGRAM
+        var p1 = Parse(lines[1]);   // P-START, START PROGRAM
+        var p2 = Parse(lines[2]);   // P-LOOP iter 1, PERFORM LOOP
+        var p3 = Parse(lines[3]);   // P-LOOP iter 2, PERFORM LOOP
+        var p4 = Parse(lines[4]);   // P-END, GO TO (SPACES)
         Assert.Equal("START PROGRAM", p0.Cont);
-        Assert.Equal("", p1.Cont);
+        Assert.Equal("START PROGRAM", p1.Cont);
         Assert.Equal("PERFORM LOOP", p2.Cont);
-        Assert.Equal("", p3.Cont);
+        Assert.Equal("PERFORM LOOP", p3.Cont);
+        Assert.Equal("", p4.Cont);
         // The PERFORM line = P-START's first statement (START PROGRAM subject line) = the PERFORM cause line on
         // both iterations; the GO TO is exactly the next line (the causing-statement semantics — NOT the subject
         // procedure's own body line, which would make them all equal).
         Assert.Equal(p0.Line, p1.Line);
         Assert.Equal(p0.Line, p2.Line);
-        Assert.Equal(p0.Line + 1, p3.Line);
+        Assert.Equal(p0.Line, p3.Line);
+        Assert.Equal(p0.Line + 1, p4.Line);
     }
 
     /// <summary>DEBUG-SUB-1/2/3 render SPACES for a procedure trigger (an unsubscripted reference) at the S9(4)
@@ -670,11 +675,49 @@ public sealed class DebugFacilityTests
         Assert.Equal("HITS=1", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
-    /// <summary>A SORT/MERGE INPUT/OUTPUT procedure that is also a debug subject is STAGED — rejected loud
-    /// COBOL1571 (the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not modeled; reject rather than
-    /// emit a stale cause).</summary>
+    /// <summary>§1985:XV.3.2.4 GR13: DEBUG-NAME holds "the name that caused the debugging section to be executed", and "all qualifiers of the
+    /// name are separated in DEBUG-NAME by the word 'IN' or 'OF'": a procedure-name the USE FOR DEBUGGING statement writes qualified is so named.</summary>
     [Fact]
-    public void SortProcedureSubject_At85_StagedLoud1571()
+    public void QualifiedProcedureSubject_At85_IsNamedWithItsQualifier()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DBGQNAME.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 NM PIC X(30).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            DBG SECTION.
+                USE FOR DEBUGGING ON PARA-W OF SEC-A.
+            DBG-BODY.
+                MOVE DEBUG-NAME TO NM.
+                DISPLAY "N=[" NM "]".
+            END DECLARATIVES.
+            SEC-A SECTION.
+            A-START.
+                PERFORM PARA-W OF SEC-A.
+                PERFORM PARA-W OF SEC-B.
+                STOP RUN.
+            PARA-W.
+                CONTINUE.
+            SEC-B SECTION.
+            PARA-W.
+                CONTINUE.
+            """;
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
+        Assert.True(ok, detail);
+        Assert.Equal("N=[PARA-W OF SEC-A                ]", stdout.Replace("\r", "").TrimEnd('\n'));
+    }
+
+    /// <summary>A SORT INPUT or OUTPUT PROCEDURE that is a debug subject runs the debugging section with the SORT cause: DEBUG-CONTENTS
+    /// "SORT INPUT" for the INPUT phrase and "SORT OUTPUT" for the OUTPUT phrase, DEBUG-NAME the procedure-name and DEBUG-LINE the
+    /// SORT statement (§1985:XV.3.2.4 GR19). It was refused COBOL1571 although the standard gives it a meaning.</summary>
+    [Fact]
+    public void SortProcedureSubject_At85_RunsWithTheSortCause()
     {
         const string src = """
             IDENTIFICATION DIVISION.
@@ -690,13 +733,18 @@ public sealed class DebugFacilityTests
             SD SF.
             01 SR PIC X(5).
             WORKING-STORAGE SECTION.
-            01 NM PIC X(30).
+            01 NM PIC X(8).
+            01 CT PIC X(13).
+            01 LN PIC X(6).
             PROCEDURE DIVISION.
             DECLARATIVES.
             DBG SECTION.
-                USE FOR DEBUGGING ON ALL PROCEDURES.
+                USE FOR DEBUGGING ON FEED DRAIN.
             DBG-BODY.
                 MOVE DEBUG-NAME TO NM.
+                MOVE DEBUG-CONTENTS TO CT.
+                MOVE DEBUG-LINE TO LN.
+                DISPLAY "N=[" NM "]C=[" CT "]L=[" LN "]".
             END DECLARATIVES.
             MAIN SECTION.
             P1.
@@ -709,12 +757,10 @@ public sealed class DebugFacilityTests
             DRAIN.
                 CONTINUE.
             """;
-        var (ok, diags) = EditionHarness.Compile(src, 85);
-        Assert.False(ok);
-        // At the INPUT PROCEDURE phrase (line 25), never bare: the check runs after every walker (kb/Work PB2034).
-        EditionHarness.AssertHasDiagnostic(diags, "(25,");
-        EditionHarness.AssertHasDiagnostic(diags, "COBOL1571: the SORT/MERGE INPUT PROCEDURE");
-        EditionHarness.AssertEveryDiagnosticPositioned(diags, nameof(SortProcedureSubject_At85_StagedLoud1571));
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun(src, 85);
+        Assert.True(ok, detail);
+        // The SORT statement is source line 29 of the program text above (the raw string starts at line 1).
+        Assert.Equal("N=[FEED    ]C=[SORT INPUT   ]L=[    29]\nN=[DRAIN   ]C=[SORT OUTPUT  ]L=[    29]", stdout.Replace("\r", "").TrimEnd('\n'));
     }
 
     /// <summary>RESUME AT procedure-name is a GO TO (ISO §2023:14.9.33.4 GR3), so it abandons the statements around it and the sections they owe run

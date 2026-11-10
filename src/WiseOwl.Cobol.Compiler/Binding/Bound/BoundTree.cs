@@ -50,17 +50,20 @@ public sealed record BoundProgram(
 /// injects, at <paramref name="SubjectPc"/>'s dispatcher entry, a call that space-fills DEBUG-ITEM, sets
 /// DEBUG-LINE (<paramref name="SourceLine"/>) / DEBUG-NAME (<paramref name="SubjectName"/>) / DEBUG-CONTENTS (the
 /// transfer cause), then runs the debugging declarative body over the bounded pc range
-/// [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>]. A subject is always a NONdeclarative
-/// procedure (pc ≥ EntryPc): a debugging declarative is never debugged, matching ALL PROCEDURES's exclusion of
-/// the debugging sections themselves (DB101A "USE PROCEDURE NOT EXECUTED"). The data-name, ALL REFERENCES OF and cd-name
-/// targets are <see cref="BoundDebugTarget"/>s (docs/CONTROL_FLOW_DESIGN.md D20), and so is the file-name target; the
-/// SORT/MERGE-procedure cause taxonomy is staged (rejected COBOL1571 at bind).</summary>
+/// [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>]. A subject is never in a debugging section: a
+/// debugging declarative is never debugged, matching ALL PROCEDURES's exclusion of the debugging sections themselves
+/// (DB101A "USE PROCEDURE NOT EXECUTED"); a USE procedure of another declarative section is a subject
+/// (§1985:XV.3.2.4 GR21). A SECTION subject (<paramref name="IsSection"/>) triggers at the section's first pc, named by the
+/// section; a paragraph subject at its own pc: one procedure-name is one trigger point, so several subjects share a pc
+/// (a section and its first paragraph). The data-name, ALL REFERENCES OF and cd-name
+/// targets are <see cref="BoundDebugTarget"/>s (docs/CONTROL_FLOW_DESIGN.md D20), and so is the file-name target.</summary>
 public sealed record BoundDebugSubject(
     int SubjectPc,
     string SubjectName,
     int SourceLine,
     int SectionStartPc,
-    int SectionEndPc);
+    int SectionEndPc,
+    bool IsSection = false);
 
 /// <summary>The kind of a <see cref="BoundDebugTarget"/> (X3.23-1985 USE FOR DEBUGGING general format).</summary>
 public enum DebugTargetKind
@@ -1132,6 +1135,12 @@ public abstract record BoundStatement
     /// (an implicit-series member, a pre-op, a wrapper): the walker that reads it leaves the enclosing statement's
     /// position standing (<c>DiagnosticCursorExtensions.At</c>).</summary>
     public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; internal set; }
+
+    /// <summary>The user's source line of this statement - the X3.23-1985 DEBUG-LINE of a debugging section that "the statement
+    /// ... causes" to run (§1985:XV.3.2.4 GR21 a, a USE procedure the statement executes), stamped by
+    /// <c>StatementBinder.BindStatement</c> only in a program with a debug subject in the declaratives portion (a USE procedure);
+    /// 0 otherwise, and for a node the binder synthesised.</summary>
+    public int DebugLine { get; internal set; }
 }
 
 /// <summary>⛔ A DEFERRAL, AND NOTHING ELSE: a statement whose construct WiseOwl COBOL HAS NOT BUILT. The backend
