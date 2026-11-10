@@ -1,4 +1,4 @@
-## PB5112: the owner hands the codebase to Claude; CLAUDE.md loses the dispatch mandate and its stale constraints
+## Entry 3424 — 2026-11-10 02:27 PST — PB5112: the owner hands the codebase to Claude; CLAUDE.md loses the dispatch mandate and its stale constraints
 
 On 2026-11-10 the owner said the codebase is Claude's ("What it's for and how it's built are your call"), extended that to
 reorganizing the existing code, and asked for CLAUDE.md to be cleaned: "Remove all prior sub agent delegation rules ... You
@@ -9,3 +9,4 @@ finds" half moved into rule 4. Rules 1 to 8 keep their numbers because about six
 longer true were removed (the pre-PB4887 citation sentence, "only an explicit owner decision", the skill-loading order), and
 one rule the night of 2026-11-09 earned was added: do not redo work whose inputs did not change. The structural half of rule
 9, the dispatch guard's skill and rendered-spec checks, is owed as a tooling change and recorded in PB5112.
+
