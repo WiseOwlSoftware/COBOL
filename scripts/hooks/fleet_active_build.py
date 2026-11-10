@@ -662,14 +662,15 @@ def is_live(path: pathlib.Path, now: float) -> bool:
 
 
 def finished(path: pathlib.Path) -> bool:
-    """Does the transcript END on its agent's last record (kb/Work PB5204)? Two records say an agent has stopped: an
-    assistant message whose `stop_reason` is `end_turn` (an Agent-tool subagent's final answer) and a tool result
-    marked `toolEndsTurn` (a workflow agent's StructuredOutput return). Measured 2026-11-10: every one of wave
-    refute-85's ten finished workflow agents ended on the second, and the session's finished subagents on the first,
-    yet the 120 s write window held a build for a refuter whose workflow had already returned. An assistant record
-    without a `stop_reason` is one block of a message still being written, so it does not count. Any parse problem
-    => False, which leaves the windows in force: this removes liveness only where the transcript states the end.
-    A finished background subagent that is resumed (SendMessage) appends records after the end, so it is live again."""
+    """Does the transcript END on its agent's last record (kb/Work PB5204)? One record says so: the tool result
+    marked `toolEndsTurn`, a workflow agent's StructuredOutput return, after which the workflow never wakes the agent
+    again. Measured 2026-11-10: the ten finished refute-85 workflow agents each ended on it, yet the 120 s write window
+    held a build for one whose workflow had already returned; over all 3692 subagent transcripts of the project no
+    `toolEndsTurn` record is followed by more work.
+    ⛔ An assistant message with `stop_reason: end_turn` is NOT an end: an Agent-tool subagent ends a turn while its own
+    background build or test runs and is woken by that task's notification (review R1-1: 41 such records in the same
+    3692 transcripts are followed by more work, one 22 minutes later), so that shape keeps the time windows.
+    Any parse problem => False, which leaves the windows in force: this removes liveness only where the end is stated."""
     try:
         with path.open("rb") as f:
             f.seek(0, os.SEEK_END)
@@ -689,7 +690,7 @@ def finished(path: pathlib.Path) -> bool:
         content = message.get("content")
         kinds = {c.get("type") for c in content if isinstance(c, dict)} if isinstance(content, list) else set()
         if rec.get("type") == "assistant":
-            return message.get("stop_reason") == "end_turn" and "tool_use" not in kinds
+            return False
         if "tool_result" in kinds:
             return rec.get("toolEndsTurn") is True
         return False
@@ -1134,7 +1135,9 @@ def self_test() -> int:
             ("dangling tool call older than any tool can run -> not live", [tool_res, tool_use], 900, False),
             ("unparseable tail, quiet 5 min -> not live (old rule stands)", [], 300, False),
             # PB5204: a transcript that states its agent's end is read, not timed.
-            ("final answer (end_turn) written 5 s ago -> not live", [tool_use, tool_res, final], 5, False),
+            # R1-1: a subagent ends a turn while its own background job runs, and is woken by the job's notification.
+            ("end_turn written 5 s ago -> LIVE (a background task may wake it)", [tool_use, tool_res, final], 5, True),
+            ("end_turn, quiet 5 min -> not live (the window decides)", [tool_use, tool_res, final], 300, False),
             ("workflow return (toolEndsTurn) written 5 s ago -> not live", [tool_use, returned, note], 5, False),
             ("text block with no stop_reason, 5 s ago -> LIVE (message still being written)",
              [tool_use, tool_res, ended], 5, True),
