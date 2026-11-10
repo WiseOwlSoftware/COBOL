@@ -1,4 +1,4 @@
-## PB5060 (1985 half): the 1985 reserved-word list is swept and its order is a gate check
+## Entry 3415 — 2026-11-10 00:13 PST — PB5060 (1985 half): the 1985 reserved-word list is swept and its order is a gate check
 
 **The question.** PB5053 swept the 2023 reserved-word list pair by pair and corrected four entries out of order and two
 misprints (the 2023 Addendum's C15 and C16). The 1985 and 2002 lists had no such sweep. This landing does 1985; 2002
@@ -37,3 +37,4 @@ these lists) and closes no inventory row. No diagnostic code was used (COBOL6811
 unreadable or empty list is a finding, never a pass, and an edition with no row is named, never passed. Duplication:
 the bounds of the 2023 list are also read by the two one-shot repair scripts under `scripts/spec/repairs/` and by
 `gen-reserved-words.ps1`; they stay as they are, since the repairs are history and the generator is PowerShell.
+
