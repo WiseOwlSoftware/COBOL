@@ -7958,18 +7958,19 @@ The following is a list of COBOL reserved words for the seven required modules a
 | CHARACTERS | DISPLAY | FOR | LOW-VALUE |
 | CLASS | DIVIDE | FROM | LOW-VALUES |
 | CLOCK-UNITS | DIVISION | FUNCTION | |
-| CLOSE | DOWN | GENERATE | MEMORY |
-| COBOL | DUPLICATES | GIVING | MERGE |
-| CODE | DYNAMIC | GLOBAL | MESSAGE |
-| CODE-SET | | GO | MODE |
-| COLLATING | EGI | GREATER | MODULES |
-| COLUMN | ELSE | GROUP | MOVE |
-| COMMA | EMI | | MULTIPLE |
-| COMMON | ENABLE | HEADING | MULTIPLY |
-| COMMUNICATION | END | HIGH-VALUE | |
-| COMP | END-ADD | HIGH-VALUES | NATIVE |
-| COMPUTATIONAL | END-CALL | | NEGATIVE |
-| COMPUTE | END-COMPUTE | I-O | NEXT |
+| CLOSE | DOWN | | MEMORY |
+| COBOL | DUPLICATES | GENERATE | MERGE |
+| CODE | DYNAMIC | GIVING | MESSAGE |
+| CODE-SET | | GLOBAL | MODE |
+| COLLATING | EGI | GO | MODULES |
+| COLUMN | ELSE | GREATER | MOVE |
+| COMMA | EMI | GROUP | MULTIPLE |
+| COMMON | ENABLE | | MULTIPLY |
+| COMMUNICATION | END | HEADING | |
+| COMP | END-ADD | HIGH-VALUE | NATIVE |
+| COMPUTATIONAL | END-CALL | HIGH-VALUES | NEGATIVE |
+| COMPUTE | END-COMPUTE | | NEXT |
+| | | I-O | |
 
 > ⚠ **CORRECTED — see the Errata (C207).** The standard prints `FROM, GENERATE (no FUNCTION between them)` (page 191, folio IV-45). Amendment 2 (ANSI X3.23b-1993), its change for page IV-45 (page 919, folio B-7), applied in place: "Paragraph 8 entitled COBOL Reserved Words, add the word FUNCTION between the words FROM and GENERATE in the list of COBOL reserved words" (kb/Work PB5045). Corrected to `FROM, FUNCTION, GENERATE`.
 
