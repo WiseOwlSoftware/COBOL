@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IX.2.8.3-1",
  "rule-digest": "ae2f994c4573",
+ "test-ref": "conformance:cases/IX.2.8@1985-I-O-CONTROL-PARAGRAPH/1985-GR-IX_2_8_3-1",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

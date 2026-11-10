@@ -41,3 +41,13 @@ rules sit on KEPT records (their test is their chain's) and 12 have no change re
 through syntax 1985 lacks makes a rule CHANGED, and the note's own Cause and Expected answer it oppositely. The placement
 does not wait on it: a test names the 1985 rule whatever its kind, and rerunning the script re-records what the answer
 reclassifies. **PB4996** re-probed: band 85 drift 113 unstored, 931 unproven, 14 unclassified, so the stored `85` stays.
+
+**A second placement, the same script (attended Mythos session, after the wave).** The first run took only the confirmation
+pass's records. Two more sets of checked 1985 witnesses existed: the 117 suspect drafts the triage of the non-matching drafts
+corrected and re-ran (E:/COBOL-coord/scratch/triage-85/out), and the 55 witnesses the drafting pass wrote for rules the audit
+never drafted (E:/COBOL-coord/scratch/draft-85/out; its 18 defects are PB5115-PB5130). `place_witnesses.py` gained a third
+record kind for them, DRAFTED: a record that names the pass that wrote the witness and carries the draft and its MATCH run
+(self-test: a planted DRAFTED record is placed and recorded, its test naming the pass). Result on the tree with main merged:
+157 placed (98 output, 59 refusals), 143 recorded, 13 their chain's, 15 skipped (each COPYs a library, PB5067). In all 866
+1985 witnesses are placed and 699 rows carry a `test-ref`; the 1985 GAP is still 1,046, because each of those rows now
+needs its code read and its verdict.

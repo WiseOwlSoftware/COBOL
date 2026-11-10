@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.3.8.4-15",
  "rule-digest": "43e2e71f3c12",
+ "test-ref": "conformance:cases/VII.3.8@1985-RECORD-CLAUSE/1985-GR-VII_3_8_4-15",
  "next": {
   "kind": "CHANGED",
   "to": [

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.22.3-4",
  "rule-digest": "ac2550f50eaf",
+ "test-ref": "conformance:cases/VI.6.22@1985-SEARCH-STATEMENT/1985-SR-VI_6_22_3-4",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

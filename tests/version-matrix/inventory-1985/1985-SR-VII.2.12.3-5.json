@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VII.2.12.3-5",
  "rule-digest": "23132478bfbd",
+ "test-ref": "conformance:cases/VII.2.12@1985-RERUN-CLAUSE/1985-SR-VII_2_12_3-5",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

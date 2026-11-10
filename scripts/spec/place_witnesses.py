@@ -10,6 +10,9 @@ rule's text and wrote one record per rule (`{"records": [...]}` files under a di
     WEAK | WRONG         the draft does not; the record carries its own `draft` and `redraft_run`: a MATCH redraft is
                          placed, a MISMATCH one is a filed defect and is not
     UNDECIDED            the record asks a `question` the texts leave open: no witness, listed for the register
+    DRAFTED              a later pass wrote the witness itself (the triage of the drafts that did not match corrected a
+                         suspect draft; the drafting pass wrote one for a rule the audit never drafted): the record names
+                         its `pass` and carries the `draft` and its `redraft_run`, placed when that is MATCH
 
 This script does the placement from the records, never by hand:
 
@@ -67,6 +70,8 @@ from standard_streams import ensure_utf8  # noqa: E402
 TOOL = "place_witnesses"
 #: The confirmation pass's decisions, and the redraft outcome that makes a WEAK or WRONG record a witness.
 CONFIRMED, UNDECIDED, REDRAFTED, PLACEABLE_REDRAFT = "CONFIRMED", "UNDECIDED", ("WEAK", "WRONG"), run_drafts.MATCH
+#: A witness a later pass wrote and ran itself; its record names that pass.
+DRAFTED = "DRAFTED"
 #: A fixed-form comment line of a placed test: the indicator `*>` in columns 7-8, the text inside margin R (column 72).
 COMMENT, MARGIN = "      *> ", 72
 
@@ -111,6 +116,8 @@ def sort_records(records: list[dict[str, Any]], drafts: dict[str, dict[str, Any]
                 out.unplaced[rid] = "CONFIRMED, but the audit run holds no draft of it"
         elif decision in REDRAFTED and r.get("redraft_run") == PLACEABLE_REDRAFT:
             out.witnesses.append(Witness(rid, r["draft"], f"the confirmation pass's redraft ({decision} original)"))
+        elif decision == DRAFTED and r.get("redraft_run") == PLACEABLE_REDRAFT:
+            out.witnesses.append(Witness(rid, r["draft"], f"written and run by {r['pass']}"))
         elif decision == UNDECIDED:
             out.undecided[rid] = r.get("question") or ""
         else:
@@ -330,6 +337,7 @@ def self_test() -> int:
         state, confirm, suite = root / "run", root / "confirm", root / "suite"
         changed, kept, undecided = "1985-GR-VI.6.18.4-1", "1985-SR-VI.6.18.3-2", "1985-GR-VI.6.18.4-3"
         copying, warned, filed = "1985-GR-VI.6.18.4-4", "1985-SR-VI.6.18.3-5", "1985-GR-VI.6.18.4-6"
+        drafted = "1985-GR-VI.6.18.4-7"
         refusing = "\n".join(["*> STUB diag 2", "*> STUB refuse"])
         warning = "\n".join(["*> STUB diag 2", "*> the violating line"])
         p = Pass(state, "drafts")
@@ -352,7 +360,9 @@ def self_test() -> int:
             {"rule-id": warned, "decision": "WEAK", "basis": "b", "redraft_run": "MATCH",
              "draft": {"program": warning, "expected": {"outcome": "refused", "line": 2, "control": "*> STUB run out ok"}}},
             {"rule-id": filed, "decision": "WEAK", "basis": "b", "redraft_run": "MISMATCH",
-             "draft": {"program": "*> STUB run out Y", "expected": {"outcome": "output", "output": ["Z"]}}}]}),
+             "draft": {"program": "*> STUB run out Y", "expected": {"outcome": "output", "output": ["Z"]}}},
+            {"rule-id": drafted, "decision": "DRAFTED", "pass": "the drafting pass", "redraft_run": "MATCH",
+             "draft": {"program": "*> STUB run out W", "expected": {"outcome": "output", "output": ["W"]}}}]}),
             encoding="utf-8", newline="\n")
 
         def row(rid: str, kind: str | None) -> dict[str, Any]:
@@ -362,7 +372,7 @@ def self_test() -> int:
                     "next": {"kind": kind} if kind else {}}
 
         rows = [row(changed, "CHANGED"), row(kept, "KEPT"), row(undecided, "CHANGED"), row(copying, "REMOVED"),
-                row(warned, "CHANGED"), row(filed, "CHANGED")]
+                row(warned, "CHANGED"), row(filed, "CHANGED"), row(drafted, "REMOVED")]
         batch, summary = run_placement(confirm, state, 1985, root / "adapters" / "stub.json", {}, 2, suite, rows, schema)
         folder = suite / "cases" / "VI.6.18@1985-INSPECT-STATEMENT"
         out_test = folder / f"{test_id(changed)}.cob"
@@ -377,13 +387,17 @@ def self_test() -> int:
         ok(refused_test.is_file() and "accept:" not in refused_test.read_text(encoding="utf-8")
            and json.loads(diag.read_text(encoding="utf-8")) == {"refuse-at": ["85"], "expect": "refused"},
            "a MATCH redraft refusal is a refused test with the code the compiler reports at its violating line")
-        ok(batch["records"] == [{"rule-id": changed, "test-ref": f"conformance:cases/{folder.name}/{test_id(changed)}"}]
+        ok(sorted(batch["records"], key=lambda r: r["rule-id"])
+           == [{"rule-id": rid, "test-ref": f"conformance:cases/{folder.name}/{test_id(rid)}"} for rid in (changed, drafted)]
            and summary["chained"] == [kept] and summary["unclassified"] == [],
            "the CHANGED rule's witness is a witness-only record; the KEPT rule's is its chain's, placed and not recorded")
+        ok((folder / f"{test_id(drafted)}.out").read_text(encoding="utf-8") == "W\n"
+           and "written and run by the drafting pass" in (folder / f"{test_id(drafted)}.cob").read_text(encoding="utf-8"),
+           "a DRAFTED record's MATCH draft is placed and recorded, its test naming the pass that wrote it")
         ok(summary["undecided"] == {undecided: "Is it testable?"} and filed in summary["unplaced"],
            "an UNDECIDED record is listed with its question; a MISMATCH redraft is a filed defect, never placed")
         ok("PB5067" in summary["skipped"].get(copying, "") and "no error" in summary["skipped"].get(warned, "")
-           and summary["placed"] == 2,
+           and summary["placed"] == 3,
            "a draft that COPYs is skipped, and so is a refusal the compiler only warns about")
         dup = confirm / "slice-03.json"
         dup.write_text(json.dumps({"records": [{"rule-id": changed, "decision": "CONFIRMED", "basis": "b"}]}),

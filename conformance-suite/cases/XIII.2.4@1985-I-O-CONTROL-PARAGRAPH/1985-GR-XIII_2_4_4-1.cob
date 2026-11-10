@@ -1,0 +1,43 @@
+      *>--- conformance-case
+      *> id: 1985-GR-XIII_2_4_4-1
+      *> rules: [1985-GR-XIII.2.4.4-1]
+      *> accept: [85]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §1985:XIII.2.4.4 GR1 (THE I-O-CONTROL PARAGRAPH). An output
+      *> test: the program must translate and run at 85 and DISPLAY
+      *> exactly the lines its .out holds, the outcome the rule
+      *> requires. Placed from written and run by the triage of the
+      *> drafts that did not match (a suspect draft corrected) by
+      *> scripts/spec/place_witnesses.py (kb/Work PB4995).
+000100 IDENTIFICATION DIVISION.
+000200 PROGRAM-ID. MFTRW.
+000300 ENVIRONMENT DIVISION.
+000400 INPUT-OUTPUT SECTION.
+000500 FILE-CONTROL.
+000600     SELECT RPT-FILE ASSIGN TO "RPTOUT".
+000700 I-O-CONTROL.
+000800     MULTIPLE FILE TAPE CONTAINS RPT-FILE POSITION 1.
+000900 DATA DIVISION.
+001000 FILE SECTION.
+001100 FD  RPT-FILE
+001200     REPORT IS RPT-A.
+001300 REPORT SECTION.
+001400 RD  RPT-A
+001500     PAGE LIMIT IS 60 LINES
+001510     HEADING 1
+001520     FIRST DETAIL 3.
+001600 01  TYPE IS REPORT HEADING LINE NUMBER IS 1.
+001700     05  COLUMN NUMBER IS 1 PIC X(5) VALUE "TITLE".
+001710 01  DET-LINE TYPE IS DETAIL LINE NUMBER IS PLUS 1.
+001720     05  COLUMN NUMBER IS 1 PIC X(4) VALUE "BODY".
+001800 PROCEDURE DIVISION.
+001900 MAIN-PARA.
+002000     OPEN OUTPUT RPT-FILE.
+002100     INITIATE RPT-A.
+002150     GENERATE DET-LINE.
+002200     TERMINATE RPT-A.
+002300     CLOSE RPT-FILE.
+002400     DISPLAY "DONE".
+002500     STOP RUN.

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VII.2.6.2",
  "rule-digest": "858149650fb0",
+ "test-ref": "conformance:cases/VII.2.6@1985-ORGANIZATION-IS-SEQUENTIAL-CLAUSE/1985-FMT-VII_2_6_2",
  "next": {
   "kind": "CHANGED",
   "to": [

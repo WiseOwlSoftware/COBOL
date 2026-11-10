@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.2.2.1-1",
  "rule-digest": "2389c0ca7acf",
+ "test-ref": "conformance:cases/IV.4.2.2@1985-Character-Strings/1985-SR-IV_4_2_2_1-1",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

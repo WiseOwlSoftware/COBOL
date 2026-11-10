@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-IX.4.3.2",
  "rule-digest": "dbb85b9db052",
+ "test-ref": "conformance:cases/IX.4.3@1985-DELETE-STATEMENT/1985-FMT-IX_4_3_2",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

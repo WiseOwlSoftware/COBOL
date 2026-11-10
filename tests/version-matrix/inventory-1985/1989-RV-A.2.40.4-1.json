@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.40.4-1",
  "rule-digest": "2e86181c13ca",
+ "test-ref": "conformance:cases/A.2.40@1985-SQRT-FUNCTION/1989-RV-A_2_40_4-1",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
