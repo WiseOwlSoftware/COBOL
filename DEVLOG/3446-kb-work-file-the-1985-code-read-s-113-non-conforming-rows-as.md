@@ -1,4 +1,4 @@
-## kb/Work: file the 1985 code read's 113 non-conforming rows as 56 mechanism notes
+## Entry 3446 — 2026-11-10 13:40 PST — kb/Work: file the 1985 code read's 113 non-conforming rows as 56 mechanism notes
 
 The 1985 code read found 113 rows non-conforming at `--std 85`. They are filed one note per code-level mechanism, not one
 per row. 46 new notes were filed, PB5158-PB5203: PB5158 holds the largest cluster, 16 rows where a NOT phrase is accepted
@@ -13,3 +13,4 @@ PB5084 (4), PB5074, PB5076, PB5122 and PB5130 (3 each), and PB5071, PB5120, PB51
 `wrong_answer` is now true. `work.py check` still refuses 1985 rule ids in `inventory_rows` (PB5094), so every note lists
 its rows in its body, and PB5094 gained an addendum naming these notes. The row-to-note map is
 `E:/COBOL-coord/scratch/coderead-85/filed-map.json`.
+
