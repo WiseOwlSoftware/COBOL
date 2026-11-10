@@ -220,22 +220,12 @@ def _self_test() -> int:
         if not ok:
             fails.append(name)
 
-    def pid_alive(pid: int) -> bool:
-        if IS_WINDOWS:
-            out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True).stdout
-            return str(pid) in out
-        try:
-            os.kill(pid, 0)
-        except ProcessLookupError:
-            return False
-        except PermissionError:
-            return True
-        # a zombie is dead for this purpose
-        try:
-            with open(f"/proc/{pid}/stat", encoding="ascii") as fh:
-                return fh.read().split(") ", 1)[1][:1] != "Z"
-        except OSError:
-            return True
+    from detached import pid_alive  # this directory's: the one liveness probe (kb/Work PB4008)
+
+    def until_dead(pid: int) -> None:
+        """Wait for `pid` to die, with no limit: a tree the kill does not end is the hang detector's (no wall clock)."""
+        while pid_alive(pid):
+            time.sleep(0.1)
 
     with tempfile.TemporaryDirectory(prefix="process-job-") as d:
         pidfile = os.path.join(d, "grandchild.pid")
@@ -247,19 +237,12 @@ def _self_test() -> int:
         with open(os.path.join(d, "out.txt"), "w", encoding="utf-8", newline="\n") as out:
             job = ProcessJob.start([sys.executable, "-c", root_code], stdout=out, stderr=out, stdin=subprocess.DEVNULL)
             with job:
-                rc = job.wait(120)
+                rc = job.wait()
                 check("the root exits while its orphaned grandchild runs on", rc, 0)
-                for _ in range(200):
-                    if os.path.exists(pidfile) and open(pidfile).read().strip():
-                        break
-                    time.sleep(0.05)
-                grand = int(open(pidfile).read().strip())
+                grand = int(open(pidfile, encoding="utf-8").read().strip())  # written before the root exited
                 check("the orphan is still in the tree after its parent exited", bool(job.alive()), True)
                 job.kill()
-                for _ in range(100):
-                    if not pid_alive(grand):
-                        break
-                    time.sleep(0.1)
+                until_dead(grand)
                 check("kill reaches the orphaned grandchild (taskkill /T cannot)", pid_alive(grand), False)
                 check("nothing of the tree is left after kill", job.alive(), [])
 

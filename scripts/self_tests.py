@@ -1375,11 +1375,9 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
             if not f.exists():
                 return False
             pid = int(f.read_text(encoding="utf-8").strip())
-            for _ in range(100):
-                if not pid_alive(pid):
-                    return True
+            while pid_alive(pid):  # no limit: a tree the kill does not end is the hang detector's (no wall clock)
                 time.sleep(0.1)
-            return False
+            return True
         check("arm: the HANG stop kills the hung self-test's WHOLE tree, its grandchild included (kb/Work PB5098)",
               tree_dead("hang.pid"), True)
         orphan = gate(False, [], which=[found["test_orphan.py"]])
