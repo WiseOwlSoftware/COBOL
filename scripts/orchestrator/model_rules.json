@@ -13,9 +13,9 @@
       "sonnet": 3200000,
       "opus": 1600000,
       "fable": 800000,
-      "mythos": 800000
+      "mythos": 640000
     },
-    "tokens_per_point_frontier_source": "the published per-MTok price ratios to Opus 5.5 ($4 input / $20 output / $5 5-minute cache write), from the pricing tables of 2026-11-09 (claude.com/pricing and platform.claude.com/docs/en/about-claude/pricing; Mythos session): fable (Fable 5.2) and mythos (Mythos 5.2, the newest Mythos, MANDATORY-PRACTICES P1) 2x the Opus cost ($8/$40/$10), so half the Opus rate (Fable 5.1 and Mythos 5.1 were $10/$50, 2.5x, kb/Work R69, 2026-10-06); sonnet half the Opus cost ($2/$10/$2.50), so twice the Opus rate; haiku 1/8 of the Opus cost at the over-100K-token prompt tier every agent turn is in ($0.50/$2.50/$0.625; $0.10/$0.50 at 100K or less), so 8x the Opus rate. Cache reads are not a counted kind. Until a meter reading refits them.",
+    "tokens_per_point_frontier_source": "the published per-MTok price ratios to Opus 5.5 ($4 input / $20 output / $5 5-minute cache write), from the pricing tables of 2026-11-09 (claude.com/pricing and platform.claude.com/docs/en/about-claude/pricing; Mythos session): fable (Fable 5.2) 2x the Opus cost ($8/$40/$10), so half the Opus rate; mythos at Mythos 5.1, the newest Mythos this account's model selector offers (owner 2026-11-09; Mythos 5.2 is 'limited availability' and priced as Fable 5.2), 2.5x the Opus cost ($10/$50/$12.50, kb/Work R69, 2026-10-06): move it to the Fable rate when 5.2 reaches the selector; sonnet half the Opus cost ($2/$10/$2.50), so twice the Opus rate; haiku 1/8 of the Opus cost at the over-100K-token prompt tier every agent turn is in ($0.50/$2.50/$0.625; $0.10/$0.50 at 100K or less), so 8x the Opus rate. Cache reads are not a counted kind. Until a meter reading refits them.",
     "unknown_model_rate": "opus",
     "session_pct_per_weekly_pct": 4.0,
     "session_pct_per_weekly_pct_source": "measured 2026-10-07 (kb/Work PB2478): account 2's session moved 0 -> 24 % while its week moved 0 -> 6 % inside one session window (13:34 -> 14:54 PDT); the 5.0 before was a guess (design D7)"
