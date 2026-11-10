@@ -70,6 +70,11 @@ commitments, the four required reviews) and does not restate them. Other documen
 **Subagents are a tool, used on judgment.** Nothing here says when or how to delegate. The `workstream` skill, its
 templates and the orchestrator loop are available machinery, not a gate.
 
+**Prove your work** (owner 2026-11-10: "You should always prove your work"). A claim that something is done, landed,
+passing or the cause of a failure carries the evidence produced for it in this session: the command and its verdict line,
+the merged pull request and commit, the count before and after. A check counts only if it could have failed, and a
+subagent's report is a claim until sampled.
+
 **Do not redo work whose inputs did not change.** Before a gate, a re-run, a wait or a dispatch, ask what it can show that
 is not already known: a re-gate at an unchanged tree, a full gate after an inert-only commit, a gate on a branch that must
 merge main again before it lands, and a hold not verified with `git diff` are each waste (kb/Work PB5099, PB5100, PB5110).
