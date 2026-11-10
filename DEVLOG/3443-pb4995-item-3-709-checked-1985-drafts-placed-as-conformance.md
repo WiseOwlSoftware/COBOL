@@ -1,4 +1,4 @@
-## PB4995 item 3: 709 checked 1985 drafts placed as conformance tests of their own rules; PB5021 is the owner's question
+## Entry 3443 — 2026-11-10 12:07 PST — PB4995 item 3: 709 checked 1985 drafts placed as conformance tests of their own rules; PB5021 is the owner's question
 
 **Wave 20261977, group B (PB5021, PB4995, PB4996).** The owner approved on 2026-11-09 the Mythos confirmation pass of the
 1985 MATCH drafts and the placement of its witnesses. The pass left 767 records under
@@ -51,3 +51,4 @@ record kind for them, DRAFTED: a record that names the pass that wrote the witne
 157 placed (98 output, 59 refusals), 143 recorded, 13 their chain's, 15 skipped (each COPYs a library, PB5067). In all 866
 1985 witnesses are placed and 699 rows carry a `test-ref`; the 1985 GAP is still 1,046, because each of those rows now
 needs its code read and its verdict.
+
