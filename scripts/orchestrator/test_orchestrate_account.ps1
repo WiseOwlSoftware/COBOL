@@ -37,11 +37,13 @@ $r = Run-Orch 'acctbad' 'good' @('-Unit', 'wave', '-ConfigDir', (Join-Path $Root
 Check 'an unknown config dir is refused' "$($r.code) $($r.runs)" '2 0'
 Check 'the refusal names the table' ($r.out -match 'not in model_rules.json accounts.list') $true
 } finally { $env:USERPROFILE = $savedProfile }
-$acct2 = Join-Path $HOME '.claude-acct2'
+# The account directories of the HOME this part runs in (the library's fixture HOME, kb/Work PB5155): start-session.ps1
+# reads the same variable, where PowerShell's $HOME stays the one the process started with.
+$acct2 = Join-Path $env:USERPROFILE '.claude-acct2'
 
 $ss = (& pwsh -NoProfile -File (Join-Path (Split-Path $Here -Parent) 'start-session.ps1') -DryRun -ConfigDir $acct2) -join ' '
 Check 'start-session.ps1 -ConfigDir starts that account' ($ss -match [regex]::Escape("as account account2 (CLAUDE_CONFIG_DIR = $acct2)")) $true
-$ss = (& pwsh -NoProfile -File (Join-Path (Split-Path $Here -Parent) 'start-session.ps1') -DryRun -ConfigDir (Join-Path $HOME '.claude')) -join ' '
+$ss = (& pwsh -NoProfile -File (Join-Path (Split-Path $Here -Parent) 'start-session.ps1') -DryRun -ConfigDir (Join-Path $env:USERPROFILE '.claude')) -join ' '
 Check 'start-session.ps1 starts the default account with the variable unset' ($ss -match 'as account account1 \(CLAUDE_CONFIG_DIR unset\)') $true
 
 # 2c. account-profile.ps1 seeds a named account's config dir from the default one (kb/Work PB2480), in a temp HOME: the
