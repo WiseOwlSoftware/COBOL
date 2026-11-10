@@ -1,4 +1,4 @@
-## PB5083: the USE FOR DEBUGGING procedure triggers run as X3.23-1985 general rules 3 to 22 say
+## Entry 3417 — 2026-11-10 00:21 PST — PB5083: the USE FOR DEBUGGING procedure triggers run as X3.23-1985 general rules 3 to 22 say
 
 The 1985 `--std=85` triage found six rules of USE FOR DEBUGGING (§1985:XV.3.2.4) giving wrong results. Each was re-probed on this build
 before the change (`cobol.exe --std 85 --run`, the triage's own programs) and all six reproduced: a section subject printed DEBUG-NAME
@@ -31,3 +31,4 @@ D20 (e) state the determinations.
 
 **Latitude.** Where a section and its first paragraph are both subjects the text gives the paragraph no cause of its own; it shares the
 transfer's, START PROGRAM included (recorded as a determination).
+
