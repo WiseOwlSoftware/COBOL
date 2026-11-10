@@ -262,7 +262,7 @@
     "max_groups": 8,
     "max_groups_source": "waves 1011-1015 ran 5 to 7 groups; the budget is the governor, this bounds one wave's groups",
     "codes_per_group": 3,
-    "concurrency": 6,
+    "concurrency": 3,
     "orchestrator_model": "opus"
   }
 }
