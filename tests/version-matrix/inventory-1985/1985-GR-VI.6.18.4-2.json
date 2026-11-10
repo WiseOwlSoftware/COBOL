@@ -5,10 +5,12 @@
   "kind": "CHANGED",
   "edition": 2023,
   "to": [
-   "GR-14.9.22.4-3"
+   "GR-14.9.22.4-3",
+   "GR-14.9.22.4-8",
+   "GR-14.9.22.4-9"
   ],
   "bridge": true,
-  "reason": "Amendment 2 (X3.23b-1993, page VI-96) renumbered this rule (old GR1, behind its new general rule 1) and its reference, 'general rules 5 through 7' to 'general rules 6 through 8'; the requirement is the printed one: inspection 'begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right to the rightmost character position as described in general rules 6 through 8' (§1985:VI.6.18.4 GR2). §2023:14.9.22.4 GR3 repeats those words and adds a case: 'unless BACKWARD is specified, in which case, inspection ... begins at the rightmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from right to left to the leftmost character position'. The 1985 rule gives every INSPECT one direction and its format has no BACKWARD; §2023:14.9.22.2 puts an optional BACKWARD before identifier-1 in every format, so a right-to-left inspection, refused in 1985, is accepted: a case added. An INSPECT without BACKWARD runs the same in both.",
-  "source": "readjudicate-amended-1985/slice-03"
+  "reason": "Amendment 2 (X3.23b-1993, page VI-96) renumbered this rule (old GR1) and its reference ('general rules 5 through 7' to 'general rules 6 through 8'); the requirement is the printed one. §1985:VI.6.18.4 GR2: inspection 'begins at the leftmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from left to right to the rightmost character position'. §2023:14.9.22.4 GR3 repeats those words and adds 'unless BACKWARD is specified, in which case, inspection ... begins at the rightmost character position of the data item referenced by identifier-1, regardless of its class, and proceeds from right to left to the leftmost character position'. The 1985 format has no BACKWARD (§1985:VI.6.18.2 prints identifier-1 directly after INSPECT); §2023:14.9.22.2 prints an optional 'BACKWARD' before identifier-1 in every format, so a right-to-left inspection, refused in 1985, is accepted and given a result: a case added (family ruling). An INSPECT without BACKWARD runs the same in both. 'to': GR3 states the whole rule; §2023:14.9.22.4 GR8 states the start and direction of the comparison cycle in its own words ('starting with the leftmost character position, or, if BACKWARD is specified, the rightmost character position'; 'continues until the rightmost character position of the data item referenced by identifier-1 has participated in a match'), and §2023:14.9.22.4 GR9 those of the BEFORE and AFTER boundaries ('first eligible to participate in matching at the leftmost character position, or, if BACKWARD is specified, at the rightmost character position of identifier-1'; 'up to, but not including, the first occurrence encountered of literal-2'), the two things this rule says inspection 'includes'.",
+  "source": "pb5092/inspect-leftmost"
  }
 }
