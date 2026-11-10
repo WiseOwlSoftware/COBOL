@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-FMT-A.2.35.2",
  "rule-digest": "b8b6d908f8d2",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
  "test-ref": "conformance:cases/A.2.35@1985-RANDOM-FUNCTION/1989-FMT-A_2_35_2",
+ "notes": "No kb/Work note owns the fix. §1989:A.2.35.2 prints \"FUNCTION RANDOM [ ( argument-1 ) ]\": the parentheses are written only with an argument in them, as the function-identifier format of §1985:IV.4.3.8.3.2 also requires (\"[ ( { argument-1 } … ) ]\"). Both printed forms conform at 85: the catalog row (Build) gives RANDOM zero or one argument, and BindFunctionResult refuses two with COBOL1504 (the witness); RANDOM without FUNCTION is refused with COBOL1543. The part not implemented is the refusal of empty parentheses: the functionCall rule makes the argument list optional inside the parentheses (the form §2023:15.75.2 adds, \"[ ( [ argument-1 ] ) ]\") and neither BindIntrinsic nor BindFunctionResult asks the edition, so FUNCTION RANDOM ( ) compiles at --std 85. The same holds for the 1989 functions without arguments: FUNCTION CURRENT-DATE ( ) and FUNCTION WHEN-COMPILED ( ) compile at 85.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

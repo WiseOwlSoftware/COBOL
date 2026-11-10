@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-II.4.2-3",
  "rule-digest": "8c62d3893280",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#FieldInit; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFor; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#ImageInitOf; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ValueAt; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/OccurrenceRunEmit.cs#Array",
  "test-ref": "conformance:cases/II.4@1985-TABLE-HANDLING/1985-SR-II_4_2-3",
+ "notes": "§1985:II.4.2 SR3 (as amended by X3.23b-1993): \"Every occurrence of an element in a table can be assigned the same initial value using the VALUE clause.\"; §1985:VI.5.15.6 GR6 gives the effect, \"causes every occurrence of the associated data item to be assigned the specified value\". An 85 VALUE clause is the data-item format only (the table format, VALUE ... FROM, is refused at 85 with COBOL0900), so DataItem.ValueAt answers the one literal for every subscript tuple; FieldInit builds a table's array from one uniform occurrence run (OccurrenceRunEmit.Array) whose element InitializerFor composes from that literal, and ImageInitOf repeats the same composition for a table stored as a character image (under a REDEFINES). Probed at --std 85: every occurrence took the value for DISPLAY, COMP, COMP-3, sign-separate, edited, JUSTIFIED and figurative-constant elements, a group-level VALUE on the OCCURS entry, three nested dimensions, an OCCURS DEPENDING table at its maximum, redefined records, and again on each entry of an INITIAL program and after CANCEL. The witness displays four tables: an elementary element, a group's two items, a two-dimension element and a group-level VALUE.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

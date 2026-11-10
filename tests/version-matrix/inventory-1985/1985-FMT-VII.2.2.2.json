@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.2.2.2",
  "rule-digest": "081887df1907",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
  "test-ref": "conformance:cases/VII.2.2@1985-FILE-CONTROL-PARAGRAPH/1985-FMT-VII_2_2_2",
+ "notes": "No kb/Work note owns the fix (none found). §1985:VII.2.2.2 prints the paragraph as the header and '{ file-control-entry }' with an ellipsis: one entry at least, then as many as wanted (§1985:IV.2.1.4: 'When braces, { } , enclose a portion of a general format, one of the options contained within the braces must be either explicitly specified or implicitly selected.'). Implemented at 85: fileControlParagraph parses FILE-CONTROL, its period and any number of fileControlClauseGroup entries, and BindFileControl binds each (the witness declares two files and reads both back). Not implemented: the lower bound. fileControlParagraph writes fileControlClauseGroup* with no edition arm and BindFileControl iterates whatever entries there are, so the 2023 form (§2023:12.4.4.2, entries in brackets) is accepted at every edition: at --std 85 a FILE-CONTROL paragraph with no entry compiles and runs, alone and before an I-O-CONTROL paragraph. The slice-04 record of 1985-FMT-IV.6.2.3.1 reports the same acceptance from the Environment Division format (with the INPUT-OUTPUT SECTION that has no FILE-CONTROL paragraph, which is that row's and not this one's).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.9.3-4",
  "rule-digest": "cd5642862179",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#MaxStringLength; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#MaxPictureStringLength85",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-SR-VI_5_9_3-4",
+ "notes": "§1985:VI.5.9.3 SR4: \"The maximum number of characters allowed in the character-string is 30.\" AnalyzeCharacterString, the body every PictureAnalyzer.Analyze call runs, counts the characters of the character-string as written (spaces left out, a repetition factor counted as its own characters) and raises COBOL2146 when the count exceeds MaxStringLength(edition.DialectLevel); MaxStringLength returns MaxPictureStringLength85 (30) for an edition that has neither the picture-string-63-2014 nor the picture-string-50-2002 construct, which is how --std 85 reaches the 1985 bound. The check is an error, not an edition gate, so --permissive does not relax it. Probed at 85: 30 X accepted and 31 X refused; 9(1) seven times then 99 (30 characters) accepted and then 999 (31) refused; a 30-character numeric edited string accepted and its 31-character twin refused; 31 lowercase x refused. The witness is the 31 X refusal.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

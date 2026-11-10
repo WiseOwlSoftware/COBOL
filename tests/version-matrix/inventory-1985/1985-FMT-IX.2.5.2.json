@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-IX.2.5.2",
  "rule-digest": "378ad43bf089",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#alternateKeyClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlternateKeySuppressWhen; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause",
  "test-ref": "conformance:cases/IX.2.5@1985-ALTERNATE-RECORD-KEY-CLAUSE/1985-FMT-IX_2_5_2",
+ "notes": "§1985:IX.2.5.2 prints ALTERNATE RECORD KEY IS data-name-1 [WITH DUPLICATES], with ALTERNATE, RECORD and DUPLICATES underlined. alternateKeyClause requires ALTERNATE RECORD, takes KEY, IS and WITH as optional words and DUPLICATES as the one optional phrase; BindFileControl captures each clause (base word and qualifiers through ClauseDataName, which refuses a subscripted or reference-modified operand with COBOL2024) and its DUPLICATES flag; the two phrases 2023 adds to the clause are refused at 85 by VisitRecordKeySourcePhrase and VisitAlternateKeySuppressWhen (COBOL0900). Probed at 85: the full spelling, ALTERNATE RECORD K2 IN GA DUPLICATES and two clauses on one file compile and read by the alternate key in duplicate order; ALTERNATE KEY IS, WITH alone, WITH NO DUPLICATES, a second data-name, a literal operand, a repeated DUPLICATES and an unknown trailing phrase are refused (COBOL5506, COBOL1970). The witness writes two records with one alternate key value under WITH DUPLICATES and reads both back through the key.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.2.7.3-2",
  "rule-digest": "7fd21581dbe8",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#paddingCharacterClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPaddingCharacterClause",
  "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-SR-VII_2_7_3-2",
+ "notes": "kb/Work PB5070 holds the mechanism (the PADDING CHARACTER clause is a grammar rule no binder reads); it lists SR1 and SR3 of this clause, not this rule id. §1985:VII.2.7.3 SR2: \"Data-name-1 may be qualified.\" Implemented at 85: paddingCharacterClause takes a dataReference, whose syntax admits IN and OF qualifiers, and VisitPaddingCharacterClause is the edition arm (accepted at --std 85 and 2002, COBOL0902 from 2014), so the qualified form the rule permits compiles; the witness writes PAD-CHAR OF PAD-GROUP-A where PAD-CHAR is defined in two groups. Not implemented: the qualification itself. Nothing resolves data-name-1 (the clause is parsed and ignored, the grammar comment says so), so the qualifiers are never applied: at --std 85 PAD-CHAR OF NO-SUCH-GROUP, an item qualified by a group it is not in, the unqualified PAD-CHAR that two groups define, an undefined name, and the subscripted and reference-modified forms PAD-TAB (2) and PAD-LONG (2:1), which SR2 does not permit (§1985:III.2: 'data-name' is \"a word which must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of the format\"), all compile and run. The clause has no run-time function here (no block padding on the host's files), so the harm is acceptance of nonconforming source only.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

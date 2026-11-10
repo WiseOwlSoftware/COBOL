@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.9.4-2",
  "rule-digest": "1bdc1f7852da",
+ "verdict": "NOT-IMPLEMENTED",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueOfClause; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckExternalFileConsistency; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Of",
  "test-ref": "conformance:cases/VII.3.9@1985-VALUE-OF-CLAUSE/1985-GR-VII_3_9_4-2",
+ "notes": "§1985:VII.3.9.4 GR2: \"If the associated file connector is an external file connector, all VALUE OF clauses in the run unit which are associated with that file connector must be consistent. The implementor will specify the consistency rules.\" Neither half exists. docs/CONFORMANCE.md specifies no consistency rule for VALUE OF clauses, and no code could apply one: the grammar rule valueOfClause discards the clause's operands (nothing reaches FileModel), the cross-program screen BinderDriver.CheckExternalFileConsistency runs only under DialectLevel >= 2023 and reads FILE STATUS, RELATIVE KEY and LINAGE, and the run-time identity of an external file connector (FileEntryIdentity.Of) has no VALUE OF segment. The named members are where the check is missing, not an implementation. Probed at --std 85: two programs of one compilation group describing FD XF IS EXTERNAL, one with VALUE OF FILE-ID IS \"XFILE\" and the other with VALUE OF FILE-ID IS \"OTHER\" OWNER-ID IS \"NOBODY\", compile clean and run. The witness is the agreeing case only (both entries VALUE OF FILE-ID IS \"XFILE\").",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
