@@ -48,16 +48,16 @@
       "vcrRow": "7.39"
     },
     {
+      "id": "indexed-duplicate-key-status-sequential-only",
+      "vcrRow": "7.54"
+    },
+    {
       "id": "indexed-read-previous-after-open-at-end",
       "vcrRow": "29"
     },
     {
       "id": "perform-varying-after-init-inner-first",
       "vcrRow": "7.53"
-    },
-    {
-      "id": "indexed-duplicate-key-status-sequential-only",
-      "vcrRow": "7.54"
     }
   ],
   "nonstandardExtensionIds": [
