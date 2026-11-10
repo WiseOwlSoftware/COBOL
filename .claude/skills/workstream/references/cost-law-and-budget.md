@@ -76,8 +76,8 @@ re-gate after a test-only fix skip recompilation.
 split into four fresh ~198-turn landers model at **140 M — 53 % less**. (What a lander may batch is *clusters
 inside one landing* — §3.)
 
-**The budget: ≤`wave.concurrency` implementers (model_rules.json: 3, the gate-slot cap, since 2026-11-10, kb/Work
-PB5100's interim; PB5100 derives it from the free gate slots) + one 4-wide read-only chunk.** History: the implementer cap was
+**The budget: as many implementers as the gate pool has free slots (plan_wave.py `wave_concurrency`: the cap in force less the
+held slots and waiting tickets, at least 1; kb/Work PB5100, no hand-set number) + one 4-wide read-only chunk.** History: the implementer cap was
 **raised from 3 to 6 by owner decision on 2026-09-05** (`kb/Work/PB468` Q4), on the measurement that the 3-slot lane ran
 at ~100 % utilization all morning while the lander sat idle half the time (≈48 min per implementer, ≈33 min per
 four-cluster landing); six implementers saturate one lander with five- or six-cluster trains, which is the band above.
