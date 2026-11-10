@@ -30,6 +30,13 @@ public enum SameClauseKind { Area, RecordArea, SortMergeArea }
 /// (<c>SAME SORT AREA</c>).</summary>
 public sealed record SameClause(SameClauseKind Kind, IReadOnlyList<FileModel> Members, string Written);
 
+/// <summary>One X3.23-1985 MULTIPLE FILE TAPE clause: the files it names reside on ONE multiple file reel (§1985:VII.2.11.1:
+/// "specifies the location of files on a multiple file reel"; §1985:VII.2.11.3 GR1: "required when more than one file
+/// shares the same physical reel of tape"). The clause is the source text that places a file on a reel, so it is the
+/// membership the OPEN statement's SR2 (EXTEND) and GR20 d, and MERGE's SR6, ask (kb/Work PB5086). Members are the
+/// names that resolve to a declared file; one that does not is the clause's own error, reported where it is bound.</summary>
+public sealed record MultipleFileReel(IReadOnlyList<FileModel> Members);
+
 /// <summary>One ALTERNATE RECORD KEY clause of a file control entry, AS WRITTEN (ISO §2023:12.4.5.6.2 — data-name-1,
 /// its IN/OF qualifiers, the WITH DUPLICATES and SUPPRESS WHEN phrases), plus the item data-name-1 resolved to
 /// and the source position its syntax rules report at.
@@ -860,6 +867,12 @@ public sealed class FileModel
     /// list, so the other three formats were parsed and discarded and the SORT/MERGE rules that read them had nothing
     /// to look at (§2023:14.9.40.3 SR10, §2023:14.9.24.3 SR11; kb/Work PB1139).</summary>
     public List<SameClause> SameClauses { get; } = [];
+
+    /// <summary>Every X3.23-1985 MULTIPLE FILE TAPE clause that names this file, in source order — the ONE model of "this
+    /// file resides on a multiple file reel" (§1985:VII.2.11.3 GR1), recorded by <c>FileControlBinder.ScreenMultipleFileClause</c>
+    /// at every edition the clause compiles (it is deleted from 2002, COBOL0902). Empty for a file no clause names
+    /// (kb/Work PB5086).</summary>
+    public List<MultipleFileReel> MultipleFileReels { get; } = [];
 
     /// <summary>The OTHER files named with this one in a record-area SAME clause that give the area a record
     /// (§2023:12.4.6.4.4 GR2) — derived from <see cref="SameClauses"/>, so there is no second membership model.</summary>
