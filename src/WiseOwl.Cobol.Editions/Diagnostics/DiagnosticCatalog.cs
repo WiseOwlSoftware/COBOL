@@ -9293,6 +9293,29 @@ public static class DiagnosticCatalog
         + "§2023:13.18.54.4 GR6.)",
         "ISO §1985:XIII.3.19.3 SR1");
 
+    /// <summary>COBOL6862 — a data-name names an item possessing the global attribute and another data item described in the same
+    /// source element (kb/Work PB5073). §2023:8.4.2.1: "The same name shall not be used both as the name of an item possessing
+    /// the global attribute and as the name of any other data item described in the source element that describes that global
+    /// data item." (§1985:IV.4.3.8.1 says it of the same data-name; §1985:X.4.6.3 SR2 says it of two items both written GLOBAL.)</summary>
+    public static readonly DiagnosticDescriptor GlobalDataNameNotUnique = new(
+        "COBOL6862", "global-data-name-not-unique", EditionSeverity.Error,
+        "A data-name that an entry's GLOBAL clause makes a global name is also the name of another data item described in "
+        + "the same source element. §2023:8.4.2.1: \"The same name shall not be used both as the name of an item possessing "
+        + "the global attribute and as the name of any other data item described in the source element that describes that "
+        + "global data item.\" §1985:X.4.6.3 SR2 states it for two items that both include the GLOBAL clause. The rule "
+        + "is about the declarations, so an item no statement references is refused too.",
+        "ISO §2023:8.4.2.1; ISO §1985:IV.4.3.8.1; ISO §1985:X.4.6.3 SR2");
+
+    /// <summary>COBOL6863 — two INDEXED BY declarations of one program spell the same index-name, at a dialect that requires it
+    /// unique (kb/Work PB5073). §1985:VI.5.8.3 SR14: "Index-name-1 must be a unique word within the program." COBOL-2002 and
+    /// later qualify an index-name like a data-name, so the rule is the 1985 dialect's alone.</summary>
+    public static readonly DiagnosticDescriptor IndexNameNotUniqueInProgram = new(
+        "COBOL6863", "index-name-not-unique-in-program", EditionSeverity.Error,
+        "§1985:VI.5.8.3 SR14: \"Index-name-1 must be a unique word within the program.\" Two INDEXED BY phrases (or one "
+        + "phrase twice) declare the same index-name. The rule is unconditional: it does not wait for a reference. "
+        + "(COBOL-2002 and later let an index-name be qualified, so two tables may each declare one spelling.)",
+        "ISO §1985:VI.5.8.3 SR14");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
