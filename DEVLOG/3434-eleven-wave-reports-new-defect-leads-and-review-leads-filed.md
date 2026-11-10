@@ -1,4 +1,4 @@
-## Eleven wave reports' new-defect leads and review LEADs filed as kb/Work notes (PB5131-PB5143)
+## Entry 3434 — 2026-11-10 06:45 PST — Eleven wave reports' new-defect leads and review LEADs filed as kb/Work notes (PB5131-PB5143)
 
 The enqueue clerk filed the non-blocking leads of eleven merged reports (PB5100, PB5098, PB5099, PB5086, PB5083, PB5060, PB5080, PB5101, PB5107, PB5106, PB5089) as `kb/Work` notes, one per mechanism, after reading the candidate notes and the cited lines on origin/main. No code changed.
 
@@ -7,3 +7,4 @@ The enqueue clerk filed the non-blocking leads of eleven merged reports (PB5100,
 **Appended to existing notes.** PB4617 (semgrep `DiagnosticCatalog.cs` unreadable, PB5083 lead 1; PB4970 is the sibling). PB4404 (a 120 s `ArchReviewFleetDriftTests` non-observation under a saturated host, PB5060 lead 2; PB5006 is the sibling budget). PB5106: the Mechanism paragraph's citation corrected from `GR5` to `§1985:VI.6.19.4 GR3` item (5) (`cite.py --check` OK), PB5106 R1-3.
 
 **Skipped.** PB5100 R1-2 (the SKILL.md and `cost-law-and-budget.md` caps): both already say `wave.concurrency` and 3 on main. PB5098 R1-3: PB5114. PB5098 R1-2 and R2-1: fixed on main (`tree_dead` waits with no limit; the doubling rerun loop), only R3-1 is open (PB5131). PB5099: the report lists no open lead (R1-2 fixed; its stated limit is the owner's retry shape). PB5060 lead 1 (fourteen `test_orchestrate_*.ps1` hang past 3600 s): PB5113, landed, whose cause is the real accounts' live meter.
+
