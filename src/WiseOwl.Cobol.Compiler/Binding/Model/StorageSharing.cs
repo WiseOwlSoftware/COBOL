@@ -40,6 +40,25 @@ internal static class StorageSharing
         return false;
     }
 
+    /// <summary>⛔ THE OTHER QUESTION, asked of a FILE's record area (kb/Work PB5077): does <paramref name="operand"/> name the
+    /// record area of <paramref name="file"/> — "the same storage area" that §1985:IX.4.5.3 SR1 and §2002:14.8.29.2 SR2
+    /// forbid a READ INTO identifier-1 (and RETURN INTO, WRITE FROM, REWRITE FROM, RELEASE FROM: <see cref="RecordAreaRule"/>)?
+    /// It is EXACT where <see cref="MayShare"/> is conservative, because the rule REFUSES the statement: a false positive
+    /// rejects legal source, so a storage the compiler cannot place as the whole area is not "the same".
+    /// <para>The operand names the area when it is (1) a record description entry of the file or of a file that shares its
+    /// area through a record-area SAME clause (every 01 under an FD redefines the one area, §2023:13.18.33.4 GR3;
+    /// §2023:12.4.6.4.4 GR2), or (2) a subordinate item of such a record that begins the area (offset 0) and is as long
+    /// as the record, which is the identical storage under another name. A reference-modified operand, an item under an
+    /// OCCURS (no single position), an alias of RENAMES and an item shorter than the record are not.</para></summary>
+    public static bool IsRecordAreaOf(FileModel file, Place operand)
+    {
+        if (operand.DenotedItem is not { IsCompilerTemp: false, Renames: null } item) return false;
+        var root = RootOf(item);
+        if (!file.AreaFiles.Any(f => f.Records.Contains(root))) return false;
+        if (ReferenceEquals(item, root)) return true;
+        return RecordLayout.OffsetOf(item) == 0 && RecordLayout.PhysicalWidth(item) == RecordLayout.PhysicalWidth(root);
+    }
+
     /// <summary>The 01/77 records whose storage <paramref name="item"/> occupies: its own root, plus the roots of
     /// the items a level-66 alias renames (§2023:13.18.45.4) — an alias is an owner-record sibling, not a storage child.
     /// Empty for a synthesized temporary.</summary>

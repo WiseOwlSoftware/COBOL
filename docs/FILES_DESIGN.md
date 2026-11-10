@@ -2307,6 +2307,47 @@ its own line width and OPTIONAL flag, a file with records never does), the runti
 standard's observable half (OPEN EXTEND over an earlier report answers '00', a second OPEN '41', a CLOSE of a closed file
 '42') by the golden `pb1880_report_file_open_extend` (kb/Work PB1880).
 
+### D31. Two syntax rules of the 1985 I-O modules that 2023 dropped are enforced at the edition that prints them, each in ONE place (kb/Work PB5076, PB5077)
+
+**(a) The mandatory exception phrase — COBOL-85 only.** Each 1985 I-O module closes the syntax rules of READ, WRITE,
+REWRITE, DELETE and START with "The INVALID KEY phrase (or the AT END phrase) must be specified if no applicable USE AFTER
+STANDARD EXCEPTION procedure is specified for file-name-1" (§1985:VII.4.4.3 SR2; §1985:VIII.4.5.3 SR5, §1985:IX.4.5.3 SR7;
+§1985:VIII.4.9.3 SR3, §1985:IX.4.9.3 SR3; §1985:VIII.4.6.3 SR4, §1985:IX.4.6.3 SR3; §1985:VIII.4.3.3 SR2, §1985:IX.4.3.3 SR2;
+§1985:VIII.4.7.3 SR3, §1985:IX.4.7.3 SR3). ISO/IEC 1989:2002 and later print none of them (§2023:14.9.30.4 GR24 d) sends control to
+the end of the statement when neither a phrase nor a declarative takes the exception). **The decision:** `ExceptionPhraseRequirement`
+(`BinderContext.ExceptionPhrases`) is asked once per statement by the five keyed binders and the sequential READ, passing the
+statement's conditional phrases; it is a no-op from `Year >= 2002`. It has two halves, each written once. WHICH statements
+need a phrase is the rule's scope: where the phrase can be written — `IoPhraseAdmission.AdmitsInvalidKey`, the same question FLAG-14 d
+(`FlagConformancePass`) asks of the same statements, so the two share one function — and a sequential file's READ, which needs AT END.
+WHEN a procedure is "applicable" is the USE statement's scope (§1985:VII.4.6.4 GR5): a declarative that names the file, or whose
+open mode the file can be in when the verb executes (READ and START: INPUT or I-O; WRITE: OUTPUT, I-O or EXTEND; REWRITE and
+DELETE: I-O), in this program or in a containing one (GR1: the declaratives of "the separately compiled program" apply, and a contained
+program is part of its container's). `BinderDriver` hands each contained unit a lazy `ContainerUses` over its containers' bound
+declaratives. **Rejected readings:** any declarative counts (a USE ON OUTPUT does not apply to a READ, §1985:VII.4.6.4 GR5 c);
+reading the requirement at the parse tree in `FlagConformancePass` (a flag pass runs only with a FLAG directive and resolves names a
+second time); a Removed-seam warning under --permissive (the omission is no tolerated dialect: COBOL1850's reasoning for the
+RETURN AT END). Witnesses: `conformance:cases/14.9.30-READ/pb5076_*` (the legal side, run at every edition) and seven
+`pb5076-*-85` refusals; `IoExceptionPhraseRequirementTests` pins the scope (every mode against every verb, the access-mode
+qualification, the contained program).
+
+**(b) The FROM / INTO operand is not the file's record area — COBOL-85, 2002 and 2014.** READ and RETURN: "The storage area
+associated with identifier-1 and the record area associated with file-name-1 must not be the same storage area" (§1985:IX.4.5.3 SR1,
+§1985:XI.4.3.3 SR1; §2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1); WRITE, REWRITE, RELEASE: "Record-name-1 and identifier-1 must not
+reference the same storage area" (§1985:IX.4.9.3 SR1, §1985:IX.4.6.3 SR1, §1985:XI.4.2.3 SR3; §2002:14.8.47.2 SR4, §2002:14.8.33.2 SR1,
+§2002:14.8.30.2 SR2). COBOL-2023 replaced both with its overlapping-operand rules (§2023:14.6.10, §2023:14.9.30.4 NOTE 1), under which the
+program is legal and the result undefined. The ISO/IEC 1989:2014 text is not in the repository; the edition lineage records route
+1985 to 2023 across it, so 2014 keeps the rule (a DETERMINATION, docs/CONFORMANCE.md). **The decision:** the five phrases already
+funnel through `MoveBinder` (D23), so the screen is asked there, once: `StatementValidation.CheckPhraseOperandIsNotRecordArea`, from
+`BindFromPhrase` (the sender; the file is now a parameter) and from `CheckIntoReceiver` (the receiver). Its question is
+`StorageSharing.IsRecordAreaOf`, which is EXACT where `MayShare` is conservative, because it refuses the statement: the operand is a
+record description entry of the file or of a SAME RECORD AREA peer (every 01 under an FD redefines one area), or a subordinate item that
+begins the area and is as long as it; a part of the record, a reference-modified operand and another file's record are not "the same".
+`RecordAreaRule` owns the edition scope (`Year < 2023`), the wording ("must" at 1985, "shall" at 2002) and the one citation per verb and
+organization, because the 1985 text repeats the rule in the sequential, relative and indexed modules. The verb is a column of the two
+existing rows (`FromPhraseRules`, `IntoPhraseRules`), so the next FROM or INTO phrase is a row. Witnesses: five `pb5077-*` refusals
+(refused at 85, 2002, 2014), the legal-side golden `pb5077_from_into_outside_the_record_area`, the 2023 acceptance
+`pb5077_from_own_record_area_accepted_2023`, and `IoExceptionPhraseRequirementTests` for the predicate's boundaries.
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

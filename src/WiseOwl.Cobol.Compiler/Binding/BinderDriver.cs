@@ -870,6 +870,8 @@ internal sealed class BinderDriver
             UnitKind = SourceElementKindOf(unit),
             // §2023:15.65.3 argument rule 1 — MODULE-NAME NESTED requires a contained program.
             InNestedProgram = unit.Parent is not null,
+            // §1985:VII.4.6.4 GR1 — the declaratives of the separately compiled program, a containing program's included, are applicable here (kb/Work PB5076).
+            ContainerUses = unit.Parent is null ? null : () => ContainerUsesOf(unit),
             // kb/Work PB131 — the AS NESTED callee set (§2023:14.9.4.3 SR15): the caller's directly-contained
             // children, plus every COMMON program contained in a (transitive) ancestor — the §2023:10.7.2
             // visibility the runtime ResolveVisible applies, computed statically so GR9's formal-mode
@@ -1205,6 +1207,17 @@ internal sealed class BinderDriver
     internal static IEnumerable<BoundUnit> ContainingDefinitions(BoundUnit? unit)
     {
         for (var u = unit; u is not null; u = u.Parent) yield return u;
+    }
+
+    /// <summary>The USE declaratives of the programs that contain <paramref name="unit"/>, nearest first (§1985:VII.4.6.4 GR1:
+    /// the declaratives of "the separately compiled program that contains the statement" are the ones invoked, and a
+    /// contained program belongs to its container's separately compiled program). A container binds before the programs
+    /// it contains, so its declaratives are known when a statement of <paramref name="unit"/> asks (kb/Work PB5076).</summary>
+    private static IEnumerable<BoundDeclarative> ContainerUsesOf(BoundUnit unit)
+    {
+        for (var u = unit.Parent; u is not null; u = u.Parent)
+            foreach (var d in u.Bound?.Declaratives ?? [])
+                yield return d;
     }
 
     /// <summary>The user-defined functions ONE source element may reference, by the function-prototype-name it

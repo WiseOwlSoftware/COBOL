@@ -244,7 +244,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         // The FROM phrase is an implicit MOVE and is BOUND as one (§2023:14.9.51.4 GR5 a); §2023:14.9.51.3 SR6 —
         // kb/Work PB348), so it carries the MOVE statement's syntax rules and the storage facts codegen needs.
         return new BoundWrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Write, record, w.recordFromPhrase()?.sendingOperand()),
+            host.Move.BindFromPhrase(FromPhraseRules.Write, file, record, w.recordFromPhrase()?.sendingOperand()),
             BindAdvancing(adv), UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
         { Lock = wlock, Retry = wretry, InvalidKey = winvalid };
     }
@@ -314,6 +314,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 "ISO §2023:14.9.30.2 Format 1 · §2023:14.9.30.4 GR19");
             invalid = keyedIo.KeyedInvalidPhrase(r.conditionalPhrases());
         }
+        // COBOL-85: AT END is mandatory where no applicable USE procedure takes the exception (kb/Work PB5076).
+        ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Read, r.conditionalPhrases());
         return new BoundRead(file, intoMove, atEnd, notAtEnd, UnsupportedOrg(file, "READ"))
         {
             Kind = previous ? ReadKind.Previous : ReadKind.Next,                          // §2023:14.9.30.4 GR19; SR8
@@ -372,7 +374,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             rinvalid = keyedIo.KeyedInvalidPhrase(rw.conditionalPhrases());
         }
         return new BoundRewrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Rewrite, record, rw.recordFromPhrase()?.sendingOperand()),
+            host.Move.BindFromPhrase(FromPhraseRules.Rewrite, file, record, rw.recordFromPhrase()?.sendingOperand()),
             UnsupportedOrg(file, "REWRITE"))
         { Lock = rlock, Retry = rretry, InvalidKey = rinvalid };
     }

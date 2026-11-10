@@ -90,6 +90,17 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     private ProcedureTableBuilder? _table;
     public ProcedureTableBuilder Table => _table ??= new(this);
 
+    /// <summary>The mandatory-exception-phrase rule of COBOL-85 (kb/Work PB5076) — one instance per unit, because it reads
+    /// this unit's declaratives (<see cref="Table"/>) and its containers' (<see cref="ContainerUses"/>).</summary>
+    private ExceptionPhraseRequirement? _exceptionPhrases;
+    public ExceptionPhraseRequirement ExceptionPhrases => _exceptionPhrases ??= new(this);
+
+    /// <summary>The USE declaratives of the containing programs, nearest container first — read lazily by
+    /// <see cref="ExceptionPhraseRequirement"/> because a container is bound before the programs it contains, and the answer
+    /// is wanted only when a statement omits its phrase. Null for a program no other program contains (and in unit-test direct
+    /// construction). Set once by <c>BinderDriver.BindUnitProcedure</c>.</summary>
+    public Func<IEnumerable<BoundDeclarative>>? ContainerUses { get; set; }
+
     // ── The placement-rule context (kb/Work PB403): ONE "where am I bound?" probe, read by every syntax rule
     //    that says a statement "may be specified only in …". See EnclosingContext for the rule inventory. ──
 

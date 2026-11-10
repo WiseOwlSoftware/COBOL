@@ -9337,6 +9337,42 @@ public static class DiagnosticCatalog
         + "must be an integer ranging in value from 0 through 99.\" SR3: \"Sections in the declaratives must contain "
         + "segment-numbers less than 50.\"",
         "X3.23-1985 Segmentation module syntax rules (§1985:XVI.2.3.3 SR1; §1985:XVI.3.2.3 SR1, SR3)");
+    /// <summary>COBOL6826 — a READ, WRITE, REWRITE, DELETE or START that omits the phrase COBOL-85 makes mandatory when no applicable
+    /// USE AFTER STANDARD EXCEPTION procedure is specified (kb/Work PB5076). Each 1985 I-O module words it once per statement
+    /// and organization: §1985:VII.4.4.3 SR2 (a sequential READ: AT END), §1985:VIII.4.5.3 SR5 and §1985:IX.4.5.3 SR7 (a relative or
+    /// indexed READ: INVALID KEY or AT END), §1985:VIII.4.9.3 SR3 and §1985:IX.4.9.3 SR3 (WRITE), §1985:VIII.4.6.3 SR4 and
+    /// §1985:IX.4.6.3 SR3 (REWRITE), §1985:VIII.4.3.3 SR2 and §1985:IX.4.3.3 SR2 (DELETE), §1985:VIII.4.7.3 SR3 and §1985:IX.4.7.3 SR3
+    /// (START). COBOL-2002 and later print no such rule: their general rules say where control goes when the exception
+    /// has no phrase and no declarative to take it (§2023:14.9.30.4 GR24 d)).</summary>
+    public static readonly DiagnosticDescriptor IoExceptionPhraseRequired = new(
+        "COBOL6826", "io-exception-phrase-required", EditionSeverity.Error,
+        "§1985:IX.4.5.3 SR7: \"The INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER "
+        + "STANDARD EXCEPTION procedure is specified for file-name-1.\" The 1985 module of each organization words the same "
+        + "requirement for READ, WRITE, REWRITE, DELETE and START (the access mode qualifies DELETE and REWRITE: §1985:VIII.4.3.3 "
+        + "SR2, §1985:VIII.4.6.3 SR4). The statement omits the phrase and no USE AFTER STANDARD EXCEPTION procedure of the unit "
+        + "(or a containing program's) names the file or the mode it is opened in. COBOL-2002 and later do not print "
+        + "the requirement.",
+        "ISO §1985:VII.4.4.3 SR2; §1985:VIII.4.5.3 SR5; §1985:IX.4.5.3 SR7; §1985:VIII.4.9.3 SR3; §1985:IX.4.9.3 SR3; "
+        + "§1985:VIII.4.6.3 SR4; §1985:IX.4.6.3 SR3; §1985:VIII.4.3.3 SR2; §1985:IX.4.3.3 SR2; §1985:VIII.4.7.3 SR3; §1985:IX.4.7.3 SR3");
+
+    /// <summary>COBOL6827 — the FROM or INTO operand of a READ, RETURN, WRITE, REWRITE or RELEASE is the file's own record area, at
+    /// the editions that forbid it (kb/Work PB5077). §1985:IX.4.5.3 SR1: "The storage area associated with identifier-1 and the
+    /// record area associated with file-name-1 must not be the same storage area." (READ, RETURN), §1985:IX.4.6.3 SR1: "Record-name-1
+    /// and identifier-1 must not reference the same storage area." (WRITE, REWRITE, RELEASE); COBOL-2002 words both as syntax rules
+    /// too (§2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1, §2002:14.8.30.2 SR2, §2002:14.8.33.2 SR1, §2002:14.8.47.2 SR4). The 2023
+    /// standard replaces them with its overlapping-operand rules (§2023:14.6.10), so a program that shares the storage is
+    /// accepted there with an undefined result.</summary>
+    public static readonly DiagnosticDescriptor IoPhraseOperandIsRecordArea = new(
+        "COBOL6827", "io-phrase-operand-is-record-area", EditionSeverity.Error,
+        "§1985:IX.4.5.3 SR1: \"The storage area associated with identifier-1 and the record area associated with file-name-1 must "
+        + "not be the same storage area.\" (READ INTO and RETURN INTO; §1985:XI.4.3.3 SR1). §1985:IX.4.6.3 SR1: \"Record-name-1 and "
+        + "identifier-1 must not reference the same storage area.\" (WRITE FROM, REWRITE FROM and RELEASE FROM; §1985:XI.4.2.3 SR3). "
+        + "The operand names the file's record area: a record description of the file (all of them redefine the one area), "
+        + "or an item that begins the area and is as long as it. COBOL-2002 keeps both rules (§2002:14.8.29.2 SR2); COBOL-2023 "
+        + "drops them for the overlapping-operand rules of §2023:14.6.10.",
+        "ISO §1985:VII.4.4.3 SR1; §1985:VIII.4.5.3 SR1; §1985:IX.4.5.3 SR1; §1985:VII.4.5.3 SR1; §1985:VIII.4.6.3 SR1; "
+        + "§1985:IX.4.6.3 SR1; §1985:VII.4.7.3 SR1; §1985:VIII.4.9.3 SR1; §1985:IX.4.9.3 SR1; §1985:XI.4.2.3 SR3; §1985:XI.4.3.3 SR1; "
+        + "§2002:14.8.29.2 SR2; §2002:14.8.30.2 SR2; §2002:14.8.32.2 SR1; §2002:14.8.33.2 SR1; §2002:14.8.47.2 SR4");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

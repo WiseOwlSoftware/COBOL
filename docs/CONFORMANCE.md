@@ -3391,6 +3391,14 @@ physical reel of tape"), and every file it names resides on a multiple file reel
 
 Basis, CLAUDE.md rule 1: the ISO text decides (the 1985 text, held in `specs/ANSI_COBOL_1985.md`), and it states the three rules as rules of the OPEN and MERGE statements, whose
 elements the compiler fully supports. The hardware exemption lets an implementation omit the clause's function; it does not suspend rules stated of other statements.
+### 3.5 Two I-O syntax rules of COBOL-85 that later editions dropped (kb/Work PB5076, PB5077)
+
+Both rules are explicit syntax rules of X3.23-1985, so a program that breaks them is not a conforming source program (§1985:I.1.6) and `--std 85` refuses it. The design is D31 of `docs/FILES_DESIGN.md`.
+
+| Rule | Editions | Determination |
+|---|---|---|
+| AT END or INVALID KEY mandatory where no applicable USE AFTER STANDARD EXCEPTION procedure is specified (§1985:VII.4.4.3 SR2, §1985:VIII.4.5.3 SR5, §1985:IX.4.5.3 SR7 for READ; the WRITE, REWRITE, DELETE and START rules of §1985:VIII.4 and §1985:IX.4) | 85 only | a hard error, COBOL6826, never a --permissive warning: the omission is no tolerated dialect. "Applicable" is read statically as §1985:VII.4.6.4 GR5 words it: a declarative naming the file, or one for an open mode the file can be in when the verb executes (READ and START: INPUT, I-O; WRITE: OUTPUT, I-O, EXTEND; REWRITE and DELETE: I-O), of this program or of a containing one (GR1). The access mode qualifies DELETE and REWRITE as the 1985 text does; a sequential file's WRITE, REWRITE and START need no phrase |
+| The FROM or INTO operand is not the file's record area (§1985:IX.4.5.3 SR1 and nine siblings; §2002:14.8.29.2 SR2 and four) | 85, 2002, 2014 | COBOL6827. "The same storage area" is read exactly, because the rule refuses the statement: a record of the file or of a SAME RECORD AREA peer, or a subordinate item that begins the record and is as long as it. A part of the record, a reference-modified operand and another file's record are legal. COBOL-2023 replaced the rule with its overlapping-operand rules (§2023:14.6.10), so it accepts the program (the result is undefined). The ISO/IEC 1989:2014 text is not held here; the edition lineage records route 1985 to 2023 across it, and 2014 is determined to keep the 2002 rule. The owner may overturn it |
 
 ## 4. Documented non-support facilities (§2023:4.2.6 / §2023:4.2.7 / §2023:4.2.13)
 

@@ -490,7 +490,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // The literal-1 arm's edition edge (post-1985) is the one FROM-phrase gate WRITE and REWRITE share,
         // VersionConformancePass.ParseArm.VisitRecordFromPhrase (construct from-literal-2002, kb/Work PB2650).
         BoundMove? from = rel.recordFromPhrase() is { } rf
-            ? host.Move.BindFromPhrase(FromPhraseRules.Release, record, rf.sendingOperand())
+            ? host.Move.BindFromPhrase(FromPhraseRules.Release, file, record, rf.sendingOperand())
             : null;
         // ⛔ THE SIZE OF A FIXED-LENGTH SD'S RECORD IS THE LARGEST RECORD DESCRIPTION'S (kb/Work PB322 determination F;
         // docs/CONFORMANCE.md DOC-A.1-147). With no RECORD clause the implicit clause is implementor-defined

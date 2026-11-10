@@ -1389,6 +1389,8 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
 /// <param name="StrongReceiverCite">The verb's strongly-typed-receiver rule — §2023:14.9.30.3 SR2 / §2023:14.9.34.3 SR3.</param>
 /// <param name="StrongReceiverCount">That rule's record-area count requirement, quoted.</param>
 /// <param name="EntryFace">How the description entry names itself in a message — "FD" / "SD".</param>
+/// <param name="AreaVerb">The verb's place in <see cref="RecordAreaRule"/>: identifier-1 shall not be the file's record area
+/// at the editions before COBOL-2023 (kb/Work PB5077).</param>
 public sealed record IntoPhraseRules(
     string Statement,
     string MoveRuleCite,
@@ -1397,7 +1399,8 @@ public sealed record IntoPhraseRules(
     string AdmissibilityArmA,
     string StrongReceiverCite,
     string StrongReceiverCount,
-    string EntryFace)
+    string EntryFace,
+    RecordAreaVerb AreaVerb)
 {
     /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's INTO phrase carries — built once
     /// per verb beside the two rows, exactly as <c>FromPhraseRules.Phrase</c> is. A phrase is a property of the
@@ -1418,7 +1421,7 @@ public sealed record IntoPhraseRules(
         + "entry\"",
         "ISO §2023:14.9.30.3 SR2",
         "\"there shall be at most one record area subordinate to the FD for file-name-1\"",
-        "FD");
+        "FD", RecordAreaVerb.Read);
 
     /// <summary><c>RETURN … INTO</c>. ISO §2023:14.9.34.4 GR5 b) — the identical sentence, which is why the two
     /// phrases share one binder and one sender builder rather than one each.</summary>
@@ -1428,7 +1431,7 @@ public sealed record IntoPhraseRules(
         "\"If only one record description is subordinate to the sort-merge file description entry\"",
         "ISO §2023:14.9.34.3 SR3",
         "\"there shall be exactly one record area subordinate to the SD for file-name-1\"",
-        "SD");
+        "SD", RecordAreaVerb.Return);
 }
 
 /// <summary><c>MOVE source TO targets</c> (single sending operand) — the explicit MOVE statement, AND the
