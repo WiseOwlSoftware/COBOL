@@ -1,10 +1,12 @@
       *>--- conformance-case
       *> id: pb1187_terminate_restore_last_85
       *> rules: [GR-13.18.16.4-5, GR-14.9.46.4-3]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> (The id keeps its _85 suffix. The page footing is COBOL-2002's: it starts on a relative line, which 1985:XIII.3.15.3 SR9
+      *> forbids, and SOURCEs the control items, which 1985:XIII.3.20.3 SR5 forbids; kb/Work PB5079.)
       *> kb/Work PB1187 - TERMINATE restores the control data items
       *> LAST: the final page footing and the report footing are
       *> composed while the control items still hold their PRIOR values.
