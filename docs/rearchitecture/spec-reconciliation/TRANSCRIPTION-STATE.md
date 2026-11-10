@@ -241,8 +241,8 @@ formats, and the column heads of its tables. Eight table heads the page underlin
 sweep is `table-head-underlines(PB5041)`. A table's border reads as a rule on pages 861 and 862 and is not an underline.
 The detector (as of kb/Work PB5044) judges a short word (one character, or under 14 pt: `to`, `and`, `of`) by the rule
 running on across the space beside it, and reaches 0.30 of the OCR box's height above its bottom, which finds the rule
-under `Argument` (page 882) and `Contents` (page 905) that the PB5041 run missed along with page 869's `Contents` (a box
-displaced further than the window reaches). Its remaining blind spots are a short word underlined alone, an OCR box
+under `Argument` (page 882) and `Contents` (page 905), two the PB5041 run missed. Page 869's `Contents`, which that run also missed, is
+still missed (its box is displaced further than the window reaches). Its remaining blind spots are a short word underlined alone, an OCR box
 displaced beyond the window, and a table's border (read as a rule: pages 861 and 862); it also reads the bold ligature
 feet of `final` (page 851) and `the` (page 842) as rules. A hit is therefore read on the page and a miss is not proof.
 Re-running it over pages 831-906 found no word the transcription leaves unmarked.

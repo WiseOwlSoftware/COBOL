@@ -633,13 +633,16 @@ def main() -> int:
     fill(img, 20, 24.5, 85, 25.3)                                # one rule under XX TO YY, spaces included
     fill(img, 20, 54.5, 82, 55.3)                                # one rule under QQ A RR
     fill(img, 110, 24.5, 117, 25.3)                              # the feet of IN, and nothing in the spaces beside it
-    fill(img, 20, 106.2, 40, 107)                                # MONO: rule with a 1 pt break (97 %)
-    fill(img, 41, 106.2, 60, 107)
+    fill(img, 20, 106.2, 43, 107)                                # MONO: a ragged rule, a 3.5 pt break in 40 pt (91 %): over
+    fill(img, 46.5, 106.2, 60, 107)                              #   MONO_RULE_COVER 0.85, under the proportional TEXT_RULE_COVER 0.96
     fill(img, 20, 126.2, 48, 127)                                # MONOHALF: a rule under 70 % of the word
+    fill(img, 20, 146.2, 25, 147)                                # a whole rule under MN, 5 pt wide: under MONO_RULE_MIN_W
+    fill(img, 70, 146.2, 77, 147)                                # a whole rule under M, one glyph
     hints = [(20, 13, 45, 26.0, "XX"), (49, 13, 56, 26.0, "TO"), (60, 13, 85, 26.0, "YY"),
              (20, 43, 45, 56.0, "QQ"), (49, 43, 53, 56.0, "A"), (57, 43, 82, 56.0, "RR"),
              (95, 13, 107, 26.0, "AA"), (110, 13, 117, 26.0, "IN"), (120, 13, 140, 26.0, "BB"),
-             (20, 100, 60, 108.0, "MONO"), (20, 110, 60, 118.0, "MONOBARE"), (20, 120, 60, 128.0, "MONOHALF")]
+             (20, 100, 60, 108.0, "MONO"), (20, 110, 60, 118.0, "MONOBARE"), (20, 120, 60, 128.0, "MONOHALF"),
+             (20, 140, 25, 148.0, "MN"), (70, 140, 77, 148.0, "M")]
     got = [h[4] for h in R.underlined_hints(img < 128, hints, S)]
     total += 1
     check("a short word is underlined by the rule across its spaces and a monospaced word by its ragged rule",
