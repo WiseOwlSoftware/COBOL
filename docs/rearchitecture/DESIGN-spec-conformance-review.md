@@ -857,7 +857,7 @@ each change attributed by a `CORRECTED` flag and an Errata entry naming the amen
 while both amendments stay transcribed in full under their headings as the record of what they changed. So an amended
 rule has ONE home, the body: a rule an amendment adds ("add the following as new general rule 4") or renumbers is a
 1985 row at the place and number the amended text gives it, and the amendment's change row only records `amended_by`
-on that row (read from the change's directive, as now); it adds no `§1993:p.<folio>` row beside it. A renumbering the
+on that row (read from the change's directive, as now); it adds no row of its own, cited by the amendment's page, beside it. A renumbering the
 amendments make (Addendum 1: Section IV 4.3.8.3 to 4.3.8.5 become 4.3.8.4 to 4.3.8.6 behind the new 4.3.8.3
 Function-Identifier, Section VI 1.3.5 and 1.3.6 become 1.3.6 and 1.3.7; Amendment 2: the INSPECT, RECORD and WRITE
 general rules it renumbers) is the numbering 1985 citations use, and every citation, change record and row id of a moved
