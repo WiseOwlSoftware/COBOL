@@ -2351,6 +2351,24 @@ existing rows (`FromPhraseRules`, `IntoPhraseRules`), so the next FROM or INTO p
 (refused at 85, 2002, 2014), the legal-side golden `pb5077_from_into_outside_the_record_area`, the 2023 acceptance
 `pb5077_from_own_record_area_accepted_2023`, and `IoExceptionPhraseRequirementTests` for the predicate's boundaries.
 
+### D32. The run unit's external file connector rules are asked of the compilation group from the one entry identity (kb/Work PB5069)
+
+**The problem:** every edition requires the file control entries that describe one external file connector to agree (§1985:VII.2.3.4
+GR1 and its siblings in the relative and indexed modules, §1985:VII.2.7.4 GR6, §1985:IX.2.5.4 GR5; §2002:12.3.4.3 GR1; §2023:12.4.5.3
+GR1), and some of their items to be external data items. The compiler compared only FILE STATUS and RELATIVE KEY, at 2023 only, and
+compared nothing else at compile time; the run time compared the rest (the entry fingerprint) only between separately compiled
+elements. **The decision:** `FileEntryIdentity.Segments` is the ONE list of what an entry specifies (one segment per GR1 item, with
+the clause's name for a diagnostic), and two readers compare it: `ExternalFileConnectorRules.Check`, at the end of the group bind at
+every edition (COBOL6847 at the first entry that differs from the first describer), and the run time's EC-EXTERNAL-FILE-MISMATCH
+(`FileEntryIdentity.Of`, the segments joined into `FileModel.SelectFingerprint`). A segment added for a new clause is checked by both,
+and a clause an edition does not have leaves its segment empty in every entry, so no row carries an edition window. The externality
+conjunct reads `DataItem.ExternalItemIdentity` (a model member, so the emitter no longer calls the binder driver): RELATIVE KEY at
+every edition, PADDING CHARACTER's data-name-1 where the clause exists, FILE STATUS and LINAGE at 2023. The PADDING CHARACTER clause
+is captured (`FileModel.Padding`, `FileControlBinder.CapturePadding`) for its syntax rules and its segment; it changes no I-O. **Not yet
+compared:** the file DESCRIPTION entry's own agreement rules (§1985:VII.3.6.3 GR4 LABEL RECORDS, BLOCK CONTAINS, CODE-SET, the RECORD
+clause, VALUE OF, the report file), which need an FD identity beside this one (registered in kb/Work, see the PB5069 note).
+Witnesses: `12.4.5-File-control/pb5069_*` and `pb5069-*`, `pb5070_padding_one_character` and the two `pb5070-padding-*` refusals.
+
 ## C# mapping
 
 > Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /

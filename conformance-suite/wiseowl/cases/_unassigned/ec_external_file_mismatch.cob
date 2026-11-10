@@ -2,6 +2,8 @@
 *> id: ec_external_file_mismatch
 *> rules: []
 *> accept: [2023]
+*> files: [ec_external_file_mismatch_xfmsub.cbl]
+*> build: [ec_external_file_mismatch_xfmsub.cbl, "{self}"]
 *> source-format: free
 *> portable: unverified
 *>---
@@ -14,6 +16,11 @@
       *> conflict, the Fatal condition is set, the call is not successful (GR3h #1 — the
       *> ON EXCEPTION phrase), and the sub never runs. No OPEN is needed: the §2023:14.8.4.4
       *> check is an activation-time conformance check, not an I-O operation.
+*> Each called program is its own compilation unit (the build
+*> steps): within ONE compilation group the entries' disagreement
+*> is refused at compile time (COBOL6847, kb/Work PB5069), and
+*> EC-EXTERNAL-FILE-MISMATCH is the check between separately
+*> compiled runtime elements.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. XFMMAIN.
        >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
@@ -36,19 +43,3 @@
            DISPLAY "DONE"
            STOP RUN.
        END PROGRAM XFMMAIN.
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. XFMSUB.
-       >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT XFM-F ASSIGN "xfm-data" ORGANIZATION RELATIVE.
-       DATA DIVISION.
-       FILE SECTION.
-       FD XFM-F IS EXTERNAL.
-       01 XFM-REC PIC X(10).
-       PROCEDURE DIVISION.
-       SUB-PARA.
-           DISPLAY "SUB-RAN"
-           GOBACK.
-       END PROGRAM XFMSUB.

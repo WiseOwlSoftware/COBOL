@@ -43,6 +43,8 @@ internal static class BackendContract
             "Model.FileModel.AssignUsingName", "Model.FileModel.AssignUsingQualifiers", "Model.FileModel.CobolName",
             "Model.FileModel.FileLevelCollating", "Model.FileModel.FileStatusName", "Model.FileModel.FileStatusQualifiers",
             "Model.FileModel.RecordDelimiter", "Model.FileModel.RecordKeyName", "Model.FileModel.RecordKeyQualifiers",
+            // the PADDING CHARACTER clause as written (kb/Work PB5069, PB5070)
+            "Model.PaddingCharacterSpec.DataName", "Model.PaddingCharacterSpec.Qualifiers",
             "Model.FileModel.RelativeKeyName", "Model.FileModel.RelativeKeyQualifiers", "Model.FileModel.SelectName",
             "Model.IndexDeclaration.Name", "Model.KeyLevelCollatingClause.Alphabet",
             "Model.KeySourceOperand.Name", "Model.KeySourceOperand.Qualifiers",
@@ -128,6 +130,7 @@ internal static class BackendContract
         new(NeutralKind.LiteralValue,
         [
             "Bound.BoundAllLiteral.Literal", "Bound.BoundBoolAll.Bits", "Bound.BoundBoolLiteral.Bits",
+            "Model.PaddingCharacterSpec.Literal",
             "Bound.BoundCallProgram.LiteralName", "Bound.BoundCancel.Targets", "Bound.BoundInvokeArg.NumericLiteral",
             "Bound.BoundInvokeUniversal.MethodLiteral", "Bound.BoundNumLiteral.Text", "Bound.BoundNumericLiteral.Image",
             "Bound.BoundNumericLiteral.Text", "Bound.BoundProgramAddress.NameLiteral", "Bound.BoundSetEntry.NameLiteral",
@@ -205,6 +208,8 @@ internal static class BackendContract
         new(NeutralKind.IdentityKey,
         [
             "Model.DataItem.PointerRestrictionIdentity", "Model.PictureClauseIdentity.Key",
+            // the corresponding external data item an external file's clauses name, compared across describers (kb/Work PB2418)
+            "Model.DataItem.ExternalItemIdentity()",
             // an expansion's key and the labeled digests it is made of: compared for identity, written as attribute strings (kb/Work PB2104)
             "Model.ExpansionIdentity.Key", "Model.ExpansionIdentity.Parts",
             "Model.StrongTypeModel.EssentialCharacteristicsKey()", "Model.StrongTypeModel.InvariantRecordText()",

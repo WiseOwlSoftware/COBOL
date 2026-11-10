@@ -287,11 +287,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             foreach (var f in data.Files.Declared.Where(f => f.IsExternal))
             {
                 string ItemRef(string? clauseName, DataItem? item) => clauseName is null ? "null"
-                    : CsLiteral(BinderDriver.ExternalItemIdentity(item) ?? "!");   // "!" = present but NOT an external item (§2023:14.8.4.2 violation face)
+                    : CsLiteral(item?.ExternalItemIdentity() ?? "!");   // "!" = present but NOT an external item (§2023:14.8.4.2 violation face)
                 string linage = f.Linage is null ? "null"
                     : CsLiteral(string.Join(";", f.Linage.Operands.Select(op => op.DataName is null
                         ? $"={op.Literal}"
-                        : BinderDriver.ExternalItemIdentity(op.Item) ?? "!")));
+                        : op.Item?.ExternalItemIdentity() ?? "!")));
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(f.ExternalName!)}, "
                     + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusItem)}, "
                     + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyItem)}, LinageRef: {linage}, "

@@ -9412,6 +9412,39 @@ public static class DiagnosticCatalog
         + "data-name at all. (COBOL-2002 and later have no such restriction.)",
         "ISO §1985:XIII.3.20.3 SR5");
 
+    /// <summary>COBOL6847 — two file control entries of one compilation group describe the same EXTERNAL file connector and
+    /// differ in a specification the run unit's entries must share (kb/Work PB5069). Every edition prints the rule:
+    /// §1985:VII.2.3.4 GR1, §1985:VIII.2.3.4 GR1 and §1985:IX.2.3.4 GR1 (OPTIONAL, ASSIGN, RECORD DELIMITER, RESERVE,
+    /// organization, access mode), §1985:VII.2.4.3 GR3 (access mode), §1985:VII.2.7.4 GR6 (PADDING CHARACTER) and
+    /// §1985:IX.2.5.4 GR5 (the record keys); §2002:12.3.4.3 GR1 a) to k); §2023:12.4.5.3 GR1 a) to m). The specifications
+    /// compared are <c>FileEntryIdentity.Segments</c>, the same identity the run time compares across separately compiled
+    /// runtime elements (EC-EXTERNAL-FILE-MISMATCH). Emitted by <c>ExternalFileConnectorRules.Check</c> at the entry that
+    /// differs from the first describer.</summary>
+    public static readonly DiagnosticDescriptor ExternalFileEntryDisagreement = new(
+        "COBOL6847", "external-file-entry-disagreement", EditionSeverity.Error,
+        "Two file control entries of the run unit describe the same external file connector and specify a clause "
+        + "differently. §2023:12.4.5.3 GR1: \"If the file connector referenced by file-name-1 is an external file connector "
+        + "(see 13.18.22, EXTERNAL clause), all file control entries in the run unit that reference this file connector shall "
+        + "have\" the same OPTIONAL phrase, a consistent ASSIGN clause and RECORD DELIMITER phrase, the same RESERVE integer, "
+        + "organization, access mode, COLLATING SEQUENCE clauses, record keys, sharing mode and lock mode. COBOL-85 and "
+        + "COBOL-2002 state the same rule and add the PADDING CHARACTER clause (§1985:VII.2.7.4 GR6, §2002:12.3.4.3 GR1 h)). "
+        + "WiseOwl COBOL's consistency rule for the implementor-defined operands (ASSIGN, RECORD DELIMITER) is the same "
+        + "specification as written. Write the clause the same way in every program that describes the file.",
+        "ISO §2023:12.4.5.3 GR1; §2002:12.3.4.3 GR1; §1985:VII.2.3.4 GR1; §1985:VII.2.4.3 GR3; §1985:VII.2.7.4 GR6; "
+        + "§1985:VIII.2.3.4 GR1; §1985:IX.2.3.4 GR1; §1985:IX.2.5.4 GR5");
+
+    /// <summary>COBOL6848 — the operand of a PADDING CHARACTER clause breaks the clause's syntax rules (kb/Work PB5070):
+    /// literal-1 that is not one alphanumeric character (§1985:VII.2.7.3 SR1, §2002:12.3.4.10.2 SR1), or data-name-1 that is
+    /// not a one-character alphanumeric item of the working-storage, local-storage or linkage section (§1985:VII.2.7.3 SR3,
+    /// §2002:12.3.4.10.2 SR3). Emitted by <c>FileControlBinder.CapturePadding</c>; the clause exists at COBOL-85 and COBOL-2002.</summary>
+    public static readonly DiagnosticDescriptor PaddingCharacterOperand = new(
+        "COBOL6848", "padding-character-operand", EditionSeverity.Error,
+        "The operand of the PADDING CHARACTER clause is not one character. §1985:VII.2.7.3 SR1: \"Literal-1 must be a "
+        + "one-character nonnumeric literal.\" SR3: \"Data-name-1 must be defined in the Data Division as a one-character "
+        + "data item of the category alphanumeric and must not be defined in the Communication Section, the File Section, or "
+        + "the Report Section.\" COBOL-2002 words the same rules (§2002:12.3.4.10.2 SR1, SR3).",
+        "ISO §1985:VII.2.7.3 SR1, SR3; §2002:12.3.4.10.2 SR1, SR3");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

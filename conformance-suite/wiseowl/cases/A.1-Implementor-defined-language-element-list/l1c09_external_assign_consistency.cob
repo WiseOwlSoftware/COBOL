@@ -2,6 +2,8 @@
       *> id: l1c09_external_assign_consistency
       *> rules: [DOC-A.1-72]
       *> accept: [2023]
+      *> files: [l1c09_external_assign_consistency_l1c09e1.cbl, l1c09_external_assign_consistency_l1c09e2.cbl, l1c09_external_assign_consistency_l1c09e3.cbl, l1c09_external_assign_consistency_l1c09e4.cbl, l1c09_external_assign_consistency_l1c09e5.cbl, l1c09_external_assign_consistency_l1c09e6.cbl, l1c09_external_assign_consistency_l1c09e7.cbl]
+      *> build: [l1c09_external_assign_consistency_l1c09e1.cbl, l1c09_external_assign_consistency_l1c09e2.cbl, l1c09_external_assign_consistency_l1c09e3.cbl, l1c09_external_assign_consistency_l1c09e4.cbl, l1c09_external_assign_consistency_l1c09e5.cbl, l1c09_external_assign_consistency_l1c09e6.cbl, l1c09_external_assign_consistency_l1c09e7.cbl, "{self}"]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -40,6 +42,11 @@
       *>   E7 USING FNAME     qualifier differs          -> MISMATCH
       *> An OK sub runs (it DISPLAYs "Ek RAN"); a mismatching one never
       *> runs.
+      *> Each called program is its own compilation unit (the build
+      *> steps): within ONE compilation group the entries' disagreement
+      *> is refused at compile time (COBOL6847, kb/Work PB5069), and
+      *> EC-EXTERNAL-FILE-MISMATCH is the check between separately
+      *> compiled runtime elements.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C09E.
        >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
@@ -104,128 +111,3 @@
            DISPLAY "DONE"
            STOP RUN.
        END PROGRAM L1C09E.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. L1C09E1.
-       >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT XA ASSIGN TO XADAT.
-       DATA DIVISION.
-       FILE SECTION.
-       FD XA IS EXTERNAL.
-       01 XA-REC PIC X(10).
-       PROCEDURE DIVISION.
-       SUB-P.
-           DISPLAY "E1 RAN"
-           GOBACK.
-       END PROGRAM L1C09E1.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. L1C09E2.
-       >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT XA ASSIGN TO "XADAT".
-       DATA DIVISION.
-       FILE SECTION.
-       FD XA IS EXTERNAL.
-       01 XA-REC PIC X(10).
-       PROCEDURE DIVISION.
-       SUB-P.
-           DISPLAY "E2 RAN"
-           GOBACK.
-       END PROGRAM L1C09E2.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. L1C09E3.
-       >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT XA ASSIGN TO DISK "xadat".
-       DATA DIVISION.
-       FILE SECTION.
-       FD XA IS EXTERNAL.
-       01 XA-REC PIC X(10).
-       PROCEDURE DIVISION.
-       SUB-P.
-           DISPLAY "E3 RAN"
-           GOBACK.
-       END PROGRAM L1C09E3.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. L1C09E4.
-       >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT XU ASSIGN USING FNAME IN G.
-       DATA DIVISION.
-       FILE SECTION.
-       FD XU IS EXTERNAL.
-       01 XU-REC PIC X(10).
-       WORKING-STORAGE SECTION.
-       01 G.
-          05 FNAME PIC X(20) VALUE "l1c09u.dat".
-       PROCEDURE DIVISION.
-       SUB-P.
-           DISPLAY "E4 RAN"
-           GOBACK.
-       END PROGRAM L1C09E4.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. L1C09E5.
-       >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT XA ASSIGN TO "xadat.txt".
-       DATA DIVISION.
-       FILE SECTION.
-       FD XA IS EXTERNAL.
-       01 XA-REC PIC X(10).
-       PROCEDURE DIVISION.
-       SUB-P.
-           DISPLAY "E5 RAN"
-           GOBACK.
-       END PROGRAM L1C09E5.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. L1C09E6.
-       >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT XA ASSIGN TO "xbdat".
-       DATA DIVISION.
-       FILE SECTION.
-       FD XA IS EXTERNAL.
-       01 XA-REC PIC X(10).
-       PROCEDURE DIVISION.
-       SUB-P.
-           DISPLAY "E6 RAN"
-           GOBACK.
-       END PROGRAM L1C09E6.
-
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. L1C09E7.
-       >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT XU ASSIGN USING FNAME.
-       DATA DIVISION.
-       FILE SECTION.
-       FD XU IS EXTERNAL.
-       01 XU-REC PIC X(10).
-       WORKING-STORAGE SECTION.
-       01 G.
-          05 FNAME PIC X(20) VALUE "l1c09u.dat".
-       PROCEDURE DIVISION.
-       SUB-P.
-           DISPLAY "E7 RAN"
-           GOBACK.
-       END PROGRAM L1C09E7.
