@@ -1,14 +1,13 @@
 {
  "rule-id": "1985-GR-VI.6.18.4-6",
- "rule-digest": "35ad9758e086",
+ "rule-digest": "160ba01ed0ec",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-14.9.22.4-8"
+   "GR-14.9.22.4-7"
   ],
   "bridge": true,
-  "reason": "1985 GR6 a)-e) (the comparison cycle: operands left to right, start at the leftmost position, advance on no match and past a match, termination, the implied CHARACTERS operand) recur in §2023:14.9.22.4 GR8 ('The operands of the TALLYING or REPLACING phrase are considered in the order they are specified in the INSPECT statement from left to right'); every addition is an 'if BACKWARD is specified' branch, syntax the 1985 rule does not refuse (the format does). Cross-references renumbered. 2023 GR3 restates 1985 GR4's scan direction and GR7 restates 1985 GR5, so neither carries this rule.",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "audit-1985/state-route"
  }
 }

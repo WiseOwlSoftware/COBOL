@@ -761,7 +761,7 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
   FMT row `1985-FMT-VI.5.8.2`), with its citation (`§1985:VI.5.7.3 SR1`). A CITATION NAMES ONE RULE (kb/Work PB4969): a rule of a
   restarted list is cited by its list, `GRL2.1` for the id's `-L2.1` (`citation.rule_designator`, the one writer; the format's
   `SUBLIST_RULE`), so `§1985:IV.4.2.2.2.3 GR1` is the first list's rule 1 alone, and the extractor's `--check` fails on two
-  rows that share a citation (a row cited by a printed page, `§1993:p.B-16`, the two rules an amendment adds on that page, is exempt: the page is no rule's citation).
+  rows that share a citation.
   The 2023 catalog carries no `citation` field. The year prefix names the edition (or amendment) the
   rule is from, in the 1985 store (§10.2).
 - **The conformance requirements are the FRAME, not rows** (kb/Work PB4968). Paragraph 1.5 of Section I (§1985:I.1.5: what a
@@ -780,12 +780,16 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
 - **The amendment.** The amended 1985 is a different language level for edition gating, so a row carries its `document`
   (the base standard, or Amendment 1 for Section A) and `amended_by`: Amendment 1's Addendum 1 and Amendment 2 are
   tables of changes, a row per change keyed by the printed page it begins on and a paragraph and rule, and a change that
-  names a rule records its amendment there. A change that ADDS a rule ("add the following as the new general rule 4") is a
-  row of its amendment, cited by the amendment's own page (`§1993:p.B-14`), and keeps the number the amendment gives it;
-  the base rules keep their 1985 numbers, which are the ones 1985 citations use.
+  names a rule, or a general format the catalog holds as an FMT row (`rule_catalog_1985.record_format_change`), records
+  its amendment there. The base text is read AS AMENDED: both amendments are applied in place in
+  `specs/ANSI_COBOL_1985.md` (owner 2026-11-09, kb/Work PB5045), so a rule an amendment adds or rewrites is read from
+  the body where the amendment puts it, with the number the amended text gives it, and its row is the base text's
+  (`§1985:<locator> <rule>`); the change row records `amended_by` on it and adds no row of its own (§10.2, "One
+  home for an amended rule").
 - **Completeness** is held as for 2023: a rule-shaped heading no kind resolves, a recognised block that yields no rule,
   an ordinal that neither continues nor restarts its list, a box in a one-level module, an amendment change naming a rule
-  the catalog cannot find (read from the change's directive, never from the new text it carries), an adjudication the
+  the catalog cannot find (read from the change's directive, never from the new text it carries), a line of a change
+  table that opens with a page cell in neither row shape (`CHANGE_UNREAD`: a change no reader would count), an adjudication the
   transcription no longer has, a duplicate id, a rule of an admitted paragraph
   its kind map does not name, and a row whose citation `cite.py --check` would refuse (`rule_catalog_1985.cite_check`,
   `citation.validate` on every row) are each reported, and `--check` fails on them. The paragraphs that DEFINE the rule
@@ -830,8 +834,8 @@ edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-s
 
 The catalog is written to `docs/rearchitecture/spec-rule-catalog-1985.json` and held by the gate's RULE CATALOG 1985
 audit (`--edition 1985 --check`: no finding, and the committed catalog is this run's). On the reconciled file it counts
-2,266 rows from 666 blocks (SR 651, GR 1,259, AR 65, RV 80, FMT 211), 12 of them provisional, and no finding; the
-content-keyed scan measures 91 paragraphs (760 ordinals, an upper bound), of which the manifest admits 54 (258 rows) and
+2,274 rows from 669 blocks (SR 660, GR 1,256, AR 65, RV 80, FMT 213), 12 of them provisional, and no finding; the
+content-keyed scan measures 89 paragraphs (777 ordinals, an upper bound), of which the manifest admits 52 (255 rows) and
 records 37 as not rules.
 
 ### 10.2 Rule lineage: one rule list per edition, one change record per adjacent pair (owner 2026-11-08, kb/Work PB4991)
@@ -848,6 +852,31 @@ verdict by reference into the one 2023 store.
 (`inventory_store.py` and the view `inventory_view.py`, each of which takes the edition; `inventory_schema.Edition`,
 read from the schema's `editions.of`, carries what differs: the catalog, the key that locates a rule, the store's
 directory and fields). A reader names the edition it reads, or reads the newest held one.
+
+**One home for an amended rule (owner 2026-11-09, kb/Work PB5045).** The 1985 list is the AMENDED third standard:
+`specs/ANSI_COBOL_1985.md` keeps the base text current with Amendment 1's Addendum 1 and Amendment 2 applied in place,
+each change attributed by a `CORRECTED` flag and an Errata entry naming the amendment, its change row and its page,
+while both amendments stay transcribed in full under their headings as the record of what they changed. So an amended
+rule has ONE home, the body: a rule an amendment adds ("add the following as new general rule 4") or renumbers is a
+1985 row at the place and number the amended text gives it, and the amendment's change row only records `amended_by`
+on that row (read from the change's directive, as now); it adds no row of its own, cited by the amendment's page, beside it. A renumbering the
+amendments make (Addendum 1: Section IV 4.3.8.3 to 4.3.8.5 become 4.3.8.4 to 4.3.8.6 behind the new 4.3.8.3
+Function-Identifier, Section VI 1.3.5 and 1.3.6 become 1.3.6 and 1.3.7; Amendment 2: the INSPECT, RECORD and WRITE
+general rules it renumbers) is the numbering 1985 citations use, and every citation, change record and row id of a moved
+rule moves with it in the same change, through `record_verdicts.py --edition 1985`, never an alias. Section A (the
+Intrinsic Function module) is the exception to "in the body" that carries rules: Amendment 1 inserts it after Section
+XVI, and the transcription holds it once, where Amendment 1 prints it, its rules cited `§1989:A` (§10.1) with Amendment
+2's changes applied there. Two insertions of Amendment 2 that run over many pages and carry no rule are held the same
+way, once where Amendment 2 prints them, a flag at the place they take in the body: paragraph 2.2B of Appendix B of
+Section XVII (pages B-30 to B-46, the Errata's C332) and the replacement index (pages B-49 to B-64, C337, whose row also
+deletes the base index's entries). `rule_catalog_1985.resolve_change`'s ADD path finds the body's row (of Section A for
+an Amendment 1 page) at the number the amended text gives it and records `amended_by` on it; it adds no row, so the
+catalog carries no `§1993` row and no page citation. The store records the renumberings and deletions moved through
+`record_verdicts.py --edition 1985`, whose WITHDRAWAL record (`{"rule-id", "withdraw"}`) takes a record whose rule is gone
+or whose id now names another rule out of the store. A record moves to its rule's new id only when the rule's text there
+is the text the record was decided against (the same `rule-digest`); a record whose rule an amendment or a misprint
+correction rewrote is withdrawn, never carried onto the new text, and its row waits to be decided again against the
+amended text (kb/Work PB698's drift refusal; PB5045's branch review, R1-2).
 
 **Change is recorded once, between ADJACENT editions only** (85 to 2002, 2002 to 2014, 2014 to 2023, and 2023 to 2027),
 never between every pair. Each rule of the older edition carries one classification against the next held edition, in a
@@ -1030,7 +1059,11 @@ each misprint to the rule's text (`audit_batch.misprints_error`: the context is 
 box sides and line breaks are dropped, and it holds the printed words whole), so a lead always points at words the page
 prints. `misprint-leads` writes `DIR/misprint-leads.json`, each lead with its rule's citation and whether a counterpart was
 read beside it. A lead is never a correction: a reader confirms it on the rendered page before the Errata of
-`specs/ANSI_COBOL_1985.md` lists it (kb/Work PB4972's convention). The pass reads catalog rules only; the prose outside
+`specs/ANSI_COBOL_1985.md` lists it (kb/Work PB4972's convention). A confirmed lead is corrected when the page, the
+rule's own sense, the same paragraph or a later revision shows it is wrong, an operand included: the transcription is
+the most accurate version of the specification and never keeps incorrect text because the page printed it (owner
+2026-11-09, kb/Work PB5045); a wording that is the standard's deliberate requirement stays as printed, and the Errata
+says why. A misprint an amendment corrects is applied as the amendment's change, attributed to it. The pass reads catalog rules only; the prose outside
 the catalog, and the index, stay unread by it; the catalog's 210 general-format (FMT) rows are planned with every other rule and so are read, and the Errata says so.
 
 **A rule's candidates are drawn from the strongest signal down** (`audit_batch.candidates`, kb/Work PB4971, owner

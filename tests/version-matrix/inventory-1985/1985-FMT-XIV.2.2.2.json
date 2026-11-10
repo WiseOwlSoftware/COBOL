@@ -1,12 +1,12 @@
 {
  "rule-id": "1985-FMT-XIV.2.2.2",
- "rule-digest": "30df1ef888a4",
+ "rule-digest": "d28ad3008657",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
   "to": [],
   "bridge": true,
-  "reason": "1985: \"CD cd-name-1 FOR [INITIAL] INPUT ... / FOR OUTPUT ... / FOR [INITIAL] I-O\"; 2023: \"No CD entry format is given; no candidate, including the file, sort-merge, report and data description entries, covers a communication description entry.\". The 2023 candidates show no communication description entry. The CD formats for INPUT, OUTPUT and I-O have no counterpart, so the Communication module's CD entry is dropped.",
-  "source": "audit-1985/state-route"
+  "reason": "1985 as amended (§1985:XIV.2.2.2: Addendum 1's XIV-3 and XIV-4 delete the commas between the data-names of formats 1 and 3, a typographical correction that changes no entry): 'CD cd-name-1 FOR [INITIAL] INPUT ...', 'CD cd-name-1 FOR OUTPUT ...', 'CD cd-name-1 FOR [INITIAL] I-O ...'. 2023 has no communication description entry: no CD format exists among its file, sort-merge, report and data description entries. The Communication module's CD entry is dropped.",
+  "source": "audit-1985/state-route; re-decided against the amended text, kb/Work PB5045 (review R1-2)"
  }
 }
