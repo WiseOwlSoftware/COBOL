@@ -21,7 +21,6 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// is the one walk; this test asserts the roster against the assembly, so a new kind is a failing test rather than an
 /// operand form the pin silently skips.</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class OdoDependenceRosterDriftTests
 {
     private static IEnumerable<Type> ConcretePlaceKinds() =>
