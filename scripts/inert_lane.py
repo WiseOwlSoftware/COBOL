@@ -1115,7 +1115,7 @@ def wiring(root: Path) -> list[str]:
          "an earlier __pycache__ that CI's watch sees (PB4395 review R2-1)")
     for want in ("import inert_lane", "inert_lane.CLASSIFICATION.classify(", "return self._inert(out, run, lane)",
                  "return self._tooling(out, run, lane)", 'TOOLING_ONLY = ("SELF-TESTS",)',
-                 "if tooling or name not in TOOLING_ONLY", "self.host.audits(_no_slot, lines.append, tooling)",
+                 "if tooling or name not in TOOLING_ONLY", "self.host.audits(_no_slot, lines.append, tooling, change)",
                  'self._beside(out, "audits", lambda: self._audits(out, lane.tooling))',
                  'if out.tooling:\n            self._beside(out, "post_build_self_tests"'):
         need(want in driver, f"scripts/gate.py no longer says `{want}`")
