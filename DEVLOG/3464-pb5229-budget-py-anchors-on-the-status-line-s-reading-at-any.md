@@ -1,4 +1,4 @@
-## PB5229: budget.py anchors on the status line's reading at any age in the quota week, and reports a meter file it cannot read
+## Entry 3464 — 2026-11-10 22:25 PST — PB5229: budget.py anchors on the status line's reading at any age in the quota week, and reports a meter file it cannot read
 
 **Mechanism.** `budget.live_reading` returned None for a reading whose `measured_at` (the moment the figure last CHANGED) was more than `LIVE_MAX_AGE` (30 minutes) old. The meter shows whole percents, so a figure often stands longer than that; the reading was dropped and `estimate` had no anchor. On 2026-11-11T04:27Z it printed "weekly ≈ 70.73 % ... (no account1 meter reading this week: estimate from telemetry alone)" while `~/.claude/rate-limits.json` held `seven_day` 55 measured at 03:43:46Z and the owner's panel read 56 %.
 
@@ -7,3 +7,4 @@
 **Proof.** `scripts/orchestrator/test_budget.py` 64/64: a 44-minute-old reading with no telemetry after it is its own figure with a non-null anchor, with telemetry it is figure plus spend, last week's reading is no anchor, a malformed file is reported. On the real host the line now ends "anchored on the status line's 56 % of 47 min ago + telemetry since". The status line carries no Fable or per-model row (`kb/Work/PB5229/2026-11-11-landing.md`).
 
 **Review round 1.** R1-1: PB4807 (open) named the deleted LIVE_MAX_AGE; its body is untouched, `kb/Work/PB4807/2026-11-11-pb5229.md` records that PB5229 fixed its first cause and what remains (calibration refit, ledger readers), and PB5229 now lists PB4807 in `related`. R1-2: `orchestrate.ps1` prints the anchor note and `live_problem` on its budget line (new `anchor_note` field in `budget.current`). R1-3: a reading measured after the current time is reported as a `live_problem` naming both times instead of dropped silently; test arm added (test_budget 65/65).
+
