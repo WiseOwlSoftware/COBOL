@@ -77,8 +77,17 @@ judgment's reason now covers all ten callers. This audit is the early warning; t
 the only check that sees a child process's, native code's or reflection's paths. The reviewer's planted reads (round 1's
 seven, round 2's four files) are each RED with file and line.
 
+**Review round 3** (kb/Work PB5230/2026-11-11-review-round-3.md) found the audit's C# scanner hiding code. A verbatim
+literal ending in an escaped quote (`@"x"""`, in at least three drift tests) holds three quotes, so the three-quote pattern
+for raw literals paired two of them and read every line of code between as string text. The pattern and the line-start
+scanner beside it are replaced by ONE lexer of the whole file (`_lex`), which follows every literal form, so the same
+sweep closed three siblings: a character literal `'"'` hid the rest of its line, a block comment read as code, and a
+multi-line verbatim literal's later lines read as code. Code inside an interpolation hole now counts as code for the
+bypasses; it found one more TestRepo line (its refusal message names the base directory), judged. Over the 1,115 tracked
+test sources the new lexer changes no read and that one bypass.
+
 **Proof.** `python scripts/buildgraph.py check`: GREEN, 5 targets (conformance-suite generated); only repo-drift counts
-bare roots. `buildgraph.py --self-test`: PASS, 31 arms; the round-0 reader read the planted source as one bare root and nothing else. `gate.py
+bare roots. `buildgraph.py --self-test`: PASS, 33 arms; the round-0 reader read the planted source as one bare root and nothing else. `gate.py
 --self-test`, `test_population.py --self-test`, `check_practices.py` over a rendered implementer spec (and RED over the
 same spec with the old phrase), `work.py check`. The gate of this branch is in the branch report.
 

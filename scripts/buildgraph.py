@@ -95,6 +95,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import bisect
 import datetime as dt
 import fnmatch
 import functools
@@ -951,60 +952,152 @@ def _line_at(text: str, i: int) -> str:
     return text[text.rfind("\n", 0, i) + 1:end if end >= 0 else len(text)]
 
 
+#: Where a C# string literal starts: its `$` and `@` prefix (`$`, `@`, `$@`, `@$`, `$$…`) and its opening quote.
+STRING_OPEN = re.compile(r'(\$*)(@?)(\$*)"')
+#: A C# character literal (`'"'`, `'\''`, `'"'`): its quote is no string's.
+CHAR_LITERAL = re.compile(r"'(?:\\.[^'\n]*|[^'\\\n])'")
+
+
+@dataclass(frozen=True)
+class _StringFrame:
+    """An open C# string literal: interpolated (`$`, and for a raw literal the count of `$`, which is the count of braces
+    that open and close its holes), verbatim (`@`: `""` is a quote, no backslash escape, over lines), or raw (`quotes`,
+    three or more: closed by the same run, over lines, no escape)."""
+    dollars: int
+    verbatim: bool
+    quotes: int = 1
+
+
+@dataclass
+class _HoleFrame:
+    """An open interpolation hole (`{…}`): code, closed by `braces` closing braces outside any brace it opened."""
+    braces: int
+    depth: int = 0
+
+
 @functools.lru_cache(maxsize=64)
-def _raw_spans(text: str) -> tuple[tuple[int, int], ...]:
-    """The spans of C# raw string literals (`\"\"\"…\"\"\"`, three or more quotes, over lines): the text of a program a test
-    compiles or plants, never code of the test itself."""
-    return tuple((m.start(), m.end()) for m in re.finditer(r'\$*("{3,})(?:.|\n)*?\1', text))
+def _lex(text: str) -> tuple[tuple[int, ...], tuple[str, ...]]:
+    """The C# source `text` partitioned by what each character is: "code", "comment" (`//…`, `/*…*/`), "string" (a
+    literal's text: regular, verbatim, interpolated, raw, character) or "hole" (the code of an interpolated string's
+    `{…}`, a raw literal's `{{…}}` as many braces as dollars), as the sorted starts of the runs and the kind of each.
 
+    ONE lexer of the whole file, so a literal is followed wherever it goes: a verbatim literal over lines, a verbatim
+    literal ending in an escaped quote (`@"x\"\"\"`, which a three-quote pattern took for a raw literal and so hid every line
+    of code up to the next one: kb/Work PB5230 review round 3), a block comment, a string in a hole. An unterminated
+    regular literal ends at its line's end, as the C# compiler recovers."""
+    starts: list[int] = [0]
+    kinds: list[str] = ["code"]
+    stack: list[_StringFrame | _HoleFrame] = []
 
-def _context(text: str, pos: int) -> str:
-    """Where offset `pos` lies on its line: "code", "comment", "string" (a literal's text) or "hole" (an interpolated
-    string's `{…}`), read by a small scanner of C# string and comment syntax from the line's start. A raw string literal
-    over lines (`_raw_spans`) is a string, except inside one of its interpolation holes (`$$\"\"\"…{{x}}…\"\"\"`: as many braces
-    as dollars), which is a hole. A verbatim literal a line break continues is not followed; such a line reads as code,
-    the side that reports a read rather than hides one."""
-    for start, end in _raw_spans(text):
-        if start <= pos < end:
-            dollars = len(text[start:end]) - len(text[start:end].lstrip("$"))
-            if dollars:
-                body = text[start:pos]
-                opened = body.rfind("{" * dollars)
-                if opened >= 0 and ("}" * dollars) not in body[opened:]:
-                    return "hole"
-            return "string"
-    i = text.rfind("\n", 0, pos) + 1
-    stack: list[tuple[str, bool]] = []   # ("S" string | "I" interpolated | "H" hole, verbatim)
-    while i < pos:
+    def mark(at: int, kind: str) -> None:
+        if kinds[-1] == kind:
+            return
+        if starts[-1] == at:
+            kinds[-1] = kind
+            if len(kinds) > 1 and kinds[-2] == kind:
+                starts.pop()
+                kinds.pop()
+        else:
+            starts.append(at)
+            kinds.append(kind)
+
+    def code_kind() -> str:
+        return "hole" if stack else "code"
+
+    i, n = 0, len(text)
+    while i < n:
+        top = stack[-1] if stack else None
         c = text[i]
-        kind, verbatim = stack[-1] if stack else ("code", False)
-        if kind in ("S", "I"):
-            if c == "\\" and not verbatim:
+        if isinstance(top, _StringFrame):
+            if top.quotes >= 3:
+                if text.startswith('"' * top.quotes, i):
+                    stack.pop()
+                    i += top.quotes
+                    mark(i, code_kind())
+                    continue
+                if top.dollars and c == "{":
+                    run = len(text[i:]) - len(text[i:].lstrip("{"))
+                    if run >= top.dollars:
+                        stack.append(_HoleFrame(top.dollars))
+                        mark(i + run - top.dollars, "hole")
+                    i += run
+                    continue
+                i += 1
+                continue
+            if c == "\\" and not top.verbatim:
                 i += 2
                 continue
             if c == '"':
-                if verbatim and text[i + 1:i + 2] == '"':
+                if top.verbatim and text[i + 1:i + 2] == '"':
                     i += 2
                     continue
                 stack.pop()
-            elif kind == "I" and c == "{":
-                if text[i + 1:i + 2] == "{":
+                i += 1
+                mark(i, code_kind())
+                continue
+            if c == "\n" and not top.verbatim:
+                stack.pop()
+                mark(i, code_kind())
+                continue
+            if top.dollars and c in "{}":
+                if text[i + 1:i + 2] == c:
                     i += 2
                     continue
-                stack.append(("H", False))
+                if c == "{":
+                    stack.append(_HoleFrame(1))
+                    mark(i, "hole")
             i += 1
             continue
+        # Code: the top level, or an interpolation hole.
         if c == "/" and text[i + 1:i + 2] == "/":
-            return "comment"
-        if c == '"':
-            prefix = text[max(0, i - 2):i]
-            stack.append(("I" if prefix.endswith("$") or prefix in ("$@", "@$") else "S", prefix.endswith("@")))
-        elif c == "}" and kind == "H":
-            stack.pop()
+            mark(i, "comment")
+            end = text.find("\n", i)
+            i = n if end < 0 else end
+            mark(i, code_kind())
+            continue
+        if c == "/" and text[i + 1:i + 2] == "*":
+            mark(i, "comment")
+            end = text.find("*/", i + 2)
+            i = n if end < 0 else end + 2
+            mark(i, code_kind())
+            continue
+        if c == "'" and (m := CHAR_LITERAL.match(text, i)) is not None:
+            mark(i, "string")
+            i = m.end()
+            mark(i, code_kind())
+            continue
+        if c in '$@"' and (m := STRING_OPEN.match(text, i)) is not None:
+            dollars, verbatim = len(m.group(1)) + len(m.group(3)), bool(m.group(2))
+            q = m.end() - 1
+            quotes = len(text[q:]) - len(text[q:].lstrip('"'))
+            mark(i, "string")
+            if quotes >= 3 and not verbatim:
+                stack.append(_StringFrame(dollars, False, quotes))
+                i = q + quotes
+            else:
+                stack.append(_StringFrame(dollars, verbatim))
+                i = q + 1
+            continue
+        if isinstance(top, _HoleFrame):
+            if c == "{":
+                top.depth += 1
+            elif c == "}":
+                if top.depth:
+                    top.depth -= 1
+                elif text.startswith("}" * top.braces, i):
+                    stack.pop()
+                    i += top.braces
+                    mark(i, "string")
+                    continue
         i += 1
-    if not stack:
-        return "code"
-    return {"S": "string", "I": "string", "H": "hole"}[stack[-1][0]]
+    return tuple(starts), tuple(kinds)
+
+
+def _context(text: str, pos: int) -> str:
+    """What offset `pos` of the C# source `text` is: "code", "comment", "string" (a literal's text) or "hole" (an
+    interpolated string's `{…}`), read from the one lexer of the whole file (`_lex`)."""
+    starts, kinds = _lex(text)
+    return kinds[bisect.bisect_right(starts, pos) - 1]
 
 
 def _root_use(text: str, start: int, end: int) -> list[str]:
@@ -1098,6 +1191,8 @@ ROOTED = re.compile(r'@?"(?:[A-Za-z]:[\\/]|/|\\\\)')
 PATH_CALL = re.compile(FS_CALL.pattern + "|" + JOIN_CALL.pattern)
 #: An environment variable read.
 ENV_READ = re.compile(r"\bEnvironment\.GetEnvironmentVariable\(")
+#: The `_context` kinds that RUN: top-level code and an interpolation hole's code.
+RUNS = ("code", "hole")
 
 
 def bypasses_in(text: str, anchors: tuple[str, ...]) -> list[tuple[int, str]]:
@@ -1105,21 +1200,21 @@ def bypasses_in(text: str, anchors: tuple[str, ...]) -> list[tuple[int, str]]:
     the one-home rule's `anchors` (`root_anchors`), an assembly's location, the working directory, an environment variable
     read on a line that forms a
     path (a System.IO path call), or a string LITERAL as the first argument of a System.IO path call (a rooted literal is
-    a fixed machine path; a relative one resolves against the working directory). Only code counts: comments and the text
-    of other literals do not (`_context`)."""
+    a fixed machine path; a relative one resolves against the working directory). Only code counts, an interpolation
+    hole's included (it runs): comments and the text of other literals do not (`_context`)."""
     out: list[tuple[int, str]] = []
     offset = 0
     rule = ("a base-directory anchor of the one-home rule", re.compile("|".join(rf"(?<!\w){re.escape(a)}" for a in anchors)))
     for n, line in enumerate(text.split("\n"), 1):
         hits: list[str] = []
         for kind, pattern in (rule, *BYPASSES):
-            if any(_context(text, offset + m.start()) == "code" for m in pattern.finditer(line)):
+            if any(_context(text, offset + m.start()) in RUNS for m in pattern.finditer(line)):
                 hits.append(kind)
-        if PATH_CALL.search(line) and any(_context(text, offset + m.start()) == "code" for m in ENV_READ.finditer(line)):
+        if PATH_CALL.search(line) and any(_context(text, offset + m.start()) in RUNS for m in ENV_READ.finditer(line)):
             hits.append("an environment variable forming a path")
         for pattern, literal in ((FS_CALL, re.compile(r'@?"(?!")')), (JOIN_CALL, ROOTED)):
             for m in pattern.finditer(line):
-                if _context(text, offset + m.start()) == "code" and literal.match(line[m.end():].lstrip()):
+                if _context(text, offset + m.start()) in RUNS and literal.match(line[m.end():].lstrip()):
                     hits.append("a literal path handed to System.IO")
         if hits:
             out.append((n, ", ".join(dict.fromkeys(hits))))
@@ -1880,6 +1975,32 @@ def self_test() -> int:
             "list is a failure naming it, never an empty list that refuses nothing",
             root_anchors(home.path) == ("A.Base", "B.Cwd(") and "repoint buildgraph.ONE_HOME" in refused(
                 lambda: root_anchors(bare.path)), str(root_anchors(home.path)))
+
+        # Review round 3 (kb/Work PB5230): a verbatim literal ending in an escaped quote (`@"x"""`) holds three quotes;
+        # the three-quote pattern took two such literals for one raw literal and hid every line of code between them.
+        q = '"'
+        verb = (f"static readonly Regex A = new(@{q}x{q * 3});\n"
+                f"var a = File.ReadAllText(Path.Combine(System.AppContext.BaseDirectory, {q}../../x.out{q}));\n"
+                "var b = File.ReadAllText(Path.Combine(TestRepo.Root, Name()));\n"
+                f"static readonly Regex D = new(@{q}y{q * 3});\n")
+        vb, vr = bypasses_in(verb, ANCHORS), reads_in(verb, tops)
+        arm("R3-1: code between two verbatim literals ending in an escaped quote is code: its bypass and its bare root "
+            "are found", [n for n, _ in vb] == [2] and vr == [(3, "")], f"{vb} {vr}")
+        forms = {  # source -> the context of each `X.Y` in it, in order
+            f"var m = {q * 3}\nX.Y\n{q * 3};\nX.Y;\n": ["string", "code"],
+            f"var m = $${q * 3}\n{{x}} {{{{X.Y}}}} X.Y\n{q * 3};\nX.Y;\n": ["hole", "string", "code"],
+            f"var m = @{q}a\nX.Y{q};\nX.Y;\n": ["string", "code"],
+            f"var s = $@{q}{q}{q} {{X.Y}}\nX.Y{q}; X.Y;\n": ["hole", "string", "code"],
+            f"var c = x == '{q}' ? 1 : 2; X.Y;\nvar e = '\\'' + X.Y;\n": ["code", "code"],
+            "/* X.Y\n X.Y */ X.Y; // X.Y\n": ["comment", "comment", "code", "comment"],
+            f"var s = ${q}a {{F({q}{{{{X.Y}}}}{q}, X.Y)}} b{q}; X.Y;\n": ["string", "hole", "code"],
+            f"var s = {q}{q}; var t = {q}a\\{q}X.Y{q}; X.Y;\n": ["string", "code"],
+        }
+        got_forms = {src: [_context(src, m.start()) for m in re.finditer(r"X\.Y", src)] for src in forms}
+        arm("R3-1: the one lexer follows every literal form: a raw literal and its `{{…}}` holes, a verbatim literal over "
+            "lines and its `\"\"`, an interpolated hole holding a string, a character literal's quote, a block comment, a "
+            "regular literal's escaped quote", got_forms == forms,
+            "\n".join(f"{s!r}: {g}" for s, g in got_forms.items() if g != forms[s]))
     finally:
         remove_tree(root)
     bad = [n for n, ok, _ in results if not ok]
