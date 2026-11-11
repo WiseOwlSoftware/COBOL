@@ -307,8 +307,8 @@ The ONE parser of both shells' command lines and location changes (`cd`, `pushd`
 `worktree_rm_allow.py`. It is the ONE model of a command line those rules read (kb/Work PB3198): heredoc bodies cut out
 at their own delimiter lines, and every place a shell takes a command line from walked as one (`$( … )`, backquote and
 PowerShell expressions and script blocks; `bash -c`, `pwsh -Command` / `-EncodedCommand`, `cmd /c`, `eval`,
-`Invoke-Expression`, also behind `timeout`/`env`/`xargs`/`wsl -e`), each step marked with how many substitutions enclose
-it, the directory it runs in, and a walk carrying what its own stdin holds. `test_shell_location.py` is its self-test.
+`Invoke-Expression`, also behind `timeout`/`env`/`xargs`/`wsl -e`), each step carrying its nesting depth (one level per enclosing
+substitution, group or payload), the directory it runs in, and a walk carrying what its own stdin holds. `test_shell_location.py` is its self-test.
 
 The fleet build guard that used to read it (`fleet_active_build.py`, a PreToolUse deny on `dotnet *` while a live
 subagent worked in the caller's tree, after a 60-agent fleet was invalidated by rebuilds under it on 2026-08-04) was

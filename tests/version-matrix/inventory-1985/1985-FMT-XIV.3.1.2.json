@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIV.3.1.2",
  "rule-digest": "b476d738b740",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#acceptMessageCountStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindAcceptMessageCount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ResolveCommunicationCd; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore",
  "test-ref": "conformance:cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-FMT-XIV_3_1_2",
+ "notes": "§1985:XIV.3.1.2 prints 'ACCEPT cd-name-1 MESSAGE COUNT' with MESSAGE an optional word and COUNT a key word. The grammar's acceptMessageCountStatement is ACCEPT cobolWord messageKeyword? COUNT, dispatched by StatementBinder to CommunicationBinder#BindAcceptMessageCount, which resolves cd-name-1 through ResolveCommunicationCd (an input CD, COBOL6170 otherwise) and binds the MCS count; the facility is ungated at 85. Probes at --std 85 (class b refusal half and degenerate forms; class e the statement against an unknown queue and a configured one): ACCEPT CD-IN MESSAGE (the witness) COBOL5506 'expected COUNT', MESSAGE COUNT FROM CONSOLE and MESSAGE COUNT COUNT COBOL2269, ACCEPT MESSAGE COUNT with no cd-name COBOL0901, an output CD and a non-CD operand COBOL6170; ACCEPT CD-IN MESSAGE COUNT, ACCEPT CD-IN COUNT and the statement inside IF run, printing ST=20 CT=000000 with no queue QUEUEA defined and ST=00 CT=000003 with WISEOWL_COBOL_MCS naming an mcs.json whose QUEUEA holds three messages. Classes a, c, d, f do not apply.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

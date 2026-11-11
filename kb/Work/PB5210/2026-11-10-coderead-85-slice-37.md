@@ -1,0 +1,5 @@
+**Addendum (2026-11-10): 1 more row from the 1985 code read, slice 37.** The code read held the relative CLOSE rule CONFORMS; its Opus refuter OVERTURNED it with this note's mechanism (`E:/COBOL-coord/scratch/coderead-85/out-pipe/slice-37-refute.json`, probe `refute-slice-37/c2/l1.cob`). kb/Work PB5094 still refuses a 1985 rule id in `inventory_rows`, so the row is listed here; this note claims it.
+
+- `1985-GR-VIII.4.2.4-2` - `§1985:VIII.4.2.4 GR2` (refuter: OVERTURNED to PARTIAL, harm: wrong-answer; checked with `scripts/spec/cite.py --check`): "The file is locked and cannot be opened again during this execution of this run unit."
+
+**Repro rerun.** The refuter's `l1.cob` (two relative SELECTs, RA DYNAMIC and RB RANDOM, both `ASSIGN TO "r2l1rel"`) with an INVALID KEY phrase added to its WRITE, which a relative WRITE with no USE procedure now needs at 85 (kb/Work PB5076): `E:/COBOL-coord/scratch/coderead-85/reprobe-85c/l1k.cob`. On the records-85c build of origin/main f2cf36fd15 it prints `LOCK RA 00`, `OPEN RB SAME PHYSICAL 00`, `READ RB 00 AAAA`, `OPEN I-O RA 38`: the file RA closed with lock is opened and read through RB. Expected: the OPEN of RB gives 38.

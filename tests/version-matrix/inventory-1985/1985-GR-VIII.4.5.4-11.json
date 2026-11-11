@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.5.4-11",
  "rule-digest": "073ef77ec68a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitNotPhrase; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
  "test-ref": "conformance:cases/VIII.4.5@1985-READ-STATEMENT/1985-GR-VIII_4_5_4-11",
+ "notes": "§1985:VIII.4.5.4 GR11: with no at end or invalid key condition 'The file position indicator is set and the I-O status associated with file-name-1 is updated', another exception runs the USE procedure and returns per USE, and with none the record (and the INTO move) is made available and NOT AT END / NOT INVALID KEY runs. RelativeConnector.ReadSequential/ReadRandom set _fpi on every success; KeyedIoEmitter.EmitRead runs the INTO move and SequentialIoEmitter.EmitNotPhrase only on a successful class and EmitUseHook for any other unsuccessful status. The 2023 carve-out (record operation conflict leaves the FPI unchanged) is unreachable at 85: FileRegistry.ImplementorDefaultSharing gives an 85 connector ALL OTHER with no record locking. Witness: dynamic NEXT INTO, random INTO, READ NEXT after random, 47 via USE. Probes: READ before OPEN 47 via USE, AT END and NOT AT END both skipped, next statement reached; READ NEXT INTO TE(KR) with KR 1 put record 3 in TE(3), the key updated before the subscript (GR8); INTO a group; KR PIC 9(18) keys 0 and 999999999999999999 give 23 INVALID KEY; READ NEXT after that 46 via USE (§1985:VIII.1.3.4 'The preceding READ statement was unsuccessful but did not cause an at end condition'); two connectors to one file both open I-O at 85 and both READ record 1 00 (at 2023 the second OPEN is 61).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
