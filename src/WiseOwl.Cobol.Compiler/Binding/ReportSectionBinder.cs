@@ -969,8 +969,13 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// places them), the widest region the group's own PRESENT WHEN clauses leave open. The screen is a syntax-rule
     /// screen: a line outside the widest region is outside every presentation's. A heading's last line is walked
     /// from the last line of the nearest OR PAGE heading ABOVE it (every page advance prints those first, GR6 c)),
-    /// so the d) 2./3./4. limits of a group below two OR PAGE headings sit below both of them (kb/Work PB2513).</para></summary>
-    private static (int Upper, int Lower) GroupLimits(ReportGroupModel g, ReportModel model)
+    /// so the d) 2./3./4. limits of a group below two OR PAGE headings sit below both of them (kb/Work PB2513).</para>
+    /// <para>⚖ EDITION (kb/Work PB5244): at COBOL-85 the report footing's f)/g) upper limit is "one greater than the final
+    /// LINE-COUNTER setting established by the page footing report group" (§1985:XIII.3.10.10 GR1 a.), and the page
+    /// footing's NEXT GROUP clause sets that LINE-COUNTER (<see cref="Cobol85FinalLineCounter"/>); from COBOL-2002 it is
+    /// the line after the page footing's last line (§2002:13.16.55.3 GR7 g)), the NEXT GROUP clause reaching only a report
+    /// footing of relative lines (§2002:13.16.35.3 GR5). <paramref name="year"/> is the edition.</para></summary>
+    private static (int Upper, int Lower) GroupLimits(ReportGroupModel g, ReportModel model, int year)
     {
         var controlHeadings = model.Groups.Where(x => x.Kind == ReportGroupKindModel.ControlHeading && x.ControlLevel >= 0).ToList();
         var orPage = controlHeadings.Where(x => x.OrPage).ToList();
@@ -1022,11 +1027,23 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             {
                 if (g.Lines is [{ NextPage: true }, ..]) return (model.Heading, model.PageLimit);
                 var pageFooting = model.Groups.FirstOrDefault(x => x.Kind == ReportGroupKindModel.PageFooting);
-                int below = pageFooting is not null && MinimumLastLine(pageFooting, model) is { } last ? last + 1 : model.Footing + 1;
+                int below = pageFooting is not null && MinimumLastLine(pageFooting, model) is { } last
+                    ? (year < 2002 ? Cobol85FinalLineCounter(pageFooting, last) : last) + 1
+                    : model.Footing + 1;
                 return (below, model.PageLimit);
             }
         }
     }
+
+    /// <summary>The final LINE-COUNTER setting a COBOL-85 page footing whose last line is <paramref name="last"/>
+    /// establishes (§1985:XIII.3.10.9 GR5): a. its absolute NEXT GROUP integer; b. that line plus its NEXT GROUP PLUS
+    /// integer; c. with no NEXT GROUP clause, that line.</summary>
+    private static int Cobol85FinalLineCounter(ReportGroupModel pageFooting, int last) => pageFooting.NextGroup switch
+    {
+        { Kind: WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.Absolute, Value: var v } => v,
+        { Kind: WiseOwl.Cobol.Runtime.IO.ReportNextGroupKind.Relative, Value: var v } => last + v,
+        _ => last,
+    };
 
     /// <summary>⛔ THE CENSUS OF A REPORT'S GROUPS (ISO §2023:13.18.57.3 SR13–SR15; kb/Work PB1299), asked once every CH/CF
     /// has its control level (<see cref="ControlLevelOf"/>, SR10/SR11):
@@ -1144,7 +1161,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 }
 
             if (!model.Paged) continue;
-            var (upper, lower) = GroupLimits(g, model);
+            var (upper, lower) = GroupLimits(g, model, Edition.DialectLevel);
             var reportedEntries = new HashSet<Core.ReportGroupEntryContext?>(ReferenceEqualityComparer.Instance);
             foreach (var l in g.Lines)
             {
