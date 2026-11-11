@@ -105,6 +105,7 @@ HELD_OPEN: dict[str, str] = {f"constructs/{c}": FORMAT_ONLY for c in (
     "inline-perform-after-2002",                             # §2023:14.9.28.2 Format 2
     "set-condition-repeated-2002",                           # §2023:14.9.39.2
     "use-without-procedure-2002", "use-without-after-2002",  # optional words of §2023:14.9.49.2
+    "rewrite-record-word-2002",                              # the optional word RECORD of §2023:14.9.35.2 (kb/Work PB5159)
 )}
 _COMMENT = "//"
 
