@@ -29,9 +29,13 @@
       *> digits (the comma is an insertion character): 0,120. X(4) is a
       *> four-digit counter moved as an unsigned integer: 0120. XXBX is
       *> three (B is an insertion character): 120 edited to "12 0".
-      *> 99 is two digits: 60 + 60 = 120 is a size error, so the item
-      *> is spaces. Fails with spaces in the first four items if the
-      *> capacity counts only the 9 symbols (ZZ9 read as one digit).
+      *> 99 is two digits: 60 + 60 = 120 is a size error. From 2002 the
+      *> item is then spaces; at COBOL-85 (kb/Work PB5248) there is no
+      *> size error indicator, §1985:XIII.3.19.4 GR4 moves the counter to
+      *> the item and its content after an overflow is undefined, so the
+      *> program does not display that item (columns 29 to 32). Fails with
+      *> spaces in the first four items if the capacity counts only the
+      *> 9 symbols (ZZ9 read as one digit).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1296T.
        ENVIRONMENT DIVISION.
@@ -100,7 +104,8 @@
        SHOW-LINE.
            ADD 1 TO WS-LN.
            IF WS-LINE NOT = SPACES
-               DISPLAY "LINE " WS-LN " [" WS-LINE(1:33) "]"
+               DISPLAY "LINE " WS-LN " [" WS-LINE(1:28)
+                   WS-LINE(33:1) "]"
            END-IF.
            MOVE SPACES TO WS-LINE.
            MOVE 0 TO WS-I.
