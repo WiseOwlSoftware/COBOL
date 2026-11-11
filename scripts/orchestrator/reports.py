@@ -61,8 +61,8 @@ WORKTREE = re.compile(r"([A-Za-z]:[\\/][^\s`*]*?[\\/]worktrees[\\/][A-Za-z0-9_.\
                       r"[A-Za-z0-9_.\-]+)")
 
 
-#: The combined `Base/Head: <base> / <head>` field (kb/Work PB5334: 17 reports on disk wrote it), read before either
-#: single field: its first sha is the base, its second the head.
+#: The combined `Base/Head: <base> / <head>` field (kb/Work PB5334: 6 reports on disk write it, as `Base/Head:` or
+#: `**Base / head:**`), read before either single field: its first sha is the base, its second the head.
 BASE_HEAD = re.compile(r"(?im)(?:^|[·|])[ \t]*\**base[ \t]*/[ \t]*head\b:?\**[ \t]*`?([0-9a-f]{7,40})\b`?[ \t]*/[ \t]*"
                        r"`?([0-9a-f]{7,40})\b")
 
