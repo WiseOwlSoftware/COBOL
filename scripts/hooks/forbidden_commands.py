@@ -37,7 +37,6 @@ import json
 import os
 import pathlib
 import re
-import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -146,6 +145,7 @@ _HOOK_CWD = pathlib.Path(data.get("cwd") or os.getcwd())
 
 
 def _git_out(cwd: pathlib.Path, *args: str) -> str | None:
+    import subprocess  # only a unit's push reaches git: importing it for every tool call cost ~11 ms
     try:
         r = subprocess.run(["git", "-C", str(cwd), *args], capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.SubprocessError):
@@ -164,18 +164,18 @@ def _repo_key(url: str) -> str:
     return str(pathlib.Path(u).resolve()).lower()
 
 
-_THIS_REMOTE = _git_out(_ROOT_DIR, "remote", "get-url", "origin")
-
-
 def _pushes_elsewhere(call) -> bool:
     """Whether a push publishes to a repository other than this one (or one this hook cannot determine)."""
     cwd = _HOOK_CWD if call.cwd is None else (_HOOK_CWD / call.cwd)
     positional = [a for a in call.args if not a.startswith("-") and ">" not in a and "<" not in a]
     remote = positional[0] if positional else "origin"
     url = remote if re.search(r"[:/\\]", remote) else _git_out(cwd, "remote", "get-url", remote)
-    if call.cwd is None or url is None or _THIS_REMOTE is None:
+    # this repository's own remote is asked only here, inside a unit and for a push: asked at import it cost every
+    # tool call a git process (0.070 s became 0.725 s median, kb/Work PB5234)
+    this_remote = _git_out(_ROOT_DIR, "remote", "get-url", "origin")
+    if call.cwd is None or url is None or this_remote is None:
         return True
-    return _repo_key(url) != _repo_key(_THIS_REMOTE)
+    return _repo_key(url) != _repo_key(this_remote)
 
 
 if os.environ.get("COBOL_COORD_DIR"):
