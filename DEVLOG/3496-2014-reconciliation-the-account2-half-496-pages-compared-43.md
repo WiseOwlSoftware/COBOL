@@ -1,4 +1,4 @@
-## 2014 reconciliation, the account2 half: 496 pages compared, 43 discrepancies confirmed
+## Entry 3496 — 2026-11-11 14:00 PST — 2014 reconciliation, the account2 half: 496 pages compared, 43 discrepancies confirmed
 
 The first 2014 reconciliation: the seven runs of the `account2` half of `2014/ranges.json` (account2-r01 to r07) ran
 in parallel through `.claude/workflows/spec-reconcile.js` on Opus at effort medium, as the 2002 runs did (workflows
@@ -11,3 +11,4 @@ merged numeric-edited sub-rows (page 559), flattened operand subscripts in ADD (
 written without their superscripts (page 166). Page 219 holds a Greek capital iota in place of a Latin `I` ("If"),
 which breaks exact text matching. Three agent files were written CRLF and rewritten LF before commit (kb/Work PB5330).
 This change lands the runs' compare and verify files only; the ledger is written when the round closes (README step 5).
+
