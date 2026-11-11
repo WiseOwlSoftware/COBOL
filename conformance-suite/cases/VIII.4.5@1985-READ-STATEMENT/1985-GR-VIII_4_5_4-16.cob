@@ -5,6 +5,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Each WRITE carries INVALID KEY: the file has no USE AFTER
+      *> STANDARD EXCEPTION procedure, so §1985:VIII.4.9.3 SR3
+      *> requires the phrase (kb/Work PB5076).
       *> §1985:VIII.4.5.4 GR16 (THE READ STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the
       *> lines its .out holds, the outcome the rule requires. Placed
@@ -37,7 +40,8 @@
        MAIN-PARA.
            OPEN OUTPUT LONG-FILE.
            MOVE "ABCDEFGHIJKLMNOPQRST" TO LONG-REC.
-           WRITE LONG-REC.
+           WRITE LONG-REC
+               INVALID KEY DISPLAY "INVALID KEY".
            CLOSE LONG-FILE.
            DISPLAY "WRITTEN " WS-STAT-W.
            OPEN INPUT SHORT-FILE.
