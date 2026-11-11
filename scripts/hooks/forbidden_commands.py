@@ -138,19 +138,25 @@ for call in GIT_CALLS:
 # (2026-11-08..10), all 31 refusals were a unit pushing its own work branch of this repository, which CLAUDE.md rule 7 asks
 # of every checkpoint. So the repository is now judged by what the push publishes to, the remote's URL, never by a folder
 # name: a scratch clone of another repository under `E:/COBOL-coord` (whose name starts with this repo's) is another
-# repository. The remote is the push's first positional word (`origin` when it names none), a URL or path when written
-# as one; its URL is asked of git in the directory the push runs in (`GitCall.cwd`). A push whose repository cannot be
+# repository. The destination is resolved by `_push_urls` (its docstring lists what it reads): the first positional
+# word or `--repo`, else the branch's `pushRemote`, `remote.pushDefault`, the branch's remote, `origin`; a remote's PUSH
+# URLs are asked of git in the directory the push runs in (`GitCall.cwd`), and EVERY one must be this repository. A push
+# redirected by `--git-dir`, `GIT_DIR`-style variables in the line or a `url.*.insteadOf` is refused (`_redirected`;
+# kb/Work PB5269). A push whose repository cannot be
 # determined (an unknown directory, a git that does not answer) is refused: inside a unit the rule fails closed.
 _HOOK_CWD = pathlib.Path(data.get("cwd") or os.getcwd())
 
 
-def _git_out(cwd: pathlib.Path, *args: str) -> str | None:
+def _git_out(cwd: pathlib.Path, *args: str, config: tuple[str, ...] = ()) -> list[str] | None:
+    """The lines git prints for `git -C cwd [-c k=v ...] args`; None when git fails or prints nothing."""
     import subprocess  # only a unit's push reaches git: importing it for every tool call cost ~11 ms
     try:
-        r = subprocess.run(["git", "-C", str(cwd), *args], capture_output=True, text=True, timeout=10)
+        r = subprocess.run(["git", "-C", str(cwd), *[w for kv in config for w in ("-c", kv)], *args],
+                           capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.SubprocessError):
         return None
-    return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else None
+    lines = [ln.strip() for ln in r.stdout.splitlines()] if r.returncode == 0 else []
+    return [ln for ln in lines if ln] or None
 
 
 def _repo_key(url: str) -> str:
@@ -164,18 +170,79 @@ def _repo_key(url: str) -> str:
     return str(pathlib.Path(u).resolve()).lower()
 
 
+# `git push`'s options that take their value as the NEXT word (`--repo=x` spells it in the same word); every other option
+# is a flag or spells its value with `=` (git-push(1))
+_PUSH_VALUE_OPTIONS = {"--repo", "--receive-pack", "--exec", "-o", "--push-option"}
+
+
+def _push_repository(args: tuple[str, ...]) -> str | None:
+    """The repository a `git push` names: its first positional word, which git prefers (measured: `git push
+    --repo=origin ../b.git` pushes to b.git), else `--repo=X` / `--repo X`; None when it names none (the default push
+    remote is then used)."""
+    repo = positional = None
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a.startswith("--repo="):
+            repo = a[len("--repo="):]
+        elif a in _PUSH_VALUE_OPTIONS:
+            if a == "--repo" and i + 1 < len(args):
+                repo = args[i + 1]
+            i += 1
+        elif not a.startswith("-") and ">" not in a and "<" not in a and positional is None:
+            positional = a
+        i += 1
+    return positional if positional is not None else repo
+
+
+# git's own inputs that move or rewrite a push's destination out of reach of the remote's configuration: a repository
+# chosen by `--git-dir` or the environment (GIT_DIR, GIT_COMMON_DIR, GIT_CONFIG*, which can carry `url.*.insteadOf`), and
+# a URL rewrite given with `-c`. A unit has no use for any of them, so a push that carries one is refused outright.
+_GIT_ENV_WORD = re.compile(r"^(?:\$?env:)?GIT_(?:DIR|COMMON_DIR|CONFIG\w*)(?:=|$)", re.I)
+_URL_REWRITE = re.compile(r"^url\..*\.(?:push)?insteadof=", re.I)
+
+
+def _redirected(call) -> bool:
+    """Whether the push's git was pointed elsewhere by `--git-dir`, a `-c url.*.insteadOf` / `pushInsteadOf`, or an
+    environment variable set anywhere in the command line (`GIT_DIR=x git push`, `export GIT_DIR=x; git push`,
+    `$env:GIT_DIR = 'x'; git push`). The hook's own environment is the push's too, and the git processes this hook starts
+    inherit it, so what they read is what the push would read."""
+    return (any(o.startswith("--git-dir") or _URL_REWRITE.match(o) for o in call.options)
+            or any(_GIT_ENV_WORD.match(w) for st in STEPS for w in st.words))
+
+
+def _push_urls(call, cwd: pathlib.Path) -> list[str] | None:
+    """The URLs a `git push` publishes to, as far as this hook resolves them: the first positional word, else `--repo`,
+    else the current branch's `pushRemote`, `remote.pushDefault`, the branch's own remote, `origin`. A remote name is read
+    to its push URLs by `git remote get-url --push --all` (`remote.<name>.pushurl` over `url`, `url.*.insteadOf` and
+    `pushInsteadOf` applied); a URL or path is its own, and None (refused) when the repository configures a URL rewrite,
+    which git would apply to it. The call's own `-c k=v` options reach git. Not resolved, and refused instead:
+    `--git-dir` and the environment (`_redirected`). None when it cannot be determined."""
+    config = tuple(o for prev, o in zip(("",) + call.options, call.options) if prev == "-c")
+    repo = _push_repository(call.args)
+    if repo is None:
+        branch = (_git_out(cwd, "symbolic-ref", "--short", "-q", "HEAD", config=config) or [""])[0]
+        keys = ([f"branch.{branch}.pushremote"] if branch else []) + ["remote.pushdefault"] \
+            + ([f"branch.{branch}.remote"] if branch else [])
+        repo = next((v[0] for k in keys if (v := _git_out(cwd, "config", "--get", k, config=config))), "origin")
+    if re.search(r"[:/\\]", repo):
+        if _git_out(cwd, "config", "--get-regexp", r"^url\..*\.(push)?insteadof$", config=config):
+            return None
+        return [repo]
+    return _git_out(cwd, "remote", "get-url", "--push", "--all", repo, config=config)
+
+
 def _pushes_elsewhere(call) -> bool:
     """Whether a push publishes to a repository other than this one (or one this hook cannot determine)."""
-    cwd = _HOOK_CWD if call.cwd is None else (_HOOK_CWD / call.cwd)
-    positional = [a for a in call.args if not a.startswith("-") and ">" not in a and "<" not in a]
-    remote = positional[0] if positional else "origin"
-    url = remote if re.search(r"[:/\\]", remote) else _git_out(cwd, "remote", "get-url", remote)
+    if call.cwd is None or _redirected(call):
+        return True
+    urls = _push_urls(call, _HOOK_CWD / call.cwd)
     # this repository's own remote is asked only here, inside a unit and for a push: asked at import it cost every
     # tool call a git process (0.070 s became 0.725 s median, kb/Work PB5234)
     this_remote = _git_out(_ROOT_DIR, "remote", "get-url", "origin")
-    if call.cwd is None or url is None or this_remote is None:
+    if urls is None or this_remote is None:
         return True
-    return _repo_key(url) != _repo_key(this_remote)
+    return any(_repo_key(u) != _repo_key(this_remote[0]) for u in urls)
 
 
 if os.environ.get("COBOL_COORD_DIR"):
