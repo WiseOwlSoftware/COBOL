@@ -182,10 +182,11 @@ internal static class ProcessObserver
                 // Read before the kill: what the process itself had used, and what the host was doing meanwhile.
                 string used = OwnProcessorTime(proc);
                 string host = HostLoad.Describe(hostAtStart, HostLoad.Sample());
+                string flush = HostLoad.DurableFlushLine(psi.WorkingDirectory);
                 try { proc.Kill(entireProcessTree: true); } catch { /* already gone */ }
                 // ⛔ The partial stdout is DELIBERATELY NOT RETURNED as output. Handing a caller a truncated
                 // report is what turned a contention timeout into a golden mismatch in the first place.
-                return ReportKilled(proc.Id, budget.Ms, $"{used}; {host}", proc.WaitForExit, SurvivingProcess.WaitForExitById);
+                return ReportKilled(proc.Id, budget.Ms, $"{used}; {host}; {flush}", proc.WaitForExit, SurvivingProcess.WaitForExitById);
             }
             return new ProcessObservation(ProcessOutcome.Completed, proc.ExitCode,
                 outTask.Result, errTask.Result, "");

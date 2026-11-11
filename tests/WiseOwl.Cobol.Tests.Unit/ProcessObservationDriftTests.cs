@@ -522,6 +522,7 @@ public sealed class ProcessObservationDriftTests
             () => ProcessObserver.ObserveOrThrow(RunsForever(), budget: OneSecond));
         Assert.Contains("budget  : 1000 ms for a probe (1 unit(s) of 1000 ms", ex.Message, StringComparison.Ordinal);
         Assert.Contains("of processor time itself", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("durable flush on the run volume:", ex.Message, StringComparison.Ordinal);
         Assert.Contains($"host: {Environment.ProcessorCount} logical processor(s)", ex.Message, StringComparison.Ordinal);
         if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())
             Assert.Contains("% busy across the attempt", ex.Message, StringComparison.Ordinal);
@@ -540,6 +541,32 @@ public sealed class ProcessObservationDriftTests
         Assert.Contains("processor use not readable on this host", HostLoad.Describe(null, null), StringComparison.Ordinal);
         if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())
             Assert.NotNull(HostLoad.Sample());
+    }
+
+    /// <summary>The flush line's arithmetic (the median and the worst of the probes, in milliseconds) and its honest arms:
+    /// no probes, and a directory that cannot be probed, say so instead of reporting a number (kb/Work PB5147).</summary>
+    [Fact]
+    public void TheDurableFlushLine_IsTheMedianAndWorstOfTheProbes_OrSaysItWasNotProbed()
+    {
+        Assert.Equal("durable flush on the run volume: median 30.0 ms, worst 160.0 ms of 3 probes",
+            HostLoad.DescribeFlushes([TimeSpan.FromMilliseconds(160), TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(30)]));
+        Assert.Equal("durable flush on the run volume: not probed", HostLoad.DescribeFlushes([]));
+        Assert.Contains("not probed (", HostLoad.DurableFlushLine(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "absent")),
+            StringComparison.Ordinal);
+    }
+
+    /// <summary>A non-observation's line carries the flush time of the run volume, and the probe file it makes is gone.</summary>
+    [Fact]
+    public void TheDurableFlushProbe_TimesFlushesOnTheDirectory_AndLeavesNothingBehind()
+    {
+        string dir = ScratchDirectory.Create("WiseOwlCobol_FlushProbe_");
+        try
+        {
+            string line = HostLoad.DurableFlushLine(dir);
+            Assert.Contains($"of {HostLoad.FlushProbes} probes", line, StringComparison.Ordinal);
+            Assert.Empty(Directory.GetFileSystemEntries(dir));
+        }
+        finally { ScratchDirectory.Remove(dir); }
     }
 
     /// <summary>A non-observation names the command a caller built with <c>ArgumentList</c>: before PB3108 the log read a
