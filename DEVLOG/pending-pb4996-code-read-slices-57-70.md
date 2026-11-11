@@ -7,7 +7,7 @@ The operator's Opus pipeline on account 2 read slices 57-70 (139 rules) and refu
 
 That is 21 overturned of 156 refuted, 13 in 100. `coderead-85/merge-pipe-2.py` takes the slice list as an argument and never records a closing verdict that has no refuter case yet. `record_verdicts.py --edition 1985` wrote the 116 upheld verdicts, all with their tests, and the 1985 GAP went from 606 (records-85c) to 490. The 19 doubtful verdicts are held in `coderead-85/held-4.json`. Seven of them, in slice 66, share one question: which CD a duplicated cd-name references.
 
-There are 59 non-conforming rules. I reran every repro on a build of origin/main f2cf36fd15. Four rows no longer reproduce (PB5070 and PB5084 fixed them) and stay at GAP. Seven rows belong to open notes, each named in an addendum: PB5240, PB5071, PB5250 and PB5242. The other 48 rows are in 27 new notes, PB5272 to PB5298, one per root:
+There are 59 non-conforming rules. I reran every repro on a build of origin/main f2cf36fd15. Four rows no longer reproduce (PB5070 and PB5084 fixed them) and stay at GAP. Eight rows belong to open notes, each named in an addendum: PB5240, PB5071, PB5250, PB5242 and PB5211. The other 47 rows are in 26 new notes, PB5272 and PB5274 to PB5298, one per root (PB5273 duplicated PB5211 and was deleted before landing):
 - PB5278: the 2002 class rules applied to RECEIVE and SEND at 85.
 - PB5279: RECEIVE INTO a subscript the CD update changes.
 - PB5289: P-scaled integers and the other SEND operand screens.
