@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XI.3.2.2",
  "rule-digest": "1a6e5ebe00fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sortMergeDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#recordClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataRecordsClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataRecordsClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
  "test-ref": "conformance:cases/XI.3.2@1985-SORT-MERGE-FILE-DESCRIPTION-ENTRY/1985-FMT-XI_3_2_2",
+ "notes": "§1985:XI.3.2.2 prints SD file-name-1 [RECORD {CONTAINS integer-1 CHARACTERS | IS VARYING IN SIZE [[FROM integer-2] [TO integer-3] CHARACTERS] [DEPENDING ON data-name-1] | CONTAINS integer-4 TO integer-5 CHARACTERS}] [DATA {RECORD IS | RECORDS ARE} {data-name-2} ...] . The grammar's sortMergeDescriptionClause admits exactly recordClause and dataRecordsClause (any order, each once: COBOL2423), ClosedFormatPass.VisitUnrecognizedClause refuses anything else (COBOL1970), VersionConformancePass.VisitDataRecordsClause gates DATA RECORDS only from 2002 (COBOL0873 at 2002, accepted at 85) and VisitRecordClause refuses the 2023 BYTES spelling at 85. Probed at 85 (classes a, b, c, d): no clause, CONTAINS 10, CONTAINS 6 TO 10, VARYING, VARYING TO 10 DEPENDING WS-LEN, VARYING FROM 6 TO 10 DEPENDING ON WS-LEN over a record holding OCCURS 0 TO 4 DEPENDING ON (RETURN sets WS-LEN to 06 and 08), the witness's CONTAINS 5 with DATA RECORD IS, and DATA RECORDS ARE with two records all sort and print; BYTES COBOL0900, LABEL, BLOCK, CODE-SET, IS EXTERNAL and IS GLOBAL COBOL1970, each clause twice COBOL2423, DATA RECORD IS with no operand COBOL0001, CONTAINS 0 COBOL2386. A DATA RECORD naming no record (DATA RECORD IS NOPE) compiles: that is §1985:VII.3.5.3 SR1's operand rule, already kb/Work PB5070 (open), not the format.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

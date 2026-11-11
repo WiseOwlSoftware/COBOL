@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.4.3.3-2",
  "rule-digest": "a7bfb7e7aca4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportGenerateNeedsControl; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ReportGenerateDetailCount; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupCensus",
  "test-ref": "conformance:cases/XIII.4.3@1985-GENERATE-STATEMENT/1985-SR-XIII_4_3_3-2",
+ "notes": "§1985:XIII.4.3.3 SR2: report-name-1 \"may be used only if the referenced report description contains: a. A CONTROL clause, and b. Not more than one detail report group, and c. At least one body group.\" BindGenerate's report-name arm refuses a report with no CONTROL clause (COBOL0899, every edition) and, gated on DialectLevel < 2002, one with more than one detail group (COBOL6823, citing the twin §1985:XIII.3.20.3 SR6); item c is ScreenReportGroupCensus's universal body-group refusal (COBOL2749), which 1985 also states for every report (§1985:XIII.3.20.3 SR7). Probed at 85: CONTROL K with one detail and a CF runs summary-only (CF-03, CF-02, no detail lines); no CONTROL clause COBOL0899 on each GENERATE RPT; two details COBOL6823 at 85 and accepted at 2002 (the 2002 lift); RH/PH only COBOL2749; CONTROL FINAL with only a CF FINAL, a CH only and a CF only (no detail) all run; GENERATE with no operand and with two report-names syntax errors; GENERATE DET OF RPT runs. Witness: GENERATE RPT on a report with no CONTROL clause is refused.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

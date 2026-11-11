@@ -3,7 +3,7 @@
 
 One restartable, edition-aware tool replaces the five scripts of the 2023 conversion (convert_pdf, fix_pages, retry_failed,
 build_links, validate_doc), which had a retired checkout's paths, a retired model and one synchronous call per page.
-`--edition {1985,2002,2023}` names the PDF and the Markdown (spec_pdf.EDITIONS); `--state DIR` holds the run.
+`--edition {1985,2002,2014,2023}` names the PDF and the Markdown (spec_pdf.EDITIONS); `--state DIR` holds the run.
 
     python scripts/spec/transcribe_pdf.py submit   --edition 1985 --state DIR --api-key-file KEY [--api-account NAME] [--max-usd N]
     python scripts/spec/transcribe_pdf.py status   --edition 1985 --state DIR [--api-key-file KEY]
@@ -39,7 +39,7 @@ recorded in `local.json` with the error and the model, the run goes on, `status`
 nonzero. `pages <list> --local ANOTHER` retries them. `check` compares a
 page with the PDF's text layer (word recall and precision) and prints numbers only, never page text.
 
-TEXT-LAYER BACKEND (kb/Work PB4813). `text [PAGES]` converts pages of a PDF with a true text layer (2002) from that layer,
+TEXT-LAYER BACKEND (kb/Work PB4813). `text [PAGES]` converts pages of a PDF with a true text layer (2002, 2014) from that layer,
 with no model: text_layer.py reads the words with their fonts and positions and writes the headings, rules, notes, lists,
 tables and code the page sets, the standard's defects kept as printed. A general format is never typed from text: the text
 layer places it (text_layer.FIGURE_MARK: page, figure, its rows' tops) and the vector arm draws it there from the page's
@@ -113,6 +113,7 @@ LOCAL_ERRORS = (OSError, http.client.HTTPException, ValueError)
 EDITION_NAMES: dict[int, str] = {
     1985: "ANSI X3.23-1985, COBOL",
     2002: "ISO/IEC 1989:2002, COBOL",
+    2014: "ISO/IEC 1989:2014, COBOL",
     2023: "ISO/IEC 1989:2023, COBOL",
 }
 
@@ -163,6 +164,15 @@ PARTS: dict[int, list[tuple[int, str]]] = {
         (23, "Clauses 1 to 16"),
         (676, "Annexes A to H"),
         (858, "Bibliography and index"),
+    ],
+    # Measured from the 2014 PDF's pages (kb/Work PB5268): the INCITS cover (with the CODASYL acknowledgment on page 2)
+    # and the ISO front matter to the Introduction (roman folios), the sixteen clauses (folio 1 on PDF page 25), the
+    # seven annexes (Annex A on page 761, Annex G on 925), then the bibliography (page 926) and the index (927).
+    2014: [
+        (1, "Front matter: covers, contents, foreword and introduction"),
+        (25, "Clauses 1 to 16"),
+        (761, "Annexes A to G"),
+        (926, "Bibliography and index"),
     ],
 }
 

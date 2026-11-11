@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.2.5.3-1",
  "rule-digest": "c2dba2371642",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#MaxLength; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#CharacterViolation; src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#CheckWord",
  "test-ref": "conformance:cases/X.2.5@1985-END-PROGRAM-HEADER/1985-SR-X_2_5_3-1",
+ "notes": "§1985:X.2.5.3 SR1: the END PROGRAM program-name 'must conform to the rules for forming a user-defined word', i.e. §1985:IV.4.2.2.1 'not more than 30 characters', letters, digits and the hyphen, the hyphen not first or last, at least one letter, no reserved word. endProgramHeader takes programName (cobolWord), so a literal or an all-digit name is a parse refusal (COBOL5506); VersionConformancePass ParseArm.VisitCobolWord applies CobolWordRule.MaxLength(1985)=30 (COBOL1567) and the reserved-word funnel (COBOL0901, ProgramNameContext is a provable user-word position); WordCharacterScreen.CheckWord refuses the underscore and extended letters below 2002 (COBOL0900) and CharacterViolation an edge hyphen (COBOL2773). Probes at --std 85 (classes b, c): 31-char name both ends COBOL1567; END PROGRAM A_B COBOL0900 (accepted at 2023); MOVE COBOL0901; 123 and \"ABC\" COBOL5506; ABC- and -ABC COBOL2773; CAFÉ COBOL0900; END PROGRAM. COBOL0001; 1A and a 30-char name run. The witness's 31-char end-marker name gets COBOL1567 and COBOL2793.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

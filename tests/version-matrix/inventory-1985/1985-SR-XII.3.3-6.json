@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XII.3.3-6",
  "rule-digest": "beb47f544083",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#MaxTextWordLength",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-SR-XII_3_3-6",
+ "notes": "§1985:XII.3.3 SR6: \"The implementor must allow a length from 1 through 322 characters for a text word within pseudo-text.\" ScreenOperandPair refuses (COBOL2572) only a pseudo-text text word longer than MaxTextWordLength (65,535) at every edition, so 1 through 322 are allowed at 85 and the larger 2023 bound is the implementor's latitude above the 1985 minimum. Witness: a 322-character continued word and a 322-character literal as pseudo-text-1 (A, B, C). Probes (classes a, b, f): a 1-, 322-, 323- and 65,535-character continued word compile and run (A); 65,536 draws COBOL2572.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

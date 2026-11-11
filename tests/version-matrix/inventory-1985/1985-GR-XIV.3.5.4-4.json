@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-4",
  "rule-digest": "81a008da3d72",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitReceive; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindReceive",
  "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-4",
+ "notes": "§1985:XIV.3.5.4 GR4: when the MCS makes data available \"the NO DATA phrase, if specified, is ignored and control is transferred to the end of the RECEIVE statement or, if the WITH DATA phrase is specified, to imperative-statement-2\", explicit transfers of control obeying their own rules. Receive answers DataAvailable true when it filled identifier-1, and EmitReceive renders the WITH DATA block in the if (DataAvailable) arm and NO DATA in the else arm, with no edition arm (85 reaches it directly). The witness runs WITH DATA and then the next statement. Probes at --std 85 (classes b, d, f): WITH DATA GO TO AFTER-1 skipped the next statement; WITH DATA PERFORM SHOW-2 2 TIMES ran twice and fell to the end; WITH DATA ADD 1 TO K END-RECEIVE gave K=1; a NO DATA-only RECEIVE with data available displayed nothing from NO DATA and continued (QB2); WITH DATA written before NO DATA is refused by the format order.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.4.4-19",
  "rule-digest": "e4dfdd8a9184",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpenScope; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
  "test-ref": "conformance:cases/VIII.4.4@1985-OPEN-STATEMENT/1985-GR-VIII_4_4_4-19",
+ "notes": "§1985:VIII.4.4.4 GR19: \"If the execution of the OPEN statement is unsuccessful, the physical file is not affected\" and then, in order, a. the I-O status is set and b. any applicable USE AFTER EXCEPTION procedure runs. EmitOpen emits, per file-name, FileConnector.Open (which returns 35/37/39/41 before touching the medium), then EmitStoreFileStatus (a), then EmitUseHook (b) inside EmitOpenScope, so a mode-scoped USE sees the being-opened mode (§1985:VIII.4.8.4 GR5) and a file-name USE takes precedence (GR4); the 85 compile reaches the same emitter. Probed at 85 on relative SEQUENTIAL/DYNAMIC/RANDOM files: absent file OPEN EXTEND/I-O/INPUT 35 with the file-name USE seeing 35 and no file created; I-O on an absent dynamic file runs the I-O USE, INPUT with no INPUT USE runs none; OPEN INPUT RA RB fails each separately; OPTIONAL EXTEND absent 05 and creates the file (GR15); OPEN OUTPUT and I-O while open 41 with the OUTPUT/I-O USE run and records ONE/TWO intact; I-O relative over a sequential file 39, the sequential data intact; READ after a failed OPEN 47, CLOSE 42; no FILE STATUS and no USE is a fatal stop (implementor's critical-error action, GR6). Edition arms at 85: >>TURN COBOL0900, USE AFTER EXCEPTION CONDITION COBOL0877/0878, USE without AFTER COBOL0900, EXTEND on random access COBOL2372. Witness: five failed OPENs, an OPEN-while-open and a CLOSE WITH LOCK reopen, each USE seeing the status already set.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

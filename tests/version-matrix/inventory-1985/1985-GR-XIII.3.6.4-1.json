@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.3.6.4-1",
  "rule-digest": "0d6189182a30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Screen85CodeLiteral; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SetCode; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#EvaluateCode; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine",
  "test-ref": "conformance:cases/XIII.3.6@1985-CODE-CLAUSE/1985-GR-XIII_3_6_4-1",
+ "notes": "§1985:XIII.3.6.4 GR1: \"literal-1 is automatically placed in the first two character positions of each report writer logical record\", and GR2 keeps those positions out of the print line and in the record size. BindCodeClause/Screen85CodeLiteral bind the two-character literal at 85 (refusing other lengths and identifiers), EmitReportConstruction passes it to ReportWriter.SetCode, and PresentLine composes every record as _code + line.Compose(), so COLUMN 1 lands in record position 3. Probed at 85 with two reports in one file (CODE \"AB\" and \"CD\") through RH, PH, details, CF, PF and a page advance: every record written begins with its own report's code (ABRA-RH, CDRB-DT, AB  CF-A for COLUMN 3) and a 20-character line fills RECORD CONTAINS 22; blank spacing lines carry no record (record structure implementor-defined, §1985:XIII.3.2.4 GR2). Refusals: CODE on one report only COBOL2713 (SR2), \"A\", \"ABC\", \"\", 12, SPACES and an identifier COBOL2713, CODE twice COBOL2423. Lead for the format row: CODE IS \"AB\" is accepted at 85, but the printed §1985:XIII.3.6.2 (page 596 rendered) is CODE literal-1 with no IS; BindCodeClause's comment misquotes it as CODE IS literal-1. Witness: a report record read back as a plain file starts with AB.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

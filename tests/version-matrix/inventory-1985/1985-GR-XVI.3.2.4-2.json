@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.3.2.4-2",
  "rule-digest": "103678bab970",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitFields; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitGoTo",
  "test-ref": "conformance:cases/XVI.3.2@1985-SEGMENT-NUMBERS/1985-GR-XVI_3_2_4-2",
+ "notes": "§1985:XVI.3.2.4 GR2: \"Segments with segment-number 0 through 49 belong to the fixed portion of the object program\", the portion \"logically treated as if it were always in memory\" (§1985:XVI.1.4.2); the level-1 contiguity sentence binds level 1 only. At 85 the number is admitted (VisitSectionDefinition) and every segment is resident, so a 0-49 segment always keeps its last-used state (AlterSwitchEmitter instance fields). The witness ALTERs segment 10 from segment 0 and re-enters segment 49: S49 FIRST, S10 ALTERED, S49 LATER. Probes: r4a/r4b/r4c/r4d segments 1, 9, 20, 48, 49 each re-entered after an independent segment (60 or 99) LATER; r6c fixed sections intermixed with 70 accepted, SX ALTERED; class e r7b (declarative SECTION 49 on a RELATIVE file, failed OPEN then READ) DECL 35 / DECL 47; class c and b as on 1985-GR-XVI.3.2.4-1; class f r5k 18-digit number refused (host limit COBOL2427).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

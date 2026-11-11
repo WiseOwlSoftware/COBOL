@@ -3,7 +3,7 @@
 
 WHY THIS EXISTS. `specs/ISO_COBOL_2023.md` is published; the PDF it was transcribed from is NOT. Two things therefore
 have to be true of the Markdown before it leaves the private submodule, and neither is guaranteed by any other
-gate (`--edition {1985,2002,2023}`, default 2023, names the transcription; what is edition-specific, the stamp shapes
+gate (`--edition {1985,2002,2014,2023}`, default 2023, names the transcription; what is edition-specific, the stamp shapes
 and the acknowledgment's wording, is keyed by edition below, and an edition with no row exits naming the table):
 
   1. **It carries no per-copy licence stamp.** Every page of the source PDF is stamped by the reseller with the
@@ -45,7 +45,7 @@ printed page, and needs the PDF to do it. This check needs to run in the public 
 absent by design — so it verifies presence and structure only, and defers fidelity to the other gate. The two are
 complements, not duplicates.
 
-    python scripts/spec/verify_publishable.py [--edition 1985|2002|2023]
+    python scripts/spec/verify_publishable.py [--edition 1985|2002|2014|2023]
     python scripts/spec/verify_publishable.py --self-test        # planted texts: no PDF, no tracked tree
 """
 from __future__ import annotations
@@ -77,6 +77,25 @@ REPO = spec_pdf.REPO
 #: the 1985 line's opening and licence-terms sentences, a store order reference whose number is longer than six digits
 #: (so 2023's `X_` shape, which needs a word boundary after six, misses it), and 2023's download date. Each shape matches
 #: that line on every page and no other line of the PDF.
+#: 2014: read from the 2014 PDF's own text layer (kb/Work PB5268). It prints one stamp line, the same on all 952 pages, of
+#: the 2002 line's shape: the reseller's opening sentence, `Licensed to` and a name, a store order reference whose number
+#: has seven digits, a download date and the two licence-terms sentences. Each shape of `_INCITS_STORE_STAMP` and
+#: `_INCITS_STORE_TREE` matches that line on every one of the 952 pages and no other line of the 2014 PDF (measured
+#: 2026-11-11), so the two editions name the one shape set measured on both PDFs; neither row falls back to the other's.
+_INCITS_STORE_STAMP: list[tuple[str, str]] = [
+    (r"Copyright by INCITS", "per-copy licence stamp"),
+    (r"Licensed to\b", "per-copy licence stamp"),
+    (r"\border\s*#", "reseller order reference"),
+    (r"\bX_\d{6,}\b", "reseller order number"),
+    (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
+    (r"Single user licen[cs]e", "per-copy licence stamp"),
+    (r"Copying and networking", "per-copy licence stamp"),
+]
+_INCITS_STORE_TREE: list[tuple[str, str]] = [
+    (r"\bX_\d{6,}\b", "reseller order number"),
+    (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
+    (r"Licensed to [A-Z][a-z]+ [A-Z][a-z]+", "per-copy licence stamp naming a purchaser"),
+]
 FORBIDDEN: dict[int, list[tuple[str, str]]] = {
     1985: [
         (r"Licensed to\b", "per-copy licence stamp"),
@@ -85,15 +104,8 @@ FORBIDDEN: dict[int, list[tuple[str, str]]] = {
         (r"Single user licen[cs]e", "per-copy licence stamp"),
         (r"Copying and networking", "per-copy licence stamp"),
     ],
-    2002: [
-        (r"Copyright by INCITS", "per-copy licence stamp"),
-        (r"Licensed to\b", "per-copy licence stamp"),
-        (r"\border\s*#", "reseller order reference"),
-        (r"\bX_\d{6,}\b", "reseller order number"),
-        (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
-        (r"Single user licen[cs]e", "per-copy licence stamp"),
-        (r"Copying and networking", "per-copy licence stamp"),
-    ],
+    2002: _INCITS_STORE_STAMP,
+    2014: _INCITS_STORE_STAMP,
     2023: [
         (r"Licensed to\b", "per-copy licence stamp"),
         (r"Single user licen[cs]e", "per-copy licence stamp"),
@@ -111,11 +123,8 @@ TREE_FORBIDDEN: dict[int, list[tuple[str, str]]] = {
     1985: [
         (r"\border\s*#\s*[A-Za-z_]*\d{4,}", "reseller order number"),
     ],
-    2002: [
-        (r"\bX_\d{6,}\b", "reseller order number"),
-        (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
-        (r"Licensed to [A-Z][a-z]+ [A-Z][a-z]+", "per-copy licence stamp naming a purchaser"),
-    ],
+    2002: _INCITS_STORE_TREE,
+    2014: _INCITS_STORE_TREE,
     2023: [
         (r"\bX_\d{6}\b", "reseller order number"),
         (r"Downloaded \d{1,2}/\d{1,2}/\d{4}", "per-copy download date"),
@@ -186,6 +195,19 @@ REQUIRED: dict[int, list[tuple[str, str]]] = {
          "the Preface must state that it is not part of the standard"),
         (r"^# Addendum", "the Addendum that lists every correction (check_corrections)"),
     ],
+    # 2014 prints the CODASYL grant and its paragraphs on its INCITS cover page, PDF page 2 (kb/Work PB5268), with the
+    # printed defects the Preface keeps ("OI" for "or"). It has no corrections section yet: nothing is corrected.
+    2014: [
+        (r"\A# Preface\n", "the file must open with the Preface (PDF page 2: 'as part of the preface')"),
+        (r"COBOL is an industry language and is not the property of any company",
+         "the acknowledgment's first paragraph"),
+        (r"No warranty, expressed or implied, is made by any contributor",
+         "the acknowledgment's no-warranty paragraph"),
+        (r"have specifically authorized the use of this material in whole or in part",
+         "the acknowledgment's authorization sentence"),
+        (r"NOT part of ISO/IEC 1989:2014",
+         "the Preface must state that it is not part of the standard"),
+    ],
     # 2002 prints no acknowledgment and no reproduction grant; it is reproduced under the permission the owner confirmed
     # on 2026-11-05 (kb/Work PB4813), which the Preface states without naming anyone.
     2002: [
@@ -198,6 +220,7 @@ REQUIRED: dict[int, list[tuple[str, str]]] = {
 #: The words that open the acknowledgment, which must precede clause 1 (the Preface), by edition; None for an edition
 #: that prints no acknowledgment (2002), whose Preface carries none.
 ACKNOWLEDGMENT_OPENING: dict[int, str | None] = {1985: "COBOL is an industry language", 2002: None,
+                                                 2014: "COBOL is an industry language",
                                                  2023: "COBOL is an industry language"}
 
 
@@ -651,7 +674,21 @@ def self_test() -> int:
           == ["missing: the Preface must state the permission the transcription is reproduced under"])
     check("2002 never borrows 2023's acknowledgment: a 2023 text lacks the 2002 Preface's statements",
           len(quietly(check_text, good, 2002)) >= 2)
-    good_1985 = good.replace("ISO/IEC 1989:2023", "American National Standard X3.23-1985").replace(
+    # 2014 (kb/Work PB5268): the 2002 stamp's shape, measured on its own PDF, and the CODASYL acknowledgment in its Preface.
+    check("2014 refuses every piece of its stamp, each once, the seven-digit order number included",
+          len(quietly(check_stamp, [planted_2002], 2014)) == len(FORBIDDEN[2014])
+          and quietly(check_stamp, [long_order], 2014) != [])
+    check("2014's tree shapes catch the order number, the download date and a purchaser's name",
+          all(re.search(p, planted_2002) for p, _ in TREE_FORBIDDEN[2014]))
+    good_2014 = good.replace("ISO/IEC 1989:2023", "ISO/IEC 1989:2014").replace(
+        '<a id="section-1"></a>\n\n## 1 Scope\n\n# Addendum\n',
+        "# Front matter: covers, contents, foreword and introduction\n\n## Page 2\n\n# Clauses 1 to 16\n\n## Page 25\n")
+    check("a clean 2014 text passes: its Preface carries the acknowledgment before the body, and it has no Addendum yet",
+          quietly(check_text, good_2014, 2014) == [])
+    check("a 2014 Preface without the acknowledgment is refused, and its body line is its own, not 2023's",
+          len(quietly(check_text, good_2014.replace("COBOL is an industry language", "COBOL is a language"), 2014)) >= 1
+          and quietly(check_text, good, 2014) != [])
+    good_1985 =good.replace("ISO/IEC 1989:2023", "American National Standard X3.23-1985").replace(
         '<a id="section-1"></a>\n\n## 1 Scope', "# SECTION I: INTRODUCTORY INFORMATION\n\n## Page 21").replace(
         "# Addendum\n", "# Errata\n")
     check("a clean 1985 text passes, its body opening at Section I", quietly(check_text, good_1985, 1985) == [])

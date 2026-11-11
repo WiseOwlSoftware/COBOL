@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-21",
  "rule-digest": "0c5def3df471",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToDestinations; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-21",
+ "notes": "§1985:XIV.2.2.4 GR21: the status key \"indicates the status condition of the previously executed SEND, PURGE, ENABLE OUTPUT, or DISABLE OUTPUT statement\" per Table 1 (§1985:XIV.2.2.5). Every statement runs through MessageControlSession.Statement, which writes the action's status with CommunicationArea.SetStatus into positions 9-10 and the emitter stores the image back. Probes at 85 gave the table's values for each statement: 00, 10 (disabled), 15 (already enabled), 20, 30, 40 (bad key), 50, 60, 65 (capacity), 70 (PURGE with no portion), 80 (unknown + disabled), and 91 for unreadable definitions; the witness checks 30 for a zero count.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

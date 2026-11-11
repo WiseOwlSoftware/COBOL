@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.5.3.3-1",
  "rule-digest": "e8be1816bc6f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ProgramNameLiteral.cs#Form",
  "test-ref": "conformance:cases/X.5.3@1985-CANCEL-STATEMENT/1985-SR-X_5_3_3-1",
+ "notes": "§1985:X.5.3.3 SR1 requires 'Literal-1 must be a nonnumeric literal.' CallBinder.BindCancel reads each literal target through ProgramNameLiteral.Form, which admits only an alphanumeric (or national) string literal, and CallBinder.ProgramName reports COBOL1627 otherwise; at 85 the national N'..' and hexadecimal X'..' spellings never reach it because the edition gate refuses them first (COBOL0900), so only a 1985 nonnumeric literal is admitted. Probed at 85 (classes b, c, d, f): numeric 12 (the witness), -1, 1.5, ZERO, SPACE, ALL 'S' and the mixed CANCEL 'SUBPGM' 12 'OTHER' each draw COBOL1627 at the offending operand; N'SUBPGM' and X'535542' draw COBOL0900; the zero-length literal draws COBOL0900 and COBOL1627; CANCEL with no operand COBOL0001; CANCEL 'SUBPGM' and 'SUBPGM  ' compile and the re-called program prints CNT=1 (initial state).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

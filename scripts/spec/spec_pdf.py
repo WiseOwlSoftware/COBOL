@@ -6,7 +6,7 @@ per edition, each named after the public Markdown transcription of the same edit
 the files: the locator and its absent message were written 16 times under four rules before (a sorted glob of
 `*COBOL*.pdf`, a sorted glob of `*.pdf`, a literal file name carrying the order number), and a glob stopped naming one
 file once a second edition's PDF arrived beside the first. The transcription's path was spelled by every tool the same
-way, so the three editions (1985, 2002, 2023) would have needed one edit per tool; now `EDITIONS` is the one table.
+way, so the four editions (1985, 2002, 2014, 2023) would have needed one edit per tool; now `EDITIONS` is the one table.
 
     path(edition)       the PDF of that edition, or None when the submodule is not checked out or lacks it
     require(edition)    the same path, or exit naming the edition and the command that fetches the submodule
@@ -15,7 +15,7 @@ way, so the three editions (1985, 2002, 2023) would have needed one edit per too
     require_vector(ed, tool)  exit unless the edition's general formats are vector strokes (a tool that reads underlines)
     scan_check(ed)      the command that holds a scanned edition's figures to the measured page (sweep_figures --check)
     folio_offset(ed)    PDF page minus printed folio, or exit naming the missing table
-    add_edition_argument(parser)        the one `--edition {1985,2002,2023}` option (default 2023), read as `args.edition`
+    add_edition_argument(parser)        the one `--edition {1985,2002,2014,2023}` option (default 2023), read as `args.edition`
     edition_data(table, edition, what)  a tool's per-edition DATA, or exit naming the table that lacks the edition
 
 Run `python scripts/spec/spec_pdf.py --self-test`.
@@ -59,12 +59,14 @@ class Edition:
 #: (PB4817 measures them); 2002 is a true vector PDF like 2023 (PB4813), with a true text layer: its underlines and
 #: brackets are line strokes, but its braces are Symbol-font glyphs in the text layer (U+F8F1..U+F8FE), not strokes.
 #: 2002's folio offset is 22, measured from the footer folio of each of its 859 arabic-numbered pages by the text-layer
-#: backend (transcribe_pdf.py text, PB4813). 1985's is measured when its run needs it (PB4812), so a tool that needs it
-#: exits naming this table until then.
+#: backend (transcribe_pdf.py text, PB4813). 2014 is a true vector PDF with a text layer like 2002 (PB5268); its folio
+#: offset, 24, is measured the same way from the footer folio of each of its 926 arabic-numbered pages (PDF 25 to 951).
+#: 1985's is measured when its run needs it (PB4812), so a tool that needs it exits naming this table until then.
 EDITIONS: dict[int, Edition] = {
     1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# SECTION I: INTRODUCTORY INFORMATION",
                     976),
     2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", 22, "# Clauses 1 to 16", 882),
+    2014: Edition("ISO_COBOL_2014.pdf", "ISO_COBOL_2014.md", "vector", 24, "# Clauses 1 to 16", 952),
     2023: Edition("ISO_COBOL_2023.pdf", "ISO_COBOL_2023.md", "vector", 30, '<a id="section-1"></a>', 1261),
 }
 
@@ -284,12 +286,14 @@ def self_test() -> int:
             check("an unnamed edition is an error", True)
     check("each edition names its own transcription in specs/",
           [markdown(e, pathlib.Path("r")).as_posix() for e in sorted(EDITIONS)]
-          == ["r/specs/ANSI_COBOL_1985.md", "r/specs/ISO_COBOL_2002.md", "r/specs/ISO_COBOL_2023.md"])
+          == ["r/specs/ANSI_COBOL_1985.md", "r/specs/ISO_COBOL_2002.md", "r/specs/ISO_COBOL_2014.md",
+              "r/specs/ISO_COBOL_2023.md"])
     check("each transcription is named after its PDF",
           all(pathlib.Path(v.pdf).stem == pathlib.Path(v.markdown).stem for v in EDITIONS.values()))
     check("the scanned edition is measured from pixels, the others from strokes",
-          [geometry(e) for e in sorted(EDITIONS)] == ["raster", "vector", "vector"])
+          [geometry(e) for e in sorted(EDITIONS)] == ["raster", "vector", "vector", "vector"])
     require_vector(2002, "a planted tool")
+    require_vector(2014, "a planted tool")
     require_vector(2023, "a planted tool")
     try:
         require_vector(1985, "a planted tool")
@@ -297,7 +301,8 @@ def self_test() -> int:
     except SystemExit as ex:
         check("require_vector exits for the scanned edition, naming the tool and the check that covers the scan",
               all(w in str(ex.code) for w in ("a planted tool", scan_check(1985), "render_figure.py <page> --edition 1985")))
-    check("2023's and 2002's folio offsets are recorded", folio_offset(2023) == 30 and folio_offset(2002) == 22)
+    check("2023's, 2014's and 2002's folio offsets are recorded",
+          folio_offset(2023) == 30 and folio_offset(2014) == 24 and folio_offset(2002) == 22)
     try:
         folio_offset(1985)
         check("an unmeasured folio offset exits", False)

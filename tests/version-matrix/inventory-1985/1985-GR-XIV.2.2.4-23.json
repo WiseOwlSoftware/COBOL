@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-23",
  "rule-digest": "0234dea92dc2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToTerminal; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SourceName",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-23",
+ "notes": "§1985:XIV.2.2.4 GR23: the input-output CD information \"constitutes the communication between the MCS and the program about the message being handled\" and \"does not come from the terminal as part of the message\". MessageControlSession.Receive/Transfer put only the message text into the INTO item and the date, time, length, end key and status into the CD area (CommunicationArea.SetReceived), and SendToTerminal transmits only the text. Probes at 85: RECEIVE SEGMENT and MESSAGE from a terminal filled [AB**] then [CDEF] with lengths 2 and 4, end keys 1 and 2; SEND wrote only REPLY123 to the device; changing the terminal name after the first statement gave 20; the witness checks the RECEIVE.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
