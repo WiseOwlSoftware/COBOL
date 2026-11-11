@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-24",
  "rule-digest": "d08c490327e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CommunicationFormats; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BuildArea; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CheckRecords; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SourceName; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#TextLength; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetStatus",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-24",
+ "notes": "§1985:XIV.2.2.4 GR24: \"For each input-output CD, a record area of 33 contiguous character positions is allocated\": date 9(6), time 9(8), terminal X(12), text length 9(4), end key X, status XX, the series naming the same fields in order. CommunicationFormats.InputOutput lists the six slots, ReadClauses and BuildArea build the implicit record, CheckRecords holds redefining records to 33, and CommunicationArea uses the same positions at run time. Probes at 85: a series with FILLERs and a redefining group gave the image and ref-mod (33:1) right; a 5-name series, a clause twice, SYMBOLIC QUEUE and DESTINATION COUNT in Format 3, 32/34-position records, a VALUE in a second record and ref-mod (34:1) and (33:2) were refused; the witness checks the image.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

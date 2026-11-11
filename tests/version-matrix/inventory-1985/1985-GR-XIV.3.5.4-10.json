@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-10",
  "rule-digest": "6e2d0d9500a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Dialogue; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#PendingReceive; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#TakeFromQueue",
  "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-10",
+ "notes": "§1985:XIV.3.5.4 GR10: \"Once the execution of a RECEIVE statement has returned a portion of a message, only subsequent execution of RECEIVE statements in that run unit can cause the remaining portion of the message to be returned.\" Receive takes the whole message out of the shared store when it begins it (TakeFromQueue/TakeFromTerminal) and keeps the remainder as a PendingReceive in the run unit's own Dialogue, which no other run unit reads, and a later RECEIVE in the same run unit whose queue names cover the remainder's path answers from it first. The witness receives two portions in one run unit. Probes at --std 85 (classes a, b, e): run unit 1 got 0123456789 key 0 of a 16-character message, run unit 2 on the same MCS directory got the next message NEXTMSG key 2 (not the remainder), run unit 3 got NO DATA; in one run unit a RECEIVE on another queue between two portions did not disturb the remainder (KLMNOPQRST key 0, then UV key 2).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

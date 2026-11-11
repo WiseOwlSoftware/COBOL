@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-1",
  "rule-digest": "223a0ac49dcd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDivision",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-1",
+ "notes": "§1985:XIV.2.2.3 SR1: \"A CD entry must appear only in the Communication Section.\" The CD level indicator is reachable only through communicationDescriptionEntry, which only communicationSection contains (dataDivision orders it after LINKAGE, as 1985 does), so a CD anywhere else is a parse error. Probed at --std 85: a CD in WORKING-STORAGE, FILE, LINKAGE, LOCAL-STORAGE and REPORT sections each refused (COBOL0001 unexpected CD); all three formats in the Communication Section, also after a LINKAGE SECTION, compile and run; a stray 01 before the first CD is refused. The witness refuses a CD in WORKING-STORAGE.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

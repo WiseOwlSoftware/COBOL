@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.4.4-6",
  "rule-digest": "c8dd5a051766",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FileNotOpen; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#Sequence",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-GR-XI_4_4_4-6",
+ "notes": "§1985:XI.4.4.4 GR6 orders the SORT into three phases: records made available by RELEASE in the input procedure or implicit READs of file-name-2, which 'must not be in the open mode' when the phase commences and 'is not in the open mode' when it ends; sequencing with no processing of file-name-2 or file-name-3; then the sorted records written to file-name-3 or RETURNed to the output procedure, with the same open-mode statements for file-name-3. SortEmitter.EmitSort emits exactly that order with no edition arm: phase a (EmitInputFile plus each file's implicit CLOSE, or the input procedure), phase b (SortSort, SortWork.Sequence), phase c (EmitGivingFile or the output procedure), and CobolSort.FileNotOpen before each phase (the 2023 EC-SORT-MERGE-FILE-OPEN test, which below 2023 only nets a violation 1985 leaves undefined). Probes at 85 (work-slice-46/c6): e) phases, USING a sequential, a relative and an indexed file with an output procedure that OPENs and READs two of the USING files (S1=00 CCC, S3=00, so they were closed after phase a), then RET AAA BBB CCC DDD; USING F1 GIVING F1 rewrites F1 in sorted order (CCC AAA); openatstart, a missing USING file runs its USE procedure (35) and a USING file already open gives 41 (undefined at 85, so either result conforms); c4/givafter (case 12) shows file-name-3 opened only after the input procedure. Witness: USING/GIVING then OPEN of both files prints AAA BBB CCC DONE.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

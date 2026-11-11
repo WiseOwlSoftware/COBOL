@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-11",
  "rule-digest": "a7eb6b2c6e21",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationReceiveStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindReceive; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitReceive",
  "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-11",
+ "notes": "§1985:XIV.3.5.4 GR11: \"The END-RECEIVE phrase delimits the scope of the RECEIVE statement.\" The grammar rule communicationReceiveStatement ends at an optional END_RECEIVE after the NO DATA and WITH DATA statementBlocks, BindReceive binds each block as the statement's own phrase, and EmitReceive nests the blocks inside the statement, so the scope closes at END-RECEIVE at every edition including 85. The witness runs a statement after END-RECEIVE for each phrase combination. Probes at --std 85 (classes b, c): a RECEIVE with END-RECEIVE nested in an outer WITH DATA returned control to the outer phrase (INNER ND, then STILL OUTER WITH DATA); inside IF ... ELSE without END-RECEIVE the ELSE paired with the IF; END-RECEIVE inside IF ... END-IF; END-RECEIVE twice (COBOL0306), an empty NO DATA (COBOL2072), NO DATA written twice, WITH DATA before NO DATA, a missing INTO, ON EXCEPTION (COBOL2269) and the 2023 RECEIVE FROM ... GIVING (COBOL0900) were all refused.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

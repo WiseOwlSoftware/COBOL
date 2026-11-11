@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.2.3.4-2",
  "rule-digest": "7938562eaf79",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#segmentLimitClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSegmentLimitClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitFields; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitGoTo",
  "test-ref": "conformance:cases/XVI.2.3@1985-SEGMENT-LIMIT-CLAUSE/1985-GR-XVI_2_3_4-2",
+ "notes": "§1985:XVI.2.3.4 GR2: \"Those segments having segment-numbers from the segment-limit through 49 are considered as overlayable fixed segments\"; §1985:XVI.1.4.2 says such a segment, \"if called for by the program, is always made available in its last used state\". All-resident lowering gives exactly that: the ALTER target is an instance field (AlterSwitchEmitter.EmitFields/EmitAlter/EmitGoTo) that no segment change resets, and the clause is admitted at 85 by VisitSegmentLimitClause. The witness (limit 10, segment 20 PERFORMed twice) prints FIRST, LATER. Probes: r4a segment 20 re-entered after independent segment 60 overlaid it: S20 LATER; r4b limit 1 with segments 1 and 49 overlayable and 99 between: S1 LATER, S49 LATER; r4d limit 49 (only 49 overlayable): S49 LATER; class b and c as on 1985-GR-XVI.2.3.4-1 (r2i, r2c, r2f).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

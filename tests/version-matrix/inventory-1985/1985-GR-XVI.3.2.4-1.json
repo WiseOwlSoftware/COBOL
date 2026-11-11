@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.3.2.4-1",
  "rule-digest": "50224757a92b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitFields; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitGoTo",
  "test-ref": "conformance:cases/XVI.3.2@1985-SEGMENT-NUMBERS/1985-GR-XVI_3_2_4-1",
+ "notes": "§1985:XVI.3.2.4 GR1: \"All sections which have the same segment-number constitute a program segment\"; \"In level 2 sections with the same segment-numbers need not be physically contiguous in the source program.\" sectionDefinition takes the optional integerLiteral, VisitSectionDefinition admits it at 85 in any order of sections, and control between sections of one segment keeps last-used state because all state is resident (AlterSwitchEmitter). The witness splits segment 60 around segment 10 and an ALTER in one half reaches the GO TO in the other: ALTERED, DONE. Probes: r6b (segment 70 split by segment 20, ALTER and GO TO across the halves) Y ALTERED; r6c (fixed 30 split by 40 and 70) SX ALTERED; class b r5g two numbers COBOL0307, r5h/r5j empty and 00 accepted, r5c/r5d signed and r5e 5.0 refused, r5i ZERO COBOL0901, r5b 007 accepted (three digits where the Section IV definition of segment-number allows one or two: a lead, not this rule); class c --std 2002 COBOL0902. Re-entry of a split independent segment from another segment does not reset it (r6d prints Y ALTERED, 1985 Y INITIAL): kb/Work PB5084's initial-state arm, not this grouping rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-4",
  "rule-digest": "5f2f6c27f412",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveDebugProcedure; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-4",
+ "notes": "§1985:XV.3.2.3 SR4: 'Except for the USE FOR DEBUGGING statement itself, statements appearing within a given debugging section may reference procedure-names defined within a different USE procedure only with a PERFORM statement.' StatementValidation.CheckDeclarativesBoundary refuses COBOL2376 every procedure reference into a declarative section from outside that section except a PERFORM, at every edition (the 1985 rule and §2023:14.9.49.3 SR4 coincide); the USE FOR DEBUGGING operand is resolved apart by ProcedureTableBuilder.ResolveDebugProcedure from FinalizeDebug, so naming another USE procedure's paragraph there is not screened. Probed at 85: from debugging section D1, GO TO a paragraph of debugging section D2, GO TO a paragraph of a USE AFTER ERROR section, GO TO ... DEPENDING ON naming D2P, and ALTER of a USE AFTER ERROR paragraph are refused COBOL2376; PERFORM D2P, PERFORM D2 (section), PERFORM DXP and PERFORM DXP THRU DXQ compile and run; GO TO D1Q in the same section runs; USE FOR DEBUGGING ON DXP (a USE AFTER ERROR paragraph) is accepted and fires before DXP when the failed OPEN runs that USE procedure. The witness refuses GO TO D2-PARA from D1.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

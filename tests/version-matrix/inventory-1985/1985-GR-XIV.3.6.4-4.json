@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-4",
  "rule-digest": "38a6757147f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToDestinations; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToTerminal; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#StoreArea",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-4",
+ "notes": "§1985:XIV.3.6.4 GR4: \"the content of the status key data item of the area referenced by cd-name-1 is updated by the MCS\". Every SEND runs through MessageControlSession.Statement, which ends with CommunicationArea.SetStatus at the format's status position (output 9-10, I-O 32-33) on success, refusal and 9x alike, and CommunicationEmitter.StoreArea stores the returned image back over the CD area, so every view of it (clause names, a user redefinition, a reference modification) sees the new key. Probed at --std 85: 00, 10, 20, 30, 50, 60, 80 and 91 on an output CD and 00/10/20/50 on an I-O CD each replaced a preset XX; the witness checks the key changed after a SEND to an unknown destination.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

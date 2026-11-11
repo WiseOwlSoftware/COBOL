@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XI.2.4.3-1",
  "rule-digest": "7951a7e47b46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
  "test-ref": "conformance:cases/XI.2.4@1985-I-O-CONTROL-PARAGRAPH/1985-SR-XI_2_4_3-1",
+ "notes": "§1985:XI.2.4.3 SR1: 'The availability of the RECORD option of the SAME clause is dependent on the level of Sequential I-O module supported by the implementation.' WiseOwl implements the full Sequential I-O module, so the rule requires the RECORD option to be available in the Sort-Merge I-O-CONTROL paragraph: the sameClause grammar admits SAME RECORD AREA at every edition, FileControlBinder.BindIoControl screens it (ScreenSameClauses/SameOccurrenceRule) and LinkSameRecordArea makes every named file's record an implicit redefinition of one area, sort files included; no edition gate is needed. Probes at 85 (work-slice-46/c9): d/e) samerec, SAME RECORD AREA FOR an SD, a sequential FD and an indexed FD: a MOVE to the FD record is the SD record (SR VIA OR1 AAA12 SN=12), each RETURN fills the FD records (RET OR1=BBB34 XK=BBB, then AAA12), and WRITE OR1 writes it; b) sdinarea, the sort file in a plain SAME AREA clause is refused (COBOL2738), c10/d_single (one operand) is refused, c10/ok_record_only and ok_mixed compile. Witness: SAME RECORD AREA FOR SFILE OFILE shows HELLO moved to O-REC through S-REC.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

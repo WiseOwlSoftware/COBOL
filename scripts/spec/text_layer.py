@@ -57,9 +57,12 @@ CLAUSE_NUMBER = re.compile(r"^(?:\d+(?:\.\d+)*|[A-Z](?:\.\d+)+)$")
 LABEL = re.compile(r"^(?:\d{1,3}|[a-z]|[ivx]{1,5})[.)]$")
 CAPTION = re.compile(r"^(?:Table|Figure)\s+[A-Z]?\.?\d")
 #: The footer row: a folio, the copyright line, or both on one row in either order (the folio sits outside, so it is left
-#: on an even page and right on an odd one).
+#: on an even page and right on an odd one). The copyright line is ISO/IEC's on the standard's own pages and ITIC's on the
+#: INCITS cover page that prints the adoption notice (2002 and 2014 page 2: `ii © ITIC 2014 – All rights reserved`,
+#: kb/Work PB5268).
 _FOLIO = r"(?:\d{1,4}|[ivxlcdm]{1,8})"
-FOOTER = re.compile(rf"^(?:(?P<a>{_FOLIO})\s+)?©\s?ISO/IEC\s+\d{{4}}(?:\s*[-–]\s*All rights reserved)?(?:\s+(?P<b>{_FOLIO}))?$"
+FOOTER = re.compile(rf"^(?:(?P<a>{_FOLIO})\s+)?©\s?(?:ISO/IEC|ITIC)\s+\d{{4}}(?:\s*[-–]\s*All rights reserved)?"
+                    rf"(?:\s+(?P<b>{_FOLIO}))?$"
                     rf"|^(?P<c>{_FOLIO})$")
 DOT_LEADER = re.compile(r"(?:\s*\.){4,}\s*")
 #: A row of the contents is an entry, a leader, a page number: the leader is written as this, and such a row is a line of its own.
@@ -232,14 +235,27 @@ def escape_pre(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+#: A dash set as a span of its own. 2014 sets a minus sign inside a formula as an em dash in another face (Times in a
+#: Univers line), whose em-wide box overlaps the words beside it: `integer-1 + printable-size —1.` (§2014:13.18.14.3 GR6b,
+#: PDF page 336), `'—'` (§2014:13.18.52.3 GR6b, page 412; kb/Work PB5268 review R1-1).
+LONE_DASH = frozenset("—–−-")
+
+
+def lone_dash(s: Span) -> bool:
+    return s.text.strip() in LONE_DASH
+
+
 def rows_of(spans: Iterable[Span]) -> list[Row]:
-    """Spans grouped into printed rows (vertical centres within half a font size), each read left to right, top to bottom."""
+    """Spans grouped into printed rows (vertical centres within half a font size), each read left to right, top to bottom.
+    Two spans whose boxes overlap are two rows (a bold term set over the blanks of the span after it), except a LONE_DASH
+    span, whose box is wider than its ink: it joins the row its centre agrees with, overlap or not."""
     rows: list[Row] = []
     for s in sorted(spans, key=lambda s: ((s.y0 + s.y1) / 2, s.x0)):
         c = (s.y0 + s.y1) / 2
         for r in rows[-4:]:
             rc = (r.y0 + r.y1) / 2
-            if abs(rc - c) < 0.5 * min(r.size, s.size) and not any(o.x0 < s.x1 - 1 and s.x0 < o.x1 - 1 for o in r.spans):
+            if abs(rc - c) < 0.5 * min(r.size, s.size) and not any(
+                    o.x0 < s.x1 - 1 and s.x0 < o.x1 - 1 and not lone_dash(o) and not lone_dash(s) for o in r.spans):
                 r.spans.append(s)
                 r.spans.sort(key=lambda o: o.x0)
                 break
@@ -247,6 +263,17 @@ def rows_of(spans: Iterable[Span]) -> list[Row]:
             rows.append(Row([s]))
     rows.sort(key=lambda r: (r.y0, r.x0))
     return rows
+
+
+def stray_glyphs(rows: list[Row]) -> list[Row]:
+    """The rows that hold one glyph and nothing else, set inside the line of another row: a character the page prints in a
+    line that the row grouping put on a line of its own, after the line it belongs to (kb/Work PB5268 review R1-1). A
+    Symbol-font piece of a general format's brace is drawn by the vector arm, not read as text, so it is none."""
+    def inside_line(r: Row, o: Row) -> bool:
+        c = (r.y0 + r.y1) / 2
+        return o is not r and o.y0 < c < o.y1 and o.x0 - 1 < (r.x0 + r.x1) / 2 < o.x1 + 1
+    return [r for r in rows if len(r.text) == 1 and not any("Symbol" in s.font for s in r.spans)
+            and any(inside_line(r, o) for o in rows)]
 
 
 def two_columns(spans: list[Span], width: float) -> bool:
@@ -360,13 +387,19 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
     folio: str | None = None
     head_y, foot_y = HEADER_FRACTION * layout.height, FOOTER_FRACTION * layout.height
     body: list[Span] = []
-    for r in rows_of(s for s in layout.spans if s.text.strip()):
+    printed = [r for r in rows_of(s for s in layout.spans if s.text.strip()) if not stamp(r.text)]
+    # The footer lies in the foot band, or, on a boxed page (the INCITS cover page, whose box ends above the band), it is
+    # the page's lowest printed row and carries the copyright line; a bare number is a folio only inside the band.
+    lowest = max(printed, key=lambda r: r.y0) if printed else None
+    # (a ruled table's cells are read from their spans by cell box, `table_markdown`, so its rows are not checked)
+    free = [Row([s for s in r.spans if not any(inside(s, t.bbox) for t in layout.tables)]) for r in printed]
+    ambiguous.extend(f"a one-glyph row inside another row's line (y {r.y0:.0f}: {r.text!r})"
+                     for r in stray_glyphs([r for r in free if r.spans]))
+    for r in printed:
         t = r.text
-        if stamp(t):
-            continue
         if r.y1 <= head_y:
             continue
-        m = FOOTER.match(t) if r.y0 >= foot_y else None
+        m = FOOTER.match(t) if r.y0 >= foot_y or (r is lowest and "©" in t) else None
         if m:
             folio = m.group("a") or m.group("b") or m.group("c") or folio
             continue
@@ -482,6 +515,10 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
                 continue
             first = join_spans([r.spans[0]])
             labelled = len(r.spans) > 1 and LABEL.match(first) and r.spans[1].x0 - r.spans[0].x1 > 0.3 * r.size
+            # A dash list's item: the row opens with a dash set apart from its first word, like a label. It is a line of
+            # its own (a hard break, as a short-row list is) even when the item above ran to the right edge with no blank
+            # line between (PB5268 review R1-2); a minus sign inside a formula touches its neighbours and is never one.
+            dash_item = len(r.spans) > 1 and lone_dash(r.spans[0]) and r.spans[1].x0 - r.spans[0].x1 > 0.3 * r.size
             if len(column_starts(r)) > 1:
                 ambiguous.append(f"a single row with column gaps (y {r.y0:.0f})")
             level = max(0, round((r.x0 - margin) / INDENT_STEP))
@@ -493,7 +530,7 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
                 blocks.append(Block("note", [r], level=level))
             elif (prev is not None and blocks and blocks[-1].kind in ("para", "note", "lines")
                   and r.y0 - prev.y1 < LEADING * r.size and not prev.mono):
-                full = prev.x1 >= right - FULL_SLACK and LEADER not in prev.text
+                full = prev.x1 >= right - FULL_SLACK and LEADER not in prev.text and not dash_item
                 if full and blocks[-1].kind != "lines":
                     blocks[-1].rows.append(r)
                 else:

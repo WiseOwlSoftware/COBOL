@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XII.3.4-8",
  "rule-digest": "ca0865c4f804",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#IsDebugLineCarrierAt; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TryNext; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-GR-XII_3_4-8",
+ "notes": "§1985:XII.3.4 GR8: \"Debugging lines are permitted in pseudo-text. Text words within a debugging line participate in the matching rules as if the 'D' did not appear in the indicator area\", and the mode is decided only after REPLACE (§1985:VI.7.3 \"After all COPY and REPLACE statements have been processed, a debugging line will be considered to have all the characteristics of a comment line\"). FixedFormConverter emits a D line as DebugLineCarrier plus its text, TextWordScanner.TryNext skips the carrier (IsDebugLineCarrierAt) and scans the text, so ApplyReplacements matches the line's words whatever the WITH DEBUGGING MODE clause later says. Witness: ==MOVE 1 / D TO X== matches MOVE 1 TO X without the mode (2). Probes (classes b, d): the same with WITH DEBUGGING MODE (g8a: 2); a D line in pseudo-text-2 is kept as a debugging line, comment without the mode (g8b: 2) and source with it (g8c: 3); a source D line is matched before the mode is applied (g8d, g8e: 2; g8g keeps the replacement on its D line).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.3.17.2",
  "rule-digest": "1c3b2f8c2507",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#signClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#ScreenReportSignClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry",
  "test-ref": "conformance:cases/XIII.3.17@1985-SIGN-CLAUSE/1985-FMT-XIII_3_17_2",
+ "notes": "§1985:XIII.3.17.2 prints '[SIGN IS] {LEADING | TRAILING} SEPARATE CHARACTER' (CHARACTER optional), and 'When the SIGN clause is included in a report group description entry, the SEPARATE CHARACTER phrase must be specified' (§1985:XIII.3.17.3 SR3), the signs being '+' and '-' (§1985:XIII.3.17.4 GR3 c). The shared signClause parses SEPARATE as optional and DataBinder.ScreenReportSignClauses, called from BindReportEntry's run, refuses at 85 a report SIGN clause without SEPARATE (COBOL0900, ReportSignWithoutSeparate2002, the witness) and one on a group entry (ReportGroupSign2002); SignClauseElementaryDefect refuses an unsigned, alphanumeric or edited subject and a COMP one (COBOL2422). Probes at 85: SIGN IS LEADING SEPARATE CHARACTER '-012', LEADING SEPARATE '-012', TRAILING SEPARATE CHARACTER '012-', +7 '007+', zero '+000', S9V99 '-200', SPP9 of -0.005 '-5', S9(18) '-123456789012345678', a SUM counter '00024-'; SIGN LEADING / TRAILING alone and a group SIGN COBOL0900 (accepted at 2023), SIGN written twice COBOL2423, SIGN IS / SIGN SEPARATE parse errors.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

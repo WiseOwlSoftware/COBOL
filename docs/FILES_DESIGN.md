@@ -2338,8 +2338,10 @@ associated with identifier-1 and the record area associated with file-name-1 mus
 §1985:XI.4.3.3 SR1; §2002:14.8.29.2 SR2, §2002:14.8.32.2 SR1); WRITE, REWRITE, RELEASE: "Record-name-1 and identifier-1 must not
 reference the same storage area" (§1985:IX.4.9.3 SR1, §1985:IX.4.6.3 SR1, §1985:XI.4.2.3 SR3; §2002:14.8.47.2 SR4, §2002:14.8.33.2 SR1,
 §2002:14.8.30.2 SR2). COBOL-2023 replaced both with its overlapping-operand rules (§2023:14.6.10, §2023:14.9.30.4 NOTE 1), under which the
-program is legal and the result undefined. The ISO/IEC 1989:2014 text is not in the repository; the edition lineage records route
-1985 to 2023 across it, so 2014 keeps the rule (a DETERMINATION, docs/CONFORMANCE.md). **The decision:** the five phrases already
+program is legal and the result undefined. The compiler keeps the rule at 2014, a DETERMINATION made while the ISO/IEC 1989:2014
+text was not in the repository (the edition lineage routes 1985 to 2023 across it; docs/CONFORMANCE.md); the 2014 text, now held,
+contradicts it: its Annex E lists each of the five phrases as "no longer prohibited" (§2014:E.3 items 21, 24, 25, 26 and 38), and
+its READ INTO rules refer the overlap to its overlapping-operand rules, so the rule ends at 2014 (kb/Work PB5270, open). **The decision:** the five phrases already
 funnel through `MoveBinder` (D23), so the screen is asked there, once: `StatementValidation.CheckPhraseOperandIsNotRecordArea`, from
 `BindFromPhrase` (the sender; the file is now a parameter) and from `CheckIntoReceiver` (the receiver). Its question is
 `StorageSharing.IsRecordAreaOf`, which is EXACT where `MayShare` is conservative, because it refuses the statement: the operand is a
