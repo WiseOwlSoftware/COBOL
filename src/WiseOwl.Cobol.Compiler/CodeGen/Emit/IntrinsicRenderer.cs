@@ -1334,8 +1334,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // ic.Args[1] — no argument-2 is injected under LOCALE; PB64 T6).
             "NumvalC" when ic.LocaleWritten => Dec(RuntimeApi.Intrinsic("NumvalCLocaleDec",
                 $"{Str(ic.Args[0])}, {LocaleTagArg(ic)}{AnycaseFlag(ic)}{DigitCapFlag}")),
+            // At COBOL-85 argument-2's content is not screened (kb/Work PB5161, BoundIntrinsicCall.CurrencyContentUnrestricted).
             "NumvalC" => Dec(RuntimeApi.Intrinsic("NumvalCDec",
-                $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{AnycaseClassification(ic)}")),
+                $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}{AnycaseClassification(ic)}"
+                + (ic.CurrencyContentUnrestricted ? ", contentUnrestricted: true" : ""))),
             "NumvalF" => Dec(RuntimeApi.Intrinsic("NumvalFDec", $"{mode}, {Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}")),
             // SQRT (§2023:15.84.4 r2; kb/Work PB116): the one function whose standard-mode value is FIXED — the
             // 34-digit correctly-rounded root; without this arm it fell to RenderFloat's binary64 Math.Sqrt.

@@ -141,6 +141,9 @@ static WiseOwl.Cobol.Runtime.CobolDate.DateOfInteger(long integerDate, bool unbo
 static WiseOwl.Cobol.Runtime.CobolDate.DayOfInteger(long integerDate, bool unbounded = false) -> long
 static WiseOwl.Cobol.Runtime.CobolDate.IntegerOfDate(long yyyymmdd, bool unbounded = false) -> long
 static WiseOwl.Cobol.Runtime.CobolDate.IntegerOfDay(long yyyyddd, bool unbounded = false) -> long
+*REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalCDec(string! text, string! currency, bool commaMode = false, bool anycase = false, int digitCap = 31, WiseOwl.Cobol.Runtime.Globalization.LocaleFacts? classification = null) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.NumvalCDec(string! text, string! currency, bool commaMode = false, bool anycase = false, int digitCap = 31, WiseOwl.Cobol.Runtime.Globalization.LocaleFacts? classification = null, bool contentUnrestricted = false) -> WiseOwl.Cobol.Runtime.CobolDec
+static WiseOwl.Cobol.Runtime.CobolIntrinsics.CurrencyStringViolatesContentRules(string! currency) -> bool
 WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly = 5 -> WiseOwl.Cobol.Runtime.DialectBehavior

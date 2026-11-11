@@ -1914,21 +1914,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // national — is the schema row's CharacterCategory predicate, screened by the CheckArgumentClasses call
         // above with NUMVAL and NUMVAL-F's §2023:15.67.3 / §2023:15.69.3 r1 (kb/Work PB658: this binder carried the only
         // copy, so the other two category-worded functions never screened the edited categories).
-        // §2023:15.68.3 r2's CONTENT halves for a LITERAL argument-2 (the same-class half rides the schema row;
+        // §2023:15.68.3 AR2's CONTENT halves for a LITERAL argument-2 (the same-class half rides the schema row;
         // a data item's content is the runtime guard's): at least one non-space character; none of the digits
         // 0-9 or the characters * + - , . ; no CR/DB pair in any case. The characters are named OUTRIGHT —
-        // the comma/period ban does not flex with DECIMAL-POINT IS COMMA.
-        if (operands.Count == 2 && operands[1] is BoundStringLiteral curLit)
-        {
-            string cur = curLit.Value.Trim();
-            if (cur.Length == 0
-                || cur.Any(c => char.IsAsciiDigit(c) || c is '*' or '+' or '-' or ',' or '.')
-                || WiseOwl.Cobol.Runtime.CobolNames.Contains(cur, "CR")
-                || WiseOwl.Cobol.Runtime.CobolNames.Contains(cur, "DB"))
-                ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name} argument-2 shall contain at least one "
-                    + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
-                    + "the letter pair CR/DB in any case (ISO §2023:15.68.3 rule 2)");
-        }
+        // the comma/period ban does not flex with DECIMAL-POINT IS COMMA. ONE copy of the rule, the runtime's
+        // (CobolIntrinsics.CurrencyStringViolatesContentRules), asked here of the literal and there of a data item.
+        // ⛔ A 2002 RULE (kb/Work PB5161): the 1989 module asks of argument-2 only its class (§1989:A.2.30.3 AR4) and makes
+        // cs "the string of one or more characters specified by argument-2" (AR1), so below 2002 neither screen runs and
+        // a currency string such as "Fr." or "CRC" is scanned as written.
+        bool contentRules = DialectBehaviors.IsActive(DialectBehavior.NumvalCCurrencyContentRules, ctx.Edition.Edition.Year);
+        if (contentRules && operands.Count == 2 && operands[1] is BoundStringLiteral curLit
+            && CobolIntrinsics.CurrencyStringViolatesContentRules(curLit.Value))
+            ctx.Edition.Error(DiagnosticCatalog.IntrinsicArgumentClass, $"FUNCTION {sig.Name} argument-2 shall contain at least one "
+                + "non-space character and none of the digits 0-9, the characters '*' '+' '-' ',' '.', or "
+                + "the letter pair CR/DB in any case (ISO §2023:15.68.3 rule 2)");
         if (operands.Count == 1 && !localeWritten)
         {
             // §2023:15.68.3 r3: "If NEITHER argument-2 NOR THE LOCALE KEYWORD is specified, there shall be only one
@@ -1948,7 +1947,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                     + "rule 3) — name the currency string as argument-2");
         }
         return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric)
-        { Anycase = anycase, Locale = locale, LocaleWritten = localeWritten };
+        { Anycase = anycase, Locale = locale, LocaleWritten = localeWritten, CurrencyContentUnrestricted = !contentRules };
     }
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
