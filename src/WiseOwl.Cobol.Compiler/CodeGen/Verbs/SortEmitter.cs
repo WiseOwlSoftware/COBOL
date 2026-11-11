@@ -490,25 +490,29 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
         // §2023:12.4.5.3 GR3 names SORT and MERGE beside OPEN, so the implicit open associates with the file the
         // ELEMENT EXECUTING THE SORT/MERGE names — its own ASSIGN specification and LINAGE operands (PB673).
         string elementArgs = seqIo.ExecutingElementArgs(file);
-        if (sharing is { } sm)
+        // "In the process of being opened" for the whole as-if OPEN, its USE procedure included (kb/Work PB5200).
+        using (seqIo.EmitOpenScope(file, mode))
         {
-            var (retryKind, retryAmount) = seqIo.RenderRetry(null);
-            w.Line($"{RuntimeApi.FileOpenShared(f, $"{RuntimeApi.FileOpenModeExpr(mode)}, true, "
-                + $"{SequentialIoEmitter.RuntimeSharing(sm)}, {retryKind}, {retryAmount}, OpenTapePhrase.None, {elementArgs}")};"
-                + $"   // {ruleComment}");
+            if (sharing is { } sm)
+            {
+                var (retryKind, retryAmount) = seqIo.RenderRetry(null);
+                w.Line($"{RuntimeApi.FileOpenShared(f, $"{RuntimeApi.FileOpenModeExpr(mode)}, true, "
+                    + $"{SequentialIoEmitter.RuntimeSharing(sm)}, {retryKind}, {retryAmount}, OpenTapePhrase.None, {elementArgs}")};"
+                    + $"   // {ruleComment}");
+            }
+            else
+            {
+                w.Line($"{RuntimeApi.FileOpen(f, mode, Binding.Bound.BoundOpenTapePhrase.None, elementArgs)};   // {ruleComment}");
+            }
+            seqIo.EmitStoreFileStatus(file);   // §2023:9.1.13.1 / §2023:12.4.5.8.4 GR1 — before the declarative, not after it
+            // A failed implicit OPEN reaches a USE declarative (GR12a / GR15a); one that does not complete normally
+            // terminates the SORT/MERGE (§2023:14.9.40.4 GR17). A FATAL status nothing covers then ends the run unit exactly
+            // as the explicit OPEN's does (DOC-A.1-103 — a missing non-OPTIONAL USING file, kb/Work PB2700), and
+            // otherwise the verb's own rule disposes of the status — GR15's "If a fatal exception condition exists for
+            // file-name-3 as a result of the implicit OPEN during file initiation, the SORT is terminated" among them
+            // (kb/Work PB993).
+            EmitTransferHook(file, RuntimeApi.FileStatus(f), io, tx);
         }
-        else
-        {
-            w.Line($"{RuntimeApi.FileOpen(f, mode, Binding.Bound.BoundOpenTapePhrase.None, elementArgs)};   // {ruleComment}");
-        }
-        seqIo.EmitStoreFileStatus(file);   // §2023:9.1.13.1 / §2023:12.4.5.8.4 GR1 — before the declarative, not after it
-        // A failed implicit OPEN reaches a USE declarative (GR12a / GR15a); one that does not complete normally
-        // terminates the SORT/MERGE (§2023:14.9.40.4 GR17). A FATAL status nothing covers then ends the run unit exactly
-        // as the explicit OPEN's does (DOC-A.1-103 — a missing non-OPTIONAL USING file, kb/Work PB2700), and
-        // otherwise the verb's own rule disposes of the status — GR15's "If a fatal exception condition exists for
-        // file-name-3 as a result of the implicit OPEN during file initiation, the SORT is terminated" among them
-        // (kb/Work PB993).
-        EmitTransferHook(file, RuntimeApi.FileStatus(f), io, tx);
     }
 
     /// <summary>One SORT/MERGE statement's implicit-transfer emission state: the statement's end label (the

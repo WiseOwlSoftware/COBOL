@@ -601,26 +601,53 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // sharing is completely specified in the file control entry" (kb/Work PB316). Both arms are
             // arbitrated against §2023:14.9.27.4 Table 19 either way — that is not what distinguishes them
             // (kb/Work PB321).
-            bool shared = sharing is not null || retry is not null;
-            if (shared)
+            // ⛔ THE FILE IS "IN THE PROCESS OF BEING OPENED" IN THE STATEMENT'S MODE FOR ITS WHOLE EXECUTION, its USE procedure
+            // included, and no longer (§1985:VII.4.6.4 GR5 b)–e), §2023:14.9.49.4 GR6 b)–e); kb/Work PB5200): see EmitOpenScope.
+            using (EmitOpenScope(file, mode))
             {
-                string modeEnum = RuntimeApi.FileOpenModeExpr(mode);
-                var (retryKind, retryAmount) = RenderRetry(retry);
-                string shHas = sharing is not null ? "true" : "false";
-                string shVal = sharing is { } sm ? RuntimeSharing(sm) : "FileSharing.AllOther";
-                // ⛔ THE TAPE PHRASE TRAVELS ON BOTH ARMS. SHARING/RETRY and the per-file-name tape phrase are
-                // independent phrases of one general format (§2023:14.9.27.2), so an OPEN may carry both; a phrase
-                // honoured on only the plain arm would report '07' for `OPEN INPUT F WITH NO REWIND` and '00'
-                // for the same statement once a SHARING phrase was added — the two-arm dispatch this whole
-                // item is an instance of (kb/Work PB317), and the same hole swallowed REVERSED (kb/Work PB668).
-                w.Line($"{RuntimeApi.FileOpenShared(FileKeyExpr(file), $"{modeEnum}, {shHas}, {shVal}, {retryKind}, {retryAmount}, {RuntimeApi.OpenTapePhraseExpr(tape)}, {ExecutingElementArgs(file)}")};");
+                bool shared = sharing is not null || retry is not null;
+                if (shared)
+                {
+                    string modeEnum = RuntimeApi.FileOpenModeExpr(mode);
+                    var (retryKind, retryAmount) = RenderRetry(retry);
+                    string shHas = sharing is not null ? "true" : "false";
+                    string shVal = sharing is { } sm ? RuntimeSharing(sm) : "FileSharing.AllOther";
+                    // ⛔ THE TAPE PHRASE TRAVELS ON BOTH ARMS. SHARING/RETRY and the per-file-name tape phrase are
+                    // independent phrases of one general format (§2023:14.9.27.2), so an OPEN may carry both; a phrase
+                    // honoured on only the plain arm would report '07' for `OPEN INPUT F WITH NO REWIND` and '00'
+                    // for the same statement once a SHARING phrase was added — the two-arm dispatch this whole
+                    // item is an instance of (kb/Work PB317), and the same hole swallowed REVERSED (kb/Work PB668).
+                    w.Line($"{RuntimeApi.FileOpenShared(FileKeyExpr(file), $"{modeEnum}, {shHas}, {shVal}, {retryKind}, {retryAmount}, {RuntimeApi.OpenTapePhraseExpr(tape)}, {ExecutingElementArgs(file)}")};");
+                }
+                else
+                {
+                    w.Line($"{RuntimeApi.FileOpen(FileKeyExpr(file), mode, tape, ExecutingElementArgs(file))};");
+                }
+                EmitStoreFileStatus(file);
+                EmitUseHook(file, "OPEN");   // a failed OPEN reaches a mode-scoped USE via the being-opened mode (GR6b)
             }
-            else
-            {
-                w.Line($"{RuntimeApi.FileOpen(FileKeyExpr(file), mode, tape, ExecutingElementArgs(file))};");
-            }
-            EmitStoreFileStatus(file);
-            EmitUseHook(file, "OPEN");   // a failed OPEN reaches a mode-scoped USE via the being-opened mode (GR6b)
+        }
+    }
+
+    /// <summary>⛔ THE ONE RENDERING OF AN OPEN STATEMENT'S BEING-OPENED SCOPE (kb/Work PB5200), shared by the explicit OPEN and the
+    /// SORT/MERGE implicit opens (§2023:14.9.40.4 GR12 a), GR15 a); §2023:14.9.24.4 GR7 a), GR12 a)): <c>CobolFile.BeginOpen</c>, then
+    /// a <c>try</c> holding the open, its status store and its USE hook, then <c>CobolFile.EndOpen</c> in the <c>finally</c> — so a
+    /// procedure that transfers control away, or a fatal status that ends the run unit, leaves no mode behind. Dispose it after the
+    /// hook is emitted.</summary>
+    internal IDisposable EmitOpenScope(FileModel file, BoundOpenMode mode)
+    {
+        var w = ctx.Writer;
+        w.Line($"{RuntimeApi.FileBeginOpen(FileKeyExpr(file), mode)};");
+        var tryBlock = w.Block("try");
+        return new OpenScope(tryBlock, w, RuntimeApi.FileEndOpen(FileKeyExpr(file)));
+    }
+
+    private sealed class OpenScope(IDisposable tryBlock, CodeWriter w, string end) : IDisposable
+    {
+        public void Dispose()
+        {
+            tryBlock.Dispose();
+            using (w.Block("finally")) w.Line($"{end};");
         }
     }
 
