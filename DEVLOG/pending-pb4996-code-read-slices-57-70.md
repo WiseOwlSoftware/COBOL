@@ -1,4 +1,4 @@
-## PB4996: 116 refuter-upheld verdicts of 1985 code-read slices 43-49 and 57-70 recorded (1985 GAP 606 to 490); PB5272-PB5298 filed
+## PB4996: 128 refuter-upheld verdicts of 1985 code-read slices 43-49, 57-70 and the re-read recorded (1985 GAP 606 to 478); PB5272-PB5299 filed
 
 The operator's Opus pipeline on account 2 read slices 57-70 (139 rules) and refuted their closing verdicts. It also refuted slices 43-49, whose 55 rules waited in the slices 36-56 recording. The refute files agree with the operator's counts:
 - slices 57-63: 48 upheld, 9 overturned, 4 doubtful
@@ -16,5 +16,7 @@ There are 59 non-conforming rules. I reran every repro on a build of origin/main
 - Six notes on debugging-section triggers.
 
 Of the refuters' sibling leads for slices 43-49, the PADDING CHARACTER lead no longer reproduces. The REPLACE-period and BLANK WHEN ZERO leads reproduce and are already held by PB5085 and PB5191. Every citation was checked with `cite.py --check`.
+
+A second batch recorded the operator's re-read of the 18 rows that were fixed after their first read, made at main eb2b01f730. For those rows the re-read supersedes the first read. Of its 16 closing verdicts, 12 were upheld and are recorded (GAP 490 to 478), 2 were overturned and 2 are doubtful (held in `held-5.json`). The 2 overturned ones are filed as PB5299: VALUE OF FILE-ID names a table element without a subscript. Two rows still read PARTIAL and are added to PB5159 and PB5069 by addenda. PB5069 is landed, so its addendum asks for it to be reopened.
 
 This branch merges records-85c (the PB4996 correction and PB5243's harm flags) and lands after it.
