@@ -23,6 +23,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
+from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 WORKFLOW = pathlib.Path(os.environ.get("WF_SPEC_RECONCILE") or REPO / ".claude" / "workflows" / "spec-reconcile.js")
@@ -127,4 +129,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     sys.exit(main())
