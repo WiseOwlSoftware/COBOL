@@ -21,7 +21,7 @@ walk (`Rebind`, and `ReadsDependingObject` as the same walk) over every `Place` 
 classifies each kind (group extent, decoration whose inner is walked, access-path leaf whose table steps carry the GR7
 bound test, leaf with no object); `OdoDependenceRosterDriftTests` asserts the roster complete against the assembly and
 mutation-checked red when a row is dropped, so a new place kind cannot be added without stating its ODO dependence.
-`StatementBinder.FreezeOdoExtentBeforeRefMod` now pins every object the walk finds (one temp per distinct object) and
+`StatementBinder.FreezeOdoExtentBeforeRefMod` now pins every object the walk finds (a DEPENDING ON place met twice is copied once) and
 serves both the PB1123 resolver hook (`ReferenceResolver.FreezeOdoExtent`, now over any inner place) and
 `FreezeOdoExtentForStatement`; `InspectBinder.Bind` asks `OdoDependence.ReadsDependingObject(target)` for the 2002 pin
 and the 85 `ReplacingTakesLengthAnew`.

@@ -122,8 +122,7 @@ public sealed partial class StatementBinder
     /// decoration: a reference modifier with or without a length, an image view; the bound test of a table step in its
     /// access path) is copied into a compiler temp of its own description by a pre-op INSERTED at
     /// <paramref name="preOpMark"/>, and the place returned reads the temps (<see cref="OdoDependence.Rebind"/>, the one
-    /// walk over every place kind). One temp per distinct object, so a record and the group under it that depend on one
-    /// object read one copy. The copy is a plain MOVE, so the value it pins is exactly the one the operand site would
+    /// walk over every place kind). A DEPENDING ON place the walk meets twice is copied once. The copy is a plain MOVE, so the value it pins is exactly the one the operand site would
     /// have read at <paramref name="preOpMark"/>.
     /// <para>Two callers: the <c>ReferenceResolver.FreezeOdoExtent</c> hook, when a reference modifier's position
     /// registered pre-ops (a function activation that may change the object runs after the length, steps 6 then 7), and
