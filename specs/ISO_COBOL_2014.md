@@ -8148,11 +8148,8 @@ FLOAT-DECIMAL-16
 | GREATER | MINUS |  |
 | GROUP | MODE | QUOTE |
 | GROUP-USAGE | MOVE | QUOTES |
-
-MULTIPLY
-
+|  | MULTIPLY |  |
 | HEADING |  | RAISE |
-|---|---|---|
 | HIGH-VALUE | NATIONAL | RAISING |
 | HIGH-VALUES | NATIONAL-EDITED | RANDOM |
 |  | NATIVE | RD |
@@ -8189,11 +8186,8 @@ MULTIPLY
 | REWRITE | SYNC | WITH |
 | RF | SYNCHRONIZED | WORKING-STORAGE |
 | RH | SYSTEM-DEFAULT | WRITE |
-
-RIGHT
-
+| RIGHT |  |  |
 | ROUNDED | TABLE | ZERO |
-|---|---|---|
 | RUN | TALLYING | ZEROES |
 |  | TERMINATE | ZEROS |
 | SAME | TEST |  |
@@ -8221,19 +8215,15 @@ RIGHT
 | SPECIAL-NAMES | USE |  |
 | STANDARD | USER-DEFAULT |  |
 | STANDARD-1 | USING |  |
-
-STANDARD-2
-
-| START | VAL-STATUS |
-|---|---|
-| STATUS | VALID |
-| STOP | VALIDATE |
-| STRING | VALIDATE-STATUS |
-| SUBTRACT | VALUE |
-| SUM | VALUES |
-| SUPER | VARYING |
-
-SUPPRESS
+| STANDARD-2 |  |  |
+| START | VAL-STATUS |  |
+| STATUS | VALID |  |
+| STOP | VALIDATE |  |
+| STRING | VALIDATE-STATUS |  |
+| SUBTRACT | VALUE |  |
+| SUM | VALUES |  |
+| SUPER | VARYING |  |
+| SUPPRESS |  |  |
 
 ## Page 194
 
@@ -8441,13 +8431,10 @@ The following words are reserved in compiler directives:
 |---|---|---|
 | AND | FREE | SIZE |
 | AS | FUNCTION-ARGUMENT | SOURCE |
-
-STANDARD-1\
-B-AND GREATER STANDARD-2\
-B-NOT
-
+|  |  | STANDARD-1 |
+| B-AND | GREATER | STANDARD-2 |
+| B-NOT |  |  |
 | B-OR | IF | THAN |
-|---|---|---|
 | B-XOR | IMP | THROUGH |
 |  | IS | THRU |
 | CALL-CONVENTION |  | TO |
@@ -8458,11 +8445,8 @@ B-NOT
 | DE-EDITING |  | WITH |
 | DEFINE | MOVE |  |
 | DEFINED | MOVE-TO-SAME-NAME | ZERO-LENGTH |
-
-   DIVIDE
-
+| DIVIDE |  |  |
 |  | NOT | + |
-|---|---|---|
 | ELSE | NUMVAL | - |
 | END-EVALUATE |  | \* |
 | END-IF | OFF | / |
@@ -8669,15 +8653,11 @@ Certain classes of I-O status values indicate fatal exception conditions. These 
 Any I-O status associated with an unsuccessful completion is associated with an exception condition. Whether or not the exception condition is raised depends on whether or not checking for that exception condition is enabled. The exception condition depends on the first character of the I-O status value that results after the execution of an input-output statement. The exception-names and the first digit of their corresponding I-O status values are:
 
 | EC-I-O-AT-END | '1' |
-|---|---|
 | EC-I-O-INVALID-KEY | '2' |
-
-   EC-I-O-PERMANENT-ERROR '3'\
-   EC-I-O-LOGIC-ERROR '4'\
-   EC-I-O-RECORD-OPERATION '5'
-
+| EC-I-O-PERMANENT-ERROR | '3' |
+| EC-I-O-LOGIC-ERROR | '4' |
+| EC-I-O-RECORD-OPERATION | '5' |
 | EC-I-O-FILE-SHARING | '6' |
-|---|---|
 | EC-I-O-IMP | '9' |
 
 If the first character of the resulting I-O status value is one of the above values, the associated exception condition is set to exist. If the exception condition EC-I-O-AT-END or EC-I-O-INVALID-KEY exists and the input-output statement that caused the exception condition to exist is specified with an AT END or INVALID KEY phrase respectively, no USE procedure shall be executed. Otherwise, the exception condition that exists determines whether an applicable USE procedure shall be executed according to the rules in 14.9.45, USE statement.
@@ -19273,56 +19253,47 @@ FORMAT 2
 
 7\) DATE without the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display six digits in length, the character positions of which, numbered from left to right, are:
 
-   Character Positions Contents
+| Character Positions | Contents |
+|---|---|
 
 ## Page 486
 
-| 1-2 | The two low-order digits of the year in the Gregorian calendar. |
+|  |  |
 |---|---|
+| 1-2 | The two low-order digits of the year in the Gregorian calendar. |
 | 3-4 | Two numeric characters of the month of the year in the range 01 through 12. |
 | 5-6 | Two numeric characters of the day of the month in the range 01 through 31. |
 
 8\) DATE with the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length, the character positions of which, numbered from left to right, are:
 
-   Character Positions Contents
-
-| 1-4 | Four numeric characters of the year in the Gregorian calendar. |
+| Character Positions | Contents |
 |---|---|
+| 1-4 | Four numeric characters of the year in the Gregorian calendar. |
 | 5-6 | Two numeric characters of the month of the year in the range 01 through 12. |
 | 7-8 | Two numeric characters of the day of the month in the range 01 through 31. |
 
 9\) DAY without the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display five digits in length, the character positions of which, numbered from left to right, are:
 
-   Character Positions Contents
-
-| 1-2 | The two low-order digits of the year in the Gregorian calendar. |
+| Character Positions | Contents |
 |---|---|
+| 1-2 | The two low-order digits of the year in the Gregorian calendar. |
 | 3-5 | Three numeric characters of the day of the year in the range 001 through 366. |
 
 10\) DAY with the phrase YYYYDDD behaves as if it had been described as an unsigned elementary integer data item of usage display seven digits in length, the character positions of which, numbered from left to right, are:
 
-   Character Positions Contents
-
-| 1-4 | Four numeric characters of the year in the Gregorian calendar. |
+| Character Positions | Contents |
 |---|---|
+| 1-4 | Four numeric characters of the year in the Gregorian calendar. |
 | 5-7 | Three numeric characters of the day of the year in the range 001 through 366. |
 
 11\) TIME is based on the elapsed time since midnight on a 24-hour clock. If the system does not have the facility to provide fractional parts of a second the value zero is returned for those parts that are not available. TIME behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length, the characters positions of which, numbered from left to right, are:
 
-   Character Positions Contents
-
-| 1-2 | Two numeric characters of the hours past midnight in the range 00 through 23. |
+| Character Positions | Contents |
 |---|---|
+| 1-2 | Two numeric characters of the hours past midnight in the range 00 through 23. |
 | 3-4 | Two numeric characters of the minutes past the hour in the range 00 through 59. |
-| 5-6 | Two numeric characters of the seconds past the minute in the range: |
-
-a) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect
-
-b) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect.
-
-   7-8 Two numeric characters of the hundredths of a second past the second in the range\
-   &emsp;&emsp;&emsp;&emsp;00 through 99. 00 is returned if the system on which the ACCEPT statement is\
-   &emsp;&emsp;&emsp;&emsp;executed does not have the facility to provide the fractional part of a second.
+| 5-6 | Two numeric characters of the seconds past the minute in the range:<br>a) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect<br>b) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. |
+| 7-8 | Two numeric characters of the hundredths of a second past the second in the range 00 through 99. 00 is returned if the system on which the ACCEPT statement is executed does not have the facility to provide the fractional part of a second. |
 
 12\) DAY-OF-WEEK behaves as if it had been described as an unsigned elementary numeric integer data item one digit in length and of usage display. In DAY-OF-WEEK, the value 1 represents Monday, 2 represents Tuesday, 3 represents Wednesday, ... , 7 represents Sunday.
 
@@ -19336,11 +19307,8 @@ FORMAT 3
 |---|---|
 | Alphabetic | Alphanumeric SPACES |
 | Alphanumeric | Alphanumeric SPACES |
-
-   Alphanumeric-edited Alphanumeric SPACES
-
+| Alphanumeric-edited | Alphanumeric SPACES |
 | Boolean | ZEROS |
-|---|---|
 | National | National SPACES |
 | National-edited | National SPACES |
 | Numeric | ZEROS |
@@ -26211,30 +26179,18 @@ The type of this function is alphanumeric.
 
 1\) The character positions returned, numbered from left to right, are:
 
-   Character Contents\
-   Positions
-
-| 1-4 | Four numeric digits of the year in the Gregorian calendar. |
+| Character Positions | Contents |
 |---|---|
+| 1-4 | Four numeric digits of the year in the Gregorian calendar. |
 | 5-6 | Two numeric digits of the month of the year, in the range 01 through 12. |
 | 7-8 | Two numeric digits of the day of the month, in the range 01 through 31. |
 | 9-10 | Two numeric digits of the hours past midnight, in the range 00 through 23. |
 | 11-12 | Two numeric digits of the minutes past the hour, in the range 00 through 59. |
-| 13-14 | Two numeric characters of the seconds past the minute in the range: |
-
-— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\
-— 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND\
-&emsp;directive with the ON phrase is in effect.
-
-   15-16 Two numeric digits of the hundredths of a second past the second, in the range 00 through
-
-99\. The value 00 is returned if the system on which the function is evaluated does not have the facility to provide the fractional part of a second.
-
-   17 Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal time. The character '0' is returned if the system on which this function is evaluated does not have the facility to provide the local time differential factor.
-
-   18-19 If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned.
-
-   20-21 Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.
+| 13-14 | Two numeric characters of the seconds past the minute in the range:<br>— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect<br>— 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. |
+| 15-16 | Two numeric digits of the hundredths of a second past the second, in the range 00 through 99. The value 00 is returned if the system on which the function is evaluated does not have the facility to provide the fractional part of a second. |
+| 17 | Either the character '–', the character '+', or the character '0'. The character '–' is returned if the local time indicated in the previous character positions is behind Coordinated Universal Time. The character '+' is returned if the local time indicated is the same as or ahead of Coordinated Universal time. The character '0' is returned if the system on which this function is evaluated does not have the facility to provide the local time differential factor. |
+| 18-19 | If character position 17 is '–', two numeric digits are returned in the range 00 through 12 indicating the number of hours that the local time is behind Coordinated Universal Time. If character position 17 is '+', two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time. If character position 17 is '0', the value 00 is returned. |
+| 20-21 | Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned. |
 
 ## Page 678
 
@@ -35484,9 +35440,7 @@ The following examples summarize permissible date and time formats, and the form
 | Basic week date | YYYYWwwD | 1995W063 |
 | Extended week date | YYYY-Www-D | 1995-W06-3 |
 
-Integer-seconds
-
-| time formats | Formats | Values |
+| Integer-seconds<br>time formats | Formats | Values |
 |---|---|---|
 | Basic local time | hhmmss | 051427 |
 | Extended local time | hh:mm:ss | 05:14:27 |
@@ -35495,9 +35449,7 @@ Integer-seconds
 | Basic offset time | hhmmss+hhmm | 051427-0500 |
 | Extended offset time | hh:mm:ss+hh:mm | 05:14:27-05:00 |
 
-Fractional-seconds
-
-| time formats | Formats | Values |
+| Fractional-seconds<br>time formats | Formats | Values |
 |---|---|---|
 | Basic local time | hhmmss.sssss | 051427.8124 |
 | Extended local time | hh:mm:ss.ssss | 05:14:27.8124 |
