@@ -53,7 +53,7 @@
     },
     {
       "id": "indexed-duplicate-key-status-sequential-only",
-      "vcrRow": "7.54"
+      "vcrRow": "7.55"
     },
     {
       "id": "indexed-read-previous-after-open-at-end",
