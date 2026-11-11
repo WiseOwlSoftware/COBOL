@@ -29,11 +29,15 @@ self-test reads (a hand-derived closure over mentions reached the whole tree fro
            string never pulls in the register), followed through the PowerShell and bash scripts it reaches (a Python
            script it runs is traced when it runs);
   GIT      a `git` child a traced process runs inside the repository reads what `git_reads` says: nothing for its
-           location, configuration, worktrees or a commit id (GIT_ENVIRONMENT); otherwise the NAMES (`ls-files`) or
-           the CONTENT (`diff`, `ls-files -s`, `show <rev>:<path>`, any other command) under its pathspec (a wildcard
-           one: under the directory of its literal prefix; an absolute one made relative to the repository) — the
-           whole tree when it names none, or a path `repo_path` cannot place inside the repository (outside it,
-           climbing past its top): never a key no tracked file can appear under, whose digest would never change;
+           location, configuration, worktrees or a commit id (GIT_ENVIRONMENT); the NAMES (`ls-files`, GIT_NAMES) or
+           the CONTENT (`diff`, `log`, `show`, `ls-files -s` …, GIT_CONTENT) under its pathspec (a wildcard one: under
+           the directory of its literal prefix; an absolute one made relative to the repository; the magic
+           PATHSPEC_MAGIC models), and the whole tree when the command's MEANING is the whole tree (no pathspec, `*.py`
+           at the root). Anything else is an UNKEYED READ: a subcommand, global option or pathspec magic it does not
+           model, a path outside the repository or past its top. The runner fails the self-test and records no PASS
+           (scripts/self_tests.py; the owner 2026-11-10): it is never keyed as the whole tree, which would hide the
+           self-test's hermeticity defect as a test that re-runs on every gate, and never as a path no tracked file can
+           appear under (`Tree.under` refuses one), whose key would never change;
   IMPORTS  each module NAME an import looked for, per directory inside the repository it searched (the audit event
            `import`, raised before the search, so a failed import counts): a top-level name in every sys.path entry, a
            submodule's last name in its package's `__path__`. The import system's own directory listings
@@ -51,12 +55,14 @@ imported name (a new scripts/json.py re-runs every self-test that imported json;
 did not import zz) — each re-runs it. The blob ids are the index's for an unedited file and `git hash-object`'s
 for an edited one (a gate tests the working tree), a submodule's commit for anything under it.
 
-⛔ WHAT NOTHING HERE SEES, named rather than hidden: a PowerShell or bash process's own reads of a path it builds at run
-time (declare it: `SELF-TEST-READS`) and the git commands it runs itself; `os.stat`-style probes (no audit event),
-`importlib.util.find_spec` among them (it raises no `import` event); a module search outside the default path finder
-(a meta path finder, path hook or zip importer a self-test installs, a `.pth` file); a sys.path directory OUTSIDE the
-repository (its modules are the environment, as the interpreter is); and an import answer the tree does not hold — an
-empty namespace directory, or a file git ignores (an ignored `.pyd` build output beside a module). A trace that does
+⛔ WHAT NOTHING HERE SEES, named rather than hidden — reads that raise no audit event, so no record exists to key or to
+fail on: a PowerShell or bash process's own reads of a path it builds at run time (declare it: `SELF-TEST-READS`) and
+the git commands it runs itself; `os.stat`-style probes, `importlib.util.find_spec` among them (it raises no `import`
+event); a module search outside the default path finder (a meta path finder, path hook or zip importer a self-test
+installs, a `.pth` file); a sys.path directory OUTSIDE the repository (its modules are the environment, as the
+interpreter is). Every read the trace DOES record is keyed or fails the run (UNKEYED READ); none is widened or
+dropped. One keyed read is still narrower than its content: a file or directory git IGNORES is keyed by its absence
+from the tree (`-`, the tracked names), not by what it holds — see kb/Work PB5227's unresolved-read addendum. A trace that does
 not contain a Python self-test's own file means the tracer did not run: the runner records no PASS for it. The same
 `sitecustomize` begins with the CLOCK SHIM (scripts/self_test_clock.py, kb/Work PB4358): it moves the Python clock only
 in the proof run of a self-test that can read it, and does nothing otherwise. The backstop for all of these is CI (and
@@ -240,7 +246,11 @@ class Tree:
         return cls(repo, blobs, frozenset(gitlinks))
 
     def under(self, d: str) -> list[str]:
-        """Every tracked path under directory `d` (`""`: the whole tree)."""
+        """Every tracked path under directory `d` (`""`: the whole tree). ⛔ `d` must be a repository-relative POSIX path:
+        anything else (absolute, a drive, a backslash, `..`) names no place a tracked file can appear, so its key would
+        never change (kb/Work PB5227) — it is an error here, at the call, never an empty list."""
+        if d.startswith("/") or d.endswith("/") or "\\" in d or DRIVE_RE.match(d) or ".." in d.split("/") or d == ".":
+            raise ValueError(f"{d!r} is not a repository-relative path: no key may be made of it")
         if not d:
             return list(self.paths)
         return self.paths[bisect.bisect_left(self.paths, d + "/"):bisect.bisect_left(self.paths, d + "0")]
@@ -437,25 +447,56 @@ def traced_env(env: dict[str, str], tracer_dir: Path, trace_out: Path, repo: Pat
     return env
 
 
-#: The git commands that read no tracked content of the repository they run in: its location and configuration, the
-#: worktree list, creating a repository. Any OTHER git command run inside the repository reads tracked content
-#: (`git_reads`), and `log` reads history: only its commit id (`--format=%h`/`%H`) is environment.
+#: ⛔ WHAT A GIT COMMAND READS (`git_reads`) — each subcommand a traced self-test may run inside the repository, by what
+#: it reads of the tracked tree. A subcommand in none of these is NOT UNDERSTOOD, and its read is UNKEYED: the runner
+#: fails the self-test (kb/Work PB5227, the owner 2026-11-10), never keys it as the whole tree.
+#: ENVIRONMENT: the repository's location and configuration, the worktree list, creating a repository, a commit id.
 GIT_ENVIRONMENT = frozenset({"rev-parse", "config", "init", "worktree", "version", "var", "symbolic-ref"})
-GIT_LOG_ID_FORMATS = frozenset({"--format=%h", "--format=%H", "--pretty=%h", "--pretty=%H"})
-#: `ls-files` reads only the NAMES of the tracked files, unless one of these asks for their content ids.
+#: NAMES: the tracked paths under its pathspec — `ls-files`, unless one of GIT_LS_FILES_CONTENT asks for content ids.
+GIT_NAMES = frozenset({"ls-files"})
 GIT_LS_FILES_CONTENT = frozenset({"-s", "--stage", "-m", "--modified", "-d", "--deleted", "--debug"})
-
-
+#: CONTENT: the tracked paths under its pathspec and their content (history included: it changes with them).
+GIT_CONTENT = frozenset({"diff", "log", "show", "status", "merge-base", "rev-list", "cat-file", "ls-tree", "grep",
+                         "diff-tree", "diff-index", "blame"})
+#: `log` whose output is a commit id only (environment, as `rev-parse HEAD` is).
+GIT_LOG_ID_FORMATS = frozenset({"--format=%h", "--format=%H", "--pretty=%h", "--pretty=%H"})
+#: git's own global options that change nothing a command reads; any other global option (`--git-dir`, `--work-tree`,
+#: `--literal-pathspecs`, a `-C` after another option, which the tracer does not follow) is not understood.
+GIT_GLOBAL_INERT = frozenset({"--no-pager", "-p", "--paginate", "-P", "--no-optional-locks", "--no-replace-objects",
+                              "--no-advice"})
+GIT_GLOBAL_VALUED = frozenset({"-c"})
+#: Pathspec magic modelled EXACTLY (`_pathspec`): `top` (`:/`), from the root; `glob` and the default, a wildcard
+#: narrowed to its literal prefix's directory; `literal`, no wildcard; `exclude` (`:!`, `:^`), which narrows nothing,
+#: so the key is the positive pathspecs' (a superset of the read by meaning). Any other (`icase`, `attr:…`) is unkeyed.
+PATHSPEC_MAGIC = frozenset({"top", "glob", "literal", "exclude"})
+PATHSPEC_SHORT = {"/": "top", "!": "exclude", "^": "exclude"}
+WILDCARDS = "*?["
 DRIVE_RE = re.compile(r"[A-Za-z]:")
+
+
+@dataclass(frozen=True)
+class UnkeyedRead:
+    """A read the trace cannot place inside the repository (`git_reads`, `read_trace`): a DEFECT of the self-test (it
+    reads outside its scratch) or a gap here (a form `git_reads` does not model). Never keyed: the runner fails the
+    self-test with UNKEYED_READ and records no PASS."""
+    what: str     # the read as recorded: `git <argv>`, or a trace record
+    where: str    # its repository directory ("." the root)
+    why: str
+
+    def __str__(self) -> str:
+        return f"`{self.what}` in {self.where}: {self.why}"
+
+
+#: The label of the runner's red for an unkeyed read (scripts/self_tests.py), greppable.
+UNKEYED_READ = "UNKEYED READ"
 
 
 def repo_path(path: str, where: str, root: Path) -> str | None:
     """The repository-relative POSIX path a git path argument names, given from repository directory `where` of the
-    repository at `root`; None when it cannot be placed inside the repository — the caller then keys the WHOLE tree,
-    never a path `Tree.under` cannot resolve (an absolute or escaping path would key a constant digest, and the PASS
-    would be reused forever: kb/Work PB5227 R1-1). An absolute path (`/…`, `X:/…`, `X:\\…`, a UNC path) is made
-    relative to `root` when it lies inside it; a drive-relative one (`X:x`), one outside the root or on another drive,
-    one that climbs past the top (`../..`), and on POSIX one with a backslash (git's glob escape) are None."""
+    repository at `root`, or None when it names no place inside the repository. An absolute path (`/…`, `X:/…`,
+    `X:\\…`) inside the root is made relative to it; None for one outside the root, on another drive or UNC, a
+    drive-relative one (`X:x`), one that climbs past the top (`../..`), and on POSIX one with a backslash (git's glob
+    escape). The caller makes None an UNKEYED read: a key no tracked file can appear under never changes."""
     if "\\" in path:
         if os.sep != "\\":
             return None
@@ -471,41 +512,111 @@ def repo_path(path: str, where: str, root: Path) -> str | None:
             return None
         base = ""
     p = posixpath.normpath(posixpath.join(base, path))
-    if p == ".." or p.startswith("../") or posixpath.isabs(p):
+    if p == ".." or p.startswith("../") or posixpath.isabs(p) or DRIVE_RE.match(p):
         return None
     return "" if p == "." else p
 
 
-def git_reads(args: list[str], where: str, root: Path) -> list[tuple[str, str]]:
-    """What a git command run in directory `where` (its arguments after any `-C <dir>`) of the repository at `root`
-    reads of the tracked tree: (kind, path) pairs, kind `paths` (the names under path) or `content` (the names and
-    their content); path "" is the whole tree. Its pathspec (after `--`) narrows it; a wildcard pathspec (plain, or with
-    `:(glob)` magic) narrows it to the directory its literal prefix names, since every path it matches begins with that
-    prefix (`scripts/spec/work*.py` reads under scripts/spec, `*.py` the whole tree; kb/Work PB5227); any other magic,
-    no pathspec, and a path `repo_path` cannot place inside the repository is the whole tree. `show <rev>:<path>` reads
-    that path (from the root; `./` and `../` from `where`, as git resolves them). An environment command reads nothing."""
-    opts, specs = (args[:args.index("--")], args[args.index("--") + 1:]) if "--" in args else (args, [])
-    sub = next((a for a in opts if not a.startswith("-")), None)
-    if sub is None or sub in GIT_ENVIRONMENT or (sub == "log" and any(a in GIT_LOG_ID_FORMATS for a in opts)):
+def _pathspec(spec: str) -> tuple[frozenset[str], str] | None:
+    """A pathspec's magic words and pattern (`:(top,glob)x`, `:/x`, `:!x`, `x`), or None for a form not parsed."""
+    if not spec.startswith(":"):
+        return frozenset(), spec
+    if spec.startswith(":("):
+        end = spec.find(")")
+        if end < 0:
+            return None
+        return frozenset(m.strip() for m in spec[2:end].split(",")), spec[end + 1:]
+    i, magic = 1, set()
+    while i < len(spec) and spec[i] in PATHSPEC_SHORT:
+        magic.add(PATHSPEC_SHORT[spec[i]])
+        i += 1
+    if i < len(spec) and spec[i] == ":":
+        i += 1
+    return frozenset(magic), spec[i:]
+
+
+def _spec_read(spec: str, where: str, root: Path) -> tuple[str | None, str]:
+    """(the directory a positive pathspec reads under, or None for an exclusion; "" when unkeyed with the reason)."""
+    parsed = _pathspec(spec)
+    if parsed is None:
+        return None, f"pathspec {spec!r} is not a form git_reads parses"
+    magic, pattern = parsed
+    if magic - PATHSPEC_MAGIC or {"glob", "literal"} <= magic:
+        return None, f"pathspec magic {', '.join(sorted(magic - PATHSPEC_MAGIC) or ['glob+literal'])} of {spec!r} is not modelled"
+    if not pattern and not magic:
+        return None, "an empty pathspec is not one git accepts"
+    if "exclude" in magic:
+        return None, ""
+    if "literal" not in magic and (wild := min((pattern.find(c) for c in WILDCARDS if c in pattern), default=-1)) >= 0:
+        pattern = posixpath.dirname(pattern[:wild])
+    p = repo_path(pattern or ".", "" if "top" in magic else where, root)
+    return (p, "") if p is not None else (None, f"pathspec {spec!r} names no place inside the repository")
+
+
+def git_reads(args: list[str], where: str, root: Path) -> list[tuple[str, str]] | UnkeyedRead:
+    """What a git command run in directory `where` (its arguments after the leading `-C <dir>`s) of the repository at
+    `root` reads of the tracked tree: (kind, path) pairs, kind `paths` (the names under path) or `content` (the names and
+    their content), path "" the whole tree — or an UnkeyedRead for a command it cannot place, never a guess.
+
+    THREE OUTCOMES. RESOLVED: the pathspecs after `--` (or, before it, an argument naming an existing path, or one with
+    a wildcard: git's own rule, an argument that is no revision must be a path in the working tree) each key the
+    directory they read under (`_spec_read`: an absolute path made relative to the root; a wildcard narrowed to the
+    directory of its literal prefix, `scripts/spec/work*.py` reading under scripts/spec; kb/Work PB5227), and
+    `<rev>:<path>` its path (from the root; `./` and `../` from `where`, as git resolves them). THE WHOLE TREE BY MEANING:
+    a command with no pathspec, a wildcard at the root (`*.py`), only exclusions — that IS its read set, not a fallback.
+    UNKEYED: a subcommand, global option or pathspec magic not modelled here, and a path outside the repository or past
+    its top. An environment command reads nothing."""
+    unkeyed = lambda why: UnkeyedRead("git " + " ".join(args), where or ".", why)  # noqa: E731
+    i = 0
+    while i < len(args) and args[i].startswith("-"):
+        if args[i] in GIT_GLOBAL_VALUED:
+            i += 2
+        elif args[i] in GIT_GLOBAL_INERT:
+            i += 1
+        elif i == len(args) - 1 and args[i] in ("--version", "--exec-path", "--help"):
+            return []
+        else:
+            return unkeyed(f"global option {args[i]} is not modelled")
+    if i >= len(args):
         return []
-    if sub == "show" and not specs:
-        shown = [a.split(":", 1)[1] for a in opts if ":" in a and not a.startswith("-")]
-        if shown:
-            paths = [repo_path(p, where if p.startswith(("./", "../")) else "", root) for p in shown]
-            return [("content", "")] if None in paths else [("content", p) for p in paths]
-    kind = "paths" if sub == "ls-files" and not GIT_LS_FILES_CONTENT.intersection(opts) else "content"
-    paths = []
-    for spec in specs or [""]:
-        spec = spec.removeprefix(":(glob)")
-        if not spec or spec.startswith(":"):
-            return [(kind, "")]
-        if (wild := min((spec.find(c) for c in "*?[" if c in spec), default=-1)) >= 0:
-            spec = posixpath.dirname(spec[:wild]) or "."
-        p = repo_path(spec, where, root)
-        if p is None:
-            return [(kind, "")]
-        paths.append(p)
-    return [(kind, p) for p in paths]
+    sub, rest = args[i], args[i + 1:]
+    dashdash = "--" in rest
+    opts, specs = (rest[:rest.index("--")], rest[rest.index("--") + 1:]) if dashdash else (rest, [])
+    if sub in GIT_ENVIRONMENT and not any(":" in a and not a.startswith("-") for a in opts):
+        return []
+    if sub == "log" and any(a in GIT_LOG_ID_FORMATS for a in opts):
+        return []
+    if sub in GIT_NAMES:
+        kind = "content" if GIT_LS_FILES_CONTENT.intersection(opts) else "paths"
+    elif sub in GIT_CONTENT or sub in GIT_ENVIRONMENT:   # `rev-parse <rev>:<path>` reads that path's content id
+        kind = "content"
+    else:
+        return unkeyed(f"subcommand {sub!r} is not one git_reads models (GIT_ENVIRONMENT, GIT_NAMES, GIT_CONTENT)")
+    reads: set[str] = set()
+    specs = list(specs or [])
+    for a in (a for a in opts if not a.startswith("-")):
+        # ls-files takes no revision: every positional is a pathspec. Elsewhere, before `--`, git's own rule: `<rev>:<path>`
+        # names a path; an argument that is no revision must name a path of the working tree (or carry a wildcard or
+        # magic); anything else is a revision, which reads history and is keyed by what the command reads under.
+        if sub in GIT_NAMES or (not dashdash and (a.startswith(":") or any(c in a for c in WILDCARDS))):
+            specs.append(a)
+        elif ":" in a and not DRIVE_RE.match(a):
+            shown = a.split(":", 1)[1]
+            p = repo_path(shown, where if shown.startswith(("./", "../")) else "", root)
+            if p is None:
+                return unkeyed(f"{a!r} names no place inside the repository")
+            reads.add(p)
+        elif not dashdash and os.path.exists(os.path.join(root, where, a)):
+            specs.append(a)
+    for spec in specs:
+        p, why = _spec_read(spec, where, root)
+        if why:
+            return unkeyed(why)
+        if p is not None:   # None: an exclusion, which narrows nothing
+            reads.add(p)
+    if not reads:   # no pathspec, or only exclusions: the whole tree, by meaning
+        reads.add("")
+    return [(kind, p) for p in sorted(reads)]
 
 
 @dataclass(frozen=True)
@@ -515,41 +626,53 @@ class Trace:
     git_in_repo: frozenset[str]    # `<dir>: git <command>` for each git child run inside the repository
     git_read: frozenset[tuple[str, str]] = frozenset()   # what those commands read (`git_reads`)
     imports: frozenset[tuple[str, str]] = frozenset()    # (directory, module name) an import looked for there
+    unkeyed: frozenset[UnkeyedRead] = frozenset()        # what it read that no key can hold: the runner fails it
 
     def saw(self, path: str) -> bool:
         return path in self.files
 
 
+def _in_git_dir(rel: str) -> bool:
+    return rel == ".git" or rel.startswith(".git/") or "/.git/" in rel
+
+
 def read_trace(trace_out: Path, tree: Tree) -> Trace:
-    files, dirs, git, git_read, imports = set(), set(), set(), set(), set()
+    """The reads of one run's trace, each placed in the tree (TRACER's record kinds). A record this cannot place — a
+    git command `git_reads` does not model, a record of no known kind — is an UnkeyedRead, never dropped."""
+    files, dirs, git, git_read, imports, unkeyed = set(), set(), set(), set(), set(), set()
     for f in sorted(trace_out.glob("*.trace")):
         for line in f.read_text(encoding="utf-8").splitlines():
-            kind, _, folded = line.partition("\t")
-            if kind == "I":
+            kind, tab, folded = line.partition("\t")
+            if kind == "I" and tab:
                 where, _, name = folded.partition("\t")
                 where = tree.unfold(where.rstrip(os.sep)) if where not in ("", ".") else ""
-                if not (where == ".git" or where.startswith(".git/")):  # kept when empty: a file can appear there
+                if not _in_git_dir(where):  # kept when empty: a file can appear there
                     imports.add((where, name))
-                continue
-            if kind == "G":
+            elif kind == "G" and tab:
                 where, _, command = folded.partition("\t")
                 where = tree.unfold(where) if where else ""
                 args = command.split(chr(31))  # the tracer joins a command's arguments with the unit separator
                 git.add(f"{where or '.'}: git {' '.join(args)}")
-                git_read.update(git_reads(args, where, tree.repo))
-                continue
-            rel = tree.unfold(folded.rstrip(os.sep)) if folded not in ("", ".") else ""
-            if rel.startswith(".git/") or rel == ".git" or "/.git/" in rel:
-                continue
-            owner = tree.owner(rel) if rel else ""
-            if kind == "D":
-                if owner is not None and owner in tree.dirs:
-                    dirs.add(owner)
-            elif owner is not None and owner in tree.blobs:
-                files.add(owner)
-            elif owner is None and "__pycache__" not in rel:
-                files.add(rel)  # looked for and not tracked: a tracked file appearing there must re-run it
-    return Trace(frozenset(files), frozenset(dirs), frozenset(git), frozenset(git_read), frozenset(imports))
+                read = git_reads(args, where, tree.repo)
+                if isinstance(read, UnkeyedRead):
+                    unkeyed.add(read)
+                else:
+                    git_read.update(read)
+            elif kind in ("F", "X", "D") and tab:
+                rel = tree.unfold(folded.rstrip(os.sep)) if folded not in ("", ".") else ""
+                if _in_git_dir(rel):
+                    continue
+                owner = tree.owner(rel) if rel else ""
+                if owner is not None and owner in tree.blobs:
+                    files.add(owner)   # a tracked file, or anything inside a submodule (its gitlink)
+                elif kind == "D":
+                    dirs.add(owner if owner is not None else rel)   # a tracked file appearing there changes its names
+                elif "__pycache__" not in rel:
+                    files.add(rel)  # looked for and not tracked: a tracked file appearing there must re-run it
+            else:
+                unkeyed.add(UnkeyedRead(f"trace record {line[:120]!r}", ".", "a record of no kind the tracer writes"))
+    return Trace(frozenset(files), frozenset(dirs), frozenset(git), frozenset(git_read), frozenset(imports),
+                 frozenset(unkeyed))
 
 
 # ── the deps of one run ────────────────────────────────────────────────────────────────────────────────────────────
@@ -719,26 +842,51 @@ def self_test() -> int:
                [("content", "a/b.json")], [("paths", "")], [("paths", "scripts/spec")], [("content", "docs")],
                [("paths", "scripts")], [("paths", "")]])
         posix_root, outside = root.as_posix(), (root.parent / "elsewhere").as_posix()
-        check("arm: a path git takes that names no place INSIDE the tree keys the whole tree, never a key Tree.under "
-              "cannot resolve: an absolute path inside the repository is made relative to it, literal or wildcard, "
-              "with either separator; one outside it, one climbing past the top and a shown path doing either is the "
-              "whole tree (kb/Work PB5227 R1-1)",
-              [git_reads(c, w, root) for c, w in (
+
+        def outcome(argv: list[str], where: str):
+            got = git_reads(argv, where, root)
+            return ("UNKEYED", got.what, got.where) if isinstance(got, UnkeyedRead) else got
+        check("arm: THREE OUTCOMES, RESOLVED — an absolute path inside the repository is made relative to it, literal "
+              "or wildcard, with either separator; `:(top)`/`:/` read from the root, `:(literal)` keeps a wildcard "
+              "literal, an exclusion narrows nothing; before `--`, a positional of ls-files and a path that exists are "
+              "pathspecs and `<rev>:<path>` reads that path (kb/Work PB5227)",
+              [outcome(c, w) for c, w in (
                   (["ls-files", "--", f"{posix_root}/scripts/*.py"], ""),
                   (["diff", "--", str(root / "docs")], "scripts"),
-                  (["ls-files", "--", f"{posix_root}/*.md"], "docs"),
-                  (["ls-files", "--", f"{outside}/scripts"], ""),
-                  (["ls-files", "--", f"{outside}/*.py"], ""),
-                  (["diff", "--", "../../x"], "docs"),
-                  (["ls-files", "--", "../*.py"], "docs"),
-                  (["ls-files", "--", "/*.py"], ""),
-                  (["show", "HEAD:../x"], ""), (["show", "HEAD:./x"], "docs"), (["show", "HEAD:"], ""))],
-              [[("paths", "scripts")], [("content", "docs")], [("paths", "")], [("paths", "")], [("paths", "")],
-               [("content", "")], [("paths", "")], [("paths", "")],
-               [("content", "")], [("content", "docs/x")], [("content", "")]])
-        check("arm: Tree.under of a path that names nothing tracked is empty, and so is constant: the reason every "
-              "path git_reads keys must be one a tracked file can appear under",
-              (tree.under("../x"), tree.under(posix_root + "/scripts")), ([], []))
+                  (["ls-files", "--", ":(top)scripts/o"], "docs"),
+                  (["ls-files", "--", ":/docs"], "scripts"),
+                  (["ls-files", "--", ":(literal)scripts/o*"], ""),
+                  (["ls-files", "--", "scripts", ":!scripts/o"], ""),
+                  (["ls-files", "-z", "scripts/o"], ""),
+                  (["diff", "--name-only", "HEAD", "docs"], ""),
+                  (["show", "HEAD:./x"], "docs"))],
+              [[("paths", "scripts")], [("content", "docs")], [("paths", "scripts/o")], [("paths", "docs")],
+               [("paths", "scripts/o*")], [("paths", "scripts")], [("paths", "scripts/o")], [("content", "docs")],
+               [("content", "docs/x")]])
+        check("arm: THREE OUTCOMES, THE WHOLE TREE BY MEANING — no pathspec, a wildcard at the root, only exclusions, "
+              "a shown root: that is the read set, not a fallback",
+              [outcome(c, w) for c, w in (
+                  (["ls-files", "--", f"{posix_root}/*.md"], "docs"), (["ls-files", "--", "../*.py"], "docs"),
+                  (["ls-files", "--", ":!docs"], ""), (["diff", "HEAD"], ""), (["show", "HEAD:"], ""))],
+              [[("paths", "")], [("paths", "")], [("paths", "")], [("content", "")], [("content", "")]])
+        unkeyed_rows = [
+            (["ls-files", "--", f"{outside}/scripts"], ""), (["ls-files", "--", f"{outside}/*.py"], ""),
+            (["diff", "--", "../../x"], "docs"), (["ls-files", "--", "/*.py"], ""),
+            (["ls-files", "--", "//server/share/x"], ""), (["show", "HEAD:../x"], ""),
+            (["ls-files", "--", ":(icase)docs"], ""), (["ls-files", "--", ":(attr:x)docs"], ""),
+            (["ls-files", "--", ":(glob,literal)docs"], ""), (["ls-files", "--", ""], ""),
+            (["fetch", "origin", "main"], ""), (["--git-dir=x", "status"], ""), (["-c", "a=b", "-C", "x", "status"], ""),
+            (["ls-files", "--", "a\\b"] if os.sep == "/" else ["ls-files", "--", "E:x"], "")]
+        check("arm: THREE OUTCOMES, UNKEYED — a path outside the repository, past its top or UNC, a shown path past "
+              "the top, pathspec magic not modelled (icase, attr, glob with literal), an empty pathspec, a subcommand "
+              "or global option not modelled, a drive-relative path (Windows) or a backslash (POSIX) is an UnkeyedRead "
+              "carrying its command and directory, never a key (the owner 2026-11-10)",
+              [outcome(c, w) for c, w in unkeyed_rows],
+              [("UNKEYED", "git " + " ".join(c), w or ".") for c, w in unkeyed_rows])
+        check("arm: Tree.under refuses a path that is not repository-relative (an outside path's key would never "
+              "change), at the call", [_raises(lambda d=d: tree.under(d)) for d in ("../x", posix_root + "/scripts",
+                                                                                     "a\\b", "/x", "x/")],
+              [True] * 5)
 
         out = root / "trace-out"
         out.mkdir()

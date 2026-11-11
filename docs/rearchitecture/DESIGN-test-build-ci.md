@@ -1078,10 +1078,17 @@ the content of everything it read, in ONE store shared by every checkout of the 
   `# SELF-TEST-READS: <path> …` header declarations, and for a PowerShell or bash self-test the closure over the files its
   CODE mentions (comments dropped);
 - **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says: nothing for its
-  location, configuration, worktrees or a commit id; the NAMES (`ls-files`) or the CONTENT (`diff`, `ls-files -s`,
-  `show <rev>:<path>`, any other command) under its pathspec (an absolute one made relative to the repository), the whole
-  tree when it names none or names a path outside the repository or past its top (`repo_path`): a key no tracked file
-  can appear under would never change, and the PASS would be reused forever (kb/Work PB5227 R1-1).
+  location, configuration, worktrees or a commit id (`GIT_ENVIRONMENT`); the NAMES (`ls-files`) or the CONTENT (`diff`,
+  `log`, `show <rev>:<path>`, `ls-files -s` …, `GIT_CONTENT`) under its pathspec (an absolute one made relative to the
+  repository; `:(top)`/`:/`, `:(glob)`, `:(literal)` and `:(exclude)`/`:!` modelled exactly, an exclusion narrowing
+  nothing), and the whole tree when that is the command's meaning (no pathspec, `*.py` at the root).
+- **unkeyed** — anything else a trace records is an UNKEYED READ (`UnkeyedRead`): a subcommand, global option or pathspec
+  magic `git_reads` does not model (`:(icase)`, `:(attr:…)`, `fetch`, `--git-dir`), a path outside the repository or past
+  its top, a trace record of no known kind. `self_tests.py` turns a passing run that has one into a RED labelled
+  `UNKEYED READ`, naming each command and its directory, and records no PASS. ⛔ It is never keyed as the whole tree
+  (the owner, 2026-11-10: "If it cannot be resolved, there is a problem/bug"): that would hide a self-test's hermeticity
+  defect as a test that re-runs on every gate; and never as a path no tracked file can appear under, whose key would
+  never change (`Tree.under` refuses such a path at the call; kb/Work PB5227).
 A record holds each file's git blob id (the working tree's content id for an edited or untracked file; `-` where the run looked
 and found nothing), a digest of what it saw of each directory (`Tree.digest`) and each searched directory's import key
 (the names and the entries that answered them; a record without it is of another shape and no PASS). `--reuse` reports a self-test REUSED, unrun,
@@ -1090,8 +1097,8 @@ PB3061): `first run: no PASS recorded for <platform>, Python <v>`, or `re-run: N
 b, c (+k more)`. **Every gate reuses** (`gate.py` adds `SELF_TESTS_REUSE` to its SELF-TESTS audit); **CI's `audits` and
 `windows-self-tests` jobs and the hand-run Linux tool never reuse**, so a PASS reused past a read nothing traced (a PowerShell
 or bash process's own reads of a path built at run time, `os.stat`-style probes and `importlib.util.find_spec`, a Python
-child started with `-I`, a module search through a finder or `.pth` file a self-test installs, an import answered by a
-file git ignores) is caught in the merge group. The `--built` phase reads build output no record covers: it always runs and never records. A Python
+child started with `-I`, a module search through a finder or `.pth` file a self-test installs) is caught in the merge
+group. The `--built` phase reads build output no record covers: it always runs and never records. A Python
 self-test whose trace does not show its own file had no tracer, and records no PASS.
 
 **2. The machine-wide budget.** A self-test waits for one of `BUDGET_CAP` places (one per core) before it starts, and holds

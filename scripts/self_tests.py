@@ -50,6 +50,13 @@ that reads the tracked tree as a population, declared the same way and checked a
 trace shows no git command over the whole repository is RED; a whole-tree git command without the declaration is judged):
     # SELF-TEST-POPULATION: tree — <why it reads the whole tracked tree>
 
+UNKEYED READ (kb/Work PB5227, the owner 2026-11-10): a self-test that passes but whose trace holds a read the tracer
+cannot place inside the repository (self_test_inputs.py `UnkeyedRead`: a git command, subcommand, global option or
+pathspec form `git_reads` does not model, a path outside the repository or past its top, a trace record of no known kind)
+is RED, labelled `UNKEYED READ`, naming each command and its directory, and records no PASS. It is never keyed as the
+whole tree: such a read is a hermeticity defect of the self-test (run git in its scratch repository) or a gap in
+`git_reads` (teach it the form).
+
 THE CLOCK PROOF (kb/Work PB4358; scripts/self_test_clock.py; DESIGN-test-build-ci.md §3.14.10): a Python self-test whose
 run opened a tracked `.py` file that can read the wall clock is run a SECOND time, in the same budget place, with the clock
 moved forward CLOCK_SHIFT_DAYS in every Python process it starts, and passes only if both runs do. A fixture dated near
@@ -600,7 +607,7 @@ def _python() -> str:
 def _key_changes(old: dict, new: dict) -> list[str]:
     """The inputs of two clock keys (`Deps.to_json` shapes) that differ: a content change, or one in only one of them."""
     out = []
-    for part in ("files", "trees"):
+    for part in ("files", "trees", "imports"):
         a, b = old.get(part, {}), new.get(part, {})
         out += sorted(p for p in a.keys() | b.keys() if a.get(p) != b.get(p))
     return out
@@ -699,6 +706,8 @@ class Runner:
             # passes a second time with the clock moved forward, in the same budget place — unless (a gate's `--reuse`
             # run only) a recorded proof's CLOCK KEY equals this run's, inside its horizon (kb/Work PB5226)
             seen = inputs.read_trace(trace, self.tree)
+            if seen.unkeyed and not test.needs_build:   # a --built run records nothing, so keys nothing
+                return Result(test, RED, 0, seconds, out + _unkeyed(test, seen.unkeyed), why, waited)
             try:
                 deps = None if test.needs_build else inputs.run_deps(test.path, self.tree, self.deriver, seen)
                 clock = self._clock(test, seen)
@@ -823,7 +832,8 @@ class Runner:
                 if not clocks.keys_proof(p, text):
                     continue
             files[p] = blob
-        return inputs.Deps(files, {k: v for k, v in deps.trees.items() if k.startswith("content:")})
+        # the import key whole: a module appearing under an imported name is new code the proof never ran
+        return inputs.Deps(files, {k: v for k, v in deps.trees.items() if k.startswith("content:")}, deps.imports)
 
     def _record(self, test: SelfTest, seen: "inputs.Trace", deps: "inputs.Deps | None", seconds: float,
                 clock: "clocks.Clock | None" = None, key: "inputs.Deps | None" = None, reused: dict | None = None) -> str:
@@ -855,6 +865,17 @@ class Runner:
             return (f"its PASS is keyed on {what}: a git command it ran inside the repository read it "
                     f"({'; '.join(sorted(seen.git_in_repo))})")
         return ""
+
+
+def _unkeyed(test: SelfTest, reads: "frozenset[inputs.UnkeyedRead]") -> str:
+    """The red of a self-test that read what no key can hold (self_test_inputs.py `UnkeyedRead`): a PASS recorded
+    without it would be reused whatever that read saw, so none is recorded (kb/Work PB5227, the owner 2026-11-10)."""
+    shown = sorted(str(r) for r in reads)
+    return (f"\n⛔ {inputs.UNKEYED_READ}: {test.path} passed, but its trace holds {len(shown)} read(s) the tracer cannot "
+            f"place inside the repository, so no PASS is recorded:\n"
+            + "".join(f"   {r}\n" for r in shown[:10]) + (f"   … and {len(shown) - 10} more\n" if len(shown) > 10 else "")
+            + "   Make the self-test hermetic (run git in its scratch repository, scripts/scratch_repo.py), or teach "
+              "self_test_inputs.py `git_reads` the form if it is legitimate.")
 
 
 def _join(*notes: str) -> str:
@@ -1324,7 +1345,9 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
                 "open('elsewhere/x.txt').read()\n")
         declare = "# SELF-TEST-POPULATION: tree — the arm's walker\n"
         for name, body in (("test_stray.py", "open('elsewhere/x.txt').read()\n"), ("test_walker.py", walk),
-                           ("test_population.py", declare + walk), ("test_claim.py", declare + "open('data/a.txt').read()\n")):
+                           ("test_population.py", declare + walk), ("test_claim.py", declare + "open('data/a.txt').read()\n"),
+                           ("test_unkeyed.py", "import subprocess\nsubprocess.run(['git', 'ls-files', '--', "
+                                               "':(icase)DATA'], check=True, capture_output=True)\n")):
             (root / "scripts" / name).write_text(body, encoding="utf-8", newline="\n")
         # The clock proof (kb/Work PB4358; scripts/self_test_clock.py): a fixture written when the arm runs (an hour ago)
         # and compared with the wall clock, which the real clock keeps within its window and a clock moved forward
@@ -1520,6 +1543,12 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               "other: RED, naming the file and the declaration, and records no PASS (kb/Work PB4326, review R2-1)",
               (walker[0].state, "elsewhere/x.txt" in walker[0].output and "SELF-TEST-POPULATION" in walker[0].output,
                PassStore(store_dir).find("scripts/test_walker.py", plat, inputs.Tree.load(root))), (RED, True, None))
+        unkeyed = gate(False, [], which=[found["test_unkeyed.py"]])
+        check("arm: a self-test that passes but read what no key can hold (a git pathspec magic git_reads does not "
+              "model) is RED as an UNKEYED READ naming the command, and records no PASS (kb/Work PB5227, the owner "
+              "2026-11-10: never keyed as the whole tree)",
+              (unkeyed[0].state, inputs.UNKEYED_READ in unkeyed[0].output and ":(icase)DATA" in unkeyed[0].output,
+               PassStore(store_dir).find("scripts/test_unkeyed.py", plat, inputs.Tree.load(root))), (RED, True, None))
         population = gate(False, [], which=[found["test_population.py"]])
         check("arm: a self-test that declares a population and walks the whole tree with git is not judged: GREEN and "
               "recorded",
