@@ -44,3 +44,5 @@ a hash of the source, so they were renamed with it (their expected output did no
 the 2023 acceptance `pb5077_from_own_record_area_accepted_2023`, six `pb5076-*-85` refusals (one per verb) and five `pb5077-*` refusals (one per verb, refused at 85, 2002 and 2014). `IoExceptionPhraseRequirementTests` pins the scope:
 every USE mode against every verb, the access-mode qualification of DELETE and REWRITE, a contained program, and the record-area boundaries.
 Design: D31 of `docs/FILES_DESIGN.md`.
+
+**The 1985 cases main added since.** Four of the 1985 draft-triage cases main placed after this branch was cut WRITE a relative or indexed file with no INVALID KEY phrase and no USE procedure (`1985-GR-IX_4_5_4-18`, `1985-GR-VIII_2_6_3-1`, `1985-GR-VIII_4_5_4-16`, `1985-GR-VIII_4_6_4-5`): the merged tree's gate refused them with COBOL6826, as §1985:VIII.4.9.3 SR3 and §1985:IX.4.9.3 SR3 require. Each WRITE now carries the phrase; no write takes it, so the expected outputs stand.
