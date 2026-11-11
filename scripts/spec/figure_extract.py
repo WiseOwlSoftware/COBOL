@@ -53,10 +53,11 @@ import figure_geometry  # noqa: E402  (`strokes`: the one reader of a page's vec
 # Width is the wrong discriminator. What actually separates them is POSITION: an underline sits just below a
 # word and spans most of it, whereas a bracket foot sits at the top or bottom of a bracket stem and is far too
 # short to cover a word. The coverage and gap tests below do that work, so the width floor only has to exclude
-# rules too short to underline anything at all.
-# The narrowest underline measured is 2.85 pt, under the one-character level number `1` of 2002's constant entry
-# (§2002:13.9.1, PDF page 267: the word is 5.0 pt wide, so the rule covers 57% of it); a 3.0 floor dropped it and
-# the figure stated `1` was optional beside a required `01` (kb/Work PB5332, reconciliation claim p267-1).
+# rules too short to underline anything at all. That floor is the underline of a ONE-CHARACTER word: the narrowest
+# measured is 2.85 pt, under the level number `1` of the constant entry's general format (§2002:13.9.1, PDF page 267,
+# where the word is 5.0 pt wide, so the rule covers 57% of it; §2014:13.10.1, PDF page 306, the same). A 3.0 floor
+# dropped it, and the figure made the required `1` an optional word beside a required `01` (kb/Work PB5332, claim
+# p267-1; kb/Work PB5331, claim p306-1).
 MIN_RULE_W = 2.5
 MAX_RULE_H = 3.0
 MAX_GAP = 4.0         # how far below a word's bottom edge its underline may sit

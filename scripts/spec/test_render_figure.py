@@ -728,7 +728,7 @@ def piece(text, x, y):
     return {"text": text, "x0": x, "x1": x + 5.0, "y0": y, "underlined": False}
 
 
-UNIT_CHECKS = 20                      # the checks unit_failures makes, so the verdict counts every one
+UNIT_CHECKS = 22                      # the checks unit_failures makes, so the verdict counts every one
 
 
 def unit_failures():
@@ -827,6 +827,32 @@ def unit_failures():
     adobe = draw(multiply("\uf8f1", "\uf8f2", "\uf8f3", "\uf8fc", "\uf8fd", "\uf8fe"), [])
     if adobe != draw(multiply("ì", "í", "î", "ü", "ý", "þ"), []) or "┤" not in "".join(adobe):
         fails.append(f"GLYPH_PIECES: a brace of Adobe private-use pieces drew as {adobe}")
+
+    # A fused hook is re-measured against the raw run NEAREST in y: OCCURS Formats 1, 2 and 4 print `}KEY` at one x
+    # (2014 PDF page 370), and the first run gave Format 2's `KEY` Format 1's height (kb/Work PB5331, claim p370-1).
+    class RawPage:
+        def __init__(self, runs):
+            self.runs = runs
+
+        def get_text(self, _kind):
+            return {"blocks": [{"type": 0, "lines": [{"spans": [{"chars": [
+                {"c": c, "bbox": (x + 5 * k, y, x + 5 * k + 5, y + 9)} for k, c in enumerate(text)]}]}
+                for text, x, y in self.runs]}]}
+
+        def get_drawings(self):
+            return []
+
+    hook = ""
+    page = RawPage([(hook + "KEY", 151.3, 211.0), (hook + "KEY", 151.3, 308.0), (hook + "KEY", 151.3, 450.0)])
+    split = R.split_fused(page, [{"text": hook + "KEY", "x0": 151.3, "x1": 177.0, "y0": 308.0, "underlined": False}])
+    if sorted((w["text"], w["y0"]) for w in split) != sorted([("KEY", 308.0), (hook, 308.0)]):
+        fails.append(f"split_fused: a fused hook at y 308 was re-measured as {split}, want both pieces at y 308")
+
+    # The one-character word's underline: the level-number `1` of §2014:13.10.1 is underlined by a 2.85 pt rule.
+    rule = [R.figure_extract.figure_geometry.Stroke(68.7, 196.9, 71.5, 197.3)]
+    accepted = [r for r in rule if r.width >= R.figure_extract.MIN_RULE_W]
+    if not R.figure_extract.is_underlined((67.6, 187.0, 72.6, 196.0), accepted):
+        fails.append("MIN_RULE_W: the 2.85 pt underline of a one-digit word is not read as an underline")
     fails += pb5332_failures()
     return fails
 

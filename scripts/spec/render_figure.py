@@ -171,10 +171,12 @@ def split_fused(page, words):
     rules = figure_extract.underlines(page)
     for w in fused:
         # The run is the one AT the word: its text, its column and the NEAREST height. Text and column alone are not
-        # an identity, because a page can print one figure twice: 2002's file control entry sets the same ASSIGN
-        # brace, fused with its `...`, in Formats 3 and 4 of one page (PDF page 234, x 214.3 and 213.8), and the
-        # first match re-measured Format 4's hook from Format 3's, 393 pt higher, which lifted Format 4's inner
-        # brace and its ellipsis above `SELECT` (kb/Work PB5332, reconciliation claim p234-1).
+        # an identity, because one page can print the same fused text at the same x more than once: 2002's file
+        # control entry sets the same ASSIGN brace, fused with its `...`, in Formats 3 and 4 of one page (PDF page 234,
+        # x 214.3 and 213.8; kb/Work PB5332, claim p234-1), and OCCURS Formats 1, 2 and 4 each print `}KEY IS` with
+        # the brace closer at x 151.3 (§2014:13.18.38.1, PDF page 370; kb/Work PB5331, claims p370-1 and p370-2). The
+        # first match re-measured the later format's hook from the earlier one's, which lifted its brace and the word
+        # after it above its own figure.
         runs = []
         for line in lines:
             for is_space, grp in itertools.groupby((c for span in line["spans"] for c in span["chars"]),

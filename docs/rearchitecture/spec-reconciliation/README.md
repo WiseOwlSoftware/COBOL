@@ -13,7 +13,7 @@ is interrupted, and re-deriving it costs another full page render and read.
 | `2002/ranges.json` | `scripts/spec/reconcile_ranges.py --edition 2002` | the 2002 page-range plan: 882 pages in batches of 12, each marked `figure`, `ambiguous` and `clauses`, flagged and figure batches first, two halves of equal estimated work (`account1`, `account2`), each cut into runs of up to six batches (six of six, then one of one); generated and `--check`ed, never typed |
 | `2014/ranges.json` | `scripts/spec/reconcile_ranges.py --edition 2014` | the 2014 page-range plan, by the same generator: 952 pages, 80 batches of 12, 31 flagged (the 55 ambiguous pages of the 2014 conversion run's `local.json`, §2014:11.2.1 and §2014:13.16.1, kb/Work PB5268), 54 with a figure; halves `account1` (38 batches) and `account2` (42) of equal estimated work; generated and `--check`ed, never typed |
 | `LEDGER-2002.json` / `2002/REPORT.md` | `scripts/spec/merge_reconciliation.py --edition 2002 --write`, on the branch that closes a set of runs only | the 2002 merge, in `LEDGER-1985.json`'s shape (`edition`, `about`, `book_pages`, `pages_swept`, `pages_unread`, `claims`, `sweeps`, `boxes`): each claim with its `id`, its own verdict as `batch` (CONFIRMED, REFUTED, UNVERIFIED) and its decision; a re-merge keeps every decision (by claim id), sweep and box; held to the transcription by `verify_publishable.py --edition 2002` (kb/Work PB5332) |
-| `LEDGER-1985.json` | the 1985 reconciliation (kb/Work PB4850) | `book_pages` (976), `pages_swept` (all 976) and `pages_unread` (none), and every claim of the 1985 batch passes with its decision (`APPLIED` with its edits, `REFUTED`, `ALREADY`, `FORMAT`, `BOX`, `FIGURE`, `KEPT`), the sweeps of each repair's siblings, and every level-2 box (`MARKED` with its blocks, `FORMAT`, `NOT MARKED`); kept apart from 2023's `LEDGER.json`, and held to the transcription by `verify_publishable.py --edition 1985` (TRANSCRIPTION-STATE.md "The 1985 transcription") |
+| `LEDGER-1985.json` | the 1985 reconciliation (kb/Work PB4850) | `book_pages` (976), `pages_swept` (all 976) and `pages_unread` (none), and every claim of the 1985 batch passes with its decision (`APPLIED` with its edits, `REFUTED`, `ALREADY`, `FORMAT`, `BOX`, `FIGURE`, `KEPT`), the sweeps of each repair's siblings, and every level-2 box (`MARKED` with its blocks, `FORMAT`, `NOT MARKED`); kept apart from 2023's `LEDGER.json`, and held to the transcription by `verify_publishable.py --edition 1985` (TRANSCRIPTION-STATE.md "The 1985 transcription"); `LEDGER-2014.json` is held the same way since every claim in it was decided (kb/Work PB5331) |
 | `figures-<edition>/p<page>-<figure>.json` | a figure refuter (a scanned edition, kb/Work PB4849) | its verdict on the `figure`-th `<pre>` block (from 0) of PDF page `page` (the key), `drawn_lines` (the block's lines as drawn, copied from `sweep_figures.py --cross-check`'s ledger `drawn`: the identity, so a verdict whose ordinal a `<pre>` added or removed earlier on the page shifted onto another block is refused, never applied to it), `decided` (`generated`, `drawn`, `neither`, or `not-a-format`), `figure_lines` (the decided figure drawn by FIGURE-STYLE.md, for `drawn` the batch's drawing redrawn by `figure_reading.restyle`; none for `not-a-format`) and `reason` (what the printed page shows). `sweep_figures.py --edition <edition> --apply` writes it; `load_verdicts` refuses a malformed one |
 
 A `compare-*.json` with `findings: []` is meaningful — it is evidence that the pages in its `pages_checked` were swept
@@ -111,9 +111,15 @@ decided again, never moved.
 
 ---
 
-## 2014 STATUS: tooling ready, no page reconciled yet
+## 2014 STATUS: reconciled and repaired
 
-The 2014 transcription keeps its pages (`## Page N`, 1..952; kb/Work PB5268), so the Workflow (its 2014 row cites §2014:5.2.1, §2014:5.2.2, §2014:5.2.5.1-3 and §2014:5.2.6), the merge (`2014/` into `LEDGER-2014.json`, the 2002 shape and rules) and the plan (`2014/ranges.json`) take it with no further change. A 2014 run follows "Running a 2002 range" with `edition: 2014`, `outDir` ending `spec-reconciliation/2014` and `pages` from `2014/ranges.json`. 0 of 952 pages have a recorded result.
+All 952 pages were compared (kb/Work PB5255's Workflow, fourteen runs) and merged into `LEDGER-2014.json`: 134 claims, 74
+confirmed (13 normative, 57 structural, 4 cosmetic), 60 refuted. Every confirmed claim is decided `APPLIED` with its edits,
+and the repairs of the siblings no claim named are its `sweeps` (kb/Work PB5331). `LEDGER-2014.json` is in
+`verify_publishable.LEDGER`, so `verify_publishable.py --edition 2014` holds the transcription to it: every page compared,
+every claim decided, every edit and sweep on its page. Two of the repairs were the figure generator's (`figure_extract.py`,
+`render_figure.py`), so `sweep_figures.py --check --edition 2014` regenerates them; a re-run batch's decisions are kept by
+claim id and key, as for 2002.
 
 ## 2002 STATUS: every page reconciled, every claim decided
 
