@@ -95,8 +95,8 @@ jobs:
   # ── EVERY script self-test, DISCOVERED (scripts/self_tests.py, kb/Work PB2563), on both operating systems, then the
   # ones that read the BUILT test assemblies (`--built`, after a solution build). The default run reuses nothing (PB2914's
   # reuse is every GATE's, never CI's or a hand run's): each self-test runs, and a regression a recorded PASS would have
-  # hidden is found here. The script `line_endings.py --check` is the one line ending over each OS's checkout
-  # (kb/Work PB3029): `.gitattributes` makes it LF whatever the runner's `core.autocrlf`. ──
+  # hidden is found here. No line-endings sweep (kb/Work PB5225): main changes only through a merge group, whose `audits`
+  # job swept every tracked file, and a checkout of those blobs is LF on each OS while `.gitattributes` holds. ──
   self-tests:
     name: Script self-tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -135,10 +135,6 @@ jobs:
       - name: Script self-tests (self_tests.py)
         shell: bash
         run: python scripts/self_tests.py
-      - name: Line endings on this OS's checkout (line_endings.py --check)
-        if: ${{ !cancelled() }}
-        shell: bash
-        run: python scripts/line_endings.py --check
       # The self-tests that read the BUILT assemblies (`SELF-TEST-NEEDS: build`): filter_population.py asks vstest which
       # tests a filter selects. After the others, so a build failure never hides their verdicts.
       - name: Build the solution

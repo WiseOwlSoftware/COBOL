@@ -62,8 +62,9 @@ Always build the **solution**, not a single project, before running tests with `
 stale compiler.
 
 **Line endings are LF, everywhere.** `.gitattributes` (`* text=auto eol=lf`) checks every text file out LF on
-Windows too, whatever your `core.autocrlf`, and `python scripts/line_endings.py --check` (part of the gate) refuses
-a CR in any tracked text file. Once per clone, let a merge or rebase compare branches after that normalization, so
+Windows too, whatever your `core.autocrlf`, and `python scripts/line_endings.py --check` refuses a CR in any tracked
+text file. The gate runs it over only what your branch changes and what your checkout has modified; CI sweeps every
+tracked file once per merge group. Once per clone, let a merge or rebase compare branches after that normalization, so
 a branch cut before it never conflicts on line endings alone:
 
 ```bash
