@@ -198,15 +198,17 @@ def parse_listing(text: str, source: str) -> Counter:
 
 
 def list_population(project: str | Path, configuration: str | None = None,
-                    cwd: str | Path = REPO, **spawn) -> tuple[Counter, str]:
+                    cwd: str | Path = REPO, handed: dict[str, str] | None = None, **spawn) -> tuple[Counter, str]:
     """Discover `project`'s population with `--list-tests`, scrubbed, in English. Returns (names, raw output).
-    `spawn` is extra `subprocess` keyword arguments: a gate-slot holder passes `**slot.spawn_kwargs()`, so the
-    listing runs inside the cap like every other child of the holder (DESIGN §3.14.6)."""
+    `handed`: the generated outputs the gate hands the project's host (kb/Work PB5231; gate.py `Gate._handed`), set after
+    the scrub, so discovery reads the suite the host will run. `spawn` is extra `subprocess` keyword arguments: a
+    gate-slot holder passes `**slot.spawn_kwargs()`, so the listing runs inside the cap like every other child of the
+    holder (DESIGN §3.14.6)."""
     cmd = ["dotnet", "test", str(project), "--no-build", "--list-tests"]
     if configuration:
         cmd += ["--configuration", configuration]
     # The caller's `env` (a slot holder's, say) is scrubbed like any other: nothing may narrow the population.
-    env = {**scrubbed_env(spawn.pop("env", None)), "DOTNET_CLI_UI_LANGUAGE": "en"}
+    env = {**scrubbed_env(spawn.pop("env", None)), "DOTNET_CLI_UI_LANGUAGE": "en", **(handed or {})}
     proc = subprocess.run(cmd, cwd=cwd, capture_output=True, env=env, **spawn)
     try:
         # STRICT: a mis-decoded name would read as NEVER RAN beside a NOT IN THE POPULATION twin.

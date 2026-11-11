@@ -104,6 +104,16 @@ public enum DialectBehavior
     /// reference", so at <c>--std 85</c> a random READ (format 2, a KEY phrase) of an alternate key that has duplicates
     /// also answers '02' (kb/Work PB5117). The consumer is <c>IndexedConnector.ReadRandom</c>.</summary>
     IndexedDuplicateKeyStatusSequentialOnly = 5,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.37.4 GR4 — a format 1 SEARCH whose search index, at the start of the execution,
+    /// "corresponds to an occurrence number that is negative, zero, or greater than the highest permissible occurrence number"
+    /// is unsuccessful at once (the 2002 transcription, SEARCH statement general rule 4 at specs/ISO_COBOL_2002.md line 20917, words it the same). §1985:VI.6.22.4 GR2 tests the UPPER bound
+    /// alone: an index "greater than the highest permissible occurrence number for identifier-1" ends the search at once, and
+    /// an index "not greater" starts the serial search by "evaluating the conditions in the order that they are written";
+    /// §1985:VI.6.23.4 GR2 lets a PERFORM or SEARCH leave an index "outside the range of its associated table", which is how a
+    /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan and is incremented to occurrence 1
+    /// (kb/Work PB5121; VCR row 7.56). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
+    /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
+    SearchIndexBelowTableUnsuccessful = 6,
 }
 
 /// <summary>
@@ -155,6 +165,10 @@ public static class DialectBehaviors
             "7.55", "14.9.30.4 GR27", "§1985:IX.1.3.4 GRL2.1",
             "I-O status 02 for a READ whose key of reference equals the next record's key is set only by a sequential "
             + "READ from COBOL-2002; COBOL-85 also sets it for a random READ of an alternate key's duplicate set"),
+        new(DialectBehavior.SearchIndexBelowTableUnsuccessful, "search-index-below-table-unsuccessful", 2002,
+            "7.56", "14.9.37.4 GR4", "§1985:VI.6.22.4 GR2",
+            "a format 1 SEARCH whose index is zero or negative at its start is unsuccessful at once only from COBOL-2002; "
+            + "COBOL-85 tests the upper bound alone and an index below the table starts the serial scan"),
     ];
 
     static DialectBehaviors()

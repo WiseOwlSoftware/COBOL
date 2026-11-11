@@ -58,19 +58,35 @@ internal sealed record SuiteRefusal(
 
 /// <summary>
 /// ⛔ THE CONFORMANCE SUITE'S <c>wiseowl</c> MANIFEST, AS EVERY TEST PROJECT READS IT (DESIGN-conformance-suite.md §4,
-/// §5; kb/Work PB3176, PB3177): every test of both trees at each edition it names, and WiseOwl's refusals. It is generated
-/// once per test process by <c>conformance-suite/harness/generate.py --out</c> into a directory of the process's own
-/// and read from there: the generator is the ONE reader of the test headers (§10), so no test reads a header (which
-/// edition a test is accepted at, which refusals a program carries) any other way. A refused tree throws, with the
-/// generator's refusals; a missing interpreter is a loud failure, never a skip (<see cref="PythonInstrument"/>).
+/// §5; kb/Work PB3176, PB3177): every test of both trees at each edition it names, and WiseOwl's refusals. The generator
+/// is the ONE reader of the test headers (§10), so no test reads a header (which edition a test is accepted at, which
+/// refusals a program carries) any other way.
+/// <para><b>Whose generation.</b> Under the gate, the suite is the build graph's GENERATED TARGET
+/// <c>conformance-suite</c> (scripts/build_targets.json; kb/Work PB5231): the gate generates it once, keys the
+/// Conformance target on the DIGEST of that output, and hands the output directory to the host in
+/// <see cref="HandedVariable"/>; the host reads exactly that directory, so the key a pass is recorded under is the digest
+/// of the suite the host ran. With no such variable (a hand run, CI) the host generates its own, once per test process,
+/// by <c>conformance-suite/harness/generate.py --out</c> into a directory of the process's own. A refused tree throws,
+/// with the generator's refusals; a handed directory that holds no manifest throws; a missing interpreter is a loud
+/// failure, never a skip (<see cref="PythonInstrument"/>).</para>
 /// </summary>
 internal static class SuiteManifest
 {
     /// <summary><c>conformance-suite/</c>: the suite root every manifest path is relative to.</summary>
     internal static string Root { get; } = TestRepo.Suite();
 
-    /// <summary>The generator, the one reader of the test headers.</summary>
+    /// <summary>The generator, the one reader of the test headers: the program of the <c>conformance-suite</c> target.</summary>
     internal static string Generator { get; } = TestRepo.Suite("harness", "generate.py");
+
+    /// <summary>The variable the gate hands the <c>conformance-suite</c> target's output directory in
+    /// (scripts/build_targets.json <c>env</c>; the BUILD TARGETS audit requires the dependent assembly to name it).</summary>
+    internal const string HandedVariable = "WISEOWL_COBOL_GATE_SUITE";
+
+    /// <summary>What this host records in the harness observation log (<see cref="HarnessLog"/>) when no suite was handed
+    /// and it generated its own (scripts/buildgraph.py <c>GeneratedTarget.own_mark</c>): a gate whose Conformance host
+    /// log holds it is RED and records no pass, so INSIDE the gate the host always runs the suite its key names
+    /// (kb/Work PB5231 R1-2). A hand run or CI, which records no pass, generates its own and says so.</summary>
+    internal const string OwnGenerationMark = "GENERATED-OWN  conformance-suite";
 
     private static readonly Lazy<string> s_generated =
         new(GenerateOnce, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -80,20 +96,33 @@ internal static class SuiteManifest
             LazyThreadSafetyMode.ExecutionAndPublication);
 
     /// <summary>The generator's output for this test process: <c>wiseowl/manifest.json</c> and the per-edition suites
-    /// (<c>&lt;edition&gt;/manifest.json</c>) that <c>run.py</c> runs. Generated once and kept until the test host
-    /// ends, which removes it (<see cref="ScratchDirectory"/>), so every test that reads the manifest or runs
-    /// <c>run.py</c> over the suites, whatever its partition, shares the one generation (about 10 s) instead of making
+    /// (<c>&lt;edition&gt;/manifest.json</c>) that <c>run.py</c> runs. The gate's, when it handed one
+    /// (<see cref="HandedVariable"/>, never written here); otherwise generated once and kept until the test host ends,
+    /// which removes it (<see cref="ScratchDirectory"/>). Either way every test that reads the manifest or runs
+    /// <c>run.py</c> over the suites, whatever its partition, shares the one generation (about 13 s) instead of making
     /// its own (kb/Work PB4325).</summary>
     internal static string Generated => s_generated.Value;
 
     /// <summary>The wiseowl manifest: every test of both trees at each edition it names, and the refusals.</summary>
     internal static WiseOwlManifest Manifest => s_manifest.Value;
 
-    /// <summary>Run the generator once, writing every manifest under a directory of this host's own; throws, with the
-    /// generator's own output, when it refuses the tree.</summary>
+    /// <summary>The gate's generation when it handed one, else the generator run once into a directory of this host's
+    /// own; throws, with the generator's own output, when it refuses the tree, and when a handed directory holds no
+    /// wiseowl manifest.</summary>
     private static string GenerateOnce()
     {
+        string? handed = Environment.GetEnvironmentVariable(HandedVariable);
+        if (!string.IsNullOrEmpty(handed))
+        {
+            if (!File.Exists(Path.Combine(handed, "wiseowl", "manifest.json")))
+                throw new InvalidOperationException(
+                    $"{HandedVariable} names {handed}, which holds no wiseowl/manifest.json: the gate handed this host a "
+                    + "conformance suite that is not there, so there is nothing to run");
+            return handed;
+        }
         string dir = ScratchDirectory.Create("WiseOwlCobol_Suite_");
+        HarnessLog.Record($"{OwnGenerationMark} :: {dir} :: no {HandedVariable} was handed, so this host generates its "
+            + "own suite: a run no gate keys");
         ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, Generator, "--out", dir);
         if (r.ExitCode != 0)
             throw new InvalidOperationException(
