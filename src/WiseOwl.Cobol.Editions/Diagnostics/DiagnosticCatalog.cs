@@ -1286,8 +1286,12 @@ public static class DiagnosticCatalog
         + "has a SOURCE or SUM clause (SR12), and may be omitted only for an alphanumeric, boolean or national "
         + "VALUE literal (SR14); a COLUMN clause shall be specified in each elementary entry that has a VALUE "
         + "clause (SR13); and if BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be "
-        + "specified (SR15).",
-        "ISO §2023:13.15.3 SR5/SR9/SR10/SR11/SR12/SR13/SR14/SR15");
+        + "specified (SR15). At every edition the SOURCE, SUM and VALUE clauses are alternatives of one brace "
+        + "(§2023:13.15.2; §1985:XIII.3.9.2; §1985:XIII.3.22.4 GR1: \"The VALUE clause must not conflict with other "
+        + "clauses in the data description of the item\"). At COBOL-85 an elementary format 3 entry's clauses shall be "
+        + "the cells of one row of §1985:XIII.3.9.3 SR11 Table 1, where a blank cell means the clause is not permitted "
+        + "(kb/Work PB5243).",
+        "ISO §2023:13.15.3 SR5/SR9/SR10/SR11/SR12/SR13/SR14/SR15; §2023:13.15.2; §1985:XIII.3.9.3 SR11");
 
     /// <summary>COBOL2519 — a GROUP INDICATE clause outside the placement §2023:13.18.28.3 SR1 admits: a report
     /// group that is not a DETAIL, or an elementary entry lacking the COLUMN clause or the SOURCE-or-VALUE clause
