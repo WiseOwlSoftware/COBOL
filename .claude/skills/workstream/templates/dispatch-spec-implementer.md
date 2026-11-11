@@ -73,8 +73,8 @@ makes it report every line). Do NOT write `":!STATUS.md"` into the pathspec (STA
 TRACKED one is dropped with `git reset -q -- STATUS.md` after the add. Then `git commit -m "WIP checkpoint: …"`, and after EVERY commit (the small
 trailing ones too: a gate-red fix, a regenerated index) rewrite `STATUS.md` (DONE / NEXT exact step / BLOCKED / GATE last verdict lines / batch
 paths / codes used) with FIRST LINE `STATUS-AT: <output of git rev-parse HEAD>` — the commit it describes (P4;
-STATUS.md is gitignored, so writing it never moves HEAD). A hook refuses your next commit and your finish while the
-stamp is not HEAD (kb/Work/PB1701). If a STATUS.md already exists when you start, or you RESUME or MERGE a predecessor, you ARE the fresh agent:
+STATUS.md is gitignored, so writing it never moves HEAD). A stale stamp is not refused (kb/Work PB5234): the next reader
+lists the commits it omits. If a STATUS.md already exists when you start, or you RESUME or MERGE a predecessor, you ARE the fresh agent:
 run `python tools/claude-skills/skills/agent-fleet/references/status_delta.py <that worktree>` FIRST and read the summary plus ONLY the commits it lists. `git stash` is FORBIDDEN (the stash is shared across worktrees).
 Turn cap {turn_cap} — at the cap, checkpoint, write NEXT, return SPLIT. ONE MECHANISM PER IMPLEMENTER: if the group proves to be two mechanisms, finish the first at its root, checkpoint at the note
 boundary, and return SPLIT at about seven-eighths of the {turn_cap}-turn cap rather than pass it; a fresh agent continues from your checkpoint.

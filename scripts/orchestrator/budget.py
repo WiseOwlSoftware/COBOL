@@ -20,6 +20,10 @@ telemetry sink through `usage_report.events()` (reused, never re-parsed), only t
 is the account's (an event without the attribute is counted: it cannot be attributed, and over-counting only holds
 early), converted to weekly points per model with model_rules.json's calibration. A reading taken before the
 account's current week's reset anchors nothing.
+The status line's reading (`<config dir>/rate-limits.json`, scripts/statusline_tap.py) is one more reading, stamped with the
+time its figure last changed; it anchors at ANY age while that time is in the current week (kb/Work PB5229), the telemetry
+spent after it is added on, and the output names the anchor's source and age. A present but unreadable or malformed file
+is reported in the output (`live_problem`); a missing one is the quiet "no reading" case.
 """
 from __future__ import annotations
 
@@ -165,35 +169,43 @@ def estimate(now: dt.datetime, readings: list[dict[str, Any]], all_events_for, r
     }
 
 
-#: How long ago the status line's live reading may have been MEASURED and still anchor an estimate (kb/Work PB4505): a working
-#: session's figures change with every response, so an older one is a session that went idle or ended, and the estimate
-#: falls back to the stored readings.
-LIVE_MAX_AGE = dt.timedelta(minutes=30)
 #: The file scripts/statusline_tap.py writes in the account's config dir.
 LIVE_FILE = "rate-limits.json"
 
 
-def live_reading(acct: accounts.Account, now: dt.datetime) -> dict[str, Any] | None:
-    """The account's live meter reading, from the `rate_limits` its own Claude Code sessions hand the status line
-    (scripts/statusline_tap.py writes `<config dir>/rate-limits.json`), as a reading in readings.json's shape, or None when
-    the file is missing, unreadable, MEASURED longer than LIVE_MAX_AGE ago or carries no weekly row. The reading's time is
-    `measured_at`, when the figures last changed, never when the status line last ran: an idle session repeats old figures
-    every refresh (review R1-1), and the estimate counts the telemetry spent after the measurement. The weekly row is `seven_day`; an
-    Ultra plan has no five-hour window (owner 2026-11-03), so a missing `five_hour` reads as 0."""
+def live_reading(acct: accounts.Account) -> tuple[dict[str, Any] | None, str | None]:
+    """`(reading, problem)`: the account's live meter reading, from the `rate_limits` its own Claude Code sessions hand the
+    status line (scripts/statusline_tap.py writes `<config dir>/rate-limits.json`), as a reading in readings.json's shape.
+    A MISSING file is `(None, None)`, the quiet "no reading" case. A file that is present but unreadable, not the tap's
+    shape or without a `seven_day` figure is `(None, <what is wrong>)`: an input the tool cannot read is reported in the
+    output, never hidden behind an estimate from telemetry alone (kb/Work PB5229).
+    The reading's time is `measured_at`, when the figures last changed, never when the status line last ran: an idle
+    session repeats old figures every refresh (review R1-1). Its AGE is not tested here: the meter shows whole percents, so a
+    figure often stands for hours, and a reading is as good an anchor at any age as long as it was taken in the current
+    quota week, which `estimate` decides for every reading by the one week rule; the telemetry spent after `measured_at`
+    is added on. The weekly row is `seven_day`; an Ultra plan has no five-hour window (owner 2026-11-03), so a missing
+    `five_hour` reads as 0."""
+    path = acct.config_dir / LIVE_FILE
     try:
-        rec = json.loads((acct.config_dir / LIVE_FILE).read_text(encoding="utf-8"))
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None, None
+    except OSError as e:
+        return None, f"{path} is unreadable ({e})"
+    try:
+        rec = json.loads(text)
         seen = parse_ts(rec["measured_at"])
-        weekly = rec["rate_limits"]["seven_day"]["used_percentage"]
-    except (OSError, ValueError, KeyError, TypeError):
-        return None
-    if weekly is None or not (dt.timedelta(0) <= now - seen <= LIVE_MAX_AGE):
-        return None
-    five = (rec["rate_limits"].get("five_hour") or {})
-    reset = five.get("resets_at")
-    return {"noted_at": seen.isoformat(), "account": acct.name, "weekly_pct": float(weekly),
-            "session_pct": float(five.get("used_percentage") or 0.0),
-            "session_reset": dt.datetime.fromtimestamp(reset, dt.timezone.utc).isoformat() if reset else None,
-            "source": "statusline rate_limits (kb/Work PB4505)"}
+        limits = rec["rate_limits"]
+        weekly = limits["seven_day"]["used_percentage"]
+        five = limits.get("five_hour") or {}
+        reset = five.get("resets_at")
+        reading = {"noted_at": seen.isoformat(), "account": acct.name, "weekly_pct": float(weekly),
+                   "session_pct": float(five.get("used_percentage") or 0.0),
+                   "session_reset": dt.datetime.fromtimestamp(reset, dt.timezone.utc).isoformat() if reset else None,
+                   "source": "statusline rate_limits (kb/Work PB4505)"}
+    except (ValueError, KeyError, TypeError, AttributeError, OverflowError, OSError) as e:
+        return None, f"{path} is malformed ({type(e).__name__}: {e})"
+    return reading, None
 
 
 def current(account: str | None = None, borrow_days: int = 0, now: dt.datetime | None = None,
@@ -206,9 +218,27 @@ def current(account: str | None = None, borrow_days: int = 0, now: dt.datetime |
     acct = accounts.resolve(account, rules)
     tdir = pathlib.Path(telemetry_dir)
     readings = coord.read_json(coord.coord_dir(coord_dir) / "readings.json", [])
-    if (live := live_reading(acct, now)) is not None:
-        readings = [*readings, live]     # the newest reading, so the estimate anchors on the meter itself
-    return estimate(now, readings, lambda s, u: telemetry_events(tdir, s, u), rules, acct, borrow_days)
+    live, problem = live_reading(acct)
+    if live is not None and parse_ts(live["noted_at"]) > now:
+        # A figure measured in the future (a wrong clock) is outside every week `estimate` can anchor in: say so.
+        problem = (f"{acct.config_dir / LIVE_FILE} holds a reading measured at {live['noted_at']}, after the current time "
+                   f"{now.isoformat()} (clock skew?): it anchors nothing")
+    elif live is not None:
+        readings = [*readings, live]     # `estimate` anchors on the newest reading of the current week, this one included
+    out = estimate(now, readings, lambda s, u: telemetry_events(tdir, s, u), rules, acct, borrow_days)
+    out["live_problem"] = problem
+    out["anchor_note"] = anchor_note(out, now) if out["anchor"] else None
+    return out
+
+
+def anchor_note(out: dict[str, Any], now: dt.datetime) -> str:
+    """Where the estimate's anchor came from and how old it is: ` (anchored on the status line's 55 % of 44 min ago +
+    telemetry since)`."""
+    anchor = out["anchor"]
+    minutes = int((now - parse_ts(anchor["noted_at"])).total_seconds() // 60)
+    age = f"{minutes} min" if minutes < 120 else f"{minutes / 60:.1f} h"
+    who = "the status line's" if str(anchor.get("source", "")).startswith("statusline") else "the recorded"
+    return f" (anchored on {who} {anchor['weekly_pct']:g} % of {age} ago + telemetry since)"
 
 
 def record(cdir: pathlib.Path, acct_name: str, weekly: float, session: float, session_reset: str | None,
@@ -255,7 +285,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{acct.name}: weekly ≈ {out['weekly_est_pct']} % of an allowance of {out['allowance_pct']} % (day {out['day']}"
               f"{', borrowing ' + str(a.borrow_days) if a.borrow_days else ''}); session ≈ {out['session_est_pct']} %"
               f" → {out['decision']}{' until ' + out['resume_at'] if out['resume_at'] else ''}"
-              f"{'' if out['anchor'] else f' (no {acct.name} meter reading this week: estimate from telemetry alone)'}"
+              f"{out['anchor_note'] or f' (no {acct.name} meter reading this week: estimate from telemetry alone)'}"
+              f"{' (METER FILE PROBLEM: ' + out['live_problem'] + ')' if out['live_problem'] else ''}"
               f"{'' if out['telemetry_account'] else ' (account id unknown: every account telemetry counted)'}"
               + (f" ({n} unstamped reading(s) this week anchor nothing: --record a fresh one)"
                  if (n := out["unstamped_readings"]) else ""))

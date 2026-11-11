@@ -232,21 +232,22 @@ r = budget.estimate(meter, [r0], source(spend), FIXTURE, A2)
 check("the 2026-10-04 constants held it (the defect)", r["decision"], "hold-session")
 
 # kb/Work PB4505: the status line's live reading. Each account reads its OWN config dir's rate-limits.json; a file older
-# than LIVE_MAX_AGE, unreadable or without a weekly row anchors nothing; a missing five_hour row (an Ultra plan) is 0.
+# a missing file is the quiet case, a malformed or weekly-less one is reported; a missing five_hour row (an Ultra plan) is 0.
 now = at(2026, 11, 3, 12, 30)
 tap = {"measured_at": (now - dt.timedelta(minutes=2)).astimezone(dt.timezone.utc).isoformat(), "session_id": "s",
        "rate_limits": {"seven_day": {"used_percentage": 29, "resets_at": 1762596000}}}
 (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(tap), encoding="utf-8", newline="\n")
-live = budget.live_reading(A1, now)
+live, problem = budget.live_reading(A1)
 check("live: account 1 reads its own file's weekly percent", live and (live["account"], live["weekly_pct"]), ("account1", 29.0))
 check("live: no five_hour row (Ultra) reads as session 0 with no reset", live and (live["session_pct"], live["session_reset"]), (0.0, None))
-check("live: account 2 has no file, so no live reading", budget.live_reading(A2, now), None)
-check("live: a reading older than LIVE_MAX_AGE anchors nothing", budget.live_reading(A1, now + budget.LIVE_MAX_AGE), None)
+check("live: account 2 has no file: no reading and no problem", budget.live_reading(A2), (None, None))
 (A1.config_dir / budget.LIVE_FILE).write_text("{oops", encoding="utf-8", newline="\n")
-check("live: an unreadable file anchors nothing", budget.live_reading(A1, now), None)
+live, problem = budget.live_reading(A1)
+check("live: a malformed file is reported, not hidden", (live, bool(problem and "malformed" in problem)), (None, True))
 (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps({**tap, "rate_limits": {"five_hour": {"used_percentage": 3}}}),
                                               encoding="utf-8", newline="\n")
-check("live: a file with no seven_day row anchors nothing", budget.live_reading(A1, now), None)
+live, problem = budget.live_reading(A1)
+check("live: a file with no seven_day row is reported", (live, bool(problem)), (None, True))
 (A1.config_dir / budget.LIVE_FILE).unlink()
 
 # review R1-5: current() takes a fresh live reading as the newest anchor, and only the estimated account's file.
@@ -264,16 +265,37 @@ try:
     (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(tap), encoding="utf-8", newline="\n")
     anchored = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
     other = budget.current("account2", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
+    # PB5229: a 44-minute-old reading anchors, with and without telemetry after it; last week's reading does not.
+    aged = dict(tap, measured_at=(now - dt.timedelta(minutes=44)).astimezone(dt.timezone.utc).isoformat())
+    (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(aged), encoding="utf-8", newline="\n")
+    old44 = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
+    live44, _p = budget.live_reading(A1)
+    with_spend = budget.estimate(now, [live44], source([ev(now - dt.timedelta(minutes=10), "claude-opus-5-5", out=5_000_000, who=UUID1)]), RULES, A1)
+    future = dict(tap, measured_at=(now + dt.timedelta(hours=3)).astimezone(dt.timezone.utc).isoformat())
+    (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(future), encoding="utf-8", newline="\n")
+    skewed = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
     stale = dict(tap, measured_at=(at(2026, 10, 20, 9, 0)).astimezone(dt.timezone.utc).isoformat())
     (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(stale), encoding="utf-8", newline="\n")
     old = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
+    (A1.config_dir / budget.LIVE_FILE).write_text("{oops", encoding="utf-8", newline="\n")
+    broken = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
 finally:
     accounts.resolve = saved_resolve
     (A1.config_dir / budget.LIVE_FILE).unlink(missing_ok=True)
 check("current: without the live file the stored reading anchors (10 %)", base["weekly_est_pct"], 10.0)
 check("current: a fresh live reading is the newest anchor (29 %)", anchored["weekly_est_pct"], 29.0)
 check("current: another account's file anchors nothing for account 2", other["anchor"] is None or other["anchor"].get("account") == "account2", True)
-check("current: a live reading measured before the week (or past LIVE_MAX_AGE) anchors nothing", old["weekly_est_pct"], 10.0)
+check("current: a live reading measured before the week anchors nothing", old["weekly_est_pct"], 10.0)
+check("current PB5229: a 44-minute-old reading with no telemetry after it is its own figure and a non-null anchor",
+      (old44["weekly_est_pct"], old44["anchor"] and old44["anchor"]["source"].startswith("statusline")), (29.0, True))
+check("current PB5229: the telemetry spent after the reading is added on", with_spend["weekly_est_pct"] > 29.0
+      and with_spend["anchor"]["weekly_pct"] == 29.0, True)
+check("current PB5229: last week's reading is no anchor (the stored 10 % is)", old["anchor"]["weekly_pct"], 10.0)
+check("current PB5229: a malformed file is reported in the estimate", bool(broken["live_problem"]), True)
+check("current PB5229: a reading measured after now is reported with both times, not dropped silently",
+      (skewed["weekly_est_pct"], "after the current time" in (skewed["live_problem"] or "")), (10.0, True))
+check("current PB5229: the note names the source and age", budget.anchor_note(old44, now),
+      " (anchored on the status line's 29 % of 44 min ago + telemetry since)")
 
 for f in fails:
     print("FAIL:", f)
