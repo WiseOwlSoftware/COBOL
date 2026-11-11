@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-2",
  "rule-digest": "b95153261845",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/McsStore.cs#Transmit; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Release",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-2",
+ "notes": "Segments of one message are concatenated with nothing between (ABCD), so each segment begins at the next position. Each complete message is one line of DEV.out: the line end is the device's message delimiter, the means by which a variable-length-message device (GR2's 'another computer') tells one message from the next, comparable to the implementor's record delimiter of a variable-length sequential file; it is not a character of any message, and the next message's first character takes the next position available to message data. What a communication device is, and how it frames messages, is the implementor's (docs/CONFORMANCE.md 'Communication devices' documents the device as oriented to variable-length messages, one message per line). Attack point: the reading that DEV.out's bytes are the device's character positions; under it each message after the first starts two positions late (PARTIAL).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

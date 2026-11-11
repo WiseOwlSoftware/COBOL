@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.2.4.2",
  "rule-digest": "1c3cf819b90f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses",
  "test-ref": "conformance:cases/XIII.2.4@1985-I-O-CONTROL-PARAGRAPH/1985-FMT-XIII_2_4_2",
+ "notes": "This diagram prints only SAME AREA and MULTIPLE FILE TAPE; both are parsed, ordered freely, repeated and screened as the reader recorded (undisputed). SAME SORT AREA and SAME SORT-MERGE AREA belong to the Sort-Merge diagram (§1985:XI.2.4.2), so their refusal does not falsify this format. It is a real defect, decided by the text: SR2 lets a report file appear in any SAME clause without the RECORD phrase, and XI.2.5.4 GR2 lets SAME SORT AREA name files that are not sort files, yet IB (SAME SORT AREA FOR SRT-FILE RPT-FILE) is refused at 85 by the 2023-only bar §2023:12.4.6.4.3 SR5; recorded as sibling_defect against 1985-SR-XIII.2.4.3-2. Not decided here: IC (RERUN ... OF RPT-FILE compiles) turns on whether SR2's list is exhaustive, a question for the RERUN rule's row.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

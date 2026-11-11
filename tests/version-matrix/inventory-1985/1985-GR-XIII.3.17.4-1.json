@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.3.17.4-1",
  "rule-digest": "41fe54f47486",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#ScreenReportSignClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned",
  "test-ref": "conformance:cases/XIII.3.17@1985-SIGN-CLAUSE/1985-GR-XIII_3_17_4-1",
+ "notes": "GR1 fixes what a SIGN clause does on a numeric entry whose PICTURE has S. Both agents' probes (scaled, edited-source and sum-counter cases) and mine print the separate leading or trailing sign correctly, and SIGN on a group or on a non-S PICTURE is refused. The refuter's c6 case, a level-01 elementary report group entry carrying PICTURE/SIGN/COLUMN/SOURCE, is accepted at 85 and prints '-03'. That entry violates the report-group-entry format: the first entry must be format 1, which has no PICTURE, SIGN, COLUMN or SOURCE, and format 3's level is 02 to 49. That under-rejection belongs to the format rule (1985-SR-XIII.3.9.3-3 / -4), not to the SIGN rule, whose effect on the entry is correct. Filed below as a lead for that rule. ATTACK SURFACE: a reader who takes 'numeric data description entry' in SR1 to include the entry's legality would make this row PARTIAL.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

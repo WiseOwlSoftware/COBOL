@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.26.3-1",
  "rule-digest": "d39d57676bce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef",
  "test-ref": "conformance:cases/VI.6.26@1985-SUBTRACT-STATEMENT/1985-SR-VI_6_26_3-1",
+ "notes": "SR1 asks that each identifier refer to a numeric elementary item (numeric edited allowed after GIVING, groups in CORRESPONDING); every probe of the read and the refuter for that test held. The doubt was SUBTRACT FUNCTION INTEGER (2.5) FROM N, which compiles and runs (+003). A numeric or integer function references a numeric elementary temporary item, so SR1 is met; what forbids the program at 85 is IV.4.3.4's separate rule that such functions appear only in arithmetic expressions. That defect is real but belongs to the IV.4.3.4 row.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

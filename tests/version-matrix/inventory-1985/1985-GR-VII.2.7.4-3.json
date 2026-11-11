@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.2.7.4-3",
  "rule-digest": "31797cc9af1b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#paddingCharacterClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPaddingCharacterClause; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
  "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-GR-VII_2_7_4-3",
+ "notes": "The refuter's open point (must two programs naming different padding characters get the 39 conflict?) is settled by text he did not cite. VII.4.3.4 GR8 (Implementor-Defined Element List item 86) lets the implementor choose which fixed file attributes OPEN validates. The determination is recorded at DOC-A.1-129 (2023 clause): a sequential file validates nothing beyond its organization. So GR3's fixed attribute is never compared and no 39 is required. GR2 makes padding inert on a device type it does not apply to, and every WiseOwl file is a host file whose physical record is the logical record. The probe shows no padding written, and an OPEN under a different padding character succeeds (00) and reads both records, including a record made entirely of '#'. ATTACK SURFACE: no document states that padding is 'not applicable to the device type' for every file. §1985:I.1.5.2.5.1 says 'The absence of such elements ... must be specified', and docs/CONFORMANCE.md mentions PADDING only in its obsolete-element dating.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

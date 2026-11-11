@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.1.3.4-6",
  "rule-digest": "11751d1b952c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#CharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordRulesFailure; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite",
  "test-ref": "conformance:cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VIII_1_3_4-6",
+ "notes": "The rule's obligation is that a condition the implementor specifies yields a 9x value. WiseOwl's relative condition (a character with no byte image) yields 91, documented at DOC-A.1-110, and the record is not written. The refuter's key-0 case is not this rule's: RelativeConnector.Write tests 'slot is < 1 or > HighestRelativeRecordNumber' on ONE line (line 342) and returns 34 for both. So the implementor's boundary is 1..highest (DOC-A.1-107), and key 0 is a write beyond the externally defined boundaries, status 24's case. That status-34 defect is kb/Work PB5125 (1985-GR-VIII.1.3.4-L2.3), and its fix (24 through the invalid-key path, no edition arm today) covers key 0 at the same line. The probe also shows the 34 persisting as a permanent error. ATTACK SURFACE: if a reader holds that record number 0 is not 'beyond' a boundary, key 0 becomes an implementor-defined condition and must answer 9x, which would make this row PARTIAL; the shared code line is the evidence that the implementor classes it as a boundary.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
