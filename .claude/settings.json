@@ -51,11 +51,6 @@
           },
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/status_guard.py\"",
-            "timeout": 30
-          },
-          {
-            "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/fleet_active_build.py\"",
             "if": "Bash(dotnet *)",
             "timeout": 30
@@ -83,11 +78,6 @@
           {
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/forbidden_commands.py\"",
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/status_guard.py\"",
             "timeout": 30
           },
           {
@@ -126,23 +116,7 @@
           },
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/status_guard.py\"",
-            "timeout": 30
-          },
-          {
-            "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/inbox_guard.py\"",
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/status_guard.py\"",
             "timeout": 30
           }
         ]

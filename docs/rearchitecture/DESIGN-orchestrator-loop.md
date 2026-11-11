@@ -327,8 +327,7 @@ Each iteration, in this order:
 ### 4.2 Permission mode under a headless session
 
 The repository's hooks stay the real guard under any `--permission-mode`: `forbidden_commands.py` refuses the
-forbidden git and shell shapes, `dispatch_guard.py` refuses a loop unit's fleet launch after `STOP-UNIT`, `status_guard.py` refuses a
-commit with a stale `STATUS.md`. `--permission-prompts none` makes anything that would prompt a denial instead of
+forbidden git and shell shapes, `dispatch_guard.py` refuses a loop unit's fleet launch after `STOP-UNIT`. `--permission-prompts none` makes anything that would prompt a denial instead of
 a hang. The default mode is `bypassPermissions` (decision D1, owner 2026-10-04: allowed for the COBOL work). With prompts
 gone, the hooks above are the only guard, which is why the WSL lifecycle commands are blocked by `forbidden_commands.py`
 (decision D4) and why a hook's block is the rule speaking, never something a unit routes around.

@@ -310,8 +310,8 @@ the caller's own tree, and both trees are derived, never listed:
   WHERE THE BUILD RUNS: the project a `dotnet` command names, else the directory the shell is in when it runs it. That
   directory comes from `scripts/hooks/shell_location.py`, the ONE parser of both shells' command lines and location changes
   (`cd`, `pushd`/`popd`, a subshell, `bash -c`; `Set-Location`/`sl`/`chdir`/`Push-Location`, `pwsh -WorkingDirectory`,
-  `Start-Process -WorkingDirectory`, cmd.exe's `cd /d`), shared by `worktree_rm_allow.py`, `forbidden_commands.py` (every rule;
-  kb/Work PB3095, PB3198) and `status_guard.py` (kb/Work PB2599). It is the ONE model of a command line those rules read
+  `Start-Process -WorkingDirectory`, cmd.exe's `cd /d`), shared by `worktree_rm_allow.py` and `forbidden_commands.py` (every
+  rule; kb/Work PB3095, PB3198). It is the ONE model of a command line those rules read
   (kb/Work PB3198): heredoc bodies cut out at their own delimiter lines, and every place a shell takes a command line from
   walked as one (`$( … )`, backquote and PowerShell expressions and script blocks; `bash -c`, `pwsh -Command` /
   `-EncodedCommand`, `cmd /c`, `eval`, `Invoke-Expression`, also behind `timeout`/`env`/`xargs`/`wsl -e`), each step marked with
