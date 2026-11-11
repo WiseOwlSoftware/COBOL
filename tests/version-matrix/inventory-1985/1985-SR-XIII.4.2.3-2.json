@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.4.2.3-2",
  "rule-digest": "5885ccab2f0f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#closeOption; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose",
  "test-ref": "conformance:cases/XIII.4.2@1985-CLOSE-STATEMENT/1985-SR-XIII_4_2_3-2",
+ "notes": "§1985:XIII.4.2.3 SR2: 'The availability of the phrases within the CLOSE statement is dependent on the level of Sequential I-O module supported by the implementation.' WiseOwl supports the level-2 Sequential I-O CLOSE at every edition: the grammar's closeOption takes REEL/UNIT [FOR] REMOVAL, WITH NO REWIND and WITH LOCK (the double-barred level-2 elements of §1985:VII.4.2.2) and SequentialIoBinder#BindClose admits a report file (admitsReportFile) and maps each written form to its BoundCloseKind, so every RW CLOSE phrase is available at --std 85. Probes at --std 85: class e (sequential report file, each phrase) plain, WITH LOCK, LOCK, WITH NO REWIND, REEL, UNIT FOR REMOVAL, REEL REMOVAL all compile and run (CLOSED); class b refusals REEL WITH LOCK and WITH LOCK NO REWIND (two phrases) COBOL2269, bare CLOSE. COBOL0001, CLOSE f WITH. COBOL5506; class e after a failed state, CLOSE of an unopened file and a second CLOSE both set FS=42 and continue. Class c: no 2002+ CLOSE phrase exists to refuse; classes a, d, f do not apply. The witness closes two report files WITH LOCK / WITH NO REWIND and prints CLOSED.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

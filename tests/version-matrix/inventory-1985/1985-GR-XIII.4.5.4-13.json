@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.5.4-13",
  "rule-digest": "9240c5f564a6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenMultipleFileClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MultipleFileReel",
  "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/1985-GR-XIII_4_5_4-13",
+ "notes": "§1985:XIII.4.5.4 GR13: for files on a multiple file reel, a) 'Not more than one of the files may be in the open mode at one time', b) the position-number order for OUTPUT, c) 'Each of the files must be a sequential file'. The reel is hardware dependent (§1985:I.1.5.2.5.1); ScreenMultipleFileClause records it in FileModel.MultipleFileReel and CheckOpenModeForFile refuses a non-sequential member at OPEN (COBOL6816); a and b are the null facility docs/CONFORMANCE.md 3.4 determines (kb/Work PB5086), the 1985 text giving no result for a violation. Probes at 85: a RELATIVE member gives COBOL6816 (and COBOL2604); OPEN EXTEND of a member gives COBOL6814; position 2 opened before position 1 and both open together run 00 into separate host files. Witness opens them in turn.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.2.6.3-1",
  "rule-digest": "3e79de25c5e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenRerunClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRerunClause",
  "test-ref": "conformance:cases/VIII.2.6@1985-I-O-CONTROL-PARAGRAPH/1985-GR-VIII_2_6_3-1",
+ "notes": "§1985:VIII.2.6.3 GR1: 'The RERUN clause for the Relative I-O module is a subset of the RERUN clause for the Sequential I-O module', so a relative file takes the VII.2.12 clause, whose GR2 asks only for 'at least one of the specified forms'. The grammar parses the full sequential format, FileControlBinder.ScreenRerunClauses asks §1985:VII.2.12.3 SR1-SR5 against the relative file (otherwise a null rerun facility, conforming), and VersionConformancePass.VisitRerunClause gates it COBOL0902 from 2002. Probes at --std 85 (classes b, c, d): ON SYSRR EVERY 100 RECORDS OF RELFILE, CLOCK-UNITS, a switch condition-name ON SYSR2 and ON a sequential file, and with SAME RECORD AREA all compile and run (REC 3|0003); ON RELFILE (SR1) and END OF REEL OF RELFILE (SR2) give COBOL6529, RECORDS with no ON or ON a file COBOL6530, two RECORDS OF RELFILE or two CLOCK-UNITS COBOL6531, RECORDS with no OF file COBOL6496, an undefined switch or file COBOL1639, bare RERUN. a parse error; the witness clause at --std 2002 gives COBOL0902. Classes a, e, f do not reach a clause with no runtime effect. The witness compiles RERUN ON SYSRR EVERY 100 RECORDS OF a relative file and runs its I-O.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

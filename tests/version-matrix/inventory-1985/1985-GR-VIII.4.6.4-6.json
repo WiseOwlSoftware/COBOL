@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.6.4-6",
  "rule-digest": "a91bb36ce6a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers",
  "test-ref": "conformance:cases/VIII.4.6@1985-REWRITE-STATEMENT/1985-GR-VIII_4_6_4-6",
+ "notes": "§1985:VIII.4.6.4 GR6: 'After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause'. The FROM phrase is an implicit MOVE whose sender identifier-1 is never written (MoveBinder.BindFromPhrase; KeyedIoEmitter.EmitRewrite and SequentialIoEmitter.EmitRewrite only send the record area), and a SAME RECORD AREA clause makes the files' records one storage area (FileControlBinder.LinkSameRecordArea, FileModel.SameRecordAreaPeers), so the released record stays visible through every peer. Witness: REWRITE FROM a WS record, WS still UPDATED. Probes: dynamic file in SAME RECORD AREA with a second relative file: after REWRITE FROM WS-REC, WS, RA and the peer RX all UPDATED; FROM TE(I) still SECOND2; FROM an OCCURS DEPENDING group (WC=3) still XYZ; a failed random REWRITE (23) leaves identifier-1 FAILED7; reread records UPDATED and XYZ. (c): REWRITE RA FROM RB (another record of the same FD, the case 2023 admits and §1985:VIII.4.6.3 SR1 forbids) compiles at 85: open as kb/Work PB5077 on that row.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
