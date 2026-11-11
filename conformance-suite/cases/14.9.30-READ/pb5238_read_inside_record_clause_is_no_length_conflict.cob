@@ -14,7 +14,7 @@
       *> allowed for the fixed file attributes for that file."  §2023:9.1.6 names "the minimum and maximum logical record size"
       *> among those attributes, and §2023:14.9.30.4 NOTE 2 (under GR14) says the condition "will occur only when the operating
       *> environment does not check either the minimum or maximum record length as a fixed file attribute during OPEN
-      *> processing or when a specific physical record violates the fixed file attributes".  GR14's "minimum size specified
+      *> processing or when a specific physical record within a physical file violates the fixed file attributes for that physical file".  GR14's "minimum size specified
       *> by the record description entries" is read as that same quantity: the file's minimum and maximum record size, which
       *> §2023:13.18.43.4 GR9 and GR10 take from the descriptions only when the RECORD clause omits integer-2 or integer-3.
       *> Measured against the descriptions instead, a 7-byte record under a 10-byte description would answer 04, and so would

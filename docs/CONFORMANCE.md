@@ -861,8 +861,8 @@ of an unsupported facility.
   minimum/maximum size specified by the record description entries", while §2023:9.1.13.2 item 3 and §1985:VIII.1.3.4 item 1 b define
   '04' as a record outside "the fixed file attributes", and §2023:9.1.6 makes "the minimum and maximum logical record size" such an
   attribute; §2023:14.9.30.4 NOTE 2 adds that the condition "will occur only when the operating environment does not check either the
-  minimum or maximum record length as a fixed file attribute during OPEN processing or when a specific physical record violates the
-  fixed file attributes". The two statements are reconciled by reading "the record description entries" as the file's minimum and
+  minimum or maximum record length as a fixed file attribute during OPEN processing or when a specific physical record within a
+  physical file violates the fixed file attributes for that physical file". The two statements are reconciled by reading "the record description entries" as the file's minimum and
   maximum record size, the quantity §2023:13.18.43.4 GR9/GR10 take from the descriptions when the RECORD clause omits integer-2 or
   integer-3 and the RECORD clause states when it does (`FileConnector.VaryMin`/`VaryMax`). The other reading, a record measured
   against the smallest and largest description of the program that READs it, would answer '04' for every short record of the idiom
