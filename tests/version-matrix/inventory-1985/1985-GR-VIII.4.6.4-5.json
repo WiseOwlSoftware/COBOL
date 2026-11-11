@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.6.4-5",
  "rule-digest": "d430dccf0617",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
  "test-ref": "conformance:cases/VIII.4.6@1985-REWRITE-STATEMENT/1985-GR-VIII_4_6_4-5",
+ "notes": "§1985:VIII.4.6.4 GR5: REWRITE ... FROM identifier-1 'is equivalent to the execution of the following statements in the order specified': MOVE identifier-1 TO record-name-1 under the MOVE rules, then the same REWRITE without FROM; the 1985 format admits only identifier-1 (§1985:VIII.4.6.2). MoveBinder.BindFromPhrase binds the implicit MOVE from the FromPhraseRules.Rewrite row (MOVE validity), the keyed/sequential emitters run it before the rewrite on every path, and VersionConformancePass.VisitRecordFromPhrase refuses the 2002 FROM literal-1 at 85 (COBOL0871). Witness: shorter, longer and numeric FROM operands padded, truncated and zero-filled. Probes (d,f): S9(3)V9 -12.5 to a PIC 9(6) record 000012; edited ZZ9.99 to PIC X 1.50; S9(3)V9 to a group record as a group move 012N; OCCURS DEPENDING group (WC=2) padded AB; FUNCTION UPPER-CASE (alphanumeric function) ABCDEF; subscripted TE(I). (e): REWRITE before OPEN 49 and random REWRITE of an absent record 23, the MOVE done first in both (RA=abcdef). (c,b): FROM \"ABC\", SPACES, ALL \"X\", 12 each COBOL0871; FUNCTION LENGTH refused COBOL1914; empty FROM and FROM written twice refused; INVALID KEY on a sequential relative REWRITE refused COBOL1720.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "2023 adds FROM literal-1 (§2023:14.9.35.4 GR7: \"MOVE literal-1 TO record-name-1\"), which the 1985 format refuses; the FROM identifier-1 case is unchanged. §2023:14.9.35.4 GR7 keeps the equivalence: MOVE identifier-1 TO record-name-1 per the MOVE rules, then 'The same REWRITE statement without the FROM phrase'; §2023:14.9.35.3 SR6 states the MOVE-validity part ('shall be valid as a sending operand in a MOVE statement'). Literal-1 is new syntax only.",
-  "source": "adjudicate-712/slice-19"
+  "source": "adjudicate-712/slice-19",
+  "digests": {
+   "GR-14.9.35.4-7": "1e70c8697127",
+   "SR-14.9.35.3-6": "9b663a6699cb"
+  }
  }
 }

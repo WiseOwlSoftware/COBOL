@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.9.4-2",
  "rule-digest": "6e27f9e4fda8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand",
  "test-ref": "conformance:cases/XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT/1985-GR-XIII_4_9_4-2",
+ "notes": "§1985:XIII.4.9.4 GR2: \"Within a declarative procedure, there must be no reference to any nondeclarative procedures.\" Every procedure-name reference (PERFORM, PERFORM THRU, GO TO, GO TO DEPENDING, ALTER) passes ProcedureTableBuilder.ResolveProcedureOperand, which calls StatementValidation.CheckDeclarativesBoundary: a reference written in a declarative section that names a nondeclarative procedure draws warning COBOL2375 at every edition (a general rule on the program; the warning severity is the docs/CONFORMANCE.md 'Declaratives reference boundary' determination), and the 2023 RESUME exemption cannot reach 85 because RESUME is refused there (COBOL0876). Probes at 85 (work-slice-54/c1*; classes b, c, f): PERFORM, PERFORM THRU (both ends), GO TO, GO TO DEPENDING (value 0 falls through), ALTER ... TO PROCEED TO and PERFORM of a nondeclarative section each print COBOL2375 at the statement; RESUME NEXT STATEMENT prints COBOL0876; the witness's PERFORM and GO TO of paragraphs of its own declarative section run with no diagnostic.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"Within a declarative procedure, there must be no reference to any nondeclarative procedures.\"; 2023: \"there shall be no reference to any nondeclarative procedures except in a RESUME statement.\". The same prohibition is kept, but 2023 adds an exception: a RESUME statement in a declarative may reference a nondeclarative procedure, which 1985 refused.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.49.3-3": "61ac9f5cba3d"
+  }
  }
 }

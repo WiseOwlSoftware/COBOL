@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XI.4.1.2",
  "rule-digest": "a76d2d65e988",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#mergeStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortCollatingPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortCollatingPhrase",
  "test-ref": "conformance:cases/XI.4.1@1985-MERGE-STATEMENT/1985-FMT-XI_4_1_2",
+ "notes": "§1985:XI.4.1.2 prints MERGE file-name-1 {ON {ASCENDING | DESCENDING} KEY {data-name-1} ...} ... [COLLATING SEQUENCE IS alphabet-name-1] USING file-name-2 {file-name-3} ... {OUTPUT PROCEDURE IS procedure-name-1 [{THROUGH | THRU} procedure-name-2] | GIVING {file-name-4} ...}. The grammar's mergeStatement fixes that order, SortBinder.BindMerge requires two USING files and one of OUTPUT PROCEDURE or GIVING (COBOL1757) and an SD file-name-1, and VersionConformancePass.VisitSortCollatingPhrase refuses the 2002 alphabet-name-2 and FOR ALPHANUMERIC / FOR NATIONAL forms at 85 (COBOL0872), so only alphabet-name-1 reaches SortBindCollating. Probed at 85 (classes b, c, e): two USING files with OUTPUT PROCEDURE, with OUTPUT PROCEDURE OUTP THRU OUTP, with GIVING OUT1 OUT2, with COLLATING SEQUENCE IS A1, with two key phrases and with a key list merge and run; one USING file (the witness) and no OUTPUT/GIVING COBOL1757, no USING, no key phrase, KEY with no data-name, WITH DUPLICATES, INPUT PROCEDURE and COLLATING written twice COBOL5506, OUTPUT PROCEDURE with GIVING and COLLATING after USING COBOL2269, IS A1 A2 and both FOR forms COBOL0872, an FD file-name-1 and an SD in USING COBOL1757.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"[ COLLATING SEQUENCE IS alphabet-name-1 ]\"; 2023: \"COLLATING SEQUENCE IS alphabet-name-1 [ alphabet-name-2 ] / FOR ALPHANUMERIC IS alphabet-name-1 / FOR NATIONAL IS alphabet-name-2\". The MERGE format is otherwise the same, but 2023's COLLATING SEQUENCE phrase adds alphabet-name-2 and the FOR ALPHANUMERIC/FOR NATIONAL forms. 2023 therefore accepts programs that 1985 refuses.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.24.2": "0e03355cfa77"
+  }
  }
 }

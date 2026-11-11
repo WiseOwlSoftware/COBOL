@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.1.4-7",
  "rule-digest": "aeb007508c5c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Release",
  "test-ref": "conformance:cases/XI.4.1@1985-MERGE-STATEMENT/1985-GR-XI_4_1_4-7",
+ "notes": "§1985:XI.4.1.4 GR7: each USING file is opened 'as if an OPEN statement with the INPUT phrase', read 'as if a READ statement with the NEXT and the AT END phrases', a variable-length record keeps 'the size of that record when it was read', and it is closed 'as if a CLOSE statement'; with an output procedure the open precedes it and the close 'is not performed until after control passes the last statement in the output procedure'; USE procedures run. EmitMerge calls EmitInputFile per file (EmitImplicitOpen, the READ loop releasing CurrentRecord at LastReadLength with its extents through CobolSort.Release) and places EmitInputClose after the output procedure when one is named. Probes at 85: witness 1A 2B 3A 4B; class a: RECORD VARYING files keep sizes 2/4/6/3 (SD DEPENDING ON preset to 6), and ODO records (OCCURS 1 TO 4 DEPENDING ON) come back with N=1/3/4 and refmod (4:N) at its bound; class e: a sequential-access relative and a dynamic-access indexed USING file merge (AA1A BB2B CC1C DD2D) and both FILE STATUS items read 10 inside the output procedure and 00 after it; a missing USING file runs its USE procedure (FS=35), then the MERGE ends (a critical 3x status, whose action §1985:VII.4.6.4 GR6 leaves to the implementor); a USING file already open ends the run unit with 41 (1985 states no result). Classes b, c, d, f: GR7 has no syntax arm; its size limit is SR3's row.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "X3.23b-1993 added to general rule 7 the sentence 'the size of any record written to file-name-1 is the size of that record when it was read from file-name-2 or file-name-3' (7b), the sentence 'For a relative file, the content of the relative key data item is undefined after the execution of the MERGE statement' (7c) and the last paragraph on the DEPENDING ON item of file-name-2 or file-name-3 (errata C292 to C294, kb/Work PB5045). §2023:14.9.24.4 GR7 carries all three, so the undefined relative key the withdrawn record counted as a 2023 addition is one no longer. What still differs: 1985 'the files referenced by file-name-2 and file-name-3 must not be in the open mode' (§1985:XI.4.1.4 GR7) states no result, 2023 'shall not be in the open mode, otherwise the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the execution of the MERGE statement terminates'; 1985 'The initiation is performed as if an OPEN statement with the INPUT phrase had been executed', 2023 adds, for a SHARING clause with the ALL phrase, 'as if an OPEN statement with the INPUT phrase and the SHARING WITH READ ONLY phrase had been executed', and 'If a nonfatal exception condition exists as a result of the execution of the implicit OPEN statement, the MERGE statement is terminated unless there is an applicable USE procedure that completes normally'; 1985 'Each record is obtained as if a READ statement with the NEXT and the AT END phrases had been executed', 2023 'as if a READ statement with the NEXT phrase, the IGNORING LOCK phrase, and the AT END phrase had been executed'; and for a record too large or too small for file-name-1, which 1985 forbids as a syntax rule ('must not be less than the smallest record nor greater than the largest record described for file-name-1', §1985:XI.4.1.3 SR3), 2023 says 'the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the MERGE statement is terminated'.",
-  "source": "readjudicate-amended-1985/slice-07"
+  "source": "readjudicate-amended-1985/slice-07",
+  "digests": {
+   "GR-14.9.24.4-7": "ef004b0b7079"
+  }
  }
 }

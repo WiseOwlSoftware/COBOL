@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'Sequential organization is a permanent logical file structure in which a record is identified by a predecessor-successor relationship established when the record is placed into the file.' A 1985 sequential file is a 2023 record sequential file (§2023:12.4.5.10.3 GR6 'sequential organization with the RECORD SEQUENTIAL phrase is implied'), and §2023:12.4.5.10.3 GR3 repeats the definition word for word. §2023:12.4.5.5.3 GR2 a) and §2023:14.9.51.4 GR17 restate that WRITE sets the relationship. GR3's sentence on record-length headers is physical, not observable. LINE SEQUENTIAL is new syntax of the clause format record. Same requirement.",
-  "source": "adjudicate-712-r2/slice-06"
+  "source": "adjudicate-712-r2/slice-06",
+  "digests": {
+   "GR-12.4.5.10.3-3": "e0f839aeea55",
+   "GR-12.4.5.5.3-2": "762981f4f2a5",
+   "GR-14.9.51.4-17": "7c5c5986c02d"
+  }
  }
 }

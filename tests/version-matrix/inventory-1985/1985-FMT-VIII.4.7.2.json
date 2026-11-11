@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VIII.4.7.2",
  "rule-digest": "62790778f136",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#startStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#startKeyPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartKeyPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartWithLength; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitComparisonOperator; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#OutOfPrintedOrder",
  "test-ref": "conformance:cases/VIII.4.7@1985-START-STATEMENT/1985-FMT-VIII_4_7_2",
+ "notes": "§1985:VIII.4.7.2 prints the relative START as START file-name-1 [ KEY { IS EQUAL TO | IS = | IS GREATER THAN | IS > | IS NOT LESS THAN | IS NOT < | IS GREATER THAN OR EQUAL TO | IS >= } data-name-1 ] [ INVALID KEY ... ] [ NOT INVALID KEY ... ] [ END-START ]; startStatement/startKeyPhrase parse it (operator required after KEY) and KeyedIoBinder.BindStart binds it, folding the operator with ConditionBinder.MapOperator and implying EQUAL when KEY is omitted; at --std 85 the later additions are refused: LESS, <=, NOT > (VisitStartKeyPhrase, COBOL0900), NOT EQUAL (BindStart, COBOL0862), <> (VisitComparisonOperator, COBOL0900), FIRST/LAST (VisitStartStatement), WITH LENGTH (VisitStartWithLength plus SR8), and NOT INVALID KEY before INVALID KEY (VisitConditionalPhrases via OutOfPrintedOrder, COBOL0900). Probes at 85: all eight printed operators with and without IS/THAN/TO run and position correctly against records 2,4,6 (EQ4->4, EQ3 INV 23, GT4->6, NL3->4, GE5->6, GE0->2, GT9999 INV 23); (b) KEY with no operator, a doubled KEY phrase, a doubled INVALID KEY, a missing file-name and a literal operand are syntax errors, data-name-1 other than the RELATIVE KEY (a WORKING-STORAGE item or REL-KEY(1:2)) is COBOL0862 per §1985:VIII.4.7.3 SR4, RANDOM access is COBOL0862; (e) sequential and dynamic access with no KEY phrase run with EQUAL implied, START after CLOSE leaves status 47 with neither phrase executed. The witness runs >= and GREATER THAN in the printed phrase order with END-START.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 relative START allows KEY {EQUAL|=|GREATER|>|NOT LESS|NOT <|GREATER OR EQUAL|>=} data-name-1 and INVALID KEY before NOT INVALID KEY. §2023:14.9.41.2 adds FIRST and LAST, and §2023:14.9.41.3 SR3 admits every general-relation operator except 'IS NOT EQUAL TO' (adding LESS, NOT GREATER, LESS OR EQUAL with a reverse search); the INVALID KEY pair is in choice indicators. WITH LENGTH is not available to relative files (§2023:14.9.41.3 SR8 'file-name-1 shall reference a file with indexed organization'). CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-14.9.41.2": "241210dd3c57",
+   "SR-14.9.41.3-3": "6880d5273bca",
+   "SR-14.9.41.3-8": "d176754ff112"
+  }
  }
 }

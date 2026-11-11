@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "§1989:A.2.27.3 AR1, as amended in place by X3.23b-1993 (the printed X3.23a-1989 rule read 'If more than one argument-1 is specified, all arguments must be of the same class.'): 'all arguments must be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.' §2023:15.63.3 AR2: 'All arguments shall be of the same class with the exception that mixing of arguments of alphabetic and alphanumeric classes is allowed.' The amendment added the alphabetic/alphanumeric exception, which the withdrawn record had counted as a 2023 change; with it both texts refuse the same mixed-class MIN argument lists and accept the same ones. 1989's 'If more than one argument-1 is specified' is implied by 2023's 'All arguments'. Which classes an argument may have at all is a separate 2023 rule (§2023:15.63.3 AR1), not this one.",
-  "source": "readjudicate-amended-1985/slice-12"
+  "source": "readjudicate-amended-1985/slice-12",
+  "digests": {
+   "AR-15.63.3-2": "9a229b27c2c7"
+  }
  }
 }

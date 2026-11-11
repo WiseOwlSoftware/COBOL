@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIV.3.4.2",
  "rule-digest": "461f03f0d929",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#purgeStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPurge; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ResolveCommunicationCd; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge",
  "test-ref": "conformance:cases/XIV.3.4@1985-PURGE-STATEMENT/1985-FMT-XIV_3_4_2",
+ "notes": "§1985:XIV.3.4.2 prints the one format 'PURGE cd-name-1'; purgeStatement parses exactly one word after PURGE, BindPurge resolves it as a cd-name of an output or I-O CD (§1985:XIV.3.4.3 SR1, COBOL6170), and MessageControlSession.Purge drops the partial message at run time; the facility is ungated at 85. Probes at --std 85 (pg1, pg2): legal PURGE of an output CD with a 2-entry DESTINATION TABLE and of an I-O CD runs (portion purged: D1.out holds only the later EMI message 'ABCDE'; statuses 00, 70/error key 4 with no portion, 20/'41' unknown destination, 30 for count 0 and 3); zero operands, two operands, a literal and '()' are COBOL0001/0307 parse refusals, an input CD and a CD's subordinate item are COBOL6170. Witness: PURGE WS-ITEM (a data item) refused COBOL6170.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

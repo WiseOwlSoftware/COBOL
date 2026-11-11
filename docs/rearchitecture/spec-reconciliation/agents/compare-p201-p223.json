@@ -1,9 +1,9 @@
 {
   "batch": [201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 221, 223],
-  "pages_checked": [201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 221, 223],
+  "pages_checked": [201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 221, 223], "pages_unread": [],
   "findings": [
     {
-      "page": 203,
+      "id": "p203-1", "page": 203,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "8.7.5.1 Format 1 (simple-relational-operator): the six alternatives 'IS GREATER THAN / IS > / IS LESS THAN / IS < / IS EQUAL TO / IS =' are enclosed in a full-height pair of BRACES — a curly '{' on the left and a curly '}' on the right (verified at 300 dpi, crop of the figure). There are no vertical choice-indicator bars inside the braces.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Redraw the Format 1 figure with the brace glyphs used on pages 215/217 (⎧ ⎪ ⎨ ⎩ / ⎫ ⎪ ⎬ ⎭) and add a 'Figure notes' blockquote stating the braces are plain (exactly one alternative selected, no choice indicators). The Format 2 (extended-relational-operator) figure on page 204 has the identical defect (drawn with ┌─┐ / │ / └┘ box glyphs) and should be fixed in the same change set."
     },
     {
-      "page": 203,
+      "id": "p203-2", "page": 203,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "In Format 1 the words GREATER, LESS and EQUAL are UNDERLINED; IS, THAN and TO are printed without an underline, and the relational characters '>', '<', '=' carry no underline.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Add the standard 'Figure notes (relational operator Format 1 (simple-relational-operator) syntax diagram)' blockquote after the figure: GREATER, LESS and EQUAL are underlined in the printed standard (required words); IS, THAN and TO are not underlined (optional words); the character operators >, < and = are not underlined but are required when that alternative is used (see 5.2.x on special character words); the braces are plain — exactly one alternative shall be selected; no choice indicators are present. Do the same for Format 2 on page 204 (GREATER, LESS, EQUAL, NOT, OR underlined)."
     },
     {
-      "page": 213,
+      "id": "p213-1", "page": 213,
       "kind": "missing-text",
       "severity": "structural",
       "pdf_says": "Table 4 — Combination of symbols in boolean expressions has a two-level header: the corner cell 'First Symbol' plus a spanning header cell 'Second symbol' printed above the five column headers 'Identifier or literal', 'B-AND B-OR B-XOR B-SHIFT-L B-SHIFT-R B-SHIFT-LC B-SHIFT-RC', 'B-NOT', '(' and ')'.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Restore the group header, e.g. add a preceding header line '| | Second symbol | | | | |' (or an explicit note above the table) so the column-group label is present as it is for Table 3."
     },
     {
-      "page": 205,
+      "id": "p205-1", "page": 205,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "Table 3 — Combinations of symbols in arithmetic expressions: header 'First symbol' in the corner, 'Second symbol' spanning, then the five column headers 'Identifier or literal', '+ – * / **', 'Unary + or –', '(' and ')'.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Make the whole of Table 3 one 6-column table: header '| First symbol | Second symbol | | | | |' (6 cells) with a 6-column delimiter row, keep the sub-header row as the second header line, and join the page-206 body rows to the same table."
     },
     {
-      "page": 209,
+      "id": "p209-1", "page": 209,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "Items 'c)', 'd)' and 'e)' are indented one level, subordinate to item '2) When the value of operand-2 is greater than zero, the results shall be determined as follows:' (begun on page 208); items '3)' and '4)' then return to the outer margin.",
@@ -48,7 +48,7 @@
       "suggested_repair": "Indent the c), d), e) blocks (and their embedded expression lines) three spaces, matching the a)/b) items on page 208, so the sub-list stays attached to item 2)."
     },
     {
-      "page": 211,
+      "id": "p211-1", "page": 211,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "In 8.8.1.5.4 the cases 'a)' through 'd)' are indented one level under item '2) When the value of operand-2 is greater than zero, the results shall be determined as follows:'.",

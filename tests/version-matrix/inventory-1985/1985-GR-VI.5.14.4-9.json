@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "§2023:13.18.60.4 GR11 repeats 1985 GR9 (radix 10, minimum digit configuration, implementor-specified alignment/representation/sign, storage for the PICTURE range; DOC-A.1-215) and adds a case in the same rule: 'If the WITH NO SIGN phrase is specified the representation ... reserves no storage for representing any sign value', 'always considered to have a zero, or positive value'. USAGE PACKED-DECIMAL WITH NO SIGN, refused by the 1985 format, is accepted: a case added.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-13.18.60.4-11": "e57af73e2327",
+   "DOC-A.1-215": "0d303e098d01"
+  }
  }
 }

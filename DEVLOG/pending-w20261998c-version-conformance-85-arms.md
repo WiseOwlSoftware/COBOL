@@ -7,7 +7,7 @@ re-probed on the branch's build before its fix, and each reproduced as filed.
 only from the AFTER boundary, so AYAAXAA with AFTER "X" BEFORE "Y" tallied 2. §1985:VI.6.18.4 GR8 b, the 2002 text and
 the 2014 FCD measure the BEFORE portion from the leftmost position, and the operand participates in the intersection
 with the AFTER portion (0 here); §2023:14.9.22.4 GR9 b reworded it with BACKWARD. A behaviour row,
-`DialectBehavior.InspectBeforeFromFirstEligiblePosition` (2023, VCR row 7.56), sets `BoundInspect.BeforeFromLeftmost`
+`DialectBehavior.InspectBeforeFromFirstEligiblePosition` (2023, VCR row 7.58), sets `BoundInspect.BeforeFromLeftmost`
 below 2023 and `CobolInspect.Region` searches from position 0; TALLYING, REPLACING and CONVERTING share `Region`, so all
 three changed. Witness `14.9.22-INSPECT/pb5120_before_after_intersection` (`.out` and `.2023.out`).
 

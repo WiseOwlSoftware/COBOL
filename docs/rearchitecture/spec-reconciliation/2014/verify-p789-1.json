@@ -1,0 +1,13 @@
+{
+  "claim_id": "p789-1",
+  "claim_key": "de05870b5eff6715",
+  "page": 789,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p789-1", "page": 789, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Script or character classification | Letters or range of letters ... Latin: 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01BA, 01BB, 01BC-01BF, 01C0-01C3, 01C4-021F, 0222-0233, 0250-02AD, 1E00-1E9B, 1EA0-1EF9, 207F", "markdown_says": "Script or\\\ncharacter\n\n| classification | Letters or range of letters |\n|---|---|\n| Latin: | 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01BA, 01BB, 01BC-01BF, |\n\n01C0-01C3, 01C4-021F, 0222-0233, 0250-02AD, 1E00-1E9B, 1EA0-1EF9, 207F", "why_it_matters": "The B.3.1 repertoire table is restructured: the first column header 'Script or character classification' is split so only 'classification' heads the table, and the second line of the Latin row (01C0-01C3 ... 207F) falls outside the table as a free paragraph, detached from the Latin label. A reader or tool deriving the permitted Latin letters from the table row loses those ranges."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page 789 (printed folio 765) shows a two-column layout: the header 'Script or / character / classification' on three lines with 'Letters or range of letters', then 'Latin:' followed by two wrapped lines of ranges. The markdown keeps every word of the header and every code range in the same order: 0041-005A ... 01BC-01BF in the table row, then 01C0-01C3, 01C4-021F, 0222-0233, 0250-02AD, 1E00-1E9B, 1EA0-1EF9, 207F directly below it. I compared each range with the page and found no value missing, added or changed. The only difference is how the transcription laid out a wrapped header and a wrapped cell. That is a line-wrapping and formatting artifact. A careful reader can still recover the full content without ambiguity, since nothing else sits between the row and its continuation. The claim's 'pdf_says' and 'markdown_says' are quoted accurately, but the difference does not change meaning.",
+    "corrected_description": null
+  }
+}

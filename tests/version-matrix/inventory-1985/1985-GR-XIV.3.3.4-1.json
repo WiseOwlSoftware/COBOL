@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.3.4-1",
  "rule-digest": "d11555c3f535",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Enable; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOne; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#Deliver",
  "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-GR-XIV_3_3_4-1",
+ "notes": "§1985:XIV.3.3.4 GR1: \"No action is taken when an ENABLE statement is executed which specifies a source or destination which is already connected, except that the value in the status key data item indicates this condition\", and the program-MCS path is unaffected. SetOne returns 15 (AlreadySet) without writing the endpoint, SetOutput writes error key 5 and 15/80, and Deliver moves held Outbound messages only on a real enable. The witness: SEND to disabled D1 10/2, ENABLE OUTPUT 00 and the count goes 0->1, second ENABLE 15/5 and the count stays 1. Probes at 85: (b) second ENABLE I-O TERMINAL 15, ENABLE INPUT TERMINAL on an enabled source 15, unknown queue 20, ENABLE OUTPUT on an input CD refused COBOL6170; the unaffected program path: RECEIVE from a DISABLEd queue still returns HELLO (00, length 5) and SEND to a DISABLEd destination is accepted (10/2) and delivered at ENABLE OUTPUT; (c) refused COBOL0902 at 2014/2023. The 15 SetOne answers where a queue-source path is still closed is the GR2/GR3 defect recorded on those rows, not this rule's.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

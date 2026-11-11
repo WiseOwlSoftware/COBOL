@@ -12,7 +12,8 @@ The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In s
   none (one stored form: an empty reason is refused, kb/Work PB4995). Its keys and its kinds are DATA, the
   schema's `next` (`inventory_schema.ChangeRecord`, kb/Work PB4993): no code here spells a kind. A rule of the newer
   edition that no older `to` names is NEW: derived, never written. `bridge` is true while an edition between the two is
-  not held (1985 straight to 2023 until 2002 and 2014 are transcribed, kb/Work PB4813).
+  not in the lineage (1985 straight to 2023 until 2002 and 2014 are transcribed, kb/Work PB4813, and until the 1985 to
+  2002 records link the held 2002, kb/Work PB5256: `inventory_schema.Edition.linked`).
 - `status` is the rule's standing in its own edition: `normal`, archaic (§2023:4.2.12: still required, discouraged) or
   obsolete (§1985:I.1.5.2.3, §2023:4.2.13: still required, to be deleted at the next revision), a fact of the rule read
   from its text into its catalog (`element_standing.py`), never stored. Deprecation is KEPT into an obsolete rule, then
@@ -34,13 +35,16 @@ it; nothing else spells the rules.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import pathlib
+import re
 import sys
 from typing import Any, Iterable, NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from inventory_schema import Edition, Schema, edition, load_schema  # noqa: E402  (the schema's `editions.of`, `next`)
+import inventory_schema  # noqa: E402  (the repository root, for the candidate pairing's file)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -78,6 +82,7 @@ def next_errors(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[
     for t in to:
         if t not in targets:
             errs.append(f"next.to names {t!r}, which is no rule of edition {want}")
+    errs += stale_targets(nxt, to, targets)
     if not (nxt.get("source") or "").strip():
         errs.append("next.source names the audit run or the adjudication that decided it")
     if kind is None:
@@ -92,6 +97,39 @@ def next_errors(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[
         errs.append("next.reason is empty: a record that states no reason omits the key (one stored form)")
     if kind.chained and (own := [f for f in shape.verdict_fields if row.get(f)]):
         errs.append(f"a {kind.name} rule holds no verdict of its own (its chain's newest rule does), but it carries {own}")
+    return errs
+
+
+#: THE TEXT A CHANGE RECORD WAS DECIDED AGAINST, on its targets' side (kb/Work PB5256, branch review R1-4). The record's own
+#: rule carries its `rule-digest` (kb/Work PB698); its `to` rules are named by id alone, and an id moves when a corrected
+#: transcription renumbers its block (one rule a reconciliation restores to READ's general rules shifts the text under 26
+#: ids). So the record carries `digests`, each `to` rule's `rule-digest` when it was recorded (the writer stamps them,
+#: `target_digests`), and a target whose text has since changed makes the record STALE, by name.
+STALE = "STALE"
+
+
+def target_digests(to: Iterable[str], targets: dict[str, dict[str, Any]]) -> dict[str, str]:
+    """The `digests` a record into `to` carries: each target's `rule-digest` in the next edition's view now. The one
+    writer stamps them (record_verdicts.py), so a record is decided against the text the view holds when it is written."""
+    return {t: targets[t]["rule-digest"] for t in to if t in targets}
+
+
+def stale_targets(nxt: dict[str, Any], to: list[str], targets: dict[str, dict[str, Any]]) -> list[str]:
+    """Why the `to` side of the record `nxt` is stale or unstamped: a target with no digest, a digest of a rule it does
+    not name, or a target whose text is no longer the text its digest records."""
+    if not to:
+        return []
+    digests = nxt.get("digests")
+    if not isinstance(digests, dict):
+        return ["next.digests is missing: a record names its `to` rules with the digest of the text it was decided against "
+                "(record_verdicts.py stamps it)"]
+    errs = [f"next.digests names {d!r}, which next.to does not" for d in sorted(set(digests) - set(to))]
+    for t in to:
+        if t not in digests:
+            errs.append(f"next.digests carries no digest of {t!r}")
+        elif t in targets and digests[t] != targets[t].get("rule-digest"):
+            errs.append(f"{STALE}: next.to names {t!r}, whose text changed since the record was decided (digest "
+                        f"{digests[t]}, now {targets[t].get('rule-digest')}): re-decide the record against the text as it is")
     return errs
 
 
@@ -177,13 +215,19 @@ def self_test() -> int:
             fails.append(what)
 
     ed = edition(1985)
-    targets = {"SR-13.18.38.3-1": {"rule-id": "SR-13.18.38.3-1", "state": "OK", "editions": "85,2002,2014,2023"},
-               "SR-13.18.38.3-2": {"rule-id": "SR-13.18.38.3-2", "state": "OK", "editions": "2002,2014,2023"},
-               "GR-14.9.21.4-2": {"rule-id": "GR-14.9.21.4-2", "state": "GAP", "editions": "85,2002,2014,2023"}}
+    targets = {"SR-13.18.38.3-1": {"rule-id": "SR-13.18.38.3-1", "state": "OK", "editions": "85,2002,2014,2023",
+                                   "rule-digest": "d1"},
+               "SR-13.18.38.3-2": {"rule-id": "SR-13.18.38.3-2", "state": "OK", "editions": "2002,2014,2023",
+                                   "rule-digest": "d2"},
+               "GR-14.9.21.4-2": {"rule-id": "GR-14.9.21.4-2", "state": "GAP", "editions": "85,2002,2014,2023",
+                                  "rule-digest": "d3"}}
 
     def row(**nxt: Any) -> dict[str, Any]:
         base = {"kind": "KEPT", "edition": 2023, "to": ["SR-13.18.38.3-1"], "bridge": True, "source": "planted"}
-        return {"rule-id": "1985-SR-VI.5.8.3-1", "verdict": "", "next": {**base, **nxt}}
+        record = {**base, **nxt}
+        if "digests" not in nxt and record.get("to"):
+            record["digests"] = target_digests(record["to"], targets)
+        return {"rule-id": "1985-SR-VI.5.8.3-1", "verdict": "", "next": record}
 
     def errs(r: dict[str, Any], s: Schema = schema) -> list[str]:
         return next_errors(r, ed, s, targets)
@@ -215,6 +259,15 @@ def self_test() -> int:
        "a record carrying a key the schema does not name (its evidence is read from the catalogs) is refused")
     ok(any("holds no verdict" in e for e in errs(dict(row(), verdict="CONFORMS"))),
        "a KEPT rule holding a verdict of its own is refused: the chain's newest rule holds it")
+    moved = {**targets, "SR-13.18.38.3-1": dict(targets["SR-13.18.38.3-1"], **{"rule-digest": "d-other"})}
+    ok([e for e in next_errors(row(), ed, schema, moved) if e.startswith(STALE)]
+       == ["STALE: next.to names 'SR-13.18.38.3-1', whose text changed since the record was decided (digest d1, now "
+           "d-other): re-decide the record against the text as it is"],
+       "a record whose target's text changed under its id is STALE, by name (branch review R1-4)")
+    ok(any("next.digests is missing" in e for e in errs(row(digests=None)))
+       and any("names 'X'" in e for e in errs(row(digests={"SR-13.18.38.3-1": "d1", "X": "d"})))
+       and errs(row(kind="REMOVED", to=[], reason="gone")) == [],
+       "a record naming `to` rules carries their digests and no other; a REMOVED record names none and carries none")
     # The kinds are DATA (kb/Work PB4993): a kind the schema alone adds is validated by its flags, with no code change.
     split = copy.deepcopy(raw)
     split["next"]["kinds"]["SPLIT"] = {"meaning": "planted", "to": True, "reason": True, "chained": False}
@@ -277,22 +330,187 @@ def self_test() -> int:
        and e85.next_held == 2023 and e85.bridged and inventory_dir(e27).name == "inventory-2027",
        "a held edition named in the schema alone becomes the newest; 2023 then carries a change record into it, unbridged")
     kept23 = {"rule-id": "SR-13.18.38.3-1", "verdict": "",
-              "next": {"kind": "KEPT", "edition": 2027, "to": ["SR-1"], "bridge": False, "source": "planted"}}
-    t27 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023,2027"}}
+              "next": {"kind": "KEPT", "edition": 2027, "to": ["SR-1"], "digests": {"SR-1": "d27"}, "bridge": False,
+                       "source": "planted"}}
+    t27 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023,2027", "rule-digest": "d27"}}
     ok(next_errors(kept23, e23, s_held, t27) == [] and state_of(kept23, e23, s_held, t27) == "OK"
        and state_of(kept23, e23, s_held, {"SR-1": dict(t27["SR-1"], editions="2027")}) == "GAP",
        "a 2023 row KEPT into 2027 is judged by its chain at its own spelling, 2023")
+
+    # kb/Work PB5256: a held edition no record names yet (`linked: false`) has its rows, and the lineage bridges over it;
+    # linking it is the one change that routes the older edition's records into it.
+    unlinked, linked = copy.deepcopy(raw), copy.deepcopy(raw)
+    for r, flag in ((unlinked, False), (linked, True)):
+        r["editions"]["of"] = [dict(e, catalog="c.json", locator="section", store="tests/version-matrix/inventory-2002",
+                                    adjudicated=list(edition(1985).adjudicated), linked=flag) if e["year"] == 2002 else e
+                               for e in r["editions"]["of"]]
+    u85, u02 = (held_edition(editions_of(unlinked), y) for y in (1985, 2002))
+    l85, l02 = (held_edition(editions_of(linked), y) for y in (1985, 2002))
+    ok(u85.next_held == 2023 and u85.bridged and u02.held and not u02.linked and u02.next_held == 2023 and u02.bridged
+       and spanned(u85, Schema(unlinked)) == ["85", "2002", "2014"],
+       "an unlinked held 2002 is bridged over: 1985's records still name 2023, and 2002's own name 2023 over 2014")
+    ok(l85.next_held == 2002 and not l85.bridged and l02.next_held == 2023 and l02.bridged,
+       "linking 2002 routes 1985's records into it, unbridged")
+    from inventory_schema import link_errors  # noqa: PLC0415
+    ok(len(link_errors(editions_of(linked), lambda y: y != 2002)) == 1
+       and "2002 is linked" in link_errors(editions_of(linked), lambda y: y != 2002)[0]
+       and link_errors(editions_of(unlinked), lambda y: y != 2002) == []
+       and link_errors(editions_of(linked), lambda y: True) == [],
+       "an edition is linked only once its transcription is reconciled: its ids may still move (branch review R1-4)")
+    newest_unlinked = copy.deepcopy(raw)
+    newest_unlinked["editions"]["of"][-1]["linked"] = False
+    try:
+        editions_of(newest_unlinked)
+        refused = False
+    except SystemExit:
+        refused = True
+    ok(refused, "the newest held edition ends the lineage: an unlinked one is refused")
+
+    def rule(rid: str, kind: str, text: str, subject: str = "MOVE statement") -> dict[str, Any]:
+        return {"id": rid, "kind": kind, "subject": subject, "text": text}
+
+    older = [rule("2002-SR-1", "SR", "Identifier-1 shall be numeric."),
+             rule("2002-SR-2", "SR", "Identifier-2 shall be numeric — or not."),
+             rule("2002-GR-1", "GR", "Identifier-1 shall be numeric."),
+             rule("2002-GR-2", "GR", "This International Standard says so."),
+             rule("2002-SR-3", "SR", "Identifier-1 shall be numeric.", "ADD statement")]
+    newer = [rule("SR-1", "SR", "Identifier-1 shall be numeric."), rule("SR-2", "SR", "Identifier-2 shall be numeric - or not."),
+             rule("GR-1", "GR", "This document says so."), rule("SR-9", "SR", "Identifier-1 shall be numeric.", "ADD statement"),
+             rule("SR-10", "SR", "Identifier-1 shall be numeric.", "ADD statement")]
+    got = candidates(older, newer)
+    ok(got["pairs"] == [{"rule-id": "2002-SR-1", "to": ["SR-1"], "match": "exact"},
+                        {"rule-id": "2002-SR-2", "to": ["SR-2"], "match": "normalized"},
+                        {"rule-id": "2002-SR-3", "to": ["SR-9", "SR-10"], "match": "exact"}]
+       and got["unpaired"] == ["2002-GR-1", "2002-GR-2"]
+       and got["counts"] == {"rules": 5, "paired": 3, "exact": 2, "normalized": 1, "ambiguous": 1, "unpaired": 2},
+       "the candidate pairing matches construct, kind and words only: typography is no difference, a changed word, "
+       "another kind or another construct is no candidate, and two matches are both listed")
+    ok(pairing_text("1\\) a’s  “X” — b…\n  c. d") == "1) a's \"X\" - b... c) d"
+       and all(pairing_text(a) != pairing_text(b) for a, b in (
+           ('" {character-1} ... "', '" [character-1] ... "'), ("<u>MOVE</u> x", "MOVE x"), ("A | B", "A B"),
+           ("x shall be", "x may be"), ("x shall be", "x SHALL be"), ("NOT x", "x"), ("31 digits", "36 digits"),
+           ("a ... b", "a b"), ("A & B", "A B"), ("a &amp b", "a & b"), ("a\\b", "ab"))),
+       "the pairing erases typography only (an escape, typographic quotes, dashes and ellipsis glyph, an item's "
+       "delimiter, white space) and never a bracket, a brace, a bar, an ellipsis, an underline, a word, a case or a "
+       "number (branch review R1-3: 2002's braces against 2023's brackets are no pair)")
+    ok(pairing_text("the symbol 'S'\\ — a numeric item\\\n— an alphanumeric\\\n&emsp;group item\\")
+       == pairing_text("the symbol 'S' — a numeric item — an alphanumeric group item")
+       and pairing_text("IS &lt; x &#60; y &#x3C;") == pairing_text("IS < x < y <"),
+       "the transcription's markup is typography: a Markdown hard break is a line break and a character entity is its "
+       "character (the merge of PB5268, whose split dash lists end each item in a hard break)")
     print(f"=== LINEAGE SELF-TEST: {'PASS' if not fails else 'FAIL - ' + str(len(fails))} ===")
     return 1 if fails else 0
+
+
+# -- the candidate pairing: where the adjudication of an edition's change records starts ----------------------------------
+
+#: WHAT THE PAIRING'S NORMALIZATION MAY ERASE, and nothing else (kb/Work PB5256, branch review R1-3): typography. A
+#: Markdown escape (`1\)`), a typographic quote or dash (’ “ ” — –, read as ' " -), the ellipsis glyph (… read as ...),
+#: the delimiter of a list item's number or letter (`1.` and `1)`, `a.` and `a)`) and the runs of white space a line wrap
+#: leaves. It may NEVER erase a bracket, a brace, a choice bar, an ellipsis, an underline (`<u>`), a word, a letter's
+#: case, a number or any other character: the review found `cite.norm`, which keeps words only, pairing 2002's
+#: "{character-1} ..." (at least one character) with 2023's "[character-1] ..." (the zero-length literal), a change of
+#: meaning, so a general format's notation is part of the key like every other character.
+#: THE TRANSCRIPTION'S OWN MARKUP IS TYPOGRAPHY TOO (kb/Work PB5256, the merge of PB5268): a Markdown hard break (a
+#: backslash that ends a line, `'S'\` before the next dash item) is a line break, and a character entity (`&emsp;`, the
+#: indent of a dash item's wrapped line; `&lt;`) is that character's spelling. PB5268 split 2002's run-on dash lists into
+#: one item per line, each ending in a hard break, and 2002-SR-13.16.50.2-1 and 2002-GR-14.1.3-10 lost the exact 2023
+#: pairs whose words they still share; the 2023 transcription spells the same lists with no hard break.
+_TYPOGRAPHY = str.maketrans({"\u2018": "'", "\u2019": "'", "\u201a": "'", "\u201b": "'", "\u201c": '"', "\u201d": '"',
+                             "\u201e": '"', "\u2013": "-", "\u2014": "-", "\u2012": "-", "\u2015": "-", "\u2212": "-",
+                             "\u2010": "-", "\u2011": "-"})
+_HARD_BREAK = re.compile(r"\\(?=\s|$)")
+_ESCAPE = re.compile(r"\\(?=[^\w\s])")
+_ENTITY = re.compile(r"&(?:#[0-9]+|#[xX][0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]*);")
+_ITEM_DELIMITER = re.compile(r"(?:(?<=^)|(?<=\s))(\d+|[a-z])[.)](?=\s)")
+
+
+def pairing_text(text: str) -> str:
+    """`text` with its typography erased and nothing else (see `_TYPOGRAPHY`): the text a `normalized` pair shares."""
+    t = _ESCAPE.sub("", _HARD_BREAK.sub(" ", text))
+    t = _ENTITY.sub(lambda m: html.unescape(m.group()), t).translate(_TYPOGRAPHY).replace("\u2026", "...")
+    return re.sub(r"\s+", " ", _ITEM_DELIMITER.sub(r"\1)", t)).strip()
+
+
+def candidate_key(rule: dict[str, Any]) -> tuple[str, str, str]:
+    """What a candidate pairing compares: the rule's construct (its catalog `subject`, the clause title its rules rule,
+    in either case), its kind (the rule block's title: Syntax rules, General rules, ...) and its text with its typography
+    erased (`pairing_text`)."""
+    return rule["subject"].strip().lower(), rule["kind"], pairing_text(rule["text"])
+
+
+def candidates(older: Iterable[dict[str, Any]], newer: Iterable[dict[str, Any]]) -> dict[str, Any]:
+    """THE CANDIDATE PAIRING of each rule of `older` (an edition's catalog rules) with the rules of `newer` (the next
+    linked held edition's) whose construct, kind and words are the same (`candidate_key`): `exact` when the text is
+    identical, `normalized` when only its typography differs. NO JUDGMENT: a rule whose words changed at all is unpaired,
+    a rule two newer rules match lists both (`ambiguous`), and no change record is written. It is where the adjudication
+    of the older edition's records starts (DESIGN-spec-conformance-review.md section 10.2), never a verdict."""
+    by_key: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    for r in newer:
+        by_key.setdefault(candidate_key(r), []).append(r)
+    pairs, unpaired = [], []
+    for r in older:
+        hits = by_key.get(candidate_key(r), [])
+        if not hits:
+            unpaired.append(r["id"])
+            continue
+        pairs.append({"rule-id": r["id"], "to": [h["id"] for h in hits],
+                      "match": "exact" if all(h["text"] == r["text"] for h in hits) else "normalized"})
+    counts = {"rules": len(pairs) + len(unpaired), "paired": len(pairs),
+              "exact": sum(p["match"] == "exact" for p in pairs),
+              "normalized": sum(p["match"] == "normalized" for p in pairs),
+              "ambiguous": sum(len(p["to"]) > 1 for p in pairs), "unpaired": len(unpaired)}
+    return {"counts": counts, "pairs": pairs, "unpaired": unpaired}
+
+
+def candidates_path(year: int) -> pathlib.Path:
+    return inventory_schema.REPO / "docs" / "rearchitecture" / f"spec-lineage-candidates-{year}.json"
+
+
+def candidates_document(year: int) -> dict[str, Any]:
+    """The candidate pairing of the held edition `year` with its next linked held edition, as committed."""
+    ed = edition(year)
+    if ed.next_held is None:
+        raise SystemExit(f"--candidates: {year} is the newest held edition; its rules carry into no later one")
+    found = candidates(ed.rules(), edition(ed.next_held).rules())
+    return {"_comment": [
+        f"THE CANDIDATE PAIRING of each {year} rule with the {ed.next_held} rules of the same construct, kind and words",
+        "(lineage.candidates, kb/Work PB5256): `exact` text, or `normalized` (cite.norm: words only). No judgment and no",
+        "verdict: a rule whose words changed is unpaired, two matches are both listed, and nothing here is a change record.",
+        f"The adjudication of the {year} change records (record_verdicts.py --edition {year}) starts from it.",
+        f"Regenerate: python scripts/spec/lineage.py --candidates {year}; --check fails when it is stale."],
+        "edition": year, "next": ed.next_held, "bridge": ed.bridged, **found}
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="The rule lineage across editions (kb/Work PB4991). The audit's kept change "
                                              "records are written by audit_batch.py change-batch.")
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--candidates", type=int, nargs="?", const=0, metavar="YEAR",
+                    help="write the candidate pairing of the held edition YEAR's rules with its next linked edition's; "
+                         "with no YEAR, of every older held edition (inventory_schema.HELD): the gate's LINEAGE "
+                         "CANDIDATES audit, so a newly held edition needs no new audit line")
+    ap.add_argument("--check", action="store_true", help="with --candidates: fail when the committed pairing is stale")
     a = ap.parse_args(argv)
     if a.self_test:
         return self_test()
+    if a.candidates is not None:
+        years = [a.candidates] if a.candidates else [y for y in inventory_schema.HELD if not edition(y).newest]
+        stale = []
+        for year in years:
+            doc, path = candidates_document(year), candidates_path(year)
+            print(f"{year} -> {doc['next']}: " + ", ".join(f"{k} {v}" for k, v in doc["counts"].items()))
+            text = json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
+            if a.check:
+                if not path.exists() or path.read_text(encoding="utf-8") != text:
+                    stale.append(year)
+                print(f"{'⛔ STALE' if year in stale else '✓ current'}: {path.relative_to(inventory_schema.REPO)}")
+                continue
+            path.write_text(text, encoding="utf-8", newline="\n")
+            print(f"wrote {path.relative_to(inventory_schema.REPO)}")
+        if a.check:
+            print(f"=== LINEAGE CANDIDATES: {'GREEN' if not stale else f'RED (stale: {stale}; regenerate: lineage.py --candidates)'} ===")
+        return 1 if stale else 0
     ap.print_help()
     return 2
 

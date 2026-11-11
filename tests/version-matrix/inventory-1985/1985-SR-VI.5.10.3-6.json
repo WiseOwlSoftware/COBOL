@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "§1985:VI.5.10.3 SR6: if data-name-2 'is either declared to be an external data record or is specified with a level-number other than 01, the number of character positions it contains must be greater than or equal to the number of character positions in the data item referenced by the subject of this entry'; a level 01 that is not external has 'no such constraint'. The rule carries no amendment: the in-place change is erratum C31, the misprint 'the data-name referenced by data-name-2' read as 'the data item referenced by data-name-2', which alters no requirement. §2023:13.18.44.3 SR8: 'The storage area required for the subject of the entry shall not be larger than the storage area required for the data item referenced by data-name-2, unless the data item referenced by data-name-2 has been specified with level number 1 and without the EXTERNAL clause.' The same size limit with the same level-1 non-external exemption; 'character positions' and 'storage area' name the same measure.",
-  "source": "readjudicate-amended-1985/slice-10"
+  "source": "readjudicate-amended-1985/slice-10",
+  "digests": {
+   "SR-13.18.44.3-8": "428c714a3fbc"
+  }
  }
 }

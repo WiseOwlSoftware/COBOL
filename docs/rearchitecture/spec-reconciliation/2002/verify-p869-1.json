@@ -1,0 +1,13 @@
+{
+  "claim_id": "p869-1",
+  "claim_key": "8faf3976adee4a70",
+  "page": 869,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p869-1", "page": 869, "kind": "misplaced-content", "severity": "structural", "pdf_says": "    Reserved words 4\n    Standard extensions 4\nImplementor-defined\n    Intermediate data item 122\n    Language element list 677\n    Language elements 3\n    Native arithmetic 121\n    Record types 706\nIMPLEMENTS clause 178, 183\nImplicit attributes 232\nImplicit reference 102\nImplicit scope terminators 384\nImplicit transfer of control 387\nIN phrase", "markdown_says": "   Reserved words 4 Standard extensions 4 Implementor-defined Intermediate data item 122 Language element list 677 Language elements 3 Native arithmetic 121 Record types 706 IMPLEMENTS clause 178, 183 Implicit attributes 232 Implicit reference 102 Implicit scope terminators 384 Implicit transfer of control 387 IN phrase", "why_it_matters": "Fourteen index entries and sub-entries are run together into a single paragraph, destroying the list structure and the parent/child relationships."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (index p.847, PDF p.869, top of right column) shows 14 separate lines: two indented sub-entries of Implementation (Reserved words 4, Standard extensions 4), the top-level entry Implementor-defined with five indented sub-entries (Intermediate data item 122 ... Record types 706), five top-level entries (IMPLEMENTS clause 178, 183 through Implicit transfer of control 387), and the top-level entry IN phrase. page-869.md line 60 holds all of them as one space-separated paragraph with a three-space indent, as quoted. No words or page numbers are missing, but the line breaks carry the index hierarchy: the transcription no longer shows which entries are sub-entries of Implementation or of Implementor-defined and which are top-level, and the indent makes IN phrase and the IMPLEMENTS/Implicit entries look like sub-entries. That loss is more than reflow. It is a defect in non-normative index content only, so severity structural is right.",
+    "corrected_description": "Index p.847, right column: 14 index lines (2 sub-entries of Implementation, Implementor-defined with its 5 sub-entries, 5 top-level IMPLEMENTS/Implicit entries, and IN phrase) are collapsed into one indented paragraph in the markdown. All text and page numbers are present, but the entry and sub-entry hierarchy is lost. This is a list-structure collapse, not misplaced content."
+  }
+}

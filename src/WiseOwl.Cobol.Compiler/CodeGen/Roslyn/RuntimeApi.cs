@@ -1959,9 +1959,10 @@ internal static class RuntimeApi
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
     /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment;
     /// <paramref name="edition"/> is the compiling program's <c>--std</c> (see <see cref="EditionArg"/>).</summary>
-    public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, int edition, string varyArgs = "", string? selectName = null, int recordMax = 0) =>
+    public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, int edition, string varyArgs = "", string? selectName = null, int recordMax = 0, bool printFile = false) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.Register)}({name}, {assign}, {width}, {lineSeq}, {optional}{varyArgs}{SelectNameArg(selectName)}{EditionArg(edition)}"
-        + (recordMax > 0 ? $", recordMax: {recordMax})" : ")");
+        + (recordMax > 0 ? $", recordMax: {recordMax}" : "")
+        + (printFile ? ", printFile: true)" : ")");
 
     /// <summary>Register a REPORT FILE connector — <c>CobolFile.RegisterReport</c>: a file with no record description,
     /// whose <paramref name="lineWidth"/> is the widest hosted RD's line width (kb/Work PB677).</summary>

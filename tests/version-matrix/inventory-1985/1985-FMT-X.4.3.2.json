@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-X.4.3.2",
  "rule-digest": "b92841b82b53",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#externalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#globalClause; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ClauseCardinalities; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenLeadingClausePosition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
  "test-ref": "conformance:cases/X.4.3@1985-DATA-DESCRIPTION-ENTRY-IN-THE-INTER/1985-FMT-X_4_3_2",
+ "notes": "§1985:X.4.3.2 gives the IPC 01 entry '01 [data-name-1|FILLER] [REDEFINES data-name-2] [IS EXTERNAL] [IS GLOBAL]' plus the Nucleus clauses, written in any order after the name and REDEFINES (§1985:VI.5.3.3 SR2). The grammar's dataDescriptionEntry takes every clause in any order; ClauseCardinalities refuses a clause written twice (COBOL2423), ScreenLeadingClausePosition refuses REDEFINES after GLOBAL/EXTERNAL (COBOL2739), ClausePlacementRules refuses EXTERNAL with REDEFINES, at level 05 or in LINKAGE, GLOBAL at 05 and GLOBAL/EXTERNAL without a data-name (COBOL2404), and the 2002 additions (EXTERNAL AS, TYPEDEF, BASED, NATIONAL, BINARY-LONG, GROUP-USAGE, DYNAMIC LENGTH, POINTER, GLOBAL in LINKAGE) are COBOL0900 at 85. Probed at 85: ODO table and refmod at bounds inside GLOBAL and EXTERNAL records read correctly from a contained program; every format clause and usage (S9(18) SIGN LEADING SEPARATE, BINARY, COMP 18 digits, PACKED-DECIMAL negative scaled, JUST RIGHT, BLANK WHEN ZERO edited, SYNC LEFT, INDEX, VALUE ALL literal, OCCURS ASCENDING KEY INDEXED BY) with GLOBAL ran right; the witness shares GLOBAL, EXTERNAL and REDEFINES-GLOBAL items with a contained program.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -13,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "1985 IPC 01 entry: '01 [data-name-1|FILLER] [REDEFINES] [IS EXTERNAL] [IS GLOBAL]' plus PICTURE, USAGE (BINARY, COMP, DISPLAY, INDEX, PACKED-DECIMAL), SIGN, OCCURS, SYNC, JUSTIFIED, BLANK WHEN ZERO, VALUE. §2023:13.16.2 Format 1 keeps every one of these, with the name optional as before (§2023:13.16.3 SR4 'If no entry-name clause is specified, it is as though the filler format ... were specified'), EXTERNAL now 'IS EXTERNAL [AS literal-1]' (§2023:13.18.22.2), GLOBAL unchanged (§2023:13.18.27.2), and adds clauses and usages (TYPEDEF, BASED, DYNAMIC LENGTH, GROUP-USAGE, ...). More entries accepted; 1985 entries keep their meaning. CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.16.2": "58ea2b8a6f10",
+   "SR-13.16.3-4": "2d891dac76cc",
+   "FMT-13.18.22.2": "41674d41b2f8",
+   "FMT-13.18.27.2": "b2f0ce476ecb"
+  }
  }
 }

@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: '[ALL] ZERO, [ALL] ZEROS, [ALL] ZEROES Represents the numeric value 0, or one or more of the character 0 from the computer's character set' (§1985:IV.4.2.2.2.3). 2023 keeps the same words (§2023:8.3.3.6.2) and 'The zero format represents the numeric value 0, one or more of the boolean character 0, or one or more of the character 0 in the computer's runtime coded character set, depending on context' (§2023:8.3.3.6.4 GR4); the character value is national only 'in a context requiring national characters' (§2023:8.3.3.6.4 GR1). The boolean and national values arise only in boolean and national contexts, which no 1985 program contains; in every 1985 context ZERO means the same numeric or character value.",
-  "source": "adjudicate-712/slice-04"
+  "source": "adjudicate-712/slice-04",
+  "digests": {
+   "FMT-8.3.3.6.2": "11f4a32bad96",
+   "GR-8.3.3.6.4-4": "494f39435471",
+   "GR-8.3.3.6.4-1": "16d4efec5a1c"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.15.3-3",
  "rule-digest": "4a125d03d0ff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#DifferentPresentWhen",
  "test-ref": "conformance:cases/XIII.3.15@1985-LINE-NUMBER-CLAUSE/1985-SR-XIII_3_15_3-3",
+ "notes": "§1985:XIII.3.15.3 SR3: \"Within a given report group description entry, all absolute LINE NUMBER clauses must precede all relative LINE NUMBER clauses.\" ReportSectionBinder.ScreenReportGroupLines compares every pair of a group's written LINE entries and refuses (COBOL2199, §2023:13.18.35.3 SR6 e)) an absolute line described after a relative one unless DifferentPresentWhen excuses them; at 85 that excuse is unreachable, because PRESENT WHEN (and the multiple LINE clause that SR10 b) orders) is refused there with COBOL0900, and a line's clause list holds only PRESENT WHEN clauses (an item's GROUP INDICATE does not excuse a line). Probes at 85 (work-slice-54/c7*; classes b, c, d): absolute-relative-absolute, relative-absolute, LINE 5 ON NEXT PAGE then PLUS 0 then LINE 7, and a GROUP INDICATE item on the later absolute line each print COBOL2199; LINE 3 PLUS 1 and PRESENT WHEN print COBOL0900; absolute 3, 6 then PLUS 1, PLUS 2 runs. The witness (LINE 5, PLUS 1, LINE 9) is refused with COBOL2199.",
  "next": {
   "kind": "CHANGED",
   "to": [
@@ -11,6 +14,10 @@
   "reason": "1985: 'all absolute LINE NUMBER clauses must precede all relative LINE NUMBER clauses', without exception. §2023:13.18.35.3 SR6e: if an absolute line's description appears later than a relative line's, 'they shall each be subject to a different PRESENT WHEN clause' - accepted in that case; within one multiple LINE clause 'All absolute operands ... shall precede all relative operands' (§2023:13.18.35.3 SR10b). A 1985 program (no PRESENT WHEN) is refused the same way; 2023 accepts sources 1985 refused. Looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-33"
+  "source": "adjudicate-712/slice-33",
+  "digests": {
+   "SR-13.18.35.3-6": "97bdf845dea0",
+   "SR-13.18.35.3-10": "e9a555272e3e"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.17.3-1",
  "rule-digest": "bf34d341e3f1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#ScreenReportSignClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry",
  "test-ref": "conformance:cases/XIII.3.17@1985-SIGN-CLAUSE/1985-SR-XIII_3_17_3-1",
+ "notes": "§1985:XIII.3.17.3 SR1: \"The SIGN clause may be specified only for a numeric data description entry whose PICTURE contains the character 'S'.\" ReportSectionBinder.BindReportEntry asks DataBinder.SignClauseElementaryDefect of every elementary report entry that writes SIGN, refusing (COBOL2422) one whose category is not numeric or whose written picture has no 'S'; the 2023 widening to group entries is closed at 85 by DataBinder.ScreenReportSignClauses, which refuses SIGN on a report group entry that is a group through the report-group-sign-2002 construct (COBOL0900). Probes at 85 (work-slice-54/c9*; classes b, c, d, f): S9(3) LEADING SEPARATE and TRAILING SEPARATE CHARACTER print '-005 005-', scaled S9(3)V9 prints '-0050', a VALUE -12 entry prints '-012', S9(18) runs; PIC 9(3), PIC X(3) and edited -ZZ9 with SIGN print COBOL2422; SIGN on an 05 group and on the 01 DETAIL entry print COBOL0900; SIGN written twice prints COBOL2423. The witness (PIC 9(3) SIGN LEADING SEPARATE) is refused with COBOL2422.",
  "next": {
   "kind": "CHANGED",
   "to": [
@@ -11,6 +14,10 @@
   "reason": "§1985:XIII.3.17.3 SR1 allows SIGN in a report group description entry only for 'a numeric data description entry whose PICTURE contains the character 'S'' (1985 format 3 alone carries SIGN; formats 1 and 2 have no SIGN clause). 2023 puts [ sign-clause ] in every report group entry (§2023:13.15.2) and §2023:13.18.52.3 SR1 adds 'an alphanumeric group item, national group item, or strongly-typed group item' beside 'a numeric report group description entry whose picture character-string contains the symbol 'S''. SIGN on a report group (non-elementary) entry, refused in 1985, is accepted: looser. Numeric 'S' entries mean the same.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "source": "adjudicate-712/slice-34",
+  "digests": {
+   "SR-13.18.52.3-1": "0439a5039410",
+   "FMT-13.15.2": "d2104b4e3f18"
+  }
  }
 }

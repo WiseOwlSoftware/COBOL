@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: at group level 'the literal must be a figurative constant or a nonnumeric literal, and the group area is initialized without consideration for the individual elementary or group items', and VALUE 'cannot be stated at the subordinate levels'. 2023: §2023:13.18.63.3 SR13 'literal-1 shall be of the same category as the group item or shall be a figurative constant that is permitted in a MOVE statement to a receiving item of that category. The VALUE clause shall not be specified at subordinate levels within this group'; every 1985 group is an alphanumeric group, and §2023:13.18.63.3 SR4 requires alphanumeric literals for it; §2023:13.18.63.4 GR5 keeps the whole-area initialization. National and bit groups are 2023-only. Same programs, same result.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "SR-13.18.63.3-13": "c691ab6ba99d",
+   "SR-13.18.63.3-4": "695909fb4958",
+   "GR-13.18.63.4-5": "d0aaf2829416"
+  }
  }
 }

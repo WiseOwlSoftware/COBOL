@@ -1,9 +1,9 @@
 {
   "batch": [369, 371, 373, 375, 377, 379, 381, 383, 385, 387, 389, 391],
-  "pages_checked": [369, 371, 373, 375, 377, 379, 381, 383, 385, 387, 389, 391],
+  "pages_checked": [369, 371, 373, 375, 377, 379, 381, 383, 385, 387, 389, 391], "pages_unread": [],
   "findings": [
     {
-      "page": 373,
+      "id": "p373-1", "page": 373,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "13.4.5.2 General formats, Format 3 (report): the CODE-SET clause is printed as  [ CODE-SET { IS alphabet-name-1 [ alphabet-name-2]  /  { | FOR ALPHANUMERIC IS alphabet-name-1 | / | FOR NATIONAL IS alphabet-name-2 | } } ] — i.e. the INNER brace around the two FOR phrases carries a pair of vertical CHOICE INDICATOR bars just inside it (a full-height bar immediately after the inner '{' and another immediately before the inner '}'). Verified by 300 dpi crop of the region; underlined words on the two rows are ALPHANUMERIC and NATIONAL.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Re-render Format 3's CODE-SET group with the inner-brace choice indicators, matching the Format 1 rendering already present under page 372, and add a Figure-notes line stating that per 5.2.6.4 both FOR phrases may be specified, in either order."
     },
     {
-      "page": 373,
+      "id": "p373-2", "page": 373,
       "kind": "missing-text",
       "severity": "structural",
       "pdf_says": "Formats 2 and 3 are printed as typeset general-format diagrams with required words UNDERLINED: FD, EXTERNAL, AS, GLOBAL, BLOCK, TO, RECORDS, CODE-SET, ALPHANUMERIC, NATIONAL, REPORT, REPORTS. Deliberately NOT underlined: IS, CONTAINS, CHARACTERS, FOR, ARE. (Confirmed at 300 dpi: 'CHARACTERS' has no rule beneath it while 'RECORDS' directly below it does; 'REPORT'/'REPORTS' are underlined while the following 'IS'/'ARE' are not.)",
@@ -21,7 +21,7 @@
       "suggested_repair": "Wrap Format 2 and Format 3 in fenced code blocks in the same box-drawing style used for Format 1 on page 372, and add a 'Figure notes (File description entry Format 2 / Format 3)' paragraph listing the underlined words (FD, EXTERNAL, AS, GLOBAL, BLOCK, TO, RECORDS, CODE-SET, ALPHANUMERIC, NATIONAL, REPORT, REPORTS) and the non-underlined ones (IS, CONTAINS, CHARACTERS, FOR, ARE)."
     },
     {
-      "page": 389,
+      "id": "p389-1", "page": 389,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "13.15.2 General format, the USAGE line is printed inside its OWN OUTER BRACKET spanning both rows:  ⎡ [ USAGE IS ] ⎧ DISPLAY ⎫ ⎤ / ⎣               ⎩ NATIONAL ⎭ ⎦ . Verified at 300 dpi: a square bracket opens to the left of the inner '[ USAGE IS ]' and closes to the right of the brace's '}'. USAGE, DISPLAY and NATIONAL are underlined; IS is not.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Restore the enclosing bracket, e.g.  ⎡ [ USAGE IS ] ⎧ DISPLAY  ⎫ ⎤ / ⎣               ⎩ NATIONAL ⎭ ⎦ , so the whole USAGE clause is optional."
     },
     {
-      "page": 389,
+      "id": "p389-2", "page": 389,
       "kind": "missing-text",
       "severity": "structural",
       "pdf_says": "13.15.2 General format is a typeset diagram with required words UNDERLINED: USAGE, DISPLAY, NATIONAL, BLANK, ZERO, PRESENT, WHEN (in PRESENT WHEN), GROUP, OCCURS, TO, DEPENDING, STEP. Deliberately NOT underlined: IS, WHEN (in BLANK WHEN ZERO), INDICATE, TIMES, ON. (Confirmed at 300 dpi: in '[ BLANK WHEN ZERO ]' only BLANK and ZERO carry rules; in '[ GROUP INDICATE ]' only GROUP does; in '[ PRESENT WHEN condition-1 ]' both PRESENT and WHEN do.)",
@@ -39,7 +39,7 @@
       "suggested_repair": "Add a 'Figure notes (Report group description entry general format)' paragraph listing the underlined words (USAGE, DISPLAY, NATIONAL, BLANK, ZERO, PRESENT, WHEN, GROUP, OCCURS, TO, DEPENDING, STEP) and the non-underlined ones (IS, WHEN in BLANK WHEN ZERO, INDICATE, TIMES, ON), and note that the source/sum/value group is a plain bracket with no choice indicators."
     },
     {
-      "page": 391,
+      "id": "p391-1", "page": 391,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Page 391 opens with a stand-alone hanging paragraph, indented to the level of the a)/b)/c) sub-item text of syntax rule 14) which ends on page 390: 'where length is the length of the literal as specified in 8.3.3, Literals.'  Page 390's sub-item c) ends at \"If the literal is national, 'PICTURE N(length)'\" with no trailing text (verified at 300 dpi).",

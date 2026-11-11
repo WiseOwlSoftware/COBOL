@@ -1,0 +1,9 @@
+{"batch": [529,530,531,532,533,534,535,536,537,538,539,540],
+ "pages_checked": [529,530,531,532,533,534,535,536,537,538,539,540],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p537-1", "page": 537, "kind": "table-restructured", "severity": "cosmetic",
+   "pdf_says": "Program-pointer                    Predefined address NULL",
+   "markdown_says": "   Program-pointer Predefined address NULL",
+   "why_it_matters": "The last row of the INITIALIZE general rule 6c table (Receiving operand / Figurative constant), continued from page 536, is transcribed as a prose line instead of a table row, so the Program-pointer row is detached from the table that begins on page 536; the content is intact."}
+ ]}

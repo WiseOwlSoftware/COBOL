@@ -95,8 +95,9 @@ WLOSS=$?
 note "$(printf '%-16s %s' 'witnesses:' "$(grep -E '^=== WITNESS LOSS' "$OUT/citations.log" | tail -1)")"
 [ "$WLOSS" -eq 0 ] || { note "witnesses:       ⛔ inventory evidence lost — see $OUT/citations.log"; RC=1; }
 
-# ⛔ AND ONE LINE ENDING (kb/Work PB3029), the gate driver's LINE ENDINGS audit: no tracked text file's blob or checkout
-# holds a CR, and every Python writer states newline=, so the battery's Windows and Linux legs read the same bytes.
+# ⛔ AND ONE LINE ENDING (kb/Work PB3029), the gate driver's LINE ENDINGS audit as its full sweep (the gate reads only the
+# change, kb/Work PB5225): no tracked text file's blob or checkout holds a CR, and every Python writer states newline=,
+# so the battery's Windows and Linux legs read the same bytes.
 "$PY" scripts/line_endings.py --check >> "$OUT/citations.log" 2>&1
 EOLS=$?
 note "$(printf '%-16s %s' 'line endings:' "$(grep -E '^=== LINE ENDINGS' "$OUT/citations.log" | tail -1)")"

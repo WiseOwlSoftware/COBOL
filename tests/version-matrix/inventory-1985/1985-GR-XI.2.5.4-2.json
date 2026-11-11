@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 'at least one of the file-names must represent a sort or merge file' = §2023:12.4.6.4.3 SR8. Items a-c = §2023:12.4.6.4.4 GR4 a)-c), 'The extent of such allocation shall be specified by the implementor' (also §2023:A.1 item 169). Item d = §2023:12.4.6.4.4 GR5 'shall not be in the open mode', no exception condition added. Same programs, same effect.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "SR-12.4.6.4.3-8": "c1c0ae43e276",
+   "GR-12.4.6.4.4-4": "4c20aa6df4b1",
+   "GR-12.4.6.4.4-5": "4c2ecd3792f4",
+   "DOC-A.1-169": "4ddd3ed2f21d"
+  }
  }
 }

@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"The value must be greater than zero.\"; 2023: \"If the value does not conform to these two rules, the EC-I-O-LINAGE exception condition is set to exist.\". Meaning, page body and greater-than-zero rule are kept, but 2023 now defines a result for a nonconforming page size: an exception condition, then fixed LINAGE-COUNTER and continuation behavior.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.34.4-2": "56d8fe8559b5",
+   "GR-13.18.34.4-6": "1ccdebb0ee80"
+  }
  }
 }

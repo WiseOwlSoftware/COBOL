@@ -1,0 +1,25 @@
+{
+  "batch": [613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623, 624],
+  "pages_checked": [613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623, 624],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p624-1",
+      "page": 624,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Argument-1\ncharacteristics          Value returned",
+      "markdown_says": "   Argument-1\n\n| characteristics | Value returned |",
+      "why_it_matters": "The NOTE table's two-line column heading \"Argument-1 characteristics\" was split: \"Argument-1\" is left as a stray paragraph above the table and the column header reads only \"characteristics\". Informative NOTE; no normative rule changes."
+    },
+    {
+      "id": "p624-2",
+      "page": 624,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "BINARY-CHAR SIGNED       +127 (assuming an 8-bit representation)\nBINARY-CHAR UNSIGNED     +255 (assuming an 8-bit representation)",
+      "markdown_says": "   BINARY-CHAR SIGNED +127 (assuming an 8-bit representation)\\\n   BINARY-CHAR UNSIGNED +255 (assuming an 8-bit representation)",
+      "why_it_matters": "The last two rows of the NOTE's example table (BINARY-CHAR SIGNED / UNSIGNED) were dropped out of the markdown table and appear as loose prose after it, so the table holds five of the seven printed rows and the argument/value columns of those two rows are merged into one line. Informative NOTE; values are intact."
+    }
+  ]
+}

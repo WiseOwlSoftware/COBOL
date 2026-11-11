@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.3.19.4-7",
  "rule-digest": "a310853d1466",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyRolled; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Accumulate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AddSumTerm; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
  "test-ref": "conformance:cases/XIII.3.19@1985-SUM-CLAUSE/1985-GR-XIII_3_19_4-7",
+ "notes": "§1985:XIII.3.19.4 GR7: \"Subtotalling is accomplished only during execution of GENERATE statements and after any control break processing but before processing of the detail report group\"; crossfooting and rolling forward happen while a control footing is processed (§1985:XIII.3.20.4 GR10 a, b, before its USE procedure c). GenerateCore runs ProcessControlFootings for a break, then the subtotal loop (Terms.Fires honouring UPON, Accumulate per addition), then PresentBody of the detail; BeginGroup does ApplyRolled(crossFoot) before RunBeforeReporting; TerminateCore adds nothing. The 85 compile reaches the same runtime. Probed at 85: a detail's USE BEFORE REPORTING sees the counter including its own addend (1.5, 3.5); the break footing excludes the breaking detail (3.5 not 7.5); UPON DA skips DB, UPON DB DB adds -0.5 twice (GR10); crossfoot X2=S2+S2B=2.5; roll-forward S1=7.5, S1R RESET ON FINAL 14.5, final SF=15.5; a USE that ADDs 100 to S2 does not reach S1 (rolled before the USE); TERMINATE with a new AMT adds nothing; GENERATE report-name subtotals (19 with a Procedure ADD 10, GR6), a subscripted addend uses I's value at each GENERATE; SUM in a DETAIL COBOL6763. Leads for other rows: SUM TA(I) * 2 and SUM OF TA(I) (2002 forms, §2002 F.2 item 134) are accepted at 85; an 18-digit counter overflow drops the field from the printed line (size error, undefined at 85). Witness: one-control report whose footing USE shows 3 then 4.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"Crossfooting and rolling forward are accomplished during the processing of control footing report groups.\"; 2023: \"adding takes place when the report group description containing data-name-1 is processed.\". Both add during GENERATE/TERMINATE. 2023 ties crossfoot/rollforward to processing of any report group, not only control footings, and does not state subtotalling as after control break processing.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.54.4-3": "d9bd5edd96db",
+   "GR-13.18.54.4-7": "0090a48bcc09"
+  }
  }
 }

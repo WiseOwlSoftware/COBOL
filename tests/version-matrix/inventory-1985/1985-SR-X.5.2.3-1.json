@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"Literal-1 must be a nonnumeric literal.\"; 2023: \"Literal-1 shall be an alphanumeric or national literal and shall not be a zero-length literal.\". 2023 also allows a national literal as the CALL literal-1, a case 1985 did not have. The zero-length exclusion adds no restriction, since 1985 had no zero-length literal.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.4.3-2": "6a87bff9adbd"
+  }
  }
 }

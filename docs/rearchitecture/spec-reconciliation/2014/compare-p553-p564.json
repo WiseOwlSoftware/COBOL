@@ -1,0 +1,16 @@
+{
+  "batch": [553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564],
+  "pages_checked": [553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p559-1",
+      "page": 559,
+      "kind": "table-restructured",
+      "severity": "normative",
+      "pdf_says": "Table 18, row HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES: receiving-operand column lists nine lines 'Alphabetic / Alphanumeric / Alphanumeric-edited / National / National-edited / Numeric / Numeric-edited / — if usage is display / — if usage is national' against category column 'Alphanumeric / Alphanumeric / Alphanumeric / National / National / Alphanumeric / (blank) / Alphanumeric / National' - Numeric-edited has no category of its own; '— if usage is display' maps to Alphanumeric and '— if usage is national' maps to National.",
+      "markdown_says": "| HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited<br>Numeric<br>Numeric-edited<br>— if usage is display — if usage is national | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National<br>Alphanumeric<br>Alphanumeric<br>National |",
+      "why_it_matters": "The two numeric-edited sub-lines are merged onto one line and the blank category cell is dropped, so the line-by-line pairing now reads Numeric-edited -> Alphanumeric and 'if usage is display / if usage is national' -> National, losing that a numeric-edited receiver of usage display gets an alphanumeric figurative constant and one of usage national gets a national one."
+    }
+  ]
+}

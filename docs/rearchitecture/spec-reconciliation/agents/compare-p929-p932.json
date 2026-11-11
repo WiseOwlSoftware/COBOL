@@ -1,9 +1,9 @@
 {
   "batch": [929, 930, 931, 932],
-  "pages_checked": [929, 930, 931, 932],
+  "pages_checked": [929, 930, 931, 932], "pages_unread": [],
   "findings": [
     {
-      "page": 929,
+      "id": "p929-1", "page": 929,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "15.69.4   Returned values rules  (printed in the same bold subclause style and at the same outline depth as 15.69.1 General, 15.69.2 General format, 15.69.3 Argument rules on the preceding page)",

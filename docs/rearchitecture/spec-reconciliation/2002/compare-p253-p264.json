@@ -1,0 +1,70 @@
+{
+  "batch": [253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264],
+  "pages_checked": [253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p255-1",
+      "page": 255,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term / Subclause table with two rows: \"constant-entry 13.9, Constant entry\" and \"record-description-entry 13.10, Record description entry\"",
+      "markdown_says": "| constant-entry | 13.9, Constant entry |\n\nrecord-description-entry 13.10, Record description entry",
+      "why_it_matters": "The last row of the meta-language term table (13.3.1) fell out of the markdown table and became a loose paragraph, so a table reader sees only constant-entry mapped to its subclause. The text is present; the table structure is lost."
+    },
+    {
+      "id": "p258-1",
+      "page": 258,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "c) If any of the file description entries has a LINAGE clause, all shall have a LINAGE clause specifying\n    1. the same corresponding values for any literals specified\n    2. the same corresponding external data items.",
+      "markdown_says": "   c) If any of the file description entries has a LINAGE clause, all shall have a LINAGE clause specifying\n\n   1\\. the same corresponding values for any literals specified\n\n   2\\. the same corresponding external data items.",
+      "why_it_matters": "In 13.3.4.3 GR2, the numbered sub-items 1. and 2. are printed nested under subrule c); the markdown indents them at the same level as a)-e), detaching them from their parent subrule. The wording survives, so the meaning is recoverable from the run-on sentence."
+    },
+    {
+      "id": "p259-1",
+      "page": 259,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "RECORD { CONTAINS integer-1 CHARACTERS / IS VARYING IN SIZE [ [ FROM integer-2 ] [ TO integer-3 ] CHARACTERS ] (continuation line, indented:) [ DEPENDING ON data-name-1 ] / CONTAINS integer-4 TO integer-5 CHARACTERS }",
+      "markdown_says": "│        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] │ │\n│ <u>RECORD</u> ┤                                                                       ├ │ .\n│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │",
+      "why_it_matters": "In the SD general format (13.3.5.1), the printed [ DEPENDING ON data-name-1 ] is an indented continuation of the IS VARYING alternative. The markdown places it flush with the alternatives, separated by blank lines like the other alternatives, so the brace reads as four alternatives and RECORD [ DEPENDING ON data-name-1 ] alone looks legal (falsely permissive syntax)."
+    },
+    {
+      "id": "p260-1",
+      "page": 260,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term / Subclause table with three rows, the last \"record-description-entry 13.10, Record description entry\"",
+      "markdown_says": "| constant-entry | 13.9, Constant entry |\n\nrecord-description-entry 13.10, Record description entry",
+      "why_it_matters": "The last row of the 13.4.1 meta-language term table fell out of the markdown table and became a loose paragraph. Text present; table structure lost."
+    },
+    {
+      "id": "p261-1",
+      "page": 261,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term / Subclause table with three rows, the last \"record-description-entry 13.10, Record description entry\"",
+      "markdown_says": "| constant-entry | 13.9, Constant entry |\n\nrecord-description-entry 13.10, Record description entry",
+      "why_it_matters": "The last row of the 13.5.1 meta-language term table fell out of the markdown table and became a loose paragraph. Text present; table structure lost."
+    },
+    {
+      "id": "p262-1",
+      "page": 262,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term / Subclause table with three rows, the last \"record-description-entry 13.10, Record description entry\"",
+      "markdown_says": "| constant-entry | 13.9, Constant entry |\n\nrecord-description-entry 13.10, Record description entry",
+      "why_it_matters": "The last row of the 13.6.1 meta-language term table fell out of the markdown table and became a loose paragraph. Text present; table structure lost."
+    },
+    {
+      "id": "p264-1",
+      "page": 264,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term / Subclause table with two rows: \"77-level-entry 13.11, 77-level data description entry\" and \"report-group-description-entry 13.7.4, Report group description entry\"",
+      "markdown_says": "| 77-level-entry | 13.11, 77-level data description entry |\n\nreport-group-description-entry 13.7.4, Report group description entry",
+      "why_it_matters": "The last row of the 13.7.1 meta-language term table fell out of the markdown table and became a loose paragraph. Text present; table structure lost."
+    }
+  ]
+}

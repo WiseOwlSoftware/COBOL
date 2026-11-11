@@ -1,9 +1,9 @@
 {
   "batch": [597, 606, 607, 613, 618, 619, 625, 627, 640, 644, 648, 649],
-  "pages_checked": [597, 606, 607, 613, 618, 619, 625, 627, 640, 644, 648, 649],
+  "pages_checked": [597, 606, 607, 613, 618, 619, 625, 627, 640, 644, 648, 649], "pages_unread": [],
   "findings": [
     {
-      "page": 607,
+      "id": "p607-1", "page": 607,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "ACCEPT screen-name-1 / Format 3 AT phrase, printed as a BRACE WITH CHOICE INDICATORS: '[ AT { |   LINE NUMBER { identifier-3 / integer-1 }   ,   { COLUMN / COL } NUMBER { identifier-4 / integer-2 }   | } ]'. Verified by cropping and enlarging spec_p607.png: immediately inside the tall brace that follows AT there is a single vertical bar on the left, and a matching single vertical bar immediately inside the closing brace on the right. There are NO brackets around the individual LINE / COLUMN rows.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Retranscribe the AT phrase with the bars preserved, matching the page-640 DISPLAY Format 2 treatment, e.g. an ASCII-art block:  ⎡    ⎧|                ⎧ identifier-3 ⎫             |⎫ ⎤ / ⎢ AT ⎨| LINE NUMBER  ... |⎩ ⎭ ... ⎦ -- i.e. bars just inside the AT brace, no per-row brackets. Add a figure note citing 5.2.6.4 stating that one or more of the LINE and COLUMN phrases shall be specified, each at most once, in any order."
     },
     {
-      "page": 607,
+      "id": "p607-2", "page": 607,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "ACCEPT Format 3 exception phrase, printed as a BRACKET WITH CHOICE INDICATORS: '⎡|  ON EXCEPTION imperative-statement-1  |⎤' over '⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦'. Verified by cropping and enlarging spec_p607.png: a vertical bar sits immediately inside the opening bracket and a matching bar immediately inside the closing bracket, spanning both stacked rows.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Replace the bare \\left[ ... \\right] with the bar-preserving form used on pages 618/640/644, e.g. a code block: '⎡|  ON EXCEPTION imperative-statement-1      |⎤' / '⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦', plus a figure note citing 5.2.6.4."
     },
     {
-      "page": 607,
+      "id": "p607-3", "page": 607,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "In the ACCEPT Format 3 AT phrase both alternatives of the inner brace are underlined: 'COLUMN' (underlined) over 'COL' (underlined).",
@@ -30,7 +30,7 @@
       "suggested_repair": "Change \\text{COL} to \\underline{\\text{COL}} in the 14.9.1.2 Format 3 figure."
     },
     {
-      "page": 607,
+      "id": "p607-4", "page": 607,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "'ON EXCEPTION imperative-statement-1' with EXCEPTION underlined; 'NOT ON EXCEPTION imperative-statement-2' with NOT and EXCEPTION underlined (ON is NOT underlined in either row).",
@@ -39,7 +39,7 @@
       "suggested_repair": "Mark up as \\text{ON } \\underline{\\text{EXCEPTION}} \\text{ imperative-statement-1} and \\underline{\\text{NOT}} \\text{ ON } \\underline{\\text{EXCEPTION}} \\text{ imperative-statement-2}, or move the figure to a code block with an explicit figure note listing EXCEPTION and NOT as the underlined words."
     },
     {
-      "page": 606,
+      "id": "p606-1", "page": 606,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "ACCEPT Format 2 (temporal): 'DATE [ YYYYMMDD ]' with BOTH DATE and YYYYMMDD underlined, and 'DAY [ YYYYDDD ]' with BOTH DAY and YYYYDDD underlined (verified on the enlarged crop -- each of YYYYMMDD and YYYYDDD carries its own underline rule inside the brackets).",
@@ -48,7 +48,7 @@
       "suggested_repair": "Change to \\underline{\\text{DATE}} \\text{ [ } \\underline{\\text{YYYYMMDD}} \\text{ ]} and \\underline{\\text{DAY}} \\text{ [ } \\underline{\\text{YYYYDDD}} \\text{ ]}."
     },
     {
-      "page": 606,
+      "id": "p606-2", "page": 606,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Page 606 ends after the Format 2 (temporal) diagram (blank space, then the footer '576 (c)ISO/IEC 2023'). The label 'Format 3 (screen):' is the FIRST line printed on page 607, above 'ACCEPT screen-name-1'.",
@@ -57,7 +57,7 @@
       "suggested_repair": "In specs/ISO_COBOL.md around line 25254, split 'Format 3 (screen):' off the '$$...$$' line and move it below the <a id=\"page-607\"></a> / '## Page 607' scaffolding, directly above '<u>ACCEPT</u> screen-name-1'."
     },
     {
-      "page": 607,
+      "id": "p607-5", "page": 607,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.1.3 Syntax rules and 14.9.1.4 General rules are printed at the same typographic level as their siblings 14.9.1.1 General and 14.9.1.2 General formats (page 606), all four being fourth-level clauses under 14.9.1 ACCEPT statement.",
@@ -66,7 +66,7 @@
       "suggested_repair": "Normalize all four to the dominant '### 14.9.1.N ...' level used by 162 of the 204 14.9.x.y headings (and by 14.9.1's own siblings' subclauses), i.e. demote the two '####' on page 606 and promote the two '##' on page 607."
     },
     {
-      "page": 644,
+      "id": "p644-1", "page": 644,
       "kind": "incorrect-text",
       "severity": "normative",
       "pdf_says": "In all three DIVIDE figures the exception rows print as 'ON SIZE ERROR imperative-statement-1' / 'NOT ON SIZE ERROR imperative-statement-2' where SIZE and ERROR carry underline rules and NOT carries an underline rule, but ON is NOT underlined in either row (verified on the enlarged crop of the Format 1 block).",
@@ -75,7 +75,7 @@
       "suggested_repair": "Delete '`ON`, ' from the underlined-word list in all three DIVIDE figure notes on page 644, leaving DIVIDE / INTO / GIVING / BY / SIZE / ERROR / NOT / END-DIVIDE as appropriate per format."
     },
     {
-      "page": 640,
+      "id": "p640-1", "page": 640,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "DISPLAY Format 2 prints the AT phrase with choice-indicator bars inside its brace and the exception phrase with choice-indicator bars inside its bracket (both verified on the enlarged crop).",

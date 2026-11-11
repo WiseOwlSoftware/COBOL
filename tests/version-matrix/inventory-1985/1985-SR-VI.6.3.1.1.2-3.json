@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: 'A noninteger numeric operand cannot be compared to a nonnumeric operand' and 'Numeric and nonnumeric operands may be compared only when their usage is the same' (§1985:VI.6.3.1.1.2). §2023:8.8.4.2.1 item 6 defines the numeric/alphanumeric comparison only for 'Two operands where one is a numeric integer and the other is class alphanumeric or national', and §2023:8.8.4.2.5 (prose, no catalog row) requires 'an integer literal or an integer numeric data item of usage display or national'. For 1985 operands the same pairs compare and the same refuse; national is new. The size definition and the equal/unequal-size cases are the sibling 1985 rows (2023 §2023:8.8.4.2.7 'length'), not this one's requirement.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "GR-8.8.4.2.1-6": "09ba48ca32b4"
+  }
  }
 }

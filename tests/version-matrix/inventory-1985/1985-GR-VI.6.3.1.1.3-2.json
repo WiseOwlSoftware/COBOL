@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993, Errata C217) replaced the first sentence, which the standard printed as \"An index-name and a data item (other than an index data item) or literal.\", so the rule now reads §1985:VI.6.3.1.1.3 GR2 \"An index-name and a numeric data item or numeric literal. The occurrence number that corresponds to the value of the index-name is compared to the data item or literal.\" §2023:8.8.4.2.13 GR2 has the same words: \"an index-name and a numeric data item or numeric literal. The occurrence number that corresponds to the value of the index-name is compared to the data item or literal.\" The amendment removed the one difference the unamended text had (any non-index data item or literal against numeric ones only); the same comparisons are accepted and they compare the same occurrence number.",
-  "source": "readjudicate-amended-1985/slice-05"
+  "source": "readjudicate-amended-1985/slice-05",
+  "digests": {
+   "GR-8.8.4.2.13-2": "bd5c553fed12"
+  }
  }
 }

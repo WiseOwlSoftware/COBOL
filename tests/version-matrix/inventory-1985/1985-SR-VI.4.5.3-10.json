@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 e) keeps the rule: without IN, integer-1's ordinal must exist in the native alphanumeric set; with IN, in that alphabet's set. NATIONAL and LOCALE are new features only.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.3.7.3-16": "db2d00ce3d9d"
+  }
  }
 }

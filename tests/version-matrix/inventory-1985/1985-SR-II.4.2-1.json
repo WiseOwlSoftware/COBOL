@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: 'The subordinate entries, following the REDEFINES entry, which are repeated due to OCCURS clauses, must not contain VALUE clauses.' §2023:13.18.63.3 SR12: 'The VALUE clause shall not be specified in a data description entry that contains a REDEFINES clause or in an entry that is subordinate to an entry containing a REDEFINES clause' refuses those entries; the wider ban is 1985's own (VI.5.15.6 GR2). ADJUDICATED 2026-11-10 (band-85 slice 13): §2023:13.18.63.3 SR16 removed; it applies rules 10 to 15 to the table format, VALUE ... FROM ( subscript-1 ), which no 1985 program can write.",
-  "source": "band-85/slice-13"
+  "source": "band-85/slice-13",
+  "digests": {
+   "SR-13.18.63.3-12": "8feffabc975f"
+  }
  }
 }

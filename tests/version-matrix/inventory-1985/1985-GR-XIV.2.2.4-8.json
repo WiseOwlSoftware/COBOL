@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-8",
  "rule-digest": "df41ced208d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/StoredMessage.cs#Complete; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-8",
+ "notes": "§1985:XIV.2.2.4 GR8: during RECEIVE the MCS provides in data-name-5 “the date on which it recognized that the message was complete in the form 'YYMMDD'”, and updates it at no other statement. MessageControlSession#Transfer is the only caller of CommunicationArea#SetReceived (positions 49-54 of the input area, 1-6 of the I-O area), from the date StoredMessage#Complete stamps (yyMMdd) when an EMI or EGI completes the message, or the seed's own date. Probes at --std 85: each RECEIVE SEGMENT and MESSAGE portion of a seeded message set 991231; a message completed in the run read the same date as ACCEPT FROM DATE (261110); RECEIVE NO DATA, a refused RECEIVE (status 20), ACCEPT MESSAGE COUNT, an I-O SEND, PURGE and DISABLE I-O TERMINAL left it unchanged. The witness checks RECEIVE against ACCEPT, DISABLE and ENABLE.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

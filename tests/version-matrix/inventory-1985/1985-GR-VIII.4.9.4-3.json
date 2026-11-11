@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.9.4-3",
  "rule-digest": "17a912ffb05b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
  "test-ref": "conformance:cases/VIII.4.9@1985-WRITE-STATEMENT/1985-GR-VIII_4_9_4-3",
+ "notes": "§1985:VIII.4.9.4 GR3: WRITE ... FROM is 'MOVE identifier-1 TO record-name-1 according to the rules specified for the MOVE statement' and then the same WRITE without FROM. KeyedIoBinder#BindWrite binds the implicit MOVE through MoveBinder#BindFromPhrase (so the MOVE legality rules apply: a noninteger FROM to an elementary alphanumeric record is refused, COBOL0819, §1985:VI.6.19.4 GR3 c), and KeyedIoEmitter#EmitWrite emits that MOVE before the I-O; VersionConformancePass#VisitRecordFromPhrase refuses FROM literal, ZERO and ALL literal at 85 (COBOL0871). Probes at 85: FROM a group, a reference-modified item, a signed item into a group record, an 18-digit integer (left-justified, truncated), FUNCTION UPPER-CASE, an ODO group into a RECORD VARYING file (length 4 read back) all give MOVE results; a WRITE failing 22 leaves the moved data in the record area; FROM a numeric function is refused (COBOL1914). Not this rule: WRITE RR FROM RR is accepted (SR1, kb/Work PB5077).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "2023 adds FROM literal-1 (§2023:14.9.51.4 GR5: \"MOVE literal-1 TO record-name-1\"), which the 1985 format refuses; the FROM identifier-1 case is unchanged. 1985: WRITE FROM = 'MOVE identifier-1 TO record-name-1' per MOVE rules, then the WRITE without FROM. §2023:14.9.51.4 GR5 keeps the same equivalence ('MOVE identifier-1 TO record-name-1'); §2023:14.9.51.3 SR6 requires the MOVE to be valid. FROM literal-1 is a different operand the 1985 format lacks; an overlapping identifier-1 (refused by 1985 SR1) still gets MOVE-then-WRITE, as GR3 states. Same.",
-  "source": "adjudicate-712-r2/slice-09"
+  "source": "adjudicate-712-r2/slice-09",
+  "digests": {
+   "GR-14.9.51.4-5": "c530e019a3e1",
+   "SR-14.9.51.3-6": "9b663a6699cb"
+  }
  }
 }

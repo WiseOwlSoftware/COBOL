@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: BLANK WHEN ZERO, JUSTIFIED and PICTURE in a report group entry 'are the same as' the Nucleus clauses (the rest is a page pointer). 2023 §2023:13.15.4 GR2: 'the USAGE, PICTURE, BLANK WHEN ZERO and JUSTIFIED clauses are the same clauses as those that are described under the general format for a data description entry', except for the report-group syntax restrictions, which 1985 also imposed in its report-group syntax. The recheck's FMT-13.15.2 lists the entry's clauses but states nothing of their equivalence to the general clauses, so it is not kept. Same requirement; changes to PICTURE or USAGE themselves belong to those clauses' records.",
-  "source": "adjudicate-712-r2/slice-12"
+  "source": "adjudicate-712-r2/slice-12",
+  "digests": {
+   "GR-13.15.4-2": "adfcec9cace3"
+  }
  }
 }

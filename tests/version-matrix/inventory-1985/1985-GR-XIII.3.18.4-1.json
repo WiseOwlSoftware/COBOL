@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both execute the SOURCE implicit MOVE just before the group's lines are printed. Unprintable-item 'no action' is unobservable apart from SUM, which is excepted. COMPUTE is an extension.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.53.4-3": "298b4bcb74f7",
+   "GR-13.18.53.4-1": "15e4a58899d3"
+  }
  }
 }

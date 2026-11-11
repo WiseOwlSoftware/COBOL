@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.4.5.4-2",
  "rule-digest": "a4e24400a98d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
  "test-ref": "conformance:cases/X.4.5@1985-EXTERNAL-CLAUSE/1985-GR-X_4_5_4-2",
+ "notes": "§1985:X.4.5.4 GR2: programs describing the same external record must use the same record-name and 'the records must define the same number of standard data format characters', while a complete REDEFINES of the record 'need not occur identically in other programs'. LinkageBinder.CallMakeExternal keys each EXTERNAL record's run-unit cell by its upper-folded data-name (the 2002 AS literal is refused at 85 by VisitExternalizedNamePhrase, COBOL0900), so every describer windows ExternalTable.Cell's one image whatever its subordinate layout or REDEFINES; the rule is a requirement on the source with no prescribed detection, and ExternalTable.Describe's EC-EXTERNAL-FORMAT-CONFLICT check runs only when >>TURN enables it. Probes: (a) an ODO table, (d/f) an S9(17)V9 COMP value -12345678901234567.8 and the DEPENDING ON counter shared both ways across two separately compiled programs; (b) a differently structured equal-size record and a group REDEFINES shared, AS literal, a doubled IS EXTERNAL (COBOL2423) and VALUE on EXTERNAL (COBOL0900) refused at 85; unequal sizes (outside the rule's 'must') run without diagnosis. The witness (PIC X(6) record redefined in the contained program) prints CDEF/ZZCDEF.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "reason": "1985: 'each record-name of the associated record description entries must be the same and the records must define the same number of standard data format characters', with a complete REDEFINES allowed. §2023:13.18.22.4 GR6: 'each name that is externalized to the operating environment for the record description entries shall be the same; the VALUE clause specification, if any, ... shall be identical; and the records shall define the same number of bytes', and the complete REDEFINES only for a record 'that is not strongly typed'. By §2023:13.18.22.4 GR5 the externalized name is the data-name unless AS literal-1 is given, so with AS the record-names may differ (looser); the VALUE rule exists because 1985 X.4.5.3 SR3's VALUE ban was lifted. A conforming 1985 program means the same, but the requirement differs.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "GR-13.18.22.4-6": "603599f7b6af",
+   "GR-13.18.22.4-5": "5338d2d582e7"
+  }
  }
 }

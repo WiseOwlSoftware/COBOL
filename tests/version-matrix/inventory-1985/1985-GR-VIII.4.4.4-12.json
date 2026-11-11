@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.4.4-12",
  "rule-digest": "9c72662ab9cc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#labelRecordsClause",
  "test-ref": "conformance:cases/VIII.4.4@1985-OPEN-STATEMENT/1985-GR-VIII_4_4_4-12",
+ "notes": "§1985:VIII.4.4.4 GR12: with EXTEND and label records present, OPEN processes the beginning and ending labels by the implementor's conventions, deletes the ending labels, and 'Processing then proceeds as though the file had been opened with the OUTPUT phrase'; GR11 positions the file after the record with the highest relative record number, and GR7 makes an OPEN whose label records 'are specified but not present' undefined. WiseOwl COBOL's mass-storage relative files carry no label records, so label steps a-c have nothing to process (LABEL RECORDS STANDARD is the GR7 undefined case, OMITTED takes GR12 out of play), and step d with GR11 is KeyedConnector.OpenCore's Extend arm (existing store attached, or an optional absent file created, 05) followed by RelativeConnector.Write's sequential release at highest+1; StatementValidation.CheckOpenModeForFile refuses EXTEND without sequential access (COBOL2372). Probes at --std 85 (classes b, e, f): records 2 and 5 written RANDOM, then OPEN EXTEND through a SEQUENTIAL connector with LABEL RECORD IS STANDARD gives 00 and the WRITE lands at relative key 0006 (00); a READ on the EXTEND-mode file 47; a sequential read back lists 0002, 0005, 0006; EXTEND of an absent OPTIONAL file with LABEL RECORDS OMITTED 05 and its first WRITE key 0001; EXTEND on a DYNAMIC file COBOL2372. The implementor's label convention for these files is not written in docs/CONFORMANCE.md (an observation, not a breach of this rule). The witness extends a two-record sequential relative file with LABEL RECORDS ARE STANDARD and reads three records back.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985 relative CLOSE is 'CLOSE {file-name-1 [WITH LOCK]} ...'. §2023:14.9.6.2 keeps CLOSE file-name-1 ... (REEL/UNIT/NO REWIND barred for non-sequential files by §2023:14.9.6.3 SR1) but has no WITH LOCK phrase; §2023:E.2 lists 'The WITH LOCK phrase of the CLOSE statement and the related File Status of 38' as removed. CLOSE f WITH LOCK is now refused at compile time. CHANGED (stricter).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-14.9.6.2": "b92f554aa426",
+   "SR-14.9.6.3-1": "2c672d333ed6"
+  }
  }
 }

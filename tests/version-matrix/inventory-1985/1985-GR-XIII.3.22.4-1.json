@@ -18,6 +18,17 @@
   ],
   "bridge": true,
   "reason": "1985 b requires a nonnumeric literal for a numeric edited report item ('literal-1 in the VALUE clause must be a nonnumeric literal'; editing has no effect). 2023 accepts a numeric one: §2023:13.18.63.3 SR6 'literals in formats 1, 2, and 4 of the VALUE clause may be numeric', edited per §2023:13.18.63.3 SR11 (applied to format 4 by §2023:13.18.63.3 SR34), and BLANK WHEN ZERO then affects initialization (only alphanumeric/national literals are exempt, §2023:13.18.63.4 GR8, §2023:13.18.63.3 SR8). Looser. Numeric-category (§2023:13.18.63.3 SR2), alphanumeric-category (§2023:13.18.63.3 SR4), alignment and 'not affected by a JUSTIFIED clause and no editing' for nonnumeric literals (§2023:13.18.63.4 GR7, via §2023:13.18.63.4 GR21) are kept, so every 1985 VALUE means the same; the BWZ difference arises only in the new numeric-literal case.",
-  "source": "adjudicate-712/slice-26"
+  "source": "adjudicate-712/slice-26",
+  "digests": {
+   "SR-13.18.63.3-2": "6ecb7044eda1",
+   "SR-13.18.63.3-4": "695909fb4958",
+   "SR-13.18.63.3-6": "cdfa1de98c0f",
+   "SR-13.18.63.3-11": "27116f0eda78",
+   "SR-13.18.63.3-34": "db6d002779bd",
+   "SR-13.18.63.3-8": "f40cdbc854d6",
+   "GR-13.18.63.4-7": "0742949108a4",
+   "GR-13.18.63.4-8": "582a720c0e65",
+   "GR-13.18.63.4-21": "43cd8c41651f"
+  }
  }
 }

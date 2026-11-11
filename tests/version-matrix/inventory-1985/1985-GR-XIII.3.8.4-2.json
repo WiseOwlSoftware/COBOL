@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "After renumbering (HEADING 3, FIRST DETAIL 4, LAST DETAIL 6, FOOTING 7), every 1985 default carries over. The LAST CONTROL HEADING default covers a new phrase; the integer-1 condition matches 1985.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.39.4-3": "971f3913ad24"
+  }
  }
 }

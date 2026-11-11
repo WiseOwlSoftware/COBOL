@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: status 10 when 'no next logical record exists in the file because: 1) The end of the file has been reached, or 2) A sequential READ statement is attempted for the first time on an optional input file that is not present.' §2023:9.1.13.4 GR1 keeps both (a, c) and adds 'b) PREVIOUS was specified and the beginning of the physical file has been reached' ('no next or prior logical record'); READ sets '10' and fails (§2023:14.9.30.4 GR21, GR24). A program 2023 accepts (READ PREVIOUS) reaches status 10 by a cause the 1985 list does not have: a case added.",
-  "source": "adjudicate-712-r2/slice-06"
+  "source": "adjudicate-712-r2/slice-06",
+  "digests": {
+   "GR-9.1.13.4-1": "490fead5c8fb",
+   "GR-14.9.30.4-21": "7fba2331b7f5",
+   "GR-14.9.30.4-24": "fc6732e2c178"
+  }
  }
 }

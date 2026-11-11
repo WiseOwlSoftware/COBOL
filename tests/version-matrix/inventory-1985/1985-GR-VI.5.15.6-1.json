@@ -18,6 +18,14 @@
   ],
   "bridge": true,
   "reason": "1985: 'In the File Section, the VALUE clause may be used only in condition-name entries'; likewise the Linkage Section; Working-Storage/Communication VALUE clauses 'take effect only when the program is placed into its initial state'. 2023 accepts a data-item VALUE in the file and linkage sections with a run-time meaning: §2023:13.18.63.4 GR2 'In the file section, VALUE clauses take effect only during the execution of an INITIALIZE statement', §2023:13.18.63.4 GR3 and §2023:13.7.4 GR5 (linkage: 'ignored except in the execution of an explicit or implicit INITIALIZE statement'); and §2023:13.18.63.4 GR4 makes working-storage VALUE take effect at initial state AND 'during the execution of an INITIALIZE statement' (with §2023:13.5.4 GR3 and §2023:14.6.2.3.2 for the initial state). The undefined initial value of items without VALUE is kept (GR2, GR4). The Communication Section has no 2023 counterpart. Looser (file/linkage data-item VALUE accepted) and a new time at which VALUE takes effect.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "GR-13.18.63.4-2": "72ad697c1994",
+   "GR-13.18.63.4-3": "8e0abea2dd5c",
+   "GR-13.18.63.4-4": "b0dddcb3933f",
+   "GR-13.7.4-5": "f4c201ba7b24",
+   "GR-13.5.4-3": "08b8f41e3655",
+   "GR-14.6.2.3.2-L2.2": "85961573e833"
+  }
  }
 }

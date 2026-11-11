@@ -1,0 +1,13 @@
+{
+  "claim_id": "p899-1",
+  "claim_key": "7d7122aeb78d0a40",
+  "page": 899,
+  "kind": "incorrect-figure",
+  "severity": "structural",
+  "claim": {"id": "p899-1", "page": 899, "kind": "incorrect-figure", "severity": "structural", "pdf_says": "Flowchart (Figure D.13): Entrance -> Set identifier-2 -> Execute specified set of statements -> Condition-1 (True -> Exit; False -> Augment identifier-2 with current BY value), with a line from 'Augment identifier-2' back to above 'Execute specified set of statements'.", "markdown_says": "Execute specified\\\nset of statements\n\nTrue\\\nCondition-1 Exit\n\nFalse\n\nAugment identifier-2\\\nwith current BY value", "why_it_matters": "Flowchart flattened to labels; the loop-back that distinguishes TEST AFTER (augment, then execute again before testing) is lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 899 (printed 875) shows Figure D.13 as a flowchart: Entrance -> [Set identifier-2 equal to current FROM value] -> [Execute specified set of statements] -> (Condition-1) with True -> Exit (right) and False -> [Augment identifier-2 with current BY value], and a line from the left side of the Augment box running up and back with an arrowhead into the flow between the Set box and the Execute box. The markdown keeps every label (Entrance, Set identifier-2 equal to current FROM value, Execute specified set of statements, True, Condition-1, Exit, False, Augment identifier-2 with current BY value) and the caption, but it has no arrows or edges. The loop from Augment back to Execute is not stated anywhere in the text, so a reader cannot recover the control flow. The linearized 'True\\ Condition-1 Exit' also merges the decision label with its branch target. The PDF carries information that the markdown lacks, so this is a real figure-content loss. Its impact is small: Annex D is informative, and the normative PERFORM VARYING TEST AFTER semantics live in the PERFORM general rules.",
+    "corrected_description": "Figure D.13 (informative Annex D) is transcribed as a flat list of its box labels with no edges. All labels and the caption are present (markdown_says in the claim quotes only part of them; Entrance and the Set-identifier-2 box are also present). The flowchart's arrows are lost: Entrance -> Set -> Execute -> Condition-1; True -> Exit; False -> Augment; and Augment loops back to just before Execute. This is a structural, non-normative loss. The normative semantics are in the PERFORM general rules."
+  }
+}

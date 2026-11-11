@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-19",
  "rule-digest": "39e3b0f89302",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#TextLength; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-19",
+ "notes": "§1985:XIV.2.2.4 GR19: the MCS takes the text length as \"the number of leftmost character positions of the data item referenced by the identifier\" to transfer (with §1985:XIV.3.6.4 GR3: zero transfers nothing, outside zero..size is an error). MessageControlSession.Send reads CommunicationArea.TextLength, refuses a length past the operand's size (or non-numeric) with 50 and a zero-length portion with no indicator with 60, and sends text[..textLength]. Probes at 85: lengths 0 (EMI and none), 10, 11, non-numeric, ref-mod MSG (7:4) with 4 and 5, a group with a signed item, FUNCTION UPPER-CASE, indicator item 0/1/2/9 and no FROM, read back by RECEIVE with the right lengths; the witness sends 5, 10, 1 of 10.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

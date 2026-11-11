@@ -9,6 +9,9 @@
   "reason": "1985: 'Pseudo-text-1 must contain one or more text words.' §2023:7.2.3.3 SR6: 'Pseudo-text-1 shall contain one or more text-words, at least one of which shall be neither a separator comma nor a separator semicolon.' The added clause is not new: 1985 XII.2.3 SR9 already says pseudo-text-1 'must not consist entirely of a separator comma or a separator semicolon'. SR6 merges 1985 SR3 and SR9; same programs refused at compile time.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-33"
+  "source": "adjudicate-712/slice-33",
+  "digests": {
+   "SR-7.2.3.3-6": "46507fd49e62"
+  }
  }
 }

@@ -12,6 +12,12 @@
   ],
   "reason": "1985 GR2 is a pointer: 'The GLOBAL clause is presented on page X-24. All other clauses in the report description entry are presented in the Report Writer module'. It refuses nothing. 2023 keeps GLOBAL in the RD: §2023:13.14.2 lists '[ IS GLOBAL ]' and refers code-, control- and page-clause to their subclauses; §2023:13.18.27.3 SR1 e) ('A report description entry'), §2023:13.18.27.4 GR1 ('report-name ... described using a GLOBAL clause is a global name') and §2023:13.14.4 GR1 ('If GLOBAL is specified, report-name-1 and all its constituent report groups ... are global') present it. The module split is editorial.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "FMT-13.14.2": "ea5cb9d68278",
+   "SR-13.18.27.3-1": "fe6994220d8e",
+   "GR-13.18.27.4-1": "e93e0cf67501",
+   "GR-13.14.4-1": "50924f39dcbd"
+  }
  }
 }

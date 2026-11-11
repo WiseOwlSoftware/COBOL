@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 repeats the 1985 rule word for word: 'The NO REWIND phrase will be ignored if it does not apply to the storage medium on which the file resides' (§2023:14.9.27.4 GR11). Its status '07' sentence restates §2023:9.1.13.2 GR6, which 1985's I-O status 07 already gave for 'an OPEN statement with the NO REWIND phrase' on a non-reel/unit medium. Same effect.",
-  "source": "adjudicate-712/slice-27"
+  "source": "adjudicate-712/slice-27",
+  "digests": {
+   "GR-14.9.27.4-11": "64ae37238248",
+   "GR-9.1.13.2-6": "45887fbca7d4"
+  }
  }
 }

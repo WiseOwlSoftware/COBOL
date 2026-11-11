@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.3.4-7",
  "rule-digest": "d106728288f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram",
  "test-ref": "conformance:cases/X.5.3@1985-CANCEL-STATEMENT/1985-GR-X_5_3_4-7",
+ "notes": "§1985:X.5.3.4 GR7 lists exhaustively how 'A called program is cancelled': as a CANCEL operand, by run-unit termination, or 'by execution of an EXIT PROGRAM statement in a called program that possesses the initial attribute'. The explicit arm is CallBinder#BindCancel through ProgramTable#CancelNode (contained programs in reverse order, implicit close without USE procedures, state dropped); the initial arm is ProgramTable#Activate's finally calling EndInitialActivation on return (close files, CancelContained, instance null) for the return CallEmitter#EmitExitProgram emits; no other path resets a non-initial program, and 85 refuses GOBACK (COBOL0880) and RECURSIVE (COBOL0885), the 2002 additions. Probes at --std 85: an INITIAL program and its contained program restarted at CNT=1 on every call; an INITIAL program that left a sequential file open reopened it OUTPUT with status 00; an INITIAL program ending by implicit EXIT PROGRAM restarted; a non-initial program's relative file stayed open across calls (WRITE 00) and after CANCEL reopened with 00 and no declarative ran. The witness shows a non-initial program keeping state until CANCEL.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -14,6 +17,13 @@
   ],
   "bridge": true,
   "reason": "1985 lists exhaustively: a called program 'is cancelled either by' a CANCEL operand, run-unit termination, or EXIT PROGRAM in an initial program. 2023 keeps all three (§2023:14.9.5.4 GR1, GR3; §2023:14.9.14.4 GR3 to GOBACK; §2023:14.6.2.3.2 rule 1) and adds a case: §2023:14.9.18.4 GR2 'If the program in which the GOBACK statement is specified is an initial program, an implicit CANCEL statement referencing that program is executed upon return'. GOBACK is accepted by 2023 and refused by 1985, so a case is added (PB5021).",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-14.9.5.4-1": "02d55b723178",
+   "GR-14.9.5.4-3": "0ff029035f01",
+   "GR-14.9.14.4-3": "2f3fb75a6e6f",
+   "GR-14.9.18.4-2": "de14422ab9a7",
+   "GR-14.6.2.3.2-1": "c89f05de4930"
+  }
  }
 }

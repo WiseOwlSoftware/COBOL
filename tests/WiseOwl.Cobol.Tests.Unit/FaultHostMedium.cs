@@ -51,6 +51,10 @@ internal sealed class FaultHostMedium : IHostMedium
     /// medium's refusal: a ROLLBACK refused, and its retry refused again).</summary>
     internal Action<string>? BeforeOperation { get; init; }
 
+    /// <summary>Every handle a connector opens for READING reports that it cannot be positioned (<see cref="Stream.CanSeek"/> false),
+    /// as the handle on a FIFO, a pipe or a terminal does: the medium §1985:VII.4.3.4 GR10 says REVERSED does not apply to.</summary>
+    internal bool NonSeekableReads { get; init; }
+
     /// <summary>Run whenever the run unit asks for the entry mutex of a physical file, before it holds it.</summary>
     internal Action? OnEntryMutex { get; init; }
 
@@ -290,6 +294,8 @@ internal sealed class FaultHostMedium : IHostMedium
 
         /// <summary>Set while an overridden member runs, so the base's own calls to another overridden member count once.</summary>
         private bool _inside;
+
+        public override bool CanSeek => base.CanSeek && !(medium.NonSeekableReads && !CanWrite);
 
         /// <summary>Whether the handle was closed (disposed, by its owner or by a kill).</summary>
         internal bool Closed { get; private set; }

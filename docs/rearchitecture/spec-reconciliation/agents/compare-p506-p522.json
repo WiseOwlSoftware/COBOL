@@ -1,9 +1,9 @@
 {
   "batch": [506, 507, 508, 509, 510, 512, 514, 516, 518, 519, 520, 522],
-  "pages_checked": [506, 507, 508, 509, 510, 512, 514, 516, 518, 519, 520, 522],
+  "pages_checked": [506, 507, 508, 509, 510, 512, 514, 516, 518, 519, 520, 522], "pages_unread": [],
   "findings": [
     {
-      "page": 508,
+      "id": "p508-1", "page": 508,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "SAME AS data-name-1   (13.18.49.2 General format - BOTH 'SAME' and 'AS' carry their own underline; verified by cropping and 3x-enlarging the printed line at 300 dpi: two distinct underline rules, one under SAME, one under AS)",
@@ -12,7 +12,7 @@
       "suggested_repair": "Change the general format line to '<u>SAME</u> <u>AS</u> data-name-1' so both required words carry the underline that the printed standard gives them."
     },
     {
-      "page": 507,
+      "id": "p507-1", "page": 507,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "REVERSE-VIDEO   (13.18.48.2 General format - printed underlined, i.e. a required word, exactly as REQUIRED on p506 and SECURE on p510 are printed)",
@@ -21,7 +21,7 @@
       "suggested_repair": "Replace `REVERSE-VIDEO` with <u>REVERSE-VIDEO</u> to match the printed underline and the file's own convention for one-word general formats."
     },
     {
-      "page": 514,
+      "id": "p514-1", "page": 514,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "Sub-items 'a) The operational sign is presumed to be associated with the leading (or, respectively, trailing) digit position...' and 'b) The implementor defines what constitutes valid signs for data items.' are printed indented under general rule '5) If the SEPARATE CHARACTER phrase is not specified, then:' (rule 5 sits at the foot of p513), at the same indent as the a)/b) that follow rule 6.",

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.3.2.4-3",
  "rule-digest": "dca3f7f54467",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.ObsoleteFdClauses.cs#ScreenDataRecords; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataRecordsClause",
  "test-ref": "conformance:cases/VIII.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-GR-VIII_3_2_4-3",
+ "notes": "§1985:VIII.3.2.4 GR3 makes the relative DATA RECORDS clause the sequential one, which 'serves only as documentation' (§1985:VII.3.5.1) with the format DATA { RECORD IS | RECORDS ARE } { data-name-1 } ... and SR1 'Data-name-1 is the name of a data record and must have an 01 level-number record description' (§1985:VII.3.5.3). dataRecordsClause parses it with IS/ARE optional, FileDescriptionFormats.Rows admits it in every FD format (deleted at 2002), BindFileSection calls ScreenDataRecords for SR1 (COBOL6849), the clause changes no I-O, and VisitDataRecordsClause refuses it from 2002 (COBOL0873). Probes at 85 on a relative file (random and dynamic) with a fixed and an OCCURS DEPENDING ON record: RECORDS ARE both names, RECORD IS one, RECORDS without ARE in either order, RECORD with two names, and beside LABEL RECORDS each compile and run unchanged (ABCDEFGHIJ / 3 3XYZ); (b) no data-name (COBOL0001), DATA RECORDS IS (syntax error), a WORKING-STORAGE item, a level-05 item, another file's 01 and an undefined name (COBOL6849) and the clause written twice (COBOL2423) are refused; a name listed twice is accepted, which no 1985 rule forbids; at --std 2002 the clause is COBOL0873. The witness names two 01 records (one group) and writes and reads both.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

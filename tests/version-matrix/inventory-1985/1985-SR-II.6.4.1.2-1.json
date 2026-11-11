@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 (as corrected, Errata C338: the printed 'may.call' is a stray period): 'Any calling program may call any separately compiled program in the run unit.' 2023: an outermost program's name 'may be referenced by statements included in any source element in the run unit' (§2023:8.4.6.3 SR3), and CALL locates the program by those scope rules (§2023:14.9.4.4 GR3: 'the rules specified in 8.4.6, Scope of names and 8.4.6.3, Scope of program-names, apply'). Functions and methods as callers are 2023-only. Same effect.",
-  "source": "adjudicate-712/slice-27; re-decided against the corrected text, kb/Work PB5045"
+  "source": "adjudicate-712/slice-27; re-decided against the corrected text, kb/Work PB5045",
+  "digests": {
+   "SR-8.4.6.3-3": "a2f7d6584f51",
+   "GR-14.9.4.4-3": "04fde73bf906"
+  }
  }
 }

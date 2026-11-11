@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 still refuses '*' in the picture string with BLANK WHEN ZERO. The added 'S' ban is a separate case outside this rule's subject; it does not alter the asterisk requirement.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.40.3-22": "362aa490251a"
+  }
  }
 }

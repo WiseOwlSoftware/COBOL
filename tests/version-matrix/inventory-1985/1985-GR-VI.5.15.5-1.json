@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "GR-19 restates the characteristics sentence verbatim. 33.4-2 limits level-88 condition-name entries to their format. The validation format is a separate new kind of entry, not a changed condition-name rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.63.4-19": "56a91d11b9fd",
+   "GR-13.18.33.4-2": "14d4d4272c11"
+  }
  }
 }

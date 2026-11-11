@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.2.4-4",
  "rule-digest": "2043dd860ad8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOne; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#Deliver; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#FindSource",
  "test-ref": "conformance:cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-4",
+ "notes": "§1985:XIV.3.2.4 GR4 (as amended by X3.23a-1989): DISABLE INPUT TERMINAL deactivates \"the logical paths between the source (as defined by the content of the data item referenced by data-name-7 (SYMBOLIC SOURCE)) and all of its associated queues and sub-queues\". SetPath's InputTerminal arm disables the SourceEndpoint named at positions 63-74 (21 when unknown or blank, 15 when already disabled), and MessageStoreState#Deliver holds every destination whose source is disabled, whatever queue level it feeds, releasing them on ENABLE. Probes at --std 85: a blank source 21; unknown TX 21; T1 held out of Q1/S1/S2 while T2 delivered (count 1, then 2 after ENABLE); a repeat 15; a wrong KEY 40. The witness checks two queues of one source and a second source.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

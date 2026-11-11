@@ -1,0 +1,13 @@
+{
+  "claim_id": "p267-1",
+  "claim_key": "9ada565409d16282",
+  "page": 267,
+  "kind": "incorrect-figure",
+  "severity": "normative",
+  "claim": {"id": "p267-1", "page": 267, "kind": "incorrect-figure", "severity": "normative", "pdf_says": "{ 1 / 01 } constant-name-1 CONSTANT [ IS GLOBAL ] ... (both level numbers 1 and 01 printed underlined)", "markdown_says": "╭ 1  ╮\n┤    ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL</u>] ┤\n╰ <u>01</u> ╯", "why_it_matters": "In the 13.9.1 constant-entry general format the printed level number '1' carries an underline just like '01'; the markdown underlines only 01, so the figure's notation for the required level-number alternative is lost for '1'."},
+  "verdict": {
+    "real": true,
+    "reasoning": "A 6x zoom crop of the 300 dpi render of PDF page 267 (printed page 245, §2002:13.9.1 General format) shows a short horizontal rule printed directly under the '1' in the top alternative of the level-number brace, and a longer rule under '01' in the bottom alternative. Both are underlined. The transcription (page-267.md line 13) writes the top alternative as a plain '1' and only line 15 has '<u>01</u>'. The quotes of both sources are accurate. In this notation an underline marks a required word or literal that must be written, so the transcription drops that mark from one of the two brace alternatives. The rest of the figure (CONSTANT, GLOBAL, the AS/FROM braces) matches the print.",
+    "corrected_description": ""
+  }
+}

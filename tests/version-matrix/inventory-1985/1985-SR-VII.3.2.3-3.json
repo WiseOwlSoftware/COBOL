@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985 VII.3.2.3 SR3: 'One or more record description entries must follow the file description entry' (only report files are exempt, XIII.3.2.3 SR4). 2023 brackets the record-description-entry group after file-description-entry in §2023:13.4.2, and §2023:13.4.5.3 SR3 lets a sequential FD have none when a RECORD clause is given (also §2023:13.18.43.3 SR1), WRITE/REWRITE name the FILE and FROM phrases and READ uses INTO. An FD without record descriptions, refused in 1985, is accepted: a compile-time relaxation, no exception condition.",
-  "source": "adjudicate-712/slice-31"
+  "source": "adjudicate-712/slice-31",
+  "digests": {
+   "FMT-13.4.2": "30cd0a649abb",
+   "SR-13.4.5.3-3": "336b59e52724",
+   "SR-13.18.43.3-1": "caffa1f48758"
+  }
  }
 }

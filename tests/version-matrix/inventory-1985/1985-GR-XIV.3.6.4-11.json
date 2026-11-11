@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-11",
  "rule-digest": "cdd43cba1df9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Release; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Next; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCommunicationSendStatement",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-11",
+ "notes": "§1985:XIV.3.6.4 GR11: \"The hierarchy of ending indicators is EGI, EMI, and ESI. An EGI need not be preceded by an ESI or EMI. An EMI need not be preceded by an ESI.\" Dialogue.Release (MessageControlSession.cs) treats each indicator as closing every lower level (any indicator ends the segment, EMI and EGI end the message, EGI also marks the group end), so no lower indicator is required first. Probe s3: portions AA, BB then EGI alone gives one message (count 1) received as SEGMENT 0004 3 [AABB]; AA WITH EMI with no ESI gives SEGMENT 0002 2 [AA]; the witness prints SEGMENT AA/BB/CC with keys 1, 2, 3.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

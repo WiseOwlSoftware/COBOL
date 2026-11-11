@@ -18,6 +18,14 @@
   ],
   "bridge": true,
   "reason": "1985 (1993 amendment): on an unsuccessful WRITE 'the I-O status of the file-name ... is updated and control is transferred according to the rules of the USE statement following the execution of any USE AFTER EXCEPTION procedure applicable'. §2023:14.9.51.4 GR15 and GR1 set the I-O status of the write file connector and send control through 9.1.12; §2023:9.1.12 GR2 names the USE declarative, selected by §2023:14.9.49.4 GR3 and GR6, and §2023:14.9.49.4 GR7 returns control after it. But 9.1.12 puts first 'Statements in a WHEN phrase of an active PERFORM statement' (§2023:9.1.12 GR1), and GR6 runs the USE procedure only when the WRITE is outside an exception-checking PERFORM or no WHEN matched: a WRITE in an exception-checking PERFORM with a matching WHEN runs no USE procedure. 2023 accepts that program, 1985 refuses it, and the result differs: a case added, so CHANGED. (GR15's record-area words are another 1985 rule's.)",
-  "source": "adjudicate-712-r2/slice-15"
+  "source": "adjudicate-712-r2/slice-15",
+  "digests": {
+   "GR-14.9.51.4-15": "a8b0bec83863",
+   "GR-14.9.51.4-1": "99a7e9b906c2",
+   "GR-9.1.12-2": "14a7b0ec289f",
+   "GR-14.9.49.4-3": "1f60d13b42af",
+   "GR-14.9.49.4-6": "b41480584b33",
+   "GR-14.9.49.4-7": "95194ed26db2"
+  }
  }
 }

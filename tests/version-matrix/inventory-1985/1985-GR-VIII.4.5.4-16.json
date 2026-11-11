@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985 states for relative READ that a short record leaves the area 'to the right of the last valid character read' undefined and a long one 'is truncated on the right to the maximum size', READ successful with record-length status. 2023 confines those content effects to record sequential files (§2023:14.9.30.4 GR14 'For a record sequential file'); for a relative file only the successful status 04 remains (§2023:9.1.13.2 GR3 via §2023:14.9.30.4 GR1). The right-truncation and undefined-tail results are no longer stated for relative files.",
-  "source": "adjudicate-712/slice-19"
+  "source": "adjudicate-712/slice-19",
+  "digests": {
+   "GR-9.1.13.2-3": "2f93339ac9a7",
+   "GR-14.9.30.4-1": "be083752f1e6"
+  }
  }
 }

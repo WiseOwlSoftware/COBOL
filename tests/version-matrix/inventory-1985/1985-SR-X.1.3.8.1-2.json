@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.1.3.8.1-2",
  "rule-digest": "7be3f27434b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramNameScope.cs#CommonProgramReferable; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
  "test-ref": "conformance:cases/X.1.3.8@1985-Scope-of-Names/1985-SR-X_1_3_8_1-2",
+ "notes": "§1985:X.1.3.8.1 SR2: a COMMON program directly contained in another 'may be referenced only by statements included in that containing program and any programs directly or indirectly contained within that containing program, except that program possessing the common attribute and any programs contained within it'. ProgramTable#ResolveVisible (shared by CALL and Cancel) walks the caller's containers nearest first and admits a COMMON sibling only when ProgramNameScope#CommonProgramReferable says the caller is neither that program nor inside it; the RECURSIVE exception 2023 adds cannot arise at 85 (RECURSIVE refused, COBOL0885), and a name the exclusion skips falls to the outermost program, as §1985:X.5.2.4 GR4 c requires. Probes at --std 85: with a separately compiled C1 beside a COMMON C1 in MID, C1 itself and its contained C1SUB reached the separate C1 (SCNT 1, 2), a doubly contained M3's CANCEL reset the common C1 (CNT back to 1), a sibling of MID reached the separate C1 (SCNT 5); a duplicate name inside one outermost program (COBOL2214) and COMMON on an outermost program (COBOL0887) were refused. The witness shows MID, M2 and M3 reaching C1 while C1SUB and P9 cannot.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: a common program-name is referenceable in the containing program and its contained programs 'except that program possessing the common attribute and any programs contained within it'. 2023 §2023:8.4.6.3 SR2 keeps the scope but the excluded programs 'may reference the program-name only if the program possesses the recursive attribute'; §2023:11.10.4 GR2 restates the common scope and §2023:11.10.4 GR4 the recursive self-call. Looser: a new exception to the exclusion.",
-  "source": "adjudicate-712/slice-32"
+  "source": "adjudicate-712/slice-32",
+  "digests": {
+   "SR-8.4.6.3-2": "1ecd83c6fc5d",
+   "GR-11.10.4-2": "101af340ea81",
+   "GR-11.10.4-4": "cc081ffc7e8d"
+  }
  }
 }

@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "With SIZE ERROR: a quotient size error leaves identifier-3 unchanged (§2023:14.7.7 GR4, §2023:14.7.5 GR1, GR2) and §2023:14.9.12.4 GR6 forms the remainder only 'If the size error condition is not raised', so identifier-4 is unchanged; a remainder size error leaves 'the content of identifier-4 ... unchanged' (GR6). Same as 1985 a and b.",
-  "source": "adjudicate-712/slice-11"
+  "source": "adjudicate-712/slice-11",
+  "digests": {
+   "GR-14.9.12.4-6": "3053112dac80",
+   "GR-14.7.7-4": "cfc34ed7e634",
+   "GR-14.7.5-L2.1": "92ccc37c44b9",
+   "GR-14.7.5-L2.2": "2e332210b69b"
+  }
  }
 }

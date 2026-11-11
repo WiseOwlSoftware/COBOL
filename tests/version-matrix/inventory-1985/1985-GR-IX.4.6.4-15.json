@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: a) an unchanged alternate key keeps its retrieval order; b) a changed one may reorder, and with duplicates the record is logically positioned last. §2023:14.9.35.4 GR24 a) and b) restate both ('the record is logically positioned last within the set of duplicate records'); §2023:14.9.30.4 GR26 orders REWRITE-created duplicates by release. The collating-sequence words make the equality explicit; NOTE 5 (shared files) is informative and suppression needs the 2023-only SUPPRESS WHEN phrase.",
-  "source": "adjudicate-712-r2/slice-02"
+  "source": "adjudicate-712-r2/slice-02",
+  "digests": {
+   "GR-14.9.35.4-24": "b3e39480dbbd",
+   "GR-14.9.30.4-26": "9b3918c32fa3"
+  }
  }
 }

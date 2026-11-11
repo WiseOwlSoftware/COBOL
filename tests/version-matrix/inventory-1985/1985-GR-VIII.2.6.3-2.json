@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "The 1985 rule only makes the relative SAME clause the sequential one. 2023 has one SAME clause in I-O-CONTROL and §2023:12.4.6.4.3 SR4 'The files specified in a given SAME clause need not all have the same organization or access'. SR7 states the clause's own per-format limits (the sequential SAME rule's content), not this sameness.",
-  "source": "adjudicate-712-r2/slice-08"
+  "source": "adjudicate-712-r2/slice-08",
+  "digests": {
+   "FMT-12.4.6.2": "bea3f5dbe52a",
+   "FMT-12.4.6.4.2": "ef1242cdad87",
+   "SR-12.4.6.4.3-4": "976c38be793e"
+  }
  }
 }

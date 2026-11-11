@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "1985 a: after a page footing on the page the report footing's upper limit is 'one greater than the final LINE-COUNTER setting established by the page footing' (which includes the PF's NEXT GROUP, XIII.3.10.9 GR5a,b), else FOOTING+1; b: NEXT PAGE -> HEADING. 2023 §2023:13.18.57.4 GR7 g) 'is the line following the last line of the page footing, if specified', or FOOTING+1 (also §2023:13.18.39.4 GR2 'begins after this line'); f) and §2023:13.18.39.4 GR4 keep HEADING for an RF on a page by itself. The PF's NEXT GROUP no longer raises the limit, so absolute RF lines between the PF's last line and its NEXT GROUP line become legal: looser.",
-  "source": "adjudicate-712/slice-24"
+  "source": "adjudicate-712/slice-24",
+  "digests": {
+   "GR-13.18.57.4-7": "e6482a3bdd53",
+   "GR-13.18.39.4-2": "e848559fd8d9",
+   "GR-13.18.39.4-4": "82ef257ca4e1"
+  }
  }
 }

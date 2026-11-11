@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 literal-6 is the CURRENCY SIGN literal, now literal-7. Both bar figurative constants. The added class wording covers what other 1985 currency-symbol rules already required.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.3.7.3-18": "a775211240be"
+  }
  }
 }

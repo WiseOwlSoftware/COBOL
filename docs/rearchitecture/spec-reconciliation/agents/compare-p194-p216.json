@@ -1,9 +1,9 @@
 {
   "batch": [194, 196, 198, 200, 202, 204, 206, 208, 210, 212, 214, 216],
-  "pages_checked": [194, 196, 198, 200, 202, 204, 206, 208, 210, 212, 214, 216],
+  "pages_checked": [194, 196, 198, 200, 202, 204, 206, 208, 210, 212, 214, 216], "pages_unread": [],
   "findings": [
     {
-      "page": 204,
+      "id": "p204-1", "page": 204,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "The 8.7.5.1 Format 2 (extended-relational-operator) figure is a BRACE enclosing 11 stacked alternatives, with required words underlined and optional words not underlined:\nIS GREATER THAN OR EQUAL TO   (GREATER, OR, EQUAL underlined; IS, THAN, TO not)\nIS >=\nIS NOT LESS THAN              (NOT, LESS underlined; IS, THAN not)\nIS NOT <                      (NOT underlined)\nIS LESS THAN OR EQUAL TO      (LESS, OR, EQUAL underlined; IS, THAN, TO not)\nIS <=\nIS NOT GREATER THAN           (NOT, GREATER underlined; IS, THAN not)\nIS NOT >                      (NOT underlined)\nIS NOT EQUAL TO               (NOT, EQUAL underlined; IS, TO not)\nIS NOT =                      (NOT underlined)\nIS <>",
@@ -12,7 +12,7 @@
       "suggested_repair": "Re-render the figure preserving the required-word underlining, e.g.\n{ IS <u>GREATER</u> THAN <u>OR</u> <u>EQUAL</u> TO | IS >= | IS <u>NOT</u> <u>LESS</u> THAN | IS <u>NOT</u> < | IS <u>LESS</u> THAN <u>OR</u> <u>EQUAL</u> TO | IS <= | IS <u>NOT</u> <u>GREATER</u> THAN | IS <u>NOT</u> > | IS <u>NOT</u> <u>EQUAL</u> TO | IS <u>NOT</u> = | IS <> }\nand use an explicit brace delimiter rather than a box-drawing rectangle so the mandatory-choice semantics survive. The same treatment is needed for the Format 1 figure on page 203, which has the identical defect."
     },
     {
-      "page": 206,
+      "id": "p206-1", "page": 206,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Table 3 - Combinations of symbols in arithmetic expressions. Its header (on page 205) is: column 1 'First symbol'; a 'Second symbol' spanning group over columns 'Identifier or literal', '+ - * / **', 'Unary + or -', '(', ')'. Page 206 carries only the five BODY rows, whose leading cell is a First-symbol value: 'Identifier or literal | - | P | - | - | P', '+ - * / ** | P | - | P | P | -', 'Unary + or - | P | - | - | P | -', '( | P | - | P | P | -', ') | - | P | - | - | P'.",

@@ -265,8 +265,57 @@ def check(payload: dict | None = None):
     return head + "\n".join(out) + "\n"
 
 
+def registered_hooks_leave_wip_commits_alone() -> list[str]:
+    """THE PB2605 REPRO, over every PreToolUse hook .claude/settings.json registers (kept from landing_devlog.py, and
+    moved here from devlog.py's self-test by kb/Work PB5227: it is a property of the registered hooks, which this check
+    holds, and there it re-ran the hooks whenever the DEVLOG changed). The DEVLOG rule is the LANDING's (`devlog.py
+    check`), so a commit in a WORKTREE with nothing but code staged (an implementer's WIP checkpoint) draws no DEVLOG ask
+    or deny from ANY hook, in either shell and either shape (`cd <wt> && git commit`, `git -C <wt> commit`). [] when
+    none asks; else the failure."""
+    sys.path.insert(0, str(REPO / "scripts"))
+    from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    root = scratch_dir("tooling-check-hooks-")
+    try:
+        scratch = ScratchRepo.init(root / "repo")
+        scratch.commit("base", {"code.py": "x = 1\n"})
+        wt = scratch.worktree(root / "wt", branch="impl").path
+        scratch.write({"code.py": "x = 9\n"}, cwd=wt)
+        scratch.git("add", "code.py", cwd=wt)
+        settings = load(REPO / ".claude" / "settings.json")
+        hooks = [(m.get("matcher", ""), h["command"]) for m in settings["hooks"].get("PreToolUse", []) for h in m["hooks"]]
+        script = re.compile(r'"\$CLAUDE_PROJECT_DIR/([^"]+)"')
+        asked, ran, missing = [], 0, set()
+        for tool, command in (("Bash", f"cd {wt.as_posix()} && git commit -m 'WIP checkpoint: x'"),
+                              ("Bash", f"git -C {wt.as_posix()} commit -m 'WIP checkpoint: x'"),
+                              ("PowerShell", f"Set-Location {wt}; git commit -m 'WIP checkpoint: x'")):
+            payload = json.dumps({"hook_event_name": "PreToolUse", "tool_name": tool, "cwd": str(REPO),
+                                  "tool_input": {"command": command}})
+            for matcher, cmd in hooks:
+                if not re.fullmatch(matcher, tool) or not (m := script.search(cmd)):
+                    continue
+                if not (REPO / m.group(1)).is_file():
+                    missing.add(m.group(1))
+                    continue
+                ran += 1
+                hook_out = subprocess.run([sys.executable, str(REPO / m.group(1))], input=payload, capture_output=True,
+                                          text=True, encoding="utf-8", errors="replace",
+                                          env=dict(os.environ, CLAUDE_PROJECT_DIR=str(REPO))).stdout
+                if "DEVLOG" in hook_out:
+                    asked.append(f"{m.group(1)} on `{command}`")
+        staged = scratch.git("diff", "--cached", "--name-only", cwd=wt).split()
+        scratch.git("worktree", "remove", "--force", str(wt))
+    finally:
+        remove_tree(root)
+    if staged == ["code.py"] and not asked and not missing and ran >= 3:
+        return []
+    return [f"the PB2605 repro: a worktree WIP commit without a DEVLOG entry drew a DEVLOG ask from a registered hook, "
+            f"or the case ran nothing: staged={staged}; asked by: {asked}; hooks run: {ran}; registered but missing: "
+            f"{sorted(missing)}"]
+
+
 def self_test() -> int:
-    """The permission-mode line on each measured shape, and start-session.ps1 still starting the owner's mode."""
+    """The permission-mode line on each measured shape, start-session.ps1 still starting the owner's mode, the agent and
+    skill definitions, the toolchain line, and no registered hook asking for a DEVLOG entry on a WIP commit (PB2605)."""
     import tempfile
     fails = []
     with tempfile.TemporaryDirectory() as d:
@@ -321,6 +370,7 @@ def self_test() -> int:
     live = definition_problems(REPO / ".claude", ROLES)
     if live:
         fails.append(f"this repository's own definitions would not load: {live}")
+    fails += registered_hooks_leave_wip_commits_alone()
     # kb/Work PB4007: a tool reporting another version than toolchain.env's, or none, is ASK-OWNER naming it.
     import toolchain
     manifest = toolchain.load()

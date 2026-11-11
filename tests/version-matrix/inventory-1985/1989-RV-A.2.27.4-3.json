@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "The alphanumeric case is unchanged. 'National' extends the rule to a class that 1985 lacks, so every 1985 program gets the same result size.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "RV-15.63.4-3": "3dbb65e90802"
+  }
  }
 }

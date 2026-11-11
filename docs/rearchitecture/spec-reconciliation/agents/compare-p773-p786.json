@@ -1,9 +1,9 @@
 {
   "batch": [773, 774, 776, 777, 778, 779, 780, 781, 782, 783, 785, 786],
-  "pages_checked": [773, 774, 776, 777, 778, 779, 780, 781, 782, 783, 785, 786],
+  "pages_checked": [773, 774, 776, 777, 778, 779, 780, 781, 782, 783, 785, 786], "pages_unread": [],
   "findings": [
     {
-      "page": 776,
+      "id": "p776-1", "page": 776,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "SORT Format 2 (table), COLLATING SEQUENCE clause. The printed figure is an outer BRACKET containing 'COLLATING SEQUENCE' followed by a BRACE with two alternatives:  alternative 1 = 'IS alphabet-name-1 [ alphabet-name-2 ]';  alternative 2 = an inner BRACE WITH CHOICE INDICATORS, i.e. a vertical bar just inside each side of the inner brace, spanning the two lines 'FOR ALPHANUMERIC IS alphabet-name-1' and 'FOR NATIONAL IS alphabet-name-2'. Rendered linearly:  [ COLLATING SEQUENCE { IS alphabet-name-1 [ alphabet-name-2 ]  |  { | FOR ALPHANUMERIC IS alphabet-name-1 | / | FOR NATIONAL IS alphabet-name-2 | } } ]",
@@ -12,7 +12,7 @@
       "suggested_repair": "Replace the Format 2 code fence with the same convention already used for Format 1 at page 775, e.g.\n\n```\nSORT data-name-2 ⎡ ON ⎧ ASCENDING  ⎫ KEY [ data-name-1 ] … ⎤ …\n                 ⎣    ⎩ DESCENDING ⎭                       ⎦\n\n    [ WITH DUPLICATES IN ORDER ]\n\n⎡                      ⎧  IS alphabet-name-1 [ alphabet-name-2 ]     ⎫ ⎤\n⎢ COLLATING SEQUENCE   ⎨ ⎧| FOR ALPHANUMERIC IS alphabet-name-1 |⎫   ⎬ ⎥\n⎣                      ⎩ ⎩| FOR NATIONAL IS alphabet-name-2     |⎭   ⎭ ⎦\n```\n\nand add a 'Figure notes (SORT Format 2)' paragraph mirroring the one at page 775: the bar-group is a brace WITH choice indicators (5.2.6.4) so both FOR phrases may be specified in any order; it is one alternative of the enclosing brace, the other being the single-line 'IS alphabet-name-1 [ alphabet-name-2 ]' form; the whole COLLATING SEQUENCE clause is optional; required words underlined in the printed figure are SORT, ASCENDING, DESCENDING, DUPLICATES, SEQUENCE, ALPHANUMERIC, NATIONAL."
     },
     {
-      "page": 776,
+      "id": "p776-2", "page": 776,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.40.3   Syntax rules   (printed bold, the same heading style/level as 14.9.40.1 General, 14.9.40.2 General formats and 14.9.41.4 General rules)",
@@ -21,7 +21,7 @@
       "suggested_repair": "Demote to '### 14.9.40.3 Syntax rules' to match 14.9.40.1, 14.9.40.2 and the whole 14.9.41.x subtree."
     },
     {
-      "page": 778,
+      "id": "p778-1", "page": 778,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.40.4   General rules   (printed bold, the same heading style/level as 14.9.41.4 General rules on page 785)",

@@ -1,0 +1,7 @@
+**Addendum (2026-11-11): the LABEL RECORDS agreement still reproduces after this note landed (1985 re-read).** This note's 2026-11-10 addendum claimed `1985-GR-VII.3.6.3-4` (all LABEL RECORDS clauses of an external file connector must have the same specification). The note has landed, but its file-description agreement rules were not all compared. The operator's re-read at main eb2b01f730 (`E:/COBOL-coord/scratch/coderead-85/out-reread/reread-1.json`) reads the relative twin PARTIAL on that rule:
+
+- `1985-GR-VIII.3.2.4-4` - `§1985:VIII.3.2.4 GR4` (re-read: PARTIAL, harm: under-rejects), which incorporates `§1985:VII.3.6.3 GR4`: "all LABEL RECORDS clauses in the run unit which are associated with this file connector must have the same specification" (both checked with `scripts/spec/cite.py --check`). `ExternalFileConnectorRules.Check` compares only the file control entry's `FileEntryIdentity.Segments`, which carry no LABEL RECORDS segment.
+
+**Rerun on the build of origin/main f2cf36fd15, 2026-11-11.** In `out-reread/work-reread-1/c9/lx2.cob`, two programs in one source share `FD RFILE IS EXTERNAL`; one says `LABEL RECORDS ARE STANDARD` and the other `OMITTED`. At --std 85 it compiles and prints `SUB EXT1`. Expected: a diagnostic on the second clause.
+
+**Filed as kb/Work PB5300.** This note is landed, and what remains is a new defect. PB5300 holds this row with the sequential twin and the BLOCK CONTAINS, CODE-SET, RECORD and VALUE OF agreement rows of the 2026-11-10 addendum, the remainder this note's landing paragraph names ("nothing compares them").

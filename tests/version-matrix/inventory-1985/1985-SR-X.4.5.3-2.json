@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"the data-name specified as the subject of the entry whose level-number is 01 ... must not be the same data-name\"; 2023: \"the externalized name of the subject of the entry ... shall not be the same as the externalized name of any other entry\". 2023 compares externalized names, which AS literal-1 can override, and also covers file entries. Equal data-names with different literals pass; different names with equal literals fail.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.22.3-2": "9d4ee557d192",
+   "GR-13.18.22.4-5": "5338d2d582e7"
+  }
  }
 }

@@ -10,6 +10,10 @@
   "reason": "1985 says a one-value series, or variable-occurrence items totalling one occurrence, returns zero. 2023 defines the value as '(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))' (§2023:15.86.4 RV1). VARIANCE gives '(0)' 'For one occurrence of argument-1' (§2023:15.98.4 RV1), and the square root of zero is zero. ALL subscripts over variable-occurrence tables expand to one argument per occurrence (§2023:15.3, an uncatalogued paragraph), so a total of one occurrence is the same one-argument case. A one-value series still returns zero.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-36"
+  "source": "adjudicate-712/slice-36",
+  "digests": {
+   "RV-15.86.4-1": "032537504fec",
+   "RV-15.98.4-1": "1691db8e6e47"
+  }
  }
 }

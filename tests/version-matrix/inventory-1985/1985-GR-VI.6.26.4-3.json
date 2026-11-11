@@ -10,6 +10,10 @@
   "reason": "1985: 'If format 3 is used, data items in identifier-1 are subtracted from and stored into corresponding data items in identifier-2.' §2023:14.9.44.4 GR3: 'data items in identifier-4 are subtracted from and stored in corresponding items in identifier-5', and §2023:14.9.44.4 GR5 restates the pairing ('Data items within identifier-4 are selected to be subtracted from selected data items within identifier-5', as separate SUBTRACT statements). GR3's added operand-1 - operand-2 formula binds only when standard-decimal or standard-binary arithmetic is in effect; a 1985 program has no ARITHMETIC clause and so runs under native arithmetic (§2023:11.9.5.2 GR4: 'If the ARITHMETIC clause is not specified ... it is as if the ARITHMETIC clause were specified with the NATIVE phrase'). Same result.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "source": "adjudicate-712/slice-13",
+  "digests": {
+   "GR-14.9.44.4-3": "600f90412032",
+   "GR-14.9.44.4-5": "fd7c8f30989f"
+  }
  }
 }

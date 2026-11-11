@@ -19,6 +19,15 @@
   ],
   "bridge": true,
   "reason": "1985 indexed file control entry: SELECT [OPTIONAL] file-name-1 ASSIGN TO implementor-name/literal, [RESERVE], [ORGANIZATION IS] INDEXED, [ACCESS MODE], RECORD KEY, [ALTERNATE RECORD KEY … [WITH DUPLICATES]], [FILE STATUS]. §2023:12.4.5.1 Format 1 and the clause formats that restate its parts (§2023:12.4.5.5.1 ACCESS MODE, §2023:12.4.5.6.2 ALTERNATE RECORD KEY, §2023:12.4.5.8.2 FILE STATUS, §2023:12.4.5.10.2 ORGANIZATION, §2023:12.4.5.12.2 RECORD KEY, §2023:12.4.5.14.2 RESERVE) keep every 1985 element and add ASSIGN USING, record-key-name SOURCE keys, SUPPRESS WHEN, collating-sequence-clause, LOCK MODE and SHARING. Clause order stays free after SELECT (§2023:12.4.5.2 SR1, the 2023 form of 1985 SR1, mapped there). Cases added at compile time; no refusal became an exception.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-12.4.5.1": "14f82fb7eed3",
+   "FMT-12.4.5.5.1": "ce888455e095",
+   "FMT-12.4.5.6.2": "a6e9b6472afe",
+   "FMT-12.4.5.8.2": "e6095ecf1b9f",
+   "FMT-12.4.5.10.2": "03687bb856b0",
+   "FMT-12.4.5.12.2": "dc0639616e62",
+   "FMT-12.4.5.14.2": "af2027060203"
+  }
  }
 }

@@ -77,6 +77,11 @@ function Run-Orch([string]$case, [string]$mode, [string[]]$extra, [scriptblock]$
     return $script:lastRun
 }
 
+# A register note for a case's scratch checkout (kb/Work/<id>.md) that the landing lane's tick can read: the tick surveys
+# the CHECKOUT's own kb/Work (prune_worktrees.live_survey, kb/Work PB5227), and a file named like a note without
+# frontmatter stops work.load, so the tick of every unit in that checkout would fail.
+function Note([string]$id, [string]$what) { "---`nid: $id`nstatus: open`n---`n`n$what" }
+
 function Complete-OrchTest([string]$part) {
     Remove-Item $Root -Recurse -Force -ErrorAction SilentlyContinue
     foreach ($f in $script:fails) { Write-Host "FAIL: $f" }

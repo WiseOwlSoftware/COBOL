@@ -1,9 +1,9 @@
 {
   "batch": [220, 222, 226, 230, 232, 234, 236, 238, 240, 242, 244, 246],
-  "pages_checked": [220, 222, 226, 230, 232, 234, 236, 238, 240, 242, 244, 246],
+  "pages_checked": [220, 222, 226, 230, 232, 234, 236, 238, 240, 242, 244, 246], "pages_unread": [],
   "findings": [
     {
-      "page": 232,
+      "id": "p232-1", "page": 232,
       "kind": "incorrect-text",
       "severity": "normative",
       "pdf_says": "Table 5 — Combinations of conditions, logical operators, and parentheses; row 'simple-condition', column 'In a left-to-right sequence of elements: Element, when not first, may be immediately preceded by only:' reads \"EXCLUSIVE-OR or XOR, OR, NOT, AND, (\"",

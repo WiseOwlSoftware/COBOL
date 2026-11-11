@@ -1,0 +1,34 @@
+{
+  "batch": [145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156],
+  "pages_checked": [145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p150-1",
+      "page": 150,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or national",
+      "markdown_says": "###### 8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or\n\nnational",
+      "why_it_matters": "The two-line printed heading was split: its last word 'national' became a separate body paragraph, so the heading is truncated (reads as comparison with class 'alphanumeric or') and a stray fragment appears as prose."
+    },
+    {
+      "id": "p154-1",
+      "page": 154,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "a) If NUMERIC is specified,\n1. If the category of the data item referenced by identifier-1 is numeric,\na. If the usage of the data item referenced by identifier-1 is implicitly or explicitly display or national, ...\nb. If the usage of the data item referenced by identifier-1 is not display or national, ...\n2. If the category of the data item referenced by identifier-1 is not numeric, ...",
+      "markdown_says": "   a) If NUMERIC is specified,\n\n   1\\. If the category of the data item referenced by identifier-1 is numeric,\n\n   a. If the usage of the data item referenced by identifier-1 is implicitly or explicitly display or national, ...\n\n   b. If the usage of the data item referenced by identifier-1 is not display or national, ...\n\n   2\\. If the category of the data item referenced by identifier-1 is not numeric, ...",
+      "why_it_matters": "In the PDF (8.8.4.1.3.3 GR2) items 1./2. are nested under a), and items a./b. are nested a further level under 1.; the markdown puts a), 1., a., b. and 2. all at one indentation, so the sub-items a./b. (usage display vs. not display) read as siblings of a) rather than as cases of 'category is numeric', and the a./b. labels collide with the a)/b) rule labels."
+    },
+    {
+      "id": "p155-1",
+      "page": 155,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "b) If ALPHABETIC is specified, the condition is true in the following circumstances:\n1. If a locale is in effect for character classification, ...\n2. If a locale is not in effect for character classification, ...\nc) If ALPHABETIC-LOWER is specified, ...",
+      "markdown_says": "   b) If ALPHABETIC is specified, the condition is true in the following circumstances:\n\n   1\\. If a locale is in effect for character classification, ...\n\n   2\\. If a locale is not in effect for character classification, ...\n\n   c) If ALPHABETIC-LOWER is specified, ...",
+      "why_it_matters": "In the PDF the 1./2. locale cases are indented under each of b), c) and d) (8.8.4.1.3.3 GR2); the markdown places them at the same indentation as b), c), d), detaching them from their parent items."
+    }
+  ]
+}

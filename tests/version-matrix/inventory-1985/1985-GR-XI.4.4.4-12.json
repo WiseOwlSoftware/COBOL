@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.4.4-12",
  "rule-digest": "c90fd6d15173",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-GR-XI_4_4_4-12",
+ "notes": "The held case is the same as 1985-GR-XI.4.3.4-6's: givsize's SD has no RECORD clause, so its record type is the implementor's (§1985:II.2.1.4.3), and under the documented fixed-length choice R2's size 'when it was read from file-name-1' (the SD) is 5 characters, so GR12 b writes LEN=5 [ABXXX] into the varying GIVING file, as observed; likewise [CCCCC]. Every other arm (implicit OPEN after the input procedure, relative keys, the boundary USE, a varying SD into a varying FD at the released sizes) was probed by the reader and the refuter and is not disputed. Attack point: the same SD-reach question as the RETURN row.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "X3.23b-1993 added to general rule 12 the sentence 'the size of any record written to file-name-3 is the size of that record when it was read from file-name-1', replaced the boundary sentence with one naming 'any USE AFTER EXCEPTION procedure associated with the file connector referenced by file-name-3 is executed; if control is returned from that USE procedure' and added the last paragraph, ending 'is undefined upon completion of the SORT statement for which the GIVING phrase is specified' (errata C300 to C302, kb/Work PB5045). §2023:14.9.40.4 GR15 carries all three, so the write size and the undefined DEPENDING ON item the withdrawn record counted as 2023 additions are additions no longer. What still differs: 1985 'The initiation is performed as if an OPEN statement with the OUTPUT phrase had been executed. This initiation is performed after the execution of any input procedure' (§1985:XI.4.4.4 GR12), 2023 'as if an OPEN statement with the OUTPUT and SHARING WITH NO OTHER phrases had been executed'; and 2023 defines the outcome of an exception on the implicit OPEN: 'If a fatal exception condition exists for file-name-3 as a result of the implicit OPEN during file initiation, the SORT is terminated', and after a nonfatal one 'the SORT statement continues'. §2023:14.9.40.4 GR9 states part of the 1985 lead sentence 'all the sorted records are written on the file referenced by file-name-3': 'The sorted records are either written to the file referenced by file-name-3' and 'When this phase terminates, the file referenced by file-name-3 is not in the open mode'.",
-  "source": "readjudicate-amended-1985/slice-07"
+  "source": "readjudicate-amended-1985/slice-07",
+  "digests": {
+   "GR-14.9.40.4-15": "0e1bf34f38f1",
+   "GR-14.9.40.4-9": "45071729a244"
+  }
  }
 }

@@ -1,9 +1,9 @@
 {
   "batch": [556, 557, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568],
-  "pages_checked": [556, 557, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568],
+  "pages_checked": [556, 557, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568], "pages_unread": [],
   "findings": [
     {
-      "page": 563,
+      "id": "p563-1", "page": 563,
       "kind": "incorrect-text",
       "severity": "cosmetic",
       "pdf_says": "Table 12 — Procedural statements, DELETE row. The 'Conditional phrase' cell prints TWO stacked lines: '[NOT] INVALID KEY' on the first line and '[NOT] ON EXCEPTION' on the second line. Explicit scope terminator: 'END-DELETE'.",
@@ -12,7 +12,7 @@
       "suggested_repair": "specs/ISO_COBOL.md line 23558: change to '| DELETE | [NOT] INVALID KEY<br>[NOT] ON EXCEPTION | END-DELETE |'"
     },
     {
-      "page": 565,
+      "id": "p565-1", "page": 565,
       "kind": "incorrect-text",
       "severity": "cosmetic",
       "pdf_says": "Table 12 — Procedural statements (Continued), WRITE row. The 'Conditional phrase' cell prints TWO stacked lines: '[NOT] INVALID KEY' on the first line and '[NOT] END-OF-PAGE' on the second line. Explicit scope terminator: 'END-WRITE'.",
@@ -21,7 +21,7 @@
       "suggested_repair": "specs/ISO_COBOL.md line 23622: change to '| WRITE | [NOT] INVALID KEY<br>[NOT] END-OF-PAGE | END-WRITE |'"
     },
     {
-      "page": 566,
+      "id": "p566-1", "page": 566,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Page 566 (printed 536) OPENS with the continuation of 14.5.3.3 item 1): 'b)   the next-encountered statement-name, or' then 'c)   a separator period.' — each printed as its own indented sub-item, before item '2) for a single imperative statement contained within another statement, by'.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Move 'b) the next-encountered statement-name, or' and 'c) a separator period.' below the page-566 anchor and restore them as separate sub-items, matching the a)/b)/c) formatting used for rules 2) and 4)."
     },
     {
-      "page": 559,
+      "id": "p559-1", "page": 559,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "'14.2.3   General rules' is printed as a fourth-level clause heading, a sibling of '14.2.1   General formats' (page 557) and '14.2.2   Syntax rules' (page 558), all children of '14.2   Procedure division structure'.",
@@ -39,7 +39,7 @@
       "suggested_repair": "specs/ISO_COBOL.md line 23387: '## 14.2.3 General rules' -> '#### 14.2.3 General rules' (and line 23338 '## 14.2.2 Syntax rules' -> '#### 14.2.2 Syntax rules', on page 558, for the same reason)."
     },
     {
-      "page": 565,
+      "id": "p565-2", "page": 565,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "'14.5.2   Conditional phrase' and '14.5.3   Scope of statements' are printed as third-level clause headings, siblings of '14.5.1   General' (page 562); '14.5.3.1   General', '14.5.3.2   Explicit scope termination' and '14.5.3.3   Implicit scope termination' are their fourth-level children.",
@@ -48,7 +48,7 @@
       "suggested_repair": "specs/ISO_COBOL.md lines 23625 and 23632: '##' -> '###'; lines 23635, 23640, 23651: '###' -> '####'."
     },
     {
-      "page": 567,
+      "id": "p567-1", "page": 567,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "'14.6.2   State of a function, method, object, or program' is printed as a third-level clause heading, a sibling of '14.6.1   Run unit organization' (page 566); '14.6.2.1   General', '14.6.2.2   Active state' and '14.6.2.3   Initial and last-used states of data' are its fourth-level children and '14.6.2.3.1   General' is a fifth-level child.",
@@ -57,7 +57,7 @@
       "suggested_repair": "specs/ISO_COBOL.md line 23712: '##' -> '###'; lines 23715, 23720, 23739: '###' -> '####'; line 23742: '####' -> '#####'."
     },
     {
-      "page": 568,
+      "id": "p568-1", "page": 568,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "'14.6.2.3.2   Initial state' and '14.6.2.3.3   Last-used state' are printed as fifth-level clause headings, siblings of '14.6.2.3.1   General' (page 567) and children of '14.6.2.3   Initial and last-used states of data'.",

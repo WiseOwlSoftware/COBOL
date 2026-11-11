@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.4.4-5",
  "rule-digest": "56167bc89dd7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnce; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FileAlreadyOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FileLocked; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#FileClose",
  "test-ref": "conformance:cases/VIII.4.4@1985-OPEN-STATEMENT/1985-GR-VIII_4_4_4-5",
+ "notes": "§1985:VIII.4.4.4 GR5: 'each subsequent OPEN statement execution for that same file must be preceded by the execution of a CLOSE statement, without the LOCK phrase', with status 41 for an open file and 38 for one 'previously closed with lock' (§1985:VIII.1.3.4). FileConnector.OpenOnce returns FileAlreadyOpen (41) on an open connector; FileRegistry.CloseWithLock (reached from RuntimeApi.FileClose's WithLock arm, which the 85 binder admits) adds a successfully closed file to the run unit's lock set and SharedOpenAttempt answers every later OPEN with FileLocked (38) in every mode. The witness reopens a relative file INPUT/I-O/EXTEND/OUTPUT after plain CLOSEs. Probes (b,e): OPEN INPUT on an open file 41 (USE runs, FS=41); CLOSE WITH LOCK then OPEN INPUT/I-O/EXTEND/OUTPUT each 38; READ after the failed OPEN 47, CLOSE after it 42; dynamic-access I-O reopen 00; absent non-optional OPEN I-O 35. (c): OPEN ... SHARING at 85 refused (COBOL2072, its text misleadingly about WHEN OTHER); OPEN EXTEND on a random-access file refused COBOL2372.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "Reopening in any mode after a CLOSE is kept: §2023:14.9.27.4 GR2 'The file connector referenced by file-name-1 shall not be open' (else status 41), GR4 sets the mode per INPUT/OUTPUT/I-O/EXTEND, and §2023:14.9.6.4 GR8 leaves the connector 'no longer in an open mode'. The 1985 qualifier 'CLOSE statement, without the LOCK phrase' and its status 38 (§1985:VIII.1.3.4) have no 2023 carrier: the 2023 CLOSE format (§2023:14.9.6.2) has no WITH LOCK, so the bar on reopening a file closed with lock is gone.",
-  "source": "adjudicate-712/slice-19"
+  "source": "adjudicate-712/slice-19",
+  "digests": {
+   "GR-14.9.27.4-2": "0caffb8d51d0",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-14.9.6.4-8": "cd4697dd2324"
+  }
  }
 }

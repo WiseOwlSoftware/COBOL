@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.1.3.4-L2.5",
  "rule-digest": "ff23e3c1594a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PrevOpWasSuccessfulRead; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordRulesFailure; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start",
  "test-ref": "conformance:cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VIII_1_3_4-L2_5",
+ "notes": "§1985:VIII.1.3.4 (5) lists the relative logic errors 41-49: 41 OPEN of an open file, 42 CLOSE of a closed one, 43 a sequential-access DELETE or REWRITE not preceded by a successful READ, 44 a WRITE or REWRITE record outside the RECORD IS VARYING bounds (and, 'In level 1', a REWRITE of a different-size record), 46 a sequential READ with no valid next record, 47 READ or START not open input or I-O, 48 WRITE not open I-O, output or extend, 49 DELETE or REWRITE not open I-O. FileConnector's guards (#Open, #Close, #PrevOpWasSuccessfulRead, #SequentialReadGuard, #ReadOpenModeGuard, #StartOpenModeGuard, #MutationOpenModeGuard) and KeyedConnector#RecordRulesFailure set them for RelativeConnector's statements, with no edition arm needed. 44 2) binds only a level-1 implementation: this one is level 2 (RECORD VARYING, dynamic access, EXTEND), where 'the number of character positions in the record referenced by record-name-1 may or may not be equal' (§1985:VIII.4.6.4 GR3). Probes at --std 85: (a) RECORD VARYING 2 TO 6 DEPENDING ON LV: WRITE at 7 44, REWRITE at 3 of a 6-byte record 00 and read back [XYZ] LEN 03, REWRITE at 1 44; (b) the next REWRITE after that failed one 43, DELETE after it 43; (e) sequential-access WRITE on an I-O open 48, dynamic START and DELETE on an OUTPUT open 47 and 49, READ NEXT after an invalid-key random READ 46 (AT END not taken), READ NEXT after the at end 46, CLOSE of a closed file 42. The witness runs one statement per value 41-49.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -26,6 +29,25 @@
   ],
   "bridge": true,
   "reason": "41, 42, 43, 44 a), 46, 47, 48 and 49 carry over (§2023:9.1.13.7 GR1-GR9, set per statement by §2023:14.9.27.4 GR2, §2023:14.9.6.4 GR1, §2023:14.9.35.4 GR5, GR20, GR3, §2023:14.9.51.4 GR14, GR3, §2023:14.9.30.4 GR21, GR2); 46's at-end case is inside 'The preceding READ statement ... was unsuccessful' (§2023:9.1.13.7 GR6). The difference: 1985 44 '2) In level 1 an attempt is made to rewrite a record to a relative file and the record is not the same size' (§1985:VIII.1.3.4 GR5) has no 2023 counterpart; §2023:9.1.13.7 GR4 b) now reads 'rewrite a record to a sequential file' and §2023:14.9.35.4 GR16 applies it to record sequential files only, so a level-1 relative REWRITE of a different-size record that got 44 now succeeds. 48's sequential-access-in-I-O case (§2023:9.1.13.7 GR8 a) only defines a result for a statement 1985 forbade (§1985:VIII.4.4.4 GR4).",
-  "source": "adjudicate-712/slice-18"
+  "source": "adjudicate-712/slice-18",
+  "digests": {
+   "GR-9.1.13.7-1": "7ba098ac3665",
+   "GR-9.1.13.7-2": "6ad5edf369fc",
+   "GR-9.1.13.7-3": "c92c8b4cbc0d",
+   "GR-9.1.13.7-4": "8cb702a5a928",
+   "GR-9.1.13.7-6": "31e6a5079953",
+   "GR-9.1.13.7-7": "33e8e795f04b",
+   "GR-9.1.13.7-8": "a5329a57a0ea",
+   "GR-9.1.13.7-9": "30ab59018127",
+   "GR-14.9.27.4-2": "0caffb8d51d0",
+   "GR-14.9.6.4-1": "b69d85d1cce5",
+   "GR-14.9.35.4-5": "417f233188c4",
+   "GR-14.9.35.4-20": "2162939d82b7",
+   "GR-14.9.51.4-14": "2ed0d2829339",
+   "GR-14.9.30.4-21": "7fba2331b7f5",
+   "GR-14.9.30.4-2": "bff533cd4871",
+   "GR-14.9.51.4-3": "89606a4a9a76",
+   "GR-14.9.35.4-3": "fec731aa697c"
+  }
  }
 }

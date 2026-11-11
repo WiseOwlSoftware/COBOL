@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.9.3-5",
  "rule-digest": "39087d54ff98",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ReportUnidentified; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenRolledAddend; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs",
  "test-ref": "conformance:cases/XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/1985-SR-XIII_3_9_3-5",
+ "notes": "§1985:XIII.3.9.3 SR5: 'If specified, data-name-1 may be referenced only by a GENERATE statement, the UPON phrase of a SUM clause, a USE BEFORE REPORTING sentence, or as a sum counter qualifier.' The admitted shapes resolve through ReportGroupResolution (GENERATE, UPON, USE BEFORE REPORTING) and sum-counter qualification; any other reference that names a report entry reaches NameResolution#ReportUnidentified -> ReportSectionBinder#ReportEntryReferenceRefused (COBOL5092) at every edition, and the 2023-only SUM-operand reference is refused by ScreenRolledAddend (a group carries no value, COBOL2730). Probes at --std 85 (class b refusal half; class d group vs elementary): DISPLAY/MOVE SPACES TO/IF ... = SPACES/ADD 1 TO/INITIALIZE of a format 1 name each refused COBOL5092; SOURCE DET in another group refused COBOL2144; SUM DET (the 2023 SUM-operand arm, class c) refused COBOL2730; the legal program with GENERATE DET, SUM WS-N UPON DET, USE BEFORE REPORTING CFG and MOVE TOT OF CFG ran and printed T=00014 / BEFORE CF / DONE. The witness (DISPLAY DETAIL-LINE) is refused COBOL5092. The message cites §2023:13.15.3 SR7 including its 2023 SUM-operand permission at --std 85, the edition-citation class owned by PB4950; the refusal itself is the 1985 rule. Classes a, e, f do not apply to a name-reference rule.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"may be referenced only by a GENERATE statement, the UPON phrase of a SUM clause, a USE BEFORE REPORTING sentence, or as a sum counter qualifier\"; 2023: \"in the UPON phrase of the SUM clause, or as an operand in a SUM clause. The data-name shall not be referenced in any other way.\". Same rule on when the group data-name is required and how it may be referenced, but 2023 adds a permitted reference as an operand in a SUM clause, which 1985 forbids.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.15.3-7": "1850002beb1a"
+  }
  }
 }

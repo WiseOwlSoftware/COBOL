@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.22.3-2",
  "rule-digest": "57a09fdb894d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateNumericValue; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory",
  "test-ref": "conformance:cases/XIII.3.22@1985-VALUE-CLAUSE/1985-SR-XIII_3_22_3-2",
+ "notes": "§1985:XIII.3.22.3 SR2: a numeric VALUE literal 'must have a value which is within the range of values indicated by the PICTURE clause, and must not have a value which would require truncation of nonzero digits', and 'A nonnumeric literal in a VALUE clause of an item must not exceed the size indicated by the PICTURE clause.' ValidateNumericValue refuses an out-of-range or truncating numeric literal (COBOL1625); ValidateValueCategory refuses an over-long alphanumeric literal on an alphabetic, alphanumeric or alphanumeric-edited item (COBOL1740) and on a numeric-edited item (COBOL1570, the witness ZZ9 VALUE \"1234\"), at every edition, so the 2023 loosening for numeric-edited items does not leak into 85. Probes (std 85): b) 99 VALUE 123, 9V9 VALUE 1.25, 9PP VALUE 510, VPP9 VALUE .01 COBOL1625; X(3) VALUE \"ABCD\", A(2) VALUE \"ABC\", XBX VALUE \"ABCD\" COBOL1740; ZZ9 VALUE \"1234\" COBOL1570; VALUE written twice COBOL2423 with COBOL2012; c) the 2002 VALUE-implied PICTURE (COLUMN 1 VALUE \"ABCD\") COBOL0900; d/f) 999 VALUE 123 printed 123, 9V9 VALUE 1.20 printed 12, 99 VALUE 0012 printed 12, 9PP VALUE 500 printed 5, VPP9 VALUE .001 printed 1, ZZ9 VALUE \" 12\" printed  12, XBX VALUE \"A B\" and X(3) VALUE \"ABC\" printed as written, the figurative ALL \"AB\" on X(3) printed ABA and SPACES printed blanks (figuratives fill the item and are outside the size sentence); a, e: not reachable at 85 (no report OCCURS DEPENDING ON, no file arm).",
  "next": {
   "kind": "CHANGED",
   "to": [
@@ -12,6 +15,11 @@
   "reason": "Kept: a numeric literal within the PICTURE range without truncating nonzero digits (§2023:13.18.63.3 SR2 'without truncation of leading or trailing nonzero digits'; the float exceptions cannot arise for DISPLAY/NATIONAL report items) and an alphanumeric literal for an alphabetic, alphanumeric or alphanumeric-edited item not exceeding the explicit PICTURE (§2023:13.18.63.3 SR4). Changed: 1985 limits every nonnumeric literal, including the one a numeric-edited item requires (§1985:XIII.3.22.4 GR1 b), to the PICTURE size; for a numeric-edited item with an alphanumeric literal 2023 states only that 'the class of the literal shall conform to that of the data item' (§2023:13.18.63.3 SR7) and no size limit, so an over-long literal, refused in 1985, is no longer refused by any VALUE syntax rule: looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "source": "adjudicate-712/slice-34",
+  "digests": {
+   "SR-13.18.63.3-2": "6ecb7044eda1",
+   "SR-13.18.63.3-4": "695909fb4958",
+   "SR-13.18.63.3-7": "2fc8cdd54f76"
+  }
  }
 }

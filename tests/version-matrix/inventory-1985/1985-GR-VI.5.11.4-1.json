@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same range from data-name-2 through data-name-3. 'THROUGH phrase specified' equals 'data-name-3 specified'. 'Alphanumeric' only names the one kind of group 1985 had; no national or bit groups.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.45.4-2": "ff9e5d272a83"
+  }
  }
 }

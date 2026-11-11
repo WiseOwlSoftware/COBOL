@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: the RWCS automatically processes page heading and page footing groups 'when the report writer control system must advance the report to a new page for the purpose of presenting a body group' during TERMINATE. 2023: TERMINATE prints control footings 'as defined for the GENERATE statement' (§2023:14.9.46.4 GR3), whose failed page fit causes a page advance: 'If a page footing is defined it is printed', then any page heading (§2023:14.9.16.4 GR6); §2023:13.18.57.4 GR5 'All other report groups are printed implicitly'; §2023:13.18.57.4 GR6 b) and f) place them on each page with the RH/RF-only page exceptions 1985's presentation tables hold. The recheck's SR-13.18.57.3-15 only defines 'body group'; not kept. Same effect.",
-  "source": "adjudicate-712-r2/slice-12"
+  "source": "adjudicate-712-r2/slice-12",
+  "digests": {
+   "GR-14.9.46.4-3": "a4dc6df17e36",
+   "GR-14.9.16.4-6": "ad9b8779833d",
+   "GR-13.18.57.4-5": "5bf65e328209",
+   "GR-13.18.57.4-6": "60b5eeb0db8d"
+  }
  }
 }

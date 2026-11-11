@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.3.3-3",
  "rule-digest": "fc8900375d94",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenReportFileReference; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
  "test-ref": "conformance:cases/XIII.3.3@1985-REPORT-CLAUSE/1985-SR-XIII_3_3_3-3",
+ "notes": "§1985:XIII.3.3.3 SR3 restates §1985:XIII.3.2.3 SR5 from the REPORT clause's side: the subject of the FD 'may be referenced in the Procedure Division only by the USE statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase.' The one implementation is ResolveFile (report file admitted only for CLOSE and OPEN), ScreenReportFileReference (COBOL2577 for every other statement) and CheckOpenModeForFile (COBOL2371 for OPEN INPUT and I-O, the witness at line 19). Probes (std 85), shared with the SR5 row: b) OPEN INPUT/I-O COBOL2371; READ, START, DELETE, SORT USING/GIVING, MERGE GIVING COBOL2577; e) OPEN OUTPUT, OPEN EXTEND (appended to an existing file, status 00), CLOSE WITH LOCK, USE AFTER ERROR and USE FOR DEBUGGING on the file accepted and ran, a failed OPEN OUTPUT fired the USE procedure with status 30; c) the 2002 SHARING WITH ALL OTHER phrase refused at parse (COBOL5506); a, d, f: not reachable by a file-name reference.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"only by the USE statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase\"; 2023: \"only by the USE statement, the WHEN phrase of a PERFORM statement, the CLOSE statement, or the OPEN statement\". 2023 adds the WHEN phrase of a PERFORM statement as a permitted reference to the report file, so it accepts programs that 1985 refused.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.46.3-3": "a92facb5c44a",
+   "SR-13.4.5.3-9": "a92facb5c44a"
+  }
  }
 }

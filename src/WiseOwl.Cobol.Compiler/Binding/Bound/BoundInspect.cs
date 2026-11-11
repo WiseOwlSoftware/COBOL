@@ -46,6 +46,9 @@ public sealed record BoundInspectConvert(BoundOperand From, BoundOperand To, Bou
 /// bind time). <see cref="BeforeFromLeftmost"/> is the edition's BEFORE rule: below COBOL-2023 an operand's BEFORE
 /// delimiter is looked for from the leftmost position even when the operand has an AFTER phrase (§1985:VI.6.18.4
 /// GR8 b; <c>DialectBehavior.InspectBeforeFromFirstEligiblePosition</c>, kb/Work PB5120).
+/// <see cref="ReplacingTakesLengthAnew"/> is the COBOL-85 reading of an occurs-depending identifier-1 in a
+/// format 3 (<c>DialectBehavior.InspectFormat3LengthIdentifiedOnce</c>, kb/Work PB5119): the REPLACING half reads the length
+/// at its own start, after the TALLYING half's counters were stored; from 2002 the binder pins the length instead.
 /// <para>
 /// ⛔ <see cref="Target"/> IS AN OPERAND, NOT A <c>Place</c> (PB10) — because identifier-1 admits a
 /// FUNCTION-IDENTIFIER in Format 1. §2023:8.4.3.1.2 Format 1 makes a function-identifier an identifier, and
@@ -61,4 +64,5 @@ public sealed record BoundInspect(
     IReadOnlyList<BoundInspectReplace> Replacing,
     BoundInspectConvert? Converting,
     bool Backward,
-    bool BeforeFromLeftmost) : BoundStatement;
+    bool BeforeFromLeftmost,
+    bool ReplacingTakesLengthAnew = false) : BoundStatement;

@@ -942,8 +942,10 @@ def live_survey(repo=REPO, *, coord_dir: pathlib.Path | None = None, reports_dir
     plan over a branch the merge queue rejected as if it were still queued (kb/Work PB2807, branch review R1-2).
     `gh`: queue_facts.read's runner (a self-test fake). `prs`: the pull requests the caller already read with
     queue_facts.read on this pass (the landing lane's tick, whose queue watch reads the same facts; None when that read
-    was not observed), else (UNREAD) read here. The caller fetches origin first when it needs a current main."""
-    terminal = terminal or note_terminal()
+    was not observed), else (UNREAD) read here. The caller fetches origin first when it needs a current main.
+    A note's landed-or-retired status is read from `repo`'s own register (kb/Work PB5227): the landing lane's tick of
+    another checkout (`land_lane.py tick --repo`) read THIS script's checkout's register instead."""
+    terminal = terminal or note_terminal(pathlib.Path(repo) / 'kb' / 'Work')
     rdir = reports_dir or coord.reports_dir(str(coord_dir) if coord_dir else None)
     return survey(repo, reports=report_index(rdir, terminal), slugs=in_flight_slugs(coord_dir, terminal, rdir),
                   chains=chain_records(coord_dir, terminal),

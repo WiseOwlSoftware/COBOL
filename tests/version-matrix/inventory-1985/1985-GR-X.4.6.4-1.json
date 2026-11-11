@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "The 1985 wording is kept intact. The added constant-names and screen-names belong to features 1985 lacks, so no 1985 program changes acceptance or effect.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.27.4-1": "e93e0cf67501"
+  }
  }
 }

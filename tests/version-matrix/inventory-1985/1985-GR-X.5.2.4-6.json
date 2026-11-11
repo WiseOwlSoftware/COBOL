@@ -11,6 +11,11 @@
   ],
   "reason": "1985: an initial called program 'and each program directly or indirectly contained within it, is placed into its initial state every time the called program is called'. §2023:11.10.4 GR3: 'When an initial program is activated, the data items and file connectors contained in it and any program contained within it are set to their initial states'; §2023:13.5.4 GR2 makes its working-storage initial data, and §2023:14.6.2.3.2 GR2 puts a contained program's static data in the initial state after activation of 'a program that possesses the initial attribute and directly or indirectly contains the program'. Same meaning.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "GR-11.10.4-3": "5d9f42e6c2b0",
+   "GR-14.6.2.3.2-2": "45aee69372f3",
+   "GR-13.5.4-2": "4c876f33408e"
+  }
  }
 }

@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"SYNCHRONIZED, PICTURE, JUSTIFIED, and BLANK WHEN ZERO must not be specified except for an elementary data item\"; 2023: \"The SYNCHRONIZED clause may be specified for group and elementary items\" (§2023:13.18.55.3 SR1). PICTURE, JUSTIFIED and BLANK WHEN ZERO stay elementary-only (§2023:13.16.3 SR11); SYNCHRONIZED on a group item is new.",
-  "source": "adjudication kb/Work PB5008"
+  "source": "adjudication kb/Work PB5008",
+  "digests": {
+   "SR-13.16.3-11": "afee46f60526",
+   "SR-13.18.55.3-1": "1871a9fed2bd"
+  }
  }
 }

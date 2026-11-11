@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Without argument-2 (and no new LOCALE), the currency is the compilation unit's single currency string: the default sign or the SPECIAL-NAMES one, as in 1985.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "AR-15.68.3-3": "fcfb7e3b827d",
+   "AR-15.68.3-4": "420b5c178738"
+  }
  }
 }

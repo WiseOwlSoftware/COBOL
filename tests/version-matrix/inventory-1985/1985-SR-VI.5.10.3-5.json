@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same rule: no OCCURS on data-name-2, may be subordinate to OCCURS, no subscript, no OCCURS DEPENDING item. The level-2 box is no difference and 'occurs-depending table' is the same thing.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.44.3-5": "1fa599f5cf30"
+  }
  }
 }

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p306-1",
+  "claim_key": "60b17a9e45d5c8a0",
+  "page": 306,
+  "kind": "incorrect-figure",
+  "severity": "normative",
+  "claim": {"id": "p306-1", "page": 306, "kind": "incorrect-figure", "severity": "normative", "section": "13.10.1 General format (constant entry)", "pdf_says": "{ 1 / 01 } constant-name-1 CONSTANT ... -- both level numbers in the leading brace are underlined (a short underline is printed under the \"1\" as well as under \"01\")", "markdown_says": "╭ 1  ╮\n┤    ├ constant-name-1 <u>CONSTANT</u> ...\n╰ <u>01</u> ╯", "why_it_matters": "The markdown drops the underline from the level number 1. By §2014:5.2.1/5.2.2 an un-underlined word is optional, and a brace alternative that is optional can be implicitly selected (§2014:5.2.5.2), so the transcription reads as if the level number could be omitted entirely; the printed format requires 1 or 01 to be written."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered printed page 282 (PDF p306) at 300 dpi and cropped the leading brace of the 13.10.1 general format at 600 dpi: the brace stacks '1' over '01', and a short horizontal underline is clearly printed beneath the '1' (width of the single digit) as well as the longer underline beneath '01'. The markdown (page-306.md line 13) has '1' with no <u> markup while line 15 has '<u>01</u>'. The underline is the format's required-word marking, so dropping it from one brace alternative makes that alternative read as optional/implicitly selectable under the brace rule (§2014:5.2.5.2), whereas the printed format requires the level number 1 or 01 to be written. Not scaffolding, wrapping or formatting-only; the claim quotes both sources accurately.",
+    "corrected_description": ""
+  }
+}

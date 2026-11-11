@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.2.4-5",
  "rule-digest": "4673a5c6460d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#IsActive; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat",
  "test-ref": "conformance:cases/XIII.4.2@1985-CLOSE-STATEMENT/1985-GR-XIII_4_2_4-5",
+ "notes": "§1985:XIII.4.2.4 GR5: 'All reports associated with a report file that have been initiated must be ended with the execution of a TERMINATE statement before a CLOSE statement is executed for that report file': an obligation on the program whose violation 1985 leaves undefined (2023 completes the CLOSE and sets EC-REPORT-NOT-TERMINATED). EmitClose reads ReportWriter.IsActive before the close, completes the close and raises the condition only when it is enabled (never by default at 85), one path for every edition, so the legal order runs as written (witness) and a violation has a defined, harmless outcome. Probes: P7E (CLOSE while active: 00, a later GENERATE writes nothing, TERMINATE 00, final CLOSE 42), p12 (two reports on one file, one TERMINATEd and one active: CLOSE 00, TERMINATE after it 00 and no crash, then OPEN OUTPUT 00, re-INITIATE, GENERATE, TERMINATE and CLOSE print ONE, CF-1, RF-1). Classes b (CLOSE with an active report, TERMINATE after the CLOSE), e (re-OPEN and re-INITIATE after the violating CLOSE).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"All reports associated with a report file that have been initiated must be ended with the execution of a TERMINATE statement before a CLOSE\"; 2023: \"If any report is in the active state, the CLOSE statement for that file is completed and the EC-REPORT-NOT-TERMINATED exception condition is set\". Both still forbid CLOSE while an initiated report is active. 1985 gives no result for a violation; 2023 completes the CLOSE and sets EC-REPORT-NOT-TERMINATED.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.6.4-5": "d655c06a30f0",
+   "GR-13.18.46.4-2": "c96f77fb34c9"
+  }
  }
 }

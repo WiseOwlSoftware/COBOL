@@ -1,9 +1,9 @@
 {
   "batch": [624, 626, 628, 629, 630, 631, 632, 633, 634, 635, 636, 637],
-  "pages_checked": [624, 626, 628, 629, 630, 631, 632, 633, 634, 635, 636, 637],
+  "pages_checked": [624, 626, 628, 629, 630, 631, 632, 633, 634, 635, 636, 637], "pages_unread": [],
   "findings": [
     {
-      "page": 632,
+      "id": "p632-1", "page": 632,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "COMPUTE Format 1 (arithmetic-compute), 14.9.8.2. The SIZE ERROR block is printed as ONE tall square bracket spanning BOTH alternative lines, with a full-height vertical choice-indicator bar immediately inside each bracket:  [ |  ON SIZE ERROR imperative-statement-1 / NOT ON SIZE ERROR imperative-statement-2  | ]  followed on the next line by  [ END-COMPUTE ] .",
@@ -12,7 +12,7 @@
       "suggested_repair": "Replace the two lines with the file's established choice-indicator rendering and pull the whole Format 1 into a single fenced block:\n```\nCOMPUTE { identifier-1 [ rounded-phrase ] } ... = arithmetic-expression-1\n  ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n  ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n  [ END-COMPUTE ]\n```"
     },
     {
-      "page": 635,
+      "id": "p635-1", "page": 635,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "DELETE Format 1 (record), 14.9.10.2. The INVALID KEY block is printed as ONE tall square bracket spanning both alternatives with a full-height vertical choice-indicator bar immediately inside each bracket:  [ |  INVALID KEY imperative-statement-1 / NOT INVALID KEY imperative-statement-2  | ] .",
@@ -21,7 +21,7 @@
       "suggested_repair": "Render as the file does elsewhere:\n```\nDELETE file-name-1 RECORD\n  [ retry-phrase ]\n  ⎡|  INVALID KEY imperative-statement-1      |⎤\n  ⎣|  NOT INVALID KEY imperative-statement-2  |⎦\n  [ END-DELETE ]\n```"
     },
     {
-      "page": 635,
+      "id": "p635-2", "page": 635,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "DELETE Format 2 (file), 14.9.10.2. The EXCEPTION block is printed as ONE tall square bracket spanning both alternatives with a full-height vertical choice-indicator bar immediately inside each bracket:  [ |  ON EXCEPTION imperative-statement-3 / NOT ON EXCEPTION imperative-statement-4  | ] .",
@@ -30,7 +30,7 @@
       "suggested_repair": "Render as:\n```\nDELETE FILE [ OVERRIDE ] { file-name-1 } ...\n  [ retry-phrase ]\n  ⎡|  ON EXCEPTION imperative-statement-3      |⎤\n  ⎣|  NOT ON EXCEPTION imperative-statement-4  |⎦\n  [ END-DELETE ]\n```"
     },
     {
-      "page": 636,
+      "id": "p636-1", "page": 636,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.10.4   General rules  — printed in the same bold subsection style and at the same depth as 14.9.10.1 General, 14.9.10.2 General formats and 14.9.10.3 Syntax rules on page 635.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Change '## 14.9.10.4 General rules' to '### 14.9.10.4 General rules'. Sweep the siblings: '## 14.9.11.4 General rules' at line 26538 has the identical defect."
     },
     {
-      "page": 637,
+      "id": "p637-1", "page": 637,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Under General rule 15) the continuation sentence 'When the file sharing conflict condition exists as a result of the DELETE FILE statement:' and the sub-items 'a) The file is not deleted, and may be accessed.', 'b) The valu62’ is placed into the I-O status ...', 'c) The DELETE FILE statement is unsuccessful.' are all indented one level in from the '15)' rule number, i.e. printed as children of rule 15).",

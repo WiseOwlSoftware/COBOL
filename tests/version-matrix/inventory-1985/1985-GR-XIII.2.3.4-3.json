@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.2.3.4-3",
  "rule-digest": "3228ec36ebee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAssignClause; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs",
  "test-ref": "conformance:cases/XIII.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-XIII_2_3_4-3",
+ "notes": "§1985:XIII.2.3.4 GR3: 'The ASSIGN clause specifies the association of the report file referenced by file-name-1 to a storage medium referenced by implementor-name-1 or literal-1.' AssignTargetRule.Resolve reads the TO list (one name, or a device class plus a name, per docs/CONFORMANCE.md DOC-A.1-71) into the host file the runtime FileConnector/FileRegistry opens, and the 2002 data-name association (ASSIGN USING) is gated at 85 by VersionConformancePass.VisitAssignClause (COBOL0900). Probes at --std 85 (report file, FILE STATUS FS): ASSIGN TO ASGNIMP (implementor-name) writes asgnimp.txt, ASSIGN TO \"lit.txt\" writes lit.txt, ASSIGN TO PRINTER \"pr.txt\" writes pr.txt, each holding HELLO with OPEN/CLOSE 00; (c) ASSIGN USING WSNAME COBOL0900; ASSIGN TO WSNAME where WSNAME is a WORKING-STORAGE item is read as implementor-name-1, not as the item's content (writes wsname.txt), as the 1985 text requires; (b) ASSIGN TO \"\" COBOL2645 plus COBOL0900; no ASSIGN at all COBOL5701; (e) an unopenable path gives OPEN status 30 (probe o9). The witness (report file and a plain file assigned to one literal reach one medium: HELLO read back) passes.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"to a storage medium reference by implementor-name-1 or literal-1.\"; 2023: \"identified by device-name-1, literal-1, or the content of the data item referenced by data-name-1\". 2023 keeps association by device-name/literal but adds a case: association by data-name-1 contents (USING), at OPEN time, with OPEN unsuccessful on a mismatch.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-12.4.5.3-3": "d86ef8cd8f63"
+  }
  }
 }

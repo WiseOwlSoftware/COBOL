@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985 GR3 states the implicit transfer to a declarative section, the explicit-transfer rule, the ALTER sentence ('The execution of the procedure branching statement ALTER does not in itself constitute an explicit transfer of control, but affects ... the associated GO TO'), EXIT PROGRAM, and 'next executable statement' (§1985:IV.4.4.2 GR3). 2023 keeps the implicit transfer to exception processing procedures, 'An explicit transfer of control may be caused only by the execution of a procedure branching or conditional statement', the EXIT PROGRAM sentence and 'next executable statement' (§2023:14.6.3 GR3); the implicit performance of a USE BEFORE REPORTING declarative is stated by §2023:14.9.49.4 GR9. 2023 has no ALTER statement at all, so the ALTER sentence is gone and a 1985 program using ALTER is refused (stricter).",
-  "source": "adjudicate-712/slice-04"
+  "source": "adjudicate-712/slice-04",
+  "digests": {
+   "GR-14.6.3-3": "77338b907c95",
+   "GR-14.9.49.4-9": "decda7a3bc5e"
+  }
  }
 }
