@@ -1,4 +1,4 @@
-## PB5235, first half: the merge group reads the owner's passes from a ref and stops re-running them on Windows
+## Entry 3500 — 2026-11-11 14:55 PST — PB5235, first half: the merge group reads the owner's passes from a ref and stops re-running them on Windows
 
 PB5207 stage 1 keyed each test target by its declared inputs, and the gate records a pass in a store under the git common
 directory. Only this host's worktrees can read that store. So every merge group re-ran the whole population on both
@@ -66,3 +66,4 @@ local gate. The session probe's first line is the latest scheduled nightly's ver
 
 **Not in this change** (PB5235 stays open): the per-target dynamic input proof on the Linux shards, the nightly's jobs as
 graph targets, and CI recording its own Linux passes.
+
