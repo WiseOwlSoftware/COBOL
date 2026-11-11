@@ -104,6 +104,16 @@ public enum DialectBehavior
     /// reference", so at <c>--std 85</c> a random READ (format 2, a KEY phrase) of an alternate key that has duplicates
     /// also answers '02' (kb/Work PB5117). The consumer is <c>IndexedConnector.ReadRandom</c>.</summary>
     IndexedDuplicateKeyStatusSequentialOnly = 5,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.43.4 GR19 — "If the number of bytes in the logical record to be written is
+    /// less than integer-4 or greater than integer-5", a WRITE or REWRITE of a file whose RECORD clause is Format 3
+    /// (<c>RECORD CONTAINS integer-4 TO integer-5</c>) is unsuccessful (I-O status '44' on a WRITE/REWRITE, §2023:9.1.13.7
+    /// item 4 a). The 2002 text has no such rule (§2002:13.16.41.3 GR14 names integer-2 and integer-3, Format 2) and
+    /// §1985:VII.1.3.5 names only "the RECORD IS VARYING clause", with Format 3's size "completely defined in the
+    /// record description entry" (§1985:VII.3.8.4 GR14); the 2009 committee draft and the 2014 FCD carry GR19. So at
+    /// <c>--std 85</c> and 2002 a Format 3 range only documents the record sizes and no WRITE is refused for it
+    /// (kb/Work PB5197). The consumer is <c>FileControlBinder.BindRecordClause</c>.</summary>
+    RecordContainsRangeBindsRecordSize = 6,
 }
 
 /// <summary>
@@ -155,6 +165,11 @@ public static class DialectBehaviors
             "7.55", "14.9.30.4 GR27", "§1985:IX.1.3.4 GRL2.1",
             "I-O status 02 for a READ whose key of reference equals the next record's key is set only by a sequential "
             + "READ from COBOL-2002; COBOL-85 also sets it for a random READ of an alternate key's duplicate set"),
+        new(DialectBehavior.RecordContainsRangeBindsRecordSize, "record-contains-range-binds-record-size", 2014,
+            "7.56", "13.18.43.4 GR19", "§1985:VII.1.3.5",
+            "a WRITE or REWRITE of a record outside a RECORD CONTAINS integer-4 TO integer-5 range is unsuccessful ('44') "
+            + "only from the 2014 edition; before it the range only documents the record sizes (the 2002 and 1985 rules name "
+            + "only the RECORD IS VARYING clause)"),
     ];
 
     static DialectBehaviors()

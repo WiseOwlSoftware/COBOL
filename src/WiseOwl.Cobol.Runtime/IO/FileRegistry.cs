@@ -736,13 +736,18 @@ public sealed class FileRegistry
 
     /// <summary>An OPEN statement begins on <paramref name="name"/> in <paramref name="mode"/>: the file is "in the process of being
     /// opened" in it (§1985:VII.4.6.4 GR5 b)–e); §2023:14.9.49.4 GR6 b)–e)) for the statement's whole execution, whatever its
-    /// outcome — an OPEN refused for '41' (§2023:14.9.27.4 GR2) or '38' (CLOSE WITH LOCK) included. Ended by <see cref="EndOpen"/>.</summary>
+    /// outcome — an OPEN refused for '41' (§2023:14.9.27.4 GR2) or '38' (CLOSE WITH LOCK) included. Ended by <see cref="EndModeScope"/>.</summary>
     public void BeginOpen(string name, FileOpenMode mode) => Require(name).BeginOpen(mode);
 
-    /// <summary>The OPEN statement on <paramref name="name"/> ends, its USE procedure run: the file is in no being-opened mode.</summary>
-    public void EndOpen(string name)
+    /// <summary>A CLOSE statement begins on <paramref name="name"/>: the mode the file is open in stays the file's mode for the
+    /// statement's whole execution, its own USE procedure included, whatever its outcome — a CLOSE that answers '30' included
+    /// (§2023:14.9.49.4 GR6 b)–e); kb/Work PB5261). Ended by <see cref="EndModeScope"/>.</summary>
+    public void BeginClose(string name) => Require(name).BeginClose();
+
+    /// <summary>The OPEN or CLOSE statement on <paramref name="name"/> ends, its USE procedure run: the file has no statement mode.</summary>
+    public void EndModeScope(string name)
     {
-        if (_files.TryGetValue(name, out var c)) c.EndOpen();
+        if (_files.TryGetValue(name, out var c)) c.EndModeScope();
     }
 
     /// <summary>The open mode of a connector that IS OPEN (ISO §2023:9.1.4), null when it is not open, when an

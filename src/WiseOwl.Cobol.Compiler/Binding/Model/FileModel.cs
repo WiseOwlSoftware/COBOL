@@ -650,7 +650,8 @@ public sealed class FileModel
     /// the implied Format 2 clause of <see cref="ImpliesVariableFormat"/> (§2023:13.18.43.4 GR5 b) states the implied
     /// integer-2 as the same smallest record). <see cref="VaryMax"/> is its twin.</para></summary>
     public int VaryMin => !RecordSizeVaries ? -1
-        : Varying?.Min ?? (Records.Count == 0 ? 1 : Records.Min(MinRecordSize));
+        : Varying is { BoundsEnforced: true, Min: { } stated } ? stated
+        : Records.Count == 0 ? 1 : Records.Min(MinRecordSize);
 
     /// <summary>The variable-length maximum record size in BYTES — integer-3 when the clause states it, else
     /// ISO §2023:13.18.43.4 GR10's "the greatest number of bytes described for a record in that file" (each record by
@@ -661,7 +662,9 @@ public sealed class FileModel
     /// Format 2 arm read <see cref="RecordMax"/>, so `RECORD IS VARYING IN SIZE` over a record with a
     /// DYNAMIC LENGTH member refused (status 44) the very record the same program without the clause
     /// wrote.</para></summary>
-    public int VaryMax => !RecordSizeVaries ? -1 : Varying?.Max ?? Math.Max(1, RecordMax);
+    public int VaryMax => !RecordSizeVaries ? -1
+        : Varying is { BoundsEnforced: true, Max: { } stated } ? stated
+        : Math.Max(1, RecordMax);
 
     /// <summary>True when the file's record size varies — an explicit variable-length RECORD clause, or the
     /// implied Format 2 clause of <see cref="ImpliesVariableFormat"/>. THE ONE question every registration asks
@@ -1068,6 +1071,17 @@ public sealed class FileModel
 /// VARYING had nothing to key on.</param>
 public sealed record VaryingRecordInfo(int? Min, int? Max, string? DependingName, bool VaryingClause)
 {
+    /// <summary>⛔ DO THE CLAUSE'S INTEGERS BOUND THE RECORDS A WRITE OR REWRITE MAY SEND (kb/Work PB5197)? Always for
+    /// Format 2 (§2023:13.18.43.4 GR14; §1985:VII.1.3.5 names "the RECORD IS VARYING clause"). For Format 3
+    /// (<c>RECORD CONTAINS integer-4 TO integer-5</c>) only where the edition's text states the rule
+    /// (<see cref="WiseOwl.Cobol.Runtime.DialectBehavior.RecordContainsRangeBindsRecordSize"/>: §2023:13.18.43.4 GR19);
+    /// before it the integers only document the smallest and largest record sizes and "the size of each data record is
+    /// completely defined in the record description entry" (§1985:VII.3.8.4 GR14).
+    /// <see cref="FileModel.VaryMin"/>/<see cref="FileModel.VaryMax"/> then answer the record descriptions' own range,
+    /// the one answer an unstated integer already gets (GR9/GR10), so the connector needs no second arm.
+    /// Decided ONCE, by <c>FileControlBinder.BindRecordClause</c>.</summary>
+    public bool BoundsEnforced { get; init; } = true;
+
     /// <summary>The DEPENDING ON data-name's IN/OF qualifier words, innermost first (ISO §2023:8.4.2.2) — see
     /// <see cref="FileModel.FileStatusQualifiers"/> for why a clause operand keeps them (kb/Work PB489).</summary>
     public IReadOnlyList<string> DependingQualifiers { get; set; } = [];

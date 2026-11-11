@@ -1382,7 +1382,6 @@ public sealed partial class SequentialConnector : FileConnector
                 }
             }
         }
-        ModeKnown = false;   // §2023:9.1.4 — after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
     }
 

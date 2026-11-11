@@ -62,6 +62,10 @@
     {
       "id": "perform-varying-after-init-inner-first",
       "vcrRow": "7.53"
+    },
+    {
+      "id": "record-contains-range-binds-record-size",
+      "vcrRow": "7.56"
     }
   ],
   "nonstandardExtensionIds": [
