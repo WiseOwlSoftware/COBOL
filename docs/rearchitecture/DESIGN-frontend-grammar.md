@@ -2881,6 +2881,21 @@ deep and ignore it. One consequence for error recovery: a syntax error just afte
 in the next element's rule (the empty loop exits), so a hint keyed on the statement walks up to it
 (`CobolErrorStrategy.NearestSearchBeforeWhen`).
 
+**The printed order, an edition fact the association does not read (kb/Work PB5158).** Each `Format` lists its phrases
+in the order it prints them (`Format.Printed`; `Phrases` is the same set, for the membership tests), and every pair prints
+the positive phrase first. The order binds only at COBOL-85: "Clauses must be written in the sequence given in the
+general formats" (§1985:IV.2.1), and ISO/IEC 1989:2002 Annex F.2 item 33 lets the conditional phrases "be specified in
+any order" (§2002:F.2; the 2023 formats' choice indicators, §2023:5.2.6.4, and RETURN's §2023:14.9.34.3 SR4). The
+association stays order-blind at every edition: at 85 a phrase written after its NOT twin can belong to no enclosing
+statement either (each 1985 format prints one pair, and the enclosing statement has written the phrase or its twin
+already, or a phrase of another pair), so reading the order there would move no
+phrase and would only trade the named refusal for an anonymous syntax error. The refusal is the conformance pass's,
+on recognition: `VersionConformancePass.ParseArm.VisitConditionalPhrases` asks
+`ConditionalPhraseAssociation.OutOfPrintedOrder` of every owner's loop and reports the construct
+`conditional-phrases-any-order-2002` (COBOL0900) at the late phrase, so a statement that gains the rule later inherits
+the check with its `Owners` row. Witnessed by `ConditionalPhraseOrderTests` (every owner 85 prints a pair for, both
+orders, at 85 and 2002).
+
 **Held by** `ConditionalPhraseDriftTests`: Table 12's conditional-phrase column, scraped from the transcription, equals
 the owners' phrases at the latest edition statement by statement; exactly the owners write the rule, bare; no other
 rule spells a phrase keyword; every head alternative names one family; every Table 12 statement whose general formats

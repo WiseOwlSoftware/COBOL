@@ -1874,15 +1874,18 @@ of an unsupported facility.
   `conformance:cases/13.18.52-SIGN/pb3683_report_sign_2002`, `conformance:cases/13.18.52-SIGN/pb3683-report-sign-without-separate-85`
   and `conformance:cases/13.18.52-SIGN/pb3683-report-group-sign-85`.
 
-- **D-F2-85 — the ISO/IEC 1989:2002 Annex F.2 relaxations decide the COBOL-85 edge (kb/Work PB4305; VCR row 7.47).** No
-  ANSI X3.23-1985 text is held, and the 2002 standard's Annex F.2 lists the substantive changes from it that affect no
+- **D-F2-85 — the ISO/IEC 1989:2002 Annex F.2 relaxations decide the COBOL-85 edge (kb/Work PB4305; VCR row 7.47).** The
+  decision predates the held ANSI X3.23-1985 text (`specs/ANSI_COBOL_1985.md`), and the 2002 standard's Annex F.2 lists the substantive changes from it that affect no
   existing program; an item that relaxes a COBOL-85 restriction states that restriction. Owner decision 2026-10-31:
   those statements are the rule for the 85 edge, so each of the fourteen syntactic relaxations F.2 items 10, 16, 46, 50,
   61, 75, 90, 91, 108, 112, 133, 139, 141 and 145 name is refused at `--std 85` with COBOL0900 through its construct row
   and compiles from 2002 under the 2023 rules. GnuCOBOL -std=cobol85 accepts twelve of them, but CLAUDE.md rule 1 places
   the ISO text above GnuCOBOL; D-SIGN2 (items 123 and 124) is the same rule applied earlier. The NIST CCVS-85 corpus,
   compiled at `--std 85`, writes none of the fourteen. Witnessed by the fourteen `pb4305_*_2002` positives and
-  `pb4305-*-at-85` negatives VCR row 7.47 lists.
+  `pb4305-*-at-85` negatives VCR row 7.47 lists. Item 33, the conditional phrases "specified in any order", is the same rule
+  read from the 1985 text itself (kb/Work PB5158): "Clauses must be written in the sequence given in the general formats"
+  (§1985:IV.2.1), and every 1985 format prints the positive phrase before its NOT twin, so a NOT phrase written first is
+  refused at `--std 85` with COBOL0900 (`conditional-phrases-any-order-2002`); the NIST CCVS-85 corpus writes none.
 
 - **NUMVAL-F — a space may not SPLIT the exponent's `n` (§2023:15.69.3 r1/r5 · §2023:15.95.4 r1 b) 1; kb/Work PB256).**
   §2023:15.69.3 r5 says "Leading and trailing spaces in argument-1 are ignored. Embedded spaces in argument-1 are

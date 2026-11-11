@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb3830_compute_zero_size_error
       *> rules: [GR-14.5.3.3-4]
-      *> accept: [85, 2002, 2014, 2023]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
