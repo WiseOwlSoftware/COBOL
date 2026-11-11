@@ -330,18 +330,7 @@ def check_corrections(text: str, edition: int) -> list[str]:
 LEDGER: dict[int, str] = {1985: "docs/rearchitecture/spec-reconciliation/LEDGER-1985.json"}
 #: What a claim's decision may be; each but APPLIED states its reason.
 DECISIONS = {"APPLIED", "REFUTED", "ALREADY", "FORMAT", "BOX", "FIGURE", "KEPT"}
-BOX_SIDE = spec_pdf.BOX_SIDE
-PAGE_HEADING = re.compile(r"^## Page (\d+)$", re.M)
 CODE_SPAN = re.compile(r"`[^`\n]*`")
-
-
-def pages_of(text: str) -> dict[int, str]:
-    """The transcription's text by PDF page (`## Page N` opens page N); the front matter before page 1 is page 0."""
-    cuts = [(int(m.group(1)), m.start()) for m in PAGE_HEADING.finditer(text)]
-    out = {0: text[:cuts[0][1]] if cuts else text}
-    for (page, at), (_, end) in zip(cuts, cuts[1:] + [(0, len(text))]):
-        out[page] = text[at:end]
-    return out
 
 
 def prose_box_sides(page: str) -> int:
@@ -354,7 +343,7 @@ def prose_box_sides(page: str) -> int:
         if "<pre" in line:
             figure = True
         if not figure and not fence:
-            count += CODE_SPAN.sub("", line).count(BOX_SIDE)
+            count += CODE_SPAN.sub("", line).count(spec_pdf.BOX_SIDE)
         if "</pre>" in line:
             figure = False
     return count
@@ -365,7 +354,7 @@ def check_ledger(text: str, ledger: dict) -> list[str]:
     is decided, every marked box opens where the ledger says, and each page's prose carries exactly the box sides its
     marked boxes account for (two per marked block), so a box added, lost or moved without the ledger is refused."""
     failures: list[str] = []
-    pages = pages_of(text)
+    pages = spec_pdf.pages_of(text)
     print(f"\nreconciliation ledger ({len(ledger['claims'])} claims, {len(ledger['sweeps'])} sweeps, "
           f"{len(ledger['boxes'])} boxes) — the transcription must agree:")
 
@@ -450,7 +439,7 @@ def check_reconstructions(lines: list[str], edition: int) -> list[str]:
         printed: list[tuple[int, str]] = []
         last: tuple[int, str] | None = None
         for i, ln in enumerate(lines + ["## Page 0"]):
-            if PAGE_HEADING.match(ln):
+            if spec_pdf.PAGE_HEADING.match(ln):
                 if last is not None:
                     printed.append(last)
                 last = None

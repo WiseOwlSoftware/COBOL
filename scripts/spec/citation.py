@@ -279,7 +279,6 @@ AMENDMENT_85 = re.compile(r"^#\s+AMENDMENT \d+:")
 APPENDIX_85 = re.compile(rf"^#{{1,6}}\s+{MARK_85}APPENDIX ([A-F]):")
 PARAGRAPH_85 = re.compile(rf"^(?:#{{1,6}}\s+{MARK_85}(\d+(?:\.\d+)*)\.?(?:\s|<)|{MARK_85}(\d+(?:\.\d+)+)\s+[A-Z])")
 FOLIO_85 = re.compile(r"^((?:[IVX]+|[A-F])-\d+)\s*$")
-PAGE_85 = re.compile(r"^## Page \d+\s*$")
 #: The Roman sections ANSI X3.23-1985 has (I Introductory information ... XVIII Index).
 SECTIONS_85 = ("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI",
                "XVII", "XVIII")
@@ -323,7 +322,7 @@ def regions_1985(lines: list[str], start: int = 0, end: int | None = None, secti
 
     for i in range(start, end):
         line = lines[i]
-        if PAGE_85.match(line):
+        if spec_pdf.PAGE_HEADING.match(line):
             if repeat:
                 para_start = i            # the paragraph the repeat interrupted resumes here, a region of its own
             page_start, repeat = i, False

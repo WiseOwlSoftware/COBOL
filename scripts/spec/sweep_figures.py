@@ -399,7 +399,6 @@ class Drawn(NamedTuple):
     general_format: bool
 
 
-PAGE_HEADING = re.compile(r"^## Page (\d+)\s*$")
 PRE_OPEN_LINE = re.compile(r"^\s*<pre(?:\s[^>]*)?>\s*$")
 #: A clause's opening line, headed or not, read through its bold and a level-2 box's sides (spec_pdf.BOX_SIDE).
 CLAUSE_LINE = re.compile(rf"^\s*#*\s*[*{spec_pdf.BOX_SIDE}]*((?:\d+|[A-Z])(?:\.\d+)+)\s+(.+?)[*{spec_pdf.BOX_SIDE}]*\s*$")
@@ -420,7 +419,7 @@ def drawn_figures(lines: list[str], furniture: re.Pattern) -> list[Drawn]:
                 out.append(Drawn(page, start, i, rows, clause, label, fmt))
                 start = None
             continue
-        if (m := PAGE_HEADING.match(line)):
+        if (m := spec_pdf.PAGE_HEADING.match(line)):
             page = int(m.group(1))
             continue
         if PRE_OPEN_LINE.match(line):
@@ -435,6 +434,13 @@ def drawn_figures(lines: list[str], furniture: re.Pattern) -> list[Drawn]:
         elif FORMAT_LABEL.match(re.sub(r"</?u>", "", line)):
             label = re.sub(r"</?u>", "", line).strip()
     return [d for d in out if d.page is not None and inside[d.start] is None]
+
+
+def general_format_pages(lines: list[str], edition: int) -> set[int]:
+    """The PDF pages of a transcription that keeps its pages on which a GENERAL FORMAT is drawn (`drawn_figures`'
+    `general_format`): the one reading of "a figure page" the reconciliation's work unit (page_workunit.py) and its
+    page-range plan (reconcile_ranges.py) share."""
+    return {d.page for d in drawn_figures(lines, page_furniture(edition)) if d.general_format}
 
 
 def regenerated(edition: int, doc, drawn: list[Drawn], R) -> list[tuple]:

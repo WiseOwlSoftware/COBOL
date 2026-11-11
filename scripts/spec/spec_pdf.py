@@ -71,6 +71,21 @@ EDITIONS: dict[int, Edition] = {
 #: PB4850). It is notation, never part of a heading's number or title, so every reader of a heading skips it.
 BOX_SIDE = "║"
 
+#: The heading that opens PDF page N in a transcription that keeps its pages (`## Page N`: 1985 and 2002; 2023 dropped
+#: its pages). The ONE spelling every reader of a page uses (page_workunit, verify_publishable, sweep_figures, citation);
+#: multiline, so it finds a heading in a whole text and matches a single line alike.
+PAGE_HEADING = re.compile(r"^## Page (\d+)[ \t]*$", re.M)
+
+
+def pages_of(text: str) -> dict[int, str]:
+    """The transcription's text by PDF page (`## Page N` opens page N, up to the next one); the text before page 1 is
+    page 0. A transcription that keeps no pages (2023) is all page 0."""
+    cuts = [(int(m.group(1)), m.start()) for m in PAGE_HEADING.finditer(text)]
+    out = {0: text[:cuts[0][1]] if cuts else text}
+    for (page, at), (_, end) in zip(cuts, cuts[1:] + [(0, len(text))]):
+        out[page] = text[at:end]
+    return out
+
 
 def path(edition: int = DEFAULT_EDITION, private: pathlib.Path = PRIVATE) -> pathlib.Path | None:
     """The licensed PDF of `edition`, or None when it is absent. An edition this module does not name is a KeyError."""
@@ -279,6 +294,10 @@ def self_test() -> int:
             check("an unnamed edition is an error", False)
         except KeyError:
             check("an unnamed edition is an error", True)
+    planted = "# Front\n## Page 1\none\n## Page 2 \ntwo\n### Page 3\n## Page 3x\n"
+    check("pages_of cuts at each `## Page N` heading, the front matter page 0, a lookalike heading inside its page",
+          pages_of(planted) == {0: "# Front\n", 1: "## Page 1\none\n", 2: "## Page 2 \ntwo\n### Page 3\n## Page 3x\n"})
+    check("a transcription that keeps no pages is all page 0", pages_of("# 2023\ntext\n") == {0: "# 2023\ntext\n"})
     check("each edition names its own transcription in specs/",
           [markdown(e, pathlib.Path("r")).as_posix() for e in sorted(EDITIONS)]
           == ["r/specs/ANSI_COBOL_1985.md", "r/specs/ISO_COBOL_2002.md", "r/specs/ISO_COBOL_2023.md"])
