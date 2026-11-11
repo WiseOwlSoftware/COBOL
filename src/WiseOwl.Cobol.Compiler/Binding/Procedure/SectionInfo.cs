@@ -20,9 +20,13 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// reference (<c>StatementValidation.CheckDeclarativesBoundary</c>) — ask about the SECTION.</param>
 /// <param name="segment">The section's segment-number (<see cref="Segmentation.ValueOf"/>): the written one, else 0
 /// (§1985:XVI.3.2.3 SR2).</param>
-internal sealed class SectionInfo(string name, int startPc, bool isDeclarative = false, int segment = 0)
+internal sealed class SectionInfo(string name, int startPc, int headerLine, bool isDeclarative = false, int segment = 0)
 {
     public string Name { get; } = name;
+
+    /// <summary>The source line of the section header — where a diagnostic that names this declaration points
+    /// (kb/Work PB5091). Not its first paragraph's line: a section of no paragraphs has none.</summary>
+    public int HeaderLine { get; } = headerLine;
 
     /// <summary>The section's segment-number (§1985:XVI.3.2.4 GR1: "All sections which have the same segment-number constitute a
     /// program segment"); 0 when none is written (<see cref="Segmentation"/>).</summary>

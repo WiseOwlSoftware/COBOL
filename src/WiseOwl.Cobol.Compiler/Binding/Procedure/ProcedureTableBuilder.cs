@@ -39,6 +39,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     private readonly List<int> _paraLine = [];   // per-pc source line (parallel to _paras) — the X3.23-1985
                                                  // DEBUG-LINE register value for a debug-subject procedure (VCR 7.17)
+    // ⛔ per-pc line of the paragraph-NAME (parallel to _paras; 0 for a paragraph-name-OMITTED paragraph) — the line a
+    // diagnostic that names a declaration points the user to. NOT _paraLine: that is the first sentence's line, kept
+    // for DEBUG-LINE, and it named the statement under the header, or no line for a paragraph of no sentences, in
+    // every "declared N times" message (kb/Work PB5091).
+    private readonly List<int> _paraHeaderLine = [];
 
     // ── Procedure table (paragraphs + sections, ISO §2023:14.4.3 / §2023:8.4.2.2) ─────────────────────────────────────
 
@@ -47,8 +52,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// METHOD-LOCALLY (ISO §2023:8.4.6.1 over the method's own source element, §2023:3.164 — sibling methods may reuse
     /// names and cross-method resolution must FAIL), so it registers in the method's own map, never the
     /// program-global fallback.</summary>
-    public void AddParagraph(string name, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
+    public void AddParagraph(Core.ParagraphNameContext header, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
     {
+        string name = HeaderName(header.procedureName(), "paragraph");
         ctx.Data.DeclareUserWord(name, UserWordKind.ParagraphName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
         string baseName = "P_" + DataItem.IdentifierCharacters(name);   // extended letters too (PB1402)
         string method = baseName;
@@ -64,6 +70,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         _paraSection.Add(section);
         _paraMethod.Add(ctx.CurrentMethodScope);
         _paraLine.Add(sentences.Length > 0 ? ctx.SourceLine(sentences[0]) : 0);   // DEBUG-LINE source line (VCR 7.17)
+        _paraHeaderLine.Add(ctx.SourceLine(header));
         _paras.Add((name, method, sentences));
     }
 
@@ -94,6 +101,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         _paraSection.Add(section);
         _paraMethod.Add(ctx.CurrentMethodScope);
         _paraLine.Add(sentences.Length > 0 ? ctx.SourceLine(sentences[0]) : 0);
+        _paraHeaderLine.Add(0);   // no paragraph-name, so no declaration to point at
         // The paragraph-name-OMITTED paragraph (§2023:14.4.3) has NO name — the empty string, never a display
         // placeholder (kb/Work PB63 / RV-15.30.3-2: EXCEPTION-LOCATION's r2b2 field printed the placeholder where
         // the standard defines an empty procedure field or the bare section-name).
@@ -155,7 +163,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         foreach (var para in pd.paragraphDefinition())
         {
             using var _ = ctx.Edition.At(para);   // the paragraph header's position (kb/Work PB82)
-            AddParagraph(HeaderName(para.paragraphName().procedureName(), "paragraph"), para.sentence(), null, used);
+            AddParagraph(para.paragraphName(), para.sentence(), null, used);
         }
         foreach (var section in pd.sectionDefinition())
         {
@@ -165,12 +173,13 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // statement of its first paragraph through last statement of its last (ISO §2023:14.9.28).
             string sectionName = HeaderName(section.sectionName().procedureName(), "section");
             ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
-            var info = new SectionInfo(sectionName, _paras.Count, segment: Segmentation.ValueOf(section.integerLiteral()));
+            var info = new SectionInfo(sectionName, _paras.Count, ctx.SourceLine(section),
+                segment: Segmentation.ValueOf(section.integerLiteral()));
             // §2023:14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
             // the section's first paragraph, so GO TO / PERFORM <section> enters them (§2023:14.9.17/§2023:14.9.28).
             AddAnonymousParagraph(section.sentence(), info, used);
             foreach (var p in section.paragraphDefinition())
-                AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
+                AddParagraph(p.paragraphName(), p.sentence(), info, used);
             info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§2023:14.4.2)
             (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
         }
@@ -407,10 +416,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         return described;
     }
 
-    private string DescribeSection(SectionInfo sec) =>
-        $"section '{sec.Name}'" + (sec.Range.IsEmpty ? "" : AtLine(sec.StartPc));
+    private static string DescribeSection(SectionInfo sec) => $"section '{sec.Name}' at line {sec.HeaderLine}";
 
-    private string AtLine(int pc) => pc < _paraLine.Count && _paraLine[pc] > 0 ? $" at line {_paraLine[pc]}" : "";
+    /// <summary>Where paragraph <paramref name="pc"/> is DECLARED — the line of its paragraph-name (kb/Work PB5091), or
+    /// nothing for a pc that has none (a paragraph-name-omitted paragraph, an appended handler range).</summary>
+    private string AtLine(int pc) => pc < _paraHeaderLine.Count && _paraHeaderLine[pc] > 0 ? $" at line {_paraHeaderLine[pc]}" : "";
 
     /// <summary>The pc space (name + uniquified method key + sentences) — the bind loops walk it; parallel
     /// in LOCKSTEP to <see cref="ParaSections"/> (owning section) and <see cref="ParaMethods"/> (owning
@@ -496,7 +506,8 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         ctx.Data.DeclareUserWord(name, UserWordKind.SectionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
         // isDeclarative: THE fact §2023:14.9.28.3 SR11 (and GO TO's / ALTER's analogous constraints) asks about,
         // recorded where it is known rather than re-derived from pc arithmetic later.
-        var info = new SectionInfo(name, _paras.Count, isDeclarative: true, segment: Segmentation.ValueOf(sec.integerLiteral()));
+        var info = new SectionInfo(name, _paras.Count, ctx.SourceLine(sec), isDeclarative: true,
+            segment: Segmentation.ValueOf(sec.integerLiteral()));
 
         // SR1: the first sentence consists of exactly one USE statement.
         var leading = sec.sentence();
@@ -538,7 +549,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // name used as a paragraph-name.
         AddAnonymousParagraph(leading.Skip(1).ToArray(), info, used);
         foreach (var p in sec.declarativeParagraph())
-            AddParagraph(HeaderName(p.paragraphName().procedureName(), "paragraph"), p.sentence(), info, used);
+            AddParagraph(p.paragraphName(), p.sentence(), info, used);
         // A declarative section with ZERO paragraphs is legal (§2023:14.9.49.3 SR1 — "zero, one, or more procedural
         // paragraphs"; §2023:14.4.2), and it is still SELECTED: §2023:14.9.49.4 GR3 says "the first declarative that
         // satisfies the selection criteria is executed and no other declaratives are executed", so the search
