@@ -1,0 +1,13 @@
+{
+ "id": "file-control-entry-optional-2002",
+ "status": "active",
+ "description": "An INPUT-OUTPUT SECTION with no file-control-entry — ISO/IEC 1989:2002 12.3.1 brackets the FILE-CONTROL paragraph (`[ file-control-paragraph ] [ i-o-control-paragraph ]`) and 12.3.3.1 its entries (`FILE-CONTROL. [ file-control-entry ] ...`), as §2023:12.4.2 and §2023:12.4.4.2 do. X3.23-1985 prints `INPUT-OUTPUT SECTION. FILE-CONTROL. {file-control-entry} ... [ I-O-CONTROL. ... ]` (§1985:IV.6.2.3.1, §1985:VII.2.2.2): FILE-CONTROL is not bracketed and its entry is in braces, so a section that is written carries one entry at least. Parsed at every edition (fileControlParagraph? and fileControlClauseGroup*); introduction-gated post-bind by VersionConformancePass ParseArm.VisitInputOutputSection, which names both shapes (the section without FILE-CONTROL, the paragraph without an entry). kb/Work PB5167.",
+ "display": "an INPUT-OUTPUT SECTION with no file-control-entry",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§2023:12.4.2 ([ file-control-paragraph ]); §2023:12.4.4.2 ([ file-control-entry ] ...); §1985:IV.6.2.3.1; §1985:VII.2.2.2",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 relaxation: the FILE-CONTROL paragraph and its entries became optional (ISO/IEC 1989:2002 12.3.1, 12.3.3.1; kb/Work PB5167)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FCOPT.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\nDATA DIVISION.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"EMPTY FILE-CONTROL\".\n    STOP RUN.\n"
+}

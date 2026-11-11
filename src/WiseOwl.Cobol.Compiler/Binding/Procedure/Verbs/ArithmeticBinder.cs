@@ -35,6 +35,13 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
             // ADD a… [TO b] GIVING c…  →  c = (b +) Σa  (ISO §2023:14.9.2.2 Format 2: the TO operand is an addend,
             // NOT a receiver — ONE `{identifier-2 | literal-2}` with no ROUNDED).
             if (to is not null) addends.Add(GivingSendingOperand("ADD", "TO", "§2023:14.9.2.2 Format 2", to));
+            // The braces after the optional word TO make `{identifier-2 | literal-2}` required (§2023:5.2.6.3), so
+            // Format 2 prints two addends at least: `ADD A GIVING D` is no ADD format, never D = A (kb/Work PB5203).
+            if (addends.Count < 2)
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ArithmeticFormatOperand,
+                    $"ADD with GIVING writes one operand, '{DataBinder.WrittenText(operands[0])}', before GIVING: Format 2 "
+                    + "prints identifier-1 or literal-1 and then identifier-2 or literal-2, the second after the optional "
+                    + "word TO (ISO §2023:14.9.2.2 Format 2)");
             var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand(), editedOk: true, "§2023:14.9.2.3 SR4");
             // §2023:14.9.2.3 SR1b: the ADD Format-2 composite is "all of the operands ... excluding the data items that
             // follow the word GIVING" — the resultant identifiers are NOT superimposed into the composite (§2023:14.7.7

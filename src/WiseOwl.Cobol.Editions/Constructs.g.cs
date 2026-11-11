@@ -89,6 +89,7 @@ public static class Constructs
     public const string ExternalizedNameAs2002 = "externalized-name-as-2002";
     public const string FigurativeAllZeroNumericRemoved2002 = "figurative-all-zero-numeric-removed-2002";
     public const string FileCollatingClause2002 = "file-collating-clause-2002";
+    public const string FileControlEntryOptional2002 = "file-control-entry-optional-2002";
     public const string FileOrganizationLineSequential2023 = "file-organization-line-sequential-2023";
     public const string FileOrganizationRecordSequential2023 = "file-organization-record-sequential-2023";
     public const string FileSharingClause2002 = "file-sharing-clause-2002";
@@ -219,6 +220,7 @@ public static class Constructs
     public const string RepositoryClass2002 = "repository-class-2002";
     public const string RepositoryFunction2002 = "repository-function-2002";
     public const string RepositoryInterface2002 = "repository-interface-2002";
+    public const string RepositoryParagraph2002 = "repository-paragraph-2002";
     public const string RepositoryProgram2002 = "repository-program-2002";
     public const string RepositoryProperty2002 = "repository-property-2002";
     public const string RerunRemoved2002 = "rerun-removed-2002";
