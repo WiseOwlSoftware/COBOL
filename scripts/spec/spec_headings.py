@@ -27,6 +27,13 @@ GENERAL_FORMAT_NOUN = r"general\s+(?:formats?|forms?)"
 #: number, ``fullmatch`` it against a bare title.
 GENERAL_FORMAT_TITLE = re.compile(GENERAL_FORMAT_NOUN + r"\.?\s*$", re.IGNORECASE)
 
+#: The SENTENCE that introduces a general format where no clause is titled General format: 2002's communication section
+#: (§2002:A.1.1, an Annex A clause headed by its name) prints "The general format of the communication section is shown
+#: below:" over its figure (kb/Work PB5332). `render_figure.find_figures` locates the figure after it on the page and
+#: `sweep_figures` the region after it in the transcription, so the two read one rule.
+INTRODUCES_FORMAT = re.compile(r"^The\s+" + GENERAL_FORMAT_NOUN + r"\s+(?:of|for)\b.*\b(?:is|are)\s+"
+                               r"(?:shown\s+below|as\s+follows):?\s*$", re.IGNORECASE)
+
 #: A heading that NAMES the phrase anywhere, in any case: the 1985 composite language skeleton heads its figures
 #: ``GENERAL FORMAT FOR COBOL VERBS`` with no clause number (kb/Work PB4849).
 GENERAL_FORMAT_NAMED = re.compile(r"\b" + GENERAL_FORMAT_NOUN + r"\b", re.IGNORECASE)

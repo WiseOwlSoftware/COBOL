@@ -54,7 +54,10 @@ import figure_geometry  # noqa: E402  (`strokes`: the one reader of a page's vec
 # word and spans most of it, whereas a bracket foot sits at the top or bottom of a bracket stem and is far too
 # short to cover a word. The coverage and gap tests below do that work, so the width floor only has to exclude
 # rules too short to underline anything at all.
-MIN_RULE_W = 3.0
+# The narrowest underline measured is 2.85 pt, under the one-character level number `1` of 2002's constant entry
+# (§2002:13.9.1, PDF page 267: the word is 5.0 pt wide, so the rule covers 57% of it); a 3.0 floor dropped it and
+# the figure stated `1` was optional beside a required `01` (kb/Work PB5332, reconciliation claim p267-1).
+MIN_RULE_W = 2.5
 MAX_RULE_H = 3.0
 MAX_GAP = 4.0         # how far below a word's bottom edge its underline may sit
 # …and how far ABOVE it. A word's bounding box includes DESCENDER space, so a rule drawn tight to the baseline
