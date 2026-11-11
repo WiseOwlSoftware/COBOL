@@ -53,6 +53,17 @@ A git command in the real checkout is read by a declared grammar per subcommand:
 `grep`, with their options and what their arguments are. A history read (`rev-parse HEAD`, `log`) is keyed by the object
 each revision names. Every form the grammar does not declare, a path outside the repository, and pathspec magic it does
 not model turn a passing self-test RED as an `UNKEYED READ`, naming the command, and record no PASS. They are never
-keyed as the whole tree: the owner ruled that fallback a hack that hides a hermeticity defect. A traced run of the
-whole self-test phase found none. The PASS schema is 5, so older records re-run once.
+keyed as the whole tree: the owner ruled that fallback a hack that hides a hermeticity defect. The PASS schema is 5,
+so older records re-run once.
+
+The first merge-group run (43001930001) bounced the branch, because that rule met Linux and the merged tree for the
+first time. On Linux, seven self-tests failed: the trace was line-based, so a child's multi-line `python -c` program
+was read back as several records of no kind. On Windows the same tracer split the command line on whitespace, which
+hid the newlines and cut any argument with a space into fragments. A trace record is now one JSON array per line, the
+Windows command line is parsed back into its argument list, and a line that is not one whole record is UNKEYED. The
+merge of main brought `git remote get-url origin` (from the forbidden-commands hook), which the grammar now declares as
+a configuration read. `self_tests.py`'s clock-key arm failed on both runners: it rewrote a module to the same size
+within one second, and CPython reused the stale bytecode. Its fixture now drops the bytecode with each rewrite. The
+whole self-test phase is GREEN with no UNKEYED read on this host and under WSL, where the unfixed tip reproduced the
+merge group's 8 reds exactly (kb/Work PB5227, PB1957).
 

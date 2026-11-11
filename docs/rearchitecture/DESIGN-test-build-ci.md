@@ -1048,7 +1048,12 @@ the content of everything it read, in ONE store shared by every checkout of the 
 `scripts/self_test_inputs.py` owns what "read" means:
 - **traced** — a `sitecustomize` tracer first on PYTHONPATH records, through the interpreter's audit hooks (PEP 578), each
   file a Python process opens (a module's `__pycache__` file counts as its source), each directory it lists and each path it
-  hands a child process, inside the repository;
+  hands a child process, inside the repository. A child's arguments are its argument LIST: on Windows `subprocess`
+  raises the audit event with the one command line `list2cmdline` built, which the tracer parses back by the rules
+  that built it, never by splitting on whitespace (that cut a path holding a space into fragments). Each record is one
+  JSON array on one line (`TRACE_SHAPES`), so a record holding a newline, such as a multi-line `python -c` program, is
+  never split, and the one reader (`trace_record`) reads a line that is not one whole record as UNKEYED (kb/Work
+  PB5227, the merge-group bounce of 2026-11-11);
 - **imports** — each module name an import looked for (the audit event `import`, raised before the search, so a failed
   import counts), per directory inside the repository it searched: a top-level name in each sys.path entry, a submodule in
   each entry of its package's `__path__` (`import a.b` raises its event before `a` loads, so the tracer holds the name
@@ -1065,7 +1070,8 @@ the content of everything it read, in ONE store shared by every checkout of the 
   CODE mentions (comments dropped);
 - **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says, by the DECLARED
   GRAMMAR of its subcommand (`GIT_GRAMMAR`: its options, which of them take a value, what its arguments are; declared:
-  `ls-files`, `rev-parse`, `log`, `grep`): nothing for a location query (`rev-parse --show-toplevel`, `--exec-path`); the
+  `ls-files`, `rev-parse`, `log`, `grep`, a one-key `config` read and `remote get-url <name>`): nothing for git's
+  configuration (`config`, `remote get-url`) or a location query (`rev-parse --show-toplevel`, `--exec-path`); the
   NAMES (`ls-files`) or the CONTENT (`ls-files -s`, `grep`) under its pathspec (an absolute one made relative to the
   repository; `:(top)`/`:/`, `:(glob)`, `:(literal)` and `:(exclude)`/`:!` modelled exactly, an exclusion narrowing
   nothing), the whole tree when that is the command's meaning (no pathspec, `*.py` at the root); and for a HISTORY read
@@ -1075,8 +1081,8 @@ the content of everything it read, in ONE store shared by every checkout of the 
 - **unkeyed** — anything else a trace records is an UNKEYED READ (`UnkeyedRead`): a subcommand, option or argument form
   the grammar does not declare (`git diff`, `ls-files --with-tree`, `grep -f`), pathspec magic it does not model
   (`:(icase)`, `:(attr:…)`), a global option such as `--git-dir`, a path outside the repository or past its top, a trace
-  record of no known kind. `self_tests.py` turns a passing run that has one into a RED labelled `UNKEYED READ`, naming each
-  command and its directory, and records no PASS. ⛔ It is never keyed as the whole tree (the owner, 2026-11-10: "If it
+  line that is not one whole record (cut short, of no known kind or of the wrong shape). `self_tests.py` turns a passing
+  run that has one into a RED labelled `UNKEYED READ`, naming each command and its directory, and records no PASS. ⛔ It is never keyed as the whole tree (the owner, 2026-11-10: "If it
   cannot be resolved, there is a problem/bug"): that would hide a self-test's hermeticity defect as a test that re-runs on
   every gate; and never as a path no tracked file can appear under, whose key would never change (`Tree.under` refuses
   such a path at the call; kb/Work PB5227).

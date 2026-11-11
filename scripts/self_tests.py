@@ -1293,6 +1293,16 @@ def entry_point_arms(check: Callable[[str, object, object], None]) -> None:
           hand_named(sources, tests), [])
 
 
+def _rewrite(module: Path, text: str) -> None:
+    """Rewrite a planted Python module between two runs, and drop its compiled bytecode: CPython trusts a .pyc whose
+    source still has the size and the whole-second mtime it recorded, and an arm's edit is often the same size inside
+    one second on a fast runner (two ISO dates), so the next run imported the OLD module (the merge-group bounce of
+    2026-11-11, kb/Work PB5227)."""
+    module.write_text(text, encoding="utf-8", newline="\n")
+    for stale in (module.parent / "__pycache__").glob(module.stem + ".*.pyc"):
+        stale.unlink()
+
+
 def _max_overlap(spans: list[tuple[float, float]]) -> int:
     """The most spans open at one instant (an end at the same instant as a start closes first)."""
     events = sorted([(a, 1) for a, _ in spans] + [(b, -1) for _, b in spans], key=lambda e: (e[0], e[1]))
@@ -1466,7 +1476,7 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
               f"at a time, and none hangs",
               (len(new_runs("test_c.py", before)), _max_overlap(new_runs("test_c.py", before)) <= _FLEET_CAP,
                {r.state for g in crowd for r in g}), (_FLEET_GATES, True, {GREEN}))
-        (root / "scripts" / "helper_b.py").write_text("VALUE = 2\n", encoding="utf-8", newline="\n")
+        _rewrite(root / "scripts" / "helper_b.py", "VALUE = 2\n")
         again = gate(True, [])
         check("arm: an edited import re-runs the self-test that imports it, and only that one",
               {r.test.path: r.state for r in again},
@@ -1474,9 +1484,9 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         # An UNTRACKED helper (written, never `git add`ed) is keyed by its content like a tracked one: editing it
         # re-runs its importer (train 1052 review: it was keyed "-" whatever it held, a false REUSED).
         (root / "scripts" / "helper_u.py").write_text("VALUE = 1\n", encoding="utf-8", newline="\n")
-        (root / "scripts" / "helper_b.py").write_text("import helper_u\nVALUE = 3\n", encoding="utf-8", newline="\n")
+        _rewrite(root / "scripts" / "helper_b.py", "import helper_u\nVALUE = 3\n")
         gate(True, [])
-        (root / "scripts" / "helper_u.py").write_text("VALUE = 2\n", encoding="utf-8", newline="\n")
+        _rewrite(root / "scripts" / "helper_u.py", "VALUE = 2\n")
         again = gate(True, [])
         check("arm: an edited UNTRACKED import re-runs the self-test that imports it, and only that one",
               {r.test.path: r.state for r in again},
@@ -1611,7 +1621,7 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         arm_runner = Runner(root, plat, lambda _: None, budget=Budget(budget_dir, 1), store=PassStore(store_dir),
                             classification=planted)
         traced = Path(tempfile.mkdtemp(dir=s))  # the trace of a run in which a Python child opened scripts/py_clock.py
-        (traced / "1.trace").write_text("F" + chr(9) + "scripts/py_clock.py" + chr(10), encoding="utf-8", newline=chr(10))
+        (traced / "1.trace").write_text(inputs.trace_line("F", "scripts/py_clock.py"), encoding="utf-8", newline="")
         clock_of = {name: arm_runner._clock(SelfTest(f"scripts/{name}", False, None, ""),
                                              inputs.read_trace(where, arm_runner.tree)).real
                     for name, where in (("test_date.sh", empty), ("test_none.sh", empty), ("test_sourced.sh", empty),
@@ -1657,7 +1667,7 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
             return r, shifts, (recorded("test_keyed.py") or {}).get("clock") or {}
 
         def edit(name: str, text: str) -> None:
-            (root / "scripts" / name).write_text(text, encoding="utf-8", newline="\n")  # the next gate's Tree.load sees it
+            _rewrite(root / "scripts" / name, text)  # the next gate's Tree.load sees it, and the next run imports it
 
         first, first_shifts, first_proof = keyed_gate(False)
         check("arm: a clock-proved PASS records its CLOCK KEY: the self-test's own file and the helper that does time "

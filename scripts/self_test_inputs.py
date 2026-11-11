@@ -19,8 +19,8 @@ self-test reads (a hand-derived closure over mentions reached the whole tree fro
   TRACED   every self-test the runner RUNS runs with this module's TRACER as the `sitecustomize` of every Python process
            it starts (PYTHONPATH): through the interpreter's audit hooks (PEP 578) it records each file opened (a
            module's compiled `__pycache__` file counts as its source), each directory listed and each path handed to a
-           child process, inside the repository;
-  STATIC   what the trace cannot see, from the source (`Deriver`): the self-test's own file; the RUNNER (a change to how
+           child process, inside the repository, one JSON record per line (TRACER, `trace_record`);
+  STATIC  what the trace cannot see, from the source (`Deriver`): the self-test's own file; the RUNNER (a change to how
            self-tests run re-runs them all); `# SELF-TEST-READS: <path> …` declarations on a header comment line; and,
            for a PowerShell or bash self-test, whose own reads no audit hook sees, the closure over the files its
            non-comment lines MENTION (a token naming a tracked file or directory relative to the repository root, to the
@@ -30,17 +30,18 @@ self-test reads (a hand-derived closure over mentions reached the whole tree fro
            script it runs is traced when it runs);
   GIT      a `git` child a traced process runs inside the repository reads what `git_reads` says, by the DECLARED
            GRAMMAR of its subcommand (GIT_GRAMMAR: its options, which of them take a value, what its arguments are):
-           nothing for a location query (`rev-parse --show-toplevel`, `--exec-path`); the NAMES (`ls-files`) or the
+           nothing for git's configuration (`config <key>`, `remote get-url <name>`) or a location query (`rev-parse
+           --show-toplevel`, `--exec-path`); the NAMES (`ls-files`) or the
            CONTENT (`ls-files -s`, `grep`) under its pathspec (a wildcard one: under the directory of its literal prefix;
            an absolute one made relative to the repository; the magic PATHSPEC_MAGIC models), the whole tree when that
            is the command's MEANING (no pathspec, `*.py` at the root); and for a HISTORY read (`rev-parse <rev>`,
            `log`) the objects its revisions name (`rev:<expression>`, `Tree.revision`; `HEAD` when a log names none):
            an object is immutable, so the PASS holds while each revision names the same one. Anything else is an
            UNKEYED READ: a subcommand, option or argument form the grammar does not declare, pathspec magic it does not
-           model, a path outside the repository or past its top. The runner fails the self-test and records no PASS
-           (scripts/self_tests.py; the owner 2026-11-10): it is never keyed as the whole tree, which would hide the
-           self-test's hermeticity defect as a test that re-runs on every gate, and never as a path no tracked file can
-           appear under (`Tree.under` refuses one), whose key would never change;
+           model, a path outside the repository or past its top, a trace line that is not one whole record. The runner
+           fails the self-test and records no PASS (scripts/self_tests.py; the owner 2026-11-10): it is never keyed as
+           the whole tree, which would hide the self-test's hermeticity defect as a test that re-runs on every gate, and
+           never as a path no tracked file can appear under (`Tree.under` refuses one), whose key would never change;
   IMPORTS  each module NAME an import looked for, per directory inside the repository it searched (the audit event
            `import`, raised before the search, so a failed import counts): a top-level name in every sys.path entry, a
            submodule's last name in each entry of its package's `__path__` (`import a.b` raises its event BEFORE `a`
@@ -116,11 +117,17 @@ IMPORT_SUFFIXES = tuple(importlib.machinery.all_suffixes())
 #: process a traced self-test starts (itself, and every child that inherits its environment) records its reads. It
 #: records only paths inside the traced repository, keeps them in memory and writes one file per process at exit;
 #: it never prints, so no self-test's output changes. F = a file opened, D = a directory listed, X = a path argument
-#: of a child process (a script it runs), G = a `git` child started inside the repository (its cwd), I = a module name
-#: an import looked for in a directory inside the repository (a top-level name in each sys.path entry, a submodule's in
-#: its package's `__path__`): the audit event `import` comes before the search, so a failed import is recorded too.
+#: of a child process (a script it runs), G = a `git` child started inside the repository (its cwd and its arguments),
+#: I = a module name an import looked for in a directory inside the repository (a top-level name in each sys.path
+#: entry, a submodule's in its package's `__path__`): the audit event `import` comes before the search, so a failed
+#: import is recorded too.
+#: A RECORD is one JSON array on one line (`TRACE_SHAPES`). JSON escapes every newline, so a record holding one (a
+#: multi-line `python -c` program handed to a child) is never split into several, and `read_trace` reads a line that
+#: is not one whole record as UNKEYED (kb/Work PB5227, the merge-group bounce of 2026-11-11). A child's argv is its
+#: argument LIST: on Windows `subprocess` raises the audit event with the command line `list2cmdline` built, which
+#: `_argv` parses back by the rules that built it (a whitespace split cut a path holding a space into fragments).
 TRACER = r'''
-import atexit, os, sys
+import atexit, json, os, sys
 _root, _out = os.environ.get("COBOL_SELF_TEST_TRACE_ROOT"), os.environ.get("COBOL_SELF_TEST_TRACE")
 if _root and _out:
     _prefix = os.path.normcase(os.path.abspath(_root)) + os.sep
@@ -141,7 +148,7 @@ if _root and _out:
     def _record(kind, path, cwd=None):
         rel = _inside(path, cwd)
         if rel is not None:
-            _seen.add(kind + "\t" + rel)
+            _seen.add((kind, rel))
 
     _pending = []
 
@@ -149,7 +156,7 @@ if _root and _out:
         for d in list(where):   # a namespace package's __path__ is every portion of it
             rel = _inside(d)
             if rel is not None:
-                _seen.add("I\t" + rel + "\t" + name)
+                _seen.add(("I", rel, name))
 
     def _place_pending():
         still = []
@@ -160,6 +167,39 @@ if _root and _out:
             else:
                 still.append(dotted)   # its parent is not imported (yet): nothing was searched for it (yet)
         _pending[:] = still
+
+    def _argv(line):
+        # a Windows command line -> its argument list, by the rules list2cmdline quotes for (CommandLineToArgvW's):
+        # space and tab separate outside quotes; 2n backslashes before a quote are n and the quote toggles quoting,
+        # 2n+1 are n and a literal quote; backslashes before anything else are literal
+        out, cur, have, quoted, i, n = [], [], False, False, 0, len(line)
+        while i < n:
+            c = line[i]
+            if c == "\\":
+                j = i
+                while j < n and line[j] == "\\":
+                    j += 1
+                if j < n and line[j] == '"':
+                    cur.append("\\" * ((j - i) // 2))
+                    if (j - i) % 2:
+                        cur.append('"')
+                        j += 1
+                else:
+                    cur.append("\\" * (j - i))
+                i, have = j, True
+            elif c == '"':
+                quoted, have, i = not quoted, True, i + 1
+            elif c in " \t" and not quoted:
+                if have:
+                    out.append("".join(cur))
+                    cur, have = [], False
+                i += 1
+            else:
+                cur.append(c)
+                have, i = True, i + 1
+        if have:
+            out.append("".join(cur))
+        return out
 
     def _hook(event, args):
         if event == "open":
@@ -192,8 +232,9 @@ if _root and _out:
                 cwd = os.fsdecode(cwd) if cwd is not None else os.getcwd()
             except Exception:
                 return
-            argv = argv.split() if isinstance(argv, (str, bytes)) else list(argv or ())
-            argv = [os.fsdecode(a) for a in argv if isinstance(a, (str, bytes, os.PathLike))]
+            if isinstance(argv, (str, bytes)):   # Windows: the command line; POSIX passes the list
+                argv = _argv(os.fsdecode(argv)) if os.name == "nt" else [argv]
+            argv = [os.fsdecode(a) for a in (argv or ()) if isinstance(a, (str, bytes, os.PathLike))]
             for a in argv:
                 _record("X", a, cwd)
             if argv and os.path.basename(argv[0]).lower() in ("git", "git.exe"):
@@ -202,7 +243,7 @@ if _root and _out:
                     where, rest = os.path.join(where, rest[1]), rest[2:]
                 rel = _inside(where)
                 if rel is not None:
-                    _seen.add("G\t" + rel + "\t" + chr(31).join(rest))  # every argument: the pathspec decides
+                    _seen.add(("G", rel, tuple(rest)))  # every argument: the pathspec decides
 
     sys.addaudithook(_hook)
 
@@ -213,8 +254,8 @@ if _root and _out:
             pass
         name = os.path.join(_out, "%d-%s.trace" % (os.getpid(), os.urandom(6).hex()))
         try:
-            with open(name, "w", encoding="utf-8") as fh:
-                fh.write("\n".join(sorted(_seen)))
+            with open(name, "w", encoding="utf-8", newline="") as fh:
+                fh.write("".join(json.dumps(list(r)) + "\n" for r in sorted(_seen)))
         except OSError:
             # Only an orphan that outlived its self-test's run gets here (the runner removed the trace directory after
             # reading it), and it must not print into whatever output it still has: its reads came too late to count.
@@ -531,9 +572,11 @@ class GitGrammar:
     """One subcommand's declared form. `reads`: "nothing" (git's configuration, not the tracked tree), "paths" (the
     tracked names under its pathspecs), "content" (the names and their content), "history" (the revisions it names:
     `rev:` keys; its `location_flags` alone read nothing). `positionals`: "pathspecs", "revisions", "key" (exactly one
-    configuration key), or "pattern" (grep: its first positional is a PATTERN unless `-e` gives it)."""
+    configuration key, or one remote's name), or "pattern" (grep: its first positional is a PATTERN unless `-e` gives
+    it). `verb`: the one sub-subcommand modelled, which must be the first positional (`remote get-url`); "" for none."""
     reads: str
     positionals: str
+    verb: str = ""
     flags: frozenset[str] = frozenset()        # options with no value
     valued: frozenset[str] = frozenset()       # options with a value: `--x=v`, or `--x v` / `-x v` (the next word)
     content_flags: frozenset[str] = frozenset()   # flags that make a "paths" read a "content" one
@@ -564,6 +607,8 @@ GIT_GRAMMAR = {
         "nothing", "key",
         flags=frozenset({"--get", "--get-all", "--global", "--local", "--system", "--bool", "--int", "--path", "-z",
                          "--null", "--show-origin", "--includes", "--no-includes"})),
+    "remote": GitGrammar(   # `remote get-url <name>`: the remote's URL, a read of git's configuration as `config` is
+        "nothing", "key", verb="get-url", flags=frozenset({"--push", "--all"})),
     "grep": GitGrammar(
         "content", "pattern",
         flags=frozenset({"-n", "-l", "-L", "-c", "--count", "-i", "-w", "-v", "-E", "-F", "-G", "-P", "-I", "-z", "-q",
@@ -745,6 +790,10 @@ def git_reads(args: list[str], where: str, root: Path) -> list[tuple[str, str]] 
         if positional or after is not None or flags - grammar.location_flags:
             return unkeyed(f"a location query of `git {sub}` mixed with other arguments is not modelled")
         return []
+    if grammar.verb:
+        if not positional or positional[0] != grammar.verb:
+            return unkeyed(f"`git {sub}` is modelled only as `git {sub} {grammar.verb}`")
+        positional = positional[1:]
     if grammar.positionals == "key":   # one key read; a second positional is a value WRITTEN, not modelled
         if len(positional) != 1 or after is not None:
             return unkeyed(f"`git {sub}` is modelled only as the read of one key")
@@ -805,29 +854,58 @@ def _in_git_dir(rel: str) -> bool:
     return rel == ".git" or rel.startswith(".git/") or "/.git/" in rel
 
 
+#: The records TRACER writes, one JSON array per line: its kind, then each field's type. Anything else on a line (a
+#: record cut short by a killed process, another format) is not a record, and `read_trace` reads it as UNKEYED.
+TRACE_SHAPES = {"F": (str,), "D": (str,), "X": (str,), "I": (str, str), "G": (str, list)}
+
+
+def trace_record(line: str) -> list | None:
+    """One trace line → its record, [kind, *fields] as TRACE_SHAPES declares it; None for a line that is not one."""
+    try:
+        record = json.loads(line)
+    except ValueError:
+        return None
+    shape = TRACE_SHAPES.get(record[0]) if isinstance(record, list) and record and isinstance(record[0], str) else None
+    if shape is None or len(record) != 1 + len(shape) or not all(isinstance(v, t) for v, t in zip(record[1:], shape)):
+        return None
+    if shape[-1] is list and not all(isinstance(a, str) for a in record[-1]):
+        return None
+    return record
+
+
+def trace_line(*record) -> str:
+    """The line TRACER writes for one record (the fixtures that plant a trace write it with this)."""
+    return json.dumps(list(record)) + "\n"
+
+
 def read_trace(trace_out: Path, tree: Tree) -> Trace:
     """The reads of one run's trace, each placed in the tree (TRACER's record kinds). A record this cannot place — a
-    git command `git_reads` does not model, a record of no known kind — is an UnkeyedRead, never dropped."""
+    git command `git_reads` does not model, a line that is not one whole record (`trace_record`) — is an
+    UnkeyedRead, never dropped."""
     files, dirs, git, git_read, imports, unkeyed = set(), set(), set(), set(), set(), set()
     for f in sorted(trace_out.glob("*.trace")):
-        for line in f.read_text(encoding="utf-8").splitlines():
-            kind, tab, folded = line.partition("\t")
-            if kind == "I" and tab:
-                where, _, name = folded.partition("\t")
+        for line in f.read_text(encoding="utf-8").split("\n"):
+            if not line:
+                continue
+            record = trace_record(line)
+            if record is None:
+                unkeyed.add(UnkeyedRead(f"trace line {line[:120]!r}", ".", "not one whole record the tracer writes"))
+                continue
+            kind, folded = record[0], record[1]
+            if kind == "I":
+                where, name = folded, record[2]
                 where = tree.unfold(where.rstrip(os.sep)) if where not in ("", ".") else ""
                 if not _in_git_dir(where):  # kept when empty: a file can appear there
                     imports.add((where, name))
-            elif kind == "G" and tab:
-                where, _, command = folded.partition("\t")
-                where = tree.unfold(where) if where else ""
-                args = command.split(chr(31))  # the tracer joins a command's arguments with the unit separator
+            elif kind == "G":
+                where, args = tree.unfold(folded) if folded else "", list(record[2])
                 git.add(f"{where or '.'}: git {' '.join(args)}")
                 read = git_reads(args, where, tree.repo)
                 if isinstance(read, UnkeyedRead):
                     unkeyed.add(read)
                 else:
                     git_read.update(read)
-            elif kind in ("F", "X", "D") and tab:
+            else:
                 rel = tree.unfold(folded.rstrip(os.sep)) if folded not in ("", ".") else ""
                 if _in_git_dir(rel):
                     continue
@@ -838,8 +916,6 @@ def read_trace(trace_out: Path, tree: Tree) -> Trace:
                     dirs.add(owner if owner is not None else rel)   # a tracked file appearing there changes its names
                 elif "__pycache__" not in rel:
                     files.add(rel)  # looked for and not tracked: a tracked file appearing there must re-run it
-            else:
-                unkeyed.add(UnkeyedRead(f"trace record {line[:120]!r}", ".", "a record of no kind the tracer writes"))
     return Trace(frozenset(files), frozenset(dirs), frozenset(git), frozenset(git_read), frozenset(imports),
                  frozenset(unkeyed))
 
@@ -1038,10 +1114,10 @@ def self_test() -> int:
               [outcome(c, w) for c, w in (
                   (["rev-parse", "--show-toplevel"], "docs"), (["--exec-path"], ""),
                   (["rev-parse", "--path-format=absolute", "--git-common-dir"], ""),
-                  (["config", "--global", "user.name"], ""),
+                  (["config", "--global", "user.name"], ""), (["remote", "get-url", "origin"], ""),
                   (["ls-files", "-z"], ""), (["ls-files", "--", f"{posix_root}/*.md"], "docs"),
                   (["ls-files", "--", "../*.py"], "docs"), (["ls-files", "--", ":!docs"], ""))],
-              [[], [], [], [], [("paths", "")], [("paths", "")], [("paths", "")], [("paths", "")]])
+              [[], [], [], [], [], [("paths", "")], [("paths", "")], [("paths", "")], [("paths", "")]])
         unkeyed_rows = [
             (["ls-files", "--", f"{outside}/scripts"], ""), (["ls-files", "--", f"{outside}/*.py"], ""),
             (["ls-files", "--", "../../x"], "docs"), (["ls-files", "--", "/*.py"], ""),
@@ -1056,7 +1132,9 @@ def self_test() -> int:
             (["rev-parse", "--git-path", "x"], ""), (["rev-parse"], ""), (["rev-parse", "--show-toplevel", "HEAD"], ""),
             (["log", "--since=1.day", "HEAD"], ""), (["log", "-n"], ""), (["log", "*.py"], ""),
             (["grep", "-f", "patterns.txt"], ""), (["grep", "foo", "HEAD"], ""), (["grep"], ""),
-            (["config", "user.name", "x"], ""), (["config", "--unset", "user.name"], "")]
+            (["config", "user.name", "x"], ""), (["config", "--unset", "user.name"], ""),
+            (["remote", "-v"], ""), (["remote", "add", "x", "y"], ""), (["remote", "get-url"], ""),
+            (["remote", "get-url", "--expire", "origin"], "")]
         check("arm: THREE OUTCOMES, UNKEYED — a path outside the repository, past its top or UNC, pathspec magic not "
               "modelled, an empty pathspec, a subcommand with no declared grammar, a global option not modelled, a "
               "drive-relative path (Windows) or a backslash (POSIX), and for each declared subcommand an undeclared "
@@ -1094,6 +1172,32 @@ def self_test() -> int:
               "process, in every Python process the self-test starts",
               (seen.saw("scripts/o/runner.py"), "kb/Work" in seen.dirs, seen.saw("scripts/o/stop.ps1"),
                len(list(out.glob("*.trace"))) >= 2), (True, True, True, True))
+        # THE RECORD FORMAT (kb/Work PB5227, the merge-group bounce of 2026-11-11): a child's argument holding a newline
+        # (a multi-line `python -c` program) or a space (a path) is ONE record on every OS; a line that is not one whole
+        # record is UNKEYED, never dropped and never read as a path
+        whole = root / "trace-whole"
+        whole.mkdir()
+        program = "import sys\nprint('two lines')\n"
+        subprocess.run([sys.executable, "-c", "import subprocess, sys\n"
+                        f"subprocess.run([sys.executable, '-c', {program!r}, 'scripts/o/a b.txt', 'q\\\\\"u o'])\n"],
+                       cwd=root, check=True, capture_output=True, env=traced_env(dict(os.environ), tracer, whole, root))
+        seen = read_trace(whole, tree)
+        check("arm: a child's multi-line program, a path holding a space and an argument holding a quote are each one "
+              "record (no fragment of any is a read), and nothing is unkeyed; `q\\\"u o` is the command line's hardest form, a "
+              "backslash before a quote beside a space",
+              (seen.saw("scripts/o/a b.txt"), [f for f in seen.files if "two lines" in f and "\n" not in f],
+               any("two lines" in f and "\n" in f for f in seen.files), 'q/"u o' in {f.replace("\\", "/") for f in seen.files},
+               sorted(map(str, seen.unkeyed))), (True, [], True, True, []))
+        torn = root / "trace-torn"
+        torn.mkdir()
+        (torn / "1.trace").write_text(trace_line("F", "scripts/o/runner.py") + '["F", "scripts/o/run\n'
+                                      + "F\tscripts/o/runner.py\n" + '["Q", "x"]\n' + '["G", ".", "ls-files"]\n',
+                                      encoding="utf-8", newline="")
+        seen = read_trace(torn, tree)
+        check("arm: a record cut short, a line of the old tab format, a record of no kind and one of the wrong shape are "
+              "each UNKEYED; the whole record beside them is read",
+              (seen.saw("scripts/o/runner.py"), len(seen.unkeyed),
+               all(u.why == "not one whole record the tracer writes" for u in seen.unkeyed)), (True, 4, True))
         imports = root / "trace-imports"
         imports.mkdir()
         subprocess.run([sys.executable, "-c", "import sys\nsys.path.insert(0, 'scripts/o')\nimport runner\n"
