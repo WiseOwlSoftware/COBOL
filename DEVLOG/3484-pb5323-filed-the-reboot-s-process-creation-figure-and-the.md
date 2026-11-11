@@ -1,4 +1,4 @@
-## PB5323 filed; the reboot's process-creation figure and the #1510 bounce recorded
+## Entry 3484 — 2026-11-11 12:38 PST — PB5323 filed; the reboot's process-creation figure and the #1510 bounce recorded
 
 Three register entries the reboot left owed, no code.
 
@@ -14,3 +14,4 @@ kb/Work/PB5320/2026-11-11-after-the-reboot.md records the figure PB5320's decisi
 kb/Work/PB1957/2026-11-11-pr1510-ci-gate-never-started.md records a class (e) finding: pull request #1510 left the merge
 queue on `checks_timed_out` with all 19 check runs of its merge commit `success` or `skipped`, because GitHub never
 started the required `ci-gate` job. The branch is unchanged and is re-queued once.
+
