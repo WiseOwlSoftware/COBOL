@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both say level 1 entries under FD/SD implicitly redefine one area, and those under RD do not. 2023 names only FD/SD because the CD level indicator no longer exists.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.33.4-3": "af84cd76cf76"
+  }
  }
 }

@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: \"In format 3, each identifier must refer to a group item.\"; 2023: \"shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group items and shall not be described with level-number 66\". Formats 1 and 2 keep the numeric and numeric-edited requirements. Format 3 now refuses level-66 items, which 1985 allowed, and names new group kinds.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.44.3-2": "a11e62bb2996",
+   "SR-14.9.44.3-4": "bd1d55785a2c",
+   "SR-14.9.44.3-6": "b8fc4a5e271b"
+  }
  }
 }

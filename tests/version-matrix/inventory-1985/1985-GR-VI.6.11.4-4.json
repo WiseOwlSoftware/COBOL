@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "Both divide identifier-2/literal-2 by identifier-1/literal-1 (§2023:14.9.12.4 GR1, GR2), store the quotient in identifier-3, then calculate the remainder (§2023:14.9.12.4 GR7) and store it in identifier-4; 1985 'the subscript is evaluated immediately before the remainder is stored' matches §2023:14.9.12.4 GR6 'Item identification of the data item referenced by identifier-4 is done after the quotient is stored'. The size-error proviso restates 1985 GR8.",
-  "source": "adjudicate-712/slice-11"
+  "source": "adjudicate-712/slice-11",
+  "digests": {
+   "GR-14.9.12.4-1": "019c8519190c",
+   "GR-14.9.12.4-2": "a2bc5bbc299f",
+   "GR-14.9.12.4-6": "3053112dac80",
+   "GR-14.9.12.4-7": "27a5fda5e057"
+  }
  }
 }

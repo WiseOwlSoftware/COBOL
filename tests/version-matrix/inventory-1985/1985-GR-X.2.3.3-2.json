@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "1985 GR2: a contained program is 'a separate program that may additionally reference certain resources defined in the containing program'. 2023: a contained source element resolves names among its own names plus 'all global names that are defined in source element A' and its containers (§2023:8.4.6.2.1 GR1); it 'may reference that name without describing it again' (§2023:13.18.27.4 GR2); 'both programs may refer to data possessing the global attribute' (§2023:8.6.7 GR2) and 'to a common file connector by referring to an associated global file-name' (§2023:9.1.5 GR2); the containing unit's configuration entries 'apply to each directly or indirectly contained source unit' (§2023:12.3.4 GR1) and its SPECIAL-NAMES names 'may be referenced from any directly or indirectly contained source unit' (§2023:12.3.7.4 GR1). Same.",
-  "source": "adjudicate-712/slice-20"
+  "source": "adjudicate-712/slice-20",
+  "digests": {
+   "GR-8.4.6.2.1-1": "ea7009a2592e",
+   "GR-13.18.27.4-2": "e2d6efa35132",
+   "GR-8.6.7-2": "2d4c9052439d",
+   "GR-9.1.5-2": "83dbd5f05dcc",
+   "GR-12.3.4-1": "e0d668aa4417",
+   "GR-12.3.7.4-1": "a4071947eadc"
+  }
  }
 }

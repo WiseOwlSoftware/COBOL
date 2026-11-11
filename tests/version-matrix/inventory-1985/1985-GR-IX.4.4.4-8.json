@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993; the C280 flag) replaced the rule's reference to page IX-7 with two sentences, so it now reads 'If during the execution of the OPEN statement a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful. The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement. The validation of the fixed file attributes may vary depending on the organization and/or storage medium of the file' (§1985:IX.4.4.4 GR8). 2023 states all three: 'If the attributes don't match, a file attribute conflict condition occurs, the execution of the OPEN statement is unsuccessful, and the I-O status associated with file-name-1 is set to '39'. The implementor defines which of the fixed-file attributes are validated during the execution of the OPEN statement. The validation of fixed-file attributes may vary depending on the organization or storage medium of the file' (§2023:14.9.27.4 GR10). The status 39 it names is 1985's own for this condition ('The OPEN statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the program', §1985:IX.1.3.4), which 2023 restates: 'The OPEN or DELETE FILE statement is unsuccessful because a conflict has been detected between the fixed file attributes and the attributes specified for that file in the source unit' (§2023:9.1.13.6 GR7). Implementor-defined in both, a run-time result in both.",
-  "source": "readjudicate-amended-1985/slice-02"
+  "source": "readjudicate-amended-1985/slice-02",
+  "digests": {
+   "GR-14.9.27.4-10": "b14289c182cb",
+   "GR-9.1.13.6-7": "5a57e7f5f853"
+  }
  }
 }

@@ -78,6 +78,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 REPO = pathlib.Path(__file__).resolve().parents[2]
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 from reconcile_ranges import compact  # noqa: E402  (THE page-range spelling)
+from verify_publishable import RECONCILIATION  # noqa: E402  (THE path of every edition's reconciliation ledger)
 
 DIR = REPO / "docs" / "rearchitecture" / "spec-reconciliation"
 SEV_ORDER = {"normative": 0, "structural": 1, "cosmetic": 2}
@@ -117,10 +118,16 @@ class Row:
     shape: str          # "verdicts" (2023's LEDGER.json) or "decisions" (LEDGER-1985.json's)
 
 
+def ledger_of(edition: int) -> str:
+    """`edition`'s ledger relative to the spec-reconciliation directory, from verify_publishable.RECONCILIATION (the one
+    home of the ledger paths, which `reconciled` reads): an edition it does not name is a KeyError, never a guessed path."""
+    return pathlib.PurePosixPath(RECONCILIATION[edition]).relative_to(DIR.relative_to(REPO).as_posix()).as_posix()
+
+
 EDITIONS: dict[int, Row] = {
-    2023: Row("agents", "LEDGER.json", "REPORT.md", "verdicts"),
-    2002: Row("2002", "LEDGER-2002.json", "2002/REPORT.md", "decisions"),
-    2014: Row("2014", "LEDGER-2014.json", "2014/REPORT.md", "decisions"),
+    2023: Row("agents", ledger_of(2023), "REPORT.md", "verdicts"),
+    2002: Row("2002", ledger_of(2002), "2002/REPORT.md", "decisions"),
+    2014: Row("2014", ledger_of(2014), "2014/REPORT.md", "decisions"),
 }
 
 

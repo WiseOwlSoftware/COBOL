@@ -86,7 +86,8 @@ BASE, AMENDMENT_1, AMENDMENT_2 = "X3.23-1985", "X3.23a-1989", "X3.23b-1993"
 YEAR_OF = {BASE: 1985, AMENDMENT_1: 1989, AMENDMENT_2: 1993}
 #: The section that carries no rule: the Index.
 NO_RULES = {"XVIII"}
-#: Rule-shaped paragraphs deliberately outside the denominator, each with its reason (the 2023 arm's EXCLUDED_BLOCKS).
+#: Rule-shaped paragraphs deliberately outside the denominator, each with its reason (the ISO arm's
+#: `IsoEdition.excluded_blocks`).
 EXCLUDED_BLOCKS = {
     "IV.3": "'RULES' defines the rule taxonomy itself (§1985:IV.3.1 and IV.3.2 are prose about what syntax rules and "
             "general rules ARE) and carries no numbered rule, as §2023:5.3 does for 2023",
@@ -116,7 +117,7 @@ EXCLUDED_BLOCKS = {
 #: compilation"). Admitting a paragraph is a data edit with its reason, never a code edit.
 #: The block kind of an admitted paragraph whose rules are not all one kind (its rows carry each rule's own kind).
 MIXED = "MIXED"
-#: Recognised blocks that rightly yield no numbered rule (the 2023 arm's KNOWN_EMPTY_BLOCKS).
+#: Recognised blocks that rightly yield no numbered rule (the ISO arm's `IsoEdition.known_empty_blocks`).
 KNOWN_EMPTY_BLOCKS = {
     "VI.5.9.6": "the PICTURE precedence rules are unnumbered prose and the chart on page VI-37 (§1985:VI.5.9.6 'The "
                 "chart on page VI-37 shows the order of precedence'): typed SR by KINDS, as 2023's, with no row",

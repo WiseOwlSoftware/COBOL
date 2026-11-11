@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both allow 1-49, 66, 77 and 88 in working-storage and linkage; the level-2 box is no difference. Adding local-storage covers a new section and leaves the WS/linkage rule intact.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.33.3-5": "ac32669d889e",
+   "SR-13.18.33.3-3": "6c5d7c7ff1d3"
+  }
  }
 }

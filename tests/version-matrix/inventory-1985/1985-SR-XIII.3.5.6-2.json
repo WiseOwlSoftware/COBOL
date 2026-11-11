@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: in the Report Section LINE-COUNTER only in a SOURCE clause; in the Procedure Division in any context of an integral-value data item; 'only the report writer control system can change the content of LINE-COUNTER'. §2023:8.4.3.15.3 SR1 states the first two ('may be referenced only in a SOURCE clause'; 'in any context where an integer data item may appear') and §2023:8.4.3.15.3 SR3 the third ('LINE-COUNTER shall not be referenced as a receiving operand'). Same compile-time refusals. 13.15.3 SR16 concerns PRESENT WHEN, new syntax.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "SR-8.4.3.15.3-1": "7bbcb92a1718",
+   "SR-8.4.3.15.3-3": "0b7e4905d436"
+  }
  }
 }

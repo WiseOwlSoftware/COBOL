@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "'When format 3 is used, data items in identifier-4 are added to and stored in corresponding items in identifier-5' (§2023:14.9.2.4 GR3) restates the 1985 rule with renumbered identifiers, and §2023:14.9.2.4 GR5 adds that 'The results are the same as if the user had referred to each pair of corresponding identifiers in separate ADD statements', as 1985 GR5 and the CORRESPONDING rules imply. The standard-arithmetic sentence applies only under an ARITHMETIC STANDARD-* clause no 1985 program contains.",
-  "source": "adjudicate-712/slice-14"
+  "source": "adjudicate-712/slice-14",
+  "digests": {
+   "GR-14.9.2.4-3": "887cdfe9671d",
+   "GR-14.9.2.4-5": "4e6366ccd57c"
+  }
  }
 }

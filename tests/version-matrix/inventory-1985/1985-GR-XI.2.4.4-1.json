@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "The 1985 rule only points to where the SAME RECORD/SORT/SORT-MERGE AREA clause is presented. 2023's I-O-CONTROL format holds '{ same-clause }…' 'where apply-commit-clause and same-clause are shown below' (§2023:12.4.6.2), and §2023:12.4.6.4.2 gives 'Format 2 (record-area)' and 'Format 3 (sort-merge-area)'. The general and syntax rules (GR2, GR4, SR1) carry the clause's semantics, not this pointer.",
-  "source": "adjudicate-712/slice-22"
+  "source": "adjudicate-712/slice-22",
+  "digests": {
+   "FMT-12.4.6.2": "bea3f5dbe52a",
+   "FMT-12.4.6.4.2": "ef1242cdad87"
+  }
  }
 }

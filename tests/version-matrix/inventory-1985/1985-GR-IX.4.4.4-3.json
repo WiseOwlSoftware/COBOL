@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: when a file is not open no statement referencing it may execute 'except for a MERGE statement with the USING or GIVING phrase, an OPEN statement, or a SORT statement with the USING or GIVING phrase'. §2023:14.9.27.4 GR6 states the same ban and the same MERGE/SORT/OPEN exceptions; it adds 'the COMMIT and ROLLBACK statements, a DELETE FILE statement', none of which exists in 1985, so no conforming 1985 program is affected. §2023:14.9.27.4 GR8 restates the open-mode requirement for the input-output statements. Both are execution rules in both editions (the 4x I-O statuses already existed in 1985); nothing moved between compile time and run time.",
-  "source": "adjudicate-712/slice-07"
+  "source": "adjudicate-712/slice-07",
+  "digests": {
+   "GR-14.9.27.4-6": "b7ae208757f4",
+   "GR-14.9.27.4-8": "85b040d1dbe8"
+  }
  }
 }

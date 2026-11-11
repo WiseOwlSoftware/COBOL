@@ -227,7 +227,9 @@ def inventory_at(rev: str, year: int | None = None, repo: pathlib.Path = REPO) -
 
 def check() -> int:
     """THE GATE AUDIT: every held edition's view, and each older edition's change records (`lineage.next_errors`).
-    Prints one line per edition; returns 1 on a finding."""
+    Prints one line per edition; returns 1 on a finding. (Whether an edition may be LINKED is the EDITION GATES audit's
+    question, `edition_gates.check`: this module is in the conformance-suite generator's import closure, and the
+    reconciliation ledgers' reader is not.)"""
     schema = load_schema()
     findings: list[str] = []
     for year in sorted(HELD, reverse=True):
@@ -270,12 +272,23 @@ def edition_views(schema: Schema | None = None) -> dict[int, list[Row]]:
     return {year: inventory(year, schema) for year in sorted(HELD, reverse=True)}
 
 
+def lower_bound(ed: Edition, tree: Tree = WORKING_TREE) -> str:
+    """The note every printed rule count of `ed` carries while its count is a lower bound (kb/Work PB5256, branch review
+    R1-5): the clauses its content-keyed manifest holds pending and the rule-shaped headings no kind types
+    (`Edition.outside`), whose rules are not counted yet; "" when the count is the whole denominator."""
+    out = ed.outside(tree)
+    parts = [f"{len(v)} {what}" for v, what in ((out.get("pending-clauses", []), "clauses pending adjudication"),
+                                                (out.get("untyped-headings", []), "rule-shaped headings untyped")) if v]
+    return f" (a lower bound: {', '.join(parts)})" if parts else ""
+
+
 def summary() -> list[str]:
     """The session probe's lines: each held edition's rules and GAP count side by side (the burn-down metric), then each
     edition's adjudicated verdicts, and the CONFORMS rows a spec-derived test would close."""
     views = edition_views()
-    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules · {gaps(rows)} GAP" for year, rows in views.items())
-             + " (v1.0 = zero GAP)"]
+    schema = load_schema()
+    lines = ["invent : " + " | ".join(f"{year} {len(rows)} rules{lower_bound(schema.edition(year))} · {gaps(rows)} GAP"
+                                      for year, rows in views.items()) + " (v1.0 = zero GAP)"]
     for year, rows in views.items():
         adjudicated = [r for r in rows if r["verdict"]]
         if adjudicated:

@@ -23,6 +23,19 @@
   ],
   "bridge": true,
   "reason": "1985 requires qualification of every non-unique referenced name 'except in the case of redefinition'. §2023:8.4.2.2.3 SR1 keeps 'uniqueness shall be established through a sequence of qualifiers'. But §2023:8.4.2.2.1 adds exemptions, among them 'The name is a data-name referenced in a data description entry clause whose subject is subordinate to the same group item as that data-name', with implicit qualifiers. So an unqualified non-unique OCCURS DEPENDING ON object that 1985 refused is accepted in 2023 (looser), and the VARYING and type-declaration exemptions cover new features. Special-register qualification is carried by 8.4.2.2.3 SR8 to SR10. The cross-program paragraph/section bar is the uncataloged §2023:8.4.6.1 ('may be referenced only by statements in the source element in which the user-defined word is declared').",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "SR-8.4.2.2.1-1": "551024429315",
+   "SR-8.4.2.2.1-2": "086b254bf115",
+   "SR-8.4.2.2.1-3": "5e8ef35c6e65",
+   "SR-8.4.2.2.1-4": "6ffeb6a55815",
+   "SR-8.4.2.2.1-5": "2057e791be0b",
+   "SR-8.4.2.2.1-6": "7116b2080d95",
+   "SR-8.4.2.2.3-1": "f514d35c893e",
+   "SR-8.4.2.2.3-2": "007b37ad4caf",
+   "SR-8.4.2.2.3-8": "77e0e98774a9",
+   "SR-8.4.2.2.3-9": "d7c03492728d",
+   "SR-8.4.2.2.3-10": "560a5326eadc"
+  }
  }
 }

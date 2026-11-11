@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 GR12: with no KEY phrase 'the comparison described in general rule 4 uses the data item referenced in the RECORD KEY clause'. 2023 §2023:14.9.41.4 GR15: 'the behavior is the same as if KEY IS EQUAL TO data-name-1 ... had been specified, with data-name-1 ... being the prime record key', and §2023:14.9.41.4 GR17 builds the compared operand from that data-name-1. Same compared item.",
-  "source": "adjudicate-712/slice-08"
+  "source": "adjudicate-712/slice-08",
+  "digests": {
+   "GR-14.9.41.4-15": "d5349cb6bf04",
+   "GR-14.9.41.4-17": "89692a1e314f"
+  }
  }
 }

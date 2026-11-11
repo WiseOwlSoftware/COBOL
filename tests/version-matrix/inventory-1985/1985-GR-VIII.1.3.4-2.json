@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985 'At End. A sequential READ statement was unsuccessfully executed as a result of an at end condition.' §2023:9.1.13.1 repeats it verbatim (prose, no catalog row, PB479); catalog carriers: §2023:14.9.30.4 GR24 'When the at end condition exists, execution of the READ statement is unsuccessful', §2023:9.1.13.4 GR1 and §2023:9.1.13.4 GR2 (status 10 and 14 for a sequential READ). PREVIOUS needs 2023-only syntax. Same.",
-  "source": "adjudicate-712-r2/slice-07"
+  "source": "adjudicate-712-r2/slice-07",
+  "digests": {
+   "GR-14.9.30.4-24": "fc6732e2c178",
+   "GR-9.1.13.4-1": "490fead5c8fb",
+   "GR-9.1.13.4-2": "1996553a1757"
+  }
  }
 }

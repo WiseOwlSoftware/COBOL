@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "1985: CH and DE lower limit is LAST DETAIL; CF lower limit is FOOTING. 2023 §2023:13.18.57.4 GR8 d) 'The lower limit for a control heading is the line given by the LAST CONTROL HEADING integer', e) DE LAST DETAIL, f) CF FOOTING; §2023:13.18.39.4 GR2 e). The LAST CONTROL HEADING phrase is accepted by 2023 and absent from 1985's PAGE clause, so a CH limit different from LAST DETAIL is a case added; when it is omitted §2023:13.18.39.4 GR3 c) 'integer-5 will be equal to integer-6, if LAST DETAIL is specified', the 1985 value.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-13.18.57.4-8": "ae3e5dd98aca",
+   "GR-13.18.39.4-2": "e848559fd8d9",
+   "GR-13.18.39.4-3": "971f3913ad24"
+  }
  }
 }

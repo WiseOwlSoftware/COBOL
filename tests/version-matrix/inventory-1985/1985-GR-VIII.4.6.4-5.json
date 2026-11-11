@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "2023 adds FROM literal-1 (§2023:14.9.35.4 GR7: \"MOVE literal-1 TO record-name-1\"), which the 1985 format refuses; the FROM identifier-1 case is unchanged. §2023:14.9.35.4 GR7 keeps the equivalence: MOVE identifier-1 TO record-name-1 per the MOVE rules, then 'The same REWRITE statement without the FROM phrase'; §2023:14.9.35.3 SR6 states the MOVE-validity part ('shall be valid as a sending operand in a MOVE statement'). Literal-1 is new syntax only.",
-  "source": "adjudicate-712/slice-19"
+  "source": "adjudicate-712/slice-19",
+  "digests": {
+   "GR-14.9.35.4-7": "1e70c8697127",
+   "SR-14.9.35.3-6": "9b663a6699cb"
+  }
  }
 }

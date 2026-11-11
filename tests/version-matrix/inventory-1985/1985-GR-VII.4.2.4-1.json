@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 'The file connector referenced by file-name-1 shall be open' states the same restriction. The status '42' sentence only spells out the I-O status result of a violation.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.6.4-1": "b69d85d1cce5",
+   "GR-9.1.13.7-2": "6ad5edf369fc"
+  }
  }
 }

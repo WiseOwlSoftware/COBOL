@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "A literal cannot change, so 'the value is always that literal' gives the same fixed sizes on every page as 1985. The footing range limit is a syntax rule (SR-3) in 2023, not a new limit here.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.34.4-6": "1ccdebb0ee80",
+   "GR-13.18.34.4-2": "56d8fe8559b5",
+   "GR-13.18.34.4-3": "699e8f90c7d9",
+   "GR-13.18.34.4-4": "8ad74b59f9c6",
+   "GR-13.18.34.4-5": "79dd986775f4"
+  }
  }
 }

@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985 GR9: NO REWIND and REVERSED 'must only be used with' sequential single reel/unit files or files wholly on one reel of a multiple file tape. §2023:14.9.27.3 SR5: 'The NO REWIND phrase may be specified only for sequential files', with no single-reel/unit or multiple-file-tape limit, so NO REWIND on a multi-unit sequential file is now allowed (looser); REVERSED is gone from the format §2023:14.9.27.2. The inapplicable-medium ignore case is 1985 GR10's (now §2023:14.9.27.4 GR11), not this rule's.",
-  "source": "adjudicate-712/slice-16"
+  "source": "adjudicate-712/slice-16",
+  "digests": {
+   "SR-14.9.27.3-5": "bf2e6c69fada"
+  }
  }
 }

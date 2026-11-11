@@ -215,7 +215,7 @@ def self_test() -> int:
           and row_name("1989-AR-A.2.5.3-1") == "1989-AR-A.2.5.3-1.json",
           "a 1985 id, which begins with its year, is a file name (kb/Work PB4992)")
     check(inventory_dir(old_ed).name == "inventory-1985" and inventory_dir(new) == REPO / new.store
-          and "not held" in refuses(lambda: edition(2002)),
+          and inventory_dir(edition(2002)).name == "inventory-2002" and "not held" in refuses(lambda: edition(2014)),
           "each edition names its own store, and an edition with none is refused")
     check(history_pathspecs(new) == (new.store, new.legacy_file) and new.legacy_file
           and history_pathspecs(old_ed) == (old_ed.store,), "only the edition the schema says had one has a legacy file")

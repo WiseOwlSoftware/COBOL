@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both treat a multi-report INITIATE as separate INITIATEs in the order specified. The added RESUME NEXT STATEMENT sentence concerns a feature 1985 lacks, so 1985 programs behave alike.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.21.4-5": "0d3cf4c4d637"
+  }
  }
 }

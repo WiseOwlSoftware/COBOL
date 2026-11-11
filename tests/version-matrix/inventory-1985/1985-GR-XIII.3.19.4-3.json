@@ -10,6 +10,11 @@
    "GR-13.18.54.4-9"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.54.4-1": "acf4be3f6dec",
+   "SR-13.18.54.3-1": "7ab8d9e3cbca",
+   "GR-13.18.54.4-9": "c63a6c52a2a9"
+  }
  }
 }

@@ -17,6 +17,13 @@
   ],
   "bridge": true,
   "reason": "Amendment X3.23b-1993 replaced 'The value of selected table elements may be specified using VALUE clauses' with 'Every occurrence of an element in a table can be assigned the same initial value using the VALUE clause' (§1985:II.4.2 SR3), the third and last of the ways 'initial values of elements within tables are specified'; it matches §1985:VI.5.15.6 GR6 ('causes every occurrence of the associated data item to be assigned the specified value'). 2023 keeps that effect for the data-item format (§2023:13.18.63.4 GR9 'causes every occurrence of the associated data item to be assigned the specified value') and adds the table format, which GR9 does not govern: 'The table element initialized is identified by subscript-1' (§2023:13.18.63.4 GR12), repeated 'until the table element identified by subscript-2 is initialized' (§2023:13.18.63.4 GR13; §2023:13.18.63.4 GR14 without TO), in an entry that 'shall contain an OCCURS clause or be subordinate' to one (§2023:13.18.63.3 SR18). The counterpart concept text now reads 'The value of selected table elements may be specified using VALUE clauses with or without the optional TO phrase' (§2023:D.3.3, informative). Words that differ: 1985 'Every occurrence ... the same initial value'; 2023 'selected table elements'. VALUE ... FROM (n) [TO (m)], giving occurrences different values and refused by 1985, is accepted: a case added.",
-  "source": "readjudicate-amended-1985/slice-09"
+  "source": "readjudicate-amended-1985/slice-09",
+  "digests": {
+   "GR-13.18.63.4-9": "ca6efd5e9fa5",
+   "SR-13.18.63.3-18": "aeac33709bbb",
+   "GR-13.18.63.4-12": "0f8297812613",
+   "GR-13.18.63.4-13": "cdd15e853715",
+   "GR-13.18.63.4-14": "5679c76e19c8"
+  }
  }
 }

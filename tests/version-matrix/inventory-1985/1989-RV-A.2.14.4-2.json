@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "For positive n, 2023's expression n*(n-1)*...*1, with 1 giving 1, is n factorial, as in 1985. Zero is a separate case, so this rule is unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "RV-15.36.4-1": "8a73e3814935"
+  }
  }
 }

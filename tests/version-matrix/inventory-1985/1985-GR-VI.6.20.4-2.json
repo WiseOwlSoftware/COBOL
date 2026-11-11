@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "source": "band-85/slice-08",
-  "reason": "1985: 'When format 2 is used, literal-1 or the value of the data item referenced by identifier-1 is multiplied by literal-2 or the value of the data item referenced by identifier-2 and the result is stored in the data items referenced by each identifier-3' (§1985:VI.6.20.4 GR2). 2023: 'When format 2 is used and native arithmetic is in effect', the multiplier and multiplicand are the same operands and 'The product is stored as the new value of each data item referenced by identifier-3' (§2023:14.9.26.4 GR2); a 1985 program has no ARITHMETIC clause and so runs under native arithmetic (§2023:11.9.5.2 GR4). Same. GR-14.9.26.4-3 is not a target (band-85, 2026-11-10): 'When format 1 or 2 is used and standard-decimal, or standard-binary arithmetic is in effect' (§2023:14.9.26.4 GR3) is conditioned on modes 1985 lacks."
+  "reason": "1985: 'When format 2 is used, literal-1 or the value of the data item referenced by identifier-1 is multiplied by literal-2 or the value of the data item referenced by identifier-2 and the result is stored in the data items referenced by each identifier-3' (§1985:VI.6.20.4 GR2). 2023: 'When format 2 is used and native arithmetic is in effect', the multiplier and multiplicand are the same operands and 'The product is stored as the new value of each data item referenced by identifier-3' (§2023:14.9.26.4 GR2); a 1985 program has no ARITHMETIC clause and so runs under native arithmetic (§2023:11.9.5.2 GR4). Same. GR-14.9.26.4-3 is not a target (band-85, 2026-11-10): 'When format 1 or 2 is used and standard-decimal, or standard-binary arithmetic is in effect' (§2023:14.9.26.4 GR3) is conditioned on modes 1985 lacks.",
+  "digests": {
+   "GR-14.9.26.4-2": "f819909da51c"
+  }
  }
 }

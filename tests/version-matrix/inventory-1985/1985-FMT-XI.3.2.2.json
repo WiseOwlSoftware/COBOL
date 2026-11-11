@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 SD: 'SD file-name-1 [RECORD {CONTAINS integer-1 CHARACTERS | IS VARYING ... | CONTAINS integer-4 TO integer-5 CHARACTERS}] [DATA {RECORD IS|RECORDS ARE} data-name-2 ...].' §2023:13.4.6.2 is 'SD file-name-1 [record-clause].' with the RECORD clause of §2023:13.18.43.2 (BYTES a synonym of CHARACTERS, §2023:13.18.43.3 SR2) and no DATA RECORDS clause anywhere in the standard, so an SD using DATA RECORDS is refused. CHANGED (stricter).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.4.6.2": "41f3cfda5605",
+   "FMT-13.18.43.2": "eaecef407473",
+   "SR-13.18.43.3-2": "8652215268c0"
+  }
  }
 }

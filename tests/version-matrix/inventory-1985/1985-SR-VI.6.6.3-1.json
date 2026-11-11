@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "2023 keeps numeric operands, numeric or numeric-edited GIVING targets and group items for CORR. The level-66 bar is a separate CORRESPONDING restriction; new group kinds are new features.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.2.3-2": "a11e62bb2996",
+   "SR-14.9.2.3-4": "bd1d55785a2c",
+   "SR-14.9.2.3-6": "b8fc4a5e271b"
+  }
  }
 }

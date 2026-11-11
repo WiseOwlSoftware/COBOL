@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Report files open only OUTPUT or EXTEND. For those modes 2023 b) and c) match 1985 a. and b. The INPUT/I-O cases do not apply to report files.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.27.4-19": "2f6d0f2955eb"
+  }
  }
 }

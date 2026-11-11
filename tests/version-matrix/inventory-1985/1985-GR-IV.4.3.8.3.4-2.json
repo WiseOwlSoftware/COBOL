@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "The three sentences of §1985:IV.4.3.8.3.4 GR2 are word for word the first three of §2023:8.4.3.2.4 GR2: \"At the time reference is made to a function, its arguments are evaluated individually in the order specified in the list of arguments, from left to right\" through \"There is no restriction preventing the function referenced in evaluating an argument from being the same function as that for which the argument is specified\". 2023 appends only a pointer to further rules. §2023:8.4.3.2.4 GR6a restates the timing, \"Each argument-1 is evaluated at the beginning of the evaluation of the function-identifier\"; the rest of GR6 is the 2023 activation and exception procedure and states no part of the 1985 rule.",
-  "source": "classify-unrecorded-1985/slice-02"
+  "source": "classify-unrecorded-1985/slice-02",
+  "digests": {
+   "GR-8.4.3.2.4-2": "2b4feebb414b",
+   "GR-8.4.3.2.4-6": "395823693f40"
+  }
  }
 }

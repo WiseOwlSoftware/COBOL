@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same rule nearly verbatim. 'referencing that record description entry' only states the scope the 1985 rule implies: the count matters only for statements writing that record.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.38.4-9": "d5e58f031103"
+  }
  }
 }

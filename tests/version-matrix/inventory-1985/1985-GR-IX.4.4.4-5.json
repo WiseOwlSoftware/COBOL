@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: reopening a file requires a prior CLOSE 'without the LOCK phrase' (a reopen after CLOSE WITH LOCK gives status 38). 2023 keeps the close-before-reopen rule: §2023:14.9.27.4 GR2 'shall not be open. If it is open, the execution of the OPEN statement is unsuccessful' (status 41, §2023:9.1.13.7 GR1), and §2023:14.9.6.4 GR8 makes any successful CLOSE without UNIT leave the connector not open. The LOCK carve-out is gone: §2023:E.2 lists 'The WITH LOCK phrase of the CLOSE statement and the related File Status of 38' as removed. The first sentence (all four open modes may be used in one run unit) follows from GR4's open modes and is unchanged.",
-  "source": "adjudicate-712/slice-07"
+  "source": "adjudicate-712/slice-07",
+  "digests": {
+   "GR-14.9.27.4-2": "0caffb8d51d0",
+   "GR-14.9.6.4-8": "cd4697dd2324",
+   "GR-9.1.13.7-1": "7ba098ac3665"
+  }
  }
 }

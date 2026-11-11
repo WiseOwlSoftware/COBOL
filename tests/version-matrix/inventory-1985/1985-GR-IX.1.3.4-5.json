@@ -17,6 +17,17 @@
   ],
   "bridge": true,
   "reason": "1985 'Logic Error ... an improper sequence of input-output operations ... or as a result of violating a limit defined by the user' is word for word in §2023:9.1.13.1 ('Logic error. The input-output statement was unsuccessfully executed as a result of an improper sequence of input-output operations'). Catalogued carriers: 41-43 and 46-49 (improper sequences), 44 (the user's 'RECORD IS VARYING' limits, §2023:9.1.13.7 GR4), and REWRITE's '43' (§2023:14.9.35.4 GR5). Status 45 'Record identification failure' (§2023:9.1.13.7 GR5) needs FORMAT or CODE-SET record selection and states no part of this rule, so it is left out. Same class.",
-  "source": "adjudicate-712-r2/slice-01"
+  "source": "adjudicate-712-r2/slice-01",
+  "digests": {
+   "GR-9.1.13.7-1": "7ba098ac3665",
+   "GR-9.1.13.7-2": "6ad5edf369fc",
+   "GR-9.1.13.7-3": "c92c8b4cbc0d",
+   "GR-9.1.13.7-4": "8cb702a5a928",
+   "GR-9.1.13.7-6": "31e6a5079953",
+   "GR-9.1.13.7-7": "33e8e795f04b",
+   "GR-9.1.13.7-8": "a5329a57a0ea",
+   "GR-9.1.13.7-9": "30ab59018127",
+   "GR-14.9.35.4-5": "417f233188c4"
+  }
  }
 }

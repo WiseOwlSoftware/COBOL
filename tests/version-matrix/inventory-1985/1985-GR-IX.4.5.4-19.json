@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both 2023 READ formats keep the optional [END-READ] terminator. Like the 1985 rule, its scope effect rests on the general Scope of statements rules; nothing is added or removed.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.30.2": "ab07b0e7e719"
+  }
  }
 }

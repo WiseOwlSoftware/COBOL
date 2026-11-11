@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 still lets only PERFORM VARYING, SEARCH and SET modify an index. Indexes start undefined, so using one as a subscript before it is set has undefined results, as under the 1985 'must'.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.38.4-2": "de6d618b2de7",
+   "GR-13.18.63.4-4": "b0dddcb3933f"
+  }
  }
 }

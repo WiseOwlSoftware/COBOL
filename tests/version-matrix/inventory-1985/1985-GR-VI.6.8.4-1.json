@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Under native arithmetic, which 1985 programs use, a lone fixed-point identifier or literal gives its exact value, then stored. Other cases involve 2023-only arithmetic modes/types.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.8.4-1": "2a8b1e520b88",
+   "GR-14.9.8.4-2": "2ff197fb1905"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 also has no next executable statement when EXIT PROGRAM or STOP transfers control outside the source element. Adding GOBACK (new in 2023) and saying 'source element' leave 1985 programs unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.6.3-3": "77338b907c95"
+  }
  }
 }

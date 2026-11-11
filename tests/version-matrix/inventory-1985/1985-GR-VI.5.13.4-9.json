@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both let the implementor auto-align internal formats except DISPLAY items within a record, and allow the record to be synchronized. The bit and national exclusions affect only usages 1985 lacks.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.55.4-10": "7bf7e96ed688"
+  }
  }
 }

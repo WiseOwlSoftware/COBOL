@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: keys in 'order of decreasing significance without regard to how they are divided into KEY phrases'; ASCENDING lowest to highest, DESCENDING highest to lowest 'according to the rules for comparison of operands in a relation condition'. 2023 says the same: §2023:14.9.40.4 GR2 'without regard to their association with ASCENDING or DESCENDING phrases'; §2023:14.9.40.4 GR8 compares 'according to the rules for comparison of operands in a relation condition', 'lower value is returned first' for ASCENDING, higher for DESCENDING; §2023:14.9.40.4 GR1 ties each key to its ASCENDING/DESCENDING word. Table SORT (GR18-24) is new syntax only.",
-  "source": "adjudicate-712/slice-23"
+  "source": "adjudicate-712/slice-23",
+  "digests": {
+   "GR-14.9.40.4-1": "c80110c16934",
+   "GR-14.9.40.4-2": "34d88fd9e93d",
+   "GR-14.9.40.4-8": "de9426f4c180"
+  }
  }
 }

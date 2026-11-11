@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both: absent optional input file, CLOSE does no end-of-file processing and leaves the file position indicator unchanged. Unit/volume wording can't apply to relative files (SR-14.9.6.3-1).",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.6.4-6": "5d7f59e11cc8"
+  }
  }
 }

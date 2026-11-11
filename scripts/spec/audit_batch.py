@@ -111,7 +111,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation  # noqa: E402  (THE citation format and the 1985 regions, kb/Work PB4887)
 import spec_pdf  # noqa: E402  (the one edition table, kb/Work PB4815)
 import verify_publishable  # noqa: E402  (the stamp shapes)
-from extract_rule_catalog import OUT, OUT_1985  # noqa: E402  (the 2023 and the 1985 catalogs)
+from extract_rule_catalog import catalog_path  # noqa: E402  (each held edition's catalog: the schema's `editions.of`)
 from inventory_schema import ChangeRecord, edition, load_schema  # noqa: E402  (the 1985 edition and its change record)
 from inventory_store import inventory_dir, read_store  # noqa: E402  (the 1985 store, whose adjudications outrank the run)
 from message_batches import (CACHE_MIN_SHARERS, DEFAULT_MODEL, BatchRun, cached_system, cached_text,  # noqa: E402
@@ -1183,8 +1183,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     pl = sub.add_parser("plan", help="write a pass's items (once)")
     common(pl, key=False)
-    pl.add_argument("--catalog", default=str(OUT_1985), help="the 1985 rule catalog (route, map, recheck, misprints)")
-    pl.add_argument("--catalog-2023", default=str(OUT), help="the 2023 rule catalog (route, map, recheck, misprints)")
+    pl.add_argument("--catalog", default=str(catalog_path(1985)), help="the 1985 rule catalog (route, map, recheck, misprints)")
+    pl.add_argument("--catalog-2023", default=str(catalog_path(2023)), help="the 2023 rule catalog (route, map, recheck, misprints)")
     pl.add_argument("--candidates", type=int, default=15,
                     help="the 2023 rules by wording per 1985 rule, after those of its routed clauses (map)")
     pl.add_argument("--near-1985", type=int, default=10,

@@ -50,6 +50,8 @@ class Edition:
     folio_offset: int | None    # PDF page minus printed folio; None until measured from that edition's PDF
     body: str | None            # the line of the transcription that opens the body: everything before it is front matter
                                 # (the Preface and the acknowledgment); None while the edition has no transcription
+    pages: int                  # the PDF's page count, measured with PyMuPDF (2026-11-11, kb/Work PB5256): the whole book a
+                                # reconciliation ledger must cover before the edition counts as reconciled
 
 
 #: Each edition's files, named after its public transcription in specs/. 1985 is a scan (PB4812: 0 vector drawings and
@@ -61,10 +63,11 @@ class Edition:
 #: offset, 24, is measured the same way from the footer folio of each of its 926 arabic-numbered pages (PDF 25 to 951).
 #: 1985's is measured when its run needs it (PB4812), so a tool that needs it exits naming this table until then.
 EDITIONS: dict[int, Edition] = {
-    1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# SECTION I: INTRODUCTORY INFORMATION"),
-    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", 22, "# Clauses 1 to 16"),
-    2014: Edition("ISO_COBOL_2014.pdf", "ISO_COBOL_2014.md", "vector", 24, "# Clauses 1 to 16"),
-    2023: Edition("ISO_COBOL_2023.pdf", "ISO_COBOL_2023.md", "vector", 30, '<a id="section-1"></a>'),
+    1985: Edition("ANSI_COBOL_1985.pdf", "ANSI_COBOL_1985.md", "raster", None, "# SECTION I: INTRODUCTORY INFORMATION",
+                    976),
+    2002: Edition("ISO_COBOL_2002.pdf", "ISO_COBOL_2002.md", "vector", 22, "# Clauses 1 to 16", 882),
+    2014: Edition("ISO_COBOL_2014.pdf", "ISO_COBOL_2014.md", "vector", 24, "# Clauses 1 to 16", 952),
+    2023: Edition("ISO_COBOL_2023.pdf", "ISO_COBOL_2023.md", "vector", 30, '<a id="section-1"></a>', 1261),
 }
 
 

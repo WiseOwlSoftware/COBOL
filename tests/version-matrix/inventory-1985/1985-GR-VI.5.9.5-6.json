@@ -18,6 +18,14 @@
   ],
   "bridge": true,
   "reason": "1985: 'The currency symbol must be the leftmost character position ... except that it can be preceded by either a '+' or a '-''. §2023:13.18.40.3 SR26 also allows it as 'the rightmost symbol in character-string-1, optionally followed by one of the symbols '+', '-', 'CR', or 'DB'', so PIC 999$ and 999$CR, refused in 1985, are accepted (looser). The one-symbol limits (§2023:13.18.40.3 SR23, SR24), sign position (§2023:13.18.40.3 SR25), CR/DB size (§2023:13.18.40.4 GR14) and the result table (§2023:13.18.40.5 GR5) are unchanged.",
-  "source": "adjudicate-712/slice-11"
+  "source": "adjudicate-712/slice-11",
+  "digests": {
+   "GR-13.18.40.5-5": "14f9ad621bca",
+   "GR-13.18.40.4-14": "afd0f88fdb6d",
+   "SR-13.18.40.3-23": "fb536ddf249e",
+   "SR-13.18.40.3-24": "33abb77e4a22",
+   "SR-13.18.40.3-25": "45a5ca338c08",
+   "SR-13.18.40.3-26": "62b999701685"
+  }
  }
 }

@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "1985 sends a non-invalid-key exception to any USE AFTER EXCEPTION procedure and then on per the USE rules; §2023:9.1.14 'unsuccessful completion that is not an invalid key condition, control is transferred according to the rules of any applicable exception processing statements', the file USE being selected per §2023:9.1.12 GR2 and §2023:14.9.49.4 GR3, run per §2023:14.9.49.4 GR6, control returned per §2023:14.9.49.4 GR7; §2023:14.9.30.4 GR13 b) restates it for READ. The exception-checking PERFORM binds only 2023 syntax. 9.1.14 GR4 is the invalid-key case and is not this rule.",
-  "source": "adjudicate-712-r2/slice-08"
+  "source": "adjudicate-712-r2/slice-08",
+  "digests": {
+   "GR-9.1.14-L2.1": "b5da8dae842e",
+   "GR-9.1.12-2": "14a7b0ec289f",
+   "GR-14.9.49.4-3": "1f60d13b42af",
+   "GR-14.9.49.4-6": "b41480584b33",
+   "GR-14.9.49.4-7": "95194ed26db2",
+   "GR-14.9.30.4-13": "5f193b8f8cb6"
+  }
  }
 }

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 sums the operands before TO in an initial evaluation held in an intermediate item, then adds it to each identifier-2 left to right. Size-error handling is outside this 1985 rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.2.4-1": "77bf7c3f3796",
+   "GR-14.7.7-4": "cfc34ed7e634"
+  }
  }
 }

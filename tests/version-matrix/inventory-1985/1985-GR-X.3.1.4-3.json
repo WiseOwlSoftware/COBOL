@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both make INITIAL mark the program initial. On call/activation, its and its contained programs' data and file connectors take their initial state. Lazy reset of contained programs has the same effect.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-11.10.4-3": "5d9f42e6c2b0",
+   "GR-14.6.2.3.2-2": "45aee69372f3"
+  }
  }
 }

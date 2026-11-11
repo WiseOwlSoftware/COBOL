@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'When the KEY IS phrase is specified, the repeated data must be arranged in ascending or descending order according to the values contained in data-name-2' (all keys, at all times; 1985 SEARCH GR3 makes SEARCH ALL predictable only when the table is 'ordered in the same manner as described in the KEY IS phrase'). §2023:13.18.38.4 GR3: 'The data associated with data-name-2 shall be ordered when a SEARCH statement with the ALL phrase is executed if data-name-2 is specified in one of the conditions in the WHEN phrase', the order by the comparison rules 'that apply to the condition specified in the WHEN phrase'; §2023:14.9.37.4 GR5 a) likewise covers only 'each key data item referenced in the WHEN phrase'. Keys not named in WHEN need no order; KEY also orders a table SORT. Looser requirement on the program.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "GR-13.18.38.4-3": "eb3a6c90ddfa",
+   "GR-14.9.37.4-5": "36cd32937bf3"
+  }
  }
 }

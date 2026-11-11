@@ -13,6 +13,9 @@
   "reason": "§1985:VI.5.8.2 has two formats, 'OCCURS integer-2 TIMES' and 'OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1', each with the repeatable ASCENDING/DESCENDING KEY phrase and INDEXED BY. §2023:13.18.38.2 keeps both word for word as 'Format 1 (fixed-table)' and 'Format 2 (occurs-depending-table)' (the 1985 level-2 box is no difference), so a conforming 1985 OCCURS means the same; but the one general format now also holds 'Format 3 (report-writer)' with STEP and 'Format 4 (dynamic-capacity-table)' OCCURS DYNAMIC, which the 1985 format refuses. The diagram's requirement is wider, so the record is CHANGED (a general format proves only its whole diagram's edge).",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-13.18.38.2": "362c91cc86eb"
+  }
  }
 }

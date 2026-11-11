@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: level 77 identifies 'noncontiguous working storage data items, noncontiguous linkage data items' (format 1 only); 66 for RENAMES (format 2 only); 88 for condition-names, 'used only as described by format 3'. §2023:13.18.33.4 GR2 keeps 66 and 77 and adds 'noncontiguous local storage data items' to 77, and 88 now also defines 'criteria to be used to validate a data item' and 'may be used only as described by the condition-name format or the validation format'. §2023:8.5.1.3.2 restates the 66/77/88 assignments. The 88 restriction is loosened by the added validation format.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "GR-13.18.33.4-2": "14d4d4272c11",
+   "GR-8.5.1.3.2-2": "6a67bde495c0",
+   "GR-8.5.1.3.2-3": "2eaf9cbcc13e"
+  }
  }
 }

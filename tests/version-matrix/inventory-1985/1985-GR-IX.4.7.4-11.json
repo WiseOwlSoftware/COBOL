@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 GR11: with KEY, 'the comparison described in general rule 4 uses the data item referenced by data-name-1'. 2023 §2023:14.9.41.4 GR17 sets up the compared key 'by moving the relevant parts of the record area into a temporary data area' of 'the length of data-name-1' when neither LENGTH nor record-key-name-1 is given; 1985 SR4 places data-name-1 in the record at the key's leftmost position, so the compared value is data-name-1's content in both. LENGTH and record-key-name-1 are 2023-only syntax.",
-  "source": "adjudicate-712/slice-08"
+  "source": "adjudicate-712/slice-08",
+  "digests": {
+   "GR-14.9.41.4-17": "89692a1e314f"
+  }
  }
 }

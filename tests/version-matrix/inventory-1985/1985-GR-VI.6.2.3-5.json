@@ -13,6 +13,9 @@
   "reason": "Rules a and b are kept in §2023:8.8.1.2 GR6 a) and b) (zero base needs a positive exponent; of a positive and a negative real result the positive is returned), the size error condition still raised (EC-SIZE-EXPONENTIATION is set but checking is off for a 1985 program). Rule c differs: 1985 'If no real number exists as the result of the evaluation, the size error condition exists'; 2023 'If the value of an expression to be raised to a power is less than zero, the evaluation of the exponent shall result in an integer. Otherwise ... the size error condition is raised'. (-32) ** 0.2 has the real result -2, so 1985 returns -2 while 2023 raises size error. The 0 ** 0 rules of 8.8.1.4.4 and 8.8.1.5.4 belong to standard-binary and standard-decimal arithmetic, which a 1985 program never selects.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "source": "adjudicate-712/slice-12",
+  "digests": {
+   "GR-8.8.1.2-6": "b0a598051024"
+  }
  }
 }

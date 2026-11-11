@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "§2023:8.4.2.2.3 SR7: 'If explicitly referenced, a paragraph-name shall not be duplicated within a section' and need not be qualified within the same section, restated as the exemption in §2023:8.4.2.2.1 ('The name is a paragraph-name and the section containing the reference also contains the named paragraph'). Format 4 of §2023:8.4.2.2.2 is 'paragraph-name-1 IN/OF section-name-1' with no SECTION word. The cross-program bar is the uncataloged §2023:8.4.6.1 ('may be referenced only by statements in the source element in which the user-defined word is declared'). Every part is kept.",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "SR-8.4.2.2.3-7": "47e4010603ff",
+   "SR-8.4.2.2.1-6": "7116b2080d95",
+   "FMT-8.4.2.2.2": "3f817a52f31f"
+  }
  }
 }

@@ -13,6 +13,9 @@
   "reason": "1985: 'Following the successful execution of a CLOSE statement without the REEL or UNIT phrase, the record area associated with a file-name-1 is no longer available', unsuccessful leaves it undefined, with no exception for SAME RECORD AREA. §2023:14.9.6.4 GR7 keeps both outcomes when file-name-1 is in no SAME RECORD AREA clause or none of its partners is open, but adds: 'If file-name-1 is specified in a SAME RECORD AREA clause, the record area is available to the runtime element if any of the file connectors referenced by the other file-names in that SAME RECORD AREA clause are open.' A reference through the closed file's record after CLOSE, undefined in 1985, is defined in 2023 when a sharing file is open: looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-15"
+  "source": "adjudicate-712/slice-15",
+  "digests": {
+   "GR-14.9.6.4-7": "239454c575d1"
+  }
  }
 }
