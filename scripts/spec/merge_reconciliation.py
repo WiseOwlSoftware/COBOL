@@ -254,7 +254,7 @@ def self_test() -> int:
 
     def write(path: pathlib.Path, doc: dict) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(doc), encoding="utf-8")
+        path.write_text(json.dumps(doc), encoding="utf-8", newline="\n")
 
     claim = {"page": 5, "kind": "incorrect-text", "severity": "normative", "pdf_says": "shall be", "markdown_says": "may be",
              "why_it_matters": "a rule"}
@@ -288,7 +288,7 @@ def self_test() -> int:
               not (root / "LEDGER.json").exists())
         ledger["claims"][0].update({"decision": "APPLIED", "edits": [{"was": "may be", "now": "shall be"}]})
         ledger["sweeps"] = [{"page": 5, "sweep": "s", "was": "may", "now": "shall"}]
-        (root / "LEDGER-2002.json").write_text(json.dumps(ledger), encoding="utf-8")
+        (root / "LEDGER-2002.json").write_text(json.dumps(ledger), encoding="utf-8", newline="\n")
         with contextlib.redirect_stdout(io.StringIO()):
             merge(2002, 0, root)
         again = json.loads((root / "LEDGER-2002.json").read_text(encoding="utf-8"))
