@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.2.4-9",
  "rule-digest": "b59b70f6365f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#InvocationText; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate",
  "test-ref": "conformance:cases/X.5.2@1985-CALL-STATEMENT/1985-GR-X_5_2_4-9",
+ "notes": "§1985:X.5.2.4 GR9 states a requirement on the program: a CALL to a COBOL program carries USING 'only if there is a USING phrase in the Procedure Division header of the called program, in which case the number of operands in each USING phrase must be identical'; it gives no result for a violation, so §1985:I.1.6 ('The results of violating the formats or rules of Standard COBOL are undefined') applies and the compiler owes correct execution of matching calls only. CallBinder#BindCall binds the operands positionally, CallEmitter#InvocationText renders them as the CobolArg array, and ProgramTable#Activate lands them on the callee's formals; its count check is gated on EC-PROGRAM-ARG-MISMATCH checking, which 85 cannot enable (>>TURN refused, COBOL0900), so a mismatch runs leniently, which the undefined result permits. Probes at --std 85: matching count with an ODO group, an 18-digit signed BY CONTENT and an edited item passed and returned correctly (G=4ABC, S unchanged); fewer, more and no arguments to a separately compiled and to a contained callee ran without a diagnostic (undefined); OMITTED, BY VALUE and an OPTIONAL formal were refused (COBOL0900, 2002+). The witness exercises two equal USING lists.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

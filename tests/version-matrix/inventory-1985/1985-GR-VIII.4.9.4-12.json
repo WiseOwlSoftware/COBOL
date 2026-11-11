@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.9.4-12",
  "rule-digest": "d3d5df4966a8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#NextSequentialSlot; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
  "test-ref": "conformance:cases/VIII.4.9@1985-WRITE-STATEMENT/1985-GR-VIII_4_9_4-12",
+ "notes": "§1985:VIII.4.9.4 GR12: in extend mode 'The first record released ... has a relative record number one greater than the highest relative record number existing in the file', later ones consecutively higher, each moved into the RELATIVE KEY per MOVE. RelativeConnector#Write takes the sequential release for an EXTEND-open sequential connector; NextSequentialSlot answers max(highest existing key, last released) + 1, which for an unshared 1985 file is exactly highest + 1 then consecutive, and KeyedIoEmitter#EmitWrite moves the number into the key on success. Probes at 85: EXTEND on an empty file releases 1 (key preset 5 overwritten); after a random WRITE of record 8, EXTEND releases 9, and the next (10) with a PIC 9 key is invalid key 24 per GR14 c; OPEN EXTEND of a missing file answers 35 and the WRITE after it 48; a keyless EXTEND writes 00; OPEN EXTEND on a random file is refused (COBOL2372). The witness checks numbering past a hole and after DELETE of the top records.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

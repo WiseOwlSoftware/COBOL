@@ -69,8 +69,10 @@ kb/Work PB2526), each population then checked by name against its `--list-tests`
   GREEN record (`REUSED`, kb/Work PB3536). Each assembly is a TARGET with declared inputs (scripts/build_targets.json) and its
   own key; a target whose key holds a pass in the ONE store every worktree shares (`<git common dir>/cobol-build-store/`) is
   UP TO DATE and starts no host, and at a target's key a re-gate runs only the cases an earlier run of the worktree did not
-  pass (kb/Work PB5218, PB5099: `WISEOWL_COBOL_GATE_ONLY`). A records-only change re-runs Unit and Conformance (the suite's
-  generator reads the inventory), not Characterization; a docs, kb or tooling-lane change re-runs none (`GREEN — EVERY TARGET
+  pass (kb/Work PB5218, PB5099: `WISEOWL_COBOL_GATE_ONLY`). The conformance suite's manifests are a GENERATED target
+  (`conformance-suite`, kb/Work PB5231): the gate generates them first (traced), keys Conformance on their OUTPUT DIGEST and
+  hands the directory to its host (`WISEOWL_COBOL_GATE_SUITE`). So a records-only change re-runs Unit, and Conformance only
+  when the generated suite changed; a docs, kb or tooling-lane change re-runs none (`GREEN — EVERY TARGET
   UP TO DATE …`). The landing (`python scripts/orchestrator/enqueue.py land <branch>`, kb/Work
   PB3023, MANDATORY-PRACTICES L1, L2) reads this record; CI's merge group is the first run of the merged tree, of Linux
   and of Release (PB4323 §2023:5.1).
@@ -150,9 +152,10 @@ The base's "Read the verdict line", "Flakes and attribution" and "A filter that 
 written (full output to a file, no source edits while a gate runs, no flake without the test's name and an isolated
 re-run). Here, additionally:
 
-- **Never chain ANYTHING after a verdict command** (build, test, `build-local`, `enqueue.py land`, battery) with `&&`,
-  `||` or `;` — MANDATORY-PRACTICES P14, and the guard hook (`scripts/hooks/forbidden_commands.py` rule 5) BLOCKS
-  it. To capture the status in the same call, append `; echo "EXIT=$?"`; read-only commands may follow that.
+- **Read the verdict LINE, never a shell exit status.** A chain's status is its last command's, so nothing reads one
+  as a verdict: a landing reads the gate's record (`enqueue.py land` refuses a tip no GREEN record covers). Chaining
+  after a verdict command is therefore not refused (kb/Work PB5234: 1 true refusal of 127, and that one the landing
+  refuses itself).
 - `scripts/build-local.{ps1,sh}` prints ONE `=== BUILD-LOCAL GATE: ` verdict line — `GREEN`, `RED`, `BUILD
   FAILED`, `BUSY` (exit 3: another gate holds
   this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN [<cause>]` (exit

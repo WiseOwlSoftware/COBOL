@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.2.3-6",
  "rule-digest": "cb2b0b4e4c38",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted",
  "test-ref": "conformance:cases/XIII.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-SR-XIII_3_2_3-6",
+ "notes": "§1985:XIII.3.2.3 SR6: 'The availability of specific clauses in this file description entry is dependent on the level of Sequential I-O module supported by the implementation.' --std=85 is the high subset (kb/Work PB4885), so Sequential I-O level 2 is supported and every clause of the report FD format must be available, the level-2 BLOCK CONTAINS integer-1 TO and VALUE OF data-name forms included. FileDescriptionFormats.Of classes an FD with a REPORT clause as Format 3 and FileDescriptionClauseAdmitted admits BLOCK CONTAINS, RECORD, LABEL RECORDS, VALUE OF and CODE-SET there by the Rows table, with no level arm that withholds any; the witness compiles BLOCK CONTAINS 1 TO 10 RECORDS with LABEL RECORDS and prints DONE. Probes (std 85): d) BLOCK CONTAINS 1 TO 10 RECORDS, BLOCK CONTAINS 800 CHARACTERS, RECORD CONTAINS 80 CHARACTERS, RECORD CONTAINS 5 TO 80 CHARACTERS, LABEL RECORDS STANDARD, LABEL RECORD OMITTED, VALUE OF FILE-ID IS data-name, VALUE OF FILE-ID IS literal, CODE-SET IS alphabet-name, and all five together each compiled, ran and printed DONE; b) BLOCK CONTAINS written twice COBOL2423, LINAGE (integer and data-name) COBOL2604; a) RECORD IS VARYING IN SIZE FROM 1 TO 80 CHARACTERS accepted and ran; c) no 2002 report FD clause is reachable that the table does not already refuse. Outside this rule, for the general-format row 1985-FMT-XIII.3.2.2: RECORD IS VARYING and DATA RECORD IS XREC (a record no report FD may have) are accepted in a report FD at 85, the second within kb/Work PB5070.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

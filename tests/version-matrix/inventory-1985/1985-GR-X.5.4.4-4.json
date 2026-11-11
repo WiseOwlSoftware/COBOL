@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.4.4-4",
  "rule-digest": "143ebc1b178e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#RefusedInGlobalDeclarative; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram",
  "test-ref": "conformance:cases/X.5.4@1985-EXIT-PROGRAM-STATEMENT/1985-GR-X_5_4_4-4",
+ "notes": "§1985:X.5.4.4 GR4 (X3.23b-1993) says 'An EXIT PROGRAM statement must not be executed while executing within the range of a declarative procedure in which the GLOBAL phrase is specified, except within a program called while executing within the range of that declarative procedure'; it states no result, so under §1985:I.1.6 a violation is undefined, and what the compiler owes is a normal EXIT PROGRAM in a program the declarative calls, plus §1985:X.5.4.3 SR2's refusal of the statement written in the global declarative. ControlFlowBinder#BindExit asks PlacementRules.RefusedInGlobalDeclarative (EnclosingContext.cs), which refuses it there (COBOL2102); an EXIT PROGRAM in a program the declarative CALLs is CallEmitter#EmitExitProgram's ordinary return. Probes at --std 85: EXIT PROGRAM in the global declarative refused; a global declarative of a containing program, entered for a failed indexed OPEN (35) and then a READ on the unopened file (47) in a contained program, CALLed a helper whose EXIT PROGRAM returned into the declarative, and the statement after each failed I-O ran; an EXIT PROGRAM reached by PERFORM of another declarative section (the violation) returned to the caller, an allowed undefined result. The witness calls XPSUB from a global declarative after a failed READ.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

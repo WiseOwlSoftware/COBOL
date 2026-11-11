@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.2.5.4-3",
  "rule-digest": "e9f551f9cef4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
  "test-ref": "conformance:cases/X.2.5@1985-END-PROGRAM-HEADER/1985-GR-X_2_5_4-3",
+ "notes": "§1985:X.2.5.4 GR3: after the end program header of a contained program 'the next statement must either be an Identification Division header or another end program header which terminates the containing program.' nestedProgram ends with its required endProgramHeader and the container's rule allows after it only another nestedProgram (which opens with identificationDivision) or the container's own endProgramHeader; VisitIdentificationDivision refuses at 85 a contained program begun at PROGRAM-ID (COBOL0900), and EndMarkerPass.ScreenProgram refuses an END PROGRAM naming a program other than the one it terminates (COBOL2793). Probed at 85: after END PROGRAM of a contained program, a PROGRAM-ID without header (COBOL0900), a paragraph resuming the container's code, a DATA DIVISION header and a repeated END PROGRAM (COBOL0001), a FUNCTION-ID (COBOL2274/0900), the grandparent's END PROGRAM before the parent's (COBOL2793) and end of file with the container unterminated (COBOL2793) were all refused; a second contained program with its header, and the container's END PROGRAM followed by a separately compiled program, compiled and ran; the witness has two contained programs in sequence.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

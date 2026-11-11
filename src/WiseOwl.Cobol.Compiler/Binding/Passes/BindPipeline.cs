@@ -30,6 +30,7 @@ internal static class BindPipeline
         // ── The per-unit resolution passes, in the EXACT pre-P5 BindResolve order (DataBinder.cs). ──
         new SynthesizeImpliedPicturesPass(),
         new ExpandTypesPass(),
+        new CheckGlobalNameUniquenessPass(),
         new CheckConstantRecordSubtreesPass(),
         new UsageInheritancePass(),
         new CheckUsageDeclarationsPass(),

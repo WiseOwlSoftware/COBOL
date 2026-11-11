@@ -10,23 +10,16 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
                             `python scripts/orchestrator/enqueue.py land <branch>` (kb/Work PB3023: main merged in, the
                             gate, the DEVLOG stamp, then one pull request into GitHub's merge queue; owner decision Q23,
                             2026-09-06; kb/Work PB3024). A push to a work branch is fine.
-  direct push in a unit     inside an orchestrator unit (COBOL_COORD_DIR set) ANY `git push`, any repository, any
-                            flags: a unit lands through the landing script (enqueue.py) and never publishes another repo
-                            (owner 2026-10-05, kb/Work/PB2044: the wave unit pushed the public skills repo's main with
-                            `git push -q origin HEAD:main`, which the deny rule's text pattern missed).
-  escapes in a heredoc      heredoc bodies with backslash escapes were mangled or mis-escaped in six sessions (and the
-                            harness decodes some escapes in tool input); write the file with the Write tool instead.
+  a unit's push to another  inside an orchestrator unit (COBOL_COORD_DIR set) a `git push` whose remote is not THIS
+  repository                repository, any flags: a unit never publishes another repo (owner 2026-10-05, kb/Work/PB2044:
+                            the wave unit pushed the public skills repo's main with `git push -q origin HEAD:main`). Its
+                            own work branch it pushes like any session (kb/Work PB5234: every one of 31 refusals was that).
+  a backslash run in a      the Bash TOOL halves every run of two or more backslashes that does not end at a double
+  Bash heredoc body         quote, after this hook and before bash runs (measured 2026-11-10, kb/Work PB5234; a single
+                            backslash and the PowerShell tool are byte-exact), so a quoted heredoc body that holds one
+                            arrives altered; write the file with the Write tool instead.
   bare `~X` test filter     `--filter "~X|~Y"` matches NOTHING and exits 0 — a silent green; every term needs a
                             property (FullyQualifiedName~X).
-  unredirected filtered     a filtered `dotnet test` whose output is neither redirected nor piped floods the context
-  dotnet test               and hides the verdict line; log it and read the verdict line (the gate skill).
-  chaining after a verdict  a build / test / gate / landing command followed by `&&`, `||` or `;` and another
-                            command: the chain's exit status is its LAST command's, so the verdict is masked or acted
-                            on unread (`dotnet test … && git commit` committed on a false green). Allowed after it: an
-                            `echo … $?` that CAPTURES the status, and once captured, read-only commands on the log.
-                            Owner 2026-09-27 (adopting the no-chaining idea from carlymr/carlys-claude-skills in a
-                            targeted form: independent commands go as parallel tool calls in one turn, because a
-                            blanket ban would add turns, and agent cost is quadratic in turns).
   `cd` in a backgrounded    a location change (`cd`, `pushd`, `Set-Location`, ...) inside an and-or list that a single
   list, then more           `&` sends to the background, with another command after that `&` (MANDATORY-PRACTICES
                             P14(b), kb/Work PB3095): `cd X && a & b &` runs `a` in a background subshell under X and
@@ -136,34 +129,146 @@ for call in GIT_CALLS:
               "runs the gate, stamps the DEVLOG entry and queues one pull request into GitHub's merge queue (it "
               "refuses while `ruleset.py check` does not report the queue ACTIVE). It is idempotent; run it with "
               "run_in_background and block on its `=== ENQUEUE: ` line.")
-# 2b. ANY direct `git push`, in ANY repository, inside an orchestrator unit (owner 2026-10-05, kb/Work/PB2044).
+# 2b. inside an orchestrator unit, a `git push` to ANOTHER repository, whatever its flags (owner 2026-10-05, kb/Work/PB2044).
 # Rule 2 guards THIS repo's main and deliberately leaves another repository to its own rules, so an attended session may
 # push the sites and the public skills repo. A unit has no such need and runs under `bypassPermissions`: on 2026-10-05 the
-# wave unit published the public skills repo's main with `git push -q origin HEAD:main` from a scratch clone, and the
-# project's deny rule (a TEXT pattern, `git push origin HEAD:main`) missed it because of the extra `-q`. A unit lands
-# through `python scripts/orchestrator/enqueue.py land`, whose command text contains no `git push`; the supervisor exports
-# COBOL_COORD_DIR into every unit's environment and hooks (also in its subagents) inherit it. Attended sessions and
-# cloud sessions never have it set, so their pushes are untouched. A call is the git SUBCOMMAND after any global options
-# (`-C dir`, `-c k=v`, `--no-pager`; `shell_location.git_calls`), so flags before or after cannot dodge it, `git log
-# --grep=push` is not hit, a commit message that says "git push" is one quoted word, and a `bash -c` payload is a command
-# line like any other.
-if os.environ.get("COBOL_COORD_DIR") and any(call.subcommand == "push" for call in GIT_CALLS):
-    block("a direct `git push` is refused inside an orchestrator unit (any repository, any flags). Land this "
-          "repository's work with `python scripts/orchestrator/enqueue.py land <branch>` (it queues a pull "
-          "request into GitHub's merge queue). A change to ANOTHER repository (the public skills "
-          "repo, a site) is never published by a unit: hand it off as an owed push in the handoff and the "
-          "attended session or the owner publishes it (kb/Work/PB2044).")
-# 3. backslash escapes inside a heredoc body — the bodies the model cut out at their delimiter lines, never the text after
-# the first `<<` (a `<<` inside quotes is no heredoc, and a command after the body is no body)
-if any(re.search(r"\\[nrtuUx0abfvdswDSW\\'\"]", body) for st in STEPS for body in st.heredocs):
-    block("this heredoc body contains backslash escape sequences, which have been mangled here repeatedly. Write the "
-          "script or file with the Write tool (into your own scratch directory, MANDATORY-PRACTICES P16) and run it, or express the character without an "
-          "escape (chr(10), a character class).")
+# wave unit published the public skills repo's main with `git push -q origin HEAD:main` from a scratch clone. The
+# supervisor exports COBOL_COORD_DIR into every unit's environment and hooks (also in its subagents) inherit it; attended
+# and cloud sessions never have it set. Until kb/Work PB5234 this refused EVERY push in a unit; measured over three days
+# (2026-11-08..10), all 31 refusals were a unit pushing its own work branch of this repository, which CLAUDE.md rule 7 asks
+# of every checkpoint. So the repository is now judged by what the push publishes to, the remote's URL, never by a folder
+# name: a scratch clone of another repository under `E:/COBOL-coord` (whose name starts with this repo's) is another
+# repository. The destination is resolved by `_push_urls` (its docstring lists what it reads): the first positional
+# word or `--repo`, else the branch's `pushRemote`, `remote.pushDefault`, the branch's remote, `origin`; a remote's PUSH
+# URLs are asked of git in the directory the push runs in (`GitCall.cwd`), and EVERY one must be this repository. A push
+# redirected by `--git-dir`, `GIT_DIR`-style variables in the line or a `url.*.insteadOf` is refused (`_redirected`;
+# kb/Work PB5269). A push whose repository cannot be
+# determined (an unknown directory, a git that does not answer) is refused: inside a unit the rule fails closed.
+_HOOK_CWD = pathlib.Path(data.get("cwd") or os.getcwd())
 
-# 4. dotnet test filters, per `dotnet test` command: its own `--filter` value, and its own redirection or the reader the
-# pipe after it feeds (a `>` elsewhere in the line logs some other command)
-_PIPE_READERS = {"tail", "grep", "select-string", "tee-object", "tee", "findstr", "out-file"}
-for n, st in enumerate(STEPS):
+
+def _git_out(cwd: pathlib.Path, *args: str, config: tuple[str, ...] = ()) -> list[str] | None:
+    """The lines git prints for `git -C cwd [-c k=v ...] args`; None when git fails or prints nothing."""
+    import subprocess  # only a unit's push reaches git: importing it for every tool call cost ~11 ms
+    try:
+        r = subprocess.run(["git", "-C", str(cwd), *[w for kv in config for w in ("-c", kv)], *args],
+                           capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    lines = [ln.strip() for ln in r.stdout.splitlines()] if r.returncode == 0 else []
+    return [ln for ln in lines if ln] or None
+
+
+def _repo_key(url: str) -> str:
+    """One spelling of a remote: `https://github.com/O/R.git`, `git@github.com:O/R` and `ssh://git@github.com/O/R` are
+    one key; a local path is its resolved path."""
+    u = url.strip().replace("\\", "/").rstrip("/")
+    u = re.sub(r"\.git$", "", u, flags=re.I)
+    m = re.match(r"^(?:[a-z+]+://)?(?:[^@/]+@)?([^/:]+)[:/](.+)$", u, re.I)
+    if m and not re.match(r"^[a-z]:/", u, re.I):
+        return (m.group(1) + "/" + m.group(2)).lower()
+    return str(pathlib.Path(u).resolve()).lower()
+
+
+# `git push`'s options that take their value as the NEXT word (`--repo=x` spells it in the same word); every other option
+# is a flag or spells its value with `=` (git-push(1))
+_PUSH_VALUE_OPTIONS = {"--repo", "--receive-pack", "--exec", "-o", "--push-option"}
+
+
+def _push_repository(args: tuple[str, ...]) -> str | None:
+    """The repository a `git push` names: its first positional word, which git prefers (measured: `git push
+    --repo=origin ../b.git` pushes to b.git), else `--repo=X` / `--repo X`; None when it names none (the default push
+    remote is then used)."""
+    repo = positional = None
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a.startswith("--repo="):
+            repo = a[len("--repo="):]
+        elif a in _PUSH_VALUE_OPTIONS:
+            if a == "--repo" and i + 1 < len(args):
+                repo = args[i + 1]
+            i += 1
+        elif not a.startswith("-") and ">" not in a and "<" not in a and positional is None:
+            positional = a
+        i += 1
+    return positional if positional is not None else repo
+
+
+# git's own inputs that move or rewrite a push's destination out of reach of the remote's configuration: a repository
+# chosen by `--git-dir` or the environment (GIT_DIR, GIT_COMMON_DIR, GIT_CONFIG*, which can carry `url.*.insteadOf`), and
+# a URL rewrite given with `-c`. A unit has no use for any of them, so a push that carries one is refused outright.
+_GIT_ENV_WORD = re.compile(r"^(?:\$?env:)?GIT_(?:DIR|COMMON_DIR|CONFIG\w*)(?:=|$)", re.I)
+_URL_REWRITE = re.compile(r"^url\..*\.(?:push)?insteadof=", re.I)
+
+
+def _redirected(call) -> bool:
+    """Whether the push's git was pointed elsewhere by `--git-dir`, a `-c url.*.insteadOf` / `pushInsteadOf`, or an
+    environment variable set anywhere in the command line (`GIT_DIR=x git push`, `export GIT_DIR=x; git push`,
+    `$env:GIT_DIR = 'x'; git push`). The hook's own environment is the push's too, and the git processes this hook starts
+    inherit it, so what they read is what the push would read."""
+    return (any(o.startswith("--git-dir") or _URL_REWRITE.match(o) for o in call.options)
+            or any(_GIT_ENV_WORD.match(w) for st in STEPS for w in st.words))
+
+
+def _push_urls(call, cwd: pathlib.Path) -> list[str] | None:
+    """The URLs a `git push` publishes to, as far as this hook resolves them: the first positional word, else `--repo`,
+    else the current branch's `pushRemote`, `remote.pushDefault`, the branch's own remote, `origin`. A remote name is read
+    to its push URLs by `git remote get-url --push --all` (`remote.<name>.pushurl` over `url`, `url.*.insteadOf` and
+    `pushInsteadOf` applied); a URL or path is its own, and None (refused) when the repository configures a URL rewrite,
+    which git would apply to it. The call's own `-c k=v` options reach git. Not resolved, and refused instead:
+    `--git-dir` and the environment (`_redirected`). None when it cannot be determined."""
+    config = tuple(o for prev, o in zip(("",) + call.options, call.options) if prev == "-c")
+    repo = _push_repository(call.args)
+    if repo is None:
+        branch = (_git_out(cwd, "symbolic-ref", "--short", "-q", "HEAD", config=config) or [""])[0]
+        keys = ([f"branch.{branch}.pushremote"] if branch else []) + ["remote.pushdefault"] \
+            + ([f"branch.{branch}.remote"] if branch else [])
+        repo = next((v[0] for k in keys if (v := _git_out(cwd, "config", "--get", k, config=config))), "origin")
+    if re.search(r"[:/\\]", repo):
+        if _git_out(cwd, "config", "--get-regexp", r"^url\..*\.(push)?insteadof$", config=config):
+            return None
+        return [repo]
+    return _git_out(cwd, "remote", "get-url", "--push", "--all", repo, config=config)
+
+
+def _pushes_elsewhere(call) -> bool:
+    """Whether a push publishes to a repository other than this one (or one this hook cannot determine)."""
+    if call.cwd is None or _redirected(call):
+        return True
+    urls = _push_urls(call, _HOOK_CWD / call.cwd)
+    # this repository's own remote is asked only here, inside a unit and for a push: asked at import it cost every
+    # tool call a git process (0.070 s became 0.725 s median, kb/Work PB5234)
+    this_remote = _git_out(_ROOT_DIR, "remote", "get-url", "origin")
+    if urls is None or this_remote is None:
+        return True
+    return any(_repo_key(u) != _repo_key(this_remote[0]) for u in urls)
+
+
+if os.environ.get("COBOL_COORD_DIR"):
+    for call in GIT_CALLS:
+        if call.subcommand == "push" and _pushes_elsewhere(call):
+            block("a `git push` to another repository (or one whose remote this hook cannot read) is refused inside an "
+                  "orchestrator unit. A unit pushes only its own work branch of THIS repository and lands it with "
+                  "`python scripts/orchestrator/enqueue.py land <branch>`; a change to ANOTHER repository (the public "
+                  "skills repo, a site) is never published by a unit: hand it off as an owed push and the attended "
+                  "session or the owner publishes it (kb/Work/PB2044).")
+# 3. a run of two or more backslashes, not ending at a double quote, inside a Bash heredoc body. Measured 2026-11-10
+# (kb/Work PB5234, its guard-measurements addendum): the Bash tool hands bash `eval '<command>'` with every such run
+# halved (`\\n` arrives as `\n`, four backslashes as two), AFTER this hook has read the command; a single
+# backslash (`\n`, `\d`, `C:\Users`), a run that ends at `"`, the Write tool and the PowerShell tool all arrive
+# byte-exact, and bash runs a heredoc exactly as POSIX specifies. Until 2026-11-10 this rule refused ANY backslash
+# escape in a body: 576 refusals in three days, 400 of them bodies that would have arrived intact. The bodies are the
+# ones the model cut out at their delimiter lines, never the text after the first `<<`.
+_HALVED_RUN = re.compile(r'(?<!\\)\\{2,}(?![\\"])')
+if data.get("tool_name") != "PowerShell" and any(_HALVED_RUN.search(body) for st in STEPS for body in st.heredocs):
+    block("this heredoc body holds a run of two or more backslashes, and the Bash tool halves such a run before bash "
+          "runs it (kb/Work PB5234: `\\\\n` arrives as `\\n`; a single backslash and a run that ends at a "
+          "double quote arrive intact). Write the file with the Write tool (into your own scratch directory, "
+          "MANDATORY-PRACTICES P16) and run it, or use the PowerShell tool, which is byte-exact.")
+
+# 4. a property-less dotnet test filter term, per `dotnet test` command: its own `--filter` value
+for st in STEPS:
     w = st.words
     at = next((k for k in range(len(w) - 1) if shell_location.program(w[k]) == "dotnet" and w[k + 1] == "test"), None)
     if at is None:
@@ -179,59 +284,8 @@ for n, st in enumerate(STEPS):
         block(f"filter term(s) {bare} have no property, so they match NOTHING and the run exits 0 — a silent "
               "green. Write `FullyQualifiedName~X` for every term. (A GATE never filters: it is "
               "`scripts/build-local.ps1`, the ordered gate.)")
-    # the reader is the next stage's command: the next step at this step's own substitution level (a `dotnet test`
-    # inside `$( … )` pipes to a step of that same substitution); the steps of the READER's substitutions run before
-    # it, one level deeper, and are not the reader (the branch review of PB3198, R2-1)
-    nxt = next((s for s in STEPS[n + 1:] if s.substitution <= st.substitution), None) if st.sep == "|" else None
-    reader = nxt.words[:1] if nxt is not None else ()
-    piped = bool(reader) and shell_location.program(reader[0]) in _PIPE_READERS
-    if not (piped or any(">" in a for a in args)):
-        block("a filtered `dotnet test` must redirect its output to a log (or pipe it through tail/grep) and read the "
-              "verdict line — unredirected output floods the context and hides the verdict. A GATE is "
-              "`scripts/build-local.ps1`, never a filtered run.")
 
-# 5. chaining after a verdict command
-# A verdict command is a command that RUNS one: `dotnet test|build`, or a gate / landing script invoked directly or through
-# an interpreter (`python scripts/orchestrator/enqueue.py land b`, `pwsh -File scripts/build-local.ps1`). A command that
-# merely NAMES one of those files (`git add -- scripts/build-local.ps1`, `sed -n 1,5p scripts/orchestrator/enqueue.py`)
-# is not one: matching anywhere in the
-# segment blocked such harmless commands and cost extra turns (2026-10-04).
-_GATE_SCRIPT = (r"(?:\./)?\S*(?:build-local\.(?:ps1|sh)|battery\.sh|guard(?:-fast)?\.sh"
-                r"|orchestrator/enqueue\.py)\b")
-VERDICT = re.compile(r"^(?:\w+=\S*\s+)*(?:dotnet\s+(?:test|build)\b|"
-                     r"(?:(?:bash|sh|pwsh|powershell|python3?|py)(?:\.exe)?\s+(?:-\S+\s+)*)?" + _GATE_SCRIPT + r")")
-READ_ONLY = re.compile(r"^\s*(?:grep|rg|tail|head|cat|sed\s+-n|wc|ls|Select-String|Get-Content|findstr|type)\b")
-
-
-# Rules 5-7 read the same STEPS as every rule above: quotes, escapes, comments, heredoc bodies, here-strings,
-# `( … )`/`{ … }` groups and `bash -c` payloads are the shared parser's to know, never a private scanner's (the branch
-# review of PB3024, R1-1: a private splitter opened a quote on a comment's apostrophe and failed open).
-
-
-def _segments(steps) -> list[str]:
-    """The command line's segments: each a command or pipeline ended by `&&`, `||`, `;` or a newline (a pipe or a
-    background `&` keeps what follows in the same segment). A group or a `-c` payload is one opaque part, `( … )`: a
-    verdict command inside one is not this command line's chain. A substitution's steps are part of the command whose
-    text holds them (`echo "EXIT=$? $(date)"` is one echo), so they are no segment of their own."""
-    out: list[str] = []
-    cur: list[str] = []
-    for st in steps:
-        if st.substitution:
-            continue
-        part = st.text if st.depth == 0 else "( … )"
-        if not (part == "( … )" and cur and cur[-1] == part):
-            cur.append(part)
-        if st.sep not in ("|", "&"):
-            out.append(" | ".join(cur))
-            cur = []
-    if cur:
-        out.append(" | ".join(cur))
-    return out
-
-
-segs = _segments(STEPS)
-
-# 6. WSL lifecycle commands (owner 2026-10-04): `wsl --terminate/--shutdown/--update/--export/--import/--unregister/--install`
+# 5. WSL lifecycle commands (owner 2026-10-04): `wsl --terminate/--shutdown/--update/--export/--import/--unregister/--install`
 # can end the owner's open session, race a procedure they run by hand, or burn tens of GB of disk, so NO agent or unattended
 # unit runs them; the owner does. Reads and commands INSIDE a distro (`wsl -d Ubuntu -e ...`) stay allowed. Only a segment
 # whose command IS wsl is checked, so a commit message or a grep pattern that mentions the flags passes.
@@ -243,24 +297,7 @@ for _st in STEPS:   # every simple command, a `-c` payload's and a pipeline's la
               "`--install`) are the OWNER's to run (owner 2026-10-04: they can end an open session or burn disk). Give the "
               "owner the exact command and wait; commands inside a distro (`wsl -d Ubuntu -e ...`) are fine.")
 
-for i, seg in enumerate(segs[:-1]):
-    if not VERDICT.match(seg):
-        continue
-    captured = False
-    for nxt in segs[i + 1:]:
-        if re.match(r"^\s*echo\b", nxt) and ("$?" in nxt or "PIPESTATUS" in nxt or "$LASTEXITCODE" in nxt):
-            captured = True
-            continue
-        if captured and READ_ONLY.match(nxt):
-            continue
-        block(f"`{nxt[:60]}` is chained after the verdict command `{seg[:60]}`: the chain's exit status is its LAST "
-              "command's, so the verdict is masked or acted on unread. Run the verdict command alone (redirect it to "
-              "a log), read its verdict line, then run the next step as its own call. To capture the status in the "
-              "same call, append `; echo \"EXIT=$?\"` (read-only commands may follow that). Independent commands go "
-              "as parallel tool calls in one turn.")
-        break
-
-# 7. a location change inside a BACKGROUNDED and-or list that another command follows (MANDATORY-PRACTICES P14(b),
+# 6. a location change inside a BACKGROUNDED and-or list that another command follows (MANDATORY-PRACTICES P14(b),
 # kb/Work PB3095). A single `&` ends an and-or list and runs THE WHOLE LIST in a background subshell (bash) or job
 # (PowerShell 7), so a `cd` joined to it by `&&`/`||` moves only that subshell: `cd X && a & b &` runs `a` under X and
 # `b` in the caller's directory. On 2026-10-11 a landing audit written that way reported a false OK into the queue. A

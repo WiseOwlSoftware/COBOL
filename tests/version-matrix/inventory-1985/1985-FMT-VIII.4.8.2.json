@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VIII.4.8.2",
  "rule-digest": "ec80c8140ea3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useOnTarget; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
  "test-ref": "conformance:cases/VIII.4.8@1985-USE-STATEMENT/1985-FMT-VIII_4_8_2",
+ "notes": "§1985:VIII.4.8.2 prints 'USE AFTER STANDARD { EXCEPTION | ERROR } PROCEDURE ON { file-name-1 ... | INPUT | OUTPUT | I-O | EXTEND }' with AFTER and PROCEDURE underlined (required) and STANDARD and ON optional; the IPC module adds [ GLOBAL ]. CobolControlFlow.g4#useStatement parses the superset Format 1 with AFTER? and PROCEDURE?, and VersionConformancePass#VisitUseStatement refuses each omission at 85 (use-without-after-2002, use-without-procedure-2002) and the 2002 Formats 3/4; ProcedureTableBuilder#DeclBindUse binds the file and open-mode targets. Probes at --std 85: (b) AFTER omitted COBOL0900, PROCEDURE omitted COBOL0900, empty target COBOL0001, EXCEPTION/ERROR omitted COBOL5506, ERROR written twice COBOL5506, INPUT followed by a file-name COBOL0307; (c) USE AFTER EXCEPTION CONDITION EC-I-O COBOL0877/COBOL0878, USE GLOBAL accepted (1985 IPC format); (e) relative random, dynamic and sequential files: ON AFILE BFILE fired for a duplicate WRITE (22) and a READ of an absent record 7 on an I-O-open file (23, the file-name procedure, not ON I-O), ON INPUT fired for OPEN INPUT of an absent file (35), ON OUTPUT and ON EXTEND did not, ON EXTEND fired for OPEN EXTEND of an absent file (35), and STANDARD and ON omitted (USE AFTER ERROR PROCEDURE RFILE) accepted and fired. The witness exercises ERROR PROCEDURE ON file-name-1 at end of file (10).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

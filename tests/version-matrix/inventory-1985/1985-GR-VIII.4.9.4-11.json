@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.9.4-11",
  "rule-digest": "c9d89ee845ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#NextSequentialSlot; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
  "test-ref": "conformance:cases/VIII.4.9@1985-WRITE-STATEMENT/1985-GR-VIII_4_9_4-11",
+ "notes": "§1985:VIII.4.9.4 GR11: in output mode a sequential WRITE gives 'The first record has a relative record number of one, and subsequent records released have relative record numbers of 2, 3, 4', moved into the RELATIVE KEY per MOVE; random or dynamic access writes the number the program put in the key. RelativeConnector#Write selects the release rule on the access mode alone: NextSequentialSlot (highest existing + 1, which is 1 after OPEN OUTPUT empties the store) for sequential, _pendingKey set by KeyedIoEmitter#EmitWrite (FileSetRelativeKey) for random/dynamic; EmitWrite then stores the released number into the key through StoreArith on success. Probes at 85: a PIC 9(18) COMP key preset to 18 nines and a PIC 9(3) COMP-3 key both receive 1, 2, 3; a RECORD VARYING dynamic file with an ODO record writes key 7 and reads it back at length 4; key 0 (1985 leaves it undefined) answers 34 as 2023 defines; WRITE FROM literal is refused (COBOL0871). The witness covers sequential, random and dynamic output.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.3.1.4-1",
  "rule-digest": "62ddb53a25a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
  "test-ref": "conformance:cases/X.3.1@1985-PROGRAM-ID-PARAGRAPH-AND-NESTED-SOURCE/1985-GR-X_3_1_4-1",
+ "notes": "§1985:X.3.1.4 GR1: 'The program-name identifies the source program, the object program, and all listings pertaining to a particular program.' BinderDriver.MakeUnit takes the unit's name from the PROGRAM-ID program-name and the runtime ProgramTable.CallProgram/ResolveVisible finds the object program by it; at 85 VersionConformancePass.VisitExternalizedNamePhrase refuses the 2002 AS literal that would externalize a different name (COBOL0900), and PROGRAM-ID with a literal or no name is a syntax refusal (COBOL5506). Probes (class b/c/d): CALL by identifier holding INNER runs it, CALL \"INNERX\" takes ON OVERFLOW, PROGRAM-ID AS \"EXTNAME\", PROGRAM-ID \"OUTER\" and an empty PROGRAM-ID refused; the witness (OUTER calling contained INNER by its program-name) prints OUTER START/INNER RUNS/OUTER END.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

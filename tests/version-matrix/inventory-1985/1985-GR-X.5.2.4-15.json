@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.2.4-15",
  "rule-digest": "409cd70922fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramIdAttributes; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCallEcCatch",
  "test-ref": "conformance:cases/X.5.2@1985-CALL-STATEMENT/1985-GR-X_5_2_4-15",
+ "notes": "§1985:X.5.2.4 GR15: 'Called programs may contain CALL statements. However, a called program must not execute a CALL statement that directly or indirectly calls the calling program', and a CALL in a declarative 'cannot directly or indirectly reference any called program to which control has been transferred and which has not completed execution'. Both halves are a source requirement; ProgramTable.Activate refuses any CALL of a program whose activation count is nonzero and that is not RECURSIVE (EC-PROGRAM-RECURSIVE-CALL, the CALL is not successful, so ON OVERFLOW/ON EXCEPTION is taken through CallEmitter.EmitCallEcCatch, otherwise the run unit ends abnormally), and at 85 no program can be RECURSIVE because VersionConformancePass.VisitProgramIdAttributes refuses the 2002 attribute (COBOL0885). Probes: (b) SUBB calling active SUBA and MAINPG (ON EXCEPTION taken each time, nested calls then complete), SUBA calling itself without a handler (abnormal termination), PROGRAM-ID IS RECURSIVE refused; (e) a USE AFTER ERROR declarative entered after a failed OPEN (35) and a READ after it (47) calls the active SUBA (exception taken) and the inactive SUBC (runs). The witness (MAIN->SUBA->SUBB, no recursion) prints its five lines.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

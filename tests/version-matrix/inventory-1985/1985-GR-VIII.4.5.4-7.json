@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.5.4-7",
  "rule-digest": "deef996720b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckIntoReceiver; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#AdmitsIntoRecord; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#IntoPhraseRules",
  "test-ref": "conformance:cases/VIII.4.5@1985-READ-STATEMENT/1985-GR-VIII_4_5_4-7",
+ "notes": "§1985:VIII.4.5.4 GR7: INTO may be written 'If only one record description is subordinate to the file description entry' or 'If all record-names associated with file-name-1 and the data item referenced by identifier-1 describe a group item or an elementary alphanumeric item'. StatementValidation.CheckIntoReceiver admits by count (IntoPhraseRules.Read) and otherwise asks AdmitsIntoRecord of every record and AdmitsIntoOperand of identifier-1 (ItemCategory.IsAlphanumericOrNational), refusing with COBOL1994; no edition gate is needed because the 2023 widenings (national items, typed groups) cannot be declared at 85. Witness: one-record files read INTO a group and INTO a numeric item. Probes (two records, d/b): second record PIC 9(6), PIC A(6), PIC XXBXXX, S9(4)V99 SIGN LEADING SEPARATE each refused COBOL1994; two PIC X records INTO numeric, alphabetic, edited WS items refused; INTO PIC X, INTO WN(1:6) (reference modification is alphanumeric), INTO an OCCURS DEPENDING group and INTO a RENAMES THRU group accepted and read ABC123; INTO a RENAMES of one numeric item refused. A record-less FD (RECORD CONTAINS 6 only) compiles at 85 with READ INTO: the FD itself breaks §1985:VIII.3.2.3 SR3, open as kb/Work PB5071; READ INTO another record of the same file is kb/Work PB5077 (SR1).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

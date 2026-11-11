@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.1-1",
  "rule-digest": "21839da35e49",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Format1Narrowing; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#CallContentRead; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalCrossing; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#LandArguments",
  "test-ref": "conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/1985-GR-X_5_1-1",
+ "notes": "§1985:X.5.1 GR1: for a BY CONTENT parameter 'the value of the item is moved when the CALL statement is executed and placed into a system-defined storage item possessing the attributes declared in the Linkage Section'; the descriptions 'must be the same' is a requirement on the source with no prescribed reaction. CallBinder.BindCall records the BY CONTENT mode, CallEmitter.ArgCarrierText/CallContentRead snapshot the argument's value at the CALL into a detached cell, and ProgramEmitter.FormalCrossing lands it in the callee's formal, so a store into the formal never reaches the caller; at 85 Format1Narrowing refuses the 2002 literal, figurative and BY VALUE/OMITTED forms (COBOL0900). Probes: (d/f) S9(18) -999999999999999999, S9(18) COMP-3, numeric-edited, zero, an ODO group and TE(I) with I passed BY REFERENCE and changed by the callee, each modified in the callee and unchanged in the caller (TE(I) delivered BBB, the value at CALL time); (b) BY CONTENT \"ABC\", 12, ZERO, BY VALUE, OMITTED, LENGTH OF and an empty BY CONTENT refused; (e) a failed CALL with BY CONTENT takes ON OVERFLOW. Sibling seen and already filed: BY CONTENT FUNCTION UPPER-CASE(W) is accepted at 85 against §1985:X.5.2.3 SR4 (kb/Work PB5129, a syntax-rule defect outside this rule). The witness prints AAAAA/BBBBB/AAAAA.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

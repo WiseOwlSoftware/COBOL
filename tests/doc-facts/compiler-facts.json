@@ -52,6 +52,10 @@
       "vcrRow": "7.39"
     },
     {
+      "id": "indexed-duplicate-key-status-sequential-only",
+      "vcrRow": "7.55"
+    },
+    {
       "id": "indexed-read-previous-after-open-at-end",
       "vcrRow": "29"
     },
@@ -860,6 +864,8 @@
     "COBOL6848",
     "COBOL6849",
     "COBOL6859",
+    "COBOL6862",
+    "COBOL6863",
     "COBOL6877"
   ],
   "cliOptions": [

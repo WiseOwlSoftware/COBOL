@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.1-2",
  "rule-digest": "72611a97ff33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#CrossingOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#RefCarrier; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#CallStringRead; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalCrossing; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalAdopt",
  "test-ref": "conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/1985-GR-X_5_1-2",
+ "notes": "§1985:X.5.1 GR2: for a BY REFERENCE parameter 'the object program operates as if the data item in the called program occupies the same storage area as the data item in the calling program', and the two descriptions 'must describe the same number of character positions' (a requirement on the source, no prescribed reaction). CallBinder.BindCall resolves the operand (subscripts and reference modification evaluated at the CALL), CallEmitter.CrossingOf/RefCarrier hand the callee a carrier over the caller's own storage (a numeric item through its character image when the formal sees characters), and ProgramEmitter.FormalCrossing/FormalAdopt alias the formal to it. Probes: (a/d/f) S9(18) -999999999999999999 with SUBTRACT 1 ON SIZE ERROR (raised, unchanged), S9(18) COMP-3 negated, TE(I) with I changed by the callee (TE(2) updated), W(2:3) (A123EF), an ODO group whose count the callee raised (3XYQ); (d) X(4)->9(4), 9(3)V9->9(4) (012.4), S9(3)->X(3), group->X(4) and the witness's group->PIC 9(6) formal all share storage; (e) the record of a file whose OPEN failed (status 35) is passed and updated; (b) a literal, ADDRESS OF (COBOL0900), a function-identifier and an empty BY REFERENCE refused. The witness prints its six lines.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

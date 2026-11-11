@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.5.4-2",
  "rule-digest": "bd7b4224024f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenModeIfOpen; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RefusedAsAlreadyOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenReportFileReference",
  "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/1985-GR-XIII_4_5_4-2",
+ "notes": "§1985:XIII.4.5.4 GR2: 'When a file is not in an open mode, no statement may be executed which references the file, either explicitly or implicitly, except for an OPEN statement'; 1985 states no result. ScreenReportFileReference refuses READ of a report file at compile time (COBOL2577); at run time Initiate asks OpenModeIfOpen and takes no action on a closed file, FileConnector.Close gives 42 and the USE procedure runs, and a repeated OPEN gives 41 (RefusedAsAlreadyOpen). Probes at 85: TERMINATE, INITIATE and GENERATE before any OPEN, and GENERATE and TERMINATE after CLOSE of an active report, run with no output and no abend; CLOSE not open 42 and double OPEN 41, each through USE AFTER ERROR; a later OPEN works. Witness: OPENED, CLOSED.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

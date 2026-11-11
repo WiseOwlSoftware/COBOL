@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.4.4-2",
  "rule-digest": "e7bd22392c88",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Runtime/Control/Signals/ProgramReturn.cs; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate",
  "test-ref": "conformance:cases/X.5.4@1985-EXIT-PROGRAM-STATEMENT/1985-GR-X_5_4_4-2",
+ "notes": "§1985:X.5.4.4 GR2 requires EXIT PROGRAM in a non-initial called program to 'continue with the next executable statement following the CALL statement', leave the caller's state unaltered except for shared data and files, and leave the called program's state unaltered 'except that the ends of the ranges of all PERFORM statements executed by that called program are considered to have been reached'. CallEmitter#EmitExitProgram emits, under __asCalled, a ProgramReturn that unwinds every active PERFORM of the callee to ProgramTable#Activate's boundary, which returns to the CALL site and keeps the non-initial instance (its data and open files) for the next call; RAISING and EXIT PROGRAM followed by another statement are refused at 85 (COBOL0879, COBOL0900). Probes at --std 85: EXIT PROGRAM inside PERFORM THRU, inside PERFORM VARYING (callee's J left at 1) and by fall-through on a later call each left no stale PERFORM return (a GO TO into the old range fell through S2 and S3); a CALL from inside the caller's PERFORM VARYING whose callee changed the loop subscript resumed the loop with the changed value (I=03 then T=XX-XX) and the caller's other data was intact. The witness exits from a PERFORMed paragraph and shows the next call falling past it.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.9.4-1",
  "rule-digest": "7b68cd3be994",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
  "test-ref": "conformance:cases/VIII.4.9@1985-WRITE-STATEMENT/1985-GR-VIII_4_9_4-1",
+ "notes": "§1985:VIII.4.9.4 GR1: the file 'must be open in the output, I-O, or extend mode' when WRITE executes; §1985:VIII.1.3.4 gives status 48 for a WRITE 'attempted on a file not open in the I-O, output, or extend mode'. RelativeConnector#Write (reached from KeyedIoEmitter#EmitWrite, edition-invariant) checks the open mode before any record or key rule and answers '48' (FileStatusCode.WriteNotOpenForOutput). Probes at 85: WRITE never-opened, after CLOSE, open INPUT (random, sequential, dynamic) and after a failed OPEN I-O (35) each give 48 and run the USE/INVALID KEY-free path; OUTPUT, random I-O, dynamic OUTPUT and sequential EXTEND give 00; sequential I-O (1985 undefined, the OPEN table forbids it) gives 48 as 2023 defines; OPEN EXTEND on a random file is refused at compile time (COBOL2372, §1985:VIII.4.4.3 SR1). The witness checks OUTPUT, I-O, EXTEND and the 48 into the USE procedure.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
