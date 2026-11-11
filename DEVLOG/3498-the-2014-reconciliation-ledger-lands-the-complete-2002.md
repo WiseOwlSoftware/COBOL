@@ -1,4 +1,4 @@
-## The 2014 reconciliation ledger lands; the complete 2002 ledger is held for its rule catalog (PB5332)
+## Entry 3498 — 2026-11-11 14:18 PST — The 2014 reconciliation ledger lands; the complete 2002 ledger is held for its rule catalog (PB5332)
 
 `merge_reconciliation.py --write` wrote the ledgers of both editions from the agent files that landed with the fourteen
 2002 runs (#1522 to #1525) and the fourteen 2014 runs (#1526, #1527); `--check` read CURRENT for both. Only
@@ -17,3 +17,4 @@ The confirmed defects are the repair work: kb/Work PB4813 (open) for 2002 and th
 repeat across the two editions: operand subscripts and exponent superscripts flattened into other names and numbers,
 general formats whose braces or underlines moved (OCCURS, SELECT, RECORD, UNLOCK, the level-number brace), and
 tables whose rows shifted or merged (the MOVE category table, Table 2's characters, 2014's reserved-word list).
+
