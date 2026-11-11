@@ -1,4 +1,4 @@
-## 2002 reconciliation, the account1 half: 438 pages compared, 42 discrepancies confirmed
+## Entry 3495 — 2026-11-11 13:50 PST — 2002 reconciliation, the account1 half: 438 pages compared, 42 discrepancies confirmed
 
 The seven runs of the `account1` half of the 2002 reconciliation plan (`2002/ranges.json`, account1-r01 to r07) ran in
 parallel on account 2 through `.claude/workflows/spec-reconcile.js` on Opus at effort medium (workflows wf_7f0d042a-811,
@@ -11,3 +11,4 @@ as its own alternative (page 259); the A.1.1 COMMUNICATION SECTION format lost i
 operand subscripts are flattened into other operand names (pages 562 and 653). One agent file was written CRLF and
 rewritten LF before commit (kb/Work PB5330). With the account2 half this sweeps every page of 2002; the ledger is
 written when the round closes (README step 5).
+
