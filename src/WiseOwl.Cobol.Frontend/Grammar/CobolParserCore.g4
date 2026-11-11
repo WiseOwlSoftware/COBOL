@@ -1531,18 +1531,27 @@ entryStatement
 // ENTER language-name-1 [routine-name-1] — the other-language entry statement. Accepted-inert at 85
 // (comment-equivalent when only COBOL is supported — the conforming '85 posture; bound as a no-op);
 // the EditionValidator flags it COBOL0902 ≥2002 (`enter-removed-2002`, VCR Table 7 row 7.16).
-// The operands are deliberately NOT cobolWord: language-name-1 is a SYSTEM-name (`ENTER COBOL.` is the
-// canonical '85 switch-back and COBOL is an '85 reserved word — a cobolWord slot would trip the §2023:8.9
-// funnel 0901 on conforming source), and routine-name-1 names an external routine, not a word in the
-// program's name space. The classic `ENTER LINKAGE.` idiom collides with the LINKAGE SECTION keyword,
-// so LINKAGE is admitted explicitly.
+// language-name-1 is deliberately NOT cobolWord: it is a SYSTEM-name (`ENTER COBOL.` is the canonical '85
+// switch-back and COBOL is an '85 reserved word — a cobolWord slot would trip the §2023:8.9 funnel 0901 on
+// conforming source). The classic `ENTER LINKAGE.` idiom collides with the LINKAGE SECTION keyword, so LINKAGE
+// is admitted explicitly.
+// routine-name-1 IS a user-defined word (kb/Work PB5178): §1985:VI.6.12.3 SR2 "Routine-name-1 is a COBOL word", one of
+// §1985:IV.4.2.2.1's types, so it takes the user-defined-word slot's two arms — cobolWord, and reservedGatedWord for a
+// word a later edition reserves (FREE, UNLOCK, VALIDATE, GOBACK), which §2023:8.9's gate answers where it is reserved.
+// The format's separator period after the statement (§1985:VI.6.12.2, a required word by §1985:IV.2.1.6) is a
+// placement row (PlacementRules.EnterEndsSentence), since the period belongs to the sentence.
 enterStatement
-    : ENTER enterOperand enterOperand?
+    : ENTER enterOperand routineName?
     ;
 
 enterOperand
     : IDENTIFIER
     | LINKAGE
+    ;
+
+routineName
+    : cobolWord
+    | reservedGatedWord
     ;
 
 // ==========================================
