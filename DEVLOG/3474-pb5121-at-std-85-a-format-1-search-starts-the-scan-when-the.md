@@ -1,4 +1,4 @@
-## PB5121: at --std 85 a format 1 SEARCH starts the scan when the index is below the table
+## Entry 3474 — 2026-11-11 06:08 PST — PB5121: at --std 85 a format 1 SEARCH starts the scan when the index is below the table
 
 Re-probe on a fresh Debug build: the note's program (a PERFORM VARYING IX FROM 2 BY -1 leaves IX at 0, then SEARCH ELT ... WHEN IX = 2) printed AT END at --std 85; the 1985 text wants FOUND AT 2. The full witness of the note printed `5 AT END` where the draft expects `5 SECOND WHEN`.
 
@@ -9,3 +9,4 @@ Fix shape: a new `DialectBehavior.SearchIndexBelowTableUnsuccessful` (2002, VCR 
 Sibling sweep: SEARCH ALL ignores the initial index (GR9), so it has no start test. The advance test in `EmitSerialScan` (`index > bound` after each increment) is NOT settled at 85: the text of §1985:VI.6.22.4 GR2 b) ends the search when the new index is "outside the permissible range of occurrence values", which reads as both bounds, while Figure 1 (GR10, "not intended to dictate implementation") loops back to the "greater than" test only. An index left at -1 therefore prints FOUND AT 2 where the text reads as AT END (review lead R1-1, probe m1). That needs a decision and is filed as kb/Work PB5302; this change leaves the advance test as it was.
 
 Goldens: `14.9.37-SEARCH/pb5121_search_index_below_table_85` (85, FOUND AT 2) and `pb5121_search_index_below_table` (2002 2014 2023, AT END). No refusal exists, the change gates behaviour and refuses nothing. The first gate was RED on one Characterization case, `char_occurs` at 85, whose emitted-C# snapshot carried the old start test; it is re-baselined (the only changed line is `_IX_1 < 1 || _IX_1 > 5L` becoming `_IX_1 > 5L`). Rows closed: none (no 1985 inventory rows yet, PB5094).
+
