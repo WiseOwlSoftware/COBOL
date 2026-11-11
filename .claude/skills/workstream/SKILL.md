@@ -81,9 +81,8 @@ at most 900 characters, `leads` at most 6 of at most 500, a finisher's final tex
 **Read `references/rolling-wave.md`** before you plan a chain, a successor, a campaign (`plan_wave.py --cluster <lead>`: a campaign is planned, never
 hand-picked, kb/Work PB2120), a review round or a spec render: it holds the review loop's rules, the findings-file reader, the successor chain and the renderer's full text.
 
-⭐ **COMMAND CHAINING — MANDATORY-PRACTICES P14, enforced by the guard hook.** Never chain anything after a verdict
-command (build, test, gate, `enqueue.py land`, battery); capture its status with `; echo "EXIT=$?"` if needed. Independent
-commands go as PARALLEL tool calls in ONE turn.
+⭐ **COMMAND CHAINING — MANDATORY-PRACTICES P14.** Independent commands go as PARALLEL tool calls in ONE turn; a verdict
+is read from its verdict line, never from a chain's exit status.
 
 ## 3. Landing
 
