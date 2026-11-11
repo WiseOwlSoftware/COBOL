@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: collating sequence for nonnumeric keys fixed at the start of SORT, first the SORT COLLATING SEQUENCE phrase, then the program collating sequence. §2023:14.9.40.4 GR5 keeps that precedence ('First, the collating sequence established by the COLLATING SEQUENCE phrase'), and §2023:12.3.6.4 GR13 restates that the program collating sequence applies to sort keys unless the phrase (or a 2023-only SET) overrides it. The separate national sequence and SET apply only to 2023-only features; a 1985 program sorts the same.",
-  "source": "adjudicate-712/slice-23"
+  "source": "adjudicate-712/slice-23",
+  "digests": {
+   "GR-14.9.40.4-5": "482464f5c7c8",
+   "GR-12.3.6.4-13": "1c7611a27461"
+  }
  }
 }

@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "§1985:IX.4.9.3 SR1 as amended: 'If identifier-1 is a function-identifier, it must reference an alphanumeric function. Record-name-1 and identifier-1 must not reference the same storage area.' X3.23a-1989 added the function sentence; X3.23b-1993 restored the storage sentence to an unconditional one (the 1985 print: 'must not refer to the same storage area'). (a) Function: §2023:14.9.51.3 SR4 ('it shall reference an alphanumeric or national function') and §2023:14.9.51.3 SR11 ('identifier-1 shall reference an alphanumeric, boolean, or national function'): the words 'or national' and 'boolean' widen what is accepted. (b) Storage: 2023 has no syntax rule refusing the overlap. §2023:14.9.51.4 GR5 makes WRITE ... FROM a MOVE to the record followed by the WRITE, and its NOTE 1 applies 14.6.10 and the MOVE rules 'to any cases in which the storage area identified by identifier-1 and the record area associated with record-name-1 share any part of their storage areas', the WRITE being 'undefined if the result of execution of the implicit MOVE statement' is; §2023:14.6.10 GR1: 'the result of the statement is undefined' unless, §2023:14.6.10 GR2, the items share a data description entry ('the same as if the data items shared no part'); §2023:14.9.51.4 GR9 contemplates identifier-1 being 'one or part of one of the record descriptions'. A source 1985 refuses is accepted, with a defined or an undefined result and no exception condition.",
-  "source": "readjudicate-amended-1985/slice-10"
+  "source": "readjudicate-amended-1985/slice-10",
+  "digests": {
+   "SR-14.9.51.3-4": "e80a8c2808a5",
+   "SR-14.9.51.3-11": "d6d62157f88f",
+   "GR-14.9.51.4-5": "c530e019a3e1",
+   "GR-14.9.51.4-9": "9c171fee870c",
+   "GR-14.6.10-1": "8cc8e0c0fea9",
+   "GR-14.6.10-2": "04289221248e"
+  }
  }
 }

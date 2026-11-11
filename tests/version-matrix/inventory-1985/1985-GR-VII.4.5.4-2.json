@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "In sequential access, both require the previous I-O statement to be a successful READ, and the record that READ accessed is replaced. Status 43 restates the I-O status consequence of a violation.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.35.4-5": "417f233188c4",
+   "GR-9.1.13.7-3": "c92c8b4cbc0d"
+  }
  }
 }

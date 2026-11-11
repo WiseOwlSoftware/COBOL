@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: a non-switch implementor-name's mnemonic-name 'may be specified only in the ACCEPT, DISPLAY, SEND, or WRITE statements', with no condition-name. 2023 splits the names: §2023:12.3.7.3 SR6 'Mnemonic-name-2 may be specified only in the WRITE statement' (feature-names) and §2023:12.3.7.3 SR7 'Mnemonic-name-3 may be specified only in the ACCEPT and DISPLAY statements' (device-names), each letting the implementor add restrictions; SEND is no longer listed. §2023:12.3.7.2 still allows ON/OFF STATUS condition-names only on switch-name-1. The set of statements allowed for a given mnemonic differs.",
-  "source": "adjudicate-712/slice-29"
+  "source": "adjudicate-712/slice-29",
+  "digests": {
+   "SR-12.3.7.3-6": "c04414eae691",
+   "SR-12.3.7.3-7": "fc8b1dca4ad5",
+   "FMT-12.3.7.2": "1e17a1b8a88d"
+  }
  }
 }

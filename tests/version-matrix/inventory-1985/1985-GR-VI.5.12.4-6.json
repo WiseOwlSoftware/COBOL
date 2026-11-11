@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 a) and c): with SEPARATE CHARACTER the sign is the leading/trailing character position, 'not a digit position', and '+'/'-'. §2023:13.18.52.4 GR6 a) and b) state the same ('basic special characters' for 1985 'standard data format characters'). 1985 b) ('S' counted in the size) is in §2023:13.18.40.4 GR14: 'the symbol 'S' is counted in the size of the item only when the subject of the entry is described with a SIGN clause with the SEPARATE phrase'.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "GR-13.18.52.4-6": "8c1fdb300a10",
+   "GR-13.18.40.4-14": "afd0f88fdb6d"
+  }
  }
 }

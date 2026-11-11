@@ -43,7 +43,9 @@ public sealed record BoundInspectConvert(BoundOperand From, BoundOperand To, Bou
 /// <summary>INSPECT (ISO §2023:14.9.22). Formats 1–3 carry the flattened tallying/replacing operand lists; format 4
 /// carries <see cref="Converting"/>. A format 3 executes as two successive statements — tallying then replacing —
 /// over the same identifier-1 (GR19). <see cref="Backward"/> reverses the scan direction (2023-only, gated at
-/// bind time).
+/// bind time). <see cref="ReplacingTakesLengthAnew"/> is the COBOL-85 reading of an occurs-depending identifier-1 in a
+/// format 3 (<c>DialectBehavior.InspectFormat3LengthIdentifiedOnce</c>, kb/Work PB5119): the REPLACING half reads the length
+/// at its own start, after the TALLYING half's counters were stored; from 2002 the binder pins the length instead.
 /// <para>
 /// ⛔ <see cref="Target"/> IS AN OPERAND, NOT A <c>Place</c> (PB10) — because identifier-1 admits a
 /// FUNCTION-IDENTIFIER in Format 1. §2023:8.4.3.1.2 Format 1 makes a function-identifier an identifier, and
@@ -58,4 +60,5 @@ public sealed record BoundInspect(
     IReadOnlyList<BoundInspectTally> Tallying,
     IReadOnlyList<BoundInspectReplace> Replacing,
     BoundInspectConvert? Converting,
-    bool Backward) : BoundStatement;
+    bool Backward,
+    bool ReplacingTakesLengthAnew = false) : BoundStatement;

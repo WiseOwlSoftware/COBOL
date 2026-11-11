@@ -1,0 +1,13 @@
+{
+  "claim_id": "p874-2",
+  "claim_key": "533c2e77cce6c989",
+  "page": 874,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p874-2", "page": 874, "kind": "misplaced-content", "severity": "structural", "pdf_says": "P    PICTURE symbol 313\np_cs_precedes 65", "markdown_says": "P PICTURE symbol 313 p_cs_precedes 65", "why_it_matters": "Two separate index entries are merged into one line."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of printed page 852 (PDF p874), right column under the 'P' letter heading, shows two separate index lines: 'P    PICTURE symbol 313' and then 'p_cs_precedes 65', followed by 'PACKED-DECIMAL phrase'. In page-874.md line 116 these are one line, 'P PICTURE symbol 313 p_cs_precedes 65', with no line break or backslash, unlike the surrounding entries, which each end in a hard break. No word is lost, but two index entries become one, so a reader sees p_cs_precedes 65 as part of the 'P PICTURE symbol' entry. The page reference 65 then reads as belonging to the wrong entry. Both sources are quoted accurately. This changes the index structure, not the normative text.",
+    "corrected_description": ""
+  }
+}

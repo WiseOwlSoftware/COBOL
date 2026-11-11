@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "Equivalence to two successive INSPECTs is verbatim in §2023:14.9.22.4 GR19, but 1985 'Subscripting associated with any identifier in the format 2 statement is evaluated only once before executing the format 1 statement' became 'Item identification of any identifier in the format 2 statement is done only once before executing the format 1 statement', and item identification includes 'length evaluation for an occurs-depending group item' (§2023:14.6.4 GR6). A tally into identifier-1's DEPENDING ON item no longer changes the length the REPLACING part scans: a result changed.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-14.9.22.4-19": "dbcfeed779c3",
+   "GR-14.9.22.4-6": "e551214d1284",
+   "GR-14.6.4-4": "4e598b8c3d07",
+   "GR-14.6.4-6": "c15bbc7b9e31",
+   "GR-14.6.4-7": "17a73a7aeeba"
+  }
  }
 }

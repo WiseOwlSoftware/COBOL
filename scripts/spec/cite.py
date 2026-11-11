@@ -47,7 +47,7 @@ extractor's own `ORDINAL`), and runs to the next row's anchor in the same clause
 are the rule. A row that cannot be anchored is a drift of the catalog from the transcription and FAILS the citation
 that names it (`unanchored`; the self-test anchors every row of every held catalog). The committed catalogs are the
 extractor's current output (the RULE CATALOG audits fail on a stale one), so the boundaries are the extractor's.
-An edition with NO catalog (2002 and 2014 until their catalogs land, kb/Work PB5256) is checked in LABEL MODE: its rule
+An edition with NO catalog (2014 until its catalog lands; 2002's landed with kb/Work PB5256) is checked in LABEL MODE: its rule
 blocks are the clauses the catalog's own kind table types by their heading (`extract_rule_catalog.kind_of`), its
 rules run from one column-0 rule label to the next (`LABELS`, the reader of sub-items in every edition), and every
 verdict reached that way carries `LABEL_MODE_MARK`: it is never a silent fall back to checking the clause alone.
@@ -232,8 +232,17 @@ def norm(s: str) -> str:
 
     Memoized, because an in-process caller checks many quotations against ONE loaded standard: `find` normalizes
     every line of the spec per call, and `audit_doc_citations.py` (kb/Work PB2525) spent 25 of its 33 s re-running
-    these two regular expressions over the same ~47,500 lines for 59 `find` calls."""
-    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", s)).strip().lower()
+    these two regular expressions over the same ~47,500 lines for 59 `find` calls.
+
+    THE UNDERLINE IS NOT CONTENT EITHER (kb/Work PB5256): the underline of a key word (`<u>FUNCTION</u> <u>ABS</u>`) left
+    its tag's letter behind as a word ("u function u u abs u"), so no quotation of two underlined words, in a general
+    format or a rule, could ever be found. Only the underline tag goes: the standard's own angle-bracketed words, the
+    domain of a definition in clause 3 (`<for classes>`, §2023:3.103), are content (branch review R1-6)."""
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", _UNDERLINE.sub(" ", s))).strip().lower()
+
+
+#: The transcription's underline markup (`<u>`, `</u>`): typography, never words.
+_UNDERLINE = re.compile(r"</?u>")
 
 
 def _indent(line: str) -> int:
@@ -430,20 +439,31 @@ def _extractors():
     return extract_rule_catalog, rule_catalog_1985
 
 
+@functools.lru_cache(maxsize=None)
+def _iso_furniture(edition: int) -> tuple[re.Pattern[str], re.Pattern[str]]:
+    """The ISO extractor's page furniture and running header for `edition`'s year (kb/Work PB5256 made them a function of
+    the year). The 1985 transcription's own header is `rule_catalog_1985`'s; it takes the arms with no year (separators,
+    anchors, the licence footer) from 2023's, whose year-bearing arms match no 1985 line."""
+    erc, _rc85 = _extractors()
+    year = edition if citation.EDITIONS[edition].locator == "clause" else 2023
+    return erc.furniture(year), erc.running_header(year)
+
+
 def _furniture(lines: list[str], i: int, edition: int) -> bool:
     """Page-break furniture inside a rule (a page marker, an anchor, a folio, a running header or footer): never text.
-    The shapes are the extractors' (`FURNITURE`, `RUNNING_HEADER`, `PAGE`; the 1985 page's running header,
+    The shapes are the extractors' (`furniture(year)`, `running_header(year)`, `PAGE`; the 1985 page's running header,
     `rule_catalog_1985.running_header`, the first line after its page marker)."""
     erc, rc85 = _extractors()
+    furniture, running_header = _iso_furniture(edition)
     line = lines[i]
-    if erc.FURNITURE.match(line) or erc.RUNNING_HEADER.match(line) or erc.PAGE.match(line) or citation.FOLIO_85.match(line):
+    if furniture.match(line) or running_header.match(line) or erc.PAGE.match(line) or citation.FOLIO_85.match(line):
         return True
     if citation.EDITIONS[edition].locator == "clause":
         return False
     k = i - 1
     while k >= 0 and not lines[k].strip():
         k -= 1
-    return k >= 0 and bool(citation.PAGE_85.match(lines[k])) and rc85.running_header(line)
+    return k >= 0 and bool(spec_pdf.PAGE_HEADING.match(lines[k])) and rc85.running_header(line)
 
 
 def catalog_path(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> pathlib.Path | None:
@@ -834,8 +854,8 @@ def load(edition: int, repo: pathlib.Path = spec_pdf.REPO):
 
 # ── SELF-TEST ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-#: A planted ISO transcription and its catalog (kb/Work PB5317): the catalog mode's arms in an edition whose real catalog
-#: is not in the tree yet (2002), and LABEL MODE's on the same text.
+#: A planted ISO transcription and its catalog (kb/Work PB5317): the catalog mode's arms of an ISO edition other than
+#: 2023 on a text small enough to read (planted as 2002), and LABEL MODE's on the same text.
 _PLANTED_ISO = """## 9.9 Planted statement
 
 ### 9.9.3 Syntax rules
@@ -865,8 +885,8 @@ _PLANTED_ROWS = [
 
 def self_test() -> int:
     """Each guard is shown to FIRE on its defect and to stay SILENT on its neighbour (kb/Work PB308, PB309, PB5317), in
-    every edition the tree holds: 1985 and 2023 against their catalogs, 2002 and 2014 in LABEL MODE, and a planted 2002
-    catalog for the catalog mode of an ISO edition other than 2023."""
+    every edition the tree holds: 1985, 2002 and 2023 against their catalogs, 2014 in LABEL MODE, and a planted 2002
+    transcription and catalog for both modes on one small text."""
     lines, cls = load(2023)
 
     def c(text: str) -> citation.Citation:
@@ -918,7 +938,7 @@ def self_test() -> int:
              and LABEL_MODE_MARK in v("§2002:9.9.3 SR2", "The second planted syntax rule says another thing", **pl).message
              and fails("§2002:9.9.4 GR99", None, "no-ordinal", **pl)),
             ("reads the transcription of the edition the citation names (2002), not 2023's",
-             check(c("§2002:9.9.4"), "The planted general rule governs everything", repo=planted)[0] == 0),
+             check(c("§2002:9.9.4"), "The planted general rule governs everything", repo=planted, catalog=cat)[0] == 0),
         ]
         try:
             load(1985, planted)
@@ -931,6 +951,12 @@ def self_test() -> int:
                      "> ⚠ **RECONSTRUCTED — not printed in our copy (folios XIII-30 and XIII-31).**", "unclosed"]
     held = [(e, rule_book(e)) for e in sorted(spec_pdf.EDITIONS) if citation.transcription(e) is not None]
     cases = planted_cases + [
+        ("a quotation of underlined key words is found: the markup is no word (kb/Work PB5256)",
+         norm("FUNCTION ABS") in norm("<u>FUNCTION</u> <u>ABS</u> ( argument-1 )")
+         and norm("<u>MOVE</u>") == "move" and norm("a < b > c") == "a b c"),
+        ("a definition's angle-bracketed domain is content, not markup (branch review R1-6)",
+         norm("for classes mechanism for using the interface")
+         in norm("<for classes> mechanism for using the interface of a class")),
         ("an edition whose transcription is absent exits naming it, and resolve says it is not held",
          absent_1985 and not_held == "edition-not-held"),
         # kb/Work PB5317: the 1985 rule number, the arms the old checker passed.
@@ -989,12 +1015,12 @@ def self_test() -> int:
          v("§2023:14.9.39 Format 4").ok and fails("§2023:14.9.39 Format 40", None, "no-format")),  # citation-audit: example
         ("2023: a designator form the checker does not read fails by name, never on the clause alone",
          fails("§2023:14.9.8.4 GR1..2", q23, "designator-not-understood")),  # citation-audit: example
-        # 2002 and 2014 have no rule catalog in this tree: LABEL MODE, every verdict marked.
-        ("2002 LABEL MODE: GR99 fails", fails("§2002:14.8.21.3 GR99", q02, "no-ordinal")),  # citation-audit: example
-        ("2002 LABEL MODE: the wrong ordinal fails naming GR1; GR1 passes, marked",
+        # 2002 against its catalog (kb/Work PB5256): no verdict marked; 2014 has none yet: LABEL MODE, every verdict marked.
+        ("2002: GR99 fails", fails("§2002:14.8.21.3 GR99", q02, "no-ordinal")),  # citation-audit: example
+        ("2002: the wrong ordinal fails naming GR1; GR1 passes, against the catalog (unmarked)",
          fails("§2002:14.8.21.3 GR2", q02, "text-not-in-rule", "GR1")
-         and v("§2002:14.8.21.3 GR1", q02).ok and LABEL_MODE_MARK in v("§2002:14.8.21.3 GR1", q02).message),
-        ("2002 LABEL MODE: a one-character quotation fails; a clause with no syntax rules cited SR1 fails",
+         and v("§2002:14.8.21.3 GR1", q02).ok and LABEL_MODE_MARK not in v("§2002:14.8.21.3 GR1", q02).message),
+        ("2002: a one-character quotation fails; a clause with no syntax rules cited SR1 fails",
          fails("§2002:14.8.21.3 GR1", "x", "quote-too-short")
          and fails("§2002:14.8.21.3 SR1", q02, "no-rule-list")),  # citation-audit: example
         ("2014 LABEL MODE: GR6c with item b)'s text fails naming GR6b (the reviewer's case); GR6b passes",

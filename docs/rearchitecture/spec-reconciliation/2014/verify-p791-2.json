@@ -1,0 +1,13 @@
+{
+  "claim_id": "p791-2",
+  "claim_key": "cdf99e4a7e40a7b8",
+  "page": 791,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p791-2", "page": 791, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Ethiopic: 1200-1206, 1208-1246, 1248, 124A-124D, 1250-1256, 1258, 125A-125D, 1260-1286, 1288, 128A-128D, 1290-12AE, 12B0, 12B2-12B5, 12B8-12BE, 12C0, 12C2-12C5, 12C8-12CE, 12D0-12D6, 12D8-12EE, 12F0-130E, 1310, 1312-1315, 1318-131E, 1320-1346, 1348-135A", "markdown_says": "| Ethiopic: | 1200-1206, 1208-1246, 1248, 124A-124D, 1250-1256, 1258, 125A-125D, 1260-1286, 1288, 128A- |\n\n128D, 1290-12AE, 12B0, 12B2-12B5, 12B8-12BE, 12C0, 12C2-12C5, 12C8-12CE, 12D0-12D6, 12D8-12EE, 12F0-130E, 1310, 1312-1315, 1318-131E, 1320-1346, 1348-135A", "why_it_matters": "The Ethiopic row is split mid-range: the table cell ends with the dangling '128A-' and the rest of the ranges (starting '128D') sit outside the table as a free paragraph, so the row's range list is malformed and its tail is detached from the Ethiopic label."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (p791, printed 767) wraps the Ethiopic list at '128A-' / '128D' because of a line break. Markdown lines 57-59 contain every range in the same order: '... 1288, 128A-' in the table cell, then '128D, 1290-12AE, ... 1348-135A' as the next block, directly after it. The two pieces join to read 128A-128D, which is correct. No range is missing, changed or moved to another script's row. The only difference is a line wrap carried into the table layout. That is formatting, and it does not change meaning.",
+    "corrected_description": ""
+  }
+}

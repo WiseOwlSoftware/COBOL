@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Level 1 (01 per SR-3) still identifies the first entry of each record description. Adding type declarations and report groups concerns other features, not this rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.33.4-1": "bf9296f45ce8",
+   "SR-13.18.33.3-3": "6c5d7c7ff1d3"
+  }
  }
 }

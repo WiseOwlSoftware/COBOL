@@ -16,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "Amendment 1 (X3.23a-1989, its change for page VI-13 (T): 'Paragraph 4.5.2, SYMBOLIC CHARACTERS clause, delete outermost set of braces') corrected a typographical error only; the paragraph's syntax is what it was. §1985:VI.4.5.2 has implementor-name-1 with a mnemonic-name and ON/OFF STATUS, ALPHABET (STANDARD-1, STANDARD-2, NATIVE, implementor-name-2, literals), SYMBOLIC CHARACTERS, CLASS, one currency clause ('SIGN IS literal-6') and DECIMAL-POINT IS COMMA. §2023:12.3.7.2 keeps each: implementor-name-1 as switch-name-1, feature-name-1 or device-name-1 ('The implementor shall specify the names that are available for switch-name-1, feature-name-1, and device-name-1', §2023:12.3.7.3 SR8), implementor-name-2 as code-name-1 ('The implementor shall specify the names supported for code-name-1 and code-name-2', §2023:12.3.7.3 SR15), and the 1985 outer bracket around the clauses and their final period as 'One of the separator periods may be omitted if none of the clauses in the SPECIAL-NAMES paragraph is specified' (§2023:12.3.7.3 SR31). 2023 accepts paragraphs the 1985 format refuses: a repeatable CURRENCY SIGN with PICTURE SYMBOL, FOR ALPHANUMERIC or NATIONAL on CLASS and SYMBOLIC CHARACTERS, IN on CLASS, ALPHABET with LOCALE and FOR NATIONAL, CRT STATUS ('IS data-name-2'), CURSOR, LOCALE ('locale-name-1 IS'), 'dynamic-length-structure-clause' and ORDER TABLE ('ordering-name-1 IS literal-9'). The printed clause order differs as well (1985: implementor-names, ALPHABET, SYMBOLIC CHARACTERS, CLASS, CURRENCY, DECIMAL-POINT; 2023: 'alphabet-name-clause' first, the switch, feature and device names and 'symbolic-characters-clause' near the end), and each edition binds its own order: 'Clauses must be written in the sequence given in the general formats' (§1985:IV.2.1); 'shall be written in the compilation group in the sequence given in the general format, unless otherwise specified by the rules of that format' (§2023:5.2.1), and no rule of §2023:12.3.7.3 frees it (page 320 of the 2023 PDF, rendered, prints no choice indicators around the clauses). Compile-time on both sides.",
-  "source": "readjudicate-amended-1985/slice-01"
+  "source": "readjudicate-amended-1985/slice-01",
+  "digests": {
+   "FMT-12.3.7.2": "1e17a1b8a88d",
+   "SR-12.3.7.3-8": "b19987de9228",
+   "SR-12.3.7.3-15": "ac1d3c793de7",
+   "SR-12.3.7.3-31": "aa39b566bbbb"
+  }
  }
 }

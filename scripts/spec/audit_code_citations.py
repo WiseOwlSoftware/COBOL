@@ -503,8 +503,8 @@ def resolve_line(line: str, prev: str = "") -> list[tuple[citation.Citation, "ci
     """(citation, refusing verdict) for every edition-form citation on ONE line that `cite.resolve` refuses."""
     import audit_doc_citations  # noqa: PLC0415  (the quotation pairing's one reader; it imports this module's peers)
     quoted = {}
-    for _col, paired, quote, _form in audit_doc_citations.citations(line):
-        quoted[paired.start] = quote
+    for col, paired, quote, form in audit_doc_citations.citations(line):
+        quoted[paired.start] = (quote, col, form)
     out = []
     if NAMED_AS_WRONG.search(line) or NAMED_AS_WRONG.search(prev):
         return out                                   # the line REPORTS a wrong citation (`_reported`'s first arm)
@@ -513,7 +513,9 @@ def resolve_line(line: str, prev: str = "") -> list[tuple[citation.Citation, "ci
             continue                                 # ⛔ not `_reported`: its quoted-spelling arm is PHANTOM's; a
             #                                          citation in backticks or quotes is the commonest form in docs/
             #                                          and kb/Work, and inheriting it left them unchecked (PB5317 R1-3)
-        quote = quoted.get(c.start)
+        quote, col, form = quoted.get(c.start, (None, 0, ""))
+        if form == "prefix" and audit_doc_citations.names_another_rule(line[c.end:col]):
+            quote = None                             # the quote is the rule the prose names next, not this one's
         v = _resolved(c.edition, c.locator, c.rule, quote)
         if v.kind == "text-not-found" or (v.kind == "text-not-in-clause"
                                           and len(c.locator.split(".")) >= audit_doc_citations.FLOOR_SEGMENTS):
@@ -664,6 +666,12 @@ def resolve_self_test() -> bool:
         ("no-ordinal", 'the SORT statement ("§1985:XI.4.4.4 GR99")'),  # citation-audit: example
         (None, "the SORT statement (`§1985:XI.4.4.4 GR7`)"),
         (None, "the repair `§1985:XI.4.4.4 GR99` → `§1985:XI.4.4.4 GR7`"),  # citation-audit: example
+        # a citation that closes its own sentence is not read against the next quotation (kb/Work PB5312's line)
+        (None, '"File-name-1 must be a sequentially organized file" (§1985:VII.2.12.3 SR1), and END OF REEL/UNIT "may '
+               'only be used if file-name-2 is a sequentially organized file" (SR2)'),
+        # nor against a quotation the prose gives to the next rule it names (kb/Work PB5176's line)
+        (None, '§1985:VI.6.19.4 GR3 puts the figurative constant in category alphanumeric and GR4 b moves it "as if the '
+               'sending operand were described as an unsigned numeric integer"'),
     ]
     ok = True
     for want, line in cases:

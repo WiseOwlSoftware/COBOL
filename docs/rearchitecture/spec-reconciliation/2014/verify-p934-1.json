@@ -1,0 +1,13 @@
+{
+  "claim_id": "p934-1",
+  "claim_key": "9c06993ba9447b75",
+  "page": 934,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p934-1", "page": 934, "kind": "misplaced-content", "severity": "structural", "pdf_says": "EC-FLOW-SEARCH exception  442, 583\nEC-FLOW-USE exception  442, 611", "markdown_says": "EC-FLOW-SEARCH exception 442, 583 EC-FLOW-USE exception 442, 611", "why_it_matters": "Two index entries merged on one line. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (PDF p934, printed folio 910, informative index) shows EC-FLOW-SEARCH exception 442, 583 and EC-FLOW-USE exception 442, 611 as two consecutive lines at the top of the left column. Line 3 of the markdown holds both entries on one line, separated by a space instead of the trailing-backslash hard break the rest of the page uses. Every word and page number is present, in the printed order, and each page list still directly follows its own headword, so no reference is attributed to the wrong entry. The only loss is a line break, which is formatting, and the meaning does not change. Rejected as line-wrapping/formatting only.",
+    "corrected_description": ""
+  }
+}

@@ -265,6 +265,9 @@ def render(c: Citation) -> str:
 #: are a bare number, the term itself being the bold line beneath. The annex alternative needs a dot segment, which is
 #: what keeps the annex TITLE headings ("## Annex A") out.
 ISO_HEADING = re.compile(r"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(?:\s+(.*?))?\s*$")
+#: An annex's TITLE heading (`## Annex A`, `### Annex A (normative) Communications facility`): the region of the annex
+#: itself, cited by its letter (`§2002:A`).
+ANNEX_TITLE = re.compile(r"^#{1,6}\s+Annex\s+([A-Z])\b(?:\s+(.*?))?\s*$")
 #: The 1985 transcription (kb/Work PB4816; reconciled against the page, PB4850) marks a section with a `SECTION <roman>:` heading,
 #: an appendix with `APPENDIX <letter>:`, a paragraph with a numbered heading (`### 5.3.2 General Format`, `## 1. <u>…`)
 #: or, where the transcription did not head it, a line opening with the number and a capitalised title, and the end of
@@ -281,7 +284,6 @@ AMENDMENT_85 = re.compile(r"^#\s+AMENDMENT \d+:")
 APPENDIX_85 = re.compile(rf"^#{{1,6}}\s+{MARK_85}APPENDIX ([A-F]):")
 PARAGRAPH_85 = re.compile(rf"^(?:#{{1,6}}\s+{MARK_85}(\d+(?:\.\d+)*)\.?(?:\s|<)|{MARK_85}(\d+(?:\.\d+)+)\s+[A-Z])")
 FOLIO_85 = re.compile(r"^((?:[IVX]+|[A-F])-\d+)\s*$")
-PAGE_85 = re.compile(r"^## Page \d+\s*$")
 #: The Roman sections ANSI X3.23-1985 has (I Introductory information ... XVIII Index).
 SECTIONS_85 = ("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI",
                "XVII", "XVIII")
@@ -301,8 +303,11 @@ def transcription(edition: int, repo: pathlib.Path = spec_pdf.REPO) -> pathlib.P
 
 
 def iso_regions(lines: list[str]):
-    """(clause, title, start, end) of every clause heading of an ISO transcription, in order."""
-    heads = [(m.group(1), m.group(2) or "", i) for i, l in enumerate(lines) if (m := ISO_HEADING.match(l))]
+    """(clause, title, start, end) of every clause heading of an ISO transcription, in order. An annex's title heading
+    opens the annex's own region (`A`), so the annex's text before its first clause is no part of the clause above it
+    (kb/Work PB5256: the preamble of 2002's Annex A, the communications facility, read as §2002:16.1.2.1's)."""
+    heads = [(m.group(1), m.group(2) or "", i) for i, l in enumerate(lines)
+             if (m := ISO_HEADING.match(l)) or (m := ANNEX_TITLE.match(l))]
     return [(n, t, s, heads[k + 1][2] if k + 1 < len(heads) else len(lines)) for k, (n, t, s) in enumerate(heads)]
 
 
@@ -325,7 +330,7 @@ def regions_1985(lines: list[str], start: int = 0, end: int | None = None, secti
 
     for i in range(start, end):
         line = lines[i]
-        if PAGE_85.match(line):
+        if spec_pdf.PAGE_HEADING.match(line):
             if repeat:
                 para_start = i            # the paragraph the repeat interrupted resumes here, a region of its own
             page_start, repeat = i, False

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"unsuccessfully executed as the result of a condition that is specified by the implementor. ... If more than one value applies, the implementor determines\"; 2023: \"An implementor-defined condition exists. This condition shall not duplicate any other condition specified by another I-O status value.\". Both define the implementor-defined 9x status. 2023 forbids it duplicating other status conditions, and no candidate keeps the implementor's choice when several values apply.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-9.1.13.11-1": "13340d12689c"
+  }
  }
 }

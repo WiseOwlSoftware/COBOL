@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-30, kb/Work PB4952). A page heading has no NEXT GROUP clause (§1985:XIII.3.16.3 SR5), so LINE-COUNTER ends at its last line printed, and a nonprintable group leaves it unchanged; 2023 states both for LINE-COUNTER.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "GR-8.4.3.15.4-4": "cf9c288b45e0",
+   "GR-8.4.3.15.4-5": "3c235b0d53d8"
+  }
  }
 }

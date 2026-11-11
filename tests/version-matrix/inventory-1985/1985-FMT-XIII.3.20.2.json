@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-55 from the TYPE clause of §1985:XIII.3.9.2 Format 1, kb/Work PB4952). 1985: \"CH { data-name-1 | FINAL }\", \"CF { data-name-2 | FINAL }\"; 2023: \"CH [ [ ON | FOR ] { data-name-1 | FINAL } [ OR PAGE ] ]\" and a Format 1 TYPE TO type-name-1. The operand may be omitted and OR PAGE is new.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "FMT-13.18.57.2": "511d91dc15cb"
+  }
  }
 }

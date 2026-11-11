@@ -1,0 +1,13 @@
+{
+  "claim_id": "p434-1",
+  "claim_key": "f33fa465f6d29b43",
+  "page": 434,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p434-1", "page": 434, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Screen item Figurative constant / Alphabetic Alphanumeric SPACES / Alphanumeric Alphanumeric SPACES / Alphanumeric-edited Alphanumeric SPACES / Boolean ZEROS / National National SPACES / ...", "markdown_says": "| Alphanumeric | Alphanumeric SPACES |\n\n   Alphanumeric-edited Alphanumeric SPACES\n\n| Boolean | ZEROS |\n|---|---|", "why_it_matters": "The ACCEPT GR 13 table of screen-item categories and their figurative constants is one table in the PDF. The transcription splits it in two: the Alphanumeric-edited row falls out as loose text, and the second table makes 'Boolean | ZEROS' its header row. A reader or tool that parses the tables loses the Alphanumeric-edited mapping and treats Boolean as a column heading."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 434 (folio 412) at 300 dpi shows ONE two-column table under the heading 'Screen item / Figurative constant' with eight rows in order: Alphabetic, Alphanumeric, Alphanumeric-edited (all Alphanumeric SPACES), Boolean ZEROS, National and National-edited (National SPACES), Numeric and Numeric-edited (ZEROS). page-434.md lines 3-15 hold a first table (header + Alphabetic, Alphanumeric), then the line '   Alphanumeric-edited Alphanumeric SPACES' as a loose paragraph outside any table, then a second table whose HEADER row is '| Boolean | ZEROS |' followed by the separator and the remaining four rows. No words are lost, so a human reading in order still recovers every mapping, but the table structure is genuinely corrupted: the Alphanumeric-edited row is no longer a table row and the Boolean row is demoted to a column heading. Any mechanical table parse loses the Alphanumeric-edited -> Alphanumeric SPACES mapping and misreads Boolean/ZEROS as headers. This is more than wrapping or furniture; the claim quotes both sources accurately and its 'structural' severity (not normative) is right.",
+    "corrected_description": ""
+  }
+}

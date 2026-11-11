@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "GR-14.9.27.4-15 states the 1985 rule word for word. Its relative and indexed sentences fall outside a Report Writer rule, whose report files are sequential, so they change nothing here.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.27.4-15": "beca4abe5664"
+  }
  }
 }

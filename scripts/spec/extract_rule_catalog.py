@@ -24,23 +24,41 @@ script self-checks: every rule-block heading in the file must yield at least one
 reported as a PARSE GAP rather than silently dropped.
 
 Usage:
-    python scripts/spec/extract_rule_catalog.py                 # write the catalog + print the summary
+    python scripts/spec/extract_rule_catalog.py                 # write the 2023 catalog + print the summary
     python scripts/spec/extract_rule_catalog.py --check         # parse only; non-zero exit if gaps exist
+    python scripts/spec/extract_rule_catalog.py --edition 2002 [--check]  # the 2002 catalog (kb/Work PB5256)
     python scripts/spec/extract_rule_catalog.py --edition 1985 --check   # the 1985 arm (rule_catalog_1985.py, kb/Work
                                                                          # PB4886): counts and findings, writes nothing
+    python scripts/spec/extract_rule_catalog.py --self-test     # the ISO arm on planted text, a correction applied
 
-The 1985 standard is not built like ISO's (Roman sections, modules, levels and level-2 boxes, two amendments), so its
-arm is its own reader, `rule_catalog_1985.py`, which shares this module's heading rules; `--edition` takes the edition
-from spec_pdf's one table, and an edition with no arm here (2002) exits naming the table.
+THE ISO EDITIONS ARE ONE EXTRACTION OVER A TABLE (kb/Work PB5256). ISO/IEC 1989:2002 and ISO/IEC 1989:2023 are built
+alike, so `extract` reads both and `ISO` holds what differs between them (`IsoEdition`: a rule-bearing annex, the
+implementor-defined list's annex, the excluded and known-empty blocks, the conventions clause, the table of contents'
+form, the row form, and whether the transcription is reconciled yet). The 1985 standard is not built like ISO's (Roman
+sections, modules, levels and level-2 boxes, two amendments), so its arm is its own reader, `rule_catalog_1985.py`,
+which shares this module's heading rules, kind table, content-keyed scan and standing lists; `--edition` takes the
+edition from spec_pdf's one table, and an edition with no arm here (2014) exits naming the table.
+
+WHAT IT CANNOT READ IS A FINDING, NEVER A GUESS (owner 2026-11-10: "If it cannot be resolved, there is a problem/bug").
+Each is a `Finding` naming its kind, clause, line and PDF page, counted by kind (`FINDING_KINDS`). A reconciled edition
+holds none (`--check` fails on any); an unreconciled one (2002, kb/Work PB4813) records them in its catalog for the
+reconciliation, and `--check` fails when they change. THE STABILITY RULE (`IsoEdition.rule_id`): an id is its clause,
+kind and printed number, so regenerating after a correction keeps every id whose clause and number did not change.
 """
 from __future__ import annotations
 
 import argparse
+import bisect
+import dataclasses
+import functools
+import itertools
 import json
 import pathlib
 import re
 import sys
 from collections import Counter
+from collections.abc import Mapping
+from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
@@ -53,17 +71,9 @@ from standard_streams import ensure_utf8  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
-SPEC = spec_pdf.markdown(2023)
 import inventory_schema  # noqa: E402  (each edition's catalog path: the schema's `editions.of`, the one home)
 import citation  # noqa: E402  (each edition's regions: the standing lists' sections and headings)
 import element_standing  # noqa: E402  (THE standing of a rule, from the edition's lists; kb/Work PB4993)
-OUT = REPO / inventory_schema.edition(2023).catalog
-#: The 1985 catalog (`--edition 1985`, kb/Work PB4886): written once the 1985 transcription is reconciled (PB4850).
-OUT_1985 = REPO / inventory_schema.edition(1985).catalog
-#: The COMMITTED inventory of clauses that carry ``N)``-shaped rules this extractor does not harvest — the
-#: manifest the content-keyed scan compares against, so "nothing new fell out of the denominator" is an
-#: observation rather than a memory. See unharvested_rule_blocks() and fix-queue PB29.
-UNHARVESTED = REPO / "docs" / "rearchitecture" / "spec-unharvested-rule-blocks.json"
 #: The manifest's key for the PROSE clauses admitted as one-row-per-paragraph (kb/Work PB284 part 3 / PB479).
 PARAGRAPH_BLOCKS = "paragraph-blocks"
 
@@ -82,20 +92,25 @@ FMT_LABEL = re.compile(r"^\s*Format\s+\d+", re.M)
 # PAGE-BREAK FURNITURE. At every printed page boundary the transcription injects a running header, and it is
 # emitted AS A HEADING — inside rule blocks. Treating it as a block terminator truncates every rule block that
 # spans a page break (it cost 896 rules when first tried). Skip it instead. Three transcribed shapes, the same
-# three scripts/fix_spec_pagebreaks.py had to learn the hard way; missing the bare form is the dangerous one.
-RUNNING_HEADER = re.compile(r"^#{1,6}\s*(?:\*\*)?ISO/IEC\s+1989:2023\s*\(E\)(?:\*\*)?\s*$")
+# three scripts/fix_spec_pagebreaks.py had to learn the hard way; missing the bare form is the dangerous one. The
+# header names its edition's year (`IsoEdition.running_header`).
+def running_header(year: int) -> re.Pattern[str]:
+    return re.compile(rf"^#{{1,6}}\s*(?:\*\*)?ISO/IEC\s+1989:{year}\s*\(E\)(?:\*\*)?\s*$")
+
+
 # ALL page-break furniture, in every transcribed shape. These lines land INSIDE rule prose at a page boundary and
 # were being absorbed as rule TEXT: 592 of 3,247 rules (18%) carried an anchor, a rule, a running header or a
 # licence footer spliced into the normative sentence. A rule whose text is contaminated is worse than a missing
 # one — it reads as authoritative and would be cited that way. Skipped at the line level, before buffering.
-FURNITURE = re.compile(
-    r"^\s*(?:"
-    r"-{3,}"                                              # the --- separators around a page block
-    r'|<a\s+id="[^"]*"></a>'                              # ANY anchor — page-N and section-N-N both leak in
-    r"|(?:\*\*)?ISO/IEC\s+1989:2023\s*\(E\)(?:\*\*)?"    # running header: bold or bare (no leading #)
-    r"|(?:\d+\s+)?(?:©|\(c\))?\s*ISO/IEC\s+2023"        # copyright footer
-    r"|Licensed to .*"                                    # licence footer
-    r")\s*$", re.I)
+def furniture(year: int) -> re.Pattern[str]:
+    return re.compile(
+        r"^\s*(?:"
+        r"-{3,}"                                              # the --- separators around a page block
+        r'|<a\s+id="[^"]*"></a>'                              # ANY anchor — page-N and section-N-N both leak in
+        rf"|(?:\*\*)?ISO/IEC\s+1989:{year}\s*\(E\)(?:\*\*)?"  # running header: bold or bare (no leading #)
+        rf"|(?:\d+\s+)?(?:©|\(c\))?\s*ISO/IEC\s+{year}"      # copyright footer
+        r"|Licensed to .*"                                    # licence footer
+        r")\s*$", re.I)
 # ⛔ THE IN-CLAUSE GROUP LABEL — the standard's run-in sub-heading INSIDE a rule list ("SEQUENTIAL FILES",
 # "RELATIVE FILES", "FORMAT 3", "ALL FORMATS", "FORMATS 1, 2 AND 4", "CLASS SPECIFIER"). It scopes the rules that
 # follow it and is NEITHER a heading NOR rule prose, which is exactly the pair of mistakes this project made with
@@ -189,7 +204,7 @@ INDENTED_ORDINAL = re.compile(r"^\s+(?P<n>\d+)\\?[.)]\s")
 # taxonomy (§2023:5.3.1–5.3.3 is prose about what syntax and general rules are) and carries no numbered rules of its
 # own, so there is nothing there to extract.
 #
-# ⛔ THE ONE KIND TABLE OF BOTH EDITIONS (kb/Work PB4886): the 1985 arm (rule_catalog_1985.py) types its headings with
+# ⛔ THE ONE KIND TABLE OF EVERY EDITION (kb/Work PB4886, PB5256): 2002 and 2023 share the ISO arm, and the 1985 arm (rule_catalog_1985.py) types its headings with
 # this table too, its PICTURE "Editing Rules" and "Precedence Rules" being the same rules; a 1985 paragraph of another
 # name is typed by its row in UNHARVESTED_OF[1985] (spec-unharvested-rule-blocks-1985.json), never by a second table.
 KINDS = {
@@ -205,30 +220,8 @@ KINDS = {
 #: KINDS is a block the extractor would silently skip.
 RULE_SHAPED = re.compile(r"\brules?\b", re.IGNORECASE)
 
-#: Rule-shaped headings DELIBERATELY outside the denominator, each with the reason it carries no extractable
-#: rule. ⛔ A guard that reports an expected condition on every run is a guard people learn to ignore — the same
-#: cry-wolf failure §0 names for line-number code-locations — so a decided exclusion is recorded HERE rather than
-#: left to reappear as a warning forever. Anything NOT in this dict still fails loudly.
-EXCLUDED_BLOCKS = {
-    "5.3": "defines the rule taxonomy itself (§2023:5.3.1–5.3.3 is prose about what syntax and general rules ARE) "
-           "and carries no numbered rules of its own — it is the clause that CLASSIFIES §2023:13.18.40.5/.6, which "
-           "is why those two are in KINDS. Owner decision 2026-07-30.",
-}
-
-#: Recognised rule blocks that legitimately yield ZERO numbered rules, so "0 rules" is the correct answer rather
-#: than a parse failure. Same cry-wolf argument as EXCLUDED_BLOCKS.
-KNOWN_EMPTY_BLOCKS = {
-    "15.4": "its numbered rules live in the SUB-CLAUSE §2023:15.4.1 'Numeric and integer functions', whose prose "
-            "heading KINDS does not recognise — so this heading resolves to RV and correctly yields nothing of "
-            "its own. ⛔ THIS WAS AN UNOWNED PARSE GAP FOR MONTHS and the content-keyed scan explained it "
-            "(fix-queue PB29, 2026-08-04): the same defect class as §2023:8.8.1, one level down. §2023:15.4.1 is now "
-            "ADMITTED in spec-unharvested-rule-blocks.json and contributes its 6 RV rules — including r1, 'the "
-            "returned value shall equal the value of the equivalent arithmetic expression', which PB38 and the "
-            "D3 correction both turn on. Declared here rather than left as a warning forever.",
-    "13.18.40.6": "the PICTURE precedence rules are UNNUMBERED prose plus Table 10 and Table 11 — the normative "
-                  "content IS the two precedence matrices, which have no per-rule ordinal to extract. Typed SR "
-                  "by §2023:5.3.2 so the heading resolves; it contributes no rows. Owner decision 2026-07-30.",
-}
+#: The rule-shaped headings deliberately outside the denominator and the blocks that rightly yield no rule are each
+#: edition's own facts: `IsoEdition.excluded_blocks` and `known_empty_blocks` (rule_catalog_1985.py holds 1985's).
 
 
 def canonical_title(title: str) -> str:
@@ -273,7 +266,8 @@ def is_unrecognised_general(title: str) -> bool:
     return not (INTRO_TITLE.fullmatch(t) or GENERAL_FORMAT_TITLE.fullmatch(t) or kind_of(t))
 
 
-def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[str, dict]:
+def unharvested_rule_blocks(lines: list[str], titles: dict[str, str],
+                            heading: re.Pattern[str] = HEADING) -> dict[str, dict]:
     """Every clause whose BODY carries an ascending ``N)`` list that this extractor does not harvest.
 
     ⛔ THE THIRD INSTANCE OF ONE DEFECT CLASS, AND THE FIRST DETECTOR THAT CAN SEE IT (fix-queue PB29).
@@ -288,7 +282,9 @@ def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[st
     The standard numbers ordinary prose enumerations the same way it numbers rules — §2023:8.3.2.2 "User-defined
     words" lists the KINDS of user-defined word, not fifteen requirements. Admitting all of them would be the
     mirror of the short denominator, and the denominator defines v1.0 (D13). So each clause is adjudicated and
-    recorded in the committed manifest beside this script; this function only MEASURES.
+    recorded in the committed manifest beside this script; this function only MEASURES. `heading` is the edition's
+    numbered heading (`IsoEdition.heading`), and a page marker (`## Page N`, which the 2002 transcription keeps) is
+    neither a heading nor the clause's body.
     """
     found: dict[str, dict] = {}
     cur: tuple[str, str] | None = None
@@ -299,8 +295,10 @@ def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[st
             found[cur[0]] = {"title": cur[1], **shape}
 
     for line in lines:
+        if PAGE.match(line):
+            continue
         if ANY_HEADING.match(line):
-            if (m := HEADING.match(line)) and not line.lstrip().startswith("["):
+            if (m := heading.match(line)) and not line.lstrip().startswith("["):
                 close()
                 cur, body = (m.group("num"), m.group("title")), []
                 continue
@@ -341,16 +339,23 @@ def ordinal_shape(body: list[str], ordinal: re.Pattern[str] = ORDINAL) -> dict |
     return {"ordinals": ordinals, "lists": lists, "longest": longest} if ordinals else None
 
 
-#: THE COMMITTED MANIFEST of the content-keyed scan, per edition (kb/Work PB29; the 1985 arm's, PB4886). Both carry the
-#: same shape: `blocks`, a clause (2023: its number; 1985: its citation, `§1985:VI.6.4.2`, since the base text and
-#: Amendment 1 both have an `A.2.1`) ⇒ its measured shape, its `disposition` (`rules` with its `kind`, `not-rules` with
-#: `why`, or `pending`, never a decision) and the reason.
-UNHARVESTED_OF = {2023: UNHARVESTED, 1985: REPO / "docs" / "rearchitecture" / "spec-unharvested-rule-blocks-1985.json"}
+#: THE COMMITTED MANIFEST of the content-keyed scan, per edition (kb/Work PB29; the 1985 arm's, PB4886; 2002's,
+#: PB5256). Each carries the same shape: `blocks`, a clause (an ISO edition: its number; 1985: its citation,
+#: `§1985:VI.6.4.2`, since the base text and Amendment 1 both have an `A.2.1`) ⇒ its measured shape, its `disposition`
+#: (`rules` with its `kind`, `not-rules` with `why`, or `pending`, never a decision) and the reason.
+UNHARVESTED_OF = {year: REPO / "docs" / "rearchitecture" / f"spec-unharvested-rule-blocks{'' if year == 2023 else f'-{year}'}.json"
+                  for year in (1985, 2002, 2023)}
 #: THE STANDING LISTS of an edition, held once as data (kb/Work PB4993; element_standing.py): each catalog rule's
-#: `status` is read from them, by the one call both arms make (`element_standing.apply`). 1985's is the obsolete list
-#: of §1985:C.1; 2023's are the archaic list of §2023:F.1 and the obsolete list of §2023:F.2.
+#: `status` is read from them, by the one call every arm makes (`element_standing.apply`). 1985's is the obsolete list
+#: of §1985:C.1; 2002's are the archaic list of §2002:G.1 and the obsolete list of §2002:G.2; 2023's are the archaic
+#: list of §2023:F.1 and the obsolete list of §2023:F.2.
 STANDING_OF = {edition: REPO / "docs" / "rearchitecture" / f"spec-element-standing-{edition}.json"
-               for edition in (1985, 2023)}
+               for edition in (1985, 2002, 2023)}
+
+
+def catalog_path(year: int) -> pathlib.Path:
+    """The committed rule catalog of the held edition `year`: the schema's `editions.of` is its one home."""
+    return REPO / inventory_schema.edition(year).catalog
 
 
 def manifest_blocks(path: pathlib.Path) -> dict[str, dict]:
@@ -400,10 +405,8 @@ def unharvested_report(measured: dict[str, dict], declared: dict[str, dict], man
     """THE CONTENT-KEYED CHECK's report, for every edition: the scan's `measured` clauses against the committed manifest's
     `declared` ones. Returns the lines and the number of drifts (a clause measured and undeclared, declared and no longer
     measured, or measured with another ordinal count), each of which fails `--check`. `label` prefixes a manifest key
-    where it prints (`§2023:` for 2023's bare clause numbers; 1985's keys are citations already)."""
-    added = sorted(set(measured) - set(declared))
-    removed = sorted(set(declared) - set(measured))
-    changed = sorted(s for s in set(measured) & set(declared) if measured[s]["ordinals"] != declared[s]["ordinals"])
+    where it prints (`§2023:` for an ISO edition's bare clause numbers; 1985's keys are citations already)."""
+    added, removed, changed = unharvested_drift(measured, declared)
     pending = {s: v for s, v in declared.items() if v.get("disposition") == "pending"}
     out = ["",
            "⛔ CONTENT-KEYED SCAN — clauses carrying an ascending numbered list that this extractor does NOT harvest:",
@@ -426,6 +429,13 @@ def unharvested_report(measured: dict[str, dict], declared: dict[str, dict], man
     return out, len(added) + len(removed) + len(changed)
 
 
+def unharvested_drift(measured: dict[str, dict], declared: dict[str, dict]) -> tuple[list[str], list[str], list[str]]:
+    """The clauses the scan measured and the manifest does not declare, declared and no longer measured, and measured
+    with another ordinal count: the content-keyed check's three drifts, each sorted."""
+    return (sorted(set(measured) - set(declared)), sorted(set(declared) - set(measured)),
+            sorted(s for s in set(measured) & set(declared) if measured[s]["ordinals"] != declared[s]["ordinals"]))
+
+
 #: A line that CONTINUES the paragraph before it instead of opening a new one: a numbered or lettered list item, a
 #: table row, a markup block, or a NOTE (informative; it stays in the rule's text, where `NOTE_MARK` cuts it from
 #: every predicate and the clause's own rows stay the normative paragraphs).
@@ -435,7 +445,7 @@ PARAGRAPH_CONTINUATION = re.compile(r"^(?:\s*\d+\\?[.)]\s|\s*[a-z]\\?\)\s|\s*\||
 SENTENCE_END = re.compile(r"[.:;?!]\s*$")
 
 
-def prose_paragraphs(lines: list[str], at: int) -> list[str]:
+def prose_paragraphs(ed: IsoEdition, lines: list[str], at: int) -> list[str]:
     """The normative PARAGRAPHS of the clause whose heading is `lines[at]` — the row unit of a PROSE concept clause.
 
     ⛔ WHY A CLAUSE WITH NO NUMBERED RULES STILL HAS ROWS (kb/Work PB284 part 3, PB479). §2023:9.1.16 (record locking),
@@ -445,15 +455,16 @@ def prose_paragraphs(lines: list[str], at: int) -> list[str]:
     row can never be a GAP and can never be closed. The paragraph is the unit the standard's own prose has, so one
     row per paragraph is that clause's row shape, exactly as one row per numbered rule is a rule block's.
 
-    Admission is DATA (`paragraph-blocks` in `spec-unharvested-rule-blocks.json`), never a code edit: the
-    standard is full of normative prose, and which clauses are rules is an adjudication (PB479), not a pattern.
+    Admission is DATA (`paragraph-blocks` in the edition's content-keyed manifest), never a code edit: the standard is
+    full of normative prose, and which clauses are rules is an adjudication (PB479), not a pattern.
     """
+    running, furn = ed.running_header, ed.furniture
     paragraphs: list[list[str]] = []
     fresh = True
     for line in lines[at + 1:]:
-        if ANY_HEADING.match(line) and not RUNNING_HEADER.match(line) and not PAGE.match(line):
+        if ANY_HEADING.match(line) and not running.match(line) and not PAGE.match(line):
             break
-        if RUNNING_HEADER.match(line) or PAGE.match(line) or FURNITURE.match(line):
+        if running.match(line) or PAGE.match(line) or furn.match(line):
             continue
         if not line.strip():
             fresh = True
@@ -493,70 +504,293 @@ def subject_for(num: str, titles: dict[str, str]) -> str:
     return titles.get(num, "?")
 
 
-def main_1985(args: argparse.Namespace) -> int:
-    """The 1985 arm (kb/Work PB4886; DESIGN-spec-conformance-review.md §10): the 1985 document's own structure, read by
-    rule_catalog_1985.py. `--check` prints the counts and the findings and writes nothing; otherwise the catalog is
-    written to OUT_1985. Either way a committed catalog that differs from this run is reported, and fails `--check`."""
-    import rule_catalog_1985  # noqa: PLC0415  (it imports this module's heading rules; only the 1985 arm needs it)
-    spec = spec_pdf.markdown(1985)
-    if not spec.exists():
-        sys.exit(f"spec not found: {spec}")
-    lines = spec.read_text(encoding="utf-8").splitlines()
-    cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]))
-    rule_catalog_1985.cite_check(cat)
-    cat.standing = element_standing.apply(cat.rules, "locator", lines, citation.regions_1985(lines), STANDING_OF[1985])
-    print(f"spec:            {spec.relative_to(REPO)}  ({len(lines):,} lines)")
-    for line in rule_catalog_1985.summary(cat):
-        print(line)
-    stale = False
-    if OUT_1985.exists():
-        stale = json.loads(OUT_1985.read_text(encoding="utf-8"))["rules"] != cat.rules
-        if stale:
-            print(f"⛔ THE COMMITTED 1985 CATALOG IS STALE: {OUT_1985.relative_to(REPO)} differs from this run; regenerate it")
-    if args.check:
-        return 1 if cat.findings() or stale else 0
-    OUT_1985.write_text(json.dumps({"generated_from": spec.relative_to(REPO).as_posix(), "rule_count": len(cat.rules),
-                                    "blocks": len(cat.blocks), "rules": cat.rules}, indent=1, ensure_ascii=False) + "\n",
-                        encoding="utf-8", newline="\n")
-    print(f"\nwrote {OUT_1985.relative_to(REPO)}")
-    return 0
+# ── THE ISO EDITIONS: one extraction, a table of structure facts (kb/Work PB5256) ─────────────────────────────────────
+
+@dataclasses.dataclass(frozen=True)
+class IsoEdition:
+    """THE STRUCTURE FACTS OF AN ISO-STRUCTURED EDITION, the one place they differ (kb/Work PB5256). ISO/IEC 1989:2002
+    and ISO/IEC 1989:2023 are built alike: numbered clauses, a general format and Syntax and General rules per construct,
+    Argument and Returned value rules per intrinsic function, an implementor-defined list in an annex, archaic and
+    obsolete lists in another. Measured on 2026-11-11, the 2023 extraction read the 2002 text unchanged into 2,990 rows
+    with 13 findings, every one of them a fact below or a transcription defect: so the extraction is ONE (`extract`)
+    and what differs is this data. The 1985 standard is not built like this (Roman sections, modules and levels, boxes,
+    two amendments): its reader is rule_catalog_1985.py, which shares the heading rules, the kind table, the
+    content-keyed scan and the standing lists with this one."""
+    year: int
+    #: Annex letters whose clauses are numbered like the body's and carry rule blocks: 2002's Annex A (normative) is the
+    #: communications facility, specified in Syntax and General rules exactly as the body's constructs are. Every
+    #: other annex is lists and informative text, read as 2023's annexes are (the implementor-defined list below).
+    rule_annexes: str
+    #: The implementor-defined language element list, one DOC row per item (2023: A.1; 2002: B.1).
+    doc_list: str
+    #: Rule-shaped headings DELIBERATELY outside the denominator, each with the reason it carries no extractable
+    #: rule. ⛔ A guard that reports an expected condition on every run is a guard people learn to ignore — the same
+    #: cry-wolf failure §0 names for line-number code-locations — so a decided exclusion is recorded HERE rather than
+    #: left to reappear as a warning forever. Anything NOT in it still fails loudly.
+    excluded_blocks: Mapping[str, str]
+    #: Recognised rule blocks that legitimately yield ZERO numbered rules, so "0 rules" is the correct answer rather
+    #: than a parse failure. Same cry-wolf argument as `excluded_blocks`.
+    known_empty_blocks: Mapping[str, str]
+    #: The CONVENTIONS clause's sub-clauses: prose DEFINING what a syntax, general, argument and returned-value rule is.
+    #: They are rule-block headings that correctly contain no rules.
+    conventions: frozenset[str]
+    #: How the transcription's table of contents lists an entry (its number and its words), the independent witness of
+    #: what the printed standard contains, and what it lists: "rule blocks" (2023's links every one) or "clauses"
+    #: (2002's prints the clauses to the third level, each of which must be a heading of the transcription).
+    toc: re.Pattern[str]
+    toc_lists: str
+    #: Do the rows carry the edition form of a catalog row, as 1985's do: an id prefixed with the year
+    #: (`2002-SR-14.8.25.2-1`), the rule's `citation` (`§2002:14.8.25.2 SR1`) and its PDF `page`? 2023's rows predate
+    #: the form; its ids are the 4,214-row store's file names and the key every reader of it uses.
+    edition_rows: bool
+
+    @property
+    def reconciled(self) -> bool:
+        """Has the transcription been reconciled page by page against the printed standard? The fact is the ledger's
+        (`verify_publishable.reconciled`: the reconciliation ledger records every page of the PDF), never a flag here.
+        A reconciled edition's catalog holds no finding (`--check` fails on any). An unreconciled one's findings are
+        FACTS ABOUT ITS TRANSCRIPTION, written into the catalog for the reconciliation to resolve (kb/Work PB4813), and
+        `--check` fails when they differ from the committed ones: a finding is never skipped silently or guessed past."""
+        import verify_publishable  # noqa: PLC0415  (the owner of the reconciliation ledgers)
+        return verify_publishable.reconciled(self.year)
+
+    @property
+    def spec(self) -> pathlib.Path:
+        return spec_pdf.markdown(self.year)
+
+    @property
+    def catalog(self) -> pathlib.Path:
+        return catalog_path(self.year)
+
+    @property
+    def unharvested(self) -> pathlib.Path:
+        return UNHARVESTED_OF[self.year]
+
+    @property
+    def standing(self) -> pathlib.Path:
+        return STANDING_OF[self.year]
+
+    @property
+    def sublist_levels(self) -> pathlib.Path:
+        """The PDF measurement of every sub-list's printed level (measure_sublist_levels.py): 2023's is DATA; another
+        edition's file sits beside it, and while it is absent no sub-list of that edition is measured."""
+        return SUBLIST_LEVELS if self.year == 2023 else SUBLIST_LEVELS.with_name(f"sublist-levels-{self.year}.json")
+
+    @property
+    def heading(self) -> re.Pattern[str]:
+        """A numbered clause heading of this edition: the body's, and the rule-bearing annexes'."""
+        return numbered_heading(self.rule_annexes)
+
+    @property
+    def running_header(self) -> re.Pattern[str]:
+        return running_header(self.year)
+
+    @property
+    def furniture(self) -> re.Pattern[str]:
+        return furniture(self.year)
+
+    def label(self, clause: str) -> str:
+        """`clause` in the edition form (`§2002:14.8.25.2`)."""
+        return f"§{self.year}:{clause}"
+
+    def rule_id(self, kind: str, section: str, ordinal: int | str, sublist: int = 1) -> str:
+        """THE ROW KEY of a rule (DESIGN-spec-conformance-review.md §2, §10.1): `<kind>-<clause>-<n>`, a restarted list's
+        `<kind>-<clause>-L<list>.<n>`, a format's `FMT-<clause>`, a prose paragraph's `<kind>-<clause>-p<n>`, prefixed with
+        the year where the edition's rows carry it. THE STABILITY RULE follows from it: an id is a function of its
+        clause, its kind and its printed number only, so regenerating the catalog after a correction keeps every id
+        whose clause and rule number the correction did not change, and changes only the TEXT of a corrected rule."""
+        prefix = f"{self.year}-" if self.edition_rows else ""
+        if kind == "FMT":
+            return f"{prefix}FMT-{section}"
+        return f"{prefix}{kind}-{section}-{ordinal}" if sublist == 1 else f"{prefix}{kind}-{section}-L{sublist}.{ordinal}"
+
+    def citation(self, section: str, kind: str | None = None, ordinal: int = 0, sublist: int = 1) -> str:
+        """The citation of a row (`citation.render`): a numbered rule's `§2002:14.8.25.2 SR1` (`rule_designator`, the one
+        writer of the designator); a format, a prose paragraph or an implementor-defined item cites its clause alone
+        (no numbered `kind`), since the citation format has no designator for them."""
+        rule = citation.rule_designator(kind, ordinal, sublist) if kind in citation.RULE_KINDS else None
+        return citation.render(citation.Citation(self.year, section, rule))
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--check", action="store_true", help="parse only; exit non-zero if parse gaps exist")
-    spec_pdf.add_edition_argument(ap)
-    args = ap.parse_args()
-    return spec_pdf.edition_data({2023: main_2023, 1985: main_1985}, args.edition, "rule catalog arm")(args)
+def numbered_heading(rule_annexes: str = "") -> re.Pattern[str]:
+    """A numbered clause heading whose clause may also be one of `rule_annexes`' (`A.1.2.3`); `HEADING` without any."""
+    if not rule_annexes:
+        return HEADING
+    return re.compile(rf"^#{{2,6}}\s+(?P<num>[{rule_annexes}](?:\.\d+)+|\d+(?:\.\d+)*)\s+(?P<title>.+?)\s*$")
 
 
-def main_2023(args: argparse.Namespace) -> int:
-    """The 2023 arm: ISO/IEC 1989:2023's clause structure (the module docstring)."""
-    if not SPEC.exists():
-        sys.exit(f"spec not found: {SPEC}\nRun: git submodule update --init --recursive")
+def toc_pattern(form: str, rule_annexes: str = "") -> re.Pattern[str]:
+    """How a table of contents lists an entry: 2023's rule-block entries are Markdown links (`[14.9.8.3 Syntax
+    rules](#section-…)`); 2002's entries are the printed lines with their dot leaders (`5.2.1 Syntax rules . . . 19`),
+    an annex's clause among them (`A.1 Data division . . . 655`)."""
+    if form == "linked":
+        return re.compile(r"\[(\d+(?:\.\d+)*)\s+((?:Syntax|General|Argument|Returned value)\s+rules?)\]\(#section-")
+    return re.compile(r"^((?:[A-Z](?:\.\d+)+)|\d+(?:\.\d+)*)\s+(\S.*?)\s+\.(?:\s*\.)+\s*[0-9ivx]+\\?\s*$", re.M)
+
+
+#: The heading of a table of contents' list of tables, which ends its list of clauses (2002's `### Tables`).
+TOC_TABLES = re.compile(r"^#{1,6}\s+Tables\s*$")
+
+
+#: THE TABLE. A new ISO edition is one row here, from its own text (kb/Work PB4815: never another edition's row).
+ISO: dict[int, IsoEdition] = {
+    2023: IsoEdition(
+        year=2023, rule_annexes="", doc_list="A.1",
+        excluded_blocks={
+            "5.3": "defines the rule taxonomy itself (§2023:5.3.1–5.3.3 is prose about what syntax and general rules ARE) "
+                   "and carries no numbered rules of its own — it is the clause that CLASSIFIES §2023:13.18.40.5/.6, which "
+                   "is why those two are in KINDS. Owner decision 2026-07-30.",
+        },
+        known_empty_blocks={
+            "15.4": "its numbered rules live in the SUB-CLAUSE §2023:15.4.1 'Numeric and integer functions', whose prose "
+                    "heading KINDS does not recognise — so this heading resolves to RV and correctly yields nothing of "
+                    "its own. ⛔ THIS WAS AN UNOWNED PARSE GAP FOR MONTHS and the content-keyed scan explained it "
+                    "(fix-queue PB29, 2026-08-04): the same defect class as §2023:8.8.1, one level down. §2023:15.4.1 is now "
+                    "ADMITTED in spec-unharvested-rule-blocks.json and contributes its 6 RV rules — including r1, 'the "
+                    "returned value shall equal the value of the equivalent arithmetic expression', which PB38 and the "
+                    "D3 correction both turn on. Declared here rather than left as a warning forever.",
+            "13.18.40.6": "the PICTURE precedence rules are UNNUMBERED prose plus Table 10 and Table 11 — the normative "
+                          "content IS the two precedence matrices, which have no per-rule ordinal to extract. Typed SR "
+                          "by §2023:5.3.2 so the heading resolves; it contributes no rows. Owner decision 2026-07-30.",
+        },
+        conventions=frozenset({"5.3.2", "5.3.3", "5.3.4", "5.3.5"}),
+        toc=toc_pattern("linked"), toc_lists="rule blocks", edition_rows=False),
+    2002: IsoEdition(
+        year=2002, rule_annexes="A", doc_list="B.1",
+        excluded_blocks={
+            "5.2": "'Rules' defines the rule taxonomy itself (§2002:5.2: \"Except for intrinsic functions, rules are "
+                   "categorized as syntax rules and general rules\"; §2002:5.2.1 to 5.2.4 define each kind in prose) and "
+                   "carries no numbered rule, as §2023:5.3 does for 2023; it is the clause that types §2002:13.16.38.4 and "
+                   "13.16.38.5, which is why KINDS types them.",
+        },
+        known_empty_blocks={
+            "15.3": "its numbered rules live in the SUB-CLAUSE §2002:15.3.1 'Numeric and integer functions', whose prose "
+                    "heading KINDS does not recognise, as §2023:15.4's live in §2023:15.4.1; this heading resolves to RV "
+                    "and yields nothing of its own.",
+            "13.16.38.5": "the PICTURE precedence rules are unnumbered prose and Table 11 and Table 12, as §2023:13.18.40.6 "
+                          "is: typed SR by §2002:5.2.1 (\"The rules of the PICTURE clause specified in 13.16.38.5, "
+                          "Precedence rules, are syntax rules\") so the heading resolves, with no row.",
+        },
+        conventions=frozenset({"5.2.1", "5.2.2", "5.2.3", "5.2.4"}),
+        toc=toc_pattern("dotted"), toc_lists="clauses", edition_rows=True),
+}
+
+
+def page_of(lines: list[str]) -> list[int]:
+    """The PDF page of each line (`## Page N`, or the earlier transcription's `<a id="page-N">` anchor); 0 before the
+    first marker and throughout a transcription that keeps no pages."""
+    out, page = [], 0
+    for line in lines:
+        if (m := PAGE.match(line)) or (m := PAGE_ANCHOR.match(line)):
+            page = int(m.group(1))
+        out.append(page)
+    return out
+
+
+#: The earlier transcription's page anchor (the integrity critic's page bookkeeping).
+PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>')
+
+
+@dataclasses.dataclass(frozen=True)
+class Finding:
+    """One thing the extractor could not read as the standard, at its place in the transcription: a block that yields
+    no rule, a heading no kind resolves, an ordinal no list explains, and the rest of `FINDING_KINDS`. `line` is the
+    transcription's (1-based) and `page` the PDF page that holds it, 0 where the finding has no one line."""
+    kind: str
+    clause: str
+    line: int
+    page: int
+    text: str
+
+    def as_json(self) -> dict[str, Any]:
+        return dataclasses.asdict(self)
+
+    def __str__(self) -> str:
+        where = (f" line {self.line}" if self.line else "") + (f" (PDF page {self.page})" if self.page else "")
+        return f"[{self.kind}] {self.clause}{where}: {self.text}"
+
+
+#: Every kind of finding, and what it is: the summary prints the count of each, so a new kind cannot hide in another's.
+FINDING_KINDS = {
+    "parse-gap": "a recognised rule block that yields no rule",
+    "unrecognised-heading": "a rule-shaped heading no kind resolves: its rules are absent from the denominator",
+    "unrecognised-general": "a heading opening 'General' that names no block this extractor knows",
+    "unexplained-ordinal": "a column-0 ordinal no open list explains: kept in the rule it interrupts, never a row",
+    "heading-label": "an in-clause group label transcribed as a Markdown heading (PB689)",
+    "flattened-tail": "a nested list's tail transcribed at column 0, folded into its parent rule (PB698)",
+    "unmeasured-sublist": "a restarted list no PDF measurement holds at the block's margin (PB55)",
+    "undrawn-format": "a general-format clause whose transcription carries no diagram and no Format label",
+    "unharvested-drift": "a numbered list outside a rule block that the content-keyed manifest does not declare as measured",
+    "paragraph-admission": "a prose clause admission the transcription no longer supports",
+    "toc-unseen": "a rule block (2023) or a clause (2002) the table of contents lists that the transcription never heads",
+    "non-spec-text": "text inside the standard that is not the standard",
+    "standing": "a disagreement of the archaic or obsolete lists' data with the text",
+    "uncitable": "a row whose citation names no region of the transcription",
+    "shared-citation": "two numbered rules that share one citation",
+}
+
+
+@dataclasses.dataclass
+class IsoCatalog:
+    """What `extract` read from one edition's text: its rows, its blocks, its findings and the report it prints."""
+    rules: list[dict[str, Any]]
+    blocks: int
+    parse_gaps: list[dict[str, str]]
+    findings: list[Finding]
+    report: list[str]
+    #: The content-keyed manifest's clauses that await a disposition: their rules are outside the denominator.
+    pending: list[str] = dataclasses.field(default_factory=list)
+
+
+def manifest_of(ed: IsoEdition) -> tuple[dict[str, dict], dict[str, dict]]:
+    """The content-keyed manifest of `ed`: its declared `blocks`, and its PROSE clauses admitted as paragraph rows
+    (`paragraph-blocks`: section ⇒ {kind, kinds?, why}; `_comment` documents the key and is not a clause)."""
+    if not ed.unharvested.exists():
+        return {}, {}
+    raw = json.loads(ed.unharvested.read_text(encoding="utf-8"))
+    return raw.get("blocks", {}), {s: v for s, v in raw.get(PARAGRAPH_BLOCKS, {}).items() if not s.startswith("_")}
+
+
+def measured_peers_of(ed: IsoEdition) -> set[str]:
+    """The sub-lists the PDF measurement records at their block's own margin (level 0), keyed as `sublist_key` keys them."""
+    path = ed.sublist_levels
+    return ({m["key"] for m in json.loads(path.read_text(encoding="utf-8"))["sublists"] if m["level"] == 0}
+            if path.exists() else set())
+
+
+def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragraph_blocks: dict[str, dict],
+            measured_peers: set[str], standing: pathlib.Path | None = None, cite: bool = True) -> IsoCatalog:
+    """THE ISO EXTRACTION, one for every ISO edition: read `lines` (the transcription of `ed`) into its rule rows, with
+    the content-keyed manifest's `declared` blocks and `paragraph_blocks`, the sub-lists `measured_peers` holds at the
+    margin and the standing lists at `standing` (the edition's, by default). Pure but for the standing lists' and the
+    citations' reads: `--self-test` drives it on planted text. `cite` validates each row's citation against the
+    edition's committed transcription, which a planted text is not."""
+    say_lines: list[str] = []
+    say = say_lines.append
+    findings: list[Finding] = []
+    pages = page_of(lines)
+    heading, running, furn = ed.heading, ed.running_header, ed.furniture
+
+    def find(kind: str, clause: str, line: int, text: str) -> None:
+        findings.append(Finding(kind, clause, line, pages[line - 1] if line else 0, text))
 
     # The clauses ADMITTED to the denominator by adjudication (PB29) — section ⇒ declared rule kind. Read from
     # the manifest (admitted_kinds, the three kind shapes). A sub-list or item the map does not know is a
     # manifest/segmentation DISAGREEMENT and is FATAL at flush.
-    declared = manifest_blocks(UNHARVESTED)
     admitted = admitted_kinds(declared)
-    # The PROSE clauses admitted as paragraph rows (see `prose_paragraphs`): section ⇒ {kind, kinds?, why}.
-    paragraph_blocks: dict[str, dict] = {
-        sec: info for sec, info in (json.loads(UNHARVESTED.read_text(encoding="utf-8")).get(PARAGRAPH_BLOCKS, {})
-                                    if UNHARVESTED.exists() else {}).items()
-        if not sec.startswith("_")}      # "_comment" documents the key; it is not a clause
-
-    lines = SPEC.read_text(encoding="utf-8", errors="replace").splitlines()
     titles: dict[str, str] = {}
+    title_line: dict[str, int] = {}
 
     # Pass 1 — every numbered heading, so a rule block can name its subject.
-    for line in lines:
-        if (m := HEADING.match(line)) and not line.lstrip().startswith("["):
+    for i, line in enumerate(lines, start=1):
+        if (m := heading.match(line)) and not line.lstrip().startswith("["):
             titles.setdefault(m.group("num"), m.group("title"))
+            title_line.setdefault(m.group("num"), i)
 
     # Pass 2 — walk rule blocks and collect ordinals.
     rules: list[dict] = []
     blocks_seen: list[tuple[str, str]] = []      # (section-number, kind)
+    block_line: dict[tuple[str, str], int] = {}
     blocks_with_rules: set[tuple[str, str]] = set()
 
     page = 0
@@ -585,21 +819,15 @@ def main_2023(args: argparse.Namespace) -> int:
     #     sub-item FRAGMENTS rows of their own across 14 clauses while every other sub-item in the standard was
     #     folded, so an indentation accident at a page break was deciding what a row IS.
     # A stack of open levels [form, sublist-index, last-ordinal] implements this; `levels[0]` is the block's top
-    # level (sublist 1, plain ids). Anything the four cases above cannot place is counted in `unexplained` and
-    # FAILS --check: an unexplained ordinal is a new segmentation shape, and silently guessing at it is how the
-    # 326 wrong ids happened the first time.
+    # level (sublist 1, plain ids). An ordinal none of these cases explains (`explained`) is NO RULE: it stays in the
+    # text of the rule it interrupts and is a finding (kb/Work PB5256: §2002:15.16.2's table cell "00 through 99."
+    # wrapped onto a line of its own and read as rule 99). Filing it as a nest of its own, as this scan did until
+    # then, gave the denominator a row whose id and text were a guess.
     levels: list[list] = []                      # [form, sublist-index, last-ordinal], innermost last
     next_sublist = 2
     last_indented = 0
     cur_sublist = 1
     cur_kinds: dict[str, str] | None = None      # per-sublist kind map for a MIXED-kind admitted block
-    unexplained: list[tuple[str, int, str]] = []   # (section, ordinal, why)
-    #: In-clause group labels the TRANSCRIPTION rendered as markdown headings — absorbed here so they cannot
-    #: truncate a block, and reported so the transcription gets repaired rather than quietly worked around.
-    heading_labels: list[tuple[str, str]] = []     # (section, label)
-    #: Nested-list tails the TRANSCRIPTION flattened onto column 0 — folded into their parent rule here so the
-    #: row shape is indentation-independent, and reported so the transcription gets repaired (fix-queue PB698).
-    flattened_tails: list[tuple[str, int, int, str]] = []   # (section, line-number, ordinal, text)
     # The page a rule STARTS on. flush() runs when the NEXT ordinal or heading arrives, by which time a
     # "## Page N" marker may already have advanced `page` — so flushing with the live value mis-attributes the
     # last rule of every block that ends near a page boundary (verified against the rendered PDF: GR-7.3.12.4-6
@@ -626,8 +854,16 @@ def main_2023(args: argparse.Namespace) -> int:
             return False
         return n == last_indented + 1
 
+    def explained(n: int, form: str) -> bool:
+        """Does one of `place`'s cases file this column-0 ordinal: a continuation of the innermost level, a same-form
+        restart, a continuation of any open level, or a list's opening?"""
+        if not levels:
+            return True
+        top = levels[-1]
+        return ((form == top[0] and n <= top[2] + 1) or any(n == lv[2] + 1 for lv in levels) or n == 1)
+
     def place(n: int, form: str) -> int:
-        """File a column-0 ordinal on the level stack; returns the sub-list index for its id."""
+        """File a column-0 ordinal on the level stack (one `explained` admits); returns the sub-list index for its id."""
         nonlocal levels, next_sublist, last_indented
         if not levels:
             levels = [[form, 1, n]]
@@ -663,14 +899,7 @@ def main_2023(args: argparse.Namespace) -> int:
             next_sublist += 1
             last_indented = 0
             return levels[-1][1]
-        # 6. unexplained — filed as a nest so nothing is dropped, and reported loudly (fatal under --check)
-        unexplained.append((cur[0] if cur else "?", n,
-                            f"{n}{form} continues no open level "
-                            f"(levels={[(f, s, l) for f, s, l in levels]}, indented-run last={last_indented})"))
-        levels.append([form, next_sublist, n])
-        next_sublist += 1
-        last_indented = 0
-        return levels[-1][1]
+        raise AssertionError(f"place({n}{form}) was given an ordinal `explained` refuses")
 
     def flush() -> None:
         nonlocal buf, ordinal
@@ -684,9 +913,10 @@ def main_2023(args: argparse.Namespace) -> int:
                     sys.exit(f"FATAL: {sec} sub-list {cur_sublist} ordinal {ordinal} has no kind in its "
                              f"per-sublist/per-item manifest entry ({json.dumps(cur_kinds)}). Re-adjudicate "
                              f"the clause against the current segmentation before regenerating.")
-            rid = f"{kind}-{sec}-{ordinal}" if cur_sublist == 1 else f"{kind}-{sec}-L{cur_sublist}.{ordinal}"
-            row = {
-                "id": rid,
+            row = {"id": ed.rule_id(kind, sec, ordinal, cur_sublist)}
+            if ed.edition_rows:
+                row["citation"] = ed.citation(sec, kind, ordinal, cur_sublist)
+            row |= {
                 "section": sec,
                 "kind": kind,
                 "ordinal": ordinal,
@@ -694,6 +924,8 @@ def main_2023(args: argparse.Namespace) -> int:
                 "subject": subject_for(sec, titles),
                 "text": re.sub(r"\s+", " ", text),
             }
+            if ed.edition_rows:
+                row["page"] = rule_page
             if rule_band:
                 row["band"] = rule_band
                 if numbers := band_formats(rule_band):
@@ -711,7 +943,7 @@ def main_2023(args: argparse.Namespace) -> int:
         # A (normative)"), turning every "N." line in Annexes A-F into a fake rule: 601 phantoms in one block.
         # A block that never ends is as wrong as a block never seen, and inflates the denominator instead of
         # shortening it, which is the more dangerous direction because it looks like thoroughness.
-        if RUNNING_HEADER.match(line) or FURNITURE.match(line):
+        if running.match(line) or furn.match(line):
             continue
         # ⛔ AN IN-CLAUSE GROUP LABEL IS NOT A BLOCK BOUNDARY AND IS NOT RULE TEXT (fix-queue PB689). It is
         # skipped in ONE place, before both the heading branch and the buffering branch, so the truncation and
@@ -719,14 +951,16 @@ def main_2023(args: argparse.Namespace) -> int:
         # heading is a document division ("## BIBLIOGRAPHY") and must keep terminating nothing.
         if cur is not None and (gl := GROUP_LABEL.match(line)):
             if line.lstrip().startswith("#"):
-                heading_labels.append((cur[0], gl.group("label")))
+                find("heading-label", ed.label(cur[0]), line_no,
+                     f"the group label '{gl.group('label')}' is a Markdown heading; the printed standard sets it in "
+                     "body type: demote it to a plain line")
             band = gl.group("label").strip()     # the band the NEXT rule is printed under (a field, never text)
             continue
-        if ANY_HEADING.match(line) and not HEADING.match(line):
+        if ANY_HEADING.match(line) and not heading.match(line):
             flush()
             cur = None
             continue
-        if (m := HEADING.match(line)) and not line.lstrip().startswith("["):
+        if (m := heading.match(line)) and not line.lstrip().startswith("["):
             flush()
             num, title = m.group("num"), m.group("title")
             # ⛔ A CLAUSE MAY BE A RULE BLOCK WITHOUT ITS HEADING SAYING SO, AND THAT IS DECLARED IN DATA, NOT
@@ -735,7 +969,7 @@ def main_2023(args: argparse.Namespace) -> int:
             # §2023:5.3.1 settles that they ARE rules ("Except for intrinsic functions, rules are categorized as
             # syntax rules and general rules", validated with cite.py). Adding such titles to KINDS would be a
             # hand-maintained list of prose headings, which is the shape this project keeps deleting; the
-            # ADMITTED set lives in `spec-unharvested-rule-blocks.json` beside the reason each was admitted, and
+            # ADMITTED set lives in the edition's content-keyed manifest beside the reason each was admitted, and
             # the same file's `pending` rows are the worklist of clauses nobody has judged yet.
             k = kind_of(title) or admitted.get(num)
             levels, next_sublist, last_indented, cur_sublist = [], 2, 0, 1
@@ -750,6 +984,8 @@ def main_2023(args: argparse.Namespace) -> int:
                 blocks_seen.append(cur)
             else:
                 cur, cur_kinds = None, None
+            if cur is not None:
+                block_line.setdefault(cur, line_no)
             continue
         if cur is None:
             continue
@@ -762,16 +998,25 @@ def main_2023(args: argparse.Namespace) -> int:
             continue
         in_correction_note = False
         if m := ORDINAL.match(line):
-            n = int(m.group("n"))
+            n, form = int(m.group("n")), m.group("form")
             # ⛔ A FLATTENED NESTED-LIST TAIL IS PART OF ITS PARENT RULE, NOT A ROW (PB698). Decided BEFORE the
             # flush, because flushing is what would have ended the parent rule and started a new one.
-            if ordinal and flattened_tail(n, m.group("form")):
-                flattened_tails.append((cur[0], line_no, n, m.group("text")[:80]))
+            if ordinal and flattened_tail(n, form):
+                find("flattened-tail", ed.label(cur[0]), line_no,
+                     f"'{n}{form} {m.group('text')[:80]}' continues the indented list above it at column 0: folded into "
+                     "its parent rule; indent it to its printed level (cite.py reports its path wrong until then)")
                 last_indented = n
                 buf.append(line)
                 continue
+            if ordinal and not explained(n, form):
+                find("unexplained-ordinal", ed.label(cur[0]), line_no,
+                     f"'{n}{form} {m.group('text')[:80]}' continues no open list (levels "
+                     f"{[(f, s, l) for f, s, l in levels]}, indented run {last_indented}): kept in the text of rule "
+                     f"{ordinal}, never a row of its own")
+                buf.append(line)
+                continue
             flush()
-            cur_sublist = place(n, m.group("form"))
+            cur_sublist = place(n, form)
             ordinal = n
             rule_page = page
             rule_band = band
@@ -788,35 +1033,44 @@ def main_2023(args: argparse.Namespace) -> int:
     # family quietly pointing at nothing — or at rows the numbered scan already holds, which would count twice.
     paragraph_defects: list[str] = []
     heading_at = {m.group("num"): i for i, ln in enumerate(lines)
-                  if (m := HEADING.match(ln)) and not ln.lstrip().startswith("[")}
+                  if (m := heading.match(ln)) and not ln.lstrip().startswith("[")}
     for sec, info in paragraph_blocks.items():
         kind = info.get("kind")
         at = heading_at.get(sec)
+        defect = ""
         if kind not in ("SR", "GR"):
-            paragraph_defects.append(f"§2023:{sec}: kind {kind!r} is not SR or GR (§2023:5.3.1: rules are syntax rules and general rules)")
+            defect = (f"{ed.label(sec)}: kind {kind!r} is not SR or GR (§2023:5.3.1: rules are syntax rules and "
+                      "general rules)")
         elif at is None:
-            paragraph_defects.append(f"§2023:{sec}: no such numbered heading in the transcription")
+            defect = f"{ed.label(sec)}: no such numbered heading in the transcription"
         elif kind_of(titles[sec]) or sec in admitted:
-            paragraph_defects.append(f"§2023:{sec}: already a numbered rule block ({titles[sec]!r}) — its rows would count twice")
+            defect = f"{ed.label(sec)}: already a numbered rule block ({titles[sec]!r}) — its rows would count twice"
         else:
-            paras = prose_paragraphs(lines, at)
+            paras = prose_paragraphs(ed, lines, at)
             overrides = info.get("kinds", {})
             if not paras:
-                paragraph_defects.append(f"§2023:{sec}: admitted as prose but carries no paragraph")
+                defect = f"{ed.label(sec)}: admitted as prose but carries no paragraph"
             if unknown := sorted(set(overrides) - {str(i) for i in range(1, len(paras) + 1)}):
-                paragraph_defects.append(f"§2023:{sec}: per-paragraph kind for paragraph(s) {unknown} the clause does not have")
+                defect = f"{ed.label(sec)}: per-paragraph kind for paragraph(s) {unknown} the clause does not have"
             for n, text in enumerate(paras, start=1):
                 k = overrides.get(str(n), kind)
-                rules.append({
-                    "id": f"{k}-{sec}-p{n}", "section": sec, "kind": k, "ordinal": n, "sublist": 1,
-                    "subject": subject_for(sec, titles), "shape": "paragraph", "text": text,
-                })
+                row = {"id": ed.rule_id(k, sec, f"p{n}")}
+                if ed.edition_rows:
+                    row["citation"] = ed.citation(sec)
+                row |= {"section": sec, "kind": k, "ordinal": n, "sublist": 1, "subject": subject_for(sec, titles),
+                        "shape": "paragraph", "text": text}
+                if ed.edition_rows:
+                    row["page"] = pages[at]
+                rules.append(row)
+        if defect:
+            paragraph_defects.append(defect)
+            find("paragraph-admission", ed.label(sec), (at + 1) if at is not None else 0, defect)
 
     # ---- completeness self-check -----------------------------------------------------------------------------
-    # §2023:5.3.2-5.3.5 are the CONVENTIONS clause: prose DEFINING what a syntax/general/argument/returned-value rule
-    # is. They are rule-block headings that correctly contain no rules. Every other empty block is a parse gap.
-    EXPECTED_EMPTY = {"5.3.2", "5.3.3", "5.3.4", "5.3.5"}
-    gaps = [b for b in blocks_seen if b not in blocks_with_rules and b[0] not in EXPECTED_EMPTY]
+    # The CONVENTIONS clause's sub-clauses (§2023:5.3.2-5.3.5, §2002:5.2.1-5.2.4) are prose DEFINING what a
+    # syntax/general/argument/returned-value rule is. They are rule-block headings that correctly contain no rules.
+    # Every other empty block is a parse gap.
+    gaps = [b for b in blocks_seen if b not in blocks_with_rules and b[0] not in ed.conventions]
 
     # ---- General formats — the SYNTAX DIAGRAMS ---------------------------------------------------------------
     # These are the artifacts the ANTLR grammar was written FROM, and the ones transcription loss damages most
@@ -838,17 +1092,20 @@ def main_2023(args: argparse.Namespace) -> int:
     #     wave 60): still a row — dropping it would shrink the denominator silently — and a LOUD self-check
     #     failure (`--check` exits 1), because the grammar cannot be verified against a diagram that is not there.
     # `CatalogCoverageDriftTests.EveryFmtRow_CarriesADiagramOrAFormatLabel` holds the same bar over the written
-    # catalog, independently of this code.
+    # catalog, independently of this code. A page marker inside the body (`## Page N`, which 2002's transcription
+    # keeps) is no part of the format.
     fmt_sections: list[tuple[str, int]] = []   # (section, heading-line)
     unrecognised_general: list[tuple[str, str]] = []   # headings opening "General" that name no known block kind
     numbered_at: list[tuple[int, str]] = []    # every numbered heading, in order — to see a candidate's next one
     for i, line in enumerate(lines):
-        if (m := HEADING.match(line)) and not line.lstrip().startswith("[") and not PAGE.match(line):
+        if (m := heading.match(line)) and not line.lstrip().startswith("[") and not PAGE.match(line):
             numbered_at.append((i, m.group("num")))
             if GENERAL_FORMAT_TITLE.fullmatch(m.group("title").strip()):
                 fmt_sections.append((m.group("num"), i))
             elif is_unrecognised_general(m.group("title")):
                 unrecognised_general.append((m.group("num"), m.group("title").strip()))
+                find("unrecognised-general", ed.label(m.group("num")), i + 1,
+                     f"'{m.group('title').strip()}' opens with 'General' and names no block this extractor knows")
     next_numbered = {at: nxt for (at, _), (_, nxt) in zip(numbered_at, numbered_at[1:])}
 
     fmt_parents: list[str] = []     # candidate headings that are clauses ABOUT formats, not a construct's format
@@ -856,9 +1113,10 @@ def main_2023(args: argparse.Namespace) -> int:
     for sec, at in fmt_sections:
         body: list[str] = []
         for line in lines[at + 1:]:
-            if ANY_HEADING.match(line) and not RUNNING_HEADER.match(line) and not PAGE.match(line):
+            if ANY_HEADING.match(line) and not running.match(line) and not PAGE.match(line):
                 break
-            body.append(line)
+            if not PAGE.match(line):
+                body.append(line)
         text = "\n".join(body).strip()
         has_diagram = bool(FMT_DIAGRAM.search(text))
         labels = len(FMT_LABEL.findall(text))
@@ -867,8 +1125,14 @@ def main_2023(args: argparse.Namespace) -> int:
                 fmt_parents.append(sec)
                 continue
             fmt_undrawn.append(sec)
-        rules.append({
-            "id": f"FMT-{sec}", "section": sec, "kind": "FMT", "ordinal": 0, "sublist": 1,
+            find("undrawn-format", ed.label(sec), at + 1,
+                 f"the general format of {subject_for(sec, titles)} carries no diagram and no Format label: render "
+                 "the printed page and restore it")
+        row = {"id": ed.rule_id("FMT", sec, 0)}
+        if ed.edition_rows:
+            row["citation"] = ed.citation(sec)
+        row |= {
+            "section": sec, "kind": "FMT", "ordinal": 0, "sublist": 1,
             "subject": subject_for(sec, titles),
             # How many numbered Formats the section declares — Format 1 / Format 2 usually map to DIFFERENT
             # grammar alternatives, so this is a size signal for the verification work, not decoration.
@@ -876,25 +1140,24 @@ def main_2023(args: argparse.Namespace) -> int:
             "has_diagram": has_diagram,
             "has_figure_notes": "Figure notes" in text,
             "text": re.sub(r"\s+", " ", text)[:4000],
-        })
+        }
+        if ed.edition_rows:
+            row["page"] = pages[at]
+        rules.append(row)
 
-    # ---- Annex A.1 — the implementor-defined language element list -------------------------------------------
+    # ---- The implementor-defined language element list (2023: Annex A.1; 2002: Annex B.1) --------------------
     # D13 defines "100% conforming" as the mandatory core complete PLUS every required implementor-documentation
-    # item, so these ARE inventory rows and were missing from the denominator entirely. The heading is
+    # item, so these ARE inventory rows and were missing from the denominator entirely. 2023 heads it
     # "### **A.1 ...**" — bold inside the heading, so it carries no leading digit and the numbered-heading scan
     # never saw it. Items are "N) <header> (<paraphrase>). This item is <required|optional|conditionally
     # required>. This item [, if provided ...,] shall be documented ... (<cross-reference>)".
-    a1_start = next((i for i, l in enumerate(lines) if re.match(r"^#{2,6}\s+\*{0,2}A\.1\b", l)), None)
-    a1_items = 0
+    doc_heading = re.compile(rf"^#{{2,6}}\s+\*{{0,2}}{re.escape(ed.doc_list)}\b")
+    a1_start = next((i for i, l in enumerate(lines) if doc_heading.match(l)), None)
     if a1_start is not None:
-        page = 0
-        for line in lines[:a1_start]:
-            if m := PAGE.match(line):
-                page = int(m.group(1))
-        buf, ordinal, rule_page = [], 0, page
+        buf, ordinal, rule_page = [], 0, pages[a1_start]
 
         def flush_a1() -> None:
-            nonlocal buf, ordinal, a1_items
+            nonlocal buf, ordinal
             if ordinal and (text := re.sub(r"\s+", " ", " ".join(x.strip() for x in buf)).strip()):
                 # Classify from the item's OWN words. Three items (28, 176, 200) do not use the standard
                 # "This item is X" clause, and defaulting them to "required" silently inflated that bucket by
@@ -909,26 +1172,28 @@ def main_2023(args: argparse.Namespace) -> int:
                     req = "required"
                 else:
                     req = "unclassified"
-                rules.append({
-                    "id": f"DOC-A.1-{ordinal}", "section": "A.1", "kind": "DOC", "ordinal": ordinal,
-                    "sublist": 1, "subject": text.split(".")[0][:120],
-                    "requirement": req, "documented": "shall be documented" in low, "text": text,
-                })
-                a1_items += 1
+                row = {"id": ed.rule_id("DOC", ed.doc_list, ordinal)}
+                if ed.edition_rows:
+                    row["citation"] = ed.citation(ed.doc_list)
+                row |= {"section": ed.doc_list, "kind": "DOC", "ordinal": ordinal, "sublist": 1,
+                        "subject": text.split(".")[0][:120], "requirement": req,
+                        "documented": "shall be documented" in low, "text": text}
+                if ed.edition_rows:
+                    row["page"] = rule_page
+                rules.append(row)
             buf, ordinal = [], 0
 
-        for line in lines[a1_start + 1:]:
-            if m := PAGE.match(line):
-                page = int(m.group(1))
+        for i, line in enumerate(lines[a1_start + 1:], start=a1_start + 1):
+            if PAGE.match(line):
                 continue
-            if RUNNING_HEADER.match(line) or FURNITURE.match(line):
+            if running.match(line) or furn.match(line):
                 continue
-            if ANY_HEADING.match(line):          # A.2 (or any later annex heading) ends the list
+            if ANY_HEADING.match(line):          # the next annex clause (or any later heading) ends the list
                 flush_a1()
                 break
             if m := ORDINAL.match(line):
                 flush_a1()
-                ordinal, rule_page = int(m.group("n")), page
+                ordinal, rule_page = int(m.group("n")), pages[i]
                 buf = [m.group("text")]
             elif ordinal:
                 buf.append(line)
@@ -946,156 +1211,95 @@ def main_2023(args: argparse.Namespace) -> int:
     # sanctioned marker `<!-- TRANSCRIPTION-FAILED: page N — reason -->` and nothing else. That marker is
     # greppable, counted, and impossible to mistake for the standard, whereas a summary READS like content, which
     # is exactly why page 28's hole survived for months. A known missing page is recoverable; a page quietly
-    # replaced by prose ABOUT the page is not. (DESIGN §1.4 applied to the spec itself.)
-    META = [
-        (re.compile(r"\bI'?m not able to\b|\bI can quote\b|\bI'?m happy to help\b", re.I), "assistant refusal/offer"),
-        (re.compile(r"here is a summary|summary and key excerpts|here are the key", re.I), "summary preamble"),
-        (re.compile(r"\bcopyrighted standards document\b|\breproduce the full page\b", re.I), "copyright refusal"),
-        (re.compile(r"<!--\s*TRANSCRIPTION-FAILED", re.I), "declared transcription gap (tracked, not hidden)"),
-    ]
-    meta_hits = []
-    # ⛔ RE-KEYED ONTO THE CLAUSE HIERARCHY (the halt this replaces is discharged). Pages were removed from the
-    # transcription in 2026-07-27's de-paging, so this builder's per-rule PAGE column had nothing left to record
-    # and the script stopped rather than stamp a column of zeroes. The column is simply GONE now: a rule is cited
-    # by its clause — 14.9.41.2 GR3, never "page 754" — so the field was dead weight even while pages existed.
-    # The internal page bookkeeping below is retained only because the figure/FMT scan shares the loop.
-    pg = 0
-    for i, line in enumerate(lines):
-        if m := re.match(r'^<a id="page-(\d+)"></a>', line):
-            pg = int(m.group(1))
-            continue
+    # replaced by prose ABOUT the page is not. (DESIGN §1.4 applied to the spec itself.) Every hit is a finding: the
+    # catalog stays regenerable while the reconciliation is still being collected, and `--check` refuses to call a
+    # reconciled transcription sound while any page of it is not the standard.
+    for i, line in enumerate(lines, start=1):
         for pat, label in META:
             if pat.search(line):
-                meta_hits.append((pg, i + 1, label, line.strip()[:100]))
+                find("non-spec-text", f"PDF page {pages[i - 1]}", i, f"[{label}] {line.strip()[:100]}")
                 break
-    if meta_hits:
-        # LOUD in a normal run, FATAL under --check. Deliberate split: the catalog must stay regenerable while
-        # the reconciliation ledger is still being collected (repairs come after the sweep), but the GATE must
-        # refuse to call the transcription sound while any page of it is not the standard.
-        declared = [h for h in meta_hits if h[2].startswith("declared")]
-        hidden = [h for h in meta_hits if not h[2].startswith("declared")]
-        print(f"\n⚠ {len(meta_hits)} line(s) of NON-SPEC TEXT inside the standard, "
-              f"page(s) {sorted({h[0] for h in meta_hits})} "
-              f"({len(hidden)} hidden as content, {len(declared)} declared gap(s)).")
-        print("  These are NOT the spec — a rule or citation derived from such a page is unfounded:")
-        for pg_, ln, label, txt in meta_hits[:15]:
-            print(f"      p{pg_} line {ln} [{label}] {txt}")
-        if args.check:
-            sys.exit(1)
 
     # ---- completeness critic: the spec's own TOC ------------------------------------------------------------
     # The empty-block check has a BLIND SPOT — it can only verify blocks it RECOGNISED. A block whose heading was
     # never matched (an unhandled title form, or a heading a page break demoted to bold text and stripped of its
     # anchor, which has happened in this transcription) is invisible to it. The TOC is an independent witness of
     # what the printed standard contains, so cross-check against it.
-    toc = {(n, k.strip().lower()) for n, k in
-           re.findall(r"\[(\d+(?:\.\d+)*)\s+((?:Syntax|General|Argument|Returned value)\s+rules?)\]\(#section-",
-                      "\n".join(lines))}
-    seen = {(n, (titles.get(n) or "").strip().lower().rstrip(".")) for n, _ in blocks_seen}
-    unseen = sorted(toc - seen, key=lambda x: [int(p) for p in x[0].split(".")])
-    if unseen:
-        print(f"\n✗ FATAL: {len(unseen)} rule block(s) listed in the spec TOC were never parsed as headings.")
-        print("  A block that is never recognised is never counted — the denominator would be short and the")
-        print("  empty-block check could not see it. Investigate the heading form before trusting this catalog:")
-        for n, k in unseen[:20]:
-            print(f"      §{n}  {k}")
-        sys.exit(1)
+    # 2023's TOC links every rule block; 2002's prints the clauses to the third level only (six rule blocks among
+    # them), so its witness is every clause it lists, before its list of tables: each must be a heading of the
+    # transcription with the TOC's own title.
+    end = next((i for i, ln in enumerate(lines) if TOC_TABLES.match(ln)), len(lines)) if ed.toc_lists == "clauses" \
+        else len(lines)
+    text_all = "\n".join(lines[:end])
+    starts = list(itertools.accumulate((len(ln) + 1 for ln in lines[:end - 1]), initial=0))
+    toc = {(m.group(1), re.sub(r"\s+", " ", m.group(2)).strip().lower().rstrip("."),
+            bisect.bisect_right(starts, m.start())) for m in ed.toc.finditer(text_all)}
+    seen = ({(n, (titles.get(n) or "").strip().lower().rstrip(".")) for n, _ in blocks_seen}
+            if ed.toc_lists == "rule blocks" else
+            {(n, re.sub(r"\s+", " ", t).strip().lower().rstrip(".")) for n, t in titles.items()})
+    unseen = sorted(((n, k, ln) for n, k, ln in toc if (n, k) not in seen and ed.heading.match(f"## {n} {k}")),
+                    key=lambda x: [int(p) if p.isdigit() else -1 for p in x[0].split(".")])
+    for n, k, ln in unseen:
+        find("toc-unseen", ed.label(n), ln, f"the table of contents lists '{n} {k}', which the transcription never heads "
+                                            f"as {'a rule block' if ed.toc_lists == 'rule blocks' else 'a clause'}")
 
     # Rule ids are the inventory's PRIMARY KEY — a duplicate silently carries the wrong verdict forward on every
-    # refresh, and drops rules from any per-rule view. This is not a warning; it invalidates the catalog.
+    # refresh, and drops rules from any per-rule view. This is not a finding; it invalidates the catalog.
     dupes = [rid for rid, n in Counter(r["id"] for r in rules).items() if n > 1]
     if dupes:
-        print(f"\n✗ FATAL: {len(dupes)} DUPLICATE rule id(s) — the inventory key is not unique:")
-        for rid in dupes[:10]:
-            print(f"      {rid}")
-        sys.exit(1)
+        sys.exit(f"✗ FATAL: {len(dupes)} DUPLICATE rule id(s) — the inventory key is not unique: {dupes[:10]}")
 
     # ⛔ THE SEGMENTATION DRIFT GUARD (fix-queue PB39). Every column-0 ordinal must be EXPLAINED — a level
     # continuation, a nested-list tail behind an indented run, a same-form restart, or a list opening at 1.
     # An unexplained ordinal means the transcription carries a list shape the segmenter has never seen; guessing
     # at it is how 326 rules got ids the standard does not use. Zero on the whole 2023 transcription — proven to
     # fail by perturbation before being trusted — so any nonzero here is NEW evidence, not noise.
+    unexplained = [f for f in findings if f.kind == "unexplained-ordinal"]
     if unexplained:
-        print(f"\n⛔ {len(unexplained)} ordinal(s) the segmenter could not EXPLAIN — filed as nests, ids suspect:")
-        for sec, n, why in unexplained[:15]:
-            print(f"      §{sec} rule {n}: {why}")
-        print("   Read the clause (and the printed page) and extend the segmentation evidence; do not ship these ids.")
+        say(f"\n⛔ {len(unexplained)} ordinal(s) the segmenter could not EXPLAIN — kept in the rule they interrupt:")
+        say("\n".join(f"      {f}" for f in unexplained[:15]))
+        say("   Read the clause (and the printed page): a defect of the transcription, or a list shape the segmenter "
+            "has never seen.")
 
     # ⛔ THE TRANSCRIPTION DEFECT PB689 WAS BUILT ON, REPORTED RATHER THAN ABSORBED IN SILENCE. The extractor no
     # longer LOSES rules to a heading-ified group label, but a transcription that prints one is still wrong
     # against the page (body type, not a heading) and still misleads every human reader and every other tool
-    # that keys on headings. Demote it to a plain line in specs/ISO_COBOL_2023.md.
-    if heading_labels:
-        print(f"\n⛔ {len(heading_labels)} in-clause GROUP LABEL(S) transcribed as a markdown HEADING — the shape")
-        print("   that cost 60 rules in five clauses (PB689). The printed standard sets these in BODY type;")
-        print("   demote each to a plain line in the transcription:")
-        for sec, label in heading_labels:
-            print(f"      §{sec}  '{label}'")
+    # that keys on headings. Demote it to a plain line in the transcription.
+    if labels_ := [f for f in findings if f.kind == "heading-label"]:
+        say(f"\n⛔ {len(labels_)} in-clause GROUP LABEL(S) transcribed as a markdown HEADING — the shape that cost 60 "
+            "rules in five clauses (PB689):")
+        say("\n".join(f"      {f}" for f in labels_))
 
     # ⛔ THE SAME POSTURE FOR PB698's DEFECT: the extractor no longer lets a flattened nested-list tail become a
     # row, but a transcription that outdents one still makes `cite.py` report the WRONG printed path (§2023:14.9.41.3
     # SR6 b) 2. and 3. both resolved to "6) b) 1." while the printed page indents them under b)), and a wrong
     # citation path is the one thing CLAUDE.md rule 1 exists to prevent. Repair the indentation on the page.
-    if flattened_tails:
-        print(f"\n⛔ {len(flattened_tails)} nested-list TAIL item(s) transcribed at COLUMN 0 — folded into the")
-        print("   parent rule here, but `cite.py` still mis-reports their printed path (PB698). Indent each to")
-        print("   its printed level in specs/ISO_COBOL_2023.md (measure the page: the item's x0 against the body margin):")
-        for sec, ln, n, text in flattened_tails:
-            print(f"      §{sec}  line {ln}  '{n}. {text}'")
+    if tails := [f for f in findings if f.kind == "flattened-tail"]:
+        say(f"\n⛔ {len(tails)} nested-list TAIL item(s) transcribed at COLUMN 0 — folded into the parent rule here (PB698):")
+        say("\n".join(f"      {f}" for f in tails))
 
     # ⛔ A SUB-LIST IS A ROW FAMILY ONLY WHEN THE PRINTED PAGE SAYS SO (kb/Work PB55, "THE RULE IS THE UNIT").
     # A column-0 list that restarts at 1 is either a PEER list the standard prints at the block's own margin
     # (§2023:14.7.5's "The size error condition exists in the following cases:") — rules of their own — or a NESTED
     # list the transcription flattened, which is its parent rule's body. The markdown cannot tell the two apart:
     # 51 nested lists sat at column 0 and held 152 fragment rows until PB55 measured every one on the PDF. So
-    # every sub-list must be RECORDED in `data/sublist-levels.json` as measured at level 0; one that is not is a
+    # every sub-list must be RECORDED in the edition's sub-list data as measured at level 0; one that is not is a
     # flattened nested list (indent it at its printed level) or a new peer list (measure it with
     # `measure_sublist_levels.py --write`, which needs the PDF). The PDF never reaches CI; the measurement does.
-    measured_peers = ({m["key"] for m in json.loads(SUBLIST_LEVELS.read_text(encoding="utf-8"))["sublists"]
-                       if m["level"] == 0} if SUBLIST_LEVELS.exists() else set())
     unmeasured = [r for r in sublist_openings(rules) if sublist_key(r["section"], r["text"]) not in measured_peers]
+    for r in unmeasured:
+        find("unmeasured-sublist", ed.label(r["section"]), 0,
+             f"{r['id']} '{r['text'][:70]}': a flattened NESTED list (indent its items) or a peer list nobody has measured")
     if unmeasured:
-        print(f"\n⛔ {len(unmeasured)} SUB-LIST(S) not MEASURED as printed at the block's own margin (PB55) — each one")
-        print("   is a flattened NESTED list (indent its items at their printed level in specs/ISO_COBOL_2023.md) or a")
-        print("   peer list nobody has measured (python scripts/spec/measure_sublist_levels.py --write):")
-        for r in unmeasured:
-            print(f"      {r['id']}  '{r['text'][:70]}'")
+        say(f"\n⛔ {len(unmeasured)} SUB-LIST(S) not MEASURED as printed at the block's own margin (PB55):")
+        say("\n".join(f"      {r['id']}  '{r['text'][:70]}'" for r in unmeasured))
     else:
-        print(f"✓ every sub-list is a measured peer list ({len(measured_peers)} recorded) — no nested list holds rows")
+        say(f"✓ every sub-list is a measured peer list ({len(measured_peers)} recorded) — no nested list holds rows")
 
-    by_kind = Counter(r["kind"] for r in rules)
-    top = Counter(r["section"].split(".")[0] for r in rules)
-
-    print(f"spec:            {SPEC.relative_to(REPO)}  ({len(lines):,} lines)")
-    print(f"rule blocks:     {len(blocks_seen)}")
-    print(f"RULES EXTRACTED: {len(rules)}")
-    print()
-    for k, label in (("SR", "syntax rules"), ("GR", "general rules"),
-                     ("AR", "argument rules"), ("RV", "returned value rules"),
-                     ("DOC", "Annex A.1 implementor-defined items"),
-                     ("FMT", "general formats (syntax diagrams)")):
-        if by_kind.get(k):
-            print(f"   {by_kind[k]:5d}  {k}  {label}")
-    print()
-    print("   by top-level clause:")
-    # Annex clauses sort after numbered ones ("A.1" is not an int).
-    for sec, n in sorted(top.items(), key=lambda kv: (0, int(kv[0])) if kv[0].isdigit() else (1, 0)):
-        print(f"      §{sec:<3s} {n:5d}")
-
-    expected_empty = [(s, k) for s, k in gaps if s in KNOWN_EMPTY_BLOCKS]
-    gaps = [(s, k) for s, k in gaps if s not in KNOWN_EMPTY_BLOCKS]
-    for sec, _kind in expected_empty:
-        print(f"\n· §{sec} yielded 0 rules, as declared: {KNOWN_EMPTY_BLOCKS[sec]}")
-
-    if gaps:
-        print(f"\n⚠ {len(gaps)} PARSE GAP(S) — rule-block headings that yielded ZERO rules.")
-        print("  An omitted rule is silent false confidence; investigate before trusting the denominator:")
-        for sec, kind in gaps[:25]:
-            print(f"      {kind} §{sec}  ({titles.get(sec, '?')})")
-        if len(gaps) > 25:
-            print(f"      ... and {len(gaps) - 25} more")
-    else:
-        print("\n✓ no parse gaps — every rule-block heading yielded at least one rule")
+    expected_empty = [(s, k) for s, k in gaps if s in ed.known_empty_blocks]
+    gaps = [(s, k) for s, k in gaps if s not in ed.known_empty_blocks]
+    for sec, k in gaps:
+        find("parse-gap", ed.label(sec), block_line[(sec, k)], f"the {k} block '{titles.get(sec, '?')}' yields no rule")
 
     # ⛔ THE CHECK THAT WOULD HAVE CAUGHT THE MISSING TEN. A parse gap is a block that was RECOGNISED and then
     # yielded nothing; a block whose heading spelling is unknown is never recognised, so it is never counted as a
@@ -1103,102 +1307,387 @@ def main_2023(args: argparse.Namespace) -> int:
     # heading whose title contains "rule" and reports the ones KINDS cannot resolve.
     unrecognised = sorted(
         ((num, title) for num, title in titles.items()
-         if RULE_SHAPED.search(title) and kind_of(title) is None and num not in EXCLUDED_BLOCKS and num not in admitted),
+         if RULE_SHAPED.search(title) and kind_of(title) is None and num not in ed.excluded_blocks
+         and num not in admitted),
         key=lambda kv: kv[0])
-    for num, why in sorted(EXCLUDED_BLOCKS.items()):
-        print(f"\n· §{num} '{titles.get(num, '?')}' is deliberately outside the denominator: {why}")
-    if unrecognised:
-        print(f"\n⛔ {len(unrecognised)} rule-shaped heading(s) the KINDS map does not recognise — their rules are")
-        print("   ABSENT FROM THE DENOMINATOR, and absent silently (an unrecognised block is never a parse gap):")
-        for num, title in unrecognised:
-            print(f"      §{num}  '{title}'")
-        print("   Add the CANONICAL singular form to KINDS, or extend canonical_title's normalisation.")
-    else:
-        print("✓ every rule-shaped heading in the spec resolves to a known rule kind")
+    for num, title in unrecognised:
+        find("unrecognised-heading", ed.label(num), title_line[num],
+             f"'{title}' names rules that no kind resolves: they are absent from the denominator. Type it in KINDS, or "
+             "adjudicate the clause in the content-keyed manifest")
 
     # ⛔ THE CONTENT-KEYED CHECK — the one the two previous denominator corrections could not have made.
     # See unharvested_rule_blocks(). Measured against a COMMITTED MANIFEST rather than a remembered number, so a
     # newly-transcribed clause carrying rules is LOUD instead of silently absent from the denominator.
-    measured = unharvested_rule_blocks(lines, titles)
-    report, drifts = unharvested_report(measured, declared, UNHARVESTED, "§2023:")
-    print(chr(10).join(report))
+    measured = unharvested_rule_blocks(lines, titles, heading)
+    report, _drifts = unharvested_report(measured, declared, ed.unharvested, f"§{ed.year}:")
+    added, removed, changed = unharvested_drift(measured, declared)
+    for s in added:
+        find("unharvested-drift", ed.label(s), title_line.get(s, 0),
+             f"'{measured[s]['title']}' carries {measured[s]['ordinals']} list ordinals the manifest does not declare")
+    for s in removed:
+        find("unharvested-drift", ed.label(s), title_line.get(s, 0), "declared in the manifest but no longer measured")
+    for s in changed:
+        find("unharvested-drift", ed.label(s), title_line.get(s, 0),
+             f"declared with {declared[s]['ordinals']} ordinals, measured with {measured[s]['ordinals']}")
 
-    # The general-format bar (kb/Work PB1536 Q2) — see the FMT scan above.
+    # THE STANDING of each rule (kb/Work PB4993): archaic and obsolete by the edition's own lists, else normal, read from
+    # the lists' data by the call the 1985 arm makes; a disagreement of the data with the text is a finding.
+    standing_findings = element_standing.apply(rules, "section", lines, citation.iso_regions(lines),
+                                               standing or ed.standing)
+    for d in standing_findings:
+        m = re.match(r"line (\d+): ", d)
+        find("standing", f"§{ed.year}", int(m.group(1)) if m else 0, d)
+
+    # A ROW IS CITED SO THAT ITS TEXT CAN BE CHECKED (kb/Work PB4886): every row's citation must name a region of the
+    # transcription (`citation.validate`, the reader `cite.py --check` uses), and a citation names ONE rule (kb/Work
+    # PB4969): two numbered rules sharing one would make either's verdict the other's.
+    if ed.edition_rows and cite:
+        for r in rules:
+            if (why := citation.validate(citation.parse(r["citation"]))) is not None:
+                find("uncitable", r["citation"], 0, f"{r['id']}: {why}")
+        numbered = Counter(r["citation"] for r in rules if r["kind"] in citation.RULE_KINDS)
+        for c, n in sorted(numbered.items()):
+            if n > 1:
+                find("shared-citation", c, 0,
+                     f"{n} rows: {[r['id'] for r in rules if r.get('citation') == c][:4]}")
+
+    by_kind = Counter(r["kind"] for r in rules)
+    top = Counter(r["section"].split(".")[0] for r in rules)
+    say(f"spec:            {ed.spec.relative_to(REPO)}  ({len(lines):,} lines)")
+    say(f"rule blocks:     {len(blocks_seen)}")
+    say(f"RULES EXTRACTED: {len(rules)}")
+    say("")
+    for k, label in (("SR", "syntax rules"), ("GR", "general rules"),
+                     ("AR", "argument rules"), ("RV", "returned value rules"),
+                     ("DOC", f"Annex {ed.doc_list} implementor-defined items"),
+                     ("FMT", "general formats (syntax diagrams)")):
+        if by_kind.get(k):
+            say(f"   {by_kind[k]:5d}  {k}  {label}")
+    say("")
+    say("   by top-level clause:")
+    # Annex clauses sort after numbered ones ("A.1" is not an int).
+    for sec, n in sorted(top.items(), key=lambda kv: (0, int(kv[0])) if kv[0].isdigit() else (1, 0)):
+        say(f"      §{sec:<3s} {n:5d}")
+    for sec, _kind in expected_empty:
+        say(f"\n· {ed.label(sec)} yielded 0 rules, as declared: {ed.known_empty_blocks[sec]}")
+    if gaps:
+        say(f"\n⚠ {len(gaps)} PARSE GAP(S) — rule-block headings that yielded ZERO rules:")
+        say("\n".join(f"      {kind} {ed.label(sec)}  ({titles.get(sec, '?')})" for sec, kind in gaps))
+    else:
+        say("\n✓ no parse gaps — every rule-block heading yielded at least one rule")
+    for num, why in sorted(ed.excluded_blocks.items()):
+        say(f"\n· {ed.label(num)} '{titles.get(num, '?')}' is deliberately outside the denominator: {why}")
+    if unrecognised:
+        say(f"\n⛔ {len(unrecognised)} rule-shaped heading(s) the KINDS map does not recognise — their rules are ABSENT "
+            "FROM THE DENOMINATOR:")
+        say("\n".join(f"      {ed.label(num)}  '{title}'" for num, title in unrecognised))
+    else:
+        say("✓ every rule-shaped heading in the spec resolves to a known rule kind")
+    say("\n".join(report))
     for sec in fmt_parents:
-        print(f"\n· §{sec} '{titles.get(sec, '?')}' is titled 'General format(s)' but is a PARENT clause (its body is"
-              " its own sub-clauses, no diagram, no Format label) — a clause ABOUT formats, not a construct's format;"
-              " no FMT row")
-    if fmt_undrawn:
-        print(f"\n⛔ {len(fmt_undrawn)} general-format clause(s) whose transcription carries NO DIAGRAM and no Format "
-              "label — the diagram was lost in transcription. Render the printed page and restore it as a "
-              '<pre style="line-height:1"> block with <u> on the required words:')
-        for sec in fmt_undrawn:
-            print(f"      §{sec}  ({subject_for(sec, titles)})")
-    else:
-        print("✓ every general-format row carries a diagram or a Format label")
-    if unrecognised_general:
-        print(f"\n⛔ {len(unrecognised_general)} heading(s) open with 'General' and name no block this extractor knows —")
-        print("   a spelling variant of 'General format(s)' or 'General rules' is ABSENT FROM THE DENOMINATOR, and absent")
-        print("   silently (kb/Work PB284: §2023:14.9.7.2 'General forms' was exactly this). Resolve each in spec_headings.GENERAL_FORMAT_TITLE")
-        print("   or KINDS, or correct the transcription:")
-        for num, title in unrecognised_general:
-            print(f"      §{num}  '{title}'")
-    else:
-        print("✓ every heading that opens with 'General' is the intro clause, a general format or a rule block")
-    if paragraph_defects:
-        print(f"\n⛔ {len(paragraph_defects)} PROSE-CLAUSE ADMISSION(S) in {UNHARVESTED.name} that the transcription "
-              "no longer supports:")
-        for d in paragraph_defects:
-            print(f"      {d}")
-    else:
-        print(f"✓ {len(paragraph_blocks)} prose clause(s) admitted as paragraph rows, each present, unambiguous and "
-              f"non-empty ({sum(1 for r in rules if r.get('shape') == 'paragraph')} rows)")
-
-    # THE STANDING of each rule (kb/Work PB4993): archaic by §2023:F.1, obsolete by §2023:F.2, else normal, read from the
-    # lists' data by the call the 1985 arm makes; a disagreement of the data with the text fails --check.
-    standing = element_standing.apply(rules, "section", lines, citation.iso_regions(lines), STANDING_OF[2023])
-    print()
+        say(f"\n· {ed.label(sec)} '{titles.get(sec, '?')}' is titled 'General format(s)' but is a PARENT clause (its body"
+            " is its own sub-clauses, no diagram, no Format label) — a clause ABOUT formats, not a construct's format;"
+            " no FMT row")
+    say("✓ every general-format row carries a diagram or a Format label" if not fmt_undrawn else
+        f"\n⛔ {len(fmt_undrawn)} general-format clause(s) whose transcription carries NO DIAGRAM: "
+        + ", ".join(ed.label(s) for s in fmt_undrawn))
+    say("✓ every heading that opens with 'General' is the intro clause, a general format or a rule block"
+        if not unrecognised_general else
+        f"\n⛔ {len(unrecognised_general)} heading(s) open with 'General' and name no block this extractor knows "
+        "(kb/Work PB284): " + ", ".join(f"{ed.label(n)} '{t}'" for n, t in unrecognised_general))
+    say(f"✓ {len(paragraph_blocks)} prose clause(s) admitted as paragraph rows, each present, unambiguous and "
+        f"non-empty ({sum(1 for r in rules if r.get('shape') == 'paragraph')} rows)" if not paragraph_defects else
+        f"\n⛔ {len(paragraph_defects)} PROSE-CLAUSE ADMISSION(S) the transcription no longer supports:\n      "
+        + "\n      ".join(paragraph_defects))
+    say("")
     for line in element_standing.tally(rules):
-        print(line)
-    if standing:
-        print(f"⛔ {len(standing)} disagreement(s) of the standing lists' data with the text (element_standing.findings):")
-        for d in standing:
-            print(f"      {d}")
-    else:
-        print("✓ the archaic and obsolete lists' data agree with the text")
+        say(line)
+    say("✓ the archaic and obsolete lists' data agree with the text" if not standing_findings else
+        f"⛔ {len(standing_findings)} disagreement(s) of the standing lists' data with the text "
+        "(element_standing.findings):\n      " + "\n      ".join(standing_findings))
+    pending = [s for s, v in declared.items() if v.get("disposition") == "pending"]
+    return IsoCatalog(rules, len(blocks_seen), [{"section": s, "kind": k} for s, k in gaps], findings, say_lines, pending)
+
+
+#: The catalog key that names what its count leaves out (`catalog_document`; read by `inventory_schema.Edition.outside`).
+OUTSIDE = "outside-denominator"
+
+
+#: Text inside the standard that is not the standard (the integrity critic in `extract`): the shapes a model's refusal or
+#: summary takes, and the sanctioned marker of a page that could not be transcribed.
+META = [
+    (re.compile(r"\bI'?m not able to\b|\bI can quote\b|\bI'?m happy to help\b", re.I), "assistant refusal/offer"),
+    (re.compile(r"here is a summary|summary and key excerpts|here are the key", re.I), "summary preamble"),
+    (re.compile(r"\bcopyrighted standards document\b|\breproduce the full page\b", re.I), "copyright refusal"),
+    (re.compile(r"<!--\s*TRANSCRIPTION-FAILED", re.I), "declared transcription gap (tracked, not hidden)"),
+]
+
+
+def findings_summary(findings: list[Finding]) -> list[str]:
+    """The count of each kind of finding (`FINDING_KINDS`, in its order), then every finding."""
+    by = Counter(f.kind for f in findings)
+    out = [f"FINDINGS: {len(findings)}"]
+    out += [f"   {by[k]:5d}  {k}: {why}" for k, why in FINDING_KINDS.items() if by[k]]
+    out += [f"      {f}" for f in findings]
+    return out
+
+
+def catalog_document(ed: IsoEdition, cat: IsoCatalog) -> dict[str, Any]:
+    """The committed catalog of `ed`: its source, its counts, its parse gaps, its findings (an unreconciled edition's;
+    a reconciled one fails `--check` on any, so it records none) and its rows."""
+    doc: dict[str, Any] = {"generated_from": ed.spec.relative_to(REPO).as_posix(), "rule_count": len(cat.rules),
+                           "blocks": cat.blocks, "parse_gaps": cat.parse_gaps}
+    if not ed.reconciled:
+        doc["findings"] = [f.as_json() for f in cat.findings]
+    # WHAT THE COUNT LEAVES OUT (kb/Work PB5256, branch review R1-5): the manifest's clauses awaiting a disposition and the
+    # rule-shaped headings no kind types hold rules the denominator does not count yet, so `rule_count` is a lower bound
+    # while either is non-empty, and every reader that prints the count prints this beside it (`Edition.outside`).
+    untyped = [f.clause for f in cat.findings if f.kind == "unrecognised-heading"]
+    if cat.pending or untyped:
+        doc[OUTSIDE] = {"pending-clauses": [ed.label(s) for s in cat.pending], "untyped-headings": untyped}
+    doc["rules"] = cat.rules
+    return doc
+
+
+def main_iso(ed: IsoEdition, args: argparse.Namespace) -> int:
+    """THE ISO ARM, for every ISO edition (`ISO`): extract the catalog of `ed` (`extract`), print its report and its
+    findings, and write it (or, under `--check`, compare it with the committed one). `--check` fails on a committed
+    catalog this run does not reproduce, and, for a reconciled edition, on any finding."""
+    if not ed.spec.exists():
+        sys.exit(f"spec not found: {ed.spec}\nRun: git submodule update --init --recursive")
+    lines = ed.spec.read_text(encoding="utf-8", errors="replace").splitlines()
+    declared, paragraph_blocks = manifest_of(ed)
+    cat = extract(ed, lines, declared, paragraph_blocks, measured_peers_of(ed))
+    print("\n".join(cat.report))
+    print()
+    print("\n".join(findings_summary(cat.findings)))
+    if not ed.reconciled and cat.findings:
+        print(f"   ({ed.year}'s transcription is not reconciled yet (kb/Work PB4813): each finding is recorded in the "
+              "catalog for the reconciliation, and --check fails only when they change)")
 
     # ⛔ THE COMMITTED CATALOG IS THIS RUN'S OUTPUT, OR IT IS STALE (kb/Work PB55). The inventory, every drift
     # test and every derived-verdict selector read the COMMITTED catalog, never the transcription; three landings
     # (PB1221, PB1374, PB351+PB1146+PB937) corrected general-format text in specs/ISO_COBOL_2023.md without regenerating it, and the
     # catalog carried the old text of FMT-7.3.15.2, FMT-13.18.35.2 and FMT-14.9.38.2 until PB55's rebuild found it.
     # `--check` compared the transcription with the manifests and never with the file it writes.
+    doc = catalog_document(ed, cat)
     stale: list[str] = []
-    if OUT.exists():
-        committed = {r["id"]: r for r in json.loads(OUT.read_text(encoding="utf-8"))["rules"]}
-        fresh = {r["id"]: r for r in rules}
+    if ed.catalog.exists():
+        old = json.loads(ed.catalog.read_text(encoding="utf-8"))
+        committed = {r["id"]: r for r in old["rules"]}
+        fresh = {r["id"]: r for r in cat.rules}
         stale = sorted(i for i in committed.keys() | fresh.keys() if committed.get(i) != fresh.get(i))
+        if old.get("findings") != doc.get("findings"):
+            stale.append("(its findings)")
     if stale:
         print(f"\n⛔ THE COMMITTED CATALOG IS STALE — {len(stale)} rule(s) differ from what the transcription yields now:")
         for rid in stale[:10]:
             print(f"      {rid}")
-        print("   Regenerate it in the same change as the transcription edit: python scripts/spec/extract_rule_catalog.py")
+        print(f"   Regenerate it in the same change as the transcription edit: python scripts/spec/extract_rule_catalog.py"
+              f"{'' if ed.year == 2023 else f' --edition {ed.year}'}")
         print("   (then python scripts/spec/inventory_view.py --check, which refuses any adjudication decided against changed text).")
 
     if args.check:
-        return 1 if (gaps or unrecognised or drifts or unexplained
-                     or heading_labels or flattened_tails or unmeasured or stale or fmt_undrawn
-                     or unrecognised_general or paragraph_defects or standing) else 0
-
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({
-        "generated_from": SPEC.relative_to(REPO).as_posix(),
-        "rule_count": len(rules),
-        "blocks": len(blocks_seen),
-        "parse_gaps": [{"section": s, "kind": k} for s, k in gaps],
-        "rules": rules,
-    }, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
-    print(f"\nwrote {OUT.relative_to(REPO)}  ({OUT.stat().st_size / 1_048_576:.1f} MB)")
+        return 1 if stale or (ed.reconciled and cat.findings) else 0
+    ed.catalog.parent.mkdir(parents=True, exist_ok=True)
+    ed.catalog.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    print(f"\nwrote {ed.catalog.relative_to(REPO)}  ({ed.catalog.stat().st_size / 1_048_576:.1f} MB)")
     return 0
+
+
+def main_1985(args: argparse.Namespace) -> int:
+    """The 1985 arm (kb/Work PB4886; DESIGN-spec-conformance-review.md §10): the 1985 document's own structure, read by
+    rule_catalog_1985.py. `--check` prints the counts and the findings and writes nothing; otherwise the catalog is
+    written to its schema path. Either way a committed catalog that differs from this run is reported, and fails `--check`."""
+    import rule_catalog_1985  # noqa: PLC0415  (it imports this module's heading rules; only the 1985 arm needs it)
+    out = catalog_path(1985)
+    spec = spec_pdf.markdown(1985)
+    if not spec.exists():
+        sys.exit(f"spec not found: {spec}")
+    lines = spec.read_text(encoding="utf-8").splitlines()
+    cat = rule_catalog_1985.parse(lines, manifest_blocks(UNHARVESTED_OF[1985]))
+    rule_catalog_1985.cite_check(cat)
+    cat.standing = element_standing.apply(cat.rules, "locator", lines, citation.regions_1985(lines), STANDING_OF[1985])
+    print(f"spec:            {spec.relative_to(REPO)}  ({len(lines):,} lines)")
+    for line in rule_catalog_1985.summary(cat):
+        print(line)
+    stale = False
+    if out.exists():
+        stale = json.loads(out.read_text(encoding="utf-8"))["rules"] != cat.rules
+        if stale:
+            print(f"⛔ THE COMMITTED 1985 CATALOG IS STALE: {out.relative_to(REPO)} differs from this run; regenerate it")
+    if args.check:
+        return 1 if cat.findings() or stale else 0
+    out.write_text(json.dumps({"generated_from": spec.relative_to(REPO).as_posix(), "rule_count": len(cat.rules),
+                               "blocks": len(cat.blocks), "rules": cat.rules}, indent=1, ensure_ascii=False) + "\n",
+                   encoding="utf-8", newline="\n")
+    print(f"\nwrote {out.relative_to(REPO)}")
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--check", action="store_true", help="parse only; exit non-zero if the committed catalog is stale "
+                                                         "or a reconciled edition's text yields a finding")
+    ap.add_argument("--self-test", action="store_true", help="the ISO arm on planted text, a correction applied")
+    ap.add_argument("--held", action="store_true",
+                    help="every edition the inventory schema HOLDS (inventory_schema.HELD), oldest first: the gate's "
+                         "RULE CATALOGS audit, so a newly held edition needs no new audit line")
+    spec_pdf.add_edition_argument(ap)
+    args = ap.parse_args()
+    if args.self_test:
+        return self_test()
+    arms = {year: functools.partial(main_iso, ed) for year, ed in ISO.items()} | {1985: main_1985}
+    if not args.held:
+        return spec_pdf.edition_data(arms, args.edition, "rule catalog arm")(args)
+    verdicts = {}
+    for year in inventory_schema.HELD:
+        print(f"\n════ the {year} rule catalog ════")
+        verdicts[year] = spec_pdf.edition_data(arms, year, "rule catalog arm")(args)
+    print(f"\n=== RULE CATALOGS: {'GREEN' if not any(verdicts.values()) else 'RED'} — "
+          + " · ".join(f"{y} {'ok' if v == 0 else 'RED'}" for y, v in verdicts.items()) + " ===")
+    return 1 if any(verdicts.values()) else 0
+
+
+# ── SELF-TEST: the ISO arm on planted text, and the stability rule under a planted correction ────────────────────────
+
+PLANTED_2002 = """## Page 5
+
+14.8.90 FROB statement . . . 278\\
+A.9 Data division . . . 655
+
+### Tables
+
+1 Verbal forms . . . 21
+
+# Clauses 1 to 16
+
+## Page 40
+
+##### 5.2.1 Syntax rules
+
+Syntax rules supplement general formats.
+
+## Page 300
+
+##### 14.8.90 FROB statement
+
+###### 14.8.90.1 General format
+
+<pre style="line-height:1">
+<u>FROB</u> identifier-1
+</pre>
+
+###### 14.8.90.2 Syntax rules
+
+1\\) Identifier-1 shall be numeric.
+
+2\\) Identifier-1 shall not be a FROBNICATOR.
+
+###### 14.8.90.3 General rules
+
+1\\) The value of identifier-1 is frobbed.
+
+## Page 301
+
+2\\) The size error condition exists when it overflows the range 00 through
+
+99\\. The value 00 is returned when nothing is frobbed.
+
+3\\) Control passes to the next statement.
+
+#### A.9 Data division
+
+##### A.9.1 Syntax rules
+
+1\\) A cd-name shall be unique.
+
+### Annex B (normative) Language element lists
+
+#### B.1 Implementor-defined language element list
+
+1\\) FROB statement (the frob). This item is required. This item shall be documented in the implementor's user documentation. (14.8.90, FROB statement, general rule 1)
+
+#### B.2 Undefined language element list
+"""
+
+
+def self_test() -> int:
+    failures: list[str] = []
+
+    def ok(cond: bool, what: str) -> None:
+        print(f"{'PASS' if cond else 'FAIL'}  {what}")
+        if not cond:
+            failures.append(what)
+
+    import tempfile  # noqa: PLC0415
+    ed = ISO[2002]
+    with tempfile.TemporaryDirectory() as tmp:
+        standing = pathlib.Path(tmp) / "standing.json"
+        standing.write_text(json.dumps({"lists": []}), encoding="utf-8", newline="\n")
+
+        def run(text: str) -> IsoCatalog:
+            return extract(ed, text.splitlines(), {}, {}, set(), standing, cite=False)
+
+        before = run(PLANTED_2002)
+        ids = [r["id"] for r in before.rules]
+        by_id = {r["id"]: r for r in before.rules}
+        ok(ids == ["2002-SR-14.8.90.2-1", "2002-SR-14.8.90.2-2", "2002-GR-14.8.90.3-1", "2002-GR-14.8.90.3-2",
+                   "2002-GR-14.8.90.3-3", "2002-SR-A.9.1-1", "2002-FMT-14.8.90.1", "2002-DOC-B.1-1"],
+           f"every rule, a rule-bearing annex's and the implementor-defined list's, with the year in its id (got {ids})")
+        ok(by_id["2002-GR-14.8.90.3-2"]["citation"] == "§2002:14.8.90.3 GR2"
+           and by_id["2002-FMT-14.8.90.1"]["citation"] == "§2002:14.8.90.1"
+           and by_id["2002-DOC-B.1-1"]["citation"] == "§2002:B.1",
+           "each row cites its rule in the edition form; a format and an implementor-defined item cite their clause")
+        ok(by_id["2002-GR-14.8.90.3-2"]["page"] == 301 and by_id["2002-SR-14.8.90.2-1"]["page"] == 300,
+           "each row carries the PDF page its rule starts on")
+        ok("99" in by_id["2002-GR-14.8.90.3-2"]["text"] and not any("-99" in i for i in ids),
+           "an ordinal no list explains is kept in the rule it interrupts and is never a row (§2002:15.16.2's '99.')")
+        kinds = Counter(f.kind for f in before.findings)
+        unexplained = [f for f in before.findings if f.kind == "unexplained-ordinal"]
+        ok(kinds == Counter({"unexplained-ordinal": 1}) and unexplained[0].page == 301
+           and unexplained[0].line == PLANTED_2002.splitlines().index("99\\. The value 00 is returned when nothing is "
+                                                                       "frobbed.") + 1,
+           f"the interrupting ordinal is a finding naming its line and its page, and nothing else is ({kinds})")
+        ok(not any(r["section"].startswith("5.2") for r in before.rules) and not before.parse_gaps,
+           "the conventions clause's rule-kind headings yield no row and no parse gap")
+
+        # THE STABILITY RULE under a planted correction: the reconciliation re-joins the wrapped table cell, corrects a
+        # misprint in a syntax rule and inserts a general rule the transcription lost. Every id whose clause and rule
+        # number did not change survives with its text updated; the inserted rule renumbers only the rules after it in
+        # its own block; the finding the correction resolved is gone.
+        corrected = (PLANTED_2002
+                     .replace("00 through\n\n99\\. The value", "00 through 99. The value")
+                     .replace("a FROBNICATOR", "a FROBNICATOR-ITEM")
+                     .replace("1\\) The value of identifier-1 is frobbed.",
+                              "1\\) The value of identifier-1 is frobbed.\n\n2\\) The frob is atomic."))
+        corrected = corrected.replace("2\\) The size error", "3\\) The size error").replace("3\\) Control", "4\\) Control")
+        after = run(corrected)
+        new = {r["id"]: r for r in after.rules}
+        ok(not after.findings, "the correction resolves the finding: nothing is reported")
+        ok(new["2002-SR-14.8.90.2-2"]["text"].endswith("a FROBNICATOR-ITEM.")
+           and set(new) >= {i for i in ids if "14.8.90.3" not in i},
+           "a corrected rule keeps its id and takes the corrected text; every id outside the corrected block survives")
+        ok([i for i in new if "14.8.90.3" in i] == [f"2002-GR-14.8.90.3-{n}" for n in (1, 2, 3, 4)]
+           and new["2002-GR-14.8.90.3-3"]["text"].startswith("The size error")
+           and new["2002-GR-14.8.90.3-1"]["text"] == by_id["2002-GR-14.8.90.3-1"]["text"],
+           "an inserted rule renumbers only the rules after it in its own block, as the printed numbers do")
+
+    ok(ISO[2023].rule_id("GR", "14.9.8.4", 2) == "GR-14.9.8.4-2" and not ISO[2023].edition_rows,
+       "2023's ids keep the shape its store is keyed by")
+    ok(numbered_heading("A").match("###### A.1.2.3 Syntax rules") and not HEADING.match("###### A.1.2.3 Syntax rules"),
+       "a rule-bearing annex's clause heads a block only in the edition that declares it")
+    with tempfile.TemporaryDirectory() as tmp:
+        standing = pathlib.Path(tmp) / "standing.json"
+        standing.write_text(json.dumps({"lists": []}), encoding="utf-8", newline="\n")
+        lost = PLANTED_2002.replace("A.9 Data division . . . 655", "A.9 Data division . . . 655\\\n14.8.91 FRAB statement . . . 279")
+        unseen = [f for f in extract(ed, lost.splitlines(), {}, {}, set(), standing, cite=False).findings
+                  if f.kind == "toc-unseen"]
+        ok([(f.clause, f.line) for f in unseen] == [("§2002:14.8.91", 5)],
+           f"a clause 2002's table of contents lists and the transcription never heads is a finding at its TOC line, and "
+           f"the list of tables is no clause ({[str(f) for f in unseen]})")
+    print(f"=== extract_rule_catalog self-test: {'PASS' if not failures else f'FAIL ({len(failures)})'} ===")
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

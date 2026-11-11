@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "1985 makes the relative FILE STATUS clause the sequential one, its content per I-O Status. 2023 writes one FILE STATUS clause (12.4.5.8) into the relative and sequential formats (§2023:12.4.5.2 SR9, SR11), and §2023:12.4.5.8.4 GR1 'A list of the possible I-O status values is contained in 9.1.13'. The clause's syntax rules are the sequential FILE STATUS record's, not part of this one.",
-  "source": "adjudicate-712-r2/slice-08"
+  "source": "adjudicate-712-r2/slice-08",
+  "digests": {
+   "FMT-12.4.5.1": "14f82fb7eed3",
+   "SR-12.4.5.2-9": "fd52bda0dde5",
+   "SR-12.4.5.2-11": "cb117217f6dd",
+   "FMT-12.4.5.8.2": "e6095ecf1b9f",
+   "GR-12.4.5.8.4-1": "3f86001fb864"
+  }
  }
 }

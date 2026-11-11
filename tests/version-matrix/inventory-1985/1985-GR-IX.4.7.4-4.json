@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 GR4: comparison 'on the ascending key of reference according to the collating sequence of the file', the longer operand 'truncated on the right', nonnumeric comparison; the file position indicator is set to the first record satisfying it, else invalid key and START unsuccessful. 2023 §2023:14.9.41.4 GR17 for EQUAL, GREATER, NOT LESS, GREATER OR EQUAL searches 'sequentially', truncates the record's key 'to the same length as the first' (1985 SR4b keeps data-name-1 no longer than the key, so the key is the longer operand in both), compares 'according to the collating sequence of the file' as alphanumeric operands, then sets the file position indicator or raises invalid key; §2023:14.9.41.4 GR16 makes the key of reference order the search. LESS, LENGTH and SUPPRESS WHEN are 2023-only syntax.",
-  "source": "adjudicate-712/slice-08"
+  "source": "adjudicate-712/slice-08",
+  "digests": {
+   "GR-14.9.41.4-17": "89692a1e314f",
+   "GR-14.9.41.4-16": "df13e2ec572a"
+  }
  }
 }

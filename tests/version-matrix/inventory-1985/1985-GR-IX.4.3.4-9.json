@@ -9,6 +9,10 @@
    "GR-14.5.3.2-2"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.10.2": "ad6cca12edf9",
+   "GR-14.5.3.2-2": "c8ba9f162d3f"
+  }
  }
 }

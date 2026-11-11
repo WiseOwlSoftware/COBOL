@@ -13,6 +13,12 @@
   "reason": "1985 requires printable items in a line in ascending column order, each occupying unique positions, with no exception. 2023 allows absolute items 'not in increasing numerical order' and overlapping items when each is 'subject to a different PRESENT WHEN clause' (§2023:13.18.14.3 SR7, SR8a); a multiple COLUMN clause keeps increasing order (§2023:13.18.14.3 SR10b); an overlap at print time sets EC-REPORT-COLUMN-OVERLAP with undefined results (§2023:13.18.14.4 GR4). A 1985 program (no PRESENT WHEN) is refused the same way; 2023 accepts sources 1985 refused. Looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-33"
+  "source": "adjudicate-712/slice-33",
+  "digests": {
+   "SR-13.18.14.3-7": "b7a38be26046",
+   "SR-13.18.14.3-8": "962d2e5b9455",
+   "SR-13.18.14.3-10": "308ed3581a34",
+   "GR-13.18.14.4-4": "cc25fe669606"
+  }
  }
 }

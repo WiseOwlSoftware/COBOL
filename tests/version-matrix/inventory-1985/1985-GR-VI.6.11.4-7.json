@@ -16,6 +16,16 @@
   ],
   "bridge": true,
   "reason": "1985: remainder accuracy 'defined by the calculation', 'alignment and truncation (not rounding)'. §2023:14.9.12.4 GR6 and GR7 define the remainder by its calculation; identifier-4 takes no ROUNDED, so §2023:14.7.4.3 GR2 (as if ROUNDED MODE IS TRUNCATION) and GR10 truncate; §2023:14.7.7 GR1 and §2023:14.6.8.2 GR3-GR5 align 'with zero fill or truncation'. The signed subsidiary quotient concerns 1985 GR6. Same effect.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-14.9.12.4-6": "3053112dac80",
+   "GR-14.9.12.4-7": "27a5fda5e057",
+   "GR-14.7.4.3-2": "cca3f08dae45",
+   "GR-14.7.4.3-10": "4f09b3b1091d",
+   "GR-14.7.7-1": "70b771d75a91",
+   "GR-14.6.8.2-3": "4fdae96a4505",
+   "GR-14.6.8.2-4": "6b8e4ca0565c",
+   "GR-14.6.8.2-5": "1af337ed7017"
+  }
  }
 }

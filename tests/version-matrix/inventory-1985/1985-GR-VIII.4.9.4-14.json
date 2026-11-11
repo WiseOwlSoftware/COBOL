@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985 GR14: invalid key when (a) under random or dynamic access the key names an existing record, (b) 'When an attempt is made to write beyond the externally defined boundaries of the file', (c) the record number has more digits than the relative key. §2023:14.9.51.4 GR33 restates a-c with statuses '22', '24', '24' ('When an attempt is made to write outside the externally defined boundaries of the file'); dropping 'random or dynamic' from (a) changes nothing, since sequential WRITE assigns new numbers. But §2023:14.9.51.4 GR29 takes a random or dynamic WRITE whose relative key 'contains a value that is less than 1 or greater than the highest relative record number permitted for the file' out of the invalid key condition: the WRITE is unsuccessful with status '34', a permanent error. 1985 has no such case and no relative status 34; such a WRITE was an attempt to write beyond the file's boundaries, an invalid key (status 24) that runs the INVALID KEY phrase. Under 2023 the INVALID KEY phrase is not run and the fatal-status rules apply. Different result.",
-  "source": "adjudicate-712/slice-20"
+  "source": "adjudicate-712/slice-20",
+  "digests": {
+   "GR-14.9.51.4-33": "566c56424417",
+   "GR-14.9.51.4-29": "e43570544df4"
+  }
  }
 }

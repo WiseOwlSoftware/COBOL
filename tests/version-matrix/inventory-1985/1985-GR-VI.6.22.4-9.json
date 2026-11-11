@@ -11,6 +11,11 @@
   "reason": "1985 GR9: 'The END-SEARCH phrase delimits the scope of the SEARCH statement.' 2023 carries it through the general scope rules: §2023:14.9.37.2 keeps the optional END-SEARCH in both formats, Table 12 names END-SEARCH as SEARCH's scope terminator, and §2023:14.5.3.2 says 'The scope of a statement may be explicitly terminated by using its associated scope terminator as specified in Table 12', GR1 and GR2 there terminating the most recent unterminated SEARCH and any unterminated statements nested before it. Same for every 1985 SEARCH. (The OPEN adjudicate answer did not consider 14.5.3.2: error mode b.)",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "source": "adjudicate-712/slice-12",
+  "digests": {
+   "FMT-14.9.37.2": "9cbf28da6367",
+   "GR-14.5.3.2-1": "3b121c04bafc",
+   "GR-14.5.3.2-2": "c8ba9f162d3f"
+  }
  }
 }

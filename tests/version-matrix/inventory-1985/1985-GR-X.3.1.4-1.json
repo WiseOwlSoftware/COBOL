@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"The program-name identifies the source program, the object program, and all listings pertaining to a particular program.\"; 2023: \"Program-name-1 names the program declared by this program definition. Literal-1, if specified, is the name of the program that is externalized\". 2023 no longer says program-name identifies the object program and listings. When literal-1 is given, the name externalized to the operating environment is literal-1, not program-name.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-11.10.4-1": "8ec8ee02781e"
+  }
  }
 }

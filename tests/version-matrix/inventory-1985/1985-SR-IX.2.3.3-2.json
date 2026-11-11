@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "Same rule: one SELECT per file-name and an FD in the same program. SR-12.4.5.2-8 bars an SD for indexed files; factory/object units add scopes but change no program.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.4.5.2-2": "0acd4d779c28",
+   "SR-12.4.5.2-3": "7620a6797dae",
+   "SR-12.4.5.2-8": "0575efc1f613",
+   "SR-13.4.5.3-1": "0cda1e9f25c3"
+  }
  }
 }

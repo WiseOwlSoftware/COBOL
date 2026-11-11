@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "2023 RECORD KEY (§2023:12.4.5.12.2) still takes data-name-1, and no 2023 rule forbids qualifying it. The operand table of §2023:5.2.4 defines a user-defined-word operand as 'including qualification and subscripting if needed'. §2023:8.4.2.2.3 SR2: 'A name may be qualified even though it does not need qualification', and SR1 requires it when the name is not unique. These general rules carry the 1985 permission (error mode b).",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "FMT-12.4.5.12.2": "dc0639616e62",
+   "SR-8.4.2.2.3-1": "f514d35c893e",
+   "SR-8.4.2.2.3-2": "007b37ad4caf"
+  }
  }
 }

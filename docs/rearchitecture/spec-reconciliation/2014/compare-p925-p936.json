@@ -1,0 +1,177 @@
+{
+ "batch": [
+  925,
+  926,
+  927,
+  928,
+  929,
+  930,
+  931,
+  932,
+  933,
+  934,
+  935,
+  936
+ ],
+ "pages_checked": [
+  925,
+  926,
+  927,
+  928,
+  929,
+  930,
+  931,
+  932,
+  933,
+  934,
+  935,
+  936
+ ],
+ "pages_unread": [],
+ "findings": [
+  {
+   "id": "p925-1",
+   "page": 925,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "(page ends after \"This error has not been fixed because doing so may cause unacceptable incompatibilities.\" - no further heading on the page)",
+   "markdown_says": "# Bibliography and index",
+   "why_it_matters": "A top-level heading that the page does not print is appended to the Annex G page; the Bibliography heading belongs to page 926, so the stray H1 misplaces document structure."
+  },
+  {
+   "id": "p927-1",
+   "page": 927,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "Abbreviated combined relation conditions  165\nAbnormal run unit termination  438, 440\nABS function  642",
+   "markdown_says": "Abbreviated combined relation conditions 165 Abnormal run unit termination 438, 440 ABS function 642",
+   "why_it_matters": "Three separate index entries are merged into one line, so the page numbers read as one run. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p929-1",
+   "page": 929,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "WRITE statement  619 (indented sub-entry, continuing AT EOP phrase) ... ATTRIBUTE phrase / SET statement, attribute setting  574 (indented) ... AUTOMATIC phrase / LOCK MODE clause  259 (indented) ... AWAY-FROM-ZERO phrase / DEFAULT ROUNDED clause  219 / ROUNDED phrase  447 (indented)",
+   "markdown_says": "   WRITE statement 619\\\n   ATAN function 646\\\n   ATTRIBUTE phrase\\\n   SET statement, attribute setting 574\\ ... AUTOMATIC phrase\\\n   LOCK MODE clause 259\\",
+   "why_it_matters": "The column's first twelve lines lose the index hierarchy: sub-entries and headwords are printed at the same level, so 'SET statement, attribute setting 574' reads as a top-level entry. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p929-2",
+   "page": 929,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "Binary encoding\n    ISO/IEC/IEEE 60559 definition reference  410\nBINARY phrase\n    USAGE clause  405",
+   "markdown_says": "Binary encoding\n\n   ISO/IEC/IEEE 60559 definition reference 410 BINARY phrase\n\n   USAGE clause 405\\",
+   "why_it_matters": "The sub-entry of 'Binary encoding' is merged with the next headword 'BINARY phrase', and the whole right column (BINARY phrase through BY CONTENT phrase / Procedure division header 102) loses its sub-entry indentation. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p930-1",
+   "page": 930,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "Calendar date format  629\nCALL statement  471",
+   "markdown_says": "Calendar date format 629 CALL statement 471",
+   "why_it_matters": "Two index entries merged on one line. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p930-2",
+   "page": 930,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "(right column) National  17 / Numeric  18 indented under Character; CHARACTER CLASSIFICATION clause  229 / OBJECT-COMPUTER paragraph  228 (indented); Class / BASE  735 / Parameterized  200 (indented); Class of data / Alphanumeric 129 ... Pointer 129 (indented)",
+   "markdown_says": "   National 17\\\n   Numeric 18\\\n   CHARACTER CLASSIFICATION clause 229\\\n   OBJECT-COMPUTER paragraph 228\\ ... Class\\\n   BASE 735\\\n   Parameterized 200\\",
+   "why_it_matters": "The whole right column loses the index hierarchy: sub-entries print at the same level as headwords. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p931-1",
+   "page": 931,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "CODE-SET clause  68, 309, 387\n    File description entry  271\nCollating sequence  231",
+   "markdown_says": "CODE-SET clause 68, 309, 387 File description entry 271 Collating sequence 231",
+   "why_it_matters": "A headword, its sub-entry and the next headword are merged on one line. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p931-2",
+   "page": 931,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "(right column) REPLACE statement  37 (indented, continuing Compiler directing statement); Complex conditions 164 / AND operator 164 / NOT operator 164 / OR operator 164 (indented); Condition 152 / Abbreviated combined relation condition 165 ... (indented)",
+   "markdown_says": "   REPLACE statement 37\\\n   Compiler directive 46\\ ... Complex conditions 164\\\n   AND operator 164\\\n   NOT operator 164\\",
+   "why_it_matters": "The whole right column loses the index hierarchy: sub-entries print at the same level as headwords. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p932-1",
+   "page": 932,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "Constant conditional expression  48\nConstant entry  282",
+   "markdown_says": "Constant conditional expression 48 Constant entry 282",
+   "why_it_matters": "Two index entries merged on one line. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p933-1",
+   "page": 933,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "    SET statement, pointer arithmetic  574\nDUPLICATES phrase\n    ALTERNATE RECORD KEY clause  255\n    SORT statement  585",
+   "markdown_says": "   SET statement, pointer arithmetic 574 DUPLICATES phrase\n\n   ALTERNATE RECORD KEY clause 255\\\n   SORT statement 585\\",
+   "why_it_matters": "A sub-entry (continuing DOWN phrase) is merged with the headword 'DUPLICATES phrase', and the right column through 'Scope of 115' loses its sub-entry indentation. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p934-1",
+   "page": 934,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "EC-FLOW-SEARCH exception  442, 583\nEC-FLOW-USE exception  442, 611",
+   "markdown_says": "EC-FLOW-SEARCH exception 442, 583 EC-FLOW-USE exception 442, 611",
+   "why_it_matters": "Two index entries merged on one line. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p934-2",
+   "page": 934,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "EC-PROGRAM-RESOURCES exception  103, 444, 474\nEC-RAISING exception  444",
+   "markdown_says": "EC-PROGRAM-RESOURCES exception 103, 444, 474 EC-RAISING exception 444",
+   "why_it_matters": "Two index entries merged on one line. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p935-1",
+   "page": 935,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "EC-STORAGE-IMP exception  445\nEC-STORAGE-NOT-ALLOC exception  445, 502\nEC-STORAGE-NOT-AVAIL exception  445, 470\nEC-USER exception  425, 439, 446, 499, 500, 825\n... EC-VALIDATE-VARYING exception  423, 446\nEditing rules  362",
+   "markdown_says": "EC-STORAGE-IMP exception 445 EC-STORAGE-NOT-ALLOC exception 445, 502 EC-STORAGE-NOT-AVAIL exception 445, 470 EC-USER exception 425, 439, 446, 499, 500, 825 EC-VALIDATE exception 446, 617 ... EC-VALIDATE-VARYING exception 423, 446 Editing rules 362",
+   "why_it_matters": "Eleven index entries are run together into one paragraph. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p935-2",
+   "page": 935,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "Equivalent arithmetic expression  634\nERASE clause  322",
+   "markdown_says": "Equivalent arithmetic expression 634 ERASE clause 322",
+   "why_it_matters": "Two index entries merged on one line. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p936-1",
+   "page": 936,
+   "kind": "misplaced-content",
+   "severity": "structural",
+   "pdf_says": "FACTORIAL function  668\nFACTORY clause\n    METHOD-ID paragraph  215",
+   "markdown_says": "FACTORIAL function 668 FACTORY clause\n\n   METHOD-ID paragraph 215\\",
+   "why_it_matters": "Two headwords merged on one line, and the right column (through Files / Relative 178) loses its sub-entry indentation. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  },
+  {
+   "id": "p936-2",
+   "page": 936,
+   "kind": "incorrect-text",
+   "severity": "structural",
+   "pdf_says": "FILE STATUS clause  258\n    FILE-CONTROL paragraph  248\nFILE-CONTROL paragraph  248",
+   "markdown_says": "   FILE STATUS clause 258\\\n   FILE-CONTROL paragraph 248\\\n   FILE-CONTROL paragraph 248\\",
+   "why_it_matters": "With the indentation lost, the sub-entry and the following headword become two identical lines, so the sub-entry of FILE STATUS clause is indistinguishable from a duplicated headword. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."
+  }
+ ]
+}

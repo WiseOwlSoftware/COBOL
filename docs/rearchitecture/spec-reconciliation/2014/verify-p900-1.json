@@ -1,0 +1,13 @@
+{
+  "claim_id": "p900-1",
+  "claim_key": "45d6bb24a75d9876",
+  "page": 900,
+  "kind": "incorrect-figure",
+  "severity": "structural",
+  "claim": {"id": "p900-1", "page": 900, "kind": "incorrect-figure", "severity": "structural", "pdf_says": "Flowchart (Figure D.14): Augment identifier-5 loops back to above 'Execute specified set of statements'; Condition-2 True goes to Condition-1; Condition-1 False -> Augment identifier-2, which loops back to above 'Set identifier-5 to current FROM value'; Condition-1 True -> Exit.", "markdown_says": "True\\\nCondition-2\n\nFalse\n\nAugment identifier-5\\\nwith current BY value\n\nCondition-1 True\\\n&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Exit", "why_it_matters": "Flowchart flattened to labels; both loop-backs and the Condition-2 True -> Condition-1 edge are lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered printed page 876 (PDF p900) at 300 dpi. Figure D.14 shows: Entrance -> Set identifier-2 -> (join) -> Set identifier-5 -> (join) -> Execute specified set of statements -> Condition-2; Condition-2 False -> Augment identifier-5, whose line returns to the join above 'Execute specified set of statements'; Condition-2 True -> line right and down to Condition-1; Condition-1 True -> Exit; Condition-1 False -> Augment identifier-2, whose line returns to the join above 'Set identifier-5 to current FROM value'. The claim's pdf_says matches exactly. page-900.md holds only the box/label texts in sequence with no edges or arrows, so the two loop-back targets and the Condition-2 True -> Condition-1 edge are absent; the flattened sequence even implies the wrong flow (Augment identifier-5 followed by Condition-1). The topology of the loop is the figure's content (the TEST AFTER varying semantics it illustrates), so this is a genuine content loss, not formatting. Informative annex figure, so structural rather than normative is appropriate.",
+    "corrected_description": ""
+  }
+}

@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "A USE naming file-name-1 takes precedence and INPUT/OUTPUT/I-O/EXTEND USEs exclude files named in another USE. Only the first qualifying declarative runs, so 1985 USE forms behave the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.49.4-5": "2736b3d8157a",
+   "GR-14.9.49.4-6": "b41480584b33",
+   "GR-14.9.49.4-3": "1f60d13b42af"
+  }
  }
 }

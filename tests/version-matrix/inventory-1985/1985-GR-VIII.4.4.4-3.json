@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Same bar: no statement may reference a file not in an open mode except OPEN and SORT/MERGE USING/GIVING (§2023:14.9.27.4 GR6; §2023:14.9.27.4 GR8 'shall be in an open mode at the time of the execution of any other permissible input-output statement'). GR6 adds 'the COMMIT and ROLLBACK statements, a DELETE FILE statement', none of which a 1985 program can contain, so no 1985-refused program becomes valid. Run-time in both.",
-  "source": "adjudicate-712-r2/slice-08"
+  "source": "adjudicate-712-r2/slice-08",
+  "digests": {
+   "GR-14.9.27.4-6": "b7ae208757f4",
+   "GR-14.9.27.4-8": "85b040d1dbe8"
+  }
  }
 }

@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993) corrected one word in 4b, 'current page group' to 'current body group' (§1985:XIII.3.10.8 GR4 'the first print line of the current body group is presented on the line that is obtained by adding the content of LINE-COUNTER and the integer of the first LINE NUMBER clause'); the positions are unchanged. 4a absolute = §2023:13.18.35.4 GR5 a) 'the report group's first line number is given by integer-1'. 4b relative and paged = GR5 b) 3 'if that report group is the first body group to be printed on the current page, the line number is given by the FIRST DETAIL integer; otherwise, the line number is given by adding integer-2 to the current value of the report's LINE-COUNTER'; 1985's remaining case, no body group yet on the page with LINE-COUNTER at or past FIRST DETAIL ('the line immediately following the line indicated by the value contained in LINE-COUNTER'), arises only from a restored saved next group integer, since headings end before FIRST DETAIL and only the RWCS sets LINE-COUNTER, and §2023:13.18.37.4 GR4 a) 3 gives it the same line: 'on the next line following the line number in the save location'. 4d unpaged = GR5 c). 4c 'The body group is not presented' when no LINE NUMBER clause exists = §2023:13.18.35.4 GR1, only a LINE clause 'defines a report line, or set of report lines, that is printed'. §2023:13.18.35.4 GR6 prints the line at the calculated number.",
-  "source": "readjudicate-amended-1985/slice-08"
+  "source": "readjudicate-amended-1985/slice-08",
+  "digests": {
+   "GR-13.18.35.4-5": "8d7c40e355c7",
+   "GR-13.18.37.4-4": "ccdbe2fd25e1",
+   "GR-13.18.35.4-1": "8b6991986b24",
+   "GR-13.18.35.4-6": "b9b54a2483a7"
+  }
  }
 }

@@ -16,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "The freedom from composite-of-operands and receiving-item limits is kept: 'Arithmetic expressions allow the user to combine arithmetic operations without the restrictions on composite of operands and receiving data items' (§2023:8.8.1.2 GR7). With no ARITHMETIC clause 'it is as if the ARITHMETIC clause were specified with the NATIVE phrase' (§2023:11.9.5.2 GR4), and then 'the techniques used in handling arithmetic expressions and intrinsic functions shall be those specified by the implementor' (§2023:11.9.5.2 GR1), so 1985's implementor-chosen technique survives for a 1985 program. It is no longer unrestricted: under native arithmetic a COMPUTE whose expression is a single fixed-point literal or data item 'evaluates to the exact algebraic value of that literal or item' (§2023:14.9.8.4 GR1), a requirement 1985 left to the implementor. The requirement is stricter.",
-  "source": "adjudicate-712/slice-14"
+  "source": "adjudicate-712/slice-14",
+  "digests": {
+   "GR-8.8.1.2-7": "117f8bbe2f00",
+   "GR-11.9.5.2-1": "583c9fdcd829",
+   "GR-11.9.5.2-4": "51727e5abf48",
+   "GR-14.9.8.4-1": "2a8b1e520b88"
+  }
  }
 }

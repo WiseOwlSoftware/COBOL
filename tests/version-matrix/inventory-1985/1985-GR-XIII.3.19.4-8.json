@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 c)2 has adding take place only when GENERATE runs for a detail named in UPON. That is the same selective subtotalling for the named details; the other details are separate rules.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.54.4-7": "0090a48bcc09"
+  }
  }
 }

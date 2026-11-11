@@ -1,0 +1,27 @@
+{
+  "batch": [361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372],
+  "pages_checked": [361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p370-1",
+      "page": 370,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "section": "13.18.38.1 General format, Format 2 (occurs-depending-table)",
+      "pdf_says": "OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1 / [ { ASCENDING | DESCENDING } KEY IS { data-name-2 } ... ] ... [ INDEXED BY { index-name-1 } ... ]  (the first line is plain text with no delimiters; the brace encloses only ASCENDING/DESCENDING, followed by KEY IS, all inside the bracket on the second line)",
+      "markdown_says": "       ╭              ╮ KEY\n       │              │\n<u>OCCURS</u> │ integer-1 <u>TO</u> │ integer-2 TIMES <u>DEPENDING</u> ON data-name-1\n       │              │\n┌      │ <u>ASCENDING</u>    │                      ┐\n│      ┤              ├ IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]\n└      ╰ <u>DESCENDING</u>   ╯                      ┘",
+      "why_it_matters": "The two lines of the printed format were merged: the ASCENDING/DESCENDING brace now spans both lines and encloses 'integer-1 TO' as a third alternative, the keyword KEY was moved to the top line beside the brace, and the brace opens outside the bracket that should contain it. Read literally, the figure makes 'integer-1 TO', ASCENDING and DESCENDING mutually exclusive alternatives and detaches KEY from IS, which misstates the syntax of the occurs-depending OCCURS clause."
+    },
+    {
+      "id": "p370-2",
+      "page": 370,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "section": "13.18.38.1 General format, Format 4 (dynamic-capacity-table)",
+      "pdf_says": "OCCURS DYNAMIC [ CAPACITY IN data-name-3 ] [FROM integer-4 ] [ TO integer-5 ] [ INITIALIZED ] / [ { ASCENDING | DESCENDING } KEY IS { data-name-2 } ... ] ... [ INDEXED BY { index-name-1 } ... ]  (first line plain, no brace; the brace encloses only ASCENDING/DESCENDING on the second line)",
+      "markdown_says": "       ╭            ╮ KEY\n       │            │\n<u>OCCURS</u> │ <u>DYNAMIC</u> [  │ <u>CAPACITY</u> IN data-name-3 ] [<u>FROM</u> integer-4 ] [ <u>TO</u> integer-5 ] [ <u>INITIALIZED</u> ]\n       │            │\n┌      │ <u>ASCENDING</u>  │                      ┐\n│      ┤            ├ IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]\n└      ╰ <u>DESCENDING</u> ╯                      ┘",
+      "why_it_matters": "Same merge defect as Format 2: the ASCENDING/DESCENDING brace spans both lines, encloses 'DYNAMIC [' as an alternative (splitting the CAPACITY bracket across the brace boundary), KEY is moved to the top line, and the brace opens outside its bracket. The figure thereby makes DYNAMIC an alternative to ASCENDING/DESCENDING and leaves the [ CAPACITY ... ] bracket opened inside the brace and closed outside it."
+    }
+  ]
+}

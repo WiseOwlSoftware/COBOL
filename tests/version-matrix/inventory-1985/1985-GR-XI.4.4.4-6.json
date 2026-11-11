@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "Same three phases. 1985 says file-name-2/file-name-3 'must not be in the open mode' when the phase commences and states no outcome. §2023:14.9.40.4 GR9 instead defines one: 'the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist and the results of the execution of the SORT statement are undefined'. An unstated violation became a defined exception condition (PB5008 mode c).",
-  "source": "adjudicate-712/slice-23"
+  "source": "adjudicate-712/slice-23",
+  "digests": {
+   "GR-14.9.40.4-9": "45071729a244"
+  }
  }
 }

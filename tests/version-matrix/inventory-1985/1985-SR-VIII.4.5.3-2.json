@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'Format 1 must be used for all files in sequential access mode.' 2023 §2023:14.9.30.3 SR8: with ACCESS MODE SEQUENTIAL and neither NEXT nor PREVIOUS, 'the NEXT phrase is implied'; §2023:14.9.30.4 GR19: an implicit or explicit NEXT 'results in a sequential read', i.e. format 1 (§2023:14.9.30.2 'Format 1 (sequential)'), so format-2 phrases (KEY, INVALID KEY) remain unavailable for a sequential-access file. PREVIOUS is a new phrase within format 1. Same requirement.",
-  "source": "adjudicate-712/slice-32"
+  "source": "adjudicate-712/slice-32",
+  "digests": {
+   "SR-14.9.30.3-8": "ddf6eb4f81d8",
+   "GR-14.9.30.4-19": "6bacaf590a7e",
+   "FMT-14.9.30.2": "ab07b0e7e719"
+  }
  }
 }

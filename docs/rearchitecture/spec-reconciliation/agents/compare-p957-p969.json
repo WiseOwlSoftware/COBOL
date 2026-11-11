@@ -1,9 +1,9 @@
 {
   "batch": [957, 958, 959, 960, 961, 963, 964, 965, 966, 967, 968, 969],
-  "pages_checked": [957, 958, 959, 960, 961, 963, 964, 965, 966, 967, 968, 969],
+  "pages_checked": [957, 958, 959, 960, 961, 963, 964, 965, 966, 967, 968, 969], "pages_unread": [],
   "findings": [
     {
-      "page": 968,
+      "id": "p968-1", "page": 968,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "20-21     Two numeric digits are returned in the range 00 through 59 indicating the number of additional minutes that the local time is ahead of or behind Coordinated Universal Time, depending on whether character position 17 is '+' or '–', respectively. If character position 17 is '0', the value 00 is returned.   [printed as the final row of the two-column Character Positions / Contents table of 15.99.3 rule 1, whose rows 1-4 through 18-19 are on page 937]",
@@ -12,7 +12,7 @@
       "suggested_repair": "On the page-968 slice, restart the table the way page-865 does: emit '| **Character Positions** | **Contents** |' + separator, then '| 20-21 | Two numeric digits are returned ... the value 00 is returned. |'."
     },
     {
-      "page": 961,
+      "id": "p961-1", "page": 961,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "[items '5.' and '6.' are printed indented under 15.95.4 rule 1) sub-item b); 'c) Otherwise,' is printed at the sub-item level under rule 1)] — '5.  If standard-decimal arithmetic, or standard-binary arithmetic is in effect, and the exponent in the argument contains more than four significant digits, ...'  /  'c)  Otherwise,'",
@@ -21,7 +21,7 @@
       "suggested_repair": "Re-indent the page-961 continuation to match page 960: six spaces before '5.' and '6.', three spaces before 'c) Otherwise,' and its '(FUNCTION LENGTH ...)' body, and indent the NOTE and its three dashes to the same sub-item level."
     },
     {
-      "page": 961,
+      "id": "p961-2", "page": 961,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "(FUNCTION LENGTH (argument-1) + 1).",

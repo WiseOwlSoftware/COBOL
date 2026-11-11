@@ -1,0 +1,4 @@
+## Entry 3486 — 2026-11-11 13:05 PST — PB5322: a gate whose queued audits go RED withdraws its slot ticket and ends at once
+
+kb/Work PB5322. Run 000004 of worktree wf_c902d12a-c75-2 had its audits RED at about 6 minutes, and wrote its verdict only when it took the slot 72 minutes later (slot_wait_s 4328.9): the worker waited 66 minutes for a verdict known at 08:32, with the ticket ahead of five gates. `GateSlots.acquire` now takes an `abandon` predicate polled on every attempt; the gate hands it "an audit is RED", and a true answer withdraws the ticket, never takes the slot and ends the gate RED with its verdict.json and log. Witness: the gate_slot self-test arm withdraws a real queued ticket and serves the queue behind it, and the gate self-test arm plants a queue that never admits the gate with a RED audit and returns in seconds (the old code returned only at the slot).
+

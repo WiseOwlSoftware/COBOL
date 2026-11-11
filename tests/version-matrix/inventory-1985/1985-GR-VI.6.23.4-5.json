@@ -18,6 +18,14 @@
   "reason": "1985's validity table admits only an integer literal or integer data item as the sender to an index, and marks both 'No' for an integer data item or index data item receiver. 2023 keeps every 'No' cell (§2023:14.9.39.3 SR3 'If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be specified'; §2023:14.9.39.3 SR4 'If identifier-1 references a numeric data item, index-name-2 shall be specified'; §2023:14.9.39.3 SR1, §2023:14.9.39.3 SR2) and every 'Valid' cell, but its format (§2023:14.9.39.2) makes the sender to an index any arithmetic-expression-1, and §2023:14.9.39.4 GR2 'If arithmetic-expression-1 is specified' evaluates it, a non-integer value raising EC-BOUND-SUBSCRIPT and an out-of-range one EC-RANGE-INDEX. The set of valid combinations is wider, so the requirement is looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "source": "adjudicate-712/slice-13",
+  "digests": {
+   "FMT-14.9.39.2": "7e3880298603",
+   "SR-14.9.39.3-1": "69dcec4e78b9",
+   "SR-14.9.39.3-2": "b393da6fdb8b",
+   "SR-14.9.39.3-3": "026b3ac9a17d",
+   "SR-14.9.39.3-4": "8b02fd6fc731",
+   "GR-14.9.39.4-2": "4f89c83a42be"
+  }
  }
 }

@@ -220,6 +220,37 @@ def _cited(m: re.Match) -> citation.Citation | None:
     return cited if len(cited.locator.split(".")) >= FLOOR_SEGMENTS else None
 
 
+def _leaves_parenthesis(gap: str) -> bool:
+    """Whether the text between a citation and the quote after it closes a bracket the citation stands inside: then the
+    citation closes the sentence before it (`"..." (§1985:VII.2.12.3 SR1), and ... "may only be used ..." (SR2)`) and the
+    quote is another rule's, so the two are no prefix pairing (kb/Work PB5317 review round 1: RESOLVE read SR1 against
+    SR2's text, PB5312). It is that shape exactly: the bracket closes and the sentence goes on past a `,`, `;` or `.`; a
+    parenthetical citation the quote follows at once (`(§2023:14.9.14.4 GR5a) "whichever ..."`) stays a pairing. The rule
+    and the sub-item labels written against the citation (`GR6 b) 1.`, `8) b)`) are part of it: their brackets close
+    nothing."""
+    gap = _OWN_LABELS.sub("", gap, count=1)
+    depth = 0
+    for k, ch in enumerate(gap):
+        depth += (ch in "([") - (ch in ")]")
+        if depth < 0:
+            return gap[k + 1:k + 2] in (",", ";", ".")
+    return False
+
+
+def names_another_rule(gap: str) -> bool:
+    """Whether the text between a citation and the quote after it names another rule (`§1985:VI.6.19.4 GR3 puts ... and
+    GR4 b moves it "as if ..."`): the quote is that rule's. The pairing still holds the CLAUSE (a bare `GR4` is the
+    citation's clause), so this audit keeps it; RESOLVE, which checks the rule, reads the citation without the quote
+    (kb/Work PB5317 review round 1, kb/Work PB5176)."""
+    return _ANOTHER_RULE.search(_OWN_LABELS.sub("", gap, count=1)) is not None
+
+
+#: A rule designator written in prose (`GR4`, `SR 2`, `RV1`).
+_ANOTHER_RULE = re.compile(r"\b(?:GR|SR|AR|RV)\s?L?\d")
+#: The rule designator and sub-item labels that follow a citation's locator (`SR1`, `GRL2.1`, `GR6 b) 1.`, `8) b)`).
+_OWN_LABELS = re.compile(r"^(?:\s*(?:(?:GR|SR|AR|RV)\s?L?\d+(?:\.\d+)?[a-z0-9.]*|\(?[a-z0-9]{1,2}[.)]))*")
+
+
 def citations(line: str):
     """Every checkable citation on ONE line, as (column, citation, quote, form), left to right.
 
@@ -231,7 +262,7 @@ def citations(line: str):
         claimed[m.span("q")] = (_cited(m), m.group("q"), "postfix")
     found = dict(claimed)
     for m in PAT.finditer(line):
-        if m.span("q") not in claimed:
+        if m.span("q") not in claimed and not _leaves_parenthesis(line[m.end("cite"):m.start("q")]):
             found[m.span("q")] = (_cited(m), m.group("q"), "prefix")
     for span in sorted(found):
         cited, quote, form = found[span]
@@ -333,6 +364,11 @@ SELF_TEST = [
      'The COMMIT statement (§2023:8.6.6) "shall not be specified in the input or output procedure of a MERGE"'),
     ("edition form, postfix, correct", None,
      'It "shall not be specified in the input or output procedure of a MERGE" (§2023:14.9.7.3 SR2), it says.'),
+    # ⛔ A CITATION THAT CLOSES ITS OWN SENTENCE IS NOT THE NEXT QUOTE'S (`_leaves_parenthesis`, kb/Work PB5317 review
+    # round 1): read as a prefix pairing, 14.9.7.3 was blamed for EXIT PERFORM's words, which are §2023:14.9.14.4's.
+    ("a citation closing its sentence, not the next quote's", None,
+     'It "shall not be specified in the input or output procedure of a MERGE" (§2023:14.9.7.3 SR2), and EXIT PERFORM '
+     '"the most closely preceding, and as yet unterminated, inline PERFORM" (GR5a)'),
     ("1985, correct", None, 'Its entry (§1985:VI.5.3.1) "specifies the characteristics of a particular item of data"'),
     ("1985, misfiled", "misfiled",
      'Its entry (§1985:VI.5.4.1) "specifies the characteristics of a particular item of data"'),

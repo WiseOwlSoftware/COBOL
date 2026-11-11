@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 still assumes the native character set on external media when no CODE-SET is given, which covers every 1985 indexed file. Whether CODE-SET is now allowed there is a separate rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.13.4-7": "d8f36ae44617"
+  }
  }
 }

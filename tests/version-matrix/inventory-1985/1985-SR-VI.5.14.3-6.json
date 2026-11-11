@@ -18,6 +18,14 @@
   ],
   "bridge": true,
   "reason": "1985 refuses BLANK WHEN ZERO, JUSTIFIED, PICTURE, SYNCHRONIZED and VALUE on a USAGE INDEX item. 2023 still refuses four of the five: §2023:13.16.3 SR8 (no PICTURE for an item whose usage is index), §2023:13.16.3 SR10 ('The VALUE clause shall not be specified for data items of class index'), §2023:13.18.8.3 SR1 and SR2 (BLANK WHEN ZERO only for numeric or numeric-edited items of usage display or national), and §2023:13.18.32.3 SR3 (JUSTIFIED only for categories alphabetic, alphanumeric, boolean or national, while §2023:13.18.60.4 GR10 makes an index item's category index). SYNCHRONIZED is no longer refused: §2023:13.18.55.3 SR1 'The SYNCHRONIZED clause may be specified for group and elementary items', and no 2023 rule excludes index items. A refused program (SYNC on an index item) is now accepted.",
-  "source": "adjudicate-712/slice-29"
+  "source": "adjudicate-712/slice-29",
+  "digests": {
+   "SR-13.16.3-8": "673abcd97a8c",
+   "SR-13.16.3-10": "2462f276d57b",
+   "SR-13.18.8.3-1": "d2d8daaa6227",
+   "SR-13.18.8.3-2": "29e38e8869e7",
+   "SR-13.18.32.3-3": "e3d2e346dd5a",
+   "SR-13.18.55.3-1": "1871a9fed2bd"
+  }
  }
 }

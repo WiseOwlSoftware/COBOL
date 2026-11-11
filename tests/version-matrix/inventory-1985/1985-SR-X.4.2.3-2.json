@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'Format 2 is the file description entry for a relative file or an indexed file', clause availability by module level. 2023 §2023:13.4.5.3 SR7 says the same; its added sentence (an indexed FD needs a record description) is a separate requirement. Module-level availability is subsetting. Same.",
-  "source": "adjudicate-712/slice-32"
+  "source": "adjudicate-712/slice-32",
+  "digests": {
+   "SR-13.4.5.3-7": "b9a7373b54e4",
+   "FMT-13.4.5.2": "b75b09e44e69"
+  }
  }
 }

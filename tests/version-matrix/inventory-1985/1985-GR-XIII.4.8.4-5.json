@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: USE procedures run 'after completion of the standard input-output exception routine upon the unsuccessful execution of an input-output operation unless an AT END phrase takes precedence', for file-name-1, OUTPUT and EXTEND, excluding files named by file-name-1 in another USE. 2023: §2023:14.9.49.4 GR6 the same timing, 'unless an AT END or INVALID KEY phrase takes precedence', with the same file-name-1, OUTPUT and EXTEND cases and exclusion; §2023:14.9.49.4 GR5 'a USE statement specifying file-name-1 takes precedence over any USE statements specifying an INPUT, OUTPUT, I-O, or EXTEND phrase'; §2023:14.9.49.4 GR3 a) 'All format 1 USE statements in which file-name-1 is specified are examined' first; §2023:9.1.14 'control is transferred according to the rules of any applicable exception processing statements'. The exception-checking PERFORM preamble cannot apply to a 1985 program; INVALID KEY does not reach report files. Same effect.",
-  "source": "adjudicate-712-r2/slice-12"
+  "source": "adjudicate-712-r2/slice-12",
+  "digests": {
+   "GR-14.9.49.4-6": "b41480584b33",
+   "GR-14.9.49.4-5": "2736b3d8157a",
+   "GR-14.9.49.4-3": "1f60d13b42af",
+   "GR-9.1.14-L2.1": "b5da8dae842e"
+  }
  }
 }

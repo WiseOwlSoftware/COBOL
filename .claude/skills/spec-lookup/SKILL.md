@@ -52,7 +52,7 @@ specification and its parser (kb/Work PB4887). **Check it mechanically:**
 `--check` on is not a citation, and an INHERITED one is the usual failure). It checks every part in every edition: the
 clause, the rule list of that kind, the ordinal, a sub-item path (`GR6c`, `GR6d.2`), and that the quotation (four real
 words or more) lies inside that rule or sub-item; a FAIL names the part (`no-ordinal`, `text-not-in-rule`, ...) and the
-designator the text really sits under (kb/Work PB5317). In an edition with no rule catalog yet (2002, 2014) it reads
+designator the text really sits under (kb/Work PB5317). In an edition with no rule catalog yet (2014) it reads
 rule boundaries from the printed labels and marks the verdict `[LABEL MODE ...]`.
 
 ## 4. Latitude and defects in the standard

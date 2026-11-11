@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both order declarative selection the same way: own program first, then GLOBAL ones outward to the outermost program. One is executed, or none if none qualifies. Ordering within one program is a separate rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.49.4-4": "8952827588c4",
+   "GR-14.9.49.4-3": "1f60d13b42af"
+  }
  }
 }

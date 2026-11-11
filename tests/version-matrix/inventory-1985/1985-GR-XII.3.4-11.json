@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"the indicator area of the introduced lines contains the same character as the line on which the text being replaced begins\"; 2023: \"shall be in logical free-form reference format. Text-words inserted ... are placed in accordance with the rules of free-form reference format\". Same subject, placing inserted text, but 2023 uses logical free-form: no indicator area, no added continuation lines, no error for a literal continued onto a debugging line.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-7.2.4.4-10": "753e24cf3246"
+  }
  }
 }

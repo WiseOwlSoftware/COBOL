@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1989: the number of days the date 'succeeds December 31, 1600, in the Gregorian calendar'. §2023:15.47.4 RV1: 'The returned value is in integer date form', defined in §2023:15.5.2 as exactly that day count. Same value; the year-range change belongs to the argument rule. §2023:15.5.2 has no catalog row.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "RV-15.47.4-1": "33693922ca65"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both guarantee no lost significant digits in ADD. The 2023 limits (native arithmetic, binary-char/float usages) involve only post-1985 features; native is the default.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.2.4-4": "425cae37c61c"
+  }
  }
 }

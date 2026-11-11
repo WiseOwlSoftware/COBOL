@@ -14,6 +14,10 @@
   "reason": "§1985:VII.2.6.2 gives a sequential file only '[ORGANIZATION IS] SEQUENTIAL' (RELATIVE and INDEXED were already 1985 formats of their own modules). §2023:12.4.5.10.2 still accepts the bare form, RECORD being an optional word, and §2023:12.4.5.10.3 GR3 gives it the 1985 meaning ('The RECORD SEQUENTIAL phrase specifies that the file organization is record sequential'), so a 1985 clause means the same; but the format now also offers LINE SEQUENTIAL, a new organization (§2023:12.4.5.10.3 GR2, 'Line sequential organization is a permanent logical file structure'), which the 1985 format refuses. The format is wider: CHANGED. The meaning of sequential organization is the record of 1985 GR2, not of this format. §2023:12.4.5.1 'Format 3 (sequential)' restates the clause in line with the same LINE and RECORD alternatives.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-12.4.5.10.2": "03687bb856b0",
+   "FMT-12.4.5.1": "14f82fb7eed3"
+  }
  }
 }

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'When the figurative constant ALL literal is not associated with another data item, the length of the string is the length of the literal. A figurative constant may be used whenever literal appears in a format with the following exceptions' (§1985:IV.4.2.2.2.3). 2023: 'The length of the string is the length of literal-1' (§2023:8.3.3.6.4 GR3 c) and 'A figurative constant may be used whenever literal appears in a format or when a rule allows it, with the following restrictions' (§2023:8.3.3.6.3 SR1). The one-character case that GR3 a) applies first is for a figurative constant 'specified in a concatenation expression', a construct no 1985 program contains, so it cannot change a 1985 result.",
-  "source": "adjudicate-712/slice-04"
+  "source": "adjudicate-712/slice-04",
+  "digests": {
+   "GR-8.3.3.6.4-3": "0ee983e61ad4",
+   "SR-8.3.3.6.3-1": "e75155955975"
+  }
  }
 }

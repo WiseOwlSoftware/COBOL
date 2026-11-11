@@ -1,9 +1,9 @@
 {
   "batch": [449, 451, 452, 453, 454, 455, 456, 458, 459, 461, 462, 463],
-  "pages_checked": [449, 451, 452, 453, 454, 455, 456, 458, 459, 461, 462, 463],
+  "pages_checked": [449, 451, 452, 453, 454, 455, 456, 458, 459, 461, 462, 463], "pages_unread": [],
   "findings": [
     {
-      "page": 462,
+      "id": "p462-1", "page": 462,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "25) The STEP phrase shall be specified if the entry:\n    a) contains an absolute LINE clause, or\n    b) has an entry with an absolute LINE clause subordinate to it, or\n    c) contains an absolute COLUMN clause, or\n[page 462 ends here; page 463 opens with]\n    d) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN clause subordinate to it.\n\n    In all other cases, the STEP phrase is optional.",
@@ -12,7 +12,7 @@
       "suggested_repair": "In specs/ISO_COBOL.md split line 19671 into two list items: leave 'c) contains an absolute COLUMN clause, or' as the last item on page 462, and move 'd) is subordinate to an entry with a LINE clause and has an entry with an absolute COLUMN clause subordinate to it.' to page 463, immediately after the '## Page 463' / running-header scaffolding and before 'In all other cases, the STEP phrase is optional.'"
     },
     {
-      "page": 451,
+      "id": "p451-1", "page": 451,
       "kind": "ocr-error",
       "severity": "cosmetic",
       "pdf_says": "10) If more than one integer-1 or integer-2 operand is specified ... c) The occurrences of integer-1, if present, shall be in ascending numerical order. ... 12) Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an elementary unsigned integer data item.  (all hyphens printed as the ordinary hyphen U+002D, as everywhere else in the document)",

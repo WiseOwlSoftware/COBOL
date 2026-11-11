@@ -1,0 +1,52 @@
+{
+  "batch": [481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492],
+  "pages_checked": [481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p486-1",
+      "page": 486,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "TIME table (general rule 11): rows '1-2 Two numeric characters of the hours past midnight in the range 00 through 23.', '3-4 ...', '5-6 Two numeric characters of the seconds past the minute in the range: a) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect b) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect.', '7-8 Two numeric characters of the hundredths of a second past the second in the range 00 through 99. 00 is returned if the system on which the ACCEPT statement is executed does not have the facility to provide the fractional part of a second.' - a) and b) are inside the Contents cell of row 5-6, and 7-8 is a fourth row of the same table.",
+      "markdown_says": "| 5-6 | Two numeric characters of the seconds past the minute in the range: |\n\na) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\n\nb) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect.\n\n   7-8 Two numeric characters of the hundredths of a second past the second in the range\\",
+      "why_it_matters": "The table ends after the 5-6 row. Sub-items a) and b) are left at the top level of the page, outside both the 5-6 cell and general rule 11, and the 7-8 row turns into an indented paragraph outside the table. The text is all present, but the table structure that ties the LEAP-SECOND ranges to positions 5-6 is lost."
+    },
+    {
+      "id": "p486-2",
+      "page": 486,
+      "kind": "table-restructured",
+      "severity": "cosmetic",
+      "pdf_says": "Each character-position table (general rules 7 through 11) has a bold header row 'Character Positions | Contents' followed by its data rows, e.g. '1-4 Four numeric characters of the year in the Gregorian calendar.'",
+      "markdown_says": "   Character Positions Contents\n\n| 1-4 | Four numeric characters of the year in the Gregorian calendar. |\n|---|---|",
+      "why_it_matters": "The printed header row is a loose paragraph outside each table, and each table's first data row is promoted to the markdown header row. The data is all present, so meaning is preserved, but the table structure differs from the printed one."
+    },
+    {
+      "id": "p487-1",
+      "page": 487,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "One table 'Screen item | Figurative constant' with eight rows: Alphabetic / Alphanumeric / Alphanumeric-edited / Boolean / National / National-edited / Numeric / Numeric-edited, each paired with its constant (Alphanumeric-edited -> Alphanumeric SPACES; Boolean -> ZEROS).",
+      "markdown_says": "| Alphanumeric | Alphanumeric SPACES |\n\n   Alphanumeric-edited Alphanumeric SPACES\n\n| Boolean | ZEROS |\n|---|---|\n| National | National SPACES |",
+      "why_it_matters": "The single table is split in two. The Alphanumeric-edited row is pulled out as a loose paragraph, and the Boolean row becomes the header row of a second, headerless table. The pairings are still readable, but the table is broken."
+    },
+    {
+      "id": "p491-1",
+      "page": 491,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>)  [general rule 1; subscripts 1, 2, n printed as subscripts]",
+      "markdown_says": "(operand-11 + operand-12 + ... + operand-1n)",
+      "why_it_matters": "The subscripts are flattened onto the baseline, so the text reads 'operand-11' and 'operand-12' (apparently operands numbered eleven and twelve) instead of the first and second instances of operand-1. The surrounding prose ('the values of operand-1 are ...') shows what is meant, but the expression as written is wrong."
+    },
+    {
+      "id": "p491-2",
+      "page": 491,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub> + operand-2)  [general rule 2; subscripts printed as subscripts]",
+      "markdown_says": "(operand-11 + operand-12 + ... + operand-1n + operand-2)",
+      "why_it_matters": "Same subscript flattening as in general rule 1: 'operand-11' and 'operand-12' read as different operand names instead of operand-1 subscript 1 and subscript 2."
+    }
+  ]
+}

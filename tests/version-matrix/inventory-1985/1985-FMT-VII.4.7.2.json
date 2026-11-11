@@ -15,6 +15,11 @@
   "reason": "§1985:VII.4.7.2 is 'WRITE record-name-1 [FROM identifier-1]', an optional {BEFORE | AFTER} ADVANCING phrase (one of them), then AT END-OF-PAGE before NOT AT END-OF-PAGE, then [END-WRITE]. Its 2023 counterpart is §2023:14.9.51.2 'Format 1 (sequential)', which §2023:14.9.51.3 SR2 ('If the organization of the write file is sequential, format 1 shall be specified') ties to sequential files; every 1985 WRITE fits it with the same meaning. But BEFORE and AFTER are now in choice indicators, so both may be written, limited only by §2023:14.9.51.3 SR17 ('The BEFORE and AFTER phrases shall not both be specified if the PAGE phrase is specified'); the end-of-page phrases may come in either order; and 'FILE file-name-1', 'FROM literal-1', the retry-phrase and WITH [NO] LOCK are added. All are refused by the 1985 format and accepted by 2023, at compile time: CHANGED.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-14.9.51.2": "6d9bc893e63f",
+   "SR-14.9.51.3-2": "83d07cbd269a",
+   "SR-14.9.51.3-17": "5c7fa8b221e5"
+  }
  }
 }

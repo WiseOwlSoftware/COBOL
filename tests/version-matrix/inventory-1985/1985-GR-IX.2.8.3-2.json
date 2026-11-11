@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 pointer: the indexed SAME clause is the sequential one. 2023 has one SAME clause (§2023:12.4.6.4.2) for every organization: §2023:12.4.6.4.3 SR4 'The files specified in a given SAME clause need not all have the same organization or access'; §2023:12.4.6.4.4 GR1 'are to use the same memory area during processing'; §2023:12.4.6.4.4 GR2 'are to share a memory area for processing the current logical record'. SR7 and the I-O-CONTROL format carry imported sequential rules, recorded on the 1985 VII SAME records.",
-  "source": "adjudicate-712-r2/slice-02"
+  "source": "adjudicate-712-r2/slice-02",
+  "digests": {
+   "FMT-12.4.6.4.2": "ef1242cdad87",
+   "SR-12.4.6.4.3-4": "976c38be793e",
+   "GR-12.4.6.4.4-1": "a9a0d9d82c17",
+   "GR-12.4.6.4.4-2": "3c2944735909"
+  }
  }
 }

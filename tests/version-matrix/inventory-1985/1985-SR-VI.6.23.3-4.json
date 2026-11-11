@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: 'Integer-1 and integer-2 may be signed. Integer-1 must be positive.' 2023 replaces both with arithmetic expressions (§2023:14.9.39.2: arithmetic-expression-1 in format 1, arithmetic-expression-2 in format 2), which may be signed, and states no positivity rule. §2023:14.9.39.4 GR2 and GR4 check the value only at run time, setting EC-RANGE-INDEX when it is 'outside the limit specified in General rule 2 of 13.18.38'. §2023:13.18.38.4 GR2 makes that range include 'occurrence number (1 - integer-2)'. SET idx TO 0 or TO -1, refused at compile time in 1985, compiles and can succeed.",
-  "source": "adjudicate-712/slice-30"
+  "source": "adjudicate-712/slice-30",
+  "digests": {
+   "FMT-14.9.39.2": "7e3880298603",
+   "GR-14.9.39.4-2": "4f89c83a42be",
+   "GR-14.9.39.4-4": "137e5f7bdcf5",
+   "GR-13.18.38.4-2": "de6d618b2de7"
+  }
  }
 }

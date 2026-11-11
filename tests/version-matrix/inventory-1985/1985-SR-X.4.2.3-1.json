@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'Format 1 is the file description entry for a sequential file', with clause availability by Sequential I-O module level. 2023 §2023:13.4.5.3 SR5: 'Format 1 is the file description entry for a sequential file' (§2023:13.4.5.2 'Format 1 (sequential)'). Module-level availability is subsetting that gives a conforming 1985 program no different meaning. Same.",
-  "source": "adjudicate-712/slice-32"
+  "source": "adjudicate-712/slice-32",
+  "digests": {
+   "SR-13.4.5.3-5": "98e48aad5011",
+   "FMT-13.4.5.2": "b75b09e44e69"
+  }
  }
 }

@@ -1,10 +1,10 @@
 {
   "batch": [1078, 1079, 1080, 1081, 1082, 1083, 1084, 1085, 1086, 1087, 1088, 1089],
-  "pages_checked": [1078, 1079, 1080, 1081, 1082, 1083, 1084, 1085, 1086, 1087, 1088, 1089],
+  "pages_checked": [1078, 1079, 1080, 1081, 1082, 1083, 1084, 1085, 1086, 1087, 1088, 1089], "pages_unread": [],
   "notes": "PDF pages 1078-1089 = printed pages 1048-1059, Annex D (D.6.3.3 through D.7). Every page was rendered at 300 dpi and read visually against its markdown slice. NO general formats / syntax skeletons appear anywhere in this range - it is Annex D narrative prose plus verbatim COBOL code examples (p1085, p1088, p1089) and one two-column argument-correspondence display (p1085). The priority defect class for this run (lost choice-indicator bars, unbalanced brackets, misplaced ellipses, lost underlining) therefore has no instances here because there are no diagrams to lose them from. Prose transcription is verbatim on all twelve pages - no summarisation, no omitted paragraphs, no altered wording, no altered cross-references. Sentences that straddle a page break (p1081/p1082 'cases, only those parts of the parameter passing mechanism...' and p1086/p1087 'specified in the compilation group in the external repository...') are carried whole on the earlier page's slice; text is preserved, not lost, so they are not reported. The known ISO typo on p1089 ('by adding this adding this CONTINUE phrase') is faithfully reproduced by the markdown and is correct transcription, not a defect.",
   "findings": [
     {
-      "page": 1078,
+      "id": "p1078-1", "page": 1078,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.6.3   Accessing data and files / D.6.3.1   General / D.6.3.2   Names / D.6.3.3   Items overview / D.6.3.4   Item types / D.6.3.4.1   Working-storage records",
@@ -13,7 +13,7 @@
       "suggested_repair": "Run a single mechanical pass over the whole document setting heading level = 1 + number-of-components in the clause number (e.g. 'D.6' -> '##', 'D.6.3' -> '###', 'D.6.3.4' -> '####', 'D.6.5.6.3' -> '#####'), leaving anchors and heading text untouched. Verify with: grep -oP '^#{1,6} D(\\.[0-9]+)+' specs/ISO_COBOL.md | awk '{print length($1), gsub(/\\./,\".\",$2)}' | sort -u  -- every distinct depth must map to exactly one level."
     },
     {
-      "page": 1089,
+      "id": "p1089-1", "page": 1089,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "If bpo-length is zero, no message was received, and you had a time out.",

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: a report file has sequential organization and its FCE clauses are those of Sequential I-O. 2023: 'Format 3 shall be specified only for a sequential file or a report file' (§2023:12.4.5.2 SR11) and 'The sequential format defines a file connector for a sequential file' (§2023:12.4.5.3 GR8). Same.",
-  "source": "adjudicate-712/slice-23"
+  "source": "adjudicate-712/slice-23",
+  "digests": {
+   "SR-12.4.5.2-11": "cb117217f6dd",
+   "GR-12.4.5.3-8": "738441f8464e"
+  }
  }
 }

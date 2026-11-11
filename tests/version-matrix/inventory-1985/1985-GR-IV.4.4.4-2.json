@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993) only deleted the rule's last sentence, 'Examples of such phrases are ELSE, WHEN, NOT AT END, etc.' (§1985:IV.4.4.4 GR2, the C203 flag); an example, no requirement. What remains, 'the next phrase of the containing statement following the contained statement terminates the scope of any unterminated contained statement' (§1985:IV.4.4.4 GR2), is stated by 2023 for both kinds of contained statement: 'for a single imperative statement contained within another statement, by ... c) the next phrase of any containing statement' (§2023:14.5.3.3 GR2) and 'for a conditional statement contained within another statement, by ... b) the next phrase of any containing statement' (§2023:14.5.3.3 GR4). The other items of those two rules (the containing statement's own termination, the elements that end an uncontained statement) are other cases of implicit termination, not a different requirement for this one.",
-  "source": "readjudicate-amended-1985/slice-02"
+  "source": "readjudicate-amended-1985/slice-02",
+  "digests": {
+   "GR-14.5.3.3-2": "b7c435135bf9",
+   "GR-14.5.3.3-4": "8dcbda9999fd"
+  }
  }
 }

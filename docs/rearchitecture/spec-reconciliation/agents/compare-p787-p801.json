@@ -1,9 +1,9 @@
 {
   "batch": [787, 790, 791, 793, 794, 795, 796, 797, 798, 799, 800, 801],
-  "pages_checked": [787, 790, 791, 793, 794, 795, 796, 797, 798, 799, 800, 801],
+  "pages_checked": [787, 790, 791, 793, 794, 795, 796, 797, 798, 799, 800, 801], "pages_unread": [],
   "findings": [
     {
-      "page": 799,
+      "id": "p799-1", "page": 799,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "In the 14.9.48.2 UNSTRING general format the ON OVERFLOW group is drawn as a tall BRACKET with a plain full-height VERTICAL BAR immediately inside each side (verified on a 300 dpi crop of the region: the outer glyph has square bracket serifs top and bottom, the inner glyph is a bare vertical rule with no serifs): \"[| ON OVERFLOW imperative-statement-1 |]\" over \"[| NOT ON OVERFLOW imperative-statement-2 |]\" as one two-row enclosure.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Re-render the ON OVERFLOW group in the house style used at line 31964 (⌈ | ON OVERFLOW imperative-statement-1 | ⌉ / ⌊ | NOT ON OVERFLOW imperative-statement-2 | ⌋) and add the matching '> **Figure notes (5.2.6.4 choice indicators).**' paragraph stating that both phrases may be specified, each at most once, in any order."
     },
     {
-      "page": 799,
+      "id": "p799-2", "page": 799,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "In 14.9.48.2 the following words are printed with underlines (required words): UNSTRING, DELIMITED, ALL (both occurrences), OR, INTO, DELIMITER, COUNT, POINTER, TALLYING, OVERFLOW (both occurrences), NOT, END-UNSTRING. BY, WITH, IN and ON are printed WITHOUT underlines (optional words).",
@@ -21,7 +21,7 @@
       "suggested_repair": "Add a '> **Figure notes (UNSTRING statement general format syntax diagram).**' paragraph after the figure listing the underlined required words (UNSTRING, DELIMITED, ALL, OR, INTO, DELIMITER, COUNT, POINTER, TALLYING, OVERFLOW, NOT, END-UNSTRING) and the non-underlined optional words (BY, WITH, IN, ON)."
     },
     {
-      "page": 796,
+      "id": "p796-1", "page": 796,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "14.9.46.2 General format:  TERMINATE { report-name-1 } …   - with TERMINATE underlined (confirmed on a 300 dpi crop: a continuous rule runs under the whole word); report-name-1 is not underlined.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Transcribe as '<u>TERMINATE</u> { report-name-1 } …' to match the SUPPRESS convention two sections earlier."
     },
     {
-      "page": 798,
+      "id": "p798-1", "page": 798,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "14.9.47.2 General format:  UNLOCK  file-name-1  [ RECORD / RECORDS ]  - with UNLOCK underlined (confirmed on a 300 dpi crop); file-name-1, RECORD and RECORDS are not underlined, and the RECORD/RECORDS bracket is plain (no choice-indicator bars).",
@@ -39,7 +39,7 @@
       "suggested_repair": "Add '> **Figure notes (UNLOCK statement general format).** `UNLOCK` is underlined in the printed standard (required word); `file-name-1`, `RECORD` and `RECORDS` are not. The bracket is plain - no choice indicators - so at most one of RECORD / RECORDS is written.' after the fence."
     },
     {
-      "page": 793,
+      "id": "p793-1", "page": 793,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "'14.9.44.3   Syntax rules' and '14.9.44.4   General rules' are printed in the same bold sub-subsection style as every other four-level heading on these pages (e.g. 14.9.43.4 on page 760, 14.9.45.3 on page 765), one level BELOW '14.9.44 SUBTRACT statement'.",
@@ -48,7 +48,7 @@
       "suggested_repair": "Demote both to '### 14.9.44.3 Syntax rules' and '### 14.9.44.4 General rules'. The same defect exists at lines 31494, 31570 (14.9.40.3/.4), 32429 (14.9.48.4), 32594 and 32651 (14.9.49.3/.4) - sweep the pattern."
     },
     {
-      "page": 800,
+      "id": "p800-1", "page": 800,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "'14.9.48.4   General rules' is printed in the four-level sub-subsection style, one level below '14.9.48 UNSTRING statement'.",
@@ -57,7 +57,7 @@
       "suggested_repair": "Demote to '### 14.9.48.4 General rules'."
     },
     {
-      "page": 801,
+      "id": "p801-1", "page": 801,
       "kind": "ocr-error",
       "severity": "cosmetic",
       "pdf_says": "'When the UNSTRING statement is initiated, the current receiving area is the data item referenced by identifier-4. Data is transferred from the data item referenced by identifier-1 to the data item referenced by identifier-4 according to the following rules:' ... 'Size is defined as number of character positions.' - all in plain roman type; no bold anywhere on the page.",

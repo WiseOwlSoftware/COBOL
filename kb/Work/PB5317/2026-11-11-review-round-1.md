@@ -24,6 +24,18 @@ example `§2023:8.9 Table 12` is now §2023:14.5.1 Table 12, where the table is 
 `§1985:VI.5.3.2 GR3` and `§2002:14.8.4 SR2` in `docs/DOC_INDEX.md` and `CONTRIBUTING.md`, siblings of the CLAUDE.md example
 this branch corrected, are now §1985:VI.5.3.4 GR3 and §2002:14.8.4.2 SR2.
 
-**R1-2 (medium).** The refused citations PB5318 does not own are filed as kb/Work PB5333: 116 entries, the 1985 ten and the
-2002 four named, with the fix direction. PB5318's count is now its measured class, 1,514 (edition 2023, `no-rule-list`, the
-message naming a subclause or sibling clause). Neither population is rewritten here.
+**R1-2 (medium).** The refused citations PB5318 does not own are filed as kb/Work PB5333, with the fix direction. PB5318's
+count is now its measured class, 1,514 (edition 2023, `no-rule-list`, the message naming a subclause or sibling clause).
+Neither population is rewritten here.
+
+**Merging origin/main** brought the 2002 rule catalog (kb/Work PB5256): `cite.resolve` now reads 2002 against it (LABEL
+MODE is 2014's alone), the self-test's real-tree 2002 cases assert an unmarked verdict, and the page furniture follows the
+extractor's per-year `furniture(year)`. It also brought kb/Work PB5312, whose correct `§1985:VII.2.12.3 SR1` RESOLVE read
+against the SR2 quotation of the next sentence. That was the pairing reader's defect, with a sibling: a prefix pairing ran
+past a citation that closes its own sentence (`(... SR1), and ... "quote"`, `audit_doc_citations._leaves_parenthesis`, now
+no pairing in either audit) and past the next rule the prose names (`GR3 puts ... and GR4 b moves it "quote"`,
+`names_another_rule`: the doc audit keeps that pairing for the clause, RESOLVE reads the citation without the quote). Each
+shape has a self-test case that fails without its fix. Thirteen baseline entries were those false positives, among them
+three of the 1985 eight (PB5286's §1985:XIV.3.3.4 GR2, PB5176's and a store record's §1985:VI.6.19.4 GR3, each right) and
+the SetEmitter and StatementValidation entries the review cited. The baseline is 1,617: PB5318's 1,514 and PB5333's 103
+(2023 92, 1985 7, 2002 4).

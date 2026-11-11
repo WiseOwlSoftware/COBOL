@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 keeps the 1985 requirement for data description entries. It adds only screen description entries, a feature 1985 lacks, so no 1985 program's acceptance changes.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.33.3-1": "fee42dedb0a3"
+  }
  }
 }

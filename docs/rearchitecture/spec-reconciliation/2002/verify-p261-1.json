@@ -1,0 +1,13 @@
+{
+  "claim_id": "p261-1",
+  "claim_key": "c0c32667687b5c3d",
+  "page": 261,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p261-1", "page": 261, "kind": "table-restructured", "severity": "structural", "pdf_says": "Term / Subclause table with three rows, the last \"record-description-entry 13.10, Record description entry\"", "markdown_says": "| constant-entry | 13.9, Constant entry |\n\nrecord-description-entry 13.10, Record description entry", "why_it_matters": "The last row of the 13.5.1 meta-language term table fell out of the markdown table and became a loose paragraph. Text present; table structure lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 261 (printed 239), 13.5.1: the Term/Subclause table prints three aligned rows: 77-level-entry / 13.11, 77-level data description entry; constant-entry / 13.9, Constant entry; record-description-entry / 13.10, Record description entry. The markdown table holds only the first two rows. The third appears after a blank line as a plain paragraph, 'record-description-entry 13.10, Record description entry', so it sits outside the table. The claim quotes both sources accurately. The words are all present, so a human reader loses nothing. A tool that parses the term table loses the record-description-entry -> 13.10 mapping, which is why this counts as a real structural defect and not normative wording. The general-format bracket itself is transcribed correctly: three stacked alternatives inside a plain bracket with no choice-indicator bars, followed by an ellipsis.",
+    "corrected_description": null
+  }
+}

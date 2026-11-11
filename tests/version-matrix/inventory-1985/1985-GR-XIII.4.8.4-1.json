@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: declaratives may appear in any program, nested or not; a declarative is invoked when its USE condition occurs, only a declarative within the separately compiled program containing the statement is invoked, and 'If no qualifying declarative exists ... no declarative is executed'. 2023: USE 'defines the conditions calling for the execution of the use procedures' (§2023:14.9.49.4 GR1), executed when the condition occurs (§2023:14.9.49.4 GR6); selection takes 'the qualifying declarative in the source element that contains the statement', then GLOBAL ones in containing source elements up to the outermost (§2023:14.9.49.4 GR4), the order 1985 X.5.5.4 GR1 already gave; 'If no declarative is identified, no declarative is executed' (§2023:14.9.49.4 GR3). Propagation to a caller needs a 2023-only directive. Same effect.",
-  "source": "adjudicate-712/slice-27"
+  "source": "adjudicate-712/slice-27",
+  "digests": {
+   "GR-14.9.49.4-1": "5fa8a62bd318",
+   "GR-14.9.49.4-3": "1f60d13b42af",
+   "GR-14.9.49.4-4": "8952827588c4",
+   "GR-14.9.49.4-6": "b41480584b33"
+  }
  }
 }

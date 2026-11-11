@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985 GR6: after REWRITE 'the information in the area referenced by identifier-1 is available', unconditionally. §2023:14.9.35.4 GR10 adds 'provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description'. §1985:IX.4.6.3 SR1 forbids only that 'Record-name-1 and identifier-1 ... refer to the same storage area', so identifier-1 in another, longer record of the same FD lying past record-name-1's end was legal in 1985 and its content guaranteed; 2023 withdraws that guarantee (a result made unspecified). SAME RECORD AREA part via §2023:14.9.35.4 GR6.",
-  "source": "adjudicate-712-r2/slice-03"
+  "source": "adjudicate-712-r2/slice-03",
+  "digests": {
+   "GR-14.9.35.4-10": "41691922df5f",
+   "GR-14.9.35.4-6": "7212088aac7a"
+  }
  }
 }

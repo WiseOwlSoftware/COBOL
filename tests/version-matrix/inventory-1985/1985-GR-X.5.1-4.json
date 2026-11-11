@@ -11,6 +11,11 @@
   ],
   "reason": "1985 GR4 a-e lets a Linkage Section item be referenced 'if, and only if' it is a USING operand, subordinate to one, a REDEFINES/RENAMES of one, subordinate to such, or an associated condition-name/index-name; level 1 must permit at least five USING data-names. §2023:13.7.3 SR4 restates a-e ('It is an operand of the USING phrase or the RETURNING phrase of the procedure division header' ...); its additions (based items, RETURNING operands) need 2023-only syntax, so 1985 programs are accepted or refused alike, at compile time. The USING lists of §2023:14.2.1 and §2023:14.9.4.2 are unbounded, covering the five-name minimum.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "SR-13.7.3-4": "4d7c0cecdfa0",
+   "FMT-14.2.1": "604c99f50235",
+   "FMT-14.9.4.2": "02ef50f0e383"
+  }
  }
 }

@@ -17,6 +17,13 @@
   ],
   "bridge": true,
   "reason": "1985: ENVIRONMENT DIVISION. [CONFIGURATION SECTION. [SOURCE-COMPUTER.] [OBJECT-COMPUTER.] [SPECIAL-NAMES.]] [INPUT-OUTPUT SECTION. FILE-CONTROL. {file-control-entry} … [I-O-CONTROL.]]: an input-output section requires FILE-CONTROL with at least one entry. §2023:12.2.1 and §2023:12.3.2 keep the sections and paragraphs and add [ repository-paragraph ]; §2023:12.4.2 brackets [ file-control-paragraph ] and §2023:12.4.4.2 writes FILE-CONTROL. [ file-control-entry ] …, so an empty input-output section or FILE-CONTROL paragraph is accepted; §2023:12.4.6.2 keeps I-O-CONTROL. Every 1985 division keeps its meaning; cases are added at compile time.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-12.2.1": "5d1240009e4e",
+   "FMT-12.3.2": "08695062731f",
+   "FMT-12.4.2": "f65147ec3303",
+   "FMT-12.4.4.2": "07586e6ff559",
+   "FMT-12.4.6.2": "bea3f5dbe52a"
+  }
  }
 }

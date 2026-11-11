@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985 defines At End: 'A sequential READ statement was unsuccessfully executed as a result of an at end condition.' §2023:9.1.13.1 repeats it word for word, as prose with no catalog row. Catalogued carriers: status 10 for the at end causes (§2023:9.1.13.4 GR1), 'the at end condition exists' on a sequential READ (§2023:14.9.30.4 GR21), and 'When the at end condition exists, execution of the READ statement is unsuccessful' (§2023:14.9.30.4 GR24). The definition is unchanged; the added PREVIOUS cause changes the status-10 list (recorded on 1985-GR-VII.1.3.5-L2.2), not what an at end condition is.",
-  "source": "adjudicate-712-r2/slice-06"
+  "source": "adjudicate-712-r2/slice-06",
+  "digests": {
+   "GR-9.1.13.4-1": "490fead5c8fb",
+   "GR-14.9.30.4-21": "7fba2331b7f5",
+   "GR-14.9.30.4-24": "fc6732e2c178"
+  }
  }
 }

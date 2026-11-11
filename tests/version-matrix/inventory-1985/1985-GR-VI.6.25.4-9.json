@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"the NOT ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the STRING statement\"; 2023: \"b) The EC-OVERFLOW-STRING exception condition is set to exist. ... d) If the ON OVERFLOW phrase is not specified, execution continues as specified in 14.6.13.1.4\". The overflow test and ON OVERFLOW flow are the same, but 2023 raises EC-OVERFLOW-STRING. Without ON OVERFLOW, nonfatal exception processing replaces the plain transfer to the end of STRING.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.43.4-8": "5d2642861c7a"
+  }
  }
 }

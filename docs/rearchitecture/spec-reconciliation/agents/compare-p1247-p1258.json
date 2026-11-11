@@ -1,10 +1,10 @@
 {
   "batch": [1247, 1248, 1249, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258],
-  "pages_checked": [1247, 1248, 1249, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258],
+  "pages_checked": [1247, 1248, 1249, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258], "pages_unread": [],
   "note": "This batch contains NO general formats / syntax skeletons. PDF pages 1247-1258 are printed pages 1217-1228, the back-of-book alphabetical Index (entries I through V). The figure-selection heuristic that routed these pages to a diagram-fidelity sweep misfired. Every page was still compared line by line against the render. Body text, entry wording and every page-number reference were verified correct on all twelve pages, including ISO's own typos which the transcription faithfully preserves (p1252 'PERFORM statemen' / 'Exception-checkingt 706'; p1250 'NEAREST EVEN phrase' unhyphenated alongside 'NEAREST-EVEN phrase'; p1256 'STOP statement, 633'). The only defect class found is loss of index sub-entry indentation, recorded below.",
   "findings": [
     {
-      "page": 1249,
+      "id": "p1249-1", "page": 1249,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "LOCK ON MULTIPLE clause\n        LOCK MODE clause  325\nLOCK phrase\n        READ statement  692\n        REWRITE statement  710\n        WRITE statement  786\n... Method resolution signature\n        Definition  241\nMethod-definition  259\nMETHOD-ID paragraph  269\nMethod-name  98, 102\n        METHOD-ID paragraph  269\n        Scope of  149",
@@ -13,7 +13,7 @@
       "suggested_repair": "Re-emit page 1249 with the same '&nbsp;&nbsp;&nbsp;&nbsp;' one-level indent prefix used on pages 1247/1248/1253/1255/1256 for every line the PDF indents."
     },
     {
-      "page": 1250,
+      "id": "p1250-1", "page": 1250,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "NEAREST-AWAY-FROM-ZERO phrase\n        DEFAULT ROUNDED clause  273\n        INTERMEDIATE ROUNDING clause  278\n        ROUNDED phrase  560\n...\nNOT ON SIZE ERROR phrase\n        ADD statement  583\n        COMPUTE statement  602\n        DIVIDE statement  614\n        MULTIPLY statement  673\n        SUBTRACT statement  762",
@@ -22,7 +22,7 @@
       "suggested_repair": "Re-emit page 1250 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents."
     },
     {
-      "page": 1251,
+      "id": "p1251-1", "page": 1251,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Numeric-edited category  165, 379, 446\n        Category of data\n                Numeric-edited  162\nNumeric-edited data item  165",
@@ -31,7 +31,7 @@
       "suggested_repair": "Re-emit page 1251 with one '&nbsp;&nbsp;&nbsp;&nbsp;' unit per indent level the PDF shows - two units for 'Numeric-edited 162'."
     },
     {
-      "page": 1252,
+      "id": "p1252-1", "page": 1252,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "PERFORM statement  682\n        Exception checking  777\n        Exception-checking  605, 613, 623, 638, 657, 675, 682,\n                691\n        infinite loop  686\nPERFORM statement examples  1155",
@@ -40,7 +40,7 @@
       "suggested_repair": "Re-emit page 1252 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents."
     },
     {
-      "page": 1254,
+      "id": "p1254-1", "page": 1254,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Relation condition\n        Alphanumeric operands  189\n        Arithmetic expression in  187\n        Boolean operands  190\n        Data-pointer operands  192\n...\nReserved words  97, 105\n        Compiler directives  213\n        Implementation  23\n        Source text  205",
@@ -49,7 +49,7 @@
       "suggested_repair": "Re-emit page 1254 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents."
     },
     {
-      "page": 1257,
+      "id": "p1257-1", "page": 1257,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "        Data-name  123\nSubscripted identifier  124\nSubscripting  1030\n        Condition-name  123\nSubscripts  122, 123\n        Dynamic-capacity tables  157\n...\nTO phrase\n        ADD statement  583\n        INITIALIZE statement  637",
@@ -58,7 +58,7 @@
       "suggested_repair": "Re-emit page 1257 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents, including the column-top continuation line."
     },
     {
-      "page": 1258,
+      "id": "p1258-1", "page": 1258,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "        GOBACK statement  540, 631\n        MERGE statement  539\n        PERFORM statement  540\n        SORT statement  539\n        STOP statement  540\nTRIM function  932\n...\nType-name  98, 103\n        Scope of  148\n        TYPE clause  494",
@@ -67,7 +67,7 @@
       "suggested_repair": "Re-emit page 1258 with the '&nbsp;&nbsp;&nbsp;&nbsp;' indent on every line the PDF indents, including the five column-top continuation lines."
     },
     {
-      "page": 1247,
+      "id": "p1247-1", "page": 1247,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "INTO phrase\n        DIVIDE statement  614\n[column break]\n        READ statement  692\n        RETURN statement  708\n        STRING statement  759\n        UNSTRING statement  769\nIntrinsic function summary  806",
@@ -76,7 +76,7 @@
       "suggested_repair": "Prefix the four column-top continuation lines with '&nbsp;&nbsp;&nbsp;&nbsp;' to match the rest of the page."
     },
     {
-      "page": 1256,
+      "id": "p1256-1", "page": 1256,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "        Implicit  639\nShared files  230, 681\n...\nSpecial character words  105\n[column break]\n        In formats  30\nSpecial insertion editing  453",

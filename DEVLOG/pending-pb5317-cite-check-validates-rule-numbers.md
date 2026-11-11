@@ -9,19 +9,21 @@ too: it compared the top-level ordinal one line at a time and never the rule's k
 `Format n` or `Table n`, and that a quotation of at least four real words lies inside the cited unit. Each failure is a
 named kind (`no-ordinal`, `text-not-in-rule`, ...) and, where the checker finds it, carries the right citation: GR10 with
 rule 7's text now answers `under GR7, not GR10`. Rule boundaries are the rule catalog's rows, anchored in the transcription
-(2023 and 1985: every row anchors); 2002 and 2014, which have no catalog yet, run in a marked LABEL MODE. Sub-items are read
+(2023, 1985 and 2002, whose catalog PB5256 landed: every row anchors); 2014, which has no catalog yet, runs in a marked
+LABEL MODE. Sub-items are read
 by label style, since the transcription flattens some nested lists onto column 0. `citation.py` now reads `GRLm.n` in every
 edition, because the 2023 catalog restarts lists too.
 
 **The sweep.** The CITATIONS audit gains RESOLVE, which runs the checker over every edition-form citation it reads, plus the
 inventory's 6,474 store records: 99,616 citations, 1,590 refused (2023 1,578, 1985 8, 2002 4), 1,484 of them a rule
 block's clause written as its statement's (`§2023:14.9.39 SR17` for `14.9.39.3 SR17`). RESOLVE reads a citation in
-backticks or quotes too (PHANTOM's quoted-spelling exemption is not its own), and its baseline,
-`scripts/spec/data/cite-resolve-baseline.json`, holds the gate population's 1,630 failures: PB5318's 1,514 and PB5333's
-116 (10 of them 1985's). It is debt that may only shrink: a new failure is RED, and so is a listed one that
+backticks or quotes too (PHANTOM's quoted-spelling exemption is not its own), and pairs no citation with a quotation of the
+next sentence or of the next rule the prose names (three of the eight 1985 failures were that, not wrong citations). Its
+baseline, `scripts/spec/data/cite-resolve-baseline.json`, holds the gate population's 1,617 failures: PB5318's 1,514 and
+PB5333's 103 (7 of them 1985's). It is debt that may only shrink: a new failure is RED, and so is a listed one that
 no longer fails. Measured: 2,709 of the 2,843 1985 rule citations carry no quotation, so an ordinal that names a real but
 wrong rule is still invisible there.
 
 Filed: PB5318 (the audit's 2023 ordinal family is now a second reading of RESOLVE), PB5319 (the catalog's general-format
-rows miscount their formats and cut their text at 4,000 characters) and PB5333 (the 116 refused citations no scripted
+rows miscount their formats and cut their text at 4,000 characters) and PB5333 (the 103 refused citations no scripted
 rewrite owns).

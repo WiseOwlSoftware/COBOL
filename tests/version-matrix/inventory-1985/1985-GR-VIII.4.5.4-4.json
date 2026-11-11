@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.30.4 GR21 restates each 1985 case for relative files: no valid position makes READ unsuccessful (46, §2023:9.1.13.7 GR6), absent optional file or no record gives at end (10, GR24, §2023:9.1.13.4 GR1), selection after OPEN/START and after READ by relative key number, key overflow gives '14' (§2023:9.1.13.4 GR2), FPI set to the relative record number. PREVIOUS is new syntax only.",
-  "source": "adjudicate-712/slice-19"
+  "source": "adjudicate-712/slice-19",
+  "digests": {
+   "GR-14.9.30.4-21": "7fba2331b7f5",
+   "GR-14.9.30.4-24": "fc6732e2c178",
+   "GR-9.1.13.4-1": "490fead5c8fb",
+   "GR-9.1.13.4-2": "1996553a1757",
+   "GR-9.1.13.7-6": "31e6a5079953"
+  }
  }
 }

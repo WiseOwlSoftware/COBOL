@@ -1,10 +1,10 @@
 {
   "batch": [249, 251, 253, 255, 257, 259, 261, 263, 265, 267, 269, 271],
-  "pages_checked": [249, 251, 253, 255, 257, 259, 261, 263, 265, 267, 269, 271],
+  "pages_checked": [249, 251, 253, 255, 257, 259, 261, 263, 265, 267, 269, 271], "pages_unread": [],
   "batch_note": "This batch was selected as containing FIGURES (general formats / syntax skeletons). It does not. All twelve PDF pages (printed pages 219-241, sections 9.1.5-9.3.5.3) are running prose, enumerated lists and one plain two-column color/number list. scripts/spec/page_workunit.py independently reported '0 with figure content' for all twelve. Cross-checks of the neighbouring pages 256, 266 and 279 (to test a printed-vs-PDF page offset of 30) also show no figures. There were therefore no choice-indicator bars, brackets, ellipses or underlined required words to verify on this batch; the sweep was run as a prose/structure reconciliation instead. The figure pages for this run must be re-derived before the diagram-fidelity objective can be met.",
   "findings": [
     {
-      "page": 255,
+      "id": "p255-1", "page": 255,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "1) I-O status = 10. A sequential READ statement is attempted and no next or prior logical record exists in the physical file because:  [p255] a)  NEXT was specified or implied and the end of the physical file has been reached, or  [p256] b)  PREVIOUS was specified and the beginning of the physical file has been reached, or  [p256] c)  a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present.",
@@ -13,7 +13,7 @@
       "suggested_repair": "Split line 11336 of specs/ISO_COBOL.md into three list items matching the PDF: keep 'a) NEXT was specified or implied and the end of the physical file has been reached, or' before the page-256 anchor, and move 'b) PREVIOUS was specified and the beginning of the physical file has been reached, or' and 'c) a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present.' to after the <a id=\"page-256\"></a> / '## Page 256' scaffolding, each as its own item indented three spaces to match the sibling convention used on pages 257 and 259."
     },
     {
-      "page": 251,
+      "id": "p251-1", "page": 251,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "9.1.9   Reel and unit   (printed page 221, set in the same bold heading style and at the same left margin as the three-component headings 9.1.5, 9.1.6, 9.1.7 on printed page 219, i.e. a sibling of 9.1.8 Access modes - not a child of it)",

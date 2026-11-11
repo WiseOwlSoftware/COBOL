@@ -1,0 +1,13 @@
+{
+  "claim_id": "p677-1",
+  "claim_key": "1e168470c5bc8aaa",
+  "page": 677,
+  "kind": "incorrect-figure",
+  "severity": "normative",
+  "claim": {"id": "p677-1", "page": 677, "kind": "incorrect-figure", "severity": "normative", "pdf_says": "COMMUNICATION SECTION . [ communication-description-entry [ constant-entry / record-description-entry ] ... ] ...   (COMMUNICATION and SECTION underlined; an outer bracket enclosing communication-description-entry and an inner bracket around the stacked constant-entry / record-description-entry alternatives; one ellipsis after the inner bracket, a second after the outer bracket)", "markdown_says": "COMMUNICATION SECTION .\n\n   communication-description-entry constant-entry . . .\\\n   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;record-description-entry", "why_it_matters": "The A.1.1 communication section general format lost both brackets, one of the two ellipses, and the underlining of the required keywords COMMUNICATION SECTION. As transcribed it reads as one mandatory communication-description-entry followed by a repeatable constant-entry, with record-description-entry dangling. The standard makes the whole CD group optional and repeatable, and makes the constant-entry/record-description-entry alternatives optional, one per repetition, and repeatable. Read literally, the transcription rejects an empty communication section and several CD entries in one section, both of which are legal."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The rendered page (printed p.655, PDF p.677, A.1.1) shows COMMUNICATION and SECTION underlined, then an outer square bracket enclosing 'communication-description-entry' followed by an inner square bracket (no choice-indicator bars) around the stacked alternatives 'constant-entry' / 'record-description-entry'; an ellipsis follows the inner bracket and a second ellipsis follows the outer bracket. The markdown has no brackets, only one ellipsis (placed after constant-entry), no underlining, and record-description-entry on a separate line. Per §2002:5.1.5.1 the inner bracket means at most one of the two alternatives per repetition, repeated by its ellipsis; the outer bracket plus ellipsis makes the CD group optional and repeatable. The transcription loses that structure, so the claim is accurate and normative.",
+    "corrected_description": ""
+  }
+}

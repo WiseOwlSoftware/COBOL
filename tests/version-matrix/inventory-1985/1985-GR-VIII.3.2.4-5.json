@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "The 1985 rule only makes the relative RECORD clause the sequential one. 2023 writes one RECORD clause (13.18.43) into FD Format 1 (sequential, §2023:13.4.5.3 SR5) and Format 2 (relative or indexed, §2023:13.4.5.3 SR7), so the sameness holds; the clause's content is carried by the sequential rule's record.",
-  "source": "adjudicate-712/slice-18"
+  "source": "adjudicate-712/slice-18",
+  "digests": {
+   "FMT-13.4.5.2": "b75b09e44e69",
+   "SR-13.4.5.3-5": "98e48aad5011",
+   "SR-13.4.5.3-7": "b9a7373b54e4",
+   "FMT-13.18.43.2": "eaecef407473"
+  }
  }
 }

@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "A file-name-1 USE takes precedence over INPUT/OUTPUT/I-O/EXTEND USEs, which exclude files so named. Only the first qualifying declarative runs; fall-through concerns only new format 3.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.49.4-5": "2736b3d8157a",
+   "GR-14.9.49.4-6": "b41480584b33",
+   "GR-14.9.49.4-3": "1f60d13b42af"
+  }
  }
 }

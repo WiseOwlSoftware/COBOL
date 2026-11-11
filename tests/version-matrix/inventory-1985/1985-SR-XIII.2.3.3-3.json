@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both require an alphanumeric (nonnumeric) literal that is not a figurative constant, with device-name and literal meaning implementor-defined. The zero-length bar targets a literal form 1985 text never shows.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.4.5.2-4": "6ca222e2d0a1",
+   "SR-12.4.5.2-5": "9f65daeef717"
+  }
  }
 }

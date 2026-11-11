@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both apply a group-level USAGE to each elementary item. 2023's 'implied' and group-itself cases involve only the new GROUP-USAGE clause, so 1985 programs keep the same effect.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.60.4-1": "59f0a3ac3ff6"
+  }
  }
 }

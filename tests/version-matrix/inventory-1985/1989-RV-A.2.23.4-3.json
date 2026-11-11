@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "§2023:15.59.4 RV3 keeps the 1989 rule word for word for the alphanumeric type: 'the size of the returned value is the same as the size of the selected argument-1', adding 'or national', a type no 1985 program can produce. A conforming 1985 program means the same.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "RV-15.59.4-3": "3dbb65e90802"
+  }
  }
 }
