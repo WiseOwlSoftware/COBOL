@@ -15,3 +15,8 @@ rule blocked the with-refspec form only by reading `HEAD` as a remote name). Thr
 
 Also: `Step.substitution`, read by nothing but its own self-test, is deleted, the rule numbers in `shell_location.py` and its
 self-test are corrected, and DESIGN-test-build-ci.md §1.7 describes the depth instead. kb/Work PB5269.
+
+Review round 1 corrected two things in the same change. The positional repository word now wins over `--repo` (git's own
+order; the first fix had it reversed, so `--repo=origin <url>` passed). And a push redirected by `--git-dir`, a `GIT_DIR`-style
+variable set in the line, or a `url.*.insteadOf` / `pushInsteadOf` (on `-c` or in the repository's configuration, for a literal
+URL) is refused: the hook cannot prove where it goes.

@@ -48,6 +48,7 @@ PUSH_DEFAULT = same_origin("fc-pushdefault-", ("remote.pushDefault", "other"))
 PUSH_DEFAULT_SAME = same_origin("fc-pushdefault-same-", ("remote.pushDefault", "origin"))
 BRANCH_PUSH = same_origin("fc-branchpush-", ("branch.main.pushRemote", "other"), ("remote.pushDefault", "origin"))
 BRANCH_REMOTE = same_origin("fc-branchremote-", ("branch.main.remote", "other"))
+REWRITE = same_origin("fc-rewrite-", (f"url.{ELSEWHERE}.pushInsteadOf", THIS_ORIGIN))
 BS = chr(92)  # a backslash, spelled without one
 NL = chr(10)
 # kb/Work PB3198: every rule reads the ONE model of the command line (shell_location.steps), so each rule is checked
@@ -332,8 +333,29 @@ UNIT_CASES = [
     ("git push -q --force --repo=https://github.com/WiseOwlSoftware/claude-skills.git", True),
     ("git push --repo=https://github.com/WiseOwlSoftware/claude-skills.git HEAD", True),
     ("git push --repo https://github.com/WiseOwlSoftware/claude-skills.git HEAD", True),
-    ("git push --repo=https://github.com/WiseOwlSoftware/COBOL HEAD", False),   # the same repository
-    ("git push --repo origin HEAD", False),
+    ("git push --repo=https://github.com/WiseOwlSoftware/COBOL", False),   # the same repository
+    ("git push --repo origin", False),
+    # with --repo AND a positional word git takes the positional word as the repository (HEAD is no remote: refused)
+    ("git push --repo=https://github.com/WiseOwlSoftware/COBOL HEAD", True),
+    # git prefers the positional repository to --repo (measured with two bare repositories), so the positional word decides
+    ("git push --repo=origin https://github.com/WiseOwlSoftware/claude-skills.git HEAD", True),
+    ("git push --repo origin https://github.com/WiseOwlSoftware/claude-skills.git HEAD", True),
+    ("git push --repo=https://github.com/WiseOwlSoftware/claude-skills.git origin HEAD", False),   # origin wins: this repository
+    # git's own inputs that move a push out of the remote's configuration are refused (the twins are the plain pushes)
+    ("git --git-dir=" + OTHER + "/.git push origin HEAD", True),
+    ("git --git-dir " + OTHER + "/.git push", True),
+    ("GIT_DIR=" + OTHER + "/.git git push origin HEAD", True),
+    ("export GIT_DIR=" + OTHER + "/.git; git push origin HEAD", True),
+    ("env GIT_DIR=" + OTHER + "/.git git push", True),
+    ("GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=url." + ELSEWHERE + ".pushInsteadOf GIT_CONFIG_VALUE_0=" + THIS_ORIGIN
+     + " git push " + THIS_ORIGIN + " HEAD", True),
+    ("git -c url." + ELSEWHERE + ".pushInsteadOf=" + THIS_ORIGIN + " push " + THIS_ORIGIN + " HEAD", True),
+    ("git -c url." + ELSEWHERE + ".insteadOf=" + THIS_ORIGIN + " push origin HEAD", True),
+    ("cd " + REWRITE + " && git push " + THIS_ORIGIN + " HEAD", True),     # a configured rewrite applies to a literal URL
+    ("cd " + REWRITE + " && git push origin HEAD", True),                  # and to a remote's URL
+    ("git push " + THIS_ORIGIN + " HEAD", False),
+    ("git -C " + str(REPO.as_posix()) + " push origin HEAD", False),
+    ("git commit -q -m 'GIT_DIR=x is why'", False),                        # the name in a message is text
     ("git push --repo=" + OTHER + " HEAD", True),                              # a path to another repository
     ("git push -o ci.skip https://github.com/WiseOwlSoftware/claude-skills.git x", True),   # `-o`'s value is no repository
     ("git push --receive-pack=x origin HEAD", False),
@@ -359,8 +381,15 @@ fails += [(f"[PowerShell] {c}", e) for c, e in PS_CASES if blocked(c, tool="Powe
 ATTENDED = [("git push -u origin claude/batch-7", False), ("git -C E:/claude-skills push origin v1.18.0", False),
             ("git push -q origin HEAD:main", True)]
 fails += [(f"[attended] {c}", e) for c, e in ATTENDED if blocked(c) != e]
+# the PowerShell tool inside a unit: its environment assignments redirect git the same way (kb/Work PB5269)
+UNIT_PS = [("$env:GIT_DIR = '" + OTHER + "/.git'; git push origin HEAD", True),
+           ("$env:GIT_DIR='" + OTHER + "/.git'; git push", True),
+           ("Set-Item env:GIT_DIR '" + OTHER + "/.git'; git push", True),
+           ("git push origin HEAD", False),
+           ("git -C " + OTHER + " push origin HEAD", True)]
+fails += [(f"[unit PowerShell] {c}", e) for c, e in UNIT_PS if blocked(c, unit=True, tool="PowerShell") != e]
 for c, e in fails:
     print(f"FAIL: expected {'BLOCK' if e else 'PASS'}: {c!r}")
-total = len(CASES) + len(UNIT_CASES) + len(PS_CASES) + len(ATTENDED)
+total = len(CASES) + len(UNIT_CASES) + len(PS_CASES) + len(ATTENDED) + len(UNIT_PS)
 print(f"forbidden_commands self-test: {total - len(fails)}/{total} " + ("GREEN" if not fails else "RED"))
 sys.exit(1 if fails else 0)
