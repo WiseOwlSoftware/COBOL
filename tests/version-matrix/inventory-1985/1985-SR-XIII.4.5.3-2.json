@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.4.5.3-2",
  "rule-digest": "09c81c6c79be",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openFileSpec; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenTapePhrase",
  "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/1985-SR-XIII_4_5_3-2",
+ "notes": "§1985:XIII.4.5.3 SR2: 'The availability of the phrases within the OPEN statement is dependent on the level of the Sequential I-O module supported by the implementation.' WiseOwl implements the level-2 Sequential I-O OPEN, so both RW OPEN phrases are available at --std 85: the grammar's openMode/openFileSpec take OUTPUT [WITH NO REWIND] and EXTEND (the double-barred level-2 element of §1985:VII.4.3.2), SequentialIoBinder#BindOpen binds them, CheckOpenModeForFile refuses INPUT/I-O on a report file (COBOL2371) and CheckOpenTapePhrase refuses NO REWIND with EXTEND (COBOL1803). Probes at --std 85: class e OUTPUT (FS=00, HELLO), OUTPUT WITH NO REWIND (FS=07, the 1985 non-reel status), OUTPUT then CLOSE then EXTEND (FS=00, two HELLO lines), EXTEND of a missing file (FS=35, the statement after it still runs), EXTEND of a missing OPTIONAL file (FS=05, file created); class b INPUT, I-O, INPUT REVERSED -> COBOL2371, EXTEND WITH NO REWIND -> COBOL1803, OPEN OUTPUT. -> COBOL0001; class c the 2002 SHARING phrase -> COBOL0900 and WITH LOCK -> COBOL5506. Classes a, d, f do not apply. The witness opens OUTPUT then EXTEND and prints DONE.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

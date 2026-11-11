@@ -327,8 +327,7 @@ Each iteration, in this order:
 ### 4.2 Permission mode under a headless session
 
 The repository's hooks stay the real guard under any `--permission-mode`: `forbidden_commands.py` refuses the
-forbidden git and shell shapes, `dispatch_guard.py` refuses a loop unit's fleet launch after `STOP-UNIT`, `status_guard.py` refuses a
-commit with a stale `STATUS.md`. `--permission-prompts none` makes anything that would prompt a denial instead of
+forbidden git and shell shapes, `dispatch_guard.py` refuses a loop unit's fleet launch after `STOP-UNIT`. `--permission-prompts none` makes anything that would prompt a denial instead of
 a hang. The default mode is `bypassPermissions` (decision D1, owner 2026-10-04: allowed for the COBOL work). With prompts
 gone, the hooks above are the only guard, which is why the WSL lifecycle commands are blocked by `forbidden_commands.py`
 (decision D4) and why a hook's block is the rule speaking, never something a unit routes around.
@@ -1406,8 +1405,8 @@ new terminal. A STOP file left on purpose by that procedure is named in the prom
 - **D3** Build the separate-process agent pool (section 3.1) once measurement justifies it.
 - **D9** Install the logon entry (`install-autostart.ps1`) once the supervisor has completed a supervised first run; until then
   the old Startup entry keeps running (owner runs the installer; it changes a Startup file, so I do not).
-- **D4** DONE (2026-10-04): the WSL lifecycle commands are blocked by `forbidden_commands.py` (rule 6, with self-test cases);
-  the same change stopped the verdict-chain rule from firing on a command that merely names a gate script.
+- **D4** DONE (2026-10-04): the WSL lifecycle commands are blocked by `forbidden_commands.py` (its WSL rule, with self-test
+  cases); the verdict-chain rule that change also narrowed was deleted by kb/Work PB5234.
 - **D5** Wire the ratchet into the lander gate and CI's `audits` job.
 - **D6** Refit the token-to-point calibration automatically from consecutive meter readings, or by hand only.
 - **D7** The `session_pct_per_weekly_pct` constant (seeded at 5.0; measured 4.0 on 2026-10-07 from one interval of account 2, kb/Work PB2478)

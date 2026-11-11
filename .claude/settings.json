@@ -51,18 +51,8 @@
           },
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/status_guard.py\"",
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/fleet_active_build.py\"",
-            "if": "Bash(dotnet *)",
-            "timeout": 30
-          },
-          {
-            "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/worktree_rm_allow.py\"",
+            "if": "Bash(git *rm *)",
             "timeout": 30
           }
         ]
@@ -87,18 +77,8 @@
           },
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/status_guard.py\"",
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/fleet_active_build.py\"",
-            "if": "PowerShell(dotnet *)",
-            "timeout": 30
-          },
-          {
-            "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/worktree_rm_allow.py\"",
+            "if": "PowerShell(git *rm *)",
             "timeout": 30
           }
         ]
@@ -126,23 +106,7 @@
           },
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/status_guard.py\"",
-            "timeout": 30
-          },
-          {
-            "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/inbox_guard.py\"",
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/status_guard.py\"",
             "timeout": 30
           }
         ]

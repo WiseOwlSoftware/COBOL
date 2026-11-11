@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.2.5.4-4",
  "rule-digest": "a5cf7d16719a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#compilationGroup; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionIdParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitClassDefinition",
  "test-ref": "conformance:cases/X.2.5@1985-END-PROGRAM-HEADER/1985-GR-X_2_5_4-4",
+ "notes": "§1985:X.2.5.4 GR4: after an outermost program's end program header the next COBOL statement 'must be the Identification Division header of a program to be compiled separately'. The grammar's compilationGroup admits only a further source unit after endProgramHeader (a stray DISPLAY is COBOL0001 'unexpected DISPLAY'), and at 85 VersionConformancePass refuses each 2002 looseness with COBOL0900: VisitIdentificationDivision a unit starting at PROGRAM-ID without the header, VisitFunctionIdParagraph a FUNCTION-ID unit, VisitClassDefinition a CLASS-ID unit. Probes (class b/c): header-less PROGRAM-ID SUBPGM, FUNCTION-ID, CLASS-ID and a stray statement after END PROGRAM each refused at 85; the witness (two separately compiled programs, MAIN START/IN SUBPGM/MAIN END) runs.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

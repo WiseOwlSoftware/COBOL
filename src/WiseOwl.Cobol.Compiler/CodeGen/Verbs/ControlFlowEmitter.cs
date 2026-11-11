@@ -694,9 +694,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     /// <item>The INITIAL setting decides admission: "If, at the start of the execution, the search index contains
     /// a value that corresponds to an occurrence number that is negative, zero, or greater than the highest
     /// permissible occurrence number for identifier-1, the search operation is unsuccessful, the
-    /// EC-RANGE-SEARCH-INDEX exception condition is set to exist". The <c>&lt; 1</c> half is emitted
-    /// UNCONDITIONALLY (a zero/negative index would otherwise read a phantom scratch occurrence); only the EC
-    /// <c>Set</c> is checking-gated.</item>
+    /// EC-RANGE-SEARCH-INDEX exception condition is set to exist". The <c>&gt; bound</c> half is emitted at every
+    /// edition; the <c>&lt; 1</c> half only when <see cref="BoundSearch.IndexBelowTableIsUnsuccessful"/> holds (from
+    /// COBOL-2002, <c>DialectBehavior.SearchIndexBelowTableUnsuccessful</c>, VCR row 7.56): §1985:VI.6.22.4 GR2 tests the
+    /// upper bound alone, so at <c>--std 85</c> the WHEN conditions are evaluated with the index below the table and the
+    /// scan increments it toward occurrence 1 (kb/Work PB5121). Only the EC <c>Set</c> is checking-gated.</item>
     /// <item>None of the conditions satisfied → "the search index is incremented by one occurrence number", and
     /// with it (GR3 b)/c)) the VARYING operand: an index data item "incremented by the same amount as, and at the
     /// same time as, the search index", an integer data item "incremented by the value one at the same time".

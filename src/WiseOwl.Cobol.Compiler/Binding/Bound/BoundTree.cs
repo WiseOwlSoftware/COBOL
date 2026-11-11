@@ -2050,7 +2050,7 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 /// time … set to a value that exceeds the value that corresponds to the last element of the table", so its index
 /// never leaves the table (kb/Work PB447). Format 2 has no VARYING phrase, so
 /// <paramref name="AlsoVaried"/> is null there.</para>
-/// <para><paramref name="IndexBelowTableIsUnsuccessful"/> is Format 1's start test (<c>DialectBehavior.SearchIndexBelowTableUnsuccessful</c>, VCR row 7.55): from
+/// <para><paramref name="IndexBelowTableIsUnsuccessful"/> is Format 1's start test (<c>DialectBehavior.SearchIndexBelowTableUnsuccessful</c>, VCR row 7.56): from
 /// COBOL-2002 an index at or below zero is unsuccessful at once (§2023:14.9.37.4 GR4); at COBOL-85 only an index above the table is
 /// (§1985:VI.6.22.4 GR2), and an index below it starts the scan (kb/Work PB5121).</para>
 /// <para><paramref name="Table"/> is identifier-1 as the statement wrote it: the WHOLE table under the enclosing occurrence the

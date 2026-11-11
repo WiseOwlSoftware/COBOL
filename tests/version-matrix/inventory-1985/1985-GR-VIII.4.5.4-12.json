@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.5.4-12",
  "rule-digest": "4f426bb04279",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Unsuccessful; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#InvalidateFilePosition; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartPositioned; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
  "test-ref": "conformance:cases/VIII.4.5@1985-READ-STATEMENT/1985-GR-VIII_4_5_4-12",
+ "notes": "§1985:VIII.4.5.4 GR12: 'Following the unsuccessful execution of a READ statement, the content of the associated record area is undefined and the file position indicator is set to indicate that no valid next record has been established', so the next sequential READ is 46 (§1985:VIII.1.3.4). Every failing arm of RelativeConnector.ReadSequential/ReadRandom returns through FileConnector.Unsuccessful, whose InvalidateFilePosition arms LastReadUnsuccessful, and SequentialReadGuard answers the next sequential READ with 46; a successful random READ or START (StartPositioned) re-establishes the indicator. The 2023 'unless otherwise specified' record-conflict case is unreachable at 85 (ImplementorDefaultSharing: ALL OTHER, no record locks). Witness: sequential at end then 46, dynamic invalid-key READ then READ NEXT 46, in a called and a calling program. Probes (dynamic, records 2/4/6): random READ 3 23 then READ NEXT 46 via USE (AT END skipped); random READ 4 then READ NEXT FFFF with KR=0006; random 23 then successful START NOT LESS 2 and READ NEXT BBBB; at end 10 then READ NEXT 46; CLOSE and OPEN INPUT then READ NEXT BBBB 00; after a 14 key overflow the next READ 46 (p3a).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

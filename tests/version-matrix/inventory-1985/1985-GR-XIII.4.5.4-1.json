@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.5.4-1",
  "rule-digest": "ff0d2c169eee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
  "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/1985-GR-XIII_4_5_4-1",
+ "notes": "§1985:XIII.4.5.4 GR1 Table 1: OUTPUT 'Normal open; the file contains no records' or 'Open causes the file to be created'; EXTEND 'Open is unsuccessful' when unavailable, and an optional file is created. SequentialConnector.OpenCore implements each cell (OUTPUT creates or truncates, EXTEND gives 35 for a missing non-optional file, 05 and creation for an optional one), and the 85 arm SharingFacilityInEffect=false in SharedOpenAttempt skips Table 19, so a file already open by another connector opens normally as 1985 Table 1 says. Probes at 85: OUTPUT of an existing two-line file leaves one line; EXTEND appends; non-optional EXTEND of a missing file gives 35 and creates nothing; two SELECTs on one file open OUTPUT and EXTEND with 00 (2023 gives 61); witness shows 00 and 05.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
