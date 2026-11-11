@@ -151,7 +151,9 @@ public sealed class ReportRepeatingEntryDriftTests
         Assert.Single(Regex.Matches(runtime, @"SubsequentTarget\(l\)"));
         foreach (string presentation in new[] { "PresentBody", "PresentPageHeading", "PresentPageFooting", "PresentHeadingFooting" })
         {
-            int start = runtime.IndexOf($"private void {presentation}(", StringComparison.Ordinal);
+            // PresentBody answers whether the group presented (kb/Work PB5246); the other three return nothing.
+            var declaration = Regex.Match(runtime, $@"private (void|bool) {presentation}\(");
+            int start = declaration.Success ? declaration.Index : -1;
             Assert.True(start >= 0, $"{presentation} is no longer an engine method — re-derive this guard");
             int end = runtime.IndexOf("\n    }", start, StringComparison.Ordinal);
             Assert.Contains("PresentLines(", runtime[start..end], StringComparison.Ordinal);
