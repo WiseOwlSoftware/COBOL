@@ -1,4 +1,4 @@
-## PB5158: at COBOL-85 a NOT conditional phrase written before its positive twin is refused (COBOL0900)
+## Entry 3457 — 2026-11-10 19:54 PST — PB5158: at COBOL-85 a NOT conditional phrase written before its positive twin is refused (COBOL0900)
 
 **The defect.** Every 1985 statement format with a conditional phrase pair prints the positive phrase, then the NOT
 phrase, and "Clauses must be written in the sequence given in the general formats" (§1985:IV.2.1); ISO/IEC 1989:2002
@@ -32,3 +32,4 @@ phrase and accepted at 2002, printed order accepted at 85); the positive `14.9.3
 `VI.6.8@1985-COMPUTE-STATEMENT/pb5158-compute-not-before-on-85`. Docs: VCR row 7.47, CONFORMANCE D-F2-85 (whose stale
 "no 1985 text is held" is corrected), DESIGN-frontend-grammar §3.16. No inventory row is re-verdicted: the sixteen
 1985 rows are 1985 rule ids that `work.py` refuses in a note (kb/Work PB5094).
+
