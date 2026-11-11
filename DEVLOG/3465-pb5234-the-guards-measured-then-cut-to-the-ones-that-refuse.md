@@ -1,4 +1,4 @@
-## PB5234: the guards measured, then cut to the ones that refuse a real harm (stage 5 of the build redesign)
+## Entry 3465 — 2026-11-11 00:18 PST — PB5234: the guards measured, then cut to the ones that refuse a real harm (stage 5 of the build redesign)
 
 Stage 5 of kb/Work PB5207. Every PreToolUse/Stop hook rule and every `scripts/guard-*.sh` was measured over the PB5207
 friction window (1,161 transcripts, 42,411 shell calls, 2026-11-08..10): its refusals, how many of them were true on a
@@ -39,3 +39,4 @@ run in parallel) and loses status_guard's 0.163 s of CPU. Guard lines: `scripts/
 in files another lane is editing; it is kb/Work PB5236. A measurement error of my own was caught by re-timing: the
 narrowed rule 2b first read this repository's remote on every call (0.725 s median); it now asks git only for a unit's
 push.
+
