@@ -5,12 +5,13 @@
   "(`ordinal_shape`), in the shape of the 2023 manifest (spec-unharvested-rule-blocks.json, whose comment states each",
   "key). A disposition is an adjudication by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule), never a",
   "guess. Seeded on 2026-11-11: a clause whose list body was word for word (cite.norm) the text of exactly one 2023",
-  "manifest clause with the same ordinal count would have carried that clause's disposition; none of the 92 is, so",
-  "every one is `pending`, and its rules are not in the 2002 denominator until it is adjudicated. `candidate` is the",
+  "manifest clause with the same ordinal count would have carried that clause's disposition; none of the 92 was, so",
+  "every one is `pending`, and its rules are not in the 2002 denominator until it is adjudicated (§2002:8.8.1.3.1.3",
+  "'Rounding rules', 8.8.4.1.4.2 and 8.8.4.1.6.2 'Rules' left on 2026-11-11, when KINDS typed their headings GR, kb/Work PB5332). `candidate` is the",
   "adjudicator's starting point, never a disposition: the 2023 manifest clause of the same title nearest in text",
   "(difflib ratio over the cite.norm words), with its disposition and kind. `paragraph-blocks` (prose clauses",
   "admitted one row per paragraph, 2023's 9.1.16 to 9.1.18) is empty: no 2002 clause of the same title has the",
-  "same prose, so each is adjudicated with the rest. The 2002 transcription is not reconciled yet (kb/Work PB4813):",
+  "same prose, so each is adjudicated with the rest. The 2002 transcription is reconciled (kb/Work PB4813, PB5332):",
   "a correction that moves a clause's list drifts it here, and extract_rule_catalog.py --edition 2002 --check names it."
  ],
  "blocks": {
@@ -473,14 +474,6 @@
    "disposition": "pending",
    "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
   },
-  "8.8.1.3.1.3": {
-   "title": "Rounding rules",
-   "ordinals": 3,
-   "lists": 1,
-   "longest": 3,
-   "disposition": "pending",
-   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
-  },
   "8.8.1.3.6": {
    "title": "Exponentiation",
    "ordinals": 4,
@@ -579,22 +572,6 @@
     "disposition": "rules",
     "kind": "GR"
    }
-  },
-  "8.8.4.1.4.2": {
-   "title": "Rules",
-   "ordinals": 3,
-   "lists": 1,
-   "longest": 3,
-   "disposition": "pending",
-   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
-  },
-  "8.8.4.1.6.2": {
-   "title": "Rules",
-   "ordinals": 1,
-   "lists": 1,
-   "longest": 1,
-   "disposition": "pending",
-   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
   },
   "8.8.4.2.4": {
    "title": "Abbreviated combined relation conditions",
@@ -1225,6 +1202,11 @@
   }
  },
  "paragraph-blocks": {
-  "_comment": "prose clauses admitted as one row per paragraph (extract_rule_catalog.prose_paragraphs); none yet"
+  "_comment": "prose clauses admitted as one row per paragraph (extract_rule_catalog.prose_paragraphs), and a typed rule block whose rule is printed unnumbered",
+  "8.8.4.1.5.2": {
+   "title": "Rules",
+   "kind": "GR",
+   "why": "ADMITTED 2026-11-11 (kb/Work PB5332). The switch-status condition's one rule is printed as a paragraph with no ordinal (PDF page 156, rendered), under a heading KINDS types GR (§2002:5.2.2); §2023:8.8.4.6.3 'General rule' numbers the same rule 1). Admitted as one paragraph row so the rule is in the denominator."
+  }
  }
 }

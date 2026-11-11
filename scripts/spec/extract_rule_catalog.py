@@ -207,6 +207,15 @@ INDENTED_ORDINAL = re.compile(r"^\s+(?P<n>\d+)\\?[.)]\s")
 # ⛔ THE ONE KIND TABLE OF EVERY EDITION (kb/Work PB4886, PB5256): 2002 and 2023 share the ISO arm, and the 1985 arm (rule_catalog_1985.py) types its headings with
 # this table too, its PICTURE "Editing Rules" and "Precedence Rules" being the same rules; a 1985 paragraph of another
 # name is typed by its row in UNHARVESTED_OF[1985] (spec-unharvested-rule-blocks-1985.json), never by a second table.
+#
+# ⛔ 2002's "Rounding rules" AND BARE "Rules" ARE GENERAL RULES, the kind 2023 gives each paired clause (kb/Work PB5332,
+# the design owner's decision of 2026-11-11: type them, never adjudicate them away). §2002:5.2.2: "A general rule
+# defines or clarifies the meaning or relationship of meanings of an element or set of elements." The three conditions
+# headed "Rules" (§2002:8.8.4.1.4.2 condition-name, 8.8.4.1.5.2 switch-status, 8.8.4.1.6.2 sign) are 2023's §2023:8.8.4.5.3,
+# 8.8.4.6.3 and 8.8.4.7.4, each headed "General rule(s)"; §2002:8.8.1.3.1.3 "Rounding rules" (when a standard intermediate
+# data item is rounded) became §2023:11.9.11.2's General rules of the INTERMEDIATE ROUNDING clause, and 2023's own
+# intermediate-data-item lists (§2023:8.8.1.4.2, 8.8.1.5.2) are admitted as GR. A taxonomy clause headed "Rules"
+# (§2002:5.2, §2023:5.3) stays out through `IsoEdition.excluded_blocks`, which `extract` honours before it opens a block.
 KINDS = {
     "syntax rule": "SR",
     "general rule": "GR",
@@ -214,6 +223,8 @@ KINDS = {
     "returned value rule": "RV", "returned value": "RV",
     "editing rule": "GR",       # §2023:13.18.40.5 — typed by §2023:5.3.3, not a new kind
     "precedence rule": "SR",    # §2023:13.18.40.6 — typed by §2023:5.3.2, not a new kind
+    "rounding rule": "GR",      # §2002:8.8.1.3.1.3 — a general rule by §2002:5.2.2, as §2023:11.9.11.2 (PB5332)
+    "rule": "GR",               # §2002:8.8.4.1.4.2, 8.8.4.1.5.2, 8.8.4.1.6.2 — as §2023:8.8.4.5.3-8.8.4.7.4 (PB5332)
 }
 
 #: Heading titles that name a rule block in some spelling. Anything matching this and NOT resolving through
@@ -971,7 +982,9 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
             # hand-maintained list of prose headings, which is the shape this project keeps deleting; the
             # ADMITTED set lives in the edition's content-keyed manifest beside the reason each was admitted, and
             # the same file's `pending` rows are the worklist of clauses nobody has judged yet.
-            k = kind_of(title) or admitted.get(num)
+            # An EXCLUDED block is outside the denominator whatever its title types it as: §2023:5.3 and §2002:5.2,
+            # headed "Rules", define the taxonomy and carry no rule (KINDS types a bare "Rules" heading, PB5332).
+            k = None if num in ed.excluded_blocks else kind_of(title) or admitted.get(num)
             levels, next_sublist, last_indented, cur_sublist = [], 2, 0, 1
             band = ""
             if isinstance(k, dict):
@@ -1043,7 +1056,10 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
                       "general rules)")
         elif at is None:
             defect = f"{ed.label(sec)}: no such numbered heading in the transcription"
-        elif kind_of(titles[sec]) or sec in admitted:
+        elif (kind_of(titles[sec]) or sec in admitted) and any(r["section"] == sec for r in rules):
+            # A TYPED block whose rule is printed UNNUMBERED is admitted like any prose clause (kb/Work PB5332):
+            # §2002:8.8.4.1.5.2 'Rules' prints its one rule as a paragraph, where §2023:8.8.4.6.3 numbers it 1). Only a
+            # block whose numbered scan already yields rows would count twice.
             defect = f"{ed.label(sec)}: already a numbered rule block ({titles[sec]!r}) — its rows would count twice"
         else:
             paras = prose_paragraphs(ed, lines, at)
@@ -1070,7 +1086,10 @@ def extract(ed: IsoEdition, lines: list[str], declared: dict[str, dict], paragra
     # The CONVENTIONS clause's sub-clauses (§2023:5.3.2-5.3.5, §2002:5.2.1-5.2.4) are prose DEFINING what a
     # syntax/general/argument/returned-value rule is. They are rule-block headings that correctly contain no rules.
     # Every other empty block is a parse gap.
-    gaps = [b for b in blocks_seen if b not in blocks_with_rules and b[0] not in ed.conventions]
+    # A typed block whose rule is printed unnumbered holds its paragraph rows instead (paragraph-blocks, above).
+    prose_rows = {r["section"] for r in rules if r.get("shape") == "paragraph"}
+    gaps = [b for b in blocks_seen if b not in blocks_with_rules and b[0] not in ed.conventions
+            and b[0] not in prose_rows]
 
     # ---- General formats — the SYNTAX DIAGRAMS ---------------------------------------------------------------
     # These are the artifacts the ANTLR grammar was written FROM, and the ones transcription loss damages most
@@ -1686,6 +1705,23 @@ def self_test() -> int:
         ok([(f.clause, f.line) for f in unseen] == [("§2002:14.8.91", 5)],
            f"a clause 2002's table of contents lists and the transcription never heads is a finding at its TOC line, and "
            f"the list of tables is no clause ({[str(f) for f in unseen]})")
+        # kb/Work PB5332: 2002's 'Rounding rules' and bare 'Rules' headings are general rules; the taxonomy clause headed
+        # 'Rules' stays out (excluded); a typed block whose one rule is printed unnumbered is admitted as a paragraph row.
+        typed = (PLANTED_2002.replace("##### 5.2.1 Syntax rules", "#### 5.2 Rules\n\nRules are categorized.\n\n##### 5.2.1 Syntax rules")
+                 + "\n## Page 302\n\n###### 8.8.1.3.1.3 Rounding rules\n\n1\\) When compared.\n\n2\\) When moved.\n\n"
+                 "###### 8.8.4.1.5.2 Rules\n\nThe result of the test is true if the switch is set.\n\n"
+                 "###### 8.8.4.1.6.2 Rules\n\n1\\) NOT and the next keyword specify one sign condition.\n")
+        got = extract(ed, typed.splitlines(), {}, {"8.8.4.1.5.2": {"kind": "GR", "why": "planted"}}, set(), standing,
+                      cite=False)
+        tids = [r["id"] for r in got.rules if r["section"].startswith(("8.8", "5.2"))]
+        ok(tids == ["2002-GR-8.8.1.3.1.3-1", "2002-GR-8.8.1.3.1.3-2", "2002-GR-8.8.4.1.6.2-1", "2002-GR-8.8.4.1.5.2-p1"]
+           and not any(f.kind in ("unrecognised-heading", "parse-gap") for f in got.findings),
+           f"'Rounding rules' and 'Rules' type as GR, the taxonomy clause 5.2 'Rules' stays out, and an unnumbered rule "
+           f"of a typed block is one admitted paragraph row, with no finding ({tids}, {[str(f) for f in got.findings]})")
+        doubled = extract(ed, typed.splitlines(), {}, {"8.8.4.1.6.2": {"kind": "GR", "why": "planted"}}, set(), standing,
+                          cite=False)
+        ok(any(f.kind == "paragraph-admission" and "count twice" in str(f) for f in doubled.findings),
+           "a typed block whose numbered scan yields rows is refused as a paragraph admission (its rows would count twice)")
     print(f"=== extract_rule_catalog self-test: {'PASS' if not failures else f'FAIL ({len(failures)})'} ===")
     return 1 if failures else 0
 
