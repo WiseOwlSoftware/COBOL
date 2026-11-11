@@ -1396,7 +1396,7 @@ of an unsupported facility.
   alternatives of one brace (§1985:XIII.3.9.2, §2023:13.15.2) and an entry writing two is refused COBOL2247. Witnesses:
   `conformance:cases/13.18.54-SUM/pb5248_sum_size_error_presentation`, `.../13.18.37-NEXT-GROUP/pb5245_terminate_saved_next_group` (each `.85.out` and `.out`),
   `.../13.18.28-GROUP-INDICATE/pb5246_group_indicate_suppressed_generate` and `.../XIII.3.13@1985-GROUP-INDICATE-CLAUSE/pb5246_group_indicate_suppressed_generate_85`, `.../13.18.54-SUM/pb5249_generate_report_name_sum_upon`,
-  `.../XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/pb5243_table1_permitted_rows` and the four `pb5243-*` refusals.
+  `.../XIII.3.9@1985-REPORT-GROUP-DESCRIPTION-ENTRY/pb5243_table1_permitted_rows` and the three `pb5243-*` refusals.
 - **Normal completion of a declarative — "a fatal exception occurs within the scope of the declarative" (§2023:14.6.13.1.2 1),
   spec silent on three points)**: the rule makes a declarative that falls off its end "not complete normally" when a
   fatal exception occurs within its scope. **Pinned choices: (a) "occurs" is read as "is RAISED"** — checking for it is
