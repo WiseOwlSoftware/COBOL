@@ -94,19 +94,6 @@ public abstract partial class KeyedConnector : FileConnector
             _ => true,   // Foreign (not a store this build can interpret) or Message (no file of §2023:9.1.6's organizations)
         };
 
-    /// <summary>⛔ THE RELATIVE AND INDEXED READ's RECORD LENGTH CONFLICT (kb/Work PB5238) — a record read whose length is outside
-    /// the sizes its RECORD DESCRIPTIONS specify is read successfully with I-O status '04' (§1985:VIII.4.5.4 GR16 and
-    /// §1985:IX.4.5.4 GR18, "the READ statement is successful and an I-O status is set indicating a record length conflict has
-    /// occurred"; the 2002 and 2014 texts say the same for every organization). Answers the status of a successful READ of a
-    /// record of <paramref name="length"/> bytes: '04', or '00' when it does not conflict. It is NOT the OPEN's fixed-attribute conflict
-    /// (<see cref="FixedAttributeConflict"/>, '39'): the RECORD clause's bounds and the descriptions' are different numbers
-    /// (§1985:VII.3.8.4 GR10 measures a WRITE against the clause's integer-2 and integer-3 alone, so the descriptions may lie anywhere inside them), so a WRITE inside the clause succeeds and
-    /// a READ under other descriptions conflicts. 2023 limits the rule to a record sequential file
-    /// (<see cref="DialectBehavior.RecordLengthConflictRecordSequentialOnly"/>), so from 2023 the answer is always '00'.</summary>
-    protected string RecordReadSuccessStatus(int length) =>
-        !DialectBehaviors.IsActive(DialectBehavior.RecordLengthConflictRecordSequentialOnly, Edition)
-        && ReadLengthOutsideDescriptions(length) ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success;
-
     // ── The ISO §2023:9.1.15 FILE LOCK, and the handle the store's pages travel through ───────────────────────────
 
     /// <summary>⛔ THE HANDLE THAT IS THIS CONNECTOR'S §2023:9.1.15 FILE LOCK — held for the life of the OPEN, and

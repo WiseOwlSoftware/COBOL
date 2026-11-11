@@ -1844,7 +1844,7 @@ public sealed partial class SequentialConnector : FileConnector
             // final record is the '04'. A file written under another record length is not detected here — no
             // boundary exists on the medium to detect it by; RecordLayoutNotice reports the arithmetic case at
             // OPEN.
-            shortLong = IsVarying ? ReadLengthOutsideDescriptions(data.Length) : data.Length < RecordWidth;
+            shortLong = IsVarying ? data.Length < VaryMin || data.Length > VaryMax : data.Length < RecordWidth;
         }
         else return ReadUnsuccessful(FileStatusCode.AtEnd);   // GR24 b)
         _readOrdinal++;   // the record just made available is ordinal N+1 (§2023:9.1.16 lock identity)

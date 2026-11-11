@@ -1,37 +1,46 @@
       *>--- conformance-case
-      *> id: pb5238_keyed_read_length_conflict_2023
+      *> id: pb5238_read_inside_record_clause_is_no_length_conflict
       *> rules: [GR-14.9.30.4-14]
-      *> accept: [2023]
+      *> accept: [85, 2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB5238 - at COBOL-2023 a RELATIVE or INDEXED READ of a record outside the sizes of its record
-      *> descriptions is a plain successful READ: 00.  The twin of pb5238_keyed_read_length_conflict, which answers 04
-      *> below 2023.
+      *> kb/Work PB5238 - a READ of a record that lies inside the file's minimum and maximum record size is a plain successful
+      *> READ, 00, whatever the sizes of the record DESCRIPTIONS the reading program has: the record length conflict, I-O status
+      *> 04, is a violation of the FIXED FILE ATTRIBUTES.
       *>
-      *> §2023:14.9.30.4 GR14 (checked with scripts/spec/cite.py --check) opens "For a record sequential file", so
-      *> the record length conflict status 04 belongs to that organization alone; no rule makes a relative or indexed
-      *> READ of such a record anything but successful, and §2023:9.1.13.2 item 3 defines '04' by the fixed file
-      *> attributes, which the OPEN checks (docs/CONFORMANCE.md DOC-A.1-129).  The 2002 and 2014 texts state the rule
-      *> for every organization (DialectBehavior.RecordLengthConflictRecordSequentialOnly, VCR row 7.61).  This is an
-      *> implementor-defined reading of a silent text, so the test lives in wiseowl/cases.  The program and its
-      *> records are those of the twin: 7, 12 and 25 bytes under descriptions of 10 and 15.
+      *> §2023:9.1.13.2 item 3 (checked with scripts/spec/cite.py --check): "I-O status = 04. A READ statement is successfully
+      *> executed but the physical record from the file is shorter than or longer than the minimum or maximum length of records
+      *> allowed for the fixed file attributes for that file."  §2023:9.1.6 names "the minimum and maximum logical record size"
+      *> among those attributes, and §2023:14.9.30.4 NOTE 2 (under GR14) says the condition "will occur only when the operating
+      *> environment does not check either the minimum or maximum record length as a fixed file attribute during OPEN
+      *> processing or when a specific physical record violates the fixed file attributes".  GR14's "minimum size specified
+      *> by the record description entries" is read as that same quantity: the file's minimum and maximum record size, which
+      *> §2023:13.18.43.4 GR9 and GR10 take from the descriptions only when the RECORD clause omits integer-2 or integer-3.
+      *> Measured against the descriptions instead, a 7-byte record under a 10-byte description would answer 04, and so would
+      *> every short record of the idiom RECORD VARYING 1 TO 80 over one PIC X(80).  The 1985 text defines 04 the same way
+      *> (§1985:VIII.1.3.4 item 1 b: "does not conform to the fixed file attributes for that file").
+      *>
+      *> The reading FDs have descriptions of 10 and 15 bytes under a clause of 6 to 30; the relative and indexed records are
+      *> 7, 12 and 25 bytes, all inside the clause, written through an FD of 30 bytes.  Every READ is therefore 00, on both
+      *> organizations, by key and in sequence, at every edition.  Why it can fail: an implementation that measures the READ
+      *> against the descriptions answers 04 for the 7-byte and the 25-byte record.
       *>
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. PB5238L.
+       PROGRAM-ID. PB5238N.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT RW ASSIGN TO "pb5238l-r.dat"
+           SELECT RW ASSIGN TO "pb5238n-r.dat"
                ORGANIZATION IS RELATIVE ACCESS MODE IS DYNAMIC
                RELATIVE KEY IS WK FILE STATUS IS FSW.
-           SELECT RR ASSIGN TO "pb5238l-r.dat"
+           SELECT RR ASSIGN TO "pb5238n-r.dat"
                ORGANIZATION IS RELATIVE ACCESS MODE IS DYNAMIC
                RELATIVE KEY IS RK FILE STATUS IS FSR.
-           SELECT IW ASSIGN TO "pb5238l-i.dat"
+           SELECT IW ASSIGN TO "pb5238n-i.dat"
                ORGANIZATION IS INDEXED ACCESS MODE IS DYNAMIC
                RECORD KEY IS W-KEY FILE STATUS IS FSW.
-           SELECT IR ASSIGN TO "pb5238l-i.dat"
+           SELECT IR ASSIGN TO "pb5238n-i.dat"
                ORGANIZATION IS INDEXED ACCESS MODE IS DYNAMIC
                RECORD KEY IS R-KEY FILE STATUS IS FSR.
        DATA DIVISION.

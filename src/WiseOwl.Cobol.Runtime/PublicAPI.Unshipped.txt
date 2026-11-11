@@ -134,7 +134,6 @@ WiseOwl.Cobol.Runtime.DialectBehavior.SearchIndexBelowTableUnsuccessful = 6 -> W
 WiseOwl.Cobol.Runtime.DialectBehavior.SumSizeErrorBlanksPrintableItem = 8 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.TerminateDiscardsSavedNextGroup = 9 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.GroupIndicateConsumedByIssuedGenerate = 10 -> WiseOwl.Cobol.Runtime.DialectBehavior
-WiseOwl.Cobol.Runtime.DialectBehavior.RecordLengthConflictRecordSequentialOnly = 11 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly = 5 -> WiseOwl.Cobol.Runtime.DialectBehavior
@@ -1115,7 +1114,3 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.EndOpen(string! name) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
-WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterRecordDescriptionSizes(string! name, int min, int max) -> void
-static WiseOwl.Cobol.Runtime.IO.CobolFile.RegisterRecordDescriptionSizes(string! name, int min, int max) -> void
-WiseOwl.Cobol.Runtime.IO.FileConnector.ReadLengthOutsideDescriptions(int length) -> bool
-WiseOwl.Cobol.Runtime.IO.KeyedConnector.RecordReadSuccessStatus(int length) -> string!

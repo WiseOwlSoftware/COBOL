@@ -72,10 +72,6 @@
       "vcrRow": "7.53"
     },
     {
-      "id": "record-length-conflict-record-sequential-only",
-      "vcrRow": "7.61"
-    },
-    {
       "id": "search-index-below-table-unsuccessful",
       "vcrRow": "7.56"
     },

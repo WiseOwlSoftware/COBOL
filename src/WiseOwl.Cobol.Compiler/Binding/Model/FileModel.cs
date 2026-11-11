@@ -722,13 +722,6 @@ public sealed class FileModel
     /// past the character area (D-FRA).</summary>
     public int RecordMax => Records.Count == 0 ? 0 : Math.Max(RecordWidth, Records.Max(MaxRecordSize));
 
-    /// <summary>The smallest and the largest record DESCRIPTION this file has, in bytes — ISO §2023:14.9.30.4 GR14's "minimum size"
-    /// and "maximum size specified by the record description entries" (GR8 a) and b) per record), which §2023:13.18.43.4 GR9 / GR10
-    /// also use for the RECORD clause's omitted integers. A READ's record length conflict is measured against these, never against
-    /// the clause's own integers, which may be wider (kb/Work PB5238). Null for a file with no record description.</summary>
-    public (int Min, int Max)? RecordDescriptionSizes =>
-        Records.Count == 0 ? null : (Records.Min(MinRecordSize), RecordMax);
-
     /// <summary>⛔ THE ONE READER of WHICH §2023:13.18.43.2 GENERAL FORMAT this file description entry's RECORD clause
     /// was written in, and of the integers it states — the projection every §2023:13.18.43.3 syntax rule is stated
     /// over (<see cref="RecordClauseFacts"/>). Null when the entry writes no RECORD clause, which is the one case
