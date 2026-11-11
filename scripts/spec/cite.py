@@ -889,10 +889,10 @@ def self_test() -> int:
         planted_md.parent.mkdir()
         planted_md.write_text(_PLANTED_ISO, encoding="utf-8", newline="\n")
         cat = planted / "catalog-2002.json"
-        cat.write_text(json.dumps({"rules": _PLANTED_ROWS}), encoding="utf-8")
+        cat.write_text(json.dumps({"rules": _PLANTED_ROWS}), encoding="utf-8", newline="\n")
         drifted = planted / "drifted-2002.json"
         drifted.write_text(json.dumps({"rules": [dict(_PLANTED_ROWS[0], text="A row the transcription does not carry.")]}),
-                           encoding="utf-8")
+                           encoding="utf-8", newline="\n")
         pc = {"repo": planted, "catalog": cat}
         pl = {"repo": planted, "catalog": False}
         planted_cases = [

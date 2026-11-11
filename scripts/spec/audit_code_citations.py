@@ -612,7 +612,8 @@ def sweep(out_path: pathlib.Path) -> int:
         ("directory", lambda r: r["file"].split("/")[0]))}
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps({"total": len(rows), "counts": {k: dict(v.most_common()) for k, v in by.items()},
-                                    "failures": rows}, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+                                    "failures": rows}, indent=1, ensure_ascii=False) + "\n", encoding="utf-8",
+                        newline="\n")
     print(f"{len(rows)} failing citation(s) -> {out_path}")
     for name, counts in by.items():
         print(f"  by {name}: " + ", ".join(f"{k} {n}" for k, n in counts.most_common()))
