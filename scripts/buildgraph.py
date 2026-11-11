@@ -260,24 +260,38 @@ def _git(repo: Path, *args: str, input: bytes | None = None, env: dict[str, str]
                           env={**os.environ, **(env or {})})
 
 
+class StoreRefError(RuntimeError):
+    """The store ref names something that is not a commit of records (a blob, a tree, a tag)."""
+
+
 class Published:
     """The records one commit of the store ref holds, read once (`git ls-tree` and one `git cat-file --batch`). Its
-    `lookup` asks `is_pass`, the store's own rule."""
+    `lookup` asks `is_pass`, the store's own rule. `refused`: each entry of the commit's tree that is no pass, as
+    `<path>: <why>` (a path that is not `<target>/<key>.json`, a body that is not JSON, a record that is not a pass of the
+    target and key its path names), so a reader can say what it ignored."""
 
-    def __init__(self, records: dict[tuple[str, str], dict], commit: str | None):
-        self.records, self.commit = records, commit
+    def __init__(self, records: dict[tuple[str, str], dict], commit: str | None, refused: tuple[str, ...] = ()):
+        self.records, self.commit, self.refused = records, commit, refused
 
     @classmethod
     def read(cls, repo: Path, commit: str | None) -> "Published":
         if not commit:
             return cls({}, None)
+        kind = _git(repo, "cat-file", "-t", commit).stdout.decode().strip()
+        if kind != "commit":
+            raise StoreRefError(f"{STORE_REF} names a {kind} ({commit[:12]}), not a commit of records")
         listing = _git(repo, "ls-tree", "-r", "-z", "--full-tree", commit).stdout.decode("utf-8", "surrogateescape")
         wanted: list[tuple[str, str, str]] = []
+        refused: list[str] = []
         for entry in listing.split("\0"):
             meta, tab, path = entry.partition("\t")
-            m = _RECORD_PATH.fullmatch(path) if tab else None
+            if not tab:
+                continue
+            m = _RECORD_PATH.fullmatch(path)
             if m and meta.split()[1] == "blob":
                 wanted.append((m.group(1), m.group(2), meta.split()[2]))
+            else:
+                refused.append(f"{path}: not <target>/<64-hex key>.json")
         out = _git(repo, "cat-file", "--batch", input="".join(f"{oid}\n" for *_, oid in wanted).encode()).stdout
         records: dict[tuple[str, str], dict] = {}
         at = 0
@@ -286,13 +300,17 @@ class Published:
             size = int(out[at:nl].split()[2])
             body = out[nl + 1:nl + 1 + size]
             at = nl + 1 + size + 1
+            path = f"{target}/{k}.json"
             try:
                 rec = json.loads(body.decode("utf-8"))
             except ValueError:
+                refused.append(f"{path}: not JSON")
                 continue
             if is_pass(rec, target, k):
                 records[(target, k)] = rec
-        return cls(records, commit)
+            else:
+                refused.append(f"{path}: not a pass of {target} at the key its path names")
+        return cls(records, commit, tuple(refused))
 
     def lookup(self, target: str, k: str) -> dict | None:
         rec = self.records.get((target, k))
@@ -623,6 +641,36 @@ def transport_arms(root: Path, arm) -> None:
     stale = _git(host.path, "push", "--quiet", f"--force-with-lease={STORE_REF}:{first}", "origin",
                  f"{write_records(host.path, {})}:{STORE_REF}", check=False)
     again = publish(host.path, other, "origin", now, say=said.append)
+    # a lost lease INSIDE publish (review R1-3): another publisher lands between this call's read and its push
+    k3, k4 = "3" * 64, "4" * 64
+    mine, racer = Store(root / "t-store-mine"), Store(root / "t-store-racer")
+    for st, kk in ((mine, k3), (racer, k4)):
+        st.record("unit", kk, {"assembly": "Unit", "facets": facets, "run": "000003", "head": "d" * 40,
+                               "tree": "c" * 40, "when": stamp, "counts": {"ran": 1}})
+    module = globals()
+    real_git, raced = module["_git"], []
+
+    def racing_git(repo: Path, *args: str, **kw) -> subprocess.CompletedProcess:
+        if args[:1] == ("push",) and not raced:
+            raced.append(True)
+            module["_git"] = real_git
+            try:
+                publish(host.path, racer, "origin", now, say=said.append)
+            finally:
+                module["_git"] = racing_git
+        return real_git(repo, *args, **kw)
+
+    module["_git"] = racing_git
+    try:
+        recovered = publish(host.path, mine, "origin", now, say=said.append)
+    finally:
+        module["_git"] = real_git
+    after_race = fetch_published(ci.path, "origin")
+    arm("a publisher that loses its lease to another mid-publish re-reads and re-sends: the ref ends holding both "
+        "publishers' records and every earlier one",
+        bool(raced) and recovered == after_race.commit and any("re-reading" in s for s in said)
+        and set(after_race.records) == {("conformance", k1), ("unit", k2), ("unit", k3), ("unit", k4)},
+        f"{raced} {recovered} {after_race.commit} {sorted(after_race.records)} {said}")
     later = publish(host.path, Store(root / "t-store-empty"), "origin", now + timedelta(days=PRUNE_DAYS + 1),
                     say=said.append)
     pruned = fetch_published(ci.path, "origin")

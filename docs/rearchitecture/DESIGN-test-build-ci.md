@@ -1434,11 +1434,13 @@ store's own layout, `<target>/<key>.json`. A record is found there by its key an
 toolchain), `counts` (discovered, ran, skipped, carried), and where it came from: `head`, `tree`, `run`, `when`. The host's
 record also names its worktree and its run directory. Those stay on the host, with the evidence they point at.
 
-**Who writes it: the landing, when it pushes the branch.** `python scripts/buildgraph.py publish` (`buildgraph.publish`)
-belongs in `enqueue.py`'s step 4 ("Push, open (or reuse), queue"), right after
-`git push --force origin <sha>:refs/heads/<branch>` and before `gh pr merge --auto`. The merge group's plan reads the ref
-only after the pull request is queued, so the record is always there in time. A publish that fails is a warning, never a
-refusal: a missing record costs CI minutes and never a verdict. `publish`:
+**Who writes it: the landing, when it pushes the branch.** `enqueue.py`'s `queue` step 4 calls `buildgraph.publish`
+(`enqueue.publish_passes`; by hand, `python scripts/buildgraph.py publish`) right after
+`git push --force origin <sha>:refs/heads/<branch>` and before it lists, opens or queues the pull request. The merge
+group's plan reads the ref only after the pull request is queued, so the record is always there in time. A publish that
+fails stops the landing with exit 16, STORE NOT PUBLISHED, naming its cause, with the branch pushed and no pull request
+opened (the landing lane retries it once, as it does exit 9): a merge group that found no record would run every target,
+and a landing that silently skipped its publish would make that the rule. `publish`:
 1. reads the remote ref (`git ls-remote`, then a fetch);
 2. takes the union of its records and this host's store (every worktree's passes, projected);
 3. drops each record whose `when` is older than `PRUNE_DAYS` (21);
@@ -1446,8 +1448,7 @@ refusal: a missing record costs CI minutes and never a verdict. `publish`:
    `--force-with-lease=<ref>:<the commit it read>`.
 
 A publisher that loses the lease re-reads and re-sends, so two landings never drop each other's records, and the ref's
-history stays one commit deep. Pruning is a by-product of publishing: every record pruned leaves an empty tree. Until
-`enqueue.py` makes that call (kb/Work PB5235 addendum, "transport"), `buildgraph.py publish` is run by hand at a landing.
+history stays one commit deep. Pruning is a by-product of publishing: every record pruned leaves an empty tree.
 
 **How CI reads it: the `changes` job's plan step** (`scripts/ci_plan.py`). Only in a merge group does it read the ref
 (`--remote origin`). It fetches it with `--no-filter`, because the job's checkout is a `blob:none` partial clone that would
@@ -1747,7 +1748,9 @@ one-file-per-entry DEVLOG stand.
    (PB3157). A gate NOT RUN, which measured nothing, is judged by its cause's class (PB3526): exit 2, no red, for an
    ENVIRONMENT cause or a BRANCH cause main fails the same way at the same step, else exit 5. Main moving again while the pull
    request is queued costs no re-gate: the merge group integrates the branch on the current main and runs the whole population.
-   Finally `gh pr create` (title = the branch's one-line subject, body = the forensic message) and `gh pr merge --auto`, so
+   Then the branch is pushed and this host's passes are published to origin's `refs/cobol-build-store/passes`
+   (`buildgraph.publish`, §3.14.14; a failure is exit 16, STORE NOT PUBLISHED, and nothing is opened). Finally
+   `gh pr create` (title = the branch's one-line subject, body = the forensic message) and `gh pr merge --auto`, so
    the pull request joins the queue. No lease, no local whole population, no waiting for CI. That the pull request then
    ENTERS the queue is the landing lane's QUEUE WATCH (DESIGN-orchestrator-loop.md 4.9 step 4, kb/Work PB3527): on every tick
    it reads the queue's entries and the head's check-runs (`queue_facts.py`), waits while any runs (PB4052), and past a

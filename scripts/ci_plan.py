@@ -169,23 +169,42 @@ def ci_wiring(repo: Path) -> list[str]:
     return bad
 
 
+def read_records(repo: Path, remote: str, say=print) -> tuple[buildgraph.Published, str]:
+    """THE STORE REF, READ LOUDLY (kb/Work PB5235 review R1-2): the records, and one line saying what was read. Every
+    case in which the plan can accept nothing is a named `::warning::` in the job log, and every target then runs: the
+    remote has no ref; the remote or the ref cannot be read; the ref names no commit (a blob, a tree); the commit holds no
+    record. Each entry the commit holds that is no pass (`Published.refused`) is named too."""
+    ref = f"{remote} {buildgraph.STORE_REF}"
+    try:
+        records = buildgraph.fetch_published(repo, remote)
+    except subprocess.CalledProcessError as e:
+        why = (e.stderr or b"").decode(errors="replace").strip() or f"git exit {e.returncode}"
+        say(f"::warning::build store: {ref} could not be read ({why}); every target runs")
+        return buildgraph.Published({}, None), f"{ref} could not be read"
+    except buildgraph.StoreRefError as e:
+        say(f"::warning::build store: {e}; every target runs")
+        return buildgraph.Published({}, None), f"{ref} names no commit of records"
+    if records.commit is None:
+        say(f"::warning::build store: {remote} has no {buildgraph.STORE_REF} (no landing has published a pass); every "
+            "target runs")
+        return records, f"{remote} has no {buildgraph.STORE_REF}"
+    for r in records.refused:
+        say(f"::warning::build store: {ref} at {records.commit[:12]} holds {r}: ignored")
+    if not records.records:
+        say(f"::warning::build store: {ref} at {records.commit[:12]} holds no pass; every target runs")
+    return records, (f"{ref} at {records.commit[:12]}, {len(records.records)} record(s)"
+                     + (f", {len(records.refused)} refused" if records.refused else ""))
+
+
 def plan_main(repo: Path, tree: str, remote: str | None, github_output: Path | None, summary: Path | None,
               say=print) -> int:
     """`plan`: read the remote's store ref (a ref that cannot be read is said, and every target runs: a missing record
     costs minutes, never a verdict), print one line per leg and target, and write the outputs. `remote` None
     (`--no-records`: a dispatch run or a push to main, which run the whole matrix) reads no record."""
-    try:
-        if remote is None:
-            raise LookupError
-        records = buildgraph.fetch_published(repo, remote)
-        source = (f"{remote} {buildgraph.STORE_REF} at {records.commit[:12]}, {len(records.records)} record(s)" if records.commit
-                  else f"{remote} has no {buildgraph.STORE_REF}")
-    except subprocess.CalledProcessError as e:
-        records = buildgraph.Published({}, None)
-        source = f"{remote} {buildgraph.STORE_REF} could not be read ({(e.stderr or b'').decode(errors='replace').strip()})"
-        say(f"::warning::build store: {source}; every target runs")
-    except LookupError:
+    if remote is None:
         records, source = buildgraph.Published({}, None), "not read (--no-records: only a merge group accepts a recorded pass)"
+    else:
+        records, source = read_records(repo, remote, say)
     rows = plan(repo, tree, records)
     say(f"plan: the store: {source}")
     for r in rows:
@@ -278,6 +297,60 @@ def self_test() -> int:
             and all(json.loads(written[f"{leg}_targets"]) == sorted(t.assembly for t in
                                                                     buildgraph.load_targets().values())
                     for leg in CI_LEGS), f"{said} {written}")
+        # the store ref, read loudly (review R1-2): each way it can hold nothing acceptable is a named warning
+        host = ScratchRepo.init(root / "ref-host")
+        host.commit("base", {"a.txt": "a\n"})
+        remote = host.origin(root / "ref-remote.git")
+        url = str(remote.path)
+
+        def read(label: str) -> tuple[buildgraph.Published, list[str]]:
+            heard: list[str] = []
+            got, _ = read_records(host.path, url, heard.append)
+            return got, heard
+
+        def warned(heard: list[str], *words: str) -> bool:
+            return any(h.startswith("::warning::build store:") and all(w in h for w in words) for h in heard)
+
+        absent, h_absent = read("absent")
+        bad_json = host.git("hash-object", "-w", "--stdin", input="not json")
+        good = json.dumps({"target": "unit", "key": "7" * 64, "result": "pass"})
+        good_blob = host.git("hash-object", "-w", "--stdin", input=good)
+        forged_blob = host.git("hash-object", "-w", "--stdin", input=json.dumps({"target": "unit", "key": "8" * 64,
+                                                                                    "result": "pass"}))
+        def mktree(lines: list[str]) -> str:
+            # bytes, as git reads them: text input would end each line CRLF on Windows, and the CR is part of the name
+            return host.run("mktree", input="".join(ln + chr(10) for ln in lines).encode(), binary=True).stdout.decode().strip()
+
+        inner = mktree([f"100644 blob {bad_json}{chr(9)}{'0' * 64}.json", f"100644 blob {good_blob}{chr(9)}{'7' * 64}.json",
+                        f"100644 blob {forged_blob}{chr(9)}{'9' * 64}.json", f"100644 blob {good_blob}{chr(9)}notes.txt"])
+        tree_id = mktree([f"040000 tree {inner}{chr(9)}unit"])
+        commit = host.git("commit-tree", tree_id, "-m", "a store with three bad entries")
+        host.git("push", "-q", "-f", url, f"{commit}:{buildgraph.STORE_REF}")
+        mixed, h_mixed = read("mixed")
+        empty_tree = mktree([])
+        empty = host.git("commit-tree", empty_tree, "-m", "an empty store")
+        host.git("push", "-q", "-f", url, f"{empty}:{buildgraph.STORE_REF}")
+        nothing, h_nothing = read("empty")
+        host.git("push", "-q", "-f", url, f"{tree_id}:{buildgraph.STORE_REF}")
+        as_tree, h_tree = read("tree")
+        host.git("push", "-q", "-f", url, f"{bad_json}:{buildgraph.STORE_REF}")
+        as_blob, h_blob = read("blob")
+        unreachable, h_unreachable = (lambda h: (read_records(host.path, str(root / "no-such-remote.git"), h.append)[0],
+                                                 h))([])
+        arm("the store ref is read loudly: an absent ref, a commit with no record, a ref naming a tree or a blob, and an "
+            "unreachable remote each print a named ::warning:: and accept nothing; a record that is not JSON, one "
+            "filed under a key it does not name and a path that is no record are each named and ignored, while the "
+            "good record beside them is accepted",
+            absent.records == {} and warned(h_absent, "has no", buildgraph.STORE_REF)
+            and nothing.records == {} and warned(h_nothing, "holds no pass")
+            and as_tree.records == {} and warned(h_tree, "names a tree", "not a commit")
+            and as_blob.records == {} and warned(h_blob, "names a blob", "not a commit")
+            and unreachable.records == {} and warned(h_unreachable, "could not be read")
+            and set(mixed.records) == {("unit", "7" * 64)}
+            and warned(h_mixed, f"unit/{'0' * 64}.json: not JSON")
+            and warned(h_mixed, f"unit/{'9' * 64}.json: not a pass")
+            and warned(h_mixed, "unit/notes.txt: not <target>"),
+            f"{h_absent} {h_nothing} {h_tree} {h_blob} {h_unreachable} {h_mixed} {sorted(mixed.records)}")
         wiring = ci_wiring(REPO)
         arm("the real workflow runs each leg as CI_LEGS states it: its configuration and target set from the plan's "
             "outputs, a step per target assembly gated on that set, and ci-gate's population check over that set",

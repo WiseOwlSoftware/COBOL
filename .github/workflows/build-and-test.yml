@@ -656,8 +656,10 @@ jobs:
           set -euo pipefail
           . scripts/python-resolve.sh
           mkdir -p TestResults/${{ runner.os }}-shard
-          # The plan's JSON list, read by Python: a native jq on Windows ends each line CRLF, and bash keeps the CR.
-          for assembly in $("$PY" -c 'import json, sys; print(" ".join(json.loads(sys.argv[1])))' "$TARGETS"); do
+          # The plan's JSON list as ONE space-separated line with NO line end (sys.stdout.write): on Windows both a native
+          # jq and Python's print end a line CRLF, and bash keeps a CR that is not the output's last character, so a
+          # name per line would arrive as `Unit<CR>` (kb/Work PB5235 review R1-4).
+          for assembly in $("$PY" -c 'import json, sys; sys.stdout.write(" ".join(json.loads(sys.argv[1])))' "$TARGETS"); do
             "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
               --configuration ${{ needs.changes.outputs.linux_configuration }} --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
           done
@@ -762,8 +764,10 @@ jobs:
           set -euo pipefail
           . scripts/python-resolve.sh
           mkdir -p TestResults/${{ runner.os }}-shard
-          # The plan's JSON list, read by Python: a native jq on Windows ends each line CRLF, and bash keeps the CR.
-          for assembly in $("$PY" -c 'import json, sys; print(" ".join(json.loads(sys.argv[1])))' "$TARGETS"); do
+          # The plan's JSON list as ONE space-separated line with NO line end (sys.stdout.write): on Windows both a native
+          # jq and Python's print end a line CRLF, and bash keeps a CR that is not the output's last character, so a
+          # name per line would arrive as `Unit<CR>` (kb/Work PB5235 review R1-4).
+          for assembly in $("$PY" -c 'import json, sys; sys.stdout.write(" ".join(json.loads(sys.argv[1])))' "$TARGETS"); do
             "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
               --configuration ${{ needs.changes.outputs.windows_configuration }} --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
           done

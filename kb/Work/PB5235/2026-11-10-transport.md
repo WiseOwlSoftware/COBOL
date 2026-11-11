@@ -13,11 +13,11 @@
    host's store, prunes records older than 21 days (`PRUNE_DAYS`), writes a new parentless commit, and pushes it with
    `--force-with-lease` on the commit it read. On a lost lease it re-reads and re-sends (three attempts). The union means
    two landings never drop each other's records. Parentless means the ref's history is one commit deep, so pruning frees
-   the old blobs. The call belongs in `scripts/orchestrator/enqueue.py` step 4, after
-   `git push --force origin <sha>:refs/heads/<branch>` and before `gh pr merge --auto`. A failed publish there is a
-   warning: a missing record costs CI minutes, never a verdict. This lane may not edit enqueue.py, so the call is that
-   file's owner's work (PB5233 replaces `enqueue.py land` with `build.py land`). Until then the landing runs
-   `python scripts/buildgraph.py publish` by hand.
+   the old blobs. `scripts/orchestrator/enqueue.py`'s `queue` step 4 calls it (`publish_passes`), after
+   `git push --force origin <sha>:refs/heads/<branch>` and before it lists, opens or queues the pull request (released
+   to this lane by Mythos in review round 1). A failed publish is exit 16, STORE NOT PUBLISHED, naming its cause, with
+   nothing opened; the landing lane retries it once, as it does exit 9 (`land_lane.classify`). A failure that only
+   warned would let a landing silently skip its publish, and a merge group with no record runs every target.
 4. **The reader is the `changes` job's plan step, `scripts/ci_plan.py`, in a merge group only.** It is a step of the
    first job, not a job of its own: a separate job would add a runner start and a toolchain setup (about a minute) to the
    critical path, and the step needs the same full-history checkout `changes` already has. It fetches with

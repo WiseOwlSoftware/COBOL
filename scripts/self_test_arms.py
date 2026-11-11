@@ -57,6 +57,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         "the transport: a pass published from the host's store is read back from the remote ref by a partial clone",
         "a record read from the ref is held to the store's one rule",
         "two publishers' records are a union on the ref (neither loses the other's)",
+        'a publisher that loses its lease to another mid-publish re-reads and re-sends',
         'the real targets file loads',
     ),
     # kb/Work PB5235: the merge group's plan over the store ref, and the workflow held to it
@@ -65,6 +66,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a record is accepted only at the key CI computes',
         "a pass whose facets are not the leg's, and a record filed under a key it does not name, are refused",
         '--no-records reads no ref and runs every target',
+        'the store ref is read loudly',
         'the real workflow runs each leg as CI_LEGS states it',
         'the wiring check names a Windows Unit step that runs whatever the plan says',
     ),
