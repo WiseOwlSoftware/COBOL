@@ -12,7 +12,8 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// D4). §1985:XVI.3.2.3 SR2: "If the segment-number is omitted from the section header, the segment-number is assumed to be
 /// 0." §1985:XVI.3.2.4 GR3: "Segments with segment-number 50 through 99 are independent segments." The module exists only at
 /// COBOL-85: from 2002 the segment-number is removed (COBOL0902), and --permissive, which accepts it with a warning, keeps
-/// its run-time meaning without asking the module's syntax rules.
+/// its run-time meaning and the rules that keep that meaning well-defined (<see cref="MeaningKept"/>: the number's range and
+/// <see cref="CheckAlter"/>), not the PERFORM / SORT / MERGE syntax rules of <see cref="CheckProcedures"/>.
 /// <para>Every reader asks here: the range screen (<c>VersionConformancePass.ParseArm.ScreenSegmentNumber</c>, COBOL6819),
 /// the section's own number (<see cref="SectionInfo.Segment"/>), the restrictions on program flow of §1985:XVI.3.3
 /// (<see cref="CheckAlter"/> and <see cref="CheckProcedures"/>, COBOL6877, asked where each statement binds, because
@@ -35,9 +36,20 @@ internal static class Segmentation
             : int.Parse(digits, System.Globalization.CultureInfo.InvariantCulture);
     }
 
-    /// <summary>Are the module's syntax rules in force at the edition being compiled? Only where the segment-number is an
-    /// available construct (COBOL-85), as for the range screen (COBOL6819); under --permissive at a later edition the number
-    /// is a warned, removed construct whose run-time meaning is kept and whose 1985 restrictions are not asked.</summary>
+    /// <summary>⛔ DOES A WRITTEN SECTION SEGMENT-NUMBER KEEP ITS COBOL-85 MEANING at <paramref name="edition"/>? At COBOL-85 it
+    /// is the module's priority number; from 2002 it is a removed construct (COBOL0902), an error, except under --permissive,
+    /// the migration mode, where it is a warning and the program runs with the meaning COBOL-85 gives it (an independent
+    /// segment's initial state, <c>AlterSwitchEmitter.EmitSegmentState</c>). The rules that make that meaning well-defined
+    /// are asked wherever it is kept (kb/Work PB5223, PB5224): the number's range (§1985:XVI.3.2.3 SR1 and SR3, COBOL6819) and
+    /// the ALTER restriction (§1985:XVI.3.3.1, <see cref="CheckAlter"/>). A number outside 0 through 99 has no meaning to keep,
+    /// and an ALTER the initial-state reset would silently undo is not a program COBOL-85 defines. Strict 2002 and later
+    /// refuse the number outright, so asking again would only repeat the refusal.</summary>
+    public static bool MeaningKept(EditionInfo edition) =>
+        edition.Permissive || ConstructRegistry.IsAvailable(edition, Constructs.SegmentNumbersRemoved2002);
+
+    /// <summary>Are the module's PERFORM / SORT / MERGE syntax rules (§1985:XVI.3.3.2-4, <see cref="CheckProcedures"/>) in
+    /// force at the edition being compiled? Only where the segment-number is an available construct (COBOL-85): they restrict
+    /// what a program may write and change nothing a kept meaning runs, so --permissive does not ask them.</summary>
     private static bool RulesInForce(BinderContext ctx) =>
         ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.SegmentNumbersRemoved2002);
 
@@ -49,7 +61,7 @@ internal static class Segmentation
     public static bool CheckAlter(BinderContext ctx, ResolvedProcedure target, Antlr4.Runtime.ParserRuleContext written, string asWritten)
     {
         int goTo = target.Section?.Segment ?? 0, alter = ctx.CurrentSection?.Segment ?? 0;
-        if (!SegmentNumber.IsIndependent(goTo) || goTo == alter || !RulesInForce(ctx)) return true;
+        if (!SegmentNumber.IsIndependent(goTo) || goTo == alter || !MeaningKept(ctx.Edition.Edition)) return true;
         using (ctx.Edition.At(written))
             ctx.Edition.Error(DiagnosticCatalog.SegmentationFlowRestriction,
                 $"ALTER '{asWritten}': the GO TO it refers to is in independent segment {goTo} and this ALTER statement is in "

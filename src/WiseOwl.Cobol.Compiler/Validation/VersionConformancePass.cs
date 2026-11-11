@@ -732,14 +732,20 @@ internal sealed class VersionConformancePass
 
         /// <summary>⛔ THE SEGMENTATION MODULE'S RANGES (kb/Work PB5084): §1985:XVI.2.3.3 SR1 (SEGMENT-LIMIT, 1 through 49),
         /// §1985:XVI.3.2.3 SR1 (a section's segment-number, 0 through 99) and SR3 (a declarative section's, less than 50).
-        /// Asked only where the construct row is available (COBOL-85): from 2002 the clause and the number are removed
-        /// (COBOL0902), which is the whole answer there. The number is an <c>integerLiteral</c>, so it is unsigned and
+        /// Asked only where the construct row is available (COBOL-85), and for a section's number where --permissive keeps its
+        /// meaning (<see cref="Segmentation.MeaningKept"/>): from 2002 the clause and the number are removed (COBOL0902), which
+        /// is the whole answer there. The number is an <c>integerLiteral</c>, so it is unsigned and
         /// integral by the grammar; zero is §2023:5.5 1)'s question for SEGMENT-LIMIT (<c>IntegerOperandRules.Slots</c>),
         /// so only the upper bound can be broken there.</summary>
         private void ScreenSegmentNumber(CobolParserCore.IntegerLiteralContext? number, int min, int max, string construct,
             string where, string rule)
         {
-            if (number is null || !ConstructRegistry.IsAvailable(_p._edition, construct)) return;
+            if (number is null) return;
+            // A section's number is also screened where --permissive keeps its COBOL-85 meaning (Segmentation.MeaningKept, kb/Work
+            // PB5223): the emitter's per-pc table holds the number itself, so a number the module has no meaning for must be refused.
+            bool asked = construct == Constructs.SegmentNumbersRemoved2002
+                ? Segmentation.MeaningKept(_p._edition) : ConstructRegistry.IsAvailable(_p._edition, construct);
+            if (!asked) return;
             string text = number.GetText();
             int value = Segmentation.ValueOf(number);
             if (value <= max && (value >= min || value == 0)) return;   // a zero below min is the SEGMENT-LIMIT slot's COBOL2386
