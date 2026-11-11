@@ -1,4 +1,4 @@
-## Nine 1985 grammar and binder defects: ADD GIVING's second addend, the communication operand rules by edition, function-identifiers as CALL, CANCEL and KEY targets, and four 1985 format shapes
+## Entry 3501 — 2026-11-11 15:05 PST — Nine 1985 grammar and binder defects: ADD GIVING's second addend, the communication operand rules by edition, function-identifiers as CALL, CANCEL and KEY targets, and four 1985 format shapes
 
 Wave 20262001 group B took nine kb/Work notes rooted in `CobolParserCore.g4` and the procedure binders. Every note was
 re-probed on this branch's base (e3c9e8551a) and reproduced as filed; one checkpoint per mechanism.
@@ -54,3 +54,4 @@ arms now go through one screen, `CallBinder.Identifier1Screen`. A program-pointe
 `ProgramRegistry.CallPointer` after the SR14 signature check; any other category goes through `OperandTargetRefusal`.
 Golden: `pb5240_call_function_program_pointer` (2002, 2014, 2023; PCFPB counts 1, then 2). The same pass moved the PB3355
 summary back onto `NameTargetRefusal` (R1-3).
+
