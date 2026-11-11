@@ -275,7 +275,7 @@ public sealed class GateLegDriftTests
         TestWeights weights = TestWeights.Embedded();
         Assert.True(weights.Tenths.Count > 500, $"the weights name {weights.Tenths.Count} classes: the file did not load");
         string[] assemblies = [.. weights.Tenths.Keys.Select(k => k.Assembly).Distinct().Order(StringComparer.Ordinal)];
-        Assert.Equal(["Characterization", "Conformance", "Unit"], assemblies);
+        Assert.Equal(["Characterization", "Conformance", "RepoDrift", "Unit"], assemblies);
         foreach (int count in new[] { 5, 7 })
         {
             var load = new long[count];
