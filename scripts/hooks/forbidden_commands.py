@@ -14,8 +14,10 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
   repository                repository, any flags: a unit never publishes another repo (owner 2026-10-05, kb/Work/PB2044:
                             the wave unit pushed the public skills repo's main with `git push -q origin HEAD:main`). Its
                             own work branch it pushes like any session (kb/Work PB5234: every one of 31 refusals was that).
-  escapes in a heredoc      heredoc bodies with backslash escapes were mangled or mis-escaped in six sessions (and the
-                            harness decodes some escapes in tool input); write the file with the Write tool instead.
+  a backslash run in a      the Bash TOOL halves every run of two or more backslashes that does not end at a double
+  Bash heredoc body         quote, after this hook and before bash runs (measured 2026-11-10, kb/Work PB5234; a single
+                            backslash and the PowerShell tool are byte-exact), so a quoted heredoc body that holds one
+                            arrives altered; write the file with the Write tool instead.
   bare `~X` test filter     `--filter "~X|~Y"` matches NOTHING and exits 0 — a silent green; every term needs a
                             property (FullyQualifiedName~X).
   `cd` in a backgrounded    a location change (`cd`, `pushd`, `Set-Location`, ...) inside an and-or list that a single
@@ -184,12 +186,19 @@ if os.environ.get("COBOL_COORD_DIR"):
                   "`python scripts/orchestrator/enqueue.py land <branch>`; a change to ANOTHER repository (the public "
                   "skills repo, a site) is never published by a unit: hand it off as an owed push and the attended "
                   "session or the owner publishes it (kb/Work/PB2044).")
-# 3. backslash escapes inside a heredoc body — the bodies the model cut out at their delimiter lines, never the text after
-# the first `<<` (a `<<` inside quotes is no heredoc, and a command after the body is no body)
-if any(re.search(r"\\[nrtuUx0abfvdswDSW\\'\"]", body) for st in STEPS for body in st.heredocs):
-    block("this heredoc body contains backslash escape sequences, which have been mangled here repeatedly. Write the "
-          "script or file with the Write tool (into your own scratch directory, MANDATORY-PRACTICES P16) and run it, or express the character without an "
-          "escape (chr(10), a character class).")
+# 3. a run of two or more backslashes, not ending at a double quote, inside a Bash heredoc body. Measured 2026-11-10
+# (kb/Work PB5234, its guard-measurements addendum): the Bash tool hands bash `eval '<command>'` with every such run
+# halved (`\\n` arrives as `\n`, four backslashes as two), AFTER this hook has read the command; a single
+# backslash (`\n`, `\d`, `C:\Users`), a run that ends at `"`, the Write tool and the PowerShell tool all arrive
+# byte-exact, and bash runs a heredoc exactly as POSIX specifies. Until 2026-11-10 this rule refused ANY backslash
+# escape in a body: 576 refusals in three days, 400 of them bodies that would have arrived intact. The bodies are the
+# ones the model cut out at their delimiter lines, never the text after the first `<<`.
+_HALVED_RUN = re.compile(r'(?<!\\)\\{2,}(?![\\"])')
+if data.get("tool_name") != "PowerShell" and any(_HALVED_RUN.search(body) for st in STEPS for body in st.heredocs):
+    block("this heredoc body holds a run of two or more backslashes, and the Bash tool halves such a run before bash "
+          "runs it (kb/Work PB5234: `\\\\n` arrives as `\\n`; a single backslash and a run that ends at a "
+          "double quote arrive intact). Write the file with the Write tool (into your own scratch directory, "
+          "MANDATORY-PRACTICES P16) and run it, or use the PowerShell tool, which is byte-exact.")
 
 # 4. a property-less dotnet test filter term, per `dotnet test` command: its own `--filter` value
 for st in STEPS:

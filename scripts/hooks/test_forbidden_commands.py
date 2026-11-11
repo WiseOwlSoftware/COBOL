@@ -60,7 +60,11 @@ CASES = [
     ('cd "/e/Sites/wise owl" && git push origin main', False),                          # a quoted path with a space
     ("ls; cd /e/claude-skills && git push origin main", False),
     ("pushd /e/COBOL && git push origin main", True),
-    ("python - <<'EOF'\nprint('a" + BS + "nb')\nEOF", True),
+    ("python - <<'EOF'\nprint('a" + BS + "nb')\nEOF", False),          # one backslash arrives intact (kb/Work PB5234)
+    ("python - <<'EOF'\nprint('a" + BS + BS + "nb')\nEOF", True),      # a run of two is halved by the Bash tool
+    ("cat > x.txt <<'EOF'" + NL + "C:" + BS + "Users" + BS + "x " + BS + "d+" + NL + "EOF", False),   # paths, regexes
+    ("cat > x.txt <<'EOF'" + NL + "a" + BS + BS + BS + BS + "b" + NL + "EOF", True),
+    ("cat > x.txt <<'EOF'" + NL + "say " + BS + BS + '"hi' + NL + "EOF", False),   # a run before a quote is kept
     ("python - <<'EOF'\nprint('plain')\nEOF", False),
     ('dotnet test x.csproj --filter "~Drift|~EditionGate" > log.txt', True),
     ('dotnet test x.csproj --filter "FullyQualifiedName~Drift|FullyQualifiedName~EditionGate" > log.txt', False),
@@ -125,7 +129,8 @@ CASES = [
     ("cat > m.txt <<'EOF'" + NL + "git push origin main" + NL + "EOF" + NL + "git status", False),
     (QS + 'printf "a' + BS + 'n"', False),                               # a quoted `<<` is no heredoc: no body
     (HD + 'printf "a' + BS + 'n"', False),                               # the command after a body is no body
-    ("bash -c 'cat' <<'EOF'" + NL + "a" + BS + "nb" + NL + "EOF", True),  # a body feeding a -c payload is a body
+    ("bash -c 'cat' <<'EOF'" + NL + "a" + BS + BS + "nb" + NL + "EOF", True),  # a body feeding a -c payload is a body
+    ("bash -c 'cat' <<'EOF'" + NL + "a" + BS + "nb" + NL + "EOF", False),
     (HD + 'dotnet test x.csproj --filter "~Foo" > log.txt', True),
     (QS + 'dotnet test x.csproj --filter "~Foo" > log.txt', True),
     (HD + 'dotnet test x.csproj --filter "FullyQualifiedName~Foo"', False),   # unredirected output is not refused (kb/Work PB5234)
@@ -152,7 +157,8 @@ CASES = [
     ("x=$(git stash list)", False),
     ("r=$(git push origin HEAD:main 2>&1)", True),
     ('r=$(dotnet test x.csproj --filter "~Foo")', True),
-    ("git commit -m \"$(cat <<'EOF'" + NL + "fix a" + BS + "nb" + NL + "EOF" + NL + ')"', True),   # the commit shape
+    ("git commit -m \"$(cat <<'EOF'" + NL + "fix a" + BS + BS + "nb" + NL + "EOF" + NL + ')"', True),   # the commit shape
+    ("git commit -m \"$(cat <<'EOF'" + NL + "fix a" + BS + "nb" + NL + "EOF" + NL + ')"', False),
     ("git commit -m \"$(cat <<'EOF'" + NL + "fix a" + NL + "EOF" + NL + ')"', False),
     # a quote or a bracket in the body never ends the substitution, so the command after it is still read
     ("git commit -m \"$(cat <<'EOF'" + NL + 'say "hi" (and \') too' + NL + "EOF" + NL + ')" && git stash', True),
