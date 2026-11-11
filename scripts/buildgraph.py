@@ -541,13 +541,21 @@ def undeclared(target: GeneratedTarget, trace: Trace, repo: Path, tracked: set[s
     (an input excluded as @inert or @tooling-lane included: then the classification is wrong), a tracked directory it
     listed that no input lies in or under (`Target.lists`), and every process it started. Untracked and ignored paths
     (its own output, a byte-code cache) and paths outside the repository (the interpreter's library) are not inputs."""
-    root = os.path.normcase(os.path.abspath(repo)) + os.sep
-    dirs = {"/".join(f.split("/")[:i]) + "/" for f in tracked for i in range(0, f.count("/") + 1)}
+    # ⛔ BOTH SPELLINGS OF THE WORKTREE: the path it was handed and its canonical one. A command that resolves its own
+    # location (`Path(__file__).resolve()`, as generate.py does) opens canonical paths, and a worktree under a junction
+    # or an 8.3 alias (CI's Windows TEMP, self_tests.py's `aliased_temp`) is spelled otherwise: judged against the handed
+    # spelling alone, every read would fall outside the repository and none would be judged.
+    roots = sorted({os.path.normcase(os.path.abspath(repo)) + os.sep, os.path.normcase(os.path.realpath(repo)) + os.sep})
+    dirs = {""} | {"/".join(f.split("/")[:i]) + "/" for f in tracked for i in range(1, f.count("/") + 1)}
 
     def rel(p: str) -> str | None:
-        if os.path.normcase(p) + os.sep == root:
-            return ""
-        return p[len(root):].replace(os.sep, "/") if os.path.normcase(p).startswith(root) else None
+        n = os.path.normcase(p)
+        for root in roots:
+            if n + os.sep == root:
+                return ""
+            if n.startswith(root):
+                return p[len(root):].replace(os.sep, "/")
+        return None
 
     found = []
     for p in trace.opened:

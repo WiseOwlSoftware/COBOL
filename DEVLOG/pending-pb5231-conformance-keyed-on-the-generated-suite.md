@@ -20,6 +20,11 @@ generating its own, so the key a pass is recorded under is the digest of the sui
 digests the directory again, and a change makes the gate RED and records no pass. The verdict line names the generation:
 `conformance-suite generated in 11.7 s (output 01de7eeef7de, 5 file(s))`.
 
+The first gate of this branch was RED, and rightly. The trace compared the paths the generator opened with the
+worktree's path as it was handed. The generator opens canonical paths (`Path(__file__).resolve()`), and under the self-test
+runner's junction TEMP the two spellings differ, so no read was judged at all. The trace now accepts both spellings of the
+worktree; the pre-fix code fails that arm under a junction TEMP and the fixed code passes.
+
 **Measured.** Of the ten latest landings on main that touched the inventory, stage 1 re-ran Conformance at all ten. Five also
 changed `src/` or the suite, so Conformance re-runs for them under this change too. The other five were records-only: #1486
 records-85b (446 paths), #1446 classify-85 (25), #1429 (175), #1419 (33) and #1415 (10). The generated suite's digest was
