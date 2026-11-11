@@ -36,9 +36,16 @@ be resolved, there is a problem/bug"): a dependency whose output digest is unkno
 command did not write or a file it wrote that is not declared, a facet the caller did not give.
 
 A GENERATED TARGET'S RUN IS TRACED (`TRACER`): its command runs under a Python audit hook that records every file it
-opens for reading, every directory it lists and every process it starts. A tracked path it opened that its inputs do not
-match, a tracked directory it listed that no input lies in, or any process it started (whose reads no hook sees) refuses
-the generation by name (`undeclared`): its declared inputs are verified at every run, not trusted.
+opens for reading, every directory it lists and every process it starts, and at its end every module it loaded with that
+module's SOURCE (an import from a warm `__pycache__` opens only the .pyc: kb/Work PB5231 review R1-1). A tracked path it
+opened, or a module source it loaded, that its inputs do not match, a module loaded from inside the repository with no
+tracked source, a tracked directory it listed that no input lies in, or any process it started (whose reads no hook sees)
+refuses the generation by name (`undeclared`): its declared inputs are verified at every run, not trusted. THE TRACE'S
+RESIDUE, named: a call that asks whether a path exists or stats it (`Path.exists`, `is_file`, `is_dir`, `os.stat`, …)
+raises no audit event, so no run sees it. The STATIC half covers it, before any run (`static_check`, part of `check`):
+the program's import closure (every import, a lazy one included) lies in its inputs, and every existence or stat call in
+it and its closure probes a path under its inputs, decided from literals and the module's static names; a call that
+cannot be decided is a finding until the target's `judged` map states why its path is an input (review R1-3).
 
 THE INPUT PATTERNS are matched by the one matcher of the classification, `inert_lane.under`: `dir/` is every path below
 it; a pattern with `*` or `?` is a listing pattern (within one directory and case-insensitive, as a .NET directory
@@ -53,15 +60,17 @@ THE DECLARATIONS ARE CHECKED, NOT TRUSTED (`check`, `scan`). The audit reads eve
 the `tests/_shared` files it uses (by the types it names, transitively) and finds each repository read it spells: a
 `TestRepo` helper with its leading literal segments, `Path.Combine(TestRepo.Root, "…")`, and a string literal rooted at a
 top-level tracked directory. A read outside the assembly's declared inputs is a finding naming its file and line, unless
-it is the PROGRAM of a target the assembly depends on (the read that runs the dependency when no gate handed its output:
-a read reached only through the generator belongs to the generator's target). A test target that depends on a generated
-target must name, in its sources, the environment variable the gate hands the output in (`GeneratedTarget.env`), or its
-hosts would make their own. Its residue, named: a path computed at run time from a non-literal, and what a process the
+it is the PROGRAM of a target the assembly depends on, read at that dependency's ONE HAND-OFF SITE: the source that names
+the variable the gate hands the output in (`GeneratedTarget.env`) and the mark its host records when it was handed none
+and generated its own (`GeneratedTarget.own_mark`, which the gate turns RED). There the read is reached through the
+generator and belongs to its target; anywhere else running or reading the program reads every input of the generator,
+none in the assembly's key, and is a finding (review R1-2). A dependent assembly with no such site is a finding. Its residue, named: a path computed at run time from a non-literal, and what a process the
 test starts reads; the dynamic proof (the Linux shards' file watch, per target) is the remaining work kb/Work PB5218 states.
 """
 from __future__ import annotations
 
 import argparse
+import ast
 import datetime as dt
 import fnmatch
 import hashlib
@@ -99,6 +108,8 @@ GENERATED_ROOT = Path("TestResults") / "generated"
 OUT = "{out}"
 #: The classes an exclusion may name.
 CLASSES = ("@inert", "@tooling-lane")
+#: The observation a dependent's host records when it generated its own output (`GeneratedTarget.own_mark`).
+OWN_GENERATION = "GENERATED-OWN"
 
 
 class GraphError(ValueError):
@@ -200,6 +211,13 @@ class GeneratedTarget(Target):
         """The script the command runs (repository-relative)."""
         return self.command[0]
 
+    @property
+    def own_mark(self) -> str:
+        """What a dependent's host records in the harness observation log (tests/_shared/HarnessLog.cs) when it was
+        handed no output and generated its own (kb/Work PB5231 R1-2): a gate whose host log holds it is RED
+        (gate.py `_check_generated`), and the hand-off site must spell it (`scan`)."""
+        return f"{OWN_GENERATION}  {self.name}"
+
     def argv(self, out: Path) -> list[str]:
         """The command's arguments after the program, `{out}` replaced by `out`."""
         return [str(out) if a == OUT else a for a in self.command[1:]]
@@ -252,6 +270,8 @@ class Graph:
             if isinstance(t, GeneratedTarget):
                 if OUT not in t.command:
                     raise GraphError(f"{t.name}: its command names no {OUT} (where it writes)")
+                if any("self-test" in a or _self_test_scope(a) for a in t.command):
+                    raise GraphError(f"{t.name}: its command runs a self-test, which the static check reads no code of")
                 if not t.program.endswith(".py"):
                     raise GraphError(f"{t.name}: its program {t.program} is not a Python script, so its run cannot be "
                                      "traced")
@@ -469,8 +489,9 @@ def output_digest(directory: Path, target: GeneratedTarget) -> tuple[str, int]:
 #: script as `python <script>` would (sys.path[0] its directory, __name__ "__main__") and writes, at its end, the
 #: absolute paths it opened for reading, the directories it listed and the processes it started.
 TRACER = r"""
-import json, os, runpy, sys, traceback
+import importlib.util, json, os, runpy, sys, traceback
 log, script, argv = sys.argv[1], os.path.abspath(sys.argv[2]), sys.argv[3:]
+before = set(sys.modules)
 opened, listed, started = set(), set(), []
 WRITE = os.O_WRONLY | os.O_RDWR | os.O_APPEND | os.O_CREAT
 def _abs(p):
@@ -503,8 +524,25 @@ except BaseException:
     traceback.print_exc()
     code = 1
 finally:
+    # Every module the run loaded, with where it came from and its SOURCE: an import from a warm __pycache__ opens only
+    # the .pyc (and stats the source), so the open hook alone never sees the module's source (kb/Work PB5231 R1-1).
+    modules = []
+    for name, m in list(sys.modules.items()):
+        if name in before:
+            continue
+        spec = getattr(m, "__spec__", None)
+        origin = getattr(spec, "origin", None) or getattr(m, "__file__", None)
+        if not origin or origin in ("built-in", "frozen", "namespace"):
+            continue
+        source = origin
+        if origin.endswith(".pyc"):
+            try:
+                source = importlib.util.source_from_cache(origin)
+            except ValueError:
+                source = None
+        modules.append([name, os.path.abspath(origin), os.path.abspath(source) if source else None])
     with open(log, "w", encoding="utf-8") as fh:
-        json.dump({"opened": sorted(opened), "listed": sorted(listed), "started": started}, fh)
+        json.dump({"opened": sorted(opened), "listed": sorted(listed), "started": started, "modules": modules}, fh)
 sys.exit(code)
 """
 
@@ -517,6 +555,8 @@ class Trace:
     opened: tuple[str, ...]
     listed: tuple[str, ...]
     started: tuple[str, ...]
+    #: Every module the run loaded: (its name, the file it was loaded from, its source file or None when it has none).
+    modules: tuple[tuple[str, str, str | None], ...] = ()
 
 
 def traced_run(repo: Path, target: GeneratedTarget, out: Path) -> Trace:
@@ -531,8 +571,10 @@ def traced_run(repo: Path, target: GeneratedTarget, out: Path) -> Trace:
         try:
             data = json.loads(log.read_text(encoding="utf-8"))
         except (OSError, ValueError):
-            data = {"opened": [], "listed": [], "started": ["(the tracer wrote no log: what the run read is unknown)"]}
-    return Trace(rc, output, tuple(data["opened"]), tuple(data["listed"]), tuple(data["started"]))
+            data = {"opened": [], "listed": [], "started": ["(the tracer wrote no log: what the run read is unknown)"],
+                    "modules": []}
+    return Trace(rc, output, tuple(data["opened"]), tuple(data["listed"]), tuple(data["started"]),
+                 tuple((n, o, s) for n, o, s in data["modules"]))
 
 
 def undeclared(target: GeneratedTarget, trace: Trace, repo: Path, tracked: set[str],
@@ -567,8 +609,99 @@ def undeclared(target: GeneratedTarget, trace: Trace, repo: Path, tracked: set[s
         d = "" if not r else r + "/"
         if r is not None and d in dirs and not target.lists(d):
             found.append(f"listed {d or '(the repository root)'}")
+    for name, origin, source in trace.modules:
+        # ⛔ A MODULE IS READ WHETHER IT CAME FROM ITS SOURCE OR FROM A CACHE (kb/Work PB5231 R1-1): its source is judged
+        # like an opened path; one loaded from inside the repository with no TRACKED source there (a sourceless .pyc, an
+        # untracked module, a compiled extension) cannot be keyed at all, and is a failure naming it.
+        where = rel(origin)
+        src = rel(source) if source else None
+        if where is None and src is None:
+            continue
+        if src is None or src not in tracked:
+            found.append(f"imported {name} from {where or src}, which has no tracked source in the repository")
+        elif not target.matches(src, cls):
+            found.append(f"imported {src}")
     found += [f"started a process, whose reads no hook sees: {s}" for s in trace.started]
-    return sorted(found)
+    return sorted(set(found))
+
+
+#: ⛔ THE CALLS THAT ASK WHETHER A PATH EXISTS, OR STAT IT, AND RAISE NO AUDIT EVENT (kb/Work PB5231 R1-3): the trace
+#: cannot see them, so the static check (`static_check`) judges each one in a generated target's sources. A method of a
+#: path (`p.exists()`), or a function of `os` / `os.path` whose first argument is the path.
+PROBE_METHODS = frozenset({"exists", "is_file", "is_dir", "is_symlink", "stat", "lstat"})
+PROBE_FUNCTIONS = frozenset({"os.path.exists", "os.path.lexists", "os.path.isfile", "os.path.isdir", "os.path.islink",
+                             "os.path.getsize", "os.path.getmtime", "os.stat", "os.lstat"})
+
+
+def _self_test_scope(name: str) -> bool:
+    """A function a generated target's command never runs: its module's self-test (`self_test`, `_selftest_*`), the
+    convention scripts/scratch_repo.py's audit reads self-test code by. A target's command never names `--self-test`
+    (`Graph.of`)."""
+    return "self_test" in name or "selftest" in name
+
+
+def _probes(rel: str, tree: ast.Module) -> list[tuple[int, str, str, ast.expr]]:
+    """Every existence or stat call (`PROBE_METHODS`, `PROBE_FUNCTIONS`) in the Python file `rel` outside self-test code:
+    (its line, its enclosing function's dotted name, the call's text, the path expression it probes)."""
+    found: list[tuple[int, str, str, ast.expr]] = []
+
+    def walk(node: ast.AST, scope: str) -> None:
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                if isinstance(child, ast.ClassDef) or not _self_test_scope(child.name):
+                    walk(child, f"{scope}.{child.name}" if scope else child.name)
+                continue
+            if isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute):
+                callee = ast.unparse(child.func)
+                if callee in PROBE_FUNCTIONS and child.args:
+                    found.append((child.lineno, scope or "<module>", ast.unparse(child), child.args[0]))
+                elif child.func.attr in PROBE_METHODS and not callee.startswith("os."):
+                    found.append((child.lineno, scope or "<module>", ast.unparse(child), child.func.value))
+            walk(child, scope)
+
+    walk(tree, "")
+    return found
+
+
+def static_check(repo: Path, target: GeneratedTarget, tracked: set[str]) -> list[str]:
+    """THE STATIC HALF OF A GENERATED TARGET'S DECLARATION (kb/Work PB5231 R1-1, R1-3), decided before any run:
+      * its program's IMPORT CLOSURE under the repository (`inert_lane.import_closure`: every `import` anywhere in a file,
+        a lazy one included, resolved against the importer's directory and every directory its chain puts on
+        `sys.path`) lies in its inputs; a module outside them is a finding naming the importer chain;
+      * every existence or stat call in the program and its closure (`_probes`), which no audit hook sees, probes a path
+        under its inputs: a path `inert_lane.static_dir` decides from literals and the module's static names is judged
+        here; a call it cannot decide is a finding until the target's `judged` map states, under the key
+        `<file>|<function>|<call>`, why the path it probes is one of its inputs. A `judged` key that names no call any
+        more is a finding too (a stale judgment).
+    Returns the findings, each naming its file and line."""
+    if target.program not in tracked:
+        return [f"{target.name}: its program {target.program} is not a tracked file"]
+    closure = list(inert_lane.import_closure(repo, [(target.program, "its program")], tracked))
+    found = [f"{target.name}: {target.program} imports {m} ({how}), which is not among its inputs"
+             for m, how in closure if not target.matches(m)]
+    judged = {k for k, _ in target.judged}
+    seen: set[str] = set()
+    for rel in [target.program] + sorted(m for m, _ in closure):
+        try:
+            tree = ast.parse((repo / rel).read_text(encoding="utf-8"), filename=rel)
+        except (OSError, UnicodeDecodeError, SyntaxError) as e:
+            found.append(f"{target.name}: {rel} cannot be read for its static check ({type(e).__name__}: {e})")
+            continue
+        names = inert_lane.static_names(tree, rel)
+        for line, scope, call, expr in _probes(rel, tree):
+            path = inert_lane.static_dir(expr, names)
+            if path is not None:
+                if not (target.matches(path) or target.lists(path.rstrip("/") + "/")):
+                    found.append(f"{target.name}: {rel}:{line}: {call} probes {path or '(the repository root)'}, "
+                                 "which is not among its inputs")
+                continue
+            k = f"{rel}|{scope}|{call}"
+            seen.add(k)
+            if k not in judged:
+                found.append(f"{target.name}: {rel}:{line}: {call} probes a path the static check cannot decide: state "
+                             f"why it lies in the inputs, in build_targets.json `judged` under {k!r}")
+    found += [f"{target.name}: the judged entry {k!r} names no undecided call any more: remove it" for k in judged - seen]
+    return found
 
 
 @dataclass(frozen=True)
@@ -825,7 +958,7 @@ def scan(repo: Path, target: TestTarget, top_dirs: list[str], tracked: tuple[set
     `dependencies`: the generated targets it depends on, whose PROGRAM a source may name (a read reached through the
     dependency) and whose ENVIRONMENT VARIABLE its sources must spell."""
     judged = {k for k, _ in target.judged}
-    programs = {d.program for d in dependencies}
+    programs = {d.program: d for d in dependencies}
     bad: set[str] = set()
     roots: set[str] = set()
     through: set[str] = set()
@@ -833,7 +966,10 @@ def scan(repo: Path, target: TestTarget, top_dirs: list[str], tracked: tuple[set
     for src in assembly_sources(repo, target):
         rel = src.relative_to(repo).as_posix()
         text = src.read_text(encoding="utf-8", errors="replace")
-        handed |= {d.env for d in dependencies if f'"{d.env}"' in text}
+        # THE ONE HAND-OFF SITE of a dependency (kb/Work PB5231 R1-2): the source that names its variable AND the mark it
+        # records when it had to generate its own (`GeneratedTarget.own_mark`, which the gate turns RED).
+        site = {d.name for d in dependencies if f'"{d.env}"' in text and f'"{d.own_mark}"' in text}
+        handed |= {d.env for d in dependencies if d.name in site}
         for line, read in reads_in(text, top_dirs):
             if read == "":
                 roots.add(f"{rel}:{line}")
@@ -841,8 +977,13 @@ def scan(repo: Path, target: TestTarget, top_dirs: list[str], tracked: tuple[set
             read = _normalized(read, tracked)
             if read is None or f"{rel}|{read}" in judged:
                 continue   # names no tracked path (build output, a cache, a scratch name), or judged by hand
-            if read in programs:
+            if read in programs and programs[read].name in site:
                 through.add(f"{rel}:{line}: {read}")
+            elif read in programs:
+                # ⛔ Anywhere else, running or reading the dependency's program reads everything it reads (kb/Work PB5231
+                # R1-2: a test running `generate.py --check` reads the inventory), none of it in this target's key.
+                bad.add(f"{rel}:{line}: {read} (the program of {programs[read].name}, outside its one hand-off site: "
+                        f"this reads every input of {programs[read].name}, and none is in this target's key)")
             elif not target.covers(read, cls):
                 bad.add(f"{rel}:{line}: {read}")
     return Scan(tuple(sorted(bad)), tuple(sorted(roots)), tuple(sorted(through)), tuple(sorted(handed)))
@@ -877,25 +1018,28 @@ def check(repo: Path = REPO) -> int:
     top, tracked = _top_dirs(repo), _tracked(repo)
     scans = {name: scan(repo, t, top, tracked, dependencies=tuple(graph.targets[d] for d in t.depends))
              for name, t in graph.tests().items()}
-    unhanded = [f"{name}: no source of its assembly names {graph.targets[d].env}, the variable the gate hands "
-                f"{d}'s output in, so its hosts would generate their own and its key would not be what they ran"
+    unhanded = [f"{name}: no source of its assembly names both {graph.targets[d].env}, the variable the gate hands "
+                f"{d}'s output in, and {graph.targets[d].own_mark!r}, what its host records when it generated its own: "
+                "its hosts could run a suite its key does not name"
                 for name, t in graph.tests().items() for d in t.depends if graph.targets[d].env not in scans[name].handed]
+    statics = [f for t in graph.generated().values() for f in static_check(repo, t, tracked[0])]
     for name, sc in scans.items():
         for b in sc.undeclared:
             print(f"  {name}: {b}")
-    for u in unhanded:
+    for u in unhanded + statics:
         print(f"  {u}")
-    n = sum(len(sc.undeclared) for sc in scans.values()) + len(unhanded)
+    n = sum(len(sc.undeclared) for sc in scans.values()) + len(unhanded) + len(statics)
     residue = ", ".join(f"{name} {len(sc.roots)}" for name, sc in scans.items())
     through = ", ".join(f"{name} {len(sc.through)}" for name, sc in scans.items() if sc.through)
     if n:
         print(f"=== BUILD TARGETS: RED — {n} finding(s): a repository read outside its target's declared inputs "
-              "(scripts/build_targets.json: declare it with its reader, or remove the read), or a dependency's output "
-              "its assembly does not take from the gate ===")
+              "(scripts/build_targets.json: declare it with its reader, or remove the read), a dependency's output "
+              "its assembly does not take from the gate, or a generated target's import or probe outside its inputs ===")
         return 1
     print(f"=== BUILD TARGETS: GREEN — {len(graph.targets)} target(s), {len(graph.generated())} generated, in the order "
           f"{' -> '.join(graph.order)}; every repository read the test sources spell lies in their declared inputs"
           + (f" or is a dependency's program ({through})" if through else "")
+          + f"; each generated target's import closure and probes lie in its inputs"
           + f" (bare root references, judged only by the dynamic proof: {residue}) ===")
     return 0
 
@@ -1142,6 +1286,72 @@ def self_test() -> int:
             "Unresolved" in stray and "stray.txt" in stray and moved.startswith("TreeMoved")
             and gstore.lookup("suite", "k-moved") is None and gstore.lookup("suite", "k-stray") is None,
             f"{stray} | {moved}")
+
+        # ── review round 1 (kb/Work PB5231): imports from a warm cache, the static check, the one hand-off site ──
+        imp = ScratchRepo.init(root / "imp")
+        importer = ("import sys\nfrom pathlib import Path\nhere = Path(__file__).resolve().parent\n"
+                    "sys.path.insert(0, str(here.parent / 'lib'))\nimport decl, helper\n"
+                    "out = Path(sys.argv[sys.argv.index('--out') + 1])\n"
+                    "(out / 'm.json').write_text(f'{decl.D} {helper.VALUE}', encoding='utf-8')\n")
+        imp.commit("base", {".gitignore": "TestResults/\n", "lib/decl.py": "D = 1\n", "lib/helper.py": "VALUE = 1\n",
+                            "gen/make.py": importer})
+        it = GeneratedTarget(name="imp", inputs=("gen/", "lib/decl.py"), exclude=(), facets=(),
+                             command=("gen/make.py", "--out", OUT), outputs=("m.json",), env="WISEOWL_COBOL_GATE_IMP")
+        subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, 'lib'); import helper"], cwd=imp.path,
+                       check=True)   # another process leaves lib/__pycache__/helper.*.pyc behind: the import is warm
+        ientries = tree_entries(imp.path, imp.git("rev-parse", "HEAD^{tree}"))
+        warm = refused(lambda: generate(imp.path, it, "k-warm", Store(root / "imp-store"), {p for _, p in ientries}))
+        imp_tracked = {p for _, p in ientries}
+        static_imp = static_check(imp.path, it, imp_tracked)
+        declared_imp = static_check(imp.path, replace(it, inputs=("gen/", "lib/")), imp_tracked)
+        arm("an undeclared import that is already cached is refused by the trace (its source is judged though only the "
+            ".pyc was opened); the static import closure refuses it without running anything, and is clean once "
+            "declared",
+            any((imp.path / "lib" / "__pycache__").glob("helper.*.pyc")) and "UndeclaredRead" in warm
+            and "imported lib/helper.py" in warm
+            and any("imports lib/helper.py" in f for f in static_imp) and declared_imp == [],
+            f"{warm} | {static_imp} | {declared_imp}")
+        probing = ("from pathlib import Path\nhere = Path(__file__).resolve().parent\n"
+                   "def probe(p):\n    return p.is_file()\n"
+                   "def self_test():\n    return Path('anything').exists()\n"
+                   "x = (here.parent / 'docs' / 'x.md').exists()\n")
+        imp.commit("probes", {"gen/make.py": importer + probing})
+        pt = replace(it, inputs=("gen/", "lib/"))
+        ptracked = {p for _, p in tree_entries(imp.path, "HEAD")}
+        undecided = static_check(imp.path, pt, ptracked)
+        judged_ok = static_check(imp.path, replace(pt, inputs=("gen/", "lib/", "docs/"),
+                                                   judged=(("gen/make.py|probe|p.is_file()", "its callers pass inputs"),)),
+                                 ptracked)
+        stale = static_check(imp.path, replace(pt, inputs=("gen/", "lib/", "docs/"),
+                                               judged=(("gen/make.py|probe|p.is_file()", "x"), ("gen/make.py|gone|q()", "y"))),
+                             ptracked)
+        arm("the static check refuses an existence probe of a path outside the inputs that it decides from literals, "
+            "and one it cannot decide until it is judged with its reason; a self-test's probe is not read; a stale "
+            "judgment is a finding",
+            any("gen/make.py:" in f and "probes docs/x.md" in f for f in undecided)
+            and any("gen/make.py|probe|p.is_file()" in f for f in undecided)
+            and not any("anything" in f for f in undecided) and judged_ok == []
+            and any("gen/make.py|gone|q()" in f and "names no undecided call" in f for f in stale),
+            f"{undecided} | {judged_ok} | {stale}")
+        site = ("class S { const string V = \"WISEOWL_COBOL_GATE_SUITE\"; const string M = \"GENERATED-OWN  suite\";\n"
+                " void G() { PythonInstrument.Run(B, TestRepo.Suite(\"harness\", \"generate.py\"), \"--out\", d); } }\n")
+        second = ('class G { void T() { PythonInstrument.Run(B, TestRepo.Suite("harness", "generate.py"), '
+                  '"--check"); } }\n')
+        audit.commit("hand-off site", {"conformance-suite/harness/generate.py": "x\n", "tests/D/Site.cs": site})
+        gsuite = GeneratedTarget(name="suite", inputs=("conformance-suite/", "tests/version-matrix/"), exclude=(),
+                                 facets=(), command=("conformance-suite/harness/generate.py", "--out", OUT),
+                                 outputs=("m.json",), env="WISEOWL_COBOL_GATE_SUITE")
+        dep = test("conformance", "tests/D/", ("tests/D/", "conformance-suite/"),
+                   ("conformance-suite/harness/generate.py",), ("suite",))
+        one_site = undeclared_now(dep, (gsuite,))
+        audit.commit("second site", {"tests/D/GeneratorCheck.cs": second})
+        two_sites = undeclared_now(dep, (gsuite,))
+        arm("the generator's program is reached through the dependency only at its ONE hand-off site (the source naming "
+            "its variable and its own-generation mark); a second source that runs it is an undeclared read of "
+            "everything it reads",
+            one_site.undeclared == () and len(one_site.through) == 1 and one_site.handed == ("WISEOWL_COBOL_GATE_SUITE",)
+            and any(u.startswith("tests/D/GeneratorCheck.cs:1: conformance-suite/harness/generate.py (the program of "
+                                 "suite") for u in two_sites.undeclared), f"{one_site} | {two_sites}")
     finally:
         remove_tree(root)
     bad = [n for n, ok, _ in results if not ok]

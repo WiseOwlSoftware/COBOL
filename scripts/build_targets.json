@@ -41,11 +41,40 @@
         "scripts/standard_streams.py": "imported by generate.py (ensure_utf8)",
         "scripts/live_tools.py": "imported by scripts/standard_streams.py when it lists the live tools",
         "scripts/git_batch.py": "imported by scripts/spec/inventory_store.py",
+        "scripts/scratch_repo.py": "imported lazily by the self-tests of generate.py and scripts/spec/inventory_store.py: in the static import closure (buildgraph.static_check), never loaded by --out",
+        "tests/conformance/": "removed_corpus_files probes it (REMOVED_CORPUS): a file there, a test the suite replaced, is a refusal",
         ".gitattributes": "the checkout's bytes of every file it reads"
       },
       "exclude": {
         "@inert": "no compiler test or generator reads it (the inert lane's watch)",
         "@tooling-lane": "no compiler test, build or generator reads it (the watch and the INERT LANE audit)"
+      },
+      "judged": {
+        "conformance-suite/harness/generate.py|Reader._library_text|path.is_file()": "self.root is the suite (Reader(SUITE)): a test's declared library file beside it, under conformance-suite/",
+        "conformance-suite/harness/generate.py|Reader.read_tree|(self.root / TREES['cases']).is_dir()": "conformance-suite/cases (self.root is SUITE)",
+        "conformance-suite/harness/generate.py|Reader.read_tree|base.is_dir()": "conformance-suite/cases and conformance-suite/wiseowl/cases (TREES under SUITE)",
+        "conformance-suite/harness/generate.py|Reader.read_tree|folder.is_dir()": "each entry the traced listing of a tree under conformance-suite/ returned",
+        "conformance-suite/harness/generate.py|Reader._read_folder|f.is_dir()": "each entry the traced listing of a clause folder under conformance-suite/ returned (both calls)",
+        "conformance-suite/harness/generate.py|Reader._read_folder|(folder / name).is_file()": "a test's declared file, in its clause folder under conformance-suite/",
+        "conformance-suite/harness/generate.py|load_sidecars|directory.is_dir()": "DIAGNOSTICS_DIR and OPTIONS_DIR: conformance-suite/wiseowl/diagnostics and conformance-suite/wiseowl/options",
+        "conformance-suite/harness/generate.py|load_sidecars|f.is_file()": "each entry the traced listing of those two directories returned",
+        "conformance-suite/harness/generate.py|load_implementor_defined|path.is_file()": "IMPLEMENTOR_DEFINED_PATH: conformance-suite/implementor-defined.json",
+        "conformance-suite/harness/generate.py|removed_corpus_files|old.is_dir()": "tests/conformance/ (REMOVED_CORPUS under root.parent, the repository), declared above",
+        "conformance-suite/harness/generate.py|removed_corpus_files|f.is_file()": "each path the traced walk of tests/conformance/ returned",
+        "conformance-suite/harness/config.py|load_adapter|hook_path.is_file()": "a hook beside its adapter: conformance-suite/adapters/",
+        "conformance-suite/harness/config.py|load_baseline|path.is_file()": "check_tree's conformance-suite/baselines/<compiler>.json",
+        "conformance-suite/harness/config.py|check_tree|(root / 'profiles' / f'{adapter.profile}.json').is_file()": "conformance-suite/profiles/<profile>.json (root is SUITE)",
+        "scripts/live_tools.py|tracked|(root / p).is_file()": "not on the --out path: tracked() serves standard_streams' --check and scratch_repo's audit; the generator calls only standard_streams.ensure_utf8",
+        "scripts/scratch_repo.py|remove_tree|os.path.lexists(path)": "reached only from the self-tests that import scratch_repo: a scratch directory, never a repository path",
+        "scripts/scratch_repo.py|ScratchRepo._configure|config.is_file()": "reached only from the self-tests: a scratch repository's own config",
+        "scripts/spec/generated_output.py|prepare|out.exists()": "the output directory {out} (TestResults/generated/<target>, ignored), not an input",
+        "scripts/spec/generated_output.py|prepare|out.is_dir()": "the output directory {out}, not an input",
+        "scripts/spec/generated_output.py|prepare|entry.is_dir()": "an entry of the output directory {out}, not an input",
+        "scripts/spec/generated_output.py|prepare|entry.is_symlink()": "an entry of the output directory {out}, not an input",
+        "scripts/spec/inventory_schema.py|Tree.text|p.is_file()": "the files the schema and the view name: SCHEMA_REL and REGISTER_EXTRACT_REL under tests/version-matrix/, the rule catalogs (docs/rearchitecture/spec-rule-catalog*.json) and the Annex A.2 list, each declared",
+        "scripts/spec/inventory_store.py|read_store|directory.is_dir()": "inventory_dir(edition): tests/version-matrix/inventory and inventory-1985",
+        "scripts/spec/inventory_store.py|write_store|directory.is_dir()": "write_store is the recorder's, never called by the generator, which only reads the store",
+        "scripts/spec/inventory_store.py|write_store|f.is_file()": "write_store is the recorder's, never called by the generator (both calls)"
       }
     },
     "unit": {

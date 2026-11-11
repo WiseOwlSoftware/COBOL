@@ -82,6 +82,12 @@ internal static class SuiteManifest
     /// (scripts/build_targets.json <c>env</c>; the BUILD TARGETS audit requires the dependent assembly to name it).</summary>
     internal const string HandedVariable = "WISEOWL_COBOL_GATE_SUITE";
 
+    /// <summary>What this host records in the harness observation log (<see cref="HarnessLog"/>) when no suite was handed
+    /// and it generated its own (scripts/buildgraph.py <c>GeneratedTarget.own_mark</c>): a gate whose Conformance host
+    /// log holds it is RED and records no pass, so INSIDE the gate the host always runs the suite its key names
+    /// (kb/Work PB5231 R1-2). A hand run or CI, which records no pass, generates its own and says so.</summary>
+    internal const string OwnGenerationMark = "GENERATED-OWN  conformance-suite";
+
     private static readonly Lazy<string> s_generated =
         new(GenerateOnce, LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -115,6 +121,8 @@ internal static class SuiteManifest
             return handed;
         }
         string dir = ScratchDirectory.Create("WiseOwlCobol_Suite_");
+        HarnessLog.Record($"{OwnGenerationMark} :: {dir} :: no {HandedVariable} was handed, so this host generates its "
+            + "own suite: a run no gate keys");
         ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, Generator, "--out", dir);
         if (r.ExitCode != 0)
             throw new InvalidOperationException(

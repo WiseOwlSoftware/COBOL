@@ -66,6 +66,10 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a nondeterministic output (planted: the time) is refused',
         'a traced generation that opens a tracked path outside its inputs is refused',
         'an output the target does not declare is refused',
+        # kb/Work PB5231 review round 1
+        'an undeclared import that is already cached is refused by the trace',
+        'the static check refuses an existence probe of a path outside the inputs',
+        "the generator's program is reached through the dependency only at its ONE hand-off site",
     ),
     'scripts/gate.py': (
         'a whole planted population is GREEN, every assembly EXACT',
@@ -139,6 +143,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'its inputs unchanged: the generated target is up to date (its record and its outputs on disk agree)',
         'a missing dependency record is not up to date: with its outputs still on disk the generator runs again',
         'a host that changes the generated output it was handed makes the gate RED',
+        'a gate whose Conformance host generated its own suite instead of the handed one is RED',
         'a nondeterministic generator (planted: the time) is REFUSED',
         'a dependency cycle in the targets file is refused',
         'a stopped run with complete green trx and no listing is RECOVERED from its own files',
