@@ -18,15 +18,30 @@ transcription lacks, and prints the batch's figure pages (`sweep_figures.general
 `pages`, `edition`, `model`, `effort`, `outDir` and `workDir` and refuses an unknown or malformed one before any agent
 starts; it builds the units in the checkout `outDir` lies in, cuts batches at gaps in the page list, and cites each
 edition's own notation clauses, each checked with `cite.py --check` (2002: §2002:5.1.1, §2002:5.1.5.3, §2002:5.1.6 among
-them). `merge_reconciliation.py --edition` has a row per edition: 2023 `agents/` into `LEDGER.json` (re-merging reproduces
-the committed file byte for byte), 2002 `2002/` into `LEDGER-2002.json` in `LEDGER-1985.json`'s shape, the one
-`verify_publishable.check_ledger` reads, keeping decisions across re-merges; 1985 has no row. `reconcile_ranges.py`
-generates and checks `docs/rearchitecture/spec-reconciliation/2002/ranges.json`: 74 batches of 12, 29 flagged (57
-ambiguous pages, §2002:11.1.1, §2002:13.14.1), 51 with a figure (305 figure pages, 445 general formats), halves `account1`
-and `account2` of 37 batches each (work 662 and 665), seven runs per half.
+them). `merge_reconciliation.py --edition` has a row per edition: 2023 `agents/` into `LEDGER.json`, 2002 `2002/` into
+`LEDGER-2002.json` in `LEDGER-1985.json`'s shape, the one `verify_publishable.check_ledger` reads, keeping decisions
+across re-merges; 1985 has no row. `reconcile_ranges.py` generates and checks
+`docs/rearchitecture/spec-reconciliation/2002/ranges.json`: 74 batches of 12, 29 flagged (57 ambiguous pages,
+§2002:11.1.1, §2002:13.14.1), 51 with a figure (305 figure pages, 445 general formats), halves `account1` and `account2` of
+37 batches each (work 662 and 665), each six runs of six batches and a run of one.
 
-**Proof.** The self-tests of every touched script PASS; `verify_publishable.py --edition 1985` still holds the 1985
-transcription to its ledger through the moved `pages_of`; `sweep_figures.py --edition 2002 --check` is clean;
-`reconcile_ranges.py --check` fails on a planted change and passes on the file; a stubbed run of the workflow refused 12
-malformed argument sets by name; the canary `page_workunit.py 1..12 --edition 2002 --dpi 300` rendered 12 pages from the
-private PDF and wrote 12 non-empty slices. The fleet was not started.
+**Review round 1 (kb/Work PB5255 addendum `2026-11-11-review-round-1.md`).** The merge recorded a page swept that no
+agent compared (`pages_checked or batch`), and gave a claim with no verifier a neighbour's REFUTED verdict through a
+same-page pool, deciding it REFUTED for good. Every compare file now states `pages_checked` and `pages_unread` (with
+reasons) covering its batch exactly; every finding carries an `id` (`p<page>-<n>`) and every verdict the `claim_id` it
+judged; any missing, empty, unreadable or unmatched input makes the merge exit 1 naming the file, writing nothing. The
+workflow holds each returned result to the same rules and reports only what valid results prove (`ok`,
+`batches_without_valid_compare`, `pages_unread`, `unverified`), and refuses 2023, whose transcription keeps no pages. A
+run's branch lands only its agent files; one closing branch writes the ledger (`--write`) and proves it (`--check`).
+`spec_pdf.pages_of` refuses page headings that do not run 1..N once each (`reconcile_ranges`' copy of that rule deleted),
+and `page_workunit.py` names heading-only pages. Both decision ledgers carry `book_pages`, `pages_swept` and
+`pages_unread`, which `check_ledger` holds to the whole book. The 455 committed 2023 agent files took the ids their file
+names already implied (346 verdicts, each matching the committed LEDGER.json's), and LEDGER.json and REPORT.md were
+regenerated: 210 confirmed, 136 refuted, 0 unverified, as before.
+
+**Proof.** The self-tests of every touched script PASS, among them `test_wf_spec_reconcile.py`, a dry run of the workflow
+with stubbed agents (8 arms; all 8 fail on the round-0 workflow); the reviewer's `merge_probe.py` sweeps pages 1-12 and 500
+and refutes the unverified claim on the round-0 merge, and is refused naming its four files on this one;
+`verify_publishable.py --edition 1985` holds the 1985 transcription to its ledger, 976 of 976 pages compared;
+`reconcile_ranges.py --check` passes; the canary `page_workunit.py 1..12 --edition 2002 --dpi 300` rendered 12 pages from
+the private PDF and wrote 12 non-empty slices. The fleet was not started.

@@ -67,14 +67,6 @@ def plan_path(edition: int, root: pathlib.Path = RECON) -> pathlib.Path:
     return root / spec_pdf.edition_data(PLANS, edition, "reconciliation page-range plan (reconcile_ranges.PLANS)").directory / "ranges.json"
 
 
-def page_count(text: str) -> int:
-    """The transcription's page count; its `## Page N` headings must run 1..N, each once."""
-    seen = [int(m.group(1)) for m in spec_pdf.PAGE_HEADING.finditer(text)]
-    if not seen or seen != list(range(1, len(seen) + 1)):
-        sys.exit(f"FATAL: the transcription's page headings do not run 1..N once each ({len(seen)} found)")
-    return len(seen)
-
-
 def clause_pages(lines: list[str], clause: str) -> list[int]:
     """The pages the clause's text stands on: from its heading to the next heading that is not one of its own
     subclauses. A clause the transcription does not head is an error."""
@@ -119,7 +111,12 @@ def compact(pages: list[int]) -> str:
 def build(text: str, edition: int, ambiguous: list[int], source: str) -> dict:
     lines = text.splitlines()
     plan = spec_pdf.edition_data(PLANS, edition, "reconciliation page-range plan (reconcile_ranges.PLANS)")
-    count = page_count(text)
+    try:
+        count = spec_pdf.page_count(text)  # THE page-heading rule (spec_pdf.pages_of): 1..N, each once
+    except spec_pdf.PageHeadingError as ex:
+        sys.exit(f"FATAL: {ex}")
+    if not count:
+        sys.exit("FATAL: the transcription keeps no `## Page N` headings, so it has no pages to plan")
     if sorted(set(ambiguous)) != ambiguous or any(not 1 <= p <= count for p in ambiguous):
         sys.exit(f"FATAL: the ambiguous pages must be distinct, sorted and within 1..{count}")
     formats = formats_by_page(lines, edition)
@@ -293,7 +290,8 @@ def self_test() -> int:
     for name, call in (("an edition with no plan row exits naming the table", lambda: build(text, 2023, [], "x")),
                        ("a clause the transcription does not head exits", lambda: clause_pages(lines, "99.9")),
                        ("an ambiguous page outside the transcription exits", lambda: build(text, 2002, [31], "x")),
-                       ("page headings that do not run 1..N exit", lambda: page_count("## Page 1\n## Page 3\n"))):
+                       ("page headings that do not run 1..N exit", lambda: build("## Page 1\n## Page 3\n", 2002, [], "x")),
+                       ("a transcription that keeps no pages exits", lambda: build("# 2023\n", 2002, [], "x"))):
         try:
             call()
             check(name, False)

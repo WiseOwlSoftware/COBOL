@@ -1,6 +1,6 @@
 {
   "batch": [879, 880, 881, 882, 883, 884, 885, 886, 887, 888, 889, 890],
-  "pages_checked": [879, 880, 881, 882, 883, 884, 885, 886, 887, 888, 889, 890],
+  "pages_checked": [879, 880, 881, 882, 883, 884, 885, 886, 887, 888, 889, 890], "pages_unread": [],
   "findings": [],
   "notes": [
     "Batch swept clean. Rendered every page at 300 dpi and compared against the slice of specs/ISO_COBOL.md between the corresponding page anchors; slices were additionally re-extracted straight from the master file to confirm the work-unit extractor dropped nothing.",

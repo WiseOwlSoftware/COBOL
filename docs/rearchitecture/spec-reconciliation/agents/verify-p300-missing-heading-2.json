@@ -1,5 +1,5 @@
 {
-  "page": 300,
+  "claim_id": "p300-1", "page": 300,
   "kind": "missing-heading",
   "severity": "structural",
   "claim": {

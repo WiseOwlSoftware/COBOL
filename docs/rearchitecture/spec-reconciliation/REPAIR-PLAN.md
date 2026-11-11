@@ -236,7 +236,8 @@ often "looked fine" was wrong today, step 3's verification is the load-bearing p
 
 - All 210 findings repaired, each referenced by id in a commit message.
 - `extract_rule_catalog.py --check` exits 0; anchors 1261; catalog 3,790 (or explained).
-- `merge_reconciliation.py --expect 1261` shows every confirmed finding marked repaired.
+- `merge_reconciliation.py --edition 2023` reports all 1,261 pages swept and `--check` reports the committed
+  `LEDGER.json` CURRENT; each confirmed finding's repair is a commit naming its id (`p<page>-<n>`).
 - Tracker §C regenerated and reading complete.
 - Every INHERITED grammar bug from Batch 1's exit criterion filed in `CONFORMANCE-FIX-QUEUE.md`.
 - Batch 5 complete: the document FLOWS — no page anchors, no `## Page N` headings, no running headers — and the

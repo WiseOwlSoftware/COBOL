@@ -1,9 +1,9 @@
 {
   "batch": [698, 699, 700, 701, 702, 704, 706, 707, 708, 709, 710, 711],
-  "pages_checked": [698, 699, 700, 701, 702, 704, 706, 707, 708, 709, 710, 711],
+  "pages_checked": [698, 699, 700, 701, 702, 704, 706, 707, 708, 709, 710, 711], "pages_unread": [],
   "findings": [
     {
-      "page": 702,
+      "id": "p702-1", "page": 702,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "[all indented one level under General rule 9) b) \"If the groups are of unequal length:\", which begins on page 701] \"If the sending group is longer than the receiving group, ...\" / \"If the sending group is shorter than the receiving group, each location that occupies the excess part is space filled, according to the following recursive procedure:\" / \"1. If the data item to be space-filled is a dynamic-length elementary item, ...\" / \"2. If the data item to be space filled is a dynamic-capacity table, ...\" / \"3. All other character positions are filled with space characters.\" / \"The common part of the variable-length groups is now moved according to the rules for variable-length groups of equal length, as defined in General rule 9a above.\" / \"NOTE 4  If the receiving table is an occurs-depending table, ...\" — then, back at the outer level, \"10) Additional rules and explanations relative to this statement are given in 14.6.10, Overlapping operands.\"",

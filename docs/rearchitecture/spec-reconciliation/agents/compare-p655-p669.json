@@ -1,9 +1,9 @@
 {
   "batch": [655, 656, 657, 659, 660, 662, 663, 664, 665, 666, 668, 669],
-  "pages_checked": [655, 656, 657, 659, 660, 662, 663, 664, 665, 666, 668, 669],
+  "pages_checked": [655, 656, 657, 659, 660, 662, 663, 664, 665, 666, 668, 669], "pages_unread": [],
   "findings": [
     {
-      "page": 665,
+      "id": "p665-1", "page": 665,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "Format 1 (delimited):   IF condition-1 THEN statement-1 [ ELSE statement-2 ] END-IF   — with IF, ELSE and END-IF UNDERLINED and THEN, statement-1, statement-2 NOT underlined.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Restore the underlines using the existing convention: '<u>IF</u> condition-1 THEN statement-1 [ <u>ELSE</u> statement-2 ] <u>END-IF</u>'."
     },
     {
-      "page": 665,
+      "id": "p665-2", "page": 665,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "Format 2 (historic):   IF condition-1 THEN { statement-1 / NEXT SENTENCE } [ ELSE { statement-2 / NEXT SENTENCE } ]   — with IF, NEXT, SENTENCE (both occurrences) and ELSE UNDERLINED; THEN, statement-1, statement-2 NOT underlined.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Restore: '<u>IF</u> condition-1 THEN { statement-1 / <u>NEXT</u> <u>SENTENCE</u> } [ <u>ELSE</u> { statement-2 / <u>NEXT</u> <u>SENTENCE</u> } ]'."
     },
     {
-      "page": 657,
+      "id": "p657-1", "page": 657,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "14.9.15.2 General format:   FREE { data-name-1 } ...   — FREE is UNDERLINED (verified by rendering page 657 at 300 dpi and cropping the figure; the underline spans all four letters).",
@@ -30,7 +30,7 @@
       "suggested_repair": "Change line 27162 to '<u>FREE</u> { data-name-1 } ...'."
     },
     {
-      "page": 663,
+      "id": "p663-1", "page": 663,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "General rule 1) b) 3. reads 'If the LAST phrase is specified one of the following occurs:' with sub-items 'a.' (starting on page 662, continuing at the top of page 663 with '3 exception for EC-USER ...') and 'b. If no exception condition is raised, the RAISING phrase is ignored and no exception condition is set to exist in the activating runtime element.' — both printed at the fourth indent level, subordinate to item 3.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Indent lines 27416 and 27418 to nine spaces so they match the indentation of sibling item 'a.' at line 27403."
     },
     {
-      "page": 655,
+      "id": "p655-1", "page": 655,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.14.4  General rules  — a fourth-level clause heading, one level below 14.9.14 EXIT statement, identical in rank to 14.9.15.4, 14.9.16.4 and 14.9.17.4.",
@@ -48,7 +48,7 @@
       "suggested_repair": "Demote line 27107 to '### 14.9.14.4 General rules' to match the 14.9.15.x / 14.9.16.x / 14.9.17.x pattern. (Line 27058, '## 14.9.14.3 Syntax rules', has the same defect on page 654 — outside this batch.)"
     },
     {
-      "page": 662,
+      "id": "p662-1", "page": 662,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.18.4  General rules  — a fourth-level clause heading under 14.9.18 GOBACK statement, identical in rank to 14.9.18.1/.2/.3.",
@@ -57,7 +57,7 @@
       "suggested_repair": "Demote line 27389 to '### 14.9.18.4 General rules'."
     },
     {
-      "page": 666,
+      "id": "p666-1", "page": 666,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.19.4  General rules  — a fourth-level clause heading under 14.9.19 IF statement, identical in rank to 14.9.19.1/.2/.3.",
@@ -66,7 +66,7 @@
       "suggested_repair": "Demote line 27501 to '### 14.9.19.4 General rules'."
     },
     {
-      "page": 668,
+      "id": "p668-1", "page": 668,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.20.4  General rules  — a fourth-level clause heading under 14.9.20 INITIALIZE statement.",

@@ -1,10 +1,10 @@
 {
   "batch": [1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101],
-  "pages_checked": [1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101],
+  "pages_checked": [1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101], "pages_unread": [],
   "note": "PDF pages 1090-1101 are printed pages 1060-1071, Annex D (informative) 'Concepts' - D.7 intrinsic functions tail, D.8 Types, D.9 Addresses and pointers, D.10 Boolean support and bit manipulation. NO general-format syntax diagrams (brackets/braces/choice indicators/ellipses/underlined required words) occur anywhere in this batch; the 'figures' here are monospace COBOL source examples, one bordered table (Table A.2), and three ASCII bit-alignment layout figures. The priority defect class (lost choice-indicator bars per 5.2.6.4) is therefore not applicable to these pages. Table A.2 on p1099 reproduces ISO's own defects faithfully (row 8 operator printed 'B-SHIFT-RS' where the text says B-SHIFT-RC; 'Multiple-bit-bit-item' typo on the same page) - correctly transcribed, NOT reported as discrepancies.",
   "findings": [
     {
-      "page": 1101,
+      "id": "p1101-1", "page": 1101,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "02  item-4  pic 1 usage BIT.        1              5",
@@ -13,7 +13,7 @@
       "suggested_repair": "Restore 'pic 1': '   02  item-4  pic 1 usage BIT.    1                  5' (matching the corresponding row of the first figure on this page)."
     },
     {
-      "page": 1101,
+      "id": "p1101-2", "page": 1101,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "*> implicit filler ...1               1 1 1 1 1  1     02 PIC 1(5)   (five bit marks charted under bit positions 4-8, then the byte number 1)",
@@ -22,7 +22,7 @@
       "suggested_repair": "Restore the fifth mark: '     *> implicit filler ...1           1 1 1 1 1  1     02 PIC 1(5)'. (Retain the '...1' exactly as printed - the stray '1' immediately after the ellipsis is ISO's own artefact and is present in the PDF.)"
     },
     {
-      "page": 1093,
+      "id": "p1093-1", "page": 1093,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "p1093 ends at 'g)  a REWRITE statement with the FROM phrase'. p1094 opens with three further list items, each set as its own labelled item: 'h)  the data item referenced in the DESTINATION clause of an element of the operand of a VALIDATE statement' / 'i)  the subject of a data description entry that contains a VALIDATE-STATUS clause that references the element of the operand of a VALIDATE statement' / 'j)  a WRITE statement with the FROM phrase.'",
@@ -31,7 +31,7 @@
       "suggested_repair": "Split into four items and move h), i), j) after the '<a id=\"page-1094\"></a>' anchor, matching the sibling formatting used for a) through g): '   g) a REWRITE statement with the FROM phrase' then blank line, '   h) the data item referenced in the DESTINATION clause of an element of the operand of a VALIDATE statement', '   i) the subject of a data description entry that contains a VALIDATE-STATUS clause that references the element of the operand of a VALIDATE statement', '   j) a WRITE statement with the FROM phrase.'"
     },
     {
-      "page": 1092,
+      "id": "p1092-1", "page": 1092,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.8.2   Weakly-typed items  /  D.8.3   Strongly-typed group items  (both set at the same typographic rank as D.8.1 General on p1091, i.e. third-level subclauses of D.8 Types)",
@@ -40,7 +40,7 @@
       "suggested_repair": "Demote both to level 3: '### D.8.2 Weakly-typed items' and '### D.8.3 Strongly-typed group items'."
     },
     {
-      "page": 1096,
+      "id": "p1096-1", "page": 1096,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.9.2.3   Examples   (fourth-level subclause, same rank as D.9.2.1 General and D.9.2.2 Restricted data-pointers on p1095)",

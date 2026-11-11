@@ -1,9 +1,9 @@
 {
   "batch": [891, 892, 893, 894, 895, 896, 897, 898, 899, 900, 901, 902],
-  "pages_checked": [891, 892, 893, 894, 895, 896, 897, 898, 899, 900, 901, 902],
+  "pages_checked": [891, 892, 893, 894, 895, 896, 897, 898, 899, 900, 901, 902], "pages_unread": [],
   "findings": [
     {
-      "page": 892,
+      "id": "p892-1", "page": 892,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "FUNCTION  FORMATTED-TIME  ( argument-1 argument-2 [ argument-3 ] )   -- with FUNCTION and FORMATTED-TIME both printed UNDERLINED (required words per 5.2.6.2)",

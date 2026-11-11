@@ -1,9 +1,9 @@
 {
   "batch": [1066, 1067, 1068, 1069, 1070, 1071, 1072, 1073, 1074, 1075, 1076, 1077],
-  "pages_checked": [1066, 1067, 1068, 1069, 1070, 1071, 1072, 1073, 1074, 1075, 1076, 1077],
+  "pages_checked": [1066, 1067, 1068, 1069, 1070, 1071, 1072, 1073, 1074, 1075, 1076, 1077], "pages_unread": [],
   "findings": [
     {
-      "page": 1074,
+      "id": "p1074-1", "page": 1074,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "Figure D.3 legend, lower group: the box captioned \"Runtime Module\" is drawn with a SOLID single-line border (visually identical to the \"Compilation Unit\" and \"Source Unit\" boxes in the upper legend group). Only the box below it, \"Runtime Element\", is drawn with a dashed border. The \"Run Unit\" box above it has the heavy double-weight border.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Change the second legend row to '| (solid single border box) | Runtime Module |' so the lower legend reads: solid double border = Run Unit, solid single border = Runtime Module, dashed border = Runtime Element."
     },
     {
-      "page": 1074,
+      "id": "p1074-2", "page": 1074,
       "kind": "missing-figure",
       "severity": "structural",
       "pdf_says": "Figure D.3 — Compilation group and run unit structures is a nested-box schematic: a heavy-bordered COMPILATION GROUP box at the top containing three sub-boxes (a left compilation-unit column with an arrow labelled \"To other run unit\", a centre compilation-unit box, and a right compilation-unit column with an arrow labelled \"To other run unit\"); inside the centre box a source-unit box holds the dashed source element \"P-1\", beneath which sit the source units \"P-1-1\" and \"P-1-2\", and inside \"P-1-2\" the two dashed source elements \"P-1-2-1\" and \"P-1-2-2\". Arrows lead down to a second heavy-bordered RUN UNIT box at the bottom, whose interior repeats the same nesting in runtime-module / runtime-element form, with inbound arrows labelled \"From other comp. group\".",
@@ -21,7 +21,7 @@
       "suggested_repair": "Replace the loose labels with an ASCII-art or indented-tree rendition that preserves the containment (compilation group > compilation unit > source unit > source element) for both halves of the figure and marks the compilation-group-to-run-unit arrows and the 'To other run unit' / 'From other comp. group' edges."
     },
     {
-      "page": 1075,
+      "id": "p1075-1", "page": 1075,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "\"D.6.1.2   Runtime level organization\" and \"D.6.1.3   EXAMPLE\" are printed at the same typographic rank as \"D.6.1.1   Source level organization\" on the preceding page (1071) — all three are fourth-level clauses under D.6.1.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Demote both to '#### D.6.1.2 Runtime level organization' and '#### D.6.1.3 EXAMPLE' to match '#### D.6.1.1' on page 1071."
     },
     {
-      "page": 1076,
+      "id": "p1076-1", "page": 1076,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "\"D.6.2   Recursive and initial programs\" is printed at the same typographic rank as \"D.6.1   Compilation group and run unit organization\" (page 1071) — both are third-level clauses under D.6.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Demote to '### D.6.2 Recursive and initial programs' to match '### D.6.1' on page 1071."
     },
     {
-      "page": 1073,
+      "id": "p1073-1", "page": 1073,
       "kind": "incorrect-text",
       "severity": "cosmetic",
       "pdf_says": "FUNCTION-ID F-1.          *> Source element start",

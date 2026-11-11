@@ -9,16 +9,22 @@ This produces the unit of that work. For PDF page N it writes:
 
     <out>/spec_p<N>.png       the page rendered at --dpi (default 200; 300 for dense/diagram pages) by render-spec-page.py
     <out>/page-<N>.md         the transcription's page N: from its `## Page N` heading to the next (spec_pdf.pages_of)
-    <out>/page-<N>.json       {page, png, md, md_source_line, md_lines, has_figure}
+    <out>/page-<N>.json       {page, png, md, md_source_line, md_lines, has_figure, heading_only}
 
 `has_figure` is true when a GENERAL FORMAT is drawn on the page (sweep_figures.general_format_pages, the one reading
-of "a figure page" the page-range plan reconcile_ranges.py uses too), and the last line printed names the figure pages
-and the prose pages of the run, so a reconciling agent words its priority from the unit, never from an assumption.
+of "a figure page" the page-range plan reconcile_ranges.py uses too), and the lines printed last name the figure pages,
+the prose pages and the heading-only pages of the run, so a reconciling agent words its priority from the unit, never
+from an assumption.
 
 A page the transcription does not hold is an error (exit 2), never an empty slice: an agent handed an empty `.md`
-would compare the page with nothing and could report the page clean. A transcription that keeps no pages (2023
-dropped its `## Page N` headings) has no slice at all: the unit is the rendered page alone (`md` null), and the run
-says so.
+would compare the page with nothing and could report the page clean. So are headings that do not run 1..N once each
+(spec_pdf.pages_of owns that rule): a duplicated heading would slice the later copy and drop the earlier. A page whose
+slice is its heading alone is `heading_only` and named on its own output line, so a page the transcription holds
+nothing for is stated, never silent: the agent then checks whether the printed page is blank.
+
+A transcription that keeps no pages (2023 dropped its `## Page N` headings) has no slice at all: the unit is the
+rendered page alone (`md` null), and the run says so. The grammar workflows render 2023 pages this way; the
+spec-reconcile workflow, which compares a slice with its page, refuses 2023.
 
 An agent then READS the png, READS the md, and reports discrepancies. Everything it needs is on disk, so units
 fan out cleanly and no agent has to re-derive the mapping (feedback_agent_dispatch: each agent its OWN input).
@@ -46,13 +52,12 @@ RENDER = REPO / "scripts" / "render-spec-page.py"
 
 def units(text: str, pages: list[int], edition: int) -> tuple[list[dict], list[int]]:
     """The work unit of each page (without its rendered image) and the pages the transcription does not hold. A
-    transcription with no `## Page N` heading keeps no pages: every unit's `md` is None and none is missing."""
+    transcription with no `## Page N` heading keeps no pages: every unit's `md` is None and none is missing. Headings
+    that do not run 1..N once each raise spec_pdf.PageHeadingError."""
     by_page = spec_pdf.pages_of(text)
     keeps_pages = len(by_page) > 1
     figures = sweep_figures.general_format_pages(text.splitlines(), edition) if keeps_pages else set()
-    starts: dict[int, int] = {}
-    for m in spec_pdf.PAGE_HEADING.finditer(text):
-        starts.setdefault(int(m.group(1)), text.count("\n", 0, m.start()) + 1)
+    starts = {int(m.group(1)): text.count("\n", 0, m.start()) + 1 for m in spec_pdf.PAGE_HEADING.finditer(text)}
     made, missing = [], []
     for p in pages:
         body = by_page.get(p) if keeps_pages else None
@@ -61,7 +66,8 @@ def units(text: str, pages: list[int], edition: int) -> tuple[list[dict], list[i
             continue
         made.append({"page": p, "md": body, "md_source_line": starts.get(p),
                      "md_lines": len(body.splitlines()) if body is not None else 0,
-                     "has_figure": p in figures if keeps_pages else None})
+                     "has_figure": p in figures if keeps_pages else None,
+                     "heading_only": body.strip() == f"## Page {p}" if body is not None else None})
     return made, missing
 
 
@@ -86,7 +92,11 @@ def main() -> int:
         sys.exit("--out is required: the directory this run's work units are written to")
 
     text = spec_pdf.markdown(args.edition).read_text(encoding="utf-8")
-    made, missing = units(text, pages, args.edition)
+    try:
+        made, missing = units(text, pages, args.edition)
+    except spec_pdf.PageHeadingError as ex:
+        print(f"FATAL: the {args.edition} transcription: {ex}", file=sys.stderr)
+        return 2
     if missing:
         print(f"FATAL: the {args.edition} transcription holds no `## Page N` heading for page(s) {missing}; "
               "a missing page is itself a finding, never an empty work unit", file=sys.stderr)
@@ -106,7 +116,8 @@ def main() -> int:
             md = out / f"page-{p}.md"
             md.write_text(u["md"], encoding="utf-8", newline="\n")
         meta = {"page": p, "png": str(out / f"spec_p{p}.png"), "md": str(md) if md else None,
-                "md_source_line": u["md_source_line"], "md_lines": u["md_lines"], "has_figure": u["has_figure"]}
+                "md_source_line": u["md_source_line"], "md_lines": u["md_lines"], "has_figure": u["has_figure"],
+                "heading_only": u["heading_only"]}
         (out / f"page-{p}.json").write_text(json.dumps(meta, indent=1), encoding="utf-8", newline="\n")
 
     print(f"wrote {len(made)} work unit(s) to {out}")
@@ -115,6 +126,8 @@ def main() -> int:
         return 0
     figs = [u["page"] for u in made if u["has_figure"]]
     prose = [u["page"] for u in made if not u["has_figure"]]
+    blank = [u["page"] for u in made if u["heading_only"]]
+    print(f"  heading-only pages (the transcription holds only `## Page N`): {blank or 'none'}")
     print(f"  figure pages (a general format is drawn): {figs or 'none'}")
     print(f"  prose pages (no general format drawn): {prose or 'none'}")
     return 0
@@ -132,7 +145,8 @@ def self_test() -> int:
         "# Preface", "", "## Page 1", "", "Prose of page one.", "",
         "## Page 2", "", "##### 7.1.2 COPY statement", "", "###### 7.1.2.1 General format", "",
         '<pre style="line-height:1">', "<u>COPY</u> text-name-1", "</pre>", "",
-        "## Page 3", "", "More prose.", ""])
+        "## Page 3", "", "More prose.", "",
+        "## Page 4", ""])
     made, missing = units(planted, [1, 2, 3], 2002)
     check("each page's unit is its `## Page N` slice, numbered from its heading's line",
           [(u["page"], u["md_source_line"], u["md"].splitlines()[0]) for u in made]
@@ -140,13 +154,23 @@ def self_test() -> int:
     check("has_figure is true exactly on the page a general format is drawn on",
           [u["has_figure"] for u in made] == [False, True, False])
     check("nothing missing when every page is held", missing == [])
+    made, missing = units(planted, [3, 4], 2002)
+    check("a page whose slice is its heading alone is heading_only; a page with text is not",
+          [(u["page"], u["heading_only"]) for u in made] == [(3, False), (4, True)])
     made, missing = units(planted, [2, 9], 2002)
     check("a page the transcription does not hold is reported missing, never an empty unit",
           missing == [9] and [u["page"] for u in made] == [2])
+    for name, bad in (("a duplicated heading", "## Page 1\na\n## Page 2\nb\n## Page 2\nc\n"),
+                      ("a heading out of order", "## Page 1\na\n## Page 3\nb\n## Page 2\nc\n")):
+        try:
+            units(bad, [2], 2002)
+            check(f"{name} is refused, never sliced", False)
+        except spec_pdf.PageHeadingError:
+            check(f"{name} is refused, never sliced", True)
     made, missing = units("# 2023\n\nNo pages kept.\n", [5], 2023)
     check("a transcription that keeps no pages gives the rendered page alone, nothing missing",
           missing == [] and made == [{"page": 5, "md": None, "md_source_line": None, "md_lines": 0,
-                                      "has_figure": None}])
+                                      "has_figure": None, "heading_only": None}])
     print("=== PAGE WORKUNIT SELF-TEST: " + ("PASS" if not failures else f"FAIL ({len(failures)})") + " ===")
     return 1 if failures else 0
 

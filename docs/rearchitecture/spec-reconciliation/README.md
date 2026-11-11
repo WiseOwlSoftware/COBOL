@@ -7,29 +7,33 @@ is interrupted, and re-deriving it costs another full page render and read.
 
 | file | written by | holds |
 |---|---|---|
-| `agents/compare-p<first>-p<last>.json` | a 2023 Compare agent | its batch, the pages it checked, and every claim |
-| `agents/verify-p<page>-<kind>-<n>.json` | a 2023 Verify agent | the claim **and** the adversarial verdict, standing alone |
-| `LEDGER.json` / `REPORT.md` | `scripts/spec/merge_reconciliation.py --edition 2023` | the 2023 merge: confirmed, refuted and unverified claims (the shape `spec-grammar-impact.js` reads) |
-| `2002/compare-*.json`, `2002/verify-*.json` | the 2002 reconciliation's Compare and Verify agents (kb/Work PB4813, PB5255) | the same per-agent files, in the 2002 edition's own directory |
-| `2002/ranges.json` | `scripts/spec/reconcile_ranges.py --edition 2002` | the 2002 page-range plan: 882 pages in batches of 12, each marked `figure`, `ambiguous` and `clauses`, flagged and figure batches first, two halves of equal estimated work (`account1`, `account2`), each cut into runs of six batches; generated and `--check`ed, never typed |
-| `LEDGER-2002.json` / `2002/REPORT.md` | `scripts/spec/merge_reconciliation.py --edition 2002` | the 2002 merge, in `LEDGER-1985.json`'s shape (`edition`, `about`, `pages`, `claims`, `sweeps`, `boxes`, plus `pages_swept`): each claim with its verdict as `batch` (CONFIRMED, REFUTED, UNVERIFIED) and its decision; a re-merge keeps every decision and sweep |
-| `LEDGER-1985.json` | the 1985 reconciliation (kb/Work PB4850) | every claim of the 1985 batch passes with its decision (`APPLIED` with its edits, `REFUTED`, `ALREADY`, `FORMAT`, `BOX`, `FIGURE`, `KEPT`), the sweeps of each repair's siblings, and every level-2 box (`MARKED` with its blocks, `FORMAT`, `NOT MARKED`); kept apart from 2023's `LEDGER.json`, and held to the transcription by `verify_publishable.py --edition 1985` (TRANSCRIPTION-STATE.md "The 1985 transcription") |
+| `<dir>/compare-p<first>-p<last>.json` | a Compare agent (`agents/` for 2023, `2002/` for 2002) | `batch` (its pages), `pages_checked` (the pages it compared), `pages_unread` (each `{page, reason}`: a page it could not read), and `findings`, each with its `id` `p<page>-<n>` (n counting that page's findings from 1) |
+| `<dir>/verify-<id>.json` (2023's older files: `verify-p<page>-<kind>-<n>.json`) | a Verify agent | `claim_id` (the id of the claim it judged), the claim **and** the adversarial verdict, standing alone |
+| `LEDGER.json` / `REPORT.md` | `scripts/spec/merge_reconciliation.py --edition 2023 --write` | the 2023 merge: confirmed, refuted and unverified claims (the shape `spec-grammar-impact.js` reads), plus `pages_swept` and `pages_unread` |
+| `2002/ranges.json` | `scripts/spec/reconcile_ranges.py --edition 2002` | the 2002 page-range plan: 882 pages in batches of 12, each marked `figure`, `ambiguous` and `clauses`, flagged and figure batches first, two halves of equal estimated work (`account1`, `account2`), each cut into runs of up to six batches (six of six, then one of one); generated and `--check`ed, never typed |
+| `LEDGER-2002.json` / `2002/REPORT.md` | `scripts/spec/merge_reconciliation.py --edition 2002 --write`, on the branch that closes a set of runs only | the 2002 merge, in `LEDGER-1985.json`'s shape (`edition`, `about`, `book_pages`, `pages_swept`, `pages_unread`, `claims`, `sweeps`, `boxes`): each claim with its `id`, its own verdict as `batch` (CONFIRMED, REFUTED, UNVERIFIED) and its decision; a re-merge keeps every decision (by claim id), sweep and box |
+| `LEDGER-1985.json` | the 1985 reconciliation (kb/Work PB4850) | `book_pages` (976), `pages_swept` (all 976) and `pages_unread` (none), and every claim of the 1985 batch passes with its decision (`APPLIED` with its edits, `REFUTED`, `ALREADY`, `FORMAT`, `BOX`, `FIGURE`, `KEPT`), the sweeps of each repair's siblings, and every level-2 box (`MARKED` with its blocks, `FORMAT`, `NOT MARKED`); kept apart from 2023's `LEDGER.json`, and held to the transcription by `verify_publishable.py --edition 1985` (TRANSCRIPTION-STATE.md "The 1985 transcription") |
 | `figures-<edition>/p<page>-<figure>.json` | a figure refuter (a scanned edition, kb/Work PB4849) | its verdict on the `figure`-th `<pre>` block (from 0) of PDF page `page` (the key), `drawn_lines` (the block's lines as drawn, copied from `sweep_figures.py --cross-check`'s ledger `drawn`: the identity, so a verdict whose ordinal a `<pre>` added or removed earlier on the page shifted onto another block is refused, never applied to it), `decided` (`generated`, `drawn`, `neither`, or `not-a-format`), `figure_lines` (the decided figure drawn by FIGURE-STYLE.md, for `drawn` the batch's drawing redrawn by `figure_reading.restyle`; none for `not-a-format`) and `reason` (what the printed page shows). `sweep_figures.py --edition <edition> --apply` writes it; `load_verdicts` refuses a malformed one |
 
-A `compare-*.json` with `findings: []` is meaningful — it is evidence that a batch was swept and found clean. Its
-**absence** is indistinguishable from work that never ran, which is why agents write it either way.
+A `compare-*.json` with `findings: []` is meaningful — it is evidence that the pages in its `pages_checked` were swept
+and found clean. A page is swept ONLY when its agent lists it there; a page the agent could not read is in
+`pages_unread` with the reason, and a batch with no file is unswept. Its **absence** is indistinguishable from work that
+never ran, which is why agents write it either way.
 
 ## Reading progress, including mid-run
 
 ```
-python scripts/spec/merge_reconciliation.py --edition 2002 --expect 882
+python scripts/spec/merge_reconciliation.py --edition 2002            # validate and report; writes nothing
 ```
 
-Safe to run while agents are still working. It reports partial coverage rather than failing, counts the pages
-swept against `--expect`, and separates claims into confirmed / refuted / **unverified**. Unverified claims are not
-actionable — a claim without an adversarial verdict is a hypothesis, and acting on one risks "fixing" correct text.
-It merges only the edition's own directory (`agents/` for 2023, `2002/` for 2002); 1985 has no row, because its
-ledger came from the Message Batches passes and a merge would overwrite its decisions.
+Safe to run while agents are still working, and it writes nothing. It names the unread pages with their reasons and
+the unswept pages against the transcription's page count, and separates claims into confirmed / refuted /
+**unverified**. Unverified claims are not actionable — a claim without its own adversarial verdict is a hypothesis, and
+acting on one risks "fixing" correct text. It trusts nothing it cannot check: an unreadable file, a compare file whose
+pages do not account for its batch exactly, a finding without its id, a verdict naming no claim or a second verdict
+for one claim makes the merge exit 1 naming the file, and nothing is written (the module docstring states every rule).
+It merges only the edition's own directory (`agents/` for 2023, `2002/` for 2002); 1985 has no row, because its ledger
+came from the Message Batches passes and a merge would overwrite its decisions.
 
 ## Running a 2002 range (kb/Work PB5255)
 
@@ -59,18 +63,36 @@ over every drawn figure is the campaign's second phase.
    `workDir` is the run's own scratch directory (name it after the run), so two fleets on one machine never share
    their renders. A gap in `pages` starts a new batch, so each batch of the plan is one Compare agent and its file is
    `compare-p<first>-p<last>.json` after the plan's batch.
-4. **Merge and land.** `python scripts/spec/merge_reconciliation.py --edition 2002 --expect <pages run so far>` writes
-   `LEDGER-2002.json` and `2002/REPORT.md`; commit them with the agent files on the run's branch and land it.
+   The run's result is `ok` only when every batch returned a valid compare result, no page was unread and every
+   claim has its own verdict; otherwise `batches_without_valid_compare`, `pages_unread` and `unverified` name what is
+   missing. The result reads the agents' return values (a workflow script cannot read files); the files on disk are
+   the record, and step 4's merge is their proof.
+4. **Land the run's agent files, and only those.** In the run's worktree, `python scripts/spec/merge_reconciliation.py
+   --edition 2002` must exit 0 (every file valid); then commit exactly the run's new files, `git add
+   docs/rearchitecture/spec-reconciliation/2002/compare-*.json docs/rearchitecture/spec-reconciliation/2002/verify-*.json`,
+   never `LEDGER-2002.json` or `2002/REPORT.md`, and land the branch (`enqueue.py land`, with its DEVLOG entry). The
+   file names are the batch and the claim id, the two accounts' halves share no batch, so two run branches never touch
+   one file and land in either order.
+5. **Close a set of runs: write the ledger once.** When the runs of a round have landed (both accounts' runs, or any set
+   the operator chooses), ONE branch from current main runs `python scripts/spec/merge_reconciliation.py --edition 2002
+   --write`, commits `LEDGER-2002.json` and `2002/REPORT.md`, proves them with `--check` (`=== MERGE CHECK: CURRENT`),
+   and lands. Only that branch edits the ledger; a branch that records decisions in it (a repair) starts from main
+   after it, and no two branches edit `LEDGER-2002.json` at once. Between closings, main's ledger lags its agent files
+   and `--check` says `STALE` there; that is expected, and the reason `--check` is not a gate audit during the campaign.
 
-## Re-running only what is missing
+## Re-running a batch
 
-The page list is an argument, so pass just the gap (the other arguments as above):
+The page list is an argument, so pass just the batches to re-run (the other arguments as above), each from the plan:
 
 ```
-Workflow({ scriptPath: ".claude/workflows/spec-reconcile.js", args: { pages: "<the unswept pages>", edition: 2002, model: "opus", effort: "medium", outDir: "<worktree>/docs/rearchitecture/spec-reconciliation/2002", workDir: "<this run's scratch>" } })
+Workflow({ scriptPath: ".claude/workflows/spec-reconcile.js", args: { pages: "<the batches to re-run>", edition: 2002, model: "opus", effort: "medium", outDir: "<worktree>/docs/rearchitecture/spec-reconciliation/2002", workDir: "<this run's scratch>" } })
 ```
 
-Nothing already on disk is recomputed.
+The Workflow does not look at the disk, so it recomputes every batch it is given: give it only the batches with no
+valid compare file, or with unread pages. A re-run batch numbers its claims afresh, so FIRST delete that batch's
+`compare-p<first>-p<last>.json` and every `verify-p<page>-<n>.json` of its pages on the re-run's branch: a verdict
+left behind would name a claim id that now means another claim. A decision already recorded on such a claim is refused
+by the next `--write` (its claim now says something else, or is gone), so it is decided again, never moved.
 
 ---
 

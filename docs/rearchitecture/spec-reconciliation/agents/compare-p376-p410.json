@@ -1,9 +1,9 @@
 {
   "batch": [376, 380, 382, 386, 388, 390, 392, 396, 402, 404, 406, 410],
-  "pages_checked": [376, 380, 382, 386, 388, 390, 392, 396, 402, 404, 406, 410],
+  "pages_checked": [376, 380, 382, 386, 388, 390, 392, 396, 402, 404, 406, 410], "pages_unread": [],
   "findings": [
     {
-      "page": 388,
+      "id": "p388-1", "page": 388,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "RD report-name-1\n  [ IS GLOBAL ]\n  [code-clause]\n  [control-clause]\n  [page-clause]  .\n\n(printed page 358 / PDF page 388. In the printed figure the word 'RD' carries an underline and, inside the first bracket, 'GLOBAL' carries an underline while 'IS' does not.)",
@@ -12,7 +12,7 @@
       "suggested_repair": "Restore the required-word underlines in the 13.14.2 general format: '<u>RD</u> report-name-1' and '[ IS <u>GLOBAL</u> ]'. Optionally add a 'Figure notes' blockquote in the style used elsewhere in the transcription recording that RD and GLOBAL are underlined, IS is not, the four brackets are independent options with no choice indicators, and the terminating period is printed outside the last bracket."
     },
     {
-      "page": 390,
+      "id": "p390-1", "page": 390,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "PDF page 390 (printed 360) ends syntax rule 14 with:\n\"c)  If the literal is national, 'PICTURE N(length)'\"\nand nothing further. PDF page 391 (printed 361) then opens with a SEPARATE paragraph, set at the subrule indent and NOT lettered:\n\"where length is the length of the literal as specified in 8.3.3, Literals.\"\nfollowed by \"15) If BLANK WHEN ZERO or JUSTIFIED is specified, ...\".",
@@ -21,7 +21,7 @@
       "suggested_repair": "Split the sentence out of subrule c). Leave 'c) If the literal is national, 'PICTURE N(length)'' as the last subrule of rule 14 in the page-390 slice, and place 'where length is the length of the literal as specified in 8.3.3, Literals.' as its own indented paragraph at the head of the page-391 slice, immediately before syntax rule 15 - matching both the printed page break and the existing correct pattern at 13.16.3 rule 9."
     },
     {
-      "page": 390,
+      "id": "p390-2", "page": 390,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "PDF page 390 (printed 360) opens with the final row of the two-column Term / Subclause list that began on printed page 359:\n\"varying-clause          13.18.64, VARYING clause\"",
