@@ -12,10 +12,16 @@ import subprocess
 import sys
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+from scratch_repo import ScratchRepo, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 
 ensure_utf8()
 
 HOOK = pathlib.Path(__file__).with_name("forbidden_commands.py")
+REPO = HOOK.resolve().parents[2]
+# another repository, for the unit-push rule: a real git directory whose origin is not this repository's
+OTHER_DIR = scratch_dir("fc-other-")
+ScratchRepo.init(OTHER_DIR).git("remote", "add", "origin", "https://example.invalid/other.git")
+OTHER = OTHER_DIR.as_posix()
 BS = chr(92)  # a backslash, spelled without one
 NL = chr(10)
 # kb/Work PB3198: every rule reads the ONE model of the command line (shell_location.steps), so each rule is checked
@@ -52,48 +58,24 @@ CASES = [
     ('cd "/e/Sites/wise owl" && git push origin main', False),                          # a quoted path with a space
     ("ls; cd /e/claude-skills && git push origin main", False),
     ("pushd /e/COBOL && git push origin main", True),
-    ("python - <<'EOF'\nprint('a" + BS + "nb')\nEOF", True),
+    ("python - <<'EOF'\nprint('a" + BS + "nb')\nEOF", False),          # one backslash arrives intact (kb/Work PB5234)
+    ("python - <<'EOF'\nprint('a" + BS + BS + "nb')\nEOF", True),      # a run of two is halved by the Bash tool
+    ("cat > x.txt <<'EOF'" + NL + "C:" + BS + "Users" + BS + "x " + BS + "d+" + NL + "EOF", False),   # paths, regexes
+    ("cat > x.txt <<'EOF'" + NL + "a" + BS + BS + BS + BS + "b" + NL + "EOF", True),
+    ("cat > x.txt <<'EOF'" + NL + "say " + BS + BS + '"hi' + NL + "EOF", False),   # a run before a quote is kept
     ("python - <<'EOF'\nprint('plain')\nEOF", False),
     ('dotnet test x.csproj --filter "~Drift|~EditionGate" > log.txt', True),
     ('dotnet test x.csproj --filter "FullyQualifiedName~Drift|FullyQualifiedName~EditionGate" > log.txt', False),
-    ('dotnet test x.csproj --filter "FullyQualifiedName~Drift"', True),
+    ('dotnet test x.csproj --filter "FullyQualifiedName~Drift"', False),   # unredirected output is not refused (kb/Work PB5234)
     ('dotnet test x.csproj --filter "FullyQualifiedName~Drift" 2>&1 | tail -5', False),
     ("dotnet test x.csproj", False),
-    # 5. chaining after a verdict command
-    ("dotnet test x.csproj > t.log 2>&1 && git commit -m x", True),
-    ("dotnet build WiseOwl.Cobol.sln -c Debug && dotnet test x.csproj > t.log", True),
-    ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1; git log -1", True),
-    ("pwsh -File scripts/build-local.ps1 -Priority BelowNormal *> b.log || true", True),
-    ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1; echo \"rc=$?\"; grep -E ENQUEUE l.log | tail -2", False),
-    ("dotnet build WiseOwl.Cobol.sln -c Debug -v q 2>&1 | grep -E 'error|Build succeeded'", False),
-    ("cd /e/COBOL && dotnet build WiseOwl.Cobol.sln -c Debug > b.log 2>&1", False),
-    ("timeout 580 bash -c 'tail -n +1 -f b.log | grep -m1 VERDICT' ; tail -3 b.log", False),
-    ("git status --short && git log --oneline -3", False),
-    ("bash -c 'dotnet test x.csproj > t.log && echo done'", False),
-    # 5b. a command that merely NAMES a gate or landing script is not a verdict command
-    ("git add -- scripts/build-local.ps1 DEVLOG/1961-x.md && git commit -q -m x", False),
-    ("sed -n 17,20p scripts/orchestrator/enqueue.py && head -3 x.txt", False),
-    ("git add -- .github/workflows/build-and-test.yml && git commit -q -m x", False),
-    ("pwsh -NoProfile -File scripts/build-local.ps1 > b.log 2>&1; git status", True),
-    # the repros of kb/Work PB1725 and PB1736: a read-only command whose ARGUMENTS name a verdict command or script
-    ('grep -n "dotnet test" scripts/x.sh; echo ---', False),
-    ('sed -i "s/x/overlaps battery.sh/" STATUS.md; git add -A', False),
-    ("cat scripts/build-local.ps1; echo", False),
-    ("git ls-tree HEAD scripts/linux-gate.sh scripts/build-local.sh; git ls-tree HEAD x", False),
-    ("grep -rlE 'x|build-local.ps1' kb/Work | head; echo", False),
-    ("pwsh scripts/build-local.ps1 -Priority BelowNormal; git commit -m x", True),
-    ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1 && git log -1", True),
-    # 5b'. the chain is read by the SHARED parser (review R1-1's sibling): a comment's apostrophe, an escaped quote or a
-    # heredoc before the chain no longer hides it
-    ("git status  # don't" + chr(10) + "dotnet build x.sln > b.log 2>&1 && git commit -m x", True),
-    ("echo it" + BS + "'s here && dotnet test x.csproj > t.log 2>&1 && git commit -m x", True),
-    ("cat > m.txt <<'EOF'" + chr(10) + "x" + chr(10) + "EOF" + chr(10) + "dotnet test x.csproj > t.log 2>&1 && git commit -m x", True),
-    ("dotnet test x.csproj > t.log 2>&1 & git status", False),           # a background `&` is not a chain (as before)
-    # 5c. the merge-queue landing is a verdict command too (kb/Work PB3024)
-    ("python scripts/orchestrator/enqueue.py queue --title T --body-file m.txt > q.log 2>&1 && git log -1", True),
-    ("python scripts/orchestrator/enqueue.py queue --title T --body-file m.txt > q.log 2>&1; echo \"rc=$?\"", False),
-    ("git add -- scripts/orchestrator/enqueue.py && git commit -q -m x", False),
-    # 6. WSL lifecycle commands are the owner's to run
+    # a command chained after a verdict command is no longer refused (kb/Work PB5234: 1 true refusal of 127, and
+    # enqueue.py refuses a tip no GREEN gate record covers); each of these was refused by the deleted rule
+    ("dotnet test x.csproj > t.log 2>&1 && git commit -m x", False),
+    ("dotnet build WiseOwl.Cobol.sln -c Debug && dotnet test x.csproj > t.log", False),
+    ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1; git log -1", False),
+    ("pwsh -File scripts/build-local.ps1 -Priority BelowNormal *> b.log || true", False),
+    # 5. WSL lifecycle commands are the owner's to run
     ("wsl --terminate Ubuntu", True),
     ("wsl.exe --export Ubuntu E:/x.tar", True),
     ("wsl --shutdown", True),
@@ -109,7 +91,7 @@ CASES = [
     ("grep -n 'wsl --export' docs/x.md", False),
     ("bash -c 'wsl --shutdown'", True),                                  # a -c payload's command is a command
     ("echo y | wsl --terminate Ubuntu", True),                           # so is a pipeline's later side
-    # 7. a `cd` inside a BACKGROUNDED list with another command after its `&` (MANDATORY-PRACTICES P14(b), kb/Work PB3095)
+    # 6. a `cd` inside a BACKGROUNDED list with another command after its `&` (MANDATORY-PRACTICES P14(b), kb/Work PB3095)
     ("cd /e/x && git log -1 > a.txt & git status > b.txt &", True),     # the 2026-10-11 shape: b ran in the caller's dir
     ("cd /e/x && a & b", True),
     ("pushd /e/x && a & b", True),
@@ -145,14 +127,15 @@ CASES = [
     ("cat > m.txt <<'EOF'" + NL + "git push origin main" + NL + "EOF" + NL + "git status", False),
     (QS + 'printf "a' + BS + 'n"', False),                               # a quoted `<<` is no heredoc: no body
     (HD + 'printf "a' + BS + 'n"', False),                               # the command after a body is no body
-    ("bash -c 'cat' <<'EOF'" + NL + "a" + BS + "nb" + NL + "EOF", True),  # a body feeding a -c payload is a body
+    ("bash -c 'cat' <<'EOF'" + NL + "a" + BS + BS + "nb" + NL + "EOF", True),  # a body feeding a -c payload is a body
+    ("bash -c 'cat' <<'EOF'" + NL + "a" + BS + "nb" + NL + "EOF", False),
     (HD + 'dotnet test x.csproj --filter "~Foo" > log.txt', True),
     (QS + 'dotnet test x.csproj --filter "~Foo" > log.txt', True),
-    (HD + 'dotnet test x.csproj --filter "FullyQualifiedName~Foo"', True),   # unredirected, after a heredoc
+    (HD + 'dotnet test x.csproj --filter "FullyQualifiedName~Foo"', False),   # unredirected output is not refused (kb/Work PB5234)
     ('dotnet test x.csproj --filter=~Foo > log.txt', True),
-    ('dotnet test x.csproj --filter "FullyQualifiedName~Foo" & echo x > y.txt', True),  # another command's redirect
+    ('dotnet test x.csproj --filter "FullyQualifiedName~Foo" & echo x > y.txt', False),   # unredirected output is not refused (kb/Work PB5234)
     ('git commit -m "dotnet test --filter ~X"', False),                  # quoted text is no test run
-    (QS + "dotnet build x.sln > b.log && git commit -m x", True),
+    (QS + "dotnet build x.sln > b.log && git commit -m x", False),
     (HD + "wsl --shutdown", True),
     (QS + "wsl --shutdown", True),
     ("cat > m.txt <<'EOF'" + NL + "wsl --shutdown" + NL + "EOF", False),
@@ -172,20 +155,19 @@ CASES = [
     ("x=$(git stash list)", False),
     ("r=$(git push origin HEAD:main 2>&1)", True),
     ('r=$(dotnet test x.csproj --filter "~Foo")', True),
-    ("git commit -m \"$(cat <<'EOF'" + NL + "fix a" + BS + "nb" + NL + "EOF" + NL + ')"', True),   # the commit shape
+    ("git commit -m \"$(cat <<'EOF'" + NL + "fix a" + BS + BS + "nb" + NL + "EOF" + NL + ')"', True),   # the commit shape
+    ("git commit -m \"$(cat <<'EOF'" + NL + "fix a" + BS + "nb" + NL + "EOF" + NL + ')"', False),
     ("git commit -m \"$(cat <<'EOF'" + NL + "fix a" + NL + "EOF" + NL + ')"', False),
     # a quote or a bracket in the body never ends the substitution, so the command after it is still read
     ("git commit -m \"$(cat <<'EOF'" + NL + 'say "hi" (and \') too' + NL + "EOF" + NL + ')" && git stash', True),
     ("git commit -m \"$(cat <<'EOF'" + NL + 'say "hi" (and \') too' + NL + "EOF" + NL + ')" && git status', False),
     ("dotnet test x.csproj > t.log 2>&1; echo \"EXIT=$? $(date)\"", False),   # a substitution is its echo's own
     ('dotnet test x.csproj --filter "FullyQualifiedName~X" | tail $(echo -5)', False),   # the reader is still tail
-    # R2-1: a `dotnet test` inside a substitution pipes to the next stage OF THAT SUBSTITUTION, and the reader's own
-    # substitution (one level deeper) is never the reader
     ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | tail -5)', False),
     ("bash -c 'r=$(dotnet test x.csproj --filter FullyQualifiedName~Foo | tail -5)'", False),
     ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | grep $(echo Passed))', False),
-    ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | sort)', True),       # piped, but not to a reader
-    ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | sort $(echo x | tail -1))', True),  # tail is sort's
+    ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | sort)', False),   # unredirected output is not refused (kb/Work PB5234)
+    ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | sort $(echo x | tail -1))', False),   # unredirected output is not refused (kb/Work PB5234)
     ('dotnet test x.csproj --filter "FullyQualifiedName~Foo" | ( tail -5 )', False),    # a grouped reader is a reader
     # a group is a pipeline stage: it reads the stage before it, and the stage after it reads the group
     ("( echo 'git stash' ) | bash", True),
@@ -248,10 +230,9 @@ PS_CASES = [
     ("'y' | & { Set-Location E:/claude-skills; git push origin main }", False),
     ("$m = (git log -1 --format=%s)", False),
     ("Write-Output 'git stash'", False),
-    # R2-1: a filtered run inside an expression or subexpression pipes to the reader beside it
     ('$r = (dotnet test x.csproj --filter "FullyQualifiedName~Foo" | Select-String Passed)', False),
     ('$r = $(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | Select-String Passed)', False),
-    ('$r = (dotnet test x.csproj --filter "FullyQualifiedName~Foo" | Sort-Object)', True),
+    ('$r = (dotnet test x.csproj --filter "FullyQualifiedName~Foo" | Sort-Object)', False),   # unredirected output is not refused (kb/Work PB5234)
     # and every interpreter handed a string
     ('Invoke-Expression "git stash"', True),
     ("iex 'git stash'", True),
@@ -270,23 +251,31 @@ def blocked(cmd: str, unit: bool = False, tool: str = "Bash") -> bool:
     env = {k: v for k, v in os.environ.items() if k != "COBOL_COORD_DIR"}
     if unit:
         env["COBOL_COORD_DIR"] = "E:/COBOL-coord"
-    r = subprocess.run([sys.executable, str(HOOK)], input=json.dumps({"tool_name": tool, "tool_input": {"command": cmd}}),
+    r = subprocess.run([sys.executable, str(HOOK)], input=json.dumps({"tool_name": tool, "tool_input": {"command": cmd},
+                                                                   "cwd": str(REPO)}),
                        capture_output=True, text=True, timeout=30, env=env)
     return r.returncode == 2
 
 
-# Inside an orchestrator unit EVERY direct `git push` is refused, whatever the repository or the flags (PB2044: a unit pushed
-# the public skills repo with `git push -q origin HEAD:main`, which the deny rule's text pattern missed). The legitimate
-# neighbours stay silent: the landing script, other git subcommands that merely mention the word, and a stash (rule 1's).
+# Inside an orchestrator unit a `git push` to ANOTHER repository is refused, whatever the flags (PB2044: a unit pushed
+# the public skills repo with `git push -q origin HEAD:main`), judged by the remote's URL; a push of the unit's own
+# branch of THIS repository passes (kb/Work PB5234). The directories that exist nowhere (`/e/claude-skills`) have no
+# remote to read, so the rule fails closed on them; OTHER is a real repository with another remote.
 UNIT_CASES = [
     ("git push -q origin HEAD:main", True),
     ("cd /e/claude-skills && git push -q origin main", True),
     ("git -C E:/claude-skills push origin main", True),
-    ("git -c core.askpass=x push origin v1.18.0", True),
+    ("git -c core.askpass=x push origin v1.18.0", False),   # this repository (kb/Work PB5234)
     ("git --no-pager push --quiet origin HEAD:refs/heads/main", True),
-    ("git push origin HEAD:worktree-agent-abc123", True),
-    ("cd /e/Sites/wiseowlsoftware.com; git push", True),
-    ("git push -u origin claude/batch-7", True),
+    ("git push origin HEAD:worktree-agent-abc123", False),                   # its own branch, this repository
+    ("git push -u origin claude/batch-7", False),
+    ("git push -q origin HEAD 2>&1 | tail -1", False),
+    ("git push origin HEAD:main", True),                                     # rule 2: this repository's main
+    ("cd /e/Sites/wiseowlsoftware.com; git push", True),                     # no repository there: fails closed
+    ("cd " + OTHER + " && git push -u origin x", True),                      # another repository's branch
+    ("git -C " + OTHER + " push origin v1.18.0", True),                      # and its tag
+    ("git push https://github.com/WiseOwlSoftware/claude-skills.git x", True),  # a URL that is another repository
+    ("git push https://github.com/WiseOwlSoftware/COBOL x", False),          # the same repository spelled as a URL
     ("python scripts/orchestrator/enqueue.py land worktree-agent-abc123", False),   # its push is the script's
     ("python scripts/orchestrator/enqueue.py queue --title T --body-file m.txt", False),   # its push is the script's
     ("git log --grep=push", False),
@@ -301,18 +290,18 @@ UNIT_CASES = [
      + "git commit -q -F ../m.txt; git push -q origin HEAD:main", True),
     ("cat > ../m.txt <<'EOF'" + chr(10) + "the unit ran git push -q origin HEAD:main" + chr(10) + "EOF" + chr(10)
      + "git commit -q -F ../m.txt", False),                                    # the word inside the heredoc BODY is text
-    (QS + "git push", True),                                                   # a quoted `<<` hides nothing (PB3198)
-    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", True),    # git wherever it stands in the step
+    (QS + "git push", False),                                                   # a quoted `<<` hides nothing (PB3198)   # this repository (kb/Work PB5234)
+    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", False),    # git wherever it stands in the step   # this repository (kb/Work PB5234)
     # the branch review of PB3198, R1-1: a push inside a command substitution is a push
     ("out=$(git -C /e/claude-skills push origin main 2>&1)", True),
     ("out=$(git push -q origin HEAD:main 2>&1)", True),
-    ("echo `git push`", True),
+    ("echo `git push`", False),   # this repository (kb/Work PB5234)
 ]
 
 fails =[(c, e) for c, e in CASES if blocked(c) != e]
 fails += [(f"[unit] {c}", e) for c, e in UNIT_CASES if blocked(c, unit=True) != e]
 fails += [(f"[PowerShell] {c}", e) for c, e in PS_CASES if blocked(c, tool="PowerShell") != e]
-# The same pushes in an ATTENDED session (no COBOL_COORD_DIR) keep their old behaviour: rule 2 alone decides.
+# The same pushes in an ATTENDED session (no COBOL_COORD_DIR): rule 2 alone decides.
 ATTENDED = [("git push -u origin claude/batch-7", False), ("git -C E:/claude-skills push origin v1.18.0", False),
             ("git push -q origin HEAD:main", True)]
 fails += [(f"[attended] {c}", e) for c, e in ATTENDED if blocked(c) != e]
