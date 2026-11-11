@@ -296,7 +296,8 @@ public sealed class RelativeConnector : KeyedConnector
     /// <summary>WRITE (§2023:14.9.51.4 GR29): sequential access releases consecutive RRNs (OUTPUT from 1, EXTEND from
     /// highest+1); RRN digit overflow of the key item → invalid key '24' (GR29a/GR33c). Random/dynamic writes the
     /// slot staged in the key item: occupied → '22' (GR33a), key &lt; 1 or above
-    /// <see cref="HighestRelativeRecordNumber"/> → permanent error '34' (GR29b). A record whose pages would take the
+    /// <see cref="HighestRelativeRecordNumber"/> → permanent error '34' (GR29b; below 2023 the invalid key '24',
+    /// <see cref="DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError"/>). A record whose pages would take the
     /// store past the boundary of the physical file (the format's 2^32 pages, or the host's maximum file size) →
     /// invalid key '24' (GR33 b), 2.2.1.9); a medium that refuses the statement's pages → '30' (§2023:9.1.13.6 item 1), the
     /// file as the previous statement left it; a record holding a character with no byte image → '91'
@@ -340,7 +341,10 @@ public sealed class RelativeConnector : KeyedConnector
         {
             slot = _pendingKey;
             if (slot is < 1 or > HighestRelativeRecordNumber)
-                return Status = FileStatusCode.PermanentBoundary;          // '34' §2023:14.9.51.4 GR29 b)
+                // '34' §2023:14.9.51.4 GR29 b); below 2023 the attempt is a write beyond the externally defined boundaries of
+                // the file, the invalid key condition '24' (§2002:14.8.47.3 GR29 b), §1985:VIII.1.3.4 item (3) c) — kb/Work PB5125
+                return Status = DialectBehaviors.IsActive(DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, Edition)
+                    ? FileStatusCode.PermanentBoundary : FileStatusCode.BoundaryViolation;
             if (_st.Get(slot, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
             if (present is not null) return Status = FileStatusCode.DuplicateKey;   // '22' §2023:14.9.51.4 GR33 a)
         }

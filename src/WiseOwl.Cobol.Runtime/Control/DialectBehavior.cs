@@ -104,6 +104,16 @@ public enum DialectBehavior
     /// reference", so at <c>--std 85</c> a random READ (format 2, a KEY phrase) of an alternate key that has duplicates
     /// also answers '02' (kb/Work PB5117). The consumer is <c>IndexedConnector.ReadRandom</c>.</summary>
     IndexedDuplicateKeyStatusSequentialOnly = 5,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.51.4 GR29 b) — a random or dynamic WRITE of a relative file whose key item holds
+    /// "a value that is less than 1 or greater than the highest relative record number permitted for the file" is
+    /// unsuccessful with I-O status '34'. The 2002 text (§2002:14.8.47.3 GR25 b) and the 2014 FCD (GR26 b) end that rule
+    /// after the '22' sentence and know only the invalid key condition of a write "beyond the externally defined boundaries
+    /// of the file", status '24' (§2002:14.8.47.3 GR29 b); the 1985 relative-file status list has no '34' at all and gives
+    /// '24' for the same attempt (§1985:VIII.1.3.4 item (3) c) with the invalid key condition of §1985:VIII.1.3.5
+    /// (kb/Work PB5125). So below 2023 the same test answers '24' and the INVALID KEY phrase runs; from 2023 it answers '34',
+    /// the permanent error, and the phrase is skipped. The consumer is <c>RelativeConnector.Write</c>.</summary>
+    RelativeWriteKeyOutOfRangeIsPermanentError = 6,
 }
 
 /// <summary>
@@ -155,6 +165,11 @@ public static class DialectBehaviors
             "7.55", "14.9.30.4 GR27", "§1985:IX.1.3.4 GRL2.1",
             "I-O status 02 for a READ whose key of reference equals the next record's key is set only by a sequential "
             + "READ from COBOL-2002; COBOL-85 also sets it for a random READ of an alternate key's duplicate set"),
+        new(DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, "relative-write-key-out-of-range-permanent-error", 2023,
+            "7.56", "14.9.51.4 GR29 b)", "§2002:14.8.47.3 GR25 b)",
+            "a random or dynamic WRITE of a relative file whose key is less than 1 or above the highest permitted record number "
+            + "is a permanent error, I-O status 34, only from COBOL 2023; before it the same attempt is the invalid key "
+            + "condition of a write beyond the file's boundaries, status 24"),
     ];
 
     static DialectBehaviors()

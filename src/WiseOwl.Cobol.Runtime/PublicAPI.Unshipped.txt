@@ -133,6 +133,7 @@ WiseOwl.Cobol.Runtime.DialectBehavior.ControlFootingPageGroupsSeePriorControlVal
 WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly = 5 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError = 6 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowCommit -> bool
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowRollback -> bool

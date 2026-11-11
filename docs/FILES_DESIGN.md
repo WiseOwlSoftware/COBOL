@@ -2147,7 +2147,7 @@ answer that every organization's WRITE and REWRITE asks, in the connector, befor
    `PagedFile.FormatPages` pages: a WRITE or REWRITE whose pages would pass it is answered §2023:14.9.51.4 GR33 b) / GR42 d)'s
    '24' at the statement (`PagedFile.Begin`'s reservation, `StoreStatus.Boundary`), as the host's own refusal to grow
    the file is. An empty relative record number is no entry of the tree, so a record in the billions costs one leaf.
-   GR29 b)'s highest permitted RRN is `RelativeConnector.HighestRelativeRecordNumber`; above it is '34'.
+   GR29 b)'s highest permitted RRN is `RelativeConnector.HighestRelativeRecordNumber`; above it (or below 1) is '34' from 2023, and '24' below 2023 (`DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError`, kb/Work PB5125).
 3. **Does the host medium take it?** A sequential file's boundary is the host medium's capacity (§2023:9.1.13.6
    item 3; Annex A.1 item 108). `HostFile.IsMediumBoundary` is the one classification of the host's refusal and
    `FileStatusCode.ForWriteFailure` maps it ('34', else '30'); `SequentialConnector.Write`, `WriteAdvancing` and

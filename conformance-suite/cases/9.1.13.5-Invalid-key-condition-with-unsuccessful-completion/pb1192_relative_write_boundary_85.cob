@@ -19,11 +19,14 @@
       *> §2023:14.9.51.4 GR33 b): "When an attempt is made to write outside
       *> the externally defined boundaries of the file, the I-O status
       *> associated with the write file connector is set to '24'."
-      *> GR29 b): "If the relative key data item contains a value that
-      *> is less than 1 or greater than the highest relative record
-      *> number permitted for the file, the execution of the WRITE
+      *> GR29 b) of 2023 adds: "If the relative key data item contains a
+      *> value that is less than 1 or greater than the highest relative
+      *> record number permitted for the file, the execution of the WRITE
       *> statement is unsuccessful, and the I O status for the write
-      *> file connector is set to '34'."
+      *> file connector is set to '34'." That sentence is new in 2023
+      *> (kb/Work PB5125): this COBOL-85 test takes the invalid key
+      *> condition '24' for the same attempt (§1985:VIII.1.3.4 item (3) c),
+      *> §1985:VIII.1.3.5); pb5125_relative_write_key_range witnesses 34.
       *> GR15: "If the execution of a WRITE statement is unsuccessful,
       *> the write operation does not take place, the content of the
       *> record area is unaffected".
@@ -45,10 +48,10 @@
       *>  CLOSE1- the store holds TWO records; nothing is owed at the
       *>          CLOSE but the promotion of what the WRITEs wrote.
       *>  K3E9  - RRN 3 000 000 000 is above the highest permitted
-      *>          number: '34' (GR29 b), which is a permanent error,
-      *>          NOT the invalid key condition, so neither branch
-      *>          runs. The CLOSE that follows ends the condition
-      *>          (Annex A.1 item 105) and completes normally.
+      *>          number, so past the boundary the implementor defines:
+      *>          '24', the invalid key condition, and the INVALID KEY
+      *>          branch runs (GR33 b); below 2023, GR29 b)'s '34' is
+      *>          not a rule). The CLOSE that follows completes normally.
       *>  READ1-3 - GR15's "does not take place": the file holds RRN 5
       *>          and RRN 600 000 000 in ascending order, then the
       *>          at-end '10'; a released 3E9 record would be read

@@ -56,6 +56,10 @@
       "vcrRow": "7.55"
     },
     {
+      "id": "relative-write-key-out-of-range-permanent-error",
+      "vcrRow": "7.56"
+    },
+    {
       "id": "indexed-read-previous-after-open-at-end",
       "vcrRow": "29"
     },

@@ -139,7 +139,8 @@ public static class FileStatusCode
     /// store (§2023:9.1.13.6 item 3, §2023:14.9.51.4 GR20 — the boundary is the medium's capacity, Annex A.1 item 108,
     /// DOC-A.1-108, classified by <see cref="HostFile.IsMediumBoundary"/>), or a random/dynamic relative WRITE
     /// whose relative key is less than 1 or greater than <see cref="RelativeConnector.HighestRelativeRecordNumber"/>
-    /// (§2023:14.9.51.4 GR29 b)).</summary>
+    /// (§2023:14.9.51.4 GR29 b); below 2023 that WRITE answers <see cref="BoundaryViolation"/>,
+    /// <see cref="DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError"/>).</summary>
     public const string PermanentBoundary = "34";
 
     /// <summary>The I-O status of a WRITE or REWRITE whose bytes the host refused to store (kb/Work PB1192): the
