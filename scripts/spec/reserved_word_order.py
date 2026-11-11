@@ -30,7 +30,7 @@ pages 235 to 237, printed 205 to 207):
 WHICH EDITIONS. 1985 and 2023 have a row. 2002 has none: its list waits for the reconciliation of the 2002
 transcription (kb/Work PB5060, the owner's 1985-before-2002 rule), and `check` says so instead of passing silently.
 
-    python scripts/spec/reserved_word_order.py [--edition 1985|2002|2023]
+    python scripts/spec/reserved_word_order.py [--edition 1985|2002|2014|2023]
     python scripts/spec/reserved_word_order.py --self-test        # planted lists: no transcription, no PDF
 """
 from __future__ import annotations

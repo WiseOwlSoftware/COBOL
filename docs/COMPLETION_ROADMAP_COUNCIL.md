@@ -270,7 +270,7 @@ Ordered by severity. Spec references are line numbers in `specs/ISO_COBOL_2023.m
 
 ## 4. Unverifiable-by-design (2002/2014 TEXT claims)
 
-The in-repo authority is the 2023 edition only; Annex E covers only the 2014→2023 delta (49019). The following cannot be decided in-repo; the ratified decision-#1 provisional-marker policy **already covers each** unless noted:
+When the council sat, the in-repo authority was the 2023 edition only; Annex E covers only the 2014→2023 delta (49019). The 2002 and 2014 texts are now held (`specs/ISO_COBOL_2002.md`, kb/Work PB4813; `specs/ISO_COBOL_2014.md`, kb/Work PB5268), so each claim below can now be checked against its edition's own text. The following could not then be decided in-repo; the ratified decision-#1 provisional-marker policy **already covers each** unless noted:
 
 - **Exact post-85 deletion editions** for LABEL/VALUE-OF/DATA-RECORDS, STOP-literal, ALTER, no-operand GO TO (proven ≤2014 removals by Annex E absence; the "2002" timing is uncontradicted but unprovable) — covered.
 - **TYPEDEF / SAME AS / TYPE TO 2002 edges** — covered (roadmap already marks them provisional).

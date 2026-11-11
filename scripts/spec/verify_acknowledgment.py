@@ -10,7 +10,7 @@ different class of mistake from a typo.
 
 WHAT IS CHECKED, all three against each other:
   1. the paragraphs in the file's PREFACE,
-  2. the same paragraphs transcribed IN POSITION (2023: its Introduction, PDF page 28; 1985: PDF page 3),
+  2. the same paragraphs transcribed IN POSITION (2023: its Introduction, PDF page 28; 1985: PDF page 3; 2014: PDF page 2),
   3. the PRINTED TEXT, read from the PDF.
 
 Comparing 1 and 2 to each other would only prove they agree with one another; the PDF is what makes it a check
@@ -19,7 +19,7 @@ of FIDELITY rather than of internal consistency.
 Whitespace and line wrapping are normalised — those are typesetting, not text. Everything else must match
 exactly, and any difference fails loudly.
 
-    python scripts/spec/verify_acknowledgment.py [--edition 1985|2002|2023]
+    python scripts/spec/verify_acknowledgment.py [--edition 1985|2002|2014|2023]
     python scripts/spec/verify_acknowledgment.py --self-test       # planted text, no PDF
 
 The acknowledgment's first and last words, the PDF page that prints it and the shape of the per-copy stamp to strip from
@@ -63,6 +63,12 @@ ACKNOWLEDGMENT: dict[int, Acknowledgment] = {
                          "programming manuals or similar publications.", r"Copyright by INCITS\..*?prohibited\.", "## Page 3",
                          ((" OI ", " or "), ("1958,1959", "1958, 1959"), ("copy- righted", "copyrighted"),
                           ("ex- tends", "extends"))),
+    # 2014 prints the grant and the paragraphs on its INCITS cover page, PDF page 2 (kb/Work PB5268), as true text: "OI"
+    # for "or", "1958,1959", "Translater" and the missing full stops after "therewith" and "specifications" are on the
+    # rendered page itself (looked at 2026-11-11), so they are the printed text and no misreading is listed.
+    2014: Acknowledgment(2, "COBOL is an industry language and is not the property of any company",
+                         "programming manuals OI similar publications.", r"Copyright by INCITS\..*?prohibited\.",
+                         "## Page 2"),
     2023: Acknowledgment(28, "COBOL is an industry language and is not the property of any company",
                          "programming manuals or similar publications.", r"Licensed to .*?prohibited\.",
                          "## Introduction"),
@@ -184,6 +190,11 @@ def self_test() -> int:
     check("a misreading the row does not name still differs",
           read_printed(layer.replace("OI group", "OR group"), scan) != read_printed(layer, scan))
     check("a vector edition names no misreading: its text layer is the printed text", ACKNOWLEDGMENT[2023].misread == ())
+    vector_2014 = ACKNOWLEDGMENT[2014]
+    check("2014 compares its printed 'OI' as printed: its true text layer is not put right as a scan's would be (PB5268)",
+          vector_2014.misread == ()
+          and read_printed(f"{vector_2014.first} OI group, {vector_2014.last}", vector_2014)
+          == f"{vector_2014.first} OI group, {vector_2014.last}")
     print(f"=== VERIFY ACKNOWLEDGMENT SELF-TEST: {'FAIL - ' + str(len(failures)) if failures else 'PASS'} ===")
     return 1 if failures else 0
 
