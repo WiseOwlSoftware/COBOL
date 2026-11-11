@@ -102,7 +102,7 @@ public abstract partial class KeyedConnector : FileConnector
     /// (<see cref="FixedAttributeConflict"/>, '39'): the RECORD clause's bounds and the descriptions' are different numbers
     /// (§1985:VII.3.8.4 GR10 measures a WRITE against the clause's integer-2 and integer-3 alone, so the descriptions may lie anywhere inside them), so a WRITE inside the clause succeeds and
     /// a READ under other descriptions conflicts. 2023 limits the rule to a record sequential file
-    /// (<see cref="DialectBehavior.RecordLengthConflictRecordSequentialOnly"/>), so from 2023 this answers false.</summary>
+    /// (<see cref="DialectBehavior.RecordLengthConflictRecordSequentialOnly"/>), so from 2023 the answer is always '00'.</summary>
     protected string RecordReadSuccessStatus(int length) =>
         !DialectBehaviors.IsActive(DialectBehavior.RecordLengthConflictRecordSequentialOnly, Edition)
         && ReadLengthOutsideDescriptions(length) ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success;

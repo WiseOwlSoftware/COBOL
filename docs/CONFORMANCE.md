@@ -859,7 +859,7 @@ of an unsupported facility.
   record sequential file of FIXED-length records answers it for a record shorter than the record width (the end of the file).
   **A relative or indexed READ answers it below 2023 only** (§1985:VIII.4.5.4 GR16, §1985:IX.4.5.4 GR18, §2002:14.8.29.3 GR13 and
   §2014:14.9.29.3 GR14 state the rule for every organization; §2023:14.9.30.4 GR14 opens "For a record sequential file"): at 2023
-  the READ is '00', because the OPEN's fixed attribute check (DOC-A.1-129) is the 2023 text's guard and its text names no status
+  the READ is '00', because the OPEN's fixed attribute check (A.1 item 129) is the 2023 text's guard and its text names no status
   for a keyed record of another length (`DialectBehavior.RecordLengthConflictRecordSequentialOnly`, VCR row 7.61). An indexed READ
   whose record also has an equal next key answers '02', the rule §2023:14.9.30.4 GR27 states after the length rule (§2023:9.1.13: the
   implementor chooses among applicable values). Line-sequential is excluded (§2023:14.9.30 GR15 pads short records
