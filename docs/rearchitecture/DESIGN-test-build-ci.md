@@ -1079,7 +1079,9 @@ the content of everything it read, in ONE store shared by every checkout of the 
   CODE mentions (comments dropped);
 - **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says: nothing for its
   location, configuration, worktrees or a commit id; the NAMES (`ls-files`) or the CONTENT (`diff`, `ls-files -s`,
-  `show <rev>:<path>`, any other command) under its pathspec, the whole tree when it names none.
+  `show <rev>:<path>`, any other command) under its pathspec (an absolute one made relative to the repository), the whole
+  tree when it names none or names a path outside the repository or past its top (`repo_path`): a key no tracked file
+  can appear under would never change, and the PASS would be reused forever (kb/Work PB5227 R1-1).
 A record holds each file's git blob id (the working tree's content id for an edited or untracked file; `-` where the run looked
 and found nothing), a digest of what it saw of each directory (`Tree.digest`) and each searched directory's import key
 (the names and the entries that answered them; a record without it is of another shape and no PASS). `--reuse` reports a self-test REUSED, unrun,

@@ -31,7 +31,9 @@ self-test reads (a hand-derived closure over mentions reached the whole tree fro
   GIT      a `git` child a traced process runs inside the repository reads what `git_reads` says: nothing for its
            location, configuration, worktrees or a commit id (GIT_ENVIRONMENT); otherwise the NAMES (`ls-files`) or
            the CONTENT (`diff`, `ls-files -s`, `show <rev>:<path>`, any other command) under its pathspec (a wildcard
-           one: under the directory of its literal prefix) — the whole tree when it names none;
+           one: under the directory of its literal prefix; an absolute one made relative to the repository) — the
+           whole tree when it names none, or a path `repo_path` cannot place inside the repository (outside it,
+           climbing past its top): never a key no tracked file can appear under, whose digest would never change;
   IMPORTS  each module NAME an import looked for, per directory inside the repository it searched (the audit event
            `import`, raised before the search, so a failed import counts): a top-level name in every sys.path entry, a
            submodule's last name in its package's `__path__`. The import system's own directory listings
@@ -444,13 +446,44 @@ GIT_LOG_ID_FORMATS = frozenset({"--format=%h", "--format=%H", "--pretty=%h", "--
 GIT_LS_FILES_CONTENT = frozenset({"-s", "--stage", "-m", "--modified", "-d", "--deleted", "--debug"})
 
 
-def git_reads(args: list[str], where: str) -> list[tuple[str, str]]:
-    """What a git command run in repository directory `where` (its arguments after any `-C <dir>`) reads of the
-    tracked tree: (kind, path) pairs, kind `paths` (the names under path) or `content` (the names and their content);
-    path "" is the whole tree. Its pathspec (after `--`) narrows it; a wildcard pathspec (plain, or with `:(glob)` magic)
-    narrows it to the directory its literal prefix names, since every path it matches begins with that prefix
-    (`scripts/spec/work*.py` reads under scripts/spec, `*.py` the whole tree; kb/Work PB5227); any other magic, and no
-    pathspec, is the whole tree. `show <rev>:<path>` reads that path. An environment command reads nothing."""
+DRIVE_RE = re.compile(r"[A-Za-z]:")
+
+
+def repo_path(path: str, where: str, root: Path) -> str | None:
+    """The repository-relative POSIX path a git path argument names, given from repository directory `where` of the
+    repository at `root`; None when it cannot be placed inside the repository — the caller then keys the WHOLE tree,
+    never a path `Tree.under` cannot resolve (an absolute or escaping path would key a constant digest, and the PASS
+    would be reused forever: kb/Work PB5227 R1-1). An absolute path (`/…`, `X:/…`, `X:\\…`, a UNC path) is made
+    relative to `root` when it lies inside it; a drive-relative one (`X:x`), one outside the root or on another drive,
+    one that climbs past the top (`../..`), and on POSIX one with a backslash (git's glob escape) are None."""
+    if "\\" in path:
+        if os.sep != "\\":
+            return None
+        path = path.replace("\\", "/")   # git for Windows takes either separator
+    base = where
+    drive = os.name == "nt" and DRIVE_RE.match(path)
+    if drive or posixpath.isabs(path):
+        if drive and path[2:3] != "/":
+            return None
+        try:
+            path = os.path.relpath(os.path.normpath(path), os.path.normpath(root)).replace(os.sep, "/")
+        except ValueError:
+            return None
+        base = ""
+    p = posixpath.normpath(posixpath.join(base, path))
+    if p == ".." or p.startswith("../") or posixpath.isabs(p):
+        return None
+    return "" if p == "." else p
+
+
+def git_reads(args: list[str], where: str, root: Path) -> list[tuple[str, str]]:
+    """What a git command run in directory `where` (its arguments after any `-C <dir>`) of the repository at `root`
+    reads of the tracked tree: (kind, path) pairs, kind `paths` (the names under path) or `content` (the names and
+    their content); path "" is the whole tree. Its pathspec (after `--`) narrows it; a wildcard pathspec (plain, or with
+    `:(glob)` magic) narrows it to the directory its literal prefix names, since every path it matches begins with that
+    prefix (`scripts/spec/work*.py` reads under scripts/spec, `*.py` the whole tree; kb/Work PB5227); any other magic,
+    no pathspec, and a path `repo_path` cannot place inside the repository is the whole tree. `show <rev>:<path>` reads
+    that path (from the root; `./` and `../` from `where`, as git resolves them). An environment command reads nothing."""
     opts, specs = (args[:args.index("--")], args[args.index("--") + 1:]) if "--" in args else (args, [])
     sub = next((a for a in opts if not a.startswith("-")), None)
     if sub is None or sub in GIT_ENVIRONMENT or (sub == "log" and any(a in GIT_LOG_ID_FORMATS for a in opts)):
@@ -458,7 +491,8 @@ def git_reads(args: list[str], where: str) -> list[tuple[str, str]]:
     if sub == "show" and not specs:
         shown = [a.split(":", 1)[1] for a in opts if ":" in a and not a.startswith("-")]
         if shown:
-            return [("content", posixpath.normpath(p)) for p in shown]
+            paths = [repo_path(p, where if p.startswith(("./", "../")) else "", root) for p in shown]
+            return [("content", "")] if None in paths else [("content", p) for p in paths]
     kind = "paths" if sub == "ls-files" and not GIT_LS_FILES_CONTENT.intersection(opts) else "content"
     paths = []
     for spec in specs or [""]:
@@ -466,11 +500,11 @@ def git_reads(args: list[str], where: str) -> list[tuple[str, str]]:
         if not spec or spec.startswith(":"):
             return [(kind, "")]
         if (wild := min((spec.find(c) for c in "*?[" if c in spec), default=-1)) >= 0:
-            spec = posixpath.dirname(spec[:wild])
-            if not spec and not where:
-                return [(kind, "")]
-        p = posixpath.normpath(posixpath.join(where, spec)).strip("/")
-        paths.append("" if p == "." else p)
+            spec = posixpath.dirname(spec[:wild]) or "."
+        p = repo_path(spec, where, root)
+        if p is None:
+            return [(kind, "")]
+        paths.append(p)
     return [(kind, p) for p in paths]
 
 
@@ -502,7 +536,7 @@ def read_trace(trace_out: Path, tree: Tree) -> Trace:
                 where = tree.unfold(where) if where else ""
                 args = command.split(chr(31))  # the tracer joins a command's arguments with the unit separator
                 git.add(f"{where or '.'}: git {' '.join(args)}")
-                git_read.update(git_reads(args, where))
+                git_read.update(git_reads(args, where, tree.repo))
                 continue
             rel = tree.unfold(folded.rstrip(os.sep)) if folded not in ("", ".") else ""
             if rel.startswith(".git/") or rel == ".git" or "/.git/" in rel:
@@ -673,7 +707,7 @@ def self_test() -> int:
               (["content:"], [], ["paths:kb"]))
         check("arm: what a git command reads: nothing for the repository's location, worktrees or a commit id; the "
               "names or the content under its pathspec (from its directory); a shown file; the whole tree otherwise",
-              [git_reads(c.split(), w) for c, w in (
+              [git_reads(c.split(), w, root) for c, w in (
                   ("rev-parse --show-toplevel", ""), ("--exec-path", ""), ("worktree list --porcelain", ""),
                   ("log -1 --format=%h", ""), ("log -5", ""), ("ls-files -z", ""), ("ls-files -z -- scripts", ""),
                   ("ls-files -s -- src/ tests/", ""), ("diff --name-only -- x", "docs"), ("diff HEAD", ""),
@@ -684,6 +718,27 @@ def self_test() -> int:
                [("content", "src"), ("content", "tests")], [("content", "docs/x")], [("content", "")],
                [("content", "a/b.json")], [("paths", "")], [("paths", "scripts/spec")], [("content", "docs")],
                [("paths", "scripts")], [("paths", "")]])
+        posix_root, outside = root.as_posix(), (root.parent / "elsewhere").as_posix()
+        check("arm: a path git takes that names no place INSIDE the tree keys the whole tree, never a key Tree.under "
+              "cannot resolve: an absolute path inside the repository is made relative to it, literal or wildcard, "
+              "with either separator; one outside it, one climbing past the top and a shown path doing either is the "
+              "whole tree (kb/Work PB5227 R1-1)",
+              [git_reads(c, w, root) for c, w in (
+                  (["ls-files", "--", f"{posix_root}/scripts/*.py"], ""),
+                  (["diff", "--", str(root / "docs")], "scripts"),
+                  (["ls-files", "--", f"{posix_root}/*.md"], "docs"),
+                  (["ls-files", "--", f"{outside}/scripts"], ""),
+                  (["ls-files", "--", f"{outside}/*.py"], ""),
+                  (["diff", "--", "../../x"], "docs"),
+                  (["ls-files", "--", "../*.py"], "docs"),
+                  (["ls-files", "--", "/*.py"], ""),
+                  (["show", "HEAD:../x"], ""), (["show", "HEAD:./x"], "docs"), (["show", "HEAD:"], ""))],
+              [[("paths", "scripts")], [("content", "docs")], [("paths", "")], [("paths", "")], [("paths", "")],
+               [("content", "")], [("paths", "")], [("paths", "")],
+               [("content", "")], [("content", "docs/x")], [("content", "")]])
+        check("arm: Tree.under of a path that names nothing tracked is empty, and so is constant: the reason every "
+              "path git_reads keys must be one a tracked file can appear under",
+              (tree.under("../x"), tree.under(posix_root + "/scripts")), ([], []))
 
         out = root / "trace-out"
         out.mkdir()
