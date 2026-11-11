@@ -2053,7 +2053,7 @@ of an unsupported facility.
   transcribed from its post-ballot text (`tests/version-matrix/reserved-words-2002.json`, words only), and an ISO text
   outranks GnuCOBOL (CLAUDE.md rule 1), so that list IS the 2002 flag, with one correction from the same text: ALIGNED,
   which its Annex F.1 item 6 lists among the reserved words 2002 added and its 13.16.1 defines, though its §2023:8.9 omits it.
-  No 1985 or 2014 text is held, so those flags are GnuCOBOL's per-standard word lists (`scripts/gen-reserved-words.ps1`,
+  Those flags were derived before the 1985 and 2014 texts were held, so they are GnuCOBOL's per-standard word lists (`scripts/gen-reserved-words.ps1`,
   facts only), less ONE set at 2014 read from the 2009 committee draft (`tests/version-matrix/words-2009-cd.json`, its
   §2023:8.9 and §2023:8.10 lists): a word the draft knows (a 1985 reserved word, or a word of either list) that neither its §2023:8.9
   nor 2023's §2023:8.9 reserves was not reserved by the 2014 standard between them. GnuCOBOL's lists also reserve
@@ -2221,7 +2221,7 @@ of an unsupported facility.
   and a COMMENT line otherwise. The clause is a SOURCE-COMPUTER clause, so it applies to the source unit that specifies
   it and to every source unit contained in it (§2023:12.3.5.4 GR1, `cite.py --check 12.3.5.4` → OK 1), and to nothing else: a
   separate program in the same source does not inherit it. **Edition windows (R61, GnuCOBOL's per-standard dialect
-  files, medium confidence on the 2002/2014 edge — the ISO 2002 and 2014 texts are not in the repository):** accepted at
+  files, medium confidence on the 2002/2014 edge — derived before the ISO 2002 and 2014 texts were in the repository, not yet checked against them):** accepted at
   85; OBSOLETE at 2002 (COBOL0903 on the clause and on the first line); removed from 2014 (COBOL0902, an error
   under strict, a warning under `--permissive`, where the pre-removal behavior above is kept). **Mechanism (R56, the
   pre-parse token rewriter):** the §2023:6.5 logical conversion cannot decide, because the clause is further down the text

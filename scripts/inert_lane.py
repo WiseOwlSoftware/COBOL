@@ -586,7 +586,7 @@ def _test_readers(root: Path, paths: list[str], literal: re.Pattern[str]) -> Ite
             yield m.group("path"), rel
 
 
-def _static_dir(node: ast.expr, names: dict[str, str]) -> str | None:
+def static_dir(node: ast.expr, names: dict[str, str]) -> str | None:
     """The repository-relative POSIX directory (or file) a path expression of a script names, evaluated statically
     ("" is the repository root), or None when it is computed past what this reader knows. `names` holds the module's
     own static names (`HERE = Path(__file__).resolve().parent`), and `__file__` the script itself. The forms are the ones
@@ -608,13 +608,13 @@ def _static_dir(node: ast.expr, names: dict[str, str]) -> str | None:
     if isinstance(node, ast.Name):
         return names.get(node.id)
     if isinstance(node, ast.Attribute) and node.attr == "parent":
-        return up(_static_dir(node.value, names), 1)
+        return up(static_dir(node.value, names), 1)
     if (isinstance(node, ast.Subscript) and isinstance(node.value, ast.Attribute) and node.value.attr == "parents"
             and isinstance(node.slice, ast.Constant) and isinstance(node.slice.value, int)):
-        return up(_static_dir(node.value.value, names), node.slice.value + 1)
+        return up(static_dir(node.value.value, names), node.slice.value + 1)
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div) and isinstance(node.right, ast.Constant) \
             and isinstance(node.right.value, str):
-        return join(_static_dir(node.left, names), node.right.value)
+        return join(static_dir(node.left, names), node.right.value)
     if not isinstance(node, ast.Call):
         return None
     f, args = node.func, node.args
@@ -623,13 +623,13 @@ def _static_dir(node: ast.expr, names: dict[str, str]) -> str | None:
         f"{f.value.value.id}.{f.value.attr}.{f.attr}" if isinstance(f, ast.Attribute)
         and isinstance(f.value, ast.Attribute) and isinstance(f.value.value, ast.Name) else None)
     if isinstance(f, ast.Attribute) and f.attr in ("resolve", "absolute") and not args:
-        return _static_dir(f.value, names)
+        return static_dir(f.value, names)
     if callee in ("Path", "pathlib.Path", "str", "os.fspath", "os.path.abspath", "os.path.realpath") and len(args) == 1:
-        return _static_dir(args[0], names)
+        return static_dir(args[0], names)
     if callee == "os.path.dirname" and len(args) == 1:
-        return up(_static_dir(args[0], names), 1)
+        return up(static_dir(args[0], names), 1)
     if callee == "os.path.join" and args:
-        out = _static_dir(args[0], names)
+        out = static_dir(args[0], names)
         for a in args[1:]:
             if not (isinstance(a, ast.Constant) and isinstance(a.value, str)):
                 return None
@@ -638,22 +638,17 @@ def _static_dir(node: ast.expr, names: dict[str, str]) -> str | None:
     return None
 
 
-def _imports(rel: str, text: str) -> tuple[list[tuple[int, str, list[str]]], list[str]]:
-    """What the Python file `rel` imports and where it looks: every `import`/`from … import` anywhere in it (a lazy import
-    inside a function included) as (relative level, module, imported names), and every directory a `sys.path.insert` /
-    `sys.path.append` of it names statically (`_static_dir`, over its module-level names). A file that does not parse
-    imports nothing this reader can know (the watch sees what it opens)."""
-    try:
-        tree = ast.parse(text, filename=rel)
-    except (SyntaxError, ValueError):
-        return [], []
+def static_names(tree: ast.Module, rel: str) -> dict[str, str]:
+    """The module-level names of the Python file `rel` (parsed: `tree`) that `static_dir` can evaluate, in order, through
+    if/try/with blocks, `__file__` being `rel` itself: what `_imports` and buildgraph.py's static check of a generated
+    target (kb/Work PB5231) evaluate a path expression over."""
     names = {"__file__": rel}
 
-    def bind(body: list[ast.stmt]) -> None:  # module-level names, in order, through if/try/with blocks
+    def bind(body: list[ast.stmt]) -> None:
         for s in body:
             if isinstance(s, (ast.Assign, ast.AnnAssign)) and s.value is not None:
                 targets = s.targets if isinstance(s, ast.Assign) else [s.target]
-                value = _static_dir(s.value, names)
+                value = static_dir(s.value, names)
                 for t in targets:
                     if isinstance(t, ast.Name) and value is not None:
                         names[t.id] = value
@@ -665,6 +660,19 @@ def _imports(rel: str, text: str) -> tuple[list[tuple[int, str, list[str]]], lis
                     bind(h.body)
 
     bind(tree.body)
+    return names
+
+
+def _imports(rel: str, text: str) -> tuple[list[tuple[int, str, list[str]]], list[str]]:
+    """What the Python file `rel` imports and where it looks: every `import`/`from … import` anywhere in it (a lazy import
+    inside a function included) as (relative level, module, imported names), and every directory a `sys.path.insert` /
+    `sys.path.append` of it names statically (`static_dir`, over its module-level names). A file that does not parse
+    imports nothing this reader can know (the watch sees what it opens)."""
+    try:
+        tree = ast.parse(text, filename=rel)
+    except (SyntaxError, ValueError):
+        return [], []
+    names = static_names(tree, rel)
     imports: list[tuple[int, str, list[str]]] = []
     dirs: list[str] = []
     for n in ast.walk(tree):
@@ -675,7 +683,7 @@ def _imports(rel: str, text: str) -> tuple[list[tuple[int, str, list[str]]], lis
         elif (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr in ("insert", "append")
               and isinstance(n.func.value, ast.Attribute) and n.func.value.attr == "path"
               and isinstance(n.func.value.value, ast.Name) and n.func.value.value.id == "sys" and n.args):
-            d = _static_dir(n.args[-1], names)
+            d = static_dir(n.args[-1], names)
             if d is not None:
                 dirs.append(d)
     return imports, dirs
@@ -699,7 +707,7 @@ def _module_files(base: str, dotted: list[str], tracked_set: set[str], tracked_d
     return out
 
 
-def _import_closure(root: Path, seeds: list[tuple[str, str]], tracked_set: set[str]) -> Iterable[tuple[str, str]]:
+def import_closure(root: Path, seeds: list[tuple[str, str]], tracked_set: set[str]) -> Iterable[tuple[str, str]]:
     """THE IMPORT CLOSURE (kb/Work PB4395 review R2-1): every tracked Python module a script in `seeds` (path, reader)
     imports, directly or through a module it imports, with its reader (`<reader>, through <importer>`). A module is
     resolved against the importing file's directory and every directory the importing chain put on `sys.path` statically
@@ -747,7 +755,7 @@ def code_readers(root: Path, paths: list[str], trees: tuple[str, ...]) -> list[t
     every tooling path the build or a compiler test is seen to read: a csproj `Exec`'s script, the script of every
     self-test that reads the built assemblies (`SELF-TEST-NEEDS: build`, scripts/self_tests.py), every path or
     directory a compiler test names through `TestRepo` or spells whole in a string literal, and every Python module one
-    of those scripts IMPORTS, transitively (`_import_closure`, kb/Work PB4395 review R2-1: a script outside the tooling
+    of those scripts IMPORTS, transitively (`import_closure`, kb/Work PB4395 review R2-1: a script outside the tooling
     trees, conformance-suite/harness/run.py, imports scripts/standard_streams.py). `trees` are the tooling trees
     (TOOLING_UNDER: a directory ends in `/`); a directory read is every tracked path below it."""
     import self_tests  # noqa: PLC0415 — it imports this module; the build marker's one home is its NEEDS_RE
@@ -766,7 +774,7 @@ def code_readers(root: Path, paths: list[str], trees: tuple[str, ...]) -> list[t
     # The scripts a test or the build RUNS are named file by file (a literal path, a listing's matches, a computed name
     # under a literal directory): their imports are read too. A directory a test names (`TestRepo.Scripts("spec")`, an
     # existence check) is a read of every file below it, never a run of every script there, so it seeds no import.
-    read = files + below + list(_import_closure(root, files, tracked_set))
+    read = files + below + list(import_closure(root, files, tracked_set))
     return sorted({(p, r) for p, r in read if any(under(p, t) for t in trees)})
 
 

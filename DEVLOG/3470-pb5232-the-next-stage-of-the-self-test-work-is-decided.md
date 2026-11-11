@@ -1,0 +1,4 @@
+## Entry 3470 — 2026-11-11 02:17 PST — PB5232: the next stage of the self-test work is decided: declared inputs, with the tracer as the audit
+
+Three review rounds of PB5227 each found a new way for a self-test's traced-input key to be wrong, so the key will no longer be inferred. PB5232 makes each script self-test a build target with declared inputs, declared seconds and its own timeout, records its pass in the one store, and keeps the tracer only to fail a self-test that reads outside its declaration. It also gives a self-test that needs the built assemblies a recorded pass keyed on those assemblies: today such a test records none, and on 2026-11-11 a gate whose three test targets were all up to date still queued two gates deep for a slot to rebuild for one of them. The note opens with the three findings the PB5227 batch landed with (review round 3), which no present self-test exercises.
+

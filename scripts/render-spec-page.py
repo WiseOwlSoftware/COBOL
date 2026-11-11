@@ -2,7 +2,7 @@
 """Render one or more pages of a licensed COBOL standard PDF (default: the canonical ISO 2023 one) to PNG for inspection.
 
 The markdown `<a id="page-N">` anchors map 1:1 onto PDF pages, so N is passed directly.
-Usage:  python3 scripts/render-spec-page.py <page> [<page> ...] [--dpi 300] [--out DIR] [--edition 1985|2002|2023]
+Usage:  python3 scripts/render-spec-page.py <page> [<page> ...] [--dpi 300] [--out DIR] [--edition 1985|2002|2014|2023]
 
 Each page is written to DIR/spec_p<N>.png and its path printed. Without --out, DIR is a NEW directory of this run's own
 under the machine-wide temp directory (`spec-pages-XXXXXXXX`): the temp directory is one place for every agent on the
