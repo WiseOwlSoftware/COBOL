@@ -7,3 +7,5 @@
 **Goldens** (expected values derived from the rules in each file's header): `14.9.49-USE/pb5200_use_mode_not_stale_after_failed_open`, `14.9.49-USE/pb5200_use_mode_of_refused_open_41` (85-2023), `VII.4.3@1985-OPEN-STATEMENT/pb5200_use_mode_of_open_refused_closed_with_lock_38` (85; CLOSE WITH LOCK and status 38 left the standard at 2023). No refused-below-edition program: the rule is edition-invariant. The note's repro printed `READ AFTER FAILED OPEN 47` with a spurious `USE INPUT 47` before the fix and prints none after.
 
 **Left open.** A failed CLOSE leaves `ModeKnown` set (the same stale-mode shape on the CLOSE side); registered in `kb/Work/PB5200/2026-11-10-landing.md`.
+
+Review round 1: R1-1 (blocking) asked for a SORT/MERGE witness of the implicit-OPEN arm; added the golden `14.9.49-USE/pb5200_use_mode_of_failed_implicit_open_sort_merge` (85-2023): the USE INPUT procedure runs once for the failed implicit OPEN of a SORT and of a MERGE USING file, and a later READ of that file is 47 with no procedure. R1-2 (lead, 38 golden at 2002/2014) needs no change: the generator refuses a 1985-band rule id at 2002/2014 (probed).
