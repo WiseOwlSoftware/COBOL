@@ -1,0 +1,9 @@
+{"batch": [385,386,387,388,389,390,391,392,393,394,395,396],
+ "pages_checked": [385,386,387,388,389,390,391,392,393,394,395,396],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p392-1", "page": 392, "kind": "ocr-error", "severity": "cosmetic",
+   "pdf_says": "Boolean literals in the VALUE clause of a bit group item shall not exceed the size of the group item.",
+   "markdown_says": "Boolean literals in theVALUE clause of a bit group item shall not exceed the size of the group item.",
+   "why_it_matters": "Cosmetic only: a reader or a search for the phrase \"the VALUE clause\" misses this sentence; no rule changes.", "note": "Syntax rule 6 of 13.16.61.2 (VALUE clause): the space between 'the' and 'VALUE' is lost ('theVALUE'); wording otherwise intact, meaning unchanged."}
+ ]}
