@@ -217,6 +217,13 @@ class Classification:
         docstring)."""
         return self.in_tooling_tree(path) and not any(_under(path, e) for e in self.code_reads)
 
+    def is_population_input(self, path: str) -> bool:
+        """Whether a compiler test or the build MAY read `path`: it is neither inert nor a tooling-lane path. THE ONE
+        DEFINITION of the code lane's paths (`classify`) and of the inputs of the Unit, Conformance and Characterization
+        populations (scripts/gate.py `Host.population_key`, kb/Work PB5205): a gate's population passes stand for another
+        tree exactly when every such path, and the toolchain, are the same."""
+        return not self.is_inert(path) and not self.in_tooling_lane(path)
+
     def is_watched(self, path: str) -> bool:
         """What the watch reports when a compiler test opens it: an inert path or a tooling-lane path. A DIRECTORY
         (`path` ends in `/`: the watch saw it LISTED) is a read of its entries' names, which judges a lane when every
@@ -265,7 +272,7 @@ class Classification:
             under = sorted({e for p in paths for e in self.inert if _under(p, e)})
             return Lane("inert", f"all {len(paths)} changed path(s) are inert (under {', '.join(under)}): no test reads "
                         "them", tooling=False, reads_tooling=False)
-        code = [p for p in read if not self.in_tooling_lane(p)]
+        code = [p for p in read if self.is_population_input(p)]
         if not code:
             return Lane("tooling", f"{len(read)} of {len(paths)} changed path(s) are tooling no compiler test or build "
                         f"reads, e.g. {read[0]}, and the rest inert: the audits and the script self-tests",
