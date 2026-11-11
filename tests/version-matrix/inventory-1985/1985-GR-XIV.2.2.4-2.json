@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-2",
  "rule-digest": "213bafbe0ad6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CommunicationFormats; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BuildArea; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CheckRecords; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#QueuePath; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetMessageCount; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetStatus",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-2",
+ "notes": "§1985:XIV.2.2.4 GR2: \"For each input CD entry, a record area of 87 contiguous character positions is allocated\", the eleven fields a-k at the printed positions, and the second option's series \"taken in order\" names the same fields. CommunicationFormats.Input lists the eleven slots, ReadClauses maps clauses and the series (FILLER allowed in the series only) to them, BuildArea builds the implicit record, and CommunicationArea reads and writes the same positions at run time. Probes at 85: a series with FILLERs plus a redefining group showed RECEIVE filling queue, sub-queue, date, time, source, length, end key, status and count at positions 1-87; a 10-name series, a clause twice, ERROR KEY and SYMBOLIC TERMINAL in Format 1, FILLER in a clause and 86/88-position records were refused; the witness checks both options' images.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p826-1",
+  "claim_key": "4daf0f58f757368a",
+  "page": 826,
+  "kind": "image-restructured",
+  "severity": "structural",
+  "claim": {"id": "p826-1", "page": 826, "kind": "image-restructured", "severity": "structural", "pdf_says": "Figure E.14 flowchart: 'Condition-2' False -> 'Execute specified set of statements' -> 'Augment identifier-5 with current BY value' -> back to Condition-2; 'Condition-2' True -> 'Augment identifier-2 with current BY value' -> 'Set identifier-5 to current FROM value' -> back to Condition-1.", "markdown_says": "| Execute specified set | Augment identifier-2 |\n|---|---|\n| of statements | with current BY value |\n| Augment identifier-5 | Set identifier-5 to |\n| with current BY value | current FROM value |", "why_it_matters": "The two loop-back edges and the True branch of Condition-2 are lost; the four boxes are put in a 2x2 table that implies no flow, so the nested-varying order cannot be read from the markdown. Informative annex."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 826 (printed 804), Figure E.14: Condition-2 False goes down to 'Execute specified set of statements', then to 'Augment identifier-5 with current BY value', which loops back by a left-hand line into Condition-2. Condition-2 True goes right and down to 'Augment identifier-2 with current BY value', then to 'Set identifier-5 to current FROM value', which loops back by a bottom and far-left line into Condition-1. Condition-1 True goes to Exit. The markdown keeps every box label, but it puts the four lower boxes in a 2x2 table with a spurious header row. It has no arrows, no loop-back edges, and nothing ties 'True' to the right-hand column. The figure's content is the control flow, the order of the nested VARYING steps, and the markdown loses it. This is not just reflow. The claim quotes both sources correctly. The annex is informative, so it carries no normative weight.",
+    "corrected_description": ""
+  }
+}

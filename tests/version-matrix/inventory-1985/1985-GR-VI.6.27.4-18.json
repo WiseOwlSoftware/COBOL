@@ -16,6 +16,12 @@
   "reason": "1985: on overflow 'the UNSTRING operation is terminated, the NOT ON OVERFLOW phrase ... is ignored and control is transferred to the end of the UNSTRING statement or, if the ON OVERFLOW phrase is specified, to imperative-statement-1'. §2023:14.9.48.4 GR16 keeps termination, ON OVERFLOW and ignoring NOT ON OVERFLOW, but adds 'The EC-OVERFLOW-UNSTRING exception condition is set to exist' and, without ON OVERFLOW, 'execution continues as specified in 14.6.13.1.4, Nonfatal exception conditions': with checking enabled a PERFORM WHEN phrase (§2023:14.6.13.1.4 GR2) or an applicable USE declarative (§2023:14.6.13.1.4 GR3) runs before execution continues (§2023:14.6.13.1.4 GR4). The overflow now raises an exception condition and can divert control, where 1985 always went straight to the end of the statement.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "source": "adjudicate-712/slice-13",
+  "digests": {
+   "GR-14.9.48.4-16": "2628a2c17dc4",
+   "GR-14.6.13.1.4-2": "ef014f360168",
+   "GR-14.6.13.1.4-3": "5b5590c16501",
+   "GR-14.6.13.1.4-4": "7cb7ee44378b"
+  }
  }
 }

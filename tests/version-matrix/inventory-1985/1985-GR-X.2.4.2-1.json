@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "For programs both texts place them in the initial state on first activation (call) in a run unit. Covering functions and methods only extends the rule to newer features; programs are unaffected.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.6.2.3.2-1": "c89f05de4930"
+  }
  }
 }

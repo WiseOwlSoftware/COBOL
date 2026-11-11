@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"Each literal must be a nonnumeric literal and must not be a figurative constant that begins with the word ALL.\"; 2023: \"Literal-1, literal-2, literal-3, and literal-4 shall not be a figurative constant that begins with the word ALL.\". 1985 bars an ALL figurative for every literal; 2023 bars it only for literal-1 to literal-4, so literal-5 (CONVERTING TO operand) may now be ALL. Boolean and national literals are added.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.22.3-3": "8d1d5896163e"
+  }
  }
 }

@@ -1,9 +1,9 @@
 {
   "batch": [345, 347, 349, 351, 353, 355, 357, 359, 361, 363, 365, 367],
-  "pages_checked": [345, 347, 349, 351, 353, 355, 357, 359, 361, 363, 365, 367],
+  "pages_checked": [345, 347, 349, 351, 353, 355, 357, 359, 361, 363, 365, 367], "pages_unread": [],
   "findings": [
     {
-      "page": 363,
+      "id": "p363-1", "page": 363,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "12.4.6.3.2 General format:  APPLY COMMIT ON  [[ file-name-1][identifier-1]]...   — in the printed figure APPLY and COMMIT each carry an underline; ON carries no underline. (Preceding figure, 12.4.6.2: \"I-O-CONTROL  .  [ [ apply-commit-clause] . ]   [[{ same-clause }...].]\" — I-O-CONTROL is underlined.)",

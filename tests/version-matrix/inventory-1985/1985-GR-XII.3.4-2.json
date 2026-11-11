@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XII.3.4-2",
  "rule-digest": "3200cd9a100a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-GR-XII_3_4-2",
+ "notes": "§1985:XII.3.4 GR2: \"The format 2 REPLACE statement specifies that any text replacement currently in effect is discontinued.\" CopyProcessor.ApplyReplaceStatements parses REPLACE OFF and calls ReplaceStates.Off(last: false), which drops the active operands and clears the queue, so text after it is copied unreplaced; the 2002 LAST and ALSO phrases are refused at 85 by the ConstructRegistry gate on replace-also-last-2002 (COBOL0900). The witness replaces MSG-A, turns it OFF, and displays BBB then AAA; probes (classes b, c): OFF with none active has no effect, OFF twice is harmless, REPLACE OFF OFF and OFF without its period draw COBOL2449, REPLACE ALSO / LAST OFF draw COBOL0900.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'The format 2 REPLACE statement specifies that any text replacement currently in effect is discontinued.' 2023 keeps that for format 2 without LAST (§2023:7.2.4.4 GR7 d) 'cancels the active REPLACE statement and cancels all REPLACE statements in the queue'; GR6 b) no effect when none active; GR4 c) canceled) but adds REPLACE LAST OFF, accepted in 2023 and refused in 1985: §2023:7.2.4.4 GR7 c) 'A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement and pops the last statement that was pushed into the queue', which re-activates replacement instead of discontinuing it.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-7.2.4.4-4": "3f26ca380bbb",
+   "GR-7.2.4.4-6": "99bc8cf64bb4",
+   "GR-7.2.4.4-7": "b852ae2eee8b"
+  }
  }
 }

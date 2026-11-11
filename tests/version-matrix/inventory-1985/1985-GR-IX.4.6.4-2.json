@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 GR5 likewise requires a prior successful READ in sequential access and replaces the record it accessed. Status 43 restates a consequence already carried by the I-O status rules, not a new requirement.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.35.4-5": "417f233188c4",
+   "GR-9.1.13.7-3": "c92c8b4cbc0d"
+  }
  }
 }

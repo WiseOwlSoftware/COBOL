@@ -284,7 +284,7 @@ is the ref a scheduled run reads:
 | job | measures | red when |
 |---|---|---|
 | `guard` | the NIST corpus through the `cobol` CLI (`scripts/guard-fast.sh`, Linux, about 12 minutes at JOBS=4) | the guard is not ALL GREEN (a REGRESSION, DIFF, FAIL*, audit finding, build warning, or its own instrument self-tests) |
-| `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused) and `line_endings.py --check`, then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
+| `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused), then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
 | `differential` (Windows) | the GnuCOBOL differential: `scripts/battery.sh` with `SKIP_TESTS=1 SKIP_GUARD=1`, so the citation audits, the corpus fetch, the solution build and phase 3, the battery's one definition and never a copy | a per-case verdict flip against the committed baseline, or a case with no compiler verdict. Windows, because the baseline was measured there and `gnucobol_differential.py` defaults to the `cobol.exe` apphost |
 | `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-shard-<k>` shard's wall (the sum of its trx `<Times>`) over the mean shard wall | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating, `shard_weights.py generate`), or a download or trx cannot be read (exit 2, UNMEASURED). NOT MEASURED and green on a day with no matrix run. Live while `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (the weighted shards, PB4329), since regenerating that file is its remedy |
 | `latest` | `toolchain.py latest`: is `toolchain.env` at every publisher's newest release (§1.4) | the manifest is behind a tool, or a publisher cannot be read |
@@ -307,8 +307,8 @@ The ONE parser of both shells' command lines and location changes (`cd`, `pushd`
 `worktree_rm_allow.py`. It is the ONE model of a command line those rules read (kb/Work PB3198): heredoc bodies cut out
 at their own delimiter lines, and every place a shell takes a command line from walked as one (`$( … )`, backquote and
 PowerShell expressions and script blocks; `bash -c`, `pwsh -Command` / `-EncodedCommand`, `cmd /c`, `eval`,
-`Invoke-Expression`, also behind `timeout`/`env`/`xargs`/`wsl -e`), each step marked with how many substitutions enclose
-it, the directory it runs in, and a walk carrying what its own stdin holds. `test_shell_location.py` is its self-test.
+`Invoke-Expression`, also behind `timeout`/`env`/`xargs`/`wsl -e`), each step carrying its nesting depth (one level per enclosing
+substitution, group or payload), the directory it runs in, and a walk carrying what its own stdin holds. `test_shell_location.py` is its self-test.
 
 The fleet build guard that used to read it (`fleet_active_build.py`, a PreToolUse deny on `dotnet *` while a live
 subagent worked in the caller's tree, after a 60-agent fleet was invalidated by rebuilds under it on 2026-08-04) was
@@ -535,7 +535,7 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 
 | site | what it does now |
 |---|---|
-| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** It replaced seven copies of "start `dotnet`, wait N s, return whatever came back". A run that does not complete raises `HarnessNonObservationException` and never returns partial output for a caller to compare. It retries **once, serialized**, first: that re-attempts a measurement that did not complete, not a failed assertion. A process killed at its budget has not necessarily exited: the wait after the kill is read, a process still alive is `ProcessOutcome.SurvivedKill` (its id in the detail), and the retry waits for it (`SurvivorWaitMs`) before it restores the run directory, or raises the non-observation naming it (kb/Work PB4388). A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input: kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`), so load is told from a hang. Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the gate (`gate.py`'s `leg_env`), every CI test step (`scripts/test_linux_gate.py`) and the Linux reproduction tool point into their results directory; CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
+| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** It replaced seven copies of "start `dotnet`, wait N s, return whatever came back". A run that does not complete raises `HarnessNonObservationException` and never returns partial output for a caller to compare. It retries **once, serialized**, first: that re-attempts a measurement that did not complete, not a failed assertion. A process killed at its budget has not necessarily exited: the wait after the kill is read, a process still alive is `ProcessOutcome.SurvivedKill` (its id in the detail), and the retry waits for it (`SurvivorWaitMs`) before it restores the run directory, or raises the non-observation naming it (kb/Work PB4388). A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input: kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units. A program that waits on its own clock by design states the wait, which is ADDED to the units and never multiplied (`ObservationBudget.OneProcessWaiting`, kb/Work PB5154): CCVS CM102M's three 30-second ACCEPT FROM TIME delays (90 s) are now part of its budget, which is a budget that says what the program does, not an explanation of why it was killed at 120 s on GitHub's Windows runners: that stall (31 s of CPU, then off the processor on an idle host) is UNEXPLAINED and open as kb/Work PB5147. A timeout reports the budget, the work it covered, the process's own processor time, the host's load across the attempt and the durable-flush time of its run volume (`HostLoad.Describe`, `HostLoad.DurableFlushLine`, kb/Work PB5147: CM102M makes 544 durable device flushes, so a slow volume stalls it off the processor), so load is told from a hang and a hang from a slow disk (a hypothesis for CM102M, not yet read off a runner). Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the gate (`gate.py`'s `leg_env`), every CI test step (`scripts/test_linux_gate.py`) and the Linux reproduction tool point into their results directory; CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
 | `tests/_shared/CiWorkflow.cs` (`CiWorkflowDriftTests`) | **THE one reader of a CI workflow's shape** (kb/Work PB3819): the jobs under the top-level `jobs:` key, each job's `steps:` list, each step's own keys (`Value("uses")`, `Value("continue-on-error")`, `Input("overwrite")` for a `with:` input) and the comments. **A comment or blank line belongs to what follows it**: a banner above a job documents that job. A shape the line reader cannot read (no `jobs:`, a job with no id, a flow-style `steps:`) raises `InvalidDataException`, never an empty answer. `CiWorkflowDriftTests` holds its arms on a fixture workflow and sweeps `tests/` for a job-key regex, a `jobs:` anchor or a hand-found `steps:` key of any other file. |
 | `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
 | `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by the guard so the rule is written once. A plain `divergent` row expects `MATCH` (PB750) and a `TERMINATES` row expects `TERMINATES <EC>` (PB1955), the second set asked of `guard-population.sh`; a verdict word it does not know (the retired `LEGACY DIVERGENT` included) is an UNRECOGNIZED finding. `--self-test` proves all sixteen checks can fail, including the two `divergent` arms and the five TERMINATES arms. `guard-fast.sh` runs it, with `guard-population.sh --self-test` and `guard-verify.sh --self-test`, before every guard run. |
@@ -980,7 +980,11 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   deletes that one class.
 - **What holds it.** A Python caller uses `GateSlots.for_repo().acquire(label)` (released by its `with` block or the holder's
   death); a shell caller wraps a command with `gate_slot.py run [--label TEXT] -- <command>`. `gate.py` takes the slot after
-  the worktree's gate lock and its audits and BEFORE the build, and holds it through the population check. The slot is held
+  the worktree's gate lock and BEFORE the build, and holds it through the population check. The audits run BESIDE the
+  slot wait, not ahead of it, and a RED audit decides the verdict: `acquire(..., abandon=)` polls the gate's "an audit is
+  RED" predicate on every poll, and when it turns true the ticket is withdrawn (the dead waiter's way out), `QueueAbandoned`
+  is raised, the slot is never taken, and the gate writes verdict.json and its log and exits non-zero at once (kb/Work
+  PB5322; run 000004 of 2026-11-11 kept its ticket 72 min after a RED known at 6 min, with five gates queued behind it). The slot is held
   by the gate's whole PROCESS TREE. On Windows, acquisition puts the holder ITSELF into a Job object with
   `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` (`process_job.bind_current`, the one copy of the Job-object code) before it
   spawns anything, so no grandchild can escape and a dead driver takes every
@@ -1021,6 +1025,10 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   `gate_slot.py status` prints the cap with who set it, EVERY held slot (one taken under an earlier, higher cap included) and
   the live tickets in queue order. ⛔ The cap does not span operating systems: a Windows lock and a WSL lock on a drvfs mount
   do not see each other, so the hand-run Linux tool (§3.15) is not counted against it.
+- **A rolling wave runs as many implementers as the cap in force (kb/Work PB5100, PB5303).** `plan_wave.py wave_concurrency` returns the
+  cap, never fewer than 1; it is NOT reduced by the slots held or tickets waiting when the wave is planned, because an
+  implementer codes far longer than it gates, so the planning-time holds say nothing about the slots free when its gates
+  arrive (wave 20261999 planned at 1 and ran 8 compiler groups serially for 216+ minutes). The slot queue above serializes the gates.
 - **`gate_slot.py --self-test` declares fourteen arms** against throwaway repositories, each with one linked worktree: FIFO
   order (three waiters behind a holder are served in ticket order, and the holder re-gating the moment it releases is served
   LAST), release on a killed holder, a dead waiter leaving the queue, the orphaned tree (the job kills the orphaned child and
@@ -1048,21 +1056,56 @@ the content of everything it read, in ONE store shared by every checkout of the 
 `scripts/self_test_inputs.py` owns what "read" means:
 - **traced** — a `sitecustomize` tracer first on PYTHONPATH records, through the interpreter's audit hooks (PEP 578), each
   file a Python process opens (a module's `__pycache__` file counts as its source), each directory it lists and each path it
-  hands a child process, inside the repository;
+  hands a child process, inside the repository. A child's arguments are its argument LIST: on Windows `subprocess`
+  raises the audit event with the one command line `list2cmdline` built, which the tracer parses back by the rules
+  that built it, never by splitting on whitespace (that cut a path holding a space into fragments). Each record is one
+  JSON array on one line (`TRACE_SHAPES`), so a record holding a newline, such as a multi-line `python -c` program, is
+  never split, and the one reader (`trace_record`) reads a line that is not one whole record as UNKEYED (kb/Work
+  PB5227, the merge-group bounce of 2026-11-11);
+- **imports** — each module name an import looked for (the audit event `import`, raised before the search, so a failed
+  import counts), per directory inside the repository it searched: a top-level name in each sys.path entry, a submodule in
+  each entry of its package's `__path__` (`import a.b` raises its event before `a` loads, so the tracer holds the name
+  until `a` is in `sys.modules`). The import system's own directory listings (`FileFinder._fill_cache`) are not listings:
+  read so, every self-test that imports from `scripts/` re-ran on any new file there (kb/Work PB5227). The IMPORT KEY holds
+  instead the entries of each searched directory that could answer an imported name (`Tree.importable`: the name as a
+  package or namespace directory with its `__init__` entries, and the name with each suffix
+  `importlib.machinery.all_suffixes()` gives), so a new `scripts/json.py` re-runs every self-test that imported `json`, a
+  namespace package gaining `__init__.py` re-runs its importers, and an unrelated new file re-runs none. Case follows the
+  import system on each platform: the directory as the file system finds it (without case on Windows), a module entry
+  exactly, an `__init__` file as the file system finds it;
 - **static** — what no audit hook sees: the self-test's own file, the runner itself (`self_tests.py`, `self_test_inputs.py`),
   `# SELF-TEST-READS: <path> …` header declarations, and for a PowerShell or bash self-test the closure over the files its
   CODE mentions (comments dropped);
-- **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says: nothing for its
-  location, configuration, worktrees or a commit id; the NAMES (`ls-files`) or the CONTENT (`diff`, `ls-files -s`,
-  `show <rev>:<path>`, any other command) under its pathspec, the whole tree when it names none.
+- **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says, by the DECLARED
+  GRAMMAR of its subcommand (`GIT_GRAMMAR`: its options, which of them take a value, what its arguments are; declared:
+  `ls-files`, `rev-parse`, `log`, `grep`, `config`'s READ modes and `remote get-url <name>`): nothing for git's
+  configuration (`config <name>`, `--get`, `--get-all`, `--get-regexp`, `--list`/`-l`, each with the arguments its
+  mode takes; every writing form is undeclared, and so is `symbolic-ref`, whose answer, the checked-out branch, no key
+  holds) or a location query (`rev-parse --show-toplevel`, `--exec-path`); the
+  NAMES (`ls-files`) or the CONTENT (`ls-files -s`, `grep`) under its pathspec (an absolute one made relative to the
+  repository; `:(top)`/`:/`, `:(glob)`, `:(literal)` and `:(exclude)`/`:!` modelled exactly, an exclusion narrowing
+  nothing), the whole tree when that is the command's meaning (no pathspec, `*.py` at the root); and for a HISTORY read
+  (`rev-parse <rev>`, `log`) the object each revision it names resolves to (`rev:<expression>`, `HEAD` for a log naming
+  none). An object is immutable, so a PASS reused while every named revision resolves to the same object is sound: a
+  `rev-parse HEAD` reader re-runs on every new commit, which is the price of reading the real checkout's history.
+- **unkeyed** — anything else a trace records is an UNKEYED READ (`UnkeyedRead`): a subcommand, option or argument form
+  the grammar does not declare (`git diff`, `ls-files --with-tree`, `grep -f`), pathspec magic it does not model
+  (`:(icase)`, `:(attr:…)`), a global option such as `--git-dir`, a path outside the repository or past its top, a trace
+  line that is not one whole record (cut short, of no known kind or of the wrong shape). `self_tests.py` turns a passing
+  run that has one into a RED labelled `UNKEYED READ`, naming each command and its directory, and records no PASS. ⛔ It is never keyed as the whole tree (the owner, 2026-11-10: "If it
+  cannot be resolved, there is a problem/bug"): that would hide a self-test's hermeticity defect as a test that re-runs on
+  every gate; and never as a path no tracked file can appear under, whose key would never change (`Tree.under` refuses
+  such a path at the call; kb/Work PB5227).
 A record holds each file's git blob id (the working tree's content id for an edited or untracked file; `-` where the run looked
-and found nothing) and a digest of what it saw of each directory (`Tree.digest`). `--reuse` reports a self-test REUSED, unrun,
+and found nothing), a digest of what it saw of each directory (`Tree.digest`) and each searched directory's import key
+(the names and the entries that answered them; a record without it is of another shape and no PASS). `--reuse` reports a self-test REUSED, unrun,
 while a record's inputs are ALL unchanged on the tree being gated. A self-test that RUNS says why on its console line (kb/Work
 PB3061): `first run: no PASS recorded for <platform>, Python <v>`, or `re-run: N input(s) changed since the newest PASS — a,
 b, c (+k more)`. **Every gate reuses** (`gate.py` adds `SELF_TESTS_REUSE` to its SELF-TESTS audit); **CI's `audits` and
 `windows-self-tests` jobs and the hand-run Linux tool never reuse**, so a PASS reused past a read nothing traced (a PowerShell
-or bash process's own reads of a path built at run time, `os.stat`-style probes, a Python child started with `-I`) is caught
-in the merge group. The `--built` phase reads build output no record covers: it always runs and never records. A Python
+or bash process's own reads of a path built at run time, `os.stat`-style probes and `importlib.util.find_spec`, a Python
+child started with `-I`, a module search through a finder or `.pth` file a self-test installs) is caught in the merge
+group. The `--built` phase reads build output no record covers: it always runs and never records. A Python
 self-test whose trace does not show its own file had no tracer, and records no PASS.
 
 **2. The machine-wide budget.** A self-test waits for one of `BUDGET_CAP` places (one per core) before it starts, and holds
@@ -1091,7 +1134,9 @@ has them killed, and its output names them.
 repository: a full run records; the gates on the unchanged tree re-run nothing; a changed input (a file read through a name
 built at run time, which only the trace sees) re-runs exactly its self-test in every gate, at most the budget's two at a
 time; an edited import re-runs only its importer; a planted 60-s self-test under a 1-s detector is HANG; a malformed store
-record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification and the tracer;
+record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification, the tracer and the import key (an
+unrelated new file changes nothing; a shadowing module, a module or package answering an imported name and a removed module
+each re-run);
 `gate.py --self-test` proves every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `scripts/self_test_arms.py`
 holds the arms by name, and `self_tests.py --self-test` forbids `--reuse` in CI and the Linux tool (kb/Work PB4395).
 
@@ -1156,8 +1201,40 @@ the semantic check, so nothing is judged from intent); a file that does not pars
 *Reuse.* A PASS records `clock: {shift_days, real, until}` (the day the proof reaches, `Clock.until`: recorded at + 400 days for
 a shifted self-test, the day it was recorded for a clock that cannot be shifted), and `PassStore.lookup` refuses a record
 past it (`re-run: the clock proof of the PASS of ... ended ...`), so a reused PASS cannot outlive the proof it rests on.
-Only a self-test that cannot read a clock records none and is reused whatever the day. The schema is 3: a PASS recorded
-before the proof is not reused.
+Only a self-test that cannot read a clock records none and is reused whatever the day. The schema is 4 (3 added the
+proof; 4 its key and the day it ran, below): a PASS recorded under an earlier schema is not reused.
+*The clock key (kb/Work PB5226).* The shifted run proves one thing, that no fixture the self-test compares with the clock
+expires inside the shift, and only an input that reads a clock, does time arithmetic or carries a date can change that
+answer; yet until PB5226 every re-run of a clock-proved PASS re-ran the shifted run too. In the build-stage1 gate of
+2026-11-11, 28 of 42 self-tests that ran were clock-proved and took 6,419 of 10,022 summed seconds, about half of it the
+shifted runs; `enqueue.py`, `land_lane.py` and `gate.py` re-ran theirs because `inert_lane.py` and `buildgraph.py`
+changed, and neither imports a time module (`inert_lane.py` is in the key again since review R1-1: string literals
+in its code quote dates). A shifted proof is therefore recorded under its own key
+(`clock: {..., key, proved}`; `Runner._proof_key`, `self_test_clock.keys_proof`): of the run's inputs, the self-test's own
+file, the proof's mechanism (`self_test_clock.MECHANISM`: the shim and the tracer that installs it), every Python file
+that imports `datetime`, `time`, `calendar` or `zoneinfo`, reaches the wall clock, holds a date literal in its code
+(`dated_literal`: a string or bytes literal, not a comment or a docstring; review R1-1) or names the shift variable, every
+script that reads a clock, every other file that carries a date (`DATED_RE`: an ISO date or a basic `20261111T023340`
+stamp), every file whose content cannot be read, and every directory a git command read whole. These are syntactic signs
+of time handling: they never find a module that only computes with time values it is handed. The runner's other files are left
+out, as `Clock.of` leaves them out. When a `--reuse` run (a gate's) re-runs a self-test because its PASS inputs changed,
+and after the first run the run's key equals a recorded proof's inside that proof's horizon (`PassStore.clock_proof`),
+it does not run the shifted run: the console says `clock proof reused: the shift of 400 days proved <when> holds until
+<day>, and none of its N clock input(s) changed`, and the new PASS keeps the reused proof's `proved` and `until`, so reuse
+never moves a horizon past 400 days from the day the clock was actually moved. Otherwise both runs run and the console
+names the clock inputs that changed since the newest proof. The key is derived AFTER the first run, from that run's own
+trace, so a file that starts reading the clock in the change under test is in the new key and the shifted run runs. A run
+without `--reuse` (CI, the Linux gate, a hand run) never reuses a proof. *Its residue, named and accepted (review
+R1-2):* a module with no time import, no clock read and no date literal that does arithmetic or comparison on time
+values handed to it (`def ok(today, expires): return today < expires`), or defines a window as a plain number
+(`RETAIN_DAYS = 90`) for an unchanged module that compares it with the clock; a date in a data file in a form `DATED_RE`
+does not match; and the names in a directory listing. Only dataflow analysis could see the first, and a list of
+time-sounding identifiers would be a hand-kept heuristic, so none is kept; `self_tests.py`'s self-test pins it as known
+behaviour (an arm a change that closes the gap must update). An edit to one of those reuses a proof it may have changed.
+What bounds it: the unshifted run still runs on every re-run, so today's answer is always tested and only the
+400-day-ahead answer is reused; every CI run (the merge group's Windows self-tests, class (d) of CLAUDE.md's Testing
+rule, and the nightly) runs both runs fresh, so such a change is caught before main, at the price of a bounce. The detector over-approximates elsewhere on purpose
+(`import time` for a duration puts a file in the key): an extra shifted run is the cost.
 *The opt-out, declared.* A self-test that compares the Python clock with a REAL one the shift cannot move declares it, with
 the reason, among its first five lines: `# SELF-TEST-CLOCK: real — <why>`, and is not shifted. It is
 not reused past the day it was recorded either (review R1-2: a declared PASS with no horizon would be answered REUSED
@@ -1193,14 +1270,18 @@ root fix for the PowerShell and bash ones.
 *No arm limits how long a process takes.* The module's arms compare each child reading with the interval the PARENT's own
 clock brackets the child's run in (a slow start-up only widens it), and an allowance (`RESOLUTION`, two seconds in the module's arms, one in the planted `test_child.py`) covers the clocks'
 rounding and the whole-second readers, never slowness (review R1-3; the owner's no-wall-clock rule).
-*Proof.* `self_test_clock.py --self-test` (the detection's arms; the shim in a child process against the parent's
+*Proof.* `self_test_clock.py --self-test` (the detection's arms and `keys_proof`'s; the shim in a child process against the parent's
 bracketing clock, every function once; a shift across a daylight-saving change under a POSIX `TZ` with a daylight rule;
 the horizon, the day-bound clock) and `self_tests.py --self-test` (`fleet_arms`: a fixture written at arm time and compared
 with the wall clock is RED in the proof run and records no PASS; the same test deriving its fixture from the clock, a child
 process that must agree with its parent, a self-test that cannot read the clock and one declared real; an mtime comparison
 undeclared is RED; the recorded horizon; reuse inside it and a fresh run past it; a declared-real PASS of an earlier day is
 not reused; a bash self-test reading `date` is day-bound, so is one that sources a helper reading `date` and one whose
-traced Python child opened a file that reads the clock).
+traced Python child opened a file that reads the clock; and the clock key, read from the shifts the planted self-test
+logs: the key holds its own file and its time-arithmetic helper but not its plain helper, an edit to the plain helper
+runs once and keeps the proof's day and horizon, an edit to the time helper or to the self-test runs both, a helper that
+starts importing `time` in the edit runs both, a run without `--reuse` runs both, and an expired proof under an unchanged
+key runs both).
 
 #### 3.14.11 The one Python interpreter the gate scripts run (kb/Work PB1637, PB3197)
 
@@ -1282,8 +1363,9 @@ since, so nothing ran (run <this run>); that gate: … ===`. It is the self-test
 keyed on what was measured rather than on a branch or a head; a RED is never reused. A reused record carries its own seconds
 (`timings.wall_s`), so `landing_measure.py` counts what each gate cost.
 
-**5. Targets: each test assembly is a target keyed by its declared inputs, its passes in one store every worktree shares,
-and a re-gate runs only what has not passed at a target's key (kb/Work PB5207 stage 1, PB5218; PB5205; PB5099, owner
+**5. Targets: each test assembly is a target keyed by its declared inputs and the outputs of the generated targets it
+depends on, its passes in one store every worktree shares, and a re-gate runs only what has not passed at a target's key
+(kb/Work PB5207 stages 1 and 2, PB5218, PB5231; PB5205; PB5099, owner
 2026-11-09: "If only one test failed, any retry should test only that one case"; owner 2026-11-10: "This is precisely what
 the Unix make and Windows MSBuild utilities are for. They rerun only what is required due to changes.").** THE RULE
 (CLAUDE.md "Testing", 2026-10-31) asks that every case the merge group runs on Windows already ran green AT THE PUSHED HEAD on
@@ -1293,21 +1375,76 @@ running the 63,000 again; records-85's gate of tree 241f5fbb05 passed all 64,465
 orchestrate self-tests hung, and its re-gate after a merge of main that brought only `kb/`, `DEVLOG/` and three tooling-lane
 scripts ran the 64,465 again.
 
-*The targets* (`scripts/buildgraph.py`, declared in `scripts/build_targets.json`). `unit`, `conformance` and
-`characterization` are one target per gated assembly. Each declares its INPUTS as path patterns, each naming its reader:
-`@build` (what building a test assembly reads: `src/`, the root and test-tree props, `tests/_shared/`, the package sources
-and feed, the CLI's Exec scripts), the assembly's own project, and the data its tests read. `conformance` declares the suite,
-`tests/nist`, `tests/differential`, `tests/version-matrix` (the construct catalogue, and the traceability inventory of both
-editions that `conformance-suite/harness/generate.py` reads, found by a traced run of the generator), both rule catalogs, the
-ISO text, `tests/doc-facts`, `scripts/spec/` and the modules the harness imports, and `scripts/guard*.sh`.
-`characterization` declares its corpus and its snapshots. `unit` declares every population input
+*The targets* (`scripts/buildgraph.py`, declared in `scripts/build_targets.json`, loaded as one checked `Graph`). A target
+has a KIND. A `test` target is one gated assembly: `unit`, `conformance`, `characterization`. A `generated` target is a
+Python command that writes declared OUTPUTS into `<worktree>/TestResults/generated/<target>/`: `conformance-suite`, the
+conformance suite's manifests (`conformance-suite/harness/generate.py --out`, the one reader of the test headers). Each
+target declares its INPUTS as path patterns, each naming its reader, its exclusions, the FACETS its key covers and the targets
+it DEPENDS on. `@build` (what building a test assembly reads: `src/`, the root and test-tree props, `tests/_shared/`, the
+package sources and feed, the CLI's Exec scripts) is every test target's. `conformance-suite` declares `conformance-suite/`,
+`tests/version-matrix/` (the traceability inventory of both editions, the schema, the construct catalogue, the reserved
+words, Annex A.2 and the conformance register), both rule catalogs, the ISO text, `scripts/spec/` and the modules the
+generator imports, found by reading it and by a traced run (kb/Work PB5218, PB5231); its only facet is the toolchain.
+`conformance` DEPENDS on `conformance-suite` and declares its own project, the suite (its tests, expected outputs, adapters,
+profiles, `harness/run.py` and `config.py`), `tests/nist`, `tests/differential`, the construct catalogue
+(`tests/version-matrix/constructs/`, which its tests read directly), `tests/doc-facts`, the modules `run.py` imports and
+`scripts/guard*.sh`, and EXCLUDES the generator's own sources (`harness/generate.py`, `cobol_source.py`): the inventory, the
+rule catalogs, the ISO text and `scripts/spec/` are not its inputs, because none of its sources reads them. `characterization`
+declares its corpus and its snapshots. `unit` declares every population input
 (`inert_lane.Classification.is_population_input`): it is the compiler's unit tests and the repository's drift tests in one
-assembly until stage 2 of kb/Work PB5207 splits them. Every target excludes `@inert` and `@tooling-lane`, the classes the
-inert lane's watch proves no compiler test reads. A target's KEY (`buildgraph.key`, `Host.target_keys`) is the sha256 of its
-name, its FACETS (the platform, the configuration the gate builds, `GATE_CONFIGURATION`, and the toolchain) and every
-`git ls-tree -r` entry of the measured tree whose path its inputs match: object ids, no file read, about 0.7 s for 35,000
-paths. So a change to the inventory alone changes `unit`'s and `conformance`'s keys and not `characterization`'s; a change to
-`docs/`, `kb/`, `DEVLOG/` or a tooling-lane script changes none.
+assembly until kb/Work PB5230 splits them. Every target excludes `@inert` and `@tooling-lane`, the classes the inert lane's
+watch proves no compiler test reads. The graph is refused when it is malformed (`Graph.of`): a dependency on an undeclared
+target or on a test target (which makes no output), a cycle (named: `a -> b -> a`), a generated program that is not among its
+own inputs or is not Python, a hand-off variable a test host's scrub would not remove. `Graph.order` is a topological order.
+
+A target's KEY (`buildgraph.key`, `buildgraph.keys`, `Host.target_keys`) is the sha256 of its name, its FACETS (of the
+platform, the configuration the gate builds, `GATE_CONFIGURATION`, and the toolchain), the OUTPUT DIGEST of each target it
+depends on (never that target's inputs), and every `git ls-tree -r` entry of the measured tree whose path its inputs match:
+object ids, no file read, about 0.7 s for 35,000 paths. A target with no dependency and every facet hashes exactly as in stage
+1, so `KEY_VERSION` is unchanged and stage 1's passes of `unit` and `characterization` stand. So a change to the inventory
+alone changes `unit`'s key and `conformance-suite`'s, and `conformance`'s only when the regenerated suite differs (Bazel's
+cut-off on an unchanged output); a change to `docs/`, `kb/`, `DEVLOG/` or a tooling-lane script changes none. A dependency
+whose output digest is not known is `Unresolved`, naming it, never a key without it (owner 2026-11-10: "If it cannot be
+resolved, there is a problem/bug").
+
+*A generated target is brought up to date first* (`buildgraph.generate`, `bring_up_to_date`, `Gate._generate`), in
+topological order, before any test target's key. It is UP TO DATE when the store records an output digest at its key AND its
+output directory holds exactly that digest (`output_digest`: the sha256 of every file's relative POSIX path and content hash,
+in path order; no absolute path, time or platform). Otherwise the directory is removed and the command runs under a Python
+audit hook (`TRACER`, `traced_run`), and the generation is REFUSED, naming what stopped it, when it exits non-zero, OPENS a
+tracked path its inputs do not match (an input excluded as `@inert` included: then the classification is wrong; the run's
+bytecode cache is a fresh empty directory of its own, `sys.pycache_prefix`, so every Python source it executes is opened,
+whatever loader runs it, an import or `spec_from_file_location` + `exec_module`, and a warm `__pycache__` in the worktree is
+never read: kb/Work PB5231 review R1-1, R2-1), OPENS or LOADS compiled code from inside the worktree (a sourceless .pyc, a
+compiled extension, which raises no open event and is found in the module list the tracer writes at its end: code with no
+tracked source the key could cover), LISTS a tracked directory no input lies in or under, STARTS a process (whose reads no
+hook sees), writes a file its outputs do not
+declare or leaves a declared output unwritten, reproduces NOT the digest the store records at that key (`Nondeterministic`:
+the outputs are kept to compare), or runs while the working tree changes (`TreeMoved`). Only a first generation at a key is
+recorded (its digest, file count, seconds, worktree). A gate whose generated target is refused ends RED before any host: a
+dependent run on another suite would be recorded under a key it did not run. The generator's seconds: about 13 s traced.
+THE TRACE'S RESIDUE: an existence or stat call (`Path.exists`, `is_file`, `is_dir`, `os.stat`, …) raises no audit event.
+The STATIC half of the declaration (`buildgraph.static_check`, part of the BUILD TARGETS audit, review R1-1 and R1-3)
+covers it before any run: the program's import closure (`inert_lane.import_closure`, every import, a lazy one included)
+lies in its inputs, and every existence or stat call in the program and its closure, outside self-test functions, probes a
+path under its inputs when `inert_lane.static_dir` can decide the path from literals and the module's static names; a call
+it cannot decide is a finding until the target's `judged` map states, under `<file>|<function>|<call>`, why the path is an
+input, and a judgment that names no call any more is a finding.
+
+*The host runs the suite its key names* (soundness, kb/Work PB5231). The gate hands each dependent's host, and its
+`--list-tests`, the output directory of each generated target it depends on, in the target's declared variable
+(`WISEOWL_COBOL_GATE_SUITE`; `host_env`, `test_population.list_population(handed=)`), set after the scrub so no stray one
+reaches a host. `SuiteManifest` reads that directory when it is handed one and generates its own only when it is not (a hand
+run, CI): one generation per gate, and the key a pass is recorded under is the digest of the suite the host ran. After the
+hosts, the gate digests each handed directory again (`_check_generated`): a change is a RED reason (`GENERATED OUTPUT
+CHANGED`) and the dependent's pass is not recorded. A host that was handed nothing generates its own and records
+`GENERATED-OWN  <target>` in its observation log (`SuiteManifest.OwnGenerationMark`); a gate whose dependent host log holds
+it is RED (`GENERATED BY THE HOST`) and records no pass, so inside the gate the fallback cannot stand. Only the gate's runs
+are keyed: a hand `dotnet test` or a CI run generates its own suite and records no pass in the store. A pass records the
+output digests it was keyed on (`depends`). The BUILD TARGETS audit admits a read of the dependency's PROGRAM only at its ONE
+hand-off site, the source that names both the variable and the own-generation mark; a second source that runs or reads the
+program reads every input of the generator, none in the dependent's key, and is a finding (review R1-2). The verdict line names each generated target (`conformance-suite generated in 13.1 s
+(output 1a2b3c4d5e6f, 5 file(s))` or `… up to date …`) and the record keeps `generated`.
 
 *The store* (`buildgraph.Store`) is `<git common dir>/cobol-build-store/<target>/<key>.json`: one small record per target and
 key (the counts, the facets, the worktree, run and head that proved it), written whole. A target is UP TO DATE exactly when
@@ -1356,7 +1493,12 @@ gate's AUDITS) reads every test source of an assembly and each `tests/_shared` f
 transitively) and finds every repository read it spells: a `TestRepo` helper with its leading literal segments, a listing of
 a helper's directory by a literal pattern, `Path.Combine(TestRepo.Root, "…")`, and a string literal rooted at a top-level
 tracked directory. A read outside the target's inputs is RED, naming file and line, until the read is declared with its reader;
-a read the audit cannot resolve by itself is judged by hand in the target's `judged` map, with its reason. Its residue,
+a read of the PROGRAM of a target it depends on at that target's one hand-off site (`SuiteManifest`'s `generate.py`, the run
+a host makes only when no gate handed it the suite) is reached through that dependency and belongs to it, counted in the
+verdict line; the same read anywhere else, a read of an excluded path, or of the dependency's INPUTS (the inventory), is a
+finding. A dependent assembly whose sources do not name its
+dependency's hand-off variable is a finding. A read the audit cannot resolve by itself is judged by hand in the target's
+`judged` map, with its reason. A generated target's declared inputs are proved at every run of it by its trace. Its residue,
 counted in its verdict line and judged nowhere statically: a bare `TestRepo.Root` (a working directory, a path stripped from
 a message, or `TrackedTree`'s `git ls-files`), a path computed at run time, and what a process a test starts reads. The
 dynamic proof, the Linux shards' file watch extended per target, is kb/Work PB5218's remaining work.
@@ -1372,7 +1514,10 @@ measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog puts HEAD
 `gate.pid`'s time, written before the tree was measured; the filesystem's clock, the hosts' and the reflog's, never the
 driver's) with no move until the hosts' last write. Its residue, written into the record (kb/Work PB5205 review R1-2): an
 uncommitted edit made while the run ran and undone at ANY time before the re-derivation is in no reflog, where the live gate,
-which measures `tree_end` after its hosts, would have refused it. Each target's key is computed from the RECORDED tree. A proved
+which measures `tree_end` after its hosts, would have refused it. Each target's key is computed from the RECORDED tree, and a
+dependent target's from the generated output the RUN recorded it was handed (`Gate._rederived_keys`, kb/Work PB5231 review
+R2-2): a run whose recorded digest the store now contradicts is refused naming both, and a run from before the hand-off has
+its Conformance REFUSED (never stored or carried; its host generated its own suite). A proved
 record keeps its verdict, line and exit code (RED), gains `tree_end`, `keys`, `audit_reds` and `rederived` (when, the
 evidence, the residue, per assembly "stored" or "passes"), and the original stays beside it as `verdict.original.json`. An
 assembly for which a run at the same key kept the listing (`listing-<asm>.txt`) is checked EXACT against it by the live check
@@ -1752,8 +1897,14 @@ demand and not committed.
   index (exit 3, which `land` maps to exit 2), and an interrupted stamp is completed by the next run.
 - **Line endings (PB3029; owner 2026-10-11: "standardize on a single line-ending format"): LF everywhere.** `.gitattributes`
   opens with `* text=auto eol=lf`, and a file that must keep its bytes is declared `-text` there with its reason.
-  `scripts/line_endings.py --check` (a gate audit, CI's `audits` job and a `windows-self-tests` step) refuses a CR in a tracked
-  text file's blob or checkout and a Python text-mode write that does not state `newline=`; `--fix` rewrites a checkout made
+  `scripts/line_endings.py --check` refuses a CR in a tracked text file's blob or checkout, a Python text-mode write that does
+  not state `newline=`, and any file whose attributes, as `git check-attr text eol` resolves them, are neither `-text` nor
+  text (`auto` or set) with `eol=lf` (a narrower rule such as `*.cob -eol`; review R1-4). The gate's LINE ENDINGS audit
+  reads only what the change touches (`--base B --tree T`: the paths the measured tree changes, plus the checkout's modified
+  and untracked files; kb/Work PB5225), unless the change edits a file the check classifies by (a `.gitattributes` at any
+  level, `line_endings.py` or a module of its directory it imports: `classifiers`), which re-classifies files the change
+  does not list and so runs the full sweep (review R1-3). CI's Linux `audits` job runs the one full sweep per merge group,
+  the backstop for a commit made through the API; neither the Windows jobs nor the nightly sweep again; `--fix` rewrites a checkout made
   before the rule and re-states the index entry of each file whose cleaned content IS the staged blob (a plain `git update-index`:
   `--refresh` trusts the stale recorded size and answers "needs update" for exactly these files), `--fix-writers` adds
   `newline="\n"` to a new writer, and the PowerShell generators of tracked files write through `scripts/LfText.psm1`

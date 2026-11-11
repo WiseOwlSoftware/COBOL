@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.4.4-19",
  "rule-digest": "798ac0e21348",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open",
  "test-ref": "conformance:cases/IX.4.4@1985-OPEN-STATEMENT/1985-GR-IX_4_4_4-19",
+ "notes": "The refuter's overturn (an OPEN refused with 41 runs no USE procedure, or the current mode's) does NOT reproduce at eb2b01f730. With FB open INPUT and only USE ... ON OUTPUT, OPEN OUTPUT gives 41 and the OUTPUT procedure runs with SB already 41 (p05). With INPUT and OUTPUT procedures both declared, the OUTPUT one (mode being opened) runs (p05c). The refuter's own op41.cob, against a present file, gives USE OUTPUT SB=41 and USE EXTEND SB=41 (p05f). Status precedes the USE procedure each time (GR19 a then b). The refuter's other probes (35 per file-name in order, 39 and 37 leaving the file intact) held. Attack point: the refuter's op41 printed INPUT 00 then no USE line; the same source does not do that here, so its run was on another tree or file state.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "§1985:IX.4.4.4 GR19 is a rule X3.23b-1993 added in place (the printed general rules ended with rule 18): 'If the execution of the OPEN statement is unsuccessful, the physical file is not affected and the following actions take place in the following order: a. A value is placed in the I-O status associated with file-name to indicate the condition that caused the OPEN statement to be unsuccessful. b. Any applicable USE AFTER EXCEPTION procedure is executed.' §2023:14.9.27.4 GR25 keeps the lead-in ('the file is not affected'), a) the I-O status sentence verbatim and, as d), 'Any applicable USE FOR EXCEPTION or USE AFTER EXCEPTION procedure is executed as specified for the rules for the USE statement', but inserts two steps 1985 lacks: b) 'If it is enabled, the level-3 EC-I-O exception condition associated with the I-O status value is set to exist' and c) an OPEN in an exception-checking PERFORM with an applicable WHEN phrase: 'then execution continues according to the rules for that WHEN phrase. No applicable USE declarative is executed'. Cases added and the result changed for them (the USE procedure 1985 always runs is skipped under c), so CHANGED. §2023:14.9.27.4 GR1 ('The execution of the OPEN statement causes the value of the I-O status associated with file-name-1 to be updated') restates step a, and §2023:14.9.49.4 GR6 states step b's execution of the USE procedure 'upon the unsuccessful execution of an input-output operation', including a file 'in the process of being opened in the input mode', and only when no WHEN phrase of an exception-checking PERFORM matched.",
-  "source": "readjudicate-amended-1985/slice-12"
+  "source": "readjudicate-amended-1985/slice-12",
+  "digests": {
+   "GR-14.9.27.4-25": "c1ac7ca3660c",
+   "GR-14.9.27.4-1": "6cb9246d86be",
+   "GR-14.9.49.4-6": "b41480584b33"
+  }
  }
 }

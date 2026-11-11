@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "§2023:12.4.5.3 GR1 keeps 1985 a)-f) (OPTIONAL, ASSIGN consistency, RESERVE, organization, access mode, RELATIVE KEY external item) but adds requirements, among them 'i) The same specification of the FILE STATUS clause, where data-name-4 shall reference the same corresponding external data item', also stated in §2023:14.8.4.2. 1985 allowed different status items per entry: 'The data item referenced by data-name-1 which is updated ... is the one specified in the file control entry associated with that statement' (§1985:VII.2.5.4 GR2). A 1985 program whose entries for one external file name different or no FILE STATUS items is no longer conforming (stricter); l) sharing and m) lock mode add further consistency requirements.",
-  "source": "adjudicate-712/slice-18"
+  "source": "adjudicate-712/slice-18",
+  "digests": {
+   "GR-12.4.5.3-1": "2743ca2ce512"
+  }
  }
 }

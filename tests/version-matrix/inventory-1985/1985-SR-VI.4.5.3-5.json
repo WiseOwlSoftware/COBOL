@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both ban symbolic-character figurative constants in the ALPHABET/CLASS literals. Literal-6 and -9 reflect 2023 renumbering or new phrases; zero-length literals did not exist in 1985.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.3.7.3-11": "99467bdc037c"
+  }
  }
 }

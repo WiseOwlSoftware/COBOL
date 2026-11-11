@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: a figurative constant other than ALL literal not associated with another data item (DISPLAY, STOP, STRING, UNSTRING) is one character. 2023: 'When a figurative constant is other than ALL literal-1, the length of the string is one character', NOTE 2 naming DISPLAY, STOP, STRING, UNSTRING (§2023:8.3.3.6.4 GR3); for STRING 'it refers to an implicit one character data item' (§2023:14.9.43.4 GR2). Item a) (concatenation expressions) is one character too. Same length for every program.",
-  "source": "adjudicate-712-r2/slice-01"
+  "source": "adjudicate-712-r2/slice-01",
+  "digests": {
+   "GR-8.3.3.6.4-3": "0ee983e61ad4",
+   "GR-14.9.43.4-2": "67bcb1449751"
+  }
  }
 }

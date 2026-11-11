@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.2.3.4-1",
  "rule-digest": "b7eb79d86002",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAssignClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitAssociation",
  "test-ref": "conformance:cases/XI.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-XI_2_3_4-1",
+ "notes": "§1985:XI.2.3.4 GR1: 'The ASSIGN clause specifies the association of the file referenced by file-name-1 to a storage medium referenced by implementor-name-1 or literal-1'; the content of implementor-name-1 and value of literal-1 are the implementor's (§1985:VII.2.3.3 SR3), here DOC-A.1-71. AssignTargetRule.Resolve reads the TO list for the SD's SELECT; the SD's storage medium is the run unit's sort work store, and SortEmitter.EmitAssociation adds a run-time association only for the dynamic USING form, which VisitAssignClause refuses below 2002 (COBOL0900). Probes at 85: witness (ASSIGN TO \"SORTWK\") and ASSIGN TO DISK \"SORTWK\" sort and print AAAAA/BBBBB; ASSIGN USING data-name -> COBOL0900 (runs at 2002); ASSIGN written twice -> COBOL2423; empty TO -> COBOL0312; no ASSIGN -> COBOL5701; TO 123 -> COBOL5506; TO SPACE -> COBOL2645 (§1985:VII.2.3.3 SR3 'must not be a figurative constant'); three operands -> COBOL2256, the documented DOC-A.1-71 latitude. Classes a, d (record forms), e, f do not reach an association rule with no data operand.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"to a storage medium referenced by implementor-name-1 or literal-1.\"; 2023: \"identified by device-name-1, literal-1, or the content of the data item referenced by data-name-1\". Same ASSIGN association rule, but 2023 adds the USING data-name-1 case. It fixes association at OPEN, SORT or MERGE time and makes the statement unsuccessful on inconsistent content.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-12.4.5.3-3": "d86ef8cd8f63"
+  }
  }
 }

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993, Errata C248) added the rule's last sentence, \"When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.\" (§1985:VI.6.22.4 GR4); §2023:14.9.37.4 GR1 a) says the same of NEXT SENTENCE, \"control is transferred to an implicit CONTINUE statement immediately preceding the next separator period\", so the amended text is carried whole. The search itself is restated in §2023:14.9.37.4 GR9: the initial setting is ignored and varied as the implementor specifies, 1985 \"with the restriction that at no time is it set to a value that exceeds the value which corresponds to the last element of the table\" and 2023 \"At no time is it set to a value that exceeds the value that corresponds to the last element of the table\" (both add the first-element bound); on no match 1985 passes control \"to imperative-statement-1 of the AT END phrase, when specified, or to the end of the SEARCH statement when this phrase is not specified\" with \"in either case the final setting of the index is not predictable\", and 2023 has \"the final setting of the search index is undefined, the search operation is unsuccessful, the EC-RANGE-SEARCH-NO-MATCH exception condition is set to exist\" with the same control in §2023:14.9.37.4 GR1 b) 1. and 3. (\"If the AT END phrase is not specified and neither exception condition was raised because the checking for those exception conditions was not enabled, control is transferred to the end of the SEARCH statement.\"). The exception condition replaces no refusal and has effect only where a program enables checking, which no 1985 program does (§2023:14.6.13.1.1 \"By default, checking is not enabled for any exception condition.\"), so every program the 1985 rule governs is accepted with the same effect. On success the index stays at the satisfying occurrence and control goes to imperative-statement-2 or NEXT SENTENCE in both (§2023:14.9.37.4 GR1 a) \"remains set at the occurrence number that caused a WHEN condition to be satisfied\").",
-  "source": "readjudicate-amended-1985/slice-05"
+  "source": "readjudicate-amended-1985/slice-05",
+  "digests": {
+   "GR-14.9.37.4-9": "9ff2a401a622",
+   "GR-14.9.37.4-1": "511c366fa659"
+  }
  }
 }

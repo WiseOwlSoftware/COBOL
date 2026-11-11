@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: ALTERNATE RECORD KEY IS data-name-1 [ WITH DUPLICATES ]. §2023:12.4.5.6.2 keeps that form and adds the alternative record-key-name-1 SOURCE IS {data-name-2} … and an optional SUPPRESS WHEN literal-1; §2023:12.4.5.1 restates the clause inside the indexed SELECT format. 1985 programs keep their meaning; SOURCE keys and suppression are new compile-time syntax, not exceptions.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-12.4.5.6.2": "a6e9b6472afe",
+   "FMT-12.4.5.1": "14f82fb7eed3"
+  }
  }
 }

@@ -1450,7 +1450,8 @@ EDITION_SELF_TEST = [
     (None, "the data description entry (§1985:VI.5.3.2 GR3)"),
     ("CITATION", "the default is EC-ALL CHECKING OFF (§5000: the line it was on)"),  # citation-audit: example
     ("CITATION", "a Roman locator for an ISO edition (§2023:VI.5)"),  # citation-audit: example
-    (None, "an edition the repository has no transcription of (§2014:99.99)"),
+    ("PHANTOM", "a clause the 2014 transcription lacks (§2014:99.99)"),
+    (None, "a sort-merge file (§2014:14.9.23.2 SR2)"),
     (None, "the old comment cited §2023:8.3.1.2, which does not exist"),
     (None, "DESIGN-locale-facility §4.4.3 and plan §0"),
 ]

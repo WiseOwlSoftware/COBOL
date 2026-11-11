@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both rules make these literals category alphanumeric. Naming the class adds nothing in substance, since category alphanumeric belongs to class alphanumeric; same programs, same effect.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-8.3.3.2.4-2": "d6ddf594546b"
+  }
  }
 }

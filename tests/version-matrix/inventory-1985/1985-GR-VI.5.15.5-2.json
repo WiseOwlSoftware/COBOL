@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'Format 2 can be used only in connection with condition-names ... Wherever the THRU phrase is used, literal-2 must be less than literal-3.' The first sentence is kept: §2023:13.18.63.3 SR33 'Formats 3 and 5 may be specified only when the level-number of the subject of the entry is 88.' The ordering requirement is narrowed: §2023:13.18.63.3 SR26 keeps 'literal-2 shall be less than the value of literal-3' unconditionally only for classes other than alphanumeric or national; for alphanumeric or national literals it applies only 'when the runtime collating sequence is known', and 'The runtime collating sequence is unknown when the collating sequence is defined by a locale or ... otherwise determined at runtime'. A THRU range 1985 refused can therefore be accepted. Looser, not an exception condition.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "SR-13.18.63.3-33": "442a35379210",
+   "SR-13.18.63.3-26": "ae039db394db"
+  }
  }
 }

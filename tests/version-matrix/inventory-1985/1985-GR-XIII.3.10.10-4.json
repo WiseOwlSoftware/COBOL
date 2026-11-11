@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: RF final LINE-COUNTER is its final print line; a nonprintable group leaves it unaffected. §2023:8.4.3.15.4 GR4 'The value of LINE-COUNTER after the printing of a report group is the same as the line number of the last line printed', §2023:13.18.35.4 GR8; NEXT GROUP 'shall not be specified in a page heading or report footing' (§2023:13.18.37.3 SR4); §2023:8.4.3.15.4 GR5 'are not affected by the processing of a dummy report group'. Same.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-8.4.3.15.4-4": "cf9c288b45e0",
+   "GR-13.18.35.4-8": "b6de16b68307",
+   "SR-13.18.37.3-4": "85e60a9302fb",
+   "GR-8.4.3.15.4-5": "3c235b0d53d8"
+  }
  }
 }

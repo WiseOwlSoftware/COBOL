@@ -1,0 +1,13 @@
+{
+  "claim_id": "p52-1",
+  "claim_key": "7681a2f3a483cd0d",
+  "page": 52,
+  "kind": "incorrect-text",
+  "severity": "structural",
+  "claim": {"id": "p52-1", "page": 52, "kind": "incorrect-text", "severity": "structural", "pdf_says": "can | is able to / there is a possibility of / it is possible to ... cannot | be unable to / there is no possibility of / it is not possible to ... should | it is recommended that / ought to ... should not | It is not recommended that / ought not to", "markdown_says": "| can<br>cannot | is able to<br>there is a possibility of it is possible to<br>be unable to<br>there is no possibility of it is not possible to | ... |\n| should<br>should not | it is recommended that ought to<br>It is not recommended that ought not to | ...", "why_it_matters": "In Table 1 several separate equivalent expressions are run together into single phrases ('there is a possibility of it is possible to', 'it is recommended that ought to'), and the alignment of which expressions belong to the negative form (cannot, should not, shall not, need not) is lost. The footnote marker '1' on 'Equivalent Expressions' is also flattened to 'Expressions1'."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page 52 (Table 1, Verbal forms, in clause 5.8) shows each equivalent expression on its own line: 'there is a possibility of' / 'it is possible to', 'it is recommended that' / 'ought to', and so on. The markdown keeps every word in the same order. It only drops some of the <br> line breaks inside a cell and turns the superscript footnote marker into a plain '1'. The positive forms still come before the negative forms in each cell, in the same order as the verb column, so the pairing can still be recovered. No text is missing, changed or misplaced. The difference is cell line-breaking and superscript formatting in an informative drafting-convention table, which no COBOL syntax or semantics depends on. Under the refutation criteria (line wrapping or formatting only; meaning unchanged) the claim is not a genuine content discrepancy.",
+    "corrected_description": ""
+  }
+}

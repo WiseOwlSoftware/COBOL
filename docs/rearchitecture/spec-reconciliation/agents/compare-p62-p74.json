@@ -1,10 +1,10 @@
 {
   "batch": [62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 74],
-  "pages_checked": [62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 74],
+  "pages_checked": [62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 74], "pages_unread": [],
   "notes": "No general-format / syntax-skeleton diagram appears on any page of this batch (clause 6 Reference format and the opening of clause 7 Compiler directing facility). The only figure-like content is the two column-aligned indicator lists on p64 and the two directing-statement/directive stage lists on p72; both are transcribed as markdown tables with no loss. The choice-indicator (double vertical bar), unbalanced-bracket, ellipsis-placement and underlining checks therefore had nothing to apply to on these pages. Prose was compared line by line and is faithful. The single defect found is systematic heading-depth corruption.",
   "findings": [
     {
-      "page": 64,
+      "id": "p64-1", "page": 64,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "6.2.2   Fixed indicators ... 6.2.3   Floating indicators ... 6.2.3.1   General  (third- and fourth-level sub-clauses of Clause 6, printed at the same typographic rank as 6.2.1 General on the preceding page)",

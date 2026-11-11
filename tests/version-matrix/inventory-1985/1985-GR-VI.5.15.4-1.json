@@ -20,6 +20,16 @@
   ],
   "bridge": true,
   "reason": "1985: for a numeric-edited item 'all literals in the VALUE clause must be nonnumeric literals', and 'Initialization is not affected by any BLANK WHEN ZERO or JUSTIFIED clause'. §2023:13.18.63.3 SR6: for numeric-edited, literals 'may be numeric' and are converted to edited form by the MOVE rules (editing applied, §2023:13.18.63.3 SR11), and then BLANK WHEN ZERO 'does affect initialization' of a zero value (§2023:13.18.63.4 GR8 NOTE 1; §2023:13.18.63.3 SR8). Looser: a numeric literal that 1985 refuses is accepted, with a BWZ effect 1985 never had. Kept: numeric literals for numeric (SR2), alphanumeric literals for alphabetic/alphanumeric/alphanumeric-edited (SR4), numeric-edited alphanumeric literal (SR7), alignment without JUSTIFIED or editing (§2023:13.18.63.4 GR7), and BWZ inert for an alphanumeric literal.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "SR-13.18.63.3-2": "6ecb7044eda1",
+   "SR-13.18.63.3-4": "695909fb4958",
+   "SR-13.18.63.3-6": "cdfa1de98c0f",
+   "SR-13.18.63.3-7": "2fc8cdd54f76",
+   "SR-13.18.63.3-8": "f40cdbc854d6",
+   "SR-13.18.63.3-11": "27116f0eda78",
+   "GR-13.18.63.4-7": "0742949108a4",
+   "GR-13.18.63.4-8": "582a720c0e65"
+  }
  }
 }

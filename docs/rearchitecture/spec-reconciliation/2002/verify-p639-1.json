@@ -1,0 +1,13 @@
+{
+  "claim_id": "p639-1",
+  "claim_key": "58237ef10ab3d33f",
+  "page": 639,
+  "kind": "ocr-error",
+  "severity": "normative",
+  "claim": {"id": "p639-1", "page": 639, "kind": "ocr-error", "severity": "normative", "pdf_says": "((argument-1₁ + argument-1₂) / 2) ... ((argument-1₁ + argument-1₂ +... + argument-1ₙ) / n)", "markdown_says": "((argument-11 + argument-12) / 2)\n...\n((argument-11 + argument-12 +... + argument-1n) / n)", "why_it_matters": "Subscripts 1, 2, n on argument-1 lost in 15.48.3 rule 1 b) and c); 'argument-11' reads as a different argument name (argument eleven) instead of the first occurrence of argument-1."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300-dpi render of PDF page 639 (printed page 617, 15.48.3 Returned values, rule 1 b) and c)) shows subscript glyphs: 'argument-1' followed by a lowered small 1, 2 and n. page-639.md lines 29 and 33 flatten them inline, giving 'argument-11', 'argument-12' and 'argument-1n'. Both sources are quoted accurately. Lost subscripts are content, not page furniture: the markdown spells tokens that read as different operand names (argument eleven, argument twelve). The meaning can still be recovered from context, because the lead-ins say 'For two occurrences of argument-1' and 'For n occurrences of argument-1' and argument-1 is the only operand in the general format. So no reader would get a different MEAN value from it. The discrepancy is real, but it is editorial rather than normative.",
+    "corrected_description": "In §2002:15.48.3 rule 1 b) and c), the transcription drops the subscript markup on the occurrence indices of argument-1. It renders argument-1₁, argument-1₂ and argument-1ₙ as 'argument-11', 'argument-12' and 'argument-1n'. The lead-in text makes the intended meaning clear, so the severity should be editorial, not normative."
+  }
+}

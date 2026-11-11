@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'Format 3 is the file description entry for a report file', its availability 'dependent on whether the Report Writer module is supported'. 2023 §2023:13.4.5.3 SR8: 'Format 3 is the file description entry for a report file'; the availability dependency is retained, not dropped (mode b): §2023:A.4.11 lists 'File description entry, format 3: report (13.4.5)' as an optional Report Writer element, and §2023:4.2.7 says such elements an implementor 'may, but need not, implement'. Same. Catalog note: 4.2.7 and A.4.11 have no catalog ids, so they cannot appear in 'to'.",
-  "source": "adjudicate-712/slice-32"
+  "source": "adjudicate-712/slice-32",
+  "digests": {
+   "SR-13.4.5.3-8": "f62781c2bcd6",
+   "FMT-13.4.5.2": "b75b09e44e69"
+  }
  }
 }

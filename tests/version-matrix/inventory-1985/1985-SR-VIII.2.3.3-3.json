@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both require a non-figurative nonnumeric (alphanumeric) literal and leave device/implementor-name and literal value to the implementor. The zero-length bar concerns a literal form 1985 lacked.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.4.5.2-4": "6ca222e2d0a1",
+   "SR-12.4.5.2-5": "9f65daeef717"
+  }
  }
 }

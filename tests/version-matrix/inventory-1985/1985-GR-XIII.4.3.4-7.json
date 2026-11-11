@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both require the report to be active, i.e. after INITIATE and before TERMINATE, for GENERATE. The added EC-REPORT-INACTIVE only detects a violation; the requirement is unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.16.4-7": "1870bc0492bc"
+  }
  }
 }

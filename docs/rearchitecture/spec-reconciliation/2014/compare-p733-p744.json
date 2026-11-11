@@ -1,0 +1,16 @@
+{
+  "batch": [733, 734, 735, 736, 737, 738, 739, 740, 741, 742, 743, 744],
+  "pages_checked": [733, 734, 735, 736, 737, 738, 739, 740, 741, 742, 743, 744],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p734-1",
+      "page": 734,
+      "kind": "ocr-error",
+      "severity": "structural",
+      "pdf_says": "(argument-2₁ / (1 + argument-1) + argument-2₂ / (1 + argument-1) ** 2) ... (argument-2₁ / (1 + argument-1) ** 1) ... (argument-2ₙ / (1 + argument-1) ** n))) where argument-1 and argument-2ᵢ in the terms of the SUM function (subscripts 1, 2, n and i printed below the line)",
+      "markdown_says": "(argument-21 / (1 + argument-1) + argument-22 / (1 + argument-1) \\*\\* 2) ... (argument-21 / (1 + argument-1) \\*\\* 1) ... (argument-2n / (1 + argument-1) \\*\\* n))) ... where argument-1 and argument-2i in the terms of the SUM function",
+      "why_it_matters": "15.69.3 PRESENT-VALUE returned values: the subscripts that index the occurrences of argument-2 are flattened onto the baseline, so the equivalent expressions read as references to differently named operands 'argument-21', 'argument-22', 'argument-2n', 'argument-2i' instead of the 1st, 2nd, nth and ith occurrence of argument-2."
+    }
+  ]
+}

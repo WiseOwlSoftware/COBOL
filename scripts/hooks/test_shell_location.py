@@ -218,21 +218,21 @@ with tempfile.TemporaryDirectory() as tmp:
                                                      for c in sl.git_calls(s)], [wt / "sub"])
 
     # ── every place a shell takes a command line from is walked (the branch review of PB3198, R1-1 and R1-2) ───────
-    marked = lambda cmd, shell=B: [(s.text, s.depth, s.substitution) for s in sl.steps(cmd, str(main), shell)]
-    exact("a substitution's steps run first, one level down, marked; its own step keeps it as one word",
+    marked = lambda cmd, shell=B: [(s.text, s.depth) for s in sl.steps(cmd, str(main), shell)]
+    exact("a substitution's steps run first, one level down; its own step keeps it as one word",
           marked("x=$(cd /y && git stash) && echo z"),
-          [("cd /y", 1, 1), ("git stash", 1, 1), ("x=$(cd /y && git stash)", 0, 0), ("echo z", 0, 0)])
+          [("cd /y", 1), ("git stash", 1), ("x=$(cd /y && git stash)", 0), ("echo z", 0)])
     # the branch review of PB3198, R2-1: a step's level is how many substitutions enclose it, so a pipe inside one stays
-    # on its level and the reader's own substitution is one deeper (forbidden_commands.py rule 4 finds the reader so)
+    # on its level and the reader's own substitution is one deeper
     exact("a substitution inside a substitution is one level deeper; a pipe's stages share their level",
-          marked("x=$(a | b $(c))"), [("a", 1, 1), ("c", 2, 2), ("b $(c)", 1, 1), ("x=$(a | b $(c))", 0, 0)])
+          marked("x=$(a | b $(c))"), [("a", 1), ("c", 2), ("b $(c)", 1), ("x=$(a | b $(c))", 0)])
     exact("a PowerShell expression's pipe: both stages one level down",
-          marked("$r = (a | Select-String b)", P), [("a", 1, 1), ("Select-String b", 1, 1), ("$r = (a | Select-String b)", 0, 0)])
+          marked("$r = (a | Select-String b)", P), [("a", 1), ("Select-String b", 1), ("$r = (a | Select-String b)", 0)])
     # and a group is a pipeline stage like any other: it reads the stage before it and the next reads its last step
     exact("a pipe into a grouped shell: echo's words are its script", marked("echo 'git a' | ( bash )"),
-          [("echo 'git a'", 0, 0), ("git a", 2, 0)])
+          [("echo 'git a'", 0), ("git a", 2)])
     exact("a pipe from a group into a shell: the group's last step is the stage", marked("( echo 'git a' ) | bash"),
-          [("echo 'git a'", 1, 0), ("git a", 1, 0)])
+          [("echo 'git a'", 1), ("git a", 1)])
     check("a Bash `{ … }` pipeline side is a subshell: its cd ends at the pipe",
           dirs_of(f"{{ cd {W}; dotnet build; }} | cat; dotnet test", main, B), [wt, main])
     # the branch review of PB3198, R3-1: a group on the READ side of a pipe hands its stdin to its commands, never its
@@ -254,11 +254,11 @@ with tempfile.TemporaryDirectory() as tmp:
     exact("a -c payload's shell reads the command's stdin", feeds("echo 'git a' | bash -c 'cd /y; bash'"), ["git a"])
     exact("a substitution's shell reads the command's stdin", feeds("echo 'git a' | x=$(bash)"), ["git a"])
     exact("a script read from stdin consumed it: a shell inside it reads nothing", feeds("echo 'bash' | bash"), [])
-    exact("a backquote and a process substitution", [t for t, _, sub in marked("echo `git a` <(git b)") if sub],
+    exact("a backquote and a process substitution", [t for t, depth in marked("echo `git a` <(git b)") if depth],
           ["git a", "git b"])
     exact("a substitution inside double quotes, never inside single quotes",
-          [t for t, _, sub in marked("echo \"$(git a)\" '$(git b)'") if sub], ["git a"])
-    exact("an arithmetic expansion is no substitution", marked("echo $((1+2))"), [("echo $((1+2))", 0, False)])
+          [t for t, depth in marked("echo \"$(git a)\" '$(git b)'") if depth], ["git a"])
+    exact("an arithmetic expansion is no substitution", marked("echo $((1+2))"), [("echo $((1+2))", 0)])
     exact("words keep a substitution whole", [s.words for s in sl.steps("git commit -m \"$(echo a b)\"", str(main), B)][-1],
           ("git", "commit", "-m", "$(echo a b)"))
     msg = "git commit -m \"$(cat <<'EOF'\nsay \"hi\" (and ') too\nEOF\n)\" && echo z"

@@ -15,6 +15,11 @@
   "reason": "1985: 'If the current program collating sequence was not specified by an ALPHABET clause, the implementor determines the value.' The value is still bounded by the description: 'a character in the program collating sequence having the ordinal position equal to the value of argument-1'. 2023 keeps that bound in §2023:15.15.4 RV1, but narrows the implementor's choice. On a tie §2023:15.15.4 RV2 requires 'the first character defined for that character position'. Only where 'the order of multiple characters having the same position is undefined' does the implementor choose, and then 'every invocation of the CHAR function shall return the same character'. §2023:A.1 item 21 requires that choice to be documented. The requirement is stricter: a free, undocumented implementor choice became the first-defined character, or a documented choice that never varies.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-36"
+  "source": "adjudicate-712/slice-36",
+  "digests": {
+   "RV-15.15.4-1": "b00a0a373458",
+   "RV-15.15.4-2": "0d528dce6a2b",
+   "DOC-A.1-21": "2870d6c0f705"
+  }
  }
 }

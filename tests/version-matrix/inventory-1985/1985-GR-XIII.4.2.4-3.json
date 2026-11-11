@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.2.4-3",
  "rule-digest": "2115c79c4c98",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#Cell; src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Category",
  "test-ref": "conformance:cases/XIII.4.2@1985-CLOSE-STATEMENT/1985-GR-XIII_4_2_4-3",
+ "notes": "§1985:XIII.4.2.4 GR3 Table 1: for a non-reel/unit report file CLOSE is C, WITH LOCK C,E ('The report file is locked and cannot be opened again during this execution of this run unit'), WITH NO REWIND C,H (phrases ignored, I-O status 07), REEL/UNIT [FOR REMOVAL] F ('The file remains in the open mode'); label processing in C is implementor-defined. BindClose admits every 1985 phrase on a report file at 85, the runtime CloseByFormat/CloseWithLock apply CloseTable14.Cell for the connector's category (SequentialConnector.Category: non-unit, the only category a disk file has). Probes P11A-P11C: LOCK then OPEN OUTPUT gives 38 and the INITIATE after that failed OPEN takes no action, the last CLOSE 42; REEL and UNIT FOR REMOVAL give 07 with the file still open and GENERATE continuing (HELLO 2, 3); NO REWIND gives 07 and closes (a second CLOSE 42); a two-file CLOSE with LOCK and NO REWIND gives 00/07, the unlocked file reopens EXTEND (00) and the locked one does not (38). Classes e (every 1985 CLOSE format, statements after a failed OPEN), b (CLOSE of a closed report file). The witness runs CLOSE WITH NO REWIND then a reopen.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 Table 1 has a CLOSE WITH LOCK row (E: the report file 'is locked and cannot be opened again during this execution of this run unit') and label processing in C and F. 2023 §2023:14.9.6.4 GR3 Table 14 keeps the CLOSE, NO REWIND, UNIT and UNIT FOR REMOVAL cells (REEL and UNIT equivalent, §2023:14.9.6.3 SR2) but has no LOCK row, the format §2023:14.9.6.2 has no WITH LOCK, and c) is only 'Closing operations specified by the implementor are executed'. A 1985 CLOSE WITH LOCK of a report file is refused and label processing is gone. The '07' for ignored phrases is not new (1985 F defers to I-O status 07).",
-  "source": "adjudicate-712/slice-26"
+  "source": "adjudicate-712/slice-26",
+  "digests": {
+   "GR-14.9.6.4-3": "07cb78120ad0",
+   "FMT-14.9.6.2": "b92f554aa426",
+   "SR-14.9.6.3-2": "602041d5127b"
+  }
  }
 }

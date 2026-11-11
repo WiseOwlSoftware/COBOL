@@ -1,6 +1,6 @@
 {
   "batch": [594, 595, 596, 598, 599, 600, 601, 602, 603, 604, 605, 608],
-  "pages_checked": [594, 595, 596, 598, 599, 600, 601, 602, 603, 604, 605, 608],
+  "pages_checked": [594, 595, 596, 598, 599, 600, 601, 602, 603, 604, 605, 608], "pages_unread": [],
   "notes": [
     "Batch was routed to this agent as 'figure-bearing', but NONE of the 12 rendered PDF pages contains a general format / syntax skeleton. They are continuous prose: 14.7.6 CORRESPONDING (end), 14.7.7 Arithmetic statements, 14.7.8 THROUGH phrase, all of 14.8 Conformance for parameters/returning items/external items, and ACCEPT general rules 3)-8) on p608. page_workunit.py agreed: it reported '0 with figure content' for every page. No choice-indicator (5.2.6.4 double-bar), unclosed-brace, ellipsis-placement, or underlining check was applicable on any page in this batch.",
     "Page-image to markdown-slice alignment was verified page by page from content; there is no off-by-one. PDF page N renders printed page N-30 (e.g. PDF 594 = printed 564), and the markdown '## Page N' slice matches PDF page N.",
@@ -9,7 +9,7 @@
   ],
   "findings": [
     {
-      "page": 599,
+      "id": "p599-1", "page": 599,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "14.8.2.2   Group items  /  14.8.2.3   Elementary items  /  14.8.2.3.1   General  /  14.8.2.3.2   Elementary items passed by reference   (all printed as subclause headings whose depth is 4, 4, 5, 5 under clause 14)",
@@ -18,7 +18,7 @@
       "suggested_repair": "Normalize heading level to clause depth across the 14.8 subtree. Instances in this batch (specs/ISO_COBOL.md line numbers at time of check): 24963 '## 14.8.2.2', 24980 '## 14.8.2.3', 24983 '### 14.8.2.3.1', 24988 '### 14.8.2.3.2', 25055 '## 14.8.2.3.3', 25094 '## 14.8.3', 25180 '## 14.8.4', 25201 '## 14.8.4.3', 25210 '## 14.8.4.4', plus 23514-area precedents '## 14.7.7' (p594) and '## 14.7.8' (p596). NOTE: this is a global property of the transcription, not local to this batch - clause 14 itself is '## 14 Procedure division' while 14.8 is also '## 14.8', so a fix should be a document-wide normalization pass, not a per-page edit."
     },
     {
-      "page": 595,
+      "id": "p595-1", "page": 595,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "a data item described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, or of a standard floating-point usage; or",

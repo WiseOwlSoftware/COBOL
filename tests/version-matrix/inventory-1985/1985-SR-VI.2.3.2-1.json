@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 only glosses the source-program format's generic terms identification-division, environment-division, data-division, procedure-division and end-program-header. 2023 FMT-10.6.1 keeps environment-division, data-division and procedure-division as meta-terms for the same divisions and writes the IDENTIFICATION DIVISION header and the END PROGRAM marker out (end-marker format FMT-10.7.2). Same referents; nothing accepted or refused differs by this rule.",
-  "source": "adjudicate-712-r2/slice-13"
+  "source": "adjudicate-712-r2/slice-13",
+  "digests": {
+   "FMT-10.6.1": "985639fb1dfa",
+   "FMT-10.7.2": "a443e1a6af4e"
+  }
  }
 }

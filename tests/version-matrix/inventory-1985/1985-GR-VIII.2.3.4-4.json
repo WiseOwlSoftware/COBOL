@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.2.3.4-4",
  "rule-digest": "b7eb79d86002",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Associate",
  "test-ref": "conformance:cases/VIII.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-VIII_2_3_4-4",
+ "notes": "The printed format repeats {implementor-name-1 | literal-1} (refuter rendered page 438), so a list is format-legal. But GR4 gives a meaning only to 'a storage medium referenced by implementor-name-1 or literal-1'. The standard never says what a second operand references, and SR3 hands both the meaning and the allowable content of each implementor-name-1 and literal-1 to the implementor. One allowable rule is 'one operand names the file, optionally after a device class'. ISO 2023 prints the same list and words the latitude as 'the allowable specification' (SR5), and docs/CONFORMANCE.md DOC-A.1-71 records the determination under rule 1 precedence (GnuCOBOL). The refusal is by name (COBOL2256, citing the entry), never a generic syntax error. The single-operand association works (the adjudicator's probes; p10's refusal names DOC-A.1-71). ATTACK SURFACE: the refuter's reading, that 1985 'content' covers what each operand holds and not how many operands there are. If that reading wins, the row is PARTIAL with harm rejects_legal_source, and the fix gives a list an implementor-defined meaning.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"to a storage medium referenced by implementor-name-1 or literal-1.\"; 2023: \"to a physical file identified by device-name-1, literal-1, or the content of the data item referenced by data-name-1.\". Same association rule, but 2023 adds the USING data-name-1 case. It also fixes the association at OPEN/SORT/MERGE and makes the statement unsuccessful on inconsistent content.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-12.4.5.3-3": "d86ef8cd8f63"
+  }
  }
 }

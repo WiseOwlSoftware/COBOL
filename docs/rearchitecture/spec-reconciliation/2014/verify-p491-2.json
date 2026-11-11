@@ -1,0 +1,13 @@
+{
+  "claim_id": "p491-2",
+  "claim_key": "44e410e170f6324b",
+  "page": 491,
+  "kind": "ocr-error",
+  "severity": "normative",
+  "claim": {"id": "p491-2", "page": 491, "kind": "ocr-error", "severity": "normative", "pdf_says": "(operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub> + operand-2)  [general rule 2; subscripts printed as subscripts]", "markdown_says": "(operand-11 + operand-12 + ... + operand-1n + operand-2)", "why_it_matters": "Same subscript flattening as in general rule 1: 'operand-11' and 'operand-12' read as different operand names instead of operand-1 subscript 1 and subscript 2."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 491 (printed page 467), 14.9.2.3 ADD statement general rule 2, shows the expression '(operand-1 + operand-1 + ... + operand-1 + operand-2)' with the 1, 2 and n set as typographic subscripts after each 'operand-1'. page-491.md line 29 reads '(operand-11 + operand-12 + ... + operand-1n + operand-2)': the subscripts are flattened inline, so the transcription names the metavariables operand-11, operand-12 and operand-1n instead of the 1st, 2nd and nth instance of operand-1. Both sources are quoted accurately. Formatting alone does not explain this: the subscript carries the meaning, and the flattened text reads as different operand names. The following sentence ('the values of operand-1 are ...') lets a careful reader recover the intent, but the transcribed expression itself is wrong. The same defect occurs in general rule 1 (md line 17), which the claim notes.",
+    "corrected_description": ""
+  }
+}

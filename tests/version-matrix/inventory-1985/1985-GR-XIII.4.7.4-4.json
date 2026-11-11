@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.7.4-4",
  "rule-digest": "0e2a6a8768ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportInactiveError; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitTerminate",
  "test-ref": "conformance:cases/XIII.4.7@1985-TERMINATE-STATEMENT/1985-GR-XIII_4_7_4-4",
+ "notes": "§1985:XIII.4.7.4 GR4: 'The TERMINATE statement cannot be executed for a report unless the TERMINATE statement was chronologically preceded by an INITIATE statement for that report and for which no TERMINATE statement has yet been executed'; no result is stated. TerminateCore does its work only for a report Initiate made active, and otherwise raises EC-REPORT-INACTIVE, which cannot be enabled at 85, and returns. Probes at 85: TERMINATE with no INITIATE, and a second TERMINATE, run with no output (one FINAL footing in the file) and no abend; INITIATE, GENERATE, TERMINATE, INITIATE, TERMINATE prints the witness's TERMINATE OK.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "Both require an initiated, not yet terminated report: 1985 'cannot be executed ... unless ... chronologically preceded by an INITIATE statement for that report and for which no TERMINATE statement has yet been executed'; 2023 'may be executed only for a report that is in the active state' (§2023:14.9.46.4 GR1), set by INITIATE (§2023:14.9.21.4 GR4) and ended by TERMINATE (§2023:14.9.46.4 GR2; §2023:13.8.4 prose defines the state). 1985 states no result for the violation, a run-time rule; 2023 defines one: 'the EC-REPORT-INACTIVE exception condition is set to exist and the execution of the statement has no other effect'. Different (now defined) result.",
-  "source": "adjudicate-712/slice-27"
+  "source": "adjudicate-712/slice-27",
+  "digests": {
+   "GR-14.9.46.4-1": "11dd57160a66",
+   "GR-14.9.21.4-4": "fd644e9523b7",
+   "GR-14.9.46.4-2": "8b2f5f52e559"
+  }
  }
 }

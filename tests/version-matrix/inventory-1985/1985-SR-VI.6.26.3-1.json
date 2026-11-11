@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.26.3-1",
  "rule-digest": "d39d57676bce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef",
  "test-ref": "conformance:cases/VI.6.26@1985-SUBTRACT-STATEMENT/1985-SR-VI_6_26_3-1",
+ "notes": "SR1 asks that each identifier refer to a numeric elementary item (numeric edited allowed after GIVING, groups in CORRESPONDING); every probe of the read and the refuter for that test held. The doubt was SUBTRACT FUNCTION INTEGER (2.5) FROM N, which compiles and runs (+003). A numeric or integer function references a numeric elementary temporary item, so SR1 is met; what forbids the program at 85 is IV.4.3.4's separate rule that such functions appear only in arithmetic expressions. That defect is real but belongs to the IV.4.3.4 row.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: \"In format 3, each identifier must refer to a group item.\"; 2023: \"shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group items and shall not be described with level-number 66\". Formats 1 and 2 keep the numeric and numeric-edited requirements. Format 3 now refuses level-66 items, which 1985 allowed, and names new group kinds.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.44.3-2": "a11e62bb2996",
+   "SR-14.9.44.3-4": "bd1d55785a2c",
+   "SR-14.9.44.3-6": "b8fc4a5e271b"
+  }
  }
 }

@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1989: argument-1 'is a positive integer that represents a number of days succeeding December 31, 1600', with no upper bound. 2023 §2023:15.22.3 AR1 requires 'a value in integer date form', which §2023:15.5.2 defines with the same meaning but adds 'shall be less than or equal to the value of FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671'. An argument above 3,067,671, in range in 1989, is now out of range (EC-ARGUMENT-FUNCTION per §2023:15.3 AR14). Stricter. §2023:15.5.2 has no catalog row.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "AR-15.22.3-1": "8c79c8127533"
+  }
  }
 }

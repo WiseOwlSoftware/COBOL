@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: \"The number of digits returned is 18.\"; 2023: \"The returned value is the numeric value represented by argument-1. ... shall not exceed 31 ... 35 ... 34\". 1985 fixes NUMVAL's result at 18 digits. 2023 returns the value argument-1 represents, which may have up to 31, 34 or 35 digits depending on the arithmetic mode.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "RV-15.67.4-1": "b9ce1d908672",
+   "AR-15.67.3-3": "8f78890f1c52",
+   "AR-15.67.3-4": "d9a27dcb47d3"
+  }
  }
 }

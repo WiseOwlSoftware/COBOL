@@ -129,8 +129,11 @@ internal static class PlaceIdentification
         || path.Segments.Any(s => s is FixedTableSegment { Odo: not null } or DynTableSegment);
 
     /// <summary>The operand with its data reference frozen — a field operand's <see cref="Place"/>; a literal, a
-    /// figurative or a function result has no run-time address of its own (a function-identifier's argument
-    /// subscripts were hoisted at bind time, <c>ProcedureBindState.PendingPreOps</c>) and is returned unchanged.</summary>
+    /// figurative or a function result has no run-time address of its own and is returned unchanged. ⛔ A FUNCTION
+    /// RESULT IS NOT THEREBY IDENTIFIED: only a function-bearing subscript of its argument was hoisted at bind time
+    /// (<c>StatementBinder.SubscriptSegments</c>, <c>ProcedureBindState.PendingPreOps</c>), so a verb that identifies
+    /// its operands once evaluates each function result into a local itself (<c>InspectEmitter.EmitBody</c>'s
+    /// <c>Once</c>, kb/Work PB5184).</summary>
     public static BoundOperand? Freeze(BoundOperand? op, Func<string, string> hoist) =>
         op is BoundFieldOperand f ? f with { Place = Freeze(f.Place, hoist) } : op;
 

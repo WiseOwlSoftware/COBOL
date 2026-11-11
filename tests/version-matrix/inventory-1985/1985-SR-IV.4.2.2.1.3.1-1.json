@@ -8,6 +8,9 @@
    "SR-8.3.2.4.2-1"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-8.3.2.4.2-1": "3cb70b3e7699"
+  }
  }
 }

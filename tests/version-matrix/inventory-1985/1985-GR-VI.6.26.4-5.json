@@ -14,6 +14,10 @@
   "reason": "1985 GR5 points SUBTRACT to Scope of Statements, ROUNDED, ON SIZE ERROR, The Arithmetic Statements, Overlapping Operands, Multiple Results and CORRESPONDING; Overlapping Operands makes the result 'undefined' when a sending and receiving item share storage (§1985:VI.6.4.5). §2023:14.9.44.4 GR6 points to '14.6.13.2, Incompatible data; 14.7.4, ROUNDED phrase' and on to SIZE ERROR, CORRESPONDING and 14.7.7, and drops the overlap reference: §2023:14.7.7 GR4 now carries multiple results and makes 'the results contained in the receiving operands for all arithmetic statements ... defined regardless of whether any of the sending operands share storage', which §2023:14.6.10 defers to because the statement rules 'provide for a specific result'. An overlapping SUBTRACT, undefined in 1985, has a defined result in 2023, and the incompatible-data rules are newly attached; the referenced requirement set differs.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "source": "adjudicate-712/slice-13",
+  "digests": {
+   "GR-14.9.44.4-6": "2633277b8039",
+   "GR-14.7.7-4": "cfc34ed7e634"
+  }
  }
 }

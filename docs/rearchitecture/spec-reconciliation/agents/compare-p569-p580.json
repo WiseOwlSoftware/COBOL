@@ -1,10 +1,10 @@
 {
   "batch": [569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580],
-  "pages_checked": [569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580],
+  "pages_checked": [569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580], "pages_unread": [],
   "notes": "No general-format diagrams / syntax skeletons appear anywhere on PDF pages 569-580 (printed 539-550). This run is 14.6.2.4 through 14.6.13.1.5 - all running prose, numbered lists and NOTEs. The page_workunit.py figure detector agreed (0 of 12 slices flagged as figure content). The priority defect class (lost choice-indicator bars, unclosed brackets, misplaced ellipses, lost underlining) therefore has no instances to check on this batch.",
   "findings": [
     {
-      "page": 575,
+      "id": "p575-1", "page": 575,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Printed page 545 (PDF page 575) ends with '4) All instance objects are destroyed.' followed only by the footer. The block that begins 'NOTE  Any open files in an object are closed before the object is destroyed.' and runs through '14.6.13.1.1  General / An exception condition is either a condition associated with a specific exception status indicator or an exception object. ... specified in the RAISING phrase.' is printed EXACTLY ONCE, on printed page 546 (PDF page 576).",
@@ -13,7 +13,7 @@
       "suggested_repair": "Delete specs/ISO_COBOL.md lines 24069-24109 (the stray '---' at 24070 through the blank lines before '<a id=\"page-576\"></a>' at 24110), keeping the copy that begins at line 24110 - it is the one carrying the page anchor and the correct '### 14.6.13.1' / '#### 14.6.13.1.1' depths."
     },
     {
-      "page": 576,
+      "id": "p576-1", "page": 576,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Printed page 546 (PDF page 576) ends with '... in which the object is specified in the RAISING phrase.' and then the footer '546   ©ISO/IEC 2023'. Printed page 547 (PDF page 577) OPENS with the paragraph 'An exception status indicator is a conceptual entity that exists for each function, method, or program for each exception condition and has two states, set or cleared. The initial state of all exception status indicators is cleared. ...'",
@@ -22,7 +22,7 @@
       "suggested_repair": "Strip the inlined footer text '546 �ISO/IEC 2023 ' from line 24149 and move the remaining paragraph ('An exception status indicator is a conceptual entity ... to be executed.') to immediately after the '# ISO/IEC 1989:2023 (E)' header line of the page-577 slice, ahead of 'In addition to exception status indicators, ...'."
     },
     {
-      "page": 580,
+      "id": "p580-1", "page": 580,
       "kind": "incorrect-text",
       "severity": "cosmetic",
       "pdf_says": "14.6.13.1.4 item 3): '... If execution of the declarative completes normally, execution continues as specified in the statement for normal execution. If a conditional phrase with a NOT phrase is specified in the interrupted statement, the imperative-statement in that phrase is not executed.'",
@@ -31,7 +31,7 @@
       "suggested_repair": "In the page-580 slice, item 3) of 14.6.13.1.4, change 'as specified in the rules for normal execution' to 'as specified in the statement for normal execution'."
     },
     {
-      "page": 569,
+      "id": "p569-1", "page": 569,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "Heading '14.6.2.4   Initial state of object data' - a fourth-level clause number, the same depth as 14.6.8.1 / 14.6.9.1, which the transcription renders at '###'.",
@@ -40,7 +40,7 @@
       "suggested_repair": "Change line 23799 to '### 14.6.2.4 Initial state of object data' to match the file's dominant convention (three-part number -> '##', four-part -> '###', five-part -> '####')."
     },
     {
-      "page": 575,
+      "id": "p575-2", "page": 575,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "Heading '14.6.9.4   Space filling a dynamic table' - the fourth sibling of 14.6.9.1, 14.6.9.2 and 14.6.9.3, which the transcription renders at '###'.",
@@ -49,7 +49,7 @@
       "suggested_repair": "Change line 24035 to '### 14.6.9.4 Space filling a dynamic table'."
     },
     {
-      "page": 578,
+      "id": "p578-1", "page": 578,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "Heading '14.6.13.1.2   Normal completion of a declarative procedure' - a fifth-level clause number, the sibling of 14.6.13.1.1 'General'.",
@@ -58,7 +58,7 @@
       "suggested_repair": "Change line 24187 to '#### 14.6.13.1.2 Normal completion of a declarative procedure'."
     },
     {
-      "page": 579,
+      "id": "p579-1", "page": 579,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "Heading '14.6.13.1.3   Fatal exception conditions' - a fifth-level clause number, the sibling of 14.6.13.1.1 and 14.6.13.1.2.",
@@ -67,7 +67,7 @@
       "suggested_repair": "Change line 24203 to '#### 14.6.13.1.3 Fatal exception conditions'."
     },
     {
-      "page": 580,
+      "id": "p580-2", "page": 580,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "Headings '14.6.13.1.4   Nonfatal exception conditions' and '14.6.13.1.5   Exception objects' - fifth-level clause numbers, siblings of 14.6.13.1.1 'General'.",

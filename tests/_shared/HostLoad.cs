@@ -48,6 +48,58 @@ internal static class HostLoad
         return $"host: {Environment.ProcessorCount} logical processor(s), {busy}{queue}";
     }
 
+    /// <summary>How many durable flushes <see cref="DurableFlushLine"/> times.</summary>
+    internal const int FlushProbes = 5;
+
+    /// <summary>The time a durable flush (<c>FlushFileBuffers</c> / <c>fsync</c>) of a small file takes on the volume of
+    /// <paramref name="directory"/>, as one line for a non-observation (kb/Work PB5147). A process that spent its budget
+    /// off the processor on a host that was not busy was blocked, and a program whose every statement flushes a file
+    /// (the MCS device of a SEND flushes it before the store commits it) is blocked in exactly that call when the volume
+    /// flushes slowly; the line says how slowly, so the next reader reads the stall off the line instead of guessing it.
+    /// The probe file is created in, and removed from, that directory; an instrument that cannot probe says so.</summary>
+    public static string DurableFlushLine(string? directory)
+    {
+        string dir = RunDirectory(directory);
+        string probe = Path.Combine(dir, ".flush-probe-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var times = new List<TimeSpan>(FlushProbes);
+            using (var handle = File.OpenHandle(probe, FileMode.CreateNew, FileAccess.Write, FileShare.None, FileOptions.DeleteOnClose))
+            {
+                byte[] one = [1];
+                for (int i = 0; i < FlushProbes; i++)
+                {
+                    RandomAccess.Write(handle, one, 0);
+                    long start = System.Diagnostics.Stopwatch.GetTimestamp();
+                    RandomAccess.FlushToDisk(handle);
+                    times.Add(System.Diagnostics.Stopwatch.GetElapsedTime(start));
+                }
+            }
+            return DescribeFlushes(times);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException)
+        {
+            return "durable flush on the run volume: not probed (" + e.GetType().Name + ")";
+        }
+    }
+
+    /// <summary>The directory a child started with <paramref name="workingDirectory"/> runs in: that directory, or, when the
+    /// start names none, the one the child inherits, the current directory of this process (which may be on another volume
+    /// than the temp directory, so the probe must not read the temp directory's flush time for it).</summary>
+    internal static string RunDirectory(string? workingDirectory) =>
+        string.IsNullOrEmpty(workingDirectory) ? Environment.CurrentDirectory : workingDirectory;
+
+    /// <summary>The line for the flush times of the probes: their median and their largest, in milliseconds.</summary>
+    internal static string DescribeFlushes(IReadOnlyList<TimeSpan> times)
+    {
+        if (times.Count == 0) return "durable flush on the run volume: not probed";
+        var ordered = times.Order().ToArray();
+        double median = ordered[ordered.Length / 2].TotalMilliseconds;
+        double worst = ordered[^1].TotalMilliseconds;
+        return string.Create(CultureInfo.InvariantCulture,
+            $"durable flush on the run volume: median {median:0.0} ms, worst {worst:0.0} ms of {ordered.Length} probes");
+    }
+
     /// <summary>Linux's 1-, 5- and 15-minute run-queue averages (<c>/proc/loadavg</c>): how many processes wanted a
     /// processor, which the busy share cannot show once every processor is busy.</summary>
     private static string? LoadAverage()

@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "2023 still allows SAME RECORD/SORT/SORT-MERGE AREA FOR file-name-1 {file-name-2}... in I-O-CONTROL, repeatable, ended by a period. APPLY COMMIT and SAME AREA come from other clauses or modules.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-12.4.6.2": "bea3f5dbe52a",
+   "FMT-12.4.6.4.2": "ef1242cdad87",
+   "SR-12.4.6.4.3-1": "f8b860fb7ff2"
+  }
  }
 }

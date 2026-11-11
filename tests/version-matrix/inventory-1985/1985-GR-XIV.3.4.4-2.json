@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.4.4-2",
  "rule-digest": "fa624133ee52",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Release; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToDestinations",
  "test-ref": "conformance:cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-2",
+ "notes": "§1985:XIV.3.4.4 GR2: \"Any message that has associated with it an EMI or EGI is not affected by the execution of a PURGE statement.\" Dialogue.Release removes the destination's pending entry and hands the message to the MCS when an EMI or EGI ends it, so MessageControlSession.Purge, which removes only pending entries, cannot reach a completed message; an ESI-ended segment stays pending and is purged. The witness keeps an EMI message across PURGE. Probes at 85: (b) AAA WITH EMI, GGG WITH EGI, BBB WITH ESI, PURGE 00 '0', a second PURGE 70 '4', CCC WITH EMI: count 3 and RECEIVE gives AAA (end key 2), GGG (3), CCC (2), BBB gone; (c) refused COBOL0902 at 2014/2023; (a,d,e,f) not applicable.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

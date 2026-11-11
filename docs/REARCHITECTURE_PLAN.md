@@ -29,7 +29,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   with `-Cluster PB4147,PB2911`: PB4147 is the landing pipeline's single-point bottlenecks, measured (the shared refusal
   registry, landed: one file per test; the traceability inventory PB4148; chained enqueue units PB4180; stall routing
   PB4190; the merge queue's build width PB3773). PB2911 is the GAP campaign's notes in the operator's partition, PB1253
-  included. The traceability inventory is at ZERO GAP since 2026-11-05 (kb/Work A11 closed its last row, DOC-A.1-17);
+  included. The 2023 traceability inventory is at ZERO GAP since 2026-11-05 (kb/Work A11 closed its last row, DOC-A.1-17;
+  the 1985 and 2002 inventories count their own GAP on the probe's `invent` line, 2002's held since kb/Work PB5256);
   the Mythos lane runs the remaining GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the partition redesign (PB4146) and each fuzz night's triage,
   and runs fix-lane waves on its own quota. Neither lane plans what the other's dispatch holds (`inflight-groups.json`).
   The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans nothing else on
@@ -165,7 +166,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   relative), `PB385` (105 transcription sub-items at column 0, so `cite.py` labels each with its predecessor's
   letter), `PB386` (owner: the closure path for a rule with no observable obligation); `PB303`'s `inventory_rows`
   corrected); ⑤ the ledger refresh after each. Owner-decision
-  queue: ZERO except the introducing edition of `USAGE POINTER TO type-name` (`A1`, needs the 2002/2014 texts).
+  queue: ZERO except the introducing edition of `USAGE POINTER TO type-name` (`A1`, needs the 2002/2014 texts, now held:
+  `specs/ISO_COBOL_2002.md`, `specs/ISO_COBOL_2014.md`).
   The CI flake `Collation.CollationKeyCacheTests.ConcurrentCallers_GetOneKeyPerText_AndNeverAWrongOne` (3 of 8
   Linux unit runs, A12 shape) is `PB377`, LANDED 2026-09-03 — `MaxEntries` was not a bound (a try-once eviction
   pass dropped concurrent overflows; the red was the size assertion, never the wrong-key one), with `PB380` opened
@@ -904,7 +906,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   ⚠ **THE EFFECT IS +15, NOT THE +17 FIRST REPORTED.** §2023:13.18.40.5 yields 15 GRs; **§2023:13.18.40.6 yields ZERO** —
   its content is UNNUMBERED prose plus Tables 10 and 11, and the normative content IS those two precedence
   matrices, which have no per-rule ordinal to extract. The "2" came from a line-range scan that ran past the
-  clause boundary. Both dispositions are now DECLARED IN THE EXTRACTOR (`EXCLUDED_BLOCKS` / `KNOWN_EMPTY_BLOCKS`,
+  clause boundary. Both dispositions are now DECLARED IN THE EXTRACTOR (`IsoEdition.excluded_blocks` / `known_empty_blocks`,
   each with its reason) rather than left to reappear as a warning on every run — a guard that reports an expected
   condition forever is one people learn to ignore. The only PARSE GAP still reported is **§2023:15.4 "Returned
   values"**, which is PRE-EXISTING (verified by running the extractor on the pre-change tree) and unowned.
@@ -3237,7 +3239,9 @@ already-derivable coverage; none change the pipeline.
   a self-test's static inputs. A Python self-test that can read the wall clock passes only if it also passes with the
   clock moved forward 400 days, so a fixture dated near its authoring day fails at once (a self-test comparing the clock
   with a real one declares `# SELF-TEST-CLOCK: real — <why>`; a recorded PASS is reused only inside the horizon it
-  proved; kb/Work PB4358, `scripts/self_test_clock.py`, DESIGN-test-build-ci.md §3.14.10 item 5).
+  proved; kb/Work PB4358, `scripts/self_test_clock.py`, DESIGN-test-build-ci.md §3.14.10 item 5). A gate that re-runs
+  such a self-test whose clock key (its own file and the inputs that read a clock, do time arithmetic or carry a date)
+  matches a recorded proof runs it once and reuses the proof (kb/Work PB5226).
 - The order (kb/Work PB4328; `docs/rearchitecture/DESIGN-test-build-ci.md` sections 3.13 and 3.14.2): every gate runs
   the whole population; the test framework's `GateOrderer` runs the classes named by `WISEOWL_COBOL_GATE_FIRST` (the
   gate's `first-classes.txt`: red at its previous run, the hand-run Linux gate's newest run or the bouncing merge-group

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.3.4-1",
  "rule-digest": "f5ddb44e5717",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible",
  "test-ref": "conformance:cases/X.5.3@1985-CANCEL-STATEMENT/1985-GR-X_5_3_4-1",
+ "notes": "§1985:X.5.3.4 GR1 requires that 'Literal-1 or the content of the data item referenced by identifier-1 identifies the program to be cancelled.' CallBinder#BindCancel binds each operand (refusing a numeric or edited identifier, COBOL1696, and a numeric literal or figurative, COBOL1627), CallEmitter#EmitCancel renders the literal or the identifier's value at execution in the edition's spelling, and ProgramTable#Cancel forms the externalized name and locates the program through ResolveVisible, the same scope CALL uses. Probes at --std 85: an X(8) identifier holding 'SUBP' with trailing spaces, a ref-modified identifier at (1:4), a group identifier and a two-literal CANCEL each reset the named program (counts 2 to 1 on the next CALL); a never-called and a nonexistent name took no action; a lowercase literal cancelled SUBP; national and PROGRAM-POINTER operands were refused (COBOL0900, 2002+). The witness cancels through an identifier and re-calls the program in its initial state.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'Literal-1 or the content of the data item referenced by identifier-1 identifies the program to be cancelled.' §2023:14.9.5.4 GR1 keeps both and adds 'c) program-prototype-name-1', and sends the literal/identifier value through 8.3.2.2, where under the COBOL call convention 'the program-name is treated as a COBOL word that maps to the externalized name of the program' (§2023:8.3.2.2). A 1985 CANCEL means the same; the rule is looser (a third operand kind, national identifiers).",
-  "source": "adjudicate-712/slice-22"
+  "source": "adjudicate-712/slice-22",
+  "digests": {
+   "GR-14.9.5.4-1": "02d55b723178",
+   "GR-8.3.2.2-L5.2": "bf57ac71393f"
+  }
  }
 }

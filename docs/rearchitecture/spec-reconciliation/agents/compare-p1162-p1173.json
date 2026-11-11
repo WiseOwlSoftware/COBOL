@@ -1,9 +1,9 @@
 {
   "batch": [1162, 1163, 1164, 1165, 1166, 1167, 1168, 1169, 1170, 1171, 1172, 1173],
-  "pages_checked": [1162, 1163, 1164, 1165, 1166, 1167, 1168, 1169, 1170, 1171, 1172, 1173],
+  "pages_checked": [1162, 1163, 1164, 1165, 1166, 1167, 1168, 1169, 1170, 1171, 1172, 1173], "pages_unread": [],
   "findings": [
     {
-      "page": 1171,
+      "id": "p1171-1", "page": 1171,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "NOTE    The VALIDATE facility is an obsolete feature.\n\nUnlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.  [both paragraphs are set in the smaller NOTE type face, visibly smaller than the surrounding body text - i.e. the second paragraph is a continuation of the NOTE, not body text]",

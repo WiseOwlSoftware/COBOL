@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.4.5.2",
  "rule-digest": "a1cf84223173",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openFileSpec; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenTapePhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOpenStatement; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
  "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/1985-FMT-XIII_4_5_2",
+ "notes": "§1985:XIII.4.5.2 admits a report file only as `OPEN {OUTPUT {file-name-1 [WITH NO REWIND]}... | EXTEND {file-name-2}...}...`. BindOpen resolves the report file (admitsReportFile), CheckOpenModeForFile refuses INPUT and I-O for a report file (COBOL2371), CheckOpenTapePhrase refuses NO REWIND after EXTEND (COBOL1803), and the 2023-only sharing-phrase and retry-phrase are gated at 85 (VisitOpenStatement for SHARING, the retry-phrase-2002 construct for RETRY, both COBOL0900). Probes at --std 85 with FILE STATUS: OPEN OUTPUT ... WITH NO REWIND gives 07 on the disk file, report written; OPEN EXTEND afterwards gives 00 and appends (file holds HELLO twice); (b) OPEN INPUT and OPEN I-O of the report file COBOL2371; OPEN EXTEND ... WITH NO REWIND COBOL1803; `OPEN OUTPUT.` (no file) COBOL0001; one file twice in one OPEN gives 41 on the second; (c) OPEN OUTPUT SHARING WITH NO OTHER and OPEN OUTPUT RETRY 3 TIMES both COBOL0900; (e) OPEN EXTEND of a missing OPTIONAL report file gives 05 then CLOSE 00; a failed OPEN OUTPUT (bad path) gives 30. The witness (OPEN OUTPUT / EXTEND of a report file) passes.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: \"OPEN { OUTPUT {file-name-1 [WITH NO REWIND]} … | EXTEND {file-name-2} … } …\"; 2023: \"{ open-mode } [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …\". Report files stay limited to OUTPUT [NO REWIND] or EXTEND (SR-1, SR-6), but the 2023 format adds sharing-phrase and retry-phrase, with no rule barring them for report files.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.27.2": "ba0f3d6b7e89",
+   "SR-14.9.27.3-1": "c745d4b6e59a",
+   "SR-14.9.27.3-6": "ef930aaa3c06"
+  }
  }
 }

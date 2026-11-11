@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 VIII.3.2.3 SR1 (relative I-O): 'The level indicator FD identifies the beginning of a file description entry and must precede file-name-1.' §2023:13.4.5.2 Format 2 (relative-or-indexed) begins '<u>FD</u> file-name-1'. Same requirement, stated by the general format.",
-  "source": "adjudicate-712/slice-31"
+  "source": "adjudicate-712/slice-31",
+  "digests": {
+   "FMT-13.4.5.2": "b75b09e44e69"
+  }
  }
 }

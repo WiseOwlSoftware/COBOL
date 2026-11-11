@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 states the same rule: level-numbers identical and not 66 or 88. The 1985 level-2 box marks no difference under the audit rules.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.44.3-2": "aa1b252e8f6d"
+  }
  }
 }

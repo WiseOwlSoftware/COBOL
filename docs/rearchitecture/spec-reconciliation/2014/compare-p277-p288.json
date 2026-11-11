@@ -1,0 +1,43 @@
+{
+  "batch": [
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    287,
+    288
+  ],
+  "pages_checked": [
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    287,
+    288
+  ],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p283-1",
+      "page": 283,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "section": "12.4.4.8.3 General rules 1) b)",
+      "pdf_says": "b) If there is no SHARING clause in that file control entry, 1. If an OPEN statement for the associated file connector has a SHARING phrase, ... 2. If an OPEN statement for the associated file connector has no SHARING phrase, ... (items 1. and 2. are printed indented one level deeper than a) and b), as sub-items of b))",
+      "markdown_says": "   b) If there is no SHARING clause in that file control entry,\n\n   1\\. If an OPEN statement for the associated file connector has a SHARING phrase, ...\n\n   2\\. If an OPEN statement for the associated file connector has no SHARING phrase, ...",
+      "why_it_matters": "The markdown indents items 1. and 2. at the same level as a) and b), flattening the nesting; the sub-items read as siblings of b) rather than as its children. Wording is intact."
+    }
+  ]
+}

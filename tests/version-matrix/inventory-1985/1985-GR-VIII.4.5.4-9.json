@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.30.4 GR28, printed under 'FORMAT 2' of the general rules, repeats 1985: optional input file not present gives 'the invalid key condition exists and execution of the READ statement is unsuccessful'; §2023:9.1.13.5 GR3 b) names status 23 for 'a START or random READ' on an absent optional file. Same.",
-  "source": "adjudicate-712/slice-19"
+  "source": "adjudicate-712/slice-19",
+  "digests": {
+   "GR-14.9.30.4-28": "f11d5a778fd1",
+   "GR-9.1.13.5-3": "c3ad7e9c7625"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both resolve references to data-name-1 per its linkage section description at all times. Adding data-name-2 and methods/functions only covers new features; 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.2.3-11": "c2b59b54a140"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.8.4-7",
  "rule-digest": "48cc2108000a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#FlowUseError",
  "test-ref": "conformance:cases/XIII.4.8@1985-USE-AFTER-STANDARD-EXCEPTION-PROCEDURE-STATEMENT/1985-GR-XIII_4_8_4-7",
+ "notes": "§1985:XIII.4.8.4 GR7: 'Within a USE procedure, there must not be the execution of any statement that would cause the execution of a USE procedure that had previously been invoked and had not yet returned control to the invoking routine'; no result is stated. EmitRunUseBody guards each procedure with __useActive[id]: an active procedure is not re-invoked (FlowUseError, EC-FLOW-USE, cannot be enabled at 85), and a different one is. Probes at 85: an OPEN EXTEND failing (35) inside its own file's USE procedure, and an EXTEND-phrase USE that fails on the first file, both return without re-entry, looping or abend; the witness's USE A invoking USE B prints USE A 35, USE B 35.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"there must not be the execution of any statement that would cause the execution of a USE procedure that had previously been invoked\"; 2023: \"if a statement raises an exception condition that would cause the execution of a USE procedure ... the EC-FLOW-USE exception condition is set to exist\". 1985 forbids such execution, leaving the result unspecified. 2023 defines a result: the EC-FLOW-USE exception condition is set to exist.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.49.4-2": "820a17a8823a"
+  }
  }
 }

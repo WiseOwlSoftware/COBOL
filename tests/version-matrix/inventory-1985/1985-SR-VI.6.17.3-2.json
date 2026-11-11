@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "For the non-pointer categories, 2023 still requires a valid MOVE from identifier-2 or literal-1. The SET rule covers only categories 1985 lacks, so 1985 programs are judged alike.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.20.3-4": "73317e0120ce"
+  }
  }
 }

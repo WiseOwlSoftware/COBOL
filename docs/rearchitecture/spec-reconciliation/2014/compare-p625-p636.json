@@ -1,0 +1,25 @@
+{
+  "batch": [625, 626, 627, 628, 629, 630, 631, 632, 633, 634, 635, 636],
+  "pages_checked": [625, 626, 627, 628, 629, 630, 631, 632, 633, 634, 635, 636],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p625-1",
+      "page": 625,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(operand-1₁ + operand-1₂ + ... + operand-1ₙ) ... (operand-2 – (operand-1₁ + operand-1₂ + ... + operand-1ₙ))",
+      "markdown_says": "(operand-11 + operand-12 + ... + operand-1n) ... (operand-2 – (operand-11 + operand-12 + ... + operand-1n))",
+      "why_it_matters": "In 14.9.40.3 SUBTRACT general rules 1 and 2 the subscripts 1, 2, n on operand-1 are flattened into the operand name, so 'operand-11' and 'operand-12' read as operands eleven and twelve instead of the first and second occurrences of operand-1; the arithmetic-expression equivalence that defines the initial evaluation is garbled."
+    },
+    {
+      "id": "p629-1",
+      "page": 629,
+      "kind": "incorrect-figure",
+      "severity": "structural",
+      "pdf_says": "UNLOCK file-name-1 [ RECORD / RECORDS ]  (one line: UNLOCK, then file-name-1, then a bracket stacking RECORD over RECORDS)",
+      "markdown_says": "<u>UNLOCK</u>      ┌ RECORD  ┐\n            │         │\nfile-name-1 │         │\n            └ RECORDS ┘",
+      "why_it_matters": "The 14.9.43.1 general format puts file-name-1 on a separate row beneath UNLOCK, so the drawing reads as UNLOCK followed by the RECORD/RECORDS bracket with file-name-1 dangling or stacked under UNLOCK; the operand order UNLOCK file-name-1 [RECORD|RECORDS] is not shown on one line as the standard prints it."
+    }
+  ]
+}

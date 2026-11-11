@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 GR4 only says placement rules depend on report group type, stated elsewhere. 2023 likewise confines each group, by type, to page regions. Extra page-numbering text adds no conflict.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.39.4-1": "bfd4b4e2bdff"
+  }
  }
 }

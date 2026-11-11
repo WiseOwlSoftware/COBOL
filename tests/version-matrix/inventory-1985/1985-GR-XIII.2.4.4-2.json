@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985 only points the report file's SAME clause to the Sequential I-O SAME clause (SAME AREA only for a report file). 2023 has the one SAME clause: file-area format (FMT 12.4.6.4.2), §2023:12.4.6.4.3 SR5 'A given file-name that represents a report file may be specified in one file-area format SAME clause', §2023:12.4.6.4.4 GR1 'are to use the same memory area during processing'. FMT-12.4.6.2 (I-O-CONTROL paragraph) does not state this pointer's content.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "FMT-12.4.6.4.2": "ef1242cdad87",
+   "SR-12.4.6.4.3-5": "6d3deb9a964c",
+   "GR-12.4.6.4.4-1": "a9a0d9d82c17"
+  }
  }
 }

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "No-REPLACING case unchanged: §2023:7.2.3.4 GR7 'the library text is included in the resultant text unchanged'. But 1985 replaces matched 'pseudo-text-1, identifier-1, word-1, and literal-1'; §2023:7.2.3.4 GR8 replaces only 'pseudo-text-1 or partial-word-1', and the rendered §2023:7.2.3.2 format (PDF p.76) offers only ==pseudo-text== and LEADING/TRAILING ==partial-word== operands. A 1985 COPY ... REPLACING identifier/word/literal is refused under 2023; partial-word replacement is added.",
-  "source": "adjudicate-712/slice-23"
+  "source": "adjudicate-712/slice-23",
+  "digests": {
+   "GR-7.2.3.4-7": "bd03f9f6ad54",
+   "GR-7.2.3.4-8": "52b4837424e9"
+  }
  }
 }

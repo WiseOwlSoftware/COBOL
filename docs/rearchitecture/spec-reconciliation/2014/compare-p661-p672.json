@@ -1,0 +1,43 @@
+{
+  "batch": [661, 662, 663, 664, 665, 666, 667, 668, 669, 670, 671, 672],
+  "pages_checked": [661, 662, 663, 664, 665, 666, 667, 668, 669, 670, 671, 672],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p662-1",
+      "page": 662,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "LOWER-CASE | Alph1 or Anum1 or Nat1 | Depends upon argument^a (superscript footnote marker a)",
+      "markdown_says": "| LOWER-CASE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argumenta |",
+      "why_it_matters": "The superscript footnote reference 'a' (pointing to Table 22's footnote 'A function that has only alphabetic arguments is type alphanumeric.') is flattened into the word, producing 'argumenta'; the link from the Type cell to the footnote is no longer marked."
+    },
+    {
+      "id": "p663-1",
+      "page": 663,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "MAX ... Depends upon arguments^a; MIN ... Depends upon arguments^a (superscript footnote marker a)",
+      "markdown_says": "| MAX | ... | Depends<br>upon<br>argumentsa | Value of maximum argument |  and  | MIN | ... | Depends<br>upon<br>argumentsa | Value of minimum argument |",
+      "why_it_matters": "The superscript footnote reference 'a' is flattened into the word ('argumentsa') in the MAX and MIN rows, so the Type cell no longer visibly points to Table 22's footnote about alphabetic arguments yielding type alphanumeric."
+    },
+    {
+      "id": "p664-1",
+      "page": 664,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "REVERSE | Alph1 or Anum1 or Nat1 | Depends upon argument^a (superscript footnote marker a)",
+      "markdown_says": "| REVERSE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argumenta |",
+      "why_it_matters": "The superscript footnote reference 'a' is flattened into 'argumenta', losing the visible link to Table 22's footnote."
+    },
+    {
+      "id": "p665-1",
+      "page": 665,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "TRIM ... Depends upon argument^a; UPPER-CASE ... Depends upon argument^a; footnote: \"a A function that has only alphabetic arguments is type alphanumeric.\" (superscript a)",
+      "markdown_says": "| TRIM | Alph1 or<br>Anum1 or<br>Nat1, Key2 | Depends<br>upon<br>argumenta | ... | UPPER-CASE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argumenta | ... | a A function that has only alphabetic arguments is type alphanumeric. |",
+      "why_it_matters": "The superscript footnote markers are flattened into 'argumenta' in the TRIM and UPPER-CASE rows (and the footnote's own superscript 'a' is plain), so the reference from the Type cell to the footnote is no longer marked; the footnote text itself is preserved."
+    }
+  ]
+}

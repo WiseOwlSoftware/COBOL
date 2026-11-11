@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"{ identifier-2 [ ROUNDED ] } … [ ON SIZE ERROR imperative-statement-1 ] [ NOT ON SIZE ERROR imperative-statement-2 ]\"; 2023: \"{ identifier-2 [ rounded-phrase ] } with choice indicators: zero or more, each at most once, in any order; ROUNDED [MODE IS …]\". 2023 accepts more programs: ROUNDED may take MODE IS with eight modes, and NOT ON SIZE ERROR may come before ON SIZE ERROR. In 1985 the order was fixed.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.26.2": "d6d62317478b",
+   "FMT-14.7.4.2": "178e65520d4c"
+  }
  }
 }

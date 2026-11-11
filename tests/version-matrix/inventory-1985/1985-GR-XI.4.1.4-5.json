@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.1.4-5",
  "rule-digest": "4953b6e282f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Compiler/Binding/ChoiceIndicators.cs#AlphabetPair; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#SequenceFor",
  "test-ref": "conformance:cases/XI.4.1@1985-MERGE-STATEMENT/1985-GR-XI_4_1_4-5",
+ "notes": "§1985:XI.4.1.4 GR5: the sequence for 'the comparison of the nonnumeric key data items' is 'First, the collating sequence established by the COLLATING SEQUENCE phrase, if specified, in that MERGE statement' and 'Second, the collating sequence established as the program collating sequence'. SortBindCollating starts from the program collating sequence and replaces it with the phrase's alphabet (an identity alphabet such as NATIVE forcing native order), ChoiceIndicators.AlphabetPair refuses the alphabet-name-2 / FOR forms below 2002 (COBOL0872), and SortKeyColumns.SequenceFor applies the sequence only to alphanumeric-class keys. Probes at 85: witness (phrase C>B>A over PCS B>A>C, then PCS alone) matches; class d: with PCS C>B>A>3>2>1, a NATIVE alphabet phrase gives A B C, STANDARD-1 DESCENDING gives C B A, a numeric DISPLAY key orders 1 2 3 (PCS not applied), a group key orders by the PCS (C31 B22 A11); class b: undefined alphabet and a data-name -> COBOL5989, two alphabet-names -> COBOL0872 plus COBOL5989, empty phrase -> COBOL5506; class c: FOR ALPHANUMERIC -> COBOL0872 (its text cites the SORT rule §2023:14.9.40.3 SR2 for a MERGE, a wording slip only). Classes a, e, f do not change which sequence applies.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.24.4 GR5 keeps the order (COLLATING SEQUENCE phrase first, then program collating sequence) for alphanumeric keys and adds a separate national sequence ('alphabet-name-2 applies to key data items of class national'). §2023:12.3.6.4 GR13 adds a level: the program sequences apply 'unless the sort or merge collating sequence has been modified by execution of a SET statement'. A 1985 program means the same, but the 2023 precedence is not the 1985 two-level rule.",
-  "source": "adjudicate-712/slice-22"
+  "source": "adjudicate-712/slice-22",
+  "digests": {
+   "GR-14.9.24.4-5": "7f4db54205c6",
+   "GR-12.3.6.4-13": "1c7611a27461"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both make STANDARD-1 use the variable-length record method of the ISO 1001 tape label standard. 2023 cites the current edition, drops the ANSI twin: a reference update, not a new rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-12.4.5.11.4-3": "9d25767eeec6"
+  }
  }
 }

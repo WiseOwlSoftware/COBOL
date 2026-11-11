@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Items a and b restate the 1985 file-record duplicate ordering unchanged. Item c covers table sorts, a 2023 feature with no 1985 counterpart, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.40.4-3": "3360f693bb5e"
+  }
  }
 }

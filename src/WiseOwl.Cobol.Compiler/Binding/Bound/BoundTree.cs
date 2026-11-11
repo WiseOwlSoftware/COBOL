@@ -2050,6 +2050,9 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 /// time … set to a value that exceeds the value that corresponds to the last element of the table", so its index
 /// never leaves the table (kb/Work PB447). Format 2 has no VARYING phrase, so
 /// <paramref name="AlsoVaried"/> is null there.</para>
+/// <para><paramref name="IndexBelowTableIsUnsuccessful"/> is Format 1's start test (<c>DialectBehavior.SearchIndexBelowTableUnsuccessful</c>, VCR row 7.56): from
+/// COBOL-2002 an index at or below zero is unsuccessful at once (§2023:14.9.37.4 GR4); at COBOL-85 only an index above the table is
+/// (§1985:VI.6.22.4 GR2), and an index below it starts the scan (kb/Work PB5121).</para>
 /// <para><paramref name="Table"/> is identifier-1 as the statement wrote it: the WHOLE table under the enclosing occurrence the
 /// statement names (<c>PlaceBuilder.WholeTable</c>), the operand SEARCH explicitly references (X3.23-1985 USE FOR DEBUGGING general
 /// rule 5; kb/Work PB4855). The scan reads <paramref name="IndexField"/>, never it.</para>
@@ -2063,7 +2066,7 @@ public sealed record BoundSearch(
     string IndexField, long Count, TableAllPlace Table, BoundSetTarget? AlsoVaried,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens, IReadOnlyList<Position> WhenSubscripts,
     bool IsAll = false, Place? DependItem = null, AccessPath? DynTable = null,
-    bool CheckSearchIndex = false, bool CheckSearchNoMatch = false) : BoundStatement, IBoundEvaluatedPhrases, IBoundImplicitOperands
+    bool CheckSearchIndex = false, bool CheckSearchNoMatch = false, bool IndexBelowTableIsUnsuccessful = true) : BoundStatement, IBoundEvaluatedPhrases, IBoundImplicitOperands
 {
     /// <summary>The OCCURS DEPENDING ON item the scan's bound reads is the table's, not an operand the program wrote (X3.23-1985 USE FOR
     /// DEBUGGING general rule 5: "explicitly references"); the subscripts borrowed from the WHEN phrases are the phrases' own operands.</summary>

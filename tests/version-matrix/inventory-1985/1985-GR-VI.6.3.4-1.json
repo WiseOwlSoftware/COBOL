@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Amendment 1 (X3.23a-1989, Errata C127) did not touch this sentence: it numbered the next paragraph \"(2)\" and added \"and functions\" to it, so that paragraph is now its own rule (§1985:VI.6.3.4 GR2 \"Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated.\", carried by §2023:8.8.4.13 GR2) and no longer part of this one. What remains here is §1985:VI.6.3.4 GR1 \"The constituent connected conditions within a hierarchical level are evaluated in order from left to right, and evaluation of that hierarchical level terminates as soon as a truth value for it is determined regardless of whether all the constituent connected conditions within that hierarchical level have been evaluated.\", and §2023:8.8.4.13 GR1 has the same sentence word for word: \"The constituent connected conditions within a hierarchical level are evaluated in order from left to right, and evaluation of that hierarchical level terminates as soon as a truth value for it is determined regardless of whether all the constituent connected conditions within that hierarchical level have been evaluated.\" The same conditions are evaluated in the same order with the same early termination; the 1985 level-2 box is no difference.",
-  "source": "readjudicate-amended-1985/slice-05"
+  "source": "readjudicate-amended-1985/slice-05",
+  "digests": {
+   "GR-8.8.4.13-1": "7f69a7ca9913"
+  }
  }
 }

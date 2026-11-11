@@ -104,6 +104,29 @@ public enum DialectBehavior
     /// reference", so at <c>--std 85</c> a random READ (format 2, a KEY phrase) of an alternate key that has duplicates
     /// also answers '02' (kb/Work PB5117). The consumer is <c>IndexedConnector.ReadRandom</c>.</summary>
     IndexedDuplicateKeyStatusSequentialOnly = 5,
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.37.4 GR4 — a format 1 SEARCH whose search index, at the start of the execution,
+    /// "corresponds to an occurrence number that is negative, zero, or greater than the highest permissible occurrence number"
+    /// is unsuccessful at once (the 2002 transcription, SEARCH statement general rule 4 at specs/ISO_COBOL_2002.md line 20917, words it the same). §1985:VI.6.22.4 GR2 tests the UPPER bound
+    /// alone: an index "greater than the highest permissible occurrence number for identifier-1" ends the search at once, and
+    /// an index "not greater" starts the serial search by "evaluating the conditions in the order that they are written";
+    /// §1985:VI.6.23.4 GR2 lets a PERFORM or SEARCH leave an index "outside the range of its associated table", which is how a
+    /// program arrives at occurrence 0. So at <c>--std 85</c> an index below 1 starts the scan and is incremented to occurrence 1
+    /// (kb/Work PB5121; VCR row 7.56). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
+    /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
+    SearchIndexBelowTableUnsuccessful = 6,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.22.4 GR19 with §2023:14.6.4 step 6 — a format 3 INSPECT "is interpreted and
+    /// executed as though two successive INSPECT statements", but "Item identification of any identifier in the format 2
+    /// statement is done only once before executing the format 1 statement", and item identification includes the "length
+    /// evaluation for an occurs-depending group item" (the 2002 text, §2002:14.8.21.3 GR18 and §2002:14.5.4 step 6, says the
+    /// same of a variable-length data item). So from 2002 the REPLACING half works over the length identifier-1 had when the
+    /// statement began, whatever the TALLYING half did to the DEPENDING ON object. §1985:VI.6.18.4 GR17 fixes only "Subscripting
+    /// associated with any identifier in the format 2 statement"; its length rule (§1985:VI.6.18.4 GR1 with §1985:VI.5.8.4 GR3:
+    /// the value of data-name-1 "at the start of the operation") is read at the start of EACH of the two successive
+    /// statements, so at <c>--std 85</c> the REPLACING half takes the length anew (kb/Work PB5119). The consumer is
+    /// <c>InspectBinder</c>, which pins the DEPENDING ON object for the statement from 2002 and sets
+    /// <c>BoundInspect.ReplacingTakesLengthAnew</c> below it.</summary>
+    InspectFormat3LengthIdentifiedOnce = 7,
 
     /// <summary>ISO/IEC 1989:2023 §2023:14.9.51.4 GR29 b) — a random or dynamic WRITE of a relative file whose key item holds
     /// "a value that is less than 1 or greater than the highest relative record number permitted for the file" is
@@ -113,7 +136,7 @@ public enum DialectBehavior
     /// '24' for the same attempt (§1985:VIII.1.3.4 item (3) c) with the invalid key condition of §1985:VIII.1.3.5
     /// (kb/Work PB5125). So below 2023 the same test answers '24' and the INVALID KEY phrase runs; from 2023 it answers '34',
     /// the permanent error, and the phrase is skipped. The consumer is <c>RelativeConnector.Write</c>.</summary>
-    RelativeWriteKeyOutOfRangeIsPermanentError = 6,
+    RelativeWriteKeyOutOfRangeIsPermanentError = 8,
 }
 
 /// <summary>
@@ -165,8 +188,16 @@ public static class DialectBehaviors
             "7.55", "14.9.30.4 GR27", "§1985:IX.1.3.4 GRL2.1",
             "I-O status 02 for a READ whose key of reference equals the next record's key is set only by a sequential "
             + "READ from COBOL-2002; COBOL-85 also sets it for a random READ of an alternate key's duplicate set"),
+        new(DialectBehavior.SearchIndexBelowTableUnsuccessful, "search-index-below-table-unsuccessful", 2002,
+            "7.56", "14.9.37.4 GR4", "§1985:VI.6.22.4 GR2",
+            "a format 1 SEARCH whose index is zero or negative at its start is unsuccessful at once only from COBOL-2002; "
+            + "COBOL-85 tests the upper bound alone and an index below the table starts the serial scan"),
+        new(DialectBehavior.InspectFormat3LengthIdentifiedOnce, "inspect-format-3-length-identified-once", 2002,
+            "7.57", "14.9.22.4 GR19", "§1985:VI.6.18.4 GR17",
+            "a format 3 INSPECT of an occurs-depending group identifies the group's length once, before the TALLYING half, "
+            + "only from COBOL-2002; COBOL-85 takes the length anew for the REPLACING half"),
         new(DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, "relative-write-key-out-of-range-permanent-error", 2023,
-            "7.56", "14.9.51.4 GR29 b)", "§2002:14.8.47.3 GR25 b)",
+            "7.58", "14.9.51.4 GR29 b)", "§2002:14.8.47.3 GR25 b)",
             "a random or dynamic WRITE of a relative file whose key is less than 1 or above the highest permitted record number "
             + "is a permanent error, I-O status 34, only from COBOL 2023; before it the same attempt is the invalid key "
             + "condition of a write beyond the file's boundaries, status 24"),

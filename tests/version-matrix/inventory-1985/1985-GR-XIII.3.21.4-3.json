@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both define DISPLAY as the character-coded standard format. Report groups follow the general USAGE rules. Alignment and implementor-defined character size elaborate it without changing effect.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.60.4-7": "a23677df4a22",
+   "GR-13.15.4-2": "adfcec9cace3"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-7",
  "rule-digest": "ca0d2e6ffd93",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdClause; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BuildArea",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-7",
+ "notes": "§1985:XIV.2.2.3 SR7 (Format 2): \"The optional clauses may be written in any order.\" cdClause+ takes the output clauses in any order; ReadClauses files each under its field (refusing a clause written twice, a clause of Formats 1 and 3, and the series option Format 2 does not print) and BuildArea lays the area out from the OutputHeader and OutputEntry slots of §1985:XIV.2.2.4 GR16, so the written order never moves a field. The witness runs all six Format 2 clauses out of print order and prints CD OK. Probes at --std 85: (d) SYMBOLIC DESTINATION, ERROR KEY, STATUS KEY, TEXT LENGTH, DESTINATION COUNT written in reverse over an X(23) record printed 12345678KKEDDDDDDDDDDDD (count 1-4, length 5-8, status 9-10, error 11, destination 12-23); DESTINATION TABLE OCCURS 2 INDEXED BY IX written first, error key and destination subscripted by literal and by index, printed 0002------1AAAAAAAAAAAA2BBBBBBBBBBBB over X(36). (b) TEXT LENGTH twice refused COBOL6169; SYMBOLIC QUEUE in Format 2 refused COBOL6169; a series of names refused COBOL6169; DESTINATION TABLE OCCURS 0 refused COBOL2386. (c) --std 2023 refuses (COBOL0902). (a, e, f) not reached by a clause-order rule. Every refusal's text cites ISO/IEC 1989:2002 Annex A rather than the 1985 rule, the cross-cutting citation matter kb/Work PB4950 decides; the outcome is the one the rule requires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

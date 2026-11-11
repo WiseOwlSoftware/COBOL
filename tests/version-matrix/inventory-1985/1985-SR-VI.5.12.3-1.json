@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985 allows SIGN on a group only if the group contains 'at least one such numeric data description entry' (signed, PICTURE with S). 2023 §2023:13.18.52.3 SR1 allows it on 'an alphanumeric group item, national group item, or strongly-typed group item' with no such condition, and §2023:13.18.52.4 GR1 'applies only to numeric items whose picture character-string contains the symbol' S, so a group with no signed item is now accepted with no effect. Screen entries are new; report group entries were already allowed in the 1985 Report Writer module.",
-  "source": "adjudicate-712/slice-29"
+  "source": "adjudicate-712/slice-29",
+  "digests": {
+   "SR-13.18.52.3-1": "0439a5039410",
+   "GR-13.18.52.4-1": "e2f672522328"
+  }
  }
 }

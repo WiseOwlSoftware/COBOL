@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.4.2.2",
  "rule-digest": "a045382b6fa6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#closeStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#closeOption; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose",
  "test-ref": "conformance:cases/XIII.4.2@1985-CLOSE-STATEMENT/1985-FMT-XIII_4_2_2",
+ "notes": "§1985:XIII.4.2.2 is `CLOSE {file-name-1 [{REEL | UNIT} [FOR REMOVAL] | WITH {NO REWIND | LOCK}]}...` for a report file, the WITH LOCK alternative being the one 2023 dropped. The grammar closeOption admits exactly those alternatives (WITH, FOR optional words, REMOVAL only after REEL/UNIT), BindClose resolves each report file-name (admitsReportFile) and maps the written option to BoundCloseKind.WithLock/ReelUnit/ReelUnitForRemoval/NoRewind, and VersionConformancePass.VisitCloseOption gates LOCK only from 2023 (CloseWithLockRemoved2023), so 85 accepts it. Probes at --std 85 with FILE STATUS FS: witness CLOSE ... WITH LOCK prints CLOSED; (e) CLOSE WITH LOCK gives 00 and a following OPEN OUTPUT gives 38 (Table 1 E, file locked); CLOSE REEL and CLOSE UNIT FOR REMOVAL of the disk report file give 07 and the file stays open (GENERATE afterwards works, Table 1 F); CLOSE NO REWIND gives 07; CLOSE and CLOSE LOCK of an unopened file give 42; (b) `WITH LOCK REEL` COBOL2269, `REMOVAL` without REEL COBOL2269, `CLOSE.` with zero operands COBOL0001; the same file twice closes then gives 42. (c) the 2023 form adds nothing to CLOSE for 85 to refuse. (a)(d)(f) do not reach a file-name list.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"WITH ╭ NO REWIND╮ ┤ ├ ╰ LOCK ╯\"; 2023: \"WITH NO REWIND (no LOCK alternative in the 2023 CLOSE format)\". The CLOSE format is carried with {REEL|UNIT} [FOR REMOVAL] and WITH NO REWIND, but the WITH LOCK alternative is gone, so CLOSE file WITH LOCK is no longer accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.6.2": "b92f554aa426"
+  }
  }
 }

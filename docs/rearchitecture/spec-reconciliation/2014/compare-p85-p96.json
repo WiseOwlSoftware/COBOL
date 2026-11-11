@@ -1,0 +1,25 @@
+{
+  "batch": [85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96],
+  "pages_checked": [85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p94-1",
+      "page": 94,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Basic letters | A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z [then, on its own line] a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z | Latin capital letters (uppercase letters) [aligned with the capitals] ... Latin small letters (lowercase letters) [aligned with the small letters]",
+      "markdown_says": "| Basic letters | A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z<br>a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z | Latin capital letters (uppercase letters) Latin small letters (lowercase letters) |",
+      "why_it_matters": "Table 2 pairs each character group with its meaning by vertical alignment. The markdown splits the Character cell with <br> but runs the two meanings together on one line with no separator, so the pairing of the capitals with 'Latin capital letters' and the small letters with 'Latin small letters' is lost. A <br> between the two meanings would restore it."
+    },
+    {
+      "id": "p95-1",
+      "page": 95,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Basic special characters | [blank glyph: the space character] + – * / = $ , ; . \" ' ( ) > < & : _ | space plus sign minus sign (hyphen) asterisk slant (slash, solidus) equal sign currency sign comma semicolon period quotation mark apostrophe left parenthesis right parenthesis greater than less than ampersand colon underscore  (19 rows, the first character being the space, printed as an empty line aligned with 'space')",
+      "markdown_says": "| Basic special characters | +<br>–<br>\\*<br>/<br>=<br>$<br>,<br>;<br>.<br>\"<br>'<br>(<br>)<br>><br>&lt;<br>&<br>:<br>_ | space<br>plus sign<br>minus sign (hyphen)<br>asterisk<br>slant (slash, solidus)<br>equal sign<br>currency sign<br>comma<br>semicolon<br>period<br>quotation mark<br>apostrophe<br>left parenthesis<br>right parenthesis<br>greater than<br>less than<br>ampersand<br>colon<br>underscore |",
+      "why_it_matters": "The Character column has 18 entries but the Meaning column 19: the leading empty line that stands for the space character was dropped. Read line by line, every character is now paired with the meaning of the character before it ('+' with 'space', '-' with 'plus sign', ... '_' with 'colon'), and 'underscore' has no character. The space must be restored as a leading (empty or '&nbsp;') entry so the 19 rows align as printed."
+    }
+  ]
+}

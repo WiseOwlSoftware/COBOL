@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "For data items, 2023 applies the sending-item OCCURS rules, so the current DEPENDING value is used, as in 1985. The receiving-item case covers only based items and type declarations, new in 2023.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "RV-15.50.4-4": "a286b7ad1a02"
+  }
  }
 }

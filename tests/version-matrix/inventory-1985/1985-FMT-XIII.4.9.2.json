@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 Report Writer format 'USE BEFORE REPORTING identifier-1' (§1985:XIII.4.9.2) is extended in the same 1985 standard by the Inter-Program Communication module to 'USE [GLOBAL] BEFORE REPORTING identifier-1' (§1985:X.5.6.2). 2023 Format 2 (reporting) is 'USE [GLOBAL] BEFORE REPORTING identifier-1' (§2023:14.9.49.2). The optional GLOBAL is therefore not new; the same statements are accepted and mean the same.",
-  "source": "adjudicate-712/slice-04"
+  "source": "adjudicate-712/slice-04",
+  "digests": {
+   "FMT-14.9.49.2": "84ee6f5417ad"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-2",
  "rule-digest": "f58e277c0714",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#LockedTerminalChanged; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SourceName; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#TakeFromTerminal",
  "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-2",
+ "notes": "§1985:XIV.3.5.4 GR2: for an input-output CD \"the content of the data item specified by data-name-3 (SYMBOLIC TERMINAL) ... designates the source of the message\". For CommunicationFormat.InputOutput Receive reads the name at positions 15-26 (CommunicationArea.SourceName), answers 21 (Table 1, symbolic source unknown) for a terminal the MCS does not define, and otherwise takes the next message from that terminal (TakeFromTerminal); LockedTerminalChanged makes a changed SYMBOLIC TERMINAL after the first statement unsuccessful with 21 (§1985:XIV.2.2.4 GR31). The witness is an unknown terminal with NO DATA. Probes at --std 85 (classes b, d): TERM1 returned T1-FIR key 0 then ST key 2 (remainder), a two-segment message ABCD key 2 under MESSAGE, T1-THI key 0 and RD key 2 under SEGMENT; changing CD-TERM to TERM2 afterwards gave 21 with the receiver untouched; NOTERM as the first name gave 21 and locked the CD, as GR31 requires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

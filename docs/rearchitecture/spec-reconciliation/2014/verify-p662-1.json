@@ -1,0 +1,13 @@
+{
+  "claim_id": "p662-1",
+  "claim_key": "597677659a6de08b",
+  "page": 662,
+  "kind": "ocr-error",
+  "severity": "cosmetic",
+  "claim": {"id": "p662-1", "page": 662, "kind": "ocr-error", "severity": "cosmetic", "pdf_says": "LOWER-CASE | Alph1 or Anum1 or Nat1 | Depends upon argument^a (superscript footnote marker a)", "markdown_says": "| LOWER-CASE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argumenta |", "why_it_matters": "The superscript footnote reference 'a' (pointing to Table 22's footnote 'A function that has only alphabetic arguments is type alphanumeric.') is flattened into the word, producing 'argumenta'; the link from the Type cell to the footnote is no longer marked."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 662 (printed page 638, Table 22 continued) shows the LOWER-CASE row's Type cell as 'Depends / upon / argument' followed by a raised, smaller 'a', which is a footnote reference marker. Line 19 of page-662.md reads 'Depends<br>upon<br>argumenta'. The superscript is merged into the word, so the transcription contains a word the standard does not have and loses the footnote reference. The quotes in the claim match both sources. This changes no normative rule, so 'cosmetic' is the right severity. The same flattening appears in the REVERSE, TRIM and UPPER-CASE rows of the 2014 markdown (specs lines 25932, 25955, 25956), but those rows are on other pages and this verdict does not cover them.",
+    "corrected_description": null
+  }
+}

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.3.1.3-1",
  "rule-digest": "dfd67c15596e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#MaxLength; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#CharacterViolation; src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#CheckWord",
  "test-ref": "conformance:cases/X.3.1@1985-PROGRAM-ID-PARAGRAPH-AND-NESTED-SOURCE/1985-SR-X_3_1_3-1",
+ "notes": "§1985:X.3.1.3 SR1: the PROGRAM-ID program-name of a (nested) program 'must conform to the rules for formation of a user-defined word' (§1985:IV.4.2.2.1: at most 30 characters of letters, digits and hyphen, hyphen not at an edge). programIdParagraph takes programName (cobolWord), the same funnel as the end marker: ParseArm.VisitCobolWord (30-char ceiling COBOL1567, reserved word COBOL0901), WordCharacterScreen.CheckWord (underscore/extended letter COBOL0900 below 2002), CharacterViolation (edge hyphen COBOL2773). Probes at --std 85 on a contained program (classes b, c): MY_SUB COBOL0900 (accepted at 2023), ADD COBOL0901, SUB- COBOL2773, 999 and \"SUBL\" COBOL5506, a 33-char name COBOL1567, the 2002 AS literal phrase COBOL0900; S-2 IS COMMON PROGRAM runs. The witness BADNAME- is refused with COBOL2773.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: the nested PROGRAM-ID program-name 'must conform to the rules for formation of a user-defined word' (§1985:IV.4.2.2.1: 'not more than 30 characters', letters, digits, hyphen). 2023: program-name-1 of §2023:11.10.2 is a user-defined word under §2023:8.3.2.1 SR1 and §2023:8.3.2.2 SR3, but §2023:8.3.2.1 widens the word to 'not more than 63 characters' and adds 'extended letters' and the 'underscore'. PROGRAM-ID. MY_SUB. in a contained program is refused by the 1985 rule and accepted by 2023. The changed text is the uncatalogued 8.3.2.1 general paragraph (kb/Work PB479); the AS literal-1 phrase is separate new syntax.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "FMT-11.10.2": "56acb8fe4e7c",
+   "SR-8.3.2.1-1": "d21d904ee7b0",
+   "SR-8.3.2.2-3": "f37b240049a1"
+  }
  }
 }

@@ -12,6 +12,11 @@
   ],
   "bridge": true,
   "reason": "Start point and replacement by the next REPLACE are the same for 1985 programs: 'placed in the active state at the point at which it is encountered' (§2023:7.2.4.4 GR6); 'A format 1 REPLACE statement without the ALSO phrase cancels the active REPLACE statement' (§2023:7.2.4.4 GR7). The end differs: 1985 ends at 'the end of the separately compiled program', while §2023:7.2.4.4 GR5 keeps it active until 'the end of the compilation group is reached', and a compilation group is a 'sequence of one or more compilation units' (§2023:3.40). In a 1985 sequence of programs (1985 END PROGRAM header rule) a REPLACE now carries into the following programs. ALSO/LAST are 2023-only additions.",
-  "source": "adjudicate-712/slice-23"
+  "source": "adjudicate-712/slice-23",
+  "digests": {
+   "GR-7.2.4.4-5": "94382ff481f0",
+   "GR-7.2.4.4-6": "99bc8cf64bb4",
+   "GR-7.2.4.4-7": "b852ae2eee8b"
+  }
  }
 }

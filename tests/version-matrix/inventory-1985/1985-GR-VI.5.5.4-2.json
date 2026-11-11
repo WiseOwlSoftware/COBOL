@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'The key word FILLER may be used to name a data item. Under no circumstances can a FILLER item be referred to explicitly'; FILLER may name a conditional variable. §2023:13.18.20.4 GR1: 'The word FILLER may be used to name a data, report, or screen item. Under no circumstances shall a FILLER item be referred to explicitly'; §2023:13.18.20.3 SR3 admits FILLER in a report group description entry, which the 1985 format '01 [data-name-1]' refuses; §2023:13.16.3 SR24 keeps the conditional-variable allowance. FILLER-named report/screen items are accepted: range widened.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-13.18.20.4-1": "aba83a0a35b1",
+   "SR-13.18.20.3-3": "b83b36b6555d",
+   "SR-13.16.3-24": "f120f026bc81"
+  }
  }
 }

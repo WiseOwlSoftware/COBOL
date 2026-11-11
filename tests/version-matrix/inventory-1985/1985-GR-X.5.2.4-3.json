@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.2.4-3",
  "rule-digest": "697218d7a78b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitNotOnException; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate",
  "test-ref": "conformance:cases/X.5.2@1985-CALL-STATEMENT/1985-GR-X_5_2_4-3",
+ "notes": "§1985:X.5.2.4 GR3 requires that a CALL whose program 'cannot be made available for execution' transfer to imperative-statement-1 when ON OVERFLOW or ON EXCEPTION is written (then to the end of the CALL, NOT ON EXCEPTION ignored), and otherwise leaves 'All other effects' to the implementor. ProgramTable#Activate (via CallProgram) throws CobolCallException for a name ResolveVisible cannot locate, a stack it cannot get, or an active non-recursive program; CallBinder#BindCall binds the 85 ON OVERFLOW as the same ON branch (onExc ??= onOverflow), and CallEmitter#EmitCall catches the failure into imperative-statement-1 and guards NOT ON EXCEPTION with the failure flag (EmitNotOnException); with no ON phrase the run unit ends abnormally with a message, the documented implementor choice, and NOT ON never runs. Probes at --std 85: ON OVERFLOW miss printed OVF; identifier-1 with GO TO in imperative-1 transferred; ref-modified identifier-1 at its bound (1:8) took ON EXCEPTION; found program ran NOT ON; a self-CALL of an active program took ON EXCEPTION; NOT ON only without ON on a miss printed nothing and ended abnormally (rc 1); refusals: ON OVERFLOW plus NOT ON EXCEPTION (COBOL2269), RETURNING (COBOL0884, 2002+), numeric identifier-1 (COBOL1681), empty imperative (COBOL2072), ON EXCEPTION twice (COBOL2269). The witness exercises a literal miss with both phrases.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"If the ON OVERFLOW or ON EXCEPTION phrase is not specified ... All other effects of the CALL statement are defined by the implementor.\"; 2023: \"If checking for the exception condition is enabled, and ... an ON EXCEPTION phrase is not specified ... any applicable exception processing statements are executed.\". Unavailable program now raises EC-PROGRAM-RESOURCES/NOT-FOUND. Without ON EXCEPTION, exception processing or 14.6.13.1 applies, not only implementor effects. ON OVERFLOW not shown.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.4.4-3": "04fde73bf906"
+  }
  }
 }

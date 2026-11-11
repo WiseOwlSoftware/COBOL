@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 GR1: a declarative is invoked when its USE condition occurs; only one in the separately compiled program containing the causing statement (with 1985 X.5.5.4 GR1 GLOBAL declaratives of containing programs); none qualifying -> none executed. §2023:14.9.49.4 GR1 ('The USE statement defines the conditions calling for the execution of the use procedures'), §2023:14.9.49.4 GR3 (selection, 'no other declaratives are executed'), §2023:14.9.49.4 GR4 (own source element, then GLOBAL up to the outermost), §2023:14.9.49.4 GR6 a). Propagation needs the >>PROPAGATE directive, which 1985 lacks and this rule does not refuse. Same.",
-  "source": "adjudicate-712-r2/slice-03"
+  "source": "adjudicate-712-r2/slice-03",
+  "digests": {
+   "GR-14.9.49.4-1": "5fa8a62bd318",
+   "GR-14.9.49.4-3": "1f60d13b42af",
+   "GR-14.9.49.4-4": "8952827588c4",
+   "GR-14.9.49.4-6": "b41480584b33"
+  }
  }
 }

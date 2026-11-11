@@ -8,6 +8,9 @@
    "SR-13.18.38.3-6"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.38.3-6": "aea825ca5dd8"
+  }
  }
 }

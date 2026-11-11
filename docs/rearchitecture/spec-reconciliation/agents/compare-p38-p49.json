@@ -1,10 +1,10 @@
 {
   "batch": [38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49],
-  "pages_checked": [38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49],
+  "pages_checked": [38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49], "pages_unread": [],
   "note": "This batch was routed as a FIGURES batch, but PDF pages 38-49 are Clause 3 'Terms and definitions' entries 3.48 through 3.173. There is NOT ONE general format, syntax skeleton, brace, bracket, choice-indicator bar, ellipsis or Figure caption on any of the twelve pages. The priority defect class (lost 5.2.6.4 choice-indicator bars) is not applicable here. Every definition entry, entry number, bold term, admitted-term line, <domain qualifier>, [SOURCE: ...] reference and 'Note 1 to entry' paragraph on all twelve pages was compared word for word against the rendered page and matches, including the ISO typo faithfully preserved at 3.156 ('rather than through of a series of procedural steps'). Only transcription-scaffolding hygiene defects were found.",
   "findings": [
     {
-      "page": 44,
+      "id": "p44-1", "page": 44,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "3.111\ninternal data\nall data described in a source unit except external data and external file connectors\n\n3.112\nkey of reference\nkey, either prime or alternate, currently being used to access records within an indexed file\n\n3.113\nline delimiter\n... (ten consecutive definition entries 3.111-3.120 set as ordinary body text on one page, with NO horizontal rule anywhere on the page)",
@@ -13,7 +13,7 @@
       "suggested_repair": "Delete the eleven `---` lines between the running header and entry 3.120 on page 44 (ISO_COBOL.md lines 1994-2057), leaving only the single page-separator `---` that precedes the `<a id=\"page-44\"></a>` anchor. Match the blank-line-separated entry layout used on pages 38-43 and 45-48."
     },
     {
-      "page": 49,
+      "id": "p49-1", "page": 49,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "3.164\nsource element\nsource unit excluding any contained source units\n\n3.165\nsource unit\nsequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation\n\nNote 1 to entry: Any source units contained within a source unit are part of the containing source unit.\n\n3.166\nstandard binary floating-point usages\n... (ten consecutive definition entries 3.164-3.173 set as ordinary body text on one page, with NO horizontal rule anywhere on the page)",

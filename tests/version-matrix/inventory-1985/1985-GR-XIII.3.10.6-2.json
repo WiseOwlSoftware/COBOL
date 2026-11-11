@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.3.10.6-2",
  "rule-digest": "eb3a52e932fd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine",
  "test-ref": "conformance:cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/1985-GR-XIII_3_10_6-2",
+ "notes": "§1985:XIII.3.10.6 GR2 sets the report heading's last line at 'subtracting 1 from the value of integer-3 of the FIRST DETAIL phrase' (a) and at integer-1 of the PAGE clause for NEXT GROUP NEXT PAGE (b, Table 1). GroupLimits returns (HEADING, PageLimit) for an RH whose NEXT GROUP is NEXT PAGE and FIRST DETAIL - 1 otherwise; ScreenReportGroupLines refuses (COBOL2199) an absolute line past it, a relative-only RH whose MinimumLastLine walk passes it, and an A R tail past it; there is no edition arm and none is needed for 1985 source. Probes at --std 85: witness refused at line 5 with FD 5 and accepted LINE 20 with NEXT PAGE; RH LINE 4 (FD-1) accepted, printed on line 4; R-only PLUS 3/PLUS 2 reaching 5 refused; A R 3/PLUS 2 refused; NEXT PAGE 19/PLUS 2 reaching 21 refused, PLUS 19/PLUS 1 reaching 20 accepted and printed on line 20 of page 1 with the detail at FD on page 2. Edition arm: with an absolute page heading defined the bound tightens to the PH's first line - 1 (2023 §2023:13.18.57.4 GR8 b); RH LINE 4 + PH LINE 3 is refused at the RH, but that program is illegal at 85 too (the PH would print above the RH: §1985:XIII.3.15.3 SR1 and the reconstructed PH upper limit of §1985:XIII.3.10.7), so no legal 1985 source is refused; RH LINE 2 + PH LINE 3 accepted. Classes d-f do not reach a line-number limit.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 RH lower limit: a) FIRST DETAIL - 1; b) page limit (NEXT GROUP NEXT PAGE). 2023 §2023:13.18.57.4 GR8 a) page limit when alone (also §2023:13.18.39.4 GR4), b) 'the line preceding the first line of the page heading', FIRST DETAIL - 1 only if no page heading is defined (§2023:13.18.39.4 GR2 d keeps 'terminates before this line'). With a page heading defined the RH bound is tighter than the 1985 rule's FD-1. The 1985 page heading presentation rules (printed XIII-30/31) are absent from the scan, so no visible 1985 rule supplies the same bound; measured against the visible 1985 text this is stricter.",
-  "source": "adjudicate-712/slice-24"
+  "source": "adjudicate-712/slice-24",
+  "digests": {
+   "GR-13.18.57.4-8": "ae3e5dd98aca",
+   "GR-13.18.39.4-2": "e848559fd8d9",
+   "GR-13.18.39.4-4": "82ef257ca4e1"
+  }
  }
 }

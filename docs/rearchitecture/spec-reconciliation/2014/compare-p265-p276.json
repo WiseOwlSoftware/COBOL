@@ -1,0 +1,16 @@
+{
+  "batch": [265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276],
+  "pages_checked": [265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p265-1",
+      "page": 265,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "DYNAMIC LENGTH STRUCTURE phrase      value\n\nSIGNED PREFIXED      2147483647 [(2 ** 31) - 1]\nPREFIXED      4294967295 [(2 ** 32) - 1]\nSIGNED SHORT PREFIXED      32767 [(2 ** 15) - 1]\nSHORT PREFIXED      65535 [(2 ** 16) - 1]",
+      "markdown_says": "   DYNAMIC LENGTH STRUCTURE phrase value\n\n| SIGNED PREFIXED | 2147483647 [(2 \\*\\* 31) - 1] |\n|---|---|\n| PREFIXED | 4294967295 [(2 \\*\\* 32) - 1] |",
+      "why_it_matters": "The table's column headings ('DYNAMIC LENGTH STRUCTURE phrase' / 'value') were flattened into a prose line outside the table, and the first data row (SIGNED PREFIXED) became the markdown table's header row. All values are present and correct; only the table structure differs."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p204-1",
+  "claim_key": "7ff96d28e0c4378e",
+  "page": 204,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p204-1", "page": 204, "kind": "misplaced-content", "severity": "structural", "pdf_says": "EC-I-O-AT-END '1'\nEC-I-O-INVALID-KEY '2'\nEC-I-O-PERMANENT-ERROR '3'\nEC-I-O-LOGIC-ERROR '4'\nEC-I-O-RECORD-OPERATION '5'\nEC-I-O-FILE-SHARING '6'\nEC-I-O-IMP '9'", "markdown_says": "| EC-I-O-AT-END | '1' |\n|---|---|\n| EC-I-O-INVALID-KEY | '2' |\n\n   EC-I-O-PERMANENT-ERROR '3'\\\n   EC-I-O-LOGIC-ERROR '4'\\\n   EC-I-O-RECORD-OPERATION '5'\n\n| EC-I-O-FILE-SHARING | '6' |\n|---|---|\n| EC-I-O-IMP | '9' |", "why_it_matters": "The single seven-row exception-name/I-O-status-digit table was fragmented into two tables and an indented line block; the values are all present, but a parser reading the tables would see only four of the seven exception-name mappings (the '3', '4' and '5' rows are outside any table)."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The rendered page (printed p.180, §2014:9.1.12) shows a plain indented two-column list of seven exception-name/digit pairs with no table rules. The markdown carries all seven pairs, each name paired with its correct digit ('1','2','3','4','5','6','9'), in the printed order, contiguous between the same two paragraphs. Nothing is missing, misplaced or misquoted; the only difference is how the transcription formatted the list (two pipe tables plus a line-broken block), which is formatting and does not change what the standard says. The 'a parser would see only four' concern is about markdown rendering, not a content discrepancy against the PDF.",
+    "corrected_description": ""
+  }
+}

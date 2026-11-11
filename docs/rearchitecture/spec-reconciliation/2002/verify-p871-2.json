@@ -1,0 +1,13 @@
+{
+  "claim_id": "p871-2",
+  "claim_key": "5d8118a934be12cf",
+  "page": 871,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p871-2", "page": 871, "kind": "misplaced-content", "severity": "structural", "pdf_says": "    START statement 531\nLast-used state 386\nLC_ALL 64\n    SET statement, locale 517\n...\nLINE (LINES) keyword\n    SEND statement 673", "markdown_says": "   START statement 531\\\n   Last-used state 386\\\n   LC_ALL 64\\\n   SET statement, locale 517\\\n...\n   LINE (LINES) keyword\\\n   SEND statement 673", "why_it_matters": "The rest of the left column is flattened to one indent level, losing the entry/sub-entry hierarchy."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page 871 (printed folio 849, index letter L) shows a two-level index in the left column: main entries at the margin (for example 'Last-used state 386', 'LC_ALL 64', 'LEADING phrase', 'LINE (LINES) keyword') with sub-entries indented under them ('START statement 531', 'SET statement, locale 517', 'INSPECT statement 462', 'SEND statement 673'). In the markdown, every left-column line from 'START statement 531' to 'SEND statement 673' has the same 3-space indent and ends in a backslash line break, so main entries and sub-entries look alike. A reader can no longer tell that 'SET statement, locale 517' belongs under LC_ALL, or that 'Constant entry 245' and 'START statement 531' belong under 'LENGTH phrase'. The right column keeps the hierarchy with &emsp;, which shows the left column lost it. The quotes in the claim match both sources. The only problem is the kind label: nothing is misplaced. The entry/sub-entry nesting has been flattened. The damage is structural and confined to the informative index, so the severity is correct.",
+    "corrected_description": "Hierarchy flattened, not misplaced. In the left column of index page 871, from 'START statement 531' through 'SEND statement 673', main entries and sub-entries carry the same 3-space indent, so the parent/child nesting the PDF prints is lost (for example 'LC_ALL 64' / 'SET statement, locale 517'). The text and page numbers are all there. The informative index is the only part affected."
+  }
+}

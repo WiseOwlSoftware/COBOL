@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"[USAGE IS] {BINARY|COMPUTATIONAL|COMP|DISPLAY|INDEX|PACKED-DECIMAL}\"; 2023: \"BINARY-CHAR ... BIT ... FLOAT-BINARY-32 ... NATIONAL ... PACKED-DECIMAL [ WITH NO SIGN ] ... POINTER\". The 2023 format keeps all six 1985 usages but adds alternatives (BIT, NATIONAL, FLOAT-*, POINTER, etc.) and WITH NO SIGN, so programs refused in 1985 are now accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-13.18.60.2": "d21934139e1a"
+  }
  }
 }

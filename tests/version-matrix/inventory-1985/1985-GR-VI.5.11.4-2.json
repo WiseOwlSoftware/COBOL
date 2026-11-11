@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both give data-name-1 all data attributes of data-name-2 when no THROUGH/data-name-3 is given. The storage-area sentence states what renaming already means; program effect is unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.45.4-1": "f6a3cc687bd6"
+  }
  }
 }

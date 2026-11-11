@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XV.2.1.2",
  "rule-digest": "f7f66d3d1b79",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#debuggingModeClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDebuggingModeClause; src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
  "test-ref": "conformance:cases/XV.2.1@1985-WITH-DEBUGGING-MODE-CLAUSE/1985-FMT-XV_2_1_2",
+ "notes": "§1985:XV.2.1.2 prints SOURCE-COMPUTER. [ computer-name [ WITH DEBUGGING MODE ] . ], WITH optional and DEBUGGING MODE required, hung off a required computer-name. The grammar's sourceComputerParagraph admits debuggingModeClause (WITH? DEBUGGING MODE) only after computerName; VersionConformancePass.VisitDebuggingModeClause gates it (obsolete 2002 COBOL0903, removed 2014) and passes it silently at 85, and DebuggingLineRewriter.Rewrite and DataBinder.BindDeclarations read the clause as the compile-time switch. Probes at --std 85: 'X DEBUGGING MODE' and an empty 'SOURCE-COMPUTER.' compile; a name-less 'WITH DEBUGGING MODE' and 'DEBUGGING MODE', 'WITH DEBUGGING' without MODE, 'WITH MODE', the clause written twice, the clause in OBJECT-COMPUTER, a missing final period (COBOL3408) and a second SOURCE-COMPUTER paragraph are each refused; the witness keeps its D lines as source under the switch.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

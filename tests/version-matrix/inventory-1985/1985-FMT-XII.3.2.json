@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XII.3.2",
  "rule-digest": "50697371fb1c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-FMT-XII_3_2",
+ "notes": "§1985:XII.3.2 prints two formats, 'REPLACE { ==pseudo-text-1== BY ==pseudo-text-2== } …' and 'REPLACE OFF'. CopyProcessor.ApplyReplaceStatements parses the statement over text-words: format 2 when the first word is OFF, else format 1 through ParseReplacingOperands (one or more pseudo-text BY pseudo-text pairs, a separator period required), feeding ReplaceStates; the 2002 phrases ALSO and LAST are gated by ConstructRegistry (Constructs.ReplaceAlsoLast2002) and LEADING/TRAILING by the OperandScreen's partial-word gate (Constructs.ReplacingPartialWord2002), each COBOL0900 at 85. Probes at --std 85: (b) 'REPLACE .' COBOL2449; '==== BY' and '==,== BY' COBOL2572; a pseudo-text-1 with no BY, and a second pair missing its BY: COBOL2449; no closing period: COBOL1641; 'REPLACE OFF OFF.' COBOL2449; literal operands COBOL1641; '==AAA== BY ====' deletes AAA (ONE); (c) REPLACE ALSO, REPLACE LAST OFF, REPLACE LEADING and TRAILING: COBOL0900 each; (d) two pairs in one statement, a second REPLACE superseding the first (§1985:XII.3.4 GR3: BBB no longer replaced), REPLACE OFF, and a lowercase multi-space pseudo-text-1 matching 'DISPLAY   AAA': ONETWO / TWO- / ONE and TWOONE twice. The witness replaces two pairs in WORKING-STORAGE then turns them OFF.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"REPLACE { ==pseudo-text-1== BY ==pseudo-text-2== } … / REPLACE OFF\"; 2023: \"REPLACE [ ALSO ] … {LEADING|TRAILING} ==partial-word-1== BY ==partial-word-2== … / REPLACE [ LAST ] OFF .\". Same REPLACE formats, but 2023 adds the ALSO phrase, LEADING/TRAILING partial-word replacement and LAST OFF, accepting programs the 1985 format refuses.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-7.2.4.2": "e746a0cbcc55"
+  }
  }
 }

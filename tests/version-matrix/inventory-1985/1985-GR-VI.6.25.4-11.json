@@ -11,6 +11,11 @@
   "reason": "1985 'The END-STRING phrase delimits the scope of the STRING statement' (pointing to Scope of Statements). 2023 keeps optional END-STRING in the format (§2023:14.9.43.2), names it STRING's explicit scope terminator in Table 12 (§2023:14.5.1), and states its effect generally: it terminates 'the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined' (§2023:14.5.3.2 GR1) and 'any unterminated statements that appear between that statement-name and the explicit scope terminator' (§2023:14.5.3.2 GR2). Same scope delimitation.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "source": "adjudicate-712/slice-13",
+  "digests": {
+   "FMT-14.9.43.2": "26bd5f803b1b",
+   "GR-14.5.3.2-1": "3b121c04bafc",
+   "GR-14.5.3.2-2": "c8ba9f162d3f"
+  }
  }
 }

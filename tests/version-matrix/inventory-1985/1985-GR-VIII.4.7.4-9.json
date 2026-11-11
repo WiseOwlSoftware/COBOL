@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "The 2023 START format keeps the optional END-START. Its scope-delimiting effect follows from the general scope-of-statements rules, which the 1985 rule only cross-references.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.41.2": "241210dd3c57"
+  }
  }
 }

@@ -16,6 +16,16 @@
   ],
   "bridge": true,
   "reason": "1985 Logic Error definition: unsuccessful from 'an improper sequence of input-output operations ... or ... violating a limit defined by the user'. §2023:9.1.13.1 repeats it verbatim (prose, no catalog row, PB479); the catalog carriers are the sequence/limit 4x values, e.g. §2023:9.1.13.7 GR1 (41), §2023:9.1.13.7 GR2 (42), §2023:9.1.13.7 GR3 (43), §2023:9.1.13.7 GR4 (44 boundary). Status 45 joins the class but states none of this definition (class membership is the 4x list's record). Same.",
-  "source": "adjudicate-712-r2/slice-07"
+  "source": "adjudicate-712-r2/slice-07",
+  "digests": {
+   "GR-9.1.13.7-1": "7ba098ac3665",
+   "GR-9.1.13.7-2": "6ad5edf369fc",
+   "GR-9.1.13.7-3": "c92c8b4cbc0d",
+   "GR-9.1.13.7-4": "8cb702a5a928",
+   "GR-9.1.13.7-6": "31e6a5079953",
+   "GR-9.1.13.7-7": "33e8e795f04b",
+   "GR-9.1.13.7-8": "a5329a57a0ea",
+   "GR-9.1.13.7-9": "30ab59018127"
+  }
  }
 }

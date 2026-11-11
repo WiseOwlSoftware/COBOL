@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-X.5.4.2",
  "rule-digest": "8f26fee8f464",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#exitStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#raisingPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExitStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRaisingPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit",
  "test-ref": "conformance:cases/X.5.4@1985-EXIT-PROGRAM-STATEMENT/1985-FMT-X_5_4_2",
+ "notes": "§1985:X.5.4.2 prints the statement as the two words 'EXIT PROGRAM' with no phrase; 2023 adds RAISING. exitStatement parses EXIT PROGRAM [raisingPhrase], VisitRaisingPhrase refuses every RAISING form at 85 (COBOL0879: EXCEPTION name, identifier, LAST EXCEPTION), any other trailing word (PROGRAM again, GIVING, RETURNING) is COBOL2269, VisitExitStatement gates a statement after EXIT PROGRAM in its sequence (COBOL0900, §1985:X.5.4.3 SR1) and GOBACK is COBOL0880; BindExit binds the bare form to BoundExitProgram. Probed at 85: EXIT PROGRAM inside IF in a called program returned at once, the non-initial callee kept its counter across calls and the INITIAL one restarted it; the witness runs EXIT PROGRAM in a program no one called and continues to the next statement (§1985:X.5.4.4 GR1).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"EXIT PROGRAM\"; 2023: \"EXIT PROGRAM [RAISING {EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION}]\". 2023 Format 2 keeps EXIT PROGRAM but adds an optional RAISING phrase the 1985 format lacked, so more programs are accepted. 2023 also marks this format archaic.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.14.2": "2383d4924015"
+  }
  }
 }

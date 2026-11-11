@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"CANCEL { identifier-1 | literal-1 } …\"; 2023: \"CANCEL { identifier-1 | literal-1 | program-prototype-name-1 } …\". The 2023 format adds program-prototype-name-1 as a third operand choice, so it accepts CANCEL statements that the 1985 format refuses.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.5.2": "1d87e439a708"
+  }
  }
 }

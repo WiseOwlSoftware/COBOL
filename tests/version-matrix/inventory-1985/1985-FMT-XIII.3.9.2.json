@@ -17,6 +17,16 @@
   ],
   "bridge": true,
   "reason": "1985 has three report group formats: level 01 with TYPE (and LINE/NEXT GROUP/USAGE), a format 2 group entry, and a format 3 elementary entry with mandatory PICTURE and one of SOURCE/VALUE/SUM (§1985:XIII.3.9.2; Table 1 of §1985:XIII.3.9.3 SR11 marks PIC 'M' in every row). 2023 has one entry (§2023:13.15.2) whose level split is carried by syntax rules: TYPE and NEXT GROUP only in level 1 (§2023:13.15.3 SR5, SR6), PICTURE/COLUMN/SOURCE/VALUE/SUM/GROUP INDICATE only in an elementary entry (SR11), COLUMN needs SOURCE, VALUE or SUM (SR10), clause order free after the entry-name (SR2). PICTURE is now required only with SOURCE or SUM (SR12) and 'may be omitted ... when an alphanumeric, boolean or national literal ... is specified in the VALUE clause' (SR14); the entry also adds USAGE NATIONAL, PRESENT WHEN, OCCURS and VARYING. 1985 entries keep their meaning; 2023 accepts entries 1985 refuses (looser).",
-  "source": "adjudicate-712/slice-04"
+  "source": "adjudicate-712/slice-04",
+  "digests": {
+   "FMT-13.15.2": "d2104b4e3f18",
+   "SR-13.15.3-2": "4576583b44a7",
+   "SR-13.15.3-5": "d29f3104f59a",
+   "SR-13.15.3-6": "01d978588353",
+   "SR-13.15.3-10": "9c68018d516b",
+   "SR-13.15.3-11": "a3961a741d10",
+   "SR-13.15.3-12": "3d59615d3e5a",
+   "SR-13.15.3-14": "9e44968aa8d2"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "An index data item is not of category alphabetic, alphanumeric, boolean or national, so 2023 still refuses JUSTIFIED on it. Other refused categories belong to other 1985 rules.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.32.3-3": "e3d2e346dd5a"
+  }
  }
 }

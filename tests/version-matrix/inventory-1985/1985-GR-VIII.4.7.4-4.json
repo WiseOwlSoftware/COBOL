@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.7.4-4",
  "rule-digest": "ec255f50a9b9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#StartRelative; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartKeyPhrase",
  "test-ref": "conformance:cases/VIII.4.7@1985-START-STATEMENT/1985-GR-VIII_4_7_4-4",
+ "notes": "§1985:VIII.4.7.4 GR4: the KEY relation is a numeric comparison of record numbers with the RELATIVE KEY item (GR10); 'The file position indicator is set to the relative record number of the first logical record in the file whose key satisfies the comparison', and 'If the comparison is not satisfied by any record in the file, the invalid key condition exists'. RelativeConnector.Start seeks the record tree in numeric record-number order for =, >, >= (KeyedIoBinder.BindStart folds the operator through ConditionBinder.MapOperator and holds data-name-1 to the RELATIVE KEY), sets the indicator through StartAt or fails with 23 and an invalidated indicator; VersionConformancePass.VisitStartKeyPhrase refuses the 2002 reverse-search operators at 85. Witness: GREATER THAN 3 positions at 5, GREATER THAN 5 invalid. Probes (dynamic, records 2/4/7, record 4 deleted, KR PIC 9(18)): GREATER 0 then READ NEXT REC02; NOT LESS 3 to REC07 with the record area and KR unchanged; = 4 (deleted) 23 then READ NEXT 46; no KEY phrase (= 2) and >= 2 REC02; > 7 23; GREATER OR EQUAL 999999999999999999 23; GREATER THAN OR EQUAL TO 6 REC07; OPTIONAL absent NOT < 1 23. (c,b): LESS THAN, NOT GREATER, LESS OR EQUAL, <, <=, NOT >, FIRST and WITH LENGTH each COBOL0900; NOT = refused COBOL0862; a non-RELATIVE-KEY data-name and random access refused COBOL0862; INVALID KEY written twice refused.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -11,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: the FPI is set to 'the first logical record in the file whose key satisfies the comparison', with only EQUAL, GREATER, NOT LESS, GREATER OR EQUAL writable (§1985:VIII.4.7.2). §2023:14.9.41.4 GR9 a) keeps that for those operators, but b) adds a case: 'If the relational operator is LESS, NOT GREATER, or LESS OR EQUAL, ... searching the file in reverse order'; §2023:14.9.41.3 SR3 admits them. A program 1985 refuses is accepted with a new positioning result.",
-  "source": "adjudicate-712-r2/slice-09"
+  "source": "adjudicate-712-r2/slice-09",
+  "digests": {
+   "GR-14.9.41.4-9": "8bb5dd8b7579",
+   "GR-14.9.41.4-10": "848ba4760f80"
+  }
  }
 }

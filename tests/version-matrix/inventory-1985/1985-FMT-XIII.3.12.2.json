@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.3.12.2",
  "rule-digest": "af1d7467d318",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportGroupEntry",
  "test-ref": "conformance:cases/XIII.3.12@1985-DATA-NAME-CLAUSE/1985-FMT-XIII_3_12_2",
+ "notes": "§1985:XIII.3.12.2 gives the report entry's name as 'data-name-1' alone, optional (§1985:XIII.3.12.3 SR1), and FILLER is the Nucleus word §1985:VI.5.5.3 SR1 confines to the File, Working-Storage, Communication and Linkage Sections. reportGroupEntry reads the shared dataName rule (which admits FILLER for 2023) and VersionConformancePass.VisitReportGroupEntry refuses FILLER in a report group entry at 85 (COBOL0900, ReportFiller2002), the witness's case. Probes at 85: a named and an unnamed elementary entry print 'HELLO ABC'; FILLER on an elementary and on an 01 entry COBOL0900 (accepted and printed at 2023); VALIDATE (reserved only from 2002) is accepted as a name at 85 and refused at 2023 (COBOL0901); REPORT refused COBOL0901; a named SUM counter is referenced by a SOURCE in its group (-00024 twice).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 report-writer data-name clause is 'data-name-1' only; FILLER belongs to the Nucleus clause, whose §1985:VI.5.5.3 SR1 confines it to the File, Working-Storage, Communication and Linkage Sections, so FILLER could not name a report group entry. 2023 keeps Format 1 'data-name-1' of §2023:13.18.20.2 but, for a report group description entry, 'either data-name-1 or FILLER shall be specified' (§2023:13.18.20.3 SR3; §2023:13.15.3 SR2 'the data-name format or filler format shall be specified'). A report group entry named FILLER, refused in 1985, is accepted. CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.18.20.2": "68e170c93da0",
+   "SR-13.18.20.3-3": "b83b36b6555d",
+   "SR-13.15.3-2": "4576583b44a7"
+  }
  }
 }

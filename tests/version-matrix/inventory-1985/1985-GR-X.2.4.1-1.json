@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.2.4.1-1",
  "rule-digest": "a3098a7ca0bb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindSection; src/WiseOwl.Cobol.Compiler/Binding/Model/ForestSlice.cs#AddWorkingStorageRoots; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#ValueInitializer; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitCallMethod",
  "test-ref": "conformance:cases/X.2.4@1985-INITIAL-STATE-OF-A-PROGRAM/1985-GR-X_2_4_1-1",
+ "notes": "§1985:X.2.4.1 (1): in the initial state 'The program's internal data contained in the Working-Storage Section and the Communication Section are initialized. If a VALUE clause is used in the description of the data item, the data item is initialized to the defined value.' CommunicationSectionBinder.BindSection adds the CD records to the same Working-Storage root list (ForestSlice.AddWorkingStorageRoots), so one channel seeds both: ValueInitializer composes each VALUE image, RecordStructEmitter.EmitStaticReset re-seeds every root on first call and after CANCEL, and an INITIAL program gets a fresh instance per call (EmitCallMethod); EXTERNAL records stay out of that channel. Probed at 85: S9(18) negative, COMP scaled negative, PACKED-DECIMAL ZERO, numeric-edited, ALL literal, HIGH-VALUES, group VALUE over subordinate items, P-scaled and V-scaled items, and an ODO table whose VALUE fills all four occurrences while its object takes its own VALUE 2 (§1985:p.VI-50 VALUE rules 5 and 6), all at their VALUE on first call and again after CANCEL, and in an INITIAL program on each call; EXTERNAL data kept its value across CANCEL and INITIAL calls; the witness checks WS and CD records across CALL, CANCEL and INITIAL.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -12,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 X.2.4.1 (1): in the initial state 'The program's internal data contained in the Working-Storage Section and the Communication Section are initialized', VALUE items to their value, others undefined. 2023 keeps the working-storage half: 'The internal data described in the working-storage section and local-storage section is initialized as described in 13.18.63, VALUE clause' (§2023:14.6.2.3.2, initial-state item 2); at initial state 'data items with a VALUE clause are initialized to the specified value' and other values are undefined (§2023:13.18.63.4 GR4); §2023:13.5.4 GR3 points working-storage to the same rules. The Communication Section half has no 2023 rule: the 2023 text has no communication section at all, so a 1985 program with a Communication Section is not a 2023 program. Different.",
-  "source": "adjudicate-712/slice-20"
+  "source": "adjudicate-712/slice-20",
+  "digests": {
+   "GR-14.6.2.3.2-L2.2": "85961573e833",
+   "GR-13.18.63.4-4": "b0dddcb3933f",
+   "GR-13.5.4-3": "08b8f41e3655"
+  }
  }
 }

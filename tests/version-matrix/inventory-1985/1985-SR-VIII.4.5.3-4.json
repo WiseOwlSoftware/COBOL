@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: 'Format 2 is used for files in random access mode or for files in dynamic access mode when records are to be retrieved randomly.' 2023 §2023:14.9.30.3 SR6 bars ADVANCING, AT END, NEXT, NOT AT END, PREVIOUS under ACCESS MODE RANDOM; §2023:14.9.30.4 GR19: without an implicit or explicit NEXT or PREVIOUS 'the read is a random read and the rules for format 2 apply'; §2023:14.9.30.3 SR9 implies NEXT in dynamic mode only when ADVANCING/AT END/NOT AT END is written (phrases 1985 format 2 never had). §2023:14.9.30.2 labels 'Format 2 (random)'. A conforming 1985 format-2 READ means the same.",
-  "source": "adjudicate-712/slice-32"
+  "source": "adjudicate-712/slice-32",
+  "digests": {
+   "SR-14.9.30.3-6": "38865d45293e",
+   "SR-14.9.30.3-9": "68152f3c36d8",
+   "GR-14.9.30.4-19": "6bacaf590a7e",
+   "FMT-14.9.30.2": "ab07b0e7e719"
+  }
  }
 }

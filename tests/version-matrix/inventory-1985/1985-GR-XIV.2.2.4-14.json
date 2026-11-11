@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-14",
  "rule-digest": "c28d33813912",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#AcceptMessageCount; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetMessageCount; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#CompleteMessages; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-14",
+ "notes": "§1985:XIV.2.2.4 GR14: 'The MCS updates the content of the data item referenced by data-name-11 only as part of the execution of an ACCEPT MESSAGE COUNT statement.' Only AcceptMessageCount calls SetMessageCount (from QueueNode.CompleteMessages, counting sub-queues under a prefix); SetReceived never touches positions 82-87. Probe gr1 at --std 85: a preset 999999 survives two RECEIVEs, ACCEPT gives 1 for Q1 and 1 for Q1/S1, a later RECEIVE leaves 1, ACCEPT then gives 0, and an unknown queue leaves 777 with status 20. The witness checks the count.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

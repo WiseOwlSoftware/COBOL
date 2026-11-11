@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: EXIT PROGRAM not under a calling program 'causes execution of the program to continue with the next executable statement'. 2023: it 'is treated as if it were a CONTINUE statement' (§2023:14.9.14.4 GR2), and 'EXIT PROGRAM causes an explicit transfer of control only when the statement is executed in a called program' (§2023:14.6.3). Same result; the RAISING phrase is new syntax.",
-  "source": "adjudicate-712/slice-22"
+  "source": "adjudicate-712/slice-22",
+  "digests": {
+   "GR-14.9.14.4-2": "2f9acd927064",
+   "GR-14.6.3-3": "77338b907c95"
+  }
  }
 }

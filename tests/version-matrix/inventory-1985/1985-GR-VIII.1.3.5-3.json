@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.1.3.5-3",
  "rule-digest": "ac67ecd144fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#HasApplicableUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitPhrasePair; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
  "test-ref": "conformance:cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VIII_1_3_5-3",
+ "notes": "§1985:VIII.1.3.5 GR3: 'If the INVALID KEY phrase is not specified in the input-output statement, a USE AFTER EXCEPTION procedure must be associated with the file connector and that procedure is executed ... The NOT INVALID KEY phrase is ignored, if specified', and if no invalid key condition exists 'the INVALID KEY phrase is ignored'. The 'must' half is ExceptionPhraseRequirement.Require (in force below 2002, called from each KeyedIoBinder verb): with neither phrase nor an applicable USE (file-named or open-mode-scoped, HasApplicableUse) a relative READ, WRITE (any access mode), REWRITE/DELETE (random, dynamic) and START are COBOL6826 at 85 and compile at 2002/2023; the runtime half is EmitUseHook/EmitUseMachinery dispatching the declarative and EmitInvalid/EmitPhrasePair running INVALID KEY on 2x only and NOT INVALID KEY on 0x only. Probes at 85 (dynamic, random, sequential): READ 7, WRITE duplicate 1, REWRITE 8, DELETE 8, START > 8 each written with NOT INVALID KEY only run the USE (USE 23 / USE 22) and skip the NOT phrase, control resuming after the statement; a successful READ and WRITE with both phrases run NOT INVALID KEY only; an invalid key with both a phrase and a USE runs the phrase only; a mode-scoped USE ON I-O covers a phrase-less READ; an OCCURS DEPENDING ON record reads back (3 3ABC); READ of a closed file runs the USE with 47; key 0 gives 23 to the USE; REWRITE and DELETE in sequential access need no phrase. The witness reads absent key 5 with a USE and no phrase (USE 23, AFTER 23).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -14,6 +17,13 @@
   ],
   "bridge": true,
   "reason": "1985 'If the INVALID KEY phrase is not specified ..., a USE AFTER EXCEPTION procedure must be associated with the file connector' (§1985:VIII.1.3.5 GR3). 2023 drops the requirement: §2023:9.1.14 GR3 'If control is returned from those statements or there are no applicable exception processing statements, control is transferred to the end of the input-output statement' and GR4 likewise, so a statement with neither phrase nor USE is now conforming (looser). The rest carries: the file USE is an applicable exception processing statement (§2023:9.1.12 GR2), executed 'unless an AT END or INVALID KEY phrase takes precedence' (§2023:14.9.49.4 GR6), control returning after it (§2023:14.9.49.4 GR7); and 'If the invalid key condition does not exist ..., the INVALID KEY phrase is ignored' (§2023:9.1.14 GR4). No refusal became an exception condition.",
-  "source": "adjudicate-712/slice-18"
+  "source": "adjudicate-712/slice-18",
+  "digests": {
+   "GR-9.1.14-3": "4d9f118d4cd2",
+   "GR-9.1.14-4": "fad5ee590e9d",
+   "GR-9.1.12-2": "14a7b0ec289f",
+   "GR-14.9.49.4-6": "b41480584b33",
+   "GR-14.9.49.4-7": "95194ed26db2"
+  }
  }
 }
