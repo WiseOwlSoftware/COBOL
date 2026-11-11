@@ -152,9 +152,10 @@ The base's "Read the verdict line", "Flakes and attribution" and "A filter that 
 written (full output to a file, no source edits while a gate runs, no flake without the test's name and an isolated
 re-run). Here, additionally:
 
-- **Never chain ANYTHING after a verdict command** (build, test, `build-local`, `enqueue.py land`, battery) with `&&`,
-  `||` or `;` — MANDATORY-PRACTICES P14, and the guard hook (`scripts/hooks/forbidden_commands.py` rule 5) BLOCKS
-  it. To capture the status in the same call, append `; echo "EXIT=$?"`; read-only commands may follow that.
+- **Read the verdict LINE, never a shell exit status.** A chain's status is its last command's, so nothing reads one
+  as a verdict: a landing reads the gate's record (`enqueue.py land` refuses a tip no GREEN record covers). Chaining
+  after a verdict command is therefore not refused (kb/Work PB5234: 1 true refusal of 127, and that one the landing
+  refuses itself).
 - `scripts/build-local.{ps1,sh}` prints ONE `=== BUILD-LOCAL GATE: ` verdict line — `GREEN`, `RED`, `BUILD
   FAILED`, `BUSY` (exit 3: another gate holds
   this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN [<cause>]` (exit

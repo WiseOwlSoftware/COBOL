@@ -2,7 +2,7 @@
 """Self-test for shell_location.py — every location change either tool's shell accepts moves the commands after it, and
 nothing else does (kb/Work PB2599).
 
-The parser is shared by fleet_active_build.py, worktree_rm_allow.py, forbidden_commands.py and status_guard.py, so a case
+The parser is shared by worktree_rm_allow.py and forbidden_commands.py, so a case
 that resolves to the wrong directory here is a false deny (a build refused in its own worktree), a false allow (a build of
 a tree a fleet is probing) or a guard that checks the wrong tree. Paths are built from a temporary directory, so every
 case means the same on Windows and on Linux. Run: python scripts/hooks/test_shell_location.py (the gate's audits, CI's
@@ -201,7 +201,7 @@ with tempfile.TemporaryDirectory() as tmp:
           dirs_of("bash <<'EOF'\ncd " + W + "\ndotnet build\nEOF\ndotnet build", main, B), [wt, main])
     exact("words never hold a heredoc body",
           [s.words for s in sl.steps("cat > m <<'EOF'\ndotnet build\nEOF", str(main), B)], [("cat", ">", "m", "<<EOF")])
-    exact("a heredoc body that names a build is no build step (fleet_active_build's sibling)",
+    exact("a heredoc body that names a build is no build step",
           dirs_of("cat > m.txt <<'EOF'\ndotnet build\nEOF\necho done", main, B), [])
     calls = lambda cmd, shell=B: [(c.subcommand, c.options, c.args) for s in sl.steps(cmd, str(main), shell)
                                   for c in sl.git_calls(s)]
