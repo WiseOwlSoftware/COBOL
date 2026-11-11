@@ -1,4 +1,4 @@
-## PB5324 filed: prune_worktrees.py --apply reports a failed delete of a branch it had just deleted
+## Entry 3485 — 2026-11-11 12:48 PST — PB5324 filed: prune_worktrees.py --apply reports a failed delete of a branch it had just deleted
 
 kb/Work PB5324 (new, `kind: defect`, `process_only: true`, area tooling/landing), no code.
 
@@ -12,3 +12,4 @@ kb/Work PB3409 did not reach: there the ref was stale before the apply, here it 
 
 The note records the two survey rows, the four output lines, what was and was not verified about the mechanism, and the
 fix with its self-test case.
+
