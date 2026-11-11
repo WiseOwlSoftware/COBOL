@@ -1,0 +1,3 @@
+## PB5320: the tests' process-per-case cost is designed out in stages; stage 0 is built, the runner waits for a measurement
+
+kb/Work PB5320. A Conformance run starts about 8,000 processes, one per compiled program, and on the dev box process creation measured a median of 1.15 s and later 2.0 s on 2026-11-11 against about 7 ms healthy; one Conformance host took over 70 minutes with its CPU idle. The design for a runner that needs no process per case is filed as a sidecar of the note, with the controller's decisions beside it. Stage 0, one way to run a program and a creation-time probe reported in the gate's verdict, is built after PB5230 lands. Stages 1 to 3 wait for the owner's reboot and the APC PowerChute test.
