@@ -2301,7 +2301,7 @@ Some rules contain arithmetic expressions that specify part or all of the result
 
 ##### 5.4.1 Textually subscripted operands
 
-When an operand is textually subscripted, as operand-jn, the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.
+When an operand is textually subscripted, as operand-j<sub>n</sub>, the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.
 
    NOTE An example is in the returned value rules for 15.69, PRESENT-VALUE function.
 
@@ -2347,13 +2347,13 @@ Table 1, Verbal forms, summarizes the prescribed verbal forms and equivalent exp
 
 Table 1 — Verbal forms
 
-| Verbal form | Equivalent Expressions1 | Meaning in this standard |
+| Verbal form | Equivalent Expressions<sup>1</sup> | Meaning in this standard |
 |---|---|---|
 | shall<br>shall not | is required to<br>is; is to<br>is not permitted<br>is not allowed<br>is not acceptable<br>is required not to be | A requirement on an implementation or program, strictly to be followed for compliance to the standard |
 | may<br>need not | is permitted<br>is permissible<br>is allowed<br>is not required that | a permission expressed by the standard<br>Note 'can' will not be used as a substitute for 'may'. |
 | can<br>cannot | is able to<br>there is a possibility of it is possible to<br>be unable to<br>there is no possibility of it is not possible to | a capability or possibility open to the user of the standard |
 | should<br>should not | it is recommended that ought to<br>It is not recommended that ought not to | a recommendation expressed by the standard; it does not specify a requirement and need not be followed |
-| 1Equivalent expressions might not be used in this standard, or may be used to express concepts that are not requirements; in such cases, the meaning is evident from context |  |  |
+| <sup>1</sup>Equivalent expressions might not be used in this standard, or may be used to express concepts that are not requirements; in such cases, the meaning is evident from context |  |  |
 
 #### 5.9 Notes and examples
 
@@ -7009,11 +7009,11 @@ When standard arithmetic is in effect the following rules apply:
 
 A standard intermediate data item has the unique value of zero or a value whose magnitude is in the range of
 
-   10–999 (1.000 000 000 000 000 000 000 000 000 000 0E-999)
+   10<sup>–999</sup> (1.000 000 000 000 000 000 000 000 000 000 0E-999)
 
 through
 
-   101000 – 10968 (9.999 999 999 999 999 999 999 999 999 999 9E+999)
+   10<sup>1000</sup> – 10<sup>968</sup> (9.999 999 999 999 999 999 999 999 999 999 9E+999)
 
 inclusive, with a precision of 32 decimal digits. A standard intermediate data item shall be truncated or rounded to fewer than 32 digits only as explicitly specified.
 
@@ -8163,8 +8163,8 @@ FLOAT-DECIMAL-16
 | FLOAT-LONG | LEADING | OVERRIDE |
 | FLOAT-NOT-A-NUMBER | LEFT |  |
 | FLOAT-NOT-A-NUMBER-QUIET | LENGTH | PACKED-DECIMAL |
-| FLOAT-NOT-A-NUMBER- | LESS | PAGE |
-| SIGNALING | LIMIT | PAGE-COUNTER |
+| FLOAT-NOT-A-NUMBER-SIGNALING | LESS | PAGE |
+|  | LIMIT | PAGE-COUNTER |
 | FLOAT-SHORT | LIMITS | PERFORM |
 | FOOTING | LINAGE | PF |
 | FOR | LINAGE-COUNTER | PH |
@@ -12624,7 +12624,7 @@ A constant entry defines a constant. A constant may be used in place of a litera
                                              ╭    ╭ arithmetic-expression-1    ╮ ╮
                                              │    │                            │ │
                                              │    │ <u>BYTE-LENGTH</u> OF data-name-1 │ │
-╭ 1  ╮                                       │ AS ┤                            ├ │
+╭ <u>1</u>  ╮                                       │ AS ┤                            ├ │
 ┤    ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL</u>] ┤    │ literal-1                  │ ├ .
 ╰ <u>01</u> ╯                                       │    │                            │ │
                                              │    ╰ <u>LENGTH</u> OF data-name-2      ╯ │
@@ -14937,13 +14937,11 @@ Format 1 (fixed-table):
 Format 2 (occurs-depending-table):
 
 <pre style="line-height:1">
-       ╭              ╮ KEY
-       │              │
-<u>OCCURS</u> │ integer-1 <u>TO</u> │ integer-2 TIMES <u>DEPENDING</u> ON data-name-1
-       │              │
-┌      │ <u>ASCENDING</u>    │                      ┐
-│      ┤              ├ IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
-└      ╰ <u>DESCENDING</u>   ╯                      ┘
+<u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-1
+
+┌ ╭ <u>ASCENDING</u>  ╮                          ┐
+│ ┤            ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
+└ ╰ <u>DESCENDING</u> ╯                          ┘
 </pre>
 
 Format 3 (report-writer):
@@ -14955,13 +14953,11 @@ Format 3 (report-writer):
 Format 4 (dynamic-capacity-table):
 
 <pre style="line-height:1">
-       ╭            ╮ KEY
-       │            │
-<u>OCCURS</u> │ <u>DYNAMIC</u> [  │ <u>CAPACITY</u> IN data-name-3 ] [<u>FROM</u> integer-4 ] [ <u>TO</u> integer-5 ] [ <u>INITIALIZED</u> ]
-       │            │
-┌      │ <u>ASCENDING</u>  │                      ┐
-│      ┤            ├ IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
-└      ╰ <u>DESCENDING</u> ╯                      ┘
+<u>OCCURS</u> <u>DYNAMIC</u> [ <u>CAPACITY</u> IN data-name-3 ] [<u>FROM</u> integer-4 ] [ <u>TO</u> integer-5 ] [ <u>INITIALIZED</u> ]
+
+┌ ╭ <u>ASCENDING</u>  ╮                          ┐
+│ ┤            ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
+└ ╰ <u>DESCENDING</u> ╯                          ┘
 </pre>
 
 ###### 13.18.38.2 Syntax rules
@@ -19569,7 +19565,7 @@ where rounded-phrase is described in 14.7.3, ROUNDED phrase.
 
    When standard arithmetic, standard-decimal arithmetic or standard-binary arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression
 
-   (operand-11 + operand-12 + ... + operand-1n)
+   (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>)
 
    where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the ADD statement. The result of the sum of the initial evaluation and the value of the data item referenced by identifier-2 is equivalent to the result of the arithmetic expression
 
@@ -19581,7 +19577,7 @@ where rounded-phrase is described in 14.7.3, ROUNDED phrase.
 
    When standard arithmetic, standard-decimal arithmetic or standard-binary arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression
 
-   (operand-11 + operand-12 + ... + operand-1n + operand-2)
+   (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub> + operand-2)
 
    where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the ADD statement and the value of operand-2 is the value of either literal-2 or the data item referenced by identifier-2 in the ADD statement.
 
@@ -20362,11 +20358,9 @@ Format 1 (into):
 Format 2 (into-giving):
 
 <pre style="line-height:1">
-       ╭              ╮ <u>INTO</u>
-       │              │
-       │ identifier-1 │ ╭ identifier-2 ╮
-<u>DIVIDE</u> ┤              ├ ┤              ├
-       ╰ literal-1    ╯ ╰ literal-2    ╯
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
 <u>GIVING</u> { identifier-3 [ rounded-phrase ] } …
 
@@ -20396,11 +20390,9 @@ Format 3 (by-giving):
 Format 4 (into-remainder):
 
 <pre style="line-height:1">
-       ╭              ╮ <u>INTO</u>
-       │              │
-       │ identifier-1 │ ╭ identifier-2 ╮
-<u>DIVIDE</u> ┤              ├ ┤              ├
-       ╰ literal-1    ╯ ╰ literal-2    ╯
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
 <u>GIVING</u> identifier-3 [ rounded-phrase ]
 <u>REMAINDER</u> identifier-4
@@ -24498,11 +24490,9 @@ Format 1 (simple):
 Format 2 (giving):
 
 <pre style="line-height:1">
-         ╭              ╮ …
-         │              │
-         │ identifier-1 │      ╭ identifier-2 ╮
-<u>SUBTRACT</u> ┤              ├ <u>FROM</u> ┤              ├
-         ╰ literal-1    ╯      ╰ literal-2    ╯
+         ╭ identifier-1 ╮        ╭ identifier-2 ╮
+<u>SUBTRACT</u> ┤              ├ … <u>FROM</u> ┤              ├
+         ╰ literal-1    ╯        ╰ literal-2    ╯
 
 <u>GIVING</u> { identifier-3 [ rounded-phrase ] } …
 
@@ -24565,7 +24555,7 @@ FORMAT 3
 
    When standard arithmetic, standard-decimal arithmetic, or standard-binary arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression
 
-   (operand-11 + operand-12 + ... + operand-1n)
+   (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>)
 
    where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the SUBTRACT statement. The result of the subtraction from the value of each data item referenced by identifier-2 is equivalent to the result of the arithmetic expression
 
@@ -24577,7 +24567,7 @@ FORMAT 3
 
    When standard arithmetic, standard-decimal arithmetic, or standard-binary arithmetic is in effect, the result of the arithmetic expression
 
-   (operand-2 – (operand-11 + operand-12 + ... + operand-1n))
+   (operand-2 – (operand-1<sub>1</sub> + operand-1<sub>2</sub> + ... + operand-1<sub>n</sub>))
 
    where the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order in which they are specified in the SUBTRACT statement and the value of operand-2 is the value of either literal-2 or the data item referenced by identifier-2 in the SUBTRACT statement.
 
@@ -25895,7 +25885,7 @@ Table 22 — Table of functions (Continued)
 | LOCAL-TIME-FROM-SECONDS | Num1, Loc2 | Anum | A character-string containing a time specified by argument-1, in a format specified by a locale identified by argument-2 |
 | LOG | Num1 | Num | Natural logarithm of argument-1 |
 | LOG10 | Num1 | Num | Logarithm to base 10 of argument-1 |
-| LOWER-CASE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argumenta | A character string with any uppercase letters in argument-1 set to lowercase |
+| LOWER-CASE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argument<sup>a</sup> | A character string with any uppercase letters in argument-1 set to lowercase |
 | LOWEST-ALGEBRAIC | Anum1 or<br>Int1 or<br>Nat1 or<br>Num1 | Int<br>Num | Lowest algebraic value that may be represented in argument-1. |
 
 ## Page 663
@@ -25904,11 +25894,11 @@ Table 22 — Table of functions (Continued)
 
 | Intrinsic-function-name | Arguments | Type | Value returned |
 |---|---|---|---|
-| MAX | Alph1 ... or<br>Anum1 ... or Ind1 ... or<br>Int1 . . . or<br>Nat1 ... or<br>Num1 ... | Depends<br>upon<br>argumentsa | Value of maximum argument |
+| MAX | Alph1 ... or<br>Anum1 ... or Ind1 ... or<br>Int1 . . . or<br>Nat1 ... or<br>Num1 ... | Depends<br>upon<br>arguments<sup>a</sup> | Value of maximum argument |
 | MEAN | Num1 ... | Num | Arithmetic mean of arguments |
 | MEDIAN | Num1 ... | Num | Median of arguments |
 | MIDRANGE | Num1 ... | Num | Mean of minimum and maximum arguments |
-| MIN | Alph1 ... or<br>Anum1 ... or Ind1 ... or<br>Int1 ... or<br>Nat1 ... or<br>Num1 ... | Depends<br>upon<br>argumentsa | Value of minimum argument |
+| MIN | Alph1 ... or<br>Anum1 ... or Ind1 ... or<br>Int1 ... or<br>Nat1 ... or<br>Num1 ... | Depends<br>upon<br>arguments<sup>a</sup> | Value of minimum argument |
 | MOD | Int1, Int2 | Int | argument-1 modulo argument-2 |
 | NATIONAL-OF | Alph1 or<br>Anum1, Nat2 | Nat | Usage national representation of argument-1. Argument-2, if specified, is a national character to be used when no national character corresponds to an alphanumeric character in argument-1 |
 | NUMVAL | Anum1 or Nat1 | Num | Numeric value of simple numeric string contained in argument-1 |
@@ -25929,7 +25919,7 @@ Table 22 — Table of functions (Continued)
 | RANDOM | Int1 | Num | Random number; optional argument-1 specifies seed value |
 | RANGE | Int1 ... or<br>Num1 ... | Depends<br>upon<br>argument | Value of maximum argument minus value of minimum argument |
 | REM | Num1, Num2 | Num | Remainder of division of argument-1 by argument-2 |
-| REVERSE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argumenta | Reverse order of the characters of argument-1 |
+| REVERSE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argument<sup>a</sup> | Reverse order of the characters of argument-1 |
 | SECONDS-FROM-<br>FORMATTED-TIME | Anum1 or<br>Nat1, Anum2 or<br>Nat2 | Num | Standard numeric time equivalent of the data contained in argument-2 as described by the format specified in argument-1 |
 | SECONDS-PAST-<br>MIDNIGHT |  | Num | Seconds past midnight as provided by the system |
 | SIGN | Num1 | Int | The sign of argument-1 |
@@ -25952,12 +25942,12 @@ Table 22 — Table of functions (Continued)
 |---|---|---|---|
 | TEST-NUMVAL-C | Anum1 or<br>Nat1, Alph2 or Anum2 or Nat2 or Key2 or<br>Key2 and Loc2, Key3 | Int | 0 if argument-1 conforms to the requirements of the NUMVAL-C function; otherwise, identifies the character position in error. Argument-2 specifies either a currency sign or a locale specification, and argument-3 specifies case insensitivity |
 | TEST-NUMVAL-F | Anum1 or<br>Nat1 | Int | 0 if argument-1 conforms to the requirements of the NUMVAL-F function;<br>otherwise identifies the character in error |
-| TRIM | Alph1 or<br>Anum1 or<br>Nat1, Key2 | Depends<br>upon<br>argumenta | The value of argument-1 with leading spaces, trailing spaces, or both, deleted. |
-| UPPER-CASE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argumenta | A character string with any lowercase letters in argument-1 set to uppercase |
+| TRIM | Alph1 or<br>Anum1 or<br>Nat1, Key2 | Depends<br>upon<br>argument<sup>a</sup> | The value of argument-1 with leading spaces, trailing spaces, or both, deleted. |
+| UPPER-CASE | Alph1 or<br>Anum1 or<br>Nat1 | Depends<br>upon<br>argument<sup>a</sup> | A character string with any lowercase letters in argument-1 set to uppercase |
 | VARIANCE | Num1 ... | Num | Variance of argument-1 |
 | WHEN-COMPILED |  | Anum | Date and time compilation unit was compiled |
 | YEAR-TO-YYYY | Int1, Int2, Int3 | Int | Argument-1 converted from YY to YYYY based on the values of argument-2 and argument-3 |
-| a A function that has only alphabetic arguments is type alphanumeric. |  |  |  |
+| <sup>a</sup> A function that has only alphabetic arguments is type alphanumeric. |  |  |  |
 
 ## Page 666
 
@@ -27621,11 +27611,11 @@ The type of this function is numeric.
 
    b) For two occurrences of argument-1,
 
-   ((argument-11 + argument-12) / 2)
+   ((argument-1<sub>1</sub> + argument-1<sub>2</sub>) / 2)
 
    c) For n occurrences of argument-1,
 
-   ((argument-11 + argument-12 +... + argument-1n) / n)
+   ((argument-1<sub>1</sub> + argument-1<sub>2</sub> +... + argument-1<sub>n</sub>) / n)
 
 ## Page 719
 
@@ -28157,19 +28147,19 @@ The type of this function is numeric.
 
    b) For two occurrences of argument-2,
 
-   (argument-21 / (1 + argument-1) + argument-22 / (1 + argument-1) \*\* 2)
+   (argument-2<sub>1</sub> / (1 + argument-1) + argument-2<sub>2</sub> / (1 + argument-1) \*\* 2)
 
    c) For n occurrences of argument-2, the equivalent arithmetic expression is
 
    (FUNCTION SUM (
 
-(argument-21 / (1 + argument-1) \*\* 1)
+(argument-2<sub>1</sub> / (1 + argument-1) \*\* 1)
 
 ...
 
-(argument-2n / (1 + argument-1) \*\* n)))
+(argument-2<sub>n</sub> / (1 + argument-1) \*\* n)))
 
-   where argument-1 and argument-2i in the terms of the SUM function are the same as the arguments for the PRESENT-VALUE function itself.
+   where argument-1 and argument-2<sub>i</sub> in the terms of the SUM function are the same as the arguments for the PRESENT-VALUE function itself.
 
 ## Page 735
 
@@ -28549,11 +28539,11 @@ The type of this function depends upon the argument types as follows:
 
    b) For two occurrences of argument-1,
 
-   (argument-11 + argument-12)
+   (argument-1<sub>1</sub> + argument-1<sub>2</sub>)
 
    c) For n occurrences of argument-1,
 
-   (argument-11 + argument-12 + ... + argument-1n)
+   (argument-1<sub>1</sub> + argument-1<sub>2</sub> + ... + argument-1<sub>n</sub>)
 
 ## Page 747
 
@@ -28943,20 +28933,20 @@ The type of this function is numeric.
 
    b) For two occurrences of argument-1,
 
-   (((argument-11 – FUNCTION MEAN (argument-list)) \*\* 2 +\
-   &emsp;&emsp;(argument-12– FUNCTION MEAN (argument-list)) \*\* 2) / 2)
+   (((argument-1<sub>1</sub> – FUNCTION MEAN (argument-list)) \*\* 2 +\
+   &emsp;&emsp;(argument-1<sub>2</sub>– FUNCTION MEAN (argument-list)) \*\* 2) / 2)
 
    c) For n occurrences of argument-1,
 
    (FUNCTION SUM (
 
-((argument-11 – FUNCTION MEAN (argument-list)) \*\* 2)
+((argument-1<sub>1</sub> – FUNCTION MEAN (argument-list)) \*\* 2)
 
 ...
 
-((argument-1n – FUNCTION MEAN (argument-list)) \*\* 2)) / n)
+((argument-1<sub>n</sub> – FUNCTION MEAN (argument-list)) \*\* 2)) / n)
 
-   where argument-list is the argument-1 list for the VARIANCE function itself and argument-1i is the ith argument of the argument-1 list for the VARIANCE function itself.
+   where argument-list is the argument-1 list for the VARIANCE function itself and argument-1<sub>i</sub> is the ith argument of the argument-1 list for the VARIANCE function itself.
 
 ## Page 757
 

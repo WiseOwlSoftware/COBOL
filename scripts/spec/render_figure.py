@@ -160,7 +160,12 @@ def split_fused(page, words):
     out = [w for w in words if id(w) not in {id(f) for f in fused}]
     rules = figure_extract.underlines(page)
     for w in fused:
-        run = None
+        # The run is the NEAREST one in y with the word's text at the word's x. The same text at the same x recurs on
+        # one page: OCCURS Formats 1, 2 and 4 each print `}KEY IS` with the brace closer at x 151.3 (§2014:13.18.38.1,
+        # PDF page 370), and taking the first such run gave Format 2's and Format 4's `KEY` the height of Format 1's,
+        # so `KEY` was drawn above its own figure and the brace stretched up over the first line (kb/Work PB5331,
+        # claims p370-1 and p370-2).
+        runs = []
         for line in lines:
             for is_space, grp in itertools.groupby((c for span in line["spans"] for c in span["chars"]),
                                                    key=lambda c: c["c"].isspace()):
@@ -168,10 +173,8 @@ def split_fused(page, words):
                     continue
                 cs = list(grp)
                 if "".join(c["c"] for c in cs) == w["text"] and abs(cs[0]["bbox"][0] - w["x0"]) < 1.0:
-                    run = cs
-                    break
-            if run:
-                break
+                    runs.append(cs)
+        run = min(runs, key=lambda cs: abs(cs[0]["bbox"][1] - w["y0"]), default=None)
         if run is None:
             sys.exit(f"FATAL: could not re-measure the fused word {w['text']!r} against the raw text layer — "
                      "splitting it by estimate would put the delimiter in the wrong column")
