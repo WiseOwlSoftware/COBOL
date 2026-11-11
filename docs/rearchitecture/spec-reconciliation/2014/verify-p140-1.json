@@ -1,0 +1,13 @@
+{
+  "claim_id": "p140-1",
+  "claim_key": "e4d28846bb72e9d8",
+  "page": 140,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p140-1", "page": 140, "kind": "missing-heading", "severity": "structural", "section": "8.4.5.1.1 Scope of condition-names, constant-names, data-names, file-names, record-names, report-names, screen-names, and type-names", "pdf_says": "8.4.5.1.1    Scope of condition-names, constant-names, data-names, file-names, record-names, report-names, screen-names, and type-names", "markdown_says": "###### 8.4.5.1.1 Scope of condition-names, constant-names, data-names, file-names, record-names,\n\nreport-names, screen-names, and type-names", "note": "The two-line printed heading was split: only the first line is the heading, and its continuation 'report-names, screen-names, and type-names' stands as a separate body paragraph, truncating the heading text.", "why_it_matters": "A reader or tool keying on the heading text sees a truncated title, and the stray continuation line reads as body prose of the clause."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 140 (printed p.116) shows the bold heading '8.4.5.1.1 Scope of condition-names, constant-names, data-names, file-names, record-names, report-names, screen-names, and type-names' wrapped over two lines, both in the same bold heading face. page-140.md lines 44-46 hold '###### 8.4.5.1.1 Scope of ... record-names,' as the heading, then a blank line, then 'report-names, screen-names, and type-names' as a separate plain paragraph. No words are lost, but the heading's own text is truncated and its tail is demoted to body prose. That is a genuine structural defect in the heading, beyond ordinary line wrapping inside a paragraph. It does not change normative meaning, so the severity stays structural.",
+    "corrected_description": ""
+  }
+}

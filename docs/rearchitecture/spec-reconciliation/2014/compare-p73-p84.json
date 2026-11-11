@@ -1,0 +1,25 @@
+{
+  "batch": [73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84],
+  "pages_checked": [73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p79-1",
+      "page": 79,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "b) EC-PROGRAM-EXCEPTIONS: A TURN directive for EC-ALL, EC-PROGRAM, EC-PROGRAM-ARG-OMITTED. or EC-PROGRAM-NOT-FOUND shall be flagged if / 1. the source element calls any function, or / 2. the source element invokes any method. [and under d) MOVE-TO-SAME-NAME: 1. the operands are of category alphanumeric-edited, or] -- the numbered items are printed indented one level deeper than the lettered items b) and d), nested under them",
+      "markdown_says": "   b) EC-PROGRAM-EXCEPTIONS: A TURN directive for EC-ALL, EC-PROGRAM, EC-PROGRAM-ARG-OMITTED. or EC-PROGRAM-NOT-FOUND shall be flagged if\n\n   1\\. the source element calls any function, or\n\n   2\\. the source element invokes any method.\n\n   ...\n\n   1\\. the operands are of category alphanumeric-edited, or",
+      "why_it_matters": "In 7.3.11.3 GR4 the numbered sub-items 1. and 2. are indented at the same level as the lettered items b), c), d), so they read as siblings of the lettered options instead of the conditions belonging to b) EC-PROGRAM-EXCEPTIONS and d) MOVE-TO-SAME-NAME; the list nesting is lost."
+    },
+    {
+      "id": "p80-1",
+      "page": 80,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "2. the data description entry for the operands includes a subordinate OCCURS … DEPENDING clause, and the data item referenced by that OCCURS … DEPENDING clause is subordinate to the data description entry referenced by the operands. -- printed indented one level deeper than e) and f), as the second condition of d) MOVE-TO-SAME-NAME continued from page 79",
+      "markdown_says": "   2\\. the data description entry for the operands includes a subordinate OCCURS … DEPENDING clause, and the data item referenced by that OCCURS … DEPENDING clause is subordinate to the data description entry referenced by the operands.\n\n   e) RANGE-EXCEPTION-FOR-INDEX:",
+      "why_it_matters": "The continuation item 2. of 7.3.11.3 GR4 d) is indented at the same level as e) and f), so it is detached from its parent d) MOVE-TO-SAME-NAME and reads as a sibling of the lettered options."
+    }
+  ]
+}

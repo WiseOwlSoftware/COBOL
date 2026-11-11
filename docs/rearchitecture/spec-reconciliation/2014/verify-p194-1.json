@@ -1,0 +1,13 @@
+{
+  "claim_id": "p194-1",
+  "claim_key": "e58cc994b40f8eaa",
+  "page": 194,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p194-1", "page": 194, "kind": "misplaced-content", "severity": "structural", "pdf_says": "EXPANDS    class-specifier and interface-specifier of the REPOSITORY paragraph", "markdown_says": "| EXPANDS | class-specifier and interface-specifier of the REPOSITORY |\n\nparagraph", "why_it_matters": "The wrapped second line of the context cell was detached from the table row and emitted as a stray body paragraph 'paragraph', so the EXPANDS context reads as truncated ('...of the REPOSITORY') and the table is broken in two."},
+  "verdict": {
+    "real": false,
+    "reasoning": "Printed page 170 (PDF p194), section 8.10, shows the EXPANDS row with its context cell wrapped over two lines: 'class-specifier and interface-specifier of the REPOSITORY' / 'paragraph'. The markdown keeps every word in the same order: the row ends '...of the REPOSITORY |' and 'paragraph' appears on the next non-blank line (page-194.md lines 28-30). No text is missing, added or changed. The defect is only that a wrapped table-cell line was emitted outside the table, which splits the markdown table. That is line wrapping and table formatting, not a content discrepancy, and it does not change the meaning: the context is still the REPOSITORY paragraph. The same wrap artifact occurs for HIGH-ORDER-LEFT/RIGHT on this page.",
+    "corrected_description": ""
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p792-2",
+  "claim_key": "6e0b4375d22dea23",
+  "page": 792,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p792-2", "page": 792, "kind": "misplaced-content", "severity": "structural", "pdf_says": "CJK Unified Ideographs: 3400-4DB5, 4E00-9FA5, FA0E-FA0F, FA11, FA13-FA14, FA1F, FA21, FA23-FA24, FA27-FA29", "markdown_says": "CJK Unified\n\n| Ideographs: | 3400-4DB5, 4E00-9FA5, FA0E-FA0F, FA11, FA13-FA14, FA1F, FA21, FA23-FA24, FA27-FA29 |\n|---|---|", "why_it_matters": "The row label 'CJK Unified Ideographs:' is split: 'CJK Unified' is a stray paragraph and the row (now the table's header row) is labelled only 'Ideographs:', so the classification name is lost from the row."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (2014 p.768, PDF page 792, Annex B.3.1) sets the label on two lines: 'CJK Unified' on the first line and 'Ideographs:' on the second, with the code-point ranges beside the second line. The markdown keeps both words in order, on the line directly before the table row: 'CJK Unified' as a paragraph, then the row '| Ideographs: | 3400-4DB5, ... FA27-FA29 |'. Every code point matches the PDF. No text is missing and no range is attached to the wrong script. The difference is a two-line label wrapped across a table boundary, plus markdown table scaffolding (the row becoming a header row). That is reflow and formatting. A reader still sees 'CJK Unified' next to 'Ideographs:' and its ranges, so the meaning is unchanged. The rejection criteria cover this case: the text is present on an adjacent line and the difference is only line wrapping or formatting.",
+    "corrected_description": ""
+  }
+}

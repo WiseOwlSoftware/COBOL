@@ -1,0 +1,16 @@
+{
+  "batch": [673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684],
+  "pages_checked": [673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p677-1",
+      "page": 677,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Character Positions | Contents (two-column table header) ... rows 1-4, 5-6, 7-8, 9-10, 11-12, 13-14 (with its two dash sub-items '— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect' and '— 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect.'), 15-16, 17, 18-19, 20-21 all as rows of one table",
+      "markdown_says": "Character Contents\\\n   Positions\n\n| 1-4 | Four numeric digits of the year in the Gregorian calendar. |\n|---|---|\n... | 13-14 | Two numeric characters of the seconds past the minute in the range: |\n\n— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\\\n— 00 through nn, ...\n\n   15-16 Two numeric digits of the hundredths of a second past the second, in the range 00 through\n\n99\\. The value 00 is returned if the system on which the function is evaluated does not have the facility to provide the fractional part of a second.\n\n   17 Either the character '–', ...",
+      "why_it_matters": "The CURRENT-DATE character-position table is broken: the column header is plain text outside the table, the table ends after row 13-14, the 13-14 dash sub-items are detached outside the table, and rows 15-16, 17, 18-19 and 20-21 become loose paragraphs. Row 15-16 is further split mid-sentence so '99. The value 00 is returned...' stands as a separate paragraph detached from its position label. All words are present; the table structure that ties each content description to its character positions is lost."
+    }
+  ]
+}
