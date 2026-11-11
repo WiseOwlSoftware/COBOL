@@ -430,8 +430,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // §2023:15.3 landing: §2023:15.5.2 BOUNDS the integer date form (1601-01-01 onward), so an argument the body
             // cannot represent really is an incorrect value and EC-ARGUMENT-FUNCTION is the standard's answer —
             // the exact opposite of the TEST- validators above (kb/Work PB22 / PB254).
+            // The 1989 module's form has no upper bound on the year (kb/Work PB5130, BoundIntrinsicCall.IntegerDateFormUnbounded).
             case "DateOfInteger" or "DayOfInteger" or "IntegerOfDate" or "IntegerOfDay":
-                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, IntArg(ic, 0)), 0);
+                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod,
+                    $"{IntArg(ic, 0)}{(ic.IntegerDateFormUnbounded ? ", unbounded: true" : "")}"), 0);
 
             // The Y2K windowing trio (§2023:15.23/§2023:15.25/§2023:15.100) — integer results; the optional trailing
             // argument-2 (a SIGNED offset) / argument-3 ride the runtime's C#-optional-parameter defaults

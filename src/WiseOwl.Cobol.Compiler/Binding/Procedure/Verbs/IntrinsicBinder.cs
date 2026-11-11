@@ -7,6 +7,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -910,8 +911,13 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // provably alphabetic keeps r3's "otherwise" arm (alphanumeric).
         bool alphabetic = resolved.Name == "CONCAT" && args.Count > 0 && args.All(IsAlphabeticArg);
 
+        // The four 1989 integer-date conversions take the year's upper bound from the edition (kb/Work PB5130): the 1989
+        // module bounds it below only (§1989:A.2.16.3 AR1), 2002 and later at 9999 (§2023:15.5.2).
+        bool integerDateUnbounded = resolved.RuntimeMethod is "DateOfInteger" or "DayOfInteger" or "IntegerOfDate" or "IntegerOfDay"
+            && !DialectBehaviors.IsActive(DialectBehavior.IntegerDateFormBounded, ctx.Edition.Edition.Year);
+
         return new BoundIntrinsicCall(resolved, args, category, collate)
-            { CollateNat = collateNat, ResultIsAlphabetic = alphabetic };
+            { CollateNat = collateNat, ResultIsAlphabetic = alphabetic, IntegerDateFormUnbounded = integerDateUnbounded };
     }
 
     /// <summary>Is this argument provably CLASS ALPHABETIC (§2023:8.5.2.1 Table 2 — category alphabetic, the PIC A

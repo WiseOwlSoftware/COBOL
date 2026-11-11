@@ -43,44 +43,122 @@ public static class CobolDate
     /// IF107A validates plausibility ranges and that successive references never decrease.</summary>
     public static string CurrentDate() => Format21(RunUnit.Current.Clock.Now());
 
-    /// <summary>DATE-OF-INTEGER (§2023:15.22.4): integer date form → standard date form YYYYMMDD. An argument outside
-    /// 1..3,067,671 (§2023:15.5.2) → 0 (EC default, §2023:15.3).</summary>
-    public static long DateOfInteger(long integerDate)
+    // ── The four 1989 integer-date conversions (§2023:15.22 / §2023:15.24 / §2023:15.46 / §2023:15.47) ─────────────
+    // ⛔ ONE PROLEPTIC GREGORIAN DAY COUNT, AND THE YEAR'S UPPER BOUND IS THE EDITION'S (kb/Work PB5130). From 2002 the
+    // integer date form ends at 9999-12-31 (§2023:15.5.2: a value "shall be less than or equal to the value of FUNCTION
+    // INTEGER-OF-DATE (99991231), which is 3,067,671"; §2023:15.46.3 AR1 a) "greater than 1600 and less than 10000"; the
+    // 2002 text words both the same). The 1989 intrinsic function module bounds the year BELOW only: §1989:A.2.16.3 AR1
+    // a. "It must be an integer greater than 1600", §1989:A.2.12.3 AR1 "a positive integer that represents a number of
+    // days succeeding December 31, 1600", and the returned value is the number of days the date succeeds December 31,
+    // 1600 (§1989:A.2.16.4) whatever the year. So at --std 85 (DialectBehavior.IntegerDateFormBounded inactive, read by
+    // the binder into BoundIntrinsicCall.IntegerDateFormUnbounded and rendered as `unbounded: true`) 10000-01-01 is day
+    // 3,067,672. System.DateTime ends at year 9999, so these four bodies are the calendar's own arithmetic: 400 Gregorian
+    // years are 146,097 days, and 1601-01-01 starts such a cycle. The one remaining limit is the carrier's: a returned
+    // value the 64-bit result cannot hold is an incorrect value (§2023:15.3), the default 0.
+
+    /// <summary>The days of a 400-year Gregorian cycle, of each of its three short centuries, of a 4-year group and of a
+    /// common year.</summary>
+    private const long DaysPer400Years = 146_097, DaysPer100Years = 36_524, DaysPer4Years = 1_461, DaysPerYear = 365;
+
+    /// <summary>The days of a common year before each month (index 0 = January), and the year's total at index 12.</summary>
+    private static readonly int[] DaysBeforeMonth = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365];
+
+    /// <summary>The Gregorian leap-year rule (§2023:15.5.1).</summary>
+    private static bool IsLeapYear(long year) => year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+
+    /// <summary>The days before month <paramref name="month"/> (1-12) of <paramref name="year"/>.</summary>
+    private static int DaysBefore(long year, int month) =>
+        DaysBeforeMonth[month - 1] + (month > 2 && IsLeapYear(year) ? 1 : 0);
+
+    /// <summary>The days of month <paramref name="month"/> (1-12) of <paramref name="year"/>.</summary>
+    private static int DaysInMonth(long year, int month) =>
+        DaysBeforeMonth[month] - DaysBeforeMonth[month - 1] + (month == 2 && IsLeapYear(year) ? 1 : 0);
+
+    /// <summary>The days of the years 1601 through <paramref name="year"/> − 1 (<paramref name="year"/> ≥ 1601).</summary>
+    private static long DaysBeforeYear(long year)
     {
-        if (integerDate is < 1 or > 3067671)                 // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
-            return Exceptions.ExceptionState.ArgumentError($"DATE-OF-INTEGER argument {integerDate} outside 1..3,067,671 (§2023:15.5.2)");
-        DateTime d = Epoch.AddDays(integerDate - 1);
-        return d.Year * 10000L + d.Month * 100L + d.Day;
+        long y = year - 1601;
+        return DaysPerYear * y + y / 4 - y / 100 + y / 400;
     }
 
-    /// <summary>DAY-OF-INTEGER (§2023:15.24.4): integer date form → Julian date form YYYYDDD (§2023:15.5.4).</summary>
-    public static long DayOfInteger(long integerDate)
+    /// <summary>The year and day of year of integer date <paramref name="integerDate"/> (≥ 1).</summary>
+    private static (long Year, int DayOfYear) YearAndDayOf(long integerDate)
     {
-        if (integerDate is < 1 or > 3067671)                 // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
-            return Exceptions.ExceptionState.ArgumentError($"DAY-OF-INTEGER argument {integerDate} outside 1..3,067,671 (§2023:15.5.2)");
-        DateTime d = Epoch.AddDays(integerDate - 1);
-        return d.Year * 1000L + d.DayOfYear;
+        long n = integerDate - 1;                                     // days after 1601-01-01
+        long cycles = n / DaysPer400Years;
+        n %= DaysPer400Years;
+        long centuries = Math.Min(n / DaysPer100Years, 3);            // the fourth century of a cycle has the extra day
+        n -= centuries * DaysPer100Years;
+        long groups = n / DaysPer4Years;
+        n -= groups * DaysPer4Years;
+        long years = Math.Min(n / DaysPerYear, 3);                    // the fourth year of a group is its leap year
+        n -= years * DaysPerYear;
+        return (1601 + 400 * cycles + 100 * centuries + 4 * groups + years, (int)n + 1);
     }
 
-    /// <summary>INTEGER-OF-DATE (§2023:15.46.4): standard date form YYYYMMDD → integer date form. An invalid calendar
-    /// date or a year before 1601 → 0 (EC default, §2023:15.3).</summary>
-    public static long IntegerOfDate(long yyyymmdd)
+    /// <summary>Is <paramref name="integerDate"/> in integer date form for the compilation's edition: positive, and from 2002
+    /// at most 3,067,671?</summary>
+    private static bool InIntegerDateForm(long integerDate, bool unbounded) =>
+        integerDate >= 1 && (unbounded || integerDate <= MaxIntegerDate);
+
+    /// <summary>Is <paramref name="year"/> a year the edition's argument rules admit: above 1600, and from 2002 below 10000?</summary>
+    private static bool InYearRange(long year, bool unbounded) => year > 1600 && (unbounded || year < 10000);
+
+    /// <summary>DATE-OF-INTEGER (§2023:15.22.4; §1989:A.2.12): integer date form → standard date form YYYYMMDD. An argument
+    /// outside the edition's integer date form, or a date whose YYYYMMDD the result cannot hold → 0 (EC default,
+    /// §2023:15.3). <paramref name="unbounded"/> is the 1989 module's form (see the family comment above).</summary>
+    public static long DateOfInteger(long integerDate, bool unbounded = false)
     {
-        long year = yyyymmdd / 10000, month = yyyymmdd / 100 % 100, day = yyyymmdd % 100;
-        if (year is < 1601 or > 9999 || month is < 1 or > 12 || day < 1
-            || day > DateTime.DaysInMonth((int)year, (int)month))
-            return Exceptions.ExceptionState.ArgumentError($"INTEGER-OF-DATE argument {yyyymmdd} is not a valid standard date (§2023:15.46.3)");
-        return (new DateTime((int)year, (int)month, (int)day) - Epoch).Days + 1;
+        if (!InIntegerDateForm(integerDate, unbounded))           // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
+            return Exceptions.ExceptionState.ArgumentError(unbounded
+                ? $"DATE-OF-INTEGER argument {integerDate} is not a positive integer (§1989:A.2.12.3 AR1)"
+                : $"DATE-OF-INTEGER argument {integerDate} outside 1..3,067,671 (§2023:15.5.2)");
+        var (year, dayOfYear) = YearAndDayOf(integerDate);
+        if (year > (long.MaxValue - 1231) / 10000)
+            return Exceptions.ExceptionState.ArgumentError(
+                $"DATE-OF-INTEGER argument {integerDate} is in year {year}, whose YYYYMMDD the returned value cannot hold (§2023:15.3)");
+        int month = 1;
+        while (month < 12 && dayOfYear > DaysBefore(year, month + 1)) month++;   // the last month whose start is not past the day
+        return year * 10000 + month * 100L + (dayOfYear - DaysBefore(year, month));
     }
 
-    /// <summary>INTEGER-OF-DAY (§2023:15.47.4): Julian date form YYYYDDD → integer date form. An invalid ordinal day
-    /// (0, or past the year's length) or a year before 1601 → 0 (EC default, §2023:15.3).</summary>
-    public static long IntegerOfDay(long yyyyddd)
+    /// <summary>DAY-OF-INTEGER (§2023:15.24.4; §1989:A.2.13): integer date form → Julian date form YYYYDDD (§2023:15.5.4).</summary>
+    public static long DayOfInteger(long integerDate, bool unbounded = false)
+    {
+        if (!InIntegerDateForm(integerDate, unbounded))           // EC-ARGUMENT-FUNCTION raise point / §2023:15.3 default 0
+            return Exceptions.ExceptionState.ArgumentError(unbounded
+                ? $"DAY-OF-INTEGER argument {integerDate} is not a positive integer (§1989:A.2.13.3 AR1)"
+                : $"DAY-OF-INTEGER argument {integerDate} outside 1..3,067,671 (§2023:15.5.2)");
+        var (year, dayOfYear) = YearAndDayOf(integerDate);
+        if (year > (long.MaxValue - 366) / 1000)
+            return Exceptions.ExceptionState.ArgumentError(
+                $"DAY-OF-INTEGER argument {integerDate} is in year {year}, whose YYYYDDD the returned value cannot hold (§2023:15.3)");
+        return year * 1000 + dayOfYear;
+    }
+
+    /// <summary>INTEGER-OF-DATE (§2023:15.46.4; §1989:A.2.16): standard date form YYYYMMDD → integer date form. An invalid
+    /// calendar date, a year before 1601, or (from 2002) a year after 9999 → 0 (EC default, §2023:15.3).</summary>
+    public static long IntegerOfDate(long yyyymmdd, bool unbounded = false)
+    {
+        long year = yyyymmdd / 10000;
+        int month = (int)(yyyymmdd / 100 % 100), day = (int)(yyyymmdd % 100);
+        if (!InYearRange(year, unbounded) || month is < 1 or > 12 || day < 1 || day > DaysInMonth(year, month))
+            return Exceptions.ExceptionState.ArgumentError(unbounded
+                ? $"INTEGER-OF-DATE argument {yyyymmdd} is not a valid standard date (§1989:A.2.16.3 AR1)"
+                : $"INTEGER-OF-DATE argument {yyyymmdd} is not a valid standard date (§2023:15.46.3)");
+        return DaysBeforeYear(year) + DaysBefore(year, month) + day;
+    }
+
+    /// <summary>INTEGER-OF-DAY (§2023:15.47.4; §1989:A.2.17): Julian date form YYYYDDD → integer date form. An invalid ordinal
+    /// day (0, or past the year's length), a year before 1601, or (from 2002) a year after 9999 → 0 (EC default, §2023:15.3).</summary>
+    public static long IntegerOfDay(long yyyyddd, bool unbounded = false)
     {
         long year = yyyyddd / 1000, day = yyyyddd % 1000;
-        if (year is < 1601 or > 9999 || day < 1 || day > (DateTime.IsLeapYear((int)year) ? 366 : 365))
-            return Exceptions.ExceptionState.ArgumentError($"INTEGER-OF-DAY argument {yyyyddd} is not a valid Julian date (§2023:15.47.3)");
-        return (new DateTime((int)year, 1, 1).AddDays(day - 1) - Epoch).Days + 1;
+        if (!InYearRange(year, unbounded) || day < 1 || day > (IsLeapYear(year) ? 366 : 365))
+            return Exceptions.ExceptionState.ArgumentError(unbounded
+                ? $"INTEGER-OF-DAY argument {yyyyddd} is not a valid Julian date (§1989:A.2.17.3 AR1)"
+                : $"INTEGER-OF-DAY argument {yyyyddd} is not a valid Julian date (§2023:15.47.3)");
+        return DaysBeforeYear(year) + day;
     }
 
     // ── The §2023:15.100/§2023:15.23/§2023:15.25 Y2K WINDOWING TRIO + §2023:15.80 SECONDS-PAST-MIDNIGHT (COBOL-2002) ──────────────

@@ -60,6 +60,14 @@
       "vcrRow": "29"
     },
     {
+      "id": "integer-date-form-bounded-9999",
+      "vcrRow": "7.57"
+    },
+    {
+      "id": "numval-c-currency-content-rules",
+      "vcrRow": "7.58"
+    },
+    {
       "id": "perform-varying-after-init-inner-first",
       "vcrRow": "7.53"
     },
