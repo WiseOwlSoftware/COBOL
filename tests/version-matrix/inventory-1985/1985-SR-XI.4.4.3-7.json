@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XI.4.4.3-7",
  "rule-digest": "7c26c86bd115",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenMultipleFileReels; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenMultipleFileClause",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-SR-XI_4_4_3-7",
+ "notes": "§1985:XI.4.4.3 SR7 is a permission: 'The files referenced by file-name-2 and file-name-3 may reside on the same multiple file reel.' FileControlBinder.ScreenMultipleFileClause records each MULTIPLE FILE TAPE clause's files as FileModel.MultipleFileReels (§1985:VII.2.11.3 GR1), and the one reader that refuses same-reel files in a sort verb, SortBinder.ScreenMultipleFileReels (§1985:XI.4.1.3 SR6, COBOL6815), is called from BindMerge only; SortBindFile never calls it, so a SORT whose USING and GIVING files share a reel compiles and runs at 85. Probes at --std 85: (e) SORT USING IN1 IN2 GIVING OUT1 OUT2 with all four in one MULTIPLE FILE TAPE clause (POSITION phrases on three) compiles and OUT2 reads back AAAA BBBB CCCC; (b) the same statement written as a MERGE is refused COBOL6815, the contrast SR6 requires; (c) at --std 2002 the MULTIPLE FILE clause is COBOL0902 (removed). Classes a, d and f do not reach a reel-placement permission. The witness sorts USING and GIVING two files of one reel.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

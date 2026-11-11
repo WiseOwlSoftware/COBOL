@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.3.11.2",
  "rule-digest": "34f83e02d29f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnOperand; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportColumnClause; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ConstantIntegerText",
  "test-ref": "conformance:cases/XIII.3.11@1985-COLUMN-NUMBER-CLAUSE/1985-FMT-XIII_3_11_2",
+ "notes": "§1985:XIII.3.11.2 prints the clause as 'COLUMN NUMBER IS integer-1' (NUMBER and IS optional), integer-1 giving the leftmost column (§1985:XIII.3.11.4 GR2). The superset rule reportColumnClause/reportColumnOperand parses it and VersionConformancePass.VisitReportColumnClause refuses at 85 (COBOL0900, ReportMultiColumn2002) every 2002 form: COL/COLS/COLUMNS/NUMBERS spellings, LEFT/CENTER/RIGHT, PLUS or '+' operand, more than one operand; ConstantIntegerText refuses an identifier operand (COBOL1547, the witness). Probes at 85: COLUMN NUMBER IS 3, COLUMN 3, COLUMN IS 3, COLUMN NUMBER 3 each print HELLO at column 3; COL/COLS/COLUMNS/NUMBERS/LEFT/CENTER/RIGHT/PLUS 2/+ 2/+3/'1 9' all COBOL0900 (accepted at 2023); COLUMN 0 COBOL2386, -1 and ARE and 1.5 parse errors, COLUMN written twice COBOL2423, group entry COBOL2247; OCCURS in a report entry COBOL0900; signed/edited/ALL/SPACES and ref-modified SOURCE items print at their columns (-ZZ9 of -12 '- 12', S99V9 TRAILING SEPARATE '120-').",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.1.4-6",
  "rule-digest": "08832ed82952",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Merge; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SequenceMerge; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#CheckOrder; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge",
  "test-ref": "conformance:cases/XI.4.1@1985-MERGE-STATEMENT/1985-GR-XI_4_1_4-6",
+ "notes": "§1985:XI.4.1.4 GR6: 'The results of the merge operation are undefined unless the records in the files referenced by file-name-2 and file-name-3 are ordered as described in the ASCENDING or DESCENDING KEY phrases'; so the compiler owes a correct merge of ordered input and nothing for unordered input. EmitMerge starts one stream per USING file (SortNextInput) and CobolSort.Merge has SortWork.SequenceMerge k-way-merge the streams by the keys; SortWork.CheckOrder's EC-SORT-MERGE-SEQUENCE test is the 2023 addition, and any result for unordered input is within 1985's 'undefined'. Probes at 85: witness (AAA CCC / BBB DDD) gives AAA BBB CCC DDD; class d/f: three USING files merged on DESCENDING alphanumeric major and ASCENDING SIGN LEADING SEPARATE minor keys give B+0011 B+0092 A-0993 A-0021 A+0051 A+0052 (ties in USING-file order); S9(18) COMP-3 keys from -999999999999999999 through 999999999999999999 merge in numeric order; unordered input (A then B under a DESCENDING key) runs to the end with exit 0 and an interleaved result, which 1985 leaves undefined. Classes a, b, c, e: GR6 has no syntax arm, edition phrase or organization case of its own.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

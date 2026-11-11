@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-10",
  "rule-digest": "151be80a8a86",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#DebugItem; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#GroupWidthFor; src/WiseOwl.Cobol.Compiler/Binding/ImplicitRegisters.cs#ActivateDebugRegisters; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#DebugRead",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-10",
+ "notes": "§1985:XV.3.2.4 GR10: each execution of a debugging section has the special register DEBUG-ITEM with the printed implicit description (DEBUG-LINE X(6), DEBUG-NAME X(30), DEBUG-SUB-1..3 S9999 SIGN LEADING SEPARATE, the single-space FILLERs, DEBUG-CONTENTS X(n)). Runtime DebugItem holds those members at those widths, ImplicitRegisters.ActivateDebugRegisters declares them when a debugging section binds under the switch, and PlaceRenderer.DebugRead maps each member reference to the register. Probes at --std 85: FUNCTION LENGTH(DEBUG-ITEM) 86 and LENGTH(DEBUG-CONTENTS) 30 (6+1+30+1+5+1+5+1+5+1+30), the FILLERs at offsets 7 and 38 are spaces, a group MOVE of DEBUG-ITEM lands each member, the witness reads DEBUG-SUB-1..3 of a three-level reference as numbers; DEBUG-ITEM as a user data-name is a reserved word (COBOL0901), a reference outside a debugging section is refused (COBOL6442), and the register is refused from 2002 on.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

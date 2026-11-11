@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-7",
  "rule-digest": "ead50759bf39",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Release; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Dispose; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#MessageControl",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-7",
+ "notes": "§1985:XIV.3.6.4 GR7: an unterminated portion's disposition is undefined, but the \"message does not logically exist for the MCS and hence cannot be sent to a destination\". The portion lives only in the run unit's MessageControlSession dialogue (RunUnit.MessageControl), never in MessageStore; PURGE removes it and the end of the run unit drops it. Probed: run unit A sent a portion and an ESI segment to a queue destination, a device and an I-O terminal and stopped; run unit B saw queue count 0, its EMI-only SEND delivered an empty message (none of A's text), and neither device file got A's text. The witness only sends a portion and runs to completion.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

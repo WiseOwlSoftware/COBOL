@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-15",
  "rule-digest": "25ff69bc4342",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugDataTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugCdTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugFileTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#ContentsWidth",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-15",
+ "notes": "§1985:XV.3.2.4 GR15: \"DEBUG-CONTENTS is a data item that is large enough to contain the data required by the following general rules.\" ProcedureTableBuilder widens _debugContentsWidth to each data target's whole-occurrence image (AddDebugDataTarget, RecordLayout.AllOccurrencesImageWidth), each cd-name's area (AddDebugCdTarget), each file's record area (AddDebugFileTarget) and each ALTER procedure-name-2 (FinalizeDebug), and DebugItem.ContentsWidth keeps it at least 30; the register exists only at --std 85 (COBOL0902 at 2002/2023). Probes at 85: a 400-character group holding OCCURS 1 TO 40 DEPENDING ON (DEBUG-CONTENTS (396:5) = ENDOK); a RECORD VARYING 5 TO 300 file (positions 296-300 of the long record read, spaces after the short one); an S9(18) item at -999999999999999999 and ZERO (its 18-character storage image). The witness checks a 200-character item, a 1-character item and a 150-character record.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
