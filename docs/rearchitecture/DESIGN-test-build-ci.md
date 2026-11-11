@@ -980,7 +980,11 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   deletes that one class.
 - **What holds it.** A Python caller uses `GateSlots.for_repo().acquire(label)` (released by its `with` block or the holder's
   death); a shell caller wraps a command with `gate_slot.py run [--label TEXT] -- <command>`. `gate.py` takes the slot after
-  the worktree's gate lock and its audits and BEFORE the build, and holds it through the population check. The slot is held
+  the worktree's gate lock and BEFORE the build, and holds it through the population check. The audits run BESIDE the
+  slot wait, not ahead of it, and a RED audit decides the verdict: `acquire(..., abandon=)` polls the gate's "an audit is
+  RED" predicate on every poll, and when it turns true the ticket is withdrawn (the dead waiter's way out), `QueueAbandoned`
+  is raised, the slot is never taken, and the gate writes verdict.json and its log and exits non-zero at once (kb/Work
+  PB5322; run 000004 of 2026-11-11 kept its ticket 72 min after a RED known at 6 min, with five gates queued behind it). The slot is held
   by the gate's whole PROCESS TREE. On Windows, acquisition puts the holder ITSELF into a Job object with
   `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` (`process_job.bind_current`, the one copy of the Job-object code) before it
   spawns anything, so no grandchild can escape and a dead driver takes every
