@@ -16,6 +16,8 @@
       *> Records 0001AA 0002AA 0003AA 0004BB.  READ KEY AA makes 0001AA available and 0002AA has the same key: 02.
       *> READ NEXT 0002AA: next 0003AA equals it: 02.  READ NEXT 0003AA: next 0004BB differs: 00.  READ KEY BB: only
       *> one record: 00.  READ KEY IS R-KEY (the prime key never repeats): 00.
+      *> Each WRITE carries INVALID KEY: with no USE procedure the 1985 text requires it (§1985:IX.4.9.3 SR3); the
+      *> duplicate alternate key is a successful WRITE, so no phrase runs.
       *>
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5117A.
@@ -40,13 +42,13 @@
        MAIN.
            OPEN OUTPUT F.
            MOVE "0001AA" TO R.
-           WRITE R.
+           WRITE R INVALID KEY DISPLAY "W1-INV".
            MOVE "0002AA" TO R.
-           WRITE R.
+           WRITE R INVALID KEY DISPLAY "W2-INV".
            MOVE "0003AA" TO R.
-           WRITE R.
+           WRITE R INVALID KEY DISPLAY "W3-INV".
            MOVE "0004BB" TO R.
-           WRITE R.
+           WRITE R INVALID KEY DISPLAY "W4-INV".
            CLOSE F.
            OPEN INPUT F.
            MOVE "AA" TO R-AK.
