@@ -1,4 +1,4 @@
-## 2002 reconciliation, account2-r02 to r04: 216 pages compared, 24 discrepancies confirmed
+## Entry 3493 — 2026-11-11 13:43 PST — 2002 reconciliation, account2-r02 to r04: 216 pages compared, 24 discrepancies confirmed
 
 Runs account2-r02, r03 and r04 of the 2002 reconciliation plan (`2002/ranges.json`) ran in parallel through
 `.claude/workflows/spec-reconcile.js` on Opus at effort medium (workflows wf_fb48f096-c2e, wf_9f9f0d15-6f9 and
@@ -13,3 +13,4 @@ runs closes (README step 5).
 
 Four of the 48 agent files were written CRLF and passed `merge_reconciliation.py`, which the gate's LINE ENDINGS audit
 then refused; `line_endings.py --fix` repaired them and kb/Work PB5330 records the gap in the merge's validation.
+
