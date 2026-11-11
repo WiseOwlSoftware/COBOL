@@ -3756,11 +3756,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
 
     /// <summary>The PRESENT WHEN clauses a printable item is subject to BELOW its report line — the line's own chain
     /// gates every item on it alike and so tells two of them apart never (§2023:13.18.41.4 GR2b). A GROUP INDICATE clause
-    /// "has the same effect as a PRESENT WHEN clause" (§2023:13.18.28.4 GR1): its entry stands as that clause.</summary>
-    private static List<object> PresentWhenClausesOf(ReportFieldModel f)
+    /// "has the same effect as a PRESENT WHEN clause" (§2023:13.18.28.4 GR1, from §2002:13.16.26.3 GR1): its entry stands
+    /// as that clause. At COBOL-85 it stands as none: the 1985 language has no PRESENT WHEN clause, and its column rule
+    /// has no exception — "Within a given print line, the printable items must be defined in ascending column number
+    /// order such that each printable item defined occupies a unique sequence of contiguous character positions"
+    /// (§1985:XIII.3.11.3 SR2; kb/Work PB5251). <paramref name="year"/> is the edition.</summary>
+    private static List<object> PresentWhenClausesOf(ReportFieldModel f, int year)
     {
         var clauses = new List<object>(f.PresentWhenCtxs);
-        if (f.GroupIndicate) clauses.Add((object?)f.Entry ?? f);
+        if (f.GroupIndicate && year >= 2002) clauses.Add((object?)f.Entry ?? f);
         return clauses;
     }
 
@@ -3840,8 +3844,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 // by ScreenReportColumnClauses; only increasing operands that overlap are left for SR8 a).
                 if (sameEntry && pi.Spec.Kind == ReportColumnKindModel.Absolute && pj.Spec.Kind == ReportColumnKindModel.Absolute
                     && pj.Spec.Value <= pi.Spec.Value) continue;
-                var clausesI = PresentWhenClausesOf(pi.Field);
-                var clausesJ = PresentWhenClausesOf(pj.Field);
+                var clausesI = PresentWhenClausesOf(pi.Field, Edition.DialectLevel);
+                var clausesJ = PresentWhenClausesOf(pj.Field, Edition.DialectLevel);
                 if (DifferentPresentWhen(clausesI, clausesJ)) continue;
                 // SR7 — absolute items by their written column numbers, in the order they are written.
                 if (!sameEntry && pi.Spec.Kind == ReportColumnKindModel.Absolute && pj.Spec.Kind == ReportColumnKindModel.Absolute
@@ -3867,7 +3871,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         if (lastAbsolute == all.Count - 1) return;
         var tail = all.Skip(lastAbsolute + 1).ToList();
         int prefixEnd = lastAbsolute >= 0 ? all[lastAbsolute].Right : 0;
-        int extent = EachDifferentPresentWhen(tail.Select(p => (IReadOnlyList<object>)PresentWhenClausesOf(p.Field)).ToList())
+        int extent = EachDifferentPresentWhen(tail.Select(p => (IReadOnlyList<object>)PresentWhenClausesOf(p.Field, Edition.DialectLevel)).ToList())
             ? tail.Max(p => p.Spec.Kind is ReportColumnKindModel.Relative or ReportColumnKindModel.AnchorSeed
                 ? prefixEnd + p.Spec.Value + p.Size - 1 : p.Right)
             : tail.Max(p => p.Right);
