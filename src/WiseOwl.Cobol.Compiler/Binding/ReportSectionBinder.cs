@@ -287,9 +287,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the page limit {limit} exceeds "
                 + $"{MaxPageLimit}; integer-1 shall not exceed {MaxPageLimit} (ISO §2023:13.18.39.3 SR5)");
         }
-        // §1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length." A leading zero is not a
-        // significant digit, so the value is what is bounded. COBOL-2002 replaced the digit count with the 9999 above.
-        else if (limit is > MaxPageLimit85 && Edition.DialectLevel < 2002 && page.integerOperand() is { } limit85Ctx)
+        // §1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length."
+        else if (limit is { } written && ExceedsThreeSignificantDigits85(written) && page.integerOperand() is { } limit85Ctx)
         {
             using var at = Edition.At(limit85Ctx);
             Edition.Error(DiagnosticCatalog.ReportPageClauseRule, $"RD '{model.Name}': the page limit {limit} has more than "
@@ -316,8 +315,17 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// <summary>ISO §2023:13.18.39.3 SR5 — "Integer-1 shall not exceed 9999."</summary>
     private const int MaxPageLimit = 9999;
 
-    /// <summary>§1985:XIII.3.8.3 SR2 — "Integer-1 must not exceed three significant digits in length": 999.</summary>
-    private const int MaxPageLimit85 = 999;
+    /// <summary>⛔ THE COBOL-85 DIGIT LIMIT OF THE REPORT SECTION'S VERTICAL INTEGERS, ASKED BY EVERY CLAUSE THAT HAS IT
+    /// (kb/Work PB5252): "must not exceed three significant digits in length" — the PAGE clause's integer-1
+    /// (§1985:XIII.3.8.3 SR2), the LINE NUMBER clause's integer-1 and integer-2 (§1985:XIII.3.15.3 SR1) and the NEXT GROUP
+    /// clause's (§1985:XIII.3.16.3 SR2). A leading zero is not a significant digit, so the value is what is bounded: 999.
+    /// COBOL-2002 replaced the digit count with the page limit, or 9999 (<see cref="ReportModel.VerticalLimit"/>), so the
+    /// test is true only below 2002.</summary>
+    private bool ExceedsThreeSignificantDigits85(int value) =>
+        Edition.DialectLevel < 2002 && value > MaxThreeSignificantDigits85;
+
+    /// <summary>999, the largest integer of three significant digits.</summary>
+    private const int MaxThreeSignificantDigits85 = 999;
 
     /// <summary>Capture the RD's CODE clause (ISO §2023:13.18.12.2 — <c>CODE IS {literal-1 | identifier-1}</c>; kb/Work
     /// PB1129). literal-1 is screened here (SR1 — "Literal-1 shall be an alphanumeric literal": a numeric, national or
@@ -866,6 +874,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} exceeds {model.VerticalLimitWords}"
                     + "; integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not "
                     + "divided into pages (ISO §2023:13.18.37.3 SR1)");
+            else if (ExceedsThreeSignificantDigits85(ng.Value))
+                Violation($"{(absolute ? "integer-1" : "integer-2")} {ngc.integerOperand().GetText()} has more than three "
+                    + "significant digits; integer-1 and integer-2 must not exceed three significant digits in length "
+                    + "(ISO §1985:XIII.3.16.3 SR2)");
             if (!model.Paged)
             {
                 if (absolute)
@@ -1316,10 +1328,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     bool absolute = op.integerOperand() is not null && op.reportRelativeSign() is null;
                     if (op.integerOperand() is { } lit)
                     {
-                        if ((_d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand) > model.VerticalLimit)
+                        int value = _d.Constants.IntegerOperandValue(lit, $"RD '{model.Name}' entry") ?? ConstantEntryBinder.RecoveredIntegerOperand;
+                        if (value > model.VerticalLimit)
                             Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
                                 + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
                                 + "is not divided into pages (ISO §2023:13.18.35.3 SR3)");
+                        else if (ExceedsThreeSignificantDigits85(value))
+                            Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} has more than three significant "
+                                + "digits; integer-1 and integer-2 must not exceed three significant digits in length "
+                                + "(ISO §1985:XIII.3.15.3 SR1)");
                     }
                     if (!model.Paged && (absolute || op.NEXT() is not null))
                         Violation($"the report is not divided into pages, so all its LINE clauses shall be relative — "
