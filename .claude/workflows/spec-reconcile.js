@@ -1,10 +1,10 @@
 export const meta = {
   name: 'spec-reconcile',
   description: 'Compare the canonical standard PDF against its markdown transcription (an edition that keeps its pages: 1985 or 2002) page by page and ledger every discrepancy',
-  whenToUse: 'Reconciling a transcription against its canonical PDF. args {pages, edition, model, effort, outDir, workDir}, every one required: pages as an array or ranges ("1-12,37-48", for 2002 a run of docs/rearchitecture/spec-reconciliation/2002/ranges.json); outDir the edition directory in the worktree of the run\'s branch; workDir a scratch directory of this run alone. See docs/rearchitecture/spec-reconciliation/README.md.',
+  whenToUse: 'Reconciling a transcription against its canonical PDF. args {pages, edition, model, effort, outDir, workDir}, every one required: pages as an array or ranges ("1-12,37-48", for 2002 a run of docs/rearchitecture/spec-reconciliation/2002/ranges.json); outDir the edition directory in the worktree of the run\'s branch; workDir a scratch directory of this run alone. The files the agents write are the record: each compare agent returns merge_reconciliation.py --compare-summary of its file, and each verifier takes its claim and claim_key from --claim-key on that file, so nothing counted or copied is an agent\'s retyping. See docs/rearchitecture/spec-reconciliation/README.md.',
   phases: [
-    { title: 'Compare', detail: 'one agent per batch of up to 12 consecutive pages: read the rendered PDF page, diff against the markdown slice' },
-    { title: 'Verify', detail: 'adversarially re-check each claimed discrepancy against the same page, one agent per claim' },
+    { title: 'Compare', detail: 'one agent per batch of up to 12 consecutive pages: read the rendered PDF page, diff against the markdown slice, write the compare file, return its --compare-summary' },
+    { title: 'Verify', detail: 'adversarially re-check each claimed discrepancy against the same page, one agent per claim, its claim and key read from the compare file by --claim-key' },
   ],
 }
 
@@ -126,52 +126,30 @@ log(`Reconciling ${STANDARD}: ${PAGES.length} pages in ${batches.length} batches
 log(`first=${PAGES[0]} last=${PAGES[PAGES.length - 1]} distinct=${new Set(PAGES).size} batches=${batches.map(b => b[0] + '-' + b[b.length - 1]).join(',')}`)
 log(`writes ${LEDGER} · renders in ${SCRATCH}`)
 
-// The compare agent's file and its return value are ONE object of this shape (the prompt says so), so the script can
-// hold the return to the rules merge_reconciliation.py holds the file to (kb/Work PB5255 review round 1).
-const FINDINGS = {
+// THE FILE IS THE RECORD (kb/Work PB5255 review R3-1). An agent writes its file and its return value separately and can
+// retype one differently from the other (2023's verify files differ from their claims by a space, an escape, a cut),
+// so nothing this script counts or hands on is taken from what an agent typed. A compare agent returns the output of
+// `merge_reconciliation.py --compare-summary <its file>`: what the FILE records (pages checked and unread, claim ids,
+// problems by the merge's own rules). A verify agent obtains its claim and the claim's key from
+// `merge_reconciliation.py --claim-key <compare file> <claim id>`, which reads the same file the merge reads, so the key
+// it copies is the key the merge computes. This script computes no key and validates no file itself: the merge's
+// rules are written once, in Python.
+const MERGE = 'cd ' + CHECKOUT + ' && python scripts/spec/merge_reconciliation.py'
+const SUMMARY = {
   type: 'object',
   properties: {
-    batch: { type: 'array', items: { type: 'integer' } },
-    pages_checked: { type: 'array', items: { type: 'integer' } },
+    file: { type: 'string' },
+    valid: { type: 'boolean' },
+    batch: { type: 'string' },
+    pages_checked: { type: 'string' },
     pages_unread: {
       type: 'array',
       items: { type: 'object', properties: { page: { type: 'integer' }, reason: { type: 'string' } }, required: ['page', 'reason'] },
     },
-    findings: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', pattern: '^p[0-9]+-[1-9][0-9]*$' },
-          page: { type: 'integer' },
-          kind: { type: 'string', enum: ['missing-text', 'incorrect-text', 'misplaced-content', 'missing-figure', 'incorrect-figure', 'missing-heading', 'ocr-error', 'summarised-not-transcribed', 'other'] },
-          severity: { type: 'string', enum: ['normative', 'structural', 'cosmetic'] },
-          pdf_says: { type: 'string' },
-          markdown_says: { type: 'string' },
-          why_it_matters: { type: 'string' },
-          suggested_repair: { type: 'string' },
-        },
-        required: ['id', 'page', 'kind', 'severity', 'pdf_says', 'markdown_says', 'why_it_matters'],
-      },
-    },
+    claims: { type: 'array', items: { type: 'string' } },
+    problems: { type: 'array', items: { type: 'string' } },
   },
-  required: ['batch', 'pages_checked', 'pages_unread', 'findings'],
-}
-
-// A claim's CONTENT identity, the same function as merge_reconciliation.claim_key (kb/Work PB5255 review R2-1;
-// test_wf_spec_reconcile.py holds the two equal): two 32-bit FNV-1a hashes over the UTF-16 code units of the page and
-// every text field joined by U+001F. An id is reused when a batch is re-run, so the verifier copies this key into its
-// file and the merge attaches the verdict only to a claim with the same key. Agents retype long quotes inexactly, so the
-// key is copied, never the text compared.
-const CLAIM_TEXT = ['kind', 'pdf_says', 'markdown_says', 'why_it_matters']
-function claimKey(f) {
-  const text = [String(f.page)].concat(CLAIM_TEXT.map(k => String(f[k]))).join('\u001f')
-  let out = ''
-  for (let h of [0x811c9dc5, 0x050c5d1f]) {
-    for (let i = 0; i < text.length; i++) h = Math.imul((h ^ text.charCodeAt(i)) >>> 0, 0x01000193) >>> 0
-    out += h.toString(16).padStart(8, '0')
-  }
-  return out
+  required: ['file', 'valid', 'problems'],
 }
 
 const VERDICT = {
@@ -179,38 +157,29 @@ const VERDICT = {
   properties: {
     claim_id: { type: 'string' },
     claim_key: { type: 'string' },
+    kind: { type: 'string' },
+    severity: { type: 'string' },
     real: { type: 'boolean' },
     reasoning: { type: 'string' },
     corrected_description: { type: 'string' },
+    failure: { type: 'string' },
   },
-  required: ['claim_id', 'claim_key', 'real', 'reasoning'],
+  required: ['claim_id'],
 }
 
-// What makes a compare result untrustworthy: the merge's rules (merge_reconciliation.compare_problems), so a batch the
-// merge would refuse is named at the end of THIS run, not discovered at the merge. Nothing missing is defaulted.
-function compareProblems(res, batch) {
+// `1-12,25` (the summary's spelling of a page list, reconcile_ranges.compact) -> [1..12, 25].
+const expand = (s) => (s ? String(s).split(',').flatMap(t => { const [a, b] = t.split('-').map(Number); return Array.from({ length: (b || a) - a + 1 }, (_, k) => a + k) }) : [])
+const compact = (ps) => ps.reduce((out, p) => { const r = out[out.length - 1]; if (r && p === r[1] + 1) r[1] = p; else out.push([p, p]); return out }, []).map(([a, b]) => a === b ? String(a) : a + '-' + b).join(',')
+
+// Why a batch has no trustworthy record: the summary's own problems, or a summary that is not of this batch's file.
+function summaryProblems(res, batch) {
   if (!res) return ['the agent returned nothing']
-  const out = []
-  const checked = Array.isArray(res.pages_checked) ? res.pages_checked : (out.push('no pages_checked'), [])
-  const unread = Array.isArray(res.pages_unread) ? res.pages_unread : (out.push('no pages_unread'), [])
-  if (JSON.stringify(res.batch) !== JSON.stringify(batch)) out.push('batch ' + JSON.stringify(res.batch) + ' is not ' + JSON.stringify(batch))
-  if (unread.some(u => !u || !Number.isInteger(u.page) || typeof u.reason !== 'string' || !u.reason.trim())) out.push('an unread page has no reason')
-  const unreadPages = unread.map(u => u && u.page)
-  const all = checked.concat(unreadPages)
-  const outside = all.filter(p => !batch.includes(p))
-  if (outside.length) out.push('page(s) ' + outside.join(', ') + ' outside the batch')
-  if (new Set(all).size !== all.length) out.push('a page is listed twice, or both checked and unread')
-  const neither = batch.filter(p => !all.includes(p))
-  if (neither.length) out.push('page(s) ' + neither.join(', ') + ' neither checked nor unread')
-  const n = {}
-  for (const f of res.findings || []) {
-    if (!checked.includes(f.page)) out.push('finding ' + f.id + ' is on page ' + f.page + ', which was not checked')
-    n[f.page] = (n[f.page] || 0) + 1
-    if (f.id !== 'p' + f.page + '-' + n[f.page]) out.push('finding ' + f.id + ' should be p' + f.page + '-' + n[f.page])
-  }
-  if (!Array.isArray(res.findings)) out.push('no findings list')
-  return out
+  if (res.file !== 'compare-' + span(batch) + '.json') return ['the summary is of ' + JSON.stringify(res.file) + ', not compare-' + span(batch) + '.json']
+  if (!res.valid) return res.problems && res.problems.length ? res.problems : ['the file is not valid']
+  if (res.batch !== compact(batch)) return ['the file records batch ' + res.batch + ', not ' + compact(batch)]
+  return []
 }
+
 
 const results = await pipeline(
   batches,
@@ -279,35 +248,42 @@ const results = await pipeline(
       'first finding on page 40 is "p40-1", the second "p40-2", the first on page 41 "p41-1"). Its verifier names it by',
       'this id, and a finding without a correct id is refused by the merge.',
       '',
-      'STEP 3 - PERSIST BEFORE YOU RETURN. This is MANDATORY, not a nicety. Use the Write tool to save your',
-      'complete result as JSON to:',
+      'STEP 3 - PERSIST, THEN PROVE IT. This is MANDATORY, not a nicety. Use the Write tool to save your complete',
+      'result as JSON to:',
       '  ' + LEDGER + 'compare-' + span(batch) + '.json',
       'Shape: {"batch": ' + JSON.stringify(batch) + ', "pages_checked": [...], "pages_unread": [{"page": P, "reason": "..."}],',
-      '        "findings": [ {"id": "p<page>-<n>", "page": ..., ...} ]}',
-      'Every page of the batch is in exactly one of pages_checked and pages_unread. Return EXACTLY the object you wrote.',
-      'Write it EVEN IF you found nothing (findings: []) - a file proving a batch was swept clean is evidence;',
-      'its absence is indistinguishable from work that never ran. The run may be interrupted by a rate or session',
-      'limit at any moment, and your file is then the ONLY durable record of this work. Write it, then return.',
+      '        "findings": [ {"id": "p<page>-<n>", "page": ..., "kind": ..., "severity": ..., "pdf_says": ..., ...} ]}',
+      'Every page of the batch is in exactly one of pages_checked and pages_unread. Write it EVEN IF you found nothing',
+      '(findings: []) - a file proving a batch was swept clean is evidence; its absence is indistinguishable from work',
+      'that never ran. The run may be interrupted by a rate or session limit at any moment, and your file is then the',
+      'ONLY durable record of this work.',
+      'Then run:',
+      '  ' + MERGE + ' --compare-summary ' + LEDGER + 'compare-' + span(batch) + '.json',
+      'It reads your FILE by the merge\'s rules and prints one JSON line. If it exits 1, its `problems` say what is',
+      'wrong with the file: correct the file and run it again. RETURN THAT JSON LINE EXACTLY AS PRINTED, nothing else:',
+      'the run counts what your file records, never what you retype.',
     ].join('\n'),
-    { label: 'compare:' + span(batch), phase: 'Compare', schema: FINDINGS, model: MODEL, effort: EFFORT }
+    { label: 'compare:' + span(batch), phase: 'Compare', schema: SUMMARY, model: MODEL, effort: EFFORT }
   ),
   (res, batch, i) => {
-    const problems = compareProblems(res, batch)
+    const problems = summaryProblems(res, batch)
     if (problems.length) return { batch, problems, claims: [] }
-    if (res.findings.length === 0) return { batch, res, claims: [] }
-    return parallel(res.findings.map((f) => () =>
+    const file = LEDGER + 'compare-' + span(batch) + '.json'
+    return parallel((res.claims || []).map((id) => () =>
       agent(
         [
-          'Adversarially VERIFY a claimed discrepancy between the ' + STANDARD + ' PDF and its markdown transcription.',
+          'Adversarially VERIFY claim ' + id + ', a claimed discrepancy between the ' + STANDARD + ' PDF and its markdown',
+          'transcription, recorded in ' + file + '.',
           '',
-          'CLAIM ' + f.id + ' - page ' + f.page + ', kind=' + f.kind + ', severity=' + f.severity,
-          '  PDF allegedly says      : ' + f.pdf_says,
-          '  Markdown allegedly says : ' + f.markdown_says,
-          '  Why it allegedly matters: ' + f.why_it_matters,
+          'STEP 1 - get the claim and its key FROM THE FILE (never from anywhere else):',
+          '  ' + MERGE + ' --claim-key ' + file + ' ' + id,
+          'It prints one JSON line: {"claim_id", "claim_key", "claim": {page, kind, severity, pdf_says, markdown_says,',
+          'why_it_matters, ...}}. If it exits 1 it names why (the file holds no such claim, or the file is not valid):',
+          'then write NOTHING and return {"claim_id": "' + id + '", "failure": "<what it printed>"}.',
           '',
-          'Check it yourself:',
-          '  ' + WORKUNIT + ' ' + f.page + ' --edition ' + EDITION + ' --out ' + SCRATCH + '/v-' + f.id + ' --dpi 300',
-          'Then Read ' + SCRATCH + '/v-' + f.id + '/spec_p' + f.page + '.png and ' + SCRATCH + '/v-' + f.id + '/page-' + f.page + '.md.',
+          'STEP 2 - check the claim yourself against the printed page:',
+          '  ' + WORKUNIT + ' <the claim\'s page> --edition ' + EDITION + ' --out ' + SCRATCH + '/v-' + id + ' --dpi 300',
+          'Then Read ' + SCRATCH + '/v-' + id + '/spec_p<page>.png and ' + SCRATCH + '/v-' + id + '/page-<page>.md.',
           '',
           'Your job is to REFUTE. Default to real=false when uncertain. Reject the claim if:',
           '  - the "missing" text is actually present (possibly reflowed or on an adjacent line)',
@@ -319,35 +295,37 @@ const results = await pipeline(
           'Set real=true ONLY if you independently confirm a genuine content discrepancy. If the finding is real',
           'but was described inaccurately, set real=true and give the corrected description.',
           '',
-          'PERSIST BEFORE YOU RETURN - MANDATORY. Use the Write tool to save your verdict as JSON to:',
-          '  ' + LEDGER + 'verify-' + f.id + '.json',
-          'Shape: {"claim_id": "' + f.id + '", "claim_key": "' + claimKey(f) + '", "page": ' + f.page + ', "kind": "' + f.kind + '",',
-          '        "severity": "' + f.severity + '", "claim": {"pdf_says": ..., "markdown_says": ..., "why_it_matters": ...},',
+          'STEP 3 - PERSIST BEFORE YOU RETURN - MANDATORY. Use the Write tool to save your verdict as JSON to:',
+          '  ' + LEDGER + 'verify-' + id + '.json',
+          'Shape: {"claim_id": "' + id + '", "claim_key": <claim_key as STEP 1 printed it>, "page": ..., "kind": ...,',
+          '        "severity": ..., "claim": <claim as STEP 1 printed it>,',
           '        "verdict": {"real": true|false, "reasoning": ..., "corrected_description": ...}}',
-          'claim_id is exactly "' + f.id + '" and claim_key exactly "' + claimKey(f) + '" (copy both character for',
-          'character): the key is this claim\'s content, and the merge attaches your verdict to the claim with that id AND',
-          'that key, no other. Include the claim so the file stands alone. Return {"claim_id": "' + f.id + '",',
-          '"claim_key": "' + claimKey(f) + '", "real": ..., "reasoning": ...}. A verdict that exists only in a return',
-          'value is lost the moment the run is interrupted.',
+          'Copy claim_key character for character from STEP 1\'s output: it is the claim\'s content key, and the merge',
+          'attaches your verdict only to the claim with that id AND that key. Return {"claim_id": "' + id + '",',
+          '"claim_key": ..., "kind": ..., "severity": ..., "real": ..., "reasoning": ...}. A verdict that exists only in a',
+          'return value is lost the moment the run is interrupted.',
         ].join('\n'),
-        { label: 'verify:' + f.id, phase: 'Verify', schema: VERDICT, model: MODEL, effort: EFFORT }
-      ).then(v => Object.assign({}, f, { verdict: v && v.claim_id === f.id && v.claim_key === claimKey(f) ? v : null }))
+        { label: 'verify:' + id, phase: 'Verify', schema: VERDICT, model: MODEL, effort: EFFORT }
+      ).then(v => ({ id, page: Number(id.slice(1).split('-')[0]),
+                     verdict: v && v.claim_id === id && !v.failure && typeof v.real === 'boolean' ? v : null,
+                     failure: v && v.failure ? v.failure : null }))
     )).then(claims => ({ batch, res, claims }))
   }
 )
 
-// The result reports only what a VALID compare result proves (kb/Work PB5255 review R1-4): pages its agent checked,
-// pages it could not read, and every batch with no valid result, by name. A batch whose agent died swept nothing.
+// The result reports only what a VALID compare FILE records, through its summary (kb/Work PB5255 review R1-4, R3-1):
+// pages its agent checked, pages it could not read, and every batch with no valid file, by name. A batch whose agent
+// died swept nothing. The merge (`merge_reconciliation.py --edition <e>`) is the proof; this is the run's signal.
 const done = results.filter(r => r && r.res)
 const failed = batches.map((b, i) => results[i] && results[i].res ? null : { batch: span(b), problems: results[i] ? results[i].problems : ['the pipeline returned nothing'] }).filter(Boolean)
 const claims = done.flatMap(r => r.claims || [])
 const confirmed = claims.filter(f => f.verdict && f.verdict.real === true)
 const refuted = claims.filter(f => f.verdict && f.verdict.real === false)
 const unverified = claims.filter(f => !f.verdict)
-const checked = done.flatMap(r => r.res.pages_checked)
-const unread = done.flatMap(r => r.res.pages_unread)
+const checked = done.flatMap(r => expand(r.res.pages_checked))
+const unread = done.flatMap(r => r.res.pages_unread || [])
 
-log('pages checked ' + checked.length + ' of ' + PAGES.length + ' requested · unread ' + unread.length + ' · batches with no valid compare result ' + failed.length)
+log('pages checked ' + checked.length + ' of ' + PAGES.length + ' requested · unread ' + unread.length + ' · batches with no valid compare file ' + failed.length)
 log('claimed ' + claims.length + ' - confirmed ' + confirmed.length + ' - refuted ' + refuted.length + ' - unverified ' + unverified.length)
 log('the files on disk are the record: python scripts/spec/merge_reconciliation.py --edition ' + EDITION + ' (in ' + CHECKOUT + ')')
 
@@ -361,17 +339,13 @@ return {
   claimed: claims.length,
   confirmed: confirmed.length,
   refuted: refuted.length,
-  unverified: unverified.map(f => f.id),
+  unverified: unverified.map(f => (f.failure ? { id: f.id, failure: f.failure } : f.id)),
   by_severity: {
-    normative: confirmed.filter(f => f.severity === 'normative').length,
-    structural: confirmed.filter(f => f.severity === 'structural').length,
-    cosmetic: confirmed.filter(f => f.severity === 'cosmetic').length,
+    normative: confirmed.filter(f => f.verdict.severity === 'normative').length,
+    structural: confirmed.filter(f => f.verdict.severity === 'structural').length,
+    cosmetic: confirmed.filter(f => f.verdict.severity === 'cosmetic').length,
   },
-  confirmed_findings: confirmed.map(f => ({
-    id: f.id, page: f.page, kind: f.kind, severity: f.severity,
-    pdf_says: f.pdf_says, markdown_says: f.markdown_says,
-    why_it_matters: f.why_it_matters, suggested_repair: f.suggested_repair,
-    verifier: f.verdict.corrected_description || f.verdict.reasoning,
-  })),
-  refuted_summary: refuted.map(f => ({ id: f.id, page: f.page, kind: f.kind, why_refuted: f.verdict.reasoning })),
+  confirmed_findings: confirmed.map(f => ({ id: f.id, page: f.page, kind: f.verdict.kind, severity: f.verdict.severity,
+    verifier: f.verdict.corrected_description || f.verdict.reasoning })),
+  refuted_summary: refuted.map(f => ({ id: f.id, page: f.page, kind: f.verdict.kind, why_refuted: f.verdict.reasoning })),
 }

@@ -47,8 +47,15 @@ for a re-run is that the run on disk wins, and the merge refuses an earlier run'
 deleting it. Keys were compared, not quoted text, because 203 of 2023's 346 verify files quote their claim inexactly;
 the 346 got the keys of the claims their ids named.
 
+**Review round 3 (addendum `2026-11-11-review-round-3.md`).** The workflow computed the verifier's key from the compare
+agent's return value while the merge computes it from the file, so a single retyped space would have had a whole batch's
+verdicts refused after its verifiers ran. The compare FILE is now the one source: a verifier takes its claim and key from
+`merge_reconciliation.py --claim-key <file> <id>`, and a compare agent returns `--compare-summary <its file>`, which the
+run counts and dispatches from. The workflow's copies of the key function and of the merge's rules are deleted.
+
 **Proof.** The self-tests of every touched script PASS, among them `test_wf_spec_reconcile.py`, a dry run of the workflow
-with stubbed agents (10 arms; 8 fail on the round-0 workflow and the 2 key arms on the round-1 one); `probe2.py`'s re-run
+whose stub agents write their files and run the real `--compare-summary` and `--claim-key`, with each run's directory
+merged by the real merge (10 arms, among them a return one space off its file changing nothing); `probe2.py`'s re-run
 and re-kinded cases are refused (each attached the wrong verdict or decision on round 1); the reviewer's `merge_probe.py` sweeps pages 1-12 and 500
 and refutes the unverified claim on the round-0 merge, and is refused naming its four files on this one;
 `verify_publishable.py --edition 1985` holds the 1985 transcription to its ledger, 976 of 976 pages compared;

@@ -9,7 +9,14 @@ files and merges them into the edition's ledger and a human-readable report.
     python scripts/spec/merge_reconciliation.py --edition 2002 --write    # also write the ledger and the report
     python scripts/spec/merge_reconciliation.py --edition 2002 --check    # the committed ledger and report ARE the merge
     python scripts/spec/merge_reconciliation.py --edition 2002 --root <dir>   # a planted spec-reconciliation directory
+    python scripts/spec/merge_reconciliation.py --compare-summary <compare file>   # what one compare FILE records
+    python scripts/spec/merge_reconciliation.py --claim-key <compare file> <claim id>   # a claim and its key, from the FILE
     python scripts/spec/merge_reconciliation.py --self-test
+
+THE FILE IS THE RECORD (review R3-1). The workflow's agents run the two file commands: a compare agent returns
+`--compare-summary`'s line for the file it wrote, and a verify agent takes its claim and the claim's key from
+`--claim-key`. So nothing the workflow counts or a verifier copies is what an agent retyped, and the key a verdict
+carries is computed from the very file this merge reads.
 
 WHAT IS TRUSTED (kb/Work PB5255 review round 1). No missing, empty or unreadable input is ever replaced by a default:
 each makes its file INVALID, the merge names the file and the problem, exits 1 and writes nothing.
@@ -21,7 +28,7 @@ each makes its file INVALID, the merge names the file and the problem, exits 1 a
   - A FINDING carries `id` = `p<page>-<n>`, n counting its page's findings from 1 in order, written by the compare
     agent, plus `page` (a page it checked), `kind`, `severity`, `pdf_says`, `markdown_says` and `why_it_matters`.
   - A VERIFY file holds `claim_id` (the id of the claim it judged, echoed by the verify agent), `claim_key` (the
-    claim's content fingerprint, `claim_key`, which the workflow computes and the verifier copies), the claim's `page`
+    claim's content fingerprint, `claim_key`, which the verifier copies from `--claim-key`), the claim's `page`
     and `kind`, and `verdict` {`real`: true or false, `reasoning`}. A verdict attaches to EXACTLY the claim its id names,
     once, and only when its `claim_key` is that claim's: an id is reused when a batch is re-run, so a verdict of an
     earlier run whose claim the id no longer holds is refused by name, never attached and never ignored. A verdict
@@ -83,10 +90,11 @@ def claim_key(claim: dict) -> str:
     """A claim's CONTENT identity (kb/Work PB5255 review R2-1): a fingerprint of its page and every text field
     (FINDING_TEXT), two 32-bit FNV-1a hashes over the UTF-16 code units of those fields joined by U+001F, as 16 hex
     digits. An id (`p5-1`) is reused when a batch is re-run, so it cannot alone say which claim a verdict judged; this
-    can. The workflow computes the same function (spec-reconcile.js `claimKey`; test_wf_spec_reconcile.py holds the two
-    equal) and hands it to the verifier to copy: agents retype long quotes inexactly (203 of 2023's 346 verify files
-    differ from their claim in whitespace, escaping or length), so the key is copied, never the text compared. A
-    verdict attaches only when its key is its claim's; a kept decision only when the ledger claim's key is the claim's."""
+    can. It is computed HERE ONLY, from the compare FILE: a verifier gets it from `--claim-key <file> <id>` (claim_of) and
+    copies it (review R3-1: a key computed from a compare agent's return value differed from the file's on one retyped
+    space). Agents retype long quotes inexactly (203 of 2023's 346 verify files differ from their claim in whitespace,
+    escaping or length), so the key is copied, never the text compared. A verdict attaches only when its key is its
+    claim's; a kept decision only when the ledger claim's key is the claim's."""
     text = "\x1f".join([str(claim.get("page"))] + [str(claim.get(k)) for k in FINDING_TEXT])
     raw = text.encode("utf-16-le")
     units = [raw[i] | raw[i + 1] << 8 for i in range(0, len(raw), 2)]
@@ -423,9 +431,47 @@ def merge(edition: int, mode: str = "report", root: pathlib.Path = DIR, transcri
     return 0
 
 
+def read_compare(path: pathlib.Path) -> tuple[dict | None, list[str]]:
+    """One compare file and what makes it untrustworthy, by the merge's own rules (compare_problems)."""
+    errors: list[str] = []
+    doc = read_json(path, errors) if path.is_file() else None
+    if doc is None:
+        return None, errors or [f"{path.name}: no such file"]
+    return doc, [f"{path.name}: {p}" for p in compare_problems(path.name, doc)]
+
+
+def compare_summary(path: pathlib.Path) -> tuple[dict, bool]:
+    """What a compare FILE records, as the compare agent returns it (review R3-1): the file is the record, and the
+    agent's return value is this command's output, so the workflow counts what the file says, never what the agent
+    retyped. One JSON line: the file, its batch, the pages checked and unread, the claim ids, and its problems."""
+    doc, problems = read_compare(path)
+    if doc is None or problems:
+        return {"file": path.name, "valid": False, "problems": problems}, False
+    return {"file": path.name, "valid": True, "batch": compact(doc["batch"]),
+            "pages_checked": compact(doc["pages_checked"]), "pages_unread": doc["pages_unread"],
+            "claims": [f["id"] for f in doc["findings"]], "problems": []}, True
+
+
+def claim_of(path: pathlib.Path, cid: str) -> tuple[dict | None, str]:
+    """The claim `cid` of a compare FILE with its claim_key, or why there is none (review R3-1): the ONE source of the
+    key a verifier copies is the file the merge will read, never a compare agent's return value, which can differ from
+    its file by a retyped space and would have every verdict of the batch refused after its verifiers ran."""
+    doc, problems = read_compare(path)
+    if doc is None or problems:
+        return None, "; ".join(problems)
+    found = [f for f in doc["findings"] if f["id"] == cid]
+    if not found:
+        return None, f"{path.name} holds no claim {cid} (its claims: {[f['id'] for f in doc['findings']] or 'none'})"
+    return {"claim_id": cid, "claim_key": claim_key(found[0]), "claim": found[0]}, ""
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--compare-summary", type=pathlib.Path, metavar="FILE",
+                      help="print what one compare file records, as a JSON line (exit 1 naming its problems)")
+    mode.add_argument("--claim-key", nargs=2, metavar=("FILE", "CLAIM_ID"),
+                      help="print a claim of a compare file with its claim_key, as a JSON line (exit 1 naming why not)")
     mode.add_argument("--write", action="store_true", help="write the ledger and the report (the closing branch only)")
     mode.add_argument("--check", action="store_true", help="exit 1 unless the committed ledger and report are the merge")
     mode.add_argument("--self-test", action="store_true", help="run the self-test in a scratch directory")
@@ -434,6 +480,17 @@ def main() -> int:
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    if args.compare_summary:
+        summary, ok = compare_summary(args.compare_summary)
+        print(json.dumps(summary, ensure_ascii=False))
+        return 0 if ok else 1
+    if args.claim_key:
+        found, why = claim_of(pathlib.Path(args.claim_key[0]), args.claim_key[1])
+        if found is None:
+            print(f"FATAL: {why}", file=sys.stderr)
+            return 1
+        print(json.dumps(found, ensure_ascii=False))
+        return 0
     return merge(args.edition, "write" if args.write else "check" if args.check else "report", args.root)
 
 
@@ -641,6 +698,33 @@ def self_test() -> int:
         by = {c["id"]: c for c in json.loads((root / "LEDGER-2002.json").read_text(encoding="utf-8"))["claims"]}
         check("a claim with no verdict of its own stays UNVERIFIED and undecided beside a refuted claim of its page and kind",
               by["p20-1"]["batch"] == "REFUTED" and by["p20-2"]["batch"] == "UNVERIFIED" and "decision" not in by["p20-2"])
+    # R3-1: the key a verifier copies, and what a compare agent returns, come from the compare FILE.
+    with tempfile.TemporaryDirectory() as tmp:
+        f = pathlib.Path(tmp) / "compare-p1-p12.json"
+        write(f, compare(1, 12, [claim, twin], unread=[(12, "blank render")]))
+        returned = {**claim, "pdf_says": claim["pdf_says"] + " "}   # the agent's return retyped one space
+        found, why = claim_of(f, "p5-1")
+        check("--claim-key gives the FILE's key when the agent's return differs from its file by one space",
+              found is not None and found["claim_key"] == claim_key(claim) != claim_key(returned)
+              and found["claim"]["pdf_says"] == "shall be")
+        found, why = claim_of(f, "p7-1")
+        check("--claim-key for a claim id the file does not hold fails naming the file, the id and its claims",
+              found is None and "compare-p1-p12.json holds no claim p7-1" in why and "p5-1" in why)
+        cli = subprocess.run([sys.executable, __file__, "--claim-key", str(f), "p7-1"], capture_output=True, text=True)
+        check("the --claim-key command exits 1 naming why", cli.returncode == 1 and "holds no claim p7-1" in cli.stderr)
+        summary, ok = compare_summary(f)
+        check("--compare-summary reports what the file records: pages checked and unread, claim ids",
+              ok and summary["pages_checked"] == "1-11" and summary["pages_unread"][0]["page"] == 12
+              and summary["claims"] == ["p5-1", "p5-2"])
+        write(f, compare(1, 12, [claim], pages_checked=[], pages_unread=[]))
+        summary, ok = compare_summary(f)
+        found, why = claim_of(f, "p5-1")
+        check("an invalid compare file gives no summary and no key, naming its problems",
+              not ok and not summary["valid"] and "neither checked nor unread" in " ".join(summary["problems"])
+              and found is None and "neither checked nor unread" in why)
+        missing, ok = compare_summary(pathlib.Path(tmp) / "compare-p13-p24.json")
+        check("a compare file that was never written is named, never summarised as empty",
+              not ok and missing["problems"] == ["compare-p13-p24.json: no such file"])
     bad = subprocess.run([sys.executable, __file__, "--edition", "1999"], capture_output=True, text=True)
     check("an edition the standard has no transcription of is refused by the argument itself",
           bad.returncode == 2 and "1999" in bad.stderr)

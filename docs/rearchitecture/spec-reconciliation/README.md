@@ -8,7 +8,7 @@ is interrupted, and re-deriving it costs another full page render and read.
 | file | written by | holds |
 |---|---|---|
 | `<dir>/compare-p<first>-p<last>.json` | a Compare agent (`agents/` for 2023, `2002/` for 2002) | `batch` (its pages), `pages_checked` (the pages it compared), `pages_unread` (each `{page, reason}`: a page it could not read), and `findings`, each with its `id` `p<page>-<n>` (n counting that page's findings from 1) |
-| `<dir>/verify-<id>.json` (2023's older files: `verify-p<page>-<kind>-<n>.json`) | a Verify agent | `claim_id` (the id of the claim it judged), `claim_key` (that claim's content key, which the workflow computes and the verifier copies; the merge attaches the verdict only to the claim with that id and key), the claim **and** the adversarial verdict, standing alone |
+| `<dir>/verify-<id>.json` (2023's older files: `verify-p<page>-<kind>-<n>.json`) | a Verify agent | `claim_id` (the id of the claim it judged), `claim_key` (that claim's content key, which the verifier copies from `merge_reconciliation.py --claim-key` on the compare file; the merge attaches the verdict only to the claim with that id and key), the claim **and** the adversarial verdict, standing alone |
 | `LEDGER.json` / `REPORT.md` | `scripts/spec/merge_reconciliation.py --edition 2023 --write` | the 2023 merge: confirmed, refuted and unverified claims (the shape `spec-grammar-impact.js` reads), plus `pages_swept` and `pages_unread` |
 | `2002/ranges.json` | `scripts/spec/reconcile_ranges.py --edition 2002` | the 2002 page-range plan: 882 pages in batches of 12, each marked `figure`, `ambiguous` and `clauses`, flagged and figure batches first, two halves of equal estimated work (`account1`, `account2`), each cut into runs of up to six batches (six of six, then one of one); generated and `--check`ed, never typed |
 | `LEDGER-2002.json` / `2002/REPORT.md` | `scripts/spec/merge_reconciliation.py --edition 2002 --write`, on the branch that closes a set of runs only | the 2002 merge, in `LEDGER-1985.json`'s shape (`edition`, `about`, `book_pages`, `pages_swept`, `pages_unread`, `claims`, `sweeps`, `boxes`): each claim with its `id`, its own verdict as `batch` (CONFIRMED, REFUTED, UNVERIFIED) and its decision; a re-merge keeps every decision (by claim id), sweep and box |
@@ -63,10 +63,16 @@ over every drawn figure is the campaign's second phase.
    `workDir` is the run's own scratch directory (name it after the run), so two fleets on one machine never share
    their renders. A gap in `pages` starts a new batch, so each batch of the plan is one Compare agent and its file is
    `compare-p<first>-p<last>.json` after the plan's batch.
-   The run's result is `ok` only when every batch returned a valid compare result, no page was unread and every
-   claim has its own verdict; otherwise `batches_without_valid_compare`, `pages_unread` and `unverified` name what is
-   missing. The result reads the agents' return values (a workflow script cannot read files); the files on disk are
-   the record, and step 4's merge is their proof.
+   THE FILE IS THE RECORD (kb/Work PB5255 review R3-1). An agent writes its file and its return separately and can
+   retype one differently, so nothing the run counts or a verifier copies is an agent's retyping. Each compare agent
+   writes its file, then runs `merge_reconciliation.py --compare-summary <its file>` (the file read by the merge's own
+   rules) and returns that line. Each verify agent runs `merge_reconciliation.py --claim-key <compare file> <claim id>`
+   and judges, and copies the key of, the claim that the FILE holds. The script computes no key and validates nothing
+   itself. The run's result is `ok` only when every batch's summary shows a valid file, no page was unread and every
+   claim has its own verdict. Otherwise `batches_without_valid_compare`, `pages_unread` and `unverified` name what is
+   missing: an id the file does not hold makes the verifier's command fail by name, and the claim is listed with that
+   reason. A workflow script cannot read files, so a summary an agent shortened would go unseen by the run. Step 4's
+   merge reads the files themselves, names any claim with no verdict, and is the proof.
 4. **Land the run's agent files, and only those.** In the run's worktree, `python scripts/spec/merge_reconciliation.py
    --edition 2002` must exit 0 (every file valid); then commit exactly the run's new files, `git add
    docs/rearchitecture/spec-reconciliation/2002/compare-*.json docs/rearchitecture/spec-reconciliation/2002/verify-*.json`,
