@@ -1727,6 +1727,8 @@ internal static class IntrinsicArgumentRules
                 + $"by the literal {d.Text}, which does not always "
                 + "result in an integer value — ISO §2023:15.3 type 6 admits an arithmetic expression only when it "
                 + "ALWAYS results in one";
+        // A root POWER over a bare data item whose exponent can be negative or not an integer (kb/Work PB5208).
+        if (expr is BoundPower pw && PowerWitness(pw) is { } powerWhy) return powerWhy;
         // An additive spine (+, −, unary −) carrying a scale>0 item PURELY as its own leaves, with a net
         // coefficient the item's granularity does not cancel (10^scale ∤ net): value every other leaf at any
         // constant and step the item by 10^(−scale) — consecutive results are less than 1 apart, so a
@@ -1763,6 +1765,49 @@ internal static class IntrinsicArgumentRules
                     : "every other term is an integer, so its value is never an integer")
                 + " — ISO §2023:15.3 type 6 admits an arithmetic expression only when it ALWAYS results in an integer value";
         return null;
+    }
+
+    /// <summary>⛔ THE POWER ARM OF THE TYPE 6 SCREEN (kb/Work PB5208; §2023:15.3 type 6 and §1989:A.2.2 AR4: "An arithmetic
+    /// expression which will always result in an integer value must be specified"). <see cref="ProvablyIntegral"/> already knows a
+    /// power is integral when its exponent is a non-negative integer literal; this is the other half, the shapes with a WITNESS
+    /// valuation, so the screen refuses them as it refuses <c>N / 2</c> instead of failing open. The base is a bare numeric data
+    /// item (through negations, |−X| ** e = |X| ** e up to sign): a numeric item of scale s can hold v = 3 × 10^(−s), and
+    /// <list type="bullet">
+    /// <item>a literal exponent that is a negative integer −k gives v^(−k) = 10^(sk) / 3^k, never an integer, since 3^k does not
+    /// divide a power of ten;</item>
+    /// <item>a literal exponent that is not an integer, p/q in lowest terms with q &gt; 1, gives a v^(p/q) whose q-th power
+    /// 3^p × 10^(−sp) has a power of 3 that q does not divide, so it is not even rational;</item>
+    /// <item>an exponent that is itself a numeric data item (a different one; the same item would tie the two valuations) can be
+    /// negative when it is signed or written under an odd number of negations, and can be a non-integer when its description
+    /// admits one: −1 × 10^(−s′) or 1 × 10^(−s′) is then one of the two cases above.</item>
+    /// </list>
+    /// Every other power fails OPEN (a base that is an expression, <c>(N − N + 1) ** −1</c> being 1; a literal base, whose
+    /// value can make an item exponent's every power integral), as the quotient arm does beyond a bare item and a literal.</summary>
+    private static string? PowerWitness(BoundPower pw)
+    {
+        if (BareNumericItem(pw.Base) is not { Place.Item: { } baseItem }) return null;
+        string why;
+        if (ExactValue(pw.Exp) is { } e)
+        {
+            if (e.IsInteger && e.Sign >= 0) return null;                  // ProvablyIntegral's arm: N ** 2 is always an integer
+            why = e.IsInteger ? $"to the negative power {e}" : $"to the power {e}, which is not an integer";
+        }
+        else
+        {
+            BoundExpr x = pw.Exp;
+            bool negated = false;
+            while (x is BoundNegate n) { negated = !negated; x = n.Operand; }
+            if (x is not BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } ep } expItem }
+                || ReferenceEquals(expItem, baseItem))
+                return null;
+            bool canBeNegative = ep.Signed || negated, canBeFraction = AdmitsNonIntegralValue(ep);
+            if (!canBeNegative && !canBeFraction) return null;            // an unsigned integer exponent: N ** M is always an integer
+            why = canBeNegative
+                ? $"to the power of the {(ep.Signed ? "signed" : "negated")} data item '{expItem.CobolName}'"
+                : $"to the power of the data item '{expItem.CobolName}', which has digits to the right of the decimal point";
+        }
+        return $"raises the data item '{baseItem.CobolName}' {why}, so its value is not always an integer — ISO "
+            + "§2023:15.3 type 6 admits an arithmetic expression only when it ALWAYS results in an integer value";
     }
 
     /// <summary>The §2023:15.3 type 6 item witness over a walked spine: the first item whose net coefficient its granularity does
