@@ -1,9 +1,9 @@
 {
   "batch": [225, 227, 229, 231, 233, 235, 237, 239, 241, 243, 245, 247],
-  "pages_checked": [225, 227, 229, 231, 233, 235, 237, 239, 241, 243, 245, 247],
+  "pages_checked": [225, 227, 229, 231, 233, 235, 237, 239, 241, 243, 245, 247], "pages_unread": [],
   "findings": [
     {
-      "page": 231,
+      "id": "p231-1", "page": 231,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "8.8.4.10.2 General format --- the figure prints 'NOT condition-1' with NOT UNDERLINED (verified by cropping the 300 dpi render at x=320..720, y=620..700: a clear rule sits under N-O-T and stops before 'condition-1').",
@@ -12,7 +12,7 @@
       "suggested_repair": "Change specs/ISO_COBOL.md:10048 to '<u>NOT</u> condition-1' to match the p229 convention."
     },
     {
-      "page": 233,
+      "id": "p233-1", "page": 233,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "'8.8.4.12.2 General format', '8.8.4.12.3 Syntax rules' and '8.8.4.12.4 General rule' are printed as fifth-level subclauses of '8.8.4.12 Abbreviated combined relation conditions'.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Normalize heading depth to the numbering depth: clause N = '##', N.n = '###', N.n.n and deeper = '####'. Demote 8.8.4.12.2/.3/.4 (and 8.8.4.4.4, 8.8.4.8, 8.8.4.8.1-.3) accordingly; a mechanical sweep over the whole file is warranted since the defect is systemic."
     },
     {
-      "page": 235,
+      "id": "p235-1", "page": 235,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "8.9 Reserved words --- page 235 column 3 ends with 'END-PERFORM' as its last entry. 'END-RECEIVE', 'END-READ', 'END-RETURN', 'END-REWRITE', 'END-SEARCH' are the first five entries of column 1 on the NEXT page (PDF p236, printed page 206), each on its own line (verified by rendering p236).",
@@ -30,7 +30,7 @@
       "suggested_repair": "Split specs/ISO_COBOL.md:10325 into six lines; leave 'END-PERFORM' on the page-235 side and move END-RECEIVE / END-READ / END-RETURN / END-REWRITE / END-SEARCH below the <a id=\"page-236\"></a> anchor, one per line, ahead of the existing 'END-SEND'."
     },
     {
-      "page": 237,
+      "id": "p237-1", "page": 237,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "8.9 Reserved words --- page 237 column 1 begins 'OBJECT / OBJECT-COMPUTER / OBJECT-REFERENCE / OCCURS / OF / OFF / OMITTED / ...' and column 3 ends with 'SYSTEM-DEFAULT'. 'TABLE', 'TALLYING', 'TERMINATE', 'TEST', 'THAN' are printed on the following page.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Split specs/ISO_COBOL.md:10466 and :10584 into one word per line, and move the words that belong to the following page below the corresponding <a id=\"page-NNN\"></a> anchor."
     },
     {
-      "page": 243,
+      "id": "p243-1", "page": 243,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "8.11 Intrinsic function names --- page 243 column 2 ends with 'SUM' as its last entry. 'TAN', 'TEST-DATE-YYYYMMDD', 'TEST-DAY-YYYYDDD', 'TEST-FORMATTED-DATETIME', 'TEST-NUMVAL' are printed on the following page.",

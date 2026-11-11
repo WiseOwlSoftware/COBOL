@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "The 2023 note says syntactic validity is determined after all text manipulation (COPY and REPLACE), as 1985 says. COPY/REPLACE are themselves text manipulation, so the exception is implicit.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-7.2.2.5-3": "1b11e27258c1"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-9",
  "rule-digest": "09a301de3acb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#SumCounterOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#NamesDataItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ReportUnresolvedDebugOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugDataTarget; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-9",
+ "notes": "§1985:XV.3.2.3 SR9: 'Identifier-1 must not reference any data item defined in the Report Section except sum counters.' ProcedureTableBuilder.NamesDataItem admits a Report Section entry only through SumCounterOf (the sum counter's register item, which AddDebugDataTarget records); any other report entry falls to ReportUnresolvedDebugOperand, whose resolver call refuses it COBOL5092 (ReportSectionBinder.ReportEntryReferenceRefused). Probed at 85: the sum counter TOT-AMT, TOT-AMT IN RPT and ALL REFERENCES OF TOT-AMT are accepted and fire after MOVE 100 TO TOT-AMT (and after the DISPLAY for ALL REFERENCES), not on the SUM accumulation; the SOURCE item DET-AMT, ALL REFERENCES OF DET-AMT, DET-AMT IN DET-LINE, the group DET-LINE and the VALUE item TOT-LBL are refused COBOL5092; the report-name RPT is refused COBOL1639; ALL REFERENCES OF PAGE-COUNTER (a special register, not an entry) is accepted. Seen beside the rule, not part of it: the sum counter's DEBUG-CONTENTS reads 0010{ and DISPLAY shows +00100 for an unsigned PIC 9(5) entry. The witness refuses DET-AMT.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

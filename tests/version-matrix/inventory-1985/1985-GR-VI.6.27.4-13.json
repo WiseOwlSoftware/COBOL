@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Steps a–g match in substance. The national-item case covers a category 1985 lacks, and the size wording only clarifies, so 1985 programs run with the same effect.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.48.4-11": "db4ab5d65bf0"
+  }
  }
 }

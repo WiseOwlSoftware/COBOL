@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same right space fill of short records released to fixed-length file-name-1. The national-space cases apply only to national items, absent in 1985; all other records get alphanumeric spaces.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.24.4-2": "e985dee4f8a7"
+  }
  }
 }

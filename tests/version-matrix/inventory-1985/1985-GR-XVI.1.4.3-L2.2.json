@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.1.4.3-L2.2",
  "rule-digest": "7d0cd3ec2f15",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitFields; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitGoTo; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition",
  "test-ref": "conformance:cases/XVI.1.4@1985-ORGANIZATION/1985-GR-XVI_1_4_3-L2_2",
+ "notes": "§1985:XVI.1.4.3 GRL2.2 puts an independent segment in its last-used state when \"Control is transferred explicitly to that segment as the result of the execution of an EXIT PROGRAM statement\". At --std 85 the segment-number is admitted (VersionConformancePass.VisitSectionDefinition gates it only from 2002) and every segment is resident: AlterSwitchEmitter.EmitFields declares each altered GO TO's target as an instance field that EmitAlter assigns and EmitGoTo reads, and nothing resets it across a CALL, so the return from EXIT PROGRAM finds the segment exactly as it was left. The witness ALTERs a GO TO in segment 50, CALLs a program that EXIT PROGRAMs, and prints LAST-USED. Probes (work-slice-70): r1a (segment 60, PERFORM then CALL into a segmented subprogram) LAST-USED; r1b class e (a failed CALL ON EXCEPTION then a good CALL, segment 99) CALL FAILED / LAST-USED; r1c class c (GOBACK, 2002) refused COBOL0880. Classes a, d, f do not reach a control-transfer rule. The complementary INITIAL-state arms are not implemented (r1d: a segment-50 ALTER survives a second PERFORM from segment 0, printing ALTERED where 1985 prints INITIAL): kb/Work PB5084, rows 1985-GR-XVI.1.4.3-1..3, not this rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

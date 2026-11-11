@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XI.4.4.3-6",
  "rule-digest": "2d9dabe70263",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenReportFileReference",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-SR-XI_4_4_3-6",
+ "notes": "§1985:XI.4.4.3 SR6: 'File-name-2 and file-name-3 must be described in a file description entry, not in a sort-merge file description entry, in the Data Division.' SortBindFile maps the USING and GIVING lists through SortMapIoFiles, which resolves each name through StatementValidation.ResolveFile and refuses a file whose model IsSortMerge with COBOL1757 at every edition including 85; the report-file exclusion 2023 adds also holds at 85 by §1985:XIII.3.3.3 SR3, through ScreenReportFileReference (COBOL2577). Probes at --std 85: (b) another SD in USING (USING IN1 SW2), in GIVING (GIVING SW2, and GIVING OUT1 SW2 as the second GIVING file), and the SORT's own SD in GIVING: each COBOL1757; a report FD in USING and in GIVING: COBOL2577; (e) SORT DESCENDING USING two sequential files GIVING a relative and a sequential file compiles, and both hold CCCC BBBB AAAA on read-back. The witness names the SORT's own SD as file-name-2.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"must be described in a file description entry, not in a sort-merge file description entry\"; 2023: \"shall be described in a file description entry that is not for a report file and is not a sort-merge file description entry\". Both keep file-name-2/3 in an FD and not an SD, but 2023 also refuses an FD for a report file, which the 1985 rule allowed.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.40.3-8": "e75720871a44"
+  }
  }
 }

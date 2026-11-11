@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"[ ON SIZE ERROR imperative-statement-1 ] [ NOT ON SIZE ERROR imperative-statement-2 ] ... identifier-2 [ ROUNDED ]\"; 2023: \"size-error group in choice indicators (zero or more, any order); { identifier-2 [ rounded-phrase ] }\". 2023 lets NOT ON SIZE ERROR precede ON SIZE ERROR, which the fixed 1985 order refuses. It also replaces plain ROUNDED with rounded-phrase (14.7.4), which allows added options.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.44.2": "e102923bbe5e"
+  }
  }
 }

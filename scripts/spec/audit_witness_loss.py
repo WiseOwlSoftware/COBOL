@@ -53,8 +53,8 @@ from inventory_view import inventory, inventory_at
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-def _git(*args: str) -> str:
-    return subprocess.run(["git", *args], cwd=REPO, check=True, capture_output=True, text=True,
+def _git(*args: str, repo: pathlib.Path = REPO) -> str:
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True,
                           encoding="utf-8").stdout
 
 
@@ -169,10 +169,11 @@ class Erasure(NamedTuple):
     verdict: str   # the row's verdict BEFORE the erasing commit: the verdict the erased prose was written for
 
 
-def default_base() -> str:
+def default_base(repo: pathlib.Path = REPO) -> str:
+    """The merge base of `repo`'s HEAD with origin/main (main when there is no origin/main)."""
     for ref in ("origin/main", "main"):
         try:
-            return _git("merge-base", "HEAD", ref).strip()
+            return _git("merge-base", "HEAD", ref, repo=repo).strip()
         except subprocess.CalledProcessError:
             continue
     raise SystemExit("⛔ no base: neither origin/main nor main is a ref here — pass --base REF")
@@ -606,11 +607,14 @@ def self_test(schema) -> int:
     # no verdict; a KEPT rule's test is its chain's, and a rule with no change record has no adjudication to join.
     ed85 = schema.edition(1985)
     rid85, place = "1985-GR-VI.6.18.4-1", "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/self_test_witness"
-    targets85 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023"}}
+    targets85 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023", "rule-digest": "d1"}}
     change = {"edition": ed85.next_held, "bridge": ed85.bridged, "source": "planted"}
-    changed85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "CHANGED", "to": ["SR-1"], "reason": "x"}}
+    # A record into `to` rules carries their digests, stamped as the writer stamps them (kb/Work PB5256 R1-4).
+    from lineage import target_digests
+    into = {"to": ["SR-1"], "digests": target_digests(["SR-1"], targets85)}
+    changed85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "CHANGED", **into, "reason": "x"}}
     removed85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "REMOVED", "to": [], "reason": "gone"}}
-    kept85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "KEPT", "to": ["SR-1"]}}
+    kept85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "KEPT", **into}}
     witness85 = {"rule-id": rid85, "test-ref": place}
 
     def errors85(on: dict[str, Any]) -> list[str]:

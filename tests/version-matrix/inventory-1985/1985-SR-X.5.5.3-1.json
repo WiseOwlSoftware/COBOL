@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.5.5.3-1",
  "rule-digest": "214ea8834071",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useOnTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
  "test-ref": "conformance:cases/X.5.5@1985-USE-STATEMENT/1985-SR-X_5_5_3-1",
+ "notes": "§1985:X.5.5.3 SR1 says 'The availability of the multiple file-names and the EXTEND phrase is dependent on the level of Sequential I-O module, Relative I-O module, or Indexed I-O module supported by the implementation'; the compiler implements the high subset (§1985:I.1.5.1; DESIGN-spec-conformance-review.md: every required module at its highest level), so both are available at 85 for every organization. The grammar's useOnTarget takes fileName+ or EXTEND at every edition and ProcedureTableBuilder.DeclBindUse binds a file list (each file resolved, sort-merge files refused) or the EXTEND open mode (once per procedure division, COBOL0897). Probed at 85 (classes b, c, e): one USE on a sequential, a relative and an indexed file fires for the at-end READ of each, and the next statement runs (D1 10 00 00 / AFTER S1 ... D1 10 10 10 / AFTER I1); USE ON EXTEND fires for a failed OPEN EXTEND of a relative file (D2 EXTEND 35, then AFTER EXTEND 35); the witness's USE GLOBAL ON F1 F2 and ON EXTEND print its .out; EXTEND twice draws COBOL0897, ON F1 EXTEND COBOL2269, ON with no operand COBOL0001, USE AFTER EXCEPTION CONDITION EC-I-O COBOL0877/0878 and USE without PROCEDURE COBOL0900.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

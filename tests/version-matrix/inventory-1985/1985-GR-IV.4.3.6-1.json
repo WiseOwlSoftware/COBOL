@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: numeric receiving data 'is aligned by decimal point and is moved to the receiving digit positions with zero fill or truncation on either end as required', with an assumed point after the rightmost digit when none is specified. 2023: 'treated as if it had an assumed decimal point immediately following its rightmost digit' (§2023:14.6.8.2 GR3) and 'the data is aligned by decimal point and is transferred to the receiving digits with zero fill or truncation on either end as required' (§2023:14.6.8.2 GR4). GR4's 'fixed-point' covers every 1985 numeric item; floating-point receivers are a separate clause (§2023:14.6.8.3). Same result. MOVE GR6 only refers to 14.6.8.",
-  "source": "adjudicate-712-r2/slice-01"
+  "source": "adjudicate-712-r2/slice-01",
+  "digests": {
+   "GR-14.6.8.2-3": "4fdae96a4505",
+   "GR-14.6.8.2-4": "6b8e4ca0565c"
+  }
  }
 }

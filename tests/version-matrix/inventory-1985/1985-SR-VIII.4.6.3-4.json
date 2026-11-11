@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "§1985:VIII.4.6.3 SR4, as amended by X3.23a-1989 (a misprint corrected, the requirement unchanged): 'The INVALID KEY phrase must be specified in the REWRITE statement for relative files in the random or dynamic access mode for which an appropriate USE AFTER STANDARD EXCEPTION procedure is not specified'. 2023 has no such syntax rule (§2023:14.9.35.3 SR2 only forbids the phrase for sequential organization and for relative organization in sequential access mode); §2023:14.9.35.4 GR19, under RELATIVE AND INDEXED FILES, makes the transfer of control depend 'on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases in the REWRITE statement', and the refused case is stated by §2023:9.1.14 GR4: 'If the INVALID KEY phrase is not specified in the input-output statement and there are no applicable exception processing statements, control is transferred to the end of the input-output statement'; so too §2023:9.1.14 GR3: 'If control is returned from those statements or there are no applicable exception processing statements, control is transferred to the end of the input-output statement'. Words that differ: 1985 'must be specified'; 2023 'not specified ... there are no applicable ... exception processing statements, control is transferred to the end'. A statement 1985 refuses is accepted by 2023 with a stated run-time effect: a lifted refusal, so CHANGED (kb/Work PB5021), not REMOVED.",
-  "source": "pb5092/use-required-phrases"
+  "source": "pb5092/use-required-phrases",
+  "digests": {
+   "GR-14.9.35.4-19": "800ae5d57e7f",
+   "GR-9.1.14-3": "4d9f118d4cd2",
+   "GR-9.1.14-4": "fad5ee590e9d"
+  }
  }
 }

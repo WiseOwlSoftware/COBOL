@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'All references to index-name-1, identifier-1, and index-name-3 apply equally to all recursions thereof.' 2023 has no separate syntax rule, but each operand term in a format denotes each instance written (5.2.4, 5.2.7 ellipsis). The SET general rules state the repetition explicitly: §2023:14.9.39.4 GR2 'For each occurrence of index-name-1 or identifier-1', and §2023:14.9.39.4 GR4 'For each occurrence of index-name-3'. A 1985 SET with repeated receivers means the same.",
-  "source": "adjudicate-712/slice-30"
+  "source": "adjudicate-712/slice-30",
+  "digests": {
+   "GR-14.9.39.4-2": "4f89c83a42be",
+   "GR-14.9.39.4-4": "137e5f7bdcf5"
+  }
  }
 }

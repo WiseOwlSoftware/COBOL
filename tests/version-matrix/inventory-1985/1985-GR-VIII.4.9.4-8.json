@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "Both make a WRITE of a record outside the RECORD IS VARYING bounds unsuccessful: no write, record area unaffected, status set (44 boundary violation). Extra 2023 operands are new syntax.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.51.4-14": "2ed0d2829339",
+   "GR-14.9.51.4-15": "a8b0bec83863",
+   "GR-9.1.13.7-4": "8cb702a5a928"
+  }
  }
 }

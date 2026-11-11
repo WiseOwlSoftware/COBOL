@@ -1,0 +1,27 @@
+{
+  "batch": [697, 698, 699, 700, 701, 702, 703, 704, 705, 706, 707, 708],
+  "pages_checked": [697, 698, 699, 700, 701, 702, 703, 704, 705, 706, 707, 708],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p698-1",
+      "page": 698,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Argument-1\ncharacteristics                Value returned",
+      "markdown_says": "   Argument-1\n\n| characteristics | Value returned |",
+      "why_it_matters": "The first column header of the HIGHEST-ALGEBRAIC example table is 'Argument-1 characteristics'; the transcription splits it, leaving 'Argument-1' as a detached paragraph and the column header as just 'characteristics'.",
+      "note": "The two-line printed column header was broken across a paragraph and the table header row."
+    },
+    {
+      "id": "p699-1",
+      "page": 699,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "BINARY-CHAR SIGNED        +127 (assuming an 8-bit representation)\nBINARY-CHAR UNSIGNED   +255 (assuming an 8-bit representation)",
+      "markdown_says": "BINARY-CHAR SIGNED +127 (assuming an 8-bit representation) BINARY-CHAR UNSIGNED +255 (assuming an 8-bit representation)",
+      "why_it_matters": "These two rows continue the HIGHEST-ALGEBRAIC example table from page 698 (argument characteristics / value returned); the transcription flattens them into one run-on paragraph, losing the row and column structure.",
+      "note": "Continuation rows of the page-698 NOTE table; should be two rows of the same two-column table."
+    }
+  ]
+}

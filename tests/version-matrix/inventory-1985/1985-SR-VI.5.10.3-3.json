@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both bar REDEFINES in level 01/1 file section entries. The added FORMAT-clause bar concerns a feature 1985 lacks, so no 1985 program is accepted or refused differently.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.44.3-3": "145967793eb2"
+  }
  }
 }

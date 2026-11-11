@@ -14,6 +14,14 @@
   "reason": "1985: the RWCS 'uses the vertical positioning information supplied by the NEXT GROUP clause along with information from the TYPE and PAGE clauses, and the value in LINE-COUNTER, to determine a new value for LINE-COUNTER'. 2023 states the same: §2023:13.18.37.4 GR2 'The NEXT GROUP clause modifies the value of the current report's LINE-COUNTER after the printing of the last line ... The effect of this clause depends on the type of report group'; GR3 (report heading), GR4 (body group, using LINE-COUNTER and 'the FOOTING integer') and GR5 (page footing) give the per-type computation; §2023:8.4.3.15.4 GR4 and §2023:13.18.35.4 GR8 restate that the final LINE-COUNTER is the one the NEXT GROUP rules define. A pure run-time positioning rule, unchanged in substance.",
   "source": "adjudicate-712/slice-25",
   "edition": 2023,
-  "bridge": true
+  "bridge": true,
+  "digests": {
+   "GR-13.18.37.4-2": "dc95a53e8508",
+   "GR-13.18.37.4-3": "e9da71e5a808",
+   "GR-13.18.37.4-4": "ccdbe2fd25e1",
+   "GR-13.18.37.4-5": "f07c469cf7cc",
+   "GR-8.4.3.15.4-4": "cf9c288b45e0",
+   "GR-13.18.35.4-8": "b6de16b68307"
+  }
  }
 }

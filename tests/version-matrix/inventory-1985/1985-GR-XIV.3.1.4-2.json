@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.1.4-2",
  "rule-digest": "05e2bfd727dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#AcceptMessageCount; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetStatus; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetMessageCount",
  "test-ref": "conformance:cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-GR-XIV_3_1_4-2",
+ "notes": "§1985:XIV.3.1.4 GR2: the CD area \"must contain at least the name of the symbolic queue to be tested\", and the statement updates the STATUS KEY and MESSAGE COUNT items (Table 1: 00, or 20 \"One or more queues or subqueues unknown. No action taken.\"). MessageControlSession#AcceptMessageCount answers 20 for an unknown or blank queue and 00 with the count otherwise; #Statement writes the status through CommunicationArea#SetStatus (positions 80-81) and keeps the handed image on a refusal. Probes at --std 85: a blank queue gave 20 with count 777777 kept; unknown a and QX gave 20; no mcs.json at all gave 20; a known queue 00 with its count. The witness checks 00 and the count before and after a RECEIVE, and 20 for NOQ.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

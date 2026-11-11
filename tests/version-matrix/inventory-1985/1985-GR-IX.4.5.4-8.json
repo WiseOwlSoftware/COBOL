@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: READ INTO is the READ then an implied MOVE per MOVE rules, size per RECORD clause, group move for RECORD IS VARYING, subscripts evaluated just before the move, no move if unsuccessful. §2023:14.9.30.4 GR4 b) 'If the file description entry contains a RECORD IS VARYING clause, the implied move is an alphanumeric group move' and the rest the same; §2023:14.9.30.4 GR5 'the content of the data item referenced by identifier-1 is unchanged' on failure; §2023:14.9.30.4 GR13 c) 'any implicit move resulting from the presence of an INTO phrase is executed' on success. The overlap NOTE belongs to 1985 SR1's record.",
-  "source": "adjudicate-712-r2/slice-02"
+  "source": "adjudicate-712-r2/slice-02",
+  "digests": {
+   "GR-14.9.30.4-4": "6a5020876f12",
+   "GR-14.9.30.4-5": "3991087c18d2",
+   "GR-14.9.30.4-13": "5f193b8f8cb6"
+  }
  }
 }

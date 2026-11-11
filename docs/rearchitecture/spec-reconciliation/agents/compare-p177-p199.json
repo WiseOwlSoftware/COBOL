@@ -1,10 +1,10 @@
 {
   "batch": [177, 179, 181, 183, 185, 187, 189, 191, 193, 195, 197, 199],
-  "pages_checked": [177, 179, 181, 183, 185, 187, 189, 191, 193, 195, 197, 199],
+  "pages_checked": [177, 179, 181, 183, 185, 187, 189, 191, 193, 195, 197, 199], "pages_unread": [],
   "note_on_batch_selection": "This batch was routed as a FIGURE-fidelity batch, but PDF pages 177-199 (printed pages 147-169, clause 8.4.6 through 8.6.4) contain NO general formats, syntax skeletons, or diagrams of any kind - they are continuous prose plus numbered/dashed lists. scripts/spec/page_workunit.py itself reported '0 with figure content' for all 12 slices. The likely cause is a printed-page vs PDF-page-index confusion: the printed page numbers 177-199 correspond to PDF pages 207-229, which is where the figure-bearing material in this region actually lives. No choice-indicator (vertical bar), unclosed brace/bracket, ellipsis-placement, or underlining check was applicable on any page in this batch.",
   "findings": [
     {
-      "page": 183,
+      "id": "p183-1", "page": 183,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "The whole block from 'NOTE   The UTF-16 format of ISO/IEC 10646 is a coded character set ...' through '... consistent with the needs of their application.' is printed in the smaller NOTE typeface and indented to the body margin of numbered item 2). This includes the two dashed sub-items and BOTH trailing paragraphs: 'These techniques facilitate efficient processing of data as fixed-size two-octet code elements, but present opportunities for corruption of data if not handled correctly. To achieve a better understanding, see ISO/IEC 10646.' and 'COBOL does not provide any special handling or recognition of surrogate pairs; nor does COBOL provide recognition of composite sequences. Each two-octet code element of UTF-16 is treated in COBOL as though it were itself a character. Users are responsible for ensuring that any truncation, replacement, or reference-modification that occurs is consistent with the needs of their application.' Font-size measurement at 300 dpi confirms both trailing paragraphs are set in the same reduced NOTE face as the 'NOTE' paragraph and are markedly smaller than item 2)'s own text.",
@@ -13,7 +13,7 @@
       "suggested_repair": "Re-attach the whole NOTE block to item 2) of 8.5.1.4 and keep it visibly informative: indent the dashed sub-items and both trailing paragraphs under the NOTE paragraph (or repeat a 'NOTE (continued)'/blockquote marker) so the non-normative boundary ends where the PDF's reduced typeface ends."
     },
     {
-      "page": 183,
+      "id": "p183-2", "page": 183,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "'8.5.1.4   Limitations of character handling' and '8.5.1.5   Algebraic signs' are printed as fourth-level clause headings, subordinate to '8.5.1  Computer independent data description', in the same typographic rank as their siblings 8.5.1.1 General, 8.5.1.2 Files and records and 8.5.1.3 Levels.",

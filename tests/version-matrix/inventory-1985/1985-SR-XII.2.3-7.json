@@ -11,6 +11,11 @@
   "reason": "1985 allows COPY 'in the source program' wherever a character-string or separator other than the closing quotation mark may occur, never within a COPY statement, and its amended GR12 says the text produced by COPY 'must not contain a COPY statement'. §2023:7.2.3.3 SR1 allows COPY 'anywhere in source text or in library text' (closing delimiter of a literal is the newer term); §2023:7.2.3.4 GR12 lets library text contain a COPY without REPLACING (nesting of at least 5 levels) and GR10 bars it when REPLACING is specified. Nested COPY, refused in 1985, is accepted. Looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-33"
+  "source": "adjudicate-712/slice-33",
+  "digests": {
+   "SR-7.2.3.3-1": "08a458b5094b",
+   "GR-7.2.3.4-10": "868f775c3b33",
+   "GR-7.2.3.4-12": "66b76be182c7"
+  }
  }
 }

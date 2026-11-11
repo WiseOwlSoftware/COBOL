@@ -382,7 +382,11 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
                     + $"holds {details} detail report groups; when a GENERATE report-name statement is specified, the report "
                     + "description entry must include no more than one detail report group (ISO §1985:XIII.3.20.3 SR6)");
             if (RejectContainedReportFile(summary, $"GENERATE {name}", "ISO §2023:14.9.16.3 SR4") is { } notGlobal) return notGlobal;
-            return Presenting(new BoundGenerate(summary, null));   // summary reporting (GR2)
+            // Summary reporting (GR2). §1985:XIII.3.20.4 GR11: a report with exactly one detail report group processes the
+            // statement "as though a GENERATE data-name statement were being executed" for it, so the subtotalling designated
+            // for that detail (SUM ... UPON) is performed though the detail is not printed (kb/Work PB5249).
+            var detailGroups = summary.Groups.Where(g => g.Kind == ReportGroupKindModel.Detail).ToList();
+            return Presenting(new BoundGenerate(summary, null, detailGroups is [{ Name: not null } only] ? only : null));
         }
         // SR1's data-name form, through the ONE funnel: it owns the qualified spelling ("It may be qualified by
         // a report-name") AND the §2023:8.4.2.2.3 SR1 ambiguity this loop used to resolve by writing order (PB365).
@@ -397,7 +401,7 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
             // GLOBAL clause") holds by construction — a container's non-GLOBAL report is not visible here at all,
             // so its groups resolve to nothing (§2023:13.18.27.4 GR2). The FILE half is asked here.
             if (RejectContainedReportFile(report!, where, "ISO §2023:14.9.16.3 SR3") is { } notGlobal) return notGlobal;
-            return Presenting(new BoundGenerate(report!, group));
+            return Presenting(new BoundGenerate(report!, group, null));
         }
         // Match.None is UNDIAGNOSED by contract ("leaves the 'this is not a report group' diagnostic to the
         // caller") — so this is the report, never a deferral (kb/Work PB909).

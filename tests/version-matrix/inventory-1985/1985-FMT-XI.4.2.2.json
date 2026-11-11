@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XI.4.2.2",
  "rule-digest": "04ae738d186c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#releaseStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordFromPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName",
  "test-ref": "conformance:cases/XI.4.2@1985-RELEASE-STATEMENT/1985-FMT-XI_4_2_2",
+ "notes": "§1985:XI.4.2.2 prints RELEASE record-name-1 [FROM identifier-1]. The grammar's releaseStatement takes one data reference and the shared recordFromPhrase; VersionConformancePass.VisitRecordFromPhrase refuses a literal FROM operand below 2002 (COBOL0871, construct from-literal-2002), and SortBinder.BindRelease resolves record-name-1 through StatementValidation.ResolveRecordName (an SD record, COBOL1757 otherwise). Probed at 85 (classes a, b, c, d, f): RELEASE SR and FROM a group, a PIC X item, a subscripted element TE (WS-I) and TE (WS-I + 1), a reference-modified WS-X (1:3), an OCCURS DEPENDING ON group, a signed S9(4) item (released as its DISPLAY image 001K) and the alphanumeric function UPPER-CASE (§1985:XI.4.2.3 SR3) all sort and print; FROM 'ZZZ999', 12, SPACES and ALL 'Q' COBOL0871, FROM FUNCTION LENGTH COBOL1914, RELEASE SF (a file-name) COBOL1639, RELEASE WS-X COBOL1757, RELEASE and RELEASE SR FROM with no operand COBOL0001, FROM WS-N + 1 COBOL2269, two FROM operands COBOL0307. RELEASE SR FROM SK (the same storage area) compiles: that is §1985:XI.4.2.3 SR3's second sentence, already kb/Work PB5077 (open), not the format.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"RELEASE record-name-1 [ FROM identifier-1 ]\"; 2023: \"RELEASE record-name-1 [ FROM { identifier-1 | literal-1 } ]\". 2023 adds literal-1 as an alternative FROM operand. RELEASE ... FROM literal, refused under the 1985 format, is now accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.32.2": "3a48207c6387"
+  }
  }
 }

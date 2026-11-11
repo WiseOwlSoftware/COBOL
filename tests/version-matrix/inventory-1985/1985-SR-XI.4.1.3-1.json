@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"may appear anywhere in the Procedure Division except in the declaratives portion\"; 2023: \"except in imperative-statement-1 of an exception-checking PERFORM statement, or in an output procedure of another MERGE statement\". 2023 keeps the declaratives ban but adds bans: exception-checking PERFORM, another MERGE's output procedure, and file SORT input/output procedures. The 1985 rule states only declaratives.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.24.3-1": "af374726cb04"
+  }
  }
 }

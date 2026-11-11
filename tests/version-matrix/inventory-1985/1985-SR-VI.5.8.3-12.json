@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"There must not be any entry that contains an OCCURS clause between the descriptions of the data items identified by the data-names\"; 2023: \"If data-name-2 is subordinate to an alphanumeric group item... that group item shall not contain an OCCURS clause.\". 1985 bars any OCCURS entry placed between the subject and a KEY item, e.g. an earlier sibling table. 2023 bars OCCURS only in groups that contain data-name-2, so such a sibling is now allowed.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.38.3-4": "cbed69f76063"
+  }
  }
 }

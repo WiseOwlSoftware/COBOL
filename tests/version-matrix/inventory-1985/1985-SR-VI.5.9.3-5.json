@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985 requires PICTURE for every elementary item except an index data item or a RENAMES subject, and prohibits it for those two. §2023:13.16.3 SR8 keeps both prohibitions and the requirement 'except as indicated in Syntax rule 9'. §2023:13.16.3 SR9 lets PICTURE be omitted when the VALUE clause gives a nonempty alphanumeric, boolean or national literal, with PICTURE X(length) implied. An elementary item with VALUE 'ABC' and no PICTURE, refused in 1985, is accepted. SR8's extra prohibited usages exist only in 2023.",
-  "source": "adjudicate-712/slice-30"
+  "source": "adjudicate-712/slice-30",
+  "digests": {
+   "SR-13.16.3-8": "673abcd97a8c",
+   "SR-13.16.3-9": "b31edda45e9f"
+  }
  }
 }

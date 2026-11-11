@@ -1,0 +1,17 @@
+{
+  "batch": [457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468],
+  "pages_checked": [457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p461-1",
+      "page": 461,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "14.6.8.4 Receiving data items of categories alphabetic, alphanumeric, alphanumeric-edited, national, and national edited",
+      "markdown_says": "###### 14.6.8.4 Receiving data items of categories alphabetic, alphanumeric, alphanumeric-edited, national,\n\nand national edited",
+      "why_it_matters": "The heading for 14.6.8.4 is truncated after 'national,' so a reader or heading index loses the national-edited category, and 'and national edited' appears as a stray body paragraph.",
+      "note": "The printed heading wraps onto a second line; the transcription split it at the line break."
+    }
+  ]
+}

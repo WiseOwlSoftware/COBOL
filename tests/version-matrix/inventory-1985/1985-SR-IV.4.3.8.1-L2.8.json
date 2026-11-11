@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"if more than one file description entry containing a LINAGE clause has been specified in the source program\"; 2023: \"if more than one file description entry containing a LINAGE clause may be referenced within the source element in which the reference\". 1985 counts every LINAGE file description in the source program. 2023 counts only those referenceable from the source element, so unqualified references in nested programs may now be allowed.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-8.4.2.2.3-8": "77e0e98774a9"
+  }
  }
 }

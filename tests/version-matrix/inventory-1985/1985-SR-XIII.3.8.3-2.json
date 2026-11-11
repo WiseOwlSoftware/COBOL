@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"Integer-1 must not exceed three significant digits in length.\"; 2023: \"Integer-1 shall not exceed 9999.\". 1985 caps the page limit integer-1 at three digits (999). 2023 allows up to 9999, so PAGE LIMIT values 1000-9999 are newly accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.39.3-5": "665c7b30b171"
+  }
  }
 }

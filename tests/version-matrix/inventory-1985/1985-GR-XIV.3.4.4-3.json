@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.4.4-3",
  "rule-digest": "6757d0a40a0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#ValidCount; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit",
  "test-ref": "conformance:cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-3",
+ "notes": "§1985:XIV.3.4.4 GR3: \"The content of the status key data item and the content of the error key data item (if applicable) of the area referenced by cd-name-1 are updated by the MCS\", per Tables 1 and 2. MessageControlSession.Purge sets error keys 0/1/2/4 per destination and status 00/10/20/30/70/80, Statement writes the status into the area and Emit stores the area back; an input-output CD has no error key. The witness reads 00/0 and 70/4. Probes at 85: (b) partial to D1, disabled D2, D3: PURGE count 2 gives 10 '02'; unknown ZZ 20 '1'; D3 + ZZ 20 '01'; disabled D2 + ZZ + D1 80 '210'; (a/f) count 0 30; I-O CD with no portion 70, with one 00; no mcs.json 20 '1'; (c) refused COBOL0902 at 2014/2023.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

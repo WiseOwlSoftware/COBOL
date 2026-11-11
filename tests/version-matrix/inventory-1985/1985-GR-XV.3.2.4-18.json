@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-18",
  "rule-digest": "29720f0a0a7b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitGoToDepending; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitGoTo; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#EmitDebugCause; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDebugRunner; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#Populate",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-18",
+ "notes": "§1985:XV.3.2.4 GR18: for a GO TO transfer, \"DEBUG-LINE identifies the GO TO statement whose execution transfers control to procedure-name-1\" and DEBUG-NAME contains procedure-name-1. Each GO TO form sets __dbgCause = Transfer and __dbgLine to its own line before transferring (StatementEmitter.Visit(BoundGoTo), ControlFlowEmitter.EmitGoToDepending, AlterSwitchEmitter.EmitGoTo via EmitterState.EmitDebugCause); the subject's __RunDebug (DispatchEmitter.EmitDebugRunner) populates DEBUG-ITEM with that line, the subject's name and SPACES (DebugItem.Populate, ContentsFor). Probes at 85: GO TO PB OF S2 (line 21), GO TO ... DEPENDING ON (line 25), an ALTERed GO TO (line 29, the altered statement, not the GO TO that reached it), GO TO a section-name subject (line 33) and GO TO PB IN S2 (line 52) each report their own line and spaces; COBOL0902 at 2002/2023. The witness checks two GO TOs at one statement and a second statement.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

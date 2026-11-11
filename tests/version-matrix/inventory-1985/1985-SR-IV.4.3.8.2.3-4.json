@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "§2023:8.4.2.3.3 SR5 keeps the SEARCH subject, REDEFINES and OCCURS KEY IS exceptions. It drops 1985's 'In a USE FOR DEBUGGING statement' (the debug module is gone) and adds SORT KEY and table SORT, screen FROM/TO/USING, and 'As a data-name addend in the SUM clause of a report description entry'. The set of permitted unsubscripted references differs. No refusal became an exception condition.",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "SR-8.4.2.3.3-5": "f4e14e4d694e"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-9",
  "rule-digest": "d914cadc3664",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/StoredMessage.cs#Complete; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-9",
+ "notes": "§1985:XIV.2.2.4 GR9: during RECEIVE the MCS provides in data-name-6 “the time at which it recognized that the message was complete in the form 'HHMMSSTT'”, updated only by RECEIVE. CommunicationArea#SetReceived, called only from MessageControlSession#Transfer, writes positions 55-62 (input) or 7-14 (I-O) from StoredMessage#Complete's HHmmss plus hundredths at the EMI or EGI that completed the message. Probes at --std 85: seeded time 23595999 on every portion; an in-run message's time 22565387 equal to ACCEPT FROM TIME; NO DATA, a status-20 RECEIVE, ACCEPT MESSAGE COUNT, an I-O SEND, PURGE and DISABLE left it unchanged; the I-O RECEIVE after ENABLE set 01020304. The witness checks RECEIVE against ACCEPT, DISABLE and ENABLE.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

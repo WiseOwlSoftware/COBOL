@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "Identifier-1 is kept: §2023:14.9.39.3 SR1 'shall reference a data item of class index or an integer data item'. Identifier-2 narrows: §2023:14.9.39.3 SR2 'shall reference a data item of class index'. The 1985 integer sender is now written as arithmetic-expression-1 (§2023:14.9.39.2), which no syntax rule requires to be an integer. Instead §2023:14.9.39.4 GR2 sets EC-BOUND-SUBSCRIPT 'If the value of arithmetic-expression-1 does not result in an integer'. A non-integer numeric sender, refused at compile time in 1985, compiles and raises a run-time exception condition (error mode c).",
-  "source": "adjudicate-712/slice-30"
+  "source": "adjudicate-712/slice-30",
+  "digests": {
+   "SR-14.9.39.3-1": "69dcec4e78b9",
+   "SR-14.9.39.3-2": "b393da6fdb8b",
+   "GR-14.9.39.4-2": "4f89c83a42be"
+  }
  }
 }

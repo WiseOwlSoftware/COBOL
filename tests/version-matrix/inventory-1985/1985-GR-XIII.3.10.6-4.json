@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 RH NEXT GROUP: absolute integer above the final line and below FIRST DETAIL; relative sum below FIRST DETAIL; NEXT PAGE = RH alone on page 1; absolute/NEXT PAGE illegal unpaged. §2023:13.18.37.3 SR6 a) 'shall be greater than the minimum last line number of the report group and less than the FIRST DETAIL integer', SR7 a) 'plus integer-2 shall be less than the FIRST DETAIL integer', §2023:13.18.37.4 GR3 c) 'printed on the first page of the report as the only report group on that page', §2023:13.18.37.3 SR3 'only the relative form of the clause may be specified' unpaged. Same refusals and effect.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "SR-13.18.37.3-6": "8531250d19f2",
+   "SR-13.18.37.3-7": "19762772b7a6",
+   "GR-13.18.37.4-3": "e9da71e5a808",
+   "SR-13.18.37.3-3": "0985e8ed4597"
+  }
  }
 }

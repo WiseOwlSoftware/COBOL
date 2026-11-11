@@ -474,12 +474,15 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/devlog.py check --base "$MG_BASE" --rev HEAD
-      - name: Rule catalog — the unharvested-rule manifest agrees with the transcription (extract_rule_catalog.py --check)
+      - name: Rule catalogs — every held edition's committed catalog is this run's, a reconciled one complete (extract_rule_catalog.py --held --check)
         if: ${{ !cancelled() }}
-        run: python3 scripts/spec/extract_rule_catalog.py --check
-      - name: Rule catalog 1985 — complete, and the committed catalog is this run's (extract_rule_catalog.py --edition 1985 --check)
+        run: python3 scripts/spec/extract_rule_catalog.py --held --check
+      - name: Lineage candidates — every older held edition's pairing is this run's (lineage.py --candidates --check)
         if: ${{ !cancelled() }}
-        run: python3 scripts/spec/extract_rule_catalog.py --edition 1985 --check
+        run: python3 scripts/spec/lineage.py --candidates --check
+      - name: Catalog coverage — each held ISO edition's rule blocks hold the ordinals the transcription prints (audit_catalog_coverage.py --held --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/audit_catalog_coverage.py --held --check
       - name: Inventory view — every held edition's catalog joined with its store, nothing refused (inventory_view.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/inventory_view.py --check
@@ -492,9 +495,11 @@ jobs:
       - name: Spec 1985 — publishable, and the transcription agrees with its reconciliation ledger (verify_publishable.py --edition 1985)
         if: ${{ !cancelled() }}
         run: python3 scripts/spec/verify_publishable.py --edition 1985
-      # One line ending, LF (kb/Work PB3029): no tracked text file's blob or checkout holds a CR, and every Python writer
-      # states newline=. Here it guards the INDEX (a commit made outside git's attributes); windows-self-tests runs it
-      # again over a Windows checkout, the bytes `core.autocrlf` used to turn CRLF.
+      # One line ending, LF (kb/Work PB3029): no tracked text file's blob or checkout holds a CR, every Python writer
+      # states newline=, and `.gitattributes` still says `* text=auto eol=lf`. THE ONE FULL SWEEP CI RUNS (kb/Work
+      # PB5225): a branch's gate reads only what the branch changes, so this is the backstop for a commit made outside
+      # git's attributes (an API upload). No Windows or nightly sweep: a CI checkout is a fresh checkout of these blobs,
+      # LF on every OS while the attributes hold, and main changes only through a merge group that ran this step.
       - name: Line endings — LF in every tracked text file, index and checkout (line_endings.py --check)
         if: ${{ !cancelled() }}
         run: python3 scripts/line_endings.py --check
@@ -1013,12 +1018,6 @@ jobs:
       - name: Script self-tests on Windows (self_tests.py)
         shell: pwsh
         run: python scripts/self_tests.py
-      # The one line ending over a WINDOWS checkout (kb/Work PB3029): `.gitattributes` makes it LF whatever the runner's
-      # `core.autocrlf`, so the bytes the Windows jobs compile and compare are the bytes the Linux jobs read.
-      - name: Line endings on a Windows checkout (line_endings.py --check)
-        if: ${{ !cancelled() }}
-        shell: pwsh
-        run: python scripts/line_endings.py --check
 
   # ── ⛔ EVERY CACHE IS SAVED UNDER MAIN, AND BY THE TWO JOBS BELOW ALONE (kb/Work PB3308, PB4007, PB4324;
   # .github/actions/setup-toolchain; scripts/ci_bounds.py). A merge group's run restores only what its own ref or main

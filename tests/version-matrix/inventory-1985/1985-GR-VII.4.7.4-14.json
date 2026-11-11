@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "Kept: §2023:14.9.51.4 GR20 (write beyond the externally-defined boundaries: unsuccessful, status '34', a boundary violation per §2023:9.1.13.6 GR4), §2023:14.9.51.4 GR15 (record area unaffected) and the USE procedure when one applies (§2023:14.9.49.4 GR6). Changed: 1985 c. 'If a USE AFTER STANDARD EXCEPTION declarative is not ... specified ..., the result is undefined'. 2023 sends control through 9.1.12/9.1.13 (GR15), and §2023:9.1.13.1 makes 3x fatal: 'the implementor determines what action is taken ... The implementor may either continue or terminate the execution of the run unit. If the implementor chooses to continue execution of the run unit, control is transferred to the end of the statement'. Undefined became a bounded implementor choice. (The §2023:9.1.13.1 prose has no catalog rule id.)",
-  "source": "adjudicate-712/slice-17"
+  "source": "adjudicate-712/slice-17",
+  "digests": {
+   "GR-14.9.51.4-20": "d50788039873",
+   "GR-14.9.51.4-15": "a8b0bec83863",
+   "GR-9.1.13.6-4": "7dd72d42c921",
+   "GR-14.9.49.4-6": "b41480584b33"
+  }
  }
 }

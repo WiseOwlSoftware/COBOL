@@ -16,6 +16,15 @@
   ],
   "bridge": true,
   "reason": "1985 RD: 'RD report-name-1 [CODE literal-1] [CONTROL ...] [PAGE LIMIT integer-1 LINE [HEADING integer-2] [FIRST DETAIL integer-3] [LAST DETAIL integer-4] [FOOTING integer-5]]' (§1985:XIII.3.5.2). 2023 RD is 'RD report-name-1 [IS GLOBAL] [code-clause] [control-clause] [page-clause]' (§2023:13.14.2); IS GLOBAL is no change, 1985 already has it (§1985:X.4.4.2). CONTROL is unchanged (§2023:13.18.16.2). But CODE now takes 'CODE IS {literal-1 | identifier-1}' (§2023:13.18.12.2), and PAGE adds a COLS/COLUMNS width with integer-1 optional (§2023:13.18.39.2; 'Either integer-1 or integer-2 or both shall be specified', §2023:13.18.39.3 SR2; phrases only with integer-1, SR3), LAST CONTROL HEADING and the DE/CH synonyms (§2023:13.18.39.3 SR1). 1985 entries keep their meaning; 2023 accepts entries the 1985 format refuses (looser).",
-  "source": "adjudicate-712/slice-04"
+  "source": "adjudicate-712/slice-04",
+  "digests": {
+   "FMT-13.14.2": "ea5cb9d68278",
+   "FMT-13.18.12.2": "665ed7681078",
+   "FMT-13.18.16.2": "153fc8c423fc",
+   "FMT-13.18.39.2": "9c165a2a1d1c",
+   "SR-13.18.39.3-1": "552d8921c908",
+   "SR-13.18.39.3-2": "91c585bac0ca",
+   "SR-13.18.39.3-3": "9cd18dabb0db"
+  }
  }
 }

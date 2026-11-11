@@ -13,6 +13,13 @@
   ],
   "reason": "1985: a non-initial called program and its contained programs are in the initial state 'the first time it is called within a run unit' and 'the first time it is called after a CANCEL'; on other entries the state 'remains unchanged from its state when last exited'. 2023: working-storage of a non-initial program is static data (§2023:13.5.4 GR1), placed in the initial state 'The first time the function, method, or program in which it is described is activated in a run unit' (§2023:14.6.2.3.2 GR1) and after 'a CANCEL statement referencing the program or CANCEL statement referencing a program that directly or indirectly contains the program' (§2023:14.6.2.3.2 GR3; §2023:14.9.5.4 GR3, and GR4 cancels contained programs too). Otherwise 'Static data is in the last-used state except when it is in the initial state as defined above' (§2023:14.6.2.3.3) and 'the program's data is in the last-used state on other than the first activation of the program' (§2023:8.6.6); neither paragraph has a catalog id. Same meaning.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "GR-14.6.2.3.2-1": "c89f05de4930",
+   "GR-14.6.2.3.2-3": "3b39619d4886",
+   "GR-13.5.4-1": "5d88c01b9978",
+   "GR-14.9.5.4-3": "0ff029035f01",
+   "GR-14.9.5.4-4": "b320a1c22b30"
+  }
  }
 }

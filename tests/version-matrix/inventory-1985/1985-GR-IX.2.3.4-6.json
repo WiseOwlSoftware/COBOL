@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985 only says the indexed RESERVE clause is the sequential one. 2023 has one RESERVE clause, used by the indexed file control entry (Format 1 of 12.4.5), with one general rule for every organization: §2023:12.4.5.14.3 GR1 'the number of input-output areas allocated is equal to the value of integer-1'. The equivalence holds.",
-  "source": "adjudicate-712/slice-06"
+  "source": "adjudicate-712/slice-06",
+  "digests": {
+   "FMT-12.4.5.1": "14f82fb7eed3",
+   "FMT-12.4.5.14.2": "af2027060203",
+   "GR-12.4.5.14.3-1": "6496e82bc134"
+  }
  }
 }

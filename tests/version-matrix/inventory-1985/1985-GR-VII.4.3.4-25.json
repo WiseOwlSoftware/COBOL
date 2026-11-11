@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985 GR25: 'The minimum and maximum record sizes for a file are established at the time the file is created and must not subsequently be changed.' The 2023 statement is uncatalogued prose (9.1.6: fixed file attributes 'cannot be changed throughout the lifetime of the file', listing the minimum and maximum record size). Catalogued parts: §2023:9.1.13.2 GR3 makes them 'the minimum or maximum length of records allowed for the fixed file attributes', and an existing file is held to them at OPEN (§2023:14.9.27.4 GR10, status 39 §2023:9.1.13.6 GR7). The implementor-defined extent of OPEN's validation belongs to the OPEN conflict rule's record. Same requirement.",
-  "source": "adjudicate-712-r2/slice-06"
+  "source": "adjudicate-712-r2/slice-06",
+  "digests": {
+   "GR-9.1.13.2-3": "2f93339ac9a7",
+   "GR-14.9.27.4-10": "b14289c182cb",
+   "GR-9.1.13.6-7": "5a57e7f5f853"
+  }
  }
 }

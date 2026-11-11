@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-17",
  "rule-digest": "d83780f0397a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#ValidCount; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToDestinations; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#DestinationCount; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#Destination; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#DestinationCapacity; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-17",
+ "notes": "§1985:XIV.2.2.4 GR17: a destination count \"outside the range of 1 through integer-1\" means \"an error condition is indicated, no action is taken for any destination\"; otherwise the MCS uses occurrences 1 through the count. MessageControlSession.ValidCount is checked first by Send, Purge and SetOutput (ENABLE/DISABLE OUTPUT) and returns status 30 before any destination is touched; the loops run i = 1..count over CommunicationArea.Destination(i). Probes at 85: count 0, integer-1 + 1, 9999, 18-digit truncated to 9999, non-numeric and spaces all gave 30 on SEND, PURGE, ENABLE and DISABLE OUTPUT with error keys and queues untouched; count = integer-1 delivered to each; the witness checks 0, 3, 2 without a table, 1 and 2.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

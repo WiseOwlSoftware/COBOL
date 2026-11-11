@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:13.18.60.4 GR10 repeats the 1985 rule: index data item whose value 'shall correspond to an occurrence number of a table element', with alignment, representation and the value for each occurrence number specified by the implementor (documented per DOC-A.1-211). The added 'The class and category of an index data item are index' names the item and changes no 1985 program.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "GR-13.18.60.4-10": "9067f9ac28f8",
+   "DOC-A.1-211": "9f05669a13de"
+  }
  }
 }

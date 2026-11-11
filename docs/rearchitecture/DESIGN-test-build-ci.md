@@ -287,7 +287,7 @@ is the ref a scheduled run reads:
 | job | measures | red when |
 |---|---|---|
 | `guard` | the NIST corpus through the `cobol` CLI (`scripts/guard-fast.sh`, Linux, about 12 minutes at JOBS=4) | the guard is not ALL GREEN (a REGRESSION, DIFF, FAIL*, audit finding, build warning, or its own instrument self-tests) |
-| `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused) and `line_endings.py --check`, then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
+| `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused), then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
 | `differential` (Windows) | the GnuCOBOL differential: `scripts/battery.sh` with `SKIP_TESTS=1 SKIP_GUARD=1`, so the citation audits, the corpus fetch, the solution build and phase 3, the battery's one definition and never a copy | a per-case verdict flip against the committed baseline, or a case with no compiler verdict. Windows, because the baseline was measured there and `gnucobol_differential.py` defaults to the `cobol.exe` apphost |
 | `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-shard-<k>` shard's wall (the sum of its trx `<Times>`) over the mean shard wall | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating, `shard_weights.py generate`), or a download or trx cannot be read (exit 2, UNMEASURED). NOT MEASURED and green on a day with no matrix run. Live while `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (the weighted shards, PB4329), since regenerating that file is its remedy |
 | `latest` | `toolchain.py latest`: is `toolchain.env` at every publisher's newest release (§1.4) | the manifest is behind a tool, or a publisher cannot be read |
@@ -983,7 +983,11 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   deletes that one class.
 - **What holds it.** A Python caller uses `GateSlots.for_repo().acquire(label)` (released by its `with` block or the holder's
   death); a shell caller wraps a command with `gate_slot.py run [--label TEXT] -- <command>`. `gate.py` takes the slot after
-  the worktree's gate lock and its audits and BEFORE the build, and holds it through the population check. The slot is held
+  the worktree's gate lock and BEFORE the build, and holds it through the population check. The audits run BESIDE the
+  slot wait, not ahead of it, and a RED audit decides the verdict: `acquire(..., abandon=)` polls the gate's "an audit is
+  RED" predicate on every poll, and when it turns true the ticket is withdrawn (the dead waiter's way out), `QueueAbandoned`
+  is raised, the slot is never taken, and the gate writes verdict.json and its log and exits non-zero at once (kb/Work
+  PB5322; run 000004 of 2026-11-11 kept its ticket 72 min after a RED known at 6 min, with five gates queued behind it). The slot is held
   by the gate's whole PROCESS TREE. On Windows, acquisition puts the holder ITSELF into a Job object with
   `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` (`process_job.bind_current`, the one copy of the Job-object code) before it
   spawns anything, so no grandchild can escape and a dead driver takes every
@@ -1024,6 +1028,10 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   `gate_slot.py status` prints the cap with who set it, EVERY held slot (one taken under an earlier, higher cap included) and
   the live tickets in queue order. ⛔ The cap does not span operating systems: a Windows lock and a WSL lock on a drvfs mount
   do not see each other, so the hand-run Linux tool (§3.15) is not counted against it.
+- **A rolling wave runs as many implementers as the cap in force (kb/Work PB5100, PB5303).** `plan_wave.py wave_concurrency` returns the
+  cap, never fewer than 1; it is NOT reduced by the slots held or tickets waiting when the wave is planned, because an
+  implementer codes far longer than it gates, so the planning-time holds say nothing about the slots free when its gates
+  arrive (wave 20261999 planned at 1 and ran 8 compiler groups serially for 216+ minutes). The slot queue above serializes the gates.
 - **`gate_slot.py --self-test` declares fourteen arms** against throwaway repositories, each with one linked worktree: FIFO
   order (three waiters behind a holder are served in ticket order, and the holder re-gating the moment it releases is served
   LAST), release on a killed holder, a dead waiter leaving the queue, the orphaned tree (the job kills the orphaned child and
@@ -1051,21 +1059,56 @@ the content of everything it read, in ONE store shared by every checkout of the 
 `scripts/self_test_inputs.py` owns what "read" means:
 - **traced** — a `sitecustomize` tracer first on PYTHONPATH records, through the interpreter's audit hooks (PEP 578), each
   file a Python process opens (a module's `__pycache__` file counts as its source), each directory it lists and each path it
-  hands a child process, inside the repository;
+  hands a child process, inside the repository. A child's arguments are its argument LIST: on Windows `subprocess`
+  raises the audit event with the one command line `list2cmdline` built, which the tracer parses back by the rules
+  that built it, never by splitting on whitespace (that cut a path holding a space into fragments). Each record is one
+  JSON array on one line (`TRACE_SHAPES`), so a record holding a newline, such as a multi-line `python -c` program, is
+  never split, and the one reader (`trace_record`) reads a line that is not one whole record as UNKEYED (kb/Work
+  PB5227, the merge-group bounce of 2026-11-11);
+- **imports** — each module name an import looked for (the audit event `import`, raised before the search, so a failed
+  import counts), per directory inside the repository it searched: a top-level name in each sys.path entry, a submodule in
+  each entry of its package's `__path__` (`import a.b` raises its event before `a` loads, so the tracer holds the name
+  until `a` is in `sys.modules`). The import system's own directory listings (`FileFinder._fill_cache`) are not listings:
+  read so, every self-test that imports from `scripts/` re-ran on any new file there (kb/Work PB5227). The IMPORT KEY holds
+  instead the entries of each searched directory that could answer an imported name (`Tree.importable`: the name as a
+  package or namespace directory with its `__init__` entries, and the name with each suffix
+  `importlib.machinery.all_suffixes()` gives), so a new `scripts/json.py` re-runs every self-test that imported `json`, a
+  namespace package gaining `__init__.py` re-runs its importers, and an unrelated new file re-runs none. Case follows the
+  import system on each platform: the directory as the file system finds it (without case on Windows), a module entry
+  exactly, an `__init__` file as the file system finds it;
 - **static** — what no audit hook sees: the self-test's own file, the runner itself (`self_tests.py`, `self_test_inputs.py`),
   `# SELF-TEST-READS: <path> …` header declarations, and for a PowerShell or bash self-test the closure over the files its
   CODE mentions (comments dropped);
-- **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says: nothing for its
-  location, configuration, worktrees or a commit id; the NAMES (`ls-files`) or the CONTENT (`diff`, `ls-files -s`,
-  `show <rev>:<path>`, any other command) under its pathspec, the whole tree when it names none.
+- **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says, by the DECLARED
+  GRAMMAR of its subcommand (`GIT_GRAMMAR`: its options, which of them take a value, what its arguments are; declared:
+  `ls-files`, `rev-parse`, `log`, `grep`, `config`'s READ modes and `remote get-url <name>`): nothing for git's
+  configuration (`config <name>`, `--get`, `--get-all`, `--get-regexp`, `--list`/`-l`, each with the arguments its
+  mode takes; every writing form is undeclared, and so is `symbolic-ref`, whose answer, the checked-out branch, no key
+  holds) or a location query (`rev-parse --show-toplevel`, `--exec-path`); the
+  NAMES (`ls-files`) or the CONTENT (`ls-files -s`, `grep`) under its pathspec (an absolute one made relative to the
+  repository; `:(top)`/`:/`, `:(glob)`, `:(literal)` and `:(exclude)`/`:!` modelled exactly, an exclusion narrowing
+  nothing), the whole tree when that is the command's meaning (no pathspec, `*.py` at the root); and for a HISTORY read
+  (`rev-parse <rev>`, `log`) the object each revision it names resolves to (`rev:<expression>`, `HEAD` for a log naming
+  none). An object is immutable, so a PASS reused while every named revision resolves to the same object is sound: a
+  `rev-parse HEAD` reader re-runs on every new commit, which is the price of reading the real checkout's history.
+- **unkeyed** — anything else a trace records is an UNKEYED READ (`UnkeyedRead`): a subcommand, option or argument form
+  the grammar does not declare (`git diff`, `ls-files --with-tree`, `grep -f`), pathspec magic it does not model
+  (`:(icase)`, `:(attr:…)`), a global option such as `--git-dir`, a path outside the repository or past its top, a trace
+  line that is not one whole record (cut short, of no known kind or of the wrong shape). `self_tests.py` turns a passing
+  run that has one into a RED labelled `UNKEYED READ`, naming each command and its directory, and records no PASS. ⛔ It is never keyed as the whole tree (the owner, 2026-11-10: "If it
+  cannot be resolved, there is a problem/bug"): that would hide a self-test's hermeticity defect as a test that re-runs on
+  every gate; and never as a path no tracked file can appear under, whose key would never change (`Tree.under` refuses
+  such a path at the call; kb/Work PB5227).
 A record holds each file's git blob id (the working tree's content id for an edited or untracked file; `-` where the run looked
-and found nothing) and a digest of what it saw of each directory (`Tree.digest`). `--reuse` reports a self-test REUSED, unrun,
+and found nothing), a digest of what it saw of each directory (`Tree.digest`) and each searched directory's import key
+(the names and the entries that answered them; a record without it is of another shape and no PASS). `--reuse` reports a self-test REUSED, unrun,
 while a record's inputs are ALL unchanged on the tree being gated. A self-test that RUNS says why on its console line (kb/Work
 PB3061): `first run: no PASS recorded for <platform>, Python <v>`, or `re-run: N input(s) changed since the newest PASS — a,
 b, c (+k more)`. **Every gate reuses** (`gate.py` adds `SELF_TESTS_REUSE` to its SELF-TESTS audit); **CI's `audits` and
 `windows-self-tests` jobs and the hand-run Linux tool never reuse**, so a PASS reused past a read nothing traced (a PowerShell
-or bash process's own reads of a path built at run time, `os.stat`-style probes, a Python child started with `-I`) is caught
-in the merge group. The `--built` phase reads build output no record covers: it always runs and never records. A Python
+or bash process's own reads of a path built at run time, `os.stat`-style probes and `importlib.util.find_spec`, a Python
+child started with `-I`, a module search through a finder or `.pth` file a self-test installs) is caught in the merge
+group. The `--built` phase reads build output no record covers: it always runs and never records. A Python
 self-test whose trace does not show its own file had no tracer, and records no PASS.
 
 **2. The machine-wide budget.** A self-test waits for one of `BUDGET_CAP` places (one per core) before it starts, and holds
@@ -1094,7 +1137,9 @@ has them killed, and its output names them.
 repository: a full run records; the gates on the unchanged tree re-run nothing; a changed input (a file read through a name
 built at run time, which only the trace sees) re-runs exactly its self-test in every gate, at most the budget's two at a
 time; an edited import re-runs only its importer; a planted 60-s self-test under a 1-s detector is HANG; a malformed store
-record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification and the tracer;
+record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification, the tracer and the import key (an
+unrelated new file changes nothing; a shadowing module, a module or package answering an imported name and a removed module
+each re-run);
 `gate.py --self-test` proves every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `scripts/self_test_arms.py`
 holds the arms by name, and `self_tests.py --self-test` forbids `--reuse` in CI and the Linux tool (kb/Work PB4395).
 
@@ -1159,8 +1204,40 @@ the semantic check, so nothing is judged from intent); a file that does not pars
 *Reuse.* A PASS records `clock: {shift_days, real, until}` (the day the proof reaches, `Clock.until`: recorded at + 400 days for
 a shifted self-test, the day it was recorded for a clock that cannot be shifted), and `PassStore.lookup` refuses a record
 past it (`re-run: the clock proof of the PASS of ... ended ...`), so a reused PASS cannot outlive the proof it rests on.
-Only a self-test that cannot read a clock records none and is reused whatever the day. The schema is 3: a PASS recorded
-before the proof is not reused.
+Only a self-test that cannot read a clock records none and is reused whatever the day. The schema is 4 (3 added the
+proof; 4 its key and the day it ran, below): a PASS recorded under an earlier schema is not reused.
+*The clock key (kb/Work PB5226).* The shifted run proves one thing, that no fixture the self-test compares with the clock
+expires inside the shift, and only an input that reads a clock, does time arithmetic or carries a date can change that
+answer; yet until PB5226 every re-run of a clock-proved PASS re-ran the shifted run too. In the build-stage1 gate of
+2026-11-11, 28 of 42 self-tests that ran were clock-proved and took 6,419 of 10,022 summed seconds, about half of it the
+shifted runs; `enqueue.py`, `land_lane.py` and `gate.py` re-ran theirs because `inert_lane.py` and `buildgraph.py`
+changed, and neither imports a time module (`inert_lane.py` is in the key again since review R1-1: string literals
+in its code quote dates). A shifted proof is therefore recorded under its own key
+(`clock: {..., key, proved}`; `Runner._proof_key`, `self_test_clock.keys_proof`): of the run's inputs, the self-test's own
+file, the proof's mechanism (`self_test_clock.MECHANISM`: the shim and the tracer that installs it), every Python file
+that imports `datetime`, `time`, `calendar` or `zoneinfo`, reaches the wall clock, holds a date literal in its code
+(`dated_literal`: a string or bytes literal, not a comment or a docstring; review R1-1) or names the shift variable, every
+script that reads a clock, every other file that carries a date (`DATED_RE`: an ISO date or a basic `20261111T023340`
+stamp), every file whose content cannot be read, and every directory a git command read whole. These are syntactic signs
+of time handling: they never find a module that only computes with time values it is handed. The runner's other files are left
+out, as `Clock.of` leaves them out. When a `--reuse` run (a gate's) re-runs a self-test because its PASS inputs changed,
+and after the first run the run's key equals a recorded proof's inside that proof's horizon (`PassStore.clock_proof`),
+it does not run the shifted run: the console says `clock proof reused: the shift of 400 days proved <when> holds until
+<day>, and none of its N clock input(s) changed`, and the new PASS keeps the reused proof's `proved` and `until`, so reuse
+never moves a horizon past 400 days from the day the clock was actually moved. Otherwise both runs run and the console
+names the clock inputs that changed since the newest proof. The key is derived AFTER the first run, from that run's own
+trace, so a file that starts reading the clock in the change under test is in the new key and the shifted run runs. A run
+without `--reuse` (CI, the Linux gate, a hand run) never reuses a proof. *Its residue, named and accepted (review
+R1-2):* a module with no time import, no clock read and no date literal that does arithmetic or comparison on time
+values handed to it (`def ok(today, expires): return today < expires`), or defines a window as a plain number
+(`RETAIN_DAYS = 90`) for an unchanged module that compares it with the clock; a date in a data file in a form `DATED_RE`
+does not match; and the names in a directory listing. Only dataflow analysis could see the first, and a list of
+time-sounding identifiers would be a hand-kept heuristic, so none is kept; `self_tests.py`'s self-test pins it as known
+behaviour (an arm a change that closes the gap must update). An edit to one of those reuses a proof it may have changed.
+What bounds it: the unshifted run still runs on every re-run, so today's answer is always tested and only the
+400-day-ahead answer is reused; every CI run (the merge group's Windows self-tests, class (d) of CLAUDE.md's Testing
+rule, and the nightly) runs both runs fresh, so such a change is caught before main, at the price of a bounce. The detector over-approximates elsewhere on purpose
+(`import time` for a duration puts a file in the key): an extra shifted run is the cost.
 *The opt-out, declared.* A self-test that compares the Python clock with a REAL one the shift cannot move declares it, with
 the reason, among its first five lines: `# SELF-TEST-CLOCK: real — <why>`, and is not shifted. It is
 not reused past the day it was recorded either (review R1-2: a declared PASS with no horizon would be answered REUSED
@@ -1196,14 +1273,18 @@ root fix for the PowerShell and bash ones.
 *No arm limits how long a process takes.* The module's arms compare each child reading with the interval the PARENT's own
 clock brackets the child's run in (a slow start-up only widens it), and an allowance (`RESOLUTION`, two seconds in the module's arms, one in the planted `test_child.py`) covers the clocks'
 rounding and the whole-second readers, never slowness (review R1-3; the owner's no-wall-clock rule).
-*Proof.* `self_test_clock.py --self-test` (the detection's arms; the shim in a child process against the parent's
+*Proof.* `self_test_clock.py --self-test` (the detection's arms and `keys_proof`'s; the shim in a child process against the parent's
 bracketing clock, every function once; a shift across a daylight-saving change under a POSIX `TZ` with a daylight rule;
 the horizon, the day-bound clock) and `self_tests.py --self-test` (`fleet_arms`: a fixture written at arm time and compared
 with the wall clock is RED in the proof run and records no PASS; the same test deriving its fixture from the clock, a child
 process that must agree with its parent, a self-test that cannot read the clock and one declared real; an mtime comparison
 undeclared is RED; the recorded horizon; reuse inside it and a fresh run past it; a declared-real PASS of an earlier day is
 not reused; a bash self-test reading `date` is day-bound, so is one that sources a helper reading `date` and one whose
-traced Python child opened a file that reads the clock).
+traced Python child opened a file that reads the clock; and the clock key, read from the shifts the planted self-test
+logs: the key holds its own file and its time-arithmetic helper but not its plain helper, an edit to the plain helper
+runs once and keeps the proof's day and horizon, an edit to the time helper or to the self-test runs both, a helper that
+starts importing `time` in the edit runs both, a run without `--reuse` runs both, and an expired proof under an unchanged
+key runs both).
 
 #### 3.14.11 The one Python interpreter the gate scripts run (kb/Work PB1637, PB3197)
 
@@ -1939,8 +2020,14 @@ demand and not committed.
   index (exit 3, which `land` maps to exit 2), and an interrupted stamp is completed by the next run.
 - **Line endings (PB3029; owner 2026-10-11: "standardize on a single line-ending format"): LF everywhere.** `.gitattributes`
   opens with `* text=auto eol=lf`, and a file that must keep its bytes is declared `-text` there with its reason.
-  `scripts/line_endings.py --check` (a gate audit, CI's `audits` job and a `windows-self-tests` step) refuses a CR in a tracked
-  text file's blob or checkout and a Python text-mode write that does not state `newline=`; `--fix` rewrites a checkout made
+  `scripts/line_endings.py --check` refuses a CR in a tracked text file's blob or checkout, a Python text-mode write that does
+  not state `newline=`, and any file whose attributes, as `git check-attr text eol` resolves them, are neither `-text` nor
+  text (`auto` or set) with `eol=lf` (a narrower rule such as `*.cob -eol`; review R1-4). The gate's LINE ENDINGS audit
+  reads only what the change touches (`--base B --tree T`: the paths the measured tree changes, plus the checkout's modified
+  and untracked files; kb/Work PB5225), unless the change edits a file the check classifies by (a `.gitattributes` at any
+  level, `line_endings.py` or a module of its directory it imports: `classifiers`), which re-classifies files the change
+  does not list and so runs the full sweep (review R1-3). CI's Linux `audits` job runs the one full sweep per merge group,
+  the backstop for a commit made through the API; neither the Windows jobs nor the nightly sweep again; `--fix` rewrites a checkout made
   before the rule and re-states the index entry of each file whose cleaned content IS the staged blob (a plain `git update-index`:
   `--refresh` trusts the stale recorded size and answers "needs update" for exactly these files), `--fix-writers` adds
   `newline="\n"` to a new writer, and the PowerShell generators of tracked files write through `scripts/LfText.psm1`

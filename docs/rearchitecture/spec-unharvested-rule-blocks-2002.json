@@ -1,0 +1,1230 @@
+{
+ "_comment": [
+  "THE 2002 CONTENT-KEYED MANIFEST (kb/Work PB5256): the clauses of specs/ISO_COBOL_2002.md whose body carries an",
+  "ascending numbered list under a heading that names no rule block, as extract_rule_catalog.py's scan measures them",
+  "(`ordinal_shape`), in the shape of the 2023 manifest (spec-unharvested-rule-blocks.json, whose comment states each",
+  "key). A disposition is an adjudication by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule), never a",
+  "guess. Seeded on 2026-11-11: a clause whose list body was word for word (cite.norm) the text of exactly one 2023",
+  "manifest clause with the same ordinal count would have carried that clause's disposition; none of the 92 is, so",
+  "every one is `pending`, and its rules are not in the 2002 denominator until it is adjudicated. `candidate` is the",
+  "adjudicator's starting point, never a disposition: the 2023 manifest clause of the same title nearest in text",
+  "(difflib ratio over the cite.norm words), with its disposition and kind. `paragraph-blocks` (prose clauses",
+  "admitted one row per paragraph, 2023's 9.1.16 to 9.1.18) is empty: no 2002 clause of the same title has the",
+  "same prose, so each is adjudicated with the rest. The 2002 transcription is not reconciled yet (kb/Work PB4813):",
+  "a correction that moves a clause's list drifts it here, and extract_rule_catalog.py --edition 2002 --check names it."
+ ],
+ "blocks": {
+  "2": {
+   "title": "Normative references",
+   "ordinals": 1,
+   "lists": 1,
+   "longest": 1,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "3.1.8": {
+   "title": "Nonstandard extensions",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:4.2.10",
+    "similarity": 0.958,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "3.3": {
+   "title": "A conforming run unit",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:4.4",
+    "similarity": 0.731,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "5.4": {
+   "title": "Integer operands",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:5.5",
+    "similarity": 0.309,
+    "disposition": "rules",
+    "kind": {
+     "items": {
+      "1": "SR",
+      "2": "SR",
+      "3": "GR"
+     }
+    }
+   }
+  },
+  "6": {
+   "title": "Reference format",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "6.2.3": {
+   "title": "Program-text area",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:6.3.4",
+    "similarity": 0.652,
+    "disposition": "rules",
+    "kind": "SR"
+   }
+  },
+  "6.2.4": {
+   "title": "Continuation of lines",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:6.3.5",
+    "similarity": 0.178,
+    "disposition": "rules",
+    "kind": "SR"
+   }
+  },
+  "6.4": {
+   "title": "Logical conversion",
+   "ordinals": 10,
+   "lists": 1,
+   "longest": 10,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:6.5",
+    "similarity": 0.556,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "7.1": {
+   "title": "Text manipulation",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "7.1.1.4": {
+   "title": "Text-words",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:7.2.2.5",
+    "similarity": 0.598,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.1.1": {
+   "title": "Computer's coded character set",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.1.2",
+    "similarity": 0.778,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.3.1.1": {
+   "title": "COBOL words",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.3.1.1.1": {
+   "title": "User-defined words",
+   "ordinals": 15,
+   "lists": 5,
+   "longest": 6,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.3.2.2",
+    "similarity": 0.551,
+    "disposition": "rules",
+    "kind": {
+     "sublists": {
+      "1": "SR",
+      "2": "GR",
+      "3": "SR",
+      "4": "GR",
+      "5": "GR"
+     }
+    }
+   }
+  },
+  "8.3.1.1.3": {
+   "title": "Reserved words",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.3.1.1.3.1": {
+   "title": "Required words",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.3.2.4.2",
+    "similarity": 0.957,
+    "disposition": "rules",
+    "kind": "SR"
+   }
+  },
+  "8.3.1.2.2.1": {
+   "title": "Fixed-point numeric literals",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.3.3.3.2",
+    "similarity": 0.989,
+    "disposition": "rules",
+    "kind": {
+     "items": {
+      "1": "SR",
+      "2": "SR",
+      "3": "SR",
+      "4": "GR"
+     }
+    }
+   }
+  },
+  "8.3.1.2.2.2": {
+   "title": "Floating-point numeric literals",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.3.3.3.3",
+    "similarity": 0.98,
+    "disposition": "rules",
+    "kind": {
+     "items": {
+      "1": "SR",
+      "2": "SR",
+      "3": "SR",
+      "4": "SR",
+      "5": "GR"
+     }
+    }
+   }
+  },
+  "8.3.2": {
+   "title": "Separators",
+   "ordinals": 9,
+   "lists": 1,
+   "longest": 9,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.3.5",
+    "similarity": 0.871,
+    "disposition": "rules",
+    "kind": "SR"
+   }
+  },
+  "8.4.1.1": {
+   "title": "Qualification",
+   "ordinals": 7,
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.4.5.1": {
+   "title": "Local and global names",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.4.5.2": {
+   "title": "Scope of program-names",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.4.6.3",
+    "similarity": 0.992,
+    "disposition": "rules",
+    "kind": "SR"
+   }
+  },
+  "8.5.1.2.1": {
+   "title": "Level-numbers",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.1.3.2",
+    "similarity": 0.991,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.5.1.3": {
+   "title": "Limitations of character handling",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.1.4",
+    "similarity": 0.758,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.5.1.5.4": {
+   "title": "Item alignment for increased object-code efficiency",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.1.6.4",
+    "similarity": 0.982,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.5.2.2": {
+   "title": "Alphanumeric category",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.2.3",
+    "similarity": 0.97,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.5.2.4": {
+   "title": "Boolean category",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.2.5",
+    "similarity": 0.973,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.5.2.6": {
+   "title": "Index category",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.2.8",
+    "similarity": 0.946,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.5.2.7": {
+   "title": "National category",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.2.10",
+    "similarity": 0.645,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.5.2.9": {
+   "title": "Numeric category",
+   "ordinals": 7,
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.2.12",
+    "similarity": 0.867,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.5.2.10": {
+   "title": "Numeric-edited category",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.2.13",
+    "similarity": 0.962,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.5.3": {
+   "title": "Types",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.5.4": {
+   "title": "Zero-length items",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.5.4",
+    "similarity": 0.124,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.6.6": {
+   "title": "Sharing data items",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.6.7",
+    "similarity": 0.987,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.8.1.1": {
+   "title": "Native and standard arithmetic",
+   "ordinals": 7,
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.8.1.3.1": {
+   "title": "Standard intermediate data item",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.8.1.3.1.3": {
+   "title": "Rounding rules",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.8.1.3.6": {
+   "title": "Exponentiation",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.8.2": {
+   "title": "Boolean expressions",
+   "ordinals": 8,
+   "lists": 1,
+   "longest": 8,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.8.2",
+    "similarity": 0.618,
+    "disposition": "rules",
+    "kind": {
+     "items": {
+      "1": "SR",
+      "2": "SR",
+      "3": "SR",
+      "4": "SR",
+      "5": "SR",
+      "6": "SR",
+      "7": "GR",
+      "8": "GR",
+      "9": "GR",
+      "10": "GR"
+     }
+    }
+   }
+  },
+  "8.8.4.1.1": {
+   "title": "Relation conditions",
+   "ordinals": 11,
+   "lists": 1,
+   "longest": 11,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.8.4.1.1.6.1": {
+   "title": "Standard comparison",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.8.4.2.10",
+    "similarity": 0.416,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.8.4.1.1.7": {
+   "title": "Comparison of boolean operands",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.8.4.2.8",
+    "similarity": 0.988,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.8.4.1.1.8.1": {
+   "title": "Standard comparison",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.8.4.2.10",
+    "similarity": 0.97,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.8.4.1.1.10": {
+   "title": "Comparisons involving index-names or index data items",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.8.4.2.13",
+    "similarity": 0.97,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "8.8.4.1.4.2": {
+   "title": "Rules",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.8.4.1.6.2": {
+   "title": "Rules",
+   "ordinals": 1,
+   "lists": 1,
+   "longest": 1,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.8.4.2.4": {
+   "title": "Abbreviated combined relation conditions",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "8.8.4.3": {
+   "title": "Order of evaluation of conditions",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:8.8.4.13",
+    "similarity": 0.973,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.1": {
+   "title": "Physical and logical files",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.1",
+    "similarity": 0.19,
+    "disposition": "not-rules"
+   }
+  },
+  "9.1.5": {
+   "title": "Sharing file connectors",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.5",
+    "similarity": 0.978,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.11": {
+   "title": "File position indicator",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.11",
+    "similarity": 0.973,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.12": {
+   "title": "I-O status",
+   "ordinals": 9,
+   "lists": 1,
+   "longest": 9,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "9.1.12.1": {
+   "title": "Successful completion",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.13.2",
+    "similarity": 0.796,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.12.2": {
+   "title": "Implementor-defined successful completion",
+   "ordinals": 1,
+   "lists": 1,
+   "longest": 1,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.13.3",
+    "similarity": 0.548,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.12.3": {
+   "title": "At end condition with unsuccessful completion",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.13.4",
+    "similarity": 0.982,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.12.4": {
+   "title": "Invalid key condition with unsuccessful completion",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.13.5",
+    "similarity": 0.816,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.12.5": {
+   "title": "Permanent error condition with unsuccessful completion",
+   "ordinals": 7,
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.13.6",
+    "similarity": 0.717,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.12.6": {
+   "title": "Logic error condition with unsuccessful completion",
+   "ordinals": 9,
+   "lists": 1,
+   "longest": 9,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.13.7",
+    "similarity": 0.955,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.12.7": {
+   "title": "Record operation conflict condition with unsuccessful completion",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.13.8",
+    "similarity": 0.983,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.12.8": {
+   "title": "File sharing conflict condition with unsuccessful completion",
+   "ordinals": 1,
+   "lists": 1,
+   "longest": 1,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.13.9",
+    "similarity": 0.903,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.12.9": {
+   "title": "Implementor-defined condition with unsuccessful completion",
+   "ordinals": 1,
+   "lists": 1,
+   "longest": 1,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.13.11",
+    "similarity": 0.872,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.13": {
+   "title": "Invalid key condition",
+   "ordinals": 6,
+   "lists": 2,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.14",
+    "similarity": 0.474,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.1.14": {
+   "title": "Sharing mode",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.1.15",
+    "similarity": 0.88,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.2.3": {
+   "title": "CRT status",
+   "ordinals": 8,
+   "lists": 2,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.2.3",
+    "similarity": 0.883,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.3.5": {
+   "title": "Method invocation",
+   "ordinals": 4,
+   "lists": 2,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.3.6",
+    "similarity": 0.148,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "9.3.7.1.2": {
+   "title": "Conformance between interfaces",
+   "ordinals": 10,
+   "lists": 1,
+   "longest": 10,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:9.3.8.2.3",
+    "similarity": 0.032,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "10.2": {
+   "title": "Source units",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:10.3",
+    "similarity": 0.992,
+    "disposition": "not-rules"
+   }
+  },
+  "13.7.5.1.3": {
+   "title": "Report Items",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:13.8.6.2.3",
+    "similarity": 0.987,
+    "disposition": "rules",
+    "kind": "SR"
+   }
+  },
+  "13.16.39": {
+   "title": "PRESENT WHEN clause",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "14.4.2.1": {
+   "title": "Explicit scope termination",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.5.3.2",
+    "similarity": 0.977,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.4.2.2": {
+   "title": "Implicit scope termination",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.5.3.3",
+    "similarity": 0.993,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.5.2.1.2.1": {
+   "title": "Initial state",
+   "ordinals": 7,
+   "lists": 2,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.6.2.3.2",
+    "similarity": 0.789,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.5.3": {
+   "title": "Explicit and implicit transfers of control",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.6.3",
+    "similarity": 0.239,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.5.4": {
+   "title": "Item identification",
+   "ordinals": 7,
+   "lists": 1,
+   "longest": 7,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.6.4",
+    "similarity": 0.965,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.5.6": {
+   "title": "Locale identification",
+   "ordinals": 9,
+   "lists": 1,
+   "longest": 9,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.6.6",
+    "similarity": 0.994,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.5.8": {
+   "title": "Alignment of data within data items",
+   "ordinals": 6,
+   "lists": 1,
+   "longest": 6,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "14.5.10": {
+   "title": "Normal run unit termination",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.6.11",
+    "similarity": 0.605,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.5.12.1.1": {
+   "title": "Normal completion of a declarative procedure",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.6.13.1.2",
+    "similarity": 0.653,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.5.12.1.2": {
+   "title": "Fatal exception conditions",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.6.13.1.3",
+    "similarity": 0.728,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.5.12.1.3": {
+   "title": "Non-fatal exception conditions",
+   "ordinals": 3,
+   "lists": 1,
+   "longest": 3,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "14.5.12.1.4": {
+   "title": "Exception objects",
+   "ordinals": 6,
+   "lists": 2,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.6.13.1.5",
+    "similarity": 0.603,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.5.12.2": {
+   "title": "Incompatible data",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.6.13.2",
+    "similarity": 0.312,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.6.4": {
+   "title": "SIZE ERROR phrase and size error condition",
+   "ordinals": 12,
+   "lists": 3,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.7.5",
+    "similarity": 0.555,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.6.5": {
+   "title": "CORRESPONDING phrase",
+   "ordinals": 6,
+   "lists": 1,
+   "longest": 6,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.7.6",
+    "similarity": 0.97,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.6.6": {
+   "title": "Arithmetic statements",
+   "ordinals": 4,
+   "lists": 1,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.7.7",
+    "similarity": 0.485,
+    "disposition": "rules",
+    "kind": {
+     "items": {
+      "1": "GR",
+      "2": "SR",
+      "3": "GR",
+      "4": "GR"
+     }
+    }
+   }
+  },
+  "14.6.7": {
+   "title": "THROUGH phrase",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.7.8",
+    "similarity": 0.994,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.7.1.1": {
+   "title": "Group items",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.8.2.2",
+    "similarity": 0.862,
+    "disposition": "rules",
+    "kind": "SR"
+   }
+  },
+  "14.7.1.2.1": {
+   "title": "Elementary items passed by reference",
+   "ordinals": 6,
+   "lists": 2,
+   "longest": 4,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.8.2.3.2",
+    "similarity": 0.962,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.7.1.2.2": {
+   "title": "Elementary items passed by content or by value",
+   "ordinals": 4,
+   "lists": 2,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.8.2.3.3",
+    "similarity": 0.992,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "14.7.2.2": {
+   "title": "Elementary items",
+   "ordinals": 10,
+   "lists": 3,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:14.8.3.3",
+    "similarity": 0.223,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "15": {
+   "title": "Intrinsic functions",
+   "ordinals": 5,
+   "lists": 1,
+   "longest": 5,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)"
+  },
+  "15.1": {
+   "title": "Types of functions",
+   "ordinals": 6,
+   "lists": 1,
+   "longest": 6,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:15.2",
+    "similarity": 0.234,
+    "disposition": "rules",
+    "kind": "GR"
+   }
+  },
+  "15.3.1": {
+   "title": "Numeric and integer functions",
+   "ordinals": 2,
+   "lists": 1,
+   "longest": 2,
+   "disposition": "pending",
+   "why": "no 2023 clause of the manifest carries the same text: adjudicate by §2002:5.2.1 (a syntax rule) and §2002:5.2.2 (a general rule)",
+   "candidate": {
+    "clause": "§2023:15.4.1",
+    "similarity": 0.949,
+    "disposition": "rules",
+    "kind": "RV"
+   }
+  }
+ },
+ "paragraph-blocks": {
+  "_comment": "prose clauses admitted as one row per paragraph (extract_rule_catalog.prose_paragraphs); none yet"
+ }
+}

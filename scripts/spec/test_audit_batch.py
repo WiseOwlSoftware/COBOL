@@ -361,12 +361,19 @@ def main() -> int:
                    "1985-GR-VI.5.8.4-2": {"disposition": A.OWN_ROW, "rules_2023": []}}
         recs = A.change_records(planted, "audit-1985/planted")
         schema = inventory_schema.load_schema()
-        targets = {"SR-13.18.38.3-1": {"rule-id": "SR-13.18.38.3-1", "state": "OK", "editions": "85,2002,2014,2023"}}
-        check("the change records are the decided rules only (no contested or unadjudicated one), each legal, a reason "
-              "stored only when one is stated (one stored form)",
+        targets = {"SR-13.18.38.3-1": {"rule-id": "SR-13.18.38.3-1", "state": "OK", "editions": "85,2002,2014,2023",
+                                       "rule-digest": "d1"}}
+
+        def written(r: dict) -> dict:
+            """The record as record_verdicts.py writes it: its targets' digests stamped (kb/Work PB5256)."""
+            nxt = r["next"]
+            return {**r, "verdict": "", "next": {**nxt, **({"digests": lineage.target_digests(nxt["to"], targets)}
+                                                           if nxt.get("to") else {})}}
+        check("the change records are the decided rules only (no contested or unadjudicated one), each legal as the "
+              "writer stamps it, a reason stored only when one is stated (one stored form)",
               [r["rule-id"] for r in recs] == ["1985-GR-VI.5.8.4-1", "1985-SR-VI.5.8.3-1"]
               and "reason" not in recs[1]["next"] and recs[0]["next"]["reason"] == "the module is deleted"
-              and all(lineage.next_errors({**r, "verdict": ""}, inventory_schema.edition(1985), schema, targets) == []
+              and all(lineage.next_errors(written(r), inventory_schema.edition(1985), schema, targets) == []
                       for r in recs)
               and lineage.chained(recs[1], schema) and not lineage.chained(recs[0], schema))
         code, out = run(["plan", "--pass", "drafts", *base], fake)

@@ -1,10 +1,10 @@
 {
   "batch": [1126, 1127, 1128, 1129, 1130, 1131, 1132, 1133, 1134, 1135, 1136, 1137],
-  "pages_checked": [1126, 1127, 1128, 1129, 1130, 1131, 1132, 1133, 1134, 1135, 1136, 1137],
+  "pages_checked": [1126, 1127, 1128, 1129, 1130, 1131, 1132, 1133, 1134, 1135, 1136, 1137], "pages_unread": [],
   "notes": "Batch was routed here as a FIGURES batch, but pages 1126-1137 (Annex D, D.17.1 tail through D.19.3.5) contain NO general formats / syntax skeletons. They carry one table (Table A.3 ROUNDED MODE examples, p1126), prose, and fixed-form COBOL code examples in monospace. All were checked glyph-by-glyph: Table A.3 header row and all 70 cells match exactly (header row crop-verified at 300dpi: '+2.49 -2.49 +2.50 -2.50 +3.49 -3.49 +3.50 -3.50 +3.510 -3.510'); every code example on pages 1131-1137 matches the PDF line for line, including ISO's own internal inconsistencies (p1132 '*> move ir-2 to F' vs p1134 '*> move ir-1 to F' -- both transcribed faithfully) and the odd '. ...' / '. .' continuation glyphs on p1136. Paragraphs that straddle a page break are attached to the earlier page (p1128's opening clause lives at the end of page-1127; p1135's opening clause at the end of page-1134; p1136's at the end of page-1135; p1137's closing clause absorbs page 1138's opening) -- deliberate scaffolding, not loss. NOTE: the p1126 prose says 'The ellipses in the column heading values indicate repetitions of the last digit' but the printed PDF headings carry no ellipsis glyph; the markdown reproduces the PDF exactly, so this is an ISO defect, not a transcription defect, and is recorded here rather than filed as a finding.",
   "findings": [
     {
-      "page": 1136,
+      "id": "p1136-1", "page": 1136,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "D.19.3.3   Object data definitions   [printed at the same typographic level as its siblings D.19.3.1 General, D.19.3.2 Object instantiations, D.19.3.4 Object references, D.19.3.5 Factory objects]",

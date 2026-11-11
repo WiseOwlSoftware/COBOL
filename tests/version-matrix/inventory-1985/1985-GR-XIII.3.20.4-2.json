@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: the report heading is 'processed ... only once, per report, as the first report group of that report ... during the execution of the chronologically first GENERATE statement for that report'. 2023 §2023:13.18.57.4 GR6 a) 'The report heading, if defined, is printed as the first report group in the report, when the chronologically first GENERATE statement for the report' is executed; §2023:14.9.16.4 GR4 'Execution of the chronologically first GENERATE statement following an INITIATE causes the following actions to take place in order', a) the report heading. A 1985 re-INITIATE requires an intervening TERMINATE and INITIATE restarts the report, so 'following an INITIATE' changes no program. Run-time rule; no refusal. GR-13.18.57.4-5 is the general GENERATE/TERMINATE rule, not this one.",
-  "source": "adjudicate-712-r2/slice-11"
+  "source": "adjudicate-712-r2/slice-11",
+  "digests": {
+   "GR-13.18.57.4-6": "60b5eeb0db8d",
+   "GR-14.9.16.4-4": "97abb095e6b6"
+  }
  }
 }

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p869-2",
+  "claim_key": "c77d77ede280478f",
+  "page": 869,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p869-2", "page": 869, "kind": "misplaced-content", "severity": "structural", "pdf_says": "IN phrase\n    COPY statement 32\n    With identifiers 87\n    With qualification 85\nIncompatibility flagging 49\n...\nINITIAL clause\n    CD entry 656\n    PROGRAM-ID paragraph 186\nInitial data 115, 238, 386", "markdown_says": "   COPY statement 32\\\n   With identifiers 87\\\n   With qualification 85\\\n   Incompatibility flagging 49\\\n...\n   INITIAL clause\\\n   CD entry 656\\\n   PROGRAM-ID paragraph 186\\\n   Initial data 115, 238, 386", "why_it_matters": "The rest of the right column is flattened to one indent level, so sub-entries cannot be told from top-level entries."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 869 (printed page 847, Index) shows the right column with two indent levels: top-level entries such as 'IN phrase', 'Incompatibility flagging 49', 'Index', 'INDEXED BY phrase 86, 512, 521', 'Indicators 22', 'INITIAL clause', 'Initial data 115, 238, 386', and indented sub-entries such as 'COPY statement 32', 'With identifiers 87', 'With qualification 85', 'Definition 308', 'CD entry 656', 'OCCURS clause 306', 'Comment 22, 23' ... 'Source 23', 'PROGRAM-ID paragraph 186'. In page-869.md every right-column line from 'COPY statement 32' to 'Initial program 117' carries the same three-space indent and no &emsp; marker, while the left column correctly uses &emsp; for sub-entries. The text is all present, but the parent/child relation that carries meaning in an index is lost: for example, 'Initial data' and 'Incompatibility flagging' read the same as the sub-entries 'CD entry' and 'PROGRAM-ID paragraph' of INITIAL clause. Both sources are quoted accurately. This is a structural index-hierarchy defect with no normative effect.",
+    "corrected_description": null
+  }
+}

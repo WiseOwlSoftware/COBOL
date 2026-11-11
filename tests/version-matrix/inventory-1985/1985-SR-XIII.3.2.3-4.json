@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both bar record description entries from a report file's FD. The added ban on constant entries covers a construct 1985 lacks, so 1985 programs are accepted or refused alike.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.4.5.3-8": "f62781c2bcd6"
+  }
  }
 }

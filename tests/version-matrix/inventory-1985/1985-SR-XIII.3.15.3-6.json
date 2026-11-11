@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: 'Within a given report group description entry a NEXT PAGE phrase may appear only once and, if present, must be in the first LINE NUMBER clause in that report group description entry.' §2023:13.18.35.3 SR7: 'Within a given report group description, a NEXT PAGE phrase, if present, shall be specified only in the first LINE clause.' A 1985 LINE NUMBER clause has one operand, so 'only in the first' is also 'only once'. ADJUDICATED 2026-11-10 (band-85 slice 13): §2023:13.18.35.3 SR10 removed; it governs 'a multiple LINE clause' ('more than one integer-1 or integer-2 operand'), which the 1985 format cannot write.",
-  "source": "band-85/slice-13"
+  "source": "band-85/slice-13",
+  "digests": {
+   "SR-13.18.35.3-7": "3fc72a64065f"
+  }
  }
 }

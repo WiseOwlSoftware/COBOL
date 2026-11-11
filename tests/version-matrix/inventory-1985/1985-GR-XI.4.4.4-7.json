@@ -13,6 +13,12 @@
   ],
   "bridge": true,
   "reason": "1985: 'The range of the input procedure must not cause the execution of any MERGE, RETURN, or SORT statement', no stated effect, and 1985 SR1 lets a SORT be written anywhere outside declaratives. 2023: §2023:14.9.40.4 GR10 sets 'the EC-SORT-MERGE-ACTIVE exception condition' with undefined results; §2023:14.9.34.4 GR1 sets EC-FLOW-RETURN for a RETURN outside an output procedure; and §2023:14.9.40.3 SR3 / §2023:14.9.24.3 SR1 now refuse at compile time a SORT or MERGE written in an input procedure. So a run-time prohibition became an exception condition, and part of it a compile-time refusal. The range definition (transfers of control, declaratives) is the same.",
-  "source": "adjudicate-712/slice-23"
+  "source": "adjudicate-712/slice-23",
+  "digests": {
+   "GR-14.9.40.4-10": "8c09d12806d9",
+   "SR-14.9.40.3-3": "5709f0849363",
+   "SR-14.9.24.3-1": "af374726cb04",
+   "GR-14.9.34.4-1": "ae1edb21231b"
+  }
  }
 }

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p819-1",
+  "claim_key": "8be7366fe8992c3d",
+  "page": 819,
+  "kind": "image-restructured",
+  "severity": "structural",
+  "claim": {"id": "p819-1", "page": 819, "kind": "image-restructured", "severity": "structural", "pdf_says": "Figure E.10 flowchart: each 'Condition-1 true' / 'Condition-2 true' / 'Condition-n true' decision has a 'yes' line joining one vertical line to 'Truth value is true'; the 'no' path from Condition-n true arrows to 'Truth value is false'.", "markdown_says": "Condition-1 yes\\\n&emsp;true\n\nno\n...\n| Truth value | Truth value |\n|---|---|\n| is false | is true |", "why_it_matters": "Connectors lost: nothing in the markdown says every 'yes' leads to 'Truth value is true' (the OR short-circuit). Informative annex."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 819 (printed 797) at 300 dpi shows Figure E.10 as a flowchart: Evaluate condition-1 -> 'Condition-1 true' rounded decision; its 'yes' exits right to a vertical line that also collects the 'yes' exits of 'Condition-2 true' and 'Condition-n true' and ends in an arrow to 'Truth value is true'; each 'no' goes down to the next Evaluate box, and the 'no' of 'Condition-n true' arrows to 'Truth value is false'. The markdown (page-819.md) keeps every text label in order but no edges: the 'yes' labels are fused into the decision text ('Condition-1 yes / true'), and the two terminals are a two-column table with no statement of which path reaches which. The fact that any 'yes' ends evaluation with a true result (the short-circuit the figure exists to show) is not recoverable from the markdown except by inference from the caption. The claim quotes both sources accurately. It is a genuine content loss, but in the informative Annex E, so it has no normative effect.",
+    "corrected_description": ""
+  }
+}

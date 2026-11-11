@@ -1,9 +1,9 @@
 {
   "batch": [128, 129, 130, 131, 132, 133, 134, 135, 136, 138, 139, 140],
-  "pages_checked": [128, 129, 130, 131, 132, 133, 134, 135, 136, 138, 139, 140],
+  "pages_checked": [128, 129, 130, 131, 132, 133, 134, 135, 136, 138, 139, 140], "pages_unread": [],
   "findings": [
     {
-      "page": 140,
+      "id": "p140-1", "page": 140,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "Format 1 (boolean) is printed as ONE brace pair spanning both rows:  ⎧  B\"[boolean-character-1]  ... \"   ⎫ / ⎩  B'[boolean-character-1]  ... '   ⎭ ; Format 2 (hexadecimal-boolean) likewise as ONE brace pair spanning  BX\"[hexadecimal-digit-1]  ... \"  and  BX'[hexadecimal-digit-1]  ... ' .",
@@ -12,7 +12,7 @@
       "suggested_repair": "Render both 8.3.3.4.2 figures with the same spanning-brace convention used at 8.3.3.2.2, e.g.\n⎧  B\"[boolean-character-1]  … \"  ⎫\n⎩  B'[boolean-character-1]  … '  ⎭\nand\n⎧  BX\"[hexadecimal-digit-1]  … \"  ⎫\n⎩  BX'[hexadecimal-digit-1]  … '  ⎭"
     },
     {
-      "page": 138,
+      "id": "p138-1", "page": 138,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "8.3.3.2.4   General rules  (a fifth-level clause under 8.3.3.2 Alphanumeric literals, sibling of 8.3.3.2.1 General, 8.3.3.2.2 General format, 8.3.3.2.3 Syntax rules)",
@@ -21,7 +21,7 @@
       "suggested_repair": "Demote to `#### 8.3.3.2.4 General rules` so it sits with its siblings 8.3.3.2.1–8.3.3.2.3 under `### 8.3.3.2 Alphanumeric literals`."
     },
     {
-      "page": 131,
+      "id": "p131-1", "page": 131,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "8.3.2.2.2 Class-name, 8.3.2.2.3 Compilation-variable-name, … 8.3.2.2.12 Interface-name — all fifth-level clauses under 8.3.2.2, exactly the same depth as 8.3.2.2.1 Alphabet-name on page 130",
@@ -30,7 +30,7 @@
       "suggested_repair": "Normalize every 8.3.2.2.n / 8.3.2.3.n sub-clause heading to one level below its parent (`###` under `## 8.3.2.2` / `## 8.3.2.3`), matching 8.3.2.2.1 and 8.3.2.3.1."
     },
     {
-      "page": 136,
+      "id": "p136-1", "page": 136,
       "kind": "incorrect-text",
       "severity": "cosmetic",
       "pdf_says": "The special-character-word table's column headings, printed once at the head of the table on page 135, are: \"Word\" and \"Meaning\". Page 136 is a continuation of that table and prints no heading row.",

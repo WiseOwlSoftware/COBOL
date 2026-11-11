@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: a VALUE 'in a data description entry of a data item which is associated with a variable occurrence data item' initializes as if the DEPENDING ON item 'is set to the maximum number of occurrences'; association = group containing, the table itself, or subordinate; the DEPENDING item's own VALUE is placed afterwards. §2023:13.18.63.4 GR6 keeps the as-if-maximum behaviour, the same three association cases a) to c) and 'that value is considered to be placed in the data item after the occurs-depending table is initialized'. Its opening reads 'in a data description that also contains an OCCURS clause with the DEPENDING phrase' and governs 'the associated data item'; 2023 uses 'data description' of a group to include its subordinates (§2023:8.5.1.12.1 'a group item whose data description has at least one ... as a subordinate item'), so the a)/c) cases stay live and the rewording is editorial. Same initialization.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "GR-13.18.63.4-6": "6689115055a2"
+  }
  }
 }

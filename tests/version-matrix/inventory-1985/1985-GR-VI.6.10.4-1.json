@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.11.4 GR1: 'causes the content of each operand to be transferred to the device in the order listed', conversion 'defined by the implementor' (DOC-A.1-56), as 1985; §2023:14.9.11.4 GR6 restates the order. The added 'zero-length data item or a zero-length literal, no data is transferred' changes nothing a 1985 program can write: a 1985 zero-length operand also transfers nothing, and the empty literal is a literal-rule change, not this rule's.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-14.9.11.4-1": "c0961445ea3c",
+   "GR-14.9.11.4-6": "1de780a75c29",
+   "DOC-A.1-56": "db3aa88a6cfb"
+  }
  }
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XVI.3.2.3-2",
  "rule-digest": "664421477e61",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#declarativeSection; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeclarativeSection; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitFields; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitGoTo",
  "test-ref": "conformance:cases/XVI.3.2@1985-SEGMENT-NUMBERS/1985-SR-XVI_3_2_3-2",
+ "notes": "§1985:XVI.3.2.3 SR2: \"If the segment-number is omitted from the section header, the segment-number is assumed to be 0\", a fixed permanent segment that keeps its last-used state. sectionDefinition and declarativeSection make the number optional, the 85 gates (VisitSectionDefinition, VisitDeclarativeSection) check only a written one, and an unnumbered section is resident like any fixed segment (AlterSwitchEmitter). The witness ALTERs an unnumbered section from segment 10 and re-enters it: FIRST, ALTERED. Probes: r7a (unnumbered main, sub and declarative sections, sequential file with a failed OPEN, independent segment 55 between) FIRST / IN 55 / DECL 35 / ALTERED / AFTER OPEN 35 / ALTERED; r6b unnumbered S0 PERFORMing segment 70 Y ALTERED; r5h `SECTION .` accepted as the omitted form; class c --std 2002 refuses only a written number (r2f COBOL0902 on numbered sections).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

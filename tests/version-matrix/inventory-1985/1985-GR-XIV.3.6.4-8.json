@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-8",
  "rule-digest": "bb4cf662ddf7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Release; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#MessageControl",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-8",
+ "notes": "§1985:XIV.3.6.4 GR8: \"only subsequent execution of SEND statements in the same run unit can cause the remaining portion of the message to be released\". The pending portion is keyed by destination in the one MessageControlSession the run unit holds (RunUnit.MessageControl), so any later SEND of that run unit, from any CD or called program, continues it, and Statement publishes the dialogue copy only for a committed store, so a refused SEND leaves it intact. Probed: portion BBBB, a count-9 SEND (30) and a too-long SEND (50), then a called program's own CD sent SSSS WITH EMI: one message BBBBSSSS; another run unit could not finish one (GR7 probe). The witness completes a portion with a later EMI.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

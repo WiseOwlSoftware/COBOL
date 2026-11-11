@@ -1,0 +1,13 @@
+{
+  "claim_id": "p192-1",
+  "claim_key": "1760f081de892373",
+  "page": 192,
+  "kind": "incorrect-text",
+  "severity": "normative",
+  "claim": {"id": "p192-1", "page": 192, "kind": "incorrect-text", "severity": "normative", "pdf_says": "FLOAT-NOT-A-NUMBER-\n   SIGNALING   (one reserved word, FLOAT-NOT-A-NUMBER-SIGNALING, wrapped onto an indented continuation line)", "markdown_says": "| FLOAT-NOT-A-NUMBER- | LESS | PAGE |\n| SIGNALING | LIMIT | PAGE-COUNTER |", "why_it_matters": "The 8.9 reserved-word list shows the wrapped word FLOAT-NOT-A-NUMBER-SIGNALING as two table cells, 'FLOAT-NOT-A-NUMBER-' and 'SIGNALING'. That turns one reserved word into a malformed word (it ends in a hyphen) and makes SIGNALING look like a reserved word on its own. The PDF's indented continuation shows a single entry, and the class condition (8.8.4.1.3.1) prints FLOAT-NOT-A-NUMBER-SIGNALING as one word."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered page 192 (printed 168) at 300 dpi. Column 1 prints 'FLOAT-NOT-A-NUMBER-' and on the next line an indented 'SIGNALING', beside LESS/PAGE and LIMIT/PAGE-COUNTER. The indent is the only sign that the second line continues the first entry; every other entry in the column starts flush left. page-192.md lines 10-11 put these in two separate table rows, 'FLOAT-NOT-A-NUMBER-' and 'SIGNALING', and drop the indent. The claim quotes both sources correctly. The PDF wraps this line too, but the PDF keeps the continuation cue and the markdown loses it. The transcribed list therefore contains a malformed entry that ends in a hyphen and a separate entry, SIGNALING, that is not a reserved word. Anything that reads the reserved-word list from the markdown gets the wrong set. That is a content difference in a normative list, not only a formatting difference.",
+    "corrected_description": "Accurate. The markdown table for this reserved-word page splits the one reserved word FLOAT-NOT-A-NUMBER-SIGNALING into two rows, 'FLOAT-NOT-A-NUMBER-' and 'SIGNALING', because it drops the PDF's indented continuation. It should be a single entry, FLOAT-NOT-A-NUMBER-SIGNALING."
+  }
+}

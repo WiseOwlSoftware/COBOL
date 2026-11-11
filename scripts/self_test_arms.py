@@ -110,7 +110,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a population that cannot be listed is NOT RUN [population]',
         'a red audit (a tracked rendered view) that is known before the slot STOPS the gate before the build',
         'the corpus fetch runs BEFORE the gate slot is taken, a red audit never queues for one',
-        'an audit that turns RED while the gate queues for the slot ends the gate before the build',
+        'an audit that turns RED while the gate queues for the slot ends the gate AT ONCE (kb/Work PB5322)',
         'an audit that is RED only after the test hosts have started STOPS them',
         'the script self-tests (the audits in TOOLING_ONLY, and the post-build ones) run ONLY when the change touches tooling',
         'the audits a change that touches no tooling runs are AUDITS less TOOLING_ONLY',
@@ -337,6 +337,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'clear returns the cap to its coded default, and repairs a malformed file',
         'gate classes in service order: landing, then fix, then implementer tickets, FIFO within each class',
         "a hold far past the median of its kind's recorded holds is flagged by status, never killed",
+        'a queued waiter whose abandon turns true withdraws its ticket at once and never takes the slot (kb/Work PB5322)',
         'a waiting gate says why a later ticket is served first (fix before implementer) and what the gate next in line waits for',
     ),
     'scripts/spec/audit_code_citations.py': (

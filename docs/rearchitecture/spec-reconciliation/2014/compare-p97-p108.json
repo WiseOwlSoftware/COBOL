@@ -1,0 +1,43 @@
+{
+  "batch": [97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108],
+  "pages_checked": [97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p98-1",
+      "page": 98,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "LC_ALL    Locale-categories LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, and LC_TIME, and any other categories included in the locale.",
+      "markdown_says": "| LC_ALL | Locale-categories LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, |\n\nLC_NUMERIC, and LC_TIME, and any other categories included in the locale.",
+      "why_it_matters": "The LC_ALL row's 'Behavior affected' cell is cut at the line wrap; the rest (LC_NUMERIC, LC_TIME and 'any other categories included in the locale') sits outside the table as a free-standing paragraph, so the table row understates what LC_ALL covers."
+    },
+    {
+      "id": "p99-1",
+      "page": 99,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Category  Field name  Description\nLC_MONETARY\n  int_curr_symbol  international currency symbol\n  currency_symbol  local currency symbol\n  mon_decimal_point  decimal delimiter\n  mon_thousands_sep  string used to group digits to the left of the decimal delimiter\n  mon_grouping  size of each group of digits ...",
+      "markdown_says": "Category Field name Description\n\nLC_MONETARY\n\n| int_curr_symbol | international currency symbol |\n|---|---|\n| currency_symbol | local currency symbol |\n\n   mon_decimal_point decimal delimiter\n\n   mon_thousands_sep string used to group digits to the left of the decimal delimiter\n\n| mon_grouping | size of each group of digits |",
+      "why_it_matters": "The single three-column 8.2.1 locale field-name table is shattered into a header line of plain text, three separate two-column tables and loose paragraphs (mon_decimal_point, mon_thousands_sep, n_cs_precedes); the Category column is lost as a column, so field-to-category association and the field/description pairing depend on reading order rather than table structure."
+    },
+    {
+      "id": "p99-2",
+      "page": 99,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "p_cs_precedes    indicator of whether the currency symbol precedes or succeeds the value for a nonnegative quantity",
+      "markdown_says": "| p_cs_precedes | indicator of whether the currency symbol precedes or succeeds the value for |\n\na nonnegative quantity",
+      "why_it_matters": "The p_cs_precedes description is cut mid-phrase in the table cell and its ending 'a nonnegative quantity' is detached as a stray paragraph, so the cell does not say which quantity (nonnegative vs negative, the distinction from n_cs_precedes) it applies to."
+    },
+    {
+      "id": "p107-1",
+      "page": 107,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "=    Relational operator - equal\n       and assignment operator in COMPUTE\n==   Pseudo-text delimiter in COPY and REPLACE statements",
+      "markdown_says": "| = | Relational operator - equal |\n\nand assignment operator in COMPUTE\n\n| == | Pseudo-text delimiter in COPY and REPLACE statements |\n|---|---|",
+      "why_it_matters": "The '=' row of the special character words table loses its second meaning ('and assignment operator in COMPUTE'), which is detached as a loose paragraph that splits the table in two; the second table fragment then starts with '==' as its header row."
+    }
+  ]
+}

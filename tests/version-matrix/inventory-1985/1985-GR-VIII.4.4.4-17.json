@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 keeps the 1985 sentence word for word. Its added text covers only features 1985 lacks (sharing, retry, RESUME), so 1985 relative-file programs behave the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.27.4-20": "add7c3a31bdd"
+  }
  }
 }

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p873-1",
+  "claim_key": "21cb52b24fe9b0a8",
+  "page": 873,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p873-1", "page": 873, "kind": "misplaced-content", "severity": "structural", "pdf_says": "    NEXT GROUP clause 304\nNEXT phrase\n    READ statement 496\nNEXT RECORD phrase\n    READ statement 496\n...\nNOT ON SIZE ERROR phrase 400\n    ADD statement 415\n    COMPUTE statement 431\n    DIVIDE statement 438", "markdown_says": "   NEXT GROUP clause 304 NEXT phrase\n\n   READ statement 496\\\n   NEXT RECORD phrase\\\n   READ statement 496\\\n...\n   NOT ON SIZE ERROR phrase 400\\\n   ADD statement 415\\\n   COMPUTE statement 431\\\n   DIVIDE statement 438", "why_it_matters": "The sub-entry NEXT GROUP clause 304 and top-level NEXT phrase are merged on one line, and the left column is flattened to one indent level, losing the hierarchy."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 873 (printed page 851, Index) shows 'NEXT GROUP clause 304' as an indented sub-entry on its own line, followed by the top-level heading 'NEXT phrase' on the next line with 'READ statement 496' indented beneath it. The markdown joins them into one line, 'NEXT GROUP clause 304 NEXT phrase', which is an index entry that does not exist. It also puts every left-column line at one indent level, so sub-entries such as 'READ statement 496' and headings such as 'NEXT RECORD phrase' can no longer be told apart. Only the 'CALL statement / EXCEPTION phrase / CALL statement 420' nesting keeps its &emsp; levels. Both sources are quoted correctly. The text is all present, but the merged line and the flattened hierarchy change which heading each locator belongs to. This is a structural defect in the non-normative index, not a normative one.",
+    "corrected_description": "Accurate as filed, with one addition. The same merge happens at the top of the right column: the PDF prints the sub-entries 'MULTIPLY statement 482' and 'SUBTRACT statement 539' (still under NOT ON SIZE ERROR phrase) and then the top-level heading 'NOT operator', each on its own line, but the markdown joins them into the single line 'MULTIPLY statement 482 SUBTRACT statement 539 NOT operator'. In both columns the markdown drops the difference between heading and sub-entry levels. Severity: structural (index only)."
+  }
+}

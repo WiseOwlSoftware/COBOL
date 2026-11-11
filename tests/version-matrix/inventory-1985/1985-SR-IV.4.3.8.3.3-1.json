@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "§1985:IV.4.3.8.3.3 SR1 (added by Amendment 1, X3.23a-1989; Errata C95): \"Argument-1 must be an identifier, a literal, or an arithmetic expression. Specific rules governing the number, class, and category of argument-1 are given in the definition of each function.\" §2023:8.4.3.2.3 SR8: \"Argument-1 shall be an identifier, a literal, a boolean expression, or an arithmetic expression. Specific rules governing the number, class, category, and type of argument-1 are given for intrinsic functions in the definition of that intrinsic function in Clause 15 ... and for user-defined functions in 14.8.2, Parameters and 14.8.3, Returning items.\" The words that differ: \"a boolean expression\", a fourth kind of argument that 1985 refuses; \"and type\"; and the second source of the specific rules, \"for user-defined functions\". The three 1985 kinds of argument are kept.",
-  "source": "classify-unrecorded-1985/slice-01"
+  "source": "classify-unrecorded-1985/slice-01",
+  "digests": {
+   "SR-8.4.3.2.3-8": "319b43ecc8ee"
+  }
  }
 }

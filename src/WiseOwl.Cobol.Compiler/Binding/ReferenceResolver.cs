@@ -44,11 +44,12 @@ public sealed class ReferenceResolver(DataBinder data)
     /// next; kb/Work PB1123). A reference modifier whose position carries a function activation has that activation
     /// hoisted ahead of the statement as a PRE-op (<see cref="MaterializeSegment"/>), so it would run BEFORE the
     /// occurs-depending group's length is read at the operand site. This hook — set by the statement binder, the
-    /// same one-way edge as <see cref="MaterializeSegment"/> — pins the length first: given the occurs-depending
-    /// group's place, the index in the pending pre-ops where the reference modifier's own pre-ops begin, and the
-    /// line, it registers a copy of the DEPENDING ON object into a compiler temp at that index and returns the place
-    /// whose extent reads the temp. Null when absent (a data-division resolver): the pre-D18 answer.</summary>
-    internal Func<OdoGroupPlace, int, int, Place>? FreezeOdoExtent { get; set; }
+    /// same one-way edge as <see cref="MaterializeSegment"/> — pins the length first: given the reference modifier's
+    /// inner place, the index in the pending pre-ops where the reference modifier's own pre-ops begin, and the line, it
+    /// registers a copy of every DEPENDING ON object the inner's identification reads (<see cref="OdoDependence"/>) into
+    /// a compiler temp at that index and returns the place reading the temps. Null when absent (a data-division
+    /// resolver): the pre-D18 answer.</summary>
+    internal Func<Place, int, int, Place>? FreezeOdoExtent { get; set; }
     /// <summary>A SYNTHETIC copy of <paramref name="dref"/> without its LAST <c>dataReferenceSuffix</c> — for a
     /// caller whose resolved SYMBOL has shown that the trailing word the parser attached as a qualifier belongs to
     /// the enclosing construct instead (kb/Work PB843: a THROUGH range's <c>IN alphabet-name-1</c>). The copy ADOPTS
@@ -317,8 +318,9 @@ public sealed class ReferenceResolver(DataBinder data)
         // §2023:14.6.4 steps 6 → 7: an occurs-depending group's length is evaluated BEFORE the reference modifier, so when
         // the modifier registered pre-ops (a function whose side effect may change the DEPENDING ON object) the length
         // is pinned ahead of them (kb/Work PB1123).
-        if (inner is OdoGroupPlace odo && data.Procedure.PendingPreOps.AnyAfter(preOpMark) && FreezeOdoExtent is { } freeze)
-            inner = freeze(odo, preOpMark, dref.Start.Line);
+        if (data.Procedure.PendingPreOps.AnyAfter(preOpMark) && FreezeOdoExtent is { } freeze
+            && OdoDependence.ReadsDependingObject(inner))
+            inner = freeze(inner, preOpMark, dref.Start.Line);
         return RefMods.RefModView(described, inner, spec) is { } view
             ? RefResolution.Resolved(view, "")
             : RefResolution.Deferred(DeferredShape.NumericRefModSubstrate, DataBinder.WrittenText(dref));

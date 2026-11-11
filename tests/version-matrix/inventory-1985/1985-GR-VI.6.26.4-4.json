@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Native arithmetic is the default and the excluded binary-char..float-extended usages are new, so every 1985 SUBTRACT keeps the same guarantee.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.44.4-4": "6cb79a7cac85"
+  }
  }
 }

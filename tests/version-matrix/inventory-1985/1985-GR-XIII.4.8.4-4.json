@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: 'When file-name-1 is specified explicitly, no other USE statement applies to file-name-1.' 2023: 'a USE statement specifying file-name-1 takes precedence over any USE statements specifying an INPUT, OUTPUT, I-O, or EXTEND phrase' (§2023:14.9.49.4 GR5); file-name-1 USEs are examined first and 'The first declarative that satisfies the selection criteria is executed and no other declaratives are executed' (§2023:14.9.49.4 GR3); the mode USEs exclude 'those files referenced by file-name-1 in another USE statement' (§2023:14.9.49.4 GR6); and 'The same file-name shall not appear in more than one USE AFTER EXCEPTION statement' (§2023:14.9.49.3 SR8). Same effect.",
-  "source": "adjudicate-712/slice-27"
+  "source": "adjudicate-712/slice-27",
+  "digests": {
+   "GR-14.9.49.4-5": "2736b3d8157a",
+   "GR-14.9.49.4-3": "1f60d13b42af",
+   "GR-14.9.49.4-6": "b41480584b33",
+   "SR-14.9.49.3-8": "84f74c522eb3"
+  }
  }
 }

@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'The process of calling a program or exiting from a called program does not alter the status or positioning of a file associated with any external file connector' (§1985:X.5.2.4 GR8). 2023 states it by confining what call and exit do to internal connectors. Calling: at initial state 'The function, method, or program's internal file connectors are initialized by setting them to not be in any open mode' (§2023:14.6.2.3.2, initial-state item 3). Exiting: 'The state of the calling runtime element is not altered', and an initial program gets 'an implicit CANCEL statement' (§2023:14.9.18.4 GR2), whose implicit CLOSE is only 'for each file-name associated with an internal file connector' (§2023:14.9.5.4 GR9). The positive statement is §2023:8.6.3 prose with no catalog row: an external connector's storage 'is associated with the run unit rather than with any particular runtime element'. No 2023 rule lets a call or an exit touch an external file connector. Same.",
-  "source": "classify-unrecorded-1985/slice-05"
+  "source": "classify-unrecorded-1985/slice-05",
+  "digests": {
+   "GR-14.6.2.3.2-L2.3": "ae9bc07201b1",
+   "GR-14.9.18.4-2": "de14422ab9a7",
+   "GR-14.9.5.4-9": "9e4d2f38ecbb"
+  }
  }
 }

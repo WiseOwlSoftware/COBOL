@@ -1,0 +1,16 @@
+{
+  "batch": [313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324],
+  "pages_checked": [313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p313-1",
+      "page": 313,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term / Subclause table, one row per term: ... occurs-clause | 13.18.38, OCCURS clause (fixed-table, occurs-depending-table, or dynamic-capacity-table-format) | picture-clause | 13.18.40, PICTURE clause | select-when clause | 13.18.51, SELECT WHEN clause | usage-clause | 13.18.60, USAGE clause | validate-status-clause | 13.18.62, VALIDATE-STATUS clause | value-clause | 13.18.63, VALUE clause (data-item or table format)",
+      "markdown_says": "| occurs-clause | 13.18.38, OCCURS clause (fixed-table, occurs-depending-table, or dynamic-capacity- |\n\n<pre style=\"line-height:1\">\ntable-format)\n</pre>\n\n| picture-clause | 13.18.40, PICTURE clause |\n|---|---|\n...\nvalidate-status-clause 13.18.62, VALIDATE-STATUS clause\\\nvalue-clause 13.18.63, VALUE clause (data-item or table format)",
+      "why_it_matters": "The single meta-language term table is split into two tables, a stray <pre> block holding the wrapped tail 'table-format)' of the occurs-clause row, and two rows (validate-status-clause, value-clause) demoted to loose paragraph text; the occurs-clause cell is truncated mid-word inside its row. All words survive, but a reader or tool parsing the table loses the occurs-clause format list and the last two term-to-subclause mappings."
+    }
+  ]
+}

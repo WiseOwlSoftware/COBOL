@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "For file SORT without DUPLICATES, the return order of records with equal keys stays undefined. The table-element wording only extends the rule to the new table SORT format.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.40.4-4": "e70c93bd6224"
+  }
  }
 }

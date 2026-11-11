@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.4.4-9",
  "rule-digest": "b7793e0bb7a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelativeKeyStore; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Release",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-GR-XI_4_4_4-9",
+ "notes": "§1985:XI.4.4.4 GR9 makes USING, for each file-name-2, an implicit OPEN INPUT, records obtained 'as if a READ statement with the NEXT and the AT END phrases had been executed' and released at 'the size of that record when it was read from file-name-2, regardless of the content of the data item referenced by the DEPENDING ON phrase', then an implicit CLOSE before sequencing, with USE procedures executed. SortEmitter.EmitSort runs EmitInputFile then EmitInputClose for every USING file before SortSort; EmitInputFile emits EmitImplicitOpen (no SHARING phrase unless the file says SHARING ALL, which 1985 cannot write), a forward READ loop that stops at AT END or any unsuccessful read, and CobolSort.Release with the file's LastReadLength and current-record image, and offers each as-if OPEN/READ/CLOSE status to the USE hooks (AT END excepted); no edition arm. The 2023 IGNORING LOCK and EC-SORT-MERGE-RELEASE arms only add results for cases 1985 leaves undefined (record locks do not exist at 85; §1985:XI.4.4.3 SR3 forbids the out-of-range record). Probes at 85 (work-slice-46/c8): a/e) usingvar2, one SORT USING a RECORD VARYING DEPENDING ON sequential file, an indexed file, a relative file and an empty file into a varying SD: RET LEN=01 [0], 04 [3ABC], 06 [5VWXYZ] from the variable file (the DEPENDING item held 2), 04 and 02 from the others, all statuses 00 afterward; c6/openatstart (case 6): a missing USING file runs its USE procedure with 35. Witness: USING/GIVING then a re-OPEN of the USING file prints ALPHA BRAVO CHARL END CHARL.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993) replaced 9b to the end of the rule, adding the variable-length size sentence and 'is undefined upon completion of the SORT statement' for the DEPENDING ON item of file-name-2; §2023:14.9.40.4 GR12 carries both word for word, so neither is a difference any longer. The USING model is otherwise the same (implicit OPEN INPUT, CLOSE before sequencing, relative key undefined, USE procedures not touching file-name-2), but the requirement differs: §1985:XI.4.4.4 GR9 'as if a READ statement with the NEXT and the AT END phrases had been executed', §2023:14.9.40.4 GR12 'with the NEXT phrase, the IGNORING LOCK phrase, and the AT END phrase', and an OPEN 'with the INPUT phrase and the SHARING WITH READ ONLY phrase' under SHARING ALL. 2023 adds results 1985 lacks: after a nonfatal OPEN exception 'the SORT statement continues as if the exception condition did not exist', and a record too large or too small for file-name-1, which §1985:XI.4.4.3 SR3 only forbids ('must not be less than the smallest record nor larger than the largest record described for file-name-1'), sets 'the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the SORT statement is terminated'.",
-  "source": "readjudicate-amended-1985/slice-08"
+  "source": "readjudicate-amended-1985/slice-08",
+  "digests": {
+   "GR-14.9.40.4-12": "1802fc7870c4"
+  }
  }
 }

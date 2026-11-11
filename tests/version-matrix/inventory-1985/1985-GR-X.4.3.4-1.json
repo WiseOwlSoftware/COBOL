@@ -15,6 +15,15 @@
   ],
   "bridge": true,
   "reason": "1985 GR1 only points: EXTERNAL and GLOBAL are presented on X-23/X-24, other clauses in the Nucleus; it refuses nothing. §2023:13.16.2 lists EXTERNAL and GLOBAL in the data description entry; §2023:13.18.22.4 GR1 ('the data contained in the record is external') and §2023:13.18.27.4 GR1 ('is a global name') present them. Module split is editorial. Same.",
-  "source": "adjudicate-712-r2/slice-09"
+  "source": "adjudicate-712-r2/slice-09",
+  "digests": {
+   "FMT-13.16.2": "58ea2b8a6f10",
+   "FMT-13.18.22.2": "41674d41b2f8",
+   "SR-13.18.22.3-1": "d6ad4d6abf80",
+   "GR-13.18.22.4-1": "f22995e86889",
+   "FMT-13.18.27.2": "b2f0ce476ecb",
+   "SR-13.18.27.3-1": "fe6994220d8e",
+   "GR-13.18.27.4-1": "e93e0cf67501"
+  }
  }
 }

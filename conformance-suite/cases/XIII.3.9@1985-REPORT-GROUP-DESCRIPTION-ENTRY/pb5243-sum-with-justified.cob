@@ -1,0 +1,26 @@
+*>--- conformance-case
+*> id: pb5243-sum-with-justified
+*> rules: [1985-SR-XIII.3.9.3-11]
+*> source-format: free
+*> portable: unverified
+*>---
+*> kb/Work PB5243 - §1985:XIII.3.9.3 SR11 Table 1: the SUM rows (1 and 2) have a blank under JUSTIFIED (row 2 permits BLANK WHEN
+*>   ZERO, USAGE, SIGN and LINE). Refused at COBOL-85. The legal side is conformance:pb5243_table1_permitted_rows.
+IDENTIFICATION DIVISION.
+PROGRAM-ID. PB5243NC.
+ENVIRONMENT DIVISION.
+INPUT-OUTPUT SECTION.
+FILE-CONTROL.
+    SELECT PRT ASSIGN TO "PB5243NC.TXT".
+DATA DIVISION.
+FILE SECTION.
+FD  PRT REPORT IS R.
+WORKING-STORAGE SECTION.
+01  WS-A PIC 9 VALUE 2.
+REPORT SECTION.
+RD  R CONTROL IS FINAL.
+01  CFT TYPE CF FINAL LINE PLUS 1.
+    05  COLUMN 1 PIC X(3) SUM WS-A JUSTIFIED RIGHT.
+PROCEDURE DIVISION.
+MAIN-PARA.
+    STOP RUN.

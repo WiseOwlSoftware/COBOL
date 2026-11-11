@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both make every SPECIAL-NAMES clause apply to contained programs. 2023's longer list of names follows from that. Locale-names are new 2023 features, not a changed rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-12.3.7.4-1": "a4071947eadc"
+  }
  }
 }

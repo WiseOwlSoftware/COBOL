@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"This clause may only appear with an elementary item.\"; 2023: \"The SYNCHRONIZED clause may be specified for group and elementary items.\". 1985 refuses SYNCHRONIZED on a group item. 2023 accepts it and treats it as specified for each subordinate elementary item for which the clause is permitted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.55.3-1": "1871a9fed2bd",
+   "GR-13.18.55.4-1": "09852d42d00b"
+  }
  }
 }

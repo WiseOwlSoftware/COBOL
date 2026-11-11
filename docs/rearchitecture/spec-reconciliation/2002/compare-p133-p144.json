@@ -1,0 +1,13 @@
+{"batch": [133,134,135,136,137,138,139,140,141,142,143,144],
+ "pages_checked": [133,134,135,136,137,138,139,140,141,142,143,144],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p140-1", "page": 140, "kind": "misplaced-content", "severity": "structural",
+   "pdf_says": "B-XOR    Exclusive OR operation (boolean exclusive disjunction)",
+   "markdown_says": "| B-XOR | Exclusive OR operation (boolean exclusive |\n\ndisjunction)",
+   "why_it_matters": "The wrapped second line of the B-XOR meaning cell fell out of the table as a stray paragraph 'disjunction)' between the binary and unary boolean operator tables; the cell text is truncated."},
+  {"id": "p144-1", "page": 144, "kind": "ocr-error", "severity": "normative",
+   "pdf_says": "10^-999 (1.000 000 000 000 000 000 000 000 000 000 0E-999) ... 10^1000 – 10^968 (9.999 999 999 999 999 999 999 999 999 999 9E+999) [exponents printed as superscripts]",
+   "markdown_says": "10–999 (1.000 000 000 000 000 000 000 000 000 000 0E-999)\n\nthrough\n\n   101000 – 10968 (9.999 999 999 999 999 999 999 999 999 999 9E+999)",
+   "why_it_matters": "Superscript exponents flattened in 8.8.1.3.1.1: '10–999' reads as 10 minus 999, '101000 – 10968' reads as one hundred one thousand minus ten thousand nine hundred sixty-eight; the bounds of the standard intermediate data item magnitude range are wrong as written (the parenthesised E-notation is intact)."}
+ ]}

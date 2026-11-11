@@ -8,6 +8,9 @@
    "GR-10.7.4-1"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-10.7.4-1": "dc7f88d18ec1"
+  }
  }
 }

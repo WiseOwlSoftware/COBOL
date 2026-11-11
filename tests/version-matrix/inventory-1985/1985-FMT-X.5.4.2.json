@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"EXIT PROGRAM\"; 2023: \"EXIT PROGRAM [RAISING {EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION}]\". 2023 Format 2 keeps EXIT PROGRAM but adds an optional RAISING phrase the 1985 format lacked, so more programs are accepted. 2023 also marks this format archaic.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.14.2": "2383d4924015"
+  }
  }
 }

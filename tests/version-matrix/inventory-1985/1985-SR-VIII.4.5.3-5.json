@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "§1985:VIII.4.5.3 SR5: 'The INVALID KEY phrase or the AT END phrase must be specified if no applicable USE AFTER STANDARD EXCEPTION procedure is specified for file-name-1' (READ of a relative file). 2023 has no READ syntax rule requiring either phrase (§2023:14.9.30.3) and states both refused cases. At end: §2023:14.9.30.4 GR24 d): 'If the AT END phrase is not specified in the input-output statement, any applicable at end exception processing statements are executed. If there are no applicable at end exception processing statements, control is transferred to the end of the READ statement'. Invalid key: §2023:9.1.14 GR4: 'If the INVALID KEY phrase is not specified in the input-output statement and there are no applicable exception processing statements, control is transferred to the end of the input-output statement'; so too §2023:9.1.14 GR3: 'If control is returned from those statements or there are no applicable exception processing statements, control is transferred to the end of the input-output statement'. This record's own text names both phrases, so 'to' holds the at end rule and the invalid key rules. Words that differ: 1985 'must be specified'; 2023 'not specified ... there are no applicable ... exception processing statements, control is transferred to the end'. A statement 1985 refuses is accepted by 2023 with a stated run-time effect: a lifted refusal, so CHANGED (kb/Work PB5021), not REMOVED.",
-  "source": "pb5092/use-required-phrases"
+  "source": "pb5092/use-required-phrases",
+  "digests": {
+   "GR-14.9.30.4-24": "fc6732e2c178",
+   "GR-9.1.14-3": "4d9f118d4cd2",
+   "GR-9.1.14-4": "fad5ee590e9d"
+  }
  }
 }

@@ -13,6 +13,9 @@
   "reason": "1985: for an external file connector every FD must 'specify the same values for integer-1 or integer-2 and integer-3', and 'If the RECORD clause is not specified, all record description entries associated with this file connector must be the same length.' 2023 states only §2023:13.4.5.4 GR2 d) 'All file description entries shall have the same smallest and largest record size'; without a RECORD clause each FD's sizes come from its implicit clause (§2023:13.18.43.4 GR5), and no 2023 rule requires the record descriptions to be one length. An external file whose FDs omit the RECORD clause and describe records of different lengths with the same smallest and largest sizes is now conforming: looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-15"
+  "source": "adjudicate-712/slice-15",
+  "digests": {
+   "GR-13.4.5.4-2": "0d9691be082b"
+  }
  }
 }

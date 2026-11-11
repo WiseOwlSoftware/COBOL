@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "1985 PF final LINE-COUNTER: a) absolute NEXT GROUP -> integer; b) relative -> last line + integer; c) none -> last line; d) nonprintable unaffected. 2023 §2023:13.18.37.4 GR5 'If the report group is a page footing, the NEXT GROUP clause affects any report footing defined in the current report using only relative LINE clauses' (a) set to integer-1, b) integer-2 added) after 'the printing of the last line' (§2023:13.18.37.4 GR2); c) §2023:8.4.3.15.4 GR4, §2023:13.18.35.4 GR8; d) §2023:8.4.3.15.4 GR5 dummy group. The 'only relative' limit matches 1985 report footing rule 3a, where an absolute RF line ignores LINE-COUNTER. Same; no refusal.",
-  "source": "adjudicate-712-r2/slice-11"
+  "source": "adjudicate-712-r2/slice-11",
+  "digests": {
+   "GR-13.18.37.4-5": "f07c469cf7cc",
+   "GR-13.18.37.4-2": "dc95a53e8508",
+   "GR-8.4.3.15.4-4": "cf9c288b45e0",
+   "GR-8.4.3.15.4-5": "3c235b0d53d8",
+   "GR-13.18.35.4-8": "b6de16b68307"
+  }
  }
 }

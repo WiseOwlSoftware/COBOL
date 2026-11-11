@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993, Errata C247) added a last sentence to 2b, §1985:VI.6.22.4 GR2 \"When control is passed to the next executable sentence, the effect is a transfer of control to an implicit CONTINUE statement immediately preceding the next separator period.\"; 2023 states the same for NEXT SENTENCE, §2023:14.9.37.4 GR1 a) \"control is transferred to an implicit CONTINUE statement immediately preceding the next separator period\", and keeps the index where the condition was met (\"remains set at the occurrence number that caused a WHEN condition to be satisfied\"). So the amendment's sentence is no difference. The difference is the starting index: 1985 ends the search at once only when the index \"contains a value that corresponds to an occurrence number that is greater than the highest permissible occurrence number for identifier-1, the search is terminated immediately\", and searches whenever it \"corresponds to an occurrence number that is not greater than the highest permissible occurrence number for identifier-1\"; §2023:14.9.37.4 GR4 adds two cases to the immediate failure, \"corresponds to an occurrence number that is negative, zero, or greater than the highest permissible occurrence number for identifier-1, the search operation is unsuccessful, the EC-RANGE-SEARCH-INDEX exception condition is set to exist\". A search entered with the index at occurrence zero or below evaluates the WHEN conditions in 1985 and takes AT END in 2023: a result changed. 2023 also makes both unsuccessful ends exception conditions (§2023:14.9.37.4 GR4 \"the search operation is unsuccessful, the EC-RANGE-SEARCH-NO-MATCH exception condition is set to exist\"), and without AT END control then follows §2023:14.9.37.4 GR1 b) 2. when checking is enabled, \"an applicable exception processing statement associated with that exception condition exists, control is transferred according to the rules for that statement\", where 1985 always passes control to the end of the SEARCH statement. The serial order of evaluation, the increment to the next occurrence, and the success path are otherwise the same.",
-  "source": "readjudicate-amended-1985/slice-05"
+  "source": "readjudicate-amended-1985/slice-05",
+  "digests": {
+   "GR-14.9.37.4-4": "8608966e14b2",
+   "GR-14.9.37.4-1": "511c366fa659"
+  }
  }
 }

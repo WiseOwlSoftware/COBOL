@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-30, kb/Work PB4952). The page heading's lower limit is the FIRST DETAIL integer minus 1 (also §1985:XIII.3.8.3 SR8 b); 2023 GR8 c) states the same.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "GR-13.18.57.4-8": "ae3e5dd98aca"
+  }
  }
 }

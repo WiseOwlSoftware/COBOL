@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 makes report-group USAGE obey the general rule: a group-level USAGE applies to each elementary item. GROUP-USAGE is a new feature that leaves programs without it unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.60.4-1": "59f0a3ac3ff6",
+   "GR-13.15.4-2": "adfcec9cace3"
+  }
  }
 }

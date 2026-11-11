@@ -1,0 +1,13 @@
+{
+  "claim_id": "p715-1",
+  "claim_key": "2993eaf221c4e30c",
+  "page": 715,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p715-1", "page": 715, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Argument-1\ncharacteristics          Value returned", "markdown_says": "   Argument-1\n\n| characteristics | Value returned |", "why_it_matters": "The NOTE table's two-line column heading 'Argument-1 characteristics' is split: 'Argument-1' is detached as a stray paragraph above the table and the column header reads only 'characteristics'."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The 300-dpi render of printed page 691 (PDF p715, 15.54.3 NOTE) shows a two-line bold column heading 'Argument-1 / characteristics' above 'Value returned'. The markdown quotes are accurate: 'Argument-1' sits on its own line directly above a table whose first header cell is 'characteristics'. But every word of the heading is present, in order, on the adjacent line. Only the table markup splits it; no wording is missing or altered. All four example rows (S999 -999, S9(4) BINARY -9999, 99V9(3) 0, $**,**9.99BCR -99999.99) match the PDF. The table sits in an informative NOTE, and a reader still sees the full heading. This is a reflow and formatting artifact, which the verification criteria reject, so it is not a content discrepancy.",
+    "corrected_description": ""
+  }
+}

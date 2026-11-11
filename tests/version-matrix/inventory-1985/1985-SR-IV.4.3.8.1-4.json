@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 bars reusing an external record's data-name for another external item 'described in any program contained within or containing the program which describes that external data record'. 2023 states the bar in the uncataloged prose of §2023:8.4.2.1, 'as the name of any other external data item described in the run unit'. The scope widened from the containment nest to the whole run unit, which covers separately compiled programs: stricter. The global-name half is unchanged ('in the source element that describes that global data item'). The qualification formats map to §2023:8.4.2.2.2, which drops the cd-name qualifier (communication removed) and adds the report-name qualifier and further formats. Catalog defect: the §2023:8.4.2.1 paragraph that carries the external/global bar has no rule id, so 'to' cannot name it.",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "FMT-8.4.2.2.2": "3f817a52f31f"
+  }
  }
 }

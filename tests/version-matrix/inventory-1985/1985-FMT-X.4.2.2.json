@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-X.4.2.2",
  "rule-digest": "be8db727cd02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileGlobalExternalClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted",
  "test-ref": "conformance:cases/X.4.2@1985-FILE-DESCRIPTION-ENTRY-IN-THE-INTER/1985-FMT-X_4_2_2",
+ "notes": "§1985:X.4.2.2 prints three FD formats, each with optional IS EXTERNAL and IS GLOBAL: Format 1 (sequential, §1985:X.4.2.3 SR1) BLOCK, RECORD (CONTAINS / VARYING DEPENDING / m TO n), LABEL, VALUE OF, DATA, LINAGE, CODE-SET; Format 2 (relative or indexed, SR2) the same without LINAGE and CODE-SET; Format 3 (report, SR3) without DATA and LINAGE but with REPORT. BindFileSection decides the format once (FileDescriptionFormats.Of from organization and a REPORT clause) and FileDescriptionClauseAdmitted refuses a clause the format's Rows entry lacks (COBOL2604); fileGlobalExternalClause sets IsExternal/IsGlobal. Probed at 85: Format 1 with every clause including EXTERNAL+GLOBAL, LINAGE, CODE-SET and RECORD VARYING DEPENDING with an ODO record compiles and runs; clauses in any order; Format 2 relative and indexed with EXTERNAL+GLOBAL, DATA RECORDS run (RK must be EXTERNAL, COBOL1624 per §1985:VIII.2.4.4 GR8); LINAGE, CODE-SET and REPORT on Format 2 COBOL2604; Format 3 EXTERNAL+GLOBAL+VARYING+CODE-SET runs, LINAGE COBOL2604, an 01 record COBOL2578; EXTERNAL or GLOBAL twice COBOL2423; 2002+ forms refused COBOL0900 (EXTERNAL AS, BYTES, CODE-SET FOR) and FORMAT COBOL1705. Witness: an EXTERNAL sequential file shared with a nested program, a GLOBAL relative file and a GLOBAL report file. Side lead, another rule: LINAGE + RECORD VARYING sequential file re-opened INPUT gives 39 (SequentialConnector.FixedAttributeConflict checks length-prefix framing on a LINAGE print stream).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -17,6 +20,16 @@
   ],
   "bridge": true,
   "reason": "1985 IPC FD Formats 1-3 (sequential, relative/indexed, report) carry IS EXTERNAL, IS GLOBAL, BLOCK, RECORD, LABEL RECORD(S), VALUE OF, DATA RECORD(S), LINAGE, CODE-SET and REPORT(S). §2023:13.4.5.2 keeps the three formats with EXTERNAL (§2023:13.18.22.2, now with [AS literal-1]), GLOBAL (§2023:13.18.27.2), BLOCK (§2023:13.18.10.2), RECORD (§2023:13.18.43.2), LINAGE (§2023:13.18.34.2), CODE-SET (§2023:13.18.13.2, adding FOR ALPHANUMERIC/NATIONAL) and REPORT (§2023:13.18.46.2), adds FORMAT, but has no LABEL, VALUE OF or DATA RECORDS clause anywhere, so 1985 entries using them are refused. CHANGED (stricter and looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.4.5.2": "b75b09e44e69",
+   "FMT-13.18.22.2": "41674d41b2f8",
+   "FMT-13.18.27.2": "b2f0ce476ecb",
+   "FMT-13.18.10.2": "80e87404b097",
+   "FMT-13.18.43.2": "eaecef407473",
+   "FMT-13.18.34.2": "dedf15ecbb63",
+   "FMT-13.18.13.2": "321e4fea0731",
+   "FMT-13.18.46.2": "b20316e2c2f5"
+  }
  }
 }

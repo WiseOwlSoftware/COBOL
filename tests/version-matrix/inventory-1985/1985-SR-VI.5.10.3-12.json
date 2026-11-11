@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 states the 1985 level-2 rule verbatim in substance. The level-1 restriction belongs only to the 1985 level subset, and the level-2 box is no difference by the audit rules.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.44.3-11": "3f8edc8357d0"
+  }
  }
 }

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p194-1",
+  "claim_key": "60c5628404e7e88a",
+  "page": 194,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p194-1", "page": 194, "kind": "table-restructured", "severity": "structural", "pdf_says": "Term Subclause / data-division 13, Data division / environment-division 12, Environment division / options-paragraph 11.8, OPTIONS paragraph / procedure-division 14, Procedure division", "markdown_says": "| Term | Subclause |\n|---|---|\n| data-division | 13, Data division |\n\nenvironment-division 12, Environment division\n\n| options-paragraph | 11.8, OPTIONS paragraph |\n|---|---|\n| procedure-division | 14, Procedure division |", "why_it_matters": "The single four-row meta-language term table of 10.5.1 is split into two tables with the environment-division row left as a loose paragraph between them, and options-paragraph is promoted to a second table's header row. All four mappings survive textually, but a reader or tool parsing the table sees only data-division and procedure-division as rows."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 172 (PDF p194), end of 10.5.1: one table with header 'Term | Subclause' and four contiguous rows: data-division 13, Data division; environment-division 12, Environment division; options-paragraph 11.8, OPTIONS paragraph; procedure-division 14, Procedure division. page-194.md lines 38-46 match the claim's quotation exactly: a table holding only data-division, then environment-division as a loose paragraph, then a second table whose HEADER row is options-paragraph, with procedure-division as its only body row. All text is present and correctly paired, so no normative meaning is lost, but the table structure itself is broken (one row demoted to prose, one row promoted to a header). That is a genuine structural transcription defect, not wrapping or scaffolding. The claim quotes both sources accurately and its severity (structural, not normative) is correct.",
+    "corrected_description": null
+  }
+}

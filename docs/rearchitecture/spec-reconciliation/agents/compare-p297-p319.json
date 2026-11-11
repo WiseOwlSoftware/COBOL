@@ -1,6 +1,6 @@
 {
   "batch": [297, 299, 301, 303, 305, 307, 309, 311, 313, 315, 317, 319],
-  "pages_checked": [297, 299, 301, 303, 305, 307, 309, 311, 313, 315, 317, 319],
+  "pages_checked": [297, 299, 301, 303, 305, 307, 309, 311, 313, 315, 317, 319], "pages_unread": [],
   "figure_verification": {
     "note": "Every general-format diagram on these pages was rendered at 300 dpi and the bracket/brace interiors were crop-zoomed to look for the 5.2.6.4 choice-indicator bars. Result: all choice indicators present in the PDF are preserved in the markdown; no bar was dropped, no bracket/brace opens without closing, no ellipsis is on the wrong side of a delimiter, and no figure-notes paragraph contradicts its diagram.",
     "figures": [
@@ -18,7 +18,7 @@
   },
   "findings": [
     {
-      "page": 303,
+      "id": "p303-1", "page": 303,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "NOTE 2    The STANDARD-BINARY mode of arithmetic is an obsolete feature.\n\nUnlike other obsolete features, it is intended that interest in this facility will be reevaluated during the next revision of standard COBOL and before any final decision is made on whether or not to remove it from the next revision.  [second paragraph printed at the NOTE indent, in the smaller NOTE type face - it is a continuation paragraph of NOTE 2]",
@@ -27,7 +27,7 @@
       "suggested_repair": "Re-attach the paragraph to NOTE 2 the way the transcription handles other multi-paragraph notes - e.g. indent it under the NOTE 2 line (blockquote or continuation indent) so its non-normative status is unambiguous."
     },
     {
-      "page": 307,
+      "id": "p307-1", "page": 307,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "11.9.10.2   General format ... 11.9.10.3   Syntax rule ... 11.9.10.4   General rules  [three fourth-level subsections of the clause 11.9.10 INITIALIZE clause, printed exactly like 11.9.8.2 / 11.9.9.2, which the transcription renders as '###']",
@@ -36,7 +36,7 @@
       "suggested_repair": "Demote the three headings to '#### 11.9.10.2 / .3 / .4' (matching 11.9.8.x and 11.9.9.x once those are normalized), or at minimum to one level below whatever level '11.9.10 INITIALIZE clause' carries. Leave the <a id=\"section-11-9-10-2\"> anchors untouched."
     },
     {
-      "page": 311,
+      "id": "p311-1", "page": 311,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "11.10.4   General rules  [printed identically to 11.10.1 General, 11.10.2 General format, 11.10.3 Syntax rules - all four are fourth-level subsections of 11.10 PROGRAM-ID paragraph]",
@@ -45,7 +45,7 @@
       "suggested_repair": "Change '## 11.10.4 General rules' to '### 11.10.4 General rules' to match 11.10.1-11.10.3."
     },
     {
-      "page": 303,
+      "id": "p303-2", "page": 303,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "11.9.6   DEFAULT ROUNDED clause  [printed at exactly the same weight and size as 11.9.5 ARITHMETIC clause; both are third-level subsections of 11.9 OPTIONS paragraph]",
@@ -54,7 +54,7 @@
       "suggested_repair": "Pick one convention for the whole of 11.9 and apply it: either '### 11.9.6' + '#### 11.9.6.x' (matching 11.9.5), or demote 11.9.5 to '## ' - but not both conventions inside one clause. Same normalization is needed for 11.9.7 (:13258) and 11.9.11 (:13464)."
     },
     {
-      "page": 305,
+      "id": "p305-1", "page": 305,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "11.9.8   FLOAT-BINARY clause ... 11.9.9   FLOAT-DECIMAL clause  [both printed at the same weight and size as 11.9.5 ARITHMETIC clause; all are third-level subsections of 11.9 OPTIONS paragraph]",
@@ -63,7 +63,7 @@
       "suggested_repair": "Normalize with the rest of 11.9 - '### 11.9.8' / '### 11.9.9' and '#### 11.9.8.x' / '#### 11.9.9.x' - keeping the existing <a id=\"section-11-9-8\"> anchors."
     },
     {
-      "page": 315,
+      "id": "p315-1", "page": 315,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "where locale-phrase-1 is:  followed by a vertical stack enclosed in a single tall brace pair: locae-name-1 / LOCALE / SYSTEM-DEFAULT / USER-DEFAULT, with LOCALE, SYSTEM-DEFAULT and USER-DEFAULT each underlined (required words). Same structure for locale-phrase-2 with locale-name-2.",
@@ -72,7 +72,7 @@
       "suggested_repair": "Redraw both sub-figures in the same fenced brace-art style used by 11.9.8.2 / 11.9.9.2 and add the standard 'Figure notes' line recording that LOCALE, SYSTEM-DEFAULT and USER-DEFAULT are underlined in the print and that the plain braces mean exactly one alternative is selected."
     },
     {
-      "page": 315,
+      "id": "p315-2", "page": 315,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "locae-name-1   [the printed standard, verified on the 300 dpi render of the locale-phrase-1 brace group, spells it with the 'l' missing - an ISO typographical defect; the locale-phrase-2 stack below it spells 'locale-name-2' correctly, as does syntax rule 3) on the same page]",

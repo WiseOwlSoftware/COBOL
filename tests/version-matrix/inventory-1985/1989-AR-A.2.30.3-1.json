@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "The two content formats (spaces, sign, currency string, digits with grouping and decimal separators, trailing +/-/CR/DB) match §2023:15.68.3 AR4, and §2023:15.68.3 AR2 restates cs as argument-2's currency string. But 1989 allows only 'a nonnumeric literal or alphanumeric data item' with uppercase CR/DB, while 2023 allows 'category alphanumeric or national' (§2023:15.68.3 AR1) and CR/DB 'in uppercase or lowercase' (§2023:15.68.3 AR4), plus a LOCALE form (§2023:15.68.3 AR5). Looser.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "AR-15.68.3-1": "e2740f06a95f",
+   "AR-15.68.3-2": "61ad0f7d37ad",
+   "AR-15.68.3-4": "420b5c178738"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both exclude the CODE literal's positions from the line descriptions and include them in the record size. Identifier-1 is a new 2023 operand; the literal-1 case is unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.12.4-2": "4e7b136c18ad"
+  }
  }
 }

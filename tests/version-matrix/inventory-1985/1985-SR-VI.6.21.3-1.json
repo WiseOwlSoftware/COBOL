@@ -8,6 +8,9 @@
    "FMT-14.9.28.2"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.28.2": "5f6fe95a9549"
+  }
  }
 }

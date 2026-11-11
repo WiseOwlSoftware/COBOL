@@ -21,6 +21,17 @@
   ],
   "bridge": true,
   "reason": "30, 34 (write boundary), 35 and 37 a) are kept (§2023:9.1.13.6 GR1, GR3, GR5, GR6; restated by WRITE GR20, OPEN GR16 and GR10). Status 38 is gone: 2023 lists among removed features 'The WITH LOCK phrase of the CLOSE statement and the related File Status of 38' (§2023:E.2), and 9.1.13.6 has no 38. Status 37 adds 'insufficient authority exists to access the file' for OPEN (§2023:9.1.13.6 GR6), a new failure a 1985 OPEN can meet. Status 34 adds a READ case ('A READ statement is unsuccessfully executed because the records are variable in length' under OCCURS DEPENDING ON, §2023:9.1.13.6 GR4). 39 keeps the OPEN conflict ('a conflict has been detected between the fixed file attributes and the attributes specified for that file in the source unit', §2023:9.1.13.6 GR7) and adds DELETE FILE.",
-  "source": "adjudicate-712/slice-14"
+  "source": "adjudicate-712/slice-14",
+  "digests": {
+   "GR-9.1.13.6-1": "496b685aec5d",
+   "GR-9.1.13.6-3": "73fc3378d559",
+   "GR-9.1.13.6-4": "7dd72d42c921",
+   "GR-9.1.13.6-5": "63619007ba1d",
+   "GR-9.1.13.6-6": "b8d74a99aedb",
+   "GR-9.1.13.6-7": "5a57e7f5f853",
+   "GR-14.9.51.4-20": "d50788039873",
+   "GR-14.9.27.4-16": "4fc7fb7e2271",
+   "GR-14.9.27.4-10": "b14289c182cb"
+  }
  }
 }

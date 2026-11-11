@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both say WRITE releases a logical record to the operating system or environment. 'Successful' only states that a failed write does not take place; NOTE 3 is informative.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.51.4-12": "b54b956d4c8a"
+  }
  }
 }

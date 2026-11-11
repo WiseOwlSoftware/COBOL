@@ -1,9 +1,9 @@
 {
   "batch": [273, 275, 277, 279, 281, 283, 285, 287, 289, 291, 293, 295],
-  "pages_checked": [273, 275, 277, 279, 281, 283, 285, 287, 289, 291, 293, 295],
+  "pages_checked": [273, 275, 277, 279, 281, 283, 285, 287, 289, 291, 293, 295], "pages_unread": [],
   "findings": [
     {
-      "page": 289,
+      "id": "p289-1", "page": 289,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "The page prints the method-definition general format exactly ONCE, immediately under 'where method-definition is:':  [ IDENTIFICATION DIVISION. ]  /  METHOD-ID. { method-name-1 [ AS literal-1 ]  |  { GET / SET } PROPERTY property-name-1 } [ OVERRIDE ] [ IS FINAL ] .  /  [ options-paragraph ] [ environment-division ] [ data-division ] [ procedure-division ] / END METHOD [ method-name-1 ] .   It is followed directly by 'NOTE   Method-definition is included here for completeness ...'.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Delete the duplicate fenced block at lines 12613-12627 (the second, 5-line brace variant), keeping the first block plus its figure-notes blockquote, so the NOTE at line 12629 follows the notes directly as on the printed page."
     },
     {
-      "page": 285,
+      "id": "p285-1", "page": 285,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "The NOTE example is printed with strictly increasing indentation per nesting level (measured left edges at 300 dpi): 'PROGRAM-ID.  A.' at x≈559, 'PROGRAM-ID.  B.' at x≈630, 'PROGRAM-ID.  C.' at x≈705, 'END PROGRAM C.' at x≈702, 'END PROGRAM B.' at x≈627, 'END PROGRAM A.' at x≈554 — i.e. B is indented one level inside A, C one level inside B, and each END marker aligns with its own PROGRAM-ID.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Re-indent the example to match the printed nesting: A at one level, B one level deeper, C one level deeper still, each END PROGRAM aligned with its matching PROGRAM-ID; and drop the spurious blank line the markdown inserts between 'PROGRAM-ID.  C.' and the following '...' (the PDF has no blank line there)."
     },
     {
-      "page": 275,
+      "id": "p275-1", "page": 275,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Under '5) For each parameter that is passed by value there shall be a corresponding parameter in the invoked method that:' the subitems are printed as separate list items — 'a) is specified with the BY VALUE phrase' (bottom of page 254/PDF p274) and, at the top of this page, 'b) if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly.'",
@@ -30,7 +30,7 @@
       "suggested_repair": "Split line 12016 into '   a) is specified with the BY VALUE phrase' and a separate '   b) if the passed parameter is specified with the OMITTED phrase, ...' item, matching the shape of lists 3) and 4)."
     },
     {
-      "page": 289,
+      "id": "p289-2", "page": 289,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "In the interface-definition general format, INTERFACE-ID, AS, INHERITS, USING, END and INTERFACE are underlined (required words) while FROM is NOT underlined: '[ INHERITS FROM { interface-name-2 } … ]' shows an underline under INHERITS only (verified on a 300 dpi crop of the printed line).",
@@ -39,7 +39,7 @@
       "suggested_repair": "Add a figure-notes blockquote after the interface-definition block, on the model of the method-definition one: INTERFACE-ID, AS, INHERITS, USING, END, INTERFACE and IDENTIFICATION/DIVISION are underlined (required); FROM is not underlined (optional word)."
     },
     {
-      "page": 285,
+      "id": "p285-2", "page": 285,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "Clause 10 is 'Structured compilation group' with same-level subclauses 10.1 General, 10.2 Compilation units, 10.3 Source units, 10.4 Contained source units, 10.5 Source elements and runtime elements, 10.6 COBOL compilation group, 10.7 End markers — all printed at the identical heading weight/indent, with 10.6.1/10.6.2/10.6.3 and 10.7.1-10.7.4 one level below.",

@@ -14,6 +14,10 @@
   ],
   "reason": "1985: after an outermost program's end program header, the next COBOL statement 'must be the Identification Division header of a program to be compiled separately'. §2023:10.6.1 makes a compilation group 'zero or more source units in any mix' of program-prototype, function-prototype, program-, function-, class- and interface-definitions, each with an optional IDENTIFICATION DIVISION header; §2023:10.6.2 SR1 limits the order: 'function-prototypes and program-prototypes shall precede all other types of source units'. Looser: what follows may be a function, class or interface definition, or start at PROGRAM-ID without the header. Every conforming 1985 program means the same.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "FMT-10.6.1": "985639fb1dfa",
+   "SR-10.6.2-1": "a0e7078683c4"
+  }
  }
 }

@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "1985 report-file FD: BLOCK CONTAINS, RECORD CONTAINS, LABEL RECORD(S) {STANDARD|OMITTED}, VALUE OF, CODE-SET, {REPORT IS|REPORTS ARE}. §2023:13.4.5.2 Format 3 (report), the report-file FD per §2023:13.4.5.3 SR8, keeps BLOCK (§2023:13.18.10.2), the record-clause (§2023:13.18.43.2), CODE-SET (§2023:13.18.13.2, adding FOR ALPHANUMERIC/NATIONAL) and REPORT (§2023:13.18.46.2) but has no LABEL or VALUE OF clause anywhere in the standard, so a 1985 report FD using them is refused. EXTERNAL/GLOBAL and RECORD VARYING are not new (1985 X.4.2.2 Format 3). CHANGED (stricter and looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.4.5.2": "b75b09e44e69",
+   "SR-13.4.5.3-8": "f62781c2bcd6",
+   "FMT-13.18.10.2": "80e87404b097",
+   "FMT-13.18.43.2": "eaecef407473",
+   "FMT-13.18.13.2": "321e4fea0731",
+   "FMT-13.18.46.2": "b20316e2c2f5"
+  }
  }
 }

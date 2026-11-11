@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: on invalid key the WRITE is unsuccessful, 'the content of the record area is unaffected', status set to the cause, execution per the invalid key rules. §2023:14.9.51.4 GR15: 'the write operation does not take place, the content of the record area is unaffected', status set to the cause, control per 9.1.14; §2023:9.1.14 GR1-GR3 are those rules. Which WRITEs raise it is 1985 GR14's matter. Same.",
-  "source": "adjudicate-712-r2/slice-09"
+  "source": "adjudicate-712-r2/slice-09",
+  "digests": {
+   "GR-14.9.51.4-15": "a8b0bec83863",
+   "GR-9.1.14-1": "b8080cf5262e",
+   "GR-9.1.14-2": "e2d0046858ad",
+   "GR-9.1.14-3": "4d9f118d4cd2"
+  }
  }
 }
