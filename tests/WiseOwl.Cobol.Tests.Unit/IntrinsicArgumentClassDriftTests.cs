@@ -723,33 +723,30 @@ public sealed class IntrinsicArgumentClassDriftTests
     /// alphanumeric class holds the numeric edited and alphanumeric edited categories (§1985:IV.4.3.3), so a row that carried
     /// §2023:15.70.3 AR1's category wording at every edition refused a one-character PIC Z item at <c>--std 85</c>. NUMVAL and
     /// NUMVAL-C say "alphanumeric data item" there (§1989:A.2.29.3 AR1, §1989:A.2.30.3 AR1), the category, so their predicate
-    /// holds from 85. Every CharacterCategory row of a function the 1989 module has is listed with its 1989 sentence, which is
-    /// checked against <c>specs/ANSI_COBOL_1985.md</c>, and with the edition its predicate must start in.
+    /// holds from 85. Every CharacterCategory row of a function the 1989 module has is listed with its 1989 rule and the edition
+    /// its predicate must start in, and a 1985 function's category row missing from the list fails. (The quotations are held to
+    /// the standard by the CITATIONS audit, never by a compiler test opening the Markdown, kb/Work PB4453.)
     /// </summary>
     [Fact]
     public void CategoryPredicates_StartInTheEditionWhoseRuleSaysCategory()
     {
-        // function → (a sentence of its 1989 argument-1 rule as printed, the edition the category predicate starts in).
-        var wording = new (string Function, string Text, int Since)[]
+        // function → (its 1989 argument-1 rule, the edition the category predicate starts in):
+        //   §1989:A.2.29.3 AR1 "Argument-1 must be a nonnumeric literal or alphanumeric data item" (the category);
+        //   §1989:A.2.30.3 AR1 "Argument-1 must be a nonnumeric literal or alphanumeric data item" (the category);
+        //   §1989:A.2.31.3 AR1 "Argument-1 must be one character in length and must be class alphabetic or alphanumeric".
+        var wording = new (string Function, string Rule, int Since)[]
         {
-            ("NUMVAL", "Argument-1 must be a nonnumeric literal or alphanumeric data item", 85),
-            ("NUMVAL-C", "Argument-1 must be a nonnumeric literal or alphanumeric data item", 85),
-            ("ORD", "Argument-1 must be one character in length and must be class alphabetic or alphanumeric", 2002),
+            ("NUMVAL", "§1989:A.2.29.3 AR1", 85),
+            ("NUMVAL-C", "§1989:A.2.30.3 AR1", 85),
+            ("ORD", "§1989:A.2.31.3 AR1", 2002),
         };
-        string spec = File.ReadAllText(TestRepo.Specs("ANSI_COBOL_1985.md"));
         var problems = new List<string>();
-        foreach (var (fn, text, since) in wording)
+        foreach (var (fn, rule, since) in wording)
         {
-            // The function's own section of the 1989 module, from its heading to the next section's.
-            var m = Regex.Match(spec, $"(?m)^## 2\\.[0-9]+ THE {Regex.Escape(fn)} FUNCTION\\s*$");
-            if (!m.Success) { problems.Add($"{fn}: no 1989 section THE {fn} FUNCTION in the 1985 specification"); continue; }
-            int to = spec.IndexOf("\n## ", m.Index + m.Length, StringComparison.Ordinal);
-            if (!spec[m.Index..(to < 0 ? spec.Length : to)].Contains(text, StringComparison.Ordinal))
-                problems.Add($"{fn}: the 1989 module no longer prints \"{text}\"");
             var predicate = IntrinsicArgumentRules.Verified[fn].At(0)?.Predicates
                 .SingleOrDefault(p => p.Kind == ArgPredicateKind.CharacterCategory);
             if (predicate is not { } p) problems.Add($"{fn}: its row carries no CharacterCategory predicate");
-            else if (p.Since != since) problems.Add($"{fn}: its CharacterCategory predicate starts at {p.Since}, the 1989 wording says {since}");
+            else if (p.Since != since) problems.Add($"{fn}: its CharacterCategory predicate starts at {p.Since}, {rule} says {since}");
         }
         // Every CharacterCategory row of a 1985 function is in the table above, so the next one cannot be forgotten.
         foreach (var (fn, schema) in IntrinsicArgumentRules.Verified)
