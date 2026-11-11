@@ -66,10 +66,12 @@ kb/Work PB2526), each population then checked by name against its `--list-tests`
   `scripts/shard_weights.py generate`). Measured for this step (2026-11-01, quiet box, compile cache off): one gate's
   three populations 247 s; three gates started together 503 s each; xunit's default thread count (the processor
   count) beat 16 and 8 in both, so no `xunit.runner.json` caps it. A re-gate of an unchanged tree answers from its
-  GREEN record (`REUSED`, kb/Work PB3536), and a re-gate at a population key (the populations' inputs: every path a
-  compiler test or the build may read, and the toolchain) an earlier run measured runs only the cases that run did not pass
-  (`COMPOSED`, kb/Work PB5099, PB5205: `WISEOWL_COBOL_GATE_ONLY`, the passes carried; a run whose populations were measured
-  GREEN, its verdict RED or not, plus a docs, kb or tooling-lane commit running the audits alone). The landing (`python scripts/orchestrator/enqueue.py land <branch>`, kb/Work
+  GREEN record (`REUSED`, kb/Work PB3536). Each assembly is a TARGET with declared inputs (scripts/build_targets.json) and its
+  own key; a target whose key holds a pass in the ONE store every worktree shares (`<git common dir>/cobol-build-store/`) is
+  UP TO DATE and starts no host, and at a target's key a re-gate runs only the cases an earlier run of the worktree did not
+  pass (kb/Work PB5218, PB5099: `WISEOWL_COBOL_GATE_ONLY`). A records-only change re-runs Unit and Conformance (the suite's
+  generator reads the inventory), not Characterization; a docs, kb or tooling-lane change re-runs none (`GREEN — EVERY TARGET
+  UP TO DATE …`). The landing (`python scripts/orchestrator/enqueue.py land <branch>`, kb/Work
   PB3023, MANDATORY-PRACTICES L1, L2) reads this record; CI's merge group is the first run of the merged tree, of Linux
   and of Release (PB4323 §2023:5.1).
 - **The cap is ONE shared setting, 3 by default** (owner 2026-10-10 10:20 PDT, kb/Work PB2514: "Cap 3 permanently"):
@@ -167,10 +169,10 @@ re-run). Here, additionally:
   tree an earlier gate in the worktree measured GREEN (the harness's `.claude/settings.local.json` edit, STATUS.md and
   TestResults/ are no part of a measured tree: coord.NEVER_WORK), against the same base and under a scope it covered, answers at
   once `… GREEN — REUSED (kb/Work PB3536): … that gate: …`, naming the run that measured it; a RED is never reused,
-  but its passes are: the next gate at that population key (the same tree, or one differing only in inert or tooling-lane
-  paths, under the same toolchain) runs only the cases that did not pass and says `N carried from run(s) …` (kb/Work PB5099,
-  PB5205; DESIGN-test-build-ci.md §3.14.12 item 5). A tree that changed in any path a compiler test or the build may read
-  runs everything.
+  but its passes are: a target whose host was green with its population exact is recorded in the store whatever the
+  verdict, and at another target's key the next gate runs only the cases that did not pass and says `N carried from run(s)
+  …` (kb/Work PB5099, PB5218; DESIGN-test-build-ci.md section 3.14.12 item 5). A change to a target's inputs, its toolchain
+  or its platform runs that target whole.
   An agent at its TURN CAP with its gate running hands it to the wave (status `GATE-PENDING`, MANDATORY-PRACTICES P2).
 
 ## Read the failure before diagnosing it
