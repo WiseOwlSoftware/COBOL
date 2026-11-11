@@ -623,21 +623,36 @@ public abstract class FileConnector
     /// <summary>The current open mode (meaningful while <see cref="ModeKnown"/>).</summary>
     protected FileOpenMode Mode;
 
-    /// <summary>True while the file is open OR a failed OPEN recorded its attempted mode (ISO §2023:14.9.49.4 GR6b —
-    /// "in the process of being opened"); cleared by a successful CLOSE (§2023:9.1.4 — the file is then in no mode).</summary>
+    /// <summary>True while the file is open, and after a CLOSE that failed (the CLOSE statement's own USE procedure still
+    /// finds the mode the file was open in); cleared by a successful CLOSE (§2023:9.1.4 — the file is then in no mode).
+    /// A FAILED OPEN never sets it: the mode an OPEN is attempted in is the OPEN statement's <see cref="BeingOpened"/>.</summary>
     protected bool ModeKnown;
 
-    /// <summary>The open-mode view for USE-declarative mode scoping (ISO §2023:14.9.49.4 GR6b–e): <c>(int)</c> of the
-    /// mode while open OR the ATTEMPTED mode of a failed OPEN; −1 after a successful CLOSE / before any OPEN.</summary>
-    public int OpenModeView => ModeKnown ? (int)Mode : -1;
+    /// <summary>⛔ THE MODE THE OPEN STATEMENT NOW EXECUTING IS ATTEMPTING (§1985:VII.4.6.4 GR5 b)–e), §2023:14.9.49.4 GR6 b)–e):
+    /// a USE ON INPUT / OUTPUT / I-O / EXTEND procedure is applicable to a file "in the process of being opened" in that
+    /// mode). It is a property of the OPEN STATEMENT'S EXECUTION, held apart from the file's open mode: set before the OPEN
+    /// does anything (so an OPEN refused for '41' or '38' has it too), kept through the statement's own USE procedure and
+    /// cleared when the statement ends (<see cref="EndOpen"/>), so no later statement finds a mode a failed OPEN left behind.</summary>
+    private FileOpenMode? _beingOpened;
+
+    /// <summary>The OPEN statement begins: the mode it attempts is the file's being-opened mode until <see cref="EndOpen"/>.</summary>
+    internal void BeginOpen(FileOpenMode mode) => _beingOpened = mode;
+
+    /// <summary>The OPEN statement ends, with its USE procedure (if any) run: the file is in no being-opened mode.</summary>
+    internal void EndOpen() => _beingOpened = null;
+
+    /// <summary>The open-mode view for USE-declarative mode scoping (§2023:14.9.49.4 GR6 b)–e)): <c>(int)</c> of the mode an
+    /// OPEN now executing is attempting, else of the mode the file is open in; −1 when the file is in neither (before any
+    /// OPEN, after a failed OPEN's statement has ended, after a successful CLOSE).</summary>
+    public int OpenModeView => _beingOpened is { } being ? (int)being : ModeKnown ? (int)Mode : -1;
 
     /// <summary>The open mode while the connector IS OPEN (ISO §2023:9.1.4), null otherwise.
-    /// ⛔ DELIBERATELY NOT <see cref="OpenModeView"/>: that view also answers with the ATTEMPTED mode of a
-    /// FAILED open (§2023:14.9.49.4 GR6b's "in the process of being opened"), which is what USE-declarative mode
+    /// ⛔ DELIBERATELY NOT <see cref="OpenModeView"/>: that view also answers with the mode an OPEN now
+    /// executing is ATTEMPTING (§2023:14.9.49.4 GR6b's "in the process of being opened"), which is what USE-declarative mode
     /// scoping needs and is WRONG for any rule that asks whether the connector IS OPEN in a given mode.
     /// §2023:14.9.21.4 GR3 is such a rule -- "the INITIATE statement may be executed only if the corresponding
-    /// file connector is open in the extend mode or the output mode" -- and after an UNSUCCESSFUL OPEN OUTPUT the
-    /// GR6b view still answers "output", which would let an INITIATE proceed into a connector that is not open.</summary>
+    /// file connector is open in the extend mode or the output mode" -- and during an UNSUCCESSFUL OPEN OUTPUT's own
+    /// USE procedure the GR6b view answers "output", which would let an INITIATE proceed into a connector that is not open.</summary>
     public FileOpenMode? OpenModeIfOpen => _openMode ? Mode : null;
 
     /// <summary>OPEN INPUT/I-O of an absent OPTIONAL file: the connector is open but no physical store exists
@@ -1041,7 +1056,6 @@ public abstract class FileConnector
         if (entered is not null)
         {
             LeaveEntry();
-            (Mode, ModeKnown) = (mode, true);   // a FAILED open still records the attempted mode (GR6b "being opened")
             return Status = entered;
         }
         try { return OpenOnceEntered(mode, ownedWritesAdmitted, out again); }
@@ -1148,7 +1162,6 @@ public abstract class FileConnector
         again = OpenAgain.No;
         _ownedWritesAdmitted = ownedWritesAdmitted;
         Mode = mode;
-        ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
         OptionalAbsent = false;
         LastReadUnsuccessful = false;   // OPEN is a reposition; the '43' gate drops in the Status setter
         FreezeOpenSequences();          // before GR10's comparison reads them (§2023:12.4.5.7.4 GR1)
@@ -1290,6 +1303,7 @@ public abstract class FileConnector
         // failure, never an OutOfMemoryException killing the run unit (the CobolDynTable precedent, kb/Work PB1410).
         catch (OutOfMemoryException) { s = FileStatusCode.PermanentError; }
         _openMode = s[0] == '0';   // a success-family OPEN ('00'/'05'/'07') puts the connector in its open mode
+        ModeKnown = _openMode;     // a failed OPEN leaves the file in no mode; its attempt is BeingOpened's, ended with the statement
         // §2023:9.1.15 — "The SUCCESSFUL opening of a file establishes a file lock": an unsuccessful one establishes
         // none, and §2023:14.9.27.4 GR25 leaves the file unaffected. Any handle the body took on its way to failing
         // goes back HERE, because Close() answers '42' for a connector that is not open and never reaches
@@ -1456,7 +1470,7 @@ public abstract class FileConnector
 
     /// <summary>The organization-specific OPEN body: reset org state, create/load the physical store, and
     /// return the resulting status. Runs under the base's '37'/'30' exception mapping; the base has already
-    /// recorded the attempted mode, reset the shared position state, and answered §2023:14.9.27.4 GR3 and GR10.
+    /// reset the shared position state, and answered §2023:14.9.27.4 GR3 and GR10.
     /// <para><paramref name="presence"/> is the base's ONE <see cref="HostFile.Probe"/> answer — an
     /// implementation must never re-ask the host, and must never call <c>File.Exists</c>, whose two-valued
     /// answer is what kb/Work PB323 was. For every mode but OUTPUT it is <see cref="FilePresence.Present"/> or

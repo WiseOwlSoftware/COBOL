@@ -734,8 +734,19 @@ public sealed class FileRegistry
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §2023:14.9.49.4 GR6b–e); −1 unknown/closed.</summary>
     public int OpenModeOf(string name) => _files.TryGetValue(name, out var c) ? c.OpenModeView : -1;
 
-    /// <summary>The open mode of a connector that IS OPEN (ISO §2023:9.1.4), null when it is not open, when a
-    /// failed OPEN merely recorded an attempted mode, or when no connector of that name is registered
+    /// <summary>An OPEN statement begins on <paramref name="name"/> in <paramref name="mode"/>: the file is "in the process of being
+    /// opened" in it (§1985:VII.4.6.4 GR5 b)–e); §2023:14.9.49.4 GR6 b)–e)) for the statement's whole execution, whatever its
+    /// outcome — an OPEN refused for '41' (§2023:14.9.27.4 GR2) or '38' (CLOSE WITH LOCK) included. Ended by <see cref="EndOpen"/>.</summary>
+    public void BeginOpen(string name, FileOpenMode mode) => Require(name).BeginOpen(mode);
+
+    /// <summary>The OPEN statement on <paramref name="name"/> ends, its USE procedure run: the file is in no being-opened mode.</summary>
+    public void EndOpen(string name)
+    {
+        if (_files.TryGetValue(name, out var c)) c.EndOpen();
+    }
+
+    /// <summary>The open mode of a connector that IS OPEN (ISO §2023:9.1.4), null when it is not open, when an
+    /// OPEN is merely being attempted in a mode (<see cref="BeginOpen"/>), or when no connector of that name is registered
     /// (<see cref="FileConnector.OpenModeIfOpen"/>). The §2023:14.9.21.4 GR3 report-file-mode test reads this.</summary>
     public FileOpenMode? OpenModeIfOpen(string name) =>
         _files.TryGetValue(name, out var c) ? c.OpenModeIfOpen : null;
