@@ -1,9 +1,9 @@
 {
   "batch": [552, 553, 554, 555],
-  "pages_checked": [552, 553, 554, 555],
+  "pages_checked": [552, 553, 554, 555], "pages_unread": [],
   "findings": [
     {
-      "page": 552,
+      "id": "p552-1", "page": 552,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "a)   a group data item that contains an occurs-depending table.  |  b)   an occurs-depending table.  |  c)   a data item that is subordinate to an occurs-depending table.  |  If a VALUE clause is associated with the data item referenced by a DEPENDING phrase, that value is considered to be placed in the data item after the occurs-depending table is initialized. Further rules for initializing tables are specified in 13.18.38, OCCURS clause.  -- all four blocks are printed INDENTED, flush with the body text of general rule 6) (whose sentence 'A data item is associated with an occurs-depending table when a data item is one of the following:' ends page 551), i.e. they are sub-items / a continuation of rule 6).",

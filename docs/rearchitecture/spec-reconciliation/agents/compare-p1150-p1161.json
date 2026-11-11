@@ -1,9 +1,9 @@
 {
   "batch": [1150, 1151, 1152, 1153, 1154, 1155, 1156, 1157, 1158, 1159, 1160, 1161],
-  "pages_checked": [1150, 1151, 1152, 1153, 1154, 1155, 1156, 1157, 1158, 1159, 1160, 1161],
+  "pages_checked": [1150, 1151, 1152, 1153, 1154, 1155, 1156, 1157, 1158, 1159, 1160, 1161], "pages_unread": [],
   "findings": [
     {
-      "page": 1151,
+      "id": "p1151-1", "page": 1151,
       "kind": "ocr-error",
       "severity": "cosmetic",
       "pdf_says": "01  Out-p pic $$$,$$$.99.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Restore the line to '01  Out-p pic $$$,$$$.99.' (no space before the 99)."
     },
     {
-      "page": 1150,
+      "id": "p1150-1", "page": 1150,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.5.4.2  Class polymorphism  /  D.19.5.4.3  Parametric polymorphism (both are fourth-level subclauses of D.19.5.4 Polymorphism, whose first subclause D.19.5.4.1 General is transcribed as '### D.19.5.4.1 General')",
@@ -21,7 +21,7 @@
       "suggested_repair": "Demote both to '### D.19.5.4.2 Class polymorphism' and '### D.19.5.4.3 Parametric polymorphism' to match the sibling D.19.5.4.1."
     },
     {
-      "page": 1154,
+      "id": "p1154-1", "page": 1154,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.9.3  Files in factory objects (fourth-level subclause of D.19.9 Files in object orientation, whose siblings D.19.9.1 General and D.19.9.2 Files in instance objects are transcribed as '### ')",
@@ -30,7 +30,7 @@
       "suggested_repair": "Demote to '### D.19.9.3 Files in factory objects'."
     },
     {
-      "page": 1156,
+      "id": "p1156-1", "page": 1156,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "D.19.11.1  General  /  D.19.11.2  Main program  /  D.19.11.3  Account class (all fourth-level subclauses of D.19.11 Sample application)",
