@@ -17,8 +17,9 @@ WHAT A BATCH IS MARKED WITH
              (its `local.json`, outside the repository), so the plan CARRIES the list as an input: `--write` takes it
              from `--ambiguous-from`, and `--check` regenerates the plan from the carried list and, given
              `--ambiguous-from`, also holds the carried list to the run's;
-  clauses    pages of a clause the plan names (`FLAGGED`: for 2002 the two clauses whose figure count the generator and
-             the text layer read differently, kb/Work PB4813), read from the transcription's own headings.
+  clauses    pages of a clause the plan names (`FLAGGED`: for 2002 and 2014 the two clauses whose figure count the
+             generator and the text layer read differently, kb/Work PB4813 and PB5268), read from the transcription's
+             own headings.
 A batch that is ambiguous or holds a flagged clause is FLAGGED.
 
 ORDER AND HALVES. Flagged batches first, then figure batches, then the rest, each class in page order. Each batch's
@@ -59,6 +60,8 @@ class Plan:
 #: The editions with a page-range plan. An edition with no row exits naming the table (spec_pdf.edition_data).
 PLANS: dict[int, Plan] = {
     2002: Plan("2002", ("11.1.1", "13.14.1")),
+    # The two clauses whose figure count the generator and the text layer read differently (kb/Work PB5268).
+    2014: Plan("2014", ("11.2.1", "13.16.1")),
 }
 CLAUSE_HEADING = re.compile(r"^#{1,6}\s+((?:\d+|[A-Z])(?:\.\d+)*)\s")
 

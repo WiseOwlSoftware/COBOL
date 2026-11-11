@@ -1,7 +1,7 @@
 export const meta = {
   name: 'spec-reconcile',
-  description: 'Compare the canonical standard PDF against its markdown transcription (an edition that keeps its pages: 1985 or 2002) page by page and ledger every discrepancy',
-  whenToUse: 'Reconciling a transcription against its canonical PDF. args {pages, edition, model, effort, outDir, workDir}, every one required: pages as an array or ranges ("1-12,37-48", for 2002 a run of docs/rearchitecture/spec-reconciliation/2002/ranges.json); outDir the edition directory in the worktree of the run\'s branch; workDir a scratch directory of this run alone. The files the agents write are the record: each compare agent returns merge_reconciliation.py --compare-summary of its file, and each verifier takes its claim and claim_key from --claim-key on that file, so nothing counted or copied is an agent\'s retyping. See docs/rearchitecture/spec-reconciliation/README.md.',
+  description: 'Compare the canonical standard PDF against its markdown transcription (an edition that keeps its pages: 1985, 2002 or 2014) page by page and ledger every discrepancy',
+  whenToUse: 'Reconciling a transcription against its canonical PDF. args {pages, edition, model, effort, outDir, workDir}, every one required: pages as an array or ranges ("1-12,37-48", for 2002 or 2014 a run of docs/rearchitecture/spec-reconciliation/<edition>/ranges.json); outDir the edition directory in the worktree of the run\'s branch; workDir a scratch directory of this run alone. The files the agents write are the record: each compare agent returns merge_reconciliation.py --compare-summary of its file, and each verifier takes its claim and claim_key from --claim-key on that file, so nothing counted or copied is an agent\'s retyping. See docs/rearchitecture/spec-reconciliation/README.md.',
   phases: [
     { title: 'Compare', detail: 'one agent per batch of up to 12 consecutive pages: read the rendered PDF page, diff against the markdown slice, write the compare file, return its --compare-summary' },
     { title: 'Verify', detail: 'adversarially re-check each claimed discrepancy against the same page, one agent per claim, its claim and key read from the compare file by --claim-key' },
@@ -14,14 +14,14 @@ export const meta = {
 // let two fleets on one machine overwrite each other's renders, and an unpinned model ran whatever the host defaulted to.
 //   pages    an array of PDF page numbers, or a string of pages and ranges "3-65,67,70-72". ALWAYS a COMPUTED list,
 //            never a typed one: a hand-transcribed list cost a whole 4.3M-token sweep (64 of 173 target pages covered,
-//            105 others swept, and the run still reported "169 pages swept"). For 2002 pass a run's `pages` from
-//            docs/rearchitecture/spec-reconciliation/2002/ranges.json (scripts/spec/reconcile_ranges.py). The proof of
+//            105 others swept, and the run still reported "169 pages swept"). For 2002 or 2014 pass a run's `pages`
+//            from docs/rearchitecture/spec-reconciliation/<edition>/ranges.json (scripts/spec/reconcile_ranges.py). The proof of
 //            what was swept is the files on disk: `merge_reconciliation.py --edition <e>` validates them and names every
 //            page no valid compare file covers. RE-RUNNING a batch replaces its earlier files as a unit, and the run on
 //            disk wins: delete the batch's compare and verify files first. This script cannot see the disk, so it
 //            never deletes; the merge refuses an earlier run's verdict whose claim_key the new claim does not share
 //            (README, "Re-running a batch").
-//   edition  1985 or 2002: a row of EDITIONS below.
+//   edition  1985, 2002 or 2014: a row of EDITIONS below.
 //   model    the model of every agent (the owner's decision for 2002, 2026-11-11: Opus).
 //   effort   the reasoning effort of every agent: low, medium, high, xhigh or max (2002: medium).
 //   outDir   where every agent writes its file: the edition's directory docs/rearchitecture/spec-reconciliation/<dir>
@@ -59,6 +59,12 @@ const EDITIONS = {
     keyword: '§2002:5.1.1 (Keywords): keywords are shown in uppercase and underlined, and are required; optional words are uppercase and not underlined (§2002:5.1.2)',
     choice: '§2002:5.1.5.3 (Choice indicators): a pair of bars just inside a bracket or brace. Inside BRACES, one or more of the enclosed alternatives shall be specified, each only once; inside BRACKETS, zero or more, each at most once; in ANY ORDER. Without the bars, a bracket around stacked alternatives means AT MOST ONE of them (§2002:5.1.5.1) and a brace EXACTLY ONE, explicitly specified or implicitly selected (§2002:5.1.5.2)',
     ellipsis: '§2002:5.1.6 (Ellipses)',
+  },
+  2014: {
+    standard: 'ISO/IEC 1989:2014', dir: '2014', pages: 952,
+    keyword: '§2014:5.2.1 (Keywords): keywords are shown in uppercase and underlined in general formats, and are required; optional words are uppercase and not underlined (§2014:5.2.2)',
+    choice: '§2014:5.2.5.3 (Choice indicators): a pair of bars enclosed by a bracket or brace. Enclosed by BRACES, one or more of the enclosed alternatives shall be specified, each only once; by BRACKETS, zero or more, each at most once; in ANY ORDER. Without the bars, a bracket around stacked alternatives means at most one of them may be specified or the portion omitted (§2014:5.2.5.1) and a brace exactly one, explicitly specified or implicitly selected (§2014:5.2.5.2)',
+    ellipsis: '§2014:5.2.6 (Ellipses)',
   },
 }
 const EDITION = Number(args.edition)

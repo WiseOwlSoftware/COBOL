@@ -53,6 +53,12 @@ verdicts refused after its verifiers ran. The compare FILE is now the one source
 `merge_reconciliation.py --claim-key <file> <id>`, and a compare agent returns `--compare-summary <its file>`, which the
 run counts and dispatches from. The workflow's copies of the key function and of the merge's rules are deleted.
 
+**2014 (addendum `2026-11-11-finisher-2014.md`).** The 2014 transcription (PB5268) landed first and keeps its pages, so
+the workflow, the merge and the plan each take it by a row, with no code change: the workflow cites 2014's own notation
+clauses (§2014:5.2.1, §2014:5.2.5.3, §2014:5.2.6 among them, each checked), the merge writes `LEDGER-2014.json`, and
+`2014/ranges.json` plans 952 pages in 80 batches, 31 flagged (55 ambiguous pages, §2014:11.2.1, §2014:13.16.1) and 54
+with a figure. Merging main kept its 2014 rows beside this branch's in `DOC_INDEX.md` and `render-spec-page.py`.
+
 **Proof.** The self-tests of every touched script PASS, among them `test_wf_spec_reconcile.py`, a dry run of the workflow
 whose stub agents write their files and run the real `--compare-summary` and `--claim-key`, with each run's directory
 merged by the real merge (10 arms, among them a return one space off its file changing nothing); `probe2.py`'s re-run

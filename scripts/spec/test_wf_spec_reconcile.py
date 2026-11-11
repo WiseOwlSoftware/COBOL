@@ -84,6 +84,8 @@ const problemsOf = (r) => ((r.batches_without_valid_compare || [])[0] || { probl
 
 let { r, merge } = await run({ dir: 'agents', args: { edition: 2023 } })
 check('edition 2023 is refused, naming why: its transcription keeps no page headings', /2023.*no `## Page N` headings/.test(r.thrown || ''))
+;({ r, merge } = await run({ dir: '2014', args: { edition: 2014, pages: '1-12' } }))
+check('edition 2014, whose transcription keeps its pages, runs with no further tooling: its batch swept and ok', r.ok === true && r.pages_checked === 12)
 ;({ r, merge } = await run({}))
 check('a clean run is ok and reports the pages its files record; the merge agrees', r.ok === true && r.pages_checked === 5 && merge.rc === 0)
 ;({ r, merge } = await run({ fileOf: (b) => b[0] === 10 ? null : clean(b), ret: (s, b) => b[0] === 10 ? null : s }))

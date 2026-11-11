@@ -53,6 +53,8 @@ THE EDITIONS (`EDITIONS`, one row each; an edition with no row exits naming the 
         decided REFUTED with the verifier's reason, a confirmed one is decided by its repair. A re-merge KEEPS each
         claim's decision, reason and edits (by its id) and the ledger's sweeps and boxes; a kept decision whose claim is
         gone or now says something else is refused, never dropped or moved.
+  2014  2014/ -> LEDGER-2014.json + 2014/REPORT.md, the same shape and rules as 2002 (kb/Work PB5268: its transcription
+        keeps its pages, `## Page N`, 1..952).
   1985 has no row: its ledger was assembled from the Message Batches passes (kb/Work PB4850), never by this tool, and
   merging over it would destroy its decisions.
 
@@ -118,6 +120,7 @@ class Row:
 EDITIONS: dict[int, Row] = {
     2023: Row("agents", "LEDGER.json", "REPORT.md", "verdicts"),
     2002: Row("2002", "LEDGER-2002.json", "2002/REPORT.md", "decisions"),
+    2014: Row("2014", "LEDGER-2014.json", "2014/REPORT.md", "decisions"),
 }
 
 
