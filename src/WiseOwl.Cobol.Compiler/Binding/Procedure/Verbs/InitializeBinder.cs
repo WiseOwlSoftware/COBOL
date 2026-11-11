@@ -3,6 +3,7 @@
 using WiseOwl.Cobol.Common;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 
@@ -171,6 +172,25 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return BoundImplicitSeries.Of(members);
     }
 
+    /// <summary>§1985:VI.6.17.3 SR4 (kb/Work PB5088): "The description of the data item referenced by identifier-1 or any
+    /// items subordinate to identifier-1 may not contain the DEPENDING phrase of the OCCURS clause." The ISO/IEC 1989:2002
+    /// syntax rules (14.8.19.2) drop it, so INITIALIZE of a variable-occurrence item is the 2002 form: row
+    /// <c>initialize-variable-occurrence-2002</c>, asked once per identifier-1 once it resolves. The subject is identifier-1's
+    /// own description and its subordinates' (so <c>INITIALIZE E (1)</c> of an ODO element E is asked too); a DEPENDING
+    /// phrase on a group that CONTAINS identifier-1 is outside the rule's words and is not asked.</summary>
+    private void GateCobol85VariableOccurrence(Core.DataReferenceContext dref, DataItem item)
+    {
+        if (ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.InitializeVariableOccurrence2002)) return;
+        foreach (var d in DataItem.SelfAndDescendantsOf(item))
+        {
+            if (d.OccursSpec?.DependingName is null) continue;
+            using var _ = ctx.Edition.At(dref);
+            ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.InitializeVariableOccurrence2002,
+                $"INITIALIZE {DataBinder.WrittenText(dref)}: '{d.CobolName ?? "FILLER"}' is described with OCCURS … DEPENDING ON {d.OccursSpec.DependingName}");
+            return;
+        }
+    }
+
     /// <summary>The ALLOCATE based-item INITIALIZED lowering (ISO §2023:14.9.3 GR7): "the allocated storage is
     /// initialized as if an INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN TO DEFAULT statement were
     /// executed" — bind EXACTLY that statement's expansion over the based item (the ONE INITIALIZE mechanism:
@@ -245,6 +265,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         // §2023:4.2.2 puts a syntax-rule violation in the compile-time mechanism.
         if (host.Expr.ResolveReceiving(dref) is not { } place) return;
         written = place;
+        GateCobol85VariableOccurrence(dref, place.Item);
         // ISO §2023:14.9.20.3 SR5: "The data description entry for the data item referenced by identifier-1 shall not
         // contain a RENAMES clause." ⛔ ON THE RESOLVED PATH, WHICH IS THE ONLY ARM THAT CAN REACH IT: the check
         // used to sit in the resolve-FAILURE arm above, and a level-66 entry RESOLVES — so the rule never fired

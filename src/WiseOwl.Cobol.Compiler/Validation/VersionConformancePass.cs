@@ -2223,6 +2223,24 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>⛔ ONE CATEGORY PER REPLACING ITEM AT COBOL-85 (kb/Work PB5180). §1985:VI.6.17.2 prints the five
+        /// category words of a REPLACING item in plain braces with no choice indicators, and §1985:IV.2.1.4: "When
+        /// braces, { } , enclose a portion of a general format, one of the options contained within the braces must be
+        /// either explicitly specified or implicitly selected." The choice indicators that make a category-name a SET
+        /// (ISO §2023:14.9.20.2, §2023:5.2.6.4) are in the ISO/IEC 1989:2002 format (14.8.19.1), so a REPLACING item
+        /// naming two or more categories is the 2002 form: the second word is where the 1985 item ends. Asked of the
+        /// REPLACING item only — the VALUE phrase's category-name is a 2002 phrase whole (initialize-to-value-2002).</summary>
+        public override object? VisitInitializeReplacingItem(CobolParserCore.InitializeReplacingItemContext ctx)
+        {
+            if (ctx.initializeCategory()?.initializeCategoryName() is { Length: > 1 } names)
+            {
+                using var _ = Sink.At(names[1]);
+                _p.Check(Constructs.InitializeReplacingCategorySet2002,
+                    $"INITIALIZE REPLACING {WrittenSource.Of(ctx.initializeCategory())} DATA, more than one category in one item");
+            }
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The <c>FROM { identifier-1 | literal-1 }</c> phrase of WRITE, REWRITE and RELEASE (ISO §2023:14.9.51.2,
         /// §2023:14.9.35.2, §2023:14.9.32.2) — X3.23-1985 allows only an identifier as the FROM operand of all three; the
         /// literal form (a figurative constant included) is 2002+. ONE grammar rule carries the phrase for every
