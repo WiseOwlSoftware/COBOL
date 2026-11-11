@@ -8,20 +8,20 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// <summary>
 /// CCVS-85's CM module against the communication facility (kb/Work PB4677). The programs read their symbolic names from the X-cards NistPreprocessor maps, and tests/nist/data/mcs.json
 /// defines those names to the MCS. Every program compiles at COBOL-85. CM102M, CM103M, CM105M and CM201M run: CCVS's own checks are the oracle, so a program reporting a failure, or none of its
-/// tests, is a failure here. CM101M, CM104M and CM202M measure wall-clock delays of 15 and 30 seconds and wait on an operator's terminal, so they are compiled only: the report's records of
+/// tests, is a failure here. CM102M waits 90 s on its own clock, which its budget states (kb/Work PB5154). CM101M, CM104M and CM202M measure wall-clock delays of 15 and 30 seconds and wait on an operator's terminal, so they are compiled only: the report's records of
 /// CM101M's and CM104M's status legs are ones these goldens witness (conformance-suite/wiseowl/cases/_unassigned/pb4677_mcs_*). CM303M and CM401M test the federal flagging layer, which is outside
 /// the ISO suite (PB4614 decision 11), and compile clean.
 /// </summary>
 public sealed class CommunicationCcvsTests
 {
-    private static string Run(string program, IReadOnlyDictionary<string, string?>? env = null)
+    private static string Run(string program, IReadOnlyDictionary<string, string?>? env = null, ObservationBudget? budget = null)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_Cm_");
         File.Copy(Path.Combine(TestRepo.Root, "tests", "nist", "data", "mcs.json"), Path.Combine(dir, "mcs.json"));
         string dll = Path.Combine(dir, program + ".dll");
         var compiled = CompiledProgramCache.Compile(CorpusManifest.CompileOptions(program, dll, 85, permissive: false, checkOnly: false));
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
-        var (ok, _, detail) = CutRunner.Run(dll, dir, null, env);
+        var (ok, _, detail) = CutRunner.Run(dll, dir, null, env, budget);
         Assert.True(ok, detail);
         return dir;
     }
@@ -51,7 +51,11 @@ public sealed class CommunicationCcvsTests
     [Fact]
     public void CM102M_ReportsNoFailure()
     {
-        string dir = Run("CM102M");
+        // CM102M's own clock (DELAY-FOR-30-SECS, an ACCEPT FROM TIME loop): MSG-BEFORE-DELAY-AND-DISABLE falls into one
+        // delay and DELAY-DISABLE-DELAY-AND-STOP performs it twice, so the run waits 90 s whatever the host does, and its
+        // budget states that wait on top of the unit (kb/Work PB5154).
+        string dir = Run("CM102M", budget: ObservationBudget.OneProcessWaiting(TimeSpan.FromSeconds(3 * 30),
+            "CM102M, which waits three 30-second delays on its own clock"));
         try
         {
             string report = File.ReadAllText(Path.Combine(dir, "cm102m.txt"));

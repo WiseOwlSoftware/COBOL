@@ -535,7 +535,7 @@ and it fails the gate as UNRESOLVED so it gets read rather than absorbed.
 
 | site | what it does now |
 |---|---|
-| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** It replaced seven copies of "start `dotnet`, wait N s, return whatever came back". A run that does not complete raises `HarnessNonObservationException` and never returns partial output for a caller to compare. It retries **once, serialized**, first: that re-attempts a measurement that did not complete, not a failed assertion. A process killed at its budget has not necessarily exited: the wait after the kill is read, a process still alive is `ProcessOutcome.SurvivedKill` (its id in the detail), and the retry waits for it (`SurvivorWaitMs`) before it restores the run directory, or raises the non-observation naming it (kb/Work PB4388). A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input: kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units. A timeout reports the budget, the work it covered, the process's own processor time and the host's load across the attempt (`HostLoad`), so load is told from a hang. Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the gate (`gate.py`'s `leg_env`), every CI test step (`scripts/test_linux_gate.py`) and the Linux reproduction tool point into their results directory; CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
+| `tests/_shared/ProcessObservation.cs` | **THE one child-process observer.** It replaced seven copies of "start `dotnet`, wait N s, return whatever came back". A run that does not complete raises `HarnessNonObservationException` and never returns partial output for a caller to compare. It retries **once, serialized**, first: that re-attempts a measurement that did not complete, not a failed assertion. A process killed at its budget has not necessarily exited: the wait after the kill is read, a process still alive is `ProcessOutcome.SurvivedKill` (its id in the detail), and the retry waits for it (`SurvivorWaitMs`) before it restores the run directory, or raises the non-observation naming it (kb/Work PB4388). A caller that runs a PROGRAM in a directory names it (`runDirectory:`), and the retry starts from the state that directory had before the first attempt (`RunDirectoryState`; a larger file the killed attempt changed makes the retry a non-observation, never a measurement over another input: kb/Work PB3388). `EveryRunOfACompiledProgram_NamesItsRunDirectory` keeps every `dotnet <dll>` call site on it. **The budget is a rule over the WORK, never one fixed number** (`tests/_shared/ObservationBudget.cs`, kb/Work PB3108): one harness unit (120 s, `WISEOWL_COBOL_RUN_TIMEOUT_MS`) for the observed process plus one per serial round of the child processes it runs, `1 + ceil(children / parallel)` units. A program that waits on its own clock by design states the wait, which is ADDED to the units and never multiplied (`ObservationBudget.OneProcessWaiting`, kb/Work PB5154): CCVS CM102M's three 30-second ACCEPT FROM TIME delays (90 s) are now part of its budget, which is a budget that says what the program does, not an explanation of why it was killed at 120 s on GitHub's Windows runners: that stall (31 s of CPU, then off the processor on an idle host) is UNEXPLAINED and open as kb/Work PB5147. A timeout reports the budget, the work it covered, the process's own processor time, the host's load across the attempt and the durable-flush time of its run volume (`HostLoad.Describe`, `HostLoad.DurableFlushLine`, kb/Work PB5147: CM102M makes 544 durable device flushes, so a slow volume stalls it off the processor), so load is told from a hang and a hang from a slow disk (a hypothesis for CM102M, not yet read off a runner). Every retry and non-observation is appended to `WISEOWL_COBOL_HARNESS_LOG`, which the gate (`gate.py`'s `leg_env`), every CI test step (`scripts/test_linux_gate.py`) and the Linux reproduction tool point into their results directory; CI uploads it with the TRX, so the rate is measurable and a CI non-observation is readable afterwards. |
 | `tests/_shared/CiWorkflow.cs` (`CiWorkflowDriftTests`) | **THE one reader of a CI workflow's shape** (kb/Work PB3819): the jobs under the top-level `jobs:` key, each job's `steps:` list, each step's own keys (`Value("uses")`, `Value("continue-on-error")`, `Input("overwrite")` for a `with:` input) and the comments. **A comment or blank line belongs to what follows it**: a banner above a job documents that job. A shape the line reader cannot read (no `jobs:`, a job with no id, a flow-style `steps:`) raises `InvalidDataException`, never an empty answer. `CiWorkflowDriftTests` holds its arms on a fixture workflow and sweeps `tests/` for a job-key regex, a `jobs:` anchor or a hand-found `steps:` key of any other file. |
 | `ProcessObservationDriftTests` | Keeps the extraction collapsed (the `TestRepoDriftTests` pattern): no test source may start a process under its own bounded wait. Plus five behavioural facts, including "a process that never finishes RAISES instead of returning empty output" and "`Observe` reports a timeout with an **empty** stdout" — if that ever returns content, the defect is back. |
 | `scripts/guard-nist-audit.sh` | The population + manifest + expectation audit, consumed by the guard so the rule is written once. A plain `divergent` row expects `MATCH` (PB750) and a `TERMINATES` row expects `TERMINATES <EC>` (PB1955), the second set asked of `guard-population.sh`; a verdict word it does not know (the retired `LEGACY DIVERGENT` included) is an UNRECOGNIZED finding. `--self-test` proves all sixteen checks can fail, including the two `divergent` arms and the five TERMINATES arms. `guard-fast.sh` runs it, with `guard-population.sh --self-test` and `guard-verify.sh --self-test`, before every guard run. |
@@ -1282,8 +1282,9 @@ since, so nothing ran (run <this run>); that gate: … ===`. It is the self-test
 keyed on what was measured rather than on a branch or a head; a RED is never reused. A reused record carries its own seconds
 (`timings.wall_s`), so `landing_measure.py` counts what each gate cost.
 
-**5. Targets: each test assembly is a target keyed by its declared inputs, its passes in one store every worktree shares,
-and a re-gate runs only what has not passed at a target's key (kb/Work PB5207 stage 1, PB5218; PB5205; PB5099, owner
+**5. Targets: each test assembly is a target keyed by its declared inputs and the outputs of the generated targets it
+depends on, its passes in one store every worktree shares, and a re-gate runs only what has not passed at a target's key
+(kb/Work PB5207 stages 1 and 2, PB5218, PB5231; PB5205; PB5099, owner
 2026-11-09: "If only one test failed, any retry should test only that one case"; owner 2026-11-10: "This is precisely what
 the Unix make and Windows MSBuild utilities are for. They rerun only what is required due to changes.").** THE RULE
 (CLAUDE.md "Testing", 2026-10-31) asks that every case the merge group runs on Windows already ran green AT THE PUSHED HEAD on
@@ -1293,21 +1294,76 @@ running the 63,000 again; records-85's gate of tree 241f5fbb05 passed all 64,465
 orchestrate self-tests hung, and its re-gate after a merge of main that brought only `kb/`, `DEVLOG/` and three tooling-lane
 scripts ran the 64,465 again.
 
-*The targets* (`scripts/buildgraph.py`, declared in `scripts/build_targets.json`). `unit`, `conformance` and
-`characterization` are one target per gated assembly. Each declares its INPUTS as path patterns, each naming its reader:
-`@build` (what building a test assembly reads: `src/`, the root and test-tree props, `tests/_shared/`, the package sources
-and feed, the CLI's Exec scripts), the assembly's own project, and the data its tests read. `conformance` declares the suite,
-`tests/nist`, `tests/differential`, `tests/version-matrix` (the construct catalogue, and the traceability inventory of both
-editions that `conformance-suite/harness/generate.py` reads, found by a traced run of the generator), both rule catalogs, the
-ISO text, `tests/doc-facts`, `scripts/spec/` and the modules the harness imports, and `scripts/guard*.sh`.
-`characterization` declares its corpus and its snapshots. `unit` declares every population input
+*The targets* (`scripts/buildgraph.py`, declared in `scripts/build_targets.json`, loaded as one checked `Graph`). A target
+has a KIND. A `test` target is one gated assembly: `unit`, `conformance`, `characterization`. A `generated` target is a
+Python command that writes declared OUTPUTS into `<worktree>/TestResults/generated/<target>/`: `conformance-suite`, the
+conformance suite's manifests (`conformance-suite/harness/generate.py --out`, the one reader of the test headers). Each
+target declares its INPUTS as path patterns, each naming its reader, its exclusions, the FACETS its key covers and the targets
+it DEPENDS on. `@build` (what building a test assembly reads: `src/`, the root and test-tree props, `tests/_shared/`, the
+package sources and feed, the CLI's Exec scripts) is every test target's. `conformance-suite` declares `conformance-suite/`,
+`tests/version-matrix/` (the traceability inventory of both editions, the schema, the construct catalogue, the reserved
+words, Annex A.2 and the conformance register), both rule catalogs, the ISO text, `scripts/spec/` and the modules the
+generator imports, found by reading it and by a traced run (kb/Work PB5218, PB5231); its only facet is the toolchain.
+`conformance` DEPENDS on `conformance-suite` and declares its own project, the suite (its tests, expected outputs, adapters,
+profiles, `harness/run.py` and `config.py`), `tests/nist`, `tests/differential`, the construct catalogue
+(`tests/version-matrix/constructs/`, which its tests read directly), `tests/doc-facts`, the modules `run.py` imports and
+`scripts/guard*.sh`, and EXCLUDES the generator's own sources (`harness/generate.py`, `cobol_source.py`): the inventory, the
+rule catalogs, the ISO text and `scripts/spec/` are not its inputs, because none of its sources reads them. `characterization`
+declares its corpus and its snapshots. `unit` declares every population input
 (`inert_lane.Classification.is_population_input`): it is the compiler's unit tests and the repository's drift tests in one
-assembly until stage 2 of kb/Work PB5207 splits them. Every target excludes `@inert` and `@tooling-lane`, the classes the
-inert lane's watch proves no compiler test reads. A target's KEY (`buildgraph.key`, `Host.target_keys`) is the sha256 of its
-name, its FACETS (the platform, the configuration the gate builds, `GATE_CONFIGURATION`, and the toolchain) and every
-`git ls-tree -r` entry of the measured tree whose path its inputs match: object ids, no file read, about 0.7 s for 35,000
-paths. So a change to the inventory alone changes `unit`'s and `conformance`'s keys and not `characterization`'s; a change to
-`docs/`, `kb/`, `DEVLOG/` or a tooling-lane script changes none.
+assembly until kb/Work PB5230 splits them. Every target excludes `@inert` and `@tooling-lane`, the classes the inert lane's
+watch proves no compiler test reads. The graph is refused when it is malformed (`Graph.of`): a dependency on an undeclared
+target or on a test target (which makes no output), a cycle (named: `a -> b -> a`), a generated program that is not among its
+own inputs or is not Python, a hand-off variable a test host's scrub would not remove. `Graph.order` is a topological order.
+
+A target's KEY (`buildgraph.key`, `buildgraph.keys`, `Host.target_keys`) is the sha256 of its name, its FACETS (of the
+platform, the configuration the gate builds, `GATE_CONFIGURATION`, and the toolchain), the OUTPUT DIGEST of each target it
+depends on (never that target's inputs), and every `git ls-tree -r` entry of the measured tree whose path its inputs match:
+object ids, no file read, about 0.7 s for 35,000 paths. A target with no dependency and every facet hashes exactly as in stage
+1, so `KEY_VERSION` is unchanged and stage 1's passes of `unit` and `characterization` stand. So a change to the inventory
+alone changes `unit`'s key and `conformance-suite`'s, and `conformance`'s only when the regenerated suite differs (Bazel's
+cut-off on an unchanged output); a change to `docs/`, `kb/`, `DEVLOG/` or a tooling-lane script changes none. A dependency
+whose output digest is not known is `Unresolved`, naming it, never a key without it (owner 2026-11-10: "If it cannot be
+resolved, there is a problem/bug").
+
+*A generated target is brought up to date first* (`buildgraph.generate`, `bring_up_to_date`, `Gate._generate`), in
+topological order, before any test target's key. It is UP TO DATE when the store records an output digest at its key AND its
+output directory holds exactly that digest (`output_digest`: the sha256 of every file's relative POSIX path and content hash,
+in path order; no absolute path, time or platform). Otherwise the directory is removed and the command runs under a Python
+audit hook (`TRACER`, `traced_run`), and the generation is REFUSED, naming what stopped it, when it exits non-zero, OPENS a
+tracked path its inputs do not match (an input excluded as `@inert` included: then the classification is wrong; the run's
+bytecode cache is a fresh empty directory of its own, `sys.pycache_prefix`, so every Python source it executes is opened,
+whatever loader runs it, an import or `spec_from_file_location` + `exec_module`, and a warm `__pycache__` in the worktree is
+never read: kb/Work PB5231 review R1-1, R2-1), OPENS or LOADS compiled code from inside the worktree (a sourceless .pyc, a
+compiled extension, which raises no open event and is found in the module list the tracer writes at its end: code with no
+tracked source the key could cover), LISTS a tracked directory no input lies in or under, STARTS a process (whose reads no
+hook sees), writes a file its outputs do not
+declare or leaves a declared output unwritten, reproduces NOT the digest the store records at that key (`Nondeterministic`:
+the outputs are kept to compare), or runs while the working tree changes (`TreeMoved`). Only a first generation at a key is
+recorded (its digest, file count, seconds, worktree). A gate whose generated target is refused ends RED before any host: a
+dependent run on another suite would be recorded under a key it did not run. The generator's seconds: about 13 s traced.
+THE TRACE'S RESIDUE: an existence or stat call (`Path.exists`, `is_file`, `is_dir`, `os.stat`, …) raises no audit event.
+The STATIC half of the declaration (`buildgraph.static_check`, part of the BUILD TARGETS audit, review R1-1 and R1-3)
+covers it before any run: the program's import closure (`inert_lane.import_closure`, every import, a lazy one included)
+lies in its inputs, and every existence or stat call in the program and its closure, outside self-test functions, probes a
+path under its inputs when `inert_lane.static_dir` can decide the path from literals and the module's static names; a call
+it cannot decide is a finding until the target's `judged` map states, under `<file>|<function>|<call>`, why the path is an
+input, and a judgment that names no call any more is a finding.
+
+*The host runs the suite its key names* (soundness, kb/Work PB5231). The gate hands each dependent's host, and its
+`--list-tests`, the output directory of each generated target it depends on, in the target's declared variable
+(`WISEOWL_COBOL_GATE_SUITE`; `host_env`, `test_population.list_population(handed=)`), set after the scrub so no stray one
+reaches a host. `SuiteManifest` reads that directory when it is handed one and generates its own only when it is not (a hand
+run, CI): one generation per gate, and the key a pass is recorded under is the digest of the suite the host ran. After the
+hosts, the gate digests each handed directory again (`_check_generated`): a change is a RED reason (`GENERATED OUTPUT
+CHANGED`) and the dependent's pass is not recorded. A host that was handed nothing generates its own and records
+`GENERATED-OWN  <target>` in its observation log (`SuiteManifest.OwnGenerationMark`); a gate whose dependent host log holds
+it is RED (`GENERATED BY THE HOST`) and records no pass, so inside the gate the fallback cannot stand. Only the gate's runs
+are keyed: a hand `dotnet test` or a CI run generates its own suite and records no pass in the store. A pass records the
+output digests it was keyed on (`depends`). The BUILD TARGETS audit admits a read of the dependency's PROGRAM only at its ONE
+hand-off site, the source that names both the variable and the own-generation mark; a second source that runs or reads the
+program reads every input of the generator, none in the dependent's key, and is a finding (review R1-2). The verdict line names each generated target (`conformance-suite generated in 13.1 s
+(output 1a2b3c4d5e6f, 5 file(s))` or `… up to date …`) and the record keeps `generated`.
 
 *The store* (`buildgraph.Store`) is `<git common dir>/cobol-build-store/<target>/<key>.json`: one small record per target and
 key (the counts, the facets, the worktree, run and head that proved it), written whole. A target is UP TO DATE exactly when
@@ -1356,7 +1412,12 @@ gate's AUDITS) reads every test source of an assembly and each `tests/_shared` f
 transitively) and finds every repository read it spells: a `TestRepo` helper with its leading literal segments, a listing of
 a helper's directory by a literal pattern, `Path.Combine(TestRepo.Root, "…")`, and a string literal rooted at a top-level
 tracked directory. A read outside the target's inputs is RED, naming file and line, until the read is declared with its reader;
-a read the audit cannot resolve by itself is judged by hand in the target's `judged` map, with its reason. Its residue,
+a read of the PROGRAM of a target it depends on at that target's one hand-off site (`SuiteManifest`'s `generate.py`, the run
+a host makes only when no gate handed it the suite) is reached through that dependency and belongs to it, counted in the
+verdict line; the same read anywhere else, a read of an excluded path, or of the dependency's INPUTS (the inventory), is a
+finding. A dependent assembly whose sources do not name its
+dependency's hand-off variable is a finding. A read the audit cannot resolve by itself is judged by hand in the target's
+`judged` map, with its reason. A generated target's declared inputs are proved at every run of it by its trace. Its residue,
 counted in its verdict line and judged nowhere statically: a bare `TestRepo.Root` (a working directory, a path stripped from
 a message, or `TrackedTree`'s `git ls-files`), a path computed at run time, and what a process a test starts reads. The
 dynamic proof, the Linux shards' file watch extended per target, is kb/Work PB5218's remaining work.
@@ -1372,7 +1433,10 @@ measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog puts HEAD
 `gate.pid`'s time, written before the tree was measured; the filesystem's clock, the hosts' and the reflog's, never the
 driver's) with no move until the hosts' last write. Its residue, written into the record (kb/Work PB5205 review R1-2): an
 uncommitted edit made while the run ran and undone at ANY time before the re-derivation is in no reflog, where the live gate,
-which measures `tree_end` after its hosts, would have refused it. Each target's key is computed from the RECORDED tree. A proved
+which measures `tree_end` after its hosts, would have refused it. Each target's key is computed from the RECORDED tree, and a
+dependent target's from the generated output the RUN recorded it was handed (`Gate._rederived_keys`, kb/Work PB5231 review
+R2-2): a run whose recorded digest the store now contradicts is refused naming both, and a run from before the hand-off has
+its Conformance REFUSED (never stored or carried; its host generated its own suite). A proved
 record keeps its verdict, line and exit code (RED), gains `tree_end`, `keys`, `audit_reds` and `rederived` (when, the
 evidence, the residue, per assembly "stored" or "passes"), and the original stays beside it as `verdict.original.json`. An
 assembly for which a run at the same key kept the listing (`listing-<asm>.txt`) is checked EXACT against it by the live check
