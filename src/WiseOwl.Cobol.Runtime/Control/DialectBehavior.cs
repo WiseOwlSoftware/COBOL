@@ -153,6 +153,17 @@ public enum DialectBehavior
     /// is not presented, so at <c>--std 85</c> only a GENERATE whose group was presented consumes it (kb/Work PB5246; VCR row
     /// 7.60). The consumer is <c>CobolReport.GenerateCore</c>.</summary>
     GroupIndicateConsumedByIssuedGenerate = 10,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.30.4 GR14 — "For a record sequential file, if the number of bytes in the record that is
+    /// read is less than the minimum size specified by the record description entries for file-name-1" (or greater than the
+    /// maximum), "the READ statement is successful, and the I-O status value for file-name-1 is set to '04'". 2023 limited the
+    /// rule to a RECORD SEQUENTIAL file (Annex E.2 item 15 clarifies when '04' is set). The 2014 text (§2014:14.9.29.3 GR14) and the 2002
+    /// text (§2002:14.8.29.3 GR13) state it for every organization: "In either of these cases, the READ statement is successful and an
+    /// I-O status is set indicating a record length conflict has occurred", and so do §1985:VII.4.4.4 GR13, §1985:VIII.4.5.4 GR16
+    /// and §1985:IX.4.5.4 GR18. So below 2023 a relative or indexed READ of a record outside the record descriptions' sizes
+    /// answers '04'; at 2023 it answers '00' (the OPEN's fixed file attribute check, '39', is the 2023 text's only guard).
+    /// The consumer is <c>KeyedConnector.RecordReadSuccessStatus</c> (kb/Work PB5238; VCR row 7.61).</summary>
+    RecordLengthConflictRecordSequentialOnly = 11,
 }
 
 /// <summary>
@@ -224,6 +235,10 @@ public static class DialectBehaviors
             "7.60", "13.18.28.4 GR1", "§1985:XIII.3.13.4 GR1",
             "a GENERATE whose group SUPPRESS PRINTING kept from printing uses up the GROUP INDICATE occasion only from COBOL-2002; "
             + "COBOL-85 keys the indication to the first presentation of the detail group"),
+        new(DialectBehavior.RecordLengthConflictRecordSequentialOnly, "record-length-conflict-record-sequential-only", 2023,
+            "7.61", "14.9.30.4 GR14", "§1985:VIII.4.5.4 GR16",
+            "a READ of a record shorter or longer than the record descriptions allow is successful with I-O status '04' only for a "
+            + "record sequential file from COBOL-2023; before 2023 a relative and an indexed READ answer it too"),
     ];
 
     static DialectBehaviors()

@@ -850,10 +850,19 @@ of an unsupported facility.
 - **I-O status '0x' case equivalence** (E.2 item 17): the low-order status digit for a non-'00' successful
   completion is implementor-dependent; WiseOwl COBOL reports the specific '0x' value (e.g. '04', '05', '07') rather
   than collapsing to '00'.
-- **I-O status '04' (record-length mismatch, §2023:14.9.30 GR14 / §2023:9.1.13.2 item 3)**: **emitted** on a
-  record-sequential READ whose physical record is outside the file's min/max record size (fixed leg: shorter than
-  the record width; varying leg: outside [VaryMin, VaryMax]) — the READ is successful, the record is delivered,
-  status '04' (VCR 21; golden `2002/io_status_04`). Line-sequential is excluded (§2023:14.9.30 GR15 pads short records
+- **I-O status '04' (record-length mismatch, §2023:14.9.30.4 GR14 / §2023:9.1.13.2 item 3)**: **emitted** on a READ whose record
+  length is outside the sizes its RECORD DESCRIPTIONS specify (kb/Work PB5238) — the READ is successful, the record is delivered
+  (truncated to the maximum), status '04' (VCR 21; golden `2002/io_status_04`). **The measure is the descriptions' smallest and
+  largest size, not the RECORD clause's integer-2 and integer-3** (§1985:VII.3.8.4 GR10 refuses a WRITE only outside those two, so
+  a file may hold records its reading program's descriptions do not span): `FileConnector.ReadLengthOutsideDescriptions`, told
+  the sizes by `RegisterRecordDescriptionSizes` for a variable-length file whose descriptions are narrower than its clause. A
+  record sequential file of FIXED-length records answers it for a record shorter than the record width (the end of the file).
+  **A relative or indexed READ answers it below 2023 only** (§1985:VIII.4.5.4 GR16, §1985:IX.4.5.4 GR18, §2002:14.8.29.3 GR13 and
+  §2014:14.9.29.3 GR14 state the rule for every organization; §2023:14.9.30.4 GR14 opens "For a record sequential file"): at 2023
+  the READ is '00', because the OPEN's fixed attribute check (DOC-A.1-129) is the 2023 text's guard and its text names no status
+  for a keyed record of another length (`DialectBehavior.RecordLengthConflictRecordSequentialOnly`, VCR row 7.61). An indexed READ
+  whose record also has an equal next key answers '02', the rule §2023:14.9.30.4 GR27 states after the length rule (§2023:9.1.13: the
+  implementor chooses among applicable values). Line-sequential is excluded (§2023:14.9.30 GR15 pads short records
   with trailing spaces — its '06' write path remains unimplemented). The value is version-invariant — the E.2
   item 15 2023 delta only clarifies *when* it is set.
 - **I-O status '07' restricted to OPEN/CLOSE (§2023:9.1.13.2 item 6; E.2 item 16)**: **VERIFIED AT 2023, A DETERMINATION

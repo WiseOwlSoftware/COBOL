@@ -281,6 +281,10 @@ public static class CobolFile
     /// <see cref="FileRegistry.RegisterRecordLengthFromDepending"/> (§2023:14.9.51.4 GR21/GR22; kb/Work PB1191).</summary>
     public static void RegisterRecordLengthFromDepending(string name) => _reg.RegisterRecordLengthFromDepending(name);
 
+    /// <summary>Register the smallest and largest record description sizes of a variable-length file — see
+    /// <see cref="FileRegistry.RegisterRecordDescriptionSizes"/> (§2023:14.9.30.4 GR14; kb/Work PB5238).</summary>
+    public static void RegisterRecordDescriptionSizes(string name, int min, int max) => _reg.RegisterRecordDescriptionSizes(name, min, max);
+
     /// <summary>Register the file's RESERVE clause, its input-output area count (§2023:12.4.5.14.3 GR1) — see
     /// <see cref="FileRegistry.RegisterReserve"/>.</summary>
     public static void RegisterReserve(string name, int areas) => _reg.RegisterReserve(name, areas);

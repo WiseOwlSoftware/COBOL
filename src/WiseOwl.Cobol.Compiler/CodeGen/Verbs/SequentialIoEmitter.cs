@@ -505,6 +505,11 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // record at data-name-1's length — the connector's trailing-space strip is off for it.
         if (file.Varying is { DependingName: not null })
             w.Line($"{RuntimeApi.FileRegisterRecordLengthFromDepending(FileKeyExpr(file))};");
+        // §2023:14.9.30.4 GR14 (§1985:VII.4.4.4 GR13, §1985:VIII.4.5.4 GR16, §1985:IX.4.5.4 GR18): the record length conflict is
+        // measured against the record DESCRIPTIONS, which may lie inside the RECORD clause's bounds (kb/Work PB5238).
+        if (file.RecordSizeVaries && file.Records.Count > 0 && file.RecordDescriptionSizes is var (dMin, dMax)
+            && (dMin, dMax) != (file.VaryMin, file.VaryMax))
+            w.Line($"{RuntimeApi.FileRegisterRecordDescriptionSizes(FileKeyExpr(file), dMin, dMax)};");
         EmitCodeSetRegistration(w, file);        // §2023:13.18.13.4 GR2/GR6 (kb/Work PB793)
         EmitReserveRegistration(w, file);        // §2023:12.4.5.14.3 GR1 (kb/Work PB643)
     }

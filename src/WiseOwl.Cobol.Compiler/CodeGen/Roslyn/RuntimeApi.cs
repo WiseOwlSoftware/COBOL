@@ -1751,6 +1751,12 @@ internal static class RuntimeApi
     public static string FileRegisterRecordLengthFromDepending(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRecordLengthFromDepending)}({name})";
 
+    /// <summary>Declare the connector's record description sizes — <c>CobolFile.RegisterRecordDescriptionSizes</c>, emitted right
+    /// after the registration for a variable-length file whose descriptions do not span its RECORD clause's bounds
+    /// (§2023:14.9.30.4 GR14; kb/Work PB5238).</summary>
+    public static string FileRegisterRecordDescriptionSizes(string name, int min, int max) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRecordDescriptionSizes)}({name}, {min}, {max})";
+
     /// <summary>Declare the connector's input-output area count — <c>CobolFile.RegisterReserve</c>, emitted right after
     /// the registration (the <see cref="FileRegisterNationalArea"/> pattern) for exactly the files whose file control
     /// entry writes the RESERVE clause (ISO §2023:12.4.5.14.3 GR1; kb/Work PB643).</summary>

@@ -534,7 +534,9 @@ public sealed class IndexedConnector : KeyedConnector
         _lastReadPrime = found.Prime;
         NoteRecordRead(found.Record.Image, found.Record.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(found.Record.Image);
-        return ReadSucceeded(duplicate ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success);
+        // '02' (§2023:14.9.30.4 GR27) is stated after the length rule, so it is the status when both apply (§2023:9.1.13 — the
+        // implementor chooses among applicable values); '04' (kb/Work PB5238) is the status of a conflicting record without one.
+        return ReadSucceeded(duplicate ? FileStatusCode.DuplicateAlternateKey : RecordReadSuccessStatus(found.Record.Image.Length));
     }
 
     /// <summary>Format-2 random READ (§2023:14.9.30 GR30–GR32): <paramref name="keyIndex"/> becomes the key of
@@ -568,7 +570,7 @@ public sealed class IndexedConnector : KeyedConnector
         _lastReadPrime = found.Prime;
         NoteRecordRead(found.Record.Image, found.Record.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(found.Record.Image);
-        return ReadSucceeded(duplicateFollows ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success);
+        return ReadSucceeded(duplicateFollows ? FileStatusCode.DuplicateAlternateKey : RecordReadSuccessStatus(found.Record.Image.Length));
     }
 
     /// <summary>Whether the record after <paramref name="found"/> in alternate key <paramref name="keyIndex"/>'s order (key

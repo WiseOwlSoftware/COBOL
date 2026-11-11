@@ -885,6 +885,25 @@ public abstract class FileConnector
     /// <summary>GR14/GR15's "maximum size specified by the record description entries".</summary>
     protected int MaxRecordSize => RecordMax > RecordWidth ? RecordMax : RecordWidth;
 
+    private int _describedMin = -1, _describedMax = -1;
+
+    /// <summary>Declare the smallest and the largest record DESCRIPTION of a variable-length file when they differ from
+    /// the RECORD clause's bounds (<see cref="FileRegistry.RegisterRecordDescriptionSizes"/>; kb/Work PB5238). §1985:VII.3.8.4
+    /// GR10 measures a WRITE against the clause's integer-2 and integer-3 alone, so the descriptions may lie anywhere
+    /// inside them, and the READ rule that names a record length conflict measures against the DESCRIPTIONS.</summary>
+    internal void DescribeRecordSizes(int min, int max) { _describedMin = min; _describedMax = max; }
+
+    /// <summary>⛔ THE ONE TEST OF A READ's RECORD LENGTH CONFLICT FOR A VARIABLE-LENGTH FILE — ISO §2023:14.9.30.4 GR14: a
+    /// record shorter than "the minimum size specified by the record description entries for file-name-1", or longer than
+    /// "the maximum size specified by the record description entries", is read successfully with I-O status '04'
+    /// (§1985:VIII.4.5.4 GR16, §1985:IX.4.5.4 GR18 and §1985:VII.4.4.4 GR13 state it for the other organizations). The
+    /// bounds are the descriptions' (<see cref="DescribeRecordSizes"/>), defaulting to the RECORD clause's
+    /// <see cref="VaryMin"/>/<see cref="VaryMax"/>, which GR9/GR10 derive from the descriptions when the clause omits them.
+    /// A fixed-length file has no variable length to conflict with (each organization answers its own fixed leg).</summary>
+    protected bool ReadLengthOutsideDescriptions(int length) =>
+        IsVarying && (length < (_describedMin >= 0 ? _describedMin : VaryMin)
+                      || length > (_describedMax >= 0 ? _describedMax : VaryMax));
+
     // ── Record-lock identity (ISO §2023:9.1.16 — record locking applies to EVERY organization; the READ/REWRITE/
     //    WRITE/DELETE lock rules §2023:14.9.30 GR7–GR12 / §2023:14.9.35 GR11–GR12 / §2023:14.9.51 GR10–GR11 / §2023:14.9.10 GR6–GR7
     //    are ALL-FORMATS rules). Each organization names its records for the PhysicalFileTable: the RRN for

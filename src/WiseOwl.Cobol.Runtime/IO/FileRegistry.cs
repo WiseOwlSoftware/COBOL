@@ -1766,6 +1766,14 @@ public sealed class FileRegistry
         if (_files.TryGetValue(name, out var c)) c.RecordLengthFromDepending = true;
     }
 
+    /// <summary>Declare the smallest and largest RECORD DESCRIPTION sizes of a variable-length file whose descriptions do not
+    /// span its RECORD clause's bounds (§2023:14.9.30.4 GR14's "minimum/maximum size specified by the record description
+    /// entries"; emitted right after registration, only for such a file — kb/Work PB5238).</summary>
+    public void RegisterRecordDescriptionSizes(string name, int min, int max)
+    {
+        if (_files.TryGetValue(name, out var c)) c.DescribeRecordSizes(min, max);
+    }
+
     /// <summary>Declare the file's RESERVE clause (ISO §2023:12.4.5.14.3 GR1: <i>"If the RESERVE clause is specified, the
     /// number of input-output areas allocated is equal to the value of integer-1"</i>; emitted right after
     /// registration, only for a file control entry that writes the clause — kb/Work PB643). The compiler has
