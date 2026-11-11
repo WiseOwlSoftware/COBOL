@@ -16,8 +16,10 @@ repository shares it: a pass recorded in worktree A is up to date in worktree B 
 was proven (a gated assembly whose population check was EXACT and whose host was green): a red, a partial or an unmeasured
 run records nothing.
 
-THE INPUT PATTERNS. `dir/` is every path below it; a pattern with `*` or `?` is matched whole (`fnmatch`); anything else is
-that path or, when it names a directory, every path below it. `@build` is the shared build inputs of the targets file;
+THE INPUT PATTERNS are matched by the one matcher of the classification, `inert_lane.under`: `dir/` is every path below
+it; a pattern with `*` or `?` is a listing pattern (within one directory and case-insensitive, as a .NET directory
+listing matches, so a key changes for every file a test's listing reads); anything else is that path or, when it names a
+directory, every path below it. `@build` is the shared build inputs of the targets file;
 `@population-inputs` is every path a compiler test or the build may read (`inert_lane.Classification.is_population_input`).
 The exclusions `@inert` (no test reads it, proven by the inert lane's watch) and `@tooling-lane` (no compiler test or build
 reads it, proven by the same watch and the INERT LANE audit) are the classes a test target never reads.
@@ -33,7 +35,6 @@ target) is the remaining work kb/Work PB5218 states.
 from __future__ import annotations
 
 import argparse
-import fnmatch
 import hashlib
 import json
 import os
@@ -93,11 +94,7 @@ class Target:
 def _matches(path: str, pattern: str, cls: inert_lane.Classification) -> bool:
     if pattern == "@population-inputs":
         return cls.is_population_input(path)
-    if "*" in pattern or "?" in pattern:
-        return fnmatch.fnmatchcase(path, pattern)
-    if pattern.endswith("/"):
-        return path.startswith(pattern)
-    return path == pattern or path.startswith(pattern + "/")
+    return inert_lane.under(path, pattern)
 
 
 def _excluded(path: str, cls_name: str, cls: inert_lane.Classification) -> bool:
@@ -338,36 +335,37 @@ def assembly_sources(repo: Path, target: Target) -> list[Path]:
     return own + sorted(used)
 
 
-def undeclared(repo: Path, target: Target, top_dirs: list[str] | None = None,
-               cls: inert_lane.Classification = inert_lane.CLASSIFICATION) -> list[str]:
-    """THE BUILD TARGETS AUDIT for one target: each repository read its sources spell that its inputs do not cover, as
-    `<file>:<line>: <read>`."""
-    top_dirs = top_dirs if top_dirs is not None else _top_dirs(repo)
-    tracked = _tracked(repo)
+@dataclass(frozen=True)
+class Scan:
+    """THE BUILD TARGETS AUDIT for one target, from ONE pass over its sources. `undeclared`: each repository read they
+    spell that the inputs do not cover, as `<file>:<line>: <read>`. `roots`: the bare repository-root references
+    (`TestRepo.Root`, `At()` with no literal segment): a working directory, a path to strip from a message, or a
+    whole-tree read (`TrackedTree`'s `git ls-files`), which no static reading can tell apart. The roots are counted in
+    the audit's verdict, never judged: the dynamic proof is where they are judged (kb/Work PB5218)."""
+    undeclared: tuple[str, ...]
+    roots: tuple[str, ...]
+
+
+def scan(repo: Path, target: Target, top_dirs: list[str], tracked: tuple[set[str], set[str]],
+         cls: inert_lane.Classification = inert_lane.CLASSIFICATION) -> Scan:
+    """Read `target`'s sources once and return both halves of its audit. The tree's top directories and tracked paths
+    are the caller's, computed once for every target (kb/Work PB5218 review R1-1: per-file recomputation cost ~60 s)."""
     judged = {k for k, _ in target.judged}
-    bad = []
+    bad: set[str] = set()
+    roots: set[str] = set()
     for src in assembly_sources(repo, target):
         rel = src.relative_to(repo).as_posix()
         text = src.read_text(encoding="utf-8", errors="replace")
         for line, read in reads_in(text, top_dirs):
+            if read == "":
+                roots.add(f"{rel}:{line}")
+                continue
             read = _normalized(read, tracked)
             if read is None or f"{rel}|{read}" in judged:
                 continue   # names no tracked path (build output, a cache, a scratch name), or judged by hand
             if not target.covers(read, cls):
-                bad.append(f"{rel}:{line}: {read}")
-    return sorted(set(bad))
-
-
-def unjudged_roots(repo: Path, target: Target) -> list[str]:
-    """The bare repository-root references of `target`'s sources (`TestRepo.Root`, `At()` with no literal segment): a
-    working directory, a path to strip from a message, or a whole-tree read (`TrackedTree`'s `git ls-files`), which no
-    static reading can tell apart. Counted in the audit's verdict, never judged: the dynamic proof is where they are
-    judged (kb/Work PB5218)."""
-    out = []
-    for src in assembly_sources(repo, target):
-        text = src.read_text(encoding="utf-8", errors="replace")
-        out += [f"{src.relative_to(repo).as_posix()}:{line}" for line, read in reads_in(text, _top_dirs(repo)) if read == ""]
-    return sorted(set(out))
+                bad.add(f"{rel}:{line}: {read}")
+    return Scan(tuple(sorted(bad)), tuple(sorted(roots)))
 
 
 def _tracked(repo: Path) -> tuple[set[str], set[str]]:
@@ -396,14 +394,13 @@ def _normalized(read: str, tracked: tuple[set[str], set[str]]) -> str | None:
 
 def check(repo: Path = REPO) -> int:
     targets = load_targets(repo / "scripts" / "build_targets.json")
-    top = _top_dirs(repo)
-    findings = {name: undeclared(repo, t, top) for name, t in targets.items()}
-    roots = {name: unjudged_roots(repo, t) for name, t in targets.items()}
-    for name, bad in findings.items():
-        for b in bad:
+    top, tracked = _top_dirs(repo), _tracked(repo)
+    scans = {name: scan(repo, t, top, tracked) for name, t in targets.items()}
+    for name, sc in scans.items():
+        for b in sc.undeclared:
             print(f"  {name}: {b}")
-    n = sum(len(b) for b in findings.values())
-    residue = ", ".join(f"{name} {len(r)}" for name, r in roots.items())
+    n = sum(len(sc.undeclared) for sc in scans.values())
+    residue = ", ".join(f"{name} {len(sc.roots)}" for name, sc in scans.items())
     if n:
         print(f"=== BUILD TARGETS: RED — {n} repository read(s) outside their target's declared inputs "
               "(scripts/build_targets.json): declare each with its reader, or remove the read ===")
@@ -490,16 +487,32 @@ def self_test() -> int:
                             'static class Helper { static string P = TestRepo.Docs("rearchitecture", "x.json"); }\n',
                         "tests/C/T.cs": planted}
         audit.commit("planted", tracked_data)
-        clean = undeclared(tdir, conf, top)
+        def undeclared_now() -> tuple[str, ...]:
+            return scan(tdir, conf, top, _tracked(tdir)).undeclared
+
+        clean = undeclared_now()
         audit.commit("undeclared", {"tests/C/U.cs": undeclared_read})
-        planted_bad = undeclared(tdir, conf, top)
+        planted_bad = undeclared_now()
         audit.commit("shared", {"tests/C/V.cs": "class V { void M() { Helper.Use(); } }\n"})
-        through_shared = undeclared(tdir, conf, top)
+        through_shared = undeclared_now()
         arm("the BUILD TARGETS audit: sources whose reads lie in the declared inputs are clean; a planted read of "
             "tests/version-matrix/inventory (undeclared) is a finding naming file and line; a tests/_shared file is "
             "audited exactly when the assembly uses a type it declares",
-            clean == [] and planted_bad == ["tests/C/U.cs:3: tests/version-matrix/inventory/"]
+            clean == () and planted_bad == ("tests/C/U.cs:3: tests/version-matrix/inventory/",)
             and "tests/_shared/Helper.cs:1: docs/rearchitecture/x.json" in through_shared, f"{clean} {planted_bad} {through_shared}")
+
+        # a listing pattern matches as the test's .NET listing does: case-insensitive (review R1-2)
+        guards = Target("conformance", "Conformance", "tests/C/", ("scripts/guard*.sh",), ())
+        cased = [guards.matches(p) for p in ("scripts/guard-a.sh", "scripts/Guard-legacy.sh", "scripts/guard-x.SH",
+                                             "scripts/sub/guard-a.sh", "scripts/other.sh")]
+        g_repo = ScratchRepo.init(root / "guards")
+        g_repo.commit("base", {"scripts/guard-a.sh": "a\n"})
+        g0 = keys(g_repo.path, g_repo.git("rev-parse", "HEAD^{tree}"), facets, {"conformance": guards})
+        g_repo.commit("cased", {"scripts/guard-a.sh": "a\n", "scripts/Guard-legacy.sh": "b\n"})
+        g1 = keys(g_repo.path, g_repo.git("rev-parse", "HEAD^{tree}"), facets, {"conformance": guards})
+        arm("a listing pattern (scripts/guard*.sh) matches a differently cased file and not one below or beside it, and "
+            "adding scripts/Guard-legacy.sh changes the key",
+            cased == [True, True, True, False, False] and g0 != g1, f"{cased} {g0} {g1}")
         real_targets = load_targets()
         arm("the real targets file loads: unit, conformance, characterization, each with its assembly, @build expanded",
             sorted(real_targets) == ["characterization", "conformance", "unit"]
