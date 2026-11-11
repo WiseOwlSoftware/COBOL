@@ -472,6 +472,26 @@ public sealed class ProcessObservationDriftTests
         Assert.Throws<ArgumentOutOfRangeException>(() => ObservationBudget.For(1_000, children: -1, parallel: 1, "x"));
         Assert.Throws<ArgumentOutOfRangeException>(() => ObservationBudget.For(0, children: 0, parallel: 1, "x"));
         Assert.Throws<ArgumentException>(() => ObservationBudget.For(1_000, children: 0, parallel: 1, " "));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ObservationBudget.For(1_000, children: 0, parallel: 1, "x", TimeSpan.FromMilliseconds(-1)));
+        Assert.Equal(0, ObservationBudget.OneProcess.OwnWaitMs);
+    }
+
+    /// <summary>A process that waits on its own clock by design (kb/Work PB5154, CCVS CM102M's three 30-second delays) gets
+    /// its units PLUS the wait, added once and never multiplied by the units, and its report names the wait; the wait
+    /// does not count as a unit, and a fractional millisecond rounds up so the stated wait is never shortened.</summary>
+    [Theory]
+    [InlineData(0, 1, 90_000.0, 1, 91_000)]
+    [InlineData(9, 8, 90_000.0, 3, 93_000)]
+    [InlineData(0, 1, 0.5, 1, 1_001)]
+    public void TheBudget_AddsAStatedOwnWait_OnceOnTopOfTheUnits(int children, int parallel, double waitMs, long units, int ms)
+    {
+        var budget = ObservationBudget.For(1_000, children, parallel, "a program with delays", TimeSpan.FromMilliseconds(waitMs));
+        Assert.Equal(units, budget.Units);
+        Assert.Equal(ms, budget.Ms);
+        Assert.Contains($"+ {ms - units * 1_000} ms it waits on its own clock", budget.ToString(), StringComparison.Ordinal);
+        var waiting = ObservationBudget.OneProcessWaiting(TimeSpan.FromSeconds(90), "CM102M");
+        Assert.Equal(ObservationBudget.UnitMs + 90_000L, waiting.Ms);
+        Assert.Equal(1, waiting.Units);
     }
 
     /// <summary>A slow process stated to run children is observed: its budget is at least the harness unit.</summary>
@@ -502,6 +522,7 @@ public sealed class ProcessObservationDriftTests
             () => ProcessObserver.ObserveOrThrow(RunsForever(), budget: OneSecond));
         Assert.Contains("budget  : 1000 ms for a probe (1 unit(s) of 1000 ms", ex.Message, StringComparison.Ordinal);
         Assert.Contains("of processor time itself", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("durable flush on the run volume:", ex.Message, StringComparison.Ordinal);
         Assert.Contains($"host: {Environment.ProcessorCount} logical processor(s)", ex.Message, StringComparison.Ordinal);
         if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())
             Assert.Contains("% busy across the attempt", ex.Message, StringComparison.Ordinal);
@@ -520,6 +541,42 @@ public sealed class ProcessObservationDriftTests
         Assert.Contains("processor use not readable on this host", HostLoad.Describe(null, null), StringComparison.Ordinal);
         if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())
             Assert.NotNull(HostLoad.Sample());
+    }
+
+    /// <summary>The flush line's arithmetic (the median and the worst of the probes, in milliseconds) and its honest arms:
+    /// no probes, and a directory that cannot be probed, say so instead of reporting a number (kb/Work PB5147).</summary>
+    [Fact]
+    public void TheDurableFlushLine_IsTheMedianAndWorstOfTheProbes_OrSaysItWasNotProbed()
+    {
+        Assert.Equal("durable flush on the run volume: median 30.0 ms, worst 160.0 ms of 3 probes",
+            HostLoad.DescribeFlushes([TimeSpan.FromMilliseconds(160), TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(30)]));
+        Assert.Equal("durable flush on the run volume: not probed", HostLoad.DescribeFlushes([]));
+        Assert.Contains("not probed (", HostLoad.DurableFlushLine(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "absent")),
+            StringComparison.Ordinal);
+    }
+
+    /// <summary>A non-observation's line carries the flush time of the run volume, and the probe file it makes is gone.</summary>
+    [Fact]
+    public void TheDurableFlushProbe_TimesFlushesOnTheDirectory_AndLeavesNothingBehind()
+    {
+        string dir = ScratchDirectory.Create("WiseOwlCobol_FlushProbe_");
+        try
+        {
+            string line = HostLoad.DurableFlushLine(dir);
+            Assert.Contains($"of {HostLoad.FlushProbes} probes", line, StringComparison.Ordinal);
+            Assert.Empty(Directory.GetFileSystemEntries(dir));
+        }
+        finally { ScratchDirectory.Remove(dir); }
+    }
+
+    /// <summary>A start that names no working directory runs its child in this process's current directory, and that
+    /// is the directory the flush probe times, never the temp directory (kb/Work PB5147, review R1-2).</summary>
+    [Fact]
+    public void TheFlushProbe_OfAStartWithNoWorkingDirectory_TimesTheCurrentDirectory()
+    {
+        Assert.Equal(Environment.CurrentDirectory, HostLoad.RunDirectory(null));
+        Assert.Equal(Environment.CurrentDirectory, HostLoad.RunDirectory(""));
+        Assert.Equal(Path.GetTempPath(), HostLoad.RunDirectory(Path.GetTempPath()));
     }
 
     /// <summary>A non-observation names the command a caller built with <c>ArgumentList</c>: before PB3108 the log read a

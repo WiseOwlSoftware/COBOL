@@ -185,27 +185,30 @@ public sealed class ApplyCommitEnclosingFileTests
         EditionHarness.AssertNoDiagnostic(errors, "COBOL4709");
     }
 
-    /// <summary>Two GLOBAL files each with a record of one name (review R2-3): the file-report-qualifier tells them apart
-    /// (§2023:8.4.2.2.2 Format 1), so <c>R IN F2</c> is F2's record area and SR11 names F2; the bare word identifies neither,
-    /// so it is the reference that fails (§2023:8.4.2.2.3 SR1, ambiguity), never §2023:12.4.6.3.3 SR11 about whichever file came first.</summary>
+    /// <summary>Two GLOBAL files, one record of which is named R (the name keeps the scenario's first form, which the inventory row
+    /// of SR11 cites): the file-report-qualifier names F2's record area
+    /// (§2023:8.4.2.2.2 Format 1), so <c>R IN F2</c> draws SR11 naming F2 (review R2-3). The two files' records may NOT both be
+    /// named R: a record of a GLOBAL file possesses the global attribute, and "The same name shall not be used both as the
+    /// name of an item possessing the global attribute and as the name of any other data item described in the source element
+    /// that describes that global data item" (§2023:8.4.2.1; kb/Work PB5073, COBOL6862), so that pair is refused at its second
+    /// declaration, before any reference could be ambiguous.</summary>
     [Fact]
     public void TwoGlobalFilesRecordsOfOneName_AreToldApartByTheFileQualifier()
     {
-        static string Source(string operand) => Chain(
+        static string Source(string firstRecord, string operand) => Chain(
             ("PB3557O", "           SELECT F1 ASSIGN TO \"pb3557a.dat\".\n           SELECT F2 ASSIGN TO \"pb3557b.dat\".\n", "",
-                "       FILE SECTION.\n       FD F1 IS GLOBAL.\n       01 R PIC X(10).\n"
+                $"       FILE SECTION.\n       FD F1 IS GLOBAL.\n       01 {firstRecord} PIC X(10).\n"
                 + "       FD F2 IS GLOBAL.\n       01 R PIC X(10).\n"),
             ("PB3557I", "", $"           APPLY COMMIT ON {operand}.\n", ""));
-        var (ok, errors) = EditionHarness.Compile(Source("R IN F2"), 2023);
+        var (ok, errors) = EditionHarness.Compile(Source("R1", "R IN F2"), 2023);
         Assert.False(ok);
         var only = Assert.Single(errors);
         Assert.Contains("COBOL4709", only, StringComparison.Ordinal);
         Assert.Contains("'R OF F2' is a record area of file 'F2'", only, StringComparison.Ordinal);
 
-        var (bareOk, bare) = EditionHarness.Compile(Source("R"), 2023);
-        Assert.False(bareOk);
-        EditionHarness.AssertNoDiagnostic(bare, "COBOL4709");
-        EditionHarness.AssertNoDiagnostic(bare, "no declaration in this source element");
+        var (sameOk, same) = EditionHarness.Compile(Source("R", "R IN F2"), 2023);
+        Assert.False(sameOk);
+        Assert.Contains(same, e => e.Contains("COBOL6862", StringComparison.Ordinal));
     }
 
     /// <summary>⛔ DEPTH, BOTH WAYS (review R2-1): the nearest containing element's declaration is the referenced item
