@@ -36412,8 +36412,9 @@ A
 
 A PICTURE symbol 354
 
-Abbreviated combined relation conditions 165 Abnormal run unit termination 438, 440 ABS function 642
-
+Abbreviated combined relation conditions 165\
+Abnormal run unit termination 438, 440\
+ABS function 642\
 ACCEPT statement 233, 386, 412, 460\
 &emsp;FROM phrase 460\
 &emsp;Screen format 581\
@@ -36592,18 +36593,18 @@ AT EOP phrase
 
 ## Page 929
 
-   WRITE statement 619\
-   ATAN function 646\
-   ATTRIBUTE phrase\
-   SET statement, attribute setting 574\
-   AUTO clause 299\
-   Automatic data 134, 432\
-   Automatic items 134\
-   AUTOMATIC phrase\
-   LOCK MODE clause 259\
-   AWAY-FROM-ZERO phrase\
-   DEFAULT ROUNDED clause 219\
-   ROUNDED phrase 447
+&emsp;WRITE statement 619\
+ATAN function 646\
+ATTRIBUTE phrase\
+&emsp;SET statement, attribute setting 574\
+AUTO clause 299\
+Automatic data 134, 432\
+Automatic items 134\
+AUTOMATIC phrase\
+&emsp;LOCK MODE clause 259\
+AWAY-FROM-ZERO phrase\
+&emsp;DEFAULT ROUNDED clause 219\
+&emsp;ROUNDED phrase 447
 
 B
 
@@ -36650,64 +36651,64 @@ BELL phrase\
 big-endian 409\
 Binary encoding
 
-   ISO/IEC/IEEE 60559 definition reference 410 BINARY phrase
-
-   USAGE clause 405\
-   BINARY-CHAR phrase\
-   USAGE clause 405\
-   BINARY-DOUBLE phrase\
-   USAGE clause 405\
-   BINARY-ENCODING phrase\
-   FLOAT-DECIMAL clause 221\
-   USAGE clause 406\
-   BINARY-LONG phrase\
-   USAGE clause 405\
-   BINARY-SHORT phrase\
-   USAGE clause 405\
-   BIT 331\
-   Bit data item 331, 407\
-   Bit group 812\
-   Bit group item 331\
-   BIT phrase\
-   USAGE clause 405\
-   BLANK clause 303\
-   Blank line 32, 33\
-   BLANK WHEN ZERO clause 304, 355, 419\
-   BLINK clause 305\
-   BLINK phrase\
-   SET statement, attribute setting 574\
-   BLOCK CONTAINS clause 306\
-   File description entry 271\
-   Boolean category 129, 130, 331, 357\
-   Boolean character 9\
-   Boolean class 129\
-   BOOLEAN clause 159\
-   Boolean compute 482\
-   Boolean condition 158\
-   Boolean data item 130\
-   Boolean expressions 149\
-   COMPUTE statement 482\
-   EVALUATE statement 493\
-   Parenthesis in 149\
-   Relation condition 154\
-   Boolean functions 627\
-   Boolean literals 86\
-   Continuation of 32, 33\
-   Boolean operators 137\
-   BOOLEAN phrase\
-   CLASS clause 307\
-   INITIALIZE statement 510\
-   Boolean zero-length literal\
-   Definition 87\
-   BOOLEAN-OF-INTEGER function 647\
-   B-OR operator 137\
-   Braces 25\
-   Brackets 25\
-   B-XOR operator 137\
-   BY CONTENT phrase\
-   CALL statement 471\
-   INVOKE statement 521\
-   Procedure division header 102
+&emsp;ISO/IEC/IEEE 60559 definition reference 410\
+BINARY phrase\
+&emsp;USAGE clause 405\
+BINARY-CHAR phrase\
+&emsp;USAGE clause 405\
+BINARY-DOUBLE phrase\
+&emsp;USAGE clause 405\
+BINARY-ENCODING phrase\
+&emsp;FLOAT-DECIMAL clause 221\
+&emsp;USAGE clause 406\
+BINARY-LONG phrase\
+&emsp;USAGE clause 405\
+BINARY-SHORT phrase\
+&emsp;USAGE clause 405\
+BIT 331\
+Bit data item 331, 407\
+Bit group 812\
+Bit group item 331\
+BIT phrase\
+&emsp;USAGE clause 405\
+BLANK clause 303\
+Blank line 32, 33\
+BLANK WHEN ZERO clause 304, 355, 419\
+BLINK clause 305\
+BLINK phrase\
+&emsp;SET statement, attribute setting 574\
+BLOCK CONTAINS clause 306\
+&emsp;File description entry 271\
+Boolean category 129, 130, 331, 357\
+Boolean character 9\
+Boolean class 129\
+BOOLEAN clause 159\
+Boolean compute 482\
+Boolean condition 158\
+Boolean data item 130\
+Boolean expressions 149\
+&emsp;COMPUTE statement 482\
+&emsp;EVALUATE statement 493\
+&emsp;Parenthesis in 149\
+&emsp;Relation condition 154\
+Boolean functions 627\
+Boolean literals 86\
+&emsp;Continuation of 32, 33\
+Boolean operators 137\
+BOOLEAN phrase\
+&emsp;CLASS clause 307\
+&emsp;INITIALIZE statement 510\
+Boolean zero-length literal\
+&emsp;Definition 87\
+BOOLEAN-OF-INTEGER function 647\
+B-OR operator 137\
+Braces 25\
+Brackets 25\
+B-XOR operator 137\
+BY CONTENT phrase\
+&emsp;CALL statement 471\
+&emsp;INVOKE statement 521\
+&emsp;Procedure division header 102
 
 ## Page 930
 
@@ -36734,8 +36735,8 @@ BYTE-LENGTH phrase\
 
 C
 
-Calendar date format 629 CALL statement 471
-
+Calendar date format 629\
+CALL statement 471\
 CALL-CONVENTION directive 50, 879\
 Call-convention-name 81, 82\
 call-convention-name 50\
@@ -36769,69 +36770,70 @@ Character\
 &emsp;Alphanumeric 8\
 &emsp;Boolean 9
 
-   National 17\
-   Numeric 18\
-   CHARACTER CLASSIFICATION clause 229\
-   OBJECT-COMPUTER paragraph 228\
-   Character sets 68, 231, 814\
-   Character substitution 72\
-   CHARACTERS phrase\
-   ALLOCATE statement 469\
-   BLOCK CONTAINS clause 306\
-   INSPECT statement 515\
-   RECORD clause 374\
-   Character-string 10, 76\
-   CHAR-NATIONAL function 650\
-   Choice indicators 25\
-   Class\
-   BASE 735\
-   Parameterized 200\
-   Class and category of data 128\
-   CLASS clause 159, 307\
-   SPECIAL-NAMES paragraph 231\
-   Class condition 159\
-   BOOLEAN phrase 159\
-   Class inheritance 199\
-   Class of data\
-   Alphanumeric 129\
-   Boolean 129\
-   Index 129\
-   National 129\
-   Numeric 129\
-   Object 129\
-   Pointer 129\
-   CLASS phrase\
-   USAGE clause 405\
-   Class polymorphism 191\
-   Class-definition 206\
-   CLASS-ID paragraph 211\
-   Class-name 231\
-   CLASS clause 307\
-   CLASS-ID paragraph 211\
-   Object orientation 76, 79\
-   Scope of 115, 118\
-   SPECIAL-NAMES paragraph 231\
-   Truth value 76, 79\
-   Clause 10\
-   CLOSE statement 55, 478, 479\
-   Implied 528, 529, 589, 590\
-   Closing delimiter 92\
-   COBOL character repertoire 70\
-   COBOL compilation group 204\
-   COBOL library 36\
-   COBOL reserved words 82\
-   COBOL source program structure 202\
-   COBOL word 76\
-   CODE clause 308\
-   Report description entry 285\
-   Coded character set 68, 814\
-   Code-name 82\
-   SPECIAL-NAMES paragraph 232
+&emsp;National 17\
+&emsp;Numeric 18\
+CHARACTER CLASSIFICATION clause 229\
+&emsp;OBJECT-COMPUTER paragraph 228\
+Character sets 68, 231, 814\
+Character substitution 72\
+CHARACTERS phrase\
+&emsp;ALLOCATE statement 469\
+&emsp;BLOCK CONTAINS clause 306\
+&emsp;INSPECT statement 515\
+&emsp;RECORD clause 374\
+Character-string 10, 76\
+CHAR-NATIONAL function 650\
+Choice indicators 25\
+Class\
+&emsp;BASE 735\
+&emsp;Parameterized 200\
+Class and category of data 128\
+CLASS clause 159, 307\
+&emsp;SPECIAL-NAMES paragraph 231\
+Class condition 159\
+&emsp;BOOLEAN phrase 159\
+Class inheritance 199\
+Class of data\
+&emsp;Alphanumeric 129\
+&emsp;Boolean 129\
+&emsp;Index 129\
+&emsp;National 129\
+&emsp;Numeric 129\
+&emsp;Object 129\
+&emsp;Pointer 129\
+CLASS phrase\
+&emsp;USAGE clause 405\
+Class polymorphism 191\
+Class-definition 206\
+CLASS-ID paragraph 211\
+Class-name 231\
+&emsp;CLASS clause 307\
+&emsp;CLASS-ID paragraph 211\
+&emsp;Object orientation 76, 79\
+&emsp;Scope of 115, 118\
+&emsp;SPECIAL-NAMES paragraph 231\
+&emsp;Truth value 76, 79\
+Clause 10\
+CLOSE statement 55, 478, 479\
+&emsp;Implied 528, 529, 589, 590\
+Closing delimiter 92\
+COBOL character repertoire 70\
+COBOL compilation group 204\
+COBOL library 36\
+COBOL reserved words 82\
+COBOL source program structure 202\
+COBOL word 76\
+CODE clause 308\
+&emsp;Report description entry 285\
+Coded character set 68, 814\
+Code-name 82\
+&emsp;SPECIAL-NAMES paragraph 232
 
 ## Page 931
 
-CODE-SET clause 68, 309, 387 File description entry 271 Collating sequence 231
-
+CODE-SET clause 68, 309, 387\
+&emsp;File description entry 271\
+Collating sequence 231\
 COLLATING SEQUENCE clause 256\
 &emsp;FILE-CONTROL paragraph 248\
 &emsp;OBJECT-COMPUTER paragraph 228\
@@ -36888,69 +36890,69 @@ Compilation-variable-name 51, 76, 79, 118\
 Compiler directing statement 37\
 &emsp;COPY statement 37
 
-   REPLACE statement 37\
-   Compiler directive 46\
-   Compiler directive indicator 30\
-   Compiler-directive word 46, 76, 174\
-   Compile-time arithmetic expressions 47, 282\
-   Compile-time boolean expressions 47\
-   Complex conditions 164\
-   AND operator 164\
-   NOT operator 164\
-   OR operator 164\
-   Composite of operands 141, 834\
-   ADD statement 466\
-   DIVIDE statement 491\
-   MULTIPLY statement 537\
-   SUBTRACT statement 600\
-   COMPUTATIONAL phrase\
-   USAGE clause 405\
-   COMPUTE statement 451, 482\
-   Computer's character set 68, 814\
-   Computer's coded character set 68, 120, 814\
-   Computer-name 82\
-   OBJECT-COMPUTER paragraph 228\
-   SOURCE-COMPUTER paragraph 227\
-   Concatenation expressions 152\
-   Concatenation operator 137\
-   Concepts 773\
-   CONDITION 610\
-   Condition 152\
-   Abbreviated combined relation condition 165\
-   Boolean condition 158\
-   Class condition 159\
-   Complex 164\
-   Condition-name condition 161\
-   EVALUATE statement 493\
-   Evaluation order rules 164\
-   IF statement 508\
-   Omitted argument condition 163\
-   Sign condition 162\
-   Switch-status condition 162\
-   Conditional compilation 60, 878\
-   Conditional expression 152, 545, 866\
-   EVALUATE statement 493\
-   Conditional phrase 428, 430\
-   Conditional statement 428\
-   Conditional variable 161\
-   Definition 114\
-   Conditionally-processed compilation group 37\
-   Condition-name 76, 79, 114, 161\
-   Qualified with subscripts 114\
-   Scope of 115, 117\
-   Subscripted 97\
-   Switch status 114\
-   Condition-name condition 161\
-   Configuration section 226\
-   Conformance 196\
-   Conformance for object orientation 196\
-   Conforming implementation 6, 7\
-   Conforming run unit 6
+&emsp;REPLACE statement 37\
+Compiler directive 46\
+Compiler directive indicator 30\
+Compiler-directive word 46, 76, 174\
+Compile-time arithmetic expressions 47, 282\
+Compile-time boolean expressions 47\
+Complex conditions 164\
+&emsp;AND operator 164\
+&emsp;NOT operator 164\
+&emsp;OR operator 164\
+Composite of operands 141, 834\
+&emsp;ADD statement 466\
+&emsp;DIVIDE statement 491\
+&emsp;MULTIPLY statement 537\
+&emsp;SUBTRACT statement 600\
+COMPUTATIONAL phrase\
+&emsp;USAGE clause 405\
+COMPUTE statement 451, 482\
+Computer's character set 68, 814\
+Computer's coded character set 68, 120, 814\
+Computer-name 82\
+&emsp;OBJECT-COMPUTER paragraph 228\
+&emsp;SOURCE-COMPUTER paragraph 227\
+Concatenation expressions 152\
+Concatenation operator 137\
+Concepts 773\
+CONDITION 610\
+Condition 152\
+&emsp;Abbreviated combined relation condition 165\
+&emsp;Boolean condition 158\
+&emsp;Class condition 159\
+&emsp;Complex 164\
+&emsp;Condition-name condition 161\
+&emsp;EVALUATE statement 493\
+&emsp;Evaluation order rules 164\
+&emsp;IF statement 508\
+&emsp;Omitted argument condition 163\
+&emsp;Sign condition 162\
+&emsp;Switch-status condition 162\
+Conditional compilation 60, 878\
+Conditional expression 152, 545, 866\
+&emsp;EVALUATE statement 493\
+Conditional phrase 428, 430\
+Conditional statement 428\
+Conditional variable 161\
+&emsp;Definition 114\
+Conditionally-processed compilation group 37\
+Condition-name 76, 79, 114, 161\
+&emsp;Qualified with subscripts 114\
+&emsp;Scope of 115, 117\
+&emsp;Subscripted 97\
+&emsp;Switch status 114\
+Condition-name condition 161\
+Configuration section 226\
+Conformance 196\
+Conformance for object orientation 196\
+Conforming implementation 6, 7\
+Conforming run unit 6
 
 ## Page 932
 
-Constant conditional expression 48 Constant entry 282
-
+Constant conditional expression 48\
+Constant entry 282\
 CONSTANT RECORD 384\
 CONSTANT RECORD clause 315\
 Constant-name 76, 79, 116, 282\
@@ -37127,28 +37129,28 @@ Division header 202\
 DOWN phrase\
 &emsp;SET statement, index arithmetic 573, 575
 
-   SET statement, pointer arithmetic 574 DUPLICATES phrase
-
-   ALTERNATE RECORD KEY clause 255\
-   SORT statement 585\
-   DYNAMIC 346\
-   Dynamic access mode 179, 775\
-   DYNAMIC LENGTH clause 320\
-   Data description entry 288\
-   DYNAMIC LENGTH STRUCTURE clause 232\
-   DYNAMIC phrase\
-   ACCESS MODE clause 248, 254\
-   Dynamic storage 469, 502\
-   Dynamic-capacity tables 788\
-   Definition 124\
-   Dynamic-capacity-table\
-   Format 346\
-   Dynamic-length elementary item\
-   Definition 126\
-   Dynamic-length elementary items 782\
-   Dynamic-length-structure-name 76, 79\
-   DYNAMIC LENGTH clause 288, 320\
-   Scope of 115
+&emsp;SET statement, pointer arithmetic 574\
+DUPLICATES phrase\
+&emsp;ALTERNATE RECORD KEY clause 255\
+&emsp;SORT statement 585\
+DYNAMIC 346\
+Dynamic access mode 179, 775\
+DYNAMIC LENGTH clause 320\
+&emsp;Data description entry 288\
+DYNAMIC LENGTH STRUCTURE clause 232\
+DYNAMIC phrase\
+&emsp;ACCESS MODE clause 248, 254\
+Dynamic storage 469, 502\
+Dynamic-capacity tables 788\
+&emsp;Definition 124\
+Dynamic-capacity-table\
+&emsp;Format 346\
+Dynamic-length elementary item\
+&emsp;Definition 126\
+Dynamic-length elementary items 782\
+Dynamic-length-structure-name 76, 79\
+&emsp;DYNAMIC LENGTH clause 288, 320\
+&emsp;Scope of 115
 
 E
 
@@ -37187,8 +37189,8 @@ EC-FLOW-RETURN exception 442, 561
 
 ## Page 934
 
-EC-FLOW-SEARCH exception 442, 583 EC-FLOW-USE exception 442, 611
-
+EC-FLOW-SEARCH exception 442, 583\
+EC-FLOW-USE exception 442, 611\
 EC-FUNCTION exception 442\
 EC-FUNCTION-ARG-OMITTED exception 103\
 EC-FUNCTION-NOT-FOUND exception 103, 442\
@@ -37246,8 +37248,8 @@ EC-PROGRAM-NOT-FOUND exception 55, 112, 444,\
 EC-PROGRAM-PTR-NULL exception 444, 474\
 EC-PROGRAM-RECURSIVE-CALL exception 444, 475
 
-EC-PROGRAM-RESOURCES exception 103, 444, 474 EC-RAISING exception 444
-
+EC-PROGRAM-RESOURCES exception 103, 444, 474\
+EC-RAISING exception 444\
 EC-RAISING-IMP exception 444\
 EC-RAISING-NOT-SPECIFIED exception 444, 500\
 EC-RANGE exception 439, 444, 825\
@@ -37307,8 +37309,17 @@ EC-STORAGE exception 439, 445
 
 ## Page 935
 
-EC-STORAGE-IMP exception 445 EC-STORAGE-NOT-ALLOC exception 445, 502 EC-STORAGE-NOT-AVAIL exception 445, 470 EC-USER exception 425, 439, 446, 499, 500, 825 EC-VALIDATE exception 446, 617 EC-VALIDATE-CONTENT exception 446, 617 EC-VALIDATE-FORMAT exception 446, 617 EC-VALIDATE-IMP exception 446 EC-VALIDATE-RELATION exception 446, 617 EC-VALIDATE-VARYING exception 423, 446 Editing rules 362
-
+EC-STORAGE-IMP exception 445\
+EC-STORAGE-NOT-ALLOC exception 445, 502\
+EC-STORAGE-NOT-AVAIL exception 445, 470\
+EC-USER exception 425, 439, 446, 499, 500, 825\
+EC-VALIDATE exception 446, 617\
+EC-VALIDATE-CONTENT exception 446, 617\
+EC-VALIDATE-FORMAT exception 446, 617\
+EC-VALIDATE-IMP exception 446\
+EC-VALIDATE-RELATION exception 446, 617\
+EC-VALIDATE-VARYING exception 423, 446\
+Editing rules 362\
 Elementary items 120\
 Ellipses 25, 27\
 ELSE NEXT SENTENCE phrase\
@@ -37357,8 +37368,8 @@ EOP phrase\
 EQUAL phrase\
 &emsp;SEARCH statement 568
 
-Equivalent arithmetic expression 634 ERASE clause 322
-
+Equivalent arithmetic expression 634\
+ERASE clause 322\
 ERROR clause 413\
 Error indication 615\
 ERROR phrase\
@@ -37476,182 +37487,182 @@ Externally provided functionality 5
 
 F
 
-FACTORIAL function 668 FACTORY clause
-
-   METHOD-ID paragraph 215\
-   Factory data 199, 839\
-   Factory definition 212\
-   Factory method 191, 839\
-   Factory object 191, 212, 839\
-   Life cycle for 200\
-   FACTORY paragraph 212\
-   FACTORY phrase 455\
-   USAGE clause 405\
-   Factory-definition 206\
-   FactoryObject method 735\
-   FALSE phrase\
-   EVALUATE statement 493\
-   SET statement, condition setting 573\
-   FARTHEST-FROM-ZERO phrase\
-   CLASS clause 159\
-   SET statement 575\
-   Fatal exception conditions 439\
-   FD entry 271\
-   Feature-name 82\
-   FILE-CONTROL paragraph 250\
-   RECORD DELIMITER clause 262\
-   SPECIAL-NAMES paragraph 231\
-   Figurative constant 89\
-   INITIALIZE statement 512\
-   Symbolic characters in 92\
-   File\
-   logical 176\
-   Physical 176\
-   Physical aspects 120\
-   File attribute conflict condition 541\
-   File attributes 177\
-   File connector 176\
-   OPEN statement 539\
-   File control entry 248\
-   File description entry 271\
-   File operations 776\
-   File organization 177, 773\
-   FILE phrase\
-   REWRITE statement 563\
-   WRITE statement 619\
-   File position indicator 179\
-   File processing 774\
-   File section 270\
-   File sharing 185, 266, 778\
-   File sharing conflict condition 181, 453\
-   FILE STATUS clause 258\
-   FILE-CONTROL paragraph 248\
-   FILE-CONTROL paragraph 248\
-   File-name 76, 79\
-   Scope of 117\
-   Files 176, 773\
-   Indexed 178\
-   Relative 178
+FACTORIAL function 668\
+FACTORY clause\
+&emsp;METHOD-ID paragraph 215\
+Factory data 199, 839\
+Factory definition 212\
+Factory method 191, 839\
+Factory object 191, 212, 839\
+&emsp;Life cycle for 200\
+FACTORY paragraph 212\
+FACTORY phrase 455\
+&emsp;USAGE clause 405\
+Factory-definition 206\
+FactoryObject method 735\
+FALSE phrase\
+&emsp;EVALUATE statement 493\
+&emsp;SET statement, condition setting 573\
+FARTHEST-FROM-ZERO phrase\
+&emsp;CLASS clause 159\
+&emsp;SET statement 575\
+Fatal exception conditions 439\
+FD entry 271\
+Feature-name 82\
+&emsp;FILE-CONTROL paragraph 250\
+&emsp;RECORD DELIMITER clause 262\
+&emsp;SPECIAL-NAMES paragraph 231\
+Figurative constant 89\
+&emsp;INITIALIZE statement 512\
+&emsp;Symbolic characters in 92\
+File\
+&emsp;logical 176\
+&emsp;Physical 176\
+&emsp;Physical aspects 120\
+File attribute conflict condition 541\
+File attributes 177\
+File connector 176\
+&emsp;OPEN statement 539\
+File control entry 248\
+File description entry 271\
+File operations 776\
+File organization 177, 773\
+FILE phrase\
+&emsp;REWRITE statement 563\
+&emsp;WRITE statement 619\
+File position indicator 179\
+File processing 774\
+File section 270\
+File sharing 185, 266, 778\
+File sharing conflict condition 181, 453\
+FILE STATUS clause 258\
+&emsp;FILE-CONTROL paragraph 248\
+FILE-CONTROL paragraph 248\
+File-name 76, 79\
+&emsp;Scope of 117\
+Files 176, 773\
+&emsp;Indexed 178\
+&emsp;Relative 178
 
 ## Page 937
 
-   Sequential 177\
-   FILLER clause 321, 396\
-   FILLER phrase\
-   INITIALIZE statement 510\
-   FINAL phrase\
-   CLASS-ID paragraph 211\
-   SUM clause 391\
-   TYPE clause 398\
-   FIRST DETAIL phrase\
-   PAGE clause 352\
-   FIRST phrase\
-   INSPECT statement 516\
-   START statement 592\
-   Fixed file attributes 177, 541\
-   Fixed indicators 29\
-   Fixed insertion editing 363\
-   Fixed-capacity table\
-   Comparing to dynamic-capacity table 125\
-   Fixed-capacity tables\
-   Definition 123\
-   Fixed-length data item\
-   Definition 127\
-   Fixed-length group\
-   Definition 127\
-   Fixed-length records 774\
-   Fixed-point numeric data item\
-   Definition 357\
-   Fixed-point numeric literal 86\
-   Fixed-point numeric-edited data item\
-   Definition 357\
-   FLAG-85 directive 55, 57\
-   Flagging and warning mechanisms\
-   Archaic language elements 5\
-   FLAG-02 directive 55\
-   FLAG-85 directive 57\
-   FLAG-NATIVE-ARITHMETIC directive 59\
-   Nonstandard extensions 5\
-   Obsolete language elements 5\
-   Processor-dependent elements 4\
-   Prototype versus repository 175\
-   Syntax violations 3\
-   FLAG-NATIVE-ARITHMETIC directive 59, 141\
-   FLOAT-BINARY clause 220\
-   FLOAT-BINARY-128\
-   Definition 409\
-   FLOAT-BINARY-128 phrase\
-   USAGE clause 405\
-   FLOAT-BINARY-32\
-   Definition 408\
-   FLOAT-BINARY-32 phrase\
-   USAGE clause 405\
-   FLOAT-BINARY-64\
-   Definition 409\
-   FLOAT-BINARY-64 phrase\
-   USAGE clause 405\
-   FLOAT-DECIMAL clause 221\
-   FLOAT-DECIMAL-16\
-   Definition 409
+&emsp;Sequential 177\
+FILLER clause 321, 396\
+FILLER phrase\
+&emsp;INITIALIZE statement 510\
+FINAL phrase\
+&emsp;CLASS-ID paragraph 211\
+&emsp;SUM clause 391\
+&emsp;TYPE clause 398\
+FIRST DETAIL phrase\
+&emsp;PAGE clause 352\
+FIRST phrase\
+&emsp;INSPECT statement 516\
+&emsp;START statement 592\
+Fixed file attributes 177, 541\
+Fixed indicators 29\
+Fixed insertion editing 363\
+Fixed-capacity table\
+&emsp;Comparing to dynamic-capacity table 125\
+Fixed-capacity tables\
+&emsp;Definition 123\
+Fixed-length data item\
+&emsp;Definition 127\
+Fixed-length group\
+&emsp;Definition 127\
+Fixed-length records 774\
+Fixed-point numeric data item\
+&emsp;Definition 357\
+Fixed-point numeric literal 86\
+Fixed-point numeric-edited data item\
+&emsp;Definition 357\
+FLAG-85 directive 55, 57\
+Flagging and warning mechanisms\
+&emsp;Archaic language elements 5\
+&emsp;FLAG-02 directive 55\
+&emsp;FLAG-85 directive 57\
+&emsp;FLAG-NATIVE-ARITHMETIC directive 59\
+&emsp;Nonstandard extensions 5\
+&emsp;Obsolete language elements 5\
+&emsp;Processor-dependent elements 4\
+&emsp;Prototype versus repository 175\
+&emsp;Syntax violations 3\
+FLAG-NATIVE-ARITHMETIC directive 59, 141\
+FLOAT-BINARY clause 220\
+FLOAT-BINARY-128\
+&emsp;Definition 409\
+FLOAT-BINARY-128 phrase\
+&emsp;USAGE clause 405\
+FLOAT-BINARY-32\
+&emsp;Definition 408\
+FLOAT-BINARY-32 phrase\
+&emsp;USAGE clause 405\
+FLOAT-BINARY-64\
+&emsp;Definition 409\
+FLOAT-BINARY-64 phrase\
+&emsp;USAGE clause 405\
+FLOAT-DECIMAL clause 221\
+FLOAT-DECIMAL-16\
+&emsp;Definition 409
 
-FLOAT-DECIMAL-16 phrase USAGE clause
-
-   FLOAT-DECIMAL-34 phrase\
-   &emsp;USAGE clause 405\
-   FLOAT-DECIMAL-34\
-   Definition 409\
-   FLOAT-EXTENDED phrase\
-   USAGE clause 405\
-   FLOAT-INFINITY phrase\
-   CLASS clause 159\
-   SET statement 575\
-   Floating indicators 30\
-   Floating-point numeric data item\
-   Definition 436\
-   Floating-point numeric literal 86\
-   Floating-point numeric-edited data item\
-   Definition 357\
-   FLOAT-LONG phrase\
-   USAGE clause 405\
-   FLOAT-NOT-A-NUMBER phrase\
-   SET statement 575\
-   FLOAT-NOT-A-NUMBER-QUIET phrase\
-   CLASS clause 159\
-   FLOAT-NOT-A-NUMBER-SIGNALING phrase\
-   CLASS clause 159\
-   SET statement 575\
-   FLOAT-SHORT phrase\
-   USAGE clause 405\
-   FOOTING phrase\
-   PAGE clause 352\
-   FOR phrase\
-   INSPECT statement 515\
-   VALIDATE-STATUS clause 413\
-   FOR REMOVAL phrase\
-   CLOSE statement 479\
-   FOREGROUND-COLOR clause 324\
-   FOREVER phrase\
-   DELETE statement 485\
-   OPEN statement 539\
-   READ statement 551\
-   RETRY phrase 453\
-   REWRITE statement 563\
-   WRITE statement 619\
-   Formal parameter 426, 454\
-   FORMAT clause 325, 387\
-   File description entry 271\
-   FORMAT phrase\
-   VALIDATE-STATUS clause 413\
-   Format validation 615\
-   PICTURE clause 359\
-   FORMATTED-CURRENT-DATE function 669\
-   FORMATTED-DATE function 670\
-   FORMATTED-DATETIME function 671\
-   FORMATTED-TIME function 672\
-   Forms of arithmetic\
-   Concepts 828\
-   frac_digits 75\
-   FRACTION-PART function 673
+FLOAT-DECIMAL-16 phrase\
+&emsp;USAGE clause\
+&emsp;&emsp;FLOAT-DECIMAL-34 phrase\
+&emsp;&emsp;&emsp;USAGE clause 405\
+FLOAT-DECIMAL-34\
+&emsp;Definition 409\
+FLOAT-EXTENDED phrase\
+&emsp;USAGE clause 405\
+FLOAT-INFINITY phrase\
+&emsp;CLASS clause 159\
+&emsp;SET statement 575\
+Floating indicators 30\
+Floating-point numeric data item\
+&emsp;Definition 436\
+Floating-point numeric literal 86\
+Floating-point numeric-edited data item\
+&emsp;Definition 357\
+FLOAT-LONG phrase\
+&emsp;USAGE clause 405\
+FLOAT-NOT-A-NUMBER phrase\
+&emsp;SET statement 575\
+FLOAT-NOT-A-NUMBER-QUIET phrase\
+&emsp;CLASS clause 159\
+FLOAT-NOT-A-NUMBER-SIGNALING phrase\
+&emsp;CLASS clause 159\
+&emsp;SET statement 575\
+FLOAT-SHORT phrase\
+&emsp;USAGE clause 405\
+FOOTING phrase\
+&emsp;PAGE clause 352\
+FOR phrase\
+&emsp;INSPECT statement 515\
+&emsp;VALIDATE-STATUS clause 413\
+FOR REMOVAL phrase\
+&emsp;CLOSE statement 479\
+FOREGROUND-COLOR clause 324\
+FOREVER phrase\
+&emsp;DELETE statement 485\
+&emsp;OPEN statement 539\
+&emsp;READ statement 551\
+&emsp;RETRY phrase 453\
+&emsp;REWRITE statement 563\
+&emsp;WRITE statement 619\
+Formal parameter 426, 454\
+FORMAT clause 325, 387\
+&emsp;File description entry 271\
+FORMAT phrase\
+&emsp;VALIDATE-STATUS clause 413\
+Format validation 615\
+&emsp;PICTURE clause 359\
+FORMATTED-CURRENT-DATE function 669\
+FORMATTED-DATE function 670\
+FORMATTED-DATETIME function 671\
+FORMATTED-TIME function 672\
+Forms of arithmetic\
+&emsp;Concepts 828\
+frac_digits 75\
+FRACTION-PART function 673
 
 ## Page 938
 
@@ -37773,62 +37784,64 @@ IN-ARITHMETIC-RANGE phrase
 
 ## Page 939
 
-   CLASS clause 159 Incompatibility flagging 55, 57 Incompatible data 446 Index
-
-   Definition 349\
-   Index-name 97\
-   Index category 129, 130, 408\
-   Index class 129\
-   Index data item 130, 406\
-   Index functions 627\
-   INDEX phrase\
-   USAGE clause 405\
-   INDEXED BY phrase 97, 568, 579\
-   OCCURS clause 346\
-   Indexed files 178\
-   Indexed organization 774\
-   INDEXED phrase\
-   ORGANIZATION clause 261\
-   Index-name 76, 80\
-   Scope of 117\
-   Indicator area 31\
-   Indicators 29\
-   Comment 29, 30\
-   Compiler directive 30\
-   Continuation 29\
-   Fixed 29\
-   Floating 30\
-   Literal continuation 30\
-   Source 30\
-   Inheritance\
-   Conforming 199\
-   INHERITS clause\
-   CLASS-ID paragraph 211\
-   INTERFACE-ID paragraph 214\
-   INITIAL clause\
-   PROGRAM-ID paragraph 223\
-   Initial data 134, 275, 432\
-   Initial items 134, 432\
-   Initial program 135\
-   Initial state 432\
-   CANCEL statement 432, 477\
-   INITIALIZE statement 415, 419, 510\
-   INITIALIZED 346\
-   INITIALIZED phrase\
-   ALLOCATE statement 469\
-   INITIATE statement 514, 541, 611\
-   Inline comment 33, 34\
-   Inline method invocation 105\
-   Input distribution 615\
-   INPUT phrase\
-   OPEN statement 539\
-   USE statement 610\
-   INPUT PROCEDURE phrase\
-   SORT statement 585\
-   Input-output section 247\
-   Insertion character 363\
-   INSPECT statement 515\
-   INSPECT statement examples 870
+&emsp;CLASS clause 159\
+Incompatibility flagging 55, 57\
+Incompatible data 446\
+Index\
+&emsp;Definition 349\
+&emsp;Index-name 97\
+Index category 129, 130, 408\
+Index class 129\
+Index data item 130, 406\
+Index functions 627\
+INDEX phrase\
+&emsp;USAGE clause 405\
+INDEXED BY phrase 97, 568, 579\
+&emsp;OCCURS clause 346\
+Indexed files 178\
+Indexed organization 774\
+INDEXED phrase\
+&emsp;ORGANIZATION clause 261\
+Index-name 76, 80\
+&emsp;Scope of 117\
+Indicator area 31\
+Indicators 29\
+&emsp;Comment 29, 30\
+&emsp;Compiler directive 30\
+&emsp;Continuation 29\
+&emsp;Fixed 29\
+&emsp;Floating 30\
+&emsp;Literal continuation 30\
+&emsp;Source 30\
+Inheritance\
+&emsp;Conforming 199\
+INHERITS clause\
+&emsp;CLASS-ID paragraph 211\
+&emsp;INTERFACE-ID paragraph 214\
+INITIAL clause\
+&emsp;PROGRAM-ID paragraph 223\
+Initial data 134, 275, 432\
+Initial items 134, 432\
+Initial program 135\
+Initial state 432\
+&emsp;CANCEL statement 432, 477\
+INITIALIZE statement 415, 419, 510\
+INITIALIZED 346\
+INITIALIZED phrase\
+&emsp;ALLOCATE statement 469\
+INITIATE statement 514, 541, 611\
+Inline comment 33, 34\
+Inline method invocation 105\
+Input distribution 615\
+INPUT phrase\
+&emsp;OPEN statement 539\
+&emsp;USE statement 610\
+INPUT PROCEDURE phrase\
+&emsp;SORT statement 585\
+Input-output section 247\
+Insertion character 363\
+INSPECT statement 515\
+INSPECT statement examples 870
 
 Instance data 199\
 Instance method 837\
@@ -37948,117 +37961,117 @@ LC_NUMERIC 74\
 &emsp;SET statement, locale 574\
 LC_TIME 74, 435
 
-   SET statement, locale 574 LEADING phrase
-
-   INSPECT statement 515\
-   SIGN clause 388\
-   LEAP-SECOND directive 61\
-   LEFT phrase\
-   SYNCHRONIZED clause 395\
-   LENGTH function 682\
-   LENGTH phrase\
-   Constant entry 282\
-   START statement 592\
-   Letter mapping 769\
-   Level-number 77, 80, 120, 335\
-   Data description entry 288\
-   Screen description entry 293\
-   Levels 120\
-   Lexical elements 76\
-   Library text 38\
-   Library-name 39, 82\
-   Life cycle\
-   Data 133\
-   Object 200\
-   LIMIT phrase\
-   DYNAMIC LENGTH clause 288, 320\
-   LINAGE clause 336\
-   File description entry 271\
-   Linage concepts 776\
-   LINAGE-COUNTER 112, 117\
-   Qualified 96\
-   Line\
-   Comment 33, 34\
-   Continuation 33\
-   Floating indicator 30\
-   Slant (/) comment line 33\
-   Source text 29\
-   LINE (LINES) phrase\
-   WRITE statement 619\
-   LINE clause 338\
-   LINE NUMBER phrase\
-   ACCEPT statement 460\
-   DISPLAY statement 487\
-   LINE-COUNTER 113, 117, 285, 339\
-   Qualified 96\
-   LINES AT BOTTOM phrase\
-   LINAGE clause 336\
-   LINES AT clause\
-   File description entry 271\
-   LINES AT TOP phrase\
-   LINAGE clause 336\
-   Linkage section 277\
-   LISTING directive 62\
-   Literal continuation indicator 30\
-   Literal delimiter\
-   Separator 92\
-   Literal-phrase\
-   SPECIAL-NAMES paragraph 232\
-   Literals\
-   Alphanumeric 84
+&emsp;SET statement, locale 574\
+LEADING phrase\
+&emsp;INSPECT statement 515\
+&emsp;SIGN clause 388\
+LEAP-SECOND directive 61\
+LEFT phrase\
+&emsp;SYNCHRONIZED clause 395\
+LENGTH function 682\
+LENGTH phrase\
+&emsp;Constant entry 282\
+&emsp;START statement 592\
+Letter mapping 769\
+Level-number 77, 80, 120, 335\
+&emsp;Data description entry 288\
+&emsp;Screen description entry 293\
+Levels 120\
+Lexical elements 76\
+Library text 38\
+Library-name 39, 82\
+Life cycle\
+&emsp;Data 133\
+&emsp;Object 200\
+LIMIT phrase\
+&emsp;DYNAMIC LENGTH clause 288, 320\
+LINAGE clause 336\
+&emsp;File description entry 271\
+Linage concepts 776\
+LINAGE-COUNTER 112, 117\
+&emsp;Qualified 96\
+Line\
+&emsp;Comment 33, 34\
+&emsp;Continuation 33\
+&emsp;Floating indicator 30\
+&emsp;Slant (/) comment line 33\
+&emsp;Source text 29\
+LINE (LINES) phrase\
+&emsp;WRITE statement 619\
+LINE clause 338\
+LINE NUMBER phrase\
+&emsp;ACCEPT statement 460\
+&emsp;DISPLAY statement 487\
+LINE-COUNTER 113, 117, 285, 339\
+&emsp;Qualified 96\
+LINES AT BOTTOM phrase\
+&emsp;LINAGE clause 336\
+LINES AT clause\
+&emsp;File description entry 271\
+LINES AT TOP phrase\
+&emsp;LINAGE clause 336\
+Linkage section 277\
+LISTING directive 62\
+Literal continuation indicator 30\
+Literal delimiter\
+&emsp;Separator 92\
+Literal-phrase\
+&emsp;SPECIAL-NAMES paragraph 232\
+Literals\
+&emsp;Alphanumeric 84
 
 ## Page 941
 
-   Boolean 86\
-   National 87\
-   Numeric 86\
-   little-endian 410\
-   Local names 116, 133\
-   Local time format 632\
-   Locale 74\
-   Category names 74\
-   Field names 74, 75\
-   LOCALE clause 132\
-   SPECIAL-NAMES paragraph 231\
-   Locale identification 435\
-   LOCALE phrase 132, 435\
-   PICTURE clause 354\
-   SET statement, locale 574\
-   SPECIAL-NAMES paragraph 232\
-   LOCALE-COMPARE function 684\
-   LOCALE-DATE function 685\
-   Locale-name 77\
-   Definition 80\
-   OBJECT-COMPUTER paragraph 228\
-   Scope of 115\
-   SET statement, locale 574\
-   SPECIAL-NAMES paragraph 231\
-   Locale-names 231\
-   LOCALE-TIME function 686\
-   LOCALE-TIME-FROM-SECONDS function 687\
-   Local-storage section 276\
-   LOCK MODE clause 259\
-   FILE-CONTROL paragraph 248\
-   LOCK ON MULTIPLE clause\
-   LOCK MODE clause 259\
-   LOCK phrase\
-   CLOSE statement 479\
-   READ statement 551\
-   REWRITE statement 563\
-   WRITE statement 619\
-   LOG function 688\
-   LOG10 function 689\
-   Logical file 176\
-   Logical operators 139\
-   In complex conditions 164\
-   Logical record 306, 774\
-   LOWER-CASE function 690\
-   Lowercase letters 70\
-   LOWEST-ALGEBRAIC function 691\
-   LOWLIGHT clause 343\
-   LOWLIGHT phrase\
-   SET statement, attribute setting 574\
-   LOW-VALUE/LOW-VALUES figurative constant 91
+&emsp;Boolean 86\
+&emsp;National 87\
+&emsp;Numeric 86\
+little-endian 410\
+Local names 116, 133\
+Local time format 632\
+Locale 74\
+&emsp;Category names 74\
+&emsp;Field names 74, 75\
+LOCALE clause 132\
+&emsp;SPECIAL-NAMES paragraph 231\
+Locale identification 435\
+LOCALE phrase 132, 435\
+&emsp;PICTURE clause 354\
+&emsp;SET statement, locale 574\
+&emsp;SPECIAL-NAMES paragraph 232\
+LOCALE-COMPARE function 684\
+LOCALE-DATE function 685\
+Locale-name 77\
+&emsp;Definition 80\
+&emsp;OBJECT-COMPUTER paragraph 228\
+&emsp;Scope of 115\
+&emsp;SET statement, locale 574\
+&emsp;SPECIAL-NAMES paragraph 231\
+Locale-names 231\
+LOCALE-TIME function 686\
+LOCALE-TIME-FROM-SECONDS function 687\
+Local-storage section 276\
+LOCK MODE clause 259\
+&emsp;FILE-CONTROL paragraph 248\
+LOCK ON MULTIPLE clause\
+&emsp;LOCK MODE clause 259\
+LOCK phrase\
+&emsp;CLOSE statement 479\
+&emsp;READ statement 551\
+&emsp;REWRITE statement 563\
+&emsp;WRITE statement 619\
+LOG function 688\
+LOG10 function 689\
+Logical file 176\
+Logical operators 139\
+&emsp;In complex conditions 164\
+Logical record 306, 774\
+LOWER-CASE function 690\
+Lowercase letters 70\
+LOWEST-ALGEBRAIC function 691\
+LOWLIGHT clause 343\
+LOWLIGHT phrase\
+&emsp;SET statement, attribute setting 574\
+LOW-VALUE/LOW-VALUES figurative constant 91
 
 M
 
@@ -38067,8 +38080,8 @@ MANUAL phrase\
 Mapping letters 769\
 Matching
 
-   Variable-length groups 128 MAX function 693
-
+&emsp;Variable-length groups 128\
+MAX function 693\
 Maximum capacity\
 &emsp;Exceeding 126\
 Maximum capacity of a dynamic table\
@@ -38247,40 +38260,41 @@ NOT operator
 
 ## Page 943
 
-   In complex conditions 164 In negated conditions 164 NOT phrase
-
-   EVALUATE statement 493\
-   NULL\
-   Predefined object 107\
-   Predefined-address 109\
-   NULL phrase\
-   SET statement, pointer assignment 574\
-   NULL predefined address 502\
-   ALLOCATE statement 469\
-   INITIALIZE statement 512\
-   NULL predefined object reference\
-   INITIALIZE statement 512\
-   Numeric category 129, 131, 357\
-   Numeric character 18\
-   Numeric class 129\
-   Numeric comparison 155\
-   Numeric data item 131\
-   Numeric functions 627\
-   Numeric literal 86\
-   Fixed-point 86\
-   Floating-point 86\
-   NUMERIC phrase\
-   CLASS clause 159, 307\
-   INITIALIZE statement 510\
-   NUMERIC-EDITED\
-   INITIALIZE statement 510\
-   Numeric-edited category 131, 304, 357\
-   Category of data\
-   &emsp;Numeric-edited 129\
-   Numeric-edited data item 131\
-   NUMVAL function 700\
-   NUMVAL-C function 702\
-   NUMVAL-F function 705
+&emsp;In complex conditions 164\
+&emsp;In negated conditions 164\
+NOT phrase\
+&emsp;EVALUATE statement 493\
+NULL\
+&emsp;Predefined object 107\
+&emsp;Predefined-address 109\
+NULL phrase\
+&emsp;SET statement, pointer assignment 574\
+NULL predefined address 502\
+&emsp;ALLOCATE statement 469\
+&emsp;INITIALIZE statement 512\
+NULL predefined object reference\
+&emsp;INITIALIZE statement 512\
+Numeric category 129, 131, 357\
+Numeric character 18\
+Numeric class 129\
+Numeric comparison 155\
+Numeric data item 131\
+Numeric functions 627\
+Numeric literal 86\
+&emsp;Fixed-point 86\
+&emsp;Floating-point 86\
+NUMERIC phrase\
+&emsp;CLASS clause 159, 307\
+&emsp;INITIALIZE statement 510\
+NUMERIC-EDITED\
+&emsp;INITIALIZE statement 510\
+Numeric-edited category 131, 304, 357\
+&emsp;Category of data\
+&emsp;&emsp;Numeric-edited 129\
+Numeric-edited data item 131\
+NUMVAL function 700\
+NUMVAL-C function 702\
+NUMVAL-F function 705
 
 O
 
@@ -38422,8 +38436,8 @@ OVERRIDE clause\
 
 P
 
-P PICTURE symbol 354 p_cs_precedes 75
-
+P PICTURE symbol 354\
+p_cs_precedes 75\
 PACKED-DECIMAL phrase\
 &emsp;USAGE clause 405\
 Page advance 504\
@@ -38481,64 +38495,64 @@ PICTURE SYMBOL phrase
 
 ## Page 945
 
-   SPECIAL-NAMES paragraph 231 Pointer 473
-
-   Initialization 419, 470\
-   Pointer class 129\
-   POINTER phrase\
-   STRING statement 597\
-   UNSTRING statement 606\
-   USAGE clause 405\
-   Polymorphism 191\
-   Class 191\
-   Parametric 191\
-   positive_sign 75\
-   Precedence of logical operators 164\
-   Predefined object reference 614\
-   Predefined-address 109\
-   PREFIXED phrase\
-   DYNAMIC LENGTH STRUCTURE clause 232\
-   PRESENT WHEN clause 312, 330, 338, 369, 378, 615\
-   PRESENT-VALUE function 710\
-   Prime record key 263\
-   PRINTING phrase\
-   SUPPRESS statement 603\
-   Procedure division 424\
-   Declarative portion 428\
-   Nondeclarative portion 428\
-   PROCEDURE DIVISION header 424\
-   Procedure-name 428\
-   Procedures 428\
-   Processor-dependent element flagging 4\
-   Processor-dependent language elements 4\
-   List of 756\
-   PROGRAM COLLATING SEQUENCE clause\
-   OBJECT-COMPUTER paragraph 228\
-   PROGRAM phrase\
-   EXIT statement 14, 498\
-   Program prototype\
-   CALL statement 472\
-   CANCEL statement 477\
-   Program-address-identifier 112\
-   Program-definition 204\
-   PROGRAM-ID paragraph 223\
-   Program-name 77, 80\
-   PROGRAM-ID paragraph 223\
-   Scope of 117\
-   Program-pointer\
-   CANCEL statement 477\
-   Definition 411\
-   Program-pointer category 112, 129, 131\
-   Program-pointer data item 131\
-   PROGRAM-POINTER phrase\
-   INITIALIZE statement 510\
-   USAGE clause 405\
-   Program-prototype 204\
-   Program-prototype-name 77, 80\
-   PROHIBITED phrase\
-   DEFAULT ROUNDED clause 219\
-   INTERMEDIATE ROUNDING clause 222\
-   ROUNDED phrase 447
+&emsp;SPECIAL-NAMES paragraph 231\
+Pointer 473\
+&emsp;Initialization 419, 470\
+Pointer class 129\
+POINTER phrase\
+&emsp;STRING statement 597\
+&emsp;UNSTRING statement 606\
+&emsp;USAGE clause 405\
+Polymorphism 191\
+&emsp;Class 191\
+&emsp;Parametric 191\
+positive_sign 75\
+Precedence of logical operators 164\
+Predefined object reference 614\
+Predefined-address 109\
+PREFIXED phrase\
+&emsp;DYNAMIC LENGTH STRUCTURE clause 232\
+PRESENT WHEN clause 312, 330, 338, 369, 378, 615\
+PRESENT-VALUE function 710\
+Prime record key 263\
+PRINTING phrase\
+&emsp;SUPPRESS statement 603\
+Procedure division 424\
+&emsp;Declarative portion 428\
+&emsp;Nondeclarative portion 428\
+PROCEDURE DIVISION header 424\
+Procedure-name 428\
+Procedures 428\
+Processor-dependent element flagging 4\
+Processor-dependent language elements 4\
+&emsp;List of 756\
+PROGRAM COLLATING SEQUENCE clause\
+&emsp;OBJECT-COMPUTER paragraph 228\
+PROGRAM phrase\
+&emsp;EXIT statement 14, 498\
+Program prototype\
+&emsp;CALL statement 472\
+&emsp;CANCEL statement 477\
+Program-address-identifier 112\
+Program-definition 204\
+PROGRAM-ID paragraph 223\
+Program-name 77, 80\
+&emsp;PROGRAM-ID paragraph 223\
+&emsp;Scope of 117\
+Program-pointer\
+&emsp;CANCEL statement 477\
+&emsp;Definition 411\
+Program-pointer category 112, 129, 131\
+Program-pointer data item 131\
+PROGRAM-POINTER phrase\
+&emsp;INITIALIZE statement 510\
+&emsp;USAGE clause 405\
+Program-prototype 204\
+Program-prototype-name 77, 80\
+PROHIBITED phrase\
+&emsp;DEFAULT ROUNDED clause 219\
+&emsp;INTERMEDIATE ROUNDING clause 222\
+&emsp;ROUNDED phrase 447
 
 PROPAGATE directive 64\
 PROPERTY clause 108, 371\
@@ -38600,8 +38614,12 @@ RECORD CONTAINS clause
 
 ## Page 946
 
-   File description entry 271 RECORD DELIMITER clause 262 FILE-CONTROL paragraph 250 Record description entry 284 RECORD IS VARYING clause 623 Record key 255, 263
-
+&emsp;File description entry 271\
+RECORD DELIMITER clause 262\
+&emsp;FILE-CONTROL paragraph 250\
+Record description entry 284\
+RECORD IS VARYING clause 623\
+Record key 255, 263\
 RECORD KEY clause 263\
 RECORD keyword\
 &emsp;RETURN statement 561\
@@ -38716,45 +38734,45 @@ RETRY phrase 453, 543, 782
 
 ## Page 947
 
-   DELETE statement 485\
-   OPEN statement 539\
-   READ statement 551\
-   REWRITE statement 563\
-   WRITE statement 619\
-   RETURN statement 561\
-   Returned values, intrinsic functions 633\
-   RETURNING phrase\
-   ALLOCATE statement 469\
-   CALL statement 471\
-   INVOKE statement 521\
-   Procedure division header 102, 424\
-   REVERSE function 714\
-   REVERSE-VIDEO clause 383\
-   REVERSE-VIDEO phrase\
-   SET statement, attribute setting 574\
-   REWRITE statement 563\
-   RF phrase\
-   TYPE clause 398\
-   RH phrase\
-   TYPE clause 398\
-   RIGHT phrase\
-   JUSTIFIED clause 334\
-   SYNCHRONIZED clause 395\
-   ROUNDED phrase 142, 143, 447\
-   ADD statement 466\
-   COMPUTE statement 482\
-   DIVIDE statement 490\
-   MULTIPLY statement 537\
-   SOURCE clause 389\
-   SUBTRACT statement 600\
-   SUM clause 391\
-   Rounding\
-   Concepts 826\
-   Rounding rules 142\
-   Rules 26\
-   Run unit 21, 431\
-   Run unit termination 437, 438, 596\
-   Runtime element 203
+&emsp;DELETE statement 485\
+&emsp;OPEN statement 539\
+&emsp;READ statement 551\
+&emsp;REWRITE statement 563\
+&emsp;WRITE statement 619\
+RETURN statement 561\
+Returned values, intrinsic functions 633\
+RETURNING phrase\
+&emsp;ALLOCATE statement 469\
+&emsp;CALL statement 471\
+&emsp;INVOKE statement 521\
+&emsp;Procedure division header 102, 424\
+REVERSE function 714\
+REVERSE-VIDEO clause 383\
+REVERSE-VIDEO phrase\
+&emsp;SET statement, attribute setting 574\
+REWRITE statement 563\
+RF phrase\
+&emsp;TYPE clause 398\
+RH phrase\
+&emsp;TYPE clause 398\
+RIGHT phrase\
+&emsp;JUSTIFIED clause 334\
+&emsp;SYNCHRONIZED clause 395\
+ROUNDED phrase 142, 143, 447\
+&emsp;ADD statement 466\
+&emsp;COMPUTE statement 482\
+&emsp;DIVIDE statement 490\
+&emsp;MULTIPLY statement 537\
+&emsp;SOURCE clause 389\
+&emsp;SUBTRACT statement 600\
+&emsp;SUM clause 391\
+Rounding\
+&emsp;Concepts 826\
+Rounding rules 142\
+Rules 26\
+Run unit 21, 431\
+Run unit termination 437, 438, 596\
+Runtime element 203
 
 S
 
@@ -38835,8 +38853,8 @@ SHARING clause 259, 266, 527, 589
 
 ## Page 948
 
-   FILE-CONTROL paragraph 248 Sharing data 136
-
+&emsp;FILE-CONTROL paragraph 248\
+Sharing data 136\
 Sharing file connectors 177\
 Sharing mode 185, 778\
 SHARING phrase 259\
@@ -38894,8 +38912,8 @@ Special character words 83\
 &emsp;In formats 26\
 Special insertion editing 362
 
-SPECIAL-NAMES paragraph 160, 162, 231, 578 ACCEPT statement 461
-
+SPECIAL-NAMES paragraph 160, 162, 231, 578\
+&emsp;ACCEPT statement 461\
 SQRT function 719\
 Standard arithmetic 59, 140, 141, 452, 538, 633\
 &emsp;Concepts 829\
@@ -38955,8 +38973,12 @@ STRONG phrase\
 
 ## Page 949
 
-Strongly-typed group items 131 Strongly-typed groups 131 Strongly-typed items 806 Structured compilation group 36, 37, 202 Structured constant 315, 862 Subfield 629
-
+Strongly-typed group items 131\
+Strongly-typed groups 131\
+Strongly-typed items 806\
+Structured compilation group 36, 37, 202\
+Structured constant 315, 862\
+Subfield 629\
 Subscripted\
 &emsp;Data-name 97\
 Subscripted identifier 98\
@@ -39104,8 +39126,8 @@ Types of functions 627
 
 U
 
-UCS 10, 11, 22, 68, 85, 105, 532, 814, 824 Definition 22
-
+UCS 10, 11, 22, 68, 85, 105, 532, 814, 824\
+&emsp;Definition 22\
 UCS-4 238\
 UCS-4 phrase\
 &emsp;SPECIAL-NAMES paragraph 232\
@@ -39128,39 +39150,39 @@ UNSIGNED phrase\
 UNSTRING statement 606\
 UNTIL phrase
 
-   PERFORM statement 544 UP phrase
-
-   SET statement, index arithmetic 573, 575\
-   SET statement, pointer arithmetic 574\
-   UPON phrase\
-   DISPLAY statement 487\
-   SUM clause 391\
-   UPPER-CASE function 731\
-   Uppercase letters 70\
-   USAGE clause 385, 398, 405\
-   USE procedures 478\
-   USE statement 427, 543, 610\
-   User default locale 74\
-   USER-DEFAULT phrase\
-   SET statement 574\
-   User-defined functions 201, 242\
-   User-defined words 765\
-   User-function-name 77, 81\
-   USING clause 412\
-   CLASS-ID paragraph 211\
-   INTERFACE-ID paragraph 214\
-   USING phrase\
-   CALL statement 471\
-   FILE-CONTROL paragraph 248\
-   INVOKE statement 521\
-   MERGE statement 525\
-   Procedure division header 425\
-   SORT statement 585\
-   UTC time format 632\
-   UTF-16 10, 22, 121\
-   SPECIAL-NAMES paragraph 232\
-   UTF-8 85\
-   SPECIAL-NAMES paragraph 232
+&emsp;PERFORM statement 544\
+UP phrase\
+&emsp;SET statement, index arithmetic 573, 575\
+&emsp;SET statement, pointer arithmetic 574\
+UPON phrase\
+&emsp;DISPLAY statement 487\
+&emsp;SUM clause 391\
+UPPER-CASE function 731\
+Uppercase letters 70\
+USAGE clause 385, 398, 405\
+USE procedures 478\
+USE statement 427, 543, 610\
+User default locale 74\
+USER-DEFAULT phrase\
+&emsp;SET statement 574\
+User-defined functions 201, 242\
+User-defined words 765\
+User-function-name 77, 81\
+USING clause 412\
+&emsp;CLASS-ID paragraph 211\
+&emsp;INTERFACE-ID paragraph 214\
+USING phrase\
+&emsp;CALL statement 471\
+&emsp;FILE-CONTROL paragraph 248\
+&emsp;INVOKE statement 521\
+&emsp;MERGE statement 525\
+&emsp;Procedure division header 425\
+&emsp;SORT statement 585\
+UTC time format 632\
+UTF-16 10, 22, 121\
+&emsp;SPECIAL-NAMES paragraph 232\
+UTF-8 85\
+&emsp;SPECIAL-NAMES paragraph 232
 
 V
 
@@ -39188,53 +39210,58 @@ VARYING clause 422
 
 ## Page 951
 
-VARYING phrase PERFORM statement 545 RECORD clause 374 SEARCH statement 568
+VARYING phrase\
+&emsp;PERFORM statement 545\
+&emsp;RECORD clause 374\
+&emsp;SEARCH statement 568
 
 W
 
-Weakly-typed items 132, 806 Week date format 630 Week-of-year subfield 630 WHEN phrase
-
-   EVALUATE directive 52\
-   EVALUATE statement 493\
-   INVALID clause 333\
-   SEARCH statement 568\
-   WHEN SET TO FALSE phrase\
-   VALUE clause 415\
-   WHEN-COMPILED function 733\
-   WITH DUPLICATES phrase\
-   SORT statement 585\
-   WITH ERROR STATUS phrase\
-   STOP statement 596\
-   WITH FILLER phrase\
-   INITIALIZE statement 510\
-   WITH FOOTING phrase\
-   LINAGE clause 336\
-   WITH LENGTH phrase\
-   START statement 592\
-   WITH LOCK phrase\
-   CLOSE statement 479\
-   READ statement 551\
-   REWRITE statement 563\
-   WRITE statement 619\
-   WITH NO ADVANCING phrase\
-   DISPLAY statement 487\
-   WITH NO LOCK phrase\
-   READ statement 551\
-   REWRITE statement 563\
-   WRITE statement 619\
-   WITH NO REWIND phrase 55\
-   CLOSE statement 479\
-   OPEN statement 539\
-   WITH NORMAL STATUS phrase\
-   STOP statement 596\
-   WITH POINTER phrase\
-   STRING statement 597\
-   UNSTRING statement 606\
-   WITH TEST phrase\
-   PERFORM statement 544\
-   Word 76\
-   Working-storage section 275\
-   WRITE statement 233, 619
+Weakly-typed items 132, 806\
+Week date format 630\
+Week-of-year subfield 630\
+WHEN phrase\
+&emsp;EVALUATE directive 52\
+&emsp;EVALUATE statement 493\
+&emsp;INVALID clause 333\
+&emsp;SEARCH statement 568\
+WHEN SET TO FALSE phrase\
+&emsp;VALUE clause 415\
+WHEN-COMPILED function 733\
+WITH DUPLICATES phrase\
+&emsp;SORT statement 585\
+WITH ERROR STATUS phrase\
+&emsp;STOP statement 596\
+WITH FILLER phrase\
+&emsp;INITIALIZE statement 510\
+WITH FOOTING phrase\
+&emsp;LINAGE clause 336\
+WITH LENGTH phrase\
+&emsp;START statement 592\
+WITH LOCK phrase\
+&emsp;CLOSE statement 479\
+&emsp;READ statement 551\
+&emsp;REWRITE statement 563\
+&emsp;WRITE statement 619\
+WITH NO ADVANCING phrase\
+&emsp;DISPLAY statement 487\
+WITH NO LOCK phrase\
+&emsp;READ statement 551\
+&emsp;REWRITE statement 563\
+&emsp;WRITE statement 619\
+WITH NO REWIND phrase 55\
+&emsp;CLOSE statement 479\
+&emsp;OPEN statement 539\
+WITH NORMAL STATUS phrase\
+&emsp;STOP statement 596\
+WITH POINTER phrase\
+&emsp;STRING statement 597\
+&emsp;UNSTRING statement 606\
+WITH TEST phrase\
+&emsp;PERFORM statement 544\
+Word 76\
+Working-storage section 275\
+WRITE statement 233, 619
 
 X
 
