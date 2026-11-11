@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.2.3-5",
  "rule-digest": "fc8900375d94",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenReportFileReference; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
  "test-ref": "conformance:cases/XIII.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-SR-XIII_3_2_3-5",
+ "notes": "§1985:XIII.3.2.3 SR5: the subject of a report FD 'may be referenced in the Procedure Division only by the USE statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase.' ResolveFile admits a report file only for CLOSE and OPEN (admitsReportFile) and sends every other file-name resolution through ScreenReportFileReference (COBOL2577); CheckOpenModeForFile refuses OPEN INPUT and I-O of a report file (COBOL2371, the witness); the rule is edition-neutral, the 2023 PERFORM WHEN addition having no 85 syntax. Probes (std 85): b) OPEN INPUT and OPEN I-O COBOL2371; READ, START, DELETE, SORT USING, SORT GIVING and MERGE GIVING of the report file each COBOL2577; e) OPEN OUTPUT, CLOSE WITH LOCK, OPEN EXTEND on an existing file (appended HELLO after OLDLINE, status 00), USE AFTER STANDARD ERROR ON the file and USE FOR DEBUGGING ON the file accepted and ran; a failed OPEN OUTPUT (bad directory) ran the USE procedure with status 30, then CLOSE gave 42; c) OPEN OUTPUT ... SHARING WITH ALL OTHER (2002) refused at parse (COBOL5506); a, d, f: not reachable (a file-name reference has no length, category or value).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

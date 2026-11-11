@@ -300,39 +300,21 @@ NIST programs in-process.
 `Manifest_CoversEveryProgram_NoOverlap`, kb/Work PB3177);
 `ReservedWordsDriftTests` binds `reserved-words.json`. Nothing silently undiscovered.
 
-### 1.7 The fleet build guard (`scripts/hooks/fleet_active_build.py`) — a PreToolUse gate on `dotnet *`
-Wired in `.claude/settings.json` for both `Bash(dotnet *)` and `PowerShell(dotnet *)`. It **denies** `dotnet
-build|test|clean|publish|run|msbuild` while a live subagent is probing the binaries the build would replace: ~6 rebuilds under
-a running 60-agent fleet made all 60 verdicts unusable (2026-08-04, PB15). Liveness is transcript MTIME within 120 s.
-**The unit of the freeze is the WORKING TREE, not the session (2026-09-01).** It denies iff some *foreign* live agent works in
-the caller's own tree, and both trees are derived, never listed:
-- the caller's tree is the nearest ancestor holding a `.git` entry (a directory in the main checkout, a file in a worktree) of
-  WHERE THE BUILD RUNS: the project a `dotnet` command names, else the directory the shell is in when it runs it. That
-  directory comes from `scripts/hooks/shell_location.py`, the ONE parser of both shells' command lines and location changes
-  (`cd`, `pushd`/`popd`, a subshell, `bash -c`; `Set-Location`/`sl`/`chdir`/`Push-Location`, `pwsh -WorkingDirectory`,
-  `Start-Process -WorkingDirectory`, cmd.exe's `cd /d`), shared by `worktree_rm_allow.py`, `forbidden_commands.py` (every rule;
-  kb/Work PB3095, PB3198) and `status_guard.py` (kb/Work PB2599). It is the ONE model of a command line those rules read
-  (kb/Work PB3198): heredoc bodies cut out at their own delimiter lines, and every place a shell takes a command line from
-  walked as one (`$( … )`, backquote and PowerShell expressions and script blocks; `bash -c`, `pwsh -Command` /
-  `-EncodedCommand`, `cmd /c`, `eval`, `Invoke-Expression`, also behind `timeout`/`env`/`xargs`/`wsl -e`), each step marked with
-  how many substitutions enclose it and a walk carrying what its own stdin holds;
-- a foreign agent's tree is the tree of the directory **the agent was launched in**, which its own transcript records on its
-  first record (`cwd`; `launch_cwd`, `agent_place`; kb/Work PB3770), however the host starts the agent
-  (`Agent(isolation="worktree")`, a rolling wave's `wf_<run>-<n>`, a named `git worktree add`, the main checkout).
-So N implementer agents in N worktrees build in parallel, a main-tree build is denied by a live main-tree agent, and a
-main-tree build is *allowed* while only worktree agents are live. A build outside every working tree (a read-only adjudicator's
-scratch probe) writes next to the projects of its graph (the project or solution it names, or the only one in the directory,
-and the closure of their `ProjectReference`s, solution members and a file-based app's `#:project` directives:
-`build_places`), so it is denied only by an agent working in a tree such a project references. An output path on the command
-line is one more place the build writes (kb/Work PB3811): `-o`, `--output`, `--artifacts-path` and the `OUTPUT_PATH_PROPERTIES`
-(`OutDir`, `OutputPath`, `PublishDir`, …); words after a bare `--` are the program's own. Fail-open on any error; an
-**unknown** answer reverts to the old session-wide deny rather than to an allow: a directory the command line does not
-determine, an agent whose transcript names no launch directory or whose launch directory no longer exists, a scratch graph the
-guard cannot read to the end (a missing project, a `$(…)` in a reference, an `<Import>`, an output property set in a project
-file, a `Directory.Build.props`/`.targets`/`.rsp` in an ancestor directory), and a command line that moves the output without
-saying where (a variable in the path, a response file, `-p:UseArtifactsOutput=…`, an environment variable MSBuild reads as an
-output property). `--self-test` fires every branch over real temporary worktrees, scratch projects and agent transcripts, and
-is the only thing that proves the ALLOW arm — three of this hook's four defects were it failing closed.
+### 1.7 The shared command-line parser of the hooks (`scripts/hooks/shell_location.py`)
+The ONE parser of both shells' command lines and location changes (`cd`, `pushd`/`popd`, a subshell, `bash -c`;
+`Set-Location`/`sl`/`chdir`/`Push-Location`, `pwsh -WorkingDirectory`, `Start-Process -WorkingDirectory`, cmd.exe's
+`cd /d`; kb/Work PB2599), read by `forbidden_commands.py` (every rule; kb/Work PB3095, PB3198) and
+`worktree_rm_allow.py`. It is the ONE model of a command line those rules read (kb/Work PB3198): heredoc bodies cut out
+at their own delimiter lines, and every place a shell takes a command line from walked as one (`$( … )`, backquote and
+PowerShell expressions and script blocks; `bash -c`, `pwsh -Command` / `-EncodedCommand`, `cmd /c`, `eval`,
+`Invoke-Expression`, also behind `timeout`/`env`/`xargs`/`wsl -e`), each step carrying its nesting depth (one level per enclosing
+substitution, group or payload), the directory it runs in, and a walk carrying what its own stdin holds. `test_shell_location.py` is its self-test.
+
+The fleet build guard that used to read it (`fleet_active_build.py`, a PreToolUse deny on `dotnet *` while a live
+subagent worked in the caller's tree, after a 60-agent fleet was invalidated by rebuilds under it on 2026-08-04) was
+deleted by kb/Work PB5234: in three days it refused 10 builds in 4 transcripts, every one on its fallback ("a working
+tree that could not be determined"), none proven to share a tree with a fleet, because every dispatched writer works
+in its own worktree.
 
 ---
 

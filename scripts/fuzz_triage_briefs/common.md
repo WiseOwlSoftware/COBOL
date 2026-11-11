@@ -124,7 +124,7 @@ The record `<<TRIAGE>>/records/<family>.md` has these `##` sections, in this ord
   If either exists: write the report with what is decided and return `SPLIT`.
 - Turn cap <<TURN_CAP>>. At the cap: write the report, return `SPLIT` with the undecided signatures listed. Never extend.
 - Never end your turn while a background job of yours runs (P2).
-- Command chaining (P14): never chain after a verdict command; independent commands as parallel tool calls.
+- Command chaining (P14): independent commands as parallel tool calls; read a verdict from its verdict line.
 - You are READ-ONLY inside every git tree: write only under `<<TRIAGE>>/` (your slice's directory, and `records/` for a
   record).
 

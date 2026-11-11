@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.2.4-5",
  "rule-digest": "2e19bcf812cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; docs/CONFORMANCE.md#DOC-A.1-24",
  "test-ref": "conformance:cases/VIII.4.2@1985-CLOSE-STATEMENT/1985-GR-VIII_4_2_4-5",
+ "notes": "§1985:VIII.4.2.4 GR5: 'Following the successful execution of a CLOSE statement, the record area associated with file-name-1 is no longer available. The unsuccessful execution of such a CLOSE statement leaves the availability of the record area undefined.' The rule withdraws the area from a conforming program and defines nothing about referencing it, so the implementation obligation is only that CLOSE succeed or fail as the other rules say: FileRegistry.CloseByFormat closes the connector (42 when not open), and the record is a typed field of the emitted class whose content survives, the determination documented at docs/CONFORMANCE.md DOC-A.1-24; FileControlBinder.LinkSameRecordArea keeps one storage area for a SAME RECORD AREA group. Probes at --std 85 (classes a, d, e): a RELATIVE DYNAMIC file whose record holds an OCCURS 1 TO 8 DEPENDING ON table, in SAME RECORD AREA with a sequential file: after CLOSE of the relative file the still-open sequential file's record shows the shared bytes and writes; READ after reopen gives [05QQQQQ]; after a successful CLOSE the area keeps [05QQQQQ] (00), after a failed CLOSE (42) likewise, a reference-modified MOVE into the closed area runs without fault, and a reopen and READ restore the record (00). Classes b, c, f do not apply (no syntax of its own). The witness reads, saves the record to Working-Storage before the CLOSE, and displays the saved copy.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

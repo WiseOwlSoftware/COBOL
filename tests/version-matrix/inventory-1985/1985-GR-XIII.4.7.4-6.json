@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.7.4-6",
  "rule-digest": "10313ac400f6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#IsActive; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose",
  "test-ref": "conformance:cases/XIII.4.7@1985-TERMINATE-STATEMENT/1985-GR-XIII_4_7_4-6",
+ "notes": "§1985:XIII.4.7.4 GR6: 'The TERMINATE statement does not close the file with which the report is associated; a CLOSE statement for the file must be executed. Every report that is in an initiated condition must be terminated before a CLOSE statement is executed', with no result stated (§1985:XIII.4.2.4 GR5 likewise). TerminateCore clears only the active state and leaves the file open; EmitClose reads IsActive only when EC-REPORT-NOT-TERMINATED is enabled, which cannot happen at 85. Probes: CLOSE of an active report gives 00 with no abend, and a second CLOSE 42; GENERATE after TERMINATE-less CLOSE writes nothing; the XIII.4.7.4-4 witness re-INITIATEs after TERMINATE with no new OPEN. Witness: CLOSE STATUS 00.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
