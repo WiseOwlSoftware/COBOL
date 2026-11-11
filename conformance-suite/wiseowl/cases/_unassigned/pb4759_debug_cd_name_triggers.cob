@@ -20,7 +20,7 @@
       *> cd-name"; the first twelve characters of an input CD's area are its
       *> SYMBOLIC QUEUE (the queue the program named, mcs.json beside this
       *> program seeds it), which W-CONT receives.
-      *> The WITH DATA statement follows the section: the RECEIVE itself is
+      *> The section follows the WITH DATA statement: the RECEIVE itself is
       *> the statement the rule is about.
       *> Why each leg can fail: PURGE runs nothing; a RECEIVE that took the
       *> NO DATA path runs nothing and NODATA is its only line; the section

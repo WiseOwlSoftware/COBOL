@@ -317,11 +317,12 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
         return string.Concat(text, into.AsSpan(text.Length));
     }
 
-    /// <summary>A.1.2.3 GR6 and GR28: the names of what scheduled the run unit (<see cref="MessageStore.Scheduled"/>), or spaces.</summary>
-    internal string InitialArea(string cd, CommunicationFormat format, string image)
+    /// <summary>A.1.2.3 GR6 and GR28: the names of what scheduled the run unit (<see cref="MessageStore.Scheduled"/>), or spaces. <paramref name="scheduledProgram"/>: the
+    /// program being activated is the one that established the run unit; any other program's INITIAL CD is initialized to spaces (§1985:XIV.2.2.4 GR28, GR6).</summary>
+    internal string InitialArea(string cd, CommunicationFormat format, string image, bool scheduledProgram)
     {
         var area = new CommunicationArea(image);
-        var scheduled = Store.Scheduled;
+        string[] scheduled = scheduledProgram ? Store.Scheduled : [];
         if (format is CommunicationFormat.Input)
             area.SetQueuePath(scheduled);
         else
