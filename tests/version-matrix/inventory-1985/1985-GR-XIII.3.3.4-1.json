@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both rules only describe what naming several reports in a REPORT clause means. No program is accepted or refused differently; 'may be written' versus 'contains' is wording only.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.46.4-1": "49e5634f6c6d"
+  }
  }
 }

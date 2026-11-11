@@ -11,6 +11,11 @@
   "reason": "'Within one COBOL library, each text-name must be unique' is kept by §2023:7.2.3.3 SR3, and library-name-1 still identifies the library holding the text (§2023:7.2.3.4 GR2). But 1985 requires text-name-1 to be qualified by library-name-1 whenever more than one library is available; 2023 has no such rule: 'When neither library-name-1 nor literal-2 is specified, a default COBOL library is used' (§2023:7.2.3.4 GR3). An unqualified COPY that 1985 refused with several libraries is accepted in 2023. Looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-33"
+  "source": "adjudicate-712/slice-33",
+  "digests": {
+   "SR-7.2.3.3-3": "7641637cf7a4",
+   "GR-7.2.3.4-2": "bd25a2a77b39",
+   "GR-7.2.3.4-3": "19a91b5296f0"
+  }
  }
 }

@@ -9,6 +9,10 @@
    "SR-14.9.26.3-2"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.26.3-1": "437fa1876f91",
+   "SR-14.9.26.3-2": "1e4e7aeac870"
+  }
  }
 }

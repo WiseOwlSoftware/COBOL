@@ -1,0 +1,13 @@
+{
+  "claim_id": "p861-1",
+  "claim_key": "bcfb1694eecb0412",
+  "page": 861,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p861-1", "page": 861, "kind": "misplaced-content", "severity": "structural", "pdf_says": "WRITE statement  558\nATAN function  579 ... B  PICTURE symbol  313\nBACKGROUND-COLOR clause  262\nB-AND operator  118 ... File description entry  234\nBoolean category  111, 112, 292, 316\nBoolean character  8", "markdown_says": "   WRITE statement 558 ATAN function 579\n...\nB PICTURE symbol 313 BACKGROUND-COLOR clause 262 B-AND operator 118\n...\n   File description entry 234 Boolean category 111, 112, 292, 316 Boolean character 8", "why_it_matters": "Three places merge separate index entries into one line. One of them joins a sub-entry (File description entry, under BLOCK CONTAINS clause) to two top-level headwords, so the entry boundaries and the parent/child structure are lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of printed page 839 (PDF page 861) shows each of these as a separate index line: 'WRITE statement 558' (indented sub-entry continuing from the previous page) then 'ATAN function 579' at top level; 'B PICTURE symbol 313', 'BACKGROUND-COLOR clause 262', 'B-AND operator 118' as three top-level lines; and at the top of the right column the indented sub-entry 'File description entry 234' (child of 'BLOCK CONTAINS clause 268', which ends the left column) followed by top-level 'Boolean category 111, 112, 292, 316' and 'Boolean character 8'. The markdown runs each group together on one line with no break or \\ separator, and gives the merged lines a leading indent, so 'ATAN function', 'Boolean category' and 'Boolean character' look like sub-entries and the entry boundaries are lost. No words or page numbers are missing; the defect is lost entry and hierarchy structure. The claim quotes both sources accurately. The page is an informative index, so the defect does not affect normative content.",
+    "corrected_description": ""
+  }
+}

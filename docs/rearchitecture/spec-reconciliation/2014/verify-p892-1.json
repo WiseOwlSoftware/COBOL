@@ -1,0 +1,13 @@
+{
+  "claim_id": "p892-1",
+  "claim_key": "3cde548c2cfa911a",
+  "page": 892,
+  "kind": "incorrect-figure",
+  "severity": "structural",
+  "claim": {"id": "p892-1", "page": 892, "kind": "incorrect-figure", "severity": "structural", "pdf_says": "Flowchart (Figure D.9, condition-1 OR condition-2 AND condition-3): condition-1 true 'yes' goes right to 'Truth value is true'; condition-2 false 'yes' and condition-3 false 'yes' go left to 'Truth value is false'; condition-3 false 'no' goes right to 'Truth value is true'.", "markdown_says": "yes Condition-2\\\n&emsp;&emsp;&emsp;&emsp;false\n...\nyes Condition-3 no\\\n&emsp;&emsp;&emsp;&emsp;&emsp;false\n\n| Truth value | Truth value |\n|---|---|\n| is false | is true |", "why_it_matters": "Flowchart flattened to labels; which branch reaches which truth value (the AND-before-OR precedence the figure illustrates) is lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 892 (printed 868) shows Figure D.9 as a flowchart: Evaluate condition-1 -> 'Condition-1 true' decision; 'yes' exits right on a line that runs down to the arrow 'Truth value is true'; 'no' goes down to Evaluate condition-2 -> 'Condition-2 false'; 'yes' exits left down to the arrow 'Truth value is false'; 'no' goes down to Evaluate condition-3 -> 'Condition-3 false'; 'yes' exits left joining the false line, 'no' exits right joining the true line. The claim's pdf_says matches this exactly. The markdown keeps every box and label text but no edges or arrows: the decision outcomes are loose 'yes'/'no' words and the two terminals are recast as a two-column table, so the routing of each branch to a truth value (the figure's whole content: condition-2 AND condition-3 evaluated as a unit, condition-1 true short-circuiting to true) must be guessed from word order. Condition-1's 'yes' is not even tied to a direction. This is lost figure content, not furniture or wrapping. The figure is in informative Annex D, so severity structural (not normative) is right.",
+    "corrected_description": ""
+  }
+}

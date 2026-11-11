@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "1985: the file 'must be open in the input or I-O mode' when START executes, status 47 otherwise. §2023:14.9.41.4 GR1 'The open mode of the file connector referenced by file-name-1 shall be input or I-O'; §2023:14.9.27.4 GR4 ('The open mode determines the input-output statements that are allowed'), §2023:14.9.27.4 GR6 and §2023:14.9.27.4 GR8 (Table 20) restate it; §2023:9.1.13.7 GR7 gives the same status 47. Run-time in both; same programs, same effect.",
-  "source": "adjudicate-712-r2/slice-03"
+  "source": "adjudicate-712-r2/slice-03",
+  "digests": {
+   "GR-14.9.41.4-1": "a7f54a906b23",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-14.9.27.4-6": "b7ae208757f4",
+   "GR-14.9.27.4-8": "85b040d1dbe8",
+   "GR-9.1.13.7-7": "33e8e795f04b"
+  }
  }
 }

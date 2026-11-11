@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "The 2023 reference-modification format (§2023:8.4.3.3.2) takes identifier-1 where 1985 had data-name-1, and an identifier may be qualified and subscripted. §2023:8.4.3.3.3 SR3 'Identifier-1 shall not be a reference-modification format identifier' excludes only what 1985's 'qualified or subscripted' also excluded. Function and method identifiers as the base are additions.",
-  "source": "adjudicate-712/slice-28"
+  "source": "adjudicate-712/slice-28",
+  "digests": {
+   "FMT-8.4.3.3.2": "39fb6e57d078",
+   "SR-8.4.3.3.3-3": "abb088585584"
+  }
  }
 }

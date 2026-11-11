@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: with PROGRAM COLLATING SEQUENCE 'the program collating sequence is the collating sequence associated with alphabet-name-1'. §2023:12.3.6.4 GR9: 'the initial alphanumeric program collating sequence is the collating sequence associated with alphabet-name-1', effective from the initial state per §2023:12.3.6.4 GR12. 'Initial' matters only when a SET statement changes the sequence, and alphabet-name-2/NATIONAL are new syntax; a 1985 program gets the same sequence throughout.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "GR-12.3.6.4-9": "fc96ecd63684",
+   "GR-12.3.6.4-12": "d81749d55b46"
+  }
  }
 }

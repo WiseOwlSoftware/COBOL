@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: internal-connector files 'are not in the open mode when the program is in an initial state', else as last exited. §2023:14.6.2.3.2 (initial state, occasions 1 and 3, list item 3): 'internal file connectors are initialized by setting them to not be in any open mode'; §2023:11.10.4 GR3 for initial programs. The last-exit half is §2023:8.6.4 prose (static items, last-used state) with no catalog row; it states the same. No case added or refused.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-14.6.2.3.2-L2.3": "ae9bc07201b1",
+   "GR-14.6.2.3.2-1": "c89f05de4930",
+   "GR-14.6.2.3.2-3": "3b39619d4886",
+   "GR-11.10.4-3": "5d9f42e6c2b0"
+  }
  }
 }

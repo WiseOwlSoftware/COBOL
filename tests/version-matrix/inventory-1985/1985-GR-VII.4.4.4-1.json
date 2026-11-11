@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "1985 READ GR1: the file 'must be open in the input or I-O mode at the time this statement is executed' (run-time; 1985 status 47). §2023:14.9.30.4 GR2 'The open mode of the file connector referenced by file-name-1 shall be input or I-O' (else '47', §2023:9.1.13.7 GR7); §2023:14.9.27.4 GR4, §2023:14.9.27.4 GR6 and §2023:14.9.27.4 GR8 (Table 20) restate the open-mode requirement. Same programs accepted, same effect.",
-  "source": "adjudicate-712-r2/slice-07"
+  "source": "adjudicate-712-r2/slice-07",
+  "digests": {
+   "GR-14.9.30.4-2": "bff533cd4871",
+   "GR-9.1.13.7-7": "33e8e795f04b",
+   "GR-14.9.27.4-8": "85b040d1dbe8",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-14.9.27.4-6": "b7ae208757f4"
+  }
  }
 }

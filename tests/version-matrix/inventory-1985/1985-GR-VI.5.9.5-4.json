@@ -18,6 +18,14 @@
   ],
   "bridge": true,
   "reason": "1985: 'The , (comma), B (space), 0 (zero), and / (slant) are used as the insertion characters', counted in the size, final comma ends the entry at the period, DECIMAL-POINT IS COMMA swaps. §2023:13.18.40.5 GR3: 'Character-1 and the symbols B, 0, /, , ... are used as the simple insertion editing symbols' adds a simple insertion symbol (the EDITING phrase character-1) that 1985 refuses; size §2023:13.18.40.4 GR14, final comma §2023:13.18.40.3 SR7 and §2023:8.3.5 SR8 d), swap §2023:13.18.40.3 SR13 and §2023:12.3.7.4 GR14 are unchanged. A case added.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "GR-13.18.40.5-3": "7d68389ca1b0",
+   "GR-13.18.40.4-14": "afd0f88fdb6d",
+   "SR-13.18.40.3-7": "459081c85b3b",
+   "SR-8.3.5-8": "17894f6f67b2",
+   "SR-13.18.40.3-13": "8fe7d3903dfc",
+   "GR-12.3.7.4-14": "575faf83d25e"
+  }
  }
 }

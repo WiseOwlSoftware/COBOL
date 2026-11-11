@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "Matching is kept: comment and blank lines take no part (§2023:6.5 GR2 discards them in logical conversion, which §2023:6.1 GR2 applies before text manipulation; §2023:7.2.3.4 GR9 'Comments, if any, are treated as a single space'). But 1985 copies comment and blank lines of library text and pseudo-text-2 'into the resultant source program unchanged'; 2023 discards them and §2023:7.2.3.4 GR13 says replacement 'shall not introduce ... a comment, or a blank line'. The resultant text differs (no effect on execution).",
-  "source": "adjudicate-712/slice-23"
+  "source": "adjudicate-712/slice-23",
+  "digests": {
+   "GR-6.5-2": "2121317b3c52",
+   "GR-6.1-2": "22025b4250bf",
+   "GR-7.2.3.4-9": "39ed1d2c6ae8",
+   "GR-7.2.3.4-13": "0de6c4933fda"
+  }
  }
 }

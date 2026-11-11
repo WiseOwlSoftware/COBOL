@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: 'All control heading report groups are presented from the control break level down to the most minor control' (§1985:II.3.2.4.2 GR2). 2023: on a control break each control heading is printed 'in order of control levels from the level of the control break down to the lowest' (§2023:13.18.57.4 GR6), the GENERATE statement prints each control footing and control heading up to the level of the break (§2023:14.9.16.4 GR5), and 'control break processing for that level and any lower levels is performed' (§2023:13.18.16.4 GR3). The OR PAGE phrase is new syntax a 1985 program cannot write; a 1985 report prints the same headings in the same order.",
-  "source": "adjudicate-712/slice-04"
+  "source": "adjudicate-712/slice-04",
+  "digests": {
+   "GR-13.18.57.4-6": "60b5eeb0db8d",
+   "GR-14.9.16.4-5": "569d9fda51ee",
+   "GR-13.18.16.4-3": "b9c98ef7c94a"
+  }
  }
 }

@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"DISPLAY {identifier-1|literal-1} … [ UPON mnemonic-name-1 ] [ WITH NO ADVANCING ]\"; 2023: \"DISPLAY {identifier-1|literal-1} … [ UPON mnemonic-name-1 ] [ WITH NO ADVANCING ] [ END-DISPLAY ]\". 2023 Format 1 keeps the operands, UPON and WITH NO ADVANCING, but adds an optional END-DISPLAY. 2023 accepts DISPLAY statements that the 1985 format refuses.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.11.2": "e7a76487b792"
+  }
  }
 }

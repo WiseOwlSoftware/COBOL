@@ -1,0 +1,13 @@
+{
+  "claim_id": "p370-1",
+  "claim_key": "45dc67ff917bfbe9",
+  "page": 370,
+  "kind": "incorrect-text",
+  "severity": "normative",
+  "claim": {"id": "p370-1", "page": 370, "kind": "incorrect-text", "severity": "normative", "section": "13.18.38.1 General format, Format 2 (occurs-depending-table)", "pdf_says": "OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1 / [ { ASCENDING | DESCENDING } KEY IS { data-name-2 } ... ] ... [ INDEXED BY { index-name-1 } ... ]  (the first line is plain text with no delimiters; the brace encloses only ASCENDING/DESCENDING, followed by KEY IS, all inside the bracket on the second line)", "markdown_says": "       ╭              ╮ KEY\n       │              │\n<u>OCCURS</u> │ integer-1 <u>TO</u> │ integer-2 TIMES <u>DEPENDING</u> ON data-name-1\n       │              │\n┌      │ <u>ASCENDING</u>    │                      ┐\n│      ┤              ├ IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]\n└      ╰ <u>DESCENDING</u>   ╯                      ┘", "why_it_matters": "The two lines of the printed format were merged: the ASCENDING/DESCENDING brace now spans both lines and encloses 'integer-1 TO' as a third alternative, the keyword KEY was moved to the top line beside the brace, and the brace opens outside the bracket that should contain it. Read literally, the figure makes 'integer-1 TO', ASCENDING and DESCENDING mutually exclusive alternatives and detaches KEY from IS, which misstates the syntax of the occurs-depending OCCURS clause."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 370 (printed p.346), 13.18.38.1 Format 2: line 1 reads 'OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1' with no delimiters (OCCURS, TO, DEPENDING underlined). Line 2 is a bracket enclosing a brace of stacked ASCENDING/DESCENDING (no choice bars) followed by 'KEY IS { data-name-2 } ...', then '... [ INDEXED BY { index-name-1 } ... ]'. The transcription (page-370.md lines 22-28) draws a brace spanning three rows with 'integer-1 TO' inside it as a third alternative, puts KEY on the top row outside the brace, and opens the bracket outside the brace. Under §2014:5.2.5.2 a brace of stacked alternatives means exactly one is chosen, so the markdown says 'integer-1 TO' excludes ASCENDING/DESCENDING and makes KEY a separate element apart from IS. That changes the syntax, so it is normative. The claim quotes both sources accurately. The same merge defect also appears in Format 4 on the same page (DYNAMIC [ CAPACITY ... inside the brace, KEY on the top row; md lines 40-46), which this claim does not cover. Format 1 is not affected.",
+    "corrected_description": ""
+  }
+}

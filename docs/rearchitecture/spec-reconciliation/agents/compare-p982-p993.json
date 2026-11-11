@@ -1,6 +1,6 @@
 {
   "batch": [982, 983, 984, 985, 986, 987, 988, 989, 990, 991, 992, 993],
-  "pages_checked": [982, 983, 984, 985, 986, 987, 988, 989, 990, 991, 992, 993],
+  "pages_checked": [982, 983, 984, 985, 986, 987, 988, 989, 990, 991, 992, 993], "pages_unread": [],
   "findings": [],
   "notes": [
     "This batch contains NO figures / general formats. It is Annex A.1 (Implementor-defined language element list, items 98 through 222) on pages 982-992 and the opening of A.2 (Undefined language element list, items 1-11) on page 993. scripts/spec/page_workunit.py confirmed '0 with figure content' for all twelve pages, so the choice-indicator / brace-closure / ellipsis-placement checks had no diagram to apply to.",

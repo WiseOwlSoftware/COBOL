@@ -29,7 +29,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   with `-Cluster PB4147,PB2911`: PB4147 is the landing pipeline's single-point bottlenecks, measured (the shared refusal
   registry, landed: one file per test; the traceability inventory PB4148; chained enqueue units PB4180; stall routing
   PB4190; the merge queue's build width PB3773). PB2911 is the GAP campaign's notes in the operator's partition, PB1253
-  included. The traceability inventory is at ZERO GAP since 2026-11-05 (kb/Work A11 closed its last row, DOC-A.1-17);
+  included. The 2023 traceability inventory is at ZERO GAP since 2026-11-05 (kb/Work A11 closed its last row, DOC-A.1-17;
+  the 1985 and 2002 inventories count their own GAP on the probe's `invent` line, 2002's held since kb/Work PB5256);
   the Mythos lane runs the remaining GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the partition redesign (PB4146) and each fuzz night's triage,
   and runs fix-lane waves on its own quota. Neither lane plans what the other's dispatch holds (`inflight-groups.json`).
   The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans nothing else on
@@ -905,7 +906,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   ⚠ **THE EFFECT IS +15, NOT THE +17 FIRST REPORTED.** §2023:13.18.40.5 yields 15 GRs; **§2023:13.18.40.6 yields ZERO** —
   its content is UNNUMBERED prose plus Tables 10 and 11, and the normative content IS those two precedence
   matrices, which have no per-rule ordinal to extract. The "2" came from a line-range scan that ran past the
-  clause boundary. Both dispositions are now DECLARED IN THE EXTRACTOR (`EXCLUDED_BLOCKS` / `KNOWN_EMPTY_BLOCKS`,
+  clause boundary. Both dispositions are now DECLARED IN THE EXTRACTOR (`IsoEdition.excluded_blocks` / `known_empty_blocks`,
   each with its reason) rather than left to reappear as a warning on every run — a guard that reports an expected
   condition forever is one people learn to ignore. The only PARSE GAP still reported is **§2023:15.4 "Returned
   values"**, which is PRE-EXISTING (verified by running the extractor on the pre-change tree) and unowned.

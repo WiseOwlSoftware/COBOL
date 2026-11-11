@@ -1,9 +1,9 @@
 {
   "batch": [338, 340, 346, 348, 354, 356, 360, 364, 366, 368, 370, 374],
-  "pages_checked": [338, 340, 346, 348, 354, 356, 360, 364, 366, 368, 370, 374],
+  "pages_checked": [338, 340, 346, 348, 354, 356, 360, 364, 366, 368, 370, 374], "pages_unread": [],
   "findings": [
     {
-      "page": 338,
+      "id": "p338-1", "page": 338,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "b) if the externalized name of the function prototype is the externalized name of a function prototype definition specified in the same compilation group, the details are taken from that function prototype definition and the details in the external repository are ignored. The function that will be activated is the one with the same externalized name as the externalized name of the function prototype; otherwise,   [page 338 ends here; page 339 opens with a separate, indented list item]   c) the details are taken from the external repository for the function with the same name as the externalized name of the function prototype. That function is the one that will be activated.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Split at 'otherwise,' and re-emit the tail as its own list item at the same indent as a) and b), placed after the page-339 anchor to match the PDF page break: '    c) the details are taken from the external repository for the function with the same name as the externalized name of the function prototype. That function is the one that will be activated.'"
     },
     {
-      "page": 364,
+      "id": "p364-1", "page": 364,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "NOTE 1, NOTE 2 and NOTE 3 are printed indented to the body indent of General rule 6) ('If an attempt is made to change the address of a data item containing a data-item subject to an APPLY COMMIT clause, the EC-FLOW-APPLY-COMMIT exception condition is set to exist...'), i.e. they are sub-content of that rule.",

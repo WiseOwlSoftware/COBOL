@@ -1,0 +1,43 @@
+{
+ "$comment": [
+  "THE 2002 LANGUAGE ELEMENT STANDINGS, held once as data (kb/Work PB4993, PB5256; DESIGN-spec-conformance-review.md",
+  "section 10.2): the archaic language elements of §2002:G.1, which §2002:3.1.10 defines, and the obsolete language",
+  "elements of §2002:G.2, which §2002:3.1.11 defines. The shape is the 1985 file's (spec-element-standing-1985.json, whose",
+  "comment states each key). A section is the element's SPECIFICATION; OWN or SHARED is derived from its heading",
+  "(element_standing.own). Annex A, the communications facility, is the obsolete element of G.2 entry 1 whole (its",
+  "region is the annex, `A`, from its title heading). Continuation of COBOL words (G.1 entry 1) is specified in the prose",
+  "of §2002:6.2.4, outside any rule block while the content-keyed manifest holds that clause pending. MOVE of",
+  "alphanumeric figurative constants to numeric items (G.1 entry 2) is named by the note of the MOVE statement's general",
+  "rule on the category of figurative constants. `remarks` names the sections whose standing sentence is not an",
+  "element's specification: the processor-dependent element list (B.3) and the informative concepts annex (E.5).",
+  "extract_rule_catalog.py applies the lists (each rule's `status`) and records any disagreement as a finding."
+ ],
+ "lists": [
+  {
+   "standing": "archaic",
+   "list": "G.1",
+   "remarks": {"why": "none: every archaic-element sentence of the text is in a section an entry names", "sections": []},
+   "entries": [
+    {"n": 1, "terms": ["Continuation of COBOL words", "continuation of COBOL words"], "sections": ["6.2.4"],
+     "no-rule": "the continuation of COBOL words is specified in the prose of §2002:6.2.4, which the content-keyed manifest holds pending: no rule block states it"},
+    {"n": 2, "terms": ["alphanumeric figurative constants"], "sections": ["14.8.24"]},
+    {"n": 3, "terms": ["NEXT SENTENCE"], "sections": ["14.8.18", "14.8.34"]},
+    {"n": 4, "terms": ["ON OVERFLOW"], "sections": ["14.8.4"]},
+    {"n": 5, "terms": ["text-1", "text-2", "Text-1", "Text-2"], "sections": ["7.1.2"]}
+   ]
+  },
+  {
+   "standing": "obsolete",
+   "list": "G.2",
+   "remarks": {"why": "the processor-dependent element list and the informative concepts annex",
+               "sections": ["B.3", "E.5"]},
+   "entries": [
+    {"n": 1, "terms": ["Communications facility", "communications facility", "communication facility", "cd-name"],
+     "sections": ["A"]},
+    {"n": 2, "terms": ["Debugging lines", "debugging lines", "debugging line", "DEBUGGING MODE"],
+     "sections": ["6.2.7", "6.3.4", "12.2.4"]},
+    {"n": 3, "terms": ["PADDING CHARACTER"], "sections": ["12.3.4.10"]}
+   ]
+  }
+ ]
+}

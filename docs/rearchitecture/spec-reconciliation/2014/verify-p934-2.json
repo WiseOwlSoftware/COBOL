@@ -1,0 +1,13 @@
+{
+  "claim_id": "p934-2",
+  "claim_key": "f397bbbbd9915ffd",
+  "page": 934,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p934-2", "page": 934, "kind": "misplaced-content", "severity": "structural", "pdf_says": "EC-PROGRAM-RESOURCES exception  103, 444, 474\nEC-RAISING exception  444", "markdown_says": "EC-PROGRAM-RESOURCES exception 103, 444, 474 EC-RAISING exception 444", "why_it_matters": "Two index entries merged on one line. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (index p.910, PDF p934) shows at the top of the right column two separate entries on separate lines: 'EC-PROGRAM-RESOURCES exception 103, 444, 474' and 'EC-RAISING exception 444'. The transcription page-934.md line 62 holds both on one source line, 'EC-PROGRAM-RESOURCES exception 103, 444, 474 EC-RAISING exception 444', with no line break between them, so they render as one entry. The neighbouring entries (lines 64-67) end with a backslash hard break, so this is a real merge of two entries and not just a difference in wrapping. All page numbers are kept and stay in order, so nothing in the standard's content is lost. The merge is a structural defect in an informative index, not a normative one.",
+    "corrected_description": "Index entries 'EC-PROGRAM-RESOURCES exception 103, 444, 474' and 'EC-RAISING exception 444' are merged into one transcription line (page-934.md line 62) without a line break. Every page reference is still there and in order, so the only problem is that the entry boundary is unclear. The index is informative."
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "batch": [853, 854, 855, 856, 857, 858, 859, 860, 861, 862, 863, 864],
+  "pages_checked": [853, 854, 855, 856, 857, 858, 859, 860, 861, 862, 863, 864],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p857-1",
+      "page": 857,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "(page 857 ends with H.2 item 4) \"... This error has not been fixed because the PADDING CHARACTER clause is obsolete.\" -- no further heading is printed on the page",
+      "markdown_says": "# Bibliography and index",
+      "why_it_matters": "The markdown adds a top-level heading that the PDF does not print anywhere, at the end of Annex H page 857. The printed Bibliography heading is on page 858 and the Index heading is on page 859. The invented level-1 heading changes the document's outline, so Annex H content seems to sit under a section that does not exist."
+    },
+    {
+      "id": "p859-1",
+      "page": 859,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Abbreviated combined relation conditions  136\nAbnormal run unit termination  391, 392, 393\nABS function  575",
+      "markdown_says": "Abbreviated combined relation conditions 136 Abnormal run unit termination 391, 392, 393 ABS function 575",
+      "why_it_matters": "Three separate index entries at the top of the right-hand column are merged into one line, which makes \"136 Abnormal run unit termination\" read as one entry. The page numbers can no longer be matched to their entries without the PDF."
+    },
+    {
+      "id": "p860-1",
+      "page": 860,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "SORT statement  526\nALLOCATE statement  116, 372, 418, 450\nALPHABET clause\n     SPECIAL-NAMES paragraph  195",
+      "markdown_says": "   SORT statement 526 ALLOCATE statement 116, 372, 418, 450 ALPHABET clause\n\n   SPECIAL-NAMES paragraph 195\\",
+      "why_it_matters": "Three index entries are merged into one line, and the ALPHABET clause sub-entry is cut off from its parent by a paragraph break."
+    },
+    {
+      "id": "p860-2",
+      "page": 860,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "ALPHABETIC phrase\n     CLASS clause  269\n     INITIALIZE statement  457 (sub-entries indented under their headword throughout both columns)",
+      "markdown_says": "   ALPHABETIC phrase\\\n   CLASS clause 269\\\n   INITIALIZE statement 457\\",
+      "why_it_matters": "On page 860 nearly every index line has the same indentation, so sub-entries such as \"CLASS clause 269\" read as top-level headwords and can no longer be told apart from their parents. The only exceptions are the \"Alphabetic 111\" and \"meric items 833\" lines. The printed page indents every sub-entry under its headword."
+    },
+    {
+      "id": "p861-1",
+      "page": 861,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "WRITE statement  558\nATAN function  579 ... B  PICTURE symbol  313\nBACKGROUND-COLOR clause  262\nB-AND operator  118 ... File description entry  234\nBoolean category  111, 112, 292, 316\nBoolean character  8",
+      "markdown_says": "   WRITE statement 558 ATAN function 579\n...\nB PICTURE symbol 313 BACKGROUND-COLOR clause 262 B-AND operator 118\n...\n   File description entry 234 Boolean category 111, 112, 292, 316 Boolean character 8",
+      "why_it_matters": "Three places merge separate index entries into one line. One of them joins a sub-entry (File description entry, under BLOCK CONTAINS clause) to two top-level headwords, so the entry boundaries and the parent/child structure are lost."
+    },
+    {
+      "id": "p863-1",
+      "page": 863,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Comparison\n     Between object reference identifiers  131\n     Locale-based  129, 130 (sub-entries indented under their headword throughout both columns)",
+      "markdown_says": "   Comparison\\\n   Between object reference identifiers 131\\\n   Locale-based 129, 130\\",
+      "why_it_matters": "On page 863 every index line has the same indentation. Sub-entries (for example the ten \"Of ... operands\" lines under Comparison, or \"Class condition 131\" under Condition) can no longer be told apart from top-level headwords."
+    },
+    {
+      "id": "p864-1",
+      "page": 864,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "COUNT IN phrase\n     UNSTRING statement  545 (left column above the D heading, and the entire right column, indent sub-entries under their headword)",
+      "markdown_says": "   COUNT IN phrase\\\n   UNSTRING statement 545\\",
+      "why_it_matters": "In the left column above the D heading and in the whole right column, every index line has the same indentation, so the parent/child structure is lost. The lines under the D heading are indented correctly."
+    }
+  ]
+}

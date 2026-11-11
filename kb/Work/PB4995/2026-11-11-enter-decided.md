@@ -1,0 +1,3 @@
+**Addendum (2026-11-11): the ENTER question is answered.** The held-rows adjudication decided `1985-SR-VI.6.12.3-1` DIVERGES. An implementation "may include the ENTER statement or not, at the option of the implementor" (§1985:I.1.5.2.5.5), and ISO 2023 has no ENTER statement, so by CLAUDE.md rule 1 GnuCOBOL decides. GnuCOBOL refuses ENTER, so WiseOwl COBOL does not provide the statement at --std 85. docs/CONFORMANCE.md section 3.7.1 records this.
+
+The compiler today compiles ENTER to nothing. kb/Work PB5308 holds that defect, and `1985-SR-VI.6.12.3-3` stays held (`coderead-85/held-6.json`) until PB5308 lands. This answers the ENTER rows this note asks about (`1985-GR-VI.6.12.4-1`, `-2`, `-3` and `1985-SR-VI.6.12.3-1`): with ENTER not provided, they are refused by name.

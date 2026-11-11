@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same alphanumeric argument rule. The strongly-typed group sentence covers only a post-1985 feature and keeps groups alphanumeric, so no 1985 program is affected.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "AR-15.3-2": "8bdc3da09361"
+  }
  }
 }

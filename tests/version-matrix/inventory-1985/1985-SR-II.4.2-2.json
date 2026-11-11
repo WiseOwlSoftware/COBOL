@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: all dimensions of a table may be initialized by a VALUE clause on the entry defining the entire table, and 'lower level entries must not contain VALUE clauses'. 2023: a group-level VALUE is allowed and 'The VALUE clause shall not be specified at subordinate levels within this group' (§2023:13.18.63.3 SR13); 'the group area is initialized without consideration for the individual elementary or group items' (§2023:13.18.63.4 GR5), so every dimension is set. The literal-category limit is a separate VALUE rule. Same effect.",
-  "source": "adjudicate-712/slice-27"
+  "source": "adjudicate-712/slice-27",
+  "digests": {
+   "SR-13.18.63.3-13": "c691ab6ba99d",
+   "GR-13.18.63.4-5": "d0aaf2829416"
+  }
  }
 }

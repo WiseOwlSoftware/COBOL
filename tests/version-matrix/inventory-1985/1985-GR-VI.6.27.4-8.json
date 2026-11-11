@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.48.4 GR7 restates both 1985 sentences: a figurative-constant delimiter 'stands for a single-character national literal if identifier-1 is a national data item; otherwise, it stands for a single-character alphanumeric literal' (1985 SR2 keeps identifier-1 alphanumeric, so 1985's 'nonnumeric literal'), and the ALL folding with the move per GR11d (renumbered 13d). §2023:8.3.3.6.4 GR3 ('other than ALL literal-1, the length of the string is one character') and GR1 (alphanumeric character value) agree.",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "adjudicate-712-r2/slice-05",
+  "digests": {
+   "GR-14.9.48.4-7": "e898774924cd",
+   "GR-8.3.3.6.4-3": "0ee983e61ad4",
+   "GR-8.3.3.6.4-1": "16d4efec5a1c"
+  }
  }
 }

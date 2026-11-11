@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "Class/category numeric with an operational sign carry over (§2023:15.2 GR5 adds 'no digits to the right of the decimal point'); use where an integer operand is required stays, with signed-only use stated as 'shall not be specified where an unsigned integer is required' except integer ABS (§2023:8.4.3.2.3 SR12); implementor-defined characteristics only under native arithmetic (§2023:15.4.1, §2023:A.1 92). But 1989 'An integer function may be used only in an arithmetic expression'; §2023:15.2 lead text lets it be used 'anywhere a sending data item of that class and category may be specified'. Looser.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "GR-15.2-5": "58b2f2e219dc",
+   "SR-8.4.3.2.3-12": "ac93ace43243",
+   "DOC-A.1-92": "3141348e06db"
+  }
  }
 }

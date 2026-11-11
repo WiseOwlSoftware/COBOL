@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"the numeric operand is treated as though it were moved to a group item of the same size as the numeric data item\"; 2023: \"For comparison, an alphanumeric group item shall be treated as an elementary alphanumeric data item.\". 1985 compares the numeric as if group-moved, with no conversion and any sign kept. 2023 treats the group as elementary alphanumeric, so the elementary rule applies; the group-move case is gone.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-8.8.4.2.1-13": "abe0d23fde2b",
+   "GR-8.8.4.2.1-6": "09ba48ca32b4"
+  }
  }
 }

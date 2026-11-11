@@ -1,0 +1,13 @@
+{
+  "claim_id": "p487-1",
+  "claim_key": "b08861d06fda21ca",
+  "page": 487,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p487-1", "page": 487, "kind": "table-restructured", "severity": "structural", "pdf_says": "One table 'Screen item | Figurative constant' with eight rows: Alphabetic / Alphanumeric / Alphanumeric-edited / Boolean / National / National-edited / Numeric / Numeric-edited, each paired with its constant (Alphanumeric-edited -> Alphanumeric SPACES; Boolean -> ZEROS).", "markdown_says": "| Alphanumeric | Alphanumeric SPACES |\n\n   Alphanumeric-edited Alphanumeric SPACES\n\n| Boolean | ZEROS |\n|---|---|\n| National | National SPACES |", "why_it_matters": "The single table is split in two. The Alphanumeric-edited row is pulled out as a loose paragraph, and the Boolean row becomes the header row of a second, headerless table. The pairings are still readable, but the table is broken."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (PDF p487, printed page 463, ACCEPT statement general rule 13 table) shows one continuous two-column table under the headings 'Screen item' and 'Figurative constant' with eight rows in this order: Alphabetic/Alphanumeric SPACES, Alphanumeric/Alphanumeric SPACES, Alphanumeric-edited/Alphanumeric SPACES, Boolean/ZEROS, National/National SPACES, National-edited/National SPACES, Numeric/ZEROS, Numeric-edited/ZEROS. The markdown page-487.md holds a first table with the header row and only the Alphabetic and Alphanumeric rows. After it comes an indented loose line 'Alphanumeric-edited Alphanumeric SPACES' that is not a table row. Then a second table whose header row is '| Boolean | ZEROS |' followed by the remaining four rows. The claim quotes both sources accurately. No text is missing and every pairing is still present, so no normative content changed. The table structure is still a real transcription defect, beyond line wrapping or scaffolding: as markdown, the Alphanumeric-edited row is not a table row, and the Boolean/ZEROS data row is marked up as a column header. Anything that reads the table by its structure would drop or mislabel those two rows. Confirmed as structural, with the description as given.",
+    "corrected_description": ""
+  }
+}

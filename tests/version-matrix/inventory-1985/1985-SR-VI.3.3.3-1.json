@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: the PROGRAM-ID program-name 'must conform to the rules for formation of a user-defined word.' 2023 §2023:11.10.2 writes the operand as program-name-1; §2023:5.2.4 makes such an operand an instance of 'Any of the types listed in 8.3.2.2', and §2023:8.3.2.2 lists program-name among the user-defined words (the externalized name goes in the separate AS literal-1). The requirement is unchanged; the catalog has no rule id for the 8.3.2.2 list, so the format is the record's only id. Changes to word formation itself belong to that rule's own record.",
-  "source": "adjudicate-712/slice-29"
+  "source": "adjudicate-712/slice-29",
+  "digests": {
+   "FMT-11.10.2": "56acb8fe4e7c"
+  }
  }
 }

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p877-2",
+  "claim_key": "52f43d0108ac16cf",
+  "page": 877,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p877-2", "page": 877, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Relative record number  148, 227\nRELEASE statement  503\nREM function  634\nREMAINDER phrase\n    DIVIDE statement  438", "markdown_says": "   Relative record number 148, 227\\\n   RELEASE statement 503\\\n   REM function 634\\\n   REMAINDER phrase\\\n   DIVIDE statement 438\\", "why_it_matters": "The whole left column (from 'ORGANIZATION clause 223' through 'INVOKE statement 468') is given one uniform indent, so main entries and their sub-entries are indistinguishable; the right column keeps the hierarchy with &emsp;. The index's two-level structure is lost for that column."},
+  "verdict": {
+    "real": true,
+    "reasoning": "In the printed page (index p.855), the left column has two levels: main entries are flush (Relative record number, RELEASE statement, REM function, REMAINDER phrase) and sub-entries are indented (ORGANIZATION clause 223 under RELATIVE phrase, DIVIDE statement 438 under REMAINDER phrase, and so on through ALLOCATE/CALL/INVOKE under RETURNING phrase). In page-877.md every line from 'ORGANIZATION clause 223' to 'INVOKE statement 468' carries the same 3-space prefix, which Markdown drops when it renders. So 'DIVIDE statement 438' reads as a main entry with the same standing as 'REMAINDER phrase'. The right column marks sub-entries with &emsp;, which shows what the transcription should look like. The claim quotes both sources correctly and names the affected range correctly. The defect is real: the index's parent/child relationships are lost. It is not just whitespace. It is index-only and affects no normative rule.",
+    "corrected_description": ""
+  }
+}

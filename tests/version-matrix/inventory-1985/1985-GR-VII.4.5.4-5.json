@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.35.4 GR10 restates 'the information in the area referenced by identifier-1 is available ... even though the information in the area referenced by record-name-1 is not available except as specified for the SAME RECORD AREA clause', and §2023:14.9.35.4 GR6 states the SAME RECORD AREA part. GR10's proviso ('identifier-1 is not one or part of one of the record descriptions subordinate to the file-description') excludes nothing a 1985 program can write: 1985 SR VII.4.5.3-1 says 'Record-name-1 and identifier-1 must not refer to the same storage area', and every record of the FD implicitly redefines that area (1985 'implicit redefinitions of the same area'). Lifting that refusal is SR1's change, not this rule's.",
-  "source": "adjudicate-712/slice-17"
+  "source": "adjudicate-712/slice-17",
+  "digests": {
+   "GR-14.9.35.4-10": "41691922df5f",
+   "GR-14.9.35.4-6": "7212088aac7a"
+  }
  }
 }

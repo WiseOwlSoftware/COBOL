@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 READ GR6: several record descriptions 'share the same record area ... equivalent to an implicit redefinition', and items beyond the current record are undefined after READ. §2023:14.9.30.4 GR3 keeps the undefined part ('where any part of that data item lies beyond the range of the current record, is undefined'); the shared-area part, dropped from the READ rule, is stated in §2023:13.18.33.4 GR3 'Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area'. Same meaning.",
-  "source": "adjudicate-712/slice-16"
+  "source": "adjudicate-712/slice-16",
+  "digests": {
+   "GR-14.9.30.4-3": "d706fb336589",
+   "GR-13.18.33.4-3": "af84cd76cf76"
+  }
  }
 }

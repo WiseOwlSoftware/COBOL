@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"a. The standard ending reel/unit label procedure. ... c. The standard beginning reel/unit label procedure.\"; 2023: \"a reel/unit swap occurs and the current volume pointer is updated to point to the next reel/unit existing for the physical file.\". 2023 keeps the reel/unit swap and the volume pointer update at end of reel/unit, but no longer requires the standard ending and beginning reel/unit label procedures.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.51.4-24": "418f10bf64c9"
+  }
  }
 }

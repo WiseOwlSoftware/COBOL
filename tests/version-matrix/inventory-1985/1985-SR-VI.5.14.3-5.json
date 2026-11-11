@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"only in a SEARCH or SET statement, a relation condition, the USING phrase of a Procedure Division header, or the USING phrase of a CALL\"; 2023: \"an intrinsic function argument, an inline method invocation argument, ... or the USING phrase of a CALL or INVOKE statement\". 2023 also allows an index data item as an intrinsic function argument, which the 1985 rule forbids; inline method invocation and INVOKE are new contexts.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.60.3-10": "c92c9d86cd21"
+  }
  }
 }

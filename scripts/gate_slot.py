@@ -588,6 +588,11 @@ class SlotState:
     pool: Pool = GATE_POOL
 
 
+class QueueAbandoned(Exception):
+    """The caller's `abandon` predicate turned true while it waited in the queue (`GateSlots.acquire`): its ticket was
+    withdrawn and no slot was taken (kb/Work PB5322)."""
+
+
 class GateSlots:
     """One POOL of the repository's gate cap (kb/Work PB3724): N slots, served in SERVICE order (every ticket of an earlier
     class first, ticket order within each class; kb/Work PB3103, PB4888). N is read from the pool's settings on every poll, never fixed
@@ -672,13 +677,18 @@ class GateSlots:
             os.close(fd)
         return None
 
-    def acquire(self, label: str, say: Callable[[str], None] = print, gate_class: str | None = None) -> Slot:
+    def acquire(self, label: str, say: Callable[[str], None] = print, gate_class: str | None = None,
+                abandon: Callable[[], bool] | None = None) -> Slot:
         """Wait in service order for a slot, then bind this process's tree to it. Blocks until a slot below the cap
         IN FORCE is free and every live ticket served before this one (`_tickets_ahead`) has been served. The cap is re-read on
         every poll, so every waiter applies the same cap at the same moment and a raise (or an expiry) reaches the
         queue at once. `gate_class` defaults to the environment's (`gate_class_from_env`: `enqueue.py land` marks its
         gate a landing one, a review or gate finisher its re-gate a fix one), so a gate takes the next free slot ahead of
-        every waiting gate of a later class."""
+        every waiting gate of a later class.
+        ⛔ A WAITER THAT KNOWS IT HAS NOTHING TO RUN LEAVES (kb/Work PB5322): `abandon`, polled before every attempt, turns
+        true when the caller's verdict is already decided (the gate's queued audits ended RED). The ticket is then
+        withdrawn like a dead waiter's, the slot is never taken, and `QueueAbandoned` is raised: a gate that kept its
+        place only to find that out held up every ticket behind it and its worker for the whole wait (66 min measured)."""
         self.settings()  # a malformed settings file stops the gate before it queues, with the reason
         gate_class = gate_class or gate_class_from_env()
         if gate_class not in GATE_CLASSES:
@@ -688,6 +698,8 @@ class GateSlots:
         try:
             reported, told = None, set()
             while True:
+                if abandon is not None and abandon():
+                    raise QueueAbandoned(f"ticket {seq} withdrawn: the caller's verdict was decided while it queued")
                 tickets_ahead = self._tickets_ahead(seq, gate_class)
                 ahead = len(tickets_ahead)
                 cap = self.settings().effective_cap(self.pool)
@@ -1248,6 +1260,37 @@ def self_test() -> int:
             go.touch()
             assert hung.finish() == 0
 
+        def withdrawn() -> None:
+            # kb/Work PB5322: a queued waiter whose `abandon` turns true leaves the queue AT ONCE (its ticket gone, the slot
+            # never taken, the queue behind it served), and one whose `abandon` stays false still waits for its slot.
+            repo, _ = make_repo("withdrawn")
+            go = root / "withdrawn.go"
+            h = gate(repo, "H", hold(go))
+            h.expect(r"^held pid=")
+            slots, flag, told = GateSlots.for_repo(repo, 0.05), threading.Event(), []
+            res: list[BaseException | Slot] = []
+
+            def waiter(stop: Callable[[], bool]) -> None:
+                try:
+                    res.append(slots.acquire("Q", say=told.append, abandon=stop))
+                except BaseException as e:  # noqa: BLE001 — the arm reads what ended the wait
+                    res.append(e)
+
+            t = threading.Thread(target=waiter, args=(flag.is_set,), daemon=True)
+            t.start()
+            deadline = time.monotonic() + 30
+            while not any("waiting" in x for x in told) and time.monotonic() < deadline:
+                time.sleep(0.02)
+            assert len(slots.state().waiting) == 1, f"the waiter did not queue: {slots.state().waiting}"
+            flag.set()
+            t.join(30)
+            assert not t.is_alive() and len(res) == 1 and isinstance(res[0], QueueAbandoned), f"the wait did not end: {res}"
+            assert slots.state().waiting == [], f"the withdrawn ticket is still queued: {slots.state().waiting}"
+            assert 0 in slots.state().held, "the holder lost its slot"
+            late = gate(repo, "W", [py, "-c", "print('ran', flush=True)"])
+            go.touch()
+            assert h.finish() == 0 and late.finish() == 0, "the queue behind the withdrawn ticket was not served"
+
         def passer_explained() -> None:
             # kb/Work PB3724: a waiting gate whose "k ahead" count RISES says why (a fix ticket taken after its own is
             # served first, PB3103, PB4888), and the gate next in line says what it waits for.
@@ -1288,6 +1331,8 @@ def self_test() -> int:
         arm("gate classes in service order: landing, then fix, then implementer tickets, FIFO within each class",
             class_order)
         arm("a hold far past the median of its kind's recorded holds is flagged by status, never killed", long_holds)
+        arm("a queued waiter whose abandon turns true withdraws its ticket at once and never takes the slot (kb/Work PB5322)",
+            withdrawn)
         arm("a waiting gate says why a later ticket is served first (fix before implementer) and what the gate next in line waits for", passer_explained)
     finally:
         alive.unlink(missing_ok=True)
@@ -1298,7 +1343,7 @@ def self_test() -> int:
     if failures:
         print(f"gate_slot.py --self-test: RED — {len(failures)} arm(s) failed")
         return 1
-    print("gate_slot.py --self-test: ALL GREEN — 13 arms")
+    print("gate_slot.py --self-test: ALL GREEN — 14 arms")
     return 0
 
 

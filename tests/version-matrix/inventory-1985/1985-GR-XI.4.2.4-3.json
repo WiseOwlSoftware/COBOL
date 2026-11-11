@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.32.4 GR4 keeps the MOVE-then-RELEASE equivalence and adds 'MOVE literal-1 TO record-name-1' for the new FROM literal-1 form, which the 1985 format lacks. §2023:14.9.32.3 SR3 states the MOVE-validity part ('shall be valid as a sending operand in a MOVE statement'). The added undefined-result sentence and the overlap NOTE follow from the MOVE equivalence. A 1985 RELEASE FROM identifier means the same; the rule is looser.",
-  "source": "adjudicate-712/slice-22"
+  "source": "adjudicate-712/slice-22",
+  "digests": {
+   "GR-14.9.32.4-4": "9e956179f78b",
+   "SR-14.9.32.3-3": "e888b9f7c537"
+  }
  }
 }

@@ -1,0 +1,16 @@
+{
+  "batch": [649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659, 660],
+  "pages_checked": [649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659, 660],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p653-1",
+      "page": 653,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(argument-2₁ / (1 + argument-1) +  argument-2₂ / (1 + argument-1) ** 2) ... (argument-2₁ / (1 + argument-1) ** 1) ... (argument-2ₙ / (1 + argument-1) ** n))) where argument-1 and argument-2ᵢ in the terms of the SUM function",
+      "markdown_says": "(argument-21 / (1 + argument-1) + argument-22 / (1 + argument-1) \\*\\* 2) ... (argument-21 / (1 + argument-1) \\*\\* 1) ... (argument-2n / (1 + argument-1) \\*\\* n))) ... where argument-1 and argument-2i in the terms of the SUM function",
+      "why_it_matters": "15.61.3 PRESENT-VALUE returned-value rule 1 b) and c): the printed subscripts 1, 2, n and i on argument-2 (denoting the first, second, n-th and i-th occurrence of argument-2) were flattened onto the baseline, so the equivalent arithmetic expressions read as references to nonexistent operands named argument-21, argument-22, argument-2n and argument-2i. The expression defining the function's result loses its occurrence indexing."
+    }
+  ]
+}

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 (rule added by Amendment 1, X3.23a-1989, Errata C150): 'Identifier-2 must not be a function-identifier' (§1985:X.5.2.3 SR4), for every operand of CALL ... USING. 2023 keeps the refusal for identifier-2: 'Identifier-2 shall reference an address-identifier or a data item defined in the file, working-storage, local-storage, or linkage section' (§2023:14.9.4.3 SR3), which the temporary item of a function is not. But the 2023 program-prototype format (CALL ... AS NESTED or a program-prototype-name) takes arguments SR3 does not bind: 'if the argument does not meet the requirements of Syntax rule 3, BY CONTENT is assumed' (§2023:14.9.4.4 GR9), and §2023:14.9.4.3 SR20 presumes an identifier-4 that is not 'permitted as a receiving operand' (a function-identifier is one, §2023:8.4.3.2.3 SR1). A function-identifier as a CALL argument, refused by the 1985 rule, is accepted through that 2023 syntax: looser (kb/Work PB5021). No exception condition.",
-  "source": "classify-unrecorded-1985/slice-05"
+  "source": "classify-unrecorded-1985/slice-05",
+  "digests": {
+   "SR-14.9.4.3-3": "6eab278b14a2",
+   "GR-14.9.4.4-9": "9e7577241f4c"
+  }
  }
 }

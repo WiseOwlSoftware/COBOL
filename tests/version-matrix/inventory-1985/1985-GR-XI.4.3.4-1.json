@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both leave undefined, after RETURN, items past the current record when several record descriptions exist. 'Any part' only clarifies straddling items; the shared-area sentence is descriptive.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.34.4-2": "28e4d49638bd"
+  }
  }
 }

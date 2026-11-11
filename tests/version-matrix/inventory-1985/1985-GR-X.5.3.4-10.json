@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both close each open file on an internal connector of the canceled program by an implicit CLOSE without phrases, skipping USE procedures. Cancel of contained programs acts as explicit CANCEL; extras are new.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.5.4-9": "9e4d2f38ecbb",
+   "GR-14.9.5.4-4": "b320a1c22b30"
+  }
  }
 }

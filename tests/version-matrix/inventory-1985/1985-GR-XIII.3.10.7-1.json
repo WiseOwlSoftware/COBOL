@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-30, kb/Work PB4952). The page heading's upper limit is the HEADING line, or the line after a report heading presented on the same page; 2023 GR7 a) and b) state the same.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "GR-13.18.57.4-7": "e6482a3bdd53"
+  }
  }
 }

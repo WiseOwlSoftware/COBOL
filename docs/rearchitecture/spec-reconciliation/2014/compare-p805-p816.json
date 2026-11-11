@@ -1,0 +1,25 @@
+{
+  "batch": [805, 806, 807, 808, 809, 810, 811, 812, 813, 814, 815, 816],
+  "pages_checked": [805, 806, 807, 808, 809, 810, 811, 812, 813, 814, 815, 816],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p810-1",
+      "page": 810,
+      "kind": "image-lost-or-restructured",
+      "severity": "structural",
+      "pdf_says": "Figure D.1 is a flowchart: Entrance -> 'Index Setting: exceeds highest permissible occurrence or is zero or negative' --True (AT END)*--> 'imperative-statement-1'; --False--> 'Condition-1' --True--> 'imperative-statement-2'; --False--> 'Condition-2' (marked *) --True--> 'imperative-statement-3' (marked *); --False--> 'Increment index-name for identifier-1' -> 'Increment index-name-1 (for a different table) or identifier-2' (marked *) -> loops back to the entrance; a brace marked ** groups the three exits from the imperative-statements.",
+      "markdown_says": "Index Setting:\\ exceeds highest True (AT END)\\* imperative-\\ permissible occur-\\ ... statement-1\\ rence or is zero or\\ negative\n\nFalse\n\nTrue imperative- \\*\\* Condition-1\n\nstatement-2\n\nFalse\n\n| \\* |  | \\* |\n|---|---|---|\n| True | imperative- |  |\n\nCondition-2\\ ... statement-3",
+      "why_it_matters": "The OCR scattered the flowchart's box labels into interleaved fragments and a spurious table; the flow edges (which test leads where, the True/False branches, the loop back from the increment boxes to the index test) and which operations carry the * (optional) and ** (control-transfer) marks are not recoverable from the markdown. The figure is informative (Annex D), but the SEARCH serial-search order it illustrates is lost."
+    },
+    {
+      "id": "p810-2",
+      "page": 810,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "Increment index-name-1 (for a different table) or identifier-2   * (an asterisk beside the box, marking it optional)",
+      "markdown_says": "Increment\n\n### \\*\n\n   index-name-1\\",
+      "why_it_matters": "The asterisk mark beside the last flowchart box became a level-3 markdown heading ('### \\*') that splits the box label 'Increment index-name-1' in two and inserts a bogus heading into the document outline."
+    }
+  ]
+}

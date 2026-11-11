@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 report-writer data-name clause is 'data-name-1' only; FILLER belongs to the Nucleus clause, whose §1985:VI.5.5.3 SR1 confines it to the File, Working-Storage, Communication and Linkage Sections, so FILLER could not name a report group entry. 2023 keeps Format 1 'data-name-1' of §2023:13.18.20.2 but, for a report group description entry, 'either data-name-1 or FILLER shall be specified' (§2023:13.18.20.3 SR3; §2023:13.15.3 SR2 'the data-name format or filler format shall be specified'). A report group entry named FILLER, refused in 1985, is accepted. CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.18.20.2": "68e170c93da0",
+   "SR-13.18.20.3-3": "b83b36b6555d",
+   "SR-13.15.3-2": "4576583b44a7"
+  }
  }
 }

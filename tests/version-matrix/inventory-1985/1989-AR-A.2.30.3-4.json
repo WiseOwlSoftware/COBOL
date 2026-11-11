@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1989: argument-2 'must be a nonnumeric literal or alphanumeric data item', no content rule. §2023:15.68.3 AR2: 'shall be of the same class as argument-1' (alphanumeric or national per §2023:15.68.3 AR1), shall contain a non-space character and shall not contain digits, '*', '+', '-', ',', '.', 'CR' or 'DB'. National is added and those currency strings, valid in 1989, are now refused. Differs both ways.",
-  "source": "adjudicate-712/slice-35"
+  "source": "adjudicate-712/slice-35",
+  "digests": {
+   "AR-15.68.3-2": "61ad0f7d37ad",
+   "AR-15.68.3-1": "e2740f06a95f"
+  }
  }
 }

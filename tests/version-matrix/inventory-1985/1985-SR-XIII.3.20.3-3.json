@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-55, kb/Work PB4952). PAGE HEADING and PAGE FOOTING need a PAGE clause; 2023 SR12 states it, and adds the OR PAGE phrase to the same condition.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "SR-13.18.57.3-12": "a37249bee499"
+  }
  }
 }

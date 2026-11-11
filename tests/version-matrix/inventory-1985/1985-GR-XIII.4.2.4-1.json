@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both require the file to be open when CLOSE executes. 2023's added outcome (unsuccessful, status 42) handles the violation; the requirement itself is unchanged in substance.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.6.4-1": "b69d85d1cce5",
+   "GR-9.1.13.7-2": "6ad5edf369fc"
+  }
  }
 }

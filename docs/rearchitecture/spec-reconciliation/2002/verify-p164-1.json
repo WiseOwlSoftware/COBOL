@@ -1,0 +1,13 @@
+{
+  "claim_id": "p164-1",
+  "claim_key": "afe40826f347e62c",
+  "page": 164,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p164-1", "page": 164, "kind": "misplaced-content", "severity": "structural", "pdf_says": "ONLY | Object-view, SHARING clause, SHARING phrase, and USAGE clause", "markdown_says": "| ONLY | Object-view, SHARING clause, SHARING phrase, and |\n\nUSAGE clause\n\n| PARAGRAPH | EXIT statement |", "why_it_matters": "The ONLY row's context list loses its last item: 'USAGE clause' is detached from the table as a stray paragraph, so the row reads as ending in 'and' and a table-reader would not see that ONLY is context-sensitive in the USAGE clause (USAGE OBJECT REFERENCE ... ONLY)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (2002 p.142, PDF p.164, context-sensitive words table) shows the ONLY row's second cell as one wrapped cell: 'Object-view, SHARING clause, SHARING phrase, and USAGE clause'. The markdown (page-164.md lines 10-15) ends the ONLY row cell at 'and |', puts 'USAGE clause' as a free paragraph outside any table, then restarts a new table whose HEADER row is '| PARAGRAPH | EXIT statement |' followed by '|---|---|'. The words are present but not in the table: anyone reading the table as a table sees ONLY's context list stop at 'and', without USAGE clause. The table is also split in two, with PARAGRAPH/EXIT statement turned into a header row. This is more than line wrapping: the table structure, and the mapping from word to context that it carries, is broken.",
+    "corrected_description": "Accurate. One addition: the break also starts a second table that uses 'PARAGRAPH | EXIT statement' as its header row (a '|---|---|' separator follows it), so PARAGRAPH is demoted from a data row to a column header."
+  }
+}

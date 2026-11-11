@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"must be class alphabetic or alphanumeric\"; 2023: \"shall be of category alphabetic, alphanumeric, or national\". 2023 adds national arguments, which 1985 refused. It also says category, not class, which may exclude edited items that belong to class alphanumeric.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "AR-15.70.3-1": "9dce60f98ace"
+  }
  }
 }

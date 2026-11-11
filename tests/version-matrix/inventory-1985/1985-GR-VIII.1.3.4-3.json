@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "2023 keeps an I-O status class '2x', invalid key condition with unsuccessful completion, covering relative files. The added EC-I-O-INVALID-KEY and other file organizations leave this rule unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-9.1.14-1": "b8080cf5262e",
+   "GR-9.1.13.5-2": "49a096fddbb8",
+   "GR-9.1.13.5-3": "c3ad7e9c7625",
+   "GR-9.1.13.5-4": "2f2d4439acc4"
+  }
  }
 }

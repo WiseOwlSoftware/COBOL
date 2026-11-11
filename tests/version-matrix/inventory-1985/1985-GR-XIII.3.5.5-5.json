@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 says PAGE-COUNTER 'is updated by 1 during each page advance', the same increment rule. The INITIATE initial value and NEXT GROUP RESET are separate rules, not this one.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-8.4.3.15.4-2": "60f15f61ddfe"
+  }
  }
 }

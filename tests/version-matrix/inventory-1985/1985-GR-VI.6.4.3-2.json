@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "MOVE CORRESPONDING still needs one elementary item and a valid move. ADD/SUBTRACT still need numeric items; only elementary items are numeric (groups are alphanumeric, national or boolean).",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.7.6-2": "c55e73e9c484",
+   "GR-14.7.6-3": "29bcbdb1dd71"
+  }
  }
 }

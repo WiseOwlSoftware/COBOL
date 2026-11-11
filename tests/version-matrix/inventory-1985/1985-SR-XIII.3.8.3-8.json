@@ -19,6 +19,15 @@
   ],
   "bridge": true,
   "reason": "1985 SR8, a syntax rule, requires every report group, of absolute or relative lines, to 'be defined such that it can be presented in the vertical subdivision of the page' of its type. 2023 keeps the regions (§2023:13.18.39.4 GR1 'each report group shall be confined within one or more of these regions', GR3, GR4; §2023:13.18.57.4 GR7, GR8), but its compile-time check covers only absolute lines (§2023:13.18.35.3 SR6 c) 'Any absolute report lines shall be defined in such a way that no line appears above the upper limit or below the lower limit', and d)); for a group that cannot be printed on one page §2023:13.18.35.4 GR2 says 'If this rule is violated the EC-REPORT-PAGE-LIMIT exception condition is set to exist and the results are undefined.' An all-relative group too tall for its region, refused by 1985, is no longer a syntax-rule refusal.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "GR-13.18.39.4-1": "bfd4b4e2bdff",
+   "GR-13.18.39.4-3": "971f3913ad24",
+   "GR-13.18.39.4-4": "82ef257ca4e1",
+   "GR-13.18.57.4-7": "e6482a3bdd53",
+   "GR-13.18.57.4-8": "ae3e5dd98aca",
+   "SR-13.18.35.3-6": "97bdf845dea0",
+   "GR-13.18.35.4-2": "893af88a882e"
+  }
  }
 }

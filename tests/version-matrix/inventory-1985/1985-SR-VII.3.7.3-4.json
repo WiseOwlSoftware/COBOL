@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "SR-13.18.34.3-4 repeats the rule verbatim: LINAGE integer-3 and integer-4 may be zero. The 1985 level-2 box is not a difference, so the verify reader's objection fails.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.34.3-4": "df7db8c0cbf6"
+  }
  }
 }

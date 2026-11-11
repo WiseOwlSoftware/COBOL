@@ -20,6 +20,16 @@
   "reason": "§1985:VII.2.3.2, the sequential file control entry, offers SELECT [OPTIONAL], ASSIGN, RESERVE, [ORGANIZATION IS] SEQUENTIAL, PADDING CHARACTER, RECORD DELIMITER, ACCESS MODE IS SEQUENTIAL and FILE STATUS. Its 2023 counterpart is 'Format 3 (sequential)' of §2023:12.4.5.1, which §2023:12.4.5.2 SR11 ('Format 3 shall be specified only for a sequential file or a report file') and §2023:12.4.5.3 GR8 ('The sequential format defines a file connector for a sequential file') tie to sequential files. It keeps every clause but PADDING CHARACTER, which no 2023 clause carries, so a 1985 entry with PADDING CHARACTER is refused; it also adds ASSIGN USING, LOCK MODE, SHARING and LINE/RECORD SEQUENTIAL. Narrower and wider at once, a compile-time difference with no exception condition: CHANGED. The order rule (§1985:VII.2.3.3 SR1) and each clause's own format carry their own records. Format 3 writes its clauses in line, and each is restated by its own clause format, so those state part of the entry's syntax too: §2023:12.4.5.5.1 (ACCESS MODE), §2023:12.4.5.8.2 (FILE STATUS), §2023:12.4.5.10.2 (ORGANIZATION), §2023:12.4.5.11.2 (RECORD DELIMITER), §2023:12.4.5.14.2 (RESERVE).",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-12.4.5.1": "14f82fb7eed3",
+   "SR-12.4.5.2-11": "cb117217f6dd",
+   "GR-12.4.5.3-8": "738441f8464e",
+   "FMT-12.4.5.5.1": "ce888455e095",
+   "FMT-12.4.5.8.2": "e6095ecf1b9f",
+   "FMT-12.4.5.10.2": "03687bb856b0",
+   "FMT-12.4.5.11.2": "acef440cb0dd",
+   "FMT-12.4.5.14.2": "af2027060203"
+  }
  }
 }

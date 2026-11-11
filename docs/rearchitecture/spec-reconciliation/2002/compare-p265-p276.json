@@ -1,0 +1,34 @@
+{
+  "batch": [265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276],
+  "pages_checked": [265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p266-1",
+      "page": 266,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Term Subclause\nconstant-entry 13.9, Constant entry\nscreen-description-entry 13.15, Screen description entry",
+      "markdown_says": "| Term | Subclause |\n|---|---|\n| constant-entry | 13.9, Constant entry |\n\nscreen-description-entry 13.15, Screen description entry",
+      "why_it_matters": "The second row of the 13.8.1 meta-language term table fell out of the table into a loose paragraph, so a reader or tool parsing the table sees only constant-entry and loses where screen-description-entry is defined."
+    },
+    {
+      "id": "p267-1",
+      "page": 267,
+      "kind": "incorrect-figure",
+      "severity": "normative",
+      "pdf_says": "{ 1 / 01 } constant-name-1 CONSTANT [ IS GLOBAL ] ... (both level numbers 1 and 01 printed underlined)",
+      "markdown_says": "╭ 1  ╮\n┤    ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL</u>] ┤\n╰ <u>01</u> ╯",
+      "why_it_matters": "In the 13.9.1 constant-entry general format the printed level number '1' carries an underline just like '01'; the markdown underlines only 01, so the figure's notation for the required level-number alternative is lost for '1'."
+    },
+    {
+      "id": "p274-1",
+      "page": 274,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "validate-status-clause 13.16.60, VALIDATE-STATUS clause\nvalue-clause 13.16.61, VALUE clause (data-item or table format)",
+      "markdown_says": "| usage-clause | 13.16.58, USAGE clause |\n\nvalidate-status-clause 13.16.60, VALIDATE-STATUS clause\\\nvalue-clause 13.16.61, VALUE clause (data-item or table format)",
+      "why_it_matters": "The last two rows of the 13.14.1 meta-language term table fell out of the table into a loose paragraph, so a table parser loses where validate-status-clause and value-clause (data-item or table format) are defined."
+    }
+  ]
+}

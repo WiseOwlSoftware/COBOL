@@ -115,6 +115,19 @@ public enum DialectBehavior
     /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
     SearchIndexBelowTableUnsuccessful = 6,
 
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.22.4 GR19 with §2023:14.6.4 step 6 — a format 3 INSPECT "is interpreted and
+    /// executed as though two successive INSPECT statements", but "Item identification of any identifier in the format 2
+    /// statement is done only once before executing the format 1 statement", and item identification includes the "length
+    /// evaluation for an occurs-depending group item" (the 2002 text, §2002:14.8.21.3 GR18 and §2002:14.5.4 step 6, says the
+    /// same of a variable-length data item). So from 2002 the REPLACING half works over the length identifier-1 had when the
+    /// statement began, whatever the TALLYING half did to the DEPENDING ON object. §1985:VI.6.18.4 GR17 fixes only "Subscripting
+    /// associated with any identifier in the format 2 statement"; its length rule (§1985:VI.6.18.4 GR1 with §1985:VI.5.8.4 GR3:
+    /// the value of data-name-1 "at the start of the operation") is read at the start of EACH of the two successive
+    /// statements, so at <c>--std 85</c> the REPLACING half takes the length anew (kb/Work PB5119). The consumer is
+    /// <c>InspectBinder</c>, which pins the DEPENDING ON object for the statement from 2002 and sets
+    /// <c>BoundInspect.ReplacingTakesLengthAnew</c> below it.</summary>
+    InspectFormat3LengthIdentifiedOnce = 7,
+
     /// <summary>ISO/IEC 1989:2023 §2023:15.5.2 — a value in integer date form "shall be less than or equal to the value of
     /// FUNCTION INTEGER-OF-DATE (99991231), which is 3,067,671", and the YYYY of INTEGER-OF-DATE and INTEGER-OF-DAY "shall be an
     /// integer greater than 1600 and less than 10000" (§2023:15.46.3 AR1 a, §2023:15.47.3 AR1 a); the 2002 text words all three
@@ -122,19 +135,19 @@ public enum DialectBehavior
     /// greater than 1600" (§1989:A.2.17.3 AR1 the same), and DATE-OF-INTEGER and DAY-OF-INTEGER take "a positive integer that
     /// represents a number of days succeeding December 31, 1600" (§1989:A.2.12.3 AR1, §1989:A.2.13.3 AR1). So at
     /// <c>--std 85</c> INTEGER-OF-DATE (100000101) is 3,067,672 and DATE-OF-INTEGER (3067672) is 100000101 (kb/Work PB5130;
-    /// VCR row 7.57). Both editions are QUOTED. The consumer is <c>IntrinsicBinder.BindFunctionResult</c>, which sets
+    /// VCR row 7.58). Both editions are QUOTED. The consumer is <c>IntrinsicBinder.BindFunctionResult</c>, which sets
     /// <c>BoundIntrinsicCall.IntegerDateFormUnbounded</c> for the four <c>CobolDate</c> bodies.</summary>
-    IntegerDateFormBounded = 7,
+    IntegerDateFormBounded = 8,
 
     /// <summary>ISO/IEC 1989:2023 §2023:15.68.3 AR2 — NUMVAL-C's argument-2 "shall not contain any of the digits 0 through 9;
     /// the characters '*', '+', '–', ',' , or '.'; or the two consecutive letters 'CR' or 'DB'" and "shall contain at least one
     /// non-space character"; the 2002 text words it the same. The 1989 intrinsic function module asks only its class,
     /// §1989:A.2.30.3 AR4 "Argument-2, if specified, must be a nonnumeric literal or alphanumeric data item", and AR1 makes cs
     /// "the string of one or more characters specified by argument-2", so at <c>--std 85</c> a currency string such as "Fr."
-    /// or "CRC" is admitted and scanned as written (kb/Work PB5161; VCR row 7.58). Both editions are QUOTED. The consumers
+    /// or "CRC" is admitted and scanned as written (kb/Work PB5161; VCR row 7.59). Both editions are QUOTED. The consumers
     /// are <c>IntrinsicBinder.BindNumvalCFamily</c> (the literal screen, and <c>BoundIntrinsicCall.CurrencyContentUnrestricted</c>
     /// for a data item) and <c>CobolIntrinsics.NumvalCDec</c>.</summary>
-    NumvalCCurrencyContentRules = 8,
+    NumvalCCurrencyContentRules = 9,
 }
 
 /// <summary>
@@ -190,12 +203,16 @@ public static class DialectBehaviors
             "7.56", "14.9.37.4 GR4", "§1985:VI.6.22.4 GR2",
             "a format 1 SEARCH whose index is zero or negative at its start is unsuccessful at once only from COBOL-2002; "
             + "COBOL-85 tests the upper bound alone and an index below the table starts the serial scan"),
+        new(DialectBehavior.InspectFormat3LengthIdentifiedOnce, "inspect-format-3-length-identified-once", 2002,
+            "7.57", "14.9.22.4 GR19", "§1985:VI.6.18.4 GR17",
+            "a format 3 INSPECT of an occurs-depending group identifies the group's length once, before the TALLYING half, "
+            + "only from COBOL-2002; COBOL-85 takes the length anew for the REPLACING half"),
         new(DialectBehavior.IntegerDateFormBounded, "integer-date-form-bounded-9999", 2002,
-            "7.57", "15.5.2", "§1989:A.2.16.3 AR1",
+            "7.58", "15.5.2", "§1989:A.2.16.3 AR1",
             "the integer date form and the YYYY of INTEGER-OF-DATE and INTEGER-OF-DAY end at 9999-12-31 only from COBOL-2002; "
             + "the COBOL-85 intrinsic function module bounds the year below only"),
         new(DialectBehavior.NumvalCCurrencyContentRules, "numval-c-currency-content-rules", 2002,
-            "7.58", "15.68.3 AR2", "§1989:A.2.30.3 AR4",
+            "7.59", "15.68.3 AR2", "§1989:A.2.30.3 AR4",
             "NUMVAL-C's argument-2 may hold no digit, none of * + - , . and no CR or DB only from COBOL-2002; "
             + "the COBOL-85 intrinsic function module asks only that it be a nonnumeric literal or alphanumeric data item"),
     ];

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: REWRITE 'causes the value of the I-O status of the file-name associated with record-name-1 to be updated'. §2023:14.9.35.4 GR1 'causes the I-O status value in the rewrite file connector to be updated'; §2023:14.9.35.4 GR2 makes that connector the one of 'the file-name associated with record-name-1' (or the new FILE form). GR14 (unsuccessful REWRITE) and 9.1.14 GR4 (no-handler control) state other requirements, not this one.",
-  "source": "adjudicate-712-r2/slice-03"
+  "source": "adjudicate-712-r2/slice-03",
+  "digests": {
+   "GR-14.9.35.4-1": "7c937b2be791",
+   "GR-14.9.35.4-2": "ad43e8e283bf"
+  }
  }
 }

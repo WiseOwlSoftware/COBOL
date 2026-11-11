@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: identification-division [environment-division] [data-division] [procedure-division] [end-program-header] (the end marker a level-2 element). §2023:10.6.1 program-definition keeps the order and the optional END PROGRAM but writes \"[ IDENTIFICATION DIVISION. ]\" and adds [ options-paragraph ]; §2023:11.2.1 restates the bracketed header. A program starting at PROGRAM-ID, refused in 1985 (VI.3.2.1.1 requires the header), is accepted. End-marker presence rules are 1985 VI.2.3.3 GR2 and X.2.3.2 SR1, mapped separately. Compile-time only.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-10.6.1": "985639fb1dfa",
+   "FMT-11.2.1": "22ccbe0d710a"
+  }
  }
 }

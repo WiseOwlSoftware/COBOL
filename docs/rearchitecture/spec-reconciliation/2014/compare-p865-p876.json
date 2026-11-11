@@ -1,0 +1,25 @@
+{
+  "batch": [865, 866, 867, 868, 869, 870, 871, 872, 873, 874, 875, 876],
+  "pages_checked": [865, 866, 867, 868, 869, 870, 871, 872, 873, 874, 875, 876],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p866-1",
+      "page": 866,
+      "kind": "image-lost",
+      "severity": "structural",
+      "pdf_says": "Figure D.4 draws three boxes, Person, Employee and Manager, stacked vertically, with an upward arrow from Manager to Employee and an upward arrow from Employee to Person (the subclass-to-superclass inheritance direction).",
+      "markdown_says": "Person\n\nEmployee\n\nManager\n\nFigure D.4 — Manager class",
+      "why_it_matters": "The arrows that show which class inherits from which are lost; the markdown keeps only three bare words. The prose that follows restates the hierarchy, so this is a structural loss in an informative annex, not a normative one."
+    },
+    {
+      "id": "p867-1",
+      "page": 867,
+      "kind": "image-lost",
+      "severity": "structural",
+      "pdf_says": "Figure D.5 draws an Account box (account-number, balance, date-opened in the data-items compartment; deposit, withdraw, balance in the methods compartment), with labels \"Data items\" and \"Methods\" pointing at the compartments, and two subclass boxes with arrows up to Account: CheckingAccount (charges; displayCharges, calculateCharges) and SavingAccount (interest-rate; calculateInterest).",
+      "markdown_says": "account-number\\\nData items balance\\\ndate-opened\n\ndeposit\\\nMethods\\\nwithdraw\\\nbalance\n\n| CheckingAccount | SavingAccount |\n|---|---|\n| charges | interest-rate |\n| displayCharges | calculateInterest |\n\ncalculateCharges",
+      "why_it_matters": "The figure is flattened and scrambled: the \"Data items\" label is run into the data item \"balance\", the \"Methods\" label sits between the method names deposit and withdraw, calculateCharges is detached from the CheckingAccount column, and the inheritance arrows are gone. Informative annex, so structural."
+    }
+  ]
+}

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "A 1985 CONTINUE has no AFTER phrase, and 'If the AFTER phrase is not specified, then the statement is processed as if an AFTER phrase were specified with arithmetic-expression-1 specified as zero' (§2023:14.9.9.3 SR2). Zero is not negative, so no EC-CONTINUE condition arises, and after a zero suspension 'When the time is passed, execution continues with the next executable statement' (§2023:14.9.9.4 GR1). That is no effect, as in 1985. Suspension needs the AFTER phrase, which 1985 lacks.",
-  "source": "adjudicate-712/slice-14"
+  "source": "adjudicate-712/slice-14",
+  "digests": {
+   "SR-14.9.9.3-2": "7b22955e02f5",
+   "GR-14.9.9.4-1": "9156bdc65915"
+  }
  }
 }

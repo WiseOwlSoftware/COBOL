@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 repeats the single-occurrence rule word for word. The added alphanumeric-representation sentence concerns national data, absent in 1985, so 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.11.4-3": "74efc3b18257"
+  }
  }
 }

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.25.4 GR4 restates 1985 GR5: a non-elementary move 'is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion', filling the receiving area without regard to subordinate items, except as specified in OCCURS GR8, the exception 1985 GR5 names ('except as noted in the OCCURS clause'), now §2023:13.18.38.4 GR8 ('If the group is a receiving operand, the maximum length of the group will be used'). The variable-length-group, bit/national-group and message-tag/object/pointer carve-outs reach only 2023 item kinds (a 1985 occurs-depending group is not a variable-length group).",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "adjudicate-712-r2/slice-05",
+  "digests": {
+   "GR-14.9.25.4-4": "533935f20753",
+   "GR-13.18.38.4-8": "ec2f8b1a65ab"
+  }
  }
 }

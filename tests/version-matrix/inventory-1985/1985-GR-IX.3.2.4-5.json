@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 only makes the indexed RECORD clause the sequential one. In 2023 FD Format 1 (§2023:13.4.5.3 SR5 'Format 1 is the file description entry for a sequential file') and Format 2 (§2023:13.4.5.3 SR7 'Format 2 is the file description entry for a relative file or an indexed file') both use the one record-clause of 13.18.43, whose syntax and general rules make no organization distinction; the sequential-only limits concern LINE SEQUENTIAL and FORMAT, absent from 1985.",
-  "source": "adjudicate-712/slice-06"
+  "source": "adjudicate-712/slice-06",
+  "digests": {
+   "FMT-13.4.5.2": "b75b09e44e69",
+   "SR-13.4.5.3-5": "98e48aad5011",
+   "SR-13.4.5.3-7": "b9a7373b54e4",
+   "FMT-13.18.43.2": "eaecef407473"
+  }
  }
 }

@@ -1,0 +1,44 @@
+{
+  "batch": [
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    331,
+    332,
+    333,
+    334,
+    335,
+    336
+  ],
+  "pages_checked": [
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    331,
+    332,
+    333,
+    334,
+    335,
+    336
+  ],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p328-1",
+      "page": 328,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "section": "13.16.36.1 General format, Format 2 (variable-table)",
+      "pdf_says": "OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1\n[ { ASCENDING / DESCENDING } KEY IS { data-name-2 } ... ] ... [ INDEXED BY { index-name-1 } ... ]",
+      "markdown_says": "       ╭              ╮ KEY\n       │              │\n<u>OCCURS</u> │ integer-1 <u>TO</u> │ integer-2 TIMES <u>DEPENDING</u> ON data-name-1\n       │              │\n┌      │ <u>ASCENDING</u>    │                      ┐\n│      ┤              ├ IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]\n└      ╰ <u>DESCENDING</u>   ╯                      ┘",
+      "explanation": "The Format 2 diagram is garbled. The printed format has a plain first line 'OCCURS integer-1 TO integer-2 TIMES DEPENDING ON data-name-1' and, on a second line, an optional bracket holding the {ASCENDING/DESCENDING} brace followed by 'KEY IS { data-name-2 } ...' (exactly as in Format 1). The markdown merges the two lines: it draws one brace spanning 'integer-1 TO', ASCENDING and DESCENDING (making 'integer-1 TO' read as an alternative of a brace shared with ASCENDING/DESCENDING), and moves the keyword KEY out of the KEY IS phrase to the top right of that brace, leaving the phrase as 'IS { data-name-2 } ...'. The bracket's left edge also falls outside the brace rather than enclosing only the ASCENDING/DESCENDING KEY IS phrase. No choice indicators are printed on this format, so none were lost.",
+      "why_it_matters": "A grammar or reader working from the markdown would see 'integer-1 TO' as an alternative to ASCENDING/DESCENDING and a KEY-less 'IS { data-name-2 }' phrase, so it could reject the legal source 'OCCURS 1 TO 10 TIMES DEPENDING ON N ASCENDING KEY IS K' or accept malformed variants."
+    }
+  ]
+}

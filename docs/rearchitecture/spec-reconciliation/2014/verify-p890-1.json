@@ -1,0 +1,13 @@
+{
+  "claim_id": "p890-1",
+  "claim_key": "b1cb273a5538e1fc",
+  "page": 890,
+  "kind": "incorrect-figure",
+  "severity": "structural",
+  "claim": {"id": "p890-1", "page": 890, "kind": "incorrect-figure", "severity": "structural", "pdf_says": "Flowchart (Figure D.7, AND evaluation): each 'Condition-n false' decision's 'yes' branch joins one vertical line with an arrow to 'Truth value is false'; each 'no' branch continues down to the next 'Evaluate condition'; the last 'no' arrows to 'Truth value is true'.", "markdown_says": "Condition-1 yes\\\n&emsp;false\n\nno\n...\n| Truth value | Truth value |\n|---|---|\n| is true | is false |", "why_it_matters": "The drawn flowchart is flattened to its box labels; the lines and arrows that say which branch leads to which outcome (all 'yes' exits converge on 'false') are lost, and the two outcomes are rendered as a 2-column table."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 890 (printed 866), D.22: a flowchart of boxes 'Evaluate condition-1/2/n', each followed by a rounded decision 'Condition-k false'; each 'yes' exit runs right into one vertical line that ends in an arrow to 'Truth value is false'; each 'no' exit goes down to the next Evaluate box, and the last 'no' arrows to 'Truth value is true' ('true' and 'false' underlined). The markdown keeps only the labels, garbled ('Condition-1 yes\\ false', 'no'), and turns the two outcomes into a 2-column table. Nothing in it says where a 'yes' or 'no' branch leads, so a reader cannot recover the evaluation rule (any false condition makes the whole expression false; all not-false make it true). The flowchart's edges are its content, not formatting, so this is a genuine loss in an informative annex figure. The claim's 'Figure D.7, AND evaluation' label does not appear on this page: no caption or figure number is printed on page 890.",
+    "corrected_description": "D.22 (page 890, printed 866) flowchart: the markdown keeps only the node labels (mangled into 'Condition-1 yes / false', 'no') and a 2-column table for the outcomes, and loses the connecting lines. In the PDF every 'Condition-k false' yes-exit converges on one arrow to 'Truth value is false', each no-exit leads to the next 'Evaluate condition', and the last no-exit arrows to 'Truth value is true'. No figure number or caption is printed on this page; the 'Figure D.7, AND evaluation' label in the claim is not from the page."
+  }
+}

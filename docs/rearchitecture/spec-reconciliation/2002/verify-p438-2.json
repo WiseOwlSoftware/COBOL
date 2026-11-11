@@ -1,0 +1,13 @@
+{
+  "claim_id": "p438-2",
+  "claim_key": "a9c368fee928d7d0",
+  "page": 438,
+  "kind": "ocr-error",
+  "severity": "normative",
+  "claim": {"id": "p438-2", "page": 438, "kind": "ocr-error", "severity": "normative", "pdf_says": "(operand-1₁ + operand-1₂ + ... + operand-1ₙ + operand-2)", "markdown_says": "(operand-11 + operand-12 + ... + operand-1n + operand-2)", "why_it_matters": "ADD GR 2 (format 2, standard arithmetic): the same lost-subscript error turns the indexed operand-1 instances into names such as operand-11 and operand-12, which could be mistaken for distinct operands."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 438 (printed page 416, 14.8.2.3 General rules, GR 2) shows the expression '(operand-1 + operand-1 + ... + operand-1 + operand-2)' with clearly lowered subscripts 1, 2 and n on each operand-1. page-438.md line 27 reads '(operand-11 + operand-12 + ... + operand-1n + operand-2)': the subscripts are flattened into the base name, so the text literally names operand-11, operand-12 and operand-1n, which are not the indexed instances of operand-1. This is a content loss in a normative general rule, not wrapping or furniture. The claim quotes both sources accurately. The following prose ('the values of operand-1 are the values of literal-1 and the data items referenced by identifier-1 in the order...') lets a careful reader recover the intent, so the practical impact is low, but the transcribed formula is wrong as written.",
+    "corrected_description": ""
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "batch": [
+    661,
+    662,
+    663,
+    664,
+    665,
+    666,
+    667,
+    668,
+    669,
+    670,
+    671,
+    672
+  ],
+  "pages_checked": [
+    661,
+    662,
+    663,
+    664,
+    665,
+    666,
+    667,
+    668,
+    669,
+    670,
+    671,
+    672
+  ],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p663-1",
+      "page": 663,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "section": "15.71.3",
+      "pdf_says": "(argument-1₁ + argument-1₂) ... (argument-1₁ + argument-1₂ + ... + argument-1ₙ)  [subscripts 1, 2, n printed below the baseline]",
+      "markdown_says": "(argument-11 + argument-12)\n\n   c) For n occurrences of argument-1,\n\n   (argument-11 + argument-12 + ... + argument-1n)",
+      "description": "The subscripts that index the occurrences of argument-1 are flattened onto the baseline, so 'argument-1 subscript 1' reads as a different operand name 'argument-11' (likewise argument-12, argument-1n). Restore them as <sub>1</sub>, <sub>2</sub>, <sub>n</sub>.",
+      "why_it_matters": "The returned-value rule defines the function's result by an equivalent expression; with the subscripts flattened, a reader sees operands named argument-11/argument-12/argument-1n rather than the successive occurrences of argument-1, which misstates the normative definition."
+    },
+    {
+      "id": "p671-1",
+      "page": 671,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "section": "15.79.3",
+      "pdf_says": "( ((argument-1₁ – FUNCTION MEAN (argument-list)) ** 2 + (argument-1₂– FUNCTION MEAN (argument-list)) ** 2) / 2 ) ... ((argument-1₁ – FUNCTION MEAN (argument-list)) ** 2) ... ((argument-1ₙ – FUNCTION MEAN (argument-list)) ** 2)) / n) ... argument-1ᵢ is the ith argument  [subscripts 1, 2, n, i printed below the baseline]",
+      "markdown_says": "( ((argument-11 – FUNCTION MEAN (argument-list)) \\*\\* 2 +\\\n   &emsp;&emsp;(argument-12– FUNCTION MEAN (argument-list)) \\*\\* 2) / 2 ) ... ((argument-11 – FUNCTION MEAN (argument-list)) \\*\\* 2) ... ((argument-1n – FUNCTION MEAN (argument-list)) \\*\\* 2)) / n) ... argument-1i is the ith argument",
+      "description": "The occurrence subscripts on argument-1 are flattened onto the baseline, so the variance formula names operands 'argument-11', 'argument-12', 'argument-1n' and 'argument-1i' instead of the 1st, 2nd, nth and ith occurrences of argument-1. Restore as <sub>1</sub>, <sub>2</sub>, <sub>n</sub>, <sub>i</sub>. (The lines of item c) are also left unindented, detaching them from list item c) in rendering.)",
+      "why_it_matters": "The returned-value rule defines the function's result by an equivalent expression; with the subscripts flattened, a reader sees operands named argument-11/argument-12/argument-1n rather than the successive occurrences of argument-1, which misstates the normative definition."
+    }
+  ]
+}

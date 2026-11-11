@@ -1,0 +1,13 @@
+{
+  "claim_id": "p197-1",
+  "claim_key": "6543223c1268ce02",
+  "page": 197,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p197-1", "page": 197, "kind": "table-restructured", "severity": "structural", "pdf_says": "Term Subclause / class-id-paragraph 11.2, CLASS-ID paragraph / factory-paragraph 11.3, FACTORY paragraph / function-id-paragraph 11.4, FUNCTION-ID paragraph / interface-id-paragraph 11.5, INTERFACE-ID paragraph / method-id-paragraph 11.6, METHOD-ID paragraph / object-paragraph 11.7, OBJECT paragraph / options-paragraph 11.8, OPTIONS paragraph / program-id-paragraph 11.9, PROGRAM-ID paragraph", "markdown_says": "| Term | Subclause |\n|---|---|\n| class-id-paragraph | 11.2, CLASS-ID paragraph |\n| factory-paragraph | 11.3, FACTORY paragraph |\n\nfunction-id-paragraph 11.4, FUNCTION-ID paragraph\\\ninterface-id-paragraph 11.5, INTERFACE-ID paragraph\\\nmethod-id-paragraph 11.6, METHOD-ID paragraph\n\n| object-paragraph | 11.7, OBJECT paragraph |\n|---|---|\n| options-paragraph | 11.8, OPTIONS paragraph |\n\nprogram-id-paragraph 11.9, PROGRAM-ID paragraph", "why_it_matters": "The single eight-row meta-language term table of 11.1.1 is fragmented into two tables plus loose paragraphs: function-id, interface-id, method-id and program-id rows are plain text outside any table, and object-paragraph is promoted to a second table's header row. The text survives, but the table structure mapping each term to its subclause is lost for half its rows."},
+  "verdict": {
+    "real": false,
+    "reasoning": "Printed page 197 (ISO/IEC 1989:2002 p.175, 11.1.1) shows one borderless two-column Term/Subclause list of eight rows: class-id 11.2, factory 11.3, function-id 11.4, interface-id 11.5, method-id 11.6, object 11.7, options 11.8, program-id 11.9. The markdown does split this list into two pipe tables and some loose lines, as the claim says. But all eight term-to-subclause pairs are present, in the printed order, and every term still sits on the same line as its own subclause number and title. No pairing is lost, misassigned or misquoted. The PDF itself has no ruled table, so the difference is markdown table formatting from OCR. It does not change meaning, so it is formatting only. The general format above it (an unbarred brace around seven alternatives, then [ options-paragraph ]) is transcribed correctly.",
+    "corrected_description": ""
+  }
+}

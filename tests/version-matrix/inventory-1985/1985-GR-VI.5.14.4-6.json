@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Default stays implicit DISPLAY. The 'N' case covers national pictures, which 1985 lacks, so every 1985 program gets the same usage.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.60.3-13": "fbcaf116bf53"
+  }
  }
 }

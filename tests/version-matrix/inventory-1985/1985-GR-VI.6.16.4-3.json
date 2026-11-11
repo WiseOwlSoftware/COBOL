@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (X3.23b-1993, page VI-91) replaced the second paragraph ('may be considered as paired IF, ELSE, and END-IF combinations') with the matching rule 2023 prints: 'any ELSE encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE or has not been implicitly or explicitly terminated. Any END-IF encountered is matched with the nearest preceding IF that has not been implicitly or explicitly terminated' (§1985:VI.6.16.4 GR3). §2023:14.9.19.3 SR2 states both sentences in the same words, as its a) and b), 'Proceeding from left to right', after the same first paragraph: 'Statement-1 and statement-2 may each contain an IF statement. In this case, the IF statement is said to be nested'. The general scope rules state the same pairing for every statement: §2023:14.5.3.3 GR4 ('Any phrase encountered is the next phrase of the most-recently preceding unterminated statement with which that phrase may be syntactically associated', and a second ELSE 'is not syntactically associated with that statement') and §2023:14.5.3.2 GR1 (a scope terminator ends 'the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined'). The amended text and the 2023 text pair the same ELSE and END-IF with the same IF; no case is added or removed.",
-  "source": "readjudicate-amended-1985/slice-03"
+  "source": "readjudicate-amended-1985/slice-03",
+  "digests": {
+   "SR-14.9.19.3-2": "f8014a966de1",
+   "GR-14.5.3.3-4": "8dcbda9999fd",
+   "GR-14.5.3.2-1": "3b121c04bafc"
+  }
  }
 }

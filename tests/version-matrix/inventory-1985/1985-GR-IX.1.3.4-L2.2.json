@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "KEPT: 1985 status 10 when a sequential READ finds no next logical record because the end of file is reached or it is the first sequential READ of an absent optional input file; §2023:9.1.13.4 GR1 keeps both (\"NEXT was specified or implied and the end of the physical file has been reached\"; \"a sequential READ statement is attempted for the first time on a file described as optional and the physical file is not present\"), §2023:14.9.30.4 GR21 sets '10' for those positions and GR24 makes the READ unsuccessful when \"the at end condition exists\". The PREVIOUS case needs 2023-only syntax; EC-I-O-AT-END is set only if enabled.",
-  "source": "adjudicate-712/slice-05"
+  "source": "adjudicate-712/slice-05",
+  "digests": {
+   "GR-9.1.13.4-1": "490fead5c8fb",
+   "GR-14.9.30.4-21": "7fba2331b7f5",
+   "GR-14.9.30.4-24": "fc6732e2c178"
+  }
  }
 }

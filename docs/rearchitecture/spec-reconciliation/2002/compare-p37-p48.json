@@ -1,0 +1,61 @@
+{
+  "batch": [37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48],
+  "pages_checked": [37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p40-1",
+      "page": 40,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Expression | 8.8, Expressions | arithmetic-expression-n boolean-expression-n conditional-expression-n  ...  c) Exception name | 14.5.12.1.5, Exception-names and exception conditions | exception-name-1",
+      "markdown_says": "| Expression | 8.8, Expressions | arithmetic-expression-n |\n\nboolean-expression-n conditional-expression-n\n\n| Integer | 5.4, Integer operands | integer-n |\n|---|---|---|\n...\n| c) Exception name | 14.5.12.1.5, Exception-names and | exception-name-1 |\n\nexception conditions",
+      "why_it_matters": "The operand-type table is split into two tables: the Expression row's terms boolean-expression-n and conditional-expression-n fall out of the table as a stray paragraph, and the tail of the 'Described in' cell for Exception name ('exception conditions') becomes a detached paragraph; the multi-line User-defined word cell is also split across three rows ('a) User-defined word, including' / 'qualification and subscription if' / 'needed'). A reader of the table sees Expression mapping only to arithmetic-expression-n."
+    },
+    {
+      "id": "p42-1",
+      "page": 42,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "pdf_says": "When an operand is textually subscripted, as operand-j<sub>n</sub>, the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.",
+      "markdown_says": "When an operand is textually subscripted, as operand-jn, the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.",
+      "why_it_matters": "The subscript n is printed as a subscript in the PDF; the markdown flattens it to 'operand-jn', so the very notation 5.3.1 defines is not shown (it reads as a different operand name)."
+    },
+    {
+      "id": "p43-1",
+      "page": 43,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "shall | is required to / is, is to ; shall not | is not permitted / is not allowed ; may | is permitted / is allowed ; need not | is not required to ; should | it is recommended that / is recommended ; should not | (none) ; can | is able to / it is possible to / is possible ; cannot | (none)",
+      "markdown_says": "| ... | shall<br>shall not | is required to<br>is, is to<br>is not permitted<br>is not allowed |\n| a permission expressed by the standard | may<br>need not | is permitted<br>is allowed<br>is not required to |\n| ... | should<br>should not | it is recommended that<br>is recommended |\n| ... | can<br>cannot | is able to<br>it is possible to<br>is possible |",
+      "why_it_matters": "Table 1 aligns each alternative expression with its verbal form (e.g. 'is not permitted' is the alternative for 'shall not', 'is not required to' for 'need not', and 'should not' / 'cannot' have none). The markdown collapses each row's forms and alternatives into undivided lists, so which alternative expression is equivalent to which verbal form (positive vs negative) is lost."
+    },
+    {
+      "id": "p45-1",
+      "page": 45,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "\"-  '-   literal continuation indicator   continuation of a literal when specified in an un-terminated literal with the same quotation symbol in its opening delimiter, subject to additional rules in 6.1.2.1, Syntax Rules.",
+      "markdown_says": "| \"- | literal continuation | continuation of a literal when specified in an un-terminated |\n|---|---|---|\n| '- | indicator | literal with the same quotation symbol in its opening delimiter, |\n\nsubject to additional rules in 6.1.2.1, Syntax Rules.",
+      "why_it_matters": "The floating-indicator table is broken up: '- is presented as a separate row whose indicator name is 'indicator' and whose meaning is a sentence fragment, instead of both \"- and '- being literal continuation indicators with one shared description; the *> row's two numbered meanings and the >> and >>D rows also fall out of the table as loose paragraphs, losing the column association."
+    },
+    {
+      "id": "p45-2",
+      "page": 45,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "d   debugging indicator   a debugging line\n- (hyphen)   continuation indicator   a continuation line\nspace   source indicator   any line that is not a comment line, a debugging line, or a continuation line",
+      "markdown_says": "d debugging indicator a debugging line\n\n\\- (hyphen) continuation indicator a continuation line\n\nspace source indicator any line that is not a comment line, a debugging line,",
+      "why_it_matters": "These are the last three rows of the fixed-indicator table begun on page 44 (Character / Indicator name / Indicates); the markdown renders them as run-together prose lines outside the table, losing the column structure that separates the character from its name and meaning."
+    },
+    {
+      "id": "p46-1",
+      "page": 46,
+      "kind": "incorrect-text",
+      "severity": "structural",
+      "pdf_says": "Figure 1: Margin L | positions 1 2 3 4 5 6 | Margin C | 7 | Margin A | 8 9 10 11 12 13 ... | Margin R; brace under 1-6 labelled 'Sequence Number Area'; arrow at 7 labelled 'Indicator Area'; brace under 8-... labelled 'Program-text Area'",
+      "markdown_says": "| Margin |  |  |  |  | Margin |  | Margin |  | Margin |\n|---|---|---|---|---|---|---|---|---|---|\n| L |  |  |  |  | C |  | A |  | R |\n| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 10 11 12 13 | ... |\n\nProgram-text Area Sequence Number Area\n\nIndicator Area",
+      "why_it_matters": "The figure's table places Margin C over position 6 (it is between 6 and 7), Margin A over position 8 (it is between 7 and 8) and Margin R over '...'; the area labels are listed in the wrong order ('Program-text Area Sequence Number Area') with no mapping to positions. The figure as transcribed misstates the fixed-form layout; only the prose below it is correct."
+    }
+  ]
+}

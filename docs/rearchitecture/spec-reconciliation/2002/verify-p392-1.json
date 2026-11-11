@@ -1,0 +1,13 @@
+{
+  "claim_id": "p392-1",
+  "claim_key": "1f8c06f3a3093661",
+  "page": 392,
+  "kind": "ocr-error",
+  "severity": "cosmetic",
+  "claim": {"id": "p392-1", "page": 392, "kind": "ocr-error", "severity": "cosmetic", "pdf_says": "Boolean literals in the VALUE clause of a bit group item shall not exceed the size of the group item.", "markdown_says": "Boolean literals in theVALUE clause of a bit group item shall not exceed the size of the group item.", "why_it_matters": "Cosmetic only: a reader or a search for the phrase \"the VALUE clause\" misses this sentence; no rule changes.", "note": "Syntax rule 6 of 13.16.61.2 (VALUE clause): the space between 'the' and 'VALUE' is lost ('theVALUE'); wording otherwise intact, meaning unchanged."},
+  "verdict": {
+    "real": false,
+    "reasoning": "Both quotes are accurate: the printed page 392 (folio 370), syntax rule 6 under FORMATS 1, 2, 3, AND 5, reads 'Boolean literals in the VALUE clause of a bit group item' with a narrow but visible space, and page-392.md line 11 reads 'theVALUE'. The only difference is one lost inter-word space, a whitespace/formatting artifact. Every word is present and in order, and the rule's meaning is unchanged, which the claim itself concedes. That falls under the rejection criteria (formatting only; does not change meaning), so this is not a content discrepancy.",
+    "corrected_description": ""
+  }
+}

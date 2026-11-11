@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 keeps the LINE-COUNTER rule for dummy (nonprintable) groups and SUPPRESSed groups. Adding PAGE-COUNTER extends the rule but leaves the 1985 LINE-COUNTER requirement unchanged.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-8.4.3.15.4-5": "3c235b0d53d8"
+  }
  }
 }

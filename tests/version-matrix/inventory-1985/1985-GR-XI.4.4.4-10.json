@@ -13,6 +13,12 @@
   ],
   "bridge": true,
   "reason": "The range definition and ban are kept. 1985 'must not' states no result; 2023: 'If the range of the output procedure causes the execution of any MERGE, RELEASE, or format 1 SORT statement, the EC-SORT-MERGE-ACTIVE exception condition is set to exist' and the SORT results are undefined (§2023:14.9.40.4 GR13); a RELEASE there also sets EC-FLOW-RELEASE (§2023:14.9.32.4 GR1). 2023 also refuses at compile time a SORT written 'in an input or output procedure' (§2023:14.9.40.3 SR3) and a MERGE written in 'an input or output procedure of a file format SORT statement' (§2023:14.9.24.3 SR1); 1985 SR1 allowed both outside declaratives. The format 1 limit only exempts the new table SORT.",
-  "source": "adjudicate-712/slice-22"
+  "source": "adjudicate-712/slice-22",
+  "digests": {
+   "GR-14.9.40.4-13": "4c4c6e20da78",
+   "SR-14.9.40.3-3": "5709f0849363",
+   "SR-14.9.24.3-1": "af374726cb04",
+   "GR-14.9.32.4-1": "857e8aecf30e"
+  }
  }
 }

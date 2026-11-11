@@ -16,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "1985: the END PROGRAM program-name 'must conform to the rules for forming a user-defined word', whose rules are §1985:IV.4.2.2.1 'A COBOL word is a character-string of not more than 30 characters ... selected from the set of letters, digits, and the hyphen'. 2023: program-name-1 of §2023:10.7.2, identical to the PROGRAM-ID name (§2023:10.7.3 SR2), is a user-defined word under §2023:8.3.2.1 SR1 (no reserved word) and §2023:8.3.2.2 SR3 (at least one letter), but §2023:8.3.2.1 now reads 'not more than 63 characters' with 'basic letters, basic digits, extended letters, and the basic special characters hyphen and underscore'. END PROGRAM A_B, or a 31-63 character name, is refused by the 1985 rule and accepted by 2023: a widened range. The changed text is the 8.3.2.1 general paragraph, which has no catalog row (kb/Work PB479).",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "FMT-10.7.2": "a443e1a6af4e",
+   "SR-10.7.3-2": "10c0dd6741cb",
+   "SR-8.3.2.1-1": "d21d904ee7b0",
+   "SR-8.3.2.2-3": "f37b240049a1"
+  }
  }
 }

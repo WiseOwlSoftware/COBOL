@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "The 1985 class rule says status key 1 = 0 means successful completion. 2023's 0x statuses each say the I-O statement is successfully executed; added subcodes are separate rules.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-9.1.13.2-1": "17fa4ee70e7d",
+   "GR-9.1.13.2-3": "2f93339ac9a7",
+   "GR-9.1.13.2-4": "6687777bb08d",
+   "GR-9.1.13.2-6": "45887fbca7d4"
+  }
  }
 }

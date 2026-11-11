@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "X3.23b-1993 (its change for page VIII-35, errata C275) replaced the printed 'Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure' with §1985:VIII.4.8.3 SR3: 'The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division'. §2023:14.9.49.3 SR8 (FORMAT 1, file-exception): 'The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within the same procedure division'. The amended text is the 2023 rule word for word (must/shall): the same file-name in two USE AFTER EXCEPTION/ERROR statements of one procedure division is refused by both. The selection general rules the withdrawn record also named (§2023:14.9.49.4 GR3, GR5) state none of the amended requirement and are dropped from 'to'.",
-  "source": "readjudicate-amended-1985/slice-11"
+  "source": "readjudicate-amended-1985/slice-11",
+  "digests": {
+   "SR-14.9.49.3-8": "84f74c522eb3"
+  }
  }
 }

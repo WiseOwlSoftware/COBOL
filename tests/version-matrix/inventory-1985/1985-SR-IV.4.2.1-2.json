@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "§2023:8.3.5 SR2 repeats 'comma and semicolon, immediately followed by a space, are separators that may be used anywhere the separator space is used', without 1985's 'Except when the comma is used in a PICTURE character-string'. The exception was idle: §1985:IV.4.2.1 (SR9) says 'PICTURE character-strings are delimited only by the separators space, comma, semicolon, or period', and §1985:VI.5.9.5 (insertion editing) requires a final picture comma to be 'immediately followed by the separator period', so comma followed by space is always the separator (2023 keeps the latter as §2023:13.18.40.3 SR7). Same programs accepted and refused.",
-  "source": "adjudicate-712-r2/slice-13"
+  "source": "adjudicate-712-r2/slice-13",
+  "digests": {
+   "SR-8.3.5-2": "d1910ad25ebb"
+  }
  }
 }

@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 still truncates the leftmost characters and right-aligns with space fill for character data. Boolean zero fill and national fill only cover item kinds absent from the 1985 rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.32.4-1": "cc7dc943f869",
+   "GR-13.18.32.4-2": "148bbf912e46"
+  }
  }
 }

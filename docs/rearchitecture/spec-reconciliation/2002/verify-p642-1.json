@@ -1,0 +1,13 @@
+{
+  "claim_id": "p642-1",
+  "claim_key": "d00d7ab5c16aebdb",
+  "page": 642,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p642-1", "page": 642, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Numeric (some arguments may be integer)    Numeric   (last row of the Argument Type / Function type table)", "markdown_says": "| National | National |\n\n   Numeric (some arguments may be integer) Numeric", "why_it_matters": "The last row of the MIN function type table is detached from the table and rendered as a loose paragraph."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page 642 (printed folio 620, §2002:15.51 MIN function) shows a single two-column table with six rows: Alphabetic/Alphanumeric, Alphanumeric/Alphanumeric, Index/Index, All arguments integer/Integer, National/National, Numeric (some arguments may be integer)/Numeric. All six are in the same block with the same alignment. The markdown table has only the first five rows. The sixth is set after a blank line as an indented loose paragraph, '   Numeric (some arguments may be integer) Numeric', outside the pipe table. The words are all there and the claim quotes both sources accurately. The defect is structural: anything that reads the table (a reader scanning the rows, or a tool parsing the markdown table) loses the Numeric -> Numeric function-type mapping, and the loose line no longer separates the two cells.",
+    "corrected_description": ""
+  }
+}

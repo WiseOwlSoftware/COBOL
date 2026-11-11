@@ -1,0 +1,34 @@
+{
+  "batch": [157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168],
+  "pages_checked": [157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p157-1",
+      "page": 157,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Logical Operator | Meaning: AND | Logical conjunction; the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false. / OR | Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false. / NOT | Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.",
+      "markdown_says": "| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are |\n\ntrue; false if one or both of the conjoined conditions is false.\n\n   OR Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false.\n\n   NOT Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.",
+      "why_it_matters": "The 8.8.4.2 logical-operator table keeps only the AND row, and that row's Meaning cell is cut mid-sentence; the rest of the AND meaning and the OR and NOT rows fall out of the table as loose paragraphs. All words survive, but a reader of the table sees an AND definition ending at 'are' and no OR/NOT rows."
+    },
+    {
+      "id": "p163-1",
+      "page": 163,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "EXPANDS | class-specifier and interface-specifier of the REPOSITORY paragraph",
+      "markdown_says": "| EXPANDS | class-specifier and interface-specifier of the REPOSITORY |\n\nparagraph\n\n| FOREGROUND-COLOR | screen description entry |",
+      "why_it_matters": "The wrapped second line of the EXPANDS context cell is detached from the table as a stray paragraph 'paragraph', so the EXPANDS row's context reads 'of the REPOSITORY' with no noun and the table is split in two."
+    },
+    {
+      "id": "p164-1",
+      "page": 164,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "ONLY | Object-view, SHARING clause, SHARING phrase, and USAGE clause",
+      "markdown_says": "| ONLY | Object-view, SHARING clause, SHARING phrase, and |\n\nUSAGE clause\n\n| PARAGRAPH | EXIT statement |",
+      "why_it_matters": "The ONLY row's context list loses its last item: 'USAGE clause' is detached from the table as a stray paragraph, so the row reads as ending in 'and' and a table-reader would not see that ONLY is context-sensitive in the USAGE clause (USAGE OBJECT REFERENCE ... ONLY)."
+    }
+  ]
+}

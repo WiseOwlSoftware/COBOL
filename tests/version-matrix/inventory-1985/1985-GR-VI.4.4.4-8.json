@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: the program collating sequence 'is applied to any nonnumeric merge or sort keys unless the COLLATING SEQUENCE phrase is specified'. §2023:12.3.6.4 GR13 says the same for alphanumeric keys and adds 'unless the sort or merge collating sequence has been modified by execution of a SET statement'; §2023:14.9.24.4 GR5 and §2023:14.9.40.4 GR5 give the same precedence (phrase first, then program sequence). The added exception needs SET ... COLLATING SEQUENCE, which no 1985 program can write, so a conforming 1985 program sorts and merges identically.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "GR-12.3.6.4-13": "1c7611a27461",
+   "GR-14.9.24.4-5": "7f4db54205c6",
+   "GR-14.9.40.4-5": "482464f5c7c8"
+  }
  }
 }

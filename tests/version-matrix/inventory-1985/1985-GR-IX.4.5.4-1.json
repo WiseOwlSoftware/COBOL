@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: 'The file referenced by file-name-1 must be open in the input or I-O mode at the time this statement is executed.' §2023:14.9.30.4 GR2 'The open mode of the file connector referenced by file-name-1 shall be input or I-O', else unsuccessful with 47 (§2023:9.1.13.7 GR7, 1985's 47); §2023:14.9.27.4 GR8 'the file connector shall be in an open mode at the time of the execution of any other permissible input-output statement' with Table 20's READ rows; §2023:14.9.27.4 GR6 'When a file connector is not open, no statement shall be executed that references the associated file-name'. Run-time in both.",
-  "source": "adjudicate-712-r2/slice-02"
+  "source": "adjudicate-712-r2/slice-02",
+  "digests": {
+   "GR-14.9.30.4-2": "bff533cd4871",
+   "GR-9.1.13.7-7": "33e8e795f04b",
+   "GR-14.9.27.4-8": "85b040d1dbe8",
+   "GR-14.9.27.4-6": "b7ae208757f4"
+  }
  }
 }

@@ -60,12 +60,16 @@
       "vcrRow": "29"
     },
     {
-      "id": "integer-date-form-bounded-9999",
+      "id": "inspect-format-3-length-identified-once",
       "vcrRow": "7.57"
     },
     {
-      "id": "numval-c-currency-content-rules",
+      "id": "integer-date-form-bounded-9999",
       "vcrRow": "7.58"
+    },
+    {
+      "id": "numval-c-currency-content-rules",
+      "vcrRow": "7.59"
     },
     {
       "id": "perform-varying-after-init-inner-first",
