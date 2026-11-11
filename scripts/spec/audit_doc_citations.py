@@ -195,9 +195,12 @@ def verdict_of(cited: citation.Citation, quote: str) -> tuple[str, str | int | N
     self-test re-implemented the MISFILED half beside it in four lines of its own — which is how the ELIDED arm
     could be added to `scan` and be invisible to `--self-test`: a gate arm nothing had ever seen fire
     (`feedback_green_gates_arent_evidence`). One ruling, two callers."""
+    # ⛔ THE CLAUSE HALF ONLY, ON PURPOSE (kb/Work PB5317): whether the quotation sits in the cited RULE (its ordinal, its
+    # sub-item) is `audit_code_citations.py` RESOLVE's ruling, made by the same `cite.resolve` over every citation of the
+    # repository, quoted or not, so the two audits never report one wrong rule number twice.
     lines, regions = _spec(cited.edition)
     region_only = dataclasses.replace(cited, rule=None)
-    if cite_mod.check(lines, regions, region_only, quote)[0] == 0:
+    if cite_mod.resolve(region_only, quote).ok:
         return "ok", None
     code, out = cite_mod.find(lines, regions, quote, cited.edition)
     head = out[0].splitlines()[0].strip() if out else ""
@@ -232,7 +235,10 @@ def citations(line: str):
             found[m.span("q")] = (_cited(m), m.group("q"), "prefix")
     for span in sorted(found):
         cited, quote, form = found[span]
-        if cited is not None and not any(t in quote for t in NOT_VERBATIM):
+        # A quotation of fewer than `cite.MIN_WORDS` real words proves nothing about where it was taken from (kb/Work
+        # PB5317: the one rule of every edition), so it is no checkable quotation: its citation is RESOLVE's alone.
+        if (cited is not None and not any(t in quote for t in NOT_VERBATIM)
+                and len(cite_mod.real_words(cite_mod.norm(quote))) >= cite_mod.MIN_WORDS):
             yield span[0], cited, quote, form
 
 

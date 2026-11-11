@@ -636,12 +636,11 @@ class Spec:
         sys.path.insert(0, str(HERE / "spec"))
         import cite  # noqa: PLC0415
         self.cite = cite
-        self.lines, self.clauses = cite.load(2023)
 
     def check(self, clause: str, text: str) -> tuple[bool, str]:
         """A `{clause, text}` citation of a triage record: its `clause` is a clause of ISO/IEC 1989:2023 by the
         record's schema (the differential is judged against 2023)."""
-        rc, out = self.cite.check(self.lines, self.clauses, self.cite.citation.Citation(2023, clause), text)
+        rc, out = self.cite.check(self.cite.citation.Citation(2023, clause), text)
         return rc == 0, out[0].splitlines()[0]
 
 
