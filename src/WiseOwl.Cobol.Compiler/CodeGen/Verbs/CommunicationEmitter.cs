@@ -100,7 +100,8 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
         if (n.WithData is null && n.NoData is null) { Debug.LandAfterAction(); return; }
         using (w.Block($"if ({receipt}.DataAvailable)"))
         {
-            if (n.WithData is { } yes) Statements.EmitStatementList(yes);
+            using (Debug.OweAfterAction())
+                if (n.WithData is { } yes) Statements.EmitStatementList(yes);
             Debug.LandAfterAction();
         }
         using (w.Block("else"))

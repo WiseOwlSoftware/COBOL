@@ -249,8 +249,11 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs; rule 2 b: a READ that
                 // delivered a record runs its file-name section, with the record read in DEBUG-CONTENTS (D20).
                 if (into) move.Emit(rd.IntoMove!);
-                if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §2023:14.9.30 — NOT AT END on success
-                if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §2023:9.1.14 — success only
+                using (Debug.OweAfterAction())
+                {
+                    if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §2023:14.9.30 — NOT AT END on success
+                    if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §2023:9.1.14 — success only
+                }
                 Debug.LandAfterActionKeeping();   // after the NOT phrases, which are inside the READ (kb/Work PB5295); kept for the arm below: a READ that delivered none runs the section too unless an AT END / INVALID KEY statement ran
             }
         if (rd.AtEnd is { } at)
@@ -391,7 +394,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         w.Line($"var {st} = {RuntimeApi.FileDeleteShared(name, image, retryKind, retryAmount, areaExtents)};");
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "DELETE", invalidKeyHandled: del.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, del.InvalidKey, hook);
+        using (Debug.OweAfterAction()) SeqIo.EmitInvalid(st, del.InvalidKey, hook);
         Debug.LandAfterAction();   // §1985:XV.3.2.4 GR2 c: "after the execution of any DELETE or START statement" — the USE procedure and the INVALID KEY phrases are part of it (kb/Work PB5295)
     }
 
@@ -429,8 +432,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         // completion (GR14) and takes the NOT ON EXCEPTION path — unless a USE declarative (or a WHEN phrase) has
         // handled the EC-I-O-WARNING that '05' raised, when "the imperative-statement in that phrase is not
         // executed" (§2023:14.6.13.1.4 2)/3), kb/Work PB3237): the hook's NotPhraseGate, as every other I-O verb's.
-        SeqIo.EmitPhrasePair(IoStatusClass.Unsuccessful(st), df.OnException, df.NotOnException,
-            IoStatusClass.Successful(st), hook);
+        using (Debug.OweAfterAction())
+            SeqIo.EmitPhrasePair(IoStatusClass.Unsuccessful(st), df.OnException, df.NotOnException,
+                IoStatusClass.Successful(st), hook);
         Debug.LandAfterAction();   // §1985:XV.3.2.4 GR2 c: a DELETE statement that references file-name-1, after its USE procedure and phrases (kb/Work PB5295)
     }
 
@@ -500,7 +504,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         }
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "START", invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, sta.InvalidKey, hook);   // §2023:14.9.41 GR6 — transfer per §2023:9.1.14
+        using (Debug.OweAfterAction()) SeqIo.EmitInvalid(st, sta.InvalidKey, hook);   // §2023:14.9.41 GR6 — transfer per §2023:9.1.14
         Debug.LandAfterAction();   // §1985:XV.3.2.4 GR2 c: "after the execution of any DELETE or START statement" — the USE procedure and the INVALID KEY phrases are part of it (kb/Work PB5295)
     }
 

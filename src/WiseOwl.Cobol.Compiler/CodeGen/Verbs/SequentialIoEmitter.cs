@@ -1024,14 +1024,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs; rule 2 b: a READ that
             // delivered a record runs its file-name section, with the record read in DEBUG-CONTENTS (D20).
             if (rd.IntoMove is { } intoMove) move.Emit(intoMove);
-            if (rd.NotAtEnd is { } not) EmitNotPhrase(hook, not);
-            // §2023:14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
-            // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".
-            // The phrase is never conforming source on this arm (Format 1 has no INVALID KEY bracket — the
-            // binder reports COBOL1720), so this renders only under --permissive, where the bind stands and
-            // the block has to MEAN something rather than vanish. There is deliberately NO invalid-key arm: a
-            // sequential-organization READ raises no '2x' status (§2023:9.1.13.5), so the condition cannot exist.
-            if (rd.InvalidKey?.NotInvalid is { } notInvalid) EmitNotPhrase(hook, notInvalid);
+            using (Debug.OweAfterAction())
+            {
+                if (rd.NotAtEnd is { } not) EmitNotPhrase(hook, not);
+                // §2023:14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
+                // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".
+                // The phrase is never conforming source on this arm (Format 1 has no INVALID KEY bracket — the
+                // binder reports COBOL1720), so this renders only under --permissive, where the bind stands and
+                // the block has to MEAN something rather than vanish. There is deliberately NO invalid-key arm: a
+                // sequential-organization READ raises no '2x' status (§2023:9.1.13.5), so the condition cannot exist.
+                if (rd.InvalidKey?.NotInvalid is { } notInvalid) EmitNotPhrase(hook, notInvalid);
+            }
             Debug.LandAfterActionKeeping();   // after the NOT phrases, which are inside the READ (kb/Work PB5295); kept for the arm below: a READ that delivered none runs the section too unless its AT END statement ran
         }
         using (w.Block("else"))
