@@ -1,0 +1,70 @@
+{
+  "batch": [781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792],
+  "pages_checked": [781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p789-1",
+      "page": 789,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Script or character classification | Letters or range of letters ... Latin: 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01BA, 01BB, 01BC-01BF, 01C0-01C3, 01C4-021F, 0222-0233, 0250-02AD, 1E00-1E9B, 1EA0-1EF9, 207F",
+      "markdown_says": "Script or\\\ncharacter\n\n| classification | Letters or range of letters |\n|---|---|\n| Latin: | 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01BA, 01BB, 01BC-01BF, |\n\n01C0-01C3, 01C4-021F, 0222-0233, 0250-02AD, 1E00-1E9B, 1EA0-1EF9, 207F",
+      "why_it_matters": "The B.3.1 repertoire table is restructured: the first column header 'Script or character classification' is split so only 'classification' heads the table, and the second line of the Latin row (01C0-01C3 ... 207F) falls outside the table as a free paragraph, detached from the Latin label. A reader or tool deriving the permitted Latin letters from the table row loses those ranges."
+    },
+    {
+      "id": "p790-1",
+      "page": 790,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Hebrew (combining): 05B0-05B9, 05BB-05BD, 05BF, 05C1-05C2 ... Arabic: (Combining 064B-0652, 0670, 06D6-06DC, 06E7-06E8, 06EA-06ED ... Syriac: (Combining) 0711 ... Thaana: (combining) 07A6-07B0 ... Devanagari: (combining) 0901-0902, 0903, 093E-0940, 0941-0948, 0949-094C, 094D, 0951-0952, 0962-0963",
+      "markdown_says": "| Hebrew | 05B0-05B9, 05BB-05BD, 05BF, 05C1-05C2 |\n\n(combining):\n\n... | Arabic: | 064B-0652, 0670, 06D6-06DC, 06E7-06E8, 06EA-06ED |\n\n(Combining\n\n... | Syriac: | 0711 |\n\n(Combining)\n\n... | Thaana: | 07A6-07B0 |\n\n(combining)\n\n... | Devanagari: | 0901-0902, 0903, 093E-0940, 0941-0948, 0949-094C, 094D, 0951-0952, 0962-0963 |\n\n(combining)",
+      "why_it_matters": "The '(combining)' qualifier of each combining-marks row is cut off its row label and left as a stray paragraph after the table, so the table shows two indistinguishable rows per script (e.g. two 'Arabic:' rows) and the combining-mark ranges read as ordinary letters. The distinction matters: B.3.1's NOTE limits combining marks to level 2 and extended-letter rules treat combining marks differently from letters. The table is also broken into several fragments with mixed table/paragraph rendering (Greek, Bengali onward as paragraphs)."
+    },
+    {
+      "id": "p791-1",
+      "page": 791,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Telugu: (combining) 0C01-0C03, 0C3E-0C40, 0C41-0C44, 0C46-0C48, 0C4A-0C4D ... Kannada: (combining) ... Malayalam: (combining) ... Sinhala: (combining) ... Thai: (combining) 0E31, 0E34-0E3A, 0E47-0E4E ... Tibetan: (combining) ... Myanmar: (combining) 102C, 102D-1030, 1031, 1032, 1036-1037, 1038, 1039, 1056-1057, 1058-1059",
+      "markdown_says": "| Telugu: | 0C01-0C03, 0C3E-0C40, 0C41-0C44, 0C46-0C48, 0C4A-0C4D |\n\n(combining)\n\n... | Thai: | 0E31, 0E34-0E3A, 0E47-0E4E |\n\n(combining)\n\n... | Myanmar: | 102C, 102D-1030, 1031, 1032, 1036-1037, 1038, 1039, 1056-1057, 1058-1059 |\n\n(combining)",
+      "why_it_matters": "For Telugu, Kannada, Malayalam, Sinhala, Thai, Tibetan and Myanmar the '(combining)' qualifier is detached from its row and left as a stray paragraph after each table fragment, so each script shows two identically-labelled rows and the combining-mark ranges are indistinguishable from the letter ranges."
+    },
+    {
+      "id": "p791-2",
+      "page": 791,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Ethiopic: 1200-1206, 1208-1246, 1248, 124A-124D, 1250-1256, 1258, 125A-125D, 1260-1286, 1288, 128A-128D, 1290-12AE, 12B0, 12B2-12B5, 12B8-12BE, 12C0, 12C2-12C5, 12C8-12CE, 12D0-12D6, 12D8-12EE, 12F0-130E, 1310, 1312-1315, 1318-131E, 1320-1346, 1348-135A",
+      "markdown_says": "| Ethiopic: | 1200-1206, 1208-1246, 1248, 124A-124D, 1250-1256, 1258, 125A-125D, 1260-1286, 1288, 128A- |\n\n128D, 1290-12AE, 12B0, 12B2-12B5, 12B8-12BE, 12C0, 12C2-12C5, 12C8-12CE, 12D0-12D6, 12D8-12EE, 12F0-130E, 1310, 1312-1315, 1318-131E, 1320-1346, 1348-135A",
+      "why_it_matters": "The Ethiopic row is split mid-range: the table cell ends with the dangling '128A-' and the rest of the ranges (starting '128D') sit outside the table as a free paragraph, so the row's range list is malformed and its tail is detached from the Ethiopic label."
+    },
+    {
+      "id": "p792-1",
+      "page": 792,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Khmer: (combining) 17B4-17B6, 17B7-17BD, 17BE-17C5, 17C6, 17C7-17C8, 17C9-17D3 ... Mongolian: (combining) 18A9",
+      "markdown_says": "| Khmer: | 17B4-17B6, 17B7-17BD, 17BE-17C5, 17C6, 17C7-17C8, 17C9-17D3 |\n\n(combining)\n\n... | Mongolian: | 18A9 |\n\n(combining)",
+      "why_it_matters": "The '(combining)' qualifier of the Khmer and Mongolian combining-mark rows is detached from the row and left as a stray paragraph, so each script shows two identically-labelled rows and the combining marks read as letters."
+    },
+    {
+      "id": "p792-2",
+      "page": 792,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "CJK Unified Ideographs: 3400-4DB5, 4E00-9FA5, FA0E-FA0F, FA11, FA13-FA14, FA1F, FA21, FA23-FA24, FA27-FA29",
+      "markdown_says": "CJK Unified\n\n| Ideographs: | 3400-4DB5, 4E00-9FA5, FA0E-FA0F, FA11, FA13-FA14, FA1F, FA21, FA23-FA24, FA27-FA29 |\n|---|---|",
+      "why_it_matters": "The row label 'CJK Unified Ideographs:' is split: 'CJK Unified' is a stray paragraph and the row (now the table's header row) is labelled only 'Ideographs:', so the classification name is lost from the row."
+    },
+    {
+      "id": "p792-3",
+      "page": 792,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Digits: 0030-0039, 0660-0669, 06F0-06F9, 0966-096F, 09E6-09EF, 0A66-0A6F, 0AE6-0AEF, 0B66-0B6F, 0BE7-0BEF, 0C66-0C6F, 0CE6-0CEF, 0D66-0D6F, 0E50-0E59, 0ED0-0ED9, 0F20-0F29, 1040-1049, 1369-1371, 17E0-17E9, 1810-1819",
+      "markdown_says": "| Digits: | 0030-0039, 0660-0669, 06F0-06F9, 0966-096F, 09E6-09EF, 0A66-0A6F, 0AE6-0AEF, 0B66-0B6F, |\n\n0BE7-0BEF, 0C66-0C6F, 0CE6-0CEF, 0D66-0D6F, 0E50-0E59, 0ED0-0ED9, 0F20-0F29, 1040-1049, 1369-1371, 17E0-17E9, 1810-1819",
+      "why_it_matters": "The Digits row is split: the cell ends with a trailing comma after 0B66-0B6F and the remaining digit ranges (0BE7-0BEF onward) are a free paragraph outside the table, detached from the Digits label; a reader of the row loses those digit ranges."
+    }
+  ]
+}

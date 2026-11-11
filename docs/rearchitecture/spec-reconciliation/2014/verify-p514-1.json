@@ -1,0 +1,13 @@
+{
+  "claim_id": "p514-1",
+  "claim_key": "529534a9af063f93",
+  "page": 514,
+  "kind": "incorrect-figure",
+  "severity": "structural",
+  "claim": {"id": "p514-1", "page": 514, "kind": "incorrect-figure", "severity": "structural", "pdf_says": "Format 2 (into-giving): DIVIDE { identifier-1 / literal-1 } INTO { identifier-2 / literal-2 } -- INTO printed on the middle line between the two two-row braces", "markdown_says": "       ╭              ╮ <u>INTO</u>\n       │              │\n       │ identifier-1 │ ╭ identifier-2 ╮\n<u>DIVIDE</u> ┤              ├ ┤              ├\n       ╰ literal-1    ╯ ╰ literal-2    ╯", "why_it_matters": "The drawn figure moves the keyword INTO above the brace pair and stretches the first brace to five rows with an empty top half, so INTO no longer sits between the dividend-choice brace and the divisor-choice brace. The token order can still be recovered, but a reader of the diagram sees INTO detached from its position; the figure should match Format 3's layout (DIVIDE {..} INTO {..} on one baseline)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 514 (printed 490), 14.9.11.1 Format 2: the glyphs show DIVIDE, a two-row brace {identifier-1 / literal-1}, then underlined INTO on the brace's middle baseline, then a two-row brace {identifier-2 / literal-2}, all on one line exactly like Format 3's BY. page-514.md lines 26-30 draw INTO on the top row to the right of an empty five-row first brace, and place the second brace on rows 3-5, so INTO is detached from its position between the operands; read row by row the figure even puts INTO before identifier-1. That is a genuine figure defect, not wrapping or furniture. The claim misses that Format 4 (into-remainder), page-514.md lines 60-64, carries the identical mis-drawing; the PDF prints Format 4's first line the same as Format 2's. Formats 1 and 3 are drawn correctly. No alternative is lost, so structural (not normative) severity stands.",
+    "corrected_description": "In 14.9.11.1 Formats 2 (into-giving) and 4 (into-remainder) the PDF prints DIVIDE {identifier-1 | literal-1} INTO {identifier-2 | literal-2} on one baseline with INTO between the two braces (as Format 3 prints BY); the markdown (page-514.md lines 26-30 and 60-64) draws INTO on the top row above an empty-topped five-row first brace and drops the second brace to rows 3-5, detaching INTO from its position between the operands. The alternatives are all present; the figure layout is wrong in both formats."
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p301-1",
+  "claim_key": "26b8ed9d3c19782f",
+  "page": 301,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p301-1", "page": 301, "kind": "table-restructured", "severity": "structural", "section": "13.7.1 General format (meta-language term table)", "pdf_says": "Term / Subclause table with four rows: 77-level-entry 13.13, 77-level data description entry; constant-entry 13.10, Constant entry; record-description-entry 13.11, Record description entry; type-declaration-entry 13.12, Type declaration entry", "markdown_says": "| 77-level-entry | 13.13, 77-level data description entry |\n| constant-entry | 13.10, Constant entry |\n\nrecord-description-entry 13.11, Record description entry\\\ntype-declaration-entry 13.12, Type declaration entry", "why_it_matters": "The last two rows of the term table fell out of the markdown table into a loose paragraph, so a reader or tool parsing the table sees only two of the four terms. Wording is intact."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 277 (PDF p301), 13.7.1: the Term/Subclause table has four aligned rows in one block (77-level-entry, constant-entry, record-description-entry, type-declaration-entry), with no break between rows 2 and 3. In page-301.md, only the first two rows are inside the pipe table; record-description-entry and type-declaration-entry follow a blank line as a loose paragraph joined by a backslash line break. Both sources are quoted accurately. The wording of every row is intact, so this does not change normative meaning. It is a genuine structural defect, though, not just wrapping: anything that parses the markdown table, whether a tool or a reader, gets two of the four term-to-subclause mappings. The severity is correctly 'structural', not 'normative'. The diagram above it (a bracket around four stacked alternatives, then an ellipsis) matches the PDF apart from the box-drawing rendering, and it is not part of this claim.",
+    "corrected_description": ""
+  }
+}

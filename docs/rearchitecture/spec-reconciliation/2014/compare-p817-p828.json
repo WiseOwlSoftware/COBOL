@@ -1,0 +1,16 @@
+{
+  "batch": [817, 818, 819, 820, 821, 822, 823, 824, 825, 826, 827, 828],
+  "pages_checked": [817, 818, 819, 820, 821, 822, 823, 824, 825, 826, 827, 828],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p818-1",
+      "page": 818,
+      "kind": "image-lost-or-restructured",
+      "severity": "structural",
+      "pdf_says": "Figure D.3 is a drawn box diagram: a heavy-bordered Compilation Group holding three compilation units; the middle one holds source unit P-1 containing a dashed source element, source unit P-1-1 (with a dashed element) and source unit P-1-2 (with a dashed element and nested units P-1-2-1 and P-1-2-2, each with a dashed element). Arrows lead from the outer compilation units 'To other run unit', and a bracket with an arrow maps the middle compilation unit to a Runtime Module in a heavy-bordered Run Unit below, whose outer modules receive arrows 'From other comp. group'. A legend maps border styles to Compilation Group, Compilation Unit, Source Unit, Source Element, Run Unit, Runtime Module and Runtime Element.",
+      "markdown_says": "P-1\n\nLegend\n\nP-1-1 P-1-2 Compilation Group\n\nP-1-2-1 P-1-2-2\n\nCompilation Unit\n\nSource Unit\n\nSource Element\n\n| To other run unit | To other run unit |\n|---|---|\n| From other comp. group | From other comp. group |\n\nRun Unit\n\nRuntime Module\n\nRuntime Element",
+      "why_it_matters": "The diagram's content (the containment of P-1, P-1-1, P-1-2, P-1-2-1, P-1-2-2, the mapping of compilation units to runtime modules, and the legend's border-style key) is lost; the markdown keeps only scattered labels, merges legend entries with unit names ('P-1-1 P-1-2 Compilation Group'), and invents a table out of arrow captions. Informative annex D, so not normative, but the figure the preceding paragraph describes is unreadable from the transcription."
+    }
+  ]
+}

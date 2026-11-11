@@ -1,0 +1,13 @@
+{
+  "claim_id": "p897-1",
+  "claim_key": "4771c25ad0a0ac64",
+  "page": 897,
+  "kind": "incorrect-figure",
+  "severity": "structural",
+  "claim": {"id": "p897-1", "page": 897, "kind": "incorrect-figure", "severity": "structural", "pdf_says": "Flowchart (Figure D.11): Entrance -> Set identifier-2 equal to current FROM value -> Condition-1 (True -> Exit; False -> Execute specified set of statements -> Augment identifier-2 with current BY value), with a line from 'Augment identifier-2' back to Condition-1.", "markdown_says": "Condition-1 True Exit\n\nFalse\n\nExecute specified\\\nset of statements\n\nAugment identifier-2\\\nwith current BY value", "why_it_matters": "Flowchart flattened to labels; the loop-back from 'Augment identifier-2' to Condition-1, the point of the PERFORM VARYING TEST BEFORE illustration, is lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "I rendered page 897 (printed p.873) at 300 dpi. Figure D.11 shows Entrance -> box 'Set identifier-2 equal to current FROM value' -> rounded node 'Condition-1'. From Condition-1, 'True' goes right to 'Exit' and 'False' goes down to box 'Execute specified set of statements', then to box 'Augment identifier-2 with current BY value'. A line leaves the left side of the Augment box, runs up the left margin and enters Condition-1 with an arrowhead. The markdown keeps every label in reading order: Entrance, the Set box, 'Condition-1 True Exit', False, Execute, Augment. It has no arrows and nothing for the loop-back edge. The order of the labels implies the straight-line flow, but nothing in the text recovers the edge from Augment back to Condition-1, which is what makes this an iteration. The claim quotes both sources correctly. The figure sits in informative Annex D ('not intended to dictate implementation'), so it is not normative, and structural severity fits.",
+    "corrected_description": ""
+  }
+}

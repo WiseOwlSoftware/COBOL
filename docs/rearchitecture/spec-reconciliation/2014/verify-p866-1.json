@@ -1,0 +1,13 @@
+{
+  "claim_id": "p866-1",
+  "claim_key": "71082fd2fdd6e17c",
+  "page": 866,
+  "kind": "image-lost",
+  "severity": "structural",
+  "claim": {"id": "p866-1", "page": 866, "kind": "image-lost", "severity": "structural", "pdf_says": "Figure D.4 draws three boxes, Person, Employee and Manager, stacked vertically, with an upward arrow from Manager to Employee and an upward arrow from Employee to Person (the subclass-to-superclass inheritance direction).", "markdown_says": "Person\n\nEmployee\n\nManager\n\nFigure D.4 — Manager class", "why_it_matters": "The arrows that show which class inherits from which are lost; the markdown keeps only three bare words. The prose that follows restates the hierarchy, so this is a structural loss in an informative annex, not a normative one."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The 300 dpi render of printed page 842 (PDF p866) does show Figure D.4 as three boxes stacked vertically, Person, Employee and Manager, with filled arrowheads pointing up from Manager to Employee and from Employee to Person. The claim describes the figure accurately. The markdown keeps the three labels in the same top-to-bottom order and the caption 'Figure D.4 — Manager class', and drops only the boxes and arrows. Those carry no information that the page does not give in words. The paragraph right after the figure says 'The manager class is a subclass of the employee class which in turn is a subclass of the person class' and 'the classes above a given class are its superclasses'. A later paragraph adds 'a manager \"is an\" employee and an employee \"is a\" person'. So the inheritance direction the arrows show is stated in the text, and the label order is preserved. The figure is in informative Annex D. The dropped drawing is formatting only and does not change meaning, so the claim is rejected.",
+    "corrected_description": ""
+  }
+}

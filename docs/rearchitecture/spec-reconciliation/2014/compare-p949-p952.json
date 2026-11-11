@@ -1,0 +1,52 @@
+{
+  "batch": [949, 950, 951, 952],
+  "pages_checked": [949, 950, 951, 952],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p949-1",
+      "page": 949,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Strongly-typed group items  131\nStrongly-typed groups  131\nStrongly-typed items  806\nStructured compilation group  36, 37, 202\nStructured constant  315, 862\nSubfield  629",
+      "markdown_says": "Strongly-typed group items 131 Strongly-typed groups 131 Strongly-typed items 806 Structured compilation group 36, 37, 202 Structured constant 315, 862 Subfield 629",
+      "why_it_matters": "Six separate index entries are run together into one paragraph, so entry boundaries are lost (the list is restructured). Informative index only; no normative text affected."
+    },
+    {
+      "id": "p950-1",
+      "page": 950,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "UCS  10, 11, 22, 68, 85, 105, 532, 814, 824\n    Definition  22",
+      "markdown_says": "UCS 10, 11, 22, 68, 85, 105, 532, 814, 824 Definition 22",
+      "why_it_matters": "The indented sub-entry 'Definition 22' is merged onto its parent's line, losing the index hierarchy and making 22 read as another page locator. Index only."
+    },
+    {
+      "id": "p950-2",
+      "page": 950,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "UNTIL phrase\n    PERFORM statement  544\nUP phrase\n    SET statement, index arithmetic  573, 575\n    SET statement, pointer arithmetic  574\nUPON phrase\n    DISPLAY statement  487\n    SUM clause  391\nUPPER-CASE function  731",
+      "markdown_says": "UNTIL phrase\n\n   PERFORM statement 544 UP phrase\n\n   SET statement, index arithmetic 573, 575\\\n   SET statement, pointer arithmetic 574\\\n   UPON phrase\\\n   DISPLAY statement 487\\\n   SUM clause 391\\\n   UPPER-CASE function 731\\",
+      "why_it_matters": "The whole right column (PERFORM statement 544 through UTF-8 / SPECIAL-NAMES paragraph 232) is flattened to one uniform 3-space indent, so main entries and sub-entries are indistinguishable, and the sub-entry 'PERFORM statement 544' is run together with the next main entry 'UP phrase'. Index hierarchy lost; index only."
+    },
+    {
+      "id": "p951-1",
+      "page": 951,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "VARYING phrase\n    PERFORM statement  545\n    RECORD clause  374\n    SEARCH statement  568",
+      "markdown_says": "VARYING phrase PERFORM statement 545 RECORD clause 374 SEARCH statement 568",
+      "why_it_matters": "A main entry and its three sub-entries are run together on one line, losing the index hierarchy. Index only."
+    },
+    {
+      "id": "p951-2",
+      "page": 951,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Weakly-typed items  132, 806\nWeek date format  630\nWeek-of-year subfield  630\nWHEN phrase\n    EVALUATE directive  52",
+      "markdown_says": "Weakly-typed items 132, 806 Week date format 630 Week-of-year subfield 630 WHEN phrase\n\n   EVALUATE directive 52\\",
+      "why_it_matters": "Four main entries are run together on one line, and from 'EVALUATE directive 52' through 'WRITE statement 233, 619' every line (main entries such as 'WHEN SET TO FALSE phrase', 'WITH LOCK phrase', 'Word 76' and their sub-entries alike) is flattened to one uniform 3-space indent, so the W-section index hierarchy is lost. Index only."
+    }
+  ]
+}

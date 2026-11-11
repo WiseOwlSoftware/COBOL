@@ -1,0 +1,13 @@
+{
+  "claim_id": "p951-1",
+  "claim_key": "071b794c1de0337a",
+  "page": 951,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p951-1", "page": 951, "kind": "misplaced-content", "severity": "structural", "pdf_says": "VARYING phrase\n    PERFORM statement  545\n    RECORD clause  374\n    SEARCH statement  568", "markdown_says": "VARYING phrase PERFORM statement 545 RECORD clause 374 SEARCH statement 568", "why_it_matters": "A main entry and its three sub-entries are run together on one line, losing the index hierarchy. Index only."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (index p.927, PDF p.951) shows 'VARYING phrase' with indented sub-entries PERFORM statement 545, RECORD clause 374, SEARCH statement 568. Markdown line 3 holds every word and every page number in the same order. Nothing is missing, misquoted or moved. The only difference is lost line breaks and indentation, and the transcription flattens the whole index this way (the WHEN phrase and later entries on the same page are run together too). That is formatting in non-normative back matter and changes no meaning. 'misplaced-content' also does not fit, because no content is out of place.",
+    "corrected_description": ""
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p303-1",
+  "claim_key": "9652c0df5e975235",
+  "page": 303,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p303-1", "page": 303, "kind": "table-restructured", "severity": "structural", "section": "13.8.1 General format (meta-language term table)", "pdf_says": "Term / Subclause table with two rows: 77-level-entry 13.13, 77-level data description entry; report-group-description-entry 13.8.4, Report group description entry", "markdown_says": "| 77-level-entry | 13.13, 77-level data description entry |\n\nreport-group-description-entry 13.8.4, Report group description entry", "why_it_matters": "The second row of the term table fell out of the markdown table into a loose paragraph; a table parser sees one term instead of two. Wording is intact."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 303 (2014 p.279), 13.8.1: the Term/Subclause table has two aligned rows, '77-level-entry | 13.13, 77-level data description entry' and 'report-group-description-entry | 13.8.4, Report group description entry'. In page-303.md the markdown table holds only the 77-level-entry row; the report-group-description-entry row follows a blank line as a loose paragraph outside the table, with no column separator. Both sources are quoted correctly. The wording is intact, so this is not a normative defect. It is a real structural defect, though, because the table now has one row where the standard prints two, and anything that reads the table as structured data loses the second term-to-subclause mapping. It is not page furniture or line wrapping. Side observation outside this claim: the printed table lists 77-level-entry even though the 13.8.1 format uses constant-entry, not 77-level-entry; the markdown copies the printed text faithfully, so this is not a transcription difference.",
+    "corrected_description": ""
+  }
+}
