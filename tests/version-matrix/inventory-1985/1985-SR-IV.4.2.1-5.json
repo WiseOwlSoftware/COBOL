@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "Amendment X3.23b-1993 rewrote the rule: 'An opening quotation mark must be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter', the closing one followed by 'space, comma, semicolon, period, right parenthesis, or closing pseudo-text delimiter', and the adjoining separators 'are not part of' the quotation-mark separators (§1985:IV.4.2.1 SR5). §2023:8.3.5 SR5 now states those adjacency rules word for word ('The opening delimiter shall be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter'), so the pseudo-text difference the withdrawn record quoted is gone. What still differs is the set of delimiters: 1985 'The punctuation character quotation mark is a separator'; 2023 'Either an apostrophe or a quotation mark may be used as the quotation symbol character in opening and closing delimiters', and its opening delimiters include the two-character forms B, N or X followed by the quotation symbol and the three-character forms BX or NX followed by it. An apostrophe-delimited literal, and a quotation mark directly preceded by B, N, X, BX or NX (refused by 'must be immediately preceded by a space, left parenthesis, or opening pseudo-text delimiter'), are accepted: new syntax, so CHANGED.",
-  "source": "readjudicate-amended-1985/slice-09"
+  "source": "readjudicate-amended-1985/slice-09",
+  "digests": {
+   "SR-8.3.5-5": "11a57475607e"
+  }
  }
 }

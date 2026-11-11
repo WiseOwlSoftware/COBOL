@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: after the USE procedure, if the status is not 'critical' (3x, 4x, implementor 9x) control returns to the next executable statement after the I-O statement, else the implementor decides. §2023:14.9.49.4 GR7: 'control is returned to an implicit CONTINUE statement following the input-output statement whose execution caused the exception' unless a fatal EC-I-O condition (3x, 4x fatal; 9x implementor), when the implementor determines. Same classes, same effect.",
-  "source": "adjudicate-712-r2/slice-09"
+  "source": "adjudicate-712-r2/slice-09",
+  "digests": {
+   "GR-14.9.49.4-7": "95194ed26db2"
+  }
  }
 }

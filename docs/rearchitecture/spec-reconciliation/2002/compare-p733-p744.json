@@ -1,0 +1,16 @@
+{
+  "batch": [733, 734, 735, 736, 737, 738, 739, 740, 741, 742, 743, 744],
+  "pages_checked": [733, 734, 735, 736, 737, 738, 739, 740, 741, 742, 743, 744],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p740-1",
+      "page": 740,
+      "kind": "table-or-figure-lost",
+      "severity": "structural",
+      "pdf_says": "Figure E.1 is a flowchart: Entrance -> 'Index Setting: exceeds highest permissible occurrence or is zero or negative' --True (AT END)*--> 'imperative-statement-1'; --False--> 'Condition-1' --True--> 'imperative-statement-2'; --False--> 'Condition-2' (*) --True--> 'imperative-statement-3' (*); --False--> 'Increment index-name for identifier-1' -> 'Increment index-name-1 (for a different table) or identifier-2' (*) -> loop back to above the Index Setting test; the three imperative-statement exits are grouped by a brace marked '**'.",
+      "markdown_says": "Entrance\n\n   Index Setting:\\\n   exceeds highest True (AT END)\\* imperative-\\\n   permissible occur- statement-1\\\n   rence or is zero or\\\n   &emsp;negative\n\nFalse\n\nTrue imperative- \\*\\* Condition-1\n\nstatement-2\n\nFalse\n\n| \\* |  | \\* |\n|---|---|---|\n| True | imperative- |  |\n\n   Condition-2\\\n ... statement-3\n\nFalse\n\nIncrement\\\nindex-name for\\\nidentifier-1\n\nIncrement\n\n### \\*\n\n   index-name-1\\ ...",
+      "why_it_matters": "The flowchart's structure (which test leads where, the True/False branches, the loop back to the index test, and which boxes the '*' and '**' notes apply to) is lost: box labels are interleaved with branch labels, a spurious markdown table and a spurious '### *' heading were invented, and the loop-back is absent. The figure is informative (Annex E) but the transcription no longer conveys the serial SEARCH control flow."
+    }
+  ]
+}

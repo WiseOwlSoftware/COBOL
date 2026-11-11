@@ -1,9 +1,9 @@
 {
   "batch": [653, 658, 661, 667, 673, 674, 681, 694, 703, 705, 712, 713],
-  "pages_checked": [653, 658, 661, 667, 673, 674, 681, 694, 703, 705, 712, 713],
+  "pages_checked": [653, 658, 661, 667, 673, 674, 681, 694, 703, 705, 712, 713], "pages_unread": [],
   "findings": [
     {
-      "page": 703,
+      "id": "p703-1", "page": 703,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "In BOTH MULTIPLY general formats the ON SIZE ERROR block is printed as:  [| ON SIZE ERROR imperative-statement-1 |] / [| NOT ON SIZE ERROR imperative-statement-2 |], where SIZE, ERROR, NOT and END-MULTIPLY carry underlines but the word ON does NOT (verified by a 900-dpi render of the clip; the underline strokes sit under SIZE and under ERROR, and under NOT on the second line, with clear white space under both occurrences of ON).",
@@ -12,7 +12,7 @@
       "suggested_repair": "In both figure notes on page 703, delete `ON` from the list of underlined words and add an explicit statement that `ON` is printed WITHOUT an underline and is therefore an optional word in both `[ON] SIZE ERROR` and `NOT [ON] SIZE ERROR`. Sweep the whole transcription for the same wording: any other statement's SIZE ERROR figure note that lists `ON` as underlined has the identical defect (ADD, SUBTRACT, DIVIDE, COMPUTE, arithmetic statements generally)."
     },
     {
-      "page": 673,
+      "id": "p673-1", "page": 673,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "Format 4 (converting):  INSPECT [ BACKWARD ] identifier-1 CONVERTING { identifier-6 / literal-4 } TO { identifier-7 / literal-5 } [ after-before-phrase ]  — the printed figure has exactly TWO braces, each a balanced open/close pair spanning two stacked rows: the first encloses identifier-6 over literal-4, the second encloses identifier-7 over literal-5.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Replace the two `&nbsp;`-padded lines with a fenced code block using the same box-drawing convention as the rest of page 673, e.g. `<u>INSPECT</u> [ <u>BACKWARD</u> ] identifier-1 <u>CONVERTING</u>` followed by a code block showing `⎧ identifier-6 ⎫ / ⎨ … ⎬ / ⎩ literal-4 ⎭` then `TO` then `⎧ identifier-7 ⎫ / ⎨ … ⎬ / ⎩ literal-5 ⎭` then `[ after-before-phrase ]`, with a figure note recording that INSPECT, BACKWARD, CONVERTING and TO are the underlined (required) words."
     },
     {
-      "page": 674,
+      "id": "p674-1", "page": 674,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.22.3   Syntax rules — a fourth-level clause heading, set in the same style and at the same level as 14.9.22.1 General and 14.9.22.2 General formats on page 673.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Change `## 14.9.22.3 Syntax rules` to `### 14.9.22.3 Syntax rules`, and sweep the file for every `^## <n>.<n>.<n>.<n> ` heading — each is a fourth-level clause wrongly emitted at depth 2."
     },
     {
-      "page": 713,
+      "id": "p713-1", "page": 713,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.28.3   Syntax rules — a fourth-level clause heading, set in the same style and at the same level as 14.9.28.1 General and 14.9.28.2 General formats on page 712.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Change `## 14.9.28.3 Syntax rules` to `### 14.9.28.3 Syntax rules` and include it in the file-wide sweep of fourth-level clause headings emitted at depth 2."
     },
     {
-      "page": 667,
+      "id": "p667-1", "page": 667,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "In the 14.9.20.2 general format the underlines mark exactly these words as required: INITIALIZE, FILLER, ALL, VALUE, REPLACING, BY, DEFAULT. The words WITH, TO, THEN and DATA are printed WITHOUT underlines and are therefore optional words — so `INITIALIZE X FILLER`, `INITIALIZE X ALL VALUE`, `INITIALIZE X REPLACING NUMERIC BY 0` and `INITIALIZE X DEFAULT` are all legal.",
@@ -48,7 +48,7 @@
       "suggested_repair": "Add a figure note under the 14.9.20.2 code block in the same form already used elsewhere on the page: \"INITIALIZE, FILLER, ALL, VALUE, REPLACING, BY and DEFAULT are underlined in the printed standard (required words); WITH, TO, THEN and DATA are printed without underlines (optional words).\""
     },
     {
-      "page": 705,
+      "id": "p705-1", "page": 705,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "where sharing-phrase is:  SHARING WITH { ALL OTHER / NO OTHER / READ ONLY } — verified at 800 dpi: SHARING, ALL, NO, READ and ONLY carry underlines; WITH and BOTH occurrences of OTHER are printed without an underline and are therefore optional words.",
@@ -57,7 +57,7 @@
       "suggested_repair": "Add a figure note under the sharing-phrase code block: \"SHARING, ALL, NO, READ and ONLY are underlined in the printed standard (required words); WITH and OTHER are printed without underlines (optional words), so SHARING ALL, SHARING WITH ALL, SHARING WITH ALL OTHER, SHARING NO and SHARING WITH NO OTHER are all the same phrase.\""
     },
     {
-      "page": 712,
+      "id": "p712-1", "page": 712,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "The two trailing bracketed lines of PERFORM Format 3 are printed as `[ WHEN OTHER EXCEPTION  imperative-statement-3 ]` and `[ WHEN COMMON EXCEPTION imperative-statement-4 ]`. Verified at 900 dpi: on the OTHER line an underline runs under WHEN and under OTHER; on the COMMON line the underline runs under COMMON only — the word WHEN on the `WHEN COMMON EXCEPTION` line has NO underline beneath it. This is an inconsistency in the printed standard itself, since WHEN is required in both alternatives.",

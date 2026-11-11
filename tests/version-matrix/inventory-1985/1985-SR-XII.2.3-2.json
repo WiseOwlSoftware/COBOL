@@ -11,6 +11,11 @@
   "reason": "1985: 'The COPY statement must be preceded by a space and terminated by the separator period', with no exception. §2023:7.2.3.3 SR2: 'A COPY statement shall be preceded by a space except when it is the first statement in a compilation group' - a case 1985 refused is accepted. The terminating period is kept: the format §2023:7.2.3.2 ends with it and §2023:7.2.3.4 GR6 replaces the statement 'ending with the separator period, inclusive'. Looser.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-33"
+  "source": "adjudicate-712/slice-33",
+  "digests": {
+   "SR-7.2.3.3-2": "b85c88e8fe05",
+   "GR-7.2.3.4-6": "b40317ac7f90",
+   "FMT-7.2.3.2": "81b200d18277"
+  }
  }
 }

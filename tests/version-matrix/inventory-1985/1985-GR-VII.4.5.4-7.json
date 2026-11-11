@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985 REWRITE GR7: execution updates the I-O status of the file associated with record-name-1. §2023:14.9.35.4 GR1 'causes the I-O status value in the rewrite file connector to be updated'; §2023:14.9.35.4 GR2 makes that connector record-name-1's file; §2023:14.9.35.4 GR14 restates it for failure. Same.",
-  "source": "adjudicate-712-r2/slice-07"
+  "source": "adjudicate-712-r2/slice-07",
+  "digests": {
+   "GR-14.9.35.4-1": "7c937b2be791",
+   "GR-14.9.35.4-2": "ad43e8e283bf",
+   "GR-14.9.35.4-14": "3ed6451c3be2"
+  }
  }
 }

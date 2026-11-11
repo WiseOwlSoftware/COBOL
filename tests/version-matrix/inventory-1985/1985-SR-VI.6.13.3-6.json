@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.13.3 SR7 a-c restate 1985 a-c: objects 'shall be valid operands for comparison', condition-2, TRUE or FALSE 'shall correspond to condition-1 or the words TRUE or FALSE', and 'ANY may correspond to a selection subject of any type'. §2023:14.9.13.3 SR10 (Table 15) states the same pairings; its blank literal/literal cell matches the 1985 relation-condition rule 'must contain at least one reference to a variable'. But SR7 widens a) from 'arithmetic expressions' to 'expressions' (boolean too), and its d) admits partial-expression-1 for identifier, literal, arithmetic or boolean subjects. 1985 refuses an object such as '> 5', which 2023 accepts. Compile-time rules both.",
-  "source": "adjudicate-712/slice-30"
+  "source": "adjudicate-712/slice-30",
+  "digests": {
+   "SR-14.9.13.3-7": "e2f76a05e69f",
+   "SR-14.9.13.3-10": "1141f53a9e43"
+  }
  }
 }

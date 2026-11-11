@@ -1,9 +1,9 @@
 {
   "batch": [511, 513, 515, 517, 521, 524, 533, 534, 543, 546, 558, 590],
-  "pages_checked": [511, 513, 515, 517, 521, 524, 533, 534, 543, 546, 558, 590],
+  "pages_checked": [511, 513, 515, 517, 521, 524, 533, 534, 543, 546, 558, 590], "pages_unread": [],
   "findings": [
     {
-      "page": 533,
+      "id": "p533-1", "page": 533,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "In the 13.18.60.2 USAGE clause general format, the four brace groups 'BINARY-CHAR { SIGNED / UNSIGNED }', 'BINARY-SHORT { SIGNED / UNSIGNED }', 'BINARY-LONG { SIGNED / UNSIGNED }' and 'BINARY-DOUBLE { SIGNED / UNSIGNED }' print SIGNED WITHOUT an underline and UNSIGNED WITH an underline. Verified on the 300 dpi render of page 533 and again on a 5x tight crop of the BINARY-CHAR brace (E:/Temp/specrecon/f4/crop_533_900_620.png): no rule under 'SIGNED', a full-width rule under 'UNSIGNED'. The same asymmetry repeats in all four rows.",

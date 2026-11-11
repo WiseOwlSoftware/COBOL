@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: 'There are five categories of data that can be described with a PICTURE clause: alphabetic, numeric, alphanumeric, alphanumeric edited, and numeric edited.' §2023:13.18.40.4 GR3 lists eight: the five plus boolean, national and national-edited, so PICTURE strings of '1' or 'N' (not 1985 symbols, refused) now define items. Its BWZ sentence was already 1985 law (VI.5.4.4 GR2).",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "GR-13.18.40.4-3": "157f55f1b8bb"
+  }
  }
 }

@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"must be associated with a hardware device\"; 2023: \"implementor-defined device-name ... identified ... as a hardware or software device capable of providing data to the program\". Both require mnemonic-name-1 in SPECIAL-NAMES tied to a device. 2023 also allows software devices and requires the device to be capable of providing data.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.1.3-2": "058715125c44"
+  }
  }
 }

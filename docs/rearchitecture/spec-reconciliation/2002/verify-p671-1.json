@@ -1,0 +1,23 @@
+{
+  "claim_id": "p671-1",
+  "claim_key": "35387be168d62be7",
+  "page": 671,
+  "kind": "ocr-error",
+  "severity": "normative",
+  "claim": {
+    "id": "p671-1",
+    "page": 671,
+    "kind": "ocr-error",
+    "severity": "normative",
+    "section": "15.79.3",
+    "pdf_says": "( ((argument-1₁ – FUNCTION MEAN (argument-list)) ** 2 + (argument-1₂– FUNCTION MEAN (argument-list)) ** 2) / 2 ) ... ((argument-1₁ – FUNCTION MEAN (argument-list)) ** 2) ... ((argument-1ₙ – FUNCTION MEAN (argument-list)) ** 2)) / n) ... argument-1ᵢ is the ith argument  [subscripts 1, 2, n, i printed below the baseline]",
+    "markdown_says": "( ((argument-11 – FUNCTION MEAN (argument-list)) \\*\\* 2 +\\\n   &emsp;&emsp;(argument-12– FUNCTION MEAN (argument-list)) \\*\\* 2) / 2 ) ... ((argument-11 – FUNCTION MEAN (argument-list)) \\*\\* 2) ... ((argument-1n – FUNCTION MEAN (argument-list)) \\*\\* 2)) / n) ... argument-1i is the ith argument",
+    "description": "The occurrence subscripts on argument-1 are flattened onto the baseline, so the variance formula names operands 'argument-11', 'argument-12', 'argument-1n' and 'argument-1i' instead of the 1st, 2nd, nth and ith occurrences of argument-1. Restore as <sub>1</sub>, <sub>2</sub>, <sub>n</sub>, <sub>i</sub>. (The lines of item c) are also left unindented, detaching them from list item c) in rendering.)",
+    "why_it_matters": "The returned-value rule defines the function's result by an equivalent expression; with the subscripts flattened, a reader sees operands named argument-11/argument-12/argument-1n rather than the successive occurrences of argument-1, which misstates the normative definition."
+  },
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered p671 (printed 649) at 300 dpi: in 15.79.3 1) b) and c) and the closing 'where' sentence, the occurrence indices 1, 2, 1, n and i on argument-1 are printed as true subscripts below the baseline. The markdown (page-671.md lines 29, 30, 36, 40, 42) has them on the baseline with no <sub> markup, yielding 'argument-11', 'argument-12', 'argument-1n', 'argument-1i'. 'argument-11' reads as a distinct operand name rather than the first occurrence of argument-1, so the equivalent expression that defines the returned value is misstated. Quotes of both sources are accurate. The indentation remark is formatting only and not part of the content discrepancy.",
+    "corrected_description": ""
+  }
+}

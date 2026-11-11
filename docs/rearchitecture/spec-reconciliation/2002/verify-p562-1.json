@@ -1,0 +1,13 @@
+{
+  "claim_id": "p562-1",
+  "claim_key": "88065e06dc724b7c",
+  "page": 562,
+  "kind": "ocr-error",
+  "severity": "normative",
+  "claim": {"id": "p562-1", "page": 562, "kind": "ocr-error", "severity": "normative", "pdf_says": "(operand-1₁ + operand-1₂ + ... + operand-1ₙ)", "markdown_says": "(operand-11 + operand-12 + ... + operand-1n)", "why_it_matters": "14.8.40.3 SUBTRACT general rule 1 (format 1): the printed subscripts 1, 2 and n on operand-1 (the first, second and n-th occurrence of operand-1) were flattened onto the baseline, so the equivalent arithmetic expression for the initial evaluation reads as references to nonexistent operands named operand-11, operand-12 and operand-1n."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 562 (printed page 540), 14.8.40.3 GR1, shows '(operand-1 + operand-1 + ... + operand-1)' with clearly lowered subscript glyphs 1, 2 and n after each 'operand-1'. Line 25 of page-562.md reads '(operand-11 + operand-12 + ... + operand-1n)' with no subscript markup, so the subscripts were flattened into the operand names. The difference changes meaning: the subscripts mark the 1st, 2nd and nth operand-1 values, but the markdown names operands operand-11/operand-12/operand-1n that do not exist in the format. The same flattening is on line 37 (GR2, format 2): the PDF has '(operand-2 – (operand-1₁ + operand-1₂ + ... + operand-1ₙ))' and the markdown has '(operand-2 – (operand-11 + operand-12 + ... + operand-1n))'. GR3's '(operand-1 – operand-2)' has no subscripts and is transcribed correctly.",
+    "corrected_description": "Confirmed as described for 14.8.40.3 GR1. The same subscript flattening also occurs in GR2's expression on the same page: '(operand-2 – (operand-1₁ + operand-1₂ + ... + operand-1ₙ))' is transcribed as '(operand-2 – (operand-11 + operand-12 + ... + operand-1n))'."
+  }
+}

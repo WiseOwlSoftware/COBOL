@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 READ GR13: short record leaves the rest of the record area undefined, long record 'truncated on the right to the maximum size', READ successful with a record length conflict status. §2023:14.9.30.4 GR14 says the same for a record sequential file (the only 1985 sequential kind), status '04'; §2023:9.1.13.2 GR3 defines 04 as that length conflict, as 1985 status 04 did. Character positions vs bytes is the same for 1985 data.",
-  "source": "adjudicate-712/slice-16"
+  "source": "adjudicate-712/slice-16",
+  "digests": {
+   "GR-14.9.30.4-14": "e85174ff8de7",
+   "GR-9.1.13.2-3": "2f93339ac9a7"
+  }
  }
 }

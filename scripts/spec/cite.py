@@ -144,8 +144,17 @@ def norm(s: str) -> str:
 
     Memoized, because an in-process caller checks many quotations against ONE loaded standard: `find` normalizes
     every line of the spec per call, and `audit_doc_citations.py` (kb/Work PB2525) spent 25 of its 33 s re-running
-    these two regular expressions over the same ~47,500 lines for 59 `find` calls."""
-    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", s)).strip().lower()
+    these two regular expressions over the same ~47,500 lines for 59 `find` calls.
+
+    THE UNDERLINE IS NOT CONTENT EITHER (kb/Work PB5256): the underline of a key word (`<u>FUNCTION</u> <u>ABS</u>`) left
+    its tag's letter behind as a word ("u function u u abs u"), so no quotation of two underlined words, in a general
+    format or a rule, could ever be found. Only the underline tag goes: the standard's own angle-bracketed words, the
+    domain of a definition in clause 3 (`<for classes>`, §2023:3.103), are content (branch review R1-6)."""
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", _UNDERLINE.sub(" ", s))).strip().lower()
+
+
+#: The transcription's underline markup (`<u>`, `</u>`): typography, never words.
+_UNDERLINE = re.compile(r"</?u>")
 
 
 def _indent(line: str) -> int:
@@ -287,6 +296,12 @@ def self_test() -> int:
                      "> ⚠ **END RECONSTRUCTED (folio XIII-54).** Printed again.", "printed",
                      "> ⚠ **RECONSTRUCTED — not printed in our copy (folios XIII-30 and XIII-31).**", "unclosed"]
     cases = [
+        ("a quotation of underlined key words is found: the markup is no word (kb/Work PB5256)",
+         norm("FUNCTION ABS") in norm("<u>FUNCTION</u> <u>ABS</u> ( argument-1 )")
+         and norm("<u>MOVE</u>") == "move" and norm("a < b > c") == "a b c"),
+        ("a definition's angle-bracketed domain is content, not markup (branch review R1-6)",
+         norm("for classes mechanism for using the interface")
+         in norm("<for classes> mechanism for using the interface of a class")),
         ("reads the transcription of the edition the citation names (2002), not 2023's", edition_2002 == 0),
         ("an edition whose transcription is absent exits naming it", absent_1985),
         ("checks a 2014 citation against the 2014 transcription (kb/Work PB5268)",

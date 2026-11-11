@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "2023 confines both procedure-names to the PERFORM's own source element. Other programs' statements enter the range only via transfer of control (CALL). Declaratives are a separate same-program matter.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.28.3-12": "c8805f26442b",
+   "SR-14.9.28.3-13": "96bb189162ec",
+   "GR-14.9.28.4-1": "52b4cfe24d98"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same ban on data-name-1 sharing its leftmost position with the prime or another alternate key. The SOURCE exception covers only new 2023 syntax, so 1985 programs fare the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-12.4.5.6.3-4": "682f22b36f20"
+  }
  }
 }

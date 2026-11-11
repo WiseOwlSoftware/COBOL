@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 repeats the separate-OPEN-in-order equivalence. Inherited phrases only make explicit what 1985 implied. The RESUME text concerns a feature 1985 lacks and changes no 1985 program.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.27.4-20": "add7c3a31bdd"
+  }
  }
 }

@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: in an abbreviated combined relation condition, 'If the word immediately following NOT is GREATER, >, LESS, <, EQUAL, =, then the NOT participates as part of the relational operator'. §2023:8.8.4.12.2's format lets NOT, a simple-relational-operator or an extended-relational-operator precede object-1 ('simple-relational-operator and extended-relational-operator are described in 8.7.5, Relational operators'), and §2023:8.7.5.1 Format 2 (extended-relational-operator) holds exactly IS NOT GREATER THAN, NOT >, NOT LESS THAN, NOT <, NOT EQUAL TO, NOT =; §2023:8.8.4.12.4 GR1's note: NOT 'could be as a part of an extended-relational-operator', with 1985's own examples. Every case this rule covers parses the same; the 'otherwise' branch (incl. NOT NOT) is 1985-GR-VI.6.3.3-L2.2.",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "adjudicate-712-r2/slice-05",
+  "digests": {
+   "FMT-8.8.4.12.2": "d9c5b85cd264",
+   "FMT-8.7.5.1": "ea39e29d888e",
+   "GR-8.8.4.12.4-1": "023d3da2b3cc"
+  }
  }
 }

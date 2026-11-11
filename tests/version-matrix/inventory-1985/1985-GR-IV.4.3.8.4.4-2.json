@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both treat numeric, edited and alphabetic display items as redefined alphanumeric of the same size. The DISPLAY condition only separates the new national usage (GR-3); boolean is a new category.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-8.4.3.3.4-2": "1eb6e824c9d0"
+  }
  }
 }

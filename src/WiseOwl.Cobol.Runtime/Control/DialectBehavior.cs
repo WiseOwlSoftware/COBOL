@@ -114,6 +114,19 @@ public enum DialectBehavior
     /// (kb/Work PB5121; VCR row 7.56). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
     /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
     SearchIndexBelowTableUnsuccessful = 6,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.22.4 GR19 with §2023:14.6.4 step 6 — a format 3 INSPECT "is interpreted and
+    /// executed as though two successive INSPECT statements", but "Item identification of any identifier in the format 2
+    /// statement is done only once before executing the format 1 statement", and item identification includes the "length
+    /// evaluation for an occurs-depending group item" (the 2002 text, §2002:14.8.21.3 GR18 and §2002:14.5.4 step 6, says the
+    /// same of a variable-length data item). So from 2002 the REPLACING half works over the length identifier-1 had when the
+    /// statement began, whatever the TALLYING half did to the DEPENDING ON object. §1985:VI.6.18.4 GR17 fixes only "Subscripting
+    /// associated with any identifier in the format 2 statement"; its length rule (§1985:VI.6.18.4 GR1 with §1985:VI.5.8.4 GR3:
+    /// the value of data-name-1 "at the start of the operation") is read at the start of EACH of the two successive
+    /// statements, so at <c>--std 85</c> the REPLACING half takes the length anew (kb/Work PB5119). The consumer is
+    /// <c>InspectBinder</c>, which pins the DEPENDING ON object for the statement from 2002 and sets
+    /// <c>BoundInspect.ReplacingTakesLengthAnew</c> below it.</summary>
+    InspectFormat3LengthIdentifiedOnce = 7,
 }
 
 /// <summary>
@@ -169,6 +182,10 @@ public static class DialectBehaviors
             "7.56", "14.9.37.4 GR4", "§1985:VI.6.22.4 GR2",
             "a format 1 SEARCH whose index is zero or negative at its start is unsuccessful at once only from COBOL-2002; "
             + "COBOL-85 tests the upper bound alone and an index below the table starts the serial scan"),
+        new(DialectBehavior.InspectFormat3LengthIdentifiedOnce, "inspect-format-3-length-identified-once", 2002,
+            "7.57", "14.9.22.4 GR19", "§1985:VI.6.18.4 GR17",
+            "a format 3 INSPECT of an occurs-depending group identifies the group's length once, before the TALLYING half, "
+            + "only from COBOL-2002; COBOL-85 takes the length anew for the REPLACING half"),
     ];
 
     static DialectBehaviors()

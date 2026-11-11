@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 keeps any-order freedom for HEADING, FIRST DETAIL, LAST DETAIL and FOOTING. LAST CONTROL HEADING is a new phrase; adding it to the list changes nothing for 1985 PAGE clauses.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.39.3-4": "40b56b148532"
+  }
  }
 }

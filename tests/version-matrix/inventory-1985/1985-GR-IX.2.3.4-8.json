@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "1985 pointer: the ACCESS MODE, ALTERNATE RECORD KEY, ORGANIZATION IS INDEXED and RECORD KEY clauses are specified on the following pages. Format 1 (indexed) of §2023:12.4.5.1 lists them, each specified in its own subclause (§2023:12.4.5.5.1, §2023:12.4.5.6.2, §2023:12.4.5.10.2, §2023:12.4.5.12.2); §2023:12.4.5.10.3 GR5 'The INDEXED phrase specifies that the file organization is indexed'. Merging the per-module descriptions is editorial; each clause's own changes are on its own records.",
-  "source": "adjudicate-712-r2/slice-02"
+  "source": "adjudicate-712-r2/slice-02",
+  "digests": {
+   "FMT-12.4.5.1": "14f82fb7eed3",
+   "FMT-12.4.5.5.1": "ce888455e095",
+   "FMT-12.4.5.6.2": "a6e9b6472afe",
+   "FMT-12.4.5.10.2": "03687bb856b0",
+   "GR-12.4.5.10.3-5": "402e6b44c3ea",
+   "FMT-12.4.5.12.2": "dc0639616e62"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "The 1985 next group rule sits in the presentation rules for body groups. 2023 item b) likewise bounds a body group's absolute NEXT GROUP integer from FIRST DETAIL to FOOTING, inclusive.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.37.3-6": "8531250d19f2"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 still lists this case, the last statement of a source element whose procedure is not under another statement's control, as having no next executable statement. The implicit GOBACK result belongs to another rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.6.3-3": "77338b907c95"
+  }
  }
 }

@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985: a report file may be opened OUTPUT and EXTEND in one run unit, each reopen preceded by a CLOSE 'without the REEL, UNIT, or LOCK phrase'. 2023: a report file in 'the OPEN statement with the OUTPUT or EXTEND phrase' (§2023:13.18.46.3 SR3); 'The file connector referenced by file-name-1 shall not be open' (§2023:14.9.27.4 GR2, status '41', as 1985's own status 41); only 'a CLOSE statement without the UNIT phrase' ends the open mode (§2023:14.9.6.4 GR8), 'The words REEL and UNIT are equivalent' (§2023:14.9.6.3 SR2). 2023 CLOSE has no LOCK phrase; that removal is the CLOSE format's record, and leaves this exclusion vacuous. The recheck's SR-14.9.27.3-1 (no INPUT or I-O) and GR-14.9.27.4-4 (open mode set) are the counterparts of 1985's OPEN SR and GR1, not of this rule. Same requirement.",
-  "source": "adjudicate-712-r2/slice-12"
+  "source": "adjudicate-712-r2/slice-12",
+  "digests": {
+   "SR-13.18.46.3-3": "a92facb5c44a",
+   "GR-14.9.27.4-2": "0caffb8d51d0",
+   "GR-14.9.6.4-8": "cd4697dd2324",
+   "SR-14.9.6.3-2": "602041d5127b"
+  }
  }
 }

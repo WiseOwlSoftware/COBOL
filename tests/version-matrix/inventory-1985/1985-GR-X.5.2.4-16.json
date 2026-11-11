@@ -11,6 +11,11 @@
   ],
   "reason": "1985: 'The END-CALL phrase delimits the scope of the CALL statement.' §2023:14.9.4.2 keeps '[ END-CALL ]' in both CALL formats; §2023:14.5.1 Table 12 lists END-CALL as the CALL statement's explicit scope terminator (no catalog id), and §2023:14.5.3.2 GR1 and GR2 say it terminates 'the most-recently preceding unterminated statement having the statement-name for which that scope terminator is defined' and any unterminated statements between, as the 1985 scope rules did. Same meaning.",
   "bridge": true,
-  "source": "adjudicate-712/slice-21"
+  "source": "adjudicate-712/slice-21",
+  "digests": {
+   "FMT-14.9.4.2": "02ef50f0e383",
+   "GR-14.5.3.2-1": "3b121c04bafc",
+   "GR-14.5.3.2-2": "c8ba9f162d3f"
+  }
  }
 }

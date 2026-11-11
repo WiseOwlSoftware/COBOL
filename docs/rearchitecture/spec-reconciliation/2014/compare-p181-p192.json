@@ -1,0 +1,43 @@
+{
+  "batch": [181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192],
+  "pages_checked": [181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p188-1",
+      "page": 188,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Logical Operator | Meaning ; AND | Logical conjunction; the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false. ; OR | Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false. ; NOT | Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.",
+      "markdown_says": "| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are |\n\ntrue; false if one or both of the conjoined conditions is false.\n\n   OR Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false.\n\n   NOT Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.",
+      "why_it_matters": "The 8.8.4.2 logical-operator table is broken: only the AND row is a table row, and its Meaning cell is cut mid-sentence ('are |'), with the rest of the sentence a loose paragraph. The OR and NOT rows fall out of the table as indented prose, so a reader or a tool parsing the table sees one operator with a truncated definition."
+    },
+    {
+      "id": "p191-1",
+      "page": 191,
+      "kind": "table-restructured",
+      "severity": "cosmetic",
+      "pdf_says": "Third column of the 8.9 reserved-word list ends: FLOAT-BINARY-32 / FLOAT-BINARY-64 / FLOAT-BINARY-128 / FLOAT-DECIMAL-16",
+      "markdown_says": "| CHARACTER | DIVISION | FLOAT-BINARY-128 |\n\nFLOAT-DECIMAL-16",
+      "why_it_matters": "FLOAT-DECIMAL-16 falls out of the reserved-word table as a loose paragraph. The word is still present, but a tool that harvests the reserved-word list from the table cells would miss it."
+    },
+    {
+      "id": "p192-1",
+      "page": 192,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "pdf_says": "FLOAT-NOT-A-NUMBER-\n   SIGNALING   (one reserved word, FLOAT-NOT-A-NUMBER-SIGNALING, wrapped onto an indented continuation line)",
+      "markdown_says": "| FLOAT-NOT-A-NUMBER- | LESS | PAGE |\n| SIGNALING | LIMIT | PAGE-COUNTER |",
+      "why_it_matters": "The 8.9 reserved-word list shows the wrapped word FLOAT-NOT-A-NUMBER-SIGNALING as two table cells, 'FLOAT-NOT-A-NUMBER-' and 'SIGNALING'. That turns one reserved word into a malformed word (it ends in a hyphen) and makes SIGNALING look like a reserved word on its own. The PDF's indented continuation shows a single entry, and the class condition (8.8.4.1.3.1) prints FLOAT-NOT-A-NUMBER-SIGNALING as one word."
+    },
+    {
+      "id": "p192-2",
+      "page": 192,
+      "kind": "table-restructured",
+      "severity": "cosmetic",
+      "pdf_says": "Second column of the 8.9 reserved-word list: ... MODE / MOVE / MULTIPLY / (blank) / NATIONAL ...",
+      "markdown_says": "| GROUP-USAGE | MOVE | QUOTES |\n\nMULTIPLY\n\n| HEADING |  | RAISE |\n|---|---|---|",
+      "why_it_matters": "MULTIPLY falls out of the reserved-word table as a loose paragraph, which splits the table in two and makes the second part's first row (HEADING / blank / RAISE) its header row. The word is still present, but a tool that harvests the reserved-word list from the table cells would miss it."
+    }
+  ]
+}

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "§1989:A.2.31.4 RV1: 'The returned value is the ordinal position of argument-1 in the collating sequence for the program.' §2023:15.70.4 RV1: 'If the class of argument-1 is alphabetic or alphanumeric, the returned value is the ordinal position of argument-1 in the current alphanumeric program collating sequence.' Every 1985 argument is alphabetic or alphanumeric (§1989:A.2.31.3 AR1), so RV1 carries the requirement in full. RV-15.70.4-2 ('If the class of argument-1 is national ...') is removed from 'to' (band-85 adjudication 2026-11-10): 1985 has no class national, so it states no 1985 requirement.",
-  "source": "band-85/slice-12"
+  "source": "band-85/slice-12",
+  "digests": {
+   "RV-15.70.4-1": "041fe403c311"
+  }
  }
 }

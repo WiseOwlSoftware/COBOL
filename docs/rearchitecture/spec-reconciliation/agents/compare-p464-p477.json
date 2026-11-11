@@ -1,10 +1,10 @@
 {
   "batch": [464, 465, 466, 467, 469, 470, 472, 473, 474, 475, 476, 477],
-  "pages_checked": [464, 465, 466, 467, 469, 470, 472, 473, 474, 475, 476, 477],
+  "pages_checked": [464, 465, 466, 467, 469, 470, 472, 473, 474, 475, 476, 477], "pages_unread": [],
   "note": "No general-format / syntax-skeleton figure appears on any page of this batch. PDF printed pages 434-447 (OCCURS general rules, PAGE general rules, PICTURE syntax+general rules) are continuous prose and numbered rule lists only; the OCCURS and PICTURE general-format diagrams fall on the adjacent pages 463, 468 and 471, which are not in this batch. The choice-indicator (5.2.6.4 vertical-bar) defect class therefore had no surface to appear on here. Both findings below are cosmetic transcription-convention outliers, not normative losses.",
   "findings": [
     {
-      "page": 466,
+      "id": "p466-1", "page": 466,
       "kind": "missing-heading",
       "severity": "cosmetic",
       "pdf_says": "FORMAT 4",
@@ -13,7 +13,7 @@
       "suggested_repair": "Replace the line '## FORMAT 4' with the plain line 'FORMAT 4', matching how FORMAT 1/2/3 are transcribed on the surrounding pages. Sweep the other 7 '^#+\\s*FORMAT \\d' occurrences in specs/ISO_COBOL.md for the same defect."
     },
     {
-      "page": 470,
+      "id": "p470-1", "page": 470,
       "kind": "ocr-error",
       "severity": "cosmetic",
       "pdf_says": "e) If FOOTING is omitted, integer-7 will be equal to integer-6, if LAST DETAIL is specified, or otherwise equal to the page limit given by integer-1.  ...  4) A report heading or report footing on a page by itself may occupy any region of the page from HEADING integer-3 through the page limit integer-1 ...  5) If integer-2 is omitted, a value of 999 is assumed for the page width.  [all hyphens printed as ordinary U+002D HYPHEN-MINUS]",

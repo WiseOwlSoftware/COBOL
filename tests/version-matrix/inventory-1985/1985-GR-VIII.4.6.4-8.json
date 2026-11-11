@@ -9,6 +9,10 @@
    "GR-14.9.35.4-2"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.35.4-1": "7c937b2be791",
+   "GR-14.9.35.4-2": "ad43e8e283bf"
+  }
  }
 }

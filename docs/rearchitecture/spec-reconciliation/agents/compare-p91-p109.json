@@ -1,6 +1,6 @@
 {
   "batch": [91, 93, 95, 97, 98, 99, 101, 103, 104, 105, 107, 109],
-  "pages_checked": [91, 93, 95, 97, 98, 99, 101, 103, 104, 105, 107, 109],
+  "pages_checked": [91, 93, 95, 97, 98, 99, 101, 103, 104, 105, 107, 109], "pages_unread": [],
   "findings": [],
   "notes": [
     "Batch swept clean: no missing text, no incorrect text, no misplaced content, no missing/incorrect figures, no missing headings, no OCR errors found on any of the 12 pages.",

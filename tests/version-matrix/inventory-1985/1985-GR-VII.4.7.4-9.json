@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Amendment 2 (§1993:p.B-15, 'replace general rule 9, including subparagraphs a and b, with the following') replaced the printed rule, whose subparagraph b sent an UNSUCCESSFUL WRITE to imperative-statement-2 after the USE procedure, and moved the unsuccessful case to a new §1985:VII.4.7.4 GR10 ('If the execution of the WRITE statement is unsuccessful, the I-O status of the file-name associated with record-name-1 is updated and control is transferred according to the rules of the USE statement'). The amended §1985:VII.4.7.4 GR9 reads 'If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, control is transferred to imperative-statement-2 after execution of the input-output operation.' §2023:14.9.51.4 GR28 is that sentence: 'If, during the successful execution of a WRITE statement with the NOT END-OF-PAGE phrase, the end-of-page condition does not occur, then after execution of the input-output operation, control is transferred to imperative-statement-2 of the NOT END-OF-PAGE phrase', and it adds only the return to the end of the WRITE statement. The withdrawn record was CHANGED on subparagraph b alone, which the amendment deleted, so the amended rule and 2023 state the same requirement. The level-2 box is no difference.",
-  "source": "readjudicate-amended-1985/slice-06"
+  "source": "readjudicate-amended-1985/slice-06",
+  "digests": {
+   "GR-14.9.51.4-28": "34c582795125"
+  }
  }
 }

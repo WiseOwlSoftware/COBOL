@@ -1,10 +1,10 @@
 {
   "batch": [478, 479, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489],
-  "pages_checked": [478, 479, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489],
+  "pages_checked": [478, 479, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489], "pages_unread": [],
   "notes": "No general-format / syntax-skeleton figures appear on any page of this batch (page_workunit.py reported 0 pages with figure content). The pages are PICTURE-clause general rules (13.18.40.4), editing rules (13.18.40.5) and precedence rules (13.18.40.6), plus Tables 7, 8, 9 and 10. The priority defect class (lost choice-indicator bars inside brackets/braces) is therefore not applicable here. All 360 x-mark cells of Table 10 (15 data rows x 24 First-Symbol columns) were extracted from the rendered page pixel-by-pixel and compared against the markdown row-by-row: every cell agrees. Two ISO-side typos are faithfully reproduced by the markdown and are NOT defects: p.453 'if literal=1 is specified' (verified by crop) and p.454 NOTE 1 'plus one. unwanted truncation of data can result.'",
   "findings": [
     {
-      "page": 489,
+      "id": "p489-1", "page": 489,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Table 10 — Format 1 picture symbol order of precedence: the 'First Symbol' column-group band spans the 24 symbol columns as Simple, special, and fixed insertion symbols = columns 1-9 (B 0 / , . + +- +- CRDB cs cs); Zero-suppression and floating insertion symbols = columns 10-15 (Z* Z* +- +- cs cs); Other symbols = columns 16-24 (9 A X S V P P 1 N E). The rule between the 'Zero-suppression and floating insertion symbols' band and the 'Other symbols' band falls immediately to the LEFT of the '9' column (verified: vertical rule at x=1696px, and the '9' cell spans x=1698-1759px).",

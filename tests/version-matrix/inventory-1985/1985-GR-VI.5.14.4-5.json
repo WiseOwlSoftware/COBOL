@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both: implicit or explicit USAGE DISPLAY means a character representation aligned on a character boundary. The added size and documentation rules address the new national usage.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.60.4-7": "a23677df4a22"
+  }
  }
 }

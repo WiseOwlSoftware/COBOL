@@ -14,6 +14,10 @@
   "reason": "§1985:XIII.3.21.3 SR3: a report group item's USAGE 'can specify only USAGE IS DISPLAY'. §2023:13.18.60.3 SR7: 'Only the DISPLAY or NATIONAL phrase may be specified in any USAGE clause associated with a report group item', and the report group entry format offers DISPLAY or NATIONAL (§2023:13.15.2). USAGE NATIONAL, refused in 1985, is accepted: looser. Still a compile-time rule.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "source": "adjudicate-712/slice-34",
+  "digests": {
+   "SR-13.18.60.3-7": "101e1c040055",
+   "FMT-13.15.2": "d2104b4e3f18"
+  }
  }
 }

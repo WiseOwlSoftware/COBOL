@@ -18,6 +18,18 @@
   "reason": "Most steps are kept. Order of footings: §2023:13.18.57.4 GR6 e)1 'in order of controls from the lowest up to the level of the control break', §2023:14.9.16.4 GR5, §2023:14.9.46.4 GR3 b). Rolling forward (1985 b): §2023:13.18.54.4 GR7 a) 'adding takes place when the report group description containing data-name-1 is processed', and §2023:13.18.54.4 GR6 completes an addend's own additions first, so 1985's crossfoot-before-rollforward order survives. USE after summing (1985 c): §2023:14.9.49.4 GR9 b) 'After incrementing sum counters defined in the report group'. SUPPRESS/not printable (1985 d, e): §2023:14.9.45.4 GR3 and §2023:8.4.3.15.4 GR5 (dummy or suppressed group leaves the counters alone). Reset, including RESET on a control with no footing (1985 f and its preamble): §2023:13.18.54.4 GR2 'If no such control footing is defined, it is assumed to be present'. The difference is step a, crossfooting 'all sum counters defined in this report group that are operands of SUM clauses in the same report group': §2023:13.18.54.3 SR4 b) 'If data-name-1 is specified in the same report group description as the subject of the entry, data-name-1 shall be a repeating item' with an extra level of repetition, so a 1985 crossfoot of non-repeating sum counters is rejected at compile time in 2023.",
   "source": "adjudicate-712/slice-25",
   "edition": 2023,
-  "bridge": true
+  "bridge": true,
+  "digests": {
+   "GR-13.18.57.4-6": "60b5eeb0db8d",
+   "GR-14.9.16.4-5": "569d9fda51ee",
+   "GR-14.9.46.4-3": "a4dc6df17e36",
+   "SR-13.18.54.3-4": "20da11e6490f",
+   "GR-13.18.54.4-6": "879741da53ad",
+   "GR-13.18.54.4-7": "0090a48bcc09",
+   "GR-13.18.54.4-2": "5c2c5e2ba47c",
+   "GR-14.9.49.4-9": "decda7a3bc5e",
+   "GR-14.9.45.4-3": "1bbbcfc715c9",
+   "GR-8.4.3.15.4-5": "3c235b0d53d8"
+  }
  }
 }

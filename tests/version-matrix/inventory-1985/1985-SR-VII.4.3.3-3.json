@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both forbid EXTEND when LINAGE is specified. The added sequential-access condition always holds for the 1985 Sequential I-O module's files, so the same programs are accepted or refused.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.27.3-2": "547ccec7c52f"
+  }
  }
 }

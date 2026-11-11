@@ -10,6 +10,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"describe a group item or an elementary alphanumeric item\"; 2023: \"describe an alphanumeric group item or an elementary item of category alphanumeric or category national\". Same INTO rule, but 2023 adds a case (elementary national items) and limits groups to alphanumeric groups, so national group items are excluded.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.34.3-2": "50c7f20a0bac"
+  }
  }
 }

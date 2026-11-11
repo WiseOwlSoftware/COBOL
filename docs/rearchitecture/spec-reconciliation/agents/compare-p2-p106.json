@@ -1,9 +1,9 @@
 {
   "batch": [2, 66, 76, 80, 89, 90, 92, 94, 96, 100, 102, 106],
-  "pages_checked": [2, 66, 76, 80, 89, 90, 92, 94, 96, 100, 102, 106],
+  "pages_checked": [2, 66, 76, 80, 89, 90, 92, 94, 96, 100, 102, 106], "pages_unread": [],
   "findings": [
     {
-      "page": 102,
+      "id": "p102-1", "page": 102,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "In the 7.3.15.2 FLAG-14 general format the glyphs printed WITHOUT an underline are 'ALL' (first outer alternative) and 'ON' (first alternative of the trailing brace). Underlined are '>> FLAG-14', the twelve option names (COMPILE-TIME-ARITHMETIC-EXPRESSIONS, EVALUATE, I-O-DECLARATIVE, I-O-STATUS-04, I-O-STATUS-07, NUM-ED-ZERO-FIGCONST, READ-PREVIOUS, REF-MOD-ZERO-LENGTH, VALUE-EDITING, VALUE-FIG-CON-LENGTH, VALUE-ZERO, WRITE-END-OF-PAGE) and 'OFF'. Verified by 300 dpi crops of the 'ALL' row and the ON/OFF brace: no rule beneath 'ALL', no rule beneath 'ON', a clear rule beneath 'OFF'.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Rewrite the first sentence of the FLAG-14 figure note to match the FLAG-02 note on page 100: \"`FLAG-14`, all twelve option names (...), and `OFF` are underlined in the printed standard (required words). `ALL` and `ON` are **not** underlined (optional words).\" Also soften \"a separate, required one-of-two selection\" to note that selecting the ON alternative and omitting the optional word ON leaves the ON/OFF phrase empty (implicit ON)."
     },
     {
-      "page": 106,
+      "id": "p106-1", "page": 106,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "In the 7.3.17.2 LEAP-SECOND general format, '>>LEAP-SECOND' carries a full-width underline and 'OFF' carries an underline, but 'ON' is printed with NO underline. Verified by a 300 dpi crop of the brace: a rule sits under 'OFF' only.",

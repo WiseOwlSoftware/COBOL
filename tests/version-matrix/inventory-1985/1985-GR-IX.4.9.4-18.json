@@ -15,6 +15,15 @@
   ],
   "bridge": true,
   "reason": "1985 GR18: on invalid key the WRITE is unsuccessful, 'the content of the record area is unaffected', status set to the cause, control per the invalid key rules. §2023:14.9.51.4 GR15 ('the content of the record area is unaffected', status 'indicating the cause'); §2023:14.9.51.4 GR38, GR40 and §2023:14.9.51.4 GR42 make each invalid key unsuccessful with its status; §2023:9.1.14 GR1, §2023:9.1.14 GR2, §2023:9.1.14 GR3 give status and transfer of control as 1985 IX-6. The no-handler case (9.1.14 GR4) is 1985 SR3's change, not this rule's. Same.",
-  "source": "adjudicate-712-r2/slice-03"
+  "source": "adjudicate-712-r2/slice-03",
+  "digests": {
+   "GR-14.9.51.4-15": "a8b0bec83863",
+   "GR-14.9.51.4-38": "ae5934a81473",
+   "GR-14.9.51.4-40": "2ad780e17de6",
+   "GR-14.9.51.4-42": "20bdfd2f8d70",
+   "GR-9.1.14-1": "b8080cf5262e",
+   "GR-9.1.14-2": "e2d0046858ad",
+   "GR-9.1.14-3": "4d9f118d4cd2"
+  }
  }
 }

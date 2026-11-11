@@ -1,0 +1,25 @@
+{
+  "batch": [229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240],
+  "pages_checked": [229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p231-1",
+      "page": 231,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term Subclause / data-division 13, Data division / environment-division 12, Environment division / options-paragraph 11.9, OPTIONS paragraph / procedure-division 14, Procedure division",
+      "markdown_says": "| data-division | 13, Data division |\n\nenvironment-division 12, Environment division\n\n| options-paragraph | 11.9, OPTIONS paragraph |\n|---|---|\n| procedure-division | 14, Procedure division |",
+      "why_it_matters": "The one four-row meta-language term table of 10.6.1 is split into two tables with the environment-division row left as a loose paragraph outside any table, and the second fragment turns options-paragraph into a header row; the content is all present but a table-reading tool would miss the environment-division mapping."
+    },
+    {
+      "id": "p234-1",
+      "page": 234,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term Subclause / class-id-paragraph 11.3, CLASS-ID paragraph / factory-paragraph 11.4, FACTORY paragraph / function-id-paragraph 11.5, FUNCTION-ID paragraph / interface-id-paragraph 11.6, INTERFACE-ID paragraph / method-id-paragraph 11.7, METHOD-ID paragraph / object-paragraph 11.8, OBJECT paragraph / options-paragraph 11.9, OPTIONS paragraph / program-id-paragraph 11.10, PROGRAM-ID paragraph",
+      "markdown_says": "| class-id-paragraph | 11.3, CLASS-ID paragraph |\n| factory-paragraph | 11.4, FACTORY paragraph |\n\nfunction-id-paragraph 11.5, FUNCTION-ID paragraph\\\ninterface-id-paragraph 11.6, INTERFACE-ID paragraph\\\nmethod-id-paragraph 11.7, METHOD-ID paragraph\n\n| object-paragraph | 11.8, OBJECT paragraph |\n|---|---|\n| options-paragraph | 11.9, OPTIONS paragraph |\n\nprogram-id-paragraph 11.10, PROGRAM-ID paragraph",
+      "why_it_matters": "The single eight-row term table of 11.2.1 is fragmented into two tables plus four loose prose rows (function-id, interface-id, method-id and program-id paragraphs), and object-paragraph becomes a header row; every mapping is present but the table structure is lost."
+    }
+  ]
+}

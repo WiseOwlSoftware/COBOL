@@ -1,0 +1,17 @@
+{
+  "batch": [229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240],
+  "pages_checked": [229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p234-1",
+      "page": 234,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "section": "12.3.4.1 General format, Format 4 (sort-merge)",
+      "pdf_says": "SELECT [ OPTIONAL ] file-name-1 / ASSIGN { TO { device-name-1 | literal-1 } ... [ USING data-name-1 ] | USING data-name-1 } / [ [ ORGANIZATION IS ] SEQUENTIAL ] .",
+      "markdown_says": "                  ╭               ╮ …\n<u>SELECT</u> [ <u>OPTIONAL</u> │ ] file-name-1 │\n                  │               │\n       ╭          │ device-name-1 │                       ╮\n       │ TO       ┤               ├ [ <u>USING</u> data-name-1 ] │\n<u>ASSIGN</u> ┤          ╰ literal-1     ╯                       ├",
+      "why_it_matters": "The Format 4 diagram is scrambled: the brace around device-name-1/literal-1 is drawn spanning up into the SELECT line (cutting through '[ OPTIONAL ] file-name-1'), and the ellipsis that the PDF places after that brace (repeating TO's operand) is moved to the top of the brace above the SELECT line. Read literally, the markdown no longer says that device-name-1/literal-1 may be repeated after TO, and it splices the SELECT line into the TO choice. Formats 1-3 on pages 232-234 render the same ASSIGN clause correctly and can serve as the model."
+    }
+  ]
+}

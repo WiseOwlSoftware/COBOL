@@ -1,9 +1,9 @@
 {
   "batch": [384, 394, 398, 400, 408, 412, 414, 416, 422, 424, 432, 436],
-  "pages_checked": [384, 394, 398, 400, 408, 412, 414, 416, 422, 424, 432, 436],
+  "pages_checked": [384, 394, 398, 400, 408, 412, 414, 416, 422, 424, 432, 436], "pages_unread": [],
   "findings": [
     {
-      "page": 400,
+      "id": "p400-1", "page": 400,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Page 400 opens with its own paragraph: \"where screen-attribute-clauses is:\" immediately above the BELL / BLINK / HIGHLIGHT-LOWLIGHT / REVERSE-VIDEO / UNDERLINE / FOREGROUND-COLOR / BACKGROUND-COLOR figure. Page 399 ends with a separate, unrelated paragraph: \"where entry-name-clause is described in 13.18.20, Entry-name clause\".",
@@ -12,7 +12,7 @@
       "suggested_repair": "Split line 17157 into two paragraphs: leave \"where entry-name-clause is described in 13.18.20, Entry-name clause\" on the page-399 side, and move \"where screen-attribute-clauses is:\" to immediately after the page-400 running header, directly above the ``` fence."
     },
     {
-      "page": 400,
+      "id": "p400-2", "page": 400,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "13.17.3   Syntax rules — printed at the same heading depth as 13.17.1 General, 13.17.2 General formats and 13.17.4 General rules (all three-component subclause numbers under 13.17).",
@@ -21,7 +21,7 @@
       "suggested_repair": "Change line 17201 to \"### 13.17.3 Syntax rules\" to match 13.17.1, 13.17.2 and 13.17.4."
     },
     {
-      "page": 408,
+      "id": "p408-1", "page": 408,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "13.18.7   BLANK clause — a third-level subclause under 13.18 Data division clauses, printed at the same depth as 13.18.1 ALIGNED clause.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Sweep 13.18.2 through the end of 13.18 and demote every \"## 13.18.N \" clause heading to \"### 13.18.N \", matching 13.18.1; leave \"## 13.18 Data division clauses\" at H2. Their own sub-subclause headings (13.18.N.M) are already at H3 and would then need H4 — apply the depth shift consistently."
     },
     {
-      "page": 422,
+      "id": "p422-1", "page": 422,
       "kind": "other",
       "severity": "cosmetic",
       "pdf_says": "The 13.18.16.2 General format diagram is printed as a normal in-flow figure, exactly like every other general-format diagram in clause 13.18.",

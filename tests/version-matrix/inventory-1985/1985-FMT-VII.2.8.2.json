@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Same format: RECORD DELIMITER IS STANDARD-1 or a name. 2023 says the implementor specifies the names allowed for feature-name-1, so it equals implementor-name-1.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-12.4.5.11.2": "acef440cb0dd",
+   "SR-12.4.5.11.3-2": "3cedfc495d7f"
+  }
  }
 }

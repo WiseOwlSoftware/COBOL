@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:7.2.3.4 GR6: the library text is copied 'logically replacing the entire COPY statement beginning with the reserved word COPY and ending with the separator period, inclusive'; §2023:7.2.3.4 GR1 'Text-name-1 or literal-1 identifies the library text'. The replacement effect holds for every COPY statement; literal-1 is a naming alternative recorded with the COPY format, it alters no part of this requirement.",
-  "source": "adjudicate-712-r2/slice-10"
+  "source": "adjudicate-712-r2/slice-10",
+  "digests": {
+   "GR-7.2.3.4-6": "b40317ac7f90",
+   "GR-7.2.3.4-1": "14a0a28e0459"
+  }
  }
 }

@@ -29,6 +29,25 @@
   ],
   "bridge": true,
   "reason": "41, 42, 43, 44 a), 46, 47, 48 and 49 carry over (§2023:9.1.13.7 GR1-GR9, set per statement by §2023:14.9.27.4 GR2, §2023:14.9.6.4 GR1, §2023:14.9.35.4 GR5, GR20, GR3, §2023:14.9.51.4 GR14, GR3, §2023:14.9.30.4 GR21, GR2); 46's at-end case is inside 'The preceding READ statement ... was unsuccessful' (§2023:9.1.13.7 GR6). The difference: 1985 44 '2) In level 1 an attempt is made to rewrite a record to a relative file and the record is not the same size' (§1985:VIII.1.3.4 GR5) has no 2023 counterpart; §2023:9.1.13.7 GR4 b) now reads 'rewrite a record to a sequential file' and §2023:14.9.35.4 GR16 applies it to record sequential files only, so a level-1 relative REWRITE of a different-size record that got 44 now succeeds. 48's sequential-access-in-I-O case (§2023:9.1.13.7 GR8 a) only defines a result for a statement 1985 forbade (§1985:VIII.4.4.4 GR4).",
-  "source": "adjudicate-712/slice-18"
+  "source": "adjudicate-712/slice-18",
+  "digests": {
+   "GR-9.1.13.7-1": "7ba098ac3665",
+   "GR-9.1.13.7-2": "6ad5edf369fc",
+   "GR-9.1.13.7-3": "c92c8b4cbc0d",
+   "GR-9.1.13.7-4": "8cb702a5a928",
+   "GR-9.1.13.7-6": "31e6a5079953",
+   "GR-9.1.13.7-7": "33e8e795f04b",
+   "GR-9.1.13.7-8": "a5329a57a0ea",
+   "GR-9.1.13.7-9": "30ab59018127",
+   "GR-14.9.27.4-2": "0caffb8d51d0",
+   "GR-14.9.6.4-1": "b69d85d1cce5",
+   "GR-14.9.35.4-5": "417f233188c4",
+   "GR-14.9.35.4-20": "2162939d82b7",
+   "GR-14.9.51.4-14": "2ed0d2829339",
+   "GR-14.9.30.4-21": "7fba2331b7f5",
+   "GR-14.9.30.4-2": "bff533cd4871",
+   "GR-14.9.51.4-3": "89606a4a9a76",
+   "GR-14.9.35.4-3": "fec731aa697c"
+  }
  }
 }

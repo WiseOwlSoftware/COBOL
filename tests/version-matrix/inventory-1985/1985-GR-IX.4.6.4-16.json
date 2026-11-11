@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "1985 lists three REWRITE invalid key cases: sequential key not that of the last record read; random/dynamic key absent; duplicate of a no-duplicates alternate key. §2023:14.9.35.4 GR25 'The invalid key condition exists under the following circumstances' a)-c) states all three with statuses 21/23/22 as 1985's I-O status list; §2023:14.9.35.4 GR22 'shall be equal to the value of the prime record key of the last record read using this file connector' and §2023:14.9.35.4 GR23 restate a) and b); §2023:9.1.13.5 GR3 a) 'an attempt is made to randomly access a record that does not exist in the physical file' restates b). Run-time in both.",
-  "source": "adjudicate-712-r2/slice-02"
+  "source": "adjudicate-712-r2/slice-02",
+  "digests": {
+   "GR-14.9.35.4-25": "d2228be59894",
+   "GR-14.9.35.4-22": "194a97fb0600",
+   "GR-14.9.35.4-23": "4541e90fedf4",
+   "GR-9.1.13.5-3": "c3ad7e9c7625"
+  }
  }
 }

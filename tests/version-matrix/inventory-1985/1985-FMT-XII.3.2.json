@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"REPLACE { ==pseudo-text-1== BY ==pseudo-text-2== } … / REPLACE OFF\"; 2023: \"REPLACE [ ALSO ] … {LEADING|TRAILING} ==partial-word-1== BY ==partial-word-2== … / REPLACE [ LAST ] OFF .\". Same REPLACE formats, but 2023 adds the ALSO phrase, LEADING/TRAILING partial-word replacement and LAST OFF, accepting programs the 1985 format refuses.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-7.2.4.2": "e746a0cbcc55"
+  }
  }
 }

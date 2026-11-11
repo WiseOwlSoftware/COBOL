@@ -17,6 +17,13 @@
   ],
   "bridge": true,
   "reason": "1985 relative FD allows BLOCK CONTAINS, RECORD, LABEL RECORD(S) STANDARD/OMITTED, VALUE OF implementor-name-1 and DATA RECORD(S). §2023:13.4.5.2 Format 2 'relative-or-indexed' (§2023:13.4.5.3 SR7) keeps BLOCK CONTAINS (§2023:13.18.10.2) and the record-clause (§2023:13.18.43.2, BYTES a synonym per §2023:13.18.43.3 SR2) but has no LABEL, VALUE OF or DATA RECORDS clause anywhere in the standard, so a 1985 relative FD using them is refused. EXTERNAL/GLOBAL are not new (1985 X.4.2.2). CHANGED (stricter).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.4.5.2": "b75b09e44e69",
+   "SR-13.4.5.3-7": "b9a7373b54e4",
+   "FMT-13.18.10.2": "80e87404b097",
+   "FMT-13.18.43.2": "eaecef407473",
+   "SR-13.18.43.3-2": "8652215268c0"
+  }
  }
 }

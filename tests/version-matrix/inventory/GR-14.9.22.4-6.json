@@ -2,8 +2,8 @@
  "rule-id": "GR-14.9.22.4-6",
  "rule-digest": "e551214d1284",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#IdentifyOperands; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#OperandTextOf; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceIdentification.cs#Freeze",
- "test-ref": "conformance:cases/14.6.4-Item-identification/pb1123_inspect_item_identification_once",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#IdentifyOperands; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#OperandTextOf; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceIdentification.cs#Freeze; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody",
+ "test-ref": "conformance:cases/14.6.4-Item-identification/pb1123_inspect_item_identification_once; conformance:cases/14.9.22-INSPECT/pb5184_replacing_function_once",
  "editions": "85,2002,2014,2023",
- "notes": "LANDED kb/Work PB1123 (INSPECT arm). InspectEmitter.IdentifyOperands freezes identifier-1, every counter and every operand (subscripts, reference-modification start/length, Tier-B window offsets) into locals in source order before anything is read or stored, through the one PlaceIdentification.Freeze helper; YE(J) TALLYING J addresses the YE(1) it identified. The UNSTRING/INVOKE/ODO-refmod arms of PB1123 are not this row."
+ "notes": "LANDED kb/Work PB1123 (INSPECT arm) and PB5184 (the function operands). InspectEmitter.IdentifyOperands freezes identifier-1, every counter and every operand (subscripts, reference-modification start/length, Tier-B window offsets) into locals in source order before anything is read or stored, through the one PlaceIdentification.Freeze helper; YE(J) TALLYING J addresses the YE(1) it identified. A function-identifier operand has no address to freeze, so EmitBody's Once evaluates each one, in any phrase (TALLYING, REPLACING, CONVERTING), into a local in source order before the first counter is stored: TALLYING I ... REPLACING ALL FUNCTION UPPER-CASE (LIT (I)) BY \"Z\" reads LIT (1) (pb5184_replacing_function_once). The UNSTRING/INVOKE/ODO-refmod arms of PB1123 are not this row."
 }

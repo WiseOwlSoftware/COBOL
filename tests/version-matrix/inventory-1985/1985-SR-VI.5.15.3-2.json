@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985 requires 'a signed numeric PICTURE character-string' for a signed numeric literal, and §1985:VI.5.15.4 GR1b gives numeric edited items nonnumeric literals only. §2023:13.18.63.3 SR3 admits 'either a signed numeric data item or a numeric-edited data item with a representation of a sign', and §2023:13.18.63.3 SR6 lets numeric literals initialize numeric-edited items 'such that no truncation of digits or sign is required'. A signed literal for a numeric-edited item, refused in 1985, is accepted. SR3 is an all-formats rule, so it also governs condition-name values. Both editions refuse at compile time.",
-  "source": "adjudicate-712/slice-30"
+  "source": "adjudicate-712/slice-30",
+  "digests": {
+   "SR-13.18.63.3-3": "af538a1b29ec",
+   "SR-13.18.63.3-6": "cdfa1de98c0f"
+  }
  }
 }

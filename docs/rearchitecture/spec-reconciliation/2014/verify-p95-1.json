@@ -1,0 +1,13 @@
+{
+  "claim_id": "p95-1",
+  "claim_key": "d740536fd71399a9",
+  "page": 95,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p95-1", "page": 95, "kind": "table-restructured", "severity": "structural", "pdf_says": "Basic special characters | [blank glyph: the space character] + – * / = $ , ; . \" ' ( ) > < & : _ | space plus sign minus sign (hyphen) asterisk slant (slash, solidus) equal sign currency sign comma semicolon period quotation mark apostrophe left parenthesis right parenthesis greater than less than ampersand colon underscore  (19 rows, the first character being the space, printed as an empty line aligned with 'space')", "markdown_says": "| Basic special characters | +<br>–<br>\\*<br>/<br>=<br>$<br>,<br>;<br>.<br>\"<br>'<br>(<br>)<br>><br>&lt;<br>&<br>:<br>_ | space<br>plus sign<br>minus sign (hyphen)<br>asterisk<br>slant (slash, solidus)<br>equal sign<br>currency sign<br>comma<br>semicolon<br>period<br>quotation mark<br>apostrophe<br>left parenthesis<br>right parenthesis<br>greater than<br>less than<br>ampersand<br>colon<br>underscore |", "why_it_matters": "The Character column has 18 entries but the Meaning column 19: the leading empty line that stands for the space character was dropped. Read line by line, every character is now paired with the meaning of the character before it ('+' with 'space', '-' with 'plus sign', ... '_' with 'colon'), and 'underscore' has no character. The space must be restored as a leading (empty or '&nbsp;') entry so the 19 rows align as printed."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered page 95 at 300 dpi (Table 2 continued, printed page 71). In the Character column the first line is blank, level with 'space' in the Meaning column; '+' is on the second line, level with 'plus sign', and '_' is on the 19th, level with 'underscore'. page-95.md line 7 has 18 <br>-separated characters (from + to _) against 19 meanings, with no leading empty entry. Read row by row, every glyph is offset by one: '+' lines up with 'space' and '_' with 'colon', and 'underscore' has no glyph. That changes what the table says each character means, so this is a real content defect. The claim quotes both sources accurately.",
+    "corrected_description": null
+  }
+}

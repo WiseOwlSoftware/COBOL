@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'If this clause is omitted, the data item being described is treated as though FILLER had been specified.' 2023: §2023:13.18.20.3 SR2 'If the entry-name clause is not specified in a data description entry, a report group description entry, or a screen description entry, the word FILLER is assumed', restated in §2023:13.16.3 SR4 'If no entry-name clause is specified, it is as though the filler format of the entry-name clause were specified.' Same meaning; report and screen entries are 2023-only (for 1985 data description entries).",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "SR-13.18.20.3-2": "986eb68e704c",
+   "SR-13.16.3-4": "2d891dac76cc"
+  }
  }
 }

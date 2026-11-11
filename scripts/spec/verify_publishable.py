@@ -19,8 +19,9 @@ and the acknowledgment's wording, is keyed by edition below, and an edition with
      under.
 
   3. **A transcription that keeps its pages agrees with its reconciliation ledger** (`LEDGER`, 1985: kb/Work PB4850):
-     every repair on its page, every claim decided, and each page's prose carrying exactly the level-2 box sides its
-     marked boxes account for (`check_ledger`).
+     every page of the book compared (`book_pages` the transcription's page count, `pages_swept` every page of it, no
+     page in `pages_unread`), every repair on its page, every claim decided, and each page's prose carrying exactly the
+     level-2 box sides its marked boxes account for (`check_ledger`).
 
   4. **Every gap in the printed folios holds a reconstruction, and every reconstruction stands in one** (owner
      2026-11-09, kb/Work PB4952): editorial text between two notes that name the folios, the opening one its sources
@@ -351,20 +352,37 @@ def check_corrections(text: str, edition: int) -> list[str]:
 #: batch claim with its decision, every repair, and every level-2 box. 2023 dropped its pages; its reconciliation is
 #: LEDGER.json (merge_reconciliation.py) and its corrections the Addendum (check_corrections).
 LEDGER: dict[int, str] = {1985: "docs/rearchitecture/spec-reconciliation/LEDGER-1985.json"}
+#: EVERY edition's reconciliation ledger, the one home of their paths: the page-keeping ledgers above, and each ledger
+#: merge_reconciliation.py writes from its agent files (its EDITIONS rows take their ledger from here): 2023's
+#: LEDGER.json, and 2002's and 2014's, in LEDGER-1985.json's shape (kb/Work PB5255).
+RECONCILIATION: dict[int, str] = {
+    **LEDGER,
+    2023: "docs/rearchitecture/spec-reconciliation/LEDGER.json",
+    2002: "docs/rearchitecture/spec-reconciliation/LEDGER-2002.json",
+    2014: "docs/rearchitecture/spec-reconciliation/LEDGER-2014.json",
+}
+
+
+def ledger_pages(ledger: dict) -> set[int]:
+    """The PDF pages a reconciliation ledger records as compared: 2023's merge lists them (`pages_swept`); a page-keeping
+    batch ledger compared every page of its book and records how many (`pages`, LEDGER-1985.json's `about`)."""
+    if "pages_swept" in ledger:
+        return set(ledger["pages_swept"])
+    return set(range(1, int(ledger.get("pages", 0)) + 1))
+
+
+def reconciled(edition: int, repo: pathlib.Path = REPO) -> bool:
+    """THE FACT that `edition`'s transcription is reconciled (kb/Work PB5256, branch review R1-4): its reconciliation ledger
+    exists and records every page of the PDF (`spec_pdf.EDITIONS[edition].pages`) as compared. The ISO rule catalog
+    records an unreconciled edition's findings instead of failing on them, and the inventory refuses to LINK an
+    unreconciled edition into the lineage (`inventory_schema.link_errors`): its rule ids may still move."""
+    path = repo / RECONCILIATION[edition] if edition in RECONCILIATION else None
+    if path is None or not path.is_file():
+        return False
+    return ledger_pages(json.loads(path.read_text(encoding="utf-8"))) == set(range(1, spec_pdf.EDITIONS[edition].pages + 1))
 #: What a claim's decision may be; each but APPLIED states its reason.
 DECISIONS = {"APPLIED", "REFUTED", "ALREADY", "FORMAT", "BOX", "FIGURE", "KEPT"}
-BOX_SIDE = spec_pdf.BOX_SIDE
-PAGE_HEADING = re.compile(r"^## Page (\d+)$", re.M)
 CODE_SPAN = re.compile(r"`[^`\n]*`")
-
-
-def pages_of(text: str) -> dict[int, str]:
-    """The transcription's text by PDF page (`## Page N` opens page N); the front matter before page 1 is page 0."""
-    cuts = [(int(m.group(1)), m.start()) for m in PAGE_HEADING.finditer(text)]
-    out = {0: text[:cuts[0][1]] if cuts else text}
-    for (page, at), (_, end) in zip(cuts, cuts[1:] + [(0, len(text))]):
-        out[page] = text[at:end]
-    return out
 
 
 def prose_box_sides(page: str) -> int:
@@ -377,18 +395,30 @@ def prose_box_sides(page: str) -> int:
         if "<pre" in line:
             figure = True
         if not figure and not fence:
-            count += CODE_SPAN.sub("", line).count(BOX_SIDE)
+            count += CODE_SPAN.sub("", line).count(spec_pdf.BOX_SIDE)
         if "</pre>" in line:
             figure = False
     return count
 
 
 def check_ledger(text: str, ledger: dict) -> list[str]:
-    """The transcription agrees with its reconciliation ledger: every applied repair and sweep is on its page, every claim
-    is decided, every marked box opens where the ledger says, and each page's prose carries exactly the box sides its
-    marked boxes account for (two per marked block), so a box added, lost or moved without the ledger is refused."""
+    """The transcription agrees with its reconciliation ledger: the ledger compared every page of the book (its
+    `book_pages` is the transcription's page count, its `pages_swept` every one of them and its `pages_unread` none),
+    every applied repair and sweep is on its page, every claim is decided, every marked box opens where the ledger says,
+    and each page's prose carries exactly the box sides its marked boxes account for (two per marked block), so a box
+    added, lost or moved without the ledger is refused."""
     failures: list[str] = []
-    pages = pages_of(text)
+    pages = spec_pdf.pages_of(text)
+    book = spec_pdf.page_count(text)
+    swept = set(ledger.get("pages_swept") or [])
+    if ledger.get("book_pages") != book:
+        failures.append(f"the ledger's book_pages {ledger.get('book_pages')!r} is not the transcription's {book} pages")
+    if unswept := sorted(set(range(1, book + 1)) - swept):
+        failures.append(f"{len(unswept)} page(s) were never compared (not in pages_swept): {unswept[:20]}")
+    if beyond := sorted(swept - set(range(1, book + 1))):
+        failures.append(f"pages_swept names page(s) the transcription does not hold: {beyond[:20]}")
+    if unread := ledger.get("pages_unread"):
+        failures.append(f"{len(unread)} page(s) are unread: {[u['page'] for u in unread][:20]}")
     print(f"\nreconciliation ledger ({len(ledger['claims'])} claims, {len(ledger['sweeps'])} sweeps, "
           f"{len(ledger['boxes'])} boxes) — the transcription must agree:")
 
@@ -424,8 +454,8 @@ def check_ledger(text: str, ledger: dict) -> list[str]:
     for f in failures[:20]:
         print(f"  ✗ {f}")
     if not failures:
-        print(f"  ✓ every repair on its page, every claim decided, {sum(sides.values()) // 2} boxed blocks where the ledger "
-              "puts them")
+        print(f"  ✓ {book} of {book} pages compared, every repair on its page, every claim decided, "
+              f"{sum(sides.values()) // 2} boxed blocks where the ledger puts them")
     return failures
 
 
@@ -473,7 +503,7 @@ def check_reconstructions(lines: list[str], edition: int) -> list[str]:
         printed: list[tuple[int, str]] = []
         last: tuple[int, str] | None = None
         for i, ln in enumerate(lines + ["## Page 0"]):
-            if PAGE_HEADING.match(ln):
+            if spec_pdf.PAGE_HEADING.match(ln):
                 if last is not None:
                     printed.append(last)
                 last = None
@@ -602,6 +632,22 @@ def self_test() -> int:
         with contextlib.redirect_stdout(io.StringIO()):
             return fn(*args)
 
+    # kb/Work PB5256, branch review R1-4: an edition is reconciled when its ledger records every page of its PDF compared.
+    import tempfile  # noqa: PLC0415
+    with tempfile.TemporaryDirectory() as tmp:
+        root = pathlib.Path(tmp)
+        (root / RECONCILIATION[2023]).parent.mkdir(parents=True)
+        pages23 = spec_pdf.EDITIONS[2023].pages
+        (root / RECONCILIATION[2023]).write_text(json.dumps({"pages_swept": list(range(1, pages23))}), encoding="utf-8",
+                                                 newline="\n")
+        short = reconciled(2023, root)
+        (root / RECONCILIATION[2023]).write_text(json.dumps({"pages_swept": list(range(1, pages23 + 1))}),
+                                                 encoding="utf-8", newline="\n")
+        (root / RECONCILIATION[1985]).write_text(json.dumps({"pages": spec_pdf.EDITIONS[1985].pages}), encoding="utf-8",
+                                                 newline="\n")
+        check("an edition is reconciled when its ledger records every page compared, in either ledger's shape, and not "
+              "with a page short or with no ledger (2002)",
+              not short and reconciled(2023, root) and reconciled(1985, root) and not reconciled(2002, root))
     good = ("# Preface\n\nCOBOL is an industry language and is not the property of any company\n"
             "No warranty, expressed or implied, is made by any contributor\n"
             "have specifically authorized the use of this material in whole or in part\n"
@@ -693,7 +739,7 @@ def self_test() -> int:
           in quietly(check_text, good.replace("# Addendum\n", ""), 2023))
     planted_pages = ("# Preface\n\nthe notation `║boxed║`\n\n## Page 1\n\n<u>Format 1</u>:\n\n(4) a rule ║or extend║ here.\n\n"
                      "<pre style=\"line-height:1\">\n║ a drawn box ║\n</pre>\n\n## Page 2\n\nplain\n")
-    planted_ledger = {"claims": [{"page": 1, "i": 0, "decision": "APPLIED",
+    planted_ledger = {"book_pages": 2, "pages_swept": [1, 2], "pages_unread": [], "claims": [{"page": 1, "i": 0, "decision": "APPLIED",
                                   "edits": [{"was": "Format 1:", "now": "<u>Format 1</u>:"}]},
                                  {"page": 2, "i": 0, "decision": "REFUTED", "reason": "the page prints it so"}],
                       "sweeps": [], "boxes": [{"page": 1, "n": 0, "decision": "MARKED", "blocks": 1, "opens": ["║or extend║"]},
@@ -706,6 +752,12 @@ def self_test() -> int:
                                                   planted_ledger)) == 1)
     undecided = dict(planted_ledger, claims=planted_ledger["claims"] + [{"page": 2, "i": 1, "decision": "REFUTED"}])
     check("a claim decided with no reason is refused", len(quietly(check_ledger, planted_pages, undecided)) == 1)
+    for name, change in (("a ledger whose book_pages is not the transcription's page count is refused", {"book_pages": 3}),
+                         ("a ledger that never compared a page of the book is refused", {"pages_swept": [1]}),
+                         ("a ledger that lists a page the book does not hold is refused", {"pages_swept": [1, 2, 3]}),
+                         ("a ledger with an unread page is refused",
+                          {"pages_unread": [{"page": 2, "reason": "blank render"}]})):
+        check(name, len(quietly(check_ledger, planted_pages, dict(planted_ledger, **change))) == 1)
     # kb/Work PB4952: a gap in the printed folios holds a reconstruction, and a reconstruction stands only in a gap.
     opening = ("> ⚠ **RECONSTRUCTED — not printed in our copy (folios XIII-30 and XIII-31).** Planted. **Sources:** the "
                "siblings. **Confidence: low.**")

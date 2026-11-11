@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: floating insertion and zero suppression 'are mutually exclusive'; 'Only one type of replacement'. §2023:13.18.40.3 SR27: no more than one of a string of two or more '+', '-' or currency symbols, a string of '*' or a string of 'Z'; §2023:13.18.40.3 SR21: 'Z' and '*' 'mutually exclusive'. Extended editing sign symbols take the non-floating cs precedence (13.18.40.6). Same pictures refused at compile time.",
-  "source": "adjudicate-712-r2/slice-04"
+  "source": "adjudicate-712-r2/slice-04",
+  "digests": {
+   "SR-13.18.40.3-27": "70112cb28d6a",
+   "SR-13.18.40.3-21": "f844621fd70c"
+  }
  }
 }

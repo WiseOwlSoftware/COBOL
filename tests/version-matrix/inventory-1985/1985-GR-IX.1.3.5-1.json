@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 'The I-O status of the file connector associated with the statement is set to a value indicating the invalid key condition' is restated in §2023:9.1.14 GR1 ('set to a value indicating the invalid key condition as described in 9.1.13.5'). The added EC-I-O-INVALID-KEY is set only 'if enabled', and checking is off by default (§2023:14.6.13.1.1), so no 1985 program's outcome changes. GR-14.9.51.4-15 points at 9.1.14 without stating the invalid-key setting; left out.",
-  "source": "adjudicate-712-r2/slice-01"
+  "source": "adjudicate-712-r2/slice-01",
+  "digests": {
+   "GR-9.1.14-1": "b8080cf5262e"
+  }
  }
 }

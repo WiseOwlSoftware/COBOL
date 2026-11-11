@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both cascade the cancel to all contained programs, as if each were canceled in reverse order of appearance. 'A CANCEL statement' does not exclude implicit ones; GR7's 'explicit' shows 2023 keeps both.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.5.4-4": "b320a1c22b30"
+  }
  }
 }

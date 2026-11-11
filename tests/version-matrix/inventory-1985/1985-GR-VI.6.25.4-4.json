@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 GR4 a)-c) and its repeat sentence recur in §2023:14.9.43.4 GR3 (characters transferred 'in accordance with the MOVE statement rules for alphanumeric-to-alphanumeric moves' without space fill; DELIMITED without SIZE stops at end of sender, end of receiver or the untransferred delimiter; with SIZE the whole sender). Additions cover national operands and zero-length items, neither reachable from a 1985 program 2023 accepts. The implied DELIMITED BY SIZE of an omitted phrase is §2023:14.9.43.3 SR9, format, which this 1985 rule does not refuse. GR1 and GR7 carry 1985 GR2 and GR8.",
-  "source": "adjudicate-712-r2/slice-05"
+  "source": "adjudicate-712-r2/slice-05",
+  "digests": {
+   "GR-14.9.43.4-3": "dc866f213d06"
+  }
  }
 }

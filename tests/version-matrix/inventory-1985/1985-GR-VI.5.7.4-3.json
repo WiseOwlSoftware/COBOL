@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Multiple level 1 entries under FD/SD implicitly redefine one area, and not under RD. 2023 just states the RD exclusion outright. The CD case goes with the communication feature 2023 lacks.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.33.4-3": "af84cd76cf76"
+  }
  }
 }

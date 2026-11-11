@@ -1,0 +1,9 @@
+{"batch": [217,218,219,220,221,222,223,224,225,226,227,228],
+ "pages_checked": [217,218,219,220,221,222,223,224,225,226,227,228],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p219-1", "page": 219, "kind": "ocr-error", "severity": "cosmetic",
+   "pdf_says": "b) If the parameter or returning item in the invoked method is described with an interface-name,",
+   "markdown_says": "b) Ιf the parameter or returning item in the invoked method is described with an interface-name,",
+   "why_it_matters": "The first letter of 'If' in item 2)b) is the Greek capital iota (U+0399), not the Latin 'I'. The meaning is unchanged, but a text search for 'If the parameter' misses the line."}
+ ]}

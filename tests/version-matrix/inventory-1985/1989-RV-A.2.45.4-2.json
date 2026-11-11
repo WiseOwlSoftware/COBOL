@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "2023 defines STANDARD-DEVIATION as SQRT(VARIANCE), so VARIANCE is still the square of the standard deviation of the series. The 1985 rule states that same relation; its SD formula is a separate rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "RV-15.98.4-1": "1691db8e6e47",
+   "RV-15.86.4-1": "032537504fec"
+  }
  }
 }

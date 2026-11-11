@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: OPEN I-O 'must reference a file that supports the input and output operations that are permitted for an indexed file when opened in the I-O mode' and places it in I-O open mode. §2023:14.9.27.4 GR16 'the file shall support the input and output statements that are permitted for the organization of that file when opened in the I-O mode' and sets the I-O open mode; §2023:14.9.27.4 GR4 'sets the open mode of the file connector to input, output, I-O, or extend'; §2023:9.1.13.6 GR6 a) 2. restates the violation as 37, as 1985 status 37 c.2). Run-time in both.",
-  "source": "adjudicate-712-r2/slice-02"
+  "source": "adjudicate-712-r2/slice-02",
+  "digests": {
+   "GR-14.9.27.4-16": "4fc7fb7e2271",
+   "GR-14.9.27.4-4": "301759431dca",
+   "GR-9.1.13.6-6": "b8d74a99aedb"
+  }
  }
 }

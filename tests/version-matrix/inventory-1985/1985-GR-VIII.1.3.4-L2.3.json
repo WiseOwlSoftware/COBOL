@@ -17,6 +17,17 @@
   ],
   "bridge": true,
   "reason": "22 and 23 are kept (§2023:9.1.13.5 GR2, §2023:9.1.13.5 GR3, §2023:14.9.35.4 GR21, §2023:14.9.30.4 GR28, §2023:14.9.30.4 GR29, §2023:14.9.41.4 GR5), and 24 for the sequential relative-key overflow (§2023:14.9.51.4 GR29 a). But 1985 makes ANY 'attempt ... to write beyond the externally defined boundaries of a relative file' status 24, an invalid key; §2023:14.9.51.4 GR29 b) carves out the relative file's own bound: 'If the relative key data item contains a value that is less than 1 or greater than the highest relative record number permitted for the file, the execution of the WRITE statement is unsuccessful, and the I O status ... is set to 34' (a permanent error, no INVALID KEY branch), though §2023:9.1.13.5 GR4 and §2023:14.9.51.4 GR33 still say 24 for boundaries. A random WRITE with key 0 or above the file's limit changes result.",
-  "source": "adjudicate-712-r2/slice-08"
+  "source": "adjudicate-712-r2/slice-08",
+  "digests": {
+   "GR-9.1.13.5-2": "49a096fddbb8",
+   "GR-9.1.13.5-3": "c3ad7e9c7625",
+   "GR-9.1.13.5-4": "2f2d4439acc4",
+   "GR-14.9.51.4-29": "e43570544df4",
+   "GR-14.9.51.4-33": "566c56424417",
+   "GR-14.9.35.4-21": "be06855cf633",
+   "GR-14.9.30.4-28": "f11d5a778fd1",
+   "GR-14.9.30.4-29": "6a768a6a6406",
+   "GR-14.9.41.4-5": "19e7ff681984"
+  }
  }
 }

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-54, kb/Work PB4952). A sum counter is zeroed at INITIATE, and reset after its own control footing or, with RESET, at the named control level; 2023 GR2 states the same, and adds the size error indicator.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "GR-13.18.54.4-2": "5c2c5e2ba47c"
+  }
  }
 }

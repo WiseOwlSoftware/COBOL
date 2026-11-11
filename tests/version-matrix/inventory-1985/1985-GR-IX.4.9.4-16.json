@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 GR16: an alternate key 'may be nonunique only if the DUPLICATES phrase is specified', duplicates retrieved in release order. §2023:14.9.51.4 GR40 'may be non unique only if the DUPLICATES phrase is specified for that data item'; §2023:14.9.30.4 GR26 returns duplicates in the order 'in which they are released by execution of WRITE statements'. GR41's suppression carve-out needs SUPPRESS WHEN, refused by 1985's format, not by this rule. The '22' result is 1985 GR17c's counterpart (GR42 c)). Same.",
-  "source": "adjudicate-712-r2/slice-03"
+  "source": "adjudicate-712-r2/slice-03",
+  "digests": {
+   "GR-14.9.51.4-40": "2ad780e17de6",
+   "GR-14.9.30.4-26": "9b3918c32fa3"
+  }
  }
 }

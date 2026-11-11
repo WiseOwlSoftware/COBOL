@@ -1,0 +1,34 @@
+{
+  "batch": [745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756],
+  "pages_checked": [745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p746-1",
+      "page": 746,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(argument-1₁ + argument-1₂) ... (argument-1₁ + argument-1₂ + ... + argument-1ₙ)",
+      "markdown_says": "(argument-11 + argument-12) ... (argument-11 + argument-12 + ... + argument-1n)",
+      "why_it_matters": "In 15.81.3 SUM returned values 1b and 1c the subscripts 1, 2 and n on argument-1 are flattened into the operand name, so 'argument-11' and 'argument-12' read as arguments eleven and twelve instead of the first and second occurrences of argument-1; the equivalent arithmetic expression that defines SUM is garbled."
+    },
+    {
+      "id": "p756-1",
+      "page": 756,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(((argument-1₁ – FUNCTION MEAN (argument-list)) ** 2 + (argument-1₂– FUNCTION MEAN (argument-list)) ** 2) / 2) ... ((argument-1ₙ – FUNCTION MEAN (argument-list)) ** 2)) / n) where argument-list is the argument-1 list for the VARIANCE function itself and argument-1ᵢ is the ith argument",
+      "markdown_says": "(((argument-11 – FUNCTION MEAN (argument-list)) \\*\\* 2 +\\ (argument-12– FUNCTION MEAN (argument-list)) \\*\\* 2) / 2) ... ((argument-1n – FUNCTION MEAN (argument-list)) \\*\\* 2)) / n) where argument-list is the argument-1 list for the VARIANCE function itself and argument-1i is the ith argument",
+      "why_it_matters": "In 15.91.3 VARIANCE returned values 1b and 1c, and in the closing 'where' sentence, the subscripts 1, 2, n and i on argument-1 are flattened into the name ('argument-11', 'argument-12', 'argument-1n', 'argument-1i'), so the definition of argument-1-sub-i and the equivalent arithmetic expression for VARIANCE read as references to differently named arguments."
+    },
+    {
+      "id": "p756-2",
+      "page": 756,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "c) For n occurrences of argument-1, (FUNCTION SUM ( ((argument-1₁ – FUNCTION MEAN (argument-list)) ** 2) ... ((argument-1ₙ – FUNCTION MEAN (argument-list)) ** 2)) / n)",
+      "markdown_says": "   (FUNCTION SUM (\n\n((argument-11 – FUNCTION MEAN (argument-list)) \\*\\* 2)\n\n...\n\n((argument-1n – FUNCTION MEAN (argument-list)) \\*\\* 2)) / n)",
+      "why_it_matters": "The continuation lines of the 15.91.3 1c expression are printed indented under item c) but the markdown emits them at column zero, detaching them from list item c) and from the '(FUNCTION SUM (' line they continue."
+    }
+  ]
+}

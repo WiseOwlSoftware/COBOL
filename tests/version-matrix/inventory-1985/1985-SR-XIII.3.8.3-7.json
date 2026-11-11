@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "The 2023 ascending order integer-3..integer-7 then integer-1, with equality allowed, makes the page limit >= FOOTING (1985 integer-5, 2023 integer-7). Other limits are separate rules.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.39.3-6": "cfce8cfea96d"
+  }
  }
 }

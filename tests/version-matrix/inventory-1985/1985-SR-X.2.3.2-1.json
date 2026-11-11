@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: end-program-header 'must be present if' the program contains or is contained in another program. §2023:10.7.3 SR1: 'An end marker shall be present in every source unit that contains, is contained in, or precedes another source unit.'; §2023:10.7.3 SR3 requires the contained program's END PROGRAM marker before the container's. The 'precedes' case was already a 1985 requirement (§1985:VI.2.3.3 GR2: each program of a sequence but the last terminated by an end program header), so the same programs are refused.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "SR-10.7.3-1": "69363e81b4a0",
+   "SR-10.7.3-3": "8693f3b54f8e"
+  }
  }
 }

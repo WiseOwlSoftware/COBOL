@@ -1,0 +1,13 @@
+{
+  "claim_id": "p863-1",
+  "claim_key": "1ee592b91cf264d7",
+  "page": 863,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p863-1", "page": 863, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Comparison\n     Between object reference identifiers  131\n     Locale-based  129, 130 (sub-entries indented under their headword throughout both columns)", "markdown_says": "   Comparison\\\n   Between object reference identifiers 131\\\n   Locale-based 129, 130\\", "why_it_matters": "On page 863 every index line has the same indentation. Sub-entries (for example the ten \"Of ... operands\" lines under Comparison, or \"Class condition 131\" under Condition) can no longer be told apart from top-level headwords."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300-dpi render of PDF page 863 (printed page 841, Index) shows a two-level index: headwords flush left (Comparison, Condition, COMP phrase, Condition-name, Constant-name...) and sub-entries indented beneath them (Between object reference identifiers 131, Locale-based 129, 130, the nine 'Of ...' lines, USAGE clause 361 under COMP and COMPUTATIONAL phrase, Class condition 131 at the top of the right column continuing Condition, Scope of 103, 104 under Condition-name, Scope of 104 under Constant-name). page-863.md gives every line the identical three-space indent with a trailing backslash (lines 3, 10, 47, 62, 82, 94 checked), so the parent/child relationship is lost: 'USAGE clause 361' and 'Scope of 105' read as top-level headwords. This is a loss of the index's hierarchy, not mere line wrapping; both sources are quoted accurately. Minor correction: there are nine 'Of ...' sub-entries under Comparison, not ten (plus two others, eleven sub-entries in all). The content is the informative index, so the defect is structural, not normative.",
+    "corrected_description": "The PDF index on page 863 is two-level (sub-entries indented under headwords, including entries continuing across the column break such as 'Class condition 131' under Condition); the markdown flattens every line to the same indentation, so sub-entries such as 'USAGE clause 361', 'Scope of 104' and the eleven sub-entries under Comparison are indistinguishable from headwords. Informative index; structural, not normative."
+  }
+}

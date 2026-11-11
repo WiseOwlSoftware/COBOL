@@ -1,0 +1,16 @@
+{
+  "batch": [421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432],
+  "pages_checked": [421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p432-1",
+      "page": 432,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Character Positions    Contents\n1-2    The two low-order digits of the year in the Gregorian calendar.\n3-4    Two numeric characters of the month of the year in the range 01 through 12.\n5-6    Two numeric characters of the day of the month in the range 01 through 31.",
+      "markdown_says": "   Character Positions Contents\n\n| 1-2 | The two low-order digits of the year in the Gregorian calendar. |\n|---|---|\n| 3-4 | Two numeric characters of the month of the year in the range 01 through 12. |",
+      "why_it_matters": "The printed table's header row (Character Positions / Contents) is detached from the table as a plain run-on line, and the first data row (1-2, year digits) is made the table's header row. No words are lost, but the table structure is wrong: a reader or tool treating the header row as column names drops the 1-2 row from the data."
+    }
+  ]
+}

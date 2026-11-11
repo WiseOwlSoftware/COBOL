@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: the KEY phrase key of a random READ 'is established as the key of reference for this retrieval' and in dynamic mode serves later sequential READs until another is set. §2023:14.9.30.4 GR30 states the same; §2023:14.9.30.4 GR21 b) has a sequential READ use the last key of reference. record-key-name-1 is new syntax only.",
-  "source": "adjudicate-712/slice-07"
+  "source": "adjudicate-712/slice-07",
+  "digests": {
+   "GR-14.9.30.4-30": "f414a9331a35",
+   "GR-14.9.30.4-21": "7fba2331b7f5"
+  }
  }
 }

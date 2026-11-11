@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985: USE BEFORE REPORTING is available only where the Report Writer module is supported. §2023:14.9.49.3 SR9: 'Identifier-1 shall reference a report group.'; report groups, the report section and the report writer statements are optional language elements (§2023:4.2.7 'Language elements that an implementor may, but need not, implement are listed in A.4'; A.4.11), so the statement is usable only where report writer is implemented. Same programs accepted or refused. The general format states the statement, not its availability, so it is not in 'to'.",
-  "source": "adjudicate-712-r2/slice-14"
+  "source": "adjudicate-712-r2/slice-14",
+  "digests": {
+   "SR-14.9.49.3-9": "de200ff25211"
+  }
  }
 }

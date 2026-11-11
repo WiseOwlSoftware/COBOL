@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same key rules: in file-name-1 records, one description suffices, no OCCURS, no variable-length groups, within minimum record size. New class limits hit only post-1985 features.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.24.3-4": "3104e7c1aa7b"
+  }
  }
 }

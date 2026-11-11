@@ -1,0 +1,13 @@
+{
+  "claim_id": "p188-1",
+  "claim_key": "38781dc2e0be7ba4",
+  "page": 188,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p188-1", "page": 188, "kind": "table-restructured", "severity": "structural", "pdf_says": "Logical Operator | Meaning ; AND | Logical conjunction; the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false. ; OR | Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false. ; NOT | Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.", "markdown_says": "| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are |\n\ntrue; false if one or both of the conjoined conditions is false.\n\n   OR Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false.\n\n   NOT Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.", "why_it_matters": "The 8.8.4.2 logical-operator table is broken: only the AND row is a table row, and its Meaning cell is cut mid-sentence ('are |'), with the rest of the sentence a loose paragraph. The OR and NOT rows fall out of the table as indented prose, so a reader or a tool parsing the table sees one operator with a truncated definition."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed PDF page 188 (folio 164), 8.8.4.2: a two-column table 'Logical Operator | Meaning' with three rows AND, OR, NOT, each Meaning cell wrapped over two lines. The markdown page-188.md has the header row and an AND row whose cell ends at '...conjoined conditions are |'; the continuation 'true; false if one or both of the conjoined conditions is false.' is a separate paragraph outside the table, and the OR and NOT rows are indented prose lines, not table rows. Both quotes in the claim match the sources. Every word of the PDF text is still in the markdown, so no normative wording is lost. The table structure is genuinely broken, though: the AND cell is truncated, and OR/NOT are not table rows. That is a structural defect, as the claim says.",
+    "corrected_description": ""
+  }
+}

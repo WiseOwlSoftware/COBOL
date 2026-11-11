@@ -12,6 +12,12 @@
   "reason": "1985 confines group entries (format 2) to 02-48 and elementary entries (format 3) to 02-49; level 01 is format 1, which carries no PICTURE, COLUMN, SOURCE, SUM or VALUE. 2023: 'Level-number shall be any integer from 1 through 49' for every entry (§2023:13.15.3 SR3); a level 1 entry carries TYPE (§2023:13.15.3 SR5) and 'Each level 1 entry identifies a report group' defined by it and its subordinates (§2023:13.15.4 GR1), and the elementary-only clauses may be written in any elementary entry (§2023:13.15.3 SR11), so a level 1 entry with no subordinates may be elementary and printable. An elementary 01 report group, refused in 1985, is accepted: looser. Groups still stop at 48 because a level 49 entry can have no subordinate.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-34"
+  "source": "adjudicate-712/slice-34",
+  "digests": {
+   "SR-13.15.3-3": "acd0bca7353d",
+   "SR-13.15.3-5": "d29f3104f59a",
+   "SR-13.15.3-11": "a3961a741d10",
+   "GR-13.15.4-1": "38e0dbf9bc8d"
+  }
  }
 }

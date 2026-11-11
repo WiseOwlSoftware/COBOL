@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "1985: 'The DETAIL phrase specifies a report group that is processed by the report writer control system when a corresponding GENERATE statement is executed.' 2023 §2023:13.18.57.4 GR5 'Detail report groups are printed when referenced explicitly in a GENERATE statement'; §2023:13.18.57.4 GR6 d); §2023:14.9.16.4 GR1, GR4 d) and GR5 b) 'The specified detail is printed, unless summary reporting is specified'; §2023:14.9.16.4 GR2 report-name gives 'the same processing ... except that no detail is printed' (1985 TYPE GR11 d). Same; no refusal.",
-  "source": "adjudicate-712-r2/slice-11"
+  "source": "adjudicate-712-r2/slice-11",
+  "digests": {
+   "GR-13.18.57.4-5": "5bf65e328209",
+   "GR-13.18.57.4-6": "60b5eeb0db8d",
+   "GR-14.9.16.4-1": "f7b3b662deac",
+   "GR-14.9.16.4-2": "5c30de9c4b4d",
+   "GR-14.9.16.4-4": "97abb095e6b6",
+   "GR-14.9.16.4-5": "569d9fda51ee"
+  }
  }
 }

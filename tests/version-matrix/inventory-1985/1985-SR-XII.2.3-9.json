@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 still bars pseudo-text-1 made only of separator commas or semicolons. Its 'one or more text-words' part covers non-null pseudo-text, not this rule's subject.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-7.2.3.3-6": "46507fd49e62"
+  }
  }
 }

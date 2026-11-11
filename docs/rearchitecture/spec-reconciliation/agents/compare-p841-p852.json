@@ -1,9 +1,9 @@
 {
   "batch": [841, 842, 843, 844, 845, 846, 847, 848, 849, 850, 851, 852],
-  "pages_checked": [841, 842, 843, 844, 845, 846, 847, 848, 849, 850, 851, 852],
+  "pages_checked": [841, 842, 843, 844, 845, 846, 847, 848, 849, 850, 851, 852], "pages_unread": [],
   "findings": [
     {
-      "page": 847,
+      "id": "p847-1", "page": 847,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "15.8.2   General format\n\n  FUNCTION  ACOS  ( argument-1 )      [FUNCTION and ACOS are both UNDERLINED in the printed general format]",
@@ -12,7 +12,7 @@
       "suggested_repair": "Replace the fenced block at specs/ISO_COBOL.md:34066-34069 with `<u>FUNCTION</u> <u>ACOS</u> ( argument-1 )` to match the ABS/ANNUITY/ATAN convention on the surrounding pages."
     },
     {
-      "page": 849,
+      "id": "p849-1", "page": 849,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "15.10.2   General format\n\n  FUNCTION  ASIN  ( argument-1 )      [FUNCTION and ASIN are both UNDERLINED in the printed general format]",
@@ -21,7 +21,7 @@
       "suggested_repair": "Replace specs/ISO_COBOL.md:34152 with `<u>FUNCTION</u> <u>ASIN</u> ( argument-1 )`."
     },
     {
-      "page": 851,
+      "id": "p851-1", "page": 851,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "15.12.2   General format\n\n  FUNCTION  BASECONVERT  ( argument-1  argument-2  argument-3 )      [FUNCTION and BASECONVERT are both UNDERLINED in the printed general format]",
@@ -30,7 +30,7 @@
       "suggested_repair": "Replace specs/ISO_COBOL.md:34228 with `<u>FUNCTION</u> <u>BASECONVERT</u> ( argument-1 argument-2 argument-3 )`."
     },
     {
-      "page": 852,
+      "id": "p852-1", "page": 852,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "15.13.2   General format\n\n  FUNCTION  BOOLEAN-OF-INTEGER  ( argument-1  argument-2 )      [FUNCTION and BOOLEAN-OF-INTEGER are both UNDERLINED in the printed general format]",

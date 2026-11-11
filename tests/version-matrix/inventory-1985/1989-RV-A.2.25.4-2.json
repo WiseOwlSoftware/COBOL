@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both editions give the odd case as the value with at least half of occurrences >= and half <=, and the even case as the mean of the two middle values. The added equivalent expression gives the same result.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "RV-15.61.4-1": "efd01c95def5",
+   "RV-15.61.4-2": "4a7ef5ed5084"
+  }
  }
 }

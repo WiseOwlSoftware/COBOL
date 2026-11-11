@@ -1,0 +1,21 @@
+{
+  "claim_id": "p761-1",
+  "claim_key": "dccf70e69af6bb60",
+  "page": 761,
+  "kind": "image-restructured",
+  "severity": "structural",
+  "claim": {
+    "id": "p761-1",
+    "page": 761,
+    "kind": "image-restructured",
+    "severity": "structural",
+    "pdf_says": "Figure E.5 \u2014 Hierarchy of queues: a tree with levels QUEUE (A), SUB-QUEUE (1) (B, C), SUB-QUEUE (2) (D, E under B; F, G under C), SUB-QUEUE (3) (H, I under D; J, K under E; L, M under F; N, O under G) and MESSAGE (H: Z1 X2; I: X3 X4 X5; J: X1 Y3 Y5 Z5; K: Z6 Z7 Y6; L: Y7 Y8; M: Y1 Y2; N: X6; O: Z2 Z3 Z4 Y4).",
+    "markdown_says": "   QUEUE\n\nA\n\nSUB-QUEUE (1)\n\n| B |  |  | C |  |\n|---|---|---|---|---|\n| SUB-QUEUE (2)<br>D | E | F |  | G |\n\n| I | O |\n|---|---|\n\n| Z1 | X3 | X1 | Z6 | Y7 | Y1 | X6 | Z2 |\n|---|---|---|---|---|---|---|---|\n| X2 | X4 | Y3 | Z7 | Y8 | Y2 |  | Z3 |\n| MESSAGE | X5 | Y5 | Y6 |  |  |  | Z4 |\n|  |  | Z5 |  |  |  |  | Y4 |",
+    "why_it_matters": "The tree structure is lost: the SUB-QUEUE (3) level label and sub-queue-3 names H, J, K, L, M and N are missing, the parent/child edges are gone, and 'MESSAGE' displaced X2's column so the message lists no longer line up under their sub-queues. The worked examples on page 762 (e.g. Sub-queue-3 N returns Message X6; Queue A returns Z1) cannot be followed from the markdown. Annex E is informative, so no normative rule is lost."
+  },
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 739 (PDF p761) shows Figure E.5 as a tree: QUEUE A; SUB-QUEUE (1) B, C; SUB-QUEUE (2) D, E under B and F, G under C; SUB-QUEUE (3) H, I under D, J, K under E, L, M under F, N, O under G; message lists Z1 X2 / X3 X4 X5 / X1 Y3 Y5 Z5 / Z6 Z7 Y6 / Y7 Y8 / Y1 Y2 / X6 / Z2 Z3 Z4 Y4. The markdown keeps only I and O of the sub-queue-3 names, omits the SUB-QUEUE (3) level label and all edges, and places 'MESSAGE' in the first column of the third message row, so the hierarchy needed to follow the page-762 worked examples cannot be recovered. The claim quotes both sources accurately. The content loss is genuine but sits in informative Annex E.",
+    "corrected_description": ""
+  }
+}
