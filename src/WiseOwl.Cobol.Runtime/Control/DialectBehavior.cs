@@ -104,6 +104,18 @@ public enum DialectBehavior
     /// reference", so at <c>--std 85</c> a random READ (format 2, a KEY phrase) of an alternate key that has duplicates
     /// also answers '02' (kb/Work PB5117). The consumer is <c>IndexedConnector.ReadRandom</c>.</summary>
     IndexedDuplicateKeyStatusSequentialOnly = 5,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.22.4 GR9 b — an INSPECT operand's BEFORE phrase covers "the first character
+    /// position that is eligible to participate up to, but not including, the first occurrence encountered of
+    /// literal-2", so with an AFTER phrase too the BEFORE delimiter is looked for from the AFTER-derived position.
+    /// §1985:VI.6.18.4 GR8 b ("from its leftmost character position up to, but not including, the first occurrence of
+    /// literal-2 within the content of the data item referenced by identifier-1"), the 2002 text (14.8.21 GR8 b) and
+    /// the 2014 text measure the BEFORE portion from the leftmost position whatever the AFTER phrase says, and the
+    /// operand participates where the two portions intersect: AYAAXAA with AFTER "X" BEFORE "Y" tallies 0 below 2023,
+    /// 2 from 2023 (kb/Work PB5120). The rewording came with BACKWARD (§2023:E.3.3 item 34), which needs a delimiter
+    /// "encountered" in the scan's direction. The consumer is <c>InspectBinder.BindPhrases</c>, which sets
+    /// <c>BoundInspect.BeforeFromLeftmost</c> for the emitter and so for <c>CobolInspect.Region</c>.</summary>
+    InspectBeforeFromFirstEligiblePosition = 6,
 }
 
 /// <summary>
@@ -155,6 +167,10 @@ public static class DialectBehaviors
             "7.55", "14.9.30.4 GR27", "§1985:IX.1.3.4 GRL2.1",
             "I-O status 02 for a READ whose key of reference equals the next record's key is set only by a sequential "
             + "READ from COBOL-2002; COBOL-85 also sets it for a random READ of an alternate key's duplicate set"),
+        new(DialectBehavior.InspectBeforeFromFirstEligiblePosition, "inspect-before-from-first-eligible-position", 2023,
+            "7.56", "14.9.22.4 GR9 b", "§1985:VI.6.18.4 GR8 b",
+            "an INSPECT operand with both BEFORE and AFTER looks for the BEFORE delimiter from the AFTER-derived position "
+            + "only from COBOL-2023; COBOL-85, 2002 and 2014 look from the leftmost position and use the intersection"),
     ];
 
     static DialectBehaviors()

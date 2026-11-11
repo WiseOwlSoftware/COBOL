@@ -115,7 +115,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             string kinds = string.Join(", ", t.Select(x => RuntimeApi.InspectTallyKindText(x.Kind)));
             // Each operand's text, in source order: a function-identifier's value is evaluated HERE, once (see TallyOperandTexts).
             var (pats, befs, afts) = TallyOperandTexts(t, id, cat);
-            string tally = RuntimeApi.InspectTally(img, kinds, pats, befs, afts, back);
+            string tally = RuntimeApi.InspectTally(img, kinds, pats, befs, afts, back, ins.BeforeFromLeftmost);
             w.Line($"long[] __cnt{id} = {tally};");
             // One add per operand, in source order — the same counter may appear under several operands and
             // accumulates each count (GR11 — INSPECT adds, it never initializes).
@@ -161,13 +161,13 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             string? figs = r.Any(x => x.ReplacementIsFigurative)
                 ? string.Join(", ", r.Select(x => x.ReplacementIsFigurative ? "true" : "false"))
                 : null;
-            w.Line($"{img} = {RuntimeApi.InspectReplace(img, kinds, pats, reps, befs, afts, back, figs)};");
+            w.Line($"{img} = {RuntimeApi.InspectReplace(img, kinds, pats, reps, befs, afts, back, figs, ins.BeforeFromLeftmost)};");
             mutated = true;
         }
 
         if (ins.Converting is { } cv)
         {
-            w.Line($"{img} = {RuntimeApi.InspectConvert(img, OperandTextOf(cv.From, cat), OperandTextOf(cv.To, cat), OperandTextOf(cv.Before, cat), OperandTextOf(cv.After, cat), back, cv.ToIsFigurative)};");
+            w.Line($"{img} = {RuntimeApi.InspectConvert(img, OperandTextOf(cv.From, cat), OperandTextOf(cv.To, cat), OperandTextOf(cv.Before, cat), OperandTextOf(cv.After, cat), back, cv.ToIsFigurative, ins.BeforeFromLeftmost)};");
             mutated = true;
         }
 

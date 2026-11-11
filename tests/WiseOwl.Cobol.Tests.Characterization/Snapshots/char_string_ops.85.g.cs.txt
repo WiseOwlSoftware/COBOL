@@ -51,13 +51,13 @@ internal sealed class _PRG_CHAR_STRING_OPS : ICobolProgram
                     string __ins0 = WS_TXT;
                     if (__ins0.Length != 0)
                     {
-                        long[] __cnt0 = CobolInspect.Tally(__ins0, new int[] { CobolInspect.TallyAll }, new string?[] { "O" }, new string?[] { null }, new string?[] { null }, false);
+                        long[] __cnt0 = CobolInspect.Tally(__ins0, new int[] { CobolInspect.TallyAll }, new string?[] { "O" }, new string?[] { null }, new string?[] { null }, false, beforeFromLeftmost: true);
                         WS_CNT = (long)(CobolNum.Store(((Int128)(WS_CNT) + (__cnt0[0])), 0, _P_1, CobolRounding.Truncation));
                     }
                     string __ins1 = WS_TXT;
                     if (__ins1.Length != 0)
                     {
-                        __ins1 = CobolInspect.Replace(__ins1, new int[] { CobolInspect.ReplaceAll }, new string?[] { "L" }, new string?[] { "*" }, new string?[] { null }, new string?[] { null }, false);
+                        __ins1 = CobolInspect.Replace(__ins1, new int[] { CobolInspect.ReplaceAll }, new string?[] { "L" }, new string?[] { "*" }, new string?[] { null }, new string?[] { null }, false, beforeFromLeftmost: true);
                         WS_TXT = __ins1;
                     }
                     string __strInto0 = WS_OUT;

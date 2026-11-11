@@ -60,6 +60,10 @@
       "vcrRow": "29"
     },
     {
+      "id": "inspect-before-from-first-eligible-position",
+      "vcrRow": "7.56"
+    },
+    {
       "id": "perform-varying-after-init-inner-first",
       "vcrRow": "7.53"
     }
