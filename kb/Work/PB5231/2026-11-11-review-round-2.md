@@ -42,3 +42,8 @@ fixed for the cases they raised. It found one blocking gap and one lead.
 hash seeds, all wrote `c399e25b9a6ee4002690df5d475f3b3b000cf305e6e836c467e541e76ce5a9c3`. That is round 1's digest, as it
 should be: the generator's inputs did not change. Every module source the real generator executes is now opened and
 judged, and none lies outside its declared inputs.
+
+The merge of origin/main after this round brought only `tests/version-matrix/inventory-1985/` records (a live
+records-only change). The generator's key moved to `c3638872b296`, at tree `fc2c9c18cca6`. Three traced generations there
+(two paths, three seeds) again wrote `c399e25b9a6e…`, so Conformance's key is unchanged and Conformance is up to date: the
+cut-off this note exists for. With `_rederived_keys` replaced by the old store-keyed lookup, the new rederive arm FAILS.
