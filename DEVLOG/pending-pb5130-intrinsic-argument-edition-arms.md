@@ -41,3 +41,7 @@ A.2.30.3-4, A.2.31.3-1, A.2.2-4; its GAP 478 → 470), and AR-15.68.3-2's code-l
 COBOL6970-COBOL6972 are returned. Design: `docs/INTRINSICS_DESIGN.md` gains the section on edition arms of argument rules
 and the power arm of the type-6 screen. Left for adjudication: whether the 1989 module trims NUMVAL-C argument-2's edge
 spaces (the 2002 text says they are ignored; the scan still trims at 85).
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 24,025/24,025 ran · Unit 40,757/40,757 ran · Characterization up to
+date ... (run 000003-20261111T220507Z) ===` at fdce0fbfb2, after two reds (an inert-lane finding: the first drift test read
+the 1985 Markdown, which no compiler test may, PB4453; then the two signed-exponent goldens and AR-15.68.3-2's stale site).
