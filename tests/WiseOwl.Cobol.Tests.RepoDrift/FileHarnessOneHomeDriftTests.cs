@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// <c>Path.Combine(Path.GetTempPath(), $"...{Guid.NewGuid():N}.dat")</c> inline. A change to either took one edit per
 /// copy and the copies had already drifted (two different catch sets, and a guard on the file name in one).</para>
 ///
-/// <para><b>The rules, over every C# file of the three test assemblies (<c>tests/_shared</c> is not scanned: it is the
+/// <para><b>The rules, over every C# file of the gated test assemblies (<c>tests/_shared</c> is not scanned: it is the
 /// home).</b>
 /// <list type="number">
 ///   <item>No line builds a unique <c>.dat</c> or <c>.txt</c> file name from <c>Guid.NewGuid()</c>: call
@@ -36,7 +36,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 [Trait("Sweep", "tree")]
 public sealed class FileHarnessOneHomeDriftTests
 {
-    /// <summary>The four gated test assemblies' C# sources, COMMITTED (kb/Work PB3814): never a walk of the directories
+    /// <summary>The gated test assemblies' C# sources, COMMITTED (kb/Work PB3814): never a walk of the directories
     /// from the file system, which enters every running test host's <c>bin/</c> and <c>obj/</c>.</summary>
     private static readonly TreeScope TestAssemblySources = new(
         Under: ["tests/WiseOwl.Cobol.Tests.Unit/", "tests/WiseOwl.Cobol.Tests.RepoDrift/", "tests/WiseOwl.Cobol.Tests.Conformance/", "tests/WiseOwl.Cobol.Tests.Characterization/"],

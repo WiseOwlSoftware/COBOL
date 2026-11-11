@@ -20,7 +20,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 /// <c>// ── NEXT SENTENCE ──</c> section banner with no test under it at all. An empty test is the one defect a test
 /// suite structurally cannot report about itself, so this test reports it.</para>
 ///
-/// <para><b>The two rules, over every C# file of the three test assemblies.</b>
+/// <para><b>The two rules, over every C# file of the gated test assemblies (<see cref="TestAssemblySources"/>).</b>
 /// <list type="number">
 ///   <item>A <c>[Fact]</c> / <c>[Theory]</c> method that is not skipped must be ABLE to fail: its body contains at
 ///     least one invocation, object creation or throw. A body with none of them — <c>{ }</c>, or only local
@@ -34,7 +34,7 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 [Trait("Sweep", "tree")]
 public sealed class VacuousTestDriftTests
 {
-    /// <summary>The four gated test assemblies' C# sources, COMMITTED (kb/Work PB3814): never a walk of the directories
+    /// <summary>The gated test assemblies' C# sources, COMMITTED (kb/Work PB3814): never a walk of the directories
     /// from the file system, which enters every running test host's <c>bin/</c> and <c>obj/</c>.</summary>
     private static readonly TreeScope TestAssemblySources = new(
         Under: ["tests/WiseOwl.Cobol.Tests.Unit/", "tests/WiseOwl.Cobol.Tests.RepoDrift/", "tests/WiseOwl.Cobol.Tests.Conformance/", "tests/WiseOwl.Cobol.Tests.Characterization/"],

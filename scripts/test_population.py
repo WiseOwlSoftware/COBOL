@@ -6,7 +6,7 @@ docs/rearchitecture/DESIGN-test-build-ci.md §3.14.3–3.14.4)
 once", and until this tool three runs asserted it three different ways or not at all: CI summed each shard's
 `Total:` line against a `grep -c` of the listing (a count cannot see a dropped case offset by one that ran twice),
 while the battery accepted any `Passed!` line with exit 0 and the gate checked nothing. Its callers are the
-battery (`scripts/battery.sh` PHASE 1, all four assemblies) and CI's `ci-gate` job (each platform's weighted
+battery (`scripts/battery.sh` PHASE 1, every gated assembly) and CI's `ci-gate` job (each platform's weighted
 shards' trx files, per assembly, kb/Work PB4329); the gate (scripts/gate.py) calls `list_population` and `check` per
 assembly over its host's trx.
 
@@ -79,6 +79,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import json
 import os
 import re
 import subprocess
@@ -97,15 +98,12 @@ TRX_NS = "{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}"
 RAN_OUTCOMES = frozenset({"Passed", "Failed"})
 RC_EXACT, RC_RED, RC_ERROR = 0, 1, 2
 
-#: THE GATED ASSEMBLIES — every whole-population run's four test projects, by the key the gate, the weights file and
-#: CI's shards name them with (the test assembly's name without `WiseOwl.Cobol.Tests.`). Their one statement: the gate
-#: and the shard tools read it from here.
-GATED_ASSEMBLIES = {
-    "Conformance": "tests/WiseOwl.Cobol.Tests.Conformance",
-    "Unit": "tests/WiseOwl.Cobol.Tests.Unit",
-    "RepoDrift": "tests/WiseOwl.Cobol.Tests.RepoDrift",
-    "Characterization": "tests/WiseOwl.Cobol.Tests.Characterization",
-}
+#: THE GATED ASSEMBLIES — every whole-population run's test projects, by the key the gate, the weights file and CI's
+#: shards name them with (the test assembly's name without `WiseOwl.Cobol.Tests.`), in the order the gate starts their
+#: hosts. Their ONE statement is the targets file (scripts/build_targets.json: each target's `assembly` and `project`,
+#: in its order), read here so no second list can drift from it (kb/Work PB5230 review R1-4).
+GATED_ASSEMBLIES = {t["assembly"]: t["project"].rstrip("/") for t in json.loads(
+    (REPO / "scripts" / "build_targets.json").read_text(encoding="utf-8"))["targets"].values()}
 
 #: CI's weighted shards (kb/Work PB4329; tests/_shared/GateLegs.cs `GateShard`): the one narrowing a WORKFLOW may set,
 #: because the workflow that sets it checks its shards' union with `check` (`audit_callers` holds it to that).

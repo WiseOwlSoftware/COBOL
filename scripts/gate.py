@@ -11,7 +11,7 @@ docs/rearchitecture/DESIGN-test-build-ci.md §3.14.1, §3.14.3, §3.14.6, §3.17
 Called by `scripts/build-local.ps1` and `scripts/build-local.sh`, which only set the process priority.
 
 ⛔ THE POPULATION IS THE SELECTION (owner decision 1 of PB4323, 2026-10-31; kb/Work PB4328). A change that a test can read
-runs the WHOLE Unit, RepoDrift, Conformance and Characterization populations on this host: no plan, no tiers, no impact map, no leg
+runs the WHOLE population of every test target (scripts/build_targets.json, test_population.GATED_ASSEMBLIES) on this host: no plan, no tiers, no impact map, no leg
 2. The order inside each assembly is the test framework's (tests/_shared/GateLegs.cs `GateOrderer`): the test classes
 the previous run of this worktree, or the merge-group run that bounced its pull request, saw red go first, then the
 rest longest first by the committed weights file (tests/_shared/test-weights.json). Ordering changes WHEN a case runs,
@@ -34,7 +34,7 @@ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-b
      (`Host.stop_hosts`) and ends the gate RED (kb/Work PB2523, PB4326). The GnuCOBOL corpus, by the ONE rule
      scripts/external_corpus.py (kb/Work PB2611), is fetched BEFORE the slot (kb/Work PB2524);
   4. the gate slot, always after the lock, so no two gates can wait on each other in a cycle; then the solution build;
-  5. the four assemblies' WHOLE populations CONCURRENTLY, each one `dotnet test --no-build` host in a scrubbed
+  5. the gated assemblies' WHOLE populations CONCURRENTLY, each one `dotnet test --no-build` host in a scrubbed
      environment, printed through scripts/test_leg_report.py; beside them each assembly's `--list-tests` (scrubbed), and,
      only when the change touches tooling, the self-test that reads the built assemblies (`self_tests.py --built`; a red
      one makes the gate RED — kb/Work PB4326);
@@ -2023,7 +2023,7 @@ class Gate:
     @staticmethod
     def _concurrency(out: Outcome) -> float | None:
         """EFFECTIVE CONCURRENCY of the hosts (kb/Work PB4326): their wall seconds summed over the span they took. 3.0
-        means the four assemblies ran flat out side by side; near 1.0, one assembly's tail ran alone. None when no host
+        means the assemblies ran flat out side by side; near 1.0, one assembly's tail ran alone. None when no host
         ran."""
         span = out.timings.get("tests_s", 0.0)
         return round(sum(r.wall_s for r in out.runs) / span, 2) if out.runs and span > 0 else None

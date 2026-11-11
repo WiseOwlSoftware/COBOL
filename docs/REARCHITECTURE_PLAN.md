@@ -40,7 +40,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   batch 3 are HELD until zero known compiler defects. Quota: owner 2026-10-10, 100 % of the
   weekly allowance (loop `-BorrowDays 6`), never past the 5-hour session limit.
 - **▶ GATE POLICY (owner 2026-10-31, owner decision 1 of PB4323; kb/Work PB4328): THE POPULATION IS THE SELECTION.**
-  Every gate of a change a test can read runs the WHOLE Windows Unit, RepoDrift, Conformance and Characterization populations
+  Every gate of a change a test can read runs on Windows the WHOLE population of every test target (`scripts/build_targets.json`)
   (`scripts/gate.py`, one shape since 2026-10-11, kb/Work PB3015 Q1a, PB3022), the classes red at its previous run or
   in the bouncing merge-group run first, then longest first by the committed weights; batched gating (PB2515), the order
   plan, its tiers and PB4269's whole-tier rule, the impact map and the implementer scope are gone with PB4328. Each
@@ -1915,7 +1915,7 @@ result. Run the long legs ONE AT A TIME.
   implementer's commit, a re-gate and a landing (at Normal priority). ORDER, DON'T SKIP (owner, 2026-09-28): its
   driver `scripts/gate.py` holds the worktree's gate lock, runs the audits (beside the build and the legs, outside
   the slot, kb/Work PB2524, PB4326), takes a gate slot (`scripts/gate_slot.py`, at most N gates at once), builds the SOLUTION and runs the
-  WHOLE Unit, RepoDrift, Conformance and Characterization populations, four hosts at once (the classes red at its previous run
+  WHOLE population of every test target (`scripts/build_targets.json`) not up to date at its key, one host each at once (the classes red at its previous run
   first, then longest first by the committed weights; kb/Work PB4328), then checks each assembly's population by name
   against `--list-tests`; GREEN only when every host is green and every population exact. No gate filters:
   the PB36 lesson (a filter chosen from where the goldens sat missed the tests the change broke) and PB1683's (a

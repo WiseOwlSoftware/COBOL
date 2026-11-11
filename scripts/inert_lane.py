@@ -156,7 +156,7 @@ def under(path: str, entry: str) -> bool:
 #: compiler tests to (`markdown_readers`).
 MARKDOWN_ENTRY = "**/*.md"
 #: ⛔ THE LANES, cheapest first (module docstring): `inert` runs the audits; `tooling` the audits with the script
-#: self-tests; `full` (the code lane) the build and the four whole populations beside the audits.
+#: self-tests; `full` (the code lane) the build and the gated whole populations beside the audits.
 LANES = ("inert", "tooling", "full")
 #: The lanes whose gate runs no compiler test, so its record keeps no test result: no compiler test reads the change.
 TEST_FREE_LANES = frozenset({"inert", "tooling"})
@@ -185,7 +185,7 @@ class Lane:
 
     @property
     def builds(self) -> bool:
-        """The code lane: a build and the four whole populations."""
+        """The code lane: a build and the gated whole populations."""
         return self.name == "full"
 
 
@@ -428,6 +428,9 @@ CLASSIFICATION = Classification(inert={
        "scripts/guard*.sh": "CorpusManifestTests, which LISTS scripts/ for every guard*.sh: a pattern, so a guard script "
                             "added later is the code lane too",
        "scripts/test_population.py": "every gate leg: it plans the population the compiler tests run",
+       "scripts/build_targets.json": "scripts/test_population.py (GATED_ASSEMBLIES, the gated assemblies' one statement) "
+                                     "and RepoDrift's GateLegDriftTests (the gated projects and the weights' assemblies, "
+                                     "kb/Work PB5230)",
        "scripts/filter_population.py": "its self-test reads the built test assemblies",
        # The modules the scripts above IMPORT (`code_readers`' import closure, kb/Work PB4395 review R2-1).
        "scripts/standard_streams.py": "imported at startup by every script a compiler test runs: conformance-suite/"

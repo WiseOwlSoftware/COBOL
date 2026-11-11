@@ -1,5 +1,5 @@
 {
-  "about": "THE BUILD TARGETS (kb/Work PB5207, PB5218; scripts/buildgraph.py): each test assembly is a target with DECLARED INPUTS, and its key is a digest of the git blob ids of the tracked paths those inputs match, minus the excluded classes, plus its facets. A pass is recorded once per target and key in the one store every worktree shares. An input missed here is a FALSE GREEN, so every entry names its reader, and `python scripts/buildgraph.py check` (the BUILD TARGETS audit) fails when a test source of an assembly names a repository path outside its target's inputs.",
+  "about": "THE BUILD TARGETS (kb/Work PB5207, PB5218; scripts/buildgraph.py): each test assembly is a target with DECLARED INPUTS, and its key is a digest of the git blob ids of the tracked paths those inputs match, minus the excluded classes, plus its facets. A pass is recorded once per target and key in the one store every worktree shares. An input missed here is a FALSE GREEN, so every entry names its reader, and `python scripts/buildgraph.py check` (the BUILD TARGETS audit) fails when a test source of an assembly names a repository path outside its target's inputs. The targets' order is the gate's host start order, the longest population first; scripts/test_population.py GATED_ASSEMBLIES reads the assemblies from here (kb/Work PB5230).",
   "facets": ["platform", "configuration", "toolchain"],
   "build": {
     "about": "What building a test assembly and the compiler it tests reads, shared by every test target ('@build').",
@@ -18,9 +18,42 @@
       "scripts/gen-vault-reference.ps1": "the Cli project's Exec step",
       "scripts/gen-grammar-diagrams.ps1": "the Cli project's Exec step",
       "tools/rr/": "scripts/gen-grammar-diagrams.ps1 (the Cli project's Exec step)"
+    },
+    "judged": {
+      "tests/_shared/TrackedTree.cs|new ProcessStartInfo(\"git\", \"ls-files -z\") { WorkingDirectory = TestRepo.Root });": "`git ls-files` at the root reads the index, never a file: the names it returns reach a caller only through TrackedTree.Files(scope), and the audit records every Under prefix of every declared TreeScope as a read of its directory in the declaring source (a prefix without `/` at the top is a bare root there, refused in a narrow target); TrackedTreeScopeDriftTests holds every TrackedTree.Files call to a declared scope",
+      "tests/_shared/PythonInstrument.cs|var psi = new ProcessStartInfo(Interpreter.Value) { WorkingDirectory = TestRepo.Root };": "the working directory of the Python script a test runs; the one caller is SuiteManifest's conformance-suite/harness/generate.py --out, whose traced reads each target that uses SuiteManifest declares (unit, conformance); what the script reads is the script's, not a path this statement spells",
+      "tests/_shared/GateLegAudit.cs|var offenders = RootCarrying(cases.Select(c => (c.DisplayName, (object[]?)c.TestMethodArguments)), HostRoot);": "arm (5): the root AS TEXT, matched against discovered case names (RootCarrying compares strings, opens nothing)"
     }
   },
   "targets": {
+    "conformance": {
+      "assembly": "Conformance",
+      "project": "tests/WiseOwl.Cobol.Tests.Conformance/",
+      "inputs": {
+        "@build": "the compiler, the runtime and the CLI it builds and runs",
+        "tests/WiseOwl.Cobol.Tests.Conformance/": "its own sources, project and data",
+        "conformance-suite/": "the suite's tests, adapters and harness (SuiteManifest runs harness/generate.py --out; ConformanceSuite runs harness/run.py)",
+        "tests/nist/": "the NIST corpus, its manifest, data and goldens (CorpusManifest, NistRunner)",
+        "tests/differential/": "the differential goldens (DifferentialGolden)",
+        "tests/version-matrix/": "the construct catalogue (VersionBehaviorMatrixTests) and, through harness/generate.py, the traceability inventory of both editions, inventory-schema.json, reserved-words.json, annex-a2-undefined.json and conformance-register.json (traced run of generate.py --out, kb/Work PB5218)",
+        "docs/rearchitecture/spec-rule-catalog.json": "harness/generate.py (the inventory view)",
+        "docs/rearchitecture/spec-rule-catalog-1985.json": "harness/generate.py (the inventory view)",
+        "specs/ISO_COBOL_2023.md": "harness/generate.py (traced)",
+        "scripts/spec/": "harness/generate.py imports construct_store, inventory_schema, inventory_view, inventory_store, lineage, generated_output",
+        "scripts/standard_streams.py": "imported by harness/run.py and generate.py",
+        "scripts/live_tools.py": "imported by scripts/standard_streams.py",
+        "scripts/git_batch.py": "imported by scripts/spec/inventory_store.py (generate.py)",
+        "scripts/scratch_repo.py": "imported through generate.py's chain (inert_lane CODE_READS)",
+        "scripts/guard*.sh": "CorpusManifestTests lists and reads them",
+        "tests/doc-facts/": "DocFacts (tests/_shared), used by DynamicLengthTests and StopGobackExitCodeTests (found by the BUILD TARGETS audit)"
+      },
+      "exclude": ["@inert", "@tooling-lane"],
+      "judged": {
+        "tests/WiseOwl.Cobol.Tests.Conformance/CorpusManifestTests.cs|scripts/": "TestRepo.Scripts(script) over the literal arrays of guard scripts it names (guard-fast.sh, guard-run-group.sh, guard-nist-audit.sh): each matches scripts/guard*.sh",
+        "tests/WiseOwl.Cobol.Tests.Conformance/ArchOracle.cs|foreach (var (root, token) in new[] { (scratch, \"<scratch>\"), (TestRepo.Root, \"<repo>\") })": "ArchOracle.Portable: the root AS TEXT, replaced by `<repo>` in captured diagnostics and emitted C#; nothing is read through it",
+        "tests/WiseOwl.Cobol.Tests.Conformance/ArchOracleDriftTests.cs|string[] machineSpecific = [TestRepo.Root, Path.GetTempPath()];": "the root AS TEXT: the drift test asserts no observation contains it; nothing is read through it"
+      }
+    },
     "unit": {
       "assembly": "Unit",
       "project": "tests/WiseOwl.Cobol.Tests.Unit/",
@@ -59,9 +92,7 @@
       },
       "exclude": ["@inert", "@tooling-lane"],
       "judged": {
-        "tests/_shared/TrackedTree.cs|": "`git ls-files` at the root: the names it returns are filtered by the caller's TreeScope before any caller sees one, and each scope's Under prefixes are literal reads the audit judges in that caller (TrackedTreeScopeDriftTests holds every TrackedTree.Files call to a declared scope; a whole-tree scope, Under \"\", is a bare root reference there)",
-        "tests/_shared/GateLegAudit.cs|": "GateLegAudit.HostRoot: the root AS TEXT, which arm (5) matches discovered case names against; no file is read through it",
-        "tests/_shared/PythonInstrument.cs|": "the working directory of the one Python script a Unit test runs, SuiteManifest's conformance-suite/harness/generate.py --out, whose reads are the generator inputs declared above (traced, kb/Work PB5218)"
+        "tests/WiseOwl.Cobol.Tests.Unit/GateLegDriftTests.cs|\"host\" => GateLegAudit.HostRoot,": "arm (5)'s witness on this host: the root AS TEXT, planted into display names the audit must flag; nothing is read through it"
       }
     },
     "repo-drift": {
@@ -72,32 +103,6 @@
       },
       "exclude": ["@inert", "@tooling-lane"]
     },
-    "conformance": {
-      "assembly": "Conformance",
-      "project": "tests/WiseOwl.Cobol.Tests.Conformance/",
-      "inputs": {
-        "@build": "the compiler, the runtime and the CLI it builds and runs",
-        "tests/WiseOwl.Cobol.Tests.Conformance/": "its own sources, project and data",
-        "conformance-suite/": "the suite's tests, adapters and harness (SuiteManifest runs harness/generate.py --out; ConformanceSuite runs harness/run.py)",
-        "tests/nist/": "the NIST corpus, its manifest, data and goldens (CorpusManifest, NistRunner)",
-        "tests/differential/": "the differential goldens (DifferentialGolden)",
-        "tests/version-matrix/": "the construct catalogue (VersionBehaviorMatrixTests) and, through harness/generate.py, the traceability inventory of both editions, inventory-schema.json, reserved-words.json, annex-a2-undefined.json and conformance-register.json (traced run of generate.py --out, kb/Work PB5218)",
-        "docs/rearchitecture/spec-rule-catalog.json": "harness/generate.py (the inventory view)",
-        "docs/rearchitecture/spec-rule-catalog-1985.json": "harness/generate.py (the inventory view)",
-        "specs/ISO_COBOL_2023.md": "harness/generate.py (traced)",
-        "scripts/spec/": "harness/generate.py imports construct_store, inventory_schema, inventory_view, inventory_store, lineage, generated_output",
-        "scripts/standard_streams.py": "imported by harness/run.py and generate.py",
-        "scripts/live_tools.py": "imported by scripts/standard_streams.py",
-        "scripts/git_batch.py": "imported by scripts/spec/inventory_store.py (generate.py)",
-        "scripts/scratch_repo.py": "imported through generate.py's chain (inert_lane CODE_READS)",
-        "scripts/guard*.sh": "CorpusManifestTests lists and reads them",
-        "tests/doc-facts/": "DocFacts (tests/_shared), used by DynamicLengthTests and StopGobackExitCodeTests (found by the BUILD TARGETS audit)"
-      },
-      "exclude": ["@inert", "@tooling-lane"],
-      "judged": {
-        "tests/WiseOwl.Cobol.Tests.Conformance/CorpusManifestTests.cs|scripts/": "TestRepo.Scripts(script) over the literal arrays of guard scripts it names (guard-fast.sh, guard-run-group.sh, guard-nist-audit.sh): each matches scripts/guard*.sh"
-      }
-    },
     "characterization": {
       "assembly": "Characterization",
       "project": "tests/WiseOwl.Cobol.Tests.Characterization/",
@@ -106,7 +111,10 @@
         "tests/WiseOwl.Cobol.Tests.Characterization/": "its own sources, project and snapshots (CharacterizationCorpus SnapshotDir)",
         "tests/characterization/": "its corpus (CharacterizationCorpus)"
       },
-      "exclude": ["@inert", "@tooling-lane"]
+      "exclude": ["@inert", "@tooling-lane"],
+      "judged": {
+        "tests/WiseOwl.Cobol.Tests.Characterization/CharacterizationCorpus.cs|TestRepo.Root.Replace('\\\\', '/').TrimEnd('/') + \"/\";": "Snapshot.RepoRootFwd: the root AS TEXT, stripped from snapshot diagnostics so they are repo-relative; nothing is read through it"
+      }
     }
   }
 }

@@ -101,7 +101,7 @@ _SLOT_FILE = re.compile(r"(\d+)\.lock")
 # 2026-09-29: quiet 143.1 / 135.8 / 133.6 s; N=1 1.24x and 1.30x; N=2 1.58x and 1.52x; N=3 1.56x. Only N=1 stayed
 # within 1.25x, but at cap 1 implementer gates waited 62 % of their wall time (the w1033 survey); the owner chose the
 # throughput. Re-measured for the whole-population gate (kb/Work PB4328, 2026-11-01, quiet box, compile cache off):
-# one gate's three populations 247 s; three whole gates started together 503 s each, 2.04x, so three gates finish
+# one gate's three populations (2026-11-01, before RepoDrift was split out) 247 s; three whole gates started together 503 s each, 2.04x, so three gates finish
 # in 503 s where one-at-a-time takes 741 s, and cap 3 stays.
 DEFAULT_SLOTS = 3
 DEFAULT_POLL_S = 1.0

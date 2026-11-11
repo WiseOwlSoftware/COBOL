@@ -27,10 +27,12 @@ reads it, proven by the same watch and the INERT LANE audit) are the classes a t
 THE DECLARATIONS ARE CHECKED, NOT TRUSTED (`check`, `undeclared`). The audit reads every test source of an assembly and
 the `tests/_shared` files it uses (by the types it names, transitively) and finds each repository read it spells: a
 `TestRepo` helper with its leading literal segments, `Path.Combine(TestRepo.Root, "…")`, and a string literal rooted at a
-top-level tracked directory. A read outside the assembly's declared inputs is a finding naming its file and line. Its
-residue, named: a path computed at run time from a non-literal, and what a process the test starts reads; the generator of
-the conformance suite was traced instead (kb/Work PB5218), and the dynamic proof (the Linux shards' file watch, per
-target) is the remaining work kb/Work PB5218 states.
+top-level tracked directory (`reads_in`, `_root_use`). A read outside the assembly's declared inputs is a finding naming
+its file and line, and so, in a target declared narrowly (no `@population-inputs`), is a read it cannot resolve: a bare
+repository root that no statement judgment covers (kb/Work PB5230 review R1-1). Its residue, named: in `repo-drift` the
+bare roots it counts, and in every target what a process the test starts reads; the generator of the conformance suite
+was traced instead (kb/Work PB5218), and the dynamic proof (the Linux shards' file watch, per target) is the remaining
+work kb/Work PB5218 states.
 """
 from __future__ import annotations
 
@@ -69,6 +71,12 @@ class Target:
     exclude: tuple[str, ...]
     #: Reads the audit cannot resolve by itself, each judged by hand with its reason: `<source file>|<read>` -> why.
     judged: tuple[tuple[str, str], ...] = ()
+
+    @property
+    def broad(self) -> bool:
+        """Whether its inputs are every population input (`@population-inputs`): such a target covers a read it cannot
+        resolve; a narrowly declared one cannot (`check`)."""
+        return "@population-inputs" in self.inputs
 
     def matches(self, path: str, cls: inert_lane.Classification = inert_lane.CLASSIFICATION) -> bool:
         """Whether the tracked `path` is an input of this target."""
@@ -109,13 +117,15 @@ def load_targets(path: Path = TARGETS_FILE) -> dict[str, Target]:
     """The targets file, `@build` expanded; raises ValueError on a malformed one."""
     data = json.loads(path.read_text(encoding="utf-8"))
     build = tuple(data["build"]["inputs"])
+    #: Judgments of the shared sources (tests/_shared, part of `@build`): every target that uses the file shares them.
+    shared_judged = data["build"].get("judged") or {}
     targets: dict[str, Target] = {}
     for name, t in data["targets"].items():
         inputs: list[str] = []
         for p in t["inputs"]:
             inputs += list(build) if p == "@build" else [p]
         targets[name] = Target(name, t["assembly"], t["project"], tuple(inputs), tuple(t.get("exclude", ())),
-                               tuple((k, v) for k, v in (t.get("judged") or {}).items()))
+                               tuple((k, v) for k, v in {**shared_judged, **(t.get("judged") or {})}.items()))
     if not targets:
         raise ValueError(f"{path} declares no target")
     return targets
@@ -218,7 +228,15 @@ WITHIN = "Within"
 #: computes a string), or a documentation reference (`<see cref="TestRepo.Root"/>`, `nameof(TestRepo.Root)`).
 NOT_A_READ = re.compile(r"(?:Path\.GetRelativePath\(\s*|cref=\"|nameof\(\s*)$")
 #: A declared sweep of the tracked tree (tests/_shared/TrackedTree.cs `TreeScope`): its `Under` prefixes.
-TREE_SCOPE = re.compile(r"\bTreeScope\s+\w+\s*=\s*new\(\s*Under:\s*\[([^\]]*)\]")
+TREE_SCOPE = re.compile(r"\bTreeScope\s+\w+\s*=\s*new(?:\s+TreeScope)?\(\s*Under:\s*\[([^\]]*)\]")
+#: The literal head of an interpolated string, up to its first hole: `$"tests/differential/{name}"`.
+INTERPOLATED_HEAD = re.compile(r'(?:\$@?|@\$)"([^"{}\\]*)\{')
+#: A member that IS the repository root under another name (`static string HostRoot => TestRepo.Root;`): each use of it
+#: is judged as a use of `TestRepo.Root` (kb/Work PB5230 R1-5), so an alias cannot hide a read.
+ROOT_ALIAS = re.compile(r"\bstatic\s+string\s+(\w+)\s*(?:=>|\{\s*get;\s*\}\s*=)\s*TestRepo\.Root\s*;")
+#: The top-level type a source declares first: an alias's declaring type.
+FIRST_TYPE = re.compile(r"^(?:(?:internal|public|static|sealed|partial|abstract|file|readonly)\s+)*"
+                        r"(?:class|record|struct)\s+(\w+)", re.MULTILINE)
 STRING = re.compile(r'"((?:[^"\\\n]|\\.)*)"')
 #: A TOP-LEVEL type declaration (no indentation): what another source must name to use a tests/_shared file. Nested types
 #: (`Row`, `Edition`) are reached through their outer type, and their common names would link every file to every other.
@@ -280,16 +298,128 @@ def _leading_literals(args: list[str]) -> tuple[int, list[str]]:
     for a in args:
         m = re.fullmatch(r'"([^"{}\\]*)"', a)
         if m is None:
+            # An interpolated string (`$"tests/differential/{name}"`) spells the directories before its first hole and
+            # nothing after: its complete leading segments count, and the path stops there (kb/Work PB5230 R1-1).
+            if (i := INTERPOLATED_HEAD.match(a)) is not None:
+                segs += [s for s in i.group(1).rpartition("/")[0].split("/") if s]
             break
         n += 1
         segs += [s for s in m.group(1).split("/") if s]
     return n, segs
 
 
-def reads_in(text: str, top_dirs: list[str]) -> list[tuple[int, str]]:
+def _line_at(text: str, i: int) -> str:
+    """The source line holding offset `i`."""
+    end = text.find("\n", i)
+    return text[text.rfind("\n", 0, i) + 1:end if end >= 0 else len(text)]
+
+
+def _context(text: str, pos: int) -> str:
+    """Where offset `pos` lies on its line: "code", "comment", "string" (a literal's text) or "hole" (an interpolated
+    string's `{…}`), read by a small scanner of C# string and comment syntax from the line's start. A string a line
+    break continues (a raw or verbatim literal over lines) is not followed; such a line reads as code, which is the
+    side that reports a read rather than hides one."""
+    i = text.rfind("\n", 0, pos) + 1
+    stack: list[tuple[str, bool]] = []   # ("S" string | "I" interpolated | "H" hole, verbatim)
+    while i < pos:
+        c = text[i]
+        kind, verbatim = stack[-1] if stack else ("code", False)
+        if kind in ("S", "I"):
+            if c == "\\" and not verbatim:
+                i += 2
+                continue
+            if c == '"':
+                if verbatim and text[i + 1:i + 2] == '"':
+                    i += 2
+                    continue
+                stack.pop()
+            elif kind == "I" and c == "{":
+                if text[i + 1:i + 2] == "{":
+                    i += 2
+                    continue
+                stack.append(("H", False))
+            i += 1
+            continue
+        if c == "/" and text[i + 1:i + 2] == "/":
+            return "comment"
+        if c == '"':
+            prefix = text[max(0, i - 2):i]
+            stack.append(("I" if prefix.endswith("$") or prefix in ("$@", "@$") else "S", prefix.endswith("@")))
+        elif c == "}" and kind == "H":
+            stack.pop()
+        i += 1
+    if not stack:
+        return "code"
+    return {"S": "string", "I": "string", "H": "hole"}[stack[-1][0]]
+
+
+def _root_use(text: str, start: int, end: int) -> list[str]:
+    """The reads one use of the repository root (`TestRepo.Root`, or an alias of it) at `text[start:end]` spells: none
+    when it is TEXT, else a path, a directory (ending in `/`) or "" (a bare root, unresolved).
+
+    It is TEXT exactly when: it lies in a comment or in a string literal's text; it is made relative
+    (`Path.GetRelativePath(TestRepo.Root, …)`, a string computed from paths) or named (`cref`, `nameof`); or it is an
+    interpolated string's hole whose neighbours in that string are neither a path separator nor the string's own quotes
+    (`$"… '{TestRepo.Root}'; …"`). A hole the string continues with a separator (`$"{TestRepo.Root}/tests/x.out"`) is a
+    read of the literal path that follows it, up to the next hole; a hole preceded by a separator, a hole that is the
+    whole string (`$"{TestRepo.Root}"`, which flows wherever it is passed) and a hole with a format are bare roots.
+    `Path.Combine(TestRepo.Root, "a", …)` and `Path.Combine([TestRepo.Root, "a", …])` read their literal segments; any
+    other use is a bare root (kb/Work PB5230 review R1-2: a form the audit cannot classify is a read, never text)."""
+    where = _context(text, start)
+    if where in ("comment", "string") or ROOT_ALIAS.search(_line_at(text, start)):
+        return []   # text, or an alias's declaration: each USE of the alias is judged where it is (`root_aliases`)
+    before = text[max(0, start - 60):start]
+    if NOT_A_READ.search(before):
+        return []
+    if where == "hole" and text[start - 1:start] == "{":
+        if text[end:end + 1] != "}":
+            return [""]
+        nxt, prv = text[end + 1:end + 2], text[start - 2:start - 1]
+        if nxt in ("/", "\\"):
+            tail = re.match(r'[^"{]*', text[end + 1:]).group(0)
+            closed = text[end + 1 + len(tail):end + 2 + len(tail)] == '"'
+            segs = [s for s in re.split(r"[/\\]+", tail) if s]
+            if not closed and not tail.endswith(("/", "\\")):
+                segs = segs[:-1]
+            if not segs:
+                return [""]
+            return ["/".join(segs) if closed else "/".join(segs) + "/"]
+        if prv in ("/", "\\") or (prv == '"' and nxt == '"'):
+            return [""]
+        return []
+    call = re.search(r"Path\.Combine\(\s*(\[\s*)?$", before)
+    if call is not None:
+        open_at = text.rindex("[" if call.group(1) else "(", 0, start)
+        parts = [x for x in _split_top(_args(text, open_at) or "")[1:] if x]
+        n, segs = _leading_literals(parts)
+        path = "/".join(segs)
+        return [path if n == len(parts) and n > 0 else (path + "/" if path else "")]
+    return [""]
+
+
+def root_aliases(sources: dict[str, str]) -> list[str]:
+    """The uses of every root alias the sources declare (ROOT_ALIAS), as patterns: `Type.Member` anywhere, and the bare
+    member in its declaring file (`(?<!\\.)Member`, applied to that file only by `reads_in`'s caller)."""
+    out = []
+    for text in sources.values():
+        owner = FIRST_TYPE.search(text)
+        for m in ROOT_ALIAS.finditer(text):
+            out.append(rf"\b{re.escape(owner.group(1))}\.{re.escape(m.group(1))}\b" if owner else rf"\b{m.group(1)}\b")
+    return out
+
+
+def own_root_aliases(text: str) -> list[str]:
+    """The bare uses, inside the file that declares it, of a root alias (`HostRoot` beside `static string HostRoot =>
+    TestRepo.Root;`)."""
+    return [rf"(?<![\w.]){re.escape(m.group(1))}\b" for m in ROOT_ALIAS.finditer(text)]
+
+
+def reads_in(text: str, top_dirs: list[str], aliases: list[str] | tuple[str, ...] = ()) -> list[tuple[int, str]]:
     """Every repository read `text` (a C# source) spells, with its line: a path when every segment is a literal, else the
-    directory its literal segments reach, ending in `/` ("" is the whole repository)."""
+    directory its literal segments reach, ending in `/` ("" is the whole repository: a bare root, unresolved). `aliases`
+    are the patterns of the root's other names (`root_aliases`); this file's own are added."""
     found: list[tuple[int, str]] = []
+    aliases = [*aliases, *own_root_aliases(text)]
 
     def line_of(i: int) -> int:
         return text.count("\n", 0, i) + 1
@@ -315,42 +445,49 @@ def reads_in(text: str, top_dirs: list[str]) -> list[tuple[int, str]]:
         if helper in SUITE_CASE_HELPERS:
             found += [(line_of(m.start()), tree) for tree in SUITE_CASE_HELPERS[helper]]
             continue
-        base =TESTREPO_BASES.get(helper, None) if helper in TESTREPO_BASES else None
+        base = TESTREPO_BASES.get(helper, None) if helper in TESTREPO_BASES else None
         if base is None or m.start() in listed:
             continue
-        if helper == "Root" and (NOT_A_READ.search(before) or (before.endswith("{") and text[m.end():m.end() + 1] == "}")):
-            continue   # the root as TEXT: a path made relative to it, a doc reference, an interpolated message
+        if helper == "Root":
+            found += [(line_of(m.start()), r) for r in _root_use(text, m.start(), m.end())]
+            continue
         segs: list[str] = []
         complete = False
-        if helper == "Root":
-            call = re.search(r"Path\.Combine\(\s*(\[\s*)?$", before)
-            if call is not None:
-                open_at = text.rindex("[" if call.group(1) else "(", 0, m.start())
-                whole = _args(text, open_at)
-                parts = [x for x in _split_top(whole or "")[1:] if x]
-                n, segs = _leading_literals(parts)
-                complete = n == len(parts) and n > 0
-        else:
-            args = _args(text, m.end())
-            if args is not None:
-                parts = _spread([x for x in _split_top(args) if x])
-                n, segs = _leading_literals(parts)
-                complete = n == len(parts) and n > 0
+        args = _args(text, m.end())
+        if args is not None:
+            parts = _spread([x for x in _split_top(args) if x])
+            n, segs = _leading_literals(parts)
+            complete = n == len(parts) and n > 0
         path = "/".join(x for x in [base, *segs] if x)
         found.append((line_of(m.start()), path if complete else (path + "/" if path else "")))
+    for alias in aliases:
+        # A use of a root alias is a use of the root (ROOT_ALIAS); its own declaration is not.
+        for m in re.finditer(alias, text):
+            if ROOT_ALIAS.search(_line_at(text, m.start())) is None:
+                found += [(line_of(m.start()), r) for r in _root_use(text, m.start(), m.end())]
     roots = "|".join(re.escape(d) for d in top_dirs)
     lit = re.compile(rf"^(?:{roots})/[^\s{{}}<>|]*$") if roots else None
     for m in STRING.finditer(text):
         s = m.group(1)
+        interpolated = text[max(0, m.start() - 2):m.start()].endswith("$") or text[max(0, m.start() - 2):m.start()] == "$@"
+        if interpolated and "{" in s:
+            # An interpolated string's literal head, up to its first hole, is the directory it reads within (R1-1).
+            head = s.split("{", 1)[0]
+            if lit is not None and lit.match(head):
+                found.append((line_of(m.start()), head if head.endswith("/") else head.rpartition("/")[0] + "/"))
+            continue
         if lit is None or not lit.match(s):
             continue
         cut = re.split(r"[*?]", s, maxsplit=1)[0]
         found.append((line_of(m.start()), s if cut == s else (cut if cut.endswith("/") else cut.rsplit("/", 1)[0] + "/")))
     for m in TREE_SCOPE.finditer(text):
-        # A sweep of the tracked tree reads what its scope's `Under` prefixes hold; a directory prefix is a literal read
-        # above, and the empty prefix is the whole tree: a bare root reference like any other.
-        if '""' in re.findall(r'"[^"]*"', m.group(1)):
-            found.append((line_of(m.start()), ""))
+        # A sweep of the tracked tree reads every path its scope's `Under` prefixes hold (TreeScope.Holds compares
+        # ordinally, so "tests" holds tests/ and any sibling spelled "tests…"): a prefix ending in `/` is that directory;
+        # any other is the directory that holds its last segment, and a prefix at the top ("tests", "") is the whole tree,
+        # a bare root reference (kb/Work PB5230 review R1-3).
+        for prefix in re.findall(r'"([^"]*)"', m.group(1)):
+            found.append((line_of(m.start()), prefix if prefix.endswith("/")
+                          else (prefix.rpartition("/")[0] + "/" if "/" in prefix else "")))
     return found
 
 
@@ -377,12 +514,14 @@ def assembly_sources(repo: Path, target: Target) -> list[Path]:
 @dataclass(frozen=True)
 class Scan:
     """THE BUILD TARGETS AUDIT for one target, from ONE pass over its sources. `undeclared`: each repository read they
-    spell that the inputs do not cover, as `<file>:<line>: <read>`. `roots`: the bare repository-root references
-    (`TestRepo.Root`, `At()` with no literal segment): a working directory, a path to strip from a message, or a
-    whole-tree read (`TrackedTree`'s `git ls-files`), which no static reading can tell apart. The roots are counted in
-    the audit's verdict, never judged: the dynamic proof is where they are judged (kb/Work PB5218)."""
+    spell that the inputs do not cover, as `<file>:<line>: <read>`. `roots`: the bare repository-root references no
+    statement judgment covers (`TestRepo.Root` or an alias of it used in a form `_root_use` cannot resolve, `At()` with no
+    literal segment, a top-level TreeScope prefix), as `<file>:<line>: <statement>`: a finding in a narrowly declared
+    target (`findings_of`), counted in a broad one (kb/Work PB5230 review R1-1)."""
     undeclared: tuple[str, ...]
     roots: tuple[str, ...]
+    #: The hand judgments (`judged` keys) a read or root of these sources matched: a judgment no target uses is stale.
+    used: frozenset[str] = frozenset()
 
 
 def scan(repo: Path, target: Target, top_dirs: list[str], tracked: tuple[set[str], set[str]],
@@ -390,22 +529,33 @@ def scan(repo: Path, target: Target, top_dirs: list[str], tracked: tuple[set[str
     """Read `target`'s sources once and return both halves of its audit. The tree's top directories and tracked paths
     are the caller's, computed once for every target (kb/Work PB5218 review R1-1: per-file recomputation cost ~60 s)."""
     judged = {k for k, _ in target.judged}
+    used: set[str] = set()
     bad: set[str] = set()
     roots: set[str] = set()
-    for src in assembly_sources(repo, target):
-        rel = src.relative_to(repo).as_posix()
-        text = src.read_text(encoding="utf-8", errors="replace")
-        for line, read in reads_in(text, top_dirs):
+    sources = {src.relative_to(repo).as_posix(): src.read_text(encoding="utf-8", errors="replace")
+               for src in assembly_sources(repo, target)}
+    aliases = root_aliases(sources)
+    for rel, text in sources.items():
+        lines = text.split("\n")
+        for line, read in reads_in(text, top_dirs, aliases):
             if read == "":
-                if f"{rel}|" not in judged:   # `<file>|` judges that file's root references by hand, with its reason
-                    roots.add(f"{rel}:{line}")
+                # A bare root is judged by hand only STATEMENT by statement: `<file>|<its line, trimmed>`, so a new root
+                # in the same file is never covered by an old judgment (kb/Work PB5230 review R1-1).
+                key = f"{rel}|{lines[line - 1].strip()}"
+                if key in judged:
+                    used.add(key)
+                else:
+                    roots.add(f"{rel}:{line}: {lines[line - 1].strip()}")
                 continue
             read = _normalized(read, tracked)
-            if read is None or f"{rel}|{read}" in judged:
-                continue   # names no tracked path (build output, a cache, a scratch name), or judged by hand
+            if read is not None and f"{rel}|{read}" in judged:
+                used.add(f"{rel}|{read}")
+                continue
+            if read is None:
+                continue   # names no tracked path (build output, a cache, a scratch name)
             if not target.covers(read, cls):
                 bad.add(f"{rel}:{line}: {read}")
-    return Scan(tuple(sorted(bad)), tuple(sorted(roots)))
+    return Scan(tuple(sorted(bad)), tuple(sorted(roots)), frozenset(used))
 
 
 def _tracked(repo: Path) -> tuple[set[str], set[str]]:
@@ -436,18 +586,37 @@ def check(repo: Path = REPO) -> int:
     targets = load_targets(repo / "scripts" / "build_targets.json")
     top, tracked = _top_dirs(repo), _tracked(repo)
     scans = {name: scan(repo, t, top, tracked) for name, t in targets.items()}
-    for name, sc in scans.items():
-        for b in sc.undeclared:
-            print(f"  {name}: {b}")
-    n = sum(len(sc.undeclared) for sc in scans.values())
-    residue = ", ".join(f"{name} {len(sc.roots)}" for name, sc in scans.items())
-    if n:
-        print(f"=== BUILD TARGETS: RED — {n} repository read(s) outside their target's declared inputs "
-              "(scripts/build_targets.json): declare each with its reader, or remove the read ===")
+    findings = findings_of(targets, scans)
+    for f in findings:
+        print(f"  {f}")
+    residue = ", ".join(f"{name} {len(sc.roots)}" for name, sc in scans.items() if targets[name].broad)
+    if findings:
+        print(f"=== BUILD TARGETS: RED — {len(findings)} finding(s): a repository read outside its target's declared "
+              "inputs, an unresolved read in a narrowly declared target, or a stale judgment "
+              "(scripts/build_targets.json) ===")
         return 1
     print(f"=== BUILD TARGETS: GREEN — {len(targets)} target(s); every repository read their sources spell lies in "
-          f"their declared inputs (bare root references, judged only by the dynamic proof: {residue}) ===")
+          f"their declared inputs, and every narrowly declared target resolves every read (bare root references of the "
+          f"targets declaring every population input, judged by the dynamic proof: {residue or 'none'}) ===")
     return 0
+
+
+def findings_of(targets: dict[str, Target], scans: dict[str, Scan]) -> list[str]:
+    """THE AUDIT'S FINDINGS over every target's scan, each once: a read outside its target's inputs; in a target declared
+    narrowly, an unresolved root; a hand judgment no target's sources match (stale)."""
+    findings: list[str] = []
+    for name, sc in scans.items():
+        findings += [f"{name}: {b}" for b in sc.undeclared]
+        # ⛔ A target declared narrowly (no `@population-inputs`) cannot cover a read it cannot resolve: an unresolved
+        # root there is a finding naming its file and line, never a count (owner 2026-11-10: "If it cannot be resolved,
+        # there is a problem/bug"; kb/Work PB5230 review R1-1).
+        if not targets[name].broad:
+            findings += [f"{name}: {r}  (an unresolved repository-root read: spell its path, declare its directory with "
+                         "TestRepo.Within, or judge the statement by hand with its reason)" for r in sc.roots]
+    used = set().union(*(sc.used for sc in scans.values()))
+    findings += [f"stale judgment {k!r} (scripts/build_targets.json): no read or root of any target matches it; remove "
+                 "it, or correct it" for t in targets.values() for k, _ in t.judged if k not in used]
+    return list(dict.fromkeys(findings))
 
 
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -575,6 +744,53 @@ def self_test() -> int:
             "its two trees; a whole-tree scope and a computed At are bare root references",
             spelled == [(2, "docs/x.json"), (2, "src/"), (3, "src/A/"), (3, "conformance-suite/cases/"),
                         (3, "conformance-suite/wiseowl/cases/"), (5, ""), (3, "src/A/"), (4, "")], str(spelled))
+
+        # Review round 1 (kb/Work PB5230): what the reviewer planted, each a read the audit now SEES.
+        tops = ["src", "docs", "tests", "conformance-suite"]
+        interp = reads_in(
+            'var a = File.ReadAllText($"{TestRepo.Root}/tests/d/x.out");\n'
+            'var b = $"carries the root \'{TestRepo.Root}\'; pass a relative path";\n'
+            'var c = File.ReadAllText($"{TestRepo.Root}");\n'
+            'var d = new[] {TestRepo.Root};\n'
+            '// a comment naming TestRepo.Root\n'
+            'var e = "TestRepo.Root inside a literal";\n'
+            'var f = File.ReadAllText(TestRepo.At($"tests/d/{name}"));\n'
+            'var g = Path.Combine(TestRepo.Root, $"tests/d/{name}");\n', tops)
+        arm("R1-1/R1-2: an interpolated hole followed by a separator reads the literal path after it; one followed by "
+            "text is text; a whole-string hole and a hole outside a string are bare roots; a comment or a literal's text "
+            "is nothing; an interpolated argument reads its literal head's directory",
+            interp == [(1, "tests/d/x.out"), (3, ""), (4, ""), (7, "tests/d/"), (8, "tests/d/"), (7, "tests/d/"),
+                       (8, "tests/d/")], str(interp))
+        scopes = reads_in('static readonly TreeScope A = new(Under: ["tests"], Kinds: [".out"]);\n'
+                          'static readonly TreeScope B = new(Under: ["src/A", "docs/"]);\n', tops)
+        arm("R1-3: every Under prefix of a TreeScope is a read: a directory prefix that directory, a partial prefix the "
+            "directory holding it, a top-level one (`tests`) the whole tree",
+            # (the literal "src/A" is also read as a path by the literal rule; the scope rule adds its directory)
+            sorted(scopes) == sorted([(1, ""), (2, "src/A"), (2, "src/"), (2, "docs/"), (2, "docs/")]), str(scopes))
+        alias_decl = 'internal static class Holder\n{\n    public static string HostRoot => TestRepo.Root;\n' \
+                     '    static void M() => Use(HostRoot);\n}\n'
+        aliases = root_aliases({"Holder.cs": alias_decl})
+        used_alias = reads_in('var x = File.ReadAllText(Path.Combine(Holder.HostRoot, "tests", "d", f));\n', tops, aliases)
+        arm("R1-5: a member that IS the root is followed to every use: `Holder.HostRoot` in Path.Combine reads its "
+            "literal segments; the bare alias in its own file is a bare root, its declaration is not",
+            used_alias == [(1, "tests/d/")] and reads_in(alias_decl, tops) == [(4, "")], f"{used_alias} {aliases}")
+
+        # The verdict: a bare root in a NARROW target is a finding; in a broad one it is counted; a judgment covers its
+        # statement only, and a judgment nothing matches is stale.
+        narrow = Target("n", "N", "tests/N/", ("src/",), (), (("tests/N/A.cs|var j = TestRepo.At(judged);", "planted"),
+                                                              ("tests/N/A.cs|var gone = TestRepo.At(x);", "planted")))
+        broad = Target("b", "B", "tests/B/", ("@population-inputs",), ())
+        vrepo = ScratchRepo.init(root / "verdict")
+        vrepo.commit("planted", {"src/S.cs": "class S {}\n",
+                                 "tests/N/A.cs": "var j = TestRepo.At(judged);\nvar k = TestRepo.At(other);\n",
+                                 "tests/B/B.cs": "var k = TestRepo.At(other);\n"})
+        vtop, vtracked = _top_dirs(vrepo.path), _tracked(vrepo.path)
+        vt = {"n": narrow, "b": broad}
+        vf = findings_of(vt, {k: scan(vrepo.path, t, vtop, vtracked) for k, t in vt.items()})
+        arm("R1-1: a bare root in a narrowly declared target is a finding naming file and line; its judged statement is "
+            "not; in a broad target it is only counted; a judgment no source matches is a stale finding",
+            len(vf) == 2 and any("tests/N/A.cs:2: var k = TestRepo.At(other);" in f for f in vf)
+            and any("stale judgment" in f and "gone" in f for f in vf) and not any("tests/B/" in f for f in vf), str(vf))
     finally:
         remove_tree(root)
     bad = [n for n, ok, _ in results if not ok]

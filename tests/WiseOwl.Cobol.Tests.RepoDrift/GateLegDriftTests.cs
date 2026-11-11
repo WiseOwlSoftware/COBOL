@@ -43,12 +43,17 @@ public sealed class GateLegDriftTests
         var testProjects = TrackedTree.Files(TestProjects).Select(rel => TestRepo.At(rel.Split('/')))
             .Where(p => File.ReadAllText(p).Contains("<IsTestProject>true</IsTestProject>", StringComparison.Ordinal))
             .ToList();
-        foreach (string gated in new[] { "WiseOwl.Cobol.Tests.Conformance", "WiseOwl.Cobol.Tests.Unit",
-                     "WiseOwl.Cobol.Tests.RepoDrift", "WiseOwl.Cobol.Tests.Characterization" })
+        // The gated assemblies' ONE statement is the targets file (kb/Work PB5230 review R1-4): each is a test project here,
+        // and the committed weights name exactly them.
+        string[] gated = GatedAssemblies();
+        Assert.True(gated.Length >= 4, $"the targets file names {gated.Length} gated assemblies: it did not load");
+        foreach (string assembly in gated)
         {
-            Assert.True(testProjects.Any(p => Path.GetFileNameWithoutExtension(p) == gated),
-                $"the gated test project {gated} is not found as a test project under tests/");
+            Assert.True(testProjects.Any(p => Path.GetFileNameWithoutExtension(p) == $"WiseOwl.Cobol.Tests.{assembly}"),
+                $"the gated test project WiseOwl.Cobol.Tests.{assembly} is not found as a test project under tests/");
         }
+        Assert.Equal(gated.Order(StringComparer.Ordinal),
+            TestWeights.Embedded().Tenths.Keys.Select(k => k.Assembly).Distinct().Order(StringComparer.Ordinal));
 
         var unlinked = testProjects.Where(p => Regex.IsMatch(File.ReadAllText(p),
                 @"<Compile\s+Remove=""[^""]*(_shared|GateLegs)", RegexOptions.IgnoreCase))
@@ -63,6 +68,13 @@ public sealed class GateLegDriftTests
                                              + "name two: " + string.Join(", ", ownFramework));
 
         GateLegAudit.AssertNamesTheGateFramework(typeof(GateLegDriftTests).Assembly);
+    }
+
+    /// <summary>The gated assemblies, as scripts/build_targets.json declares their targets (`assembly`).</summary>
+    private static string[] GatedAssemblies()
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(TestRepo.Scripts("build_targets.json")));
+        return [.. doc.RootElement.GetProperty("targets").EnumerateObject().Select(t => t.Value.GetProperty("assembly").GetString()!)];
     }
 
     // ── This assembly's per-assembly arms, as every gated assembly carries them ─────────────────────────────────

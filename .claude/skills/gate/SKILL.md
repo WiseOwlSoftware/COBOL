@@ -1,6 +1,6 @@
 ---
 name: gate
-description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole Unit, RepoDrift, Conformance and Characterization populations inside a gate slot, previous reds first, the same for an implementer's commit and a re-gate after a fix, nothing run on Linux; a landing reads its record and gates nothing; CI's merge group is the first run of the merged tree, Linux and Release), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
+description: Use before every commit and before every merge to choose and run the correct test gate - the ONE gate (build-local - the whole population of every test target of scripts/build_targets.json not up to date at its key, inside a gate slot, previous reds first, the same for an implementer's commit and a re-gate after a fix, nothing run on Linux; a landing reads its record and gates nothing; CI's merge group is the first run of the merged tree, Linux and Release), and the comprehensive battery per accumulated batch - and to read the verdict without producing a false green.
 ---
 
 > ⛔ **BASE SKILL FIRST.** Invoke `brent-tools:test-gate` (Skill tool) before reading on. If the plugin is not loaded
@@ -54,7 +54,7 @@ passes `--reuse`, so a self-test whose inputs are unchanged since a recorded PAS
 hour after taking its budget place is `SELF-TESTS HANG`, never RED, kb/Work PB2914, DESIGN-test-build-ci.md §3.14.10) and
 fetches the per-worktree GnuCOBOL corpus when absent, then takes a GATE SLOT (`scripts/gate_slot.py`: at most N gates
 build or test at once, repository-wide — `gate-slot: waiting, k ahead` is the cap working), builds the solution and runs
-the WHOLE Unit, RepoDrift, Conformance and Characterization populations, four `dotnet test --no-build` hosts at once (Server GC,
+the WHOLE population of every test target (`scripts/build_targets.json`) not up to date at its key, one `dotnet test --no-build` host each at once (Server GC,
 kb/Work PB2526), each population then checked by name against its `--list-tests` (`scripts/test_population.py check`).
 
 - ⭐ **THE POPULATION IS THE SELECTION** (owner decision 1 of PB4323, 2026-10-31; kb/Work PB4328). There is no plan, no
@@ -64,7 +64,7 @@ kb/Work PB2526), each population then checked by name against its `--list-tests`
   pull request (fetched into `TestResults/ci-bounce/`, kb/Work PB3644) go first (`WISEOWL_COBOL_GATE_FIRST`, the test
   framework's `GateOrderer`), then every collection longest first by the committed weights (`tests/_shared/test-weights.json`,
   `scripts/shard_weights.py generate`). Measured for this step (2026-11-01, quiet box, compile cache off): one gate's
-  three populations 247 s; three gates started together 503 s each; xunit's default thread count (the processor
+  three populations (as of 2026-11-01) 247 s; three gates started together 503 s each; xunit's default thread count (the processor
   count) beat 16 and 8 in both, so no `xunit.runner.json` caps it. A re-gate of an unchanged tree answers from its
   GREEN record (`REUSED`, kb/Work PB3536). Each assembly is a TARGET with declared inputs (scripts/build_targets.json) and its
   own key; a target whose key holds a pass in the ONE store every worktree shares (`<git common dir>/cobol-build-store/`) is

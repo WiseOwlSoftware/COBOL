@@ -21,8 +21,8 @@ Every later section describes one mechanism of it in detail.
    the diff's paths (`scripts/inert_lane.py classify`, §3.18). An INERT change runs the tree audits alone (about 40 s,
    no slot). A TOOLING-LANE change (every non-inert path in `scripts/`, `.github/`, `tools/` or `.claude/` and none the
    build or a compiler test reads, `CODE_READS`; kb/Work PB4395) runs the audits with the script self-tests whose
-   recorded inputs it touches, no slot and no build. Any other change builds the solution once and runs the WHOLE Unit, RepoDrift, Conformance and
-   Characterization populations on Windows, four assemblies at once under a gate slot (cap 3), the classes red last time first and then
+   recorded inputs it touches, no slot and no build. Any other change builds the solution once and runs the WHOLE population
+   of every test target (`scripts/build_targets.json`) not up to date at its key on Windows, one host each at once under a gate slot (cap 3), the classes red last time first and then
    longest first by `tests/_shared/test-weights.json` (`GateOrderer`), each population checked by name against its
    listing (`scripts/test_population.py check`); the audits run beside the build and the hosts, and a change that touches
    a SCRIPT (`scripts/`, `.github/`, `tools/`, `.claude/`, any `.py`/`.ps1`/`.sh`) adds the script self-tests whose
@@ -217,7 +217,7 @@ the audits out of the compiler's test assembly).
 
 **⛔ The tests run as weighted shards, and `ci-gate` proves they ran the population (kb/Work PB4329, step 6 of PB4323;
 `GateLegDriftTests` `Shard_*`, `test_population.py --self-test`'s filtered-run audit).** Each shard job builds the solution and runs every
-test assembly (Unit, RepoDrift, Characterization, Conformance, and on Linux INV-1-strong's `FullyQualifiedName~NistProgram_MatchesGolden`
+test assembly (`scripts/build_targets.json`'s targets, and on Linux INV-1-strong's `FullyQualifiedName~NistProgram_MatchesGolden`
 under `--std 2023 --permissive`) with `WISEOWL_COBOL_SHARD=k/N` in its environment, N = 5 on Linux and 7 on Windows. The
 test framework of each host (`tests/_shared/GateLegs.cs`: `GateShard`, `TestWeights`) runs the cases of the test classes
 the DEAL gives shard k: every class `tests/_shared/test-weights.json` names, of every assembly, heaviest first to the
@@ -765,9 +765,9 @@ Conformance 20,468, Unit 39,237, Characterization 37 cases.
 
 | run | xunit threads per assembly | Conformance s | Unit s | Characterization s | wall s |
 |---|---|---|---|---|---|
-| one gate's three populations | 32 (the default) | 246.1 | 138.1 | 4.0 | **247.1** |
-| one gate's three populations | 16 | 243.2 | 139.1 | 4.0 | 244.2 |
-| one gate's three populations | 8 | 279.1 | 147.1 | 4.0 | 280.1 |
+| one gate's populations (three, 2026-11-01) | 32 (the default) | 246.1 | 138.1 | 4.0 | **247.1** |
+| one gate's populations (three, 2026-11-01) | 16 | 243.2 | 139.1 | 4.0 | 244.2 |
+| one gate's populations (three, 2026-11-01) | 8 | 279.1 | 147.1 | 4.0 | 280.1 |
 | three whole gates started together | 32 (the default) | 501.2–502.2 | 277.1–277.2 | 5.0 | **503.2** |
 | three whole gates started together | 16 | 871.4–879.3 | 247.1–275.1 | 5.0 | 880.5 |
 
@@ -778,7 +778,7 @@ fewer threads overlap fewer waits), and a checked-in `xunit.runner.json` would a
 than three run one after another. The review's bound for three overlapped gates was 14.6 min; the measured is 8.4.
 
 **What the gate runs now** (`scripts/gate.py`; §3.14.1–3.14.3): the inert lane runs the audits alone (§3.18); every other
-change builds once and runs the four populations whole, four hosts at once, the audits beside them, the population
+change builds once and runs every target's population whole, one host each at once, the audits beside them, the population
 checked by name (§3.14.4). Ordering is the one lever left (§3.14.2): the classes red at the previous run first, then
 longest first by the committed weights file. The growth trigger of kb/Work/PB4323.md §3.4 (step 10, kb/Work PB4333) reads the
 `timings.tests_s` of every GREEN code-lane gate, kept beyond its worktree (§3.14.13).
@@ -865,7 +865,7 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
 
 `scripts/test_population.py` (a module and a CLI) answers one question for any run: did the union of its trx files
 execute exactly the discovered population? Its callers are the gate driver (per assembly: the module's
-`list_population` and `check`), the battery (`battery.sh` PHASE 1, all four assemblies — `check --project … --trx …`) and
+`list_population` and `check`), the battery (`battery.sh` PHASE 1, every gated assembly — `check --project … --trx …`) and
 CI's `ci-gate` job (`check --listing … --trx …` per OS and test assembly over the weighted shards' trx files, and `--method
 NistProgram_MatchesGolden` over INV-1-strong's, kb/Work PB4329; a bare count cannot see a dropped test offset by one that
 ran twice). Shard 1 of each OS lists its build's population (`test_population.py list`, 2 s) and uploads it beside its trx as
@@ -1366,16 +1366,23 @@ gate's AUDITS) reads every test source of an assembly and each `tests/_shared` f
 transitively) and finds every repository read it spells: a `TestRepo` helper with its leading literal segments (a collection
 expression's elements included), a listing of a helper's directory by a literal pattern, `Path.Combine(TestRepo.Root, "…")`,
 a string literal rooted at a top-level tracked directory, the directory a `TestRepo.Within("dir/", path)` declares (a
-computed path held to that directory at run time, which throws otherwise), and the two trees `TestRepo.SuiteCase` lists. A
-root made relative (`Path.GetRelativePath(TestRepo.Root, …)`) or used as text is no read. A read outside the target's inputs
-is RED, naming file and line, until the read is declared with its reader; a read the audit cannot resolve by itself is judged
-by hand in the target's `judged` map, with its reason (`<file>|<read>`, or `<file>|` for that file's bare root references:
-Unit judges three shared files, `TrackedTree`'s `git ls-files` filtered by each caller's declared scope, `GateLegAudit`'s
-root as text, and `PythonInstrument`'s working directory for the generator). Its residue, counted in its verdict line and
-judged nowhere statically: a bare `TestRepo.Root` (a working directory, a whole-tree scope), a path computed at run time,
-and what a process a test starts reads. Unit's count is ZERO (kb/Work PB5230), and it must stay zero: a Unit read the audit
-cannot resolve is resolved (`Within`, a literal) or its test moves to RepoDrift, never covered by widening Unit's inputs. The
-dynamic proof, the Linux shards' file watch extended per target, is kb/Work PB5218's remaining work.
+computed path held to that directory at run time, which throws otherwise), the two trees `TestRepo.SuiteCase` lists, the
+literal head of an interpolated path (`$"tests/d/{name}"` reads `tests/d/`), and every `Under` prefix of every declared
+`TreeScope` (a prefix ending in `/` is that directory, any other the directory holding it, a top-level one the whole tree).
+A member that IS the root (`static string HostRoot => TestRepo.Root;`) is followed: each use of it is judged as a use of the
+root. A use of the root is TEXT, no read, exactly when it lies in a comment or a literal's text, is made relative
+(`Path.GetRelativePath(TestRepo.Root, …)`) or named (`cref`, `nameof`), or is an interpolated hole neither neighbour of which
+is a path separator or the string's own quote (`$"… '{TestRepo.Root}' …"`); a hole followed by a separator reads the
+literal path after it; any other use is a bare root (kb/Work PB5230 review R1-2: a form the audit cannot classify is a read,
+never text). A read outside the target's inputs is RED, naming file and line, until it is declared with its reader. In a
+target declared NARROWLY (without `@population-inputs`), a bare root is RED too, naming file and line (owner 2026-11-10: "If
+it cannot be resolved, there is a problem/bug"; review R1-1): resolve it to a literal or a `Within`, or judge THAT
+STATEMENT by hand with a true reason, `<file>|<the statement's line, trimmed>`, so a new root in the same file is never
+covered by an old judgment. The shared files' judgments sit once under `build.judged` for every target that uses the file
+(TrackedTree's `git ls-files`, PythonInstrument's working directory, GateLegAudit's root as text); a judgment nothing matches
+is a stale finding. Only `repo-drift`, which declares every population input, counts its bare roots in the verdict line;
+what they read, a path computed at run time and what a process a test starts reads are the dynamic proof's to judge, the
+Linux shards' file watch extended per target, kb/Work PB5218's remaining work.
 
 *Re-derived evidence* (`gate.py --rederive <run> [--dry-run]`, `Gate.rederive`). A run whose gate predates this (or that an
 audit stopped) may hold complete green results under a record that says `populations: {}` and `tree_end: null` and recorded
@@ -1515,7 +1522,7 @@ JIT compiling the runtime's methods was paid at every program start; the w1033 g
   it to `Microsoft.NETCore.App`).
 - **Flow.** Target `_CobolReadyToRunContent` adds each image as a content item linked at
   `ReadyToRun/<rid>/WiseOwl.Cobol.Runtime.dll`, so it reaches the output of every referencing project (the compiler,
-  the CLI, the three test hosts) and the CLI's publish output, which is what the `WiseOwl.COBOL` tool package packs
+  the CLI, the test hosts) and the CLI's publish output, which is what the `WiseOwl.COBOL` tool package packs
   (`PackAsTool` publishes, then packs; DESIGN-USER-DOCUMENTATION §6).
 - **Selector: `src/WiseOwl.Cobol.Compiler/CodeGen/AssemblyPackager.cs#RuntimePath`.** This platform's image
   (`ReadyToRunPlatform`: the operating-system family and processor architecture, which is what decides whether an

@@ -44,7 +44,7 @@
 # script classifies nothing and runs the legs it is asked to. But the classification is sound only while that "no test
 # reads" is TRUE, so every run watches every inert path with inotify while the test legs run (`inert_lane.py watch`): a
 # test that starts reading one is a RED here (the `inert-watch` leg) before CI's Linux steps, which run under the same
-# watch, see it. The watched clone runs the three `dotnet test` legs and nothing else: the self-tests (audits, which read
+# watch, see it. The watched clone runs the `dotnet test` legs and nothing else: the self-tests (audits, which read
 # inert paths by design: the register, the DEVLOG, the skills submodule they initialize) and the guard run in a second
 # clone with its own build, so no read of theirs reaches the watch.
 #

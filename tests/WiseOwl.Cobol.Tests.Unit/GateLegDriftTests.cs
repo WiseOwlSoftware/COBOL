@@ -274,8 +274,10 @@ public sealed class GateLegDriftTests
     {
         TestWeights weights = TestWeights.Embedded();
         Assert.True(weights.Tenths.Count > 500, $"the weights name {weights.Tenths.Count} classes: the file did not load");
+        // Which assemblies the weights must name is the targets file's to say (scripts/build_targets.json); RepoDrift's
+        // GateLegDriftTests holds the two equal (kb/Work PB5230 review R1-4). This arm deals whatever the file names.
         string[] assemblies = [.. weights.Tenths.Keys.Select(k => k.Assembly).Distinct().Order(StringComparer.Ordinal)];
-        Assert.Equal(["Characterization", "Conformance", "RepoDrift", "Unit"], assemblies);
+        Assert.Contains(typeof(GateLegDriftTests).Assembly.GetName().Name!["WiseOwl.Cobol.Tests.".Length..], assemblies);
         foreach (int count in new[] { 5, 7 })
         {
             var load = new long[count];

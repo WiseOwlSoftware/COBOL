@@ -19,7 +19,7 @@ PythonInstrument). Every other unresolved read left with its test.
 
 **The population is conserved.** Unit had 40,746 cases. It now has 40,574 and RepoDrift 176. The four extra cases are each
 assembly's own gate arms: Unit's `Arm4_ThisAssembly_NamesTheGateFramework`, and RepoDrift's `Arm5_NoDiscoveredCase_...`,
-`ThisTestHost_IsConfiguredForServerGc` and `ThisAssembly_EmbedsTheShardWeights`. The 172 moved cases changed only their
+`ThisTestHost_IsConfiguredForServerGc` and `ThisAssembly_EmbedsTheShardWeights`. 173 cases left Unit (RepoDrift's other 3 are its new arms, Unit's 1 new is its Arm4); they changed only their
 namespace. `test_population.py list` gave each count; the case-for-case check is in the branch report.
 
 **Which targets a change re-runs.** Measured with `buildgraph.key` on real pairs of trees from main, before (main's targets
@@ -49,10 +49,23 @@ assemblies), linux-gate.sh, the battery, CI's shard jobs and `ci-gate`. The weig
 `repo-drift:` test-ref form, with one inventory row repointed and normalize_batch reading the forms from the schema. drift_rules.py
 reads `Within`. TrackedTreeScopeDriftTests reads the compiled scopes of both assemblies. The docs that name the populations.
 
-**Proof.** `python scripts/buildgraph.py check`: GREEN, 4 targets, bare roots unit 0, repo-drift 54, conformance 5,
-characterization 4. `buildgraph.py --self-test`: PASS, 9 arms; its new reading arm fails on main's reader. `gate.py
---self-test`: PASS, 109 arms. RepoDrift: `Passed! - Failed: 0, Passed: 176`. The gate of this branch is in the branch report.
+**Review round 1** (kb/Work PB5230/2026-11-11-review-round-1.md) found the audit still let a Unit test read outside Unit's key
+while it stayed GREEN, and fixed five ways. A bare root in a narrowly declared target is now a finding naming file and line,
+not a count, and a hand judgment covers one statement, never a file. A root in an interpolated string is text only when
+neither neighbour is a path separator or the string's own quote; `$"{TestRepo.Root}/tests/x.out"` reads `tests/x.out`.
+Every `Under` prefix of a `TreeScope` is a read (`"tests"` is the whole tree). A member that is the root
+(`GateLegAudit.HostRoot`) is followed to its uses. Conformance's 5 and Characterization's 4 roots were each judged as the
+statement they are: the root as text in ArchOracle, ArchOracleDriftTests and CharacterizationCorpus, and three shared
+statements (TrackedTree's `git ls-files`, PythonInstrument's working directory, arm 5's RootCarrying) judged once for every
+target. The reviewer's seven planted reads are each RED with file and line. The gated assemblies now have one statement,
+`scripts/build_targets.json`: `GATED_ASSEMBLIES` reads it, RepoDrift's GateLegDriftTests checks the test projects and the
+weights against it, and the implementer spec, MANDATORY-PRACTICES and the docs name it instead of listing assemblies.
 
-**Left.** A records change re-runs Unit until PB5231. Conformance and Characterization still have 9 bare roots between them;
-once they are judged, the audit can refuse any bare root in a narrowly declared target. The six split classes' RepoDrift
-halves carry the default weight until `shard_weights.py generate` measures them.
+**Proof.** `python scripts/buildgraph.py check`: GREEN, 4 targets; only repo-drift counts bare roots. `buildgraph.py
+--self-test`: PASS, 13 arms; the round-0 reader read the planted source as one bare root and nothing else. `gate.py
+--self-test`, `test_population.py --self-test`, `check_practices.py` over a rendered implementer spec (and RED over the
+same spec with the old phrase), `work.py check`. The gate of this branch is in the branch report.
+
+**Left.** A records change re-runs Unit until PB5231. The six split classes' RepoDrift halves carry the default weight until
+`shard_weights.py generate` measures them. CI's workflow and linux-gate.sh still list the assemblies by name; the operator's
+PB5235 moves CI onto the targets.
