@@ -31,3 +31,7 @@ writes the 1985 spelling.
 Every fix has a positive at its introducing edition and a refusal below it. PB5171 (the SPECIAL-NAMES clause sequence and
 once-only clauses at 85) and PB5198 (the RERUN facility) are left for the next link of the chain: the first needs the
 clause-list table to rank repeatable clauses, the second a design decision.
+
+### Gate 000003 (RED) and its roots
+
+The first full gate of the branch ran 40,748 Unit and 24,049 Conformance cases and found eight reds, all mechanical consequences of the fixes. The runtime ABI pin moved because the INSPECT entry points gained the `beforeFromLeftmost` parameter (a changed shipped signature): `abi_pin.py bump --runtime-major` took the runtime to major 26 and measured its hashes. The documented-facts file gained COBOL6916 to COBOL6918. `ConditionBinder` now asks `Place.DenotedItem` instead of a hand-written reference-modification test (PlaceDenotedItemDriftTests). Three older goldens (pb1090, pb1401_computed_numeric_numeric, pb230_class_numeric_image) claimed `accept: [85]` for constructs the 1985 standard refuses (a second period after SPECIAL-NAMES; §1985:VI.6.3.1.2 bars NUMERIC over a non-DISPLAY item and over a numeric function), so they now start at 2002, the edition that introduced them.
