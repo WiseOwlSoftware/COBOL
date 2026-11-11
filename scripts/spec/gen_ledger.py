@@ -1352,7 +1352,7 @@ def self_test() -> int:
     trend append carrying the register's series, and the register read from a commit's own tree."""
     global REPO, TREND  # noqa: PLW0603  (pointed at temporary fixtures, and restored)
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-    from scratch_repo import remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
+    from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: PLC0415  (scripts/: the one scratch fixture)
     results: list[tuple[str, bool, str]] = []
 
     def check(name: str, ok: bool, detail: str = "") -> None:
@@ -1444,6 +1444,12 @@ def self_test() -> int:
     saved = (REPO, TREND)
     tmp = scratch_dir("gen-ledger-test-")
     try:
+        # ⛔ EVERY GIT COMMAND FROM HERE ON RUNS IN THE SCRATCH REPOSITORY (kb/Work PB5227): the trend arm looks its planted
+        # shas up (`git_batch.resolve`, `git log -1 --format=%s <sha>`), and run in the real checkout those lookups keyed
+        # this self-test's PASS on the whole tree's content, so every gate re-ran it (370 s). A repository with no commit
+        # answers them as the real one does: no planted sha is a commit in either.
+        REPO = tmp / "repo"
+        scratch = ScratchRepo.init(REPO)
         TREND = pathlib.Path("relative-trend.json")
         try:
             write_trend([])
@@ -1477,7 +1483,6 @@ def self_test() -> int:
         check("a register-only move records a point; an unmoved register does not",
               new2 and pts2[-1]["wrong_answer"] == moved["wrong_answer"] and not new3, f"{new2} {new3}")
 
-        REPO = tmp / "repo"
         (REPO / "kb" / "Work").mkdir(parents=True)
         legacy = REPO / inventory_schema.NEWEST.legacy_file   # a commit before kb/Work PB4148 holds the inventory as ONE file
         legacy.parent.mkdir(parents=True)
@@ -1487,9 +1492,6 @@ def self_test() -> int:
         (REPO / "kb" / "Work" / "PB1.md").write_text(fm.format(i="PB1", s="open"), encoding="utf-8", newline="\n")
         (REPO / "kb" / "Work" / "PB2.md").write_text(fm.format(i="PB2", s="landed"), encoding="utf-8", newline="\n")
         (REPO / "kb" / "Work" / "README.md").write_text("no frontmatter\n", encoding="utf-8", newline="\n")
-        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-        from scratch_repo import ScratchRepo  # noqa: PLC0415  (scripts/: the one scratch fixture)
-        scratch = ScratchRepo.init(REPO)
         scratch.commit("fixture")
         got = measure_commits(["HEAD"])["HEAD"]
         want = {"compiler_open": 1, "defects": 1, "wrong_answer": 1, "crashes": 0, "gap_holders": 1}

@@ -3239,7 +3239,9 @@ already-derivable coverage; none change the pipeline.
   a self-test's static inputs. A Python self-test that can read the wall clock passes only if it also passes with the
   clock moved forward 400 days, so a fixture dated near its authoring day fails at once (a self-test comparing the clock
   with a real one declares `# SELF-TEST-CLOCK: real — <why>`; a recorded PASS is reused only inside the horizon it
-  proved; kb/Work PB4358, `scripts/self_test_clock.py`, DESIGN-test-build-ci.md §3.14.10 item 5).
+  proved; kb/Work PB4358, `scripts/self_test_clock.py`, DESIGN-test-build-ci.md §3.14.10 item 5). A gate that re-runs
+  such a self-test whose clock key (its own file and the inputs that read a clock, do time arithmetic or carry a date)
+  matches a recorded proof runs it once and reuses the proof (kb/Work PB5226).
 - The order (kb/Work PB4328; `docs/rearchitecture/DESIGN-test-build-ci.md` sections 3.13 and 3.14.2): every gate runs
   the whole population; the test framework's `GateOrderer` runs the classes named by `WISEOWL_COBOL_GATE_FIRST` (the
   gate's `first-classes.txt`: red at its previous run, the hand-run Linux gate's newest run or the bouncing merge-group
