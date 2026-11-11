@@ -1021,6 +1021,10 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   `gate_slot.py status` prints the cap with who set it, EVERY held slot (one taken under an earlier, higher cap included) and
   the live tickets in queue order. ⛔ The cap does not span operating systems: a Windows lock and a WSL lock on a drvfs mount
   do not see each other, so the hand-run Linux tool (§3.15) is not counted against it.
+- **A rolling wave runs as many implementers as the cap in force (kb/Work PB5100, PB5303).** `plan_wave.py wave_concurrency` returns the
+  cap, never fewer than 1; it is NOT reduced by the slots held or tickets waiting when the wave is planned, because an
+  implementer codes far longer than it gates, so the planning-time holds say nothing about the slots free when its gates
+  arrive (wave 20261999 planned at 1 and ran 8 compiler groups serially for 216+ minutes). The slot queue above serializes the gates.
 - **`gate_slot.py --self-test` declares fourteen arms** against throwaway repositories, each with one linked worktree: FIFO
   order (three waiters behind a holder are served in ticket order, and the holder re-gating the moment it releases is served
   LAST), release on a killed holder, a dead waiter leaving the queue, the orphaned tree (the job kills the orphaned child and
