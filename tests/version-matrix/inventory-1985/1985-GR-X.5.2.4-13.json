@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.5.2.4-13",
  "rule-digest": "ed5730f158ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#CrossingOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#RefCarrier; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#CallStringRead; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalCrossing; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalAdopt",
  "test-ref": "conformance:cases/X.5.2@1985-CALL-STATEMENT/1985-GR-X_5_2_4-13",
+ "notes": "§1985:X.5.2.4 GR13: if BY REFERENCE is 'either specified or implied for a parameter, the object program operates as if the corresponding data item in the called program occupies the same storage area as the data item in the calling program', the descriptions to 'describe the same number of character positions' (a requirement on the source). CallBinder.BindCall carries the prevailing mode across the following parameters with BY REFERENCE assumed before the first phrase (GR12), and CallEmitter.CrossingOf/RefCarrier with ProgramEmitter.FormalCrossing/FormalAdopt alias the callee's formal to the caller's storage. Probes: (b) implied and explicit BY REFERENCE, BY CONTENT A BY REFERENCE B C D and the reverse (only the reference parameters changed in the caller), a literal, ADDRESS OF and an empty BY REFERENCE refused at 85; (a/d/f) S9(18) with SIZE ERROR, COMP-3, S9(5) COMP, TE(I) with I changed by the callee, W(2:3), an ODO group, X(4)->9(4), 9(3)V9->9(4) and group->X(4) all share storage; (e) a record of a file whose OPEN failed. The witness (implied then explicit BY REFERENCE, X(5) to a 2+3 group formal) prints AAAAA/CCCCC/BBBBB/ZZCCC.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

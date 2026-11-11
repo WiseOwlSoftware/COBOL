@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.4.4-3",
  "rule-digest": "4d57ad2e017b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportActiveError; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitInitiate",
  "test-ref": "conformance:cases/XIII.4.4@1985-INITIATE-STATEMENT/1985-GR-XIII_4_4_4-3",
+ "notes": "§1985:XIII.4.4.4 GR3: 'A subsequent INITIATE statement for report-name-1 must not be executed unless an intervening TERMINATE statement has been executed', a prohibition on the program with no stated result. ReportWriter.Initiate (one call per name, EmitInitiate) re-arms a report TerminateCore left inactive, and for an active report raises EC-REPORT-ACTIVE, which cannot be enabled at 85 (>>TURN is COBOL0900 there), then returns with no other effect. Probes at 85: INITIATE after TERMINATE resets LINE-COUNTER 0, PAGE-COUNTER 1 and an 18-digit negative SUM; a second INITIATE while active and INITIATE RPT RPT leave LC, PC and the sum unchanged with no abend; INITIATE after a failed OPEN EXTEND (35) takes no action; the witness re-initiates and prints REINITIATED.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
