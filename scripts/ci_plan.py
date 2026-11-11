@@ -560,7 +560,7 @@ def self_test() -> int:
         first = generate_main(repo.path, "windows", '{"suite": ""}', g_out, g_said.append, graph, manifest)
         made = json.loads(dict(ln.split("=", 1) for ln in g_out.read_text(encoding="utf-8").splitlines())["digests"])
         again = generate_main(repo.path, "windows", json.dumps(made), None, g_said.append, graph, manifest)
-        (repo.path / buildgraph.GENERATED_ROOT / "suite" / "suite" / "manifest.json").write_text("{}\n", encoding="utf-8")
+        (repo.path / buildgraph.GENERATED_ROOT / "suite" / "suite" / "manifest.json").write_text("{}\n", encoding="utf-8", newline="\n")
         differs = generate_main(repo.path, "windows", json.dumps({"suite": "0" * 64}), None, g_said.append, graph, manifest)
         arm("`generate` makes the plan's generated targets once, traced, and outputs their digests; it reproduces a "
             "digest the plan took; a generation that does not reproduce the digest the plan keyed on is a named "
@@ -573,13 +573,13 @@ def self_test() -> int:
                                g_out.read_text(encoding="utf-8").splitlines()[-1:])["digests"])
         gen_root = repo.path / buildgraph.GENERATED_ROOT
         log = root / "harness.log"
-        log.write_text("RAN  some test\n", encoding="utf-8")
+        log.write_text("RAN  some test\n", encoding="utf-8", newline="\n")
         h_said: list[str] = []
         clean = handed_main(repo.path, '["Conformance", "Unit"]', gen_root, json.dumps(made), log, h_said.append, graph)
-        log.write_text(f"RAN  x\n{suite.own_mark} :: /tmp/s :: no WISEOWL_COBOL_GATE_SUITE was handed\n", encoding="utf-8")
+        log.write_text(f"RAN  x\n{suite.own_mark} :: /tmp/s :: no WISEOWL_COBOL_GATE_SUITE was handed\n", encoding="utf-8", newline="\n")
         own = handed_main(repo.path, '["Conformance"]', gen_root, json.dumps(made), log, h_said.append, graph)
-        log.write_text("", encoding="utf-8")
-        (gen_root / "suite" / "suite" / "manifest.json").write_text("{}\n", encoding="utf-8")
+        log.write_text("", encoding="utf-8", newline="\n")
+        (gen_root / "suite" / "suite" / "manifest.json").write_text("{}\n", encoding="utf-8", newline="\n")
         changed = handed_main(repo.path, '["Conformance"]', gen_root, json.dumps(made), log, h_said.append, graph)
         unit_only = handed_main(repo.path, '["Unit"]', gen_root, json.dumps(made), log, h_said.append, graph)
         arm("`handed`: a shard whose hosts ran the handed suite is GREEN; a host log recording its own generation and an "
