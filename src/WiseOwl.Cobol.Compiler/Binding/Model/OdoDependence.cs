@@ -44,40 +44,44 @@ internal static class OdoDependence
         NoObject,
     }
 
-    /// <summary>⛔ THE ROSTER — every concrete <see cref="Place"/> kind, with the role its identification plays and why.
-    /// Adding a kind is an adjudication: name how its identification reads an occurs-depending object, or the rule that
-    /// says it reads none.</summary>
-    internal static readonly IReadOnlyDictionary<Type, (Role Role, string Reason)> Roles = new Dictionary<Type, (Role, string)>
+    /// <summary>⛔ THE ROSTER — every concrete <see cref="Place"/> kind, with the role its identification plays; the
+    /// comment on each row is why. Adding a kind is an adjudication: name how its identification reads an occurs-depending
+    /// object, or the rule that says it reads none. (Only the role is data: a reason is documentation, and the backend
+    /// input carries no text the contract has not classified, <c>BackendContractDriftTests</c>.)</summary>
+    internal static readonly IReadOnlyDictionary<Type, Role> Roles = new Dictionary<Type, Role>
     {
-        [typeof(OdoGroupPlace)] = (Role.GroupExtent,
-            "An occurs-depending group operand: §2023:13.18.38.4 GR8 sizes it from data-name-1 at the start of the operation."),
-        [typeof(RefModPlace)] = (Role.Decoration,
-            "Reference modification is step 7 of §2023:14.6.4, after step 6's length: its own positions are hoisted by the "
-            + "code generator (PlaceIdentification.Freeze), and an omitted length reads the inner's extent."),
-        [typeof(TableAllPlace)] = (Role.Decoration,
-            "A table(ALL) argument (§2023:15.3) or a whole table: the element is walked; its Counts are read once, by the "
-            + "one enumeration that evaluates the function or the debugging image, so no statement re-reads them."),
-        [typeof(NumericImagePlace)] = (Role.Decoration, "A coding of the inner numeric item (§2023:8.4.3.3.4 GR6)."),
-        [typeof(NationalBytesPlace)] = (Role.Decoration, "A coding of the inner national cell (§2023:13.18.45.4 GR2)."),
-        [typeof(GroupImagePlace)] = (Role.Decoration, "The whole-group image view: a coding of the inner group."),
-        [typeof(BitImagePlace)] = (Role.Decoration, "The as-if-elementary boolean view (§2023:13.18.29.4 GR1 b)."),
-        [typeof(NatImagePlace)] = (Role.Decoration, "The as-if-elementary national view (§2023:13.18.29.4 GR2 b)."),
-        [typeof(MemberPlace)] = (Role.AccessPath,
-            "A member of a record struct, reached through table steps that carry the §2023:13.18.38.4 GR7 bound test."),
-        [typeof(DynTablePlace)] = (Role.AccessPath,
-            "An OCCURS DYNAMIC element: its path's fixed-table steps above it may carry the GR7 bound test."),
-        [typeof(RedefViewPlace)] = (Role.AccessPath,
-            "A Tier-B window: its backing and cell paths may carry the GR7 bound test."),
-        [typeof(RenamesPlace)] = (Role.NoObject,
-            "A level-66 alias: §2023:13.18.45.3 SR3 keeps its operands out of any OCCURS and SR8 keeps an occurs-depending table "
-            + "out of its range."),
-        [typeof(CapacityRegisterPlace)] = (Role.NoObject,
-            "The OCCURS DYNAMIC capacity register: a dynamic-capacity table has no DEPENDING ON object."),
-        [typeof(ReportSumCounterPlace)] = (Role.NoObject,
-            "A REPORT SECTION sum counter: engine state, not a data-division table occurrence."),
-        [typeof(ReportPageCounterPlace)] = (Role.NoObject, "A report's PAGE-COUNTER: engine state."),
-        [typeof(DebugRegisterPlace)] = (Role.NoObject, "The DEBUG-ITEM register family: engine state."),
-        [typeof(ExceptionObjectPlace)] = (Role.NoObject, "EXCEPTION-OBJECT: a predefined object reference."),
+        // An occurs-depending group operand: §2023:13.18.38.4 GR8 sizes it from data-name-1 at the start of the operation.
+        [typeof(OdoGroupPlace)] = Role.GroupExtent,
+        // Reference modification is step 7 of §2023:14.6.4, after step 6's length: its own positions are hoisted by the code
+        // generator (PlaceIdentification.Freeze), and an omitted length reads the inner's extent.
+        [typeof(RefModPlace)] = Role.Decoration,
+        // A table(ALL) argument (§2023:15.3) or a whole table: the element is walked; its Counts are read once, by the one
+        // enumeration that evaluates the function or the debugging image, so no statement re-reads them.
+        [typeof(TableAllPlace)] = Role.Decoration,
+        // Codings of the inner item: the numeric character image (§2023:8.4.3.3.4 GR6), a national cell's bytes
+        // (§2023:13.18.45.4 GR2), the whole-group image, the as-if-elementary boolean and national views (§2023:13.18.29.4
+        // GR1 b, GR2 b).
+        [typeof(NumericImagePlace)] = Role.Decoration,
+        [typeof(NationalBytesPlace)] = Role.Decoration,
+        [typeof(GroupImagePlace)] = Role.Decoration,
+        [typeof(BitImagePlace)] = Role.Decoration,
+        [typeof(NatImagePlace)] = Role.Decoration,
+        // Storage leaves reached through table steps that may carry the §2023:13.18.38.4 GR7 bound test: a record struct's
+        // member, an OCCURS DYNAMIC element (the fixed-table steps above it), a Tier-B window (its backing and cell paths).
+        [typeof(MemberPlace)] = Role.AccessPath,
+        [typeof(DynTablePlace)] = Role.AccessPath,
+        [typeof(RedefViewPlace)] = Role.AccessPath,
+        // A level-66 alias: §2023:13.18.45.3 SR3 keeps its operands out of any OCCURS and SR8 keeps an occurs-depending
+        // table out of its range.
+        [typeof(RenamesPlace)] = Role.NoObject,
+        // The OCCURS DYNAMIC capacity register: a dynamic-capacity table has no DEPENDING ON object.
+        [typeof(CapacityRegisterPlace)] = Role.NoObject,
+        // Engine state and predefined references, not data-division table occurrences: a REPORT SECTION sum counter, a
+        // report's PAGE-COUNTER, the DEBUG-ITEM register family, EXCEPTION-OBJECT.
+        [typeof(ReportSumCounterPlace)] = Role.NoObject,
+        [typeof(ReportPageCounterPlace)] = Role.NoObject,
+        [typeof(DebugRegisterPlace)] = Role.NoObject,
+        [typeof(ExceptionObjectPlace)] = Role.NoObject,
     };
 
     /// <summary>True when identifying <paramref name="place"/> reads an occurs-depending object — the same walk as
@@ -108,8 +112,8 @@ internal static class OdoDependence
     };
 
     private static Role RoleOf(Place place) =>
-        Roles.TryGetValue(place.GetType(), out var row)
-            ? row.Role
+        Roles.TryGetValue(place.GetType(), out var role)
+            ? role
             : throw new InvalidOperationException(
                 $"OdoDependence: the place kind {place.GetType().Name} has no row in OdoDependence.Roles; state how its "
                 + "identification reads an occurs-depending object (kb/Work PB5119).");

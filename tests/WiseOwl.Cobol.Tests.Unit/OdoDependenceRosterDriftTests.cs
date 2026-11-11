@@ -42,13 +42,12 @@ public sealed class OdoDependenceRosterDriftTests
     }
 
     /// <summary>The role must match the shape: a decoration is a <see cref="PlaceDecorator"/> (its inner is walked), a
-    /// leaf is not (nothing beneath it would be walked), and only <see cref="OdoGroupPlace"/> carries a group extent.
-    /// Every row carries its reason.</summary>
+    /// leaf is not (nothing beneath it would be walked), and only <see cref="OdoGroupPlace"/> carries a group extent.</summary>
     [Fact]
     public void EveryRoleMatchesItsKind()
     {
         var wrong = new List<string>();
-        foreach (var (type, (role, reason)) in OdoDependence.Roles)
+        foreach (var (type, role) in OdoDependence.Roles)
         {
             bool decorator = typeof(PlaceDecorator).IsAssignableFrom(type);
             bool fits = role switch
@@ -59,7 +58,6 @@ public sealed class OdoDependenceRosterDriftTests
                 _ => false,
             };
             if (!fits) wrong.Add($"{type.Name} is rostered as {role}");
-            if (string.IsNullOrWhiteSpace(reason)) wrong.Add($"{type.Name} has no reason");
             if (type.IsAbstract) wrong.Add($"{type.Name} is abstract");
         }
         Assert.True(wrong.Count == 0, string.Join("\n  ", wrong));
