@@ -648,6 +648,16 @@ internal static class OperandText
             _ => PlaceRenderer.Read(p),
         };
 
+    /// <summary>The verbatim image arm's last step (REDEFINES view, StoreAsImage item): the stored image, and for the sending
+    /// image that drops the sign (<paramref name="deSign"/>) the P scaling zeros every other numeric arm lays after
+    /// <see cref="PExpand"/> (§2023:14.9.25.4 GR6 a; kb/Work PB5187): an unsigned P-scaled item compared in such a context
+    /// kept only its stored digits, so `PIC 99PP` holding 1200 compared as "12" from 2002 on.</summary>
+    private static string VerbatimImage(Place p, bool deSign, SendingRef sending, bool? deviceComma)
+    {
+        string image = ImageText(SendingVerbatim(p, sending), p, deviceComma);
+        return deSign && p.Item.Pic is { Category: PicCategory.Numeric, HasPScaling: true } pic ? PExpand(image, pic) : image;
+    }
+
     private static string FieldAsString(Place p, bool deSign = false, SendingRef sending = SendingRef.Normal, bool? deviceComma = null)
     {
         // A reference-modified result is an elementary ALPHANUMERIC item regardless of the underlying item's
@@ -673,7 +683,7 @@ internal static class OperandText
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
                 ? PExpand(RuntimeApi.NumDeSignImage(PlaceRenderer.Read(p), p.Item.ProfileName, rvp.Digits, sending.FixedPointChecked()), rvp)
                 // The zoned window goes through VERBATIM, checked on the way — see SendingVerbatim.
-                : ImageText(SendingVerbatim(p, sending), p, deviceComma);
+                : VerbatimImage(p, deSign, sending, deviceComma);
         // A group operand's character image is the generated AsImage(): each string-stored leaf contributes its
         // characters; a DISPLAY leaf its zoned digits; and a BINARY/PACKED leaf ⛔ ITS TRUE BYTES — radix-2
         // two's complement of StorageWidth, or BCD with a trailing sign nibble (V59). Implementor-defined
@@ -728,7 +738,7 @@ internal static class OperandText
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
                 ? PExpand(RuntimeApi.NumDeSignImage(PlaceRenderer.Read(p), p.Item.ProfileName, sip.Digits, sending.FixedPointChecked()), sip)
                 // The StoreAsImage twin of the RedefViewPlace arm above — same rule, same one reader.
-                : ImageText(SendingVerbatim(p, sending), p, deviceComma);
+                : VerbatimImage(p, deSign, sending, deviceComma);
         return p.Item.Pic switch
         {
             // ISO §2023:14.9.25.4 GR6a: a signed numeric moved to / compared as an alphanumeric item drops its operational
