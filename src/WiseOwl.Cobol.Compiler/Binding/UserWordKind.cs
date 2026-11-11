@@ -44,6 +44,9 @@ public enum UserWordKind
     RecordKeyName,
     RecordName,
     ReportName,
+    /// <summary>A routine-name (§1985:IV.4.2.2.1.1, the ENTER statement's routine-name-1, §1985:VI.6.12.3 SR2): no 2002 or 2023
+    /// type, since ISO 2002 deleted the ENTER statement (kb/Work PB5178).</summary>
+    RoutineName,
     ScreenName,
     SectionName,
     SymbolicCharacter,

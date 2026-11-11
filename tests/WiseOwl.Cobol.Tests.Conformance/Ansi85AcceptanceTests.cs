@@ -150,7 +150,7 @@ public sealed class Ansi85AcceptanceTests
         01 W PIC 99 VALUE 42.
         PROCEDURE DIVISION.
         MAIN.
-            ENTER FORTRAN SUBR1
+            ENTER FORTRAN SUBR1.
             DISPLAY W.
             STOP RUN.
         """, "42");

@@ -81,7 +81,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         ProgramPrototype? prototype = null;
         // literal-1, as written or spelled by a constant-name (ISO §2023:13.10.3 SR2), asked ONCE: §2023:14.9.4.3 SR15's
         // presence test, the NESTED scope lookup and the static target all read it (kb/Work PB780).
-        var target = call.callTarget();
+        var target = call.callTarget()?.sendingOperand();
         ProgramNameOperand? literal1 = Literal1Of(target?.literal(), target?.dataReference());
         if (call.callAsPhrase() is { } asPhrase)
         {
@@ -236,6 +236,17 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                         + "§2023:14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item");
                 }
             }
+        }
+        else if (target is not null)
+        {
+            // A function-identifier or an inline method invocation is identifier-1 too (kb/Work PB5240): an identifier
+            // barred only from a receiving operand (§2023:8.4.3.2.3 SR1, §2023:8.4.3.4.3 SR1; §1985:IV.4.3.8.3.3 SR3), whose
+            // value names the program. SR1 asks its category as it asks a data item's.
+            dynamicName = host.Move.SendingOperand(target, "CALL target");
+            if (ComputedNameTargetRefusal(dynamicName) is { } computedFace)
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallTargetCategory,
+                    $"CALL target '{DataBinder.WrittenText(target)}' is {computedFace}; ISO "
+                    + "§2023:14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item");
         }
         else if (prototype is null)
             // The bracket may be omitted only in Format 2, where the outer brace then supplies the operand. With
@@ -1099,6 +1110,21 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// alphanumeric group items) was accepted and its character image read as a program-name at run time.
     /// <para>⚠ An operand whose class is not statically decidable (a recovery profile for an entry whose PICTURE was
     /// already refused) is admitted, exactly as every class screen over the lattice fails open (kb/Work PB960).</para></summary>
+    /// <summary>The §2023:14.9.4.3 SR1 / §2023:14.9.5.3 SR1 screen of a target that is a function-identifier or an inline method
+    /// invocation (kb/Work PB5240), asked of its CATEGORY as the data-item arm asks it (<see cref="NameTargetRefusal"/>): a
+    /// returning item through the same reader, a function through its §2023:15.2 result category. An operand already refused,
+    /// or one whose category is not statically known, is not refused again. Null when admitted, else the face the diagnostic
+    /// names.</summary>
+    private static string? ComputedNameTargetRefusal(BoundOperand target) => target switch
+    {
+        BoundOperandError => null,
+        BoundFieldOperand { Place: var returning } => NameTargetRefusal(returning),
+        _ => IntrinsicArgumentRules.FunctionIdentifierCategory(target) is not { } category
+             || category is PicCategory.Alphanumeric or PicCategory.National
+            ? null
+            : $"a function-identifier of category {category.ToString().ToLowerInvariant()}",
+    };
+
     private static string? NameTargetRefusal(Place target) =>
         IntrinsicArgumentRules.ClassOfPlace(target) is null || ItemCategory.IsAlphanumericOrNational(target)
             ? null
@@ -1159,7 +1185,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// statement binds.</summary>
     internal CalleeSignature? CalleeSignatureOf(Core.CallStatementContext call)
     {
-        var target = call.callTarget();
+        var target = call.callTarget()?.sendingOperand();
         if (call.callAsPhrase() is { } asPhrase)
         {
             if (asPhrase.formatWord() is null)
@@ -1191,7 +1217,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindCancel(Core.CancelStatementContext cancel)
     {
         var targets = new List<(string?, BoundOperand?)>();
-        foreach (var t in cancel.cancelTarget())
+        foreach (var t in cancel.cancelTarget().Select(target => target.sendingOperand()))
         {
             if (Literal1Of(t.literal(), t.dataReference()) is { } lit)
             {
@@ -1252,6 +1278,21 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     targets.Add((null, new BoundFieldOperand(p)));
                 }
                 // an unresolved name was already diagnosed by the resolver; keep binding the rest
+            }
+            else
+            {
+                // A function-identifier or an inline method invocation is identifier-1 (kb/Work PB5240; the CALL twin's arm):
+                // §2023:14.9.5.3 SR1 asks its category.
+                var computed = host.Move.SendingOperand(t, "CANCEL target");
+                if (ComputedNameTargetRefusal(computed) is { } computedFace)
+                {
+                    using (ctx.Edition.At(t))
+                        ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
+                            $"CANCEL target '{DataBinder.WrittenText(t)}' is {computedFace}; "
+                            + "ISO §2023:14.9.5.3 SR1 admits an alphanumeric or national data item");
+                    continue;
+                }
+                if (computed is not BoundOperandError) targets.Add((null, computed));
             }
         }
         return new BoundCancel(targets);

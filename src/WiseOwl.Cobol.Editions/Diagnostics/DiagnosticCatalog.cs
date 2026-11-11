@@ -9497,6 +9497,16 @@ public static class DiagnosticCatalog
         + "(COBOL-2002 and later let an index-name be qualified, so two tables may each declare one spelling.)",
         "ISO §1985:VI.5.8.3 SR14");
 
+    /// <summary>COBOL6973 — an X3.23-1985 ENTER statement that another statement follows in its sentence (kb/Work PB5178).
+    /// Emitted by PlacementRules.RefusedOutOfSequence (the EnterEndsSentence row) where the statement exists (COBOL-85; from
+    /// 2002 it is COBOL0902, removed).</summary>
+    public static readonly DiagnosticDescriptor EnterNotEndOfSentence = new(
+        "COBOL6973", "enter-not-end-of-sentence", EditionSeverity.Error,
+        "An X3.23-1985 ENTER statement is followed by another statement before the separator period. §1985:VI.6.12.2 prints "
+        + "\"ENTER language-name-1 [ routine-name-1 ] .\", and §1985:IV.2.1.6: \"The separator period, when used in the "
+        + "formats, has the status of a required word.\" End the sentence after the ENTER statement.",
+        "X3.23-1985 ENTER statement general format (§1985:VI.6.12.2; §1985:IV.2.1.6)");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
