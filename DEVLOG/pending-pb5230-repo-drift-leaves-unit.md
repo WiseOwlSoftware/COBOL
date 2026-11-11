@@ -30,15 +30,18 @@ file) and after (this branch's). Facets: windows, Debug, one toolchain.
 | docs only (`docs/CONFORMANCE.md`) | `fd3daa3764` | none | none |
 | kb/Work only | `9bc90ee36c` | none | none |
 | scripts only, tooling lane (`scripts/hooks/`) | `38f1836f88` | none | none |
-| scripts/spec only (`rule_catalog_1985.py`) | `53f6674bf0` | unit, conformance | repo-drift, conformance |
+| scripts/spec only (`rule_catalog_1985.py`) | `53f6674bf0` | unit, conformance | repo-drift |
 | src only (`StatementBinder.cs`) | `95d7cd73bc` | unit, conformance, characterization | unit, repo-drift, conformance, characterization |
-| records only (193 inventory-1985 rows) | `ca5bfe1b03` | unit, conformance | unit, repo-drift, conformance |
+| records only (193 inventory-1985 rows) | `ca5bfe1b03` | unit, conformance | repo-drift |
 | a Conformance test source only | `813e6704bd` | unit, conformance | repo-drift, conformance |
 | a workflow only (synthetic: another blob for `build-and-test.yml`) | main | unit | repo-drift |
 
-So a workflow, `scripts/arch/`, an architecture record, a `scripts/spec/` module the generator does not import, or another
-project's test source no longer re-runs Unit's 40,574 cases. A records change still does, through the suite generator. That
-ends when kb/Work PB5231 makes the generator a target with an output and Unit keys on the output.
+So a workflow, `scripts/arch/`, an architecture record, a `scripts/spec/` module, another project's test source or a
+records-only change no longer re-runs Unit's 40,574 cases. After merging kb/Work PB5231 (main d9dde0e7ba), Unit DEPENDS on the
+generated `conformance-suite` target as Conformance does: its key takes the suite's output digest, not the generator's inputs.
+The After column was measured on the merged graph, with the suite generated at both trees of a pair whenever its own key
+changed: at `ca5bfe1b03` and `53f6674bf0` the suite was byte-identical (`4931a9c24c88…`, `38c59fe8875b…`), so Unit and
+Conformance are up to date there. RepoDrift reads the inventory itself and depends on nothing.
 
 **Test seconds.** Before, Unit's host took a median 341 s over 20 recent green gates (141 to 606 s, load-dependent). In the
 newest of them (wf_ea078e0c-0d9-4, run 000001), the cases that are now RepoDrift's held 508 of Unit's 7,543 case-seconds
@@ -66,6 +69,6 @@ weights against it, and the implementer spec, MANDATORY-PRACTICES and the docs n
 --self-test`, `test_population.py --self-test`, `check_practices.py` over a rendered implementer spec (and RED over the
 same spec with the old phrase), `work.py check`. The gate of this branch is in the branch report.
 
-**Left.** A records change re-runs Unit until PB5231. The six split classes' RepoDrift halves carry the default weight until
+**Left.** The six split classes' RepoDrift halves carry the default weight until
 `shard_weights.py generate` measures them. CI's workflow and linux-gate.sh still list the assemblies by name; the operator's
 PB5235 moves CI onto the targets.

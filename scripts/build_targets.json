@@ -1,5 +1,5 @@
 {
-  "about": "THE BUILD TARGETS (kb/Work PB5207, PB5218; scripts/buildgraph.py): each test assembly is a target with DECLARED INPUTS, and its key is a digest of the git blob ids of the tracked paths those inputs match, minus the excluded classes, plus its facets. A pass is recorded once per target and key in the one store every worktree shares. An input missed here is a FALSE GREEN, so every entry names its reader, and `python scripts/buildgraph.py check` (the BUILD TARGETS audit) fails when a test source of an assembly names a repository path outside its target's inputs. The targets' order is the gate's host start order, the longest population first; scripts/test_population.py GATED_ASSEMBLIES reads the assemblies from here (kb/Work PB5230).",
+  "about": "THE BUILD'S GRAPH (kb/Work PB5207, PB5218, PB5231; scripts/buildgraph.py). Each target has a KIND: a `test` target is a test assembly, which records a PASS; a `generated` target is a Python command that writes declared OUTPUTS into a directory of the worktree's own and records their DIGEST. Each declares its INPUTS (path patterns, each naming its reader), its exclusions (each naming why), the FACETS its key covers (all of `facets` unless it names fewer) and the targets it DEPENDS on. A target's key is a digest of its facets, the OUTPUT DIGEST of each dependency (never the dependency's inputs) and the git blob ids of the tracked paths its inputs match, less its exclusions; its record is stored once per target and key in the one store every worktree shares. An input missed here is a FALSE GREEN: the BUILD TARGETS audit (`python scripts/buildgraph.py check`) fails when a test source of an assembly names a repository path outside its target's inputs, and every run of a generated target is traced and refused when it reads outside its inputs. The test targets' order is the gate's host start order, the longest population first; scripts/test_population.py GATED_ASSEMBLIES reads the test assemblies from here (kb/Work PB5230).",
   "facets": ["platform", "configuration", "toolchain"],
   "build": {
     "about": "What building a test assembly and the compiler it tests reads, shared by every test target ('@build').",
@@ -21,33 +21,90 @@
     },
     "judged": {
       "tests/_shared/TrackedTree.cs|new ProcessStartInfo(\"git\", \"ls-files -z\") { WorkingDirectory = TestRepo.Root });": "`git ls-files` at the root reads the index, never a file: the names it returns reach a caller only through TrackedTree.Files(scope), and the audit records every Under prefix of every declared TreeScope as a read of its directory in the declaring source (a prefix without `/` at the top is a bare root there, refused in a narrow target); TrackedTreeScopeDriftTests holds every TrackedTree.Files call to a declared scope",
-      "tests/_shared/PythonInstrument.cs|var psi = new ProcessStartInfo(Interpreter.Value) { WorkingDirectory = TestRepo.Root };": "the working directory of the Python script a test runs; the one caller is SuiteManifest's conformance-suite/harness/generate.py --out, whose traced reads each target that uses SuiteManifest declares (unit, conformance); what the script reads is the script's, not a path this statement spells",
+      "tests/_shared/PythonInstrument.cs|var psi = new ProcessStartInfo(Interpreter.Value) { WorkingDirectory = TestRepo.Root };": "the working directory of the Python script a test runs; the one caller is SuiteManifest's generate.py --out, run only when no gate handed the host the conformance-suite target's output (its hand-off site), and what it reads is that target's inputs",
       "tests/_shared/GateLegAudit.cs|var offenders = RootCarrying(cases.Select(c => (c.DisplayName, (object[]?)c.TestMethodArguments)), HostRoot);": "arm (5): the root AS TEXT, matched against discovered case names (RootCarrying compares strings, opens nothing)"
     }
   },
   "targets": {
+    "conformance-suite": {
+      "kind": "generated",
+      "about": "The conformance suite's manifests: conformance-suite/harness/generate.py, the one reader of the test headers, writes <edition>/manifest.json and wiseowl/manifest.json. It refuses a test that names a rule the inventory lacks, so the inventory is ITS input; conformance depends on its OUTPUT, so a records-only change that leaves the manifests byte-identical leaves conformance up to date (kb/Work PB5231). The inputs were derived by reading the generator and by a traced run of `generate.py --out` (kb/Work PB5218, PB5231), and every gate's run of it is traced again.",
+      "command": ["conformance-suite/harness/generate.py", "--out", "{out}"],
+      "outputs": {
+        "wiseowl/manifest.json": "every test of both trees at each edition it names, and WiseOwl's refusals (SuiteManifest)",
+        "*/manifest.json": "each edition's suite, which harness/run.py runs (RunPyHarness)"
+      },
+      "env": "WISEOWL_COBOL_GATE_SUITE",
+      "facets": ["toolchain"],
+      "inputs": {
+        "conformance-suite/": "the generator and the modules it imports (harness/generate.py, config.py, cobol_source.py), every test's header and expected outputs (cases/, wiseowl/cases/), WiseOwl's refusals and compile options (wiseowl/diagnostics/, wiseowl/options/), the adapters, profiles and baselines it checks, and implementor-defined.json (traced)",
+        "tests/version-matrix/": "the traceability inventory of both editions (inventory/, inventory-1985/), inventory-schema.json, the construct catalogue (constructs/), reserved-words.json, annex-a2-undefined.json and conformance-register.json (traced), and the files the schema names",
+        "docs/rearchitecture/spec-rule-catalog.json": "the inventory view (scripts/spec/inventory_view.py; traced)",
+        "docs/rearchitecture/spec-rule-catalog-1985.json": "the inventory view of 1985 (traced)",
+        "specs/ISO_COBOL_2023.md": "annex_names and standard_keywords (generate.py SPEC_PATH; traced)",
+        "scripts/spec/": "imported: construct_store, generated_output, inventory_schema, inventory_store, inventory_view, lineage (traced); the directory is on the module path ahead of the standard library, so a file added there can shadow a module it imports",
+        "scripts/standard_streams.py": "imported by generate.py (ensure_utf8)",
+        "scripts/live_tools.py": "imported by scripts/standard_streams.py when it lists the live tools",
+        "scripts/git_batch.py": "imported by scripts/spec/inventory_store.py",
+        "scripts/scratch_repo.py": "imported lazily by the self-tests of generate.py and scripts/spec/inventory_store.py: in the static import closure (buildgraph.static_check), never loaded by --out",
+        "tests/conformance/": "removed_corpus_files probes it (REMOVED_CORPUS): a file there, a test the suite replaced, is a refusal",
+        ".gitattributes": "the checkout's bytes of every file it reads"
+      },
+      "exclude": {
+        "@inert": "no compiler test or generator reads it (the inert lane's watch)",
+        "@tooling-lane": "no compiler test, build or generator reads it (the watch and the INERT LANE audit)"
+      },
+      "judged": {
+        "conformance-suite/harness/generate.py|Reader._library_text|path.is_file()": "self.root is the suite (Reader(SUITE)): a test's declared library file beside it, under conformance-suite/",
+        "conformance-suite/harness/generate.py|Reader.read_tree|(self.root / TREES['cases']).is_dir()": "conformance-suite/cases (self.root is SUITE)",
+        "conformance-suite/harness/generate.py|Reader.read_tree|base.is_dir()": "conformance-suite/cases and conformance-suite/wiseowl/cases (TREES under SUITE)",
+        "conformance-suite/harness/generate.py|Reader.read_tree|folder.is_dir()": "each entry the traced listing of a tree under conformance-suite/ returned",
+        "conformance-suite/harness/generate.py|Reader._read_folder|f.is_dir()": "each entry the traced listing of a clause folder under conformance-suite/ returned (both calls)",
+        "conformance-suite/harness/generate.py|Reader._read_folder|(folder / name).is_file()": "a test's declared file, in its clause folder under conformance-suite/",
+        "conformance-suite/harness/generate.py|load_sidecars|directory.is_dir()": "DIAGNOSTICS_DIR and OPTIONS_DIR: conformance-suite/wiseowl/diagnostics and conformance-suite/wiseowl/options",
+        "conformance-suite/harness/generate.py|load_sidecars|f.is_file()": "each entry the traced listing of those two directories returned",
+        "conformance-suite/harness/generate.py|load_implementor_defined|path.is_file()": "IMPLEMENTOR_DEFINED_PATH: conformance-suite/implementor-defined.json",
+        "conformance-suite/harness/generate.py|removed_corpus_files|old.is_dir()": "tests/conformance/ (REMOVED_CORPUS under root.parent, the repository), declared above",
+        "conformance-suite/harness/generate.py|removed_corpus_files|f.is_file()": "each path the traced walk of tests/conformance/ returned",
+        "conformance-suite/harness/config.py|load_adapter|hook_path.is_file()": "a hook beside its adapter: conformance-suite/adapters/",
+        "conformance-suite/harness/config.py|load_baseline|path.is_file()": "check_tree's conformance-suite/baselines/<compiler>.json",
+        "conformance-suite/harness/config.py|check_tree|(root / 'profiles' / f'{adapter.profile}.json').is_file()": "conformance-suite/profiles/<profile>.json (root is SUITE)",
+        "scripts/live_tools.py|tracked|(root / p).is_file()": "not on the --out path: tracked() serves standard_streams' --check and scratch_repo's audit; the generator calls only standard_streams.ensure_utf8",
+        "scripts/scratch_repo.py|remove_tree|os.path.lexists(path)": "reached only from the self-tests that import scratch_repo: a scratch directory, never a repository path",
+        "scripts/scratch_repo.py|ScratchRepo._configure|config.is_file()": "reached only from the self-tests: a scratch repository's own config",
+        "scripts/spec/generated_output.py|prepare|out.exists()": "the output directory {out} (TestResults/generated/<target>, ignored), not an input",
+        "scripts/spec/generated_output.py|prepare|out.is_dir()": "the output directory {out}, not an input",
+        "scripts/spec/generated_output.py|prepare|entry.is_dir()": "an entry of the output directory {out}, not an input",
+        "scripts/spec/generated_output.py|prepare|entry.is_symlink()": "an entry of the output directory {out}, not an input",
+        "scripts/spec/inventory_schema.py|Tree.text|p.is_file()": "the files the schema and the view name: SCHEMA_REL and REGISTER_EXTRACT_REL under tests/version-matrix/, the rule catalogs (docs/rearchitecture/spec-rule-catalog*.json) and the Annex A.2 list, each declared",
+        "scripts/spec/inventory_store.py|read_store|directory.is_dir()": "inventory_dir(edition): tests/version-matrix/inventory and inventory-1985",
+        "scripts/spec/inventory_store.py|write_store|directory.is_dir()": "write_store is the recorder's, never called by the generator, which only reads the store",
+        "scripts/spec/inventory_store.py|write_store|f.is_file()": "write_store is the recorder's, never called by the generator (both calls)"
+      }
+    },
     "conformance": {
+      "kind": "test",
       "assembly": "Conformance",
       "project": "tests/WiseOwl.Cobol.Tests.Conformance/",
+      "depends": ["conformance-suite"],
       "inputs": {
         "@build": "the compiler, the runtime and the CLI it builds and runs",
         "tests/WiseOwl.Cobol.Tests.Conformance/": "its own sources, project and data",
-        "conformance-suite/": "the suite's tests, adapters and harness (SuiteManifest runs harness/generate.py --out; ConformanceSuite runs harness/run.py)",
+        "conformance-suite/": "the suite's tests, expected outputs, adapters and profiles, which its tests read beside the manifests (SuiteManifest.Root), and harness/run.py and config.py, which ConformanceSuiteRunnerDriftTests runs and imports",
         "tests/nist/": "the NIST corpus, its manifest, data and goldens (CorpusManifest, NistRunner)",
         "tests/differential/": "the differential goldens (DifferentialGolden)",
-        "tests/version-matrix/": "the construct catalogue (VersionBehaviorMatrixTests) and, through harness/generate.py, the traceability inventory of both editions, inventory-schema.json, reserved-words.json, annex-a2-undefined.json and conformance-register.json (traced run of generate.py --out, kb/Work PB5218)",
-        "docs/rearchitecture/spec-rule-catalog.json": "harness/generate.py (the inventory view)",
-        "docs/rearchitecture/spec-rule-catalog-1985.json": "harness/generate.py (the inventory view)",
-        "specs/ISO_COBOL_2023.md": "harness/generate.py (traced)",
-        "scripts/spec/": "harness/generate.py imports construct_store, inventory_schema, inventory_view, inventory_store, lineage, generated_output",
-        "scripts/standard_streams.py": "imported by harness/run.py and generate.py",
+        "tests/version-matrix/constructs/": "the construct catalogue (VersionBehaviorMatrixTests, VersionMatrixTests: TestRepo.ConstructRows)",
+        "scripts/standard_streams.py": "imported by harness/run.py",
         "scripts/live_tools.py": "imported by scripts/standard_streams.py",
-        "scripts/git_batch.py": "imported by scripts/spec/inventory_store.py (generate.py)",
-        "scripts/scratch_repo.py": "imported through generate.py's chain (inert_lane CODE_READS)",
         "scripts/guard*.sh": "CorpusManifestTests lists and reads them",
         "tests/doc-facts/": "DocFacts (tests/_shared), used by DynamicLengthTests and StopGobackExitCodeTests (found by the BUILD TARGETS audit)"
       },
-      "exclude": ["@inert", "@tooling-lane"],
+      "exclude": {
+        "@inert": "no test reads it (the inert lane's watch)",
+        "@tooling-lane": "no compiler test or build reads it (the watch and the INERT LANE audit)",
+        "conformance-suite/harness/generate.py": "the generator: conformance-suite's program, reached only through it (the gate hands its output to the host in WISEOWL_COBOL_GATE_SUITE; SuiteManifest runs it only when no gate did)",
+        "conformance-suite/harness/cobol_source.py": "imported by generate.py alone"
+      },
       "judged": {
         "tests/WiseOwl.Cobol.Tests.Conformance/CorpusManifestTests.cs|scripts/": "TestRepo.Scripts(script) over the literal arrays of guard scripts it names (guard-fast.sh, guard-run-group.sh, guard-nist-audit.sh): each matches scripts/guard*.sh",
         "tests/WiseOwl.Cobol.Tests.Conformance/ArchOracle.cs|foreach (var (root, token) in new[] { (scratch, \"<scratch>\"), (TestRepo.Root, \"<repo>\") })": "ArchOracle.Portable: the root AS TEXT, replaced by `<repo>` in captured diagnostics and emitted C#; nothing is read through it",
@@ -55,55 +112,51 @@
       }
     },
     "unit": {
+      "kind": "test",
       "assembly": "Unit",
       "project": "tests/WiseOwl.Cobol.Tests.Unit/",
+      "depends": ["conformance-suite"],
       "inputs": {
         "@build": "the compiler, the runtime and the CLI it tests, and the sources its sweeps read (src/)",
         "tests/WiseOwl.Cobol.Tests.Unit/": "its own sources, project and data (Architecture/binder-member-readers.json, Store/, TestData/)",
         "specs/ISO_COBOL_2023.md": "the ORACLE the compiler's tables are derived from and checked against (SpecClauseText and ~40 table drift tests: Table12StatementNameDriftTests, PictureTable10DriftTests, ...)",
         "data/unicode/": "the pinned UCD and CLDR tables the runtime's generated tables come from (CollationTableTests, CldrCollationSettingsTests, GraphemeBreakerTests)",
-        "docs/rearchitecture/spec-rule-catalog.json": "the standard's rules as the catalog extracts them (EcRaiseSiteDriftTests); SuiteManifest's generate.py (the inventory view)",
-        "docs/rearchitecture/spec-rule-catalog-1985.json": "SuiteManifest's generate.py (the inventory view of the 1985 edition)",
-        "tests/version-matrix/reserved-words.json": "CobolWordsDriftTests, ReservedWordsDriftTests, InitializeLaneDriftTests, ...; SuiteManifest's generate.py",
+        "docs/rearchitecture/spec-rule-catalog.json": "the standard's rules as the catalog extracts them (EcRaiseSiteDriftTests)",
+        "tests/version-matrix/reserved-words.json": "CobolWordsDriftTests, ReservedWordsDriftTests, InitializeLaneDriftTests, ...",
         "tests/version-matrix/reserved-words-2002.json": "ReservedWordsDriftTests",
         "tests/version-matrix/cobol-words.json": "CobolWordsDriftTests, NonstandardExtensionRegisterDriftTests, ScreenFacilityConstructDriftTests, WhenOperandAheadDriftTests",
         "tests/version-matrix/context-sensitive-words.json": "ContextSensitiveWordsDriftTests, CobolWordsReachDriftTests, CobolWordsSpellingSweepDriftTests",
         "tests/version-matrix/context-sensitive-words-2002.json": "ContextSensitiveWordsDriftTests",
         "tests/version-matrix/intrinsic-introductions.json": "IntrinsicIntroductionDriftTests",
-        "tests/version-matrix/conformance-register.json": "ConformanceRegister (DeclinedFacilityAnnexDriftTests); SuiteManifest's generate.py",
-        "tests/version-matrix/constructs/": "the construct catalogue (TestRepo.ConstructRows: ConstructRegistryDriftTests, DataBinderNameReferenceDriftTests, DocumentedFactsDriftTests, RegistryShapeDriftTests); SuiteManifest's generate.py",
-        "tests/version-matrix/inventory/": "SuiteManifest's generate.py ONLY (it refuses a test naming a rule the inventory lacks; traced, kb/Work PB5218): no Unit test reads the inventory, and kb/Work PB5231 replaces these generator inputs with the generator target's output",
-        "tests/version-matrix/inventory-1985/": "SuiteManifest's generate.py ONLY (as tests/version-matrix/inventory/)",
-        "tests/version-matrix/inventory-schema.json": "SuiteManifest's generate.py ONLY (as tests/version-matrix/inventory/)",
-        "tests/version-matrix/annex-a2-undefined.json": "SuiteManifest's generate.py ONLY (as tests/version-matrix/inventory/)",
+        "tests/version-matrix/conformance-register.json": "ConformanceRegister (DeclinedFacilityAnnexDriftTests)",
+        "tests/version-matrix/constructs/": "the construct catalogue (TestRepo.ConstructRows: ConstructRegistryDriftTests, DataBinderNameReferenceDriftTests, DocumentedFactsDriftTests, RegistryShapeDriftTests)",
         "tests/nist/": "the NIST corpus programs a compiler test compiles (StorageFormEquivalenceTests, LexerDfaCacheDriftTests)",
-        "conformance-suite/": "the suite's programs, options and adapter (TestRepo.SuiteCase, LexerDfaCacheDriftTests, NumericDisplayFormDriftTests, ConformanceSuiteAdapterDriftTests) and SuiteManifest, which runs harness/generate.py --out",
-        "tests/doc-facts/": "the compiler facts the documents state and the manual's programs (DocFacts, DocumentedFactsDriftTests, UserManualDriftTests)",
-        "scripts/spec/construct_store.py": "SuiteManifest's generate.py imports it (traced, kb/Work PB5218)",
-        "scripts/spec/inventory_schema.py": "SuiteManifest's generate.py imports it",
-        "scripts/spec/inventory_view.py": "SuiteManifest's generate.py imports it",
-        "scripts/spec/inventory_store.py": "SuiteManifest's generate.py imports it",
-        "scripts/spec/lineage.py": "SuiteManifest's generate.py imports it",
-        "scripts/spec/generated_output.py": "SuiteManifest's generate.py imports it",
-        "scripts/standard_streams.py": "imported by SuiteManifest's generate.py",
-        "scripts/live_tools.py": "imported by scripts/standard_streams.py",
-        "scripts/git_batch.py": "imported by scripts/spec/inventory_store.py (generate.py)",
-        "scripts/scratch_repo.py": "imported through generate.py's chain (inert_lane CODE_READS)"
+        "conformance-suite/": "the suite's programs, options and adapter its tests read beside the manifests (TestRepo.SuiteCase, SuiteManifest.Root, LexerDfaCacheDriftTests, NumericDisplayFormDriftTests, ConformanceSuiteAdapterDriftTests)",
+        "tests/doc-facts/": "the compiler facts the documents state and the manual's programs (DocFacts, DocumentedFactsDriftTests, UserManualDriftTests)"
       },
-      "exclude": ["@inert", "@tooling-lane"],
+      "exclude": {
+        "@inert": "no test reads it (the inert lane's watch)",
+        "@tooling-lane": "no compiler test or build reads it (the watch and the INERT LANE audit)",
+        "conformance-suite/harness/": "the generator and its modules: conformance-suite's program, reached only through it (SuiteManifest takes its output from the gate in WISEOWL_COBOL_GATE_SUITE and runs it only when no gate did); no Unit test runs harness/run.py"
+      },
       "judged": {
         "tests/WiseOwl.Cobol.Tests.Unit/GateLegDriftTests.cs|\"host\" => GateLegAudit.HostRoot,": "arm (5)'s witness on this host: the root AS TEXT, planted into display names the audit must flag; nothing is read through it"
       }
     },
     "repo-drift": {
+      "kind": "test",
       "assembly": "RepoDrift",
       "project": "tests/WiseOwl.Cobol.Tests.RepoDrift/",
       "inputs": {
-        "@population-inputs": "the repository's drift tests bind the documents' data files, the records, the scripts a compiler test runs, the CI files, every test source and the NAMES of every tracked file (tests/_shared/TrackedTree.cs, NulByteDriftTests' whole-tree sweep) to each other and to the compiler: every population input (inert_lane.Classification.is_population_input)"
+        "@population-inputs": "the repository's drift tests bind the documents' data files, the records, the scripts a compiler test runs, the CI files, every test source and the NAMES of every tracked file (tests/_shared/TrackedTree.cs, NulByteDriftTests' whole-tree sweep) to each other and to the compiler: every population input (inert_lane.Classification.is_population_input); it reads the traceability inventory itself (TraceabilityInventory, SpecTraceabilityInventoryDriftTests, RegistryShapeDriftTests) and never the generated suite, so it depends on no generated target"
       },
-      "exclude": ["@inert", "@tooling-lane"]
+      "exclude": {
+        "@inert": "no test reads it (the inert lane's watch)",
+        "@tooling-lane": "no compiler test or build reads it (the watch and the INERT LANE audit)"
+      }
     },
     "characterization": {
+      "kind": "test",
       "assembly": "Characterization",
       "project": "tests/WiseOwl.Cobol.Tests.Characterization/",
       "inputs": {
@@ -111,7 +164,10 @@
         "tests/WiseOwl.Cobol.Tests.Characterization/": "its own sources, project and snapshots (CharacterizationCorpus SnapshotDir)",
         "tests/characterization/": "its corpus (CharacterizationCorpus)"
       },
-      "exclude": ["@inert", "@tooling-lane"],
+      "exclude": {
+        "@inert": "no test reads it (the inert lane's watch)",
+        "@tooling-lane": "no compiler test or build reads it (the watch and the INERT LANE audit)"
+      },
       "judged": {
         "tests/WiseOwl.Cobol.Tests.Characterization/CharacterizationCorpus.cs|TestRepo.Root.Replace('\\\\', '/').TrimEnd('/') + \"/\";": "Snapshot.RepoRootFwd: the root AS TEXT, stripped from snapshot diagnostics so they are repo-relative; nothing is read through it"
       }

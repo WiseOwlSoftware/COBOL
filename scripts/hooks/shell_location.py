@@ -33,8 +33,8 @@ word, and `git_calls` reads every `git` invocation of a step (its global options
 its subcommand). EVERY place either shell takes a command line from is walked as the command line it is:
   - a command substitution, in a word or inside double quotes: Bash `$( … )`, a backquote, `<( … )`, `>( … )`;
     PowerShell `$( … )`, `@( … )`, a `( … )` expression and a `{ … }` script block. Its steps come BEFORE the step
-    whose text holds it (they run first) and carry `substitution`, how many substitutions enclose them (a step of
-    the line itself is 0, a substitution's 1, one inside that 2); the step's own `words` keep it as one word;
+    whose text holds it (they run first), one `depth` level down per enclosing substitution (a step of the line itself
+    is 0, a substitution's 1, one inside that 2); the step's own `words` keep it as one word;
   - an interpreter handed a string: `bash|sh -c '…'` (and `-lc`, `-ec` …), `pwsh -Command|-c|-EncodedCommand …`,
     `cmd /c|/k …`, Bash `eval …`, PowerShell `Invoke-Expression|iex …`, also behind a command that runs another
     (`timeout 5 bash -c …`, `env X=1 sh -c …`, `xargs sh -c …`, `wsl -e bash -c …`, PowerShell's `&`);
@@ -96,20 +96,16 @@ class Step:
     cwd: str | None              # the directory it runs in; None when the line does not determine it
     sep: str                     # the separator that FOLLOWS it ("" at the end): && || ; | & or a newline; the last
                                  # step of a group or a `-c` payload carries the separator that follows the group
-    depth: int                   # 0 = the tool call's own command line; >0 = inside a subshell, group or `-c` payload
+    depth: int                   # 0 = the tool call's own command line; >0 = inside a subshell, group, `-c` payload or command
+                                 # substitution (one level per enclosing one: `$(a | b)`: b, at a's level, reads a)
     location: str | None = None  # a location change's target as written (after substitution); "" for one with no
                                  # argument (`cd` = home, `popd`); None when the step is not a location change
     stranded: tuple[str, ...] = ()  # on the FIRST step after an and-or list a single `&` sent to the background: that
                                  # list's own location changes (as `location` spells them), which moved only the
-                                 # background job and do NOT apply here (forbidden_commands.py rule 7, kb/Work PB3095)
+                                 # background job and do NOT apply here (forbidden_commands.py rule 6, kb/Work PB3095)
     heredocs: tuple[str, ...] = ()  # the bodies of the Bash heredocs (`<<DELIM`, `<<-DELIM`) the command introduces, in
                                  # order, each without its delimiter line; a `-c` payload's last step carries the
                                  # bodies that feed the payload (`bash -c '…' <<EOF`)
-    substitution: int = 0        # how many command substitutions, `<( … )`s or PowerShell expressions / script blocks
-                                 # enclose the step (0 = none): such a step runs BEFORE the step whose text holds it (the
-                                 # next step at a LOWER level), and its output is that step's text, not a command of the
-                                 # line; the steps of one level that follow each other are that level's own command line
-                                 # (`$(a | b)`: b, at a's level, reads a; a step of b's own substitutions is one deeper)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -500,9 +496,7 @@ def _command(text: str, sep: str, heredocs: tuple[str, ...], subs: tuple[str, ..
     # may or may not have run), and its pipeline input (`$input`, `$_`) is no stdin this model spells
     for inner in subs:
         child = state.copy()
-        before = len(out)
         _walk(inner, child, shell, depth + 1, out, fed if shell == BASH else ())
-        out[before:] = [dataclasses.replace(s, substitution=s.substitution + 1) for s in out[before:]]
         if shell == POWERSHELL and len(child.moved) > len(state.moved):
             state.cwd = None
     if shell == POWERSHELL and (m := _ASSIGN_PS.match(text)):

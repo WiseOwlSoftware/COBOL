@@ -70,11 +70,13 @@ public sealed class GateLegDriftTests
         GateLegAudit.AssertNamesTheGateFramework(typeof(GateLegDriftTests).Assembly);
     }
 
-    /// <summary>The gated assemblies, as scripts/build_targets.json declares their targets (`assembly`).</summary>
+    /// <summary>The gated assemblies, as scripts/build_targets.json declares its TEST targets (`kind`, `assembly`).</summary>
     private static string[] GatedAssemblies()
     {
         using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(TestRepo.Scripts("build_targets.json")));
-        return [.. doc.RootElement.GetProperty("targets").EnumerateObject().Select(t => t.Value.GetProperty("assembly").GetString()!)];
+        return [.. doc.RootElement.GetProperty("targets").EnumerateObject()
+            .Where(t => t.Value.GetProperty("kind").GetString() == "test")
+            .Select(t => t.Value.GetProperty("assembly").GetString()!)];
     }
 
     // ── This assembly's per-assembly arms, as every gated assembly carries them ─────────────────────────────────

@@ -46,7 +46,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   plan, its tiers and PB4269's whole-tier rule, the impact map and the implementer scope are gone with PB4328. Each
   population is a TARGET keyed by its declared inputs (`scripts/build_targets.json`; kb/Work PB5207, PB5218), and one up to
   date at its key runs nothing; since kb/Work PB5230 the repository drift tests are their own assembly and target
-  (`repo-drift`), so Unit keys on the compiler, its own data and the suite generator's inputs only. Measured
+  (`repo-drift`), so Unit keys on the compiler, its own data and the generated suite's output digest only (it depends on `conformance-suite`, kb/Work PB5231). Measured
   before the deletion (2026-11-01, quiet box, cache off): one gate's populations 247 s, three gates together 503 s each;
   xunit's default thread count and the cap of 3 (kb/Work PB2514, `gate_slot.py`'s coded `DEFAULT_SLOTS`) were kept on
   those numbers. CI's merge group is the first run of the merged tree, Linux and Release; PB4271 classifies every
