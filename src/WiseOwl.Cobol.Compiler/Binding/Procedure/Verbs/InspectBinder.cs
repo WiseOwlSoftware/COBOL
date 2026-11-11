@@ -126,19 +126,22 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                 + "or explicitly as usage display or national (ISO §2023:14.9.22.3 SR1)");
         }
 
-        // ⛔ A FORMAT 3 OVER AN OCCURS-DEPENDING GROUP: WHEN IS THE LENGTH TAKEN (kb/Work PB5119; DialectBehavior
-        // InspectFormat3LengthIdentifiedOnce, VCR row 7.57)? The TALLYING half may store into the DEPENDING ON object
-        // (`INSPECT G TALLYING N ... REPLACING ...`). From 2002 item identification of the format 2 statement "is done only
-        // once before executing the format 1 statement" (§2023:14.9.22.4 GR19) and identification includes the "length
-        // evaluation for an occurs-depending group item" (§2023:14.6.4 step 6), so the object is pinned for the whole
-        // statement: a copy taken as a pre-op right after identifier-1's own subscripts, ahead of every later operand.
+        // ⛔ A FORMAT 3 WHOSE IDENTIFIER-1 READS AN OCCURS DEPENDING ON OBJECT: WHEN IS IT READ (kb/Work PB5119; DialectBehavior
+        // InspectFormat3LengthIdentifiedOnce, VCR row 7.57)? The TALLYING half may store into the object (`INSPECT G
+        // TALLYING N ... REPLACING ...`). From 2002 item identification of the format 2 statement "is done only once before
+        // executing the format 1 statement" (§2023:14.9.22.4 GR19) and identification includes the "length evaluation for an
+        // occurs-depending group item" (§2023:14.6.4 step 6), so every object identifier-1's identification reads is pinned
+        // for the whole statement, WHATEVER ITS FORM: the group, a reference-modified group (whose omitted length is the
+        // group's), the record above it, a table element whose reference tests the bound (OdoDependence, the one walk;
+        // review R1-1). Each copy is a pre-op taken right after identifier-1's own subscripts, ahead of every later operand.
         // §1985:VI.6.18.4 GR17 fixes only the subscripting, so at --std 85 the REPLACING half is the second of two successive
         // statements and takes the length at its own start (§1985:VI.5.8.4 GR3): the emitter re-reads identifier-1 there.
         bool lengthAnew = false;
-        if (ins.inspectTallyingPhrase() is not null && ins.inspectReplacingPhrase() is not null && target is OdoGroupPlace odo)
+        if (ins.inspectTallyingPhrase() is not null && ins.inspectReplacingPhrase() is not null
+            && OdoDependence.ReadsDependingObject(target))
         {
             if (DialectBehaviors.IsActive(DialectBehavior.InspectFormat3LengthIdentifiedOnce, ctx.Edition.Edition.Year))
-                target = host.FreezeOdoExtentForStatement(odo, ins.Start.Line);
+                target = host.FreezeOdoExtentForStatement(target, ins.Start.Line);
             else
                 lengthAnew = true;
         }

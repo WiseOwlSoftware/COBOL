@@ -2988,6 +2988,12 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   the DEPENDING ON item does not change the length the REPLACING half works over (`ZZZBA`, pinned by
   `conformance:cases/14.9.22-INSPECT/pb5119_format3_odo_length`). At `--std 85` GR17 fixes only the subscripting, so the
   second of the two successive statements takes the length at its own start (`ZZZZZ`, `pb5119_format3_odo_length_1985`).
+  The same holds for EVERY form of identifier-1 whose identification reads the object: a reference-modified group with
+  or without a length (an omitted length runs to the end of the group as identified, §2023:14.6.4 step 6 before step 7),
+  the record above the group, a group of the table, and an element whose reference tests the §2023:13.18.38.4 GR7 bound
+  (identified once, so a counter that takes the object past integer-2 raises no EC-BOUND-ODO at the write-back);
+  pinned by `pb5119_format3_odo_forms` and `pb5119_format3_odo_forms_1985`. STRING, UNSTRING, MOVE and SEARCH store into
+  an operand's object correctly at every edition (`14.6.4-Item-identification/pb5119_odo_object_changed_by_statement`).
   A function-identifier operand of any phrase is identified once, before the first counter is stored (§2023:14.9.22.4 GR6,
   kb/Work PB5184, `pb5184_replacing_function_once`).
 - **D-INS3 — an INSPECT REPLACING pattern, replacement or delimiter in the storage of identifier-1 (§2023:14.9.22.4 GR18,

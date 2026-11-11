@@ -116,25 +116,36 @@ public sealed partial class StatementBinder
         return temp;
     }
 
-    /// <summary>⛔ THE ODO LENGTH BEFORE THE REFERENCE MODIFIER (ISO §2023:14.6.4 steps 6 and 7; the
-    /// <c>ReferenceResolver.FreezeOdoExtent</c> hook; kb/Work PB1123). The reference modifier's position was
-    /// materialized above as pre-ops from <paramref name="preOpMark"/> on, and a pre-op that activates a function can
-    /// change the DEPENDING ON object, so the object's value is copied into a compiler temp as a pre-op INSERTED at
-    /// <paramref name="preOpMark"/> — ahead of every one of them — and the group's extent reads the temp. The copy
-    /// is a plain MOVE of the object into a temp of its own description, so the length it pins is exactly the value
-    /// the operand site would have read had no pre-op run first.</summary>
-    private Place FreezeOdoExtentBeforeRefMod(OdoGroupPlace odo, int preOpMark, int line)
+    /// <summary>⛔ THE OCCURS DEPENDING ON OBJECTS AN OPERAND'S IDENTIFICATION READS, PINNED AT ITS IDENTIFICATION (ISO
+    /// §2023:14.6.4 step 6, §2023:13.18.38.4 GR7 and GR8; kb/Work PB1123, PB5119). Every DEPENDING ON place
+    /// <paramref name="place"/>'s identification reads (the extent of an occurs-depending group at any depth of
+    /// decoration: a reference modifier with or without a length, an image view; the bound test of a table step in its
+    /// access path) is copied into a compiler temp of its own description by a pre-op INSERTED at
+    /// <paramref name="preOpMark"/>, and the place returned reads the temps (<see cref="OdoDependence.Rebind"/>, the one
+    /// walk over every place kind). One temp per distinct object, so a record and the group under it that depend on one
+    /// object read one copy. The copy is a plain MOVE, so the value it pins is exactly the one the operand site would
+    /// have read at <paramref name="preOpMark"/>.
+    /// <para>Two callers: the <c>ReferenceResolver.FreezeOdoExtent</c> hook, when a reference modifier's position
+    /// registered pre-ops (a function activation that may change the object runs after the length, steps 6 then 7), and
+    /// <see cref="FreezeOdoExtentForStatement"/>.</para></summary>
+    private Place FreezeOdoExtentBeforeRefMod(Place place, int preOpMark, int line)
     {
-        var temp = data.Temps.Create(odo.Depending.Item, "__REFODO-", "__refodo", $"L{line}");
-        if (Ctx.Refs.Places.ResolveItem(temp) is not { } frozen) return odo;
-        data.Procedure.PendingPreOps.InsertAt(preOpMark, new BoundMove(new BoundFieldOperand(odo.Depending), [frozen]));
-        return odo with { Depending = frozen };
+        var pinned = new Dictionary<Place, Place>();
+        int at = preOpMark;
+        return OdoDependence.Rebind(place, depending =>
+        {
+            if (pinned.TryGetValue(depending, out var known)) return known;
+            var temp = data.Temps.Create(depending.Item, "__REFODO-", "__refodo", $"L{line}");
+            if (Ctx.Refs.Places.ResolveItem(temp) is not { } frozen) return depending;
+            data.Procedure.PendingPreOps.InsertAt(at++, new BoundMove(new BoundFieldOperand(depending), [frozen]));
+            return pinned[depending] = frozen;
+        });
     }
 
-    /// <summary>The same pin for a STATEMENT whose item identification fixes the length once for the whole statement (a
-    /// format 3 INSPECT's occurs-depending identifier-1, §2023:14.9.22.4 GR19 with §2023:14.6.4 step 6; kb/Work PB5119): the
-    /// copy of the DEPENDING ON object is a pre-op placed NOW, after the pre-ops identifier-1's own subscripts registered
-    /// and before those of every later operand.</summary>
-    internal Place FreezeOdoExtentForStatement(OdoGroupPlace odo, int line) =>
-        FreezeOdoExtentBeforeRefMod(odo, data.Procedure.PendingPreOps.Mark(), line);
+    /// <summary>The same pin for a STATEMENT whose item identification fixes the operand for the whole statement (a format
+    /// 3 INSPECT's identifier-1, §2023:14.9.22.4 GR19 with §2023:14.6.4 step 6; kb/Work PB5119): the copies are pre-ops
+    /// placed NOW, after the pre-ops identifier-1's own subscripts registered and before those of every later
+    /// operand.</summary>
+    internal Place FreezeOdoExtentForStatement(Place place, int line) =>
+        FreezeOdoExtentBeforeRefMod(place, data.Procedure.PendingPreOps.Mark(), line);
 }
