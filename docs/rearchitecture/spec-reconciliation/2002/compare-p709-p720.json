@@ -1,0 +1,51 @@
+{
+  "batch": [
+    709,
+    710,
+    711,
+    712,
+    713,
+    714,
+    715,
+    716,
+    717,
+    718,
+    719,
+    720
+  ],
+  "pages_checked": [
+    709,
+    710,
+    711,
+    712,
+    713,
+    714,
+    715,
+    716,
+    717,
+    718,
+    719,
+    720
+  ],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p720-1",
+      "page": 720,
+      "kind": "misplaced-content",
+      "severity": "normative",
+      "pdf_says": "Latin:    0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01F5, 01FA-0217, 0250-02A8, 1E00-1E9B, 1EA0-1EF9, 207F",
+      "markdown_says": "| Latin: | 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01F5, 01FA-0217, 0250- |\n\n02A8, 1E00-1E9B, 1EA0-1EF9, 207F",
+      "why_it_matters": "The Latin row of the C.2.1 repertoire table is cut at the printed line wrap: the table cell ends with the dangling range start '0250-' and the rest of the row ('02A8, 1E00-1E9B, 1EA0-1EF9, 207F') sits in a separate paragraph outside the table. A reader of the table sees an unterminated range and loses the Latin ranges 0250-02A8, 1E00-1E9B, 1EA0-1EF9 and 207F from the Latin row."
+    },
+    {
+      "id": "p720-2",
+      "page": 720,
+      "kind": "table-restructured",
+      "severity": "normative",
+      "pdf_says": "Script or character classification    Letters or range of letters ... Greek:    0386, 0388-038A, 038C, 038E-03A1, 03A3-03CE, 03D0-03D6, 03DA, 03DC, 03DE, 03E0, 03E2-03F3, 1F00-1F15, 1F18-1F1D, 1F20-1F45, 1F48-1F4D, 1F50-1F57, 1F59, 1F5B, 1F5D, 1F5F-1F7D,",
+      "markdown_says": "Script or\\\ncharacter\n\n| classification | Letters or range of letters |\n|---|---|\n...\nGreek: 0386, 0388-038A, 038C, 038E-03A1, 03A3-03CE, 03D0-03D6, 03DA, 03DC, 03DE, 03E0, 03E2-03F3, 1F00-1F15, 1F18-1F1D, 1F20-1F45, 1F48-1F4D, 1F50-1F57, 1F59, 1F5B, 1F5D, 1F5F-1F7D,",
+      "why_it_matters": "The two-column repertoire table is broken apart: the first column header 'Script or character classification' is split so only 'classification' is in the table header (the rest is a loose paragraph above it), and the Greek row is a plain paragraph outside the table instead of a table row. The codes are all present, but the table structure that pairs each script with its ranges is lost for Greek (and for every following script that continues from this table)."
+    }
+  ]
+}

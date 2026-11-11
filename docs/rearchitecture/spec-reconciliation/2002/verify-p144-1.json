@@ -1,0 +1,13 @@
+{
+  "claim_id": "p144-1",
+  "claim_key": "914bd9fa777a3238",
+  "page": 144,
+  "kind": "ocr-error",
+  "severity": "normative",
+  "claim": {"id": "p144-1", "page": 144, "kind": "ocr-error", "severity": "normative", "pdf_says": "10^-999 (1.000 000 000 000 000 000 000 000 000 000 0E-999) ... 10^1000 – 10^968 (9.999 999 999 999 999 999 999 999 999 999 9E+999) [exponents printed as superscripts]", "markdown_says": "10–999 (1.000 000 000 000 000 000 000 000 000 000 0E-999)\n\nthrough\n\n   101000 – 10968 (9.999 999 999 999 999 999 999 999 999 999 9E+999)", "why_it_matters": "Superscript exponents flattened in 8.8.1.3.1.1: '10–999' reads as 10 minus 999, '101000 – 10968' reads as one hundred one thousand minus ten thousand nine hundred sixty-eight; the bounds of the standard intermediate data item magnitude range are wrong as written (the parenthesised E-notation is intact)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of PDF page 144 (printed page 122), 8.8.1.3.1.1 Precision and allowable magnitude, shows the lower bound as 10 with superscript '-999' and the upper bound as 10 with superscript '1000', an en dash, then 10 with superscript '968'. The transcription (page-144.md lines 15 and 19) reads '10–999' and '101000 – 10968', so the superscript markup is gone and the run-together digits read as different numbers ('10 minus 999', '101000 minus 10968'). Both quotes in the claim match their sources. The parenthesised E-notation equivalents survive and keep the intended values recoverable, but the primary normative expression of the range bounds of a standard intermediate data item is wrong as written. This is a genuine content defect, not scaffolding or wrapping.",
+    "corrected_description": ""
+  }
+}
