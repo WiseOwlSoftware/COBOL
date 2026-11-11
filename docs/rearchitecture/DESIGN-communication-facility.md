@@ -8,7 +8,7 @@ it and NIST-85's CM module runs.
 The authority is ISO/IEC 1989:2002 Annex A (Communications facility), with E.5 as its concepts section, read from the 2002 post-ballot text
 (`E:/COBOL-coord/specs-drafts/t2002.txt`, general formats rendered from `x2002/cobolv200112.pdf`). The 2002 text is outside the tracked
 tree, so citations of it are not `cite.py`-checkable and are written `ISO/IEC 1989:2002 A.n`, never with the `§` of the 2023 text. The
-1985 text is not held: CCVS-85's CM programs are the witness of the COBOL-85 KEY phrase and status 40.
+1985 text is `specs/ANSI_COBOL_1985.md` (§1985:XIV), and CCVS-85's CM programs witness the COBOL-85 KEY phrase and status 40.
 
 The facility is not the 2023 asynchronous messaging facility (§2023:14.9.31, §2023:14.9.38), which shares the words RECEIVE and SEND, and the two
 differ in kind. This facility stores and forwards: a message outlives the run unit that sent it, so the MCS keeps it in a durable store.
@@ -70,6 +70,19 @@ positions) and the VALUE rule. All are COBOL6169 with the rule quoted, the COBOL
 
 `CommunicationBinder` builds one `BoundCommunicationStatement` per statement, carrying `Cd.Area`'s place: they are one operation over one area, and the optional members are the operands
 each format prints. COBOL6170 is a name that is no cd-name, or a cd-name of a format the statement's rule does not admit. COBOL6171 is an operand of the wrong class or category.
+
+The operand rules by edition (kb/Work PB5278, PB5289, PB5082, PB5240):
+
+| Operand | 85 | 2002 |
+|---|---|---|
+| RECEIVE identifier-1 | any data item (§1985:XIV.3.5.3 has SR1 alone) | category alphanumeric (A.2.5.2 SR2) |
+| SEND identifier-1 | any data item; a function-identifier names an alphanumeric function (§1985:XIV.3.6.3 SR6) | class alphanumeric (A.2.6.2 SR2, SR7) |
+| SEND identifier-2 | a one-character unsigned integer: `PicInfo.IsIntegerDescription` with one digit position (P is not counted, §1985:VI.5.9.4) | the same (SR3) |
+| ADVANCING identifier-3 | an integer data item (`IsIntegerDescription`): never an index data item, an index-name, a constant-name or a symbolic-character | the same (SR4) |
+| ADVANCING integer-1 | an integer, or the figurative ZERO with or without ALL | the same |
+| ENABLE and DISABLE KEY | `sendingOperand`, so an alphanumeric function-identifier too (§1985:IV.4.3.8.3.3 SR3), "defined as alphanumeric" (§1985:XIV.3.2.3 SR4, §1985:XIV.3.3.3 SR4) | removed (COBOL0902) |
+
+`CommunicationBinder.ClassRules2002` is the binder's one edition read.
 
 The ADVANCING phrase's operands are screened and kept nowhere. The devices of this MCS are oriented to variable-length messages (A.2.6.3 GR2), so vertical positioning "is not
 applicable" and "the MCS will ignore" it (GR12). REPLACING LINE follows.

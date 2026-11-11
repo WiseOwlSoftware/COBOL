@@ -71,6 +71,22 @@ internal readonly struct StatementPosition
     /// the end of a containing statement or phrase ends it), so the next statement is the only one to ask.</summary>
     public bool EndsImperativeRun => IsLast || ConditionalStatements.IsConditional(Following);
 
+    /// <summary>The statement itself.</summary>
+    public Core.StatementContext Statement => _siblings[Index];
+
+    /// <summary>Is the statement followed directly by a separator period — the last statement of its sentence, or nested
+    /// in a statement that ends where it ends and is itself the last of its sentence (a phrase's last statement before
+    /// the sentence's period)?</summary>
+    public bool EndsSentence
+    {
+        get
+        {
+            ParserRuleContext? at = Statement;
+            while (at is not null and not Core.SentenceContext) at = at.Parent as ParserRuleContext;
+            return at is Core.SentenceContext sentence && sentence.statement()[^1].Stop.TokenIndex == Statement.Stop.TokenIndex;
+        }
+    }
+
     /// <summary>The statement written immediately after this one in the sequence. Only valid when
     /// <see cref="IsLast"/> is false.</summary>
     public Core.StatementContext Following => _siblings[Index + 1];
@@ -169,6 +185,17 @@ internal static partial class PlacementRules
             : null,
         Constructs.BareGotoRemoved2002);
 
+    /// <summary>§1985:VI.6.12.2 — "language-name-1 [ routine-name-1 ] .": the format prints the separator period, which "has the
+    /// status of a required word" (§1985:IV.2.1.6), so another statement cannot follow ENTER in its sentence (kb/Work PB5178).
+    /// The statement exists at 85 only (row <c>enter-removed-2002</c>).</summary>
+    private static readonly SequenceRule EnterEndsSentence = new(
+        DiagnosticCatalog.EnterNotEndOfSentence, "§1985:VI.6.12.2; §1985:IV.2.1.6",
+        "The ENTER statement's format ends with a separator period, which has the status of a required word",
+        p => p.EndsSentence ? null
+            : p.IsLast ? "ends inside a statement that does not end at a separator period"
+            : $"is followed by the statement {p.Following.Start.Text.ToUpperInvariant()} in the same sentence",
+        Constructs.EnterRemoved2002);
+
     private static string? FollowedByAnImperative(StatementPosition p) =>
         p.EndsImperativeRun ? null
             : $"is followed by the imperative statement {p.Following.Start.Text.ToUpperInvariant()} in the same "
@@ -192,6 +219,7 @@ internal static partial class PlacementRules
             _ => null,
         },
         Core.StopStatementContext stop when stop.RUN() is not null => StopLast,
+        Core.EnterStatementContext => EnterEndsSentence,
         _ => null,
     };
 

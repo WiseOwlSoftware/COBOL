@@ -273,14 +273,23 @@ public sealed class UserWordDeclarationDriftTests
         Assert.DoesNotMatch(new Regex(@"\bAddParagraph\(\s*name\b"), builder);
     }
 
-    /// <summary>The enum is §2023:8.3.2.2's list: one member per listed type, no member the list does not name, save the one type an earlier edition's list
-    /// names and 2023's cannot: the cd-name of the communication facility (ISO/IEC 1989:2002 8.3.1.1.1, deleted at 2014; kb/Work PB4677).</summary>
+    /// <summary>The types an earlier edition's list names and 2023's cannot, each with the edition that names it and the
+    /// reason 2023 does not.</summary>
+    private static readonly Dictionary<string, string> EarlierEditionTypes = new(StringComparer.Ordinal)
+    {
+        ["cd-name"] = "the communication facility's (ISO/IEC 1989:2002 8.3.1.1.1), deleted at 2014 (kb/Work PB4677)",
+        ["routine-name"] = "the ENTER statement's routine-name-1 (§1985:IV.4.2.2.1.1, §1985:VI.6.12.3 SR2), deleted with ENTER "
+            + "at 2002 (kb/Work PB5178)",
+    };
+
+    /// <summary>The enum is §2023:8.3.2.2's list: one member per listed type, no member the list does not name, save the
+    /// <see cref="EarlierEditionTypes"/>.</summary>
     [Fact]
     public void TheEnum_IsTheStandardsList()
     {
         var listed = SpecListedTypes();
         Assert.True(listed.Length >= 30, $"parsed only {listed.Length} types from §2023:8.3.2.2 — re-derive this guard");
-        Assert.Equal(listed.Append("cd-name").Order(StringComparer.Ordinal),
+        Assert.Equal(listed.Concat(EarlierEditionTypes.Keys).Order(StringComparer.Ordinal),
             Enum.GetValues<UserWordKind>().Select(k => k.Spelling()).Order(StringComparer.Ordinal));
     }
 
