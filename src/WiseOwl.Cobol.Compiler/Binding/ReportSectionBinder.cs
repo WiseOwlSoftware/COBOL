@@ -4115,6 +4115,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.ReportSumDataNameRule, $"{where} names '{data.Name}': {fault}");
             return null;
         }
+        // §1985:XIII.3.19.3 SR1 — with no UPON phrase a sum counter addend "must be defined either in the same report
+        // group that contains this SUM clause or in a report group which is at a lower level in the control hierarchy of
+        // this report": a counter of ANOTHER report is in neither. SR4 g) ("there are no restrictions" for a different
+        // report description) is COBOL-2002's (§2002:13.16.52.2 SR3 g)), so below 2002 it is refused (kb/Work PB5253).
+        if (Edition.DialectLevel < 2002 && !ReferenceEquals(data.Report, target.Report))
+        {
+            Edition.Error(DiagnosticCatalog.ReportSumDataNameGroups, $"{where} names the sum counter '{data.Name}' of report "
+                + $"'{data.Report.Name}', another report than the SUM entry's '{model.Name}': it must be defined either in the "
+                + "same report group that contains this SUM clause or in a report group which is at a lower level in the "
+                + "control hierarchy of this report (ISO §1985:XIII.3.19.3 SR1)");
+            return null;
+        }
         // SR4 f)/g)
         if (ReferenceEquals(data.Report, target.Report) && !ReferenceEquals(data.Group, target.Group)
             && !GroupCombinationPermitted(target.Group, data.Group))
