@@ -47,7 +47,7 @@ from typing import Any, NamedTuple
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import lineage  # noqa: E402  (an older edition's change record and its state)
 from inventory_schema import (HELD, NEWEST, REGISTER_EXTRACT_REL, REPO, SCHEMA_REL, WORKING_TREE, Edition,  # noqa: E402
-                              Schema, Tree, edition, link_errors, load_schema)
+                              Schema, Tree, edition, load_schema)
 from inventory_store import STORE_KEYS, inventory_dir, read_store, store_at  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -226,12 +226,12 @@ def inventory_at(rev: str, year: int | None = None, repo: pathlib.Path = REPO) -
 # -- the audit, the summary, the parity witness ---------------------------------------------------------------------------
 
 def check() -> int:
-    """THE GATE AUDIT: every held edition's view, each older edition's change records (`lineage.next_errors`), and that
-    no held edition is linked into the lineage before its transcription is reconciled (`inventory_schema.link_errors`).
-    Prints one line per edition; returns 1 on a finding."""
-    import verify_publishable  # noqa: PLC0415  (the reconciliation ledgers' owner: the fact an edition is reconciled)
+    """THE GATE AUDIT: every held edition's view, and each older edition's change records (`lineage.next_errors`).
+    Prints one line per edition; returns 1 on a finding. (Whether an edition may be LINKED is the EDITION GATES audit's
+    question, `edition_gates.check`: this module is in the conformance-suite generator's import closure, and the
+    reconciliation ledgers' reader is not.)"""
     schema = load_schema()
-    findings: list[str] = link_errors(schema.all_editions, verify_publishable.reconciled)
+    findings: list[str] = []
     for year in sorted(HELD, reverse=True):
         ed = schema.edition(year)
         v = view(year, schema)

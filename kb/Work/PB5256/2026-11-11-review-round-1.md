@@ -28,7 +28,7 @@
 - **R1-4 (a change record's target can move under its id).** (a) Linking refused before reconciliation:
   `verify_publishable.reconciled(edition)` is the fact (the edition's reconciliation ledger records every page of its PDF,
   `spec_pdf.EDITIONS[...].pages`, measured: 976, 882, 1261; 1985 and 2023 are reconciled, 2002 is not), and
-  `inventory_schema.link_errors` refuses a linked unreconciled edition in the INVENTORY VIEW audit. The extractor's
+  `inventory_schema.link_errors` refuses a linked unreconciled edition in the EDITION GATES audit (moved there from INVENTORY VIEW at the merge of PB5231: the view is in the suite generator's import closure). The extractor's
   `IsoEdition.reconciled` reads the same fact (the hand flag is deleted). (b) A change record carries `next.digests`, each
   `to` rule's `rule-digest` when it was decided, stamped by `record_verdicts.py`; `lineage.stale_targets` names a record
   whose target's text moved, STALE, and the audit fails on it. 1985's 1,937 records were stamped through
@@ -49,3 +49,13 @@
   where the held editions are listed (`spec_pdf.EDITIONS`), and that each determination is still to be read against them
   (the 1985 text's own I-O status 07 names only CLOSE and OPEN, §1985:VII.1.3.5). Those two re-reads are open work that
   needs a note of its own (an id from the coordinator).
+
+**R1-1, done after PB5231 landed (merged main at d9dde0e7ba).** The `conformance-suite` target declares
+`docs/rearchitecture/spec-rule-catalog-2002.json` (the inventory view of 2002, which generate.py joins with every held
+edition), its `tests/version-matrix/` entry and the `read_store` judgement name `inventory-2002/`, and the probe
+`lineage.py|main|path.exists()` is judged (the CLI's committed pairing, never reached by the generator). A traced
+generation (`buildgraph.traced_run` judged by `buildgraph.undeclared`) read the 2002 catalog undeclared before the entry
+and reports no undeclared read after it; it reads no other file this branch added (no 2002 store file exists, no pairing
+file). The link check moved from INVENTORY VIEW to EDITION GATES (`edition_gates.check`): the view is in the generator's
+import closure and the reconciliation ledgers' reader (`verify_publishable`, with `citation`, `reserved_word_order`,
+`spec_pdf`) is not, and BUILD TARGETS refused the probes that import brought into the closure.

@@ -193,7 +193,7 @@ def link_errors(editions: Iterable[Edition], reconciled: Callable[[int], bool]) 
     """Why the schema may not LINK a held edition into the lineage (kb/Work PB5256, branch review R1-4): a change record
     names a rule by its id, and an unreconciled transcription's ids still move (a rule its reconciliation restores
     renumbers the rest of its block), so a held edition is linked only once `reconciled(year)` holds, the ledger's fact
-    (`verify_publishable.reconciled`). The INVENTORY VIEW audit asks it of the schema."""
+    (`verify_publishable.reconciled`). The EDITION GATES audit asks it of the schema (edition_gates.check)."""
     return [f"{SCHEMA_REL}: the held edition {e.year} is linked into the lineage, but its transcription is not reconciled "
             f"(verify_publishable.reconciled): its rule ids may still move under a change record; set `linked: false`"
             for e in editions if e.held and e.linked and not reconciled(e.year)]

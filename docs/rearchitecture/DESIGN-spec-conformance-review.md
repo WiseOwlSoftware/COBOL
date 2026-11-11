@@ -1230,7 +1230,7 @@ also carries each target's `rule-digest` when it was decided (`next.digests`, st
 moved under its id makes the record STALE by name (`lineage.stale_targets`), and the INVENTORY VIEW audit fails on it.
 The reviewer's scenario, one rule inserted into READ's general rules, moves the text under 27 ids, and a record into
 each is named STALE (branch review R1-4). And an edition is LINKED only once its transcription is reconciled
-(`inventory_schema.link_errors`, asked by the INVENTORY VIEW audit, against `verify_publishable.reconciled`: the
+(`inventory_schema.link_errors`, asked by the EDITION GATES audit, against `verify_publishable.reconciled`: the
 reconciliation ledger records every page of the PDF, `spec_pdf.EDITIONS[...].pages`), so no older edition's records
 can name 2002 ids before the reconciliation stops moving them. The extractor's `IsoEdition.reconciled` is the same fact.
 

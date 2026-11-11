@@ -355,10 +355,16 @@ def held_open(findings: Iterable[Finding], held: Mapping[str, str]) -> tuple[lis
 
 
 def check() -> int:
+    """THE EDITION GATES AUDIT: every gate rests on an edge of the lineage, and the lineage links no held edition before its
+    transcription is reconciled (`inventory_schema.link_errors` against `verify_publishable.reconciled`, kb/Work PB5256,
+    branch review R1-4): an unreconciled edition's rule ids may still move under a change record."""
+    import verify_publishable  # noqa: PLC0415  (the reconciliation ledgers' owner: the fact an edition is reconciled)
+    from inventory_schema import link_errors  # noqa: PLC0415
     schema = load_schema()
     gates, pairs = repository_inputs(schema)
     findings, proven = audit(gates, pairs, schema)
     kept, findings = held_open(findings, HELD_OPEN)
+    findings += link_errors(schema.all_editions, verify_publishable.reconciled)
     windows = sum(1 for g in gates if g.where.startswith("constructs/"))
     print(f"edition gates: {len(gates)} ({windows} construct windows, {len(gates) - windows} grammar predicates); "
           f"{len(proven)} with an edge the held editions span, each proven by the lineage or left to the word lists")
