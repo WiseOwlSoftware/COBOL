@@ -172,7 +172,7 @@ class ProcessJob:
         stays one until whatever adopted it reaps it (a CI runner's subreaper reaps late: the merge group of #1475 read
         the killed grandchild as still in the tree). Where there is no /proc the group signal is all there is."""
         if not IS_WINDOWS:
-            from detached import pid_alive  # noqa: PLC0415  (this directory's: the one liveness probe, kb/Work PB4008)
+            from detached import pid_alive, proc_stat  # noqa: PLC0415  (the one liveness probe and stat parse)
             pgid = self.popen.pid
             if not os.path.isdir("/proc/self"):
                 try:
@@ -184,12 +184,8 @@ class ProcessJob:
             for entry in os.listdir("/proc"):
                 if not entry.isdigit():
                     continue
-                try:
-                    with open(f"/proc/{entry}/stat", encoding="ascii", errors="replace") as fh:
-                        fields = fh.read().rsplit(") ", 1)[1].split()
-                except (OSError, IndexError):
-                    continue   # exited between the listing and the read
-                if int(fields[2]) == pgid and pid_alive(int(entry)):   # fields: state, ppid, pgrp, ...
+                stat = proc_stat(int(entry))   # None: it exited between the listing and the read
+                if stat is not None and stat[1] == pgid and pid_alive(int(entry)):
                     members.append(int(entry))
             return sorted(members)
         if self._job is None:
@@ -274,10 +270,12 @@ def _self_test() -> int:
                 check("kill reaches the orphaned grandchild (taskkill /T cannot)", pid_alive(grand), False)
                 check("nothing of the tree is left after kill", job.alive(), [])
                 if sys.platform.startswith("linux"):
-                    state = open(f"/proc/{grand}/stat", encoding="ascii").read().rsplit(") ", 1)[1][:1] \
-                        if os.path.exists(f"/proc/{grand}/stat") else "gone"
-                    check("the killed orphan is an unreaped zombie here, the case alive() must call dead", state, "Z")
-                    os.waitpid(grand, 0)   # reap it now that the case is checked
+                    from detached import proc_stat  # noqa: PLC0415
+                    stat = proc_stat(grand)
+                    check("the killed orphan is an unreaped zombie here, the case alive() must call dead",
+                          stat[0] if stat else "gone", "Z")
+                    if stat:
+                        os.waitpid(grand, 0)   # reap it now that the case is checked (ours only as its subreaper)
 
         # A root still running past its wait is TimeoutExpired, and the block's end kills it and its child.
         with open(os.path.join(d, "out2.txt"), "w", encoding="utf-8", newline="\n") as out:
