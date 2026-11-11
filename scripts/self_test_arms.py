@@ -53,6 +53,12 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a record that is not a pass is not up to date',
         'every worktree of a repository has the ONE store',
         'the BUILD TARGETS audit: sources whose reads lie in the declared inputs are clean',
+        # kb/Work PB5235: the store ref, CI's plan and its wiring
+        'the transport: a pass published from the host\'s store is read back from the remote ref by a clone',
+        'a record is accepted only at the key CI computes',
+        'a record filed under a key it does not name, a record that is not a pass, and a pass whose facets are not',
+        "two publishers' records are a union on the ref (neither loses the other's)",
+        'the real workflow runs each leg as CI_LEGS states it',
         'the real targets file loads',
     ),
     'scripts/gate.py': (

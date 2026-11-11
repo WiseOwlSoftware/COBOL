@@ -40,10 +40,12 @@ Every later section describes one mechanism of it in detail.
 3. **The pull request's own run is the cheap jobs** (`changes` and `ci-gate`, plus `toolchain-cache` on a push to main;
    kb/Work PB4330), and its caches are saved from main only (kb/Work PB4324).
 4. **The merge group is the whole-population net on both operating systems and the ONLY run of the merged tree, of
-   Linux and of Release** (`.github/workflows/build-and-test.yml`, §1.4; kb/Work PB4329): seven Windows and five Linux
+   Linux and of Release** (`.github/workflows/build-and-test.yml`, §1.4, §3.14.14; kb/Work PB4329, PB5235): seven Windows and five Linux
    weighted shards, each dealt test classes by their measured weight (`scripts/shard_weights.py`), their union checked
    against one listing per OS and assembly in `ci-gate`; the audits with every Linux self-test; the Windows self-tests
    when a tooling path changed, a `TOOLING_READS` data file included (§3.18); `timeout-minutes` on every job and a bounded, retried checkout (kb/Work PB4324).
+   Linux runs every target in Release. Windows runs Debug, and runs a target only when the store ref holds no pass for
+   it at the merged tree's key: the owner's machine's pass stands for that target there (owner 2026-11-10; §3.14.14).
 5. **THE RULE** (owner 2026-10-31, replacing the CI invariant of 2026-10-04): every case the merge group runs on
    Windows already ran green at the pushed head, on this host, under the same `toolchain.env`. The merge group is the
    FIRST run of (a) the merged tree, (b) Linux, (c) Release with a cold compile cache, (d) the Windows tooling
@@ -127,7 +129,7 @@ golden-less programs), and both derive their population AND expected verdict fro
 
 ### 1.4 CI (`.github/workflows/build-and-test.yml`) — a gated matrix behind ONE required check
 Ten jobs. `changes` decides whether the matrix runs at all; `supersede` (merge group only) cancels the runs the queue replaced; `audits` runs in every merge group and on no pull request or verified push (kb/Work PB4330); then, concurrently, `linux-shard` (ubuntu, 5 weighted shards,
-Debug, INV-1-strong a step of each) · `windows-shard` (windows, 7 weighted shards, Release warnings-as-errors) ·
+Release, INV-1-strong a step of each) · `windows-shard` (windows, 7 weighted shards, Debug, each target skipped where the store ref holds the merged tree's pass, §3.14.14) ·
 `linux-built-self-tests` (`self_tests.py --built` after a build) · `windows-self-tests` (every script self-test
 on a Windows checkout, no build, kb/Work PB3581); `toolchain-cache` and `package-cache` (push to main only, both OSes: save the
 manifest's tools, Python's directory, the NuGet packages and the GnuCOBOL tarball under main, below); and finally `ci-gate`,
@@ -1435,6 +1437,93 @@ code, `conformance-suite/harness`, the build properties); the other 26 change an
 "run everything" unless a finer rule is proved. A builder starts there: the selection is only as sound as the
 classification of a harness change, which is the failure class that ended the impact map (kb/Work PB2696, PB4228).
 
+#### 3.14.14 The store's transport, and the merge group's plan (kb/Work PB5235, stage 6 of PB5207)
+
+The owner, 2026-11-10: CI may accept a test pass recorded on his machine. A target is up to date exactly when the store
+holds a pass at its key (§3.14.12 item 5; `scripts/buildgraph.py`). This section is how a pass reaches CI and what CI does
+with it.
+
+**The ref.** `refs/cobol-build-store/passes` (`buildgraph.STORE_REF`), a ref of the repository outside `refs/heads/` and
+`refs/tags/`, so no branch rule, ruleset or checkout touches it. It names ONE commit with no parent, whose tree is the
+store's own layout, `<target>/<key>.json`. A record is found there by its key and by nothing else.
+
+**What a record carries** (`PUBLISHED_FIELDS`): `target`, `key`, `result`, `assembly`, `facets` (platform, configuration,
+toolchain), `counts` (discovered, ran, skipped, carried), and where it came from: `head`, `tree`, `run`, `when`. The host's
+record also names its worktree and its run directory. Those stay on the host, with the evidence they point at.
+
+**Who writes it: the landing, when it pushes the branch.** `python scripts/buildgraph.py publish` (`buildgraph.publish`)
+belongs in `enqueue.py`'s step 4 ("Push, open (or reuse), queue"), right after
+`git push --force origin <sha>:refs/heads/<branch>` and before `gh pr merge --auto`. The merge group's plan reads the ref
+only after the pull request is queued, so the record is always there in time. A publish that fails is a warning, never a
+refusal: a missing record costs CI minutes and never a verdict. `publish`:
+1. reads the remote ref (`git ls-remote`, then a fetch);
+2. takes the union of its records and this host's store (every worktree's passes, projected);
+3. drops each record whose `when` is older than `PRUNE_DAYS` (21);
+4. writes the result as a new parentless commit through a private index, and pushes it with
+   `--force-with-lease=<ref>:<the commit it read>`.
+
+A publisher that loses the lease re-reads and re-sends, so two landings never drop each other's records, and the ref's
+history stays one commit deep. Pruning is a by-product of publishing: every record pruned leaves an empty tree. Until
+`enqueue.py` makes that call (kb/Work PB5235 addendum, "transport"), `buildgraph.py publish` is run by hand at a landing.
+
+**How CI reads it: the `changes` job's plan step** (`buildgraph.py plan`). Only in a merge group does it read the ref
+(`--remote origin`). It fetches it with `--no-filter`, because the job's checkout is a `blob:none` partial clone that would
+otherwise fetch each record on demand. A dispatch run or an unverified push to main reads none (`--no-records`) and runs
+everything. For each leg of `CI_LEGS` and each target of `scripts/build_targets.json`, it computes the target's key at the
+merged tree with `buildgraph.keys`, the function the local gate uses. Its log names, per leg and target, the key and either
+`RUN` or the record accepted (run, head, tree, time, counts). The job's summary carries the same table. Its outputs are, per
+leg, the configuration and the JSON list of assemblies to run. A ref that cannot be read is a warning, and every target
+runs. A crash fails `changes`, so `ci-gate` is red.
+
+**The trust model.** A record is accepted only when all four hold:
+- it sits at `<target>/<key>.json` for the key CI computed itself at the merged tree;
+- its body names that target and that key, with `result: pass` (`buildgraph.is_pass`, the one rule the host store also
+  applies);
+- its facets equal the leg's;
+- the leg accepts records.
+
+The leg's toolchain facet is `toolchain.summary(<toolchain.env at the merged tree>, "gate", <the leg's OS>)`. That is the
+string the gate on that OS records, and the gate refuses to run under any other tools (NOT RUN [toolchain]). So a pass
+measured under tools other than toolchain.env's never matches. Whoever can push the ref can write a record, and that is
+exactly the set of people who can push a branch. The ref adds no new writer. A forged record can make CI skip a target on
+the Windows leg only, never on Linux, never in Release, and never at a key the merged tree does not have.
+
+**The legs** (`buildgraph.CI_LEGS`, the one statement, held by `buildgraph.ci_wiring` in buildgraph's self-test):
+
+| leg | configuration | accepts a record | what it proves that no record can |
+|---|---|---|---|
+| `linux` (`linux-shard`, 5 shards) | Release | no | Linux; Release; the inert watch on every test step; INV-1-strong; the merged tree on GitHub's runners |
+| `windows` (`windows-shard`, 7 shards) | Debug, the local gate's configuration | yes | each target with no pass at the merged tree's key: whatever a merge of main changed in that target's inputs |
+
+Before this change, Linux ran Debug and Windows ran Release. That pairing could never match a pass, because the local gate
+runs Windows Debug. Swapping the configurations keeps both configurations in the merge group, with Release on Linux, and lets
+the owner's pass stand for Windows Debug. Every configuration builds with `TreatWarningsAsErrors` (`Directory.Build.props`),
+so the analyzer net is unchanged. A shard job runs only when the plan gives its leg a target (`<leg>_targets != '[]'`). Each
+test step is gated on its assembly being in that set. `ci-gate` checks, per OS, the population of exactly the assemblies
+the plan ran. A target the plan accepted a pass for is not checked again: its record says its population was EXACT, and the
+local gate records only an EXACT one (§3.14.12 item 5).
+
+**What the merge group still proves alone, per target.** This is never assumed:
+- `unit`, `conformance`, `characterization` on Linux in Release: always (the Linux leg accepts no record).
+- The same three on Windows in Debug: when no pass sits at the merged tree's key. After a clean merge of a branch that
+  passed locally, that happens only when the merge changed one of the target's inputs.
+- INV-1-strong: always, a step of the Linux Conformance run.
+- The Windows script self-tests (`windows-self-tests`) and the post-build self-tests (`linux-built-self-tests`): as before,
+  not yet targets.
+- The audits: every merge group, as before. Since this change they include the BUILD TARGETS audit (`buildgraph.py check`),
+  whose static half of the keys the plan trusts.
+
+**Measured.** In the 17 green merge groups that ran the matrix before this change (2026-11-10/11), the mean was 13.0 minutes
+of wall time and 114.2 job-minutes. Of those, 55.3 (48%) were the Windows shards re-running a population the local Windows
+gate had already passed. Replayed against the host store over main's merges #1482 to #1492 (the first merges whose gates
+recorded passes), the plan covers 15 of the 33 Windows target runs and the whole Windows leg of one merge (#1489).
+
+**Not yet** (kb/Work PB5235 addendum, "remaining"):
+- The dynamic input proof per target: the Linux watch extended with `--target`, so a test that opens a tracked path outside
+  its target's declared inputs fails its shard, naming the path and the tests running then.
+- The nightly as graph targets, with a red shown first by the session probe.
+- CI recording its own passes on the ref, so the Linux leg too would skip a target already passed at its key.
+
 ### 3.15 THE LINUX REPRODUCTION TOOL — CI's Linux legs under WSL, run by hand (kb/Work PB1732, PB4327)
 
 > ⛔ **The Linux gate is a HAND-RUN reproduction tool, and no per-change gate runs it (owner 2026-10-31, kb/Work PB4327;
@@ -1538,7 +1627,7 @@ JIT compiling the runtime's methods was paid at every program start; the w1033 g
   nothing in the tree sets it now (the impact recorder that did was deleted with the impact map, kb/Work PB4328).
 
 **What the gate certifies.** The gate's programs load the Release ReadyToRun runtime, not the Debug build of it: the same image
-the package ships. `src/WiseOwl.Cobol.Runtime` has no `Debug.Assert`, and CI's Windows Conformance shards already ran Release,
+the package ships. `src/WiseOwl.Cobol.Runtime` has no `Debug.Assert`, and CI's Linux Conformance shards run Release (§3.14.14),
 so no check is lost; the Debug portable assembly is still what the test hosts load in-process.
 
 **Measured** (2026-10-07, shared host; 24 stride-sampled `tests/conformance/2023` programs, 21 runs each, the two runtimes
