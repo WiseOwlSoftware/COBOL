@@ -51,12 +51,6 @@
           },
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/fleet_active_build.py\"",
-            "if": "Bash(dotnet *)",
-            "timeout": 30
-          },
-          {
-            "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/worktree_rm_allow.py\"",
             "timeout": 30
           }
@@ -78,12 +72,6 @@
           {
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/forbidden_commands.py\"",
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/fleet_active_build.py\"",
-            "if": "PowerShell(dotnet *)",
             "timeout": 30
           },
           {

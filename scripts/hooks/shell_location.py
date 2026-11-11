@@ -2,7 +2,7 @@
 """Where each command of a Bash or PowerShell tool call runs: the ONE parser of location changes the hooks share.
 
 kb/Work PB2599. A hook that asks "which tree does this command act on?" must follow the command line the way the shell
-does. Each hook used to carry its own partial parser: `fleet_active_build.py` honoured only a LEADING `cd <dir> &&`,
+does. Each hook used to carry its own partial parser: the former `fleet_active_build.py` honoured only a LEADING `cd <dir> &&`,
 `worktree_rm_allow.py` a bare `cd|Set-Location <dir>` prefix, `forbidden_commands.py` an unquoted `cd|Set-Location`
 anywhere, and the former `status_guard.py` none at all. So a PowerShell `Set-Location <worktree>; dotnet build` or a Bash
 `git worktree add … && cd <worktree> && dotnet build` was judged to run in the payload's cwd (the main checkout), and
