@@ -13,13 +13,15 @@
   -Clear removes STOP, STOP-UNIT and the loop's fleet stop so the loop (or the logon start, which honours STOP) can run;
   -Clear -Global also removes the global stop (the loop will not start while it exists).
   -Status prints what is running, which stops are pending, the operator's pending steer (steer.ps1 names the next
-  unit; a stop never clears it) and whether a ledger publish is owed.
+  unit; a stop never clears it) and whether a ledger publish is owed, read in -RepoDir (default: the checkout this
+  script lives in, as orchestrate.ps1 -RepoDir; the self-tests name a scratch one, kb/Work PB5227).
 #>
 [CmdletBinding()]
 param(
     [switch]$Clear,
     [switch]$Status,
     [switch]$Global,
+    [string]$RepoDir = (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent),
     [string]$CoordDir = $(if ($env:COBOL_COORD_DIR) { $env:COBOL_COORD_DIR } else { 'E:\COBOL-coord' })
 )
 $ErrorActionPreference = 'Stop'
@@ -50,7 +52,7 @@ if ($Status) {
         "; loop fleet stop (scratch/STOP-loop): " + (Test-Path $fleetStop) + "; GLOBAL stop (scratch/STOP): " + (Test-Path $globalStop))
     $steer = Join-Path $CoordDir 'handoff.operator.json'   # the operator's pending steer (steer.ps1, kb/Work PB2596)
     Write-Host ("operator steer: " + $(if (Test-Path $steer) { $s = Get-Content $steer -Raw | ConvertFrom-Json; "next unit '$($s.next_unit)' ($($s.next_unit_reason))" } else { 'none pending' }))
-    Write-Host ("ledger: " + ((& python (Join-Path $PSScriptRoot 'ledger_state.py') owed --coord $CoordDir) -join ' '))
+    Write-Host ("ledger: " + ((& python (Join-Path $PSScriptRoot 'ledger_state.py') owed --repo $RepoDir --coord $CoordDir) -join ' '))
     return
 }
 New-Item -ItemType Directory -Force -Path $CoordDir, (Join-Path $CoordDir 'scratch') | Out-Null

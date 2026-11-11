@@ -2307,12 +2307,19 @@ def self_test() -> int:
         "variations": Settings.__dataclass_fields__["variations"].default,
         "plan": plan_entries(tuple(DEFAULT_CLAUSES), 20261020, False, Settings.__dataclass_fields__["variations"].default, 1)}),
         encoding="utf-8", newline="\n")
+    # these cases and every later one reach the cadence gate, which reads WORK_DIR: an empty planted register to the end of
+    # the self-test, never the real one, which keyed its PASS on every note (kb/Work PB5227); so is the directory with no
+    # batch record a planted one
+    (files_run / "register").mkdir()
+    (files_run / "no-record" / "replies").mkdir(parents=True)   # its parent holds no batch.json
+    saved_work = WORK_DIR
+    globals()["WORK_DIR"] = files_run / "register"
     for case, argv in (("bake-off", ["--writer", "claude", "--bake-off", "a,b", "--count", "1"]),
                        ("option", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--model-option", "sonnet:repeat_penalty=1.1"]),
                        ("usd", ["--model", "m", "--count", "1", "--max-usd", "1"]),
                        ("ok", ["--writer", "claude", "--model", "sonnet", "--count", "1", "--max-usd", "2", "--force-open-notes",
                                "--cobol", "no-such-cobol.exe"]),
-                       ("files-no-record", ["--writer", "files", "--replies", str(REPO), "--force-open-notes",
+                       ("files-no-record", ["--writer", "files", "--replies", str(files_run / "no-record" / "replies"), "--force-open-notes",
                                             "--cobol", "no-such-cobol.exe"]),
                        ("files-count", ["--writer", "files", "--replies", str(files_run / "replies"), "--count", "5",
                                         "--seed", "7", "--force-open-notes", "--cobol", "no-such-cobol.exe"]),
@@ -2416,6 +2423,7 @@ def self_test() -> int:
         globals()["ollama_chat"], fuzz_claude.claude_chat, fuzz_claude.spent = saved_ollama, saved_claude, saved_spent
     check("writer: writer_reply asks the run's writer, and a Claude run stops starting programs at its --max-usd",
           seen == ["ollama", "spent_out=False", "claude", "spent_out=True", "claude", "spent_out=False"], seen)
+    globals()["WORK_DIR"] = saved_work
     print("self-test " + ("PASSED" if rc == 0 else "FAILED"))
     return rc
 
