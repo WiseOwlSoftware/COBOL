@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.9.4-5",
  "rule-digest": "f1af72dd8468",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ReportFlowState; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Generate",
  "test-ref": "conformance:cases/XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT/1985-GR-XIII_4_9_4-5",
+ "notes": "§1985:XIII.4.9.4 GR5: \"Within a USE procedure, there must not be the execution of any statement that would cause the execution of a USE procedure that had previously been invoked and had not yet returned control to the invoking routine.\" The rule binds the program and 1985 states no outcome; the compiler never re-enters an active USE procedure: DispatchEmitter.EmitRunUseBody emits the per-declarative __useActive guard (the EC-free form at 85, which returns without re-invoking), and ReportWriter.RunBeforeReporting brackets every BEFORE REPORTING hook in ReportFlowState so a GENERATE, INITIATE or TERMINATE reached inside that range does nothing. Probes at 85 (work-slice-54/c2*; classes b, e, f): a BEFORE REPORTING DTL procedure that PERFORMs a paragraph doing GENERATE DTL printed 'BEFORE DTL 1' once and 'DONE 1' (no recursion, no crash); a USE AFTER ERROR procedure on a file whose OPEN failed that READs the unopened file printed 'ERR USE 1', 'AFTER OPEN 1', then 'ERR USE 2', 'DONE 2' for the main READ (the nested failure did not re-invoke the active procedure). The witness runs one BEFORE REPORTING procedure once per heading and prints BEFORE RH, DONE.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

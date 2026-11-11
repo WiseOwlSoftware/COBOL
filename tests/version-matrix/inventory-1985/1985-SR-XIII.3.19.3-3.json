@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.19.3-3",
  "rule-digest": "122a8582c295",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#WrittenGroupKind",
  "test-ref": "conformance:cases/XIII.3.19@1985-SUM-CLAUSE/1985-SR-XIII_3_19_3-3",
+ "notes": "§1985:XIII.3.19.3 SR3: 'A SUM clause can appear only in the description of a control footing report group.' ScreenReportEntryClausePresence carries the group's TYPE from its level-01 entry (WrittenGroupKind) to every subordinate entry and, below dialect 2002, refuses a SUM entry in any other group with COBOL6763; from 2002 the arm is off, as §2023:13.18.54.3 SR4 f) admits detail, page and report footing SUM groups. The witness refuses SUM in a DETAIL. Probes (std 85): b) SUM in REPORT HEADING, PAGE HEADING, CONTROL HEADING FINAL, CONTROL HEADING W-K, DETAIL, DE (abbreviated), PAGE FOOTING and REPORT FOOTING each refused with COBOL6763, and a SUM entry at level 10 under a level-05 LINE entry of a DETAIL refused with COBOL6763; d) CONTROL FOOTING FINAL, CONTROL FOOTING W-K and the abbreviated CF W-K accepted, ran and printed 00010 for two 5s; c) the same PAGE HEADING SUM program at --std 2023 accepted (DONE); a, e, f: not reachable by a placement rule (no operand, no file statement).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

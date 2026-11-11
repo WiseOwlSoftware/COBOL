@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-X.4.5.4-2",
  "rule-digest": "a4e24400a98d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
  "test-ref": "conformance:cases/X.4.5@1985-EXTERNAL-CLAUSE/1985-GR-X_4_5_4-2",
+ "notes": "§1985:X.4.5.4 GR2: programs describing the same external record must use the same record-name and 'the records must define the same number of standard data format characters', while a complete REDEFINES of the record 'need not occur identically in other programs'. LinkageBinder.CallMakeExternal keys each EXTERNAL record's run-unit cell by its upper-folded data-name (the 2002 AS literal is refused at 85 by VisitExternalizedNamePhrase, COBOL0900), so every describer windows ExternalTable.Cell's one image whatever its subordinate layout or REDEFINES; the rule is a requirement on the source with no prescribed detection, and ExternalTable.Describe's EC-EXTERNAL-FORMAT-CONFLICT check runs only when >>TURN enables it. Probes: (a) an ODO table, (d/f) an S9(17)V9 COMP value -12345678901234567.8 and the DEPENDING ON counter shared both ways across two separately compiled programs; (b) a differently structured equal-size record and a group REDEFINES shared, AS literal, a doubled IS EXTERNAL (COBOL2423) and VALUE on EXTERNAL (COBOL0900) refused at 85; unequal sizes (outside the rule's 'must') run without diagnosis. The witness (PIC X(6) record redefined in the contained program) prints CDEF/ZZCDEF.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
