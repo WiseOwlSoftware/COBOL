@@ -1110,10 +1110,14 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// alphanumeric group items) was accepted and its character image read as a program-name at run time.
     /// <para>⚠ An operand whose class is not statically decidable (a recovery profile for an entry whose PICTURE was
     /// already refused) is admitted, exactly as every class screen over the lattice fails open (kb/Work PB960).</para></summary>
+    /// <summary>The §2023:14.9.4.3 SR1 / §2023:14.9.5.3 SR1 screen of a target that is a function-identifier or an inline method
+    /// invocation (kb/Work PB5240): its class shall be alphanumeric or national; an operand already refused, or one whose class
+    /// is not statically known, is not refused again. Null when admitted, else the face the diagnostic names.</summary>
     private static string? ComputedNameTargetRefusal(BoundOperand target) =>
-        target is BoundOperandError || IntrinsicArgumentRules.ClassOf(target) is null or CobolClass.Alphanumeric or CobolClass.National
+        target is BoundOperandError || IntrinsicArgumentRules.ClassOf(target) is not { } cls
+            || cls is CobolClass.Alphanumeric or CobolClass.National
             ? null
-            : $"a function-identifier or inline method invocation of class {IntrinsicArgumentRules.ClassOf(target)}";
+            : $"a function-identifier or inline method invocation of class {cls}";
 
     private static string? NameTargetRefusal(Place target) =>
         IntrinsicArgumentRules.ClassOfPlace(target) is null || ItemCategory.IsAlphanumericOrNational(target)
