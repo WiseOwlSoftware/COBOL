@@ -23,7 +23,7 @@ $Lander = Join-Path $Root 'lander'
 G init -q --bare -b main $Origin
 G init -q -b main $LedgerRepo
 G -C $LedgerRepo remote add origin $Origin
-Land $LedgerRepo 'kb/Work/PB1.md' 'a ledger input'
+Land $LedgerRepo 'kb/Work/PB1.md' (Note 'PB1' 'a ledger input')
 G clone -q $Origin $Lander
 
 # 4i. PUBLISH THE LEDGER EACH TIME: a headless unit cannot publish, so the supervisor announces an owed publish after every unit
@@ -44,7 +44,7 @@ $r = Run-Orch 'ledgercurrent' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-Fast
 Check 'a published ledger is not announced again' ($r.out -match 'LEDGER PUBLISH OWED') $false
 # kb/Work PB2987: train 1056 landed from a lander's worktree, the supervisor's checkout stayed behind, and no publish was
 # announced. A landing pushed from another clone is owed at the next unit, and the line names the stale checkout.
-Land $Lander 'kb/Work/PB2.md' 'landed elsewhere'
+Land $Lander 'kb/Work/PB2.md' (Note 'PB2' 'landed elsewhere')
 # kb/Work PB4046 review R3-1: a fetch that loses to another (here a held lock on the shared remote-tracking ref, what a
 # concurrent fetch holds) reads main's stamp from the stale ref, "current" although a landing is owed: the supervisor says
 # the failed fetch, never a silent "current".

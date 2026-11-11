@@ -65,7 +65,6 @@ import contextlib
 import datetime as dt
 import io
 import json
-import os
 import pathlib
 import re
 import shutil
@@ -254,8 +253,9 @@ def render(files: dict[str, str], since: int | None = None) -> str:
 def lint(files: dict[str, str], monolith: bool) -> list[str]:
     """What is wrong with a DEVLOG/ tree as a whole, whatever the landing: the monolith back, a stray file, an entry
     whose header disagrees with its name, two files holding one number. A pending entry is legal here (a branch
-    carries one until its landing stamps it); `check` refuses it at the landing. The self-test runs this on the
-    repository's own tree, so every gate holds the whole log to it."""
+    carries one until its landing stamps it); `check` refuses it at the landing. `check` runs this on the landing's
+    whole tree, so every landing (enqueue.py's checks, CI's merge group) holds the whole log to it; the self-test proves
+    it on planted trees and never reads the real one (kb/Work PB5227)."""
     reasons = []
     if monolith:
         reasons.append(f"the tree still has {MONOLITH}: the log is {DIR}/, one file per entry (kb/Work PB3025)")
@@ -898,41 +898,12 @@ def self_test() -> int:
        zone_abbrev(dt.datetime(2026, 10, 11, tzinfo=dt.timezone(dt.timedelta(hours=-7), "Pacific Daylight Time")))
        == "PDT")
 
-    # The PB2605 repro, kept from landing_devlog.py: the rule is the LANDING's, so a commit in a WORKTREE with nothing
-    # but code staged (an implementer's WIP checkpoint) draws no DEVLOG ask or deny from ANY PreToolUse hook this
-    # repository registers, in either shell and either shape (`cd <wt> && git commit`, `git -C <wt> commit`).
-    scratch.write({"code.py": "x = 9\n"}, cwd=wt)
-    scratch.git("add", "code.py", cwd=wt)
-    settings = json.loads((REPO / ".claude" / "settings.json").read_text(encoding="utf-8"))
-    hooks = [(m.get("matcher", ""), h["command"]) for m in settings["hooks"].get("PreToolUse", []) for h in m["hooks"]]
-    script = re.compile(r'"\$CLAUDE_PROJECT_DIR/([^"]+)"')
-    asked, ran, missing = [], 0, set()
-    for tool, command in (("Bash", f"cd {wt.as_posix()} && git commit -m 'WIP checkpoint: x'"),
-                          ("Bash", f"git -C {wt.as_posix()} commit -m 'WIP checkpoint: x'"),
-                          ("PowerShell", f"Set-Location {wt}; git commit -m 'WIP checkpoint: x'")):
-        payload = json.dumps({"hook_event_name": "PreToolUse", "tool_name": tool, "cwd": str(REPO),
-                              "tool_input": {"command": command}})
-        for matcher, cmd in hooks:
-            if not re.fullmatch(matcher, tool) or not (m := script.search(cmd)):
-                continue
-            if not (REPO / m.group(1)).is_file():
-                missing.add(m.group(1))
-                continue
-            ran += 1
-            hook_out = subprocess.run([sys.executable, str(REPO / m.group(1))], input=payload, capture_output=True,
-                                      text=True, encoding="utf-8", errors="replace",
-                                      env=dict(os.environ, CLAUDE_PROJECT_DIR=str(REPO))).stdout
-            if "DEVLOG" in hook_out:
-                asked.append(f"{m.group(1)} on `{command}`")
-    staged = scratch.git("diff", "--cached", "--name-only", cwd=wt).split()
-    ok("the PB2605 repro: a worktree WIP commit without a DEVLOG entry draws no DEVLOG ask from any hook",
-       staged == ["code.py"] and not asked and not missing and ran >= 3,
-       f"staged={staged}; asked by: {asked}; hooks run: {ran}; registered but missing: {sorted(missing)}")
-
-    # THE REPOSITORY'S OWN LOG: every gate and CI run this self-test, so the whole of DEVLOG/ is held to `lint`.
-    own_files = worktree_files(REPO)
-    own = lint(own_files, (REPO / MONOLITH).exists())
-    ok(f"this repository's {DIR}/ passes lint ({len(entries(own_files))} entries)", not own, "; ".join(own[:5]))
+    # Two arms that lived here are elsewhere now (kb/Work PB5227). The PB2605 repro (no registered PreToolUse hook asks
+    # for a DEVLOG entry on a worktree WIP commit) is a property of the registered hooks, so it is held by
+    # scripts/hooks/tooling_check.py's self-test (`registered_hooks_leave_wip_commits_alone`). The lint of this repository's
+    # own DEVLOG/ was an audit of the real tree, and `check` already lints the whole tree at every landing (enqueue.py's
+    # landing checks and CI's merge group, `devlog.py check`); here it keyed this self-test on every entry file, so every
+    # landing re-ran it.
 
     scratch.git("worktree", "remove", "--force", str(wt))
     remove_tree(root)

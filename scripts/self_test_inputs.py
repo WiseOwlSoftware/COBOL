@@ -30,8 +30,8 @@ self-test reads (a hand-derived closure over mentions reached the whole tree fro
            script it runs is traced when it runs);
   GIT      a `git` child a traced process runs inside the repository reads what `git_reads` says: nothing for its
            location, configuration, worktrees or a commit id (GIT_ENVIRONMENT); otherwise the NAMES (`ls-files`) or
-           the CONTENT (`diff`, `ls-files -s`, `show <rev>:<path>`, any other command) under its pathspec — the whole
-           tree when it names none.
+           the CONTENT (`diff`, `ls-files -s`, `show <rev>:<path>`, any other command) under its pathspec (a wildcard
+           one: under the directory of its literal prefix) — the whole tree when it names none.
 A run's Deps hold, per input file, its git blob id (`-` when the run looked for an untracked path), and per directory it
 saw a digest of what it saw (`Tree.digest`: the names in a listed directory, the paths or the content under a git
 pathspec or a STATIC directory). A recorded PASS is REUSED only while every one of them is unchanged on the current tree
@@ -40,7 +40,12 @@ found none — each re-runs it. The blob ids are the index's for an unedited fil
 for an edited one (a gate tests the working tree), a submodule's commit for anything under it.
 
 ⛔ WHAT NOTHING HERE SEES, named rather than hidden: a PowerShell or bash process's own reads of a path it builds at run
-time (declare it: `SELF-TEST-READS`) and the git commands it runs itself, and `os.stat`-style probes (no audit event).
+time (declare it: `SELF-TEST-READS`) and the git commands it runs itself, `os.stat`-style probes (no audit event), and
+a module the import system looked for on sys.path and did not find. That last one is deliberate (kb/Work PB5227): the
+import system fills a directory cache with `os.listdir` for every sys.path directory it searches (`FileFinder._fill_cache`),
+so read as a listing every Python self-test that imports from scripts/ was keyed on the NAMES in scripts/ and the
+repository root (`entries:scripts`), and any new file there re-ran them all. The tracer drops that one caller's
+listings; the module files an import OPENS are recorded as before, so an edited or replaced module still re-runs it.
 A trace that does not contain a Python self-test's own file means the tracer did not run: the runner records no PASS
 for it. The same `sitecustomize` begins with the CLOCK SHIM (scripts/self_test_clock.py, kb/Work PB4358): it moves the
 Python clock only in the proof run of a self-test that can read it, and does nothing otherwise. The backstop for all three is CI (and the Linux gate), which never reuse a PASS.
@@ -108,6 +113,11 @@ if _root and _out:
         if event == "open":
             _record("F", args[0])
         elif event in ("os.listdir", "os.scandir"):
+            # the import system's directory cache is no read of the directory (kb/Work PB5227): what an import reads
+            # is the module file it opens, which the "open" event records
+            _caller = sys._getframe(1).f_code
+            if _caller.co_name == "_fill_cache" and _caller.co_filename.startswith("<frozen importlib"):
+                return
             _record("D", "." if args[0] is None else args[0])
         elif event == "subprocess.Popen":
             argv, cwd = args[1], args[2]
@@ -398,8 +408,10 @@ GIT_LS_FILES_CONTENT = frozenset({"-s", "--stage", "-m", "--modified", "-d", "--
 def git_reads(args: list[str], where: str) -> list[tuple[str, str]]:
     """What a git command run in repository directory `where` (its arguments after any `-C <dir>`) reads of the
     tracked tree: (kind, path) pairs, kind `paths` (the names under path) or `content` (the names and their content);
-    path "" is the whole tree. Its pathspec (after `--`) narrows it; a pathspec with glob magic, and no pathspec, is
-    the whole tree. `show <rev>:<path>` reads that path. An environment command reads nothing."""
+    path "" is the whole tree. Its pathspec (after `--`) narrows it; a wildcard pathspec (plain, or with `:(glob)` magic)
+    narrows it to the directory its literal prefix names, since every path it matches begins with that prefix
+    (`scripts/spec/work*.py` reads under scripts/spec, `*.py` the whole tree; kb/Work PB5227); any other magic, and no
+    pathspec, is the whole tree. `show <rev>:<path>` reads that path. An environment command reads nothing."""
     opts, specs = (args[:args.index("--")], args[args.index("--") + 1:]) if "--" in args else (args, [])
     sub = next((a for a in opts if not a.startswith("-")), None)
     if sub is None or sub in GIT_ENVIRONMENT or (sub == "log" and any(a in GIT_LOG_ID_FORMATS for a in opts)):
@@ -411,8 +423,13 @@ def git_reads(args: list[str], where: str) -> list[tuple[str, str]]:
     kind = "paths" if sub == "ls-files" and not GIT_LS_FILES_CONTENT.intersection(opts) else "content"
     paths = []
     for spec in specs or [""]:
-        if not spec or spec.startswith(":") or any(c in spec for c in "*?["):
+        spec = spec.removeprefix(":(glob)")
+        if not spec or spec.startswith(":"):
             return [(kind, "")]
+        if (wild := min((spec.find(c) for c in "*?[" if c in spec), default=-1)) >= 0:
+            spec = posixpath.dirname(spec[:wild])
+            if not spec and not where:
+                return [(kind, "")]
         p = posixpath.normpath(posixpath.join(where, spec)).strip("/")
         paths.append("" if p == "." else p)
     return [(kind, p) for p in paths]
@@ -591,10 +608,13 @@ def self_test() -> int:
                   ("rev-parse --show-toplevel", ""), ("--exec-path", ""), ("worktree list --porcelain", ""),
                   ("log -1 --format=%h", ""), ("log -5", ""), ("ls-files -z", ""), ("ls-files -z -- scripts", ""),
                   ("ls-files -s -- src/ tests/", ""), ("diff --name-only -- x", "docs"), ("diff HEAD", ""),
-                  ("show HEAD:a/b.json", ""), ("ls-files -- *.py", ""))],
+                  ("show HEAD:a/b.json", ""), ("ls-files -- *.py", ""),
+                  ("ls-files -z -- :(glob)scripts/spec/work*.py", ""), ("diff -- docs/*.md", ""),
+                  ("ls-files -- *.ps1", "scripts"), ("ls-files -- :(exclude)docs", ""))],
               [[], [], [], [], [("content", "")], [("paths", "")], [("paths", "scripts")],
                [("content", "src"), ("content", "tests")], [("content", "docs/x")], [("content", "")],
-               [("content", "a/b.json")], [("paths", "")]])
+               [("content", "a/b.json")], [("paths", "")], [("paths", "scripts/spec")], [("content", "docs")],
+               [("paths", "scripts")], [("paths", "")]])
 
         out = root / "trace-out"
         out.mkdir()
@@ -608,6 +628,15 @@ def self_test() -> int:
               "process, in every Python process the self-test starts",
               (seen.saw("scripts/o/runner.py"), "kb/Work" in seen.dirs, seen.saw("scripts/o/stop.ps1"),
                len(list(out.glob("*.trace"))) >= 2), (True, True, True, True))
+        imports = root / "trace-imports"
+        imports.mkdir()
+        subprocess.run([sys.executable, "-c", "import sys\nsys.path.insert(0, 'scripts/o')\nimport runner\n"
+                        "import os\nos.listdir('scripts/o/testdata')\n"], cwd=root, check=True, capture_output=True,
+                       env=traced_env(dict(os.environ), tracer, imports, root))
+        seen = read_trace(imports, tree)
+        check("arm: an import records the module file it opens, never the sys.path directory the import system "
+              "caches a listing of; a listing the code makes itself is still one (kb/Work PB5227)",
+              (seen.saw("scripts/o/runner.py"), sorted(seen.dirs)), (True, ["scripts/o/testdata"]))
     print(f"self_test_inputs.py --self-test: {'ALL GREEN' if not fails else f'{len(fails)} FAILED'}")
     return 1 if fails else 0
 
