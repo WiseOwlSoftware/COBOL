@@ -69,7 +69,7 @@ Details of the software products used to create this PDF file can be found in th
 
 ## Page 3
 
-STANDARD 1989
+INTERNATIONAL STANDARD ISO/IEC 1989
 
 First edition 2002-12-01
 
@@ -1550,21 +1550,13 @@ Any term listed below refers to an instance of the corresponding element as desc
 | Operand type | Described in | Term (n = 1, 2, 3, ... ) |
 |---|---|---|
 | Argument | 15.2, Arguments | argument-n |
-| Expression | 8.8, Expressions | arithmetic-expression-n |
-
-boolean-expression-n conditional-expression-n
-
+| Expression | 8.8, Expressions | arithmetic-expression-n<br>boolean-expression-n<br>conditional-expression-n |
 | Integer | 5.4, Integer operands | integer-n |
-|---|---|---|
 | Literal | 8.3.1.2, Literals | literal-n |
 | Reference | 8.4, References |  |
-| a) User-defined word, including | 8.3.1.1.1, User-defined words | Any of the types listed in 8.3.1.1.1 |
-| qualification and subscription if | 8.4.1.1, Qualification | suffixed by -n |
-| needed | 8.4.1.2, Subscripts |  |
+| a) User-defined word, including qualification and subscription if needed | 8.3.1.1.1, User-defined words<br>8.4.1.1, Qualification<br>8.4.1.2, Subscripts | Any of the types listed in 8.3.1.1.1 suffixed by -n |
 | b) Identifier | 8.4.2.1, Identifier | identifier-n |
-| c) Exception name | 14.5.12.1.5, Exception-names and | exception-name-1 |
-
-exception conditions
+| c) Exception name | 14.5.12.1.5, Exception-names and exception conditions | exception-name-1 |
 
 ##### 5.1.4 Level numbers
 
@@ -1700,10 +1692,10 @@ Table 1 — Verbal forms
 
 | Provision | Verbal form | Alternative expressions |
 |---|---|---|
-| a requirement on an implementation or a pro-gram, strictly to be followed for compliance to the standard | shall<br>shall not | is required to<br>is, is to<br>is not permitted<br>is not allowed |
-| a permission expressed by the standard | may<br>need not | is permitted<br>is allowed<br>is not required to |
-| a recommendation expressed by the standard; it need not be followed | should<br>should not | it is recommended that<br>is recommended |
-| a capability or possibility open to the user of the standard | can<br>cannot | is able to<br>it is possible to<br>is possible |
+| a requirement on an implementation or a pro-gram, strictly to be followed for compliance to the standard | shall<br><br><br>shall not | is required to<br>is, is to<br><br>is not permitted<br>is not allowed |
+| a permission expressed by the standard | may<br><br><br>need not | is permitted<br>is allowed<br><br>is not required to |
+| a recommendation expressed by the standard; it need not be followed | should<br><br><br>should not | it is recommended that<br>is recommended |
+| a capability or possibility open to the user of the standard | can<br><br><br><br>cannot | is able to<br>it is possible to<br>is possible |
 | Alternative expressions are sometimes used to express other than a requirement; in such cases, the meaning is evident from context. |  |  |
 
 ## Page 44
@@ -1754,12 +1746,11 @@ Fixed indicators may be specified in the indicator area of fixed-form reference 
 
 ## Page 45
 
-d debugging indicator a debugging line
-
-\- (hyphen) continuation indicator a continuation line
-
-space source indicator any line that is not a comment line, a debugging line,\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;or a continuation line
+|  |  |  |
+|---|---|---|
+| d | debugging indicator | a debugging line |
+| - (hyphen) | continuation indicator | a continuation line |
+| space | source indicator | any line that is not a comment line, a debugging line, or a continuation line |
 
 Fixed indicators are characters in the implementor-defined coded character set or sets used for fixed-form reference format, and are not COBOL characters from the COBOL character repertoire.
 
@@ -1771,21 +1762,10 @@ Floating indicators may be used in fixed-form or free-form reference format. The
 
 | Character-string | Indicator name | Indicates |
 |---|---|---|
-| \*> | comment indicator | 1) a comment line when specified as the first |
-
-character-string in the program-text area;
-
-2\) an inline comment when specified following one or more character-strings in the program-text area, subject to the additional rules in 6.1.2.1, Syntax Rules.
-
-\>> compiler directive a compiler-directive line when followed by a compiler-directive word - with or without an intervening space, subject to additional rules in 7.2, Compiler directives.
-
-| "- | literal continuation | continuation of a literal when specified in an un-terminated |
-|---|---|---|
-| '- | indicator | literal with the same quotation symbol in its opening delimiter, |
-
-subject to additional rules in 6.1.2.1, Syntax Rules.
-
-\>>D debugging indicator a debugging line when followed by at least one space character
+| \*> | comment indicator | 1) a comment line when specified as the first character-string in the program-text area;<br>2) an inline comment when specified following one or more character-strings in the program-text area, subject to the additional rules in 6.1.2.1, Syntax Rules. |
+| \>> | compiler directive | a compiler-directive line when followed by a compiler-directive word - with or without an intervening space, subject to additional rules in 7.2, Compiler directives. |
+| "-<br>'- | literal continuation indicator | continuation of a literal when specified in an un-terminated literal with the same quotation symbol in its opening delimiter, subject to additional rules in 6.1.2.1, Syntax Rules. |
+| \>>D | debugging indicator | a debugging line when followed by at least one space character |
 
 ###### 6.1.2.1 Syntax Rules
 
@@ -1817,14 +1797,14 @@ subject to additional rules in 6.1.2.1, Syntax Rules.
 
 The format of a fixed-form reference format line is depicted in Figure 1 — Fixed-form reference format.
 
-| Margin |  |  |  |  | Margin |  | Margin |  | Margin |
-|---|---|---|---|---|---|---|---|---|---|
-| L |  |  |  |  | C |  | A |  | R |
-| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 10 11 12 13 | ... |
-
-Program-text Area Sequence Number Area
-
-Indicator Area
+```
+Margin             Margin   Margin                       Margin
+L                       C   A                                 R
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | ... |
+ \_____________________/  |  \_______________________________/
+  Sequence Number Area    ↓          Program-text Area
+                   Indicator Area
+```
 
 Figure 1 — Fixed-form reference format
 
@@ -2027,13 +2007,14 @@ The compilation stage completes the compilation process utilizing the structured
 
 The following are the compiler directing statements and compiler directives and the stage during which their actions take place:
 
-   Compiler directing statements Stage
-
-| COPY statement | Text manipulation |
+| Compiler directing statements | Stage |
 |---|---|
-| SUPPRESS option | Implementor-defined |
+| COPY statement | Text manipulation |
+| &emsp;SUPPRESS option | Implementor-defined |
 | REPLACE statement | Text manipulation |
+
 | Compiler directives | Stage |
+|---|---|
 | CALL-CONVENTION | Compilation |
 | DEFINE | Text manipulation |
 | EVALUATE | Text-manipulation |
@@ -3272,35 +3253,23 @@ The set of cultural elements constituting LC_ALL may include categories and cult
 
 Several locale field names are referenced in the COBOL specification in order to clarify processing. These and other relevant locale fields are defined in ISO/IEC 9945-2. The following locale field names are explicitly referenced:
 
-Category Field name Description
-
-LC_MONETARY
-
-| int_curr_symbol | international currency symbol |
-|---|---|
-| currency_symbol | local currency symbol |
-
-   mon_decimal_point decimal delimiter
-
-   mon_thousands_sep string used to group digits to the left of the decimal delimiter
-
-| mon_grouping | size of each group of digits |
-|---|---|
-| positive_sign | string used to indicate nonnegative valued quantities |
-| negative_sign | string used to indicate negative-valued quantities |
-| int_frac_digits | number of fractional digits to the right of the decimal delimiter |
-| frac_digits | number of fractional digits to the right of the decimal delimiter |
-| p_cs_precedes | indicator of whether the currency symbol precedes or succeeds the value for |
-
-a nonnegative quantity
-
-   n_cs_precedes indicator of whether the currency symbol precedes or succeeds the value for a negative quantity
-
-LC_TIME
-
-| d_fmt | date representation |
-|---|---|
-| t_fmt | time representation |
+| Category | Field name | Description |
+|---|---|---|
+| LC_MONETARY |  |  |
+|  | int_curr_symbol | international currency symbol |
+|  | currency_symbol | local currency symbol |
+|  | mon_decimal_point | decimal delimiter |
+|  | mon_thousands_sep | string used to group digits to the left of the decimal delimiter |
+|  | mon_grouping | size of each group of digits |
+|  | positive_sign | string used to indicate nonnegative valued quantities |
+|  | negative_sign | string used to indicate negative-valued quantities |
+|  | int_frac_digits | number of fractional digits to the right of the decimal delimiter |
+|  | frac_digits | number of fractional digits to the right of the decimal delimiter |
+|  | p_cs_precedes | indicator of whether the currency symbol precedes or succeeds the value for a nonnegative quantity |
+|  | n_cs_precedes | indicator of whether the currency symbol precedes or succeeds the value for a negative quantity |
+| LC_TIME |  |  |
+|  | d_fmt | date representation |
+|  | t_fmt | time representation |
 
 ## Page 88
 
@@ -3679,12 +3648,8 @@ Required words are of two types:
 | & | Concatenation operator |
 | > | Relational operator - greater than |
 | &lt; | Relational operator - less than |
-| = | Relational operator - equal |
-
-and assignment operator in COMPUTE
-
+| = | Relational operator - equal<br>&emsp;and assignment operator in COMPUTE |
 | == | Pseudo-text delimiter in COPY and REPLACE statements |
-|---|---|
 | >= | Relational operator - greater than or equal |
 | &lt;= | Relational operator - less than or equal |
 | \*> | Comment indicator |
@@ -5751,7 +5716,9 @@ There are five binary arithmetic operators and two unary arithmetic operators th
 | \* | Multiplication |
 | / | Division |
 | \*\* | Exponentiation |
+
 | Unary Arithmetic Operators | Meaning |
+|---|---|
 | + | The effect of multiplication by the numeric literal +1 |
 | – | The effect of multiplication by the numeric literal –1 |
 
@@ -5763,9 +5730,7 @@ A boolean operator specifies the type of boolean operation to be performed on on
 |---|---|
 | B-AND | AND operation (boolean conjunction) |
 | B-OR | Inclusive OR operation (boolean inclusive disjunction) |
-| B-XOR | Exclusive OR operation (boolean exclusive |
-
-disjunction)
+| B-XOR | Exclusive OR operation (boolean exclusive disjunction) |
 
 | Unary boolean operator | Meaning |
 |---|---|
@@ -6554,13 +6519,9 @@ The logical operators and their meanings are:
 
 | Logical Operator | Meaning |
 |---|---|
-| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are |
-
-true; false if one or both of the conjoined conditions is false.
-
-   OR Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false.
-
-   NOT Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.
+| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false. |
+| OR | Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false. |
+| NOT | Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true. |
 
 ###### 8.8.4.2.1 Negated conditions
 
@@ -6678,8 +6639,9 @@ Parentheses, both explicit and implicit, denote a level of inclusiveness within 
 
 The following is the list of reserved words:
 
-| ACCEPT | CLASS | DIVISION |
+|  |  |  |
 |---|---|---|
+| ACCEPT | CLASS | DIVISION |
 | ACCESS | CLASS-ID | DOWN |
 | ACTIVE-CLASS | CLOSE | DUPLICATES |
 | ADD | CODE | DYNAMIC |
@@ -6732,13 +6694,13 @@ The following is the list of reserved words:
 | CF | DISABLE | FILE-CONTROL |
 | CH | DISPLAY | FILLER |
 | CHARACTER | DIVIDE | FINAL |
-
-   CHARACTERS
+| CHARACTERS |  |  |
 
 ## Page 161
 
-| FIRST | LIMIT | PAGE-COUNTER |
+|  |  |  |
 |---|---|---|
+| FIRST | LIMIT | PAGE-COUNTER |
 | FLOAT-EXTENDED | LIMITS | PERFORM |
 | FLOAT-LONG | LINAGE | PF |
 | FLOAT-SHORT | LINAGE-COUNTER | PH |
@@ -6760,11 +6722,8 @@ The following is the list of reserved words:
 | GROUP | MODE | QUEUE |
 | GROUP-USAGE | MOVE | QUOTE |
 |  | MULTIPLY | QUOTES |
-
-HEADING
-
+| HEADING |  |  |
 | HIGH-VALUE | NATIONAL | RAISE |
-|---|---|---|
 | HIGH-VALUES | NATIONAL-EDITED | RAISING |
 |  | NATIVE | RANDOM |
 | I-O | NEGATIVE | RD |
@@ -6802,8 +6761,9 @@ HEADING
 
 ## Page 162
 
-| SAME | TABLE | VAL-STATUS |
+|  |  |  |
 |---|---|---|
+| SAME | TABLE | VAL-STATUS |
 | SCREEN | TALLYING | VALID |
 | SD | TERMINAL | VALIDATE |
 | SEARCH | TERMINATE | VALIDATE-STATUS |
@@ -6834,19 +6794,18 @@ HEADING
 | START | USER-DEFAULT | \*> |
 | STATUS | USING | :: |
 | STOP |  | >> |
-
-STRING\
-SUB-QUEUE-1\
-SUB-QUEUE-2\
-SUB-QUEUE-3\
-SUBTRACT\
-SUM\
-SUPER\
-SUPPRESS\
-SYMBOLIC\
-SYNC\
-SYNCHRONIZED\
-SYSTEM-DEFAULT
+| STRING |  |  |
+| SUB-QUEUE-1 |  |  |
+| SUB-QUEUE-2 |  |  |
+| SUB-QUEUE-3 |  |  |
+| SUBTRACT |  |  |
+| SUM |  |  |
+| SUPER |  |  |
+| SUPPRESS |  |  |
+| SYMBOLIC |  |  |
+| SYNC |  |  |
+| SYNCHRONIZED |  |  |
+| SYSTEM-DEFAULT |  |  |
 
 ## Page 163
 
@@ -6871,12 +6830,8 @@ The following are context-sensitive words and are reserved in the specified lang
 | EOS | ERASE clause in a screen description entry |
 | ENTRY-CONVENTION | OPTIONS paragraph |
 | ERASE | screen description entry |
-| EXPANDS | class-specifier and interface-specifier of the REPOSITORY |
-
-paragraph
-
+| EXPANDS | class-specifier and interface-specifier of the REPOSITORY paragraph |
 | FOREGROUND-COLOR | screen description entry |
-|---|---|
 | FOREVER | RETRY phrase |
 | FULL | screen description entry |
 | HIGHLIGHT | screen description entry and SET attribute statement |
@@ -6902,12 +6857,8 @@ paragraph
 | NONE | DEFAULT clause |
 | NORMAL | STOP statement |
 | NUMBERS | COLUMN clause and LINE clause |
-| ONLY | Object-view, SHARING clause, SHARING phrase, and |
-
-USAGE clause
-
+| ONLY | Object-view, SHARING clause, SHARING phrase, and USAGE clause |
 | PARAGRAPH | EXIT statement |
-|---|---|
 | PREVIOUS | READ statement |
 | RECURSIVE | PROGRAM-ID paragraph |
 | RELATION | VALIDATE-STATUS clause |
@@ -6936,10 +6887,11 @@ All exception-names are context-sensitive because they may appear only following
 
 The following is the list of intrinsic function names:
 
-   ABS HIGHEST-ALGEBRAIC ORD-MIN ACOS
-
-| ANNUITY | INTEGER | PI |
+|  |  |  |
 |---|---|---|
+| ABS | HIGHEST-ALGEBRAIC | ORD-MIN |
+| ACOS |  |  |
+| ANNUITY | INTEGER | PI |
 | ASIN | INTEGER-OF-BOOLEAN | PRESENT-VALUE |
 | ATAN | INTEGER-OF-DATE |  |
 |  | INTEGER-OF-DAY | RANDOM |
@@ -6953,29 +6905,22 @@ The following is the list of intrinsic function names:
 |  | LOG10 | STANDARD-COMPARE |
 | DATE-OF-INTEGER | LOWER-CASE | STANDARD-DEVIATION |
 | DATE-TO-YYYYMMDD | LOWEST-ALGEBRAIC | SUM |
-
-   DAY-OF-INTEGER
-
+| DAY-OF-INTEGER |  |  |
 | DAY-TO-YYYYDDD | MAX | TAN |
-|---|---|---|
 | DISPLAY-OF | MEAN | TEST-DATE-YYYYMMDD |
 |  | MEDIAN | TEST-DAY-YYYYDDD |
 | E | MIDRANGE | TEST-NUMVAL |
 | EXCEPTION-FILE | MIN | TEST-NUMVAL-C |
 | EXCEPTION-FILE-N | MOD | TEST-NUMVAL-F |
-
-   EXCEPTION-LOCATION
-
+| EXCEPTION-LOCATION |  |  |
 | EXCEPTION-LOCATION-N | NATIONAL-OF | UPPER-CASE |
-|---|---|---|
 | EXCEPTION-STATEMENT | NUMVAL |  |
 | EXCEPTION-STATUS | NUMVAL-C | VARIANCE |
 | EXP | NUMVAL-F |  |
 | EXP10 |  | WHEN-COMPILED |
-
-ORD\
-FACTORIAL ORD-MAX YEAR-TO-YYYY\
-FRACTION-PART
+|  | ORD |  |
+| FACTORIAL | ORD-MAX | YEAR-TO-YYYY |
+| FRACTION-PART |  |  |
 
 ## Page 166
 
@@ -6983,8 +6928,9 @@ FRACTION-PART
 
 The following words are reserved in compiler directives:
 
-| ALL | FREE | SET |
+|  |  |  |
 |---|---|---|
+| ALL | FREE | SET |
 | AND | FUNCTION-ARGUMENT | SIZE |
 | AS |  | SOURCE |
 |  | GREATER | STANDARD-1 |
@@ -6992,36 +6938,24 @@ The following words are reserved in compiler directives:
 | B-NOT | IF |  |
 | B-OR | IMP | THAN |
 | B-XOR | IS | THROUGH |
-
-THRU
-
+|  |  | THRU |
 | CALL-CONVENTION | LEAP-SECOND | TO |
-|---|---|---|
 | CHECKING | LESS | TRUE |
 | COBOL | LISTING | TURN |
 | CORRESPONDING | LOCATION |  |
-
-WHEN\
-DE-EDITING MOVE WITH\
-DEFINE
-
+|  |  | WHEN |
+| DE-EDITING | MOVE | WITH |
+| DEFINE |  |  |
 | DEFINED | NOT | ZERO-LENGTH |
-|---|---|---|
 | DIVIDE | NUMVAL |  |
-
-\+
-
+|  |  | + |
 | ELSE | OFF | - |
-|---|---|---|
 | END-IF | ON | \* |
 | END-EVALUATE | OR | / |
 | EQUAL | OTHER | &lt;= |
 | EVALUATE | OVERRIDE | >= |
-
-&lt;
-
+|  |  | &lt; |
 | FIXED | PAGE | > |
-|---|---|---|
 | FLAG-85 | PARAMETER | = |
 | FLAG-NATIVE-ARITHMETIC | PROPAGATE | ( |
 | FORMAT |  | ) |
@@ -7219,16 +7153,14 @@ Certain classes of I-O status values indicate fatal exception conditions. These 
 
 Any I-O status associated with an unsuccessful completion is associated with an exception condition. Whether or not the exception condition is raised depends on whether or not checking for that exception condition is enabled. The exception condition depends on the first character of the I-O status value that results after the execution of an input-output statement. The exception-names and the first digit of their corresponding I-O status values are:
 
+|  |  |
+|---|---|
 | EC-I-O-AT-END | '1' |
-|---|---|
 | EC-I-O-INVALID-KEY | '2' |
-
-   EC-I-O-PERMANENT-ERROR '3'\
-   EC-I-O-LOGIC-ERROR '4'\
-   EC-I-O-RECORD-OPERATION '5'
-
+| EC-I-O-PERMANENT-ERROR | '3' |
+| EC-I-O-LOGIC-ERROR | '4' |
+| EC-I-O-RECORD-OPERATION | '5' |
 | EC-I-O-FILE-SHARING | '6' |
-|---|---|
 | EC-I-O-IMP | '9' |
 
 If the first character of the resulting I-O status value is one of the above values, the associated exception condition is set to exist. If the exception condition EC-I-O-AT-END or EC-I-O-INVALID-KEY exists and the input-output statement that caused the exception condition to exist is specified with an AT END or INVALID KEY phrase respectively, no USE procedure shall be executed. Otherwise, the exception condition that exists determines whether an applicable USE procedure shall be executed according to the rules in 14.8.45, USE statement.
@@ -8118,11 +8050,8 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | data-division | 13, Data division |
-
-environment-division 12, Environment division
-
+| environment-division | 12, Environment division |
 | options-paragraph | 11.8, OPTIONS paragraph |
-|---|---|
 | procedure-division | 14, Procedure division |
 
 ##### 10.5.2 Syntax rules
@@ -8247,16 +8176,12 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | class-id-paragraph | 11.2, CLASS-ID paragraph |
 | factory-paragraph | 11.3, FACTORY paragraph |
-
-function-id-paragraph 11.4, FUNCTION-ID paragraph\
-interface-id-paragraph 11.5, INTERFACE-ID paragraph\
-method-id-paragraph 11.6, METHOD-ID paragraph
-
+| function-id-paragraph | 11.4, FUNCTION-ID paragraph |
+| interface-id-paragraph | 11.5, INTERFACE-ID paragraph |
+| method-id-paragraph | 11.6, METHOD-ID paragraph |
 | object-paragraph | 11.7, OBJECT paragraph |
-|---|---|
 | options-paragraph | 11.8, OPTIONS paragraph |
-
-program-id-paragraph 11.9, PROGRAM-ID paragraph
+| program-id-paragraph | 11.9, PROGRAM-ID paragraph |
 
 ## Page 198
 
@@ -10337,8 +10262,7 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | constant-entry | 13.9, Constant entry |
-
-record-description-entry 13.10, Record description entry
+| record-description-entry | 13.10, Record description entry |
 
 ##### 13.3.2 Syntax rules
 
@@ -10562,8 +10486,7 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | 77-level-entry | 13.11, 77-level data description entry |
 | constant-entry | 13.9, Constant entry |
-
-record-description-entry 13.10, Record description entry
+| record-description-entry | 13.10, Record description entry |
 
 ##### 13.4.2 Syntax rules
 
@@ -10599,8 +10522,7 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | 77-level-entry | 13.11, 77-level data description entry |
 | constant-entry | 13.9, Constant entry |
-
-record-description-entry 13.10, Record description entry
+| record-description-entry | 13.10, Record description entry |
 
 ##### 13.5.2 Syntax rules
 
@@ -10636,8 +10558,7 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | 77-level-entry | 13.11, 77-level data description entry |
 | constant-entry | 13.9, Constant entry |
-
-record-description-entry 13.10, Record description entry
+| record-description-entry | 13.10, Record description entry |
 
 ##### 13.6.2 Syntax rules
 
@@ -10696,8 +10617,7 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | 77-level-entry | 13.11, 77-level data description entry |
-
-report-group-description-entry 13.7.4, Report group description entry
+| report-group-description-entry | 13.7.4, Report group description entry |
 
 ##### 13.7.2 Syntax rules
 
@@ -10770,8 +10690,7 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | constant-entry | 13.9, Constant entry |
-
-screen-description-entry 13.15, Screen description entry
+| screen-description-entry | 13.15, Screen description entry |
 
 ##### 13.8.2 Syntax rules
 
@@ -11091,9 +11010,8 @@ where the following meta-language terms are described in the indicated subclause
 | picture-clause | 13.16.38, PICTURE clause |
 | select-when clause | 13.16.49, SELECT WHEN clause |
 | usage-clause | 13.16.58, USAGE clause |
-
-validate-status-clause 13.16.60, VALIDATE-STATUS clause\
-value-clause 13.16.61, VALUE clause (data-item or table format)
+| validate-status-clause | 13.16.60, VALIDATE-STATUS clause |
+| value-clause | 13.16.61, VALUE clause (data-item or table format) |
 
 Format 2 (renames):
 
@@ -13887,7 +13805,7 @@ Table 11 — Format 1 picture symbol order of precedence
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 |  |  | Simple, special, and fixed insertion symbols |  |  |  |  |  |  |  |  | Zero-suppression and floating insertion symbols |  |  |  |  |  | Other symbols |  |  |  |  |  |  |  |  |
 |  |  | B<br>0<br>/ | , | . | + | +<br>– | +<br>– | CR DB | cs | cs | Z<br>\* | Z<br>\* | +<br>– | +<br>– | cs | cs | 9 | A<br>X | S | V | P | P | 1 | N | E |
-| symbols<br>insertion<br>fixed<br>and<br>special,<br>Simple, | B 0 / | x | x | x |  | x |  |  | x |  | x | x | x | x | x | x | x | x |  | x |  | x |  | x |  |
+| Simple, special, and fixed insertion symbols | B 0 / | x | x | x |  | x |  |  | x |  | x | x | x | x | x | x | x | x |  | x |  | x |  | x |  |
 |  | , | x | x | x |  | x |  |  | x |  | x | x | x | x | x | x | x |  |  | x |  | x |  |  |  |
 |  | . | x | x |  |  | x |  |  | x |  | x |  | x |  | x |  | x |  |  |  |  |  |  |  |  |
 |  | + |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | x |
@@ -13896,13 +13814,13 @@ Table 11 — Format 1 picture symbol order of precedence
 |  | CR DB | x | x | x |  |  |  |  | x | x | x | x |  |  | x | x | x |  |  | x | x | x |  |  |  |
 |  | cs |  |  |  |  | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | cs | x | x | x |  | x |  |  |  |  | x | x |  |  |  |  | x |  |  | x | x | x |  |  |  |
-| floating<br>andsymbols Zero-suppression<br>insertion | Z<br>\* | x | x |  |  | x |  |  | x |  | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Zero-suppression and floating insertion symbols | Z<br>\* | x | x |  |  | x |  |  | x |  | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | Z<br>\* | x | x | x |  | x |  |  | x |  | x | x |  |  |  |  |  |  |  | x |  | x |  |  |  |
 |  | +<br>– | x | x |  |  |  |  |  | x |  |  |  | x |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | +<br>– | x | x | x |  |  |  |  | x |  |  |  | x | x |  |  |  |  |  | x |  |  |  |  |  |
 |  | cs | x | x |  |  | x |  |  |  |  |  |  |  |  | x |  |  |  |  |  |  |  |  |  |  |
 |  | cs | x | x | x |  | x |  |  |  |  |  |  |  |  | x | x |  |  |  | x |  |  |  |  |  |
-| symbols<br>Other | 9 | x | x | x | x | x |  |  | x |  | x |  | x |  | x |  | x | x | x | x |  | x |  |  | x |
+| Other symbols | 9 | x | x | x | x | x |  |  | x |  | x |  | x |  | x |  | x | x | x | x |  | x |  |  | x |
 |  | A<br>X | x |  |  |  |  |  |  |  |  |  |  |  |  |  |  | x | x |  |  |  |  |  |  |  |
 |  | S |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | V | x | x |  |  | x |  |  | x |  | x |  | x |  | x |  | x |  | x |  | x |  |  |  |  |
@@ -17110,11 +17028,8 @@ FORMAT 3
 |---|---|
 | Alphabetic | Alphanumeric SPACES |
 | Alphanumeric | Alphanumeric SPACES |
-
-   Alphanumeric-edited Alphanumeric SPACES
-
+| Alphanumeric-edited | Alphanumeric SPACES |
 | Boolean | ZEROS |
-|---|---|
 | National | National SPACES |
 | National-edited | National SPACES |
 | Numeric | ZEROS |
@@ -23869,18 +23784,15 @@ The type of this function depends upon the argument types as follows:
 
    NOTE The following illustrates the expected results for some values of argument-1.
 
-   Argument-1
-
-| characteristics | Value returned |
+| Argument-1<br>characteristics | Value returned |
 |---|---|
 | S999 | +999 |
 | S9(4) BINARY | +9999 |
 | 99V9(3) | +99.999 |
 | $\*\*,\*\*9.99BCR | +99999.99 |
 | $\*\*,\*\*9.99 | +99999.99 |
-
-   BINARY-CHAR SIGNED +127 (assuming an 8-bit representation)\
-   BINARY-CHAR UNSIGNED +255 (assuming an 8-bit representation)
+| BINARY-CHAR SIGNED | +127 (assuming an 8-bit representation) |
+| BINARY-CHAR UNSIGNED | +255 (assuming an 8-bit representation) |
 
 ## Page 625
 
@@ -24301,18 +24213,15 @@ The type of this function depends upon the argument types as follows:
 
    NOTE The following illustrates the expected results for some values of argument-1.
 
-   Argument-1
-
-| characteristics | Value returned |
+| Argument-1<br>characteristics | Value returned |
 |---|---|
 | S999 | –999 |
 | S9(4) BINARY | –9999 |
 | 99V9(3) | 0 |
 | $\*\*,\*\*9.99BCR | –99999.99 |
 | $\*\*,\*\*9.99 | 0 |
-
-   BINARY-CHAR SIGNED -128 (assuming an 8-bit twos-complement representation)\
-   BINARY-CHAR UNSIGNED 0 (assuming an 8-bit twos-compliment representation)
+| BINARY-CHAR SIGNED | -128 (assuming an 8-bit twos-complement representation) |
+| BINARY-CHAR UNSIGNED | 0 (assuming an 8-bit twos-compliment representation) |
 
 ## Page 638
 
@@ -24456,8 +24365,7 @@ The type of this function depends upon the argument types as follows:
 | Index | Index |
 | All arguments integer | Integer |
 | National | National |
-
-   Numeric (some arguments may be integer) Numeric
+| Numeric (some arguments may be integer) | Numeric |
 
 ##### 15.51.1 General format
 
@@ -26159,7 +26067,7 @@ Table A.1 —, Communication status key conditions, indicates the possible conte
 
 Table A.1 — Communication status key conditions
 
-| RECEIVE | input-output-cd SEND | output-cd SEND | PURGE | COUNT MESSAGE ACCEPT | INPUT ENABLE | TERMINAL I-O INPUT ENABLE | OUTPUT ENABLE | INPUT ENABLE | TERMINAL I-O INPUT DISABLE | OUTPUT DISABLE | value<br>key<br>Status |  |
+| RECEIVE | SEND input-output-cd | SEND output-cd | PURGE | ACCEPT MESSAGE COUNT | ENABLE INPUT | ENABLE INPUT I-O TERMINAL | ENABLE OUTPUT | ENABLE INPUT | DISABLE INPUT I-O TERMINAL | DISABLE OUTPUT | Status key value |  |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | X | X | X | X | X | X | X | X | X | X | X | 00 | No error detected. Action completed. |
 |  |  | X | X |  |  |  |  |  |  |  | 10 | One or more destinations disabled. Action completed. (See A.1.2.5, Error key values.) |
@@ -26184,7 +26092,7 @@ Table A.2 —, Error key values, indicates the possible content of the data item
 
 Table A.2 — Error key values
 
-| SEND | PURGE | OUTPUT ENABLE | OUTPUT DISABLE | value<br>key<br>Error |  |
+| SEND | PURGE | ENABLE OUTPUT | DISABLE OUTPUT | Error key value |  |
 |---|---|---|---|---|---|
 | X | X | X | X | 0 | No error. |
 | X | X | X | X | 1 | Symbolic destination unknown. |
@@ -27246,76 +27154,45 @@ The following list presents the characters identified in Annex A of TR 10176:200
 
    NOTE This repertoire includes combining marks specified for level 2 of ISO/IEC 10646-1. Combining marks of level 3 are excluded so as to avoid alternative representations of user-defined words.
 
-Script or\
-character
-
-| classification | Letters or range of letters |
+| Script or<br>character<br>classification | Letters or range of letters |
 |---|---|
-| Latin: | 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01F5, 01FA-0217, 0250- |
-
-02A8, 1E00-1E9B, 1EA0-1EF9, 207F
-
-Greek: 0386, 0388-038A, 038C, 038E-03A1, 03A3-03CE, 03D0-03D6, 03DA, 03DC, 03DE, 03E0, 03E2-03F3, 1F00-1F15, 1F18-1F1D, 1F20-1F45, 1F48-1F4D, 1F50-1F57, 1F59, 1F5B, 1F5D, 1F5F-1F7D,
+| Latin: | 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01F5, 01FA-0217, 0250-02A8, 1E00-1E9B, 1EA0-1EF9, 207F |
+| Greek: | 0386, 0388-038A, 038C, 038E-03A1, 03A3-03CE, 03D0-03D6, 03DA, 03DC, 03DE, 03E0, 03E2-03F3, 1F00-1F15, 1F18-1F1D, 1F20-1F45, 1F48-1F4D, 1F50-1F57, 1F59, 1F5B, 1F5D, 1F5F-1F7D, |
 
 ## Page 721
 
-1F80-1FB4, 1FB6-1FBC, 1FC2-1FC4, 1FC6-1FCC, 1FD0-1FD3, 1FD6-1FDB, 1FE0-1FEC, 1FF2-1FF4, 1FF6-1FFC
-
-Cyrillic: 0401-040C, 040E-044F, 0451-045C, 045E-0481, 0490-04C4, 04C7-04C8, 04CB-04CC, 04D0-04EB, 04EE-04F5, 04F8-04F9
-
+|  |  |
+|---|---|
+|  | 1F80-1FB4, 1FB6-1FBC, 1FC2-1FC4, 1FC6-1FCC, 1FD0-1FD3, 1FD6-1FDB, 1FE0-1FEC, 1FF2-1FF4, 1FF6-1FFC |
+| Cyrillic: | 0401-040C, 040E-044F, 0451-045C, 045E-0481, 0490-04C4, 04C7-04C8, 04CB-04CC, 04D0-04EB, 04EE-04F5, 04F8-04F9 |
 | Armenian: | 0531-0556, 0561-0587 |
-|---|---|
 | Hebrew: | 05B0-05B9, 05BB-05BD, 05BF, 05C1-05C2, 05D0-05EA, 05F0-05F2 |
-| Arabic: | 0621-063A, 0640-0652, 0670-06B7, 06BA-06BE, 06C0-06CE, 06D0-06D3, 06D5-06DC, 06E5- |
-
-06E8, 06EA-06ED
-
+| Arabic: | 0621-063A, 0640-0652, 0670-06B7, 06BA-06BE, 06C0-06CE, 06D0-06D3, 06D5-06DC, 06E5-06E8, 06EA-06ED |
 | Devanagari: | 0901-0903, 0905-0939, 093E-094D, 0950-0952, 0958-0963 |
-|---|---|
-| Bengali: | 0981-0983, 0985-098C, 098F-0990, 0993-09A8, 09AA-09B0, 09B2, 09B6-09B9, 09BE-09C4, |
-
-09C7-09C8, 09CB-09CD, 09DC-09DD, 09DF-09E3, 09F0-09F1
-
-Gurmukhi: 0A02, 0A05-0A0A, 0A0F-0A10, 0A13-0A28, 0A2A-0A30, 0A32-0A33, 0A35-0A36, 0A38-0A39, 0A3E-0A42, 0A47-0A48, 0A4B-0A4D, 0A59-0A5C, 0A5E, 0A74
-
-Gujarati: 0A81-0A83, 0A85-0A8B, 0A8D, 0A8F-0A91, 0A93-0AA8, 0AAA-0AB0, 0AB2-0AB3, 0AB5-0AB9, 0ABD-0AC5, 0AC7-0AC9, 0ACB-0ACD, 0AD0, 0AE0
-
-Oriya: 0B01-0B03, 0B05-0B0C, 0B0F-0B10, 0B13-0B28, 0B2A-0B30, 0B32-0B33, 0B36-0B39, 0B3E-0B43, 0B47-0B48, 0B4B-0B4D, 0B5C-0B5D, 0B5F-0B61
-
-Tamil: 0B82-0B83, 0B85-0B8A, 0B8E-0B90, 0B92-0B95, 0B99-0B9A, 0B9C, 0B9E-0B9F, 0BA3-0BA4, 0BA8-0BAA, 0BAE-0BB5, 0BB7-0BB9, 0BBE-0BC2, 0BC6-0BC8, 0BCA-0BCD
-
-Telugu: 0C01-0C03, 0C05-0C0C, 0C0E-0C10, 0C12-0C28, 0C2A-0C33, 0C35-0C39, 0C3E-0C44, 0C46-0C48, 0C4A-0C4D, 0C60-0C61
-
-Kannada: 0C82-0C83, 0C85-0C8C, 0C8E-0C90, 0C92-0CA8, 0CAA-0CB3, 0CB5-0CB9, 0CBE-0CC4, 0CC6-0CC8, 0CCA-0CCD, 0CDE, 0CE0-0CE1
-
-Malayalam: 0D02-0D03, 0D05-0D0C, 0D0E-0D10, 0D12-0D28, 0D2A-0D39, 0D3E-0D43, 0D46-0D48, 0D4A-0D4D, 0D60-0D61
-
+| Bengali: | 0981-0983, 0985-098C, 098F-0990, 0993-09A8, 09AA-09B0, 09B2, 09B6-09B9, 09BE-09C4, 09C7-09C8, 09CB-09CD, 09DC-09DD, 09DF-09E3, 09F0-09F1 |
+| Gurmukhi: | 0A02, 0A05-0A0A, 0A0F-0A10, 0A13-0A28, 0A2A-0A30, 0A32-0A33, 0A35-0A36, 0A38-0A39, 0A3E-0A42, 0A47-0A48, 0A4B-0A4D, 0A59-0A5C, 0A5E, 0A74 |
+| Gujarati: | 0A81-0A83, 0A85-0A8B, 0A8D, 0A8F-0A91, 0A93-0AA8, 0AAA-0AB0, 0AB2-0AB3, 0AB5-0AB9, 0ABD-0AC5, 0AC7-0AC9, 0ACB-0ACD, 0AD0, 0AE0 |
+| Oriya: | 0B01-0B03, 0B05-0B0C, 0B0F-0B10, 0B13-0B28, 0B2A-0B30, 0B32-0B33, 0B36-0B39, 0B3E-0B43, 0B47-0B48, 0B4B-0B4D, 0B5C-0B5D, 0B5F-0B61 |
+| Tamil: | 0B82-0B83, 0B85-0B8A, 0B8E-0B90, 0B92-0B95, 0B99-0B9A, 0B9C, 0B9E-0B9F, 0BA3-0BA4, 0BA8-0BAA, 0BAE-0BB5, 0BB7-0BB9, 0BBE-0BC2, 0BC6-0BC8, 0BCA-0BCD |
+| Telugu: | 0C01-0C03, 0C05-0C0C, 0C0E-0C10, 0C12-0C28, 0C2A-0C33, 0C35-0C39, 0C3E-0C44, 0C46-0C48, 0C4A-0C4D, 0C60-0C61 |
+| Kannada: | 0C82-0C83, 0C85-0C8C, 0C8E-0C90, 0C92-0CA8, 0CAA-0CB3, 0CB5-0CB9, 0CBE-0CC4, 0CC6-0CC8, 0CCA-0CCD, 0CDE, 0CE0-0CE1 |
+| Malayalam: | 0D02-0D03, 0D05-0D0C, 0D0E-0D10, 0D12-0D28, 0D2A-0D39, 0D3E-0D43, 0D46-0D48, 0D4A-0D4D, 0D60-0D61 |
 | Thai: | 0E01-0E3A, 0E40-0E4E, 0E50-0E59 |
-|---|---|
-| Lao: | 0E81-0E82, 0E84, 0E87-0E88, 0E8A, 0E8D, 0E94-0E97, 0E99-0E9F, 0EA1-0EA3, 0EA5, 0EA7, |
-
-0EAA-0EAB, 0EAD-0EAE, 0EB0-0EB9, 0EBB-0EBD, 0EC0-0EC4, 0EC6, 0EC8-0ECD, 0EDC-0EDD
-
-Tibetan: 0F00, 0F18-0F19, 0F35, 0F37, 0F39, 0F40-0F47, 0F49-0F69, 0F71-0F84, 0F86-0F8B, 0F90-0F95, 0F97, 0F99-0FAD, 0FB1-0FB7, 0FB9
-
+| Lao: | 0E81-0E82, 0E84, 0E87-0E88, 0E8A, 0E8D, 0E94-0E97, 0E99-0E9F, 0EA1-0EA3, 0EA5, 0EA7, 0EAA-0EAB, 0EAD-0EAE, 0EB0-0EB9, 0EBB-0EBD, 0EC0-0EC4, 0EC6, 0EC8-0ECD, 0EDC-0EDD |
+| Tibetan: | 0F00, 0F18-0F19, 0F35, 0F37, 0F39, 0F40-0F47, 0F49-0F69, 0F71-0F84, 0F86-0F8B, 0F90-0F95, 0F97, 0F99-0FAD, 0FB1-0FB7, 0FB9 |
 | Georgian: | 10A0-10C5, 10D0-10F6 |
-|---|---|
 | Hiragana: | 3041-3093 |
 | Katakana: | 30A1-30F6, 30FB-30FC |
 | Bopomofo: | 3105-312C |
-
-CJK Unified\
-Ideographs: 4E00-9FA5
+| CJK Unified<br>Ideographs: | 4E00-9FA5 |
 
 ## Page 722
 
-| Hangul: | AC00-D7A3 |
+|  |  |
 |---|---|
-| Digits: | 0030-0039, 0660-0669, 06F0-06F9, 0966-096F, 09E6-09EF, 0A66-0A6F, 0AE6-0AEF, 0B66-0B6F, |
-
-0BE7-0BEF, 0C66-0C6F, 0CE6-0CEF, 0D66-0D6F, 0E50-0E59, 0ED0-0ED9, 0F20-0F29
-
-Special characters: 00B5, 02B0-02B8, 02BB, 02BD-02C1, 02D0-02D1, 02E0-02E4, 037A, 0559, 093D, 0B3D, 1FBE, 203F-2040, 2102, 2107, 210A-2113, 2115, 2118-211D, 2124, 2126, 2128, 212A-2131, 2133-2138, 2160-2182, 3005-3007, 3021-3029
+| Hangul: | AC00-D7A3 |
+| Digits: | 0030-0039, 0660-0669, 06F0-06F9, 0966-096F, 09E6-09EF, 0A66-0A6F, 0AE6-0AEF, 0B66-0B6F, 0BE7-0BEF, 0C66-0C6F, 0CE6-0CEF, 0D66-0D6F, 0E50-0E59, 0ED0-0ED9, 0F20-0F29 |
+| Special characters: | 00B5, 02B0-02B8, 02BB, 02BD-02C1, 02D0-02D1, 02E0-02E4, 037A, 0559, 093D, 0B3D, 1FBE, 203F-2040, 2102, 2107, 210A-2113, 2115, 2118-211D, 2124, 2126, 2128, 212A-2131, 2133-2138, 2160-2182, 3005-3007, 3021-3029 |
 
 ##### C.2.2 Additional characters
 
