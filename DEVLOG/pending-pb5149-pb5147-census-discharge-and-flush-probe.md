@@ -23,3 +23,9 @@ data item), which §2023:8.3.2.2 exception 3 lets share a data-name's spelling. 
 a constant and a data item share compiles and takes the constant, where §2023:8.4.2.2.1 asks for a unique reference.
 
 **Rows.** None claimed, none closed (`closes_rows: []` on both).
+
+**Self-review.** Architecture: the probe lives in the one observer's host-load instrument, no second mechanism. Full code: the
+probe only describes a non-observation and never fails one (IO and permission errors say "not probed"); its file is
+`DeleteOnClose`. Performance: five small flushes, taken only on a timeout. Duplication: none. Semgrep `verify.py` PASS, no count up.
+
+**Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 23,997/23,997 ran · Unit 40,755/40,755 ran · Characterization 37/37 ran (skipped 0) ... (run 000001-20261111T105532Z) ===` (fix gate).
