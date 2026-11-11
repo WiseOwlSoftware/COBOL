@@ -722,7 +722,7 @@ public sealed class IndexedEngineTests
             c.AddAlternateKey([new(4, 2)], duplicates: true);
             Assert.Equal("00", c.Open(FileOpenMode.Output));
             Assert.Equal("00", c.Write(first));
-            Assert.Equal("00", c.Write(second));
+            Assert.Equal("02", c.Write(second));                       // a duplicate alternate key value released
             Assert.Equal("00", c.Close());
             byte[] before = File.ReadAllBytes(host);
             Assert.True(TearPagesCarrying(host, Encoding.ASCII.GetBytes(new string('Y', 64))) > 0);
