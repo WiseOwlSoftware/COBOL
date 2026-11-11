@@ -78,7 +78,7 @@ internal sealed class CommunicationArea(string image)
     }, 2, status);
 
     /// <summary>GR2 k: the message count an ACCEPT MESSAGE COUNT statement updates.</summary>
-    internal void SetMessageCount(int count) =>
+    internal void SetMessageCount(long count) =>
         SetText(81, 6, Math.Min(count, 999_999).ToString("D6", CultureInfo.InvariantCulture));
 
     /// <summary>GR16 a: the destination count, or null when it is no unsigned integer.</summary>

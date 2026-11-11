@@ -53,6 +53,12 @@ internal static class SourceUnitShape
             (true, true) => SourceUnitKind.FunctionPrototype,
         };
 
+    /// <summary>⛔ WHERE THE CONTAINED SLOT STANDS IS AN EDITION FACT (kb/Work PB5239). ISO/IEC 1989:2002 and §2023:10.6.1 nest it
+    /// inside the procedure-division bracket, `[ procedure-division [ program-definition ] … ]`; X3.23-1985 prints the two as
+    /// separate brackets, `[ procedure-division ] [ source-program ] …` (§1985:X.2.3.1), so a COBOL-85 program with no
+    /// procedure division may still contain programs.</summary>
+    private static bool ContainedFollowProcedureDivision(EditionContext edition) => edition.Edition.Year >= 2002;
+
     /// <summary>Screen one unit against its format. <paramref name="what"/> names the unit in the message
     /// (<c>FUNCTION-ID 'F'</c>); <paramref name="container"/> is the kind of the unit that contains it, or null for
     /// a unit of the compilation group itself.</summary>
@@ -77,14 +83,14 @@ internal static class SourceUnitShape
                 + "may contain only program definitions");
 
         // The unit as a CONTAINER: only a program-definition prints the slot, and the slot is inside the
-        // procedure-division bracket — `[ procedure-division [ program-definition ] … ]`.
+        // procedure-division bracket — `[ procedure-division [ program-definition ] … ]` — from 2002 on.
         var nested = unit.nestedProgram();
         foreach (var contained in nested)
             if (!format.MayContain)
                 Refuse(contained, $"a {format.Noun} contains no other source unit — its format has no contained "
                     + "program-definition");
-        if (format.MayContain && nested.Length > 0 && unit.procedureDivision() is null)
-            Refuse(nested[0], "a program definition's contained programs follow its procedure division in the format "
+        if (format.MayContain && ContainedFollowProcedureDivision(edition) && nested.Length > 0 && unit.procedureDivision() is null)
+            Refuse(nested[0],"a program definition's contained programs follow its procedure division in the format "
                 + "(`[ procedure-division [ program-definition ] … ]`), so a program that contains programs shall "
                 + "have a procedure division");
 
