@@ -153,8 +153,11 @@ internal sealed class VersionConformancePass
     /// file-format SORT and the output procedure of every MERGE (a SORT/MERGE with only USING/GIVING files contributes
     /// none), and four arms ask whether a statement lies in it:
     /// <list type="bullet">
-    ///   <item>a file-format SORT — "shall not appear … in an input or output procedure" (§2023:14.9.40.3 SR3), at EVERY
-    ///     edition ("SORT already disallowed it", Annex E.2 item 20) — COBOL2700, an error always;</item>
+    ///   <item>a file-format SORT — "shall not appear … in an input or output procedure" (§2023:14.9.40.3 SR3), from
+    ///     COBOL-2023 only — COBOL2700, an error. The earlier editions place a SORT "anywhere in the procedure division
+    ///     except" the declarative portion (§2014:14.9.36.2 SR1, §2002:14.8.36.2 SR1, §1985:XI.4.4.3 SR1) and forbid only
+    ///     that the procedure's range "cause the execution of" one (§1985:XI.4.4.4 GR7): a run-time rule with the MERGE
+    ///     arm's dynamic net below, so a SORT written on a path that never runs is legal there (kb/Work PB5274);</item>
     ///   <item>a MERGE — "in an output procedure of another MERGE statement, or an input or output procedure of a file
     ///     format SORT statement" (§2023:14.9.24.3 SR1). VCR 27 (Annex E.2 item 20): the 2014 standard allowed it with
     ///     conflicting rules, so at COBOL-2023 it is a REMOVAL — COBOL1572, an Error under strict and a Warning under
@@ -200,16 +203,16 @@ internal sealed class VersionConformancePass
         void Flag(BoundStatement s, int paraPc)
         {
             using var _ = _sink.At(s.At);   // each diagnostic below is at its statement (kb/Work PB812, PB1925)
-            if (s is BoundSort so && InProcedure(paraPc))
-            {
-                _sink.Report(new EditionDiagnostic(DiagnosticCatalog.SortMergePlacement.Code, EditionSeverity.Error,
-                    "sort-merge-placement",
-                    $"a file SORT of '{so.File.CobolName}' shall not appear in an input or output procedure of a SORT or "
-                    + "MERGE statement (ISO §2023:14.9.40.3 SR3)",
-                    $"SORT '{so.File.CobolName}'", "ISO §2023:14.9.40.3 SR3"));
-            }
             if (_edition.Year >= 2023)
             {
+                if (s is BoundSort so && InProcedure(paraPc))
+                {
+                    _sink.Report(new EditionDiagnostic(DiagnosticCatalog.SortMergePlacement.Code, EditionSeverity.Error,
+                        "sort-merge-placement",
+                        $"a file SORT of '{so.File.CobolName}' shall not appear in an input or output procedure of a SORT "
+                        + "or MERGE statement (ISO §2023:14.9.40.3 SR3)",
+                        $"SORT '{so.File.CobolName}'", "ISO §2023:14.9.40.3 SR3"));
+                }
                 if (s is BoundMerge m && InProcedure(paraPc))
                 {
                     _sink.Report(new EditionDiagnostic(DiagnosticCatalog.MergeInSortMergeProc.Code, mergeSeverity,
