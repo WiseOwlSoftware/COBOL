@@ -52,6 +52,10 @@
       "vcrRow": "7.39"
     },
     {
+      "id": "group-indicate-consumed-by-issued-generate",
+      "vcrRow": "7.60"
+    },
+    {
       "id": "indexed-duplicate-key-status-sequential-only",
       "vcrRow": "7.55"
     },
@@ -65,11 +69,11 @@
     },
     {
       "id": "integer-date-form-bounded-9999",
-      "vcrRow": "7.58"
+      "vcrRow": "7.61"
     },
     {
       "id": "numval-c-currency-content-rules",
-      "vcrRow": "7.59"
+      "vcrRow": "7.62"
     },
     {
       "id": "perform-varying-after-init-inner-first",
@@ -78,6 +82,14 @@
     {
       "id": "search-index-below-table-unsuccessful",
       "vcrRow": "7.56"
+    },
+    {
+      "id": "sum-size-error-blanks-printable-item",
+      "vcrRow": "7.58"
+    },
+    {
+      "id": "terminate-discards-saved-next-group",
+      "vcrRow": "7.59"
     }
   ],
   "nonstandardExtensionIds": [

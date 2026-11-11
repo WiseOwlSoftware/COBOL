@@ -6,7 +6,7 @@ Four intrinsic-argument defects found by the 1985 witness-drafting, code-read an
 **PB5130 (wrong answer, silent).** At `--std 85` FUNCTION INTEGER-OF-DATE (100000101) returned 0. The 1989 module bounds the
 year below only (§1989:A.2.16.3 AR1 a. "It must be an integer greater than 1600"; the same for INTEGER-OF-DAY, DATE-OF-INTEGER
 and DAY-OF-INTEGER), while the 2002 text adds the 9999 ceiling (§2023:15.5.2, §2023:15.46.3 AR1 a). It is a behaviour change,
-so it is `DialectBehavior.IntegerDateFormBounded` (2002, VCR row 7.58), read by the binder into
+so it is `DialectBehavior.IntegerDateFormBounded` (2002, VCR row 7.61), read by the binder into
 `BoundIntrinsicCall.IntegerDateFormUnbounded` and rendered as `unbounded: true`. The four `CobolDate` bodies now count days by
 the calendar's own arithmetic (400-year cycles of 146,097 days from 1601-01-01), because System.DateTime ends at 9999. A
 sibling on the way: DISPLAY of DATE-OF-INTEGER's value used the fixed eight-digit temporary of DOC-A.1-92, which would have
@@ -17,7 +17,7 @@ repro prints 00000001, 03067671, 03067672, 03068037.
 The content bans on argument-2 are §2023:15.68.3 AR2's, present in the 2002 text; the 1989 module asks only the class
 (§1989:A.2.30.3 AR4). The binder and the runtime each held a copy of the rule. There is one now,
 `CobolIntrinsics.CurrencyStringViolatesContentRules`, asked where `DialectBehavior.NumvalCCurrencyContentRules` (2002, VCR row
-7.59) is active; below it the binder sets `BoundIntrinsicCall.CurrencyContentUnrestricted` (`contentUnrestricted: true`).
+7.62) is active; below it the binder sets `BoundIntrinsicCall.CurrencyContentUnrestricted` (`contentUnrestricted: true`).
 
 **PB5162 (rejects legal source).** At 85 ORD of a one-character PIC Z item was refused by the category predicate of
 §2023:15.70.3 AR1; §1989:A.2.31.3 AR1 says class alphanumeric, which holds the edited categories (§1985:IV.4.3.3). An
