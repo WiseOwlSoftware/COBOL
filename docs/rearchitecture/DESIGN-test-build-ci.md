@@ -1174,8 +1174,32 @@ the semantic check, so nothing is judged from intent); a file that does not pars
 *Reuse.* A PASS records `clock: {shift_days, real, until}` (the day the proof reaches, `Clock.until`: recorded at + 400 days for
 a shifted self-test, the day it was recorded for a clock that cannot be shifted), and `PassStore.lookup` refuses a record
 past it (`re-run: the clock proof of the PASS of ... ended ...`), so a reused PASS cannot outlive the proof it rests on.
-Only a self-test that cannot read a clock records none and is reused whatever the day. The schema is 3: a PASS recorded
-before the proof is not reused.
+Only a self-test that cannot read a clock records none and is reused whatever the day. The schema is 4 (3 added the
+proof; 4 its key and the day it ran, below): a PASS recorded under an earlier schema is not reused.
+*The clock key (kb/Work PB5226).* The shifted run proves one thing, that no fixture the self-test compares with the clock
+expires inside the shift, and only an input that reads a clock, does time arithmetic or carries a date can change that
+answer; yet until PB5226 every re-run of a clock-proved PASS re-ran the shifted run too. In the build-stage1 gate of
+2026-11-11, 28 of 42 self-tests that ran were clock-proved and took 6,419 of 10,022 summed seconds, about half of it the
+shifted runs; `enqueue.py`, `land_lane.py` and `gate.py` re-ran theirs because `inert_lane.py` and `buildgraph.py`
+changed, and neither imports a time module. A shifted proof is therefore recorded under its own key
+(`clock: {..., key, proved}`; `Runner._proof_key`, `self_test_clock.keys_proof`): of the run's inputs, the self-test's own
+file, the proof's mechanism (`self_test_clock.MECHANISM`: the shim and the tracer that installs it), every Python file
+that imports `datetime`, `time`, `calendar` or `zoneinfo`, reaches the wall clock or names the shift variable, every
+script that reads a clock, every file that carries a date (`DATED_RE`: an ISO date or a basic `20261111T023340` stamp),
+every file whose content cannot be read, and every directory a git command read whole. The runner's other files are left
+out, as `Clock.of` leaves them out. When a `--reuse` run (a gate's) re-runs a self-test because its PASS inputs changed,
+and after the first run the run's key equals a recorded proof's inside that proof's horizon (`PassStore.clock_proof`),
+it does not run the shifted run: the console says `clock proof reused: the shift of 400 days proved <when> holds until
+<day>, and none of its N clock input(s) changed`, and the new PASS keeps the reused proof's `proved` and `until`, so reuse
+never moves a horizon past 400 days from the day the clock was actually moved. Otherwise both runs run and the console
+names the clock inputs that changed since the newest proof. The key is derived AFTER the first run, from that run's own
+trace, so a file that starts reading the clock in the change under test is in the new key and the shifted run runs. A run
+without `--reuse` (CI, the Linux gate, a hand run) never reuses a proof. *Its residue, named:* a window or date defined
+in a module that imports no time module and carries no date literal (`RETAIN_DAYS = 90` in a constants module read by
+an unchanged module that compares it with the clock), a date in a data file in a form `DATED_RE` does not match, and the
+names in a directory listing; an edit to one of those reuses a proof it may have changed, and CI's merge group, which
+runs every self-test fresh with both runs, is the backstop. The detector over-approximates elsewhere on purpose
+(`import time` for a duration puts a file in the key): an extra shifted run is the cost.
 *The opt-out, declared.* A self-test that compares the Python clock with a REAL one the shift cannot move declares it, with
 the reason, among its first five lines: `# SELF-TEST-CLOCK: real — <why>`, and is not shifted. It is
 not reused past the day it was recorded either (review R1-2: a declared PASS with no horizon would be answered REUSED
@@ -1211,14 +1235,18 @@ root fix for the PowerShell and bash ones.
 *No arm limits how long a process takes.* The module's arms compare each child reading with the interval the PARENT's own
 clock brackets the child's run in (a slow start-up only widens it), and an allowance (`RESOLUTION`, two seconds in the module's arms, one in the planted `test_child.py`) covers the clocks'
 rounding and the whole-second readers, never slowness (review R1-3; the owner's no-wall-clock rule).
-*Proof.* `self_test_clock.py --self-test` (the detection's arms; the shim in a child process against the parent's
+*Proof.* `self_test_clock.py --self-test` (the detection's arms and `keys_proof`'s; the shim in a child process against the parent's
 bracketing clock, every function once; a shift across a daylight-saving change under a POSIX `TZ` with a daylight rule;
 the horizon, the day-bound clock) and `self_tests.py --self-test` (`fleet_arms`: a fixture written at arm time and compared
 with the wall clock is RED in the proof run and records no PASS; the same test deriving its fixture from the clock, a child
 process that must agree with its parent, a self-test that cannot read the clock and one declared real; an mtime comparison
 undeclared is RED; the recorded horizon; reuse inside it and a fresh run past it; a declared-real PASS of an earlier day is
 not reused; a bash self-test reading `date` is day-bound, so is one that sources a helper reading `date` and one whose
-traced Python child opened a file that reads the clock).
+traced Python child opened a file that reads the clock; and the clock key, read from the shifts the planted self-test
+logs: the key holds its own file and its time-arithmetic helper but not its plain helper, an edit to the plain helper
+runs once and keeps the proof's day and horizon, an edit to the time helper or to the self-test runs both, a helper that
+starts importing `time` in the edit runs both, a run without `--reuse` runs both, and an expired proof under an unchanged
+key runs both).
 
 #### 3.14.11 The one Python interpreter the gate scripts run (kb/Work PB1637, PB3197)
 
