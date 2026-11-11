@@ -16,8 +16,10 @@
        WORKING-STORAGE SECTION.
        01 A PIC 9(3) VALUE 5.
        01 D PIC 9(3) VALUE 0.
+       01 T PIC X(3).
        PROCEDURE DIVISION.
        P1.
            ADD A GIVING D.
-           DISPLAY D.
+           MOVE D TO T.
+           DISPLAY T.
            STOP RUN.
