@@ -10,7 +10,7 @@
       *> closed with lock"), and the OPEN's USE procedures then run (§1985:VII.4.3.4 GR26 b): "Any applicable USE
       *> AFTER EXCEPTION procedure is executed"). §1985:VII.4.6.4 GR5 c) and b) make the OUTPUT and INPUT procedures
       *> applicable to a file "in the process of being opened" in that mode, so each refused OPEN runs the procedure
-      *> of ITS mode, after the status is set (GR26 a).
+      *> of ITS mode, after the status is set (§1985:VII.4.3.4 GR26 a).
       *> DERIVATION -- every expected line follows from the rules, nothing from the compiler:
       *>  - OPEN OUTPUT of an absent file creates it (status 00); WRITE 00; CLOSE WITH LOCK 00.
       *>  - OPEN OUTPUT: status 38, then the OUTPUT procedure: "USE OUTPUT 38", "OPEN OUTPUT 38".

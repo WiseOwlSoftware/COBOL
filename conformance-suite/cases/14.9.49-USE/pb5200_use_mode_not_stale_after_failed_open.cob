@@ -12,9 +12,9 @@
       *>  - FI is a non-optional file no run of this test creates: an OPEN INPUT or OPEN EXTEND of it is unsuccessful
       *>    with I-O status 35 (§2023:9.1.13.6 rule 5; §2023:14.9.27.4 GR4 Table 18). The corpus runner runs each program
       *>    in a fresh empty directory.
-      *>  - OPEN INPUT: the file is being opened in the input mode, so the INPUT procedure runs once (GR6 b), after the
+      *>  - OPEN INPUT: the file is being opened in the input mode, so the INPUT procedure runs once (§2023:14.9.49.4 GR6 b), after the
       *>    status is set (§2023:14.9.27.4 GR25 a), b)): "USE INPUT 35", then the statement after the OPEN: "OPEN INPUT 35".
-      *>  - OPEN EXTEND: likewise the EXTEND procedure (GR6 e): "USE EXTEND 35", "OPEN EXTEND 35".
+      *>  - OPEN EXTEND: likewise the EXTEND procedure (§2023:14.9.49.4 GR6 e): "USE EXTEND 35", "OPEN EXTEND 35".
       *>  - READ, WRITE and CLOSE of a file that is NOT open are unsuccessful ('47', '48', '42': §2023:9.1.13.7
       *>    items 7, 8 and 2 -- READ of a file not open in the input or I-O mode, WRITE of one not open for output or
       *>    extend, CLOSE of one not in an open mode). The file is in no mode: not open, and no OPEN is executing. No open-mode procedure applies,

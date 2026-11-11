@@ -13,8 +13,8 @@
       *>  - OPEN OUTPUT of an absent file creates it (§2023:14.9.27.4 Table 18, OUTPUT row): status 00, no procedure.
       *>    WRITE 00, CLOSE 00. OPEN INPUT of the file now present: 00, no procedure.
       *>  - Each further OPEN names a file connector that is open: unsuccessful, status 41 (§2023:14.9.27.4 GR2,
-      *>    §2023:9.1.13.7 item 1), the file unaffected (GR25). The procedure of the mode being opened runs after the
-      *>    status is set (GR25 a), b)): OUTPUT, then EXTEND, then I-O. The INPUT procedure, the mode the file is open
+      *>    §2023:9.1.13.7 item 1), the file unaffected (§2023:14.9.27.4 GR25). The procedure of the mode being opened runs after the
+      *>    status is set (§2023:14.9.27.4 GR25 a), b)): OUTPUT, then EXTEND, then I-O. The INPUT procedure, the mode the file is open
       *>    in, is not applicable to these OPENs: the file is not being opened in the input mode.
       *>  - READ of the still-open input file is successful (status 00), no procedure; CLOSE 00.
        IDENTIFICATION DIVISION.
