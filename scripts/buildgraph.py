@@ -554,10 +554,27 @@ def self_test() -> int:
             "adding scripts/Guard-legacy.sh changes the key",
             cased == [True, True, True, False, False] and g0 != g1, f"{cased} {g0} {g1}")
         real_targets = load_targets()
-        arm("the real targets file loads: unit, conformance, characterization, each with its assembly, @build expanded",
-            sorted(real_targets) == ["characterization", "conformance", "unit"]
+        arm("the real targets file loads: unit, repo-drift, conformance, characterization, each with its assembly, @build "
+            "expanded; Unit's inputs are narrow (no @population-inputs) and repo-drift's are every population input",
+            sorted(real_targets) == ["characterization", "conformance", "repo-drift", "unit"]
             and "src/" in real_targets["conformance"].inputs and "@build" not in real_targets["conformance"].inputs
-            and real_targets["unit"].inputs == ("@population-inputs",), str(real_targets.keys()))
+            and "src/" in real_targets["unit"].inputs and "@population-inputs" not in real_targets["unit"].inputs
+            and real_targets["repo-drift"].inputs == ("@population-inputs",)
+            and real_targets["repo-drift"].assembly == "RepoDrift", str(real_targets.keys()))
+
+        # The audit's reading of a C# source (kb/Work PB5230): a root as text is no read; a collection expression, a
+        # declared Within directory and a suite case's trees are read; a whole-tree scope is a bare root reference.
+        spelled = reads_in(
+            'var a = Path.GetRelativePath(TestRepo.Root, f); var b = $"at {TestRepo.Root}";\n'
+            'var c = TestRepo.At(["docs", "x.json"]); var d = Path.Combine([TestRepo.Root, "src", .. rest]);\n'
+            'var e = TestRepo.Within("src/A/", rel); var g = TestRepo.SuiteCase(id);\n'
+            'static readonly TreeScope All = new(Under: [""], Kinds: [".cs"]);\n'
+            'var h = TestRepo.At(rel);\n', ["src", "docs", "tests", "conformance-suite"])
+        arm("the audit reads a source as written: a root made relative or interpolated is no read; At([..]) and "
+            "Path.Combine([Root, ..]) are read through their literals; Within reads its declared directory; SuiteCase "
+            "its two trees; a whole-tree scope and a computed At are bare root references",
+            spelled == [(2, "docs/x.json"), (2, "src/"), (3, "src/A/"), (3, "conformance-suite/cases/"),
+                        (3, "conformance-suite/wiseowl/cases/"), (5, ""), (3, "src/A/"), (4, "")], str(spelled))
     finally:
         remove_tree(root)
     bad = [n for n, ok, _ in results if not ok]

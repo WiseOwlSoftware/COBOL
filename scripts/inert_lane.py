@@ -156,7 +156,7 @@ def under(path: str, entry: str) -> bool:
 #: compiler tests to (`markdown_readers`).
 MARKDOWN_ENTRY = "**/*.md"
 #: ⛔ THE LANES, cheapest first (module docstring): `inert` runs the audits; `tooling` the audits with the script
-#: self-tests; `full` (the code lane) the build and the three whole populations beside the audits.
+#: self-tests; `full` (the code lane) the build and the four whole populations beside the audits.
 LANES = ("inert", "tooling", "full")
 #: The lanes whose gate runs no compiler test, so its record keeps no test result: no compiler test reads the change.
 TEST_FREE_LANES = frozenset({"inert", "tooling"})
@@ -185,7 +185,7 @@ class Lane:
 
     @property
     def builds(self) -> bool:
-        """The code lane: a build and the three whole populations."""
+        """The code lane: a build and the four whole populations."""
         return self.name == "full"
 
 
@@ -219,9 +219,9 @@ class Classification:
 
     def is_population_input(self, path: str) -> bool:
         """Whether a compiler test or the build MAY read `path`: it is neither inert nor a tooling-lane path. THE ONE
-        DEFINITION of the code lane's paths (`classify`) and of the inputs of the Unit, Conformance and Characterization
-        populations (scripts/gate.py `Host.population_key`, kb/Work PB5205): a gate's population passes stand for another
-        tree exactly when every such path, and the toolchain, are the same."""
+        DEFINITION of the code lane's paths (`classify`) and of `@population-inputs`, the declared inputs of the
+        repo-drift target (scripts/build_targets.json; kb/Work PB5218, PB5230): its pass stands for another tree exactly
+        when every such path, and the toolchain, are the same."""
         return not self.is_inert(path) and not self.in_tooling_lane(path)
 
     def is_watched(self, path: str) -> bool:
@@ -359,11 +359,12 @@ CLASSIFICATION = Classification(inert={
                           "expected tables from it",
     # Every held edition's rule catalog (inventory-schema.json editions.of `catalog`): a pattern, so an edition that gains
     # a catalog is a READ path the day it lands (kb/Work PB4994's older-edition drift tests first read the 1985 one).
-    "docs/rearchitecture/spec-rule-catalog*.json": "CatalogCoverageDriftTests and the traceability-inventory drift tests "
-                                                   "(TraceabilityInventory.RowsOf and inventory_view.py --edition read "
-                                                   "every held edition's catalog)",
-    "docs/rearchitecture/architecture-edges.json": "ArchitectureEdgesDriftTests",
-    "docs/rearchitecture/evidence/arch-census/": "ArchCensusDriftTests (CensusRecord)",
+    "docs/rearchitecture/spec-rule-catalog*.json": "RepoDrift's CatalogCoverageDriftTests and traceability-inventory drift "
+                                                   "tests (TraceabilityInventory.RowsOf and inventory_view.py --edition "
+                                                   "read every held edition's catalog), Unit's EcRaiseSiteDriftTests, "
+                                                   "and SuiteManifest's conformance-suite/harness/generate.py",
+    "docs/rearchitecture/architecture-edges.json": "RepoDrift's ArchitectureEdgesDriftTests and BackendContractDriftTests",
+    "docs/rearchitecture/evidence/arch-census/": "RepoDrift's ArchCensusDriftTests (CensusRecord)",
 }, tooling_under=("scripts/", ".github/", "tools/", ".claude/", ".gitattributes", "toolchain.env"),
    tooling_suffixes=(".py", ".ps1", ".sh"),
    # ⛔ TOOLING_READS: what the script self-tests read outside the scripts (module docstring), measured from the PASS store's
@@ -392,6 +393,7 @@ CLASSIFICATION = Classification(inert={
        "tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj": "scripts/linux-gate.sh",
+       "tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj": "scripts/linux-gate.sh",
        "tests/WiseOwl.Cobol.Tests.Unit/CarrierLandingFormTests.cs": "scripts/spec/audit_annex_a1.py",
        "tests/_shared/TestRepo.cs": "scripts/spec/drift_rules.py",
        "tests/_shared/SpecClauseText.cs": "scripts/spec/spec_headings.py",
@@ -409,16 +411,20 @@ CLASSIFICATION = Classification(inert={
    code_reads={
        ".gitattributes": "every compiler test: the checkout's bytes (line endings) of every file it reads",
        "toolchain.env": "every compiler test and the build: the SDK they run on (the toolchain manifest, kb/Work PB4007)",
-       "scripts/spec/": "the spec extractors and audits a compiler test runs or reads (SpecTraceabilityInventoryDriftTests, "
-                      "AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, "
-                      "TrackedTreeScopeDriftTests, CatalogCoverageDriftTests, TestRepoDriftTests)",
-       "scripts/arch/": "ArchCensusDriftTests (census.py), ArchReviewFleetDriftTests (the R2 review workflow scripts)",
+       "scripts/spec/": "the spec extractors and audits a test runs or reads: RepoDrift's SpecTraceabilityInventoryDriftTests, "
+                      "AnnexA2UndefinedListDriftTests, DerivedVerdictDriftTests, TrackedTreeScopeDriftTests, "
+                      "CatalogCoverageDriftTests and TestRepoDriftTests, and the modules SuiteManifest's generate.py "
+                      "imports (Unit, Conformance)",
+       "scripts/arch/": "RepoDrift's ArchCensusDriftTests (census.py) and ArchReviewFleetDriftTests (the R2 review workflow "
+                      "scripts)",
        "scripts/gen-reserved-words.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-cobol-words.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-constructs.ps1": "a generator whose output a compiler drift test checks",
        "scripts/gen-diagnostics-doc.ps1": "a generator whose output a compiler drift test checks",
-       "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and VaultReferenceGeneratorDriftTests",
-       "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and GrammarDiagramGeneratorDriftTests",
+       "scripts/gen-vault-reference.ps1": "the build (the Cli project's Exec step) and RepoDrift's "
+                                          "VaultReferenceGeneratorDriftTests",
+       "scripts/gen-grammar-diagrams.ps1": "the build (the Cli project's Exec step) and RepoDrift's "
+                                           "GrammarDiagramGeneratorDriftTests",
        "scripts/guard*.sh": "CorpusManifestTests, which LISTS scripts/ for every guard*.sh: a pattern, so a guard script "
                             "added later is the code lane too",
        "scripts/test_population.py": "every gate leg: it plans the population the compiler tests run",
@@ -452,7 +458,8 @@ CLASSIFICATION = Classification(inert={
        ".claude/skills/workstream/templates/wf_r2_review.js": "scripts/arch/test_wf_r2_review.mjs, the workflow's dry "
                                                                "run ArchReviewFleetDriftTests runs",
        "tools/rr/rr.war": "scripts/gen-grammar-diagrams.ps1 (the build's Exec and GrammarDiagramGeneratorDriftTests)",
-       ".github/": "CiArtifactDriftTests, ReadyToRunRuntimeDriftTests (every workflow and the results actions)",
+       ".github/": "RepoDrift's CiArtifactDriftTests and ReadyToRunRuntimeDriftTests (every workflow and the results "
+                   "actions)",
    })
 
 

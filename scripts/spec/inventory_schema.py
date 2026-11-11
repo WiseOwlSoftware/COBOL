@@ -647,7 +647,7 @@ class DerivedSelector:
     """One `derived-verdicts` entry — a verdict that follows MECHANICALLY from one owner determination.
 
     ⛔ THE PREDICATE IS DATA AND BOTH ENGINES READ IT. This class and
-    `tests/WiseOwl.Cobol.Tests.Unit/DerivedVerdictDriftTests.Select` are the two evaluators; neither carries a copy of
+    `tests/WiseOwl.Cobol.Tests.RepoDrift/DerivedVerdictDriftTests.Select` are the two evaluators; neither carries a copy of
     a selector. Until 2026-09-02 the schema's own $comment claimed that already — and it was false: no Python
     consumer of `derived-verdicts` existed, so the PB198 batch was produced by hand and the "two readers" that
     justify writing the predicate as data were one reader and an aspiration.

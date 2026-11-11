@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # linux-gate.sh — run CI's LINUX test legs locally, under WSL, before a push spends a CI run on them.
 #
-#   From any shell, at the tree's root:  bash scripts/linux-gate.sh [--legs unit,characterization,conformance,guard] [--nice]
+#   From any shell, at the tree's root:  bash scripts/linux-gate.sh [--legs unit,repo-drift,characterization,conformance,guard] [--nice]
 #   On a host that is not Linux (Git Bash, PowerShell's bash) it runs ITSELF under WSL, in the same tree with the same
 #   arguments, and its verdict is that run's (run_on_linux, kb/Work PB2999).
 #   python scripts/self_tests.py runs `bash scripts/linux-gate.sh --self-test` (the host hand-off, with stand-ins).
@@ -89,8 +89,8 @@ check_legs() {
   IFS=',' read -r -a wanted <<< "$legs"
   for leg in "${wanted[@]}"; do
     case "$leg" in
-      unit|characterization|conformance|guard) ;;
-      *) echo "linux-gate: unknown leg '$leg' (the selectable legs are unit, characterization, conformance and guard;"\
+      unit|repo-drift|characterization|conformance|guard) ;;
+      *) echo "linux-gate: unknown leg '$leg' (the selectable legs are unit, repo-drift, characterization, conformance and guard;"\
               "selftests always runs, and selftests-built with unit or conformance)"
          echo "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="; exit 2 ;;
     esac
@@ -332,8 +332,8 @@ if [ "${1:-}" = "--self-test" ]; then
   check "an unknown --legs name is NOT RUN (bad arguments) before anything runs" "$(echo "$got" | tail -1)" \
         "=== LINUX GATE: NOT RUN [arguments] (bad arguments) ==="
   check "an unknown --legs name exits 2" "$rc" "2"
-  got="$( legs=unit,characterization,conformance,guard; check_legs; echo "accepted ${wanted[*]}" )"
-  check "the four selectable legs are accepted, in order" "$got" "accepted unit characterization conformance guard"
+  got="$( legs=unit,repo-drift,characterization,conformance,guard; check_legs; echo "accepted ${wanted[*]}" )"
+  check "the five selectable legs are accepted, in order" "$got" "accepted unit repo-drift characterization conformance guard"
   # The interpreter, through the one resolver, with stand-in interpreters (shell functions the resolver's probe runs):
   # `return 1` answers the floor probe as an interpreter below 3.12 (or the Store alias) does, `return 0` as one at it.
   got="$( python3() { return 1; }; python() { return 0; }; PYTHON=""; resolve_py; echo "$PY" )"
@@ -492,7 +492,7 @@ fi
 
 run_on_linux "$@"
 
-legs="unit,characterization,conformance,guard"
+legs="unit,repo-drift,characterization,conformance,guard"
 nice_prefix=()
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -764,6 +764,7 @@ for leg in "${wanted[@]}"; do
   order+=("$leg")
   case "$leg" in
     unit)             proj="tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj" ;;
+    repo-drift)       proj="tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj" ;;
     characterization) proj="tests/WiseOwl.Cobol.Tests.Characterization/WiseOwl.Cobol.Tests.Characterization.csproj" ;;
     conformance)      proj="tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj" ;;
     guard)            continue ;;   # the audit clone runs it (audit_built_legs)

@@ -2443,7 +2443,7 @@ check("a census-only row's landed remover beside an open one is deleted from rem
 check("a pair's landed remover is deleted from removedBy (the ratchet takes a vanished pair)",
       any("PB1 is landed" in m and "delete it from" in m and work.EDGES_RATCHET in m
           for m in work.edges_remover_problems([edges_note("PB1", "landed", "`P.Low → P.Mid` 1")] + NOTES[1:], EDGES)), True)
-_ratchet_cs = (HERE.parents[1] / "tests" / "WiseOwl.Cobol.Tests.Unit" / "ArchitectureEdgesDriftTests.cs").read_text(encoding="utf-8")
+_ratchet_cs = (HERE.parents[1] / "tests" / "WiseOwl.Cobol.Tests.RepoDrift" / "ArchitectureEdgesDriftTests.cs").read_text(encoding="utf-8")
 check("the ratchet work.py names is the drift test's: the switch its RatchetCommand sets, and that constant",
       bool(re.search(r'RatchetCommand =\s*"WISEOWL_COBOL_ARCH_EDGES_RATCHET=1 ', _ratchet_cs))
       and work.EDGES_RATCHET.startswith("WISEOWL_COBOL_ARCH_EDGES_RATCHET=1 ")

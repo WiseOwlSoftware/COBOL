@@ -543,7 +543,7 @@ jobs:
           python3 .claude/skills/workstream/check_practices.py
 
   # ── ⛔ THE TEST MATRIX IS WEIGHTED SHARDS (kb/Work PB4329, step 6 of PB4323; DESIGN-test-build-ci.md §1.4). Every shard job
-  # builds the solution and runs EVERY test assembly (Unit, Characterization, Conformance; and on Linux INV-1-strong) with
+  # builds the solution and runs EVERY test assembly (Unit, RepoDrift, Characterization, Conformance; and on Linux INV-1-strong) with
   # WISEOWL_COBOL_SHARD=k/N, and the test framework of each host (tests/_shared/GateLegs.cs, GateShard) runs the cases of
   # the test classes the weights file (tests/_shared/test-weights.json, scripts/shard_weights.py generate) deals to shard k:
   # every class the file names, longest first, to the lightest shard so far, then a class it does not name at the file's
@@ -617,7 +617,7 @@ jobs:
           set -euo pipefail
           . scripts/python-resolve.sh
           mkdir -p TestResults/${{ runner.os }}-shard
-          for assembly in Unit Characterization Conformance; do
+          for assembly in Unit RepoDrift Characterization Conformance; do
             "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
               --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
           done
@@ -625,6 +625,13 @@ jobs:
         env:
           WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --logger "trx;LogFileName=Unit.trx" --results-directory TestResults/${{ runner.os }}-shard
+      # The repository drift tests (kb/Work PB5230): the tests that bind the documents, records, scripts, CI files and test
+      # sources to each other and to the compiler, split out of Unit so each assembly's target keys on its own inputs.
+      - name: RepoDrift, this shard
+        if: ${{ !cancelled() }}
+        env:
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+        run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj --no-build --logger "trx;LogFileName=RepoDrift.trx" --results-directory TestResults/${{ runner.os }}-shard
       # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
       # WISEOWL_COBOL_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
       - name: Characterization snapshots (behavior-neutrality gate), this shard
@@ -717,7 +724,7 @@ jobs:
           set -euo pipefail
           . scripts/python-resolve.sh
           mkdir -p TestResults/${{ runner.os }}-shard
-          for assembly in Unit Characterization Conformance; do
+          for assembly in Unit RepoDrift Characterization Conformance; do
             "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
               --configuration Release --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
           done
@@ -725,6 +732,11 @@ jobs:
         env:
           WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
         run: dotnet test tests/WiseOwl.Cobol.Tests.Unit/WiseOwl.Cobol.Tests.Unit.csproj --no-build --configuration Release --logger "trx;LogFileName=Unit.trx" --results-directory TestResults/${{ runner.os }}-shard
+      - name: RepoDrift, this shard
+        if: ${{ !cancelled() }}
+        env:
+          WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
+        run: dotnet test tests/WiseOwl.Cobol.Tests.RepoDrift/WiseOwl.Cobol.Tests.RepoDrift.csproj --no-build --configuration Release --logger "trx;LogFileName=RepoDrift.trx" --results-directory TestResults/${{ runner.os }}-shard
       - name: Characterization snapshots (behavior-neutrality gate), this shard
         if: ${{ !cancelled() }}
         env:
@@ -1052,7 +1064,7 @@ jobs:
         run: |
           fail=0
           for os in Linux Windows; do
-            for assembly in Unit Characterization Conformance; do
+            for assembly in Unit RepoDrift Characterization Conformance; do
               python3 scripts/test_population.py check --label "$assembly ($os shards)" \
                 --listing shards/test-results-$os-shard-1/$assembly.list.txt \
                 --trx shards/test-results-$os-shard-*/$assembly.trx \
