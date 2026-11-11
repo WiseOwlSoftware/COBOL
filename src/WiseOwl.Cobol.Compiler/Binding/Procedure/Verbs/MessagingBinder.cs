@@ -225,8 +225,12 @@ internal sealed class MessagingBinder(BinderContext ctx, StatementBinder host)
         // item referenced by identifier-1" with NO subordinates, and GR6 gives it its base's class, category and usage, so its one data description entry is the
         // base item's own: the walk asks that entry (a BASED, DYNAMIC-LENGTH, ANY LENGTH, pointer or ODO base item draws the refusal, as the whole item does)
         // and not the base's subordinates, which the slice does not have.
-        var root = place.DenotedItem ?? place.Item;
-        var items = place.DenotedItem is null ? [root] : DataItem.SelfAndDescendantsOf(root);
+        // A whole item's entries are read through the ONE operand-item reader and the ONE group-member reader, which a
+        // level-66 alias answers too (kb/Work PB5120 review R1-1's sweep): a no-THROUGH alias has data-name-2's attributes
+        // and subordinates (§2023:13.18.45.4 GR1), and its own entry, which has no Children, used to be all that was walked.
+        var described = MoveTable16.OperandItem(place);
+        var root = described ?? place.Item;
+        IEnumerable<DataItem> items = described is null ? [root] : [root, .. DataItem.SubordinatesOf(root)];
         foreach (var item in items)
         {
             string? clause = ForbiddenClause(item, root);
