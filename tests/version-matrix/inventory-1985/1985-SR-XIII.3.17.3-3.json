@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.3.17.3-3",
  "rule-digest": "281d6c07c7dd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#ScreenReportSignClauses",
  "test-ref": "conformance:cases/XIII.3.17@1985-SIGN-CLAUSE/1985-SR-XIII_3_17_3-3",
+ "notes": "§1985:XIII.3.17.3 SR3: \"When the SIGN clause is included in a report group description entry, the SEPARATE CHARACTER phrase must be specified.\" DataBinder.ScreenReportSignClauses runs below DialectLevel 2002 over every written report group entry and refuses a SIGN clause with no SEPARATE through the report-sign-without-separate-2002 construct (COBOL0900, 'requires COBOL-2002'; ISO/IEC 1989:2002 Annex F.2 item 123 dropped the requirement), once per written entry. Probes at 85 (work-slice-54/c9*, c10*; classes b, c, d): SIGN TRAILING, SIGN IS LEADING and SIGN LEADING on an unsigned PIC 9(3) each print COBOL0900 (the last also COBOL2422 for SR1); LEADING SEPARATE without the optional SIGN IS words, SIGN TRAILING SEPARATE CHARACTER and an S9(3) entry with no SIGN clause run. The witness (PIC S9(3) SOURCE WS-NUM SIGN LEADING) is refused with COBOL0900.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
