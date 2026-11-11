@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-7",
  "rule-digest": "e84672dd15ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#Plan; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#OncePerOperand; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#Leaves; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanPerform; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-7",
+ "notes": "§1985:XV.3.2.4 GR7: the debugging section 'is not executed for a specific operand more than once as a result of the execution of a single statement', a PERFORM runs it 'once for each iteration', and each imperative verb inside an imperative statement is a separate statement. StatementBinder.BindStatement, the funnel every statement (nested ones included) passes, asks DebugTriggerPlanner.Plan of the statement itself (BoundReferences never enters a nested statement) and OncePerOperand keeps one fire per target; a procedure subject fires at each entry of the paragraph (DispatchEmitter.EmitDispatchMethod), so each PERFORM iteration runs it. Probed at 85: MOVE 1 TO E(1) E(2) E(3) on an ODO table, ADD E(1) E(2) TO E(3) and ADD 1 TO I I each fire once; MOVE 2 TO I E(I) gives DEBUG-SUB-1 +0002; ADD ... ON SIZE ERROR MOVE 0 TO G1 MOVE 1 TO G1 fires G1 twice then E once; PERFORM P2 VARYING 2 iterations fires twice, 0 TIMES never; PERFORM UNTIL fires per evaluation; MOVE G TO G (group) does not fire the G1 target; a failed OPEN and a READ on an unopened file fire the file-name section after the USE procedure, the unexecuted INTO operand does not; at 2002/2023 USE FOR DEBUGGING is refused COBOL0902. The witness checks the two-operand ADD, the two MOVEs of one IF and PERFORM 3 TIMES.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

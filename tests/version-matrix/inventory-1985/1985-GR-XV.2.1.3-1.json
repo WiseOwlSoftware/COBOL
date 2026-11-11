@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.2.1.3-1",
  "rule-digest": "9b825db52c83",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeclarativeSection; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDebugRunner",
  "test-ref": "conformance:cases/XV.2.1@1985-WITH-DEBUGGING-MODE-CLAUSE/1985-GR-XV_2_1_3-1",
+ "notes": "§1985:XV.2.1.3 GR1: with WITH DEBUGGING MODE in the SOURCE-COMPUTER paragraph \"all USE FOR DEBUGGING statements are compiled\". DataBinder.BindDeclarations sets ConfigurationSlice.DebuggingModeDeclared from the clause, ProcedureTableBuilder.DeclCollectSection then collects each debugging section into the pc space and FinalizeDebug resolves its subjects, VersionConformancePass.VisitDeclarativeSection walks the body, and DispatchEmitter.EmitDebugRunner emits the trigger runner. Probes at --std 85: ALL PROCEDURES (START PROGRAM, PERFORM LOOP), an S9(18) item set to -999999999999999999, ALL REFERENCES OF an ODO element TE(N) (DEBUG-SUB-1 +0002), and a file-name after a failed OPEN (status 35, the next statement runs) all compile and fire; a contained program with its own USE FOR DEBUGGING fires under the containing program's switch, as §1985:p.VI-9 makes the Configuration Section apply to each contained program; without the clause none fires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

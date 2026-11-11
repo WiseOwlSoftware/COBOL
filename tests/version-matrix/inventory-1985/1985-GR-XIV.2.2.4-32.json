@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-32",
  "rule-digest": "716be8feda8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#TextLength; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetTextLength; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-32",
+ "notes": "§1985:XIV.2.2.4 GR32: data-name-4 gives \"the number of character positions filled as a result of the execution of the RECEIVE statement\", and on SEND \"the user's indication of the number of leftmost character positions of the data item referenced by the associated SEND identifier from which data is transferred\". MessageControlSession#Transfer stores the filled count through CommunicationArea#SetTextLength (0 on NO DATA), and #Send reads CommunicationArea#TextLength, refuses a count above the identifier's size (50) and a zero count with no indicator (60), and sends the leftmost count. Probes at --std 85: RECEIVE into a 1-character item counts 1, into an ODO group its current extent 5; SEND from an ODO group at 5 is 00 and at 6 is 50, length 0 with EMI sends an empty message, 9999 is 50; the witness sends the 3 leftmost of 10.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

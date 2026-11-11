@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-26",
  "rule-digest": "7ac69e48257d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/StoredMessage.cs#Complete; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-26",
+ "notes": "§1985:XIV.2.2.4 GR26: data-name-1 \"has the format 'YYMMDD'\" and holds the date the MCS recognized the message complete; it \"is updated only by the MCS as part of the execution of a RECEIVE statement\". The 85 arm is the communication facility itself (COBOL0902 refuses the CD at 2014+): StoredMessage#Complete stamps a message yyMMdd when its EMI/EGI completes it (or at seeding), MessageControlSession#Transfer writes it through CommunicationArea#SetReceived at positions 1-6 of the I-O area on a RECEIVE that transfers data, and every other statement (#Statement) changes only the status key. Probes at --std 85: a seeded message is dated today in YYMMDD, an explicit-date message gives its date, a message an output CD SENDs to the terminal is dated today, NO DATA and a refused (21) RECEIVE leave the moved date, a redefining group record reads the area, MESSAGE DATE written twice is COBOL6169, the 2023 RECEIVE FROM..GIVING is COBOL0900; the witness shows SEND/PURGE/DISABLE/ENABLE leave it.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

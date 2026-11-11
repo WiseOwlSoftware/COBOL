@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-3",
  "rule-digest": "3e7412db39ef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#FindQueue; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#QueuePath; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#FindQueue; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#AcceptMessageCount; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-3",
+ "notes": "§1985:XIV.2.2.4 GR3: data-name-2, -3 and -4, \"when not being used must contain spaces\". CommunicationArea#QueuePath reads the four 12-character levels with trailing spaces trimmed, and MessageDefinitions#FindQueue takes an all-space level as unused (every level below it must then be spaces too) and any other content as a name, so ACCEPT MESSAGE COUNT, ENABLE/DISABLE INPUT and RECEIVE (MessageControlSession) answer the structure the non-space levels name. Probes at --std 85: spaces count the whole queue (3) and a named sub-queue its own (1); a level named below a space level, LOW-VALUES and a lowercase name are status 20; the witness shows a name in an unused level asks for that sub-queue.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

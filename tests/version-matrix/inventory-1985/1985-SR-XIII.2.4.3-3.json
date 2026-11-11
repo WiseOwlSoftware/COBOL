@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIII.2.4.3-3",
  "rule-digest": "1664591d4f42",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenMultipleFileClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses",
  "test-ref": "conformance:cases/XIII.2.4@1985-I-O-CONTROL-PARAGRAPH/1985-SR-XIII_2_4_3-3",
+ "notes": "§1985:XIII.2.4.3 SR3: \"The availability of specific clauses in the I-O-CONTROL paragraph for a report file is dependent on the level of Sequential I-O module supported by the implementation.\" The compiler implements the Sequential I-O module at its full level (SAME RECORD AREA, MULTIPLE FILE TAPE and RERUN are all bound at 85), so every clause of the Report Writer I-O-CONTROL format is available for a report file: FileControlBinder.BindIoControl dispatches SAME to ScreenSameOperands/ScreenSameClauses and MULTIPLE FILE TAPE to ScreenMultipleFileClause, at every edition (the SAME SORT AREA arm of the companion SR2 is a separate PARTIAL). Probes at 85 (work-slice-54/c3*, c4*; classes b, c, e): SAME AREA FOR RPT-FILE OTH-FILE, MULTIPLE FILE TAPE CONTAINS RPT-FILE POSITION 1 OTH-FILE, both together, and RERUN ON CKPT EVERY 10 RECORDS OF RPT-FILE / EVERY END OF REEL OF RPT-FILE compile and run; SAME RECORD AREA with a report file is refused (COBOL2738, SR2); APPLY COMMIT is refused as a 2023 clause (COBOL0900). The witness's SAME AREA plus MULTIPLE FILE TAPE with a report file runs and prints I-O-CONTROL OK.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

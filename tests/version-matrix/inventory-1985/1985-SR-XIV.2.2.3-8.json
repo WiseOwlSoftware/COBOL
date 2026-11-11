@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-8",
  "rule-digest": "5b34a7da1434",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationDescriptionEntry",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-8",
+ "notes": "§1985:XIV.2.2.3 SR8 (Format 2): \"If none of the optional clauses of the CD entry is specified, a level 01 data description entry must follow the CD entry.\" BindEntry refuses an output CD with no clause and no record following with COBOL6169 at the CD, quoting SR8 for the output format; a 77 or a 02 in the record's place is refused by the level checks (COBOL1746, COBOL2771). The witness refuses CD CD-OUT FOR OUTPUT followed by the procedure division. Probes at --std 85: (b) a clause-less output CD followed only by a 77 refused COBOL1746, by a 02 refused COBOL2771, by another output CD holding the record refused COBOL6169 SR8 at the first. (d) one clause (STATUS KEY) and no record accepted, MOVE \"AB\" printed AB; no clauses and a group 01 record accepted, MOVE 7 TO its first field printed 0007. (c) --std 2023 refuses (COBOL0902). (a, e, f) not reached by a presence rule. Every refusal's text cites ISO/IEC 1989:2002 Annex A rather than the 1985 rule, the cross-cutting citation matter kb/Work PB4950 decides; the outcome is the one the rule requires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
