@@ -1510,9 +1510,30 @@ it cannot be resolved, there is a problem/bug"; review R1-1): resolve it to a li
 STATEMENT by hand with a true reason, `<file>|<the statement's line, trimmed>`, so a new root in the same file is never
 covered by an old judgment. The shared files' judgments sit once under `build.judged` for every target that uses the file
 (TrackedTree's `git ls-files`, PythonInstrument's working directory, GateLegAudit's root as text); a judgment nothing matches
-is a stale finding. Only `repo-drift`, which declares every population input, counts its bare roots in the verdict line;
-what they read, a path computed at run time and what a process a test starts reads are the dynamic proof's to judge, the
-Linux shards' file watch extended per target, kb/Work PB5218's remaining work.
+is a stale finding. Only `repo-drift`, which declares every population input, counts its bare roots in the verdict line.
+
+A read is judged at its RESOLVED path, its `.` and `..` segments resolved (`TestRepo.Src("..", "tests", …)` reads `tests/`);
+one that climbs out of the repository is a finding by name in any target (review R2-1). A read that names no tracked path
+is dropped only when it is provably no input: a build output (a `bin` or `obj` segment) or a path git ignores (`git
+check-ignore --no-index`, a cache, a scratch or a generated location); anything else in a narrow target is a finding, a typo,
+a stale path or a file not yet made, until it is corrected or judged (`<file>|<read>`) with its reason: Conformance's
+CompiledProgramCacheDriftTests names its own scratch directory's `src/prog.cob`, Unit's SharedReadCoherenceDriftTests asserts
+a deleted runtime file stays absent.
+
+*The one-home rule, extended* (review R2-2). A test source reaches the repository only through `TestRepo` (the one locator,
+held by RepoDrift's `TestRepoDriftTests`) and scratch space only through `ScratchDirectory` (`ScratchDirectoryDriftTests`).
+In a narrow target the audit refuses every statement that reaches the file system another way: a base-directory anchor of
+the one-home rule (read from `TestRepoDriftTests.Anchors` itself, `buildgraph.root_anchors`, so the rule keeps one list),
+`Environment.CurrentDirectory`, an assembly's location, an environment variable read on a line that forms a path, a string
+literal handed to a System.IO call as its path, or a rooted literal handed to `Path.Combine`/`Join`; unless that statement
+carries a hand judgment with its reason. On 2026-11-11 it refused Unit 21 statements (15 its own, 6 shared), Conformance 8
+(2 and 6) and Characterization 6 (the shared six: TestRepo's three, HostLoad's three); each is judged: the locator, a Roslyn
+compilation reference to a loaded assembly, a `/proc` counter of the host, the working directory as expected TEXT, a build
+output beside the host. ⛔ This audit is the EARLY WARNING; the SOUND net is the dynamic proof (kb/Work PB5235: a CI shard
+fails when a test opens a tracked path outside its target's declared inputs). Only the dynamic proof sees a path computed in
+a child process (a script or a compiled program a test runs), in native code, through reflection, or formed at run time
+(read from a file, built in a loop, passed through a helper the audit does not follow), and what `repo-drift`'s bare roots
+read.
 
 *Re-derived evidence* (`gate.py --rederive <run> [--dry-run]`, `Gate.rederive`). A run whose gate predates this (or that an
 audit stopped) may hold complete green results under a record that says `populations: {}` and `tree_end: null` and recorded

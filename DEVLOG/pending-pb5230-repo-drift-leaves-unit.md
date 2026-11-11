@@ -64,8 +64,21 @@ target. The reviewer's seven planted reads are each RED with file and line. The 
 `scripts/build_targets.json`: `GATED_ASSEMBLIES` reads it, RepoDrift's GateLegDriftTests checks the test projects and the
 weights against it, and the implementer spec, MANDATORY-PRACTICES and the docs name it instead of listing assemblies.
 
-**Proof.** `python scripts/buildgraph.py check`: GREEN, 4 targets; only repo-drift counts bare roots. `buildgraph.py
---self-test`: PASS, 13 arms; the round-0 reader read the planted source as one bare root and nothing else. `gate.py
+**Review round 2** (kb/Work PB5230/2026-11-11-review-round-2.md) found three more ways past the audit. A literal `..`
+made it drop a read as a path no file has: reads are now judged at their resolved path, a climb out of the repository is a
+finding, and a read naming no tracked path is dropped only when it is a build output (`bin`/`obj`) or git ignores it;
+anything else in a narrow target is a finding (14 today, each judged: a test's own scratch names and one file asserted
+absent). A path formed around TestRepo was invisible: the one-home rule of the locator (`TestRepoDriftTests.Anchors`, read by
+the audit itself) is extended, so a narrow target reaches the file system only through TestRepo and ScratchDirectory or a
+judged statement. It refused Unit 21 statements, Conformance 8 and Characterization 6 (six of them the shared TestRepo and
+HostLoad lines); each was judged with its reason, since none read the repository: compilation references to loaded
+assemblies, `/proc` counters, the working directory as expected text, the host's build output. The PythonInstrument
+judgment's reason now covers all ten callers. This audit is the early warning; the sound net is PB5235's dynamic proof,
+the only check that sees a child process's, native code's or reflection's paths. The reviewer's planted reads (round 1's
+seven, round 2's four files) are each RED with file and line.
+
+**Proof.** `python scripts/buildgraph.py check`: GREEN, 5 targets (conformance-suite generated); only repo-drift counts
+bare roots. `buildgraph.py --self-test`: PASS, 31 arms; the round-0 reader read the planted source as one bare root and nothing else. `gate.py
 --self-test`, `test_population.py --self-test`, `check_practices.py` over a rendered implementer spec (and RED over the
 same spec with the old phrase), `work.py check`. The gate of this branch is in the branch report.
 

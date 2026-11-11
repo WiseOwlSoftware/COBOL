@@ -31,7 +31,9 @@ namespace WiseOwl.Cobol.Tests.RepoDrift;
 [Trait("Sweep", "tree")]
 public sealed class TestRepoDriftTests
 {
-    /// <summary>Where a hand-rolled root-finder starts from.</summary>
+    /// <summary>Where a hand-rolled root-finder starts from. ⛔ The one list: the BUILD TARGETS audit reads it
+    /// (<c>scripts/buildgraph.py</c> <c>root_anchors</c>) and refuses each anchor in a narrowly declared test target
+    /// outside a judged statement (kb/Work PB5230 review R2-2), so an anchor added here is refused there too.</summary>
     private static readonly string[] Anchors =
         ["AppContext.BaseDirectory", "AppDomain.CurrentDomain.BaseDirectory", "Directory.GetCurrentDirectory("];
 
