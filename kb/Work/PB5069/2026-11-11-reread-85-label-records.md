@@ -4,4 +4,4 @@
 
 **Rerun on the build of origin/main f2cf36fd15, 2026-11-11.** In `out-reread/work-reread-1/c9/lx2.cob`, two programs in one source share `FD RFILE IS EXTERNAL`; one says `LABEL RECORDS ARE STANDARD` and the other `OMITTED`. At --std 85 it compiles and prints `SUB EXT1`. Expected: a diagnostic on the second clause.
 
-**Because this note is landed, `work.py next` does not show the row.** The re-read assigns it here; the sequential twin and the BLOCK CONTAINS, CODE-SET, RECORD and VALUE OF agreement rows of the 2026-11-10 addendum likely share it. The note's owner should reopen it or move these rows to a new note.
+**Filed as kb/Work PB5300.** This note is landed, and what remains is a new defect. PB5300 holds this row with the sequential twin and the BLOCK CONTAINS, CODE-SET, RECORD and VALUE OF agreement rows of the 2026-11-10 addendum, the remainder this note's landing paragraph names ("nothing compares them").
