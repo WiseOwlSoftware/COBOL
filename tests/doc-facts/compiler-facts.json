@@ -52,6 +52,10 @@
       "vcrRow": "7.39"
     },
     {
+      "id": "group-indicate-consumed-by-issued-generate",
+      "vcrRow": "7.59"
+    },
+    {
       "id": "indexed-duplicate-key-status-sequential-only",
       "vcrRow": "7.55"
     },
@@ -66,6 +70,14 @@
     {
       "id": "search-index-below-table-unsuccessful",
       "vcrRow": "7.56"
+    },
+    {
+      "id": "sum-size-error-blanks-printable-item",
+      "vcrRow": "7.57"
+    },
+    {
+      "id": "terminate-discards-saved-next-group",
+      "vcrRow": "7.58"
     }
   ],
   "nonstandardExtensionIds": [
