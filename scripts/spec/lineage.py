@@ -12,7 +12,8 @@ The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In s
   none (one stored form: an empty reason is refused, kb/Work PB4995). Its keys and its kinds are DATA, the
   schema's `next` (`inventory_schema.ChangeRecord`, kb/Work PB4993): no code here spells a kind. A rule of the newer
   edition that no older `to` names is NEW: derived, never written. `bridge` is true while an edition between the two is
-  not held (1985 straight to 2023 until 2002 and 2014 are transcribed, kb/Work PB4813).
+  not in the lineage (1985 straight to 2023 until 2002 and 2014 are transcribed, kb/Work PB4813, and until the 1985 to
+  2002 records link the held 2002, kb/Work PB5256: `inventory_schema.Edition.linked`).
 - `status` is the rule's standing in its own edition: `normal`, archaic (§2023:4.2.12: still required, discouraged) or
   obsolete (§1985:I.1.5.2.3, §2023:4.2.13: still required, to be deleted at the next revision), a fact of the rule read
   from its text into its catalog (`element_standing.py`), never stored. Deprecation is KEPT into an obsolete rule, then
@@ -282,6 +283,29 @@ def self_test() -> int:
     ok(next_errors(kept23, e23, s_held, t27) == [] and state_of(kept23, e23, s_held, t27) == "OK"
        and state_of(kept23, e23, s_held, {"SR-1": dict(t27["SR-1"], editions="2027")}) == "GAP",
        "a 2023 row KEPT into 2027 is judged by its chain at its own spelling, 2023")
+
+    # kb/Work PB5256: a held edition no record names yet (`linked: false`) has its rows, and the lineage bridges over it;
+    # linking it is the one change that routes the older edition's records into it.
+    unlinked, linked = copy.deepcopy(raw), copy.deepcopy(raw)
+    for r, flag in ((unlinked, False), (linked, True)):
+        r["editions"]["of"] = [dict(e, catalog="c.json", locator="section", store="tests/version-matrix/inventory-2002",
+                                    adjudicated=list(edition(1985).adjudicated), linked=flag) if e["year"] == 2002 else e
+                               for e in r["editions"]["of"]]
+    u85, u02 = (held_edition(editions_of(unlinked), y) for y in (1985, 2002))
+    l85, l02 = (held_edition(editions_of(linked), y) for y in (1985, 2002))
+    ok(u85.next_held == 2023 and u85.bridged and u02.held and not u02.linked and u02.next_held == 2023 and u02.bridged
+       and spanned(u85, Schema(unlinked)) == ["85", "2002", "2014"],
+       "an unlinked held 2002 is bridged over: 1985's records still name 2023, and 2002's own name 2023 over 2014")
+    ok(l85.next_held == 2002 and not l85.bridged and l02.next_held == 2023 and l02.bridged,
+       "linking 2002 routes 1985's records into it, unbridged")
+    newest_unlinked = copy.deepcopy(raw)
+    newest_unlinked["editions"]["of"][-1]["linked"] = False
+    try:
+        editions_of(newest_unlinked)
+        refused = False
+    except SystemExit:
+        refused = True
+    ok(refused, "the newest held edition ends the lineage: an unlinked one is refused")
     print(f"=== LINEAGE SELF-TEST: {'PASS' if not fails else 'FAIL - ' + str(len(fails))} ===")
     return 1 if fails else 0
 

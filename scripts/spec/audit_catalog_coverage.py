@@ -33,15 +33,15 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from extract_rule_catalog import (  # noqa: E402
-    FURNITURE,
     HEADING,
+    ISO,
     ORDINAL,
-    OUT,
     PARAGRAPH_BLOCKS,
-    SPEC,
-    UNHARVESTED,
     kind_of,
 )
+#: The edition this critic reads: the 2023 text, its manifest and its catalog (extract_rule_catalog's ISO table).
+EDITION = ISO[2023]
+FURNITURE = EDITION.furniture
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -129,21 +129,21 @@ def main() -> int:
     ap.add_argument("--json", action="store_true", help="machine-readable report")
     args = ap.parse_args()
 
-    lines = SPEC.read_text(encoding="utf-8", errors="replace").splitlines()
+    lines = EDITION.spec.read_text(encoding="utf-8", errors="replace").splitlines()
     bodies, titles, interior = clause_bodies(lines)
 
     admitted: dict[str, object] = {}
-    if UNHARVESTED.exists():
-        for sec, info in json.loads(UNHARVESTED.read_text(encoding="utf-8"))["blocks"].items():
+    if EDITION.unharvested.exists():
+        for sec, info in json.loads(EDITION.unharvested.read_text(encoding="utf-8"))["blocks"].items():
             if info.get("disposition") == "rules":
                 admitted[sec] = info["kind"]
 
     prose_blocks: set[str] = set()
-    if UNHARVESTED.exists():
-        prose_blocks = {sec for sec in json.loads(UNHARVESTED.read_text(encoding="utf-8")).get(PARAGRAPH_BLOCKS, {})
+    if EDITION.unharvested.exists():
+        prose_blocks = {sec for sec in json.loads(EDITION.unharvested.read_text(encoding="utf-8")).get(PARAGRAPH_BLOCKS, {})
                         if not sec.startswith("_")}
 
-    catalog = json.loads(OUT.read_text(encoding="utf-8"))
+    catalog = json.loads(EDITION.catalog.read_text(encoding="utf-8"))
     held: dict[str, list[dict]] = {}
     for r in catalog["rules"]:
         if r["kind"] in ("FMT", "DOC"):
@@ -201,7 +201,7 @@ def main() -> int:
             "unattached_headings": [h for h in interior if h["clause"] is None],
         }, indent=1, ensure_ascii=False))
     else:
-        print(f"spec: {SPEC.relative_to(REPO)} ({len(lines):,} lines)   catalog: {catalog['rule_count']:,} rules")
+        print(f"spec: {EDITION.spec.relative_to(REPO)} ({len(lines):,} lines)   catalog: {catalog['rule_count']:,} rules")
         print()
         print(f"⛔ {len(interior_in_clause)} UNNUMBERED INTERIOR HEADING(S) inside a numbered clause's text")
         print("   (each one TRUNCATES its clause's rule block in extract_rule_catalog.py's block scan):")

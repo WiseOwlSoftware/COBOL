@@ -329,13 +329,15 @@ def audit(gates: Iterable[Gate], pairs: Iterable[Pair], schema: Schema) -> tuple
 
 def repository_inputs(schema: Schema, root: pathlib.Path = REPO) -> tuple[list[Gate], list[Pair]]:
     """The repository's gates (the construct catalogue and the grammar) and the lineage between each adjacent pair of its held
-    editions, read through the one view."""
+    editions IN THE LINEAGE, read through the one view. A held edition no change record names yet (`Edition.linked`
+    false: 2002 until the 1985 to 2002 records are adjudicated, kb/Work PB5256) spans no edge: a window that starts or
+    ends there waits for it, as for an edition not held."""
     year_of = {e.spelling: e.year for e in schema.all_editions}
     grammar = {p.relative_to(root).as_posix(): p.read_text(encoding="utf-8")
                for p in sorted((root / GRAMMAR_REL).rglob("*.g4"))}
     gates = (construct_gates(construct_store.read_rows(root), year_of)
              + grammar_gates(grammar, year_of))
-    held = [e for e in schema.all_editions if e.held]
+    held = [e for e in schema.all_editions if e.held and e.linked]
     views = {e.year: inventory_view.inventory(e.year, schema) for e in held}
     pairs = [pair_of(e, schema.edition(e.next_held), views[e.year], views[e.next_held], schema)
              for e in held if e.next_held is not None]

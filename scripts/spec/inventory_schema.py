@@ -122,10 +122,15 @@ class Edition:
     store: str | None
     legacy_file: str | None
     adjudicated: tuple[str, ...]
-    #: The next HELD edition after this one, which an older row's change record names; None for the newest.
+    #: The next held edition after this one IN THE LINEAGE, which an older row's change record names; None for the
+    #: newest. A held edition the schema marks `linked: false` is skipped (kb/Work PB5256): no record names it yet.
     next_held: int | None
-    #: Is an edition between this one and `next_held` not held, so that a change record over it is a bridge?
+    #: Is an edition between this one and `next_held` out of the lineage, so that a change record over it is a bridge?
     bridged: bool
+    #: Is this held edition in the lineage (kb/Work PB5256)? An unlinked held edition has its catalog, its store, its rows
+    #: and its GAP count, but the older editions' change records bridge over it, as over an edition not held, until the
+    #: adjudication that writes their records into it links it (DESIGN-spec-conformance-review.md section 10.2).
+    linked: bool = True
 
     @property
     def held(self) -> bool:
@@ -160,15 +165,20 @@ def editions_of(raw: dict[str, Any]) -> tuple[Edition, ...]:
     years = [e["year"] for e in entries]
     if years != sorted(set(years)):
         raise SystemExit(f"{SCHEMA_REL}: editions.of must name each edition once, oldest first (got {years})")
+    if unheld := [e["year"] for e in entries if "linked" in e and "store" not in e]:
+        raise SystemExit(f"{SCHEMA_REL}: editions {unheld} say whether they are linked, but are not held")
     held = [e["year"] for e in entries if "store" in e]
+    linked = [e["year"] for e in entries if "store" in e and e.get("linked", True)]
+    if held and held[-1] not in linked:
+        raise SystemExit(f"{SCHEMA_REL}: the newest held edition {held[-1]} ends the lineage and must be linked")
     out: list[Edition] = []
     for e in entries:
         if "store" in e and (missing := [k for k in ("catalog", "locator", "adjudicated") if not e.get(k)]):
             raise SystemExit(f"{SCHEMA_REL}: the held edition {e['year']} names no {missing}")
-        nxt = next((y for y in held if y > e["year"]), None)
+        nxt = next((y for y in linked if y > e["year"]), None)
         out.append(Edition(e["year"], e["spelling"], e.get("catalog"), e.get("locator"), e.get("store"),
                            e.get("legacy-file"), tuple(e.get("adjudicated", ())), nxt,
-                           nxt is not None and any(e["year"] < y < nxt for y in years)))
+                           nxt is not None and any(e["year"] < y < nxt for y in years), e.get("linked", True)))
     return tuple(out)
 
 
