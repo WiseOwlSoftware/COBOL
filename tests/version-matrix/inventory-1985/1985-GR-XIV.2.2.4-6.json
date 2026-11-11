@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-6",
  "rule-digest": "a4f309a1e3b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitActivation; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#InitialArea; src/WiseOwl.Cobol.Runtime/Communication/MessageStore.cs#Scheduled; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetQueuePath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-6",
+ "notes": "§1985:XIV.2.2.4 GR6: a program scheduled by the MCS gets \"the symbolic names of the queue structure that demanded this activity\" in data-name-1..4 of the INITIAL CD, otherwise spaces, \"prior to the execution of the first Procedure Division statement\", and the rest of the CD is updated only by the RECEIVE that returns the scheduling message. CommunicationEmitter#EmitActivation calls MessageControl.InitialArea once per instance before the first statement; MessageControlSession#InitialArea writes MessageStore#Scheduled (WISEOWL_COBOL_MCS_SCHEDULED, empty when not scheduled) through CommunicationArea#SetQueuePath into positions 1-48 only; no edition gate, 85 reaches it directly. Probes at --std 85: unscheduled, the VALUEs VQ/VS1/VS2/VS3 became spaces and date, time, source, length, end key, status and count kept their VALUEs; scheduled Q1/S1 gave Q1, S1, spaces, and the next RECEIVE returned Q1/S1's first message with date 851231, time 12345678, source T9 (updated only then); scheduled Q1 gave Q1 and RECEIVE filled S1. The witness checks the unscheduled arm.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

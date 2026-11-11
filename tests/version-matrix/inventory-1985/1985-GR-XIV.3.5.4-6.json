@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-6",
  "rule-digest": "47dc080c4206",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetQueuePath; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetStatus; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitReceive",
  "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-6",
+ "notes": "§1985:XIV.3.5.4 GR6: \"The data items identified by cd-name-1 are appropriately updated by the message control system (MCS) at each execution of a RECEIVE statement.\" Each Receive runs through Statement, which sets the status key, and Transfer writes date, time, source, text length and end key (CommunicationArea.SetReceived) and, for an input CD, all four queue levels (SetQueuePath); EmitReceive stores the area back, so every description of the record sees it, at 85 as at 2002. The witness shows date, time, source, length, end key 2 and 3, status 00 and 20. Probes at --std 85 (classes a, b, d): Q1 alone came back with IN-S1 = S1; a group message set end key 3; NO DATA set length 0000 and status 00 leaving the end key; status 20 and 21 left the other items unchanged (no action taken, Table 1). A seeded message whose source names no defined source is reported verbatim; whether that name is known to the MCS (§1985:XIV.2.2.4 GR10) is implementor-defined here and not decided by this rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

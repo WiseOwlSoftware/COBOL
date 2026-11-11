@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XII.3.4-6",
  "rule-digest": "36ef1ba7656b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#MatchesForReplacing; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#DecomposeLiteral",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-GR-XII_3_4-6",
+ "notes": "§1985:XII.3.4 GR6 (with Amendment 2's 6b sentence \"Each lowercase letter is equivalent to the corresponding uppercase letter\"): pseudo-text-1 matches only an equal ordered sequence of text words, comma, semicolon and space runs count as one space, operands are tried in order at each leftmost word, and the word after a match is the next leftmost. ApplyReplacements runs that cycle over TextWordScanner's words (separator comma/semicolon dropped), first operand wins, inserted text never rescanned; MatchesForReplacing folds case except in a nonnumeric literal's content (the COBOL character set exception), and the 2002 LEADING/TRAILING operands are refused at 85 (COBOL0900, probe g6b). Witness: ADD 1;   TO    W-A matches ==ADD 1 TO W-A== (5). Probes (classes a, b, c, d, f): lowercase pseudo-text matches uppercase source, 01 does not match 1, \"abc\" does not match \"ABC\", ADD 1, TO; W-A and a three-line ADD match, the inserted ADD 1 TO W-A is not rescanned (10, 13), an 18-digit negative MOVE is untouched, E(1) and E (1) both match an ODO element ==E (1)== (g6a, g6c); the first of ==XA== and ==XA XB== wins (g6d). The apostrophe literal (an implementor extension at 85, absent from the 1985 text) matches its quote form.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

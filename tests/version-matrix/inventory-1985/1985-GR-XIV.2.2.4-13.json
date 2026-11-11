@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-13",
  "rule-digest": "465cff3d4e64",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetStatus; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#AcceptMessageCount; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOne",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-13",
+ "notes": "§1985:XIV.2.2.4 GR13: data-name-10 holds the status of the previously executed RECEIVE, ACCEPT MESSAGE COUNT, ENABLE INPUT or DISABLE INPUT, per Table 1. Every statement goes through MessageControlSession.Statement, which writes its Table 1 value at positions 80-81 (SetStatus). Probe gr13 at --std 85: RECEIVE 00, 20 (unknown queue and unknown sub-queue); ACCEPT 00 and 20; DISABLE INPUT 40 (wrong KEY), 00, 15 (again); ENABLE INPUT 00, 15, 20; ENABLE INPUT TERMINAL 21; DISABLE INPUT TERMINAL 00; a RECEIVE after DISABLE INPUT still gets data, as §1985:XIV.3.2.4 GR1 leaves the program-MCS path. The witness checks the status after RECEIVE.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XV.3.2.2",
  "rule-digest": "08d8595713fc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useDebugTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugDataTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugCdTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddAllProceduresSubjects; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-FMT-XV_3_2_2",
+ "notes": "§1985:XV.3.2.2 prints USE FOR DEBUGGING ON { cd-name-1 | [ALL REFERENCES OF] identifier-1 | file-name-1 | procedure-name-1 | ALL PROCEDURES } ..., only USE, DEBUGGING and ALL underlined. The grammar's useStatement arm (USE FOR? DEBUGGING ON? useDebugTarget+) and useDebugTarget (ALL PROCEDURES | ALL REFERENCES? OF? dataReference | dataReference) carry the format, ProcedureTableBuilder.FinalizeDebug sorts each operand into cd, data, file and procedure subjects, and VersionConformancePass.VisitUseStatement refuses the declarative from 2002 on (COBOL0902, probed). Probes at --std 85: one statement naming a cd-name, ALL REFERENCES OF V, W, a file-name and a paragraph compiles and fires each (also written 'USE DEBUGGING OUT-CD ALL V W F1 P2', with separators, and as 'ALL REFERENCES W'), a qualified 'P2 OF MAIN' fires; zero operands, a literal operand and ALL REFERENCES OF with no identifier are refused. The operand-uniqueness and placement syntax rules are other rows (kb/Work PB5081).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

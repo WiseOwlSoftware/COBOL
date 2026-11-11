@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-11",
  "rule-digest": "b40f84c7c2f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetTextLength; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Next; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-11",
+ "notes": "§1985:XIV.2.2.4 GR11: data-name-8 gives 'the number of character positions filled as a result of the execution of the RECEIVE statement'. Transfer writes the length of the text Next took (bounded by identifier-1's size) through SetReceived, and a RECEIVE that finds no data writes 0 (Receive). Probes gr1/gr12/rc1 at --std 85: 5 for 'HELLO' into X(20), 9 then 1 for a 10-character message into X(9), 3/3 for segments, 3 into ref-mod (8:3), 7 into an ODO group, 0 on NO DATA; an unknown queue leaves it as written with status 20 ('No action taken', Table 1). The witness checks 0005.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

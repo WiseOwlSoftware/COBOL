@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.4.4-1",
  "rule-digest": "13f2874f7cce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPurge; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#ValidCount",
  "test-ref": "conformance:cases/XIV.3.4@1985-PURGE-STATEMENT/1985-GR-XIV_3_4_4-1",
+ "notes": "§1985:XIV.3.4.4 GR1: \"Execution of a PURGE statement causes the MCS to eliminate any partial message awaiting transmission to the destinations specified in the CD referenced by cd-name-1.\" BindPurge (SR1, COBOL6170) binds the statement, Emit calls MessageControl.Purge, and MessageControlSession.Purge removes the run unit's pending portion (Dialogue.Sends) for occurrences 1..DESTINATION COUNT only, or the input-output CD's terminal. The witness purges a partial and the next SEND starts a new message. Probes at 85: (a/f) partial AAA to D1 and D2, PURGE with count 1: D1 receives BBB (length 3), D2 receives AAABBB (6); count 0 30 with no action; (b) PURGE CIN refused COBOL6170, PURGE with no operand COBOL0001; no mcs.json: 20 '1'; I-O CD purge 70 then after a partial 00; (c) refused COBOL0902 at 2014/2023, COBOL0903 at 2002; (d,e) not applicable.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

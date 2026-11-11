@@ -53,8 +53,8 @@ from inventory_view import inventory, inventory_at
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
-def _git(*args: str) -> str:
-    return subprocess.run(["git", *args], cwd=REPO, check=True, capture_output=True, text=True,
+def _git(*args: str, repo: pathlib.Path = REPO) -> str:
+    return subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True, text=True,
                           encoding="utf-8").stdout
 
 
@@ -178,10 +178,11 @@ class Erasure(NamedTuple):
     verdict: str   # the row's verdict BEFORE the erasing commit: the verdict the erased prose was written for
 
 
-def default_base() -> str:
+def default_base(repo: pathlib.Path = REPO) -> str:
+    """The merge base of `repo`'s HEAD with origin/main (main when there is no origin/main)."""
     for ref in ("origin/main", "main"):
         try:
-            return _git("merge-base", "HEAD", ref).strip()
+            return _git("merge-base", "HEAD", ref, repo=repo).strip()
         except subprocess.CalledProcessError:
             continue
     raise SystemExit("⛔ no base: neither origin/main nor main is a ref here — pass --base REF")

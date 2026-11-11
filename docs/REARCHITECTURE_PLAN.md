@@ -168,7 +168,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   relative), `PB385` (105 transcription sub-items at column 0, so `cite.py` labels each with its predecessor's
   letter), `PB386` (owner: the closure path for a rule with no observable obligation); `PB303`'s `inventory_rows`
   corrected); ⑤ the ledger refresh after each. Owner-decision
-  queue: ZERO except the introducing edition of `USAGE POINTER TO type-name` (`A1`, needs the 2002/2014 texts).
+  queue: ZERO except the introducing edition of `USAGE POINTER TO type-name` (`A1`, needs the 2002/2014 texts, now held:
+  `specs/ISO_COBOL_2002.md`, `specs/ISO_COBOL_2014.md`).
   The CI flake `Collation.CollationKeyCacheTests.ConcurrentCallers_GetOneKeyPerText_AndNeverAWrongOne` (3 of 8
   Linux unit runs, A12 shape) is `PB377`, LANDED 2026-09-03 — `MaxEntries` was not a bound (a try-once eviction
   pass dropped concurrent overflows; the red was the size assertion, never the wrong-key one), with `PB380` opened
@@ -3240,7 +3241,9 @@ already-derivable coverage; none change the pipeline.
   a self-test's static inputs. A Python self-test that can read the wall clock passes only if it also passes with the
   clock moved forward 400 days, so a fixture dated near its authoring day fails at once (a self-test comparing the clock
   with a real one declares `# SELF-TEST-CLOCK: real — <why>`; a recorded PASS is reused only inside the horizon it
-  proved; kb/Work PB4358, `scripts/self_test_clock.py`, DESIGN-test-build-ci.md §3.14.10 item 5).
+  proved; kb/Work PB4358, `scripts/self_test_clock.py`, DESIGN-test-build-ci.md §3.14.10 item 5). A gate that re-runs
+  such a self-test whose clock key (its own file and the inputs that read a clock, do time arithmetic or carry a date)
+  matches a recorded proof runs it once and reuses the proof (kb/Work PB5226).
 - The order (kb/Work PB4328; `docs/rearchitecture/DESIGN-test-build-ci.md` sections 3.13 and 3.14.2): every gate runs
   the whole population; the test framework's `GateOrderer` runs the classes named by `WISEOWL_COBOL_GATE_FIRST` (the
   gate's `first-classes.txt`: red at its previous run, the hand-run Linux gate's newest run or the bouncing merge-group
