@@ -388,11 +388,18 @@ def passed_cases(paths: list[str | Path]) -> Counter:
     return passed
 
 
+def result_outcomes(path: str | Path) -> Counter:
+    """EVERY RESULT THIS TRX RECORDS, by outcome (kb/Work PB5099, PB5205): what a host's own verdict line counts (`Failed:
+    F, Passed: P, Skipped: S, Total: T` are results, never definitions: a theory whose rows share a display name is one
+    definition with several results). A file that cannot be read raises `UnreadableTrx` naming it."""
+    return Counter(r.get("outcome", "") for r in trx_root(path).iter(TRX_NS + "UnitTestResult"))
+
+
 def failed_results(path: str | Path) -> int:
     """HOW MANY RESULTS THIS TRX RECORDS AS Failed (kb/Work PB5099): the count a host's own `Failed!  - Failed: N` verdict
     line must equal when its red is fully explained by the cases the trx names; a file that cannot be read raises
     `UnreadableTrx` naming it."""
-    return sum(r.get("outcome") == "Failed" for r in trx_root(path).iter(TRX_NS + "UnitTestResult"))
+    return result_outcomes(path)["Failed"]
 
 
 def not_passed(listed: Counter, passed: Counter) -> dict[str, int]:

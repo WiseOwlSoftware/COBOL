@@ -1323,7 +1323,22 @@ An audit is never carried: every gate runs its audits at its own tree (the scrip
 touches a script, each re-run where its recorded inputs changed, §3.14.10), so a tooling difference still runs exactly the
 self-tests it touches. An audit that turns RED after every test host has exited (a self-test that hangs past the last host)
 stops no host (`_Live.stopped_any`): the hosts' results are whole, the populations are measured and recorded, and the verdict
-is RED for the audit alone. Then, by the newest qualifying run:
+is RED for the audit alone. A run whose gate predates that (or that an audit stopped) can have its evidence RE-DERIVED
+from its own files: `gate.py --rederive <run> [--dry-run]` (`Gate.rederive`) proves, or refuses naming what is missing, that
+its record is a full-lane one; its recorded toolchain is this host's; every gated assembly's host exited 0, its log ends in
+the host's own `Passed!  - Failed: 0, Passed: P, Skipped: S, Total: T` line and its trx is COMPLETE against that line
+(`test_population.result_outcomes`: T results, P Passed, S NotExecuted; results, not definitions, because theory rows that
+share a display name are one definition); every reason is an audit's; and its tree stood while it ran, which no file of the
+run records, so the evidence is the worktree's: the run measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog
+puts HEAD at the recorded head at the run's start (its `gate.pid`'s time, written before the tree was measured; the
+filesystem's clock, the hosts' and the reflog's, never the driver's) with no move until the hosts' last write (the
+residue, written into the record: an uncommitted edit made and undone inside that window is in no reflog). Its key is
+computed from its RECORDED tree. A proved record keeps its verdict, line and exit code (RED), gains `tree_end`,
+`population_key`, `audit_reds` and `rederived` (when, the evidence, the residue), and the original stays beside it as
+`verdict.original.json`. When a run at the same key kept the listings (`listing-<asm>.txt`), the trx are checked EXACT
+against them by the live check and the record gains its `populations` ("populations GREEN": the next gate composes with no
+build); else it is "passes": the next gate builds, lists, runs only the cases the carried passes do not cover and checks the
+population EXACT, the live gate's own check. Neither can turn a partial run into a pass. Then, by the newest qualifying run:
   * one whose POPULATIONS were measured GREEN (`gate.populations_green`: its verdict GREEN, or RED only for its audits, every
     reason one of its `audit_reds`, every host green and every population EXACT) leaves nothing of the populations to run. The
     gate runs only its audits, takes no corpus fetch, slot, build or host, and says `GREEN — COMPOSED (kb/Work PB5099, PB5205):
