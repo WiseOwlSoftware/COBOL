@@ -1,4 +1,4 @@
-## PB5200: the being-opened mode belongs to the OPEN statement, so the open-mode USE procedures stop running for later statements and start running for refused OPENs
+## Entry 3460 — 2026-11-10 20:58 PST — PB5200: the being-opened mode belongs to the OPEN statement, so the open-mode USE procedures stop running for later statements and start running for refused OPENs
 
 **Mechanism.** §1985:VII.4.6.4 GR5 b)-e) (the same text at §2023:14.9.49.4 GR6 b)-e)) applies a USE ON INPUT / OUTPUT / I-O / EXTEND procedure to a file open in that mode "or in the process of being opened" in it. The runtime kept the attempted mode in the connector's open-mode record (`FileConnector.Mode`/`ModeKnown`), written by a failed OPEN and cleared only by a successful CLOSE. Three wrong answers followed, as the note recorded them on main (the fix tree was built before any probe, so the before-side is the note's record, the after-side is probed): a READ (47) or WRITE (48) of a file after a failed OPEN ran the INPUT or EXTEND procedure that the same statement before any OPEN does not run; an OPEN refused for CLOSE WITH LOCK (38) returned before the connector recorded anything, so no mode procedure ran for the OPEN itself; an OPEN refused with 41 ran the procedure of the mode the file was open in (INPUT) instead of the mode being opened.
 
@@ -9,3 +9,4 @@
 **Left open.** A failed CLOSE leaves `ModeKnown` set (the same stale-mode shape on the CLOSE side); registered in `kb/Work/PB5200/2026-11-10-landing.md`.
 
 Review round 1: R1-1 (blocking) asked for a SORT/MERGE witness of the implicit-OPEN arm; added the golden `14.9.49-USE/pb5200_use_mode_of_failed_implicit_open_sort_merge` (85-2023): the USE INPUT procedure runs once for the failed implicit OPEN of a SORT and of a MERGE USING file, and a later READ of that file is 47 with no procedure. R1-2 (lead, 38 golden at 2002/2014) needs no change: the generator refuses a 1985-band rule id at 2002/2014 (probed).
+
