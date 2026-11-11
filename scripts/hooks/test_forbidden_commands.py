@@ -8,21 +8,19 @@ import base64
 import json
 import os
 import pathlib
-import shutil
 import subprocess
 import sys
-import tempfile
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
+from scratch_repo import ScratchRepo, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
 
 ensure_utf8()
 
 HOOK = pathlib.Path(__file__).with_name("forbidden_commands.py")
 REPO = HOOK.resolve().parents[2]
 # another repository, for the unit-push rule: a real git directory whose origin is not this repository's
-OTHER_DIR = pathlib.Path(tempfile.mkdtemp(prefix="fc-other-"))
-subprocess.run(["git", "init", "-q", str(OTHER_DIR)], check=True)
-subprocess.run(["git", "-C", str(OTHER_DIR), "remote", "add", "origin", "https://example.invalid/other.git"], check=True)
+OTHER_DIR = scratch_dir("fc-other-")
+ScratchRepo.init(OTHER_DIR).git("remote", "add", "origin", "https://example.invalid/other.git")
 OTHER = OTHER_DIR.as_posix()
 BS = chr(92)  # a backslash, spelled without one
 NL = chr(10)
@@ -307,7 +305,6 @@ fails += [(f"[PowerShell] {c}", e) for c, e in PS_CASES if blocked(c, tool="Powe
 ATTENDED = [("git push -u origin claude/batch-7", False), ("git -C E:/claude-skills push origin v1.18.0", False),
             ("git push -q origin HEAD:main", True)]
 fails += [(f"[attended] {c}", e) for c, e in ATTENDED if blocked(c) != e]
-shutil.rmtree(OTHER_DIR, ignore_errors=True)
 for c, e in fails:
     print(f"FAIL: expected {'BLOCK' if e else 'PASS'}: {c!r}")
 total = len(CASES) + len(UNIT_CASES) + len(PS_CASES) + len(ATTENDED)
