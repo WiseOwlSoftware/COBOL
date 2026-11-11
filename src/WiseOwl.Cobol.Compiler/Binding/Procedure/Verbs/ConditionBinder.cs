@@ -1047,7 +1047,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // §1985:VI.6.3.1.2's NUMERIC bar reads two more facts of the operand's own DESCRIPTION (kb/Work PB5122): an item
         // described as alphabetic, and a group holding an elementary item described with an operational sign. A
         // reference-modified slice is neither (§2023:8.4.3.3.4 GR6 c). The group is walked only when the rule is asked.
-        var described = op is BoundFieldOperand { Place: not RefModPlace } d ? d.Place.Item : null;
+        var described = op is BoundFieldOperand { Place.DenotedItem: { } d } ? d : null;
         bool signedGroup = described is { IsGroup: true }
             && Array.IndexOf(rules, ClassOperandRule.NumericNotAlphabeticOrSignedGroup1985) >= 0
             && DataItem.DescendantsOf(described).Any(i => i.Pic is { Signed: true });
