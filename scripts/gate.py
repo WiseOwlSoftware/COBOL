@@ -59,11 +59,14 @@ It is GREEN only when every host is green and every population is exact.
     while it ran answers from that record WITHOUT running anything, and says so in its verdict line (`… GREEN — REUSED:
     …`, naming the run that measured it) — the self-test reuse rule (kb/Work PB2914, PB3022) extended to the gate. A RED
     is never reused.
-  * COMPOSED (kb/Work PB5099; `Gate.carry`; DESIGN-test-build-ci.md §3.14.12 item 5): a re-gate of a CODE STATE an earlier
-    run of this worktree measured (the same tree, or one differing only in inert paths, under the same toolchain) runs
-    only what that run did not pass. A GREEN earlier run answers with the audits alone (`GREEN — COMPOSED …`); a RED one
-    leaves its failed, non-observed and unrun cases to the hosts (WISEOWL_COBOL_GATE_ONLY) and the population check
-    composes the rest (`test_population.check`'s `carried`). A tree that changed in any path a test may read runs all.
+  * COMPOSED (kb/Work PB5099, PB5205; `Gate.carry`; DESIGN-test-build-ci.md §3.14.12 item 5): the populations are a step
+    keyed by a digest of THEIR INPUTS (`Host.population_key`: every path a compiler test or the build may read, by
+    inert_lane.py's one classification, and the toolchain), as a script self-test is by its recorded inputs. A re-gate
+    whose key equals an earlier run's of this worktree (the same tree, or one differing only in inert or tooling-lane
+    paths) runs only what that run did not pass. A run whose populations were measured GREEN (its verdict GREEN, or RED
+    only for its audits) answers for them, and only the audits run (`GREEN — COMPOSED …`); a RED one leaves its failed,
+    non-observed and unrun cases to the hosts (WISEOWL_COBOL_GATE_ONLY) and the population check composes the rest
+    (`test_population.check`'s `carried`). The audits are never carried. Another key runs all.
 
 Exit codes: 0 GREEN (reused or run) · 1 RED (or the build failed) · 2 NOT RUN [<cause>] (the population could not be
 listed, the driver failed, the gate's process DIED with no verdict (`--await`, or the follower): BRANCH, the tree's own
@@ -78,6 +81,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import datetime as dt
+import hashlib
 import json
 import os
 import re
@@ -108,7 +112,17 @@ from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, s
 import queue_facts  # noqa: E402  — THE one reader of GitHub's facts: a merge-queue bounce's reds (kb/Work PB3644)
 from test_population import (GATED_ASSEMBLIES, LINUX_GATE_RESULTS, Population, PopulationError,  # noqa: E402
                              UnreadableTrx, check as check_population, failed_results, list_population, not_passed, passed_cases,
-                             red_classes, scrubbed_env, synthetic_listing, synthetic_trx)
+                             parse_listing, red_classes, scrubbed_env, synthetic_listing, synthetic_trx)
+from test_population import TRX_NS, trx_root  # noqa: E402
+
+
+def result_outcomes(path) -> Counter:
+    """EVERY RESULT A TRX RECORDS, by outcome (kb/Work PB5205): what a host's own verdict line counts (`Failed: F, Passed:
+    P, Skipped: S, Total: T` are results, never definitions: a theory whose rows share a display name is one definition
+    with several results). It lives here, beside its one caller (`--rederive`), and reads the file with
+    `test_population.trx_root`, so a change to it is no change to what plans the population the compiler tests run. A file
+    that cannot be read raises `test_population.UnreadableTrx` naming it."""
+    return Counter(r.get("outcome", "") for r in trx_root(path).iter(TRX_NS + "UnitTestResult"))
 from standard_streams import ensure_utf8  # noqa: E402
 from test_leg_report import verdict_of  # noqa: E402  — THE reader of a host's verdict line
 
@@ -486,6 +500,12 @@ class _Live:
                 p.kill()
             return len(running)
 
+    def stopped_any(self) -> bool:
+        """Whether a stop KILLED a process (kb/Work PB5205): one was still running when `stop_all` ran, or was registered
+        after it. A stop that found every process already exited cut nothing short, so their results are whole."""
+        with self.lock:
+            return bool(self.stopped)
+
 
 # ── the host: everything the driver does to the machine (the self-test plants a fake one) ────────────────────────
 
@@ -536,18 +556,33 @@ class Host:
             return inert_lane.Lane("full", f"the change could not be listed ({e}): the full lane", tooling=True,
                                    reads_tooling=True)
 
-    def code_state_diff(self, earlier: str, now: str) -> list[str] | None:
-        """WHETHER TWO MEASURED TREES ARE ONE CODE STATE (kb/Work PB5099): the paths that differ between them when every
-        one is INERT (scripts/inert_lane.py: no compiler test and no build reads it), `[]` for the same tree, None when
-        any differing path may be read or git cannot say. The passes of a run at `earlier` stand for `now` exactly when
-        this is not None."""
-        if earlier == now:
-            return []
+    def population_key(self, tree: str, toolchain: str) -> str | None:
+        """THE KEY OF THE POPULATIONS' INPUTS (kb/Work PB5205; owner 2026-11-10: "This is precisely what the Unix make and
+        Windows MSBuild utilities are for. They rerun only what is required due to changes."): `population_digest` of the
+        measured `tree`'s entries (`git ls-tree -r`: object ids, no file read) and the `toolchain`. Two trees with one key
+        are one state of everything a Unit, Conformance or Characterization case can read, so a pass recorded at one stands
+        at the other (`Gate.carry`). None when git cannot say (then nothing is carried)."""
         try:
-            paths = inert_lane.changed(self.repo, earlier, now)
+            entries = subprocess.run(["git", "ls-tree", "-r", "-z", "--full-tree", tree], cwd=self.repo, check=True,
+                                     capture_output=True).stdout
         except (subprocess.CalledProcessError, OSError):
             return None
-        return paths if paths and inert_lane.CLASSIFICATION.classify(paths).inert else None
+        return population_digest(entries, toolchain)
+
+    def head_reflog(self) -> list[tuple[str, int]] | None:
+        """THIS WORKTREE'S HEAD REFLOG (kb/Work PB5205; `Gate.rederive`): (commit, Unix time HEAD moved to it), newest first;
+        None when git cannot say. A linked worktree's HEAD reflog is its own."""
+        try:
+            text = self.git("log", "-g", "--date=unix", "--format=%H %gd", "HEAD")
+        except (subprocess.CalledProcessError, OSError):
+            return None
+        moves = []
+        for line in text.splitlines():
+            m = re.fullmatch(r"([0-9a-f]{40}) HEAD@\{(\d+)\}", line.strip())
+            if m is None:
+                return None
+            moves.append((m.group(1), int(m.group(2))))
+        return moves
 
     def head(self) -> str | None:
         try:
@@ -1046,18 +1081,87 @@ class Outcome:
     #: gate measured the whole population itself.
     composed_from: list[str] = field(default_factory=list)
     carried: dict[str, int] = field(default_factory=dict)
+    #: THE KEY OF THE POPULATIONS' INPUTS at the measured tree (kb/Work PB5205; `Host.population_key`): what an earlier
+    #: run's passes are matched on (`Gate.carry`). Set by a full-lane gate; None in another lane or when git cannot say.
+    population_key: str | None = None
+
+
+def population_digest(entries: bytes, toolchain: str) -> str:
+    """THE DIGEST OF THE POPULATIONS' INPUTS (kb/Work PB5205): sha256 over the toolchain and every `git ls-tree -r -z`
+    entry (mode, type, object id, path) whose path a compiler test or the build may read
+    (`inert_lane.Classification.is_population_input`, the one definition the code lane is made of). An inert path (docs,
+    kb, DEVLOG, any Markdown) and a tooling-lane path (a script no compiler test or build reads) are not inputs, so a
+    difference in them leaves the key, and the passes recorded under it, standing."""
+    h = hashlib.sha256(b"population-key 1\0" + toolchain.encode("utf-8") + b"\0")
+    for entry in entries.split(b"\0"):
+        _, tab, path = entry.partition(b"\t")
+        if tab and inert_lane.CLASSIFICATION.is_population_input(path.decode("utf-8", "surrogateescape")):
+            h.update(entry + b"\0")
+    return h.hexdigest()
+
+
+def populations_green(rec: dict) -> bool:
+    """WHETHER A RUN'S POPULATIONS WERE MEASURED GREEN (kb/Work PB5205), whatever its audits said: its verdict is GREEN, or
+    it is RED only for its AUDITS (every reason is one of the record's `audit_reds`: a script self-test that hung, a
+    citation audit) while every host was green and every assembly's population EXACT. The audits are asked again at the
+    current tree by every gate, so a red one never needs the populations run again."""
+    if rec.get("exit_code") == 0:
+        return True
+    pops, audit = rec.get("populations") or {}, set(rec.get("audit_reds") or [])
+    return (bool(audit) and set(pops) == set(GATED_ASSEMBLIES)
+            and all(isinstance(v, dict) and v.get("exact") for v in pops.values())
+            and not any(isinstance(r, dict) and r.get("red") for r in rec.get("runs") or [])
+            and set(rec.get("reasons") or []) <= audit)
+
+
+#: THE ORIGINAL RECORD OF A RE-DERIVED RUN (kb/Work PB5205; `Gate.rederive`): the verdict file as its gate wrote it, kept
+#: beside the re-derived one and never overwritten.
+ORIGINAL_VERDICT_FILE = "verdict.original.json"
+#: A test host's own verdict line when every case it ran passed (`dotnet test`'s summary, `test_leg_report.verdict_of`).
+HOST_PASSED = re.compile(r"Passed!\s+-\s+Failed:\s+0,\s+Passed:\s+(\d+),\s+Skipped:\s+(\d+),\s+Total:\s+(\d+)")
+#: A reason an AUDIT gives a verdict (`Host.audits`: `<AUDIT> RED`, `SELF-TESTS HANG`): what an old record that kept no
+#: `audit_reds` is read by (`audit_reasons`).
+AUDIT_REASON = re.compile(r"(?P<name>.+) (?:RED|HANG)")
+
+
+def audit_reasons(reasons: list[str]) -> tuple[list[str], list[str]]:
+    """(the reasons an AUDIT gave, the others): an audit's reason names one of AUDITS or AUDIT_PREREQUISITES and says RED
+    or HANG (`Host.audits`, `Host._prepared`)."""
+    names = {n for n, _ in AUDITS} | {n for n, _ in AUDIT_PREREQUISITES}
+    audit = [r for r in reasons if (m := AUDIT_REASON.fullmatch(r)) is not None and m["name"] in names]
+    return audit, [r for r in reasons if r not in audit]
+
+
+def run_started(run: Path) -> float | None:
+    """WHEN A RUN'S GATE STARTED, by the filesystem's clock (kb/Work PB5205): the modification time of its `gate.pid`, which
+    the gate writes under its lock BEFORE it measures the tree (`Gate.run`). The filesystem's clock, never the run name's
+    stamp (the driver's clock, which a self-test moves): the window it opens is compared with the hosts' file times and
+    HEAD's reflog, which are the same real clock. None when the run has no pid file."""
+    try:
+        return (run / PID_FILE).stat().st_mtime
+    except OSError:
+        return None
+
+
+@dataclass
+class Rederived:
+    """WHAT A RUN'S OWN ON-DISK EVIDENCE PROVES (kb/Work PB5205; `Gate.rederive`): the record it re-derives (None when
+    refused), what it found, and every reason it refused, each naming what is missing."""
+    record: dict | None
+    found: list[str]
+    refusals: list[str]
+    level: str = ""   # "populations GREEN" (a listing at its key proves them EXACT) or "passes" (the next gate lists)
 
 
 @dataclass
 class Carry:
-    """WHAT EARLIER RUNS OF THE SAME CODE STATE LEFT TO COMPOSE WITH (kb/Work PB5099; `Gate.carry`): the runs they are,
-    newest first; the newest GREEN one (its whole population passed: nothing is left to run) with the inert paths that lie
-    between its tree and this one; and, otherwise, each assembly's passes."""
+    """WHAT EARLIER RUNS AT THE SAME POPULATION KEY LEFT TO COMPOSE WITH (kb/Work PB5099, PB5205; `Gate.carry`): the runs
+    they are, newest first; the newest one whose populations were measured GREEN (`populations_green`: nothing of the
+    populations is left to run), and, otherwise, each assembly's passes."""
     runs: list[str]
     passed: dict[str, Counter]
-    green: Path | None = None
-    green_record: dict | None = None
-    inert_paths: list[str] = field(default_factory=list)
+    measured: Path | None = None
+    measured_record: dict | None = None
     red_hosts: set[str] = field(default_factory=set)   # assemblies whose host was RED in a run whose passes are carried
 
 
@@ -1234,17 +1338,23 @@ class Gate:
 
     def carry(self, current: Path, out: Outcome) -> Carry | None:
         """THE GATE'S COMPOSITION RULE (kb/Work PB5099, owner 2026-11-09: "if only one test failed, any retry should test
-        only that one case"; the reuse rule's sibling): what the earlier runs of this worktree at THIS CODE STATE already
-        passed. THE RULE (CLAUDE.md "Testing", 2026-10-31) asks that every case ran green at the pushed head under the same
-        toolchain, never that it ran green in ONE run. An earlier run counts when it is a full-lane run that measured
-        its own tree (a RED one included, its trx are its results; a REUSED record ran nothing), its tree did not change
-        while it ran, it ran under THIS toolchain, and its tree IS this one or differs only in inert paths
-        (`Host.code_state_diff`: no test reads them). Then:
-          * the newest such run that is GREEN covers the whole population: nothing is left to run (`_composed`);
+        only that one case"; kb/Work PB5205, owner 2026-11-10: "This is precisely what the Unix make and Windows MSBuild
+        utilities are for. They rerun only what is required due to changes."): what the earlier runs of this worktree
+        already passed of the populations whose INPUTS are this tree's. THE RULE (CLAUDE.md "Testing", 2026-10-31) asks that
+        every case ran green at the pushed head under the same toolchain, never that it ran green in ONE run. A population
+        step is keyed by a digest of its inputs (`Outcome.population_key`, `Host.population_key`: every path a compiler
+        test or the build may read, and the toolchain), as a script self-test is by its recorded inputs (kb/Work PB2914).
+        An earlier run counts when it is a full-lane run that measured its own tree (a RED one included, its trx are its
+        results; a REUSED record ran nothing), its tree did not change while it ran, and its recorded key is THIS key: the
+        same tree, and a tree that differs only in inert or tooling-lane paths, are cases of the one rule. Then:
+          * the newest such run whose populations were measured GREEN (`populations_green`: a GREEN verdict, or one RED
+            only for its audits) leaves nothing of the populations to run (`_composed`);
           * else every assembly's passes are the union of its trx across them, and `_tested` runs only the cases not in it.
-        A tree that changed in any path a test or the build may read runs everything, as before. None when no run
-        qualifies, and for a tree that could not be measured."""
-        if not out.tree or not out.toolchain:
+        The audits, the script self-tests among them, are never carried: every gate runs them at its own tree, and the
+        self-tests re-run exactly those whose recorded inputs changed (SELF_TESTS_REUSE). A key that differs (one path a
+        test or the build may read, or the toolchain) runs everything. None when no run qualifies, and when the key could
+        not be computed."""
+        if not out.tree or not out.population_key:
             return None
         runs: list[str] = []
         red_hosts: set[str] = set()
@@ -1252,17 +1362,14 @@ class Gate:
         for p in reversed(run_dirs(self.run_root)):
             rec = read_record(p) if p != current else None
             if (rec is None or rec.get("reused_from") or rec.get("lane") != "full" or record_schema(rec) < SCHEMA_WHOLE
-                    or not rec.get("tree") or rec.get("tree_end") != rec["tree"] or rec.get("toolchain") != out.toolchain):
+                    or not rec.get("tree") or rec.get("tree_end") != rec["tree"]
+                    or rec.get("population_key") != out.population_key):
                 continue
-            inert = self.host.code_state_diff(rec["tree"], out.tree)
-            if inert is None:
-                continue
-            if rec.get("exit_code") == 0:
-                if out.tooling and not rec.get("tooling"):
-                    continue   # the post-build self-tests (tooling only) ran in no host of that run, and no build runs here
-                # a GREEN run measured the whole population: nothing is left to run
+            # The post-build self-tests (a change that touches a script) need a build: a run that did not run them cannot
+            # answer without one, so its passes are carried into a gate that builds instead.
+            if populations_green(rec) and not (out.tooling and not rec.get("tooling")):
                 return Carry([p.name, *(n for n in rec.get("composed_from") or [] if isinstance(n, str))], passed,
-                             green=p, green_record=rec, inert_paths=inert)
+                             measured=p, measured_record=rec)
             found = {}
             try:
                 for asm in GATED_ASSEMBLIES:
@@ -1279,6 +1386,152 @@ class Gate:
                               if isinstance(r, dict) and r.get("red") and r.get("asm") in found
                               and not self._red_explained(p, r["asm"])}
         return Carry(runs, passed, red_hosts=red_hosts) if runs else None
+
+    def rederive(self, run: Path) -> Rederived:
+        """RE-DERIVE A RUN'S POPULATION EVIDENCE FROM ITS OWN FILES (kb/Work PB5205; owner 2026-11-10: "We better not be
+        running all those tests again, when only the self tests failed to run"). A gate before PB5205, or one an audit
+        stopped, may have left complete, green test results under a record that says `populations: {}` and
+        `tree_end: null`, which `carry` cannot use. This proves from the run directory and the worktree what such a record
+        could not say, and refuses, naming what is missing, unless ALL of it holds:
+          * the record is a full-lane, schema-5-on record of a run that measured its own tree (never a REUSED one);
+          * THE TOOLCHAIN it recorded is the one this host reports now (`Host.toolchain`);
+          * EVERY HOST FINISHED GREEN: the record lists each gated assembly's host with exit 0, its log ends in the host's
+            own `Passed!  - Failed: 0, Passed: P, Skipped: S, Total: T` line, and its trx is COMPLETE against that line (T
+            results, P Passed, S NotExecuted and nothing else: `result_outcomes`, the results that line counts). A host
+            that never finished has no such line; a short trx, too few results;
+          * EVERY REASON IS AN AUDIT'S (`audit_reasons`): a host-level or population reason is never re-derived;
+          * THE TREE DID NOT MOVE while it ran: it measured HEAD's own tree (`tree` equals `head_tree`, so nothing
+            uncommitted), HEAD's reflog puts HEAD at the recorded head when the run started (`run_started`: its
+            `gate.pid`, written before the tree was measured) and records no move from then to the last host's last write. The residue, named in the record: an uncommitted edit
+            made and undone inside that window is in no reflog;
+          * its key is computed from its RECORDED tree and toolchain (`Host.population_key`).
+        Then the record gains `tree_end` (its tree), `population_key`, `audit_reds` and `rederived` (when, the evidence,
+        the residue). Its verdict, line and exit code are unchanged: it stays RED. When a run of this worktree at the SAME
+        KEY kept the listings (`listing-<asm>.txt`, the expected population), the trx are checked EXACT against them by
+        the live check (`check_population`) and the record gains its `populations`, so `populations_green` answers for
+        it with no build ("populations GREEN"); a listing it is not exact against is a refusal. With no such listing it
+        is "passes": `carry` takes its trx passes, and the next gate builds, lists, runs only the cases they do not cover
+        (none, for a complete run) and applies that same exactness check. Neither can make a partial run a pass."""
+        found: list[str] = []
+        refusals: list[str] = []
+        rec = read_record(run)
+        if rec is None:
+            return Rederived(None, found, [f"{run} holds no readable verdict record"])
+        if rec.get("reused_from") or rec.get("lane") != "full" or record_schema(rec) < SCHEMA_WHOLE or not rec.get("tree"):
+            return Rederived(None, found, ["it is not a full-lane record (schema 5 on) of a run that measured its own tree"])
+        if rec.get("rederived"):
+            return Rederived(None, found, [f"it was re-derived already ({rec['rederived'].get('at')})"])
+        if rec.get("tree_end") == rec["tree"] and rec.get("population_key"):
+            return Rederived(None, found, ["nothing to re-derive: the record already says its tree_end and population key"])
+        matched, tools = self.host.toolchain()
+        if not matched or tools != rec.get("toolchain"):
+            refusals.append(f"the toolchain it recorded ({rec.get('toolchain')}) is not this host's ({tools})")
+        hosts = {r.get("asm"): r for r in rec.get("runs") or [] if isinstance(r, dict)}
+        ends: list[float] = []
+        for asm in GATED_ASSEMBLIES:
+            r, log, trx = hosts.get(asm), run / f"{asm}.log", run / f"{asm}.trx"
+            if r is None or r.get("rc") != 0 or r.get("red"):
+                refusals.append(f"{asm}: the record does not show its host exiting green ({r})")
+                continue
+            try:
+                line = verdict_of(log.read_text(encoding="utf-8", errors="replace").splitlines()) or ""
+                ends += [log.stat().st_mtime, trx.stat().st_mtime]
+            except OSError as e:
+                refusals.append(f"{asm}: its host log or trx cannot be read ({e})")
+                continue
+            m = HOST_PASSED.search(line)
+            if m is None:
+                refusals.append(f"{asm}: its host log ends in no `Passed!` verdict line (it never finished): {line!r}")
+                continue
+            passed_n, skipped_n, total = (int(g) for g in m.groups())
+            try:
+                outcomes = result_outcomes(trx)
+            except UnreadableTrx as e:
+                refusals.append(f"{asm}: its trx cannot be read ({e})")
+                continue
+            got = (sum(outcomes.values()), outcomes["Passed"], outcomes["NotExecuted"])
+            if got != (total, passed_n, skipped_n):
+                refusals.append(f"{asm}: its trx is not complete against its host's verdict line (results, Passed, "
+                                f"NotExecuted {got}; the host said {(total, passed_n, skipped_n)})")
+                continue
+            found.append(f"{asm}: host exit 0, `Passed!` {passed_n:,} of {total:,}, trx complete")
+        audit, other = audit_reasons([str(x) for x in rec.get("reasons") or []])
+        if other:
+            refusals.append(f"reasons no audit gave: {other}")
+        started = run_started(run)
+        if rec.get("head_tree") != rec["tree"] or not rec.get("head"):
+            refusals.append("it did not measure its HEAD's own tree (uncommitted changes, or no head recorded): no reflog "
+                            "can show that tree stood")
+        elif started is None or not ends:
+            refusals.append("its start (its gate.pid's time) or its end (the hosts' last writes) is unknown")
+        else:
+            moves = self.host.head_reflog()
+            end = max(ends)
+            if moves is None:
+                refusals.append("HEAD's reflog cannot be read")
+            else:
+                before = [c for c, t in moves if t < started]
+                during = [(c, t) for c, t in moves if started <= t <= end]
+                if not before or before[0] != rec["head"]:
+                    refusals.append(f"HEAD's reflog does not put HEAD at {rec['head'][:12]} when the run started "
+                                    f"({before[0][:12] if before else 'no entry before it'})")
+                if during:
+                    refusals.append("HEAD moved while the run ran: " + ", ".join(
+                        f"{c[:12]} at {dt.datetime.fromtimestamp(t, dt.timezone.utc):%H:%M:%SZ}" for c, t in during))
+                if not refusals:
+                    found.append(f"HEAD stood at {rec['head'][:12]} (tree {rec['tree'][:12]}) from the run's start "
+                                 f"{dt.datetime.fromtimestamp(started, dt.timezone.utc):%Y-%m-%dT%H:%M:%SZ} to its hosts' "
+                                 f"last write {dt.datetime.fromtimestamp(end, dt.timezone.utc):%Y-%m-%dT%H:%M:%SZ}")
+        key = self.host.population_key(rec["tree"], str(rec.get("toolchain") or ""))
+        if key is None:
+            refusals.append(f"the population key of its tree {rec['tree'][:12]} cannot be computed")
+        if refusals:
+            return Rederived(None, found, refusals)
+        new = {**rec, "tree_end": rec["tree"], "population_key": key, "audit_reds": audit}
+        listing = self._listing_at(key, run)
+        level = "passes"
+        if listing is not None:
+            where, listed = listing
+            pops = {asm: check_population(asm, listed[asm], [str(run / f"{asm}.trx")]) for asm in GATED_ASSEMBLIES}
+            bad = [pops[a].verdict_line() for a in GATED_ASSEMBLIES if not pops[a].exact]
+            if bad:
+                return Rederived(None, found, [f"not EXACT against the listing of run {where} at its key: {bad}"])
+            new["populations"] = {a: {"discovered": p.discovered, "ran": p.ran, "skipped": p.skipped, "exact": p.exact}
+                                  for a, p in pops.items()}
+            found.append(f"EXACT against the listings run {where} kept at its key")
+            level = "populations GREEN"
+        new["rederived"] = {
+            "at": f"{self.now():%Y-%m-%dT%H:%M:%SZ}", "by": "gate.py --rederive (kb/Work PB5205)", "level": level,
+            "evidence": found,
+            "residue": "an uncommitted edit made and undone while the run ran is in no reflog"
+                       + ("" if listing else "; no listing of this key is on disk, so the next gate lists the population "
+                          "and checks the carried passes EXACT against it")}
+        return Rederived(new, found, [], level)
+
+    def _listing_at(self, key: str, run: Path) -> tuple[str, dict[str, Counter]] | None:
+        """The expected population at `key`: the listings (`listing-<asm>.txt`, every gated assembly) a run of this worktree
+        kept whose population key (recorded, or computed from its recorded tree and toolchain) is `key`; `run` first."""
+        for p in [run, *reversed(run_dirs(self.run_root))]:
+            files = {asm: p / f"listing-{asm}.txt" for asm in GATED_ASSEMBLIES}
+            rec = read_record(p) or {}
+            if not all(f.is_file() for f in files.values()) or not rec.get("tree"):
+                continue
+            k = rec.get("population_key") or self.host.population_key(rec["tree"], str(rec.get("toolchain") or ""))
+            if k == key:
+                try:
+                    return p.name, {a: parse_listing(f.read_text(encoding="utf-8"), str(f)) for a, f in files.items()}
+                except (OSError, PopulationError):
+                    continue
+        return None
+
+    def write_rederived(self, run: Path, rd: Rederived) -> None:
+        """Keep the record its gate wrote as ORIGINAL_VERDICT_FILE (never overwritten) and write the re-derived one."""
+        assert rd.record is not None
+        original = run / ORIGINAL_VERDICT_FILE
+        if not original.exists():
+            shutil.copy2(run / VERDICT_FILE, original)
+        (run / VERDICT_FILE).write_text(json.dumps(rd.record, indent=1, sort_keys=True) + "\n", encoding="utf-8",
+                                        newline="\n")
 
     @staticmethod
     def _red_explained(run: Path, asm: str) -> bool:
@@ -1402,10 +1655,12 @@ class Gate:
                 return self._audit_red(out, run, "the tooling lane runs the audits and the script self-tests, and one is "
                                        "RED: NO TEST RAN")
             return self._tooling(out, run, lane)
-        # ⭐ THE COMPOSITION RULE (kb/Work PB5099; `carry`): what earlier runs of this worktree at this code state already
-        # passed stands, so a GREEN one answers with the audits alone and a RED one leaves only its reds to run.
+        # ⭐ THE COMPOSITION RULE (kb/Work PB5099, PB5205; `carry`): what earlier runs of this worktree passed at THIS
+        # population key (the populations' inputs: `Host.population_key`) stands, so a run whose populations were measured
+        # GREEN answers with this gate's own audits alone and a RED one leaves only its reds to run.
+        out.population_key = self.host.population_key(out.tree, tools) if out.tree else None
         carry = self.carry(run, out)
-        if carry is not None and carry.green is not None:
+        if carry is not None and carry.measured is not None:
             self._join_beside(out)
             if out.audit_reds:
                 return self._audit_red(out, run, "the audits are the only work this re-gate has, and one is RED: NO TEST RAN")
@@ -1476,24 +1731,29 @@ class Gate:
                             f"(run {run.name})", 0)
 
     def _composed(self, out: Outcome, run: Path, started: float, carry: Carry) -> Outcome:
-        """A GREEN RUN AT THIS CODE STATE ANSWERS (kb/Work PB5099; `carry`): the audits, which read this tree, were joined
-        GREEN; the populations the earlier run measured stand, because this tree equals its tree or differs from it only in
-        paths no test reads. No corpus fetch, slot, build or test host runs, and the record names the runs it composes
-        with so a reader of the test results (`measuring_runs`) finds them. This gate's verdict says what it measured."""
-        assert carry.green is not None and carry.green_record is not None
-        rec = carry.green_record
+        """A RUN THAT MEASURED THESE POPULATIONS GREEN ANSWERS FOR THEM (kb/Work PB5099, PB5205; `carry`): its population
+        key is this tree's, so every path a compiler test or the build may read, and the toolchain, are the ones it
+        measured. The audits, which read THIS tree (the script self-tests among them when the change touches a script, each
+        re-run where its recorded inputs changed), ran now and were joined GREEN. No corpus fetch, slot, build or test host
+        runs, and the record names the runs it composes with so a reader of the test results (`measuring_runs`) finds them.
+        The verdict line says whose population passes were carried and what ran now."""
+        assert carry.measured is not None and carry.measured_record is not None
+        rec = carry.measured_record
         out.tree_end, out.composed_from = self.host.measured_tree(), carry.runs
         out.reused_detail = rec.get("reused_detail") or str(rec.get("line", "")).removeprefix(VERDICT).removesuffix(" ===")
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
-        how = (f"differs from it in {len(carry.inert_paths)} path(s), all inert (no compiler test or build reads them, "
-               f"e.g. {carry.inert_paths[0]})" if carry.inert_paths else "is it")
-        return self._finish(out, run, "GREEN", f"COMPOSED (kb/Work PB5099): run {carry.green.name} measured this code state "
-                            f"GREEN (its tree {str(rec['tree'])[:12]} {how}), so its populations stand; the audits are GREEN "
-                            f"and no corpus fetch, build or test host ran · toolchain {out.toolchain} (run {run.name}); "
+        where = ("at this tree" if rec["tree"] == out.tree else
+                 f"at tree {str(rec['tree'])[:12]}, whose population key {str(out.population_key)[:12]} is this tree's "
+                 "(the trees differ only in paths no compiler test or build reads)")
+        ran = ("the audits, the script self-tests among them (each re-run where its recorded inputs changed)" if out.tooling
+               else "the audits")
+        return self._finish(out, run, "GREEN", f"COMPOSED (kb/Work PB5099, PB5205): the population passes are carried from "
+                            f"run {carry.measured.name}, which measured them GREEN {where}; what ran now: {ran}, GREEN; no "
+                            f"corpus fetch, build or test host ran · toolchain {out.toolchain} (run {run.name}); "
                             f"that gate: {out.reused_detail}", 0)
 
     def _retry(self, out: Outcome, run: Path, listings: dict[str, Counter], carry: Carry) -> dict[str, Path] | None:
-        """THE RETRY OF A MEASURED CODE STATE (kb/Work PB5099): per assembly, the listed cases the carried passes
+        """THE RETRY AT A MEASURED POPULATION KEY (kb/Work PB5099, PB5205): per assembly, the listed cases the carried passes
         (`carry`) do not cover, written one name per line to `<run>/only-<assembly>.txt` for the host's retry hook
         (ONLY_CASES); an assembly with none left has no file and no host. Returns the files by assembly, and records the
         runs this gate composes with and how many cases it carries; None when the carried passes cover no listed case."""
@@ -1515,9 +1775,9 @@ class Gate:
             if left:
                 files[asm] = run / f"only-{asm}.txt"
                 files[asm].write_text("".join(f"{n}\n" for n in left), encoding="utf-8", newline="\n")
-        self.say(f"build-local: this code state was gated before (runs {', '.join(carry.runs)}), so only what it did not "
-                 "pass runs: " + ", ".join(f"{a} {out.carried[a]:,} passed / {to_run[a]:,} to run" for a in GATED_ASSEMBLIES)
-                 + " (kb/Work PB5099)")
+        self.say(f"build-local: these populations' inputs (population key {str(out.population_key)[:12]}) were gated "
+                 f"before (runs {', '.join(carry.runs)}), so only what they did not pass runs: " + ", ".join(f"{a} {out.carried[a]:,} passed / {to_run[a]:,} to run" for a in GATED_ASSEMBLIES)
+                 + " (kb/Work PB5099, PB5205)")
         return files
 
     def _tested(self, out: Outcome, run: Path, slot: Slot, started: float, carry: Carry | None = None) -> Outcome:
@@ -1557,8 +1817,11 @@ class Gate:
         if reds:
             out.timings["first_red_s"] = round(min(r.finished_s for r in reds), 1)
         self._join_beside(out)
-        if self.host.hosts_live.stopping.is_set():
-            # A RED audit stopped the hosts (`_audits`): what they wrote is a partial run, no population to measure.
+        if self.host.hosts_live.stopped_any():
+            # A RED audit stopped the hosts (`_audits`): what they wrote is a partial run, no population to measure. ⛔ A RED
+            # audit that came after every host had exited (a script self-test that hung past the last host, kb/Work
+            # PB5205) stopped none: their results are whole, so the populations are measured and recorded, and the verdict
+            # is RED for the audit alone (`populations_green` lets the next gate at this population key carry them).
             return self._audit_red(out, run, "an audit that ran beside the test hosts was RED and STOPPED them: their "
                                    "results are partial and NOT measured")
         try:
@@ -1646,7 +1909,7 @@ class Gate:
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max(len(asms), 1)) as pool:
             results = {asm: (rc, wall, fin) for asm, rc, wall, fin in pool.map(one, asms)}
-        if self.host.hosts_live.stopping.is_set():
+        if self.host.hosts_live.stopped_any():
             return   # stopped by a RED audit (`_audits`): a killed host's log is no report, `_audit_red` ends the gate
         for asm in asms:
             rc, wall, fin = results[asm]
@@ -1715,6 +1978,7 @@ class Gate:
                 "head_tree": out.head_tree, "toolchain": out.toolchain,
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "composed_from": out.composed_from, "carried": out.carried,
+                "population_key": out.population_key, "audit_reds": out.audit_reds,
                 "slot": out.slot, "gate_class": out.gate_class, "lane": out.lane, "tooling": out.tooling, "first": out.first,
                 "runs": [vars(r) for r in out.runs], "timings": out.timings,
                 "assembly_wall_s": self._assembly_walls(out), "effective_concurrency": self._concurrency(out),
@@ -1736,12 +2000,14 @@ class FakeHost(Host):
     }
 
     def __init__(self, root: Path, lock: Path, plant: set[str] = frozenset(),
-                 trees: list[str | None] | None = None, base: str = "0" * 40, inert_from: frozenset[str] = frozenset()):
+                 trees: list[str | None] | None = None, base: str = "0" * 40, keys: dict[str, str] | None = None,
+                 tools: str = "dotnet-sdk 10.0.403, python 3.15.2"):
         """`trees`: the working tree the gate measures, call by call (its start, then its end; the last value
-        repeats); `base`: the planted cut point; `inert_from`: the earlier trees that differ from this gate's only in
-        inert paths (`code_state_diff`, kb/Work PB5099)."""
+        repeats); `base`: the planted cut point; `keys`: each planted tree's population inputs, so two trees with one
+        value differ only in paths no compiler test or build reads (`population_key`, kb/Work PB5205; a tree not named
+        is its own); `tools`: the toolchain the host reports."""
         super().__init__(root)
-        self.root, self._lock, self.plant, self.inert_from = root, lock, set(plant), inert_from
+        self.root, self._lock, self.plant, self.keys, self.tools = root, lock, set(plant), dict(keys or {}), tools
         self.trees, self.base_sha = list(trees or ["tree-1"]), base
         self.committed_tree = self.trees[0]  # HEAD's tree: a gate of a clean working tree measures it
         self.slots_taken = 0
@@ -1749,6 +2015,9 @@ class FakeHost(Host):
         self.tooling_seen: bool | None = None   # what `audits` was told about the change (kb/Work PB4326)
         #: Set when the gate stops the hosts for a RED audit; and when a test host starts (the "audit-late" arm's order).
         self.stopped_by_audit, self.host_started = threading.Event(), threading.Event()
+        #: Set when every planted test host has returned: the "audit-after-hosts" arm's audit turns RED only then.
+        self.hosts_done, self._hosts_returned = threading.Event(), 0
+        self.reflog: list[tuple[str, int]] = [("head-1", 0)]   # `head_reflog`: (commit, Unix time HEAD moved to it)
         self.slot_taken = threading.Event()   # the "audit-slot" arm's ordering: the audit is red once the slot is held
         #: The order the MAIN thread drove the host in: fetch, slot, build. The audits run beside it, in a thread of their
         #: own, so they are `audited`, never an event of this order.
@@ -1769,7 +2038,7 @@ class FakeHost(Host):
         self.toolchain_checked = True
         if "toolchain" in self.plant:
             return False, "jdk 23.0.2 (toolchain.env 27.0.1)"
-        return True, "dotnet-sdk 10.0.403, python 3.15.2"
+        return True, self.tools
 
     def fetch_bounce_results(self) -> str:
         return "build-local: ci bounce: none (a planted host asks GitHub nothing)"
@@ -1798,13 +2067,17 @@ class FakeHost(Host):
         return inert_lane.Lane("full", "planted: the full lane", tooling="tooling" in self.plant,
                                reads_tooling="tooling" in self.plant)
 
-    def code_state_diff(self, earlier, now):
-        """The planted difference between two trees: none for the same tree, one inert path for an `inert_from` tree,
-        else a path a test may read (the classification itself is inert_lane.py's self-test)."""
-        return [] if earlier == now else (["docs/planted.md"] if earlier in self.inert_from else None)
+    def population_key(self, tree, toolchain):
+        """The planted key: the tree's `keys` value (else the tree itself) and the toolchain. The real key's digest over a
+        real tree is its own arm (`population_digest`)."""
+        return f"{self.keys.get(tree, tree)}|{toolchain}"
 
     def head(self) -> str | None:
         return "head-1"
+
+    def head_reflog(self):
+        """The planted reflog (`reflog`, newest first): HEAD came to head-1 long before any run, unless an arm plants a move."""
+        return list(self.reflog)
 
     def head_tree(self) -> str | None:
         return self.committed_tree
@@ -1821,6 +2094,9 @@ class FakeHost(Host):
         if "audit-slot" in self.plant:   # red only once the slot is held: the gate must build nothing
             self.slot_taken.wait(60)
             return ["RENDERED VIEWS RED"]
+        if "audit-after-hosts" in self.plant:   # a self-test that hangs past the last host (kb/Work PB5205): no host to stop
+            self.hosts_done.wait(60)
+            return ["SELF-TESTS HANG"]
         return ["RENDERED VIEWS RED"] if "audit" in self.plant else []
 
     def stop_hosts(self) -> int:
@@ -1861,7 +2137,18 @@ class FakeHost(Host):
         if "audit-late" in self.plant:   # a host that runs until the gate stops it (Host.stop_hosts), writing nothing
             self.host_started.set()
             self.hosts_live.stopping.wait(60)
+            with self.hosts_live.lock:
+                self.hosts_live.stopped.add(-1)   # what `_Live.stop_all` records for a real host it kills
             return 1
+        try:
+            return self._planted_host(asm, run, env)
+        finally:
+            with self.hosts_live.lock:
+                self._hosts_returned += 1
+                if self._hosts_returned == len(GATED_ASSEMBLIES):
+                    self.hosts_done.set()
+
+    def _planted_host(self, asm, run, env) -> int:
         only = env.get(ONLY_CASES)   # a RETRY (kb/Work PB5099): the host runs exactly the cases its file names
         names = Path(only).read_text(encoding="utf-8").splitlines() if only else self.POPULATION[asm]
         cases = [(n, ["Passed"]) for n in self.POPULATION[asm] if n in names]
@@ -2579,12 +2866,9 @@ def self_test() -> int:
         d = root / "compose-toolchain"
         d.mkdir()
         regate(d, plant={"red"})
-        stale = run_dirs(d / "runs")[-1]
-        stale_rec = read_record(stale)
-        (stale / VERDICT_FILE).write_text(json.dumps({**stale_rec, "toolchain": "dotnet-sdk 9.0.100, python 3.12.0"}),
-                                          encoding="utf-8", newline="\n")
-        tool, ht = regate(d)
-        arm("a run under another toolchain is never composed with: the whole population runs",
+        tool, ht = regate(d, tools="dotnet-sdk 9.0.100, python 3.12.0")
+        arm("a run under another toolchain is never composed with: the whole population runs (the toolchain is an input "
+            "of the population key, kb/Work PB5205)",
             tool.verdict == "GREEN" and sorted(ht.envs) == sorted(GATED_ASSEMBLIES) and not tool.composed_from, tool.line)
         d = root / "compose-moved"
         d.mkdir()
@@ -2595,23 +2879,25 @@ def self_test() -> int:
         d = root / "compose-inert"
         d.mkdir()
         green1, _ = regate(d)
-        inert, hi = regate(d, trees=["tree-2"], inert_from=frozenset({"tree-1"}))
+        inert, hi = regate(d, trees=["tree-2"], keys={"tree-2": "tree-1"})
         inert_rec = read_record(run_dirs(d / "runs")[-1])
         arm("a GREEN code-lane run, then a commit that changes only inert paths, is GREEN with NO fetch, slot, build or "
-            "host: the audits ran, the line says COMPOSED and names the run and the inert path, and the record names it",
+            "host: the audits ran, the line says COMPOSED and names the run and the equal population key, and the record "
+            "names it",
             green1.verdict == "GREEN" and inert.verdict == "GREEN" and inert.exit_code == 0 and hi.events == []
             and hi.slots_taken == 0 and hi.audited and not inert.runs and hi.envs == {} and hi.growth == []
-            and "COMPOSED (kb/Work PB5099)" in inert.line and "docs/planted.md" in inert.line
+            and "COMPOSED (kb/Work PB5099, PB5205)" in inert.line and "population key" in inert.line
+            and f"carried from run {run_dirs(d / 'runs')[0].name}" in inert.line
             and inert_rec["composed_from"] == [run_dirs(d / "runs")[0].name] and inert_rec["tree"] == "tree-2"
             and inert_rec["lane"] == "full", f"{inert.line} {hi.events}")
-        reused_inert, hri = regate(d, trees=["tree-2"], inert_from=frozenset({"tree-1"}))
+        reused_inert, hri = regate(d, trees=["tree-2"], keys={"tree-2": "tree-1"})
         arm("a composed GREEN is itself the answer for a re-gate of its tree (REUSED), and `measuring_runs` still reaches "
             "the run that measured the tests",
             "REUSED" in reused_inert.line and hri.events == []
             and [p.name for p in measuring_runs(run_dirs(d / "runs")[-1])] == [run_dirs(d / "runs")[1].name,
                                                                               run_dirs(d / "runs")[0].name],
             reused_inert.line)
-        code_after, hca = regate(d, trees=["tree-3"], inert_from=frozenset({"tree-2"}))
+        code_after, hca = regate(d, trees=["tree-3"], keys={"tree-3": "tree-1"})
         arm("an inert-only commit on top of a composed run composes with the run that measured the tests, never through "
             "the composed one's own (absent) trx",
             "COMPOSED" in code_after.line and hca.events == []
@@ -2627,17 +2913,182 @@ def self_test() -> int:
         d = root / "compose-inert-audit"
         d.mkdir()
         regate(d)
-        inert_red, hir = regate(d, trees=["tree-2"], inert_from=frozenset({"tree-1"}), plant={"audit"})
+        inert_red, hir = regate(d, trees=["tree-2"], keys={"tree-2": "tree-1"}, plant={"audit"})
         arm("a composed gate whose audits are RED is RED with nothing run (the audits are the only work it has)",
             inert_red.verdict == "RED" and hir.events == [] and hir.envs == {} and "RENDERED VIEWS RED" in inert_red.line,
             inert_red.line)
         d = root / "compose-inert-red"
         d.mkdir()
         regate(d, plant={"red"})
-        inert_retry, hrr = regate(d, trees=["tree-2"], inert_from=frozenset({"tree-1"}))
+        inert_retry, hrr = regate(d, trees=["tree-2"], keys={"tree-2": "tree-1"})
         arm("a RED run, then an inert-only commit, retries only the red case: the inert path costs no case",
             inert_retry.verdict == "GREEN" and sorted(hrr.envs) == ["Conformance"]
             and inert_retry.carried["Unit"] == 4 and "COMPOSED" not in inert_retry.line, inert_retry.line)
+
+        # A POPULATION STEP IS KEYED BY ITS INPUTS (kb/Work PB5205; owner 2026-11-10: "This is precisely what the Unix make
+        # and Windows MSBuild utilities are for. They rerun only what is required due to changes."). records-85's run
+        # 000001 passed all 64,465 cases and was RED only because the orchestrate self-tests hung; main then brought kb/,
+        # DEVLOG/ and three tooling-lane scripts, and the re-gate ran all 64,465 again.
+        same = {"tree-2": "tree-1"}   # tree-2 differs from tree-1 only in paths no compiler test or build reads
+        d = root / "compose-hang"
+        d.mkdir()
+        hang, hh1 = regate(d, plant={"tooling", "audit-after-hosts"})
+        hang_rec = read_record(run_dirs(d / "runs")[-1]) or {}
+        arm("an audit that turns RED after every test host has exited (a self-test that hung past the last host) stops no "
+            "host: the run is RED for the audit alone, its populations are measured EXACT and recorded with its tree_end, "
+            "audit_reds and population key",
+            hang.verdict == "RED" and "SELF-TESTS HANG" in hang.line and len(hang.populations) == 3
+            and all(pp.exact for pp in hang.populations.values()) and hang_rec.get("tree_end") == "tree-1"
+            and hang_rec.get("audit_reds") == ["SELF-TESTS HANG"] and bool(hang_rec.get("population_key"))
+            and populations_green(hang_rec), hang.line)
+        tool_hang, hth = regate(d, trees=["tree-2"], keys=same, plant={"tooling"})
+        arm("a run RED only for a hung self-test, then a tooling-only difference (one population key): the populations "
+            "are carried, the audits and the touched self-tests run, and no corpus fetch, slot, build or test host starts",
+            tool_hang.verdict == "GREEN" and hth.events == [] and hth.slots_taken == 0 and hth.envs == {}
+            and not hth.built and hth.audited and hth.tooling_seen is True and not tool_hang.runs
+            and tool_hang.composed_from == [run_dirs(d / "runs")[0].name]
+            and f"carried from run {run_dirs(d / 'runs')[0].name}" in tool_hang.line
+            and "the script self-tests among them" in tool_hang.line, f"{tool_hang.line} {hth.events}")
+        d = root / "compose-hang-code"
+        d.mkdir()
+        regate(d, plant={"tooling", "audit-after-hosts"})
+        hang_code, hhc = regate(d, trees=["tree-2"], plant={"tooling"})
+        arm("a run RED only for a hung self-test, then a difference in one path a compiler test or the build may read "
+            "(another population key): nothing is carried and everything runs",
+            hang_code.verdict == "GREEN" and hhc.events[:3] == ["fetch", "slot", "build"]
+            and sorted(hhc.envs) == sorted(GATED_ASSEMBLIES) and not hang_code.composed_from
+            and not any(hang_code.carried.values()) and hhc.tooling_seen is True, f"{hang_code.line} {hhc.events}")
+        d = root / "compose-tooling-green"
+        d.mkdir()
+        regate(d, plant={"tooling"})
+        tool_green, htg = regate(d, trees=["tree-2"], keys=same, plant={"tooling"})
+        arm("a GREEN run, then a tooling-only difference (one population key): the populations are carried and the "
+            "audits run WITH the script self-tests (each re-run where its recorded inputs changed), never 'nothing left'",
+            tool_green.verdict == "GREEN" and htg.events == [] and htg.envs == {} and htg.audited
+            and htg.tooling_seen is True and "COMPOSED" in tool_green.line
+            and "the script self-tests among them" in tool_green.line, f"{tool_green.line} {htg.tooling_seen}")
+        d = root / "compose-tooling-unbuilt"
+        d.mkdir()
+        regate(d)   # a GREEN run of a change that touched no script: no post-build self-test ran
+        unbuilt, hub = regate(d, trees=["tree-2"], keys=same, plant={"tooling"})
+        arm("a GREEN run that ran no post-build self-test does not answer a change that touches a script: its passes are "
+            "carried into a gate that builds and runs the post-build self-tests, and no test host starts",
+            unbuilt.verdict == "GREEN" and "build" in hub.events and hub.envs == {} and not unbuilt.runs
+            and sum(unbuilt.carried.values()) == 12 and "COMPOSED" not in unbuilt.line, f"{unbuilt.line} {hub.events}")
+
+        # THE REAL KEY (`Host.population_key`, `population_digest`) over a real repository: the classification decides it.
+        keyrepo = ScratchRepo.init(root / "keyrepo")
+        planted_tool, code_tool = "scripts/orchestrator/planted_tool.py", "scripts/standard_streams.py"
+        files = {"src/A.cs": "class A {}\n", "docs/n.md": "# n\n", "kb/Work/X.md": "x\n", planted_tool: "x = 1\n",
+                 code_tool: "y = 1\n"}
+        keyhost = Host(keyrepo.path)
+
+        def key_after(edit: dict[str, str], tools: str = "t1") -> str | None:
+            keyrepo.commit("edit", {**files, **edit})
+            return keyhost.population_key(keyhost.head_tree() or "", tools)
+
+        k0 = key_after({})
+        ks = {"docs": key_after({"docs/n.md": "# edited\n", "kb/Work/X.md": "y\n"}),
+              "tooling": key_after({planted_tool: "x = 2\n"}),
+              "src": key_after({"src/A.cs": "class A { int b; }\n"}),
+              "code-reads": key_after({code_tool: "y = 2\n"}),
+              "toolchain": key_after({}, tools="t2")}
+        arm("the population key: a docs/kb or tooling-lane edit leaves it equal; an edit under src/, an edit of a CODE_READS "
+            "script and another toolchain change it (inert_lane.Classification.is_population_input, the one definition)",
+            k0 is not None and len(k0) == 64 and ks["docs"] == k0 and ks["tooling"] == k0 and ks["src"] != k0
+            and len({ks["src"], ks["code-reads"], ks["toolchain"]}) == 3 and k0 not in (ks["code-reads"], ks["toolchain"])
+            and inert_lane.CLASSIFICATION.in_tooling_lane(planted_tool)
+            and inert_lane.CLASSIFICATION.is_population_input(code_tool), str(ks))
+
+        # RE-DERIVED EVIDENCE (kb/Work PB5205, `Gate.rederive`): a gate before the fix, stopped by a hung self-test after
+        # every host had exited, wrote `populations: {}` and `tree_end: null` over complete green results (records-85's
+        # run 000001). Each arm plants that record over a real planted run, then asks what its own files prove.
+        def old_stopped(d: Path, keep_listings: bool = False) -> Path:
+            regate(d)
+            r = run_dirs(d / "runs")[-1]
+            rec = read_record(r) or {}
+            for k in ("population_key", "audit_reds"):
+                rec.pop(k, None)
+            rec.update(verdict="RED", exit_code=1, reasons=["SELF-TESTS HANG"], populations={}, tree_end=None,
+                       line=f"{VERDICT}RED — SELF-TESTS HANG — fail-fast: an audit that ran beside the test hosts was RED "
+                            "and STOPPED them: their results are partial and NOT measured ===")
+            (r / VERDICT_FILE).write_text(json.dumps(rec), encoding="utf-8", newline="\n")
+            if not keep_listings:
+                for f in r.glob("listing-*.txt"):
+                    f.unlink()
+            return r
+
+        def rederive_in(d: Path, r: Path, **fake) -> tuple[Rederived, FakeHost]:
+            host = FakeHost(d, d / "gate.lock", **fake)
+            return Gate(host, d / "runs", say=sink.append).rederive(r), host
+
+        d = root / "rederive-passes"
+        d.mkdir()
+        r = old_stopped(d)
+        rd, _ = rederive_in(d, r)
+        Gate(FakeHost(d, d / "gate.lock"), d / "runs", say=sink.append).write_rederived(r, rd) if rd.record else None
+        written, original = read_record(r) or {}, json.loads((r / ORIGINAL_VERDICT_FILE).read_text(encoding="utf-8")) \
+            if (r / ORIGINAL_VERDICT_FILE).exists() else {}
+        after, hpa = regate(d, trees=["tree-2"], keys={"tree-2": "tree-1"})
+        arm("a stopped run with complete green trx and no listing is RECOVERED from its own files (passes): its record "
+            "gains tree_end, key and `rederived`, stays RED, keeps the original beside it, and the next gate at its key "
+            "builds and lists but starts no test host",
+            rd.record is not None and rd.level == "passes" and written.get("tree_end") == "tree-1"
+            and bool(written.get("population_key")) and written.get("rederived", {}).get("level") == "passes"
+            and written.get("exit_code") == 1 and original.get("tree_end") is None
+            and after.verdict == "GREEN" and "build" in hpa.events and hpa.envs == {} and sum(after.carried.values()) == 12,
+            f"{rd.refusals} {after.line} {hpa.events}")
+        d = root / "rederive-green"
+        d.mkdir()
+        r = old_stopped(d, keep_listings=True)
+        rd, _ = rederive_in(d, r)
+        Gate(FakeHost(d, d / "gate.lock"), d / "runs", say=sink.append).write_rederived(r, rd) if rd.record else None
+        after, hpg = regate(d, trees=["tree-2"], keys={"tree-2": "tree-1"})
+        arm("a stopped run with complete green trx and its key's listings is RECOVERED with its populations EXACT, so the "
+            "next gate at its key carries them with no build and no test host (COMPOSED)",
+            rd.record is not None and rd.level == "populations GREEN" and populations_green(rd.record)
+            and after.verdict == "GREEN" and hpg.events == [] and hpg.envs == {} and "COMPOSED" in after.line,
+            f"{rd.refusals} {after.line}")
+        d = root / "rederive-unfinished"
+        d.mkdir()
+        r = old_stopped(d)
+        (r / "Unit.log").write_text("  Passed N.Unit.A [1 s]\n", encoding="utf-8", newline="\n")   # killed: no verdict line
+        unfinished, _ = rederive_in(d, r)
+        d = root / "rederive-short"
+        d.mkdir()
+        r = old_stopped(d)
+        synthetic_trx(r / "Conformance.trx", [(n, ["Passed"]) for n in FakeHost.POPULATION["Conformance"][:-1]])
+        short, _ = rederive_in(d, r)
+        arm("a run with a host that never finished (no `Passed!` line) or a SHORT trx (fewer results than its host's line) "
+            "is REFUSED, naming the assembly and what is missing, and nothing is written",
+            unfinished.record is None and any("Unit" in x and "never finished" in x for x in unfinished.refusals)
+            and short.record is None and any("Conformance" in x and "not complete" in x for x in short.refusals)
+            and read_record(r).get("rederived") is None, f"{unfinished.refusals} | {short.refusals}")
+        d = root / "rederive-moved"
+        d.mkdir()
+        r = old_stopped(d)
+        moved_at = int(run_started(r) or 0) + 1   # a second after the gate started, by the hosts' own clock
+        os.utime(r / "Conformance.log", (moved_at + 1, moved_at + 1))   # the hosts' last write: after the move
+        host = FakeHost(d, d / "gate.lock")
+        host.reflog = [("head-2", moved_at), ("head-1", 0)]
+        moved = Gate(host, d / "runs", say=sink.append).rederive(r)
+        arm("a run whose HEAD moved while it ran (a reflog entry between its start and its hosts' last write) is REFUSED",
+            moved.record is None and any("HEAD moved while the run ran" in x for x in moved.refusals), str(moved.refusals))
+        d = root / "rederive-toolchain"
+        d.mkdir()
+        r = old_stopped(d)
+        other, _ = rederive_in(d, r, tools="dotnet-sdk 9.0.100, python 3.12.0")
+        d = root / "rederive-reason"
+        d.mkdir()
+        r = old_stopped(d)
+        rec = read_record(r) or {}
+        (r / VERDICT_FILE).write_text(json.dumps({**rec, "reasons": ["SELF-TESTS HANG", "Unit POPULATION UNMEASURED (x)"]}),
+                                      encoding="utf-8", newline="\n")
+        reason, _ = rederive_in(d, r)
+        arm("a run recorded under another toolchain, or RED for a reason no audit gave, is REFUSED",
+            other.record is None and any("toolchain" in x for x in other.refusals)
+            and reason.record is None and any("reasons no audit gave" in x for x in reason.refusals),
+            f"{other.refusals} | {reason.refusals}")
 
         # THE GATE HAS NO LINUX HALF (kb/Work PB4327; owner 2026-10-31, PIPELINE-REVIEW.md section 7): the Linux half of
         # the targeted leg re-ran on WSL the leg Windows had just run, and every merge group runs the whole Linux
@@ -2932,6 +3383,42 @@ def print_flush(line: str) -> None:
     print(line, flush=True)
 
 
+def rederive_main(run: Path, dry_run: bool) -> int:
+    """`--rederive RUN [--dry-run]` (kb/Work PB5205; `Gate.rederive`): what the run's own evidence proves, the population
+    key of its recorded tree and of its worktree's HEAD tree now, and whether a gate at HEAD would carry its passes. 0 when
+    it is proved (and, without --dry-run, the record rewritten), 1 when refused, 2 when RUN is no run of a worktree."""
+    wt = run.parent.parent.parent
+    if run.parent != wt / RUN_ROOT or not run.is_dir():
+        print(f"{VERDICT}NOT RUN — {run} is not a run directory of a worktree ({RUN_ROOT}/<run>) ===")
+        return 2
+    host = Host(wt)
+    gate = Gate(host, wt / RUN_ROOT, say=print)
+    rd = gate.rederive(run)
+    for line in rd.found:
+        print(f"  found    {line}")
+    for line in rd.refusals:
+        print(f"  REFUSED  {line}")
+    rec = read_record(run) or {}
+    tools = str(rec.get("toolchain") or "")
+    key_then = host.population_key(str(rec.get("tree")), tools) if rec.get("tree") else None
+    head_tree = host.head_tree()
+    key_now = host.population_key(head_tree, tools) if head_tree else None
+    print(f"  key of the run's tree {str(rec.get('tree'))[:12]}: {key_then}")
+    print(f"  key of HEAD's tree {str(head_tree)[:12]} (head {str(host.head())[:12]}): {key_now}")
+    carries = rd.record is not None and key_then is not None and key_then == key_now
+    how = ("its passes stand at HEAD: a gate there would carry them, "
+           + ("running only its audits" if rd.level == "populations GREEN" else
+              "build and list the population, and run only the cases they do not cover")) if carries else \
+        ("HEAD's key differs, so a gate there runs everything" if rd.record is not None else "nothing is carried")
+    if rd.record is None:
+        print(f"=== REDERIVE {run.name}: REFUSED — {len(rd.refusals)} reason(s); {how} ===")
+        return 1
+    if not dry_run:
+        gate.write_rederived(run, rd)
+    print(f"=== REDERIVE {run.name}: PROVED ({rd.level}){' — dry run, nothing written' if dry_run else ''}; {how} ===")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base", help="the change's cut point (default: git merge-base HEAD origin/main)")
@@ -2943,6 +3430,10 @@ def main() -> int:
     ap.add_argument("--wait-s", type=float, default=AWAIT_WAIT_S, help=f"--await: how long to wait for the verdict "
                     f"(default {AWAIT_WAIT_S}, under a tool call's 10-minute limit)")
     ap.add_argument("--run", metavar="RUN", help="(the detached gate itself, started by build-local; not by hand)")
+    ap.add_argument("--rederive", metavar="RUN", help="re-derive a run's population evidence from its own trx, host logs "
+                    "and HEAD's reflog, and rewrite its record (the original kept beside it) when it is proved (kb/Work "
+                    "PB5205); a relative RUN is --worktree's")
+    ap.add_argument("--dry-run", action="store_true", help="--rederive: say what it proves and write nothing")
     ap.add_argument("--self-test", action="store_true", help="fire every arm on planted inputs (DESIGN §3.14.4 (3))")
     ap.add_argument("--audit-shape", action="store_true", help="the ONE SHAPE audit: no live line names a gate mode "
                     "(kb/Work PB3022)")
@@ -2951,6 +3442,8 @@ def main() -> int:
         return self_test()
     if args.audit_shape:
         return audit_shape_main()
+    if args.rederive:
+        return rederive_main(resolve_run(args.rederive, args.worktree), args.dry_run)
     if args.await_run:
         run = resolve_run(args.await_run, args.worktree)
         code, line = watch(run, args.wait_s, gate_running(run))

@@ -811,7 +811,7 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
   gate CHECKS it on every run by name (§3.14.4) and a drift test proves the check fires.
 - ⛔ **Nothing narrows a gate's host.** The one variable a test host's framework reads from the gate,
   `WISEOWL_COBOL_GATE_FIRST`, only ORDERS (§3.14.2); the other, `WISEOWL_COBOL_GATE_ONLY`, names the cases a RE-GATE of
-  a code state an earlier run measured still has to run, and the population check composes the passes that run carried
+  a population key an earlier run measured still has to run, and the population check composes the passes that run carried
   (§3.14.12 item 5); CI's shard variable `WISEOWL_COBOL_SHARD` divides a merge-group run
   whose union `ci-gate` checks (§1.4); every other caller scrubs all three and the MSBuild VSTest channels, and every
   whole-assembly run — the battery and CI as well as the gate — asserts its population with one tool (§3.14.4).
@@ -827,8 +827,8 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
 - **A gate outlives its caller, and a measured tree is gated once** (kb/Work PB3536; §3.14.12): it runs DETACHED in its
   run directory and its verdict file is the one thing any reader waits on, and a re-gate of an unchanged tree answers
   from the recorded GREEN, saying `REUSED` (never from a record of schema below 5, which a gate before PB4328 wrote and
-  which may be a `LEG 1 ONLY` one); a re-gate of a code state that was gated before runs only what that run did not
-  pass (`COMPOSED`, kb/Work PB5099; §3.14.12 item 5).
+  which may be a `LEG 1 ONLY` one); a re-gate whose population key (the populations' inputs) was gated before runs only
+  what that run did not pass (`COMPOSED`, kb/Work PB5099, PB5205; §3.14.12 item 5).
 
 #### 3.14.2 The order: the classes red last time first, then longest first (kb/Work PB4328)
 
@@ -1300,23 +1300,55 @@ since, so nothing ran (run <this run>); that gate: … ===`. It is the self-test
 keyed on what was measured rather than on a branch or a head; a RED is never reused. A reused record carries its own seconds
 (`timings.wall_s`), so `landing_measure.py` counts what each gate cost.
 
-**5. Composition: a re-gate runs only what has not passed (kb/Work PB5099, owner 2026-11-09: "If only one test failed, any
-retry should test only that one case").** THE RULE (CLAUDE.md "Testing", 2026-10-31) asks that every case the merge group runs
-on Windows already ran green AT THE PUSHED HEAD on this host under the same `toolchain.env`, never that it ran green in ONE
-run. Wave 20261972's gate of tree fc15c9ace5 went RED on one harness non-observation among 63,000 cases and the re-gate of
-the same tree spent 58 more minutes running the 63,000 again. `Gate.carry` is the composition rule: an EARLIER RUN of this
-worktree counts when it is a full-lane run (schema 5 on) that measured its own tree and did not see it change while it ran
-(`tree` equals `tree_end`; an audit-stopped run has no `tree_end` and counts for nothing), ran under THIS toolchain (`toolchain`
-equals), is not itself a REUSED record, and its tree IS this tree or differs from it only in paths `inert_lane.py classify`
-calls inert (`Host.code_state_diff`: the one place that asks, `[]` for the same tree, None for any path a test or the build may
-read). A tree that changed in one such path runs everything, as before: there is no composition across two code states.
-Then, by the newest qualifying run's verdict:
-  * a GREEN one measured the whole population: nothing is left to run. The gate runs only its audits (they read the tree, and
-    an inert commit is exactly what they audit), takes no corpus fetch, slot, build or host, and says `GREEN — COMPOSED (kb/Work
-    PB5099): run <it> measured this code state GREEN (its tree … <is it | differs from it in n path(s), all inert …>), so its
-    populations stand`. Its record keeps `lane: full` and names the run(s) in `composed_from`, flattened (the GREEN run and the
-    runs it composed with). The same tree again is then REUSED from this record (item 4); a base other than the earlier run's no
-    longer forces a re-run, because a base only decides the lane.
+**5. Composition: a population step is keyed by its inputs, and a re-gate runs only what has not passed at that key
+(kb/Work PB5099, owner 2026-11-09: "If only one test failed, any retry should test only that one case"; kb/Work PB5205, owner
+2026-11-10: "This is precisely what the Unix make and Windows MSBuild utilities are for. They rerun only what is required due
+to changes.").** THE RULE (CLAUDE.md "Testing", 2026-10-31) asks that every case the merge group runs on Windows already ran
+green AT THE PUSHED HEAD on this host under the same `toolchain.env`, never that it ran green in ONE run. Wave 20261972's gate
+of tree fc15c9ace5 went RED on one harness non-observation among 63,000 cases and the re-gate of the same tree spent 58 more
+minutes running the 63,000 again; records-85's gate of tree 241f5fbb05 passed all 64,465 cases and was RED only because the
+orchestrate self-tests hung, and its re-gate after a merge of main that brought 61 `kb/` files, 2 `DEVLOG/` files and three
+tooling-lane scripts ran the 64,465 again. The populations are therefore a step keyed by a digest of THEIR INPUTS, the rule a
+script self-test has had since §3.14.10: the POPULATION KEY (`Host.population_key`, `gate.population_digest`) is the sha256 of
+the toolchain and of every `git ls-tree -r` entry of the measured tree (mode, object id, path: no file is read, about 0.7 s
+for 35,000 paths) whose path a compiler test or the build may read, which is `inert_lane.Classification.is_population_input`:
+neither inert nor a tooling-lane path, the ONE definition the code lane is made of (`classify` asks it too). Every full-lane
+record keeps its key (`population_key`) and its audits' own reds (`audit_reds`). `Gate.carry` is the composition rule: an
+EARLIER RUN of this worktree counts when it is a full-lane run (schema 5 on) that measured its own tree and did not see it
+change while it ran (`tree` equals `tree_end`; an audit-stopped run has no `tree_end` and counts for nothing), is not itself a
+REUSED record, and recorded THIS key. The same tree, and a tree that differs only in inert or tooling-lane paths, are cases of
+that one rule; a path a compiler test or the build may read (one under `src/`, a `CODE_READS` script, a `TOOLING_READS` data
+file), or another toolchain, makes another key, and another key runs everything: there is no composition across two keys.
+An audit is never carried: every gate runs its audits at its own tree (the script self-tests among them when the change
+touches a script, each re-run where its recorded inputs changed, §3.14.10), so a tooling difference still runs exactly the
+self-tests it touches. An audit that turns RED after every test host has exited (a self-test that hangs past the last host)
+stops no host (`_Live.stopped_any`): the hosts' results are whole, the populations are measured and recorded, and the verdict
+is RED for the audit alone. A run whose gate predates that (or that an audit stopped) can have its evidence RE-DERIVED
+from its own files: `gate.py --rederive <run> [--dry-run]` (`Gate.rederive`) proves, or refuses naming what is missing, that
+its record is a full-lane one; its recorded toolchain is this host's; every gated assembly's host exited 0, its log ends in
+the host's own `Passed!  - Failed: 0, Passed: P, Skipped: S, Total: T` line and its trx is COMPLETE against that line
+(`gate.result_outcomes`: T results, P Passed, S NotExecuted; results, not definitions, because theory rows that
+share a display name are one definition); every reason is an audit's; and its tree stood while it ran, which no file of the
+run records, so the evidence is the worktree's: the run measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog
+puts HEAD at the recorded head at the run's start (its `gate.pid`'s time, written before the tree was measured; the
+filesystem's clock, the hosts' and the reflog's, never the driver's) with no move until the hosts' last write (the
+residue, written into the record: an uncommitted edit made and undone inside that window is in no reflog). Its key is
+computed from its RECORDED tree. A proved record keeps its verdict, line and exit code (RED), gains `tree_end`,
+`population_key`, `audit_reds` and `rederived` (when, the evidence, the residue), and the original stays beside it as
+`verdict.original.json`. When a run at the same key kept the listings (`listing-<asm>.txt`), the trx are checked EXACT
+against them by the live check and the record gains its `populations` ("populations GREEN": the next gate composes with no
+build); else it is "passes": the next gate builds, lists, runs only the cases the carried passes do not cover and checks the
+population EXACT, the live gate's own check. Neither can turn a partial run into a pass. Then, by the newest qualifying run:
+  * one whose POPULATIONS were measured GREEN (`gate.populations_green`: its verdict GREEN, or RED only for its audits, every
+    reason one of its `audit_reds`, every host green and every population EXACT) leaves nothing of the populations to run. The
+    gate runs only its audits, takes no corpus fetch, slot, build or host, and says `GREEN — COMPOSED (kb/Work PB5099, PB5205):
+    the population passes are carried from run <it>, which measured them GREEN <at this tree | at tree …, whose population key
+    … is this tree's …>; what ran now: the audits[, the script self-tests among them …], GREEN`. A change that touches a script
+    owes the post-build self-tests (§3.14.10), which need a build: a run that did not run them answers through the next bullet
+    instead (its passes carried into a gate that builds, runs them and starts no host). The record keeps `lane: full` and its
+    key, and names the run(s) in `composed_from`, flattened (that run and the runs it composed with). The same tree again is
+    then REUSED from this record (item 4); a base other than the earlier run's no longer forces a re-run, because a base only
+    decides the lane.
   * otherwise every earlier qualifying run's PASSES (`test_population.passed_cases`: a definition with a Passed result and no
     Failed one; a failed case, a harness non-observation and a skip are not passes) are carried. The gate still takes the slot
     and builds, lists the population first (about 2 s per assembly), writes for each assembly the listed names the carried
