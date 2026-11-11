@@ -1569,8 +1569,11 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   no runtime registry for local dispatch. The return is VOID only in an EC-FREE group (continue after the failing
   statement, GR7b); a group that uses the EC model gets the int-returning `__RunUse` and an int `__IoCheck` that hand
   the dispatch result back to the verb site (kb/Work PB141). One settled deviation: a successful
-  CLOSE resets the connector's open-mode view to none (§2023:9.1.4) — a failed OPEN records the ATTEMPTED mode for
-  GR6b "being opened" scoping.
+  CLOSE resets the connector's open-mode view to none (§2023:9.1.4) — the mode an OPEN statement attempts is the file's
+  BEING-OPENED mode for GR6b scoping (`CobolFile.BeginOpen`/`EndOpen`, emitted around the OPEN, its status store and its
+  USE hook by `SequentialIoEmitter.EmitOpenScope`, the SORT/MERGE implicit opens too), set before the OPEN does anything
+  so a refused OPEN ('41', '38') has it, and ended with the statement so no later statement finds a failed OPEN's mode
+  (kb/Work PB5200).
   **⛔ THE PAIR HANDED TO `__RunUse` IS THE DECLARATIVE SECTION'S OWN `PcRange`, AND NOTHING SHORTENS IT**
   (`BoundDeclarative.Range`, rendered at the ONE site `DispatchState.RunUseCall`). §2023:14.9.49.3 SR1 makes the use
   procedure "the remainder of the section", §2023:14.4.2 ends that section only at the next section header or END

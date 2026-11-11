@@ -1980,6 +1980,14 @@ internal static class RuntimeApi
     public static string FileRegisterSharing(string name, string argsFragment) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterSharing)}({name}, {argsFragment})";
 
+    /// <summary>An OPEN statement's being-opened scope (§2023:14.9.49.4 GR6 b)–e)) — <c>CobolFile.BeginOpen</c>.</summary>
+    public static string FileBeginOpen(string name, Binding.Bound.BoundOpenMode mode) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.BeginOpen)}({name}, {FileOpenModeExpr(mode)})";
+
+    /// <summary>The end of that scope — <c>CobolFile.EndOpen</c>.</summary>
+    public static string FileEndOpen(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.EndOpen)}({name})";
+
     /// <summary>The sharing-governed OPEN (Table 19 → status 61) — <c>CobolFile.OpenShared</c>.</summary>
     public static string FileOpenShared(string name, string argsFragment) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenShared)}({name}, {argsFragment})";
