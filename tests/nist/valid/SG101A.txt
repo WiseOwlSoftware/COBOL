@@ -1,0 +1,178 @@
+
+                            FEDERAL COMPILER TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM                          
+                                                                                                                        
+CCVS74 NCC  COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SG101A                                           
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1974          
+                                                                                                                        
+                                                                                                                        
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS                     
+ TESTED               FAIL                                                                                              
+                                                                                                                        
+ ***********************************************************************************************************************
+ SEGMENTATION         PASS  SEG-TEST-1                                                                                  
+ SEGMENTATION         PASS  SEG-TEST-2                                                                                  
+ SEGMENTATION         PASS  SEG-TEST-3                                                                                  
+ SEGMENTATION         PASS  SEG-TEST-4                                                                                  
+ SEGMENTATION         PASS  SEG-TEST-5                                                                                  
+ SEGMENTATION         PASS  SEG-TEST-6                                                                                  
+ SEGMENTATION         PASS  SEG-TEST-7                                                                                  
+ SEGMENTATION         PASS  SEG-TEST-8                                                                                  
+ SEGMENTATION         PASS  SEG-TEST-9                                                                                  
+ SEGMENTATION         PASS  SEG-TEST-10                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-11                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-12                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-13                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-14                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-15                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-16                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-17                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-18                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-19                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-20                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-21                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-22                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-23                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-24                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-25                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-26                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-27                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-28                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-29                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-30                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-31                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-32                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-33                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-34                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-35                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-36                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-37                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-38                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-39                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-40                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-41                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-42                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-43                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-44                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-45                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-46                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-47                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-48                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-49                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-50                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-51                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-52                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-53                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-54                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-55                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-56                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-57                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-58                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-59                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-60                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-61                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-62                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-63                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-64                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-65                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-66                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-67                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-68                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-69                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-70                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-71                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-72                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-73                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-74                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-75                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-76                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-77                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-78                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-79                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-80                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-81                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-82                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-83                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-84                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-85                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-86                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-87                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-88                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-89                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-90                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-91                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-92                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-93                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-94                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-95                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-96                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-97                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-98                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-99                                                                                 
+ SEGMENTATION         PASS  SEG-TEST-100                                                                                
+ SEGMENTATION         PASS  SEG-TEST-101                                                                                
+ SEGMENTATION         PASS  SEG-TEST-102                                                                                
+ SEGMENTATION         PASS  SEG-TEST-103                                                                                
+ SEGMENTATION         PASS  SEG-TEST-104                                                                                
+ SEGMENTATION         PASS  SEG-TEST-105                                                                                
+ SEGMENTATION         PASS  SEG-TEST-106                                                                                
+ SEGMENTATION         PASS  SEG-TEST-107                                                                                
+ SEGMENTATION         PASS  SEG-TEST-108                                                                                
+ SEGMENTATION         PASS  SEG-TEST-109                                                                                
+ SEGMENTATION         PASS  SEG-TEST-110                                                                                
+ SEGMENTATION         PASS  SEG-TEST-111                                                                                
+ SEGMENTATION         PASS  SEG-TEST-112                                                                                
+ SEGMENTATION         PASS  SEG-TEST-113                                                                                
+ SEGMENTATION         PASS  SEG-TEST-114                                                                                
+ SEGMENTATION         PASS  SEG-TEST-115                                                                                
+ SEGMENTATION         PASS  SEG-TEST-116                                                                                
+ SEGMENTATION         PASS  SEG-TEST-117                                                                                
+ SEGMENTATION         PASS  SEG-TEST-118                                                                                
+ SEGMENTATION         PASS  SEG-TEST-119                                                                                
+ SEGMENTATION         PASS  SEG-TEST-120                                                                                
+ SEGMENTATION         PASS  SEG-TEST-121                                                                                
+ SEGMENTATION         PASS  SEG-TEST-122                                                                                
+ SEGMENTATION         PASS  SEG-TEST-123                                                                                
+ SEGMENTATION         PASS  SEG-TEST-124                                                                                
+ SEGMENTATION         PASS  SEG-TEST-125                                                                                
+ SEGMENTATION         PASS  SEG-TEST-126                                                                                
+ SEGMENTATION         PASS  SEG-TEST-127                                                                                
+ SEGMENTATION         PASS  SEG-TEST-128                                                                                
+ SEGMENTATION         PASS  SEG-TEST-129                                                                                
+ SEGMENTATION         PASS  SEG-TEST-130                                                                                
+ SEGMENTATION         PASS  SEG-TEST-131                                                                                
+ SEGMENTATION         PASS  SEG-TEST-132                                                                                
+ SEGMENTATION         PASS  SEG-TEST-133                                                                                
+ SEGMENTATION         PASS  SEG-TEST-134                                                                                
+ SEGMENTATION         PASS  SEG-TEST-135                                                                                
+ SEGMENTATION         PASS  SEG-TEST-136                                                                                
+ SEGMENTATION         PASS  SEG-TEST-137                                                                                
+ SEGMENTATION         PASS  SEG-TEST-138                                                                                
+ SEGMENTATION         PASS  SEG-TEST-139                                                                                
+ SEGMENTATION         PASS  SEG-TEST-140                                                                                
+ SEGMENTATION         PASS  SEG-TEST-141                                                                                
+ SEGMENTATION         PASS  SEG-TEST-142                                                                                
+ SEGMENTATION         PASS  SEG-TEST-143                                                                                
+ SEGMENTATION         PASS  SEG-TEST-144                                                                                
+ SEGMENTATION         PASS  SEG-TEST-145                                                                                
+ SEGMENTATION         PASS  SEG-TEST-146                                                                                
+ SEGMENTATION         PASS  SEG-TEST-147                                                                                
+ SEGMENTATION         PASS  SEG-TEST-148                                                                                
+ SEGMENTATION         PASS  SEG-TEST-149                                                                                
+ SEGMENTATION         PASS  SEG-TEST-150                                                                                
+ SEGMENTATION         PASS  SEG-TEST-151                                                                                
+ ***********************************************************************************************************************
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                    END OF TEST-  SG101A    NTIS DISTRIBUTION COBOL 74                  
+                                                                                                                        
+                                                    151 OF 151  TESTS WERE EXECUTED SUCCESSFULLY                        
+                                                    NO  TEST(S) FAILED                                                  
+                                                    NO  TEST(S) DELETED                                                 
+                                                    NO  TEST(S) REQUIRE INSPECTION                                      
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1974

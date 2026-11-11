@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.3.4.3-2",
  "rule-digest": "ac168d693842",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindCodeSetClause; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Medium; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#CodedCharacterSetOf; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBind",
  "test-ref": "conformance:cases/VII.3.4@1985-CODE-SET-CLAUSE/1985-SR-VII_3_4_3-2",
+ "notes": "§1985:VII.3.4.3 SR2 requires a refusal: \"The alphabet-name clause referenced by the CODE-SET clause must not specify the literal phrase.\" BindCodeSetClause resolves the name through CodedCharacterSetOf and refuses with COBOL1672 every set whose CodedCharacterSet.Medium is NotProvided; AlphabetBind gives every literal-phrase alphabet a non-null collating Table and no code-name, which is exactly the NotProvided test (CodeName is null and Table is not null), so the refusal has no edition arm and reaches 85 as it reaches 2023 (where it stands as the A.3 item 27 non-support). The witness refuses CODE-SET IS A1 for ALPHABET A1 IS \"A\" THRU \"Z\"; probes at --std 85 also refuse the identity-shaped literal phrase (1 THRU 256) and an ALSO phrase, and accept STANDARD-1. The message words the ground as the 2023 device non-support, not as this syntax rule.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

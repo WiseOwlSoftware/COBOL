@@ -6,7 +6,6 @@
   "edition": 2023,
   "to": [
    "GR-9.1.13.6-1",
-   "GR-9.1.13.6-2",
    "GR-9.1.13.6-3",
    "GR-9.1.13.6-4",
    "GR-9.1.13.6-5",
@@ -15,7 +14,7 @@
    "GR-14.9.49.4-6"
   ],
   "bridge": true,
-  "reason": "1985 Permanent Error, including 'Any specified exception procedures are executed' and 'remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique is invoked', is word for word in §2023:9.1.13.1 ('The permanent error condition remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique is invoked'), read in the transcription; the recheck's OPEN came only from not seeing it. Catalogued carriers: the class-3 values (§2023:9.1.13.6 GR1 'A permanent error exists and no further information is available', through 39) and USE procedures run 'upon the unsuccessful execution of an input-output operation' (§2023:14.9.49.4 GR6). CATALOG GAP (kb/Work PB479): the persistence sentence has no rule id.",
-  "source": "adjudicate-712-r2/slice-01"
+  "reason": "1985 Permanent Error, including 'Any specified exception procedures are executed' and 'remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique is invoked', is word for word in §2023:9.1.13.1 ('The permanent error condition remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique is invoked'), prose with no catalog row (kb/Work PB479). Catalogued carriers: the class-3 values (30, 35, 37 and 39 are in §1985:IX.1.3.4 too; 34 is sequential), §2023:9.1.13.6 GR1 'A permanent error exists and no further information is available' and GR3 to GR7, and USE procedures run 'upon the unsuccessful execution of an input-output operation' (§2023:14.9.49.4 GR6). §2023:9.1.13.6 GR2 (status 31, 'the data-name specified in the USING phrase of the file control entry') is NOT a carrier: 1985 has no status 31 and its ASSIGN clause names only 'implementor-name-1 or literal-1' (§1985:IX.2.3.4 GR5), so no 1985 program reaches it (band-85 adjudication 2026-11-10). Same requirement.",
+  "source": "band-85/slice-11"
  }
 }

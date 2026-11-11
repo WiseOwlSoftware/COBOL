@@ -86,13 +86,13 @@
            OPEN OUTPUT IXF
            MOVE "AB01" TO IX-KEY
            MOVE "V1" TO IX-VAL
-           WRITE IX-REC
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
            MOVE "CD03" TO IX-KEY
            MOVE "V3" TO IX-VAL
-           WRITE IX-REC
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
            MOVE "AB02" TO IX-KEY
            MOVE "V2" TO IX-VAL
-           WRITE IX-REC
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
            CLOSE IXF
       *> ---- L1: the omitted KEY phrase implies EQUAL TO the prime key
            OPEN INPUT IXF

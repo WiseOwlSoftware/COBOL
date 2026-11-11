@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.14.3-1",
  "rule-digest": "7b22374891f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#SequenceRuleOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#StatementPosition; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLeadingSentences",
  "test-ref": "conformance:cases/VI.6.14@1985-EXIT-STATEMENT/1985-SR-VI_6_14_3-1",
+ "notes": "§1985:VI.6.14.3 SR1: \"The EXIT statement must appear only in a sentence by itself and comprise the only sentence in the paragraph.\" BindStatement asks RefusedOutOfSequence of every statement; SequenceRuleOf gives a bare EXIT the ExitAlone row, which reports COBOL2966 when the EXIT is inside another statement (StatementPosition.Sentence is null), shares its sentence (IsSentenceByItself false), or is not the only sentence of its paragraph (SentencesInParagraph is not 1). That row is the 2023 rule at every edition, and the 2023 rule also admits an EXIT sentence as the only sentence of a section without paragraphs; the 1985 edition closes that second case elsewhere: GateLeadingSentences refuses any sentence before the first paragraph-name of the procedure division or of a section at --std 85 (COBOL0900, procedure-without-leading-paragraph-2002), so at 85 an EXIT can stand only in a paragraph. Probed at 85: EXIT alone in its paragraph accepted (PERFORM P-A THRU P-X runs); refused COBOL2966 with a sentence after it, a sentence before it, a second EXIT sentence, a statement after it in the sentence, a statement before it (the witness, MOVE 1 TO N EXIT.), inside IF with and without ELSE, and inside an inline PERFORM; S2 SECTION. EXIT. and EXIT. straight after the division header refused COBOL0900.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

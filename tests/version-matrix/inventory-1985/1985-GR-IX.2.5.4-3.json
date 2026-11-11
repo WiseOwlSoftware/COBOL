@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.2.5.4-3",
  "rule-digest": "b4527144c25c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AddAlternateKey; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Duplicates; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOrder",
  "test-ref": "conformance:cases/IX.2.5@1985-ALTERNATE-RECORD-KEY-CLAUSE/1985-GR-IX_2_5_4-3",
+ "notes": "§1985:IX.2.5.4 GR3: \"The DUPLICATES phrase specifies that the value of the associated alternate record key may be duplicated within any of the records in the file. If the DUPLICATES phrase is not specified, the value of the associated alternate record key must not be duplicated among any of the records in the file.\" BindFileControl records the phrase's presence per ALTERNATE RECORD KEY clause, EmitRegistration passes it to IndexedConnector.AddAlternateKey, and Write and Rewrite ask Duplicates (a seek for an equal value in that key's tree, the rewritten record itself excluded) for every alternate key: a duplicate of a key without the phrase makes the statement unsuccessful with status 22 before anything is stored, a duplicate of a key with it is stored (status 02). The 2023 difference the change record names, equality under a declared collating sequence, cannot arise at 85: the file COLLATING SEQUENCE clause is refused there, so KeyOrder gives the native byte order and equality is identity of the key's characters. Probed at 85: WRITE and REWRITE of a duplicate under the unique key give 22, under the DUPLICATES key 02, a value differing only in case is not a duplicate, and the value is free again after DELETE. The witness writes a duplicate under each of the two keys and counts the two records of the duplicated value.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

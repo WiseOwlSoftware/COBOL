@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.2.12.2",
  "rule-digest": "e8eb1fd10968",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rerunClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rerunEvery; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenRerunClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ResolveIoControlFile; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral",
  "test-ref": "conformance:cases/VII.2.12@1985-RERUN-CLAUSE/1985-FMT-VII_2_12_2",
+ "notes": "§1985:VII.2.12.2 prints RERUN, an optional ON file-name-1 or implementor-name-1, the optional word EVERY, and one of: [END OF] REEL or UNIT, or integer-1 RECORDS, each followed by OF file-name-2; 'integer-2 CLOCK-UNITS'; or condition-name-1. rerunClause and rerunEvery spell those four arms with EVERY and both OFs optional and only END, REEL, UNIT, RECORDS and CLOCK-UNITS required; the RECORDS arm parses without its file so that ScreenRerunClauses, run from BindIoControl at every edition (the clause is removed only from 2002), refuses the missing file-name-2 by name (COBOL6496), resolves file-name-2 (COBOL1639) and reads the ON word as file-name-1 when it names a file and as implementor-name-1 otherwise; IntegerOperandPass refuses a zero integer-1 or integer-2 (COBOL2386, §1985:III.2). Probed at --std 85: every arm, with and without ON, EVERY, END OF and OF, is accepted; EVERY 100 OF F, END OF F, REEL with no file, RERUN ON X alone, two ON phrases, two EVERY operands, 0 RECORDS, 0 CLOCK-UNITS and +5 RECORDS are refused. RERUN EVERY condition-name-1 with no ON phrase, which the format's brackets admit, is refused (COBOL6530) on §1985:VII.2.12.4 GR2, whose seven forms write ON with condition-name-1 and of which the implementor 'must provide at least one'. The witness refuses RERUN ON RERUN-DEV EVERY 100 RECORDS. with COBOL6496.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

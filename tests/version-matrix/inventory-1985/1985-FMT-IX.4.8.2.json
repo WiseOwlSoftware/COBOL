@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-IX.4.8.2",
  "rule-digest": "ec80c8140ea3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useOnTarget; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
  "test-ref": "conformance:cases/IX.4.8@1985-USE-STATEMENT/1985-FMT-IX_4_8_2",
+ "notes": "§1985:IX.4.8.2 prints USE AFTER STANDARD { EXCEPTION | ERROR } PROCEDURE ON { { file-name-1 } ... | INPUT | OUTPUT | I-O | EXTEND }, with USE, AFTER, EXCEPTION / ERROR and PROCEDURE underlined and STANDARD and ON not. The superset Format 1 alternative of useStatement (USE GLOBAL? AFTER? STANDARD? (EXCEPTION | ERROR) PROCEDURE? ON? useOnTarget) with useOnTarget (one open mode, or fileName+) parses it, and the 1985 edition reaches its two required words through VisitUseStatement, which at --std 85 refuses a Format 1 USE without AFTER (use-without-after-2002) and without PROCEDURE (use-without-procedure-2002), both COBOL0900; the same visitor refuses the 2002 formats USE AFTER EXCEPTION CONDITION / EC and EXCEPTION OBJECT / EO. DeclBindUse binds the operand: one open mode per statement or the list of file-names. Probed at 85: USE AFTER STANDARD EXCEPTION PROCEDURE ON F1 F2 runs the procedure for each file's failed OPEN, USE AFTER ERROR PROCEDURE INPUT (STANDARD and ON omitted) and ... ON I-O run for the matching open mode only, ... ON EXTEND compiles; USE STANDARD ERROR PROCEDURE ..., USE AFTER STANDARD ERROR ON ..., ON INPUT OUTPUT, ON F1 INPUT, EXCEPTION ERROR together, ON with no operand, and USE AFTER EC EC-I-O are each refused. GLOBAL, which this format does not print, is the Inter-Program Communication module's addition to the same statement (§1985:X.5.5.2) and is rightly accepted at 85. The witness declares USE AFTER STANDARD ERROR PROCEDURE ON one indexed file and shows the procedure run on a READ of an absent key.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

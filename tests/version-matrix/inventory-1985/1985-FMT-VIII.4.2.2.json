@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VIII.4.2.2",
  "rule-digest": "a965e7cdfce6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#closeStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#closeFilePhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#closeOption; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
  "test-ref": "conformance:cases/VIII.4.2@1985-CLOSE-STATEMENT/1985-FMT-VIII_4_2_2",
+ "notes": "§1985:VIII.4.2.2 prints the relative file's CLOSE as \"CLOSE { file-name-1 [ WITH LOCK ] } ...\": one or more file-names, each with an optional LOCK phrase whose WITH is an optional word, and no REEL, UNIT or NO REWIND. closeStatement and closeFilePhrase parse the list and closeOption the phrase; BindClose resolves each name to a file (COBOL1639 for a record-name or an undefined name), binds LOCK as BoundCloseKind.WithLock for any organization, and refuses REEL, UNIT, FOR REMOVAL and NO REWIND on a file that is not sequential (COBOL1693), which is what keeps the superset closeOption to this format for a relative file; VisitCloseOption removes WITH LOCK only at 2023, so 85 reaches it. Probes at --std 85 accept LOCK with and without WITH on files of one statement (a later OPEN returns status 38), and refuse the three tape phrases, a repeated LOCK phrase, LOCK before the file-name and CLOSE with no file-name; the witness closes two relative files plainly and then one of them WITH LOCK.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

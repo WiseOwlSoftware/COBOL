@@ -43,7 +43,12 @@ public sealed record BoundProgram(
     // re-propagates an exception OBJECT (kb/Work PB1119); the whole phrase is §2023:8.13's "exceptions that may be raised by
     // the runtime element", which the unit's repository record states (DESIGN-external-repository §6.1; kb/Work PB2100).
     // Empty for a class unit: each METHOD carries its own (OoMethodSymbol.Raising).
-    IReadOnlyList<RaisingTarget>? Raising = null);
+    IReadOnlyList<RaisingTarget>? Raising = null,
+    // The COBOL-85 segment-number of each pc's section (§1985:XVI.3.2.4 GR1; kb/Work PB5084), null unless a section of the
+    // unit is an independent segment (50 through 99, GR3), which only COBOL-85 can write: the emitter returns an independent
+    // segment's ALTERed GO TOs to their initial state when control enters it from another segment (§1985:XVI.1.4.3;
+    // docs/CONTROL_FLOW_DESIGN.md D4). Built by ProcedureTableBuilder.SegmentsPerPc.
+    IReadOnlyList<int>? Segments = null);
 
 /// <summary>One <c>USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES</c> subject procedure (X3.23-1985 debug
 /// module; deleted 2002, absent ISO 2023 — modeled only at <c>--std 85</c>, VCR Table 7 row 7.17). The emitter
@@ -1389,6 +1394,8 @@ public sealed record ImplicitMovePhrase(string Statement, string Cite)
 /// <param name="StrongReceiverCite">The verb's strongly-typed-receiver rule — §2023:14.9.30.3 SR2 / §2023:14.9.34.3 SR3.</param>
 /// <param name="StrongReceiverCount">That rule's record-area count requirement, quoted.</param>
 /// <param name="EntryFace">How the description entry names itself in a message — "FD" / "SD".</param>
+/// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
+/// at the editions before COBOL-2023 (kb/Work PB5077).</param>
 public sealed record IntoPhraseRules(
     string Statement,
     string MoveRuleCite,
@@ -1397,7 +1404,8 @@ public sealed record IntoPhraseRules(
     string AdmissibilityArmA,
     string StrongReceiverCite,
     string StrongReceiverCount,
-    string EntryFace)
+    string EntryFace,
+    RecordAreaVerb AreaVerb)
 {
     /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's INTO phrase carries — built once
     /// per verb beside the two rows, exactly as <c>FromPhraseRules.Phrase</c> is. A phrase is a property of the
@@ -1418,7 +1426,7 @@ public sealed record IntoPhraseRules(
         + "entry\"",
         "ISO §2023:14.9.30.3 SR2",
         "\"there shall be at most one record area subordinate to the FD for file-name-1\"",
-        "FD");
+        "FD", RecordAreaVerb.Read);
 
     /// <summary><c>RETURN … INTO</c>. ISO §2023:14.9.34.4 GR5 b) — the identical sentence, which is why the two
     /// phrases share one binder and one sender builder rather than one each.</summary>
@@ -1428,7 +1436,7 @@ public sealed record IntoPhraseRules(
         "\"If only one record description is subordinate to the sort-merge file description entry\"",
         "ISO §2023:14.9.34.3 SR3",
         "\"there shall be exactly one record area subordinate to the SD for file-name-1\"",
-        "SD");
+        "SD", RecordAreaVerb.Return);
 }
 
 /// <summary><c>MOVE source TO targets</c> (single sending operand) — the explicit MOVE statement, AND the

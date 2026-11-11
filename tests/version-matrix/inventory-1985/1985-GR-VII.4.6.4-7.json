@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.4.6.4-7",
  "rule-digest": "48cc2108000a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
  "test-ref": "conformance:cases/VII.4.6@1985-USE-STATEMENT/1985-GR-VII_4_6_4-7",
+ "notes": "§1985:VII.4.6.4 GR7 is a prohibition laid on the program: \"Within a USE procedure, there must not be the execution of any statement that would cause the execution of a USE procedure that had previously been invoked and had not yet returned control to the invoking routine.\" It states no result for a program that does so, and it leaves a USE procedure free to cause the execution of a different one. EmitUseMachinery gives each declarative its own slot of the per-program __useActive array and routes every selection through the one __RunUse invoker (EmitRunUseBody): a procedure that is not active runs, nested inside another when a statement of that other raised it, and its slot is cleared when it returns; a procedure selected while its slot is set is not re-invoked and the selecting statement falls through, so the forbidden execution does not recurse. At --std 85 the unit is free of the exception-condition model (>>TURN, RESUME and the exception-checking PERFORM are refused there, probed), so EmitUseMachinery picks the void form of the guard, which only declines; the EC-FLOW-USE raise of §2023:14.9.49.4 GR2 is the other arm and is never emitted there. The witness has file F1's procedure raise file F2's, and both run. Probed further at --std 85 on sequential files: F1's procedure fails a READ of F1 itself (46) and is not re-entered; it then raises F2's procedure, which fails a READ of F1 and is not handed F1's active procedure either; both complete, the run ends with exit 0, and F1's procedure runs again on the next error after it has returned.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

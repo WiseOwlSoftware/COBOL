@@ -601,6 +601,36 @@ def self_test(schema) -> int:
     verify("history restore: a later erasure under another verdict strands the row only, it is owed nothing (PB3808)",
            not owed_p and stranded_p == {rid: other}
            and not restore_records({}, owed_p, {rid: {**prose_now}}, schema), f": {owed_p} {stranded_p}")
+
+    # AN OLDER EDITION'S WITNESS BEFORE ITS VERDICT (kb/Work PB4995, place_witnesses.py): the writer at 1985, asked of
+    # planted rows. A CHANGED or REMOVED rule's change record is its adjudication, so a witness-only record joins it with
+    # no verdict; a KEPT rule's test is its chain's, and a rule with no change record has no adjudication to join.
+    ed85 = schema.edition(1985)
+    rid85, place = "1985-GR-VI.6.18.4-1", "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/self_test_witness"
+    targets85 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023"}}
+    change = {"edition": ed85.next_held, "bridge": ed85.bridged, "source": "planted"}
+    changed85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "CHANGED", "to": ["SR-1"], "reason": "x"}}
+    removed85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "REMOVED", "to": [], "reason": "gone"}}
+    kept85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "KEPT", "to": ["SR-1"]}}
+    witness85 = {"rule-id": rid85, "test-ref": place}
+
+    def errors85(on: dict[str, Any]) -> list[str]:
+        return validate([(pathlib.Path("self-test"), 0, witness85)], schema, {rid85: "GR"}, {rid85: on}, ed85, targets85)
+
+    verify("writer at 1985: a witness-only record is accepted on a CHANGED row and on a REMOVED row with no verdict",
+           not errors85(changed85) and not errors85(removed85), f": {errors85(changed85)} {errors85(removed85)}")
+    verify("writer at 1985: ... and refused on a KEPT row, whose test is its chain's",
+           any("KEPT rule holds no verdict of its own" in e and "test-ref" in e for e in errors85(kept85)),
+           f": {errors85(kept85)}")
+    verify("writer at 1985: ... and refused on a row with no change record (nothing adjudicated to join)",
+           any("needs a row that is already adjudicated" in e for e in errors85({**changed85, "next": {}})))
+    read85 = {**changed85, "verdict": "CONFORMS", "code-location": "src/Planted.cs#PlantedSymbol", "notes": "Read."}
+    for on in (changed85, removed85, read85):
+        got = {**on, **merged(on, witness85, schema, ed85)}
+        verify(f"writer at 1985: the witness joins a {on['next']['kind']} row "
+               f"{'with' if on['verdict'] else 'without'} a verdict, its verdict, code-location and next untouched",
+               not errors85(on) and got["test-ref"] == place
+               and all(got.get(k) == on.get(k, ed85.blank()[k]) for k in ("verdict", "code-location", "next")), f": {got}")
     print(f"=== SELF-TEST: {'GREEN' if not fails else f'RED ({fails})'} ===")
     return 1 if fails else 0
 

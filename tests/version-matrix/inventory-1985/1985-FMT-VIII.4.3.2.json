@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VIII.4.3.2",
  "rule-digest": "dbb85b9db052",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#deleteStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhraseHead; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#Associates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRetryPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeleteFileStatement",
  "test-ref": "conformance:cases/VIII.4.3@1985-DELETE-STATEMENT/1985-FMT-VIII_4_3_2",
+ "notes": "§1985:VIII.4.3.2 prints DELETE file-name-1 RECORD [ INVALID KEY imperative-statement-1 ] [ NOT INVALID KEY imperative-statement-2 ] [ END-DELETE ], RECORD and KEY being optional words. deleteStatement parses it and BindDelete binds it for a relative file (a record-name or undefined name is COBOL1639), and what the later editions add is refused at 85: RETRY by VisitRetryPhrase and DELETE FILE by VisitDeleteFileStatement (each COBOL0900); an AT END, ON EXCEPTION or ON SIZE ERROR phrase and a second INVALID KEY phrase are syntax errors through Associates, which lets DELETE own the INVALID KEY pair only. Probed at --std 85: the format with and without RECORD, KEY, either phrase and END-DELETE compiles and runs. What is not implemented is the printed sequence of the two phrases: the conditionalPhrases loop and Associates ask only that a phrase is printed by the format and not yet written, with no edition arm for the order, so NOT INVALID KEY before INVALID KEY compiles and runs at 85; either order is the 2002 change (§2002:F.2 item 33). The same mechanism was recorded for the indexed DELETE, READ, REWRITE, START and WRITE formats. The witness deletes a record and then fails to delete it again, both in the printed order with END-DELETE.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

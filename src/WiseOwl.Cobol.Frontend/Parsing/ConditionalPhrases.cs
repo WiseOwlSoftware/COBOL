@@ -175,12 +175,20 @@ public static class ConditionalPhraseAssociation
         public Func<ParserRuleContext, bool> AlsoPrinted { get; init; } = static _ => false;
     }
 
-    /// <summary>One printed general format's phrase bracket: the phrases it admits, the construct that bounds the
-    /// editions printing the format (null: every edition), and <see cref="Unprinted"/>, the selectors it does NOT
-    /// print — a statement that wrote one of them is not written in this format, so this format's phrases are not
-    /// its phrases.</summary>
-    public sealed record Format(FrozenSet<ConditionalPhraseKind> Phrases, string? Construct = null)
+    /// <summary>One printed general format's phrase bracket: the phrases it admits IN THE ORDER IT PRINTS THEM
+    /// (<paramref name="Printed"/>), the construct that bounds the editions printing the format (null: every edition),
+    /// and <see cref="Unprinted"/>, the selectors it does NOT print — a statement that wrote one of them is not written
+    /// in this format, so this format's phrases are not its phrases.
+    /// <para>The printed order binds only below COBOL-2002: "Clauses must be written in the sequence given in the
+    /// general formats" (§1985:IV.2.1), and every 1985 format prints the positive phrase before its NOT twin; ISO/IEC
+    /// 1989:2002 lets them be "specified in any order" (its Annex F.2 item 33, §2002:F.2; the choice indicators of
+    /// §2023:5.2.6.4, and RETURN's §2023:14.9.34.3 SR4). <see cref="OutOfPrintedOrder"/> reads it, for the conformance pass to refuse
+    /// below 2002 (<c>conditional-phrases-any-order-2002</c>).</para></summary>
+    public sealed record Format(IReadOnlyList<ConditionalPhraseKind> Printed, string? Construct = null)
     {
+        /// <summary>The phrases the format admits, for the association's membership tests.</summary>
+        public FrozenSet<ConditionalPhraseKind> Phrases { get; } = Printed.ToFrozenSet();
+
         public IReadOnlyList<Selector> Unprinted { get; init; } = [];
 
         /// <summary>The syntax elements that PROVE a statement is written in this format, for a format told apart from
@@ -203,11 +211,12 @@ public static class ConditionalPhraseAssociation
         Presumed,
     }
 
+    /// <summary>A <c>[ phrase ] [ NOT phrase ]</c> pair, printed positive first.</summary>
     private static Format Pair(ConditionalPhraseFamily f, string? construct = null) =>
-        new(new[] { new ConditionalPhraseKind(f, false), new ConditionalPhraseKind(f, true) }.ToFrozenSet(), construct);
+        new([new ConditionalPhraseKind(f, false), new ConditionalPhraseKind(f, true)], construct);
 
     private static Format Positive(ConditionalPhraseFamily f, string? construct = null) =>
-        new(new[] { new ConditionalPhraseKind(f, false) }.ToFrozenSet(), construct);
+        new([new ConditionalPhraseKind(f, false)], construct);
 
     // The selectors of the owners whose formats print different phrase brackets within ONE grammar rule.
     private static readonly Selector ReadDirection = new(Core.RULE_readDirection, "NEXT or PREVIOUS");
@@ -383,6 +392,47 @@ public static class ConditionalPhraseAssociation
     /// <summary>Whether some general format of the owning rule, at some edition, prints the phrase <paramref name="kind"/>.</summary>
     public static bool Prints(int ownerRule, ConditionalPhraseKind kind) =>
         FormatsOf(ownerRule).Any(f => f.Phrases.Contains(kind));
+
+    /// <summary>A written phrase that follows a phrase its general format prints AFTER it: <paramref name="Phrase"/> is
+    /// the late one (<paramref name="Kind"/>), <paramref name="PrintedAfter"/> the phrase written before it that the
+    /// format prints after it, and <paramref name="Statement"/> the owning statement's verb.</summary>
+    public readonly record struct PrintedOrderBreach(
+        Core.ConditionalPhraseContext Phrase, ConditionalPhraseKind Kind, ConditionalPhraseKind PrintedAfter, string Statement);
+
+    /// <summary>The first written phrase of <paramref name="phrases"/> that no general format of its owner prints in the
+    /// written order (<see cref="Format.Printed"/>), or null when some format that admits every written phrase prints
+    /// them in that order. Edition-blind: the caller decides whether the order binds — "Clauses must be written in the
+    /// sequence given in the general formats" (§1985:IV.2.1), relaxed by ISO/IEC 1989:2002 (Annex F.2 item 33, §2002:F.2).</summary>
+    public static PrintedOrderBreach? OutOfPrintedOrder(Core.ConditionalPhrasesContext phrases)
+    {
+        var written = phrases.conditionalPhrase();
+        if (written.Length < 2) return null;
+        var kinds = Array.ConvertAll(written, ConditionalPhrases.KindOf);
+        PrintedOrderBreach? first = null;
+        foreach (var format in FormatsOf(OwnerRule(phrases)))
+        {
+            if (!kinds.All(format.Phrases.Contains)) continue;
+            if (BreachIn(format) is not { } breach) return null;
+            first ??= breach;
+        }
+        return first;
+
+        PrintedOrderBreach? BreachIn(Format format)
+        {
+            for (int late = 1; late < kinds.Length; late++)
+                for (int early = 0; early < late; early++)
+                    if (Rank(format, kinds[early]) > Rank(format, kinds[late]))
+                        return new(written[late], kinds[late], kinds[early], StatementName(phrases));
+            return null;
+        }
+    }
+
+    private static int Rank(Format format, ConditionalPhraseKind kind)
+    {
+        for (int i = 0; i < format.Printed.Count; i++)
+            if (format.Printed[i] == kind) return i;
+        throw new InvalidOperationException($"{kind.Words} is not printed by the format asked");
+    }
 
     /// <summary>
     /// The COBOL2269 (statement-format-shape) message for a syntax error AT a conditional phrase that no statement

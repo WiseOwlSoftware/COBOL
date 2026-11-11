@@ -5,12 +5,10 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.63.4-22",
-   "GR-13.18.28.4-1",
-   "GR-13.18.41.4-2"
+   "GR-13.18.63.4-22"
   ],
   "bridge": true,
-  "reason": "Same. 1985: the item 'will assume the specified value each time its report group is printed', GROUP INDICATE limiting it to certain object-time conditions. 2023 §2023:13.18.63.4 GR22: 'The value of literal-1 is used for the content of the printable item whenever it is printed', except that GROUP INDICATE may suppress it; §2023:13.18.28.4 GR1 gives the GROUP INDICATE conditions (first GENERATE after INITIATE, page advance, control break) as a PRESENT WHEN, whose false case omits the item (§2023:13.18.41.4 GR2). PRESENT WHEN and OCCURS DEPENDING suppression apply to clauses a 1985 report item cannot carry.",
-  "source": "adjudicate-712/slice-26"
+  "reason": "1985: 'the printable item will assume the specified value each time its report group is printed. However, when the GROUP INDICATE clause is also present, the specified value will be presented only when certain object time conditions exist'. §2023:13.18.63.4 GR22: 'The value of literal-1 is used for the content of the printable item whenever it is printed, except that a GROUP INDICATE ... clause ... may suppress the appearance of the item'; §2023:13.18.28.4 GR1 gives the GROUP INDICATE conditions (the first GENERATE for the detail group after an INITIATE, a page advance or a control break). Those two carry the 1985 rule in full: same. §2023:13.18.41.4 GR2 ('If a report group contains any entries that have a PRESENT WHEN clause, condition-1 of each PRESENT WHEN clause is evaluated before the processing of any LINE clauses') is taken out of 'to': it is a rule of the PRESENT WHEN clause, which no 1985 report group description entry can write, and the 1985 standard states no such requirement (kb/Work PB4996).",
+  "source": "sample-85/band refuter"
  }
 }

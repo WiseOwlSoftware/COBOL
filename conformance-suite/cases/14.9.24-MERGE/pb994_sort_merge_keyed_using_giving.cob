@@ -79,11 +79,11 @@
        MAIN.
            OPEN OUTPUT RLF
            MOVE "C3xx" TO RR
-           WRITE RR
+           WRITE RR INVALID KEY CONTINUE END-WRITE
            MOVE "A1yy" TO RR
-           WRITE RR
+           WRITE RR INVALID KEY CONTINUE END-WRITE
            MOVE "B2zz" TO RR
-           WRITE RR
+           WRITE RR INVALID KEY CONTINUE END-WRITE
            CLOSE RLF
            SORT SW ASCENDING KEY SK USING RLF GIVING IXF
            OPEN INPUT IXF
@@ -105,9 +105,9 @@
            CLOSE RLG
            OPEN OUTPUT IXH
            MOVE "A2aa" TO IXR2
-           WRITE IXR2
+           WRITE IXR2 INVALID KEY CONTINUE END-WRITE
            MOVE "D4dd" TO IXR2
-           WRITE IXR2
+           WRITE IXR2 INVALID KEY CONTINUE END-WRITE
            CLOSE IXH
            MERGE SW ASCENDING KEY SK USING IXF IXH GIVING RLH
            DISPLAY "3 RK3 " RK3

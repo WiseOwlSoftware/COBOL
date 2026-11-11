@@ -95,6 +95,19 @@ public sealed class KeySourceOperand
     public DataItem? Item { get; set; }
 }
 
+/// <summary>A PADDING CHARACTER clause as written (§1985:VII.2.7.2: <c>PADDING CHARACTER IS {data-name-1 | literal-1}</c>):
+/// exactly one of <see cref="Literal"/> (literal-1's characters) and <see cref="DataName"/> (data-name-1's base word, with
+/// its IN/OF qualifiers innermost first, and the item it resolved to post-build). <see cref="At"/> is the operand's
+/// position, where its syntax rules report.</summary>
+public sealed class PaddingCharacterSpec
+{
+    public string? Literal { get; init; }
+    public string? DataName { get; init; }
+    public IReadOnlyList<string> Qualifiers { get; init; } = [];
+    public WiseOwl.Cobol.Editions.DiagnosticCursor At { get; init; }
+    public DataItem? Item { get; set; }
+}
+
 /// <summary>A RESOLVED record key of an indexed file (ISO §2023:12.4.5.12 / §2023:12.4.5.6): the data items whose bytes,
 /// concatenated in order, ARE the key. ⛔ ONE SHAPE FOR BOTH KEY FORMS (kb/Work PB1099 Q1): data-name-1's key is
 /// one segment, and the SOURCE form's is one segment per data-name-2 (§2023:12.4.5.12.4 GR2 / §2023:12.4.5.6.4 GR2), so
@@ -583,6 +596,13 @@ public sealed class FileModel
     /// entry identity: §2023:12.4.5.3 GR1 c) requires "Either the STANDARD-1 phrase or a consistent value of
     /// feature-name-1 in the RECORD DELIMITER clause" (<c>FileEntryIdentity.Of</c>, kb/Work PB1079).</summary>
     public string? RecordDelimiter { get; set; }
+
+    /// <summary>The PADDING CHARACTER clause as written (§1985:VII.2.7, §2002:12.3.4.10; deleted from 2014), or null when
+    /// the entry writes none (kb/Work PB5069, PB5070). WiseOwl COBOL has no blocking model, so the padding character
+    /// changes no I-O; the clause's readers are its own syntax rules and the external file connector's entry identity,
+    /// which §1985:VII.2.7.4 GR6 and §2002:12.3.4.3 GR1 h) make include "the same specification of the PADDING CHARACTER
+    /// clause" (<c>FileEntryIdentity.Segments</c>).</summary>
+    public PaddingCharacterSpec? Padding { get; set; }
 
     /// <summary>Whether an I-O-CONTROL APPLY COMMIT clause (ISO §2023:12.4.6.3) names this file — the STATIC,
     /// source-level property the standard calls "subject to an APPLY COMMIT clause", as distinct from

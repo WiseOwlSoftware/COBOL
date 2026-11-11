@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
+using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.CodeGen.Emit;
 
 namespace WiseOwl.Cobol.CodeGen;
@@ -27,6 +28,54 @@ internal sealed class AlterSwitchEmitter(EmitContext ctx, DispatchState dispatch
                 CollectFields(s, fields);
         foreach (var (field, defaultPc) in fields)
             w.Line($"private int {field} = {defaultPc};   // ALTERable GO TO target pc (control-flow design D4; instance — ALTER state is per-program-instance, ISO §2023:14.6.2.3.2 resets it via a fresh instance)");
+    }
+
+    /// <summary>⛔ AN INDEPENDENT SEGMENT'S INITIAL STATE (kb/Work PB5084; CONTROL_FLOW_DESIGN D4). §1985:XVI.1.4.3: "On subsequent
+    /// transfers of control to the segment, an independent segment is also in its initial state when" control reaches it
+    /// from a segment with a different segment-number by falling through, by a SORT or MERGE entering its procedure, or by
+    /// an explicit transfer; it is in its LAST-USED state when control returns to it implicitly (the end of a PERFORM range,
+    /// a SORT or MERGE procedure, a declarative) or by EXIT PROGRAM. §1985:VI.6.7.4 GR1 names what the initial state
+    /// changes: "Modified GO TO statements in independent segments may, under some circumstances, be returned to their
+    /// initial states". So the dispatcher keeps the segment control is in (<c>__seg</c>): every pc it enters whose segment
+    /// differs from <c>__seg</c> calls <c>__EnterSegment</c>, which returns that segment's alterable GO TOs to the targets
+    /// they were written with; each <c>__Dispatch</c> call restores the caller's <c>__seg</c> when it returns, which is
+    /// the last-used return (an EXIT PROGRAM returns to another program instance, whose <c>__seg</c> nothing changed).
+    /// §1985:XVI.3.3.1 lets only an ALTER of the segment's own sections set such a GO TO (COBOL6877), so the reset never
+    /// undoes an ALTER executed in the segment since control entered it. Emitted only where an independent segment holds
+    /// an alterable GO TO; returns whether it emitted.</summary>
+    public bool EmitSegmentState(BoundProgram bound, CodeWriter w)
+    {
+        if (bound.Segments is not { } segments) return false;
+        var bySegment = new SortedDictionary<int, Dictionary<string, int>>();
+        for (int pc = 0; pc < bound.Paragraphs.Count; pc++)
+        {
+            if (!SegmentNumber.IsIndependent(segments[pc])) continue;
+            var fields = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var s in bound.Paragraphs[pc].Statements) CollectFields(s, fields);
+            if (fields.Count == 0) continue;
+            if (!bySegment.TryGetValue(segments[pc], out var into)) bySegment[segments[pc]] = into = new(StringComparer.Ordinal);
+            foreach (var (field, defaultPc) in fields) into.TryAdd(field, defaultPc);
+        }
+        if (bySegment.Count == 0) return false;
+        w.Line($"private static ReadOnlySpan<byte> __SegOf => [{string.Join(", ", segments)}];   // each pc's segment-number (§1985:XVI.3.2.4 GR1)");
+        // The instance starts in the segment of its first nondeclarative procedure, where every segment is still in its initial
+        // state, and the activation's own __Dispatch restores that segment when it returns. So a later CALL of the same
+        // instance enters its program in the last-used state (a re-entered program is not a transfer from "a segment with a
+        // different segment-number"), and only a fresh instance (CANCEL, an INITIAL program) starts initial again.
+        int entrySegment = bound.EntryPc < segments.Count ? segments[bound.EntryPc] : 0;
+        w.Line($"private int __seg = {entrySegment};   // the segment control is in (§1985:XVI.1.4.3; control-flow design D4)");
+        using (w.Block("private void __EnterSegment(int segment)"))
+        {
+            w.Line("__seg = segment;");
+            using (w.Block("switch (segment)"))
+                foreach (var (segment, fields) in bySegment)
+                    using (w.Block($"case {segment}:   // an independent segment enters in its initial state (§1985:XVI.1.4.3; §1985:VI.6.7.4 GR1)"))
+                    {
+                        foreach (var (field, defaultPc) in fields) w.Line($"{field} = {defaultPc};");
+                        w.Line("break;");
+                    }
+        }
+        return true;
     }
 
     /// <summary>Collect alterable-GO-TO fields from a statement and every nested statement — recursing over the

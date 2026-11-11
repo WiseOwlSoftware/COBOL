@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IV.4.2.2.2.1.3-1",
  "rule-digest": "6ba4dea4d0a3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STRINGLIT; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#SplitLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericLiteralOperand; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#CsLiteral",
  "test-ref": "conformance:cases/IV.4.2.2.2.1@1985-Nonnumeric-Literals/1985-GR-IV_4_2_2_2_1_3-1",
+ "notes": "§1985:IV.4.2.2.2.1.3 GR1: \"The value of a nonnumeric literal in the object program is the value represented by character-1.\" The lexer token STRINGLIT carries the literal as written; CobolLiteral.Decode (through SplitLiteral) removes the two delimiters and collapses each doubled quotation mark to one (§1985:IV.4.2.2.2.1.2 SR2) and changes no other character, ExpressionBinder.NonNumericLiteralOperand binds that text as the operand of a statement and ValueInitializer.InitializerFrom as a VALUE, and EmitText.CsLiteral (EmitCore.cs) writes it into the C# through Roslyn SymbolDisplay.FormatLiteral, so a backslash, a brace or a quotation mark in the value cannot change in the emitted program. The path has no edition arm, so --std 85 reaches it as every edition does; the one 2023 addition, the zero-length literal, is refused at 85 (COBOL0900). Probed at --std 85 (l1.cob): case, single and repeated spaces, leading and trailing spaces, doubled quotation marks, backslash sequences, {0}, \"*>\", \"==\" and a literal continued over two lines are each the written characters in DISPLAY, MOVE, VALUE, STRING (whose POINTER counts them) and a comparison (\"abc\" is not equal to \"ABC\"). The witness displays \"ABC  XYZ\" and moves \"AB-12 Z.\" to a PIC X(8) item.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

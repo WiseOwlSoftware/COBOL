@@ -92,8 +92,8 @@
                INPUT PROCEDURE IS IN-3
                OUTPUT PROCEDURE IS OUT-3
            OPEN INPUT F3 F4
-           READ F3
-           READ F4
+           READ F3 AT END CONTINUE END-READ
+           READ F4 AT END CONTINUE END-READ
            DISPLAY "R " F3-REC " " F4-REC
            CLOSE F3 F4
            STOP RUN.

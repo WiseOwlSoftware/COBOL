@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.4.3-2",
  "rule-digest": "5a2a51065454",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckClauseSubjectsPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#BlankWhenZeroViolation; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsDisplayOrNational; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture; src/WiseOwl.Cobol.Editions/Constructs.g.cs#NationalData2002",
  "test-ref": "conformance:cases/VI.5.4@1985-BLANK-WHEN-ZERO-CLAUSE/1985-SR-VI_5_4_3-2",
+ "notes": "§1985:VI.5.4.3 SR2: \"The numeric or numeric edited data description entry to which the BLANK WHEN ZERO clause applies must be described, either implicitly or explicitly, as USAGE IS DISPLAY.\" CheckClauseSubjectsPass.Run runs after usage inheritance and reports COBOL2405 when BlankWhenZeroViolation finds the subject's usage outside IsDisplayOrNational. The 1985 edition arm is the second usage that predicate admits: 2023 adds usage national, and at 85 any USAGE NATIONAL item is refused first by the registry row national-data-2002 (COBOL0900), so DISPLAY is the only usage left. A usage a group hands down to a numeric PICTURE with the clause is refused one step earlier, by ScreenUsageAgainstPicture (COBOL0881: the clause makes the item numeric edited, §1985:VI.5.4.4 GR2, and BINARY, COMPUTATIONAL and PACKED-DECIMAL require a numeric PICTURE, §1985:VI.5.14.3 SR3). Probed at --std 85: PIC 9(4) with USAGE IS COMPUTATIONAL, COMP, BINARY and PACKED-DECIMAL and the clause is COBOL2405; the same item under a USAGE COMP, BINARY or PACKED-DECIMAL group, one and two levels up and with OCCURS, is COBOL0881; PIC 9(4) and PIC ZZ9 USAGE NATIONAL are COBOL0900; USAGE INDEX is COBOL2405; USAGE IS DISPLAY written on the entry, written on its group, and implied (§1985:VI.5.14.4 GR6) compile and blank at zero. The witness is PIC 9(4) USAGE IS COMPUTATIONAL BLANK WHEN ZERO, refused with COBOL2405.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

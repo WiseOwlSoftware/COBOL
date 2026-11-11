@@ -101,7 +101,7 @@
            MOVE 0 TO N
            OPEN INPUT SEQ-F
            PERFORM UNTIL S-ST NOT = "00"
-               READ SEQ-F
+               READ SEQ-F AT END CONTINUE END-READ
                IF S-ST = "00"
                    ADD 1 TO N
                    IF N = 1
@@ -117,12 +117,12 @@
                MOVE I TO REL-KEY
                MOVE I TO REL-NO
                MOVE ALL "R" TO REL-FILL
-               WRITE REL-REC
+               WRITE REL-REC INVALID KEY CONTINUE END-WRITE
            END-PERFORM
            CLOSE REL-F
            OPEN INPUT REL-F
            MOVE 7 TO REL-KEY
-           READ REL-F
+           READ REL-F INVALID KEY CONTINUE END-READ
            DISPLAY "REL " R-ST " " REL-NO
            CLOSE REL-F
            OPEN OUTPUT IDX-F
@@ -130,12 +130,12 @@
                MOVE I TO IDX-NO
                MOVE "K0" TO IDX-KEY(1:2)
                MOVE IDX-NO(3:1) TO IDX-KEY(3:1)
-               WRITE IDX-REC
+               WRITE IDX-REC INVALID KEY CONTINUE END-WRITE
            END-PERFORM
            CLOSE IDX-F
            OPEN INPUT IDX-F
            MOVE "K04" TO IDX-KEY
-           READ IDX-F
+           READ IDX-F INVALID KEY CONTINUE END-READ
            DISPLAY "IDX " X-ST " " IDX-NO
            CLOSE IDX-F
            OPEN OUTPUT RPT-F
@@ -148,7 +148,7 @@
            MOVE 0 TO N
            OPEN INPUT CHK-F
            PERFORM UNTIL C-ST NOT = "00"
-               READ CHK-F
+               READ CHK-F AT END CONTINUE END-READ
                IF C-ST = "00" AND CHK-REC = "A"
                    ADD 1 TO N
                END-IF

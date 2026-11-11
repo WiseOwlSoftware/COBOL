@@ -69,10 +69,12 @@
            OPEN OUTPUT F-IX.
            DISPLAY "IX-OPEN=" IX-ST.
            MOVE "K2TWO" TO IX-REC.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "IX-W2=" IX-ST.
            MOVE "K1ONE" TO IX-REC.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "IX-W1=" IX-ST.
            MOVE "K1XXX" TO IX-REC.
            WRITE IX-REC INVALID KEY CONTINUE END-WRITE.

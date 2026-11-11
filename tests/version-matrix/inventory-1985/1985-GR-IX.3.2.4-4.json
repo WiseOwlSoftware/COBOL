@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.3.2.4-4",
  "rule-digest": "b65c6662ae06",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#labelRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause",
  "test-ref": "conformance:cases/IX.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-GR-IX_3_2_4-4",
+ "notes": "§1985:IX.3.2.4 GR4: \"The LABEL RECORDS clause for the Indexed I-O module is the same as the LABEL RECORDS clause for the Sequential I-O module. Thus the specifications for the LABEL RECORDS clause are located on page VII-26.\" Implemented at 85: one grammar rule (labelRecordsClause), admitted in every file description format by its FileDescriptionFormats.Rows row, serves the indexed FD, and VisitLabelRecordsClause is the edition arm (accepted at --std 85, refused from 2002); STANDARD and OMITTED are accepted and nothing is bound, which is all a host file with no label records needs (§1985:VII.3.6.3 GR2 leaves the labels to \"the implementor's label specifications\"). Not implemented: the rest of the specifications the rule points to. The grammar takes STANDARD, OMITTED or any words and no binder reads the clause, so the general format's two options (§1985:VII.3.6.2) are not enforced: on an indexed file LABEL RECORDS ARE IGNORED and LABEL RECORD IS a data-name compile and run at 85. §1985:VII.3.6.3 GR4 (the clauses of an external file connector \"must have the same specification\") is not asked either: probed, two programs' EXTERNAL indexed FDs, one STANDARD and one OMITTED, compile and run. kb/Work PB5070 holds the first mechanism (filed against the report FD's format, 1985-FMT-XIII.3.2.2) and PB5069 the unchecked external agreement; neither lists this rule id. The witness is an indexed FD with LABEL RECORDS ARE STANDARD.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

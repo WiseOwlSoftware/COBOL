@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IV.4.3.8.2.4-1",
  "rule-digest": "2f8d8305cb28",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#At; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#Occ; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Position; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#BindPosition; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#BuildAccessPath; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#RenderPath; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SubscriptError",
  "test-ref": "conformance:cases/IV.4.3.8.2@1985-Subscripting/1985-GR-IV_4_3_8_2_4-1",
+ "notes": "§1985:IV.4.3.8.2.4 GR1 requires \"The first element of any given dimension of a table is referenced by an occurrence number of 1\", each successive element by 2, 3, ..., up to \"the maximum number of occurrences of the item as specified in the associated OCCURS clause\"; it states no result for a subscript outside that range (\"must be a positive integer\" is the program's obligation). No edition arm is involved: at every --std SubscriptBinder.BindPosition binds each subscript (literal, data-name, data-name +/- integer) to a typed position, PlaceBuilder.BuildAccessPath puts one FixedTableSegment per OCCURS level, PlaceRenderer.RenderPath renders it as CobolTable.At(table, occurrence), and At returns table[occurrence - 1] for 1..table.Length, the array being allocated at the OCCURS maximum; CobolTable.Occ and CobolNum.Position read a numeric item's value (scale applied, saturating) as the occurrence number. Outside the range, which 1985 leaves undefined, ExceptionState.SubscriptError returns (EC-BOUND-SUBSCRIPT checking is off; 1985 has no exception conditions) and the reference continues on a scratch element. The witness reads ELT (1), ELT (I) at I = 3 and I = 2 of a one-dimension table; a probe over a two-dimension table with literal, signed-literal, DISPLAY, COMP and relative (I + 0, J - 2) subscripts, reads and a store, positioned every element correctly at --std 85.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

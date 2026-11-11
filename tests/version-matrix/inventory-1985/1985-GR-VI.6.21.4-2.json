@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.21.4-2",
  "rule-digest": "a70d24d72b65",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#InitVaryingTarget; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#LandAmount; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#TryAmount; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#StoreSetTarget",
  "test-ref": "conformance:cases/VI.6.21@1985-PERFORM-STATEMENT/1985-GR-VI_6_21_4-2",
+ "notes": "§1985:VI.6.21.4 GR2: \"If an index-name is specified in the VARYING or AFTER phrase, and an identifier is specified in the associated FROM phrase, the data item referenced by the identifier must have a positive value.\" The rule binds the program and states no result for a value that is not positive, so the duty at 85 is that a positive value becomes the index's occurrence number. InitVaryingTarget initializes every VARYING and AFTER level whose variable is an index-name through SetEmitter.LandAmount and CobolIndex.TryAmount, which accept any integer the 64-bit index holds, and StoreSetTarget stores it. The only edition difference is 2023's EC-RANGE-PERFORM-VARYING raise, which BindVarying arms only when checking is enabled by a TURN directive, and 1985 has none; a zero value, which 1985 leaves undefined, sets occurrence 0 and the statement continues. The witness varies an index from an item holding 2. Probed further at --std 85: VARYING and AFTER indexes each initialized from an identifier (DISPLAY and COMP), with TEST BEFORE, TEST AFTER and an inline PERFORM, give the rule's elements.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

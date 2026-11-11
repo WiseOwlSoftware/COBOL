@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.9.4-1",
  "rule-digest": "f7caa2386894",
+ "verdict": "NOT-IMPLEMENTED",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueOfClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueOfClause",
  "test-ref": "conformance:cases/VII.3.9@1985-VALUE-OF-CLAUSE/1985-GR-VII_3_9_4-1",
+ "notes": "§1985:VII.3.9.4 GR1: \"For an input file, the appropriate label routine checks to see if the value of implementor-name-1 is equal to literal-1\" (or the content of data-name-1) and \"For an output file, at the appropriate time the value of implementor-name-1 is made equal to literal-1\"; the clause is obsolete, not deleted, and is not on the hardware dependent list, so §1985:I.1.5.2.2 applies (\"An implementation must accept the syntax and provide the function\"). Nothing provides the function: the grammar rule valueOfClause consumes VALUE OF and any run of words, literals and IS, its comment calls it semantically inert, and its one reader, VersionConformancePass.VisitValueOfClause, only gates the clause from 2002; no binder keeps an operand, no connector holds a label item and no label is written or compared at OPEN or CLOSE. The named members are where the clause is discarded, not an implementation. Probed at --std 85: a file written through an FD with VALUE OF FILE-ID IS \"AAAA\" is 5 bytes on disk (the record only) and OPEN INPUT through a second FD with VALUE OF FILE-ID IS \"BBBB\" returns status 00 and reads the record. docs/CONFORMANCE.md states no label convention and no determination for the clause, so accept-inert is not a recorded implementor answer (a determination that WiseOwl files carry no label items would be an owner decision). The witness writes and reads one record under VALUE OF FILE-ID and observes no label, so it passes with the clause ignored.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-IX.2.5.3-2",
  "rule-digest": "2da743d9b5fb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles",
  "test-ref": "conformance:cases/IX.2.5@1985-ALTERNATE-RECORD-KEY-CLAUSE/1985-SR-IX_2_5_3-2",
+ "notes": "§1985:IX.2.5.3 SR2: \"Data-name-1 must be defined as a data item of the category alphanumeric within a record description entry associated with the file-name to which the ALTERNATE RECORD KEY clause is subordinate.\" FileControlBinder.ResolveFiles screens every file control entry through FileControlKeyRules.Screen, whose table (Rules) holds two AlternateRecordKey rows for the rule: the location row refuses a key that names nothing or an item whose level-01 record is not one of the file's (RecordLayout.IsInRecordOfFile), and the category row refuses an item that ItemCategory.IsAlphanumericOrNational does not admit, both as error COBOL0863. The table has no edition column and 1985 needs none: the one category 2023 adds, national, cannot be declared at --std 85 (COBOL0900), and the SOURCE-phrase row has no 1985 syntax to reach it. A group item is admitted as alphanumeric, which the 1985 clause itself supposes (§1985:IX.2.5.3 SR3 speaks of data-name-1 referencing a group item). The witness is refused for a PIC 9(5) alternate key. Probed further at --std 85: alphabetic, alphanumeric-edited, numeric-edited, COMP, signed numeric and index alternate keys, a key in WORKING-STORAGE, a key in another file's record and an undefined name each draw COBOL0863; a group key holding numeric items, a qualified PIC X key in the file's second record and a level-66 group alias are accepted.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

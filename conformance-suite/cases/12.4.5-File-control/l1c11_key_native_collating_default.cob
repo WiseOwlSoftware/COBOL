@@ -82,10 +82,18 @@
                DISPLAY "PCS aa<11=N"
            END-IF.
            OPEN OUTPUT F-IX.
-           MOVE "ZZZ1" TO IX-REC. WRITE IX-REC.
-           MOVE "aa11" TO IX-REC. WRITE IX-REC.
-           MOVE "BBa1" TO IX-REC. WRITE IX-REC.
-           MOVE "11B1" TO IX-REC. WRITE IX-REC.
+           MOVE "ZZZ1" TO IX-REC. WRITE IX-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE "aa11" TO IX-REC. WRITE IX-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE "BBa1" TO IX-REC. WRITE IX-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE "11B1" TO IX-REC. WRITE IX-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE F-IX.
            OPEN INPUT F-IX.
            MOVE "PRIME" TO W-LINE.

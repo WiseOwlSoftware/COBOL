@@ -1,0 +1,12 @@
+{
+ "id": "conditional-phrases-any-order-2002",
+ "description": "A conditional phrase written after a phrase its general format prints AFTER it: the NOT phrase before its positive twin (NOT ON SIZE ERROR before ON SIZE ERROR, NOT ON OVERFLOW, NOT ON EXCEPTION, NOT INVALID KEY, NOT AT END, NOT AT END-OF-PAGE) - a COBOL-2002 relaxation of a COBOL-85 restriction. COBOL-85: 'Clauses must be written in the sequence given in the general formats. (Clauses that are optional must appear in the sequence shown if they are used.)' (§1985:IV.2.1), and every 1985 format prints the positive phrase first; ISO/IEC 1989:2002 Annex F.2 item 33: 'The conditional phrases in the ACCEPT, ADD, CALL, COMPUTE, DELETE, DISPLAY, DIVIDE, MULTIPLY, READ, RECEIVE, REWRITE, START, STRING, SUBTRACT, UNSTRING, and WRITE statements may be specified in any order', the 2023 formats' choice indicators (§2023:5.2.6.4), and RETURN's 'may be written in reversed order' (§2023:14.9.34.3 SR4, new at 2002). The printed order is each format's in ConditionalPhraseAssociation.Owners (Format.Printed), read by ConditionalPhraseAssociation.OutOfPrintedOrder for every statement that writes conditionalPhrases, and gated in ONE place, VersionConformancePass.ParseArm.VisitConditionalPhrases (kb/Work PB5158; VCR row 7.47).",
+ "display": "a conditional phrase written after a phrase its general format prints after it",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§1985:IV.2.1; §2002:F.2; §2023:5.2.6.4; §2023:14.9.34.3 SR4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 33)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCPO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE A = 100\n        NOT ON SIZE ERROR DISPLAY \"OK\"\n        ON SIZE ERROR DISPLAY \"SIZE\"\n    END-COMPUTE.\n    STOP RUN.\n"
+}

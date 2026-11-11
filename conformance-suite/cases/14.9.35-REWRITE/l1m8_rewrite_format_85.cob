@@ -57,10 +57,18 @@
        PROCEDURE DIVISION.
        MAIN-PARA.
            OPEN OUTPUT F.
-           MOVE "K1ORIGINAL" TO F-REC. WRITE F-REC.
-           MOVE "K2ORIGINAL" TO F-REC. WRITE F-REC.
-           MOVE "K3ORIGINAL" TO F-REC. WRITE F-REC.
-           MOVE "K4ORIGINAL" TO F-REC. WRITE F-REC.
+           MOVE "K1ORIGINAL" TO F-REC. WRITE F-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE "K2ORIGINAL" TO F-REC. WRITE F-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE "K3ORIGINAL" TO F-REC. WRITE F-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
+           MOVE "K4ORIGINAL" TO F-REC. WRITE F-REC
+               INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE F.
            OPEN I-O F.
            MOVE "-" TO W-BR.
@@ -71,7 +79,8 @@
            DISPLAY "E1 " F-ST " " W-BR.
            MOVE "-" TO W-BR.
            MOVE "K2BARE-002" TO F-REC.
-           REWRITE F-REC.
+           REWRITE F-REC INVALID KEY CONTINUE END-REWRITE
+           .
            DISPLAY "E2 " F-ST " " W-BR.
            MOVE "K9NOSUCH-9" TO F-REC.
            REWRITE F-REC
@@ -81,6 +90,7 @@
            MOVE "-" TO W-BR.
            MOVE "K3NOTIK-03" TO F-REC.
            REWRITE F-REC
+               INVALID KEY CONTINUE
                NOT INVALID KEY MOVE "N" TO W-BR
            END-REWRITE.
            DISPLAY "E4 " F-ST " " W-BR.

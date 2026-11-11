@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.15.5-2",
  "rule-digest": "7bcf4caaf1a1",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckRangesAscending; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindCondition; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ConditionOnlyPhraseOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckValueConnective; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#ValueThroughNotAscending",
  "test-ref": "conformance:cases/VI.5.15@1985-VALUE-CLAUSE/1985-GR-VI_5_15_5-2",
+ "notes": "§1985:VI.5.15.5 GR2 requires \"Format 2 can be used only in connection with condition-names\" and \"Wherever the THRU phrase is used, literal-2 must be less than literal-3\". The first sentence conforms at 85: on a non-88 entry DataBinder.BindEntry refuses the THRU phrase (ConditionOnlyPhraseOf, COBOL2167), a list of literals (COBOL1585) and the VALUES ARE spelling (CheckValueConnective, COBOL2177), all probed. The second is implemented by DataBinder.CheckRangesAscending (called from BindCondition, no edition arm, COBOL2961) for literal operands only: numeric pairs, signed and non-integer pairs, ZERO on a numeric subject, nonnumeric literals in the program collating sequence, an equal pair and every pair of a list are refused (probed). Not implemented: a pair in which either end is a figurative constant other than a numeric ZERO, an ALL literal or a symbolic-character; the member skips it (its StringValue reader returns no value), although §1985:IV.4.2.2.2.3 says \"A figurative constant may be used whenever 'literal' appears in a format\" and the compiler fixes the program collating sequence at compile time. HIGH-VALUE THRU LOW-VALUE, SPACE THRU SPACE, \"Z\" THRU SPACE, QUOTE THRU SPACE, ZERO THRU SPACE on a PIC X item and ALL \"Z\" THRU ALL \"A\" all compile clean at --std 85 (and at --std 2023, the same member). The witness is the refusal of 9 THRU 1 on a PIC 99 item.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

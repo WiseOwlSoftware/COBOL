@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.23.4-2",
  "rule-digest": "2bda94d4d2d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetTo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetUpDown; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#StoreSetTarget; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#AugmentSetTarget; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#TryAmount; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolIndex.cs#Augment",
  "test-ref": "conformance:cases/VI.6.23@1985-SET-STATEMENT/1985-GR-VI_6_23_4-2",
+ "notes": "§1985:VI.6.23.4 GR2 binds the program: \"the value of the index after the execution of the SET statement must correspond to an occurrence number of an element in the table associated with index-name-1\", index-name-2's value before the SET must be an occurrence number of its own table (the Errata C32 reading), and index-name-3's \"both before and after\". It states no result for a SET that breaks it, so the duty at 85 is that every SET the rule allows leaves the index at the occurrence number asked for, and that an index a PERFORM or SEARCH left outside its table keeps that value. An index is its occurrence number in a 64-bit cell: EmitSetTo lands the sender once (CobolIndex.TryAmount) and StoreSetTarget stores it, EmitSetUpDown and AugmentSetTarget add or subtract through CobolIndex.Augment, and neither consults the table's bounds, so every in-table value is stored exactly. No edition arm is involved; what 2023 added (EC-RANGE-INDEX outside the implementor's range, EC-BOUND-SUBSCRIPT for a non-integer) cannot fire on a value the 1985 rule allows. A SET that leaves the table (SET IX TO 6 of 5, undefined in 1985) stores the value and continues. The witness sets an index from a literal and from index-name-2, then UP BY and DOWN BY inside the table; probes at --std 85 added an index of another table as sender and an index left one past its table by PERFORM and by SEARCH.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

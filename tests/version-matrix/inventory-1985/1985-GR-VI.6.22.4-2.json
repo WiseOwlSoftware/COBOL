@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.22.4-2",
  "rule-digest": "8648e2a50108",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSerialScan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSearchScan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSearchWhens; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch",
  "test-ref": "conformance:cases/VI.6.22@1985-SEARCH-STATEMENT/1985-GR-VI_6_22_4-2",
+ "notes": "§1985:VI.6.22.4 GR2 ends a format 1 search at once only when the index \"is greater than the highest permissible occurrence number for identifier-1, the search is terminated immediately\"; an index that \"corresponds to an occurrence number that is not greater than the highest permissible occurrence number for identifier-1\" starts the serial search, and 1985 lets a PERFORM leave an index below its table (§1985:VI.6.23.4 GR2: \"The value of the index associated with an index-name after the execution of a PERFORM or SEARCH statement may be set to an occurrence number that is outside the range of its associated table.\"). EmitSerialScan emits the 2023 start test (index < 1 or index > bound, §2023:14.9.37.4 GR4) at every edition with no edition arm, so at --std 85 a search entered with the index at occurrence 0 goes to AT END without evaluating a WHEN condition: a wrong answer, kb/Work PB5121. The rest of the rule conforms, read and probed at 85: the upper test uses the table's maximum or its OCCURS DEPENDING count (EmitSearchScan), EmitSearchWhens evaluates the conditions in written order at each setting, the index is incremented by one and the search ends one past the table (AT END, or the end of the statement without it), a satisfied condition leaves the index at its occurrence, and NEXT SENTENCE passes control past the next separator period (Amendment 2's sentence). The witness starts two searches at occurrence 3 of 5, one unsuccessful and one successful.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.3.2.4-3",
  "rule-digest": "9460658ca03b",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataRecordsClause",
  "test-ref": "conformance:cases/IX.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-GR-IX_3_2_4-3",
+ "notes": "§1985:IX.3.2.4 GR3: \"The DATA RECORDS clause of the Indexed I-O module is the same as the DATA RECORDS clause for the Sequential I-O module. Thus the specifications for the DATA RECORDS clause are located on page VII-25.\" Implemented at 85: the clause is one grammar rule (dataRecordsClause) admitted in every file description format by its FileDescriptionFormats.Rows row, so an indexed FD takes the Sequential module's clause, and VisitDataRecordsClause is the edition arm (accepted at --std 85, refused from 2002). The clause \"serves only as documentation\" (§1985:VII.3.5.1), so accepting it without effect is its whole execution. Not implemented: the specifications the rule points to. No binder reads the clause's operands (the grammar takes any words), so §1985:VII.3.5.3 SR1 is never asked: on an indexed file DATA RECORD IS naming a level-05 item, or a name the program does not define, compiles and runs at 85. kb/Work PB5070 holds the mechanism, filed against §1985:VII.3.5.3 SR1 itself; it does not list this rule id. The witness is an indexed FD with DATA RECORD IS naming its 01 record.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

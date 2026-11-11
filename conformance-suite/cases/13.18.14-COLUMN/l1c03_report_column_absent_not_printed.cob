@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c03_report_column_absent_not_printed
       *> rules: [GR-13.18.14.4-1, GR-13.18.14.4-11]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
@@ -110,6 +111,10 @@ internal readonly struct StatementPosition
 /// binder never asks it: the funnel is the one place every statement passes through, so a rule added as a row
 /// cannot be missed by a verb that forgets to ask, which is how three rules came to be enforced nowhere.
 ///
+/// <para>An X3.23-1985 rule of this shape is a row too, naming the construct row of the statement it governs so it is
+/// asked only where that statement exists: §1985:VI.6.15.3 SR3's single-statement paragraph of the target-less GO TO
+/// (<see cref="BareGoToAlone"/>, kb/Work PB5087).</para>
+///
 /// <para>The next rule of this shape — §2023:14.9.19's required consequent, an EXIT PROGRAM or GOBACK sequence rule an
 /// older edition states — is a row: a statement-shape probe, a descriptor, and a predicate over
 /// <see cref="StatementPosition"/>.</para>
@@ -117,9 +122,12 @@ internal readonly struct StatementPosition
 internal static partial class PlacementRules
 {
     /// <summary>One placement rule over the statement sequence: the descriptor it reports, the rule as the
-    /// diagnostic quotes it, and the predicate — null when the position is legal, else why it is not.</summary>
+    /// diagnostic quotes it, and the predicate — null when the position is legal, else why it is not.
+    /// <paramref name="Construct"/> names the constructs.json row of a statement that exists only in some editions;
+    /// where the row is not available the edition gate (COBOL0902) is the whole answer and the rule is not asked.</summary>
     private sealed record SequenceRule(
-        DiagnosticDescriptor Descriptor, string Cite, string Shall, Func<StatementPosition, string?> Violation);
+        DiagnosticDescriptor Descriptor, string Cite, string Shall, Func<StatementPosition, string?> Violation,
+        string? Construct = null);
 
     /// <summary>§2023:14.9.14.3 SR1 — Format 1 only: a sentence by itself AND the only sentence of its paragraph.</summary>
     private static readonly SequenceRule ExitAlone = new(
@@ -147,6 +155,20 @@ internal static partial class PlacementRules
         "The STOP statement shall be specified only as the last statement in any discreet block of code",
         FollowedByAnImperative);
 
+    /// <summary>§1985:VI.6.15.3 SR3 — the X3.23-1985 target-less GO TO is the whole of its paragraph (kb/Work PB5087). The
+    /// statement exists at 85 only (row <c>bare-goto-removed-2002</c>), so the rule is asked there.</summary>
+    private static readonly SequenceRule BareGoToAlone = new(
+        DiagnosticCatalog.BareGoToNotAlone, "§1985:VI.6.15.3 SR3",
+        "A format 1 GO TO statement, without procedure-name-1, can only appear in a single statement paragraph",
+        p => p.Sentence is null
+                ? "is written inside another statement, not as a sentence of its own"
+            : !p.IsSentenceByItself
+                ? $"shares its sentence with {p.Count - 1} other statement{(p.Count == 2 ? "" : "s")}"
+            : p.SentencesInParagraph != 1
+                ? $"is one of {p.SentencesInParagraph} sentences in its paragraph"
+            : null,
+        Constructs.BareGotoRemoved2002);
+
     private static string? FollowedByAnImperative(StatementPosition p) =>
         p.EndsImperativeRun ? null
             : $"is followed by the imperative statement {p.Following.Start.Text.ToUpperInvariant()} in the same "
@@ -156,14 +178,19 @@ internal static partial class PlacementRules
     /// (almost all of them — the probe is one type test on the statement's only child, so the funnel pays nothing
     /// for the rest). The shape tests are the printed formats the rules name: a bare EXIT is Format 1 alone
     /// (§2023:14.9.14.2), a GO TO is Format 1 unless it is the DEPENDING Format 2 — the 1985 target-less GO TO is
-    /// that edition's Format 1 (its procedure-name is optional there, and ALTER supplies it), so the rule binds
-    /// it too — and a STOP is the STOP RUN statement, the only STOP §2023:14.9.42 has. The X3.23-1985 STOP literal
+    /// that edition's Format 1 (its procedure-name is optional there, and ALTER supplies it), held to its own and
+    /// stricter rule, the whole of a single statement paragraph (§1985:VI.6.15.3 SR3) — and a STOP is the STOP RUN statement, the only STOP §2023:14.9.42 has. The X3.23-1985 STOP literal
     /// (deleted 2002) is not governed: it communicates to the operator and CONTINUES with the next statement
     /// (<see cref="Bound.BoundStopLiteral"/>), so a statement after it does execute and nothing makes it last.</summary>
     private static SequenceRule? SequenceRuleOf(Core.StatementContext s) => s.GetChild(0) switch
     {
         Core.ExitStatementContext { ChildCount: 1 } => ExitAlone,
-        Core.GoToStatementContext g when GoToFormats.Of(g) != GoToFormat.Depending => GoToLast,
+        Core.GoToStatementContext g => GoToFormats.Of(g) switch
+        {
+            GoToFormat.AnsiAlterable => BareGoToAlone,   // its own rule is the stricter: the whole paragraph
+            GoToFormat.Unconditional => GoToLast,
+            _ => null,
+        },
         Core.StopStatementContext stop when stop.RUN() is not null => StopLast,
         _ => null,
     };
@@ -174,7 +201,9 @@ internal static partial class PlacementRules
     /// Asked of the PARSE TREE, so the verdict is the same wherever and however often the statement binds.</summary>
     public static bool RefusedOutOfSequence(BinderContext ctx, Core.StatementContext s)
     {
-        if (SequenceRuleOf(s) is not { } rule || rule.Violation(StatementPosition.Of(s)) is not { } why) return false;
+        if (SequenceRuleOf(s) is not { } rule
+            || (rule.Construct is { } construct && !ConstructRegistry.IsAvailable(ctx.Edition.Edition, construct))
+            || rule.Violation(StatementPosition.Of(s)) is not { } why) return false;
         ctx.Edition.Error(rule.Descriptor, $"{rule.Shall} ({rule.Cite}); this one {why}");
         return true;
     }

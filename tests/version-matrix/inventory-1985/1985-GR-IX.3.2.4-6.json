@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.3.2.4-6",
  "rule-digest": "0c67f5f27646",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueOfClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueOfClause",
  "test-ref": "conformance:cases/IX.3.2@1985-FILE-DESCRIPTION-ENTRY/1985-GR-IX_3_2_4-6",
+ "notes": "§1985:IX.3.2.4 GR6: \"The VALUE OF clause for the Indexed I-O module is the same as the VALUE OF clause for the Sequential I-O module. Thus the specifications for the VALUE OF clause are located on page VII-33.\" Implemented at 85: one grammar rule (valueOfClause), admitted in every file description format by its FileDescriptionFormats.Rows row, serves the indexed FD, and VisitValueOfClause is the edition arm (accepted at --std 85, refused from 2002); the clause is then inert, which is the label routine of a host file that carries no label records (§1985:VII.3.9.4 GR1 speaks only of \"the appropriate label routine\"). Not implemented: the specifications the rule points to. The grammar takes any run of words, literals and IS, and no binder reads the operands, so on an indexed file at 85 the general format's implementor-name-1 before each operand (§1985:VII.3.9.2) and the data-name rules §1985:VII.3.9.3 SR1 and SR2 are never asked: VALUE OF \"IDXFILE\" (no implementor-name-1), VALUE OF FILE-ID IS the file's own record (a File Section item) and VALUE OF FILE-ID IS an undefined name all compile and run. kb/Work PB5070 holds the mechanism, filed against the Sequential module's rows (1985-FMT-VII.3.9.2, 1985-SR-VII.3.9.3-1, 1985-SR-VII.3.9.3-2); it does not list this rule id. The witness is an indexed FD with VALUE OF FILE-ID IS a literal.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

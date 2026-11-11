@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.4.7.4-17",
  "rule-digest": "bd9edcf73b8e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#PositionOnLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EndOfPage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
  "test-ref": "conformance:cases/VII.4.7@1985-WRITE-STATEMENT/1985-GR-VII_4_7_4-17",
+ "notes": "§1985:VII.4.7.4 GR17: \"If the logical end of the representation of the printed page is reached during the execution of a WRITE statement with the END-OF-PAGE phrase, imperative-statement-1 specified in the END-OF-PAGE phrase is executed.\" No edition arm is needed: BindWrite binds the END-OF-PAGE block (and refuses it without a LINAGE clause), the runtime PositionOnLogicalPage sets the connector's end-of-page state when the write's LINAGE-COUNTER reaches the footing start or passes the page body, both taken from the file's LINAGE clause, and EmitWrite renders the imperative under \"status successful and EndOfPage\", read before the body runs. Probed at --std 85 beyond the witness (BEFORE ADVANCING 1 LINE, footing reached on the third write): a WRITE with no ADVANCING phrase, EOP spelled without AT, ADVANCING 0, BEFORE ADVANCING 17 on a 5-line body, and data-name LINAGE operands changed after OPEN (the new values take effect on the next page) all run the imperative exactly when the logical end is reached.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

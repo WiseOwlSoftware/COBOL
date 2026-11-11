@@ -4,6 +4,6 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs",
  "test-ref": "conformance:cases/14.9.9-CONTINUE/pb138_continue_after; conformance:cases/14.9.9-CONTINUE/altkey_suppress_when; conformance:cases/14.9.9-CONTINUE/ec_range_search; conformance:cases/_unassigned/wavef_dbg_proc",
- "editions": "2023",
- "notes": "LANDED (kb/Work PB138): the arithmetic-expression interval evaluates through the ordinary expression spine per lane (float/decimal/fixed), with the sign test on the full-precision result and the truncation exact - the DIVERGES this row carried was the binary64-everywhere delivery."
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED (kb/Work PB138): the arithmetic-expression interval evaluates through the ordinary expression spine per lane (float/decimal/fixed), with the sign test on the full-precision result and the truncation exact - the DIVERGES this row carried was the binary64-everywhere delivery. EDITIONS AS ADJUDICATED 2026-11-10: in force at 85, §1985:VI.6.9.3 SR1 'The CONTINUE statement may be used anywhere a conditional statement or an imperative-statement may be used.' (the 2002 and 2014 tokens are forced by the validator, which refuses a skipped edition, and rest on no 2002/2014 text read)."
 }

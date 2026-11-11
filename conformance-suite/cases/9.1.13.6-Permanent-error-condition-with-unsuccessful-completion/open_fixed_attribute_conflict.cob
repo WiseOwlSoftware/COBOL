@@ -186,9 +186,9 @@
       *>    record type, minimum and maximum logical record size 20.
            OPEN OUTPUT F-MAKE
            MOVE "ALPHA" TO MK-REC
-           WRITE MK-REC
+           WRITE MK-REC INVALID KEY CONTINUE END-WRITE
            MOVE "BRAVO" TO MK-REC
-           WRITE MK-REC
+           WRITE MK-REC INVALID KEY CONTINUE END-WRITE
            CLOSE F-MAKE
            DISPLAY "S1-MAKE=" MK-ST
       *> 2. Record size 40 against a RELATIVE file created with 20 —
@@ -248,7 +248,7 @@
            OPEN OUTPUT F-BIG
            DISPLAY "S6-OUTPUT-40=" BG-ST
            MOVE "CHARLIE" TO BG-REC
-           WRITE BG-REC
+           WRITE BG-REC INVALID KEY CONTINUE END-WRITE
            CLOSE F-BIG
       *> 7. The file's fixed attributes are now the 40-byte ones, so
       *>    the connector that matched in step 4 conflicts.

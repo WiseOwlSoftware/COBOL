@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.9.4-2",
  "rule-digest": "89c0ea778fc5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#TryExpandRepeats; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsAlphabetic; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Table16Operand",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-GR-VI_5_9_4-2",
+ "notes": "§1985:VI.5.9.4 GR2: 'Its PICTURE character-string can contain only the symbol 'A'' and 'Its content, when represented in standard data format, must be one or more alphabetic characters.' AnalyzeCharacterString's A/X arm sets IsAlphabetic exactly when every expanded symbol is 'A' (no edition arm: the picture rule is the same in every edition), so PIC A9A or PIC AB is alphanumeric or alphanumeric edited, never alphabetic; TryExpandRepeats refuses A(0) (COBOL2147), so the item holds one or more positions. Sentence b binds the content the program stores, and the compiler serves it through the category: Table16Operand reads IsAlphabetic, so a numeric literal, a numeric item or a numeric edited item moved to PIC AAA, and PIC AAA moved to a numeric item, are refused (COBOL0819, probed at --std 85). The 1985 bar on the NUMERIC class test of an alphabetic item is another rule's and is open as kb/Work PB5122. The witness stores and displays two alphabetic values in PIC AAAAA.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

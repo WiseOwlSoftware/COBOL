@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.21.4-14",
  "rule-digest": "e7e13a27ae45",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformedRange",
  "test-ref": "conformance:cases/VI.6.21@1985-PERFORM-STATEMENT/1985-GR-VI_6_21_4-14",
+ "notes": "§1985:VI.6.21.4 GR14 is a requirement on nested PERFORM ranges ('the sequence of procedures associated with the included PERFORM must itself either be totally included in, or totally excluded from, the logical sequence referred to by the first PERFORM', and 'two or more such active PERFORM statements may not have a common exit') with three illustrations of legal constructs; the compiler owes the three legal shapes their meaning and nothing for a program that breaks the rule. ControlFlowEmitter.EmitPerformedRange lowers each out-of-line PERFORM, at every edition, to its own call of the dispatch method DispatchEmitter.EmitDispatchMethod emits, bounded by that PERFORM's start and exit paragraphs: a frame returns only when the paragraph at ITS exit completes by falling through, so an included range returns to the outer range in progress, an excluded range returns from wherever it lies, and the exit paragraph of a PERFORM that is not active is passed through. The witness is the first illustration (A F J F J M); probes at --std 85 run the second (the performed range after the outer exit: A F J H M) and the third (PERFORM f THRU j passing the exit m of a completed PERFORM a THRU m: A F M, then F M J), plus sections with a GO TO to an EXIT paragraph and PERFORM ... TIMES inside a performed section (E:/COBOL-coord/scratch/coderead-85/out/work-slice-19/p9/a.cob, b.cob, c.cob), all as the rule's figures require.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

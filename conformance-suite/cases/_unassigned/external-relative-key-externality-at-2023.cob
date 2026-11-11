@@ -7,7 +7,7 @@
 *> ISO 14.8.4.2 conjunct 1 (Annex E.2 item 9): at >=2023 the RELATIVE KEY data item of an
 *> external relative file connector shall ITSELF be an external data item. Here a SINGLE
 *> program declares FD F IS EXTERNAL ORGANIZATION RELATIVE with RELATIVE KEY IS WS-RK, where
-*> WS-RK is a plain (non-external) item. Below 2023 the requirement did not exist.
+*> WS-RK is a plain (non-external) item. The 1985 and 2002 texts state it too (pb5069-external-relative-key-not-external).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. XRKNE.
        ENVIRONMENT DIVISION.

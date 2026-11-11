@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.23.4-5",
  "rule-digest": "aab5516f6b46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#IndexAssignmentSenderOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetTo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#StoreSetTarget",
  "test-ref": "conformance:cases/VI.6.23@1985-SET-STATEMENT/1985-GR-VI_6_23_4-5",
+ "notes": "§1985:VI.6.23.4 GR5: \"Data in the following table represents the validity of various operand combinations in format 1 of the SET statement.\" Table 1 has twelve cells: an index receiver is valid from all four senders (integer literal, integer data item, index, index data item), an index data item receiver only from an index or an index data item, and an integer data item receiver only from an index. BindSetTo classifies the sender once (IndexAssignmentSenderOf) and ScreenIndexAssignmentReceiver refuses each receiver the table marks No; there is no edition arm because 2023 keeps the same five refusals (§2023:14.9.39.3 SR3 and SR4). Probed at --std 85: the five No cells (an integer literal, an integer item and an index data item to an integer item; an integer literal and an integer item to an index data item) each draw error COBOL2326, also for one receiver of a list, and the seven Valid cells compile and EmitSetTo and StoreSetTarget store the occurrence number unchanged, which is the table's \"No conversion takes place\". The witness runs all seven Valid cells. Outside the table: at 85 the sender position also accepts what 2023's arithmetic-expression-1 admits (SET IX TO N + 1, a PIC 9V9 item), which is the question of 1985-FMT-VI.6.23.2 and §1985:VI.6.23.3 SR2, not of a cell of this table (kb/Work PB5074 holds that mechanism); the COBOL2326 text cites the 2023 rules at 85 (kb/Work PB4950).",
  "next": {
   "kind": "CHANGED",
   "to": [

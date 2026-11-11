@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.3.4-1",
  "rule-digest": "ad8e5893395c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#CheckElementaryOnlyClauses; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#ElementaryOnlyClausesOn; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized",
  "test-ref": "conformance:cases/VI.5.3@1985-DATA-DESCRIPTION-ENTRY/1985-GR-VI_5_3_4-1",
+ "notes": "§1985:VI.5.3.4 GR1 requires \"The clauses SYNCHRONIZED, PICTURE, JUSTIFIED, and BLANK WHEN ZERO must not be specified except for an elementary data item.\" Three of the four have no edition arm: CheckPictureRequiredPass.CheckElementaryOnlyClauses walks every entry that has subordinates and refuses a PICTURE (COBOL2191), JUSTIFIED or BLANK WHEN ZERO (COBOL2403) clause it carries (ElementaryOnlyClausesOn reads the three bound facts). SYNCHRONIZED is the 1985 arm: DataBinder.InheritSynchronized visits every group entry and GateSynchronizedGroup asks the construct sync-on-group-2023 for one that wrote the clause, refused below 2023 (COBOL0900 at --std 85). The witness is the refusal of JUSTIFIED RIGHT on a level-01 group; probes at --std 85 refused each of the four clauses on a group at level 01 and at a nested level, in the working-storage, file and linkage sections (SYNCHRONIZED bare, LEFT and RIGHT), and accepted all four on elementary items.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

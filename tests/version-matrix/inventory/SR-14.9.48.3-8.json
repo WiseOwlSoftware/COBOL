@@ -4,6 +4,6 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrSender; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#strUnstrSender",
  "test-ref": "conformance:cases/14.9.48-UNSTRING/da4_function_sending_operand; conformance:cases/14.9.48-UNSTRING/pb1182_constant_name_literal_positions; conformance-test:StringUnstringOperandScreenTests.Unstring_ConstantNameSender_IsSR8",
- "editions": "2002,2014,2023",
- "notes": "kb/Work PB1182 (wave 1011 A). SR8 'The data item referenced by identifier-1 is the sending operand.' With 13.10.3 SR2 (a constant-name stands only where a format specifies a literal), BindUnstring refuses a constant-name identifier-1 (COBOL1651) while StrUnstrSender keeps substituting the literal at STRING's sender and both verbs' delimiters (the positive golden). The other halves stay witnessed by da4_function_sending_operand."
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1182 (wave 1011 A). SR8 'The data item referenced by identifier-1 is the sending operand.' With 13.10.3 SR2 (a constant-name stands only where a format specifies a literal), BindUnstring refuses a constant-name identifier-1 (COBOL1651) while StrUnstrSender keeps substituting the literal at STRING's sender and both verbs' delimiters (the positive golden). The other halves stay witnessed by da4_function_sending_operand. EDITIONS AS ADJUDICATED 2026-11-10: in force at 85, §1985:VI.6.27.4 GR2 'The data item referenced by identifier-1 represents the sending area.'."
 }

@@ -496,35 +496,17 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     }
 
     /// <summary>Rule 1 of GR4 d — flag a statement that CAN be specified with an INVALID KEY phrase
-    /// (<see cref="AdmitsInvalidKey"/>) but lacks it, when the unit has ANY open-mode USE declarative.</summary>
+    /// (<see cref="IoPhraseAdmission.AdmitsInvalidKey"/>: §2023:7.3.15.4 GR4 d) "can be specified with an INVALID KEY
+    /// phrase") but lacks it, when the unit has ANY open-mode USE declarative.</summary>
     private void IoDeclarativeInvalidKey(InvalidKeyVerb verb, bool phrasePresent, FileModel? file, int line)
     {
-        if (!phrasePresent && _hasAnyModeDecl && AdmitsInvalidKey(verb, file))
+        if (!phrasePresent && _hasAnyModeDecl && IoPhraseAdmission.AdmitsInvalidKey(verb, file))
             FlagIoDeclarative(line, "an I-O statement without an INVALID KEY phrase");
     }
-
-    /// <summary>The statements GR4 d reads for an INVALID KEY phrase.</summary>
-    private enum InvalidKeyVerb { Read, Write, Rewrite, Delete, Start }
 
     private void FlagIoDeclarative(int line, string what)
         => Flag(FlagOption.Flag14IoDeclarative, line,
             $"{what} while an INPUT/OUTPUT/I-O/EXTEND USE declarative is in effect (it now executes on the exception)");
-
-    /// <summary>Whether <paramref name="verb"/> on <paramref name="file"/> "can be specified with an INVALID KEY phrase"
-    /// (§2023:7.3.15.4 GR4 d) — the syntax rules of each statement decide, not the file's organization alone. A file with
-    /// SEQUENTIAL / LINE SEQUENTIAL organization never raises an invalid-key condition (§2023:12.4.5.10 — only a RELATIVE or
-    /// INDEXED, i.e. keyed, file does); then WRITE takes the phrase for every keyed file (§2023:14.9.51.3 SR3: format 2),
-    /// START and a random READ likewise, but REWRITE shall not specify it "for a file with sequential organization or
-    /// a file with relative organization and sequential access mode" (§2023:14.9.35.3 SR2) and DELETE RECORD shall not
-    /// when it "references a file that is in sequential access mode" (§2023:14.9.10.3 SR2). Flagging a statement the
-    /// phrase cannot be written on is a false warning no source change can silence.</summary>
-    private static bool AdmitsInvalidKey(InvalidKeyVerb verb, FileModel? file)
-        => file is { Organization: FileOrganization.Relative or FileOrganization.Indexed } && verb switch
-        {
-            InvalidKeyVerb.Rewrite => !(file.Organization == FileOrganization.Relative && file.AccessMode == FileAccessMode.Sequential),
-            InvalidKeyVerb.Delete => file.AccessMode != FileAccessMode.Sequential,
-            _ => true,
-        };
 
     /// <summary>The files a reference in the current unit can name: its own, then the GLOBAL ones of its containing
     /// programs, nearest container first (ISO §2023:13.18.27.4 GR1 — "A constant-name, data-name, file-name, report-name,

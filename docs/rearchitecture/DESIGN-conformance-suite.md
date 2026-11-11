@@ -443,8 +443,11 @@ its own view's (`inventory_view.py --summary`). The 1985 audit's checked drafts 
 harness, an output draft an accepted test at 85 and a refused draft a WiseOwl refusal pinning the code the compiler
 reports at the draft's violating line (its control has no expected output of its own, so the flagged form of §3.2 waits
 for the clause pass), each `portable: unverified` until that pass clears it. Its witness is recorded on the rule's store
-row as a witness-only `test-ref` where the rule's verdict is its own (CHANGED, REMOVED, or not yet classified); a KEPT
-rule's test is its chain's and stays unrecorded there.
+row as a witness-only `test-ref` where the rule's verdict is its own (CHANGED or REMOVED); a KEPT rule's test is its
+chain's and stays unrecorded there, and a rule with no change record yet is placed and listed as unclassified, its
+witness recorded once a change record classifies it. A rule is placed once, whichever pass's records place it: a run
+that would write a different case for a rule the suite already holds is refused, naming the source of the placed test
+and the records file that places it again, unless `--replace` removes the old case's files first.
 
 **A placement carries the weakest evidence it rests on** (decisions 5, 10, 14). The generator derives, per test and
 edition, the weakest class among the edges the placement relies on (its rules' bands and its facilities' windows) and

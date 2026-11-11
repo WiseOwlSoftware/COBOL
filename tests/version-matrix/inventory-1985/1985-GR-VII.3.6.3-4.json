@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.6.3-4",
  "rule-digest": "aede5804dbff",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#labelRecordsClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckExternalFileConsistency; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitExternalDescribes; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe",
  "test-ref": "conformance:cases/VII.3.6@1985-LABEL-RECORDS-CLAUSE/1985-GR-VII_3_6_3-4",
+ "notes": "§1985:VII.3.6.3 GR4: \"If the file connector associated with this file description entry is an external file connector (see page X-23, The External Clause), all LABEL RECORDS clauses in the run unit which are associated with this file connector must have the same specification.\" Implemented at 85: BinderDriver.Bind keys every EXTERNAL file by its external name, so the entries of a run unit share one connector, and labelRecordsClause with VisitLabelRecordsClause accepts the clause in each; agreeing clauses (the witness: STANDARD in both programs) compile and run, and so does an entry with no clause beside one with it (probed; the rule constrains only the clauses present). Not implemented: the agreement. BindFileSection has no arm for the clause, so nothing is kept of it; CheckExternalFileConsistency runs only under edition.DialectLevel >= 2023 and compares the FILE STATUS, RELATIVE KEY and LINAGE items only, and the descriptor EmitExternalDescribes renders for ExternalTable.Describe has no field for this clause, so no stage compares the clauses. Two programs of one compilation group, one STANDARD and one OMITTED, compile without a diagnostic and run; the clause is inert, so the run itself is unchanged. kb/Work PB5069 holds the mechanism for two other clauses' rules; it does not list this rule id.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

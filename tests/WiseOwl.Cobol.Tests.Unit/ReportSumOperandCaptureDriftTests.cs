@@ -56,6 +56,8 @@ public sealed class ReportSumOperandCaptureDriftTests
         // WRITTEN reference (`FieldReferenceSource`) and bound in the procedure phase by the one operand binder.
         // The RD CODE clause's identifier-1 shared that arm, so it keeps the whole reference too and asks the
         // key helper only for the BASE item its §2023:13.18.12.3 SR2 screen is about:
+        ["ScreenSourceControlData"] = "§1985:XIII.3.20.3 SR5 — asks which storage a SOURCE identifier-1 is; the screen is over the BASE item, "
+                                      + "and the subscript and reference modification ride in the written reference (FieldReferenceSource)",
         ["ResolveReportCode"] = "RD CODE identifier-1 (§2023:13.18.12.3 SR2) — the screen is over the BASE item's description; the subscript and "
                                 + "reference modification ride in the written reference and bind in the procedure phase",
     };

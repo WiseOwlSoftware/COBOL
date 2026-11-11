@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-RV-A.2.40.4-1",
  "rule-digest": "2e86181c13ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Sqrt; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#FloatBody; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloatNative",
  "test-ref": "conformance:cases/A.2.40@1985-SQRT-FUNCTION/1989-RV-A_2_40_4-1",
+ "notes": "§1989:A.2.40.4 RV1: \"The returned value is the absolute value of the approximation of the square root of argument-1.\" An 85 program has only native arithmetic (the OPTIONS paragraph's ARITHMETIC clause is refused at 85), so RenderDec's standard-decimal SqrtDec arm is not taken and FloatBody calls CobolIntrinsics.Sqrt: Math.Abs(Math.Sqrt(x)), the correctly rounded binary64 root made absolute (a negative zero returns +0), with a scaled operand past binary64's range rooted on the exact carrier first; RenderFloatNative lands it at the receiver's scale. Probed at --std 85: an 18-digit perfect square from an item and from a literal returns its exact root, and DISPLAY, COMP, COMP-3, signed-zero, nested and relation uses return the non-negative root. The witness takes the roots of 0, 1, 16, 2.25, 0.0625, 2 and an expression and tests the sign.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

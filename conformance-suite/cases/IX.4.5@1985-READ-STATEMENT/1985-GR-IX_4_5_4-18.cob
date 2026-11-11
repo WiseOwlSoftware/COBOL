@@ -5,6 +5,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Each WRITE carries INVALID KEY: the file has no USE AFTER
+      *> STANDARD EXCEPTION procedure, so §1985:IX.4.9.3 SR3
+      *> requires the phrase (kb/Work PB5076).
       *> §1985:IX.4.5.4 GR18 (THE READ STATEMENT). An output test: the
       *> program must translate and run at 85 and DISPLAY exactly the
       *> lines its .out holds, the outcome the rule requires. Placed
@@ -51,9 +54,11 @@
        MAIN-PARA.
            OPEN OUTPUT FILE-A.
            MOVE "AAAAABBBBBCCCCCDDDDD" TO REC-A.
-           WRITE REC-A.
+           WRITE REC-A
+               INVALID KEY DISPLAY "INVALID KEY".
            MOVE "ZZZZZYYY" TO REC-A-SHORT.
-           WRITE REC-A-SHORT.
+           WRITE REC-A-SHORT
+               INVALID KEY DISPLAY "INVALID KEY".
            CLOSE FILE-A.
            OPEN INPUT FILE-B.
            READ FILE-B AT END DISPLAY "EOF".

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.11.3-3",
  "rule-digest": "397a7b56fce7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand",
  "test-ref": "conformance:cases/VI.5.11@1985-RENAMES-CLAUSE/1985-SR-VI_5_11_3-3",
+ "notes": "§1985:VI.5.11.3 SR3: \"Data-name-1 cannot be used as a qualifier, and can only be qualified by the names of the associated level 01, FD, CD, or SD entries. Neither data-name-2 nor data-name-3 may have an OCCURS clause in its data description entry nor be subordinate to an item that has an OCCURS clause in its data description entry.\" No edition arm is involved. BindRenames makes the level-66 alias a non-storage entry whose Parent is its record and which is no item's Parent, so QualifierWalk, the one qualifier walk, finds no name under it (A OF R is refused with COBOL1639) and offers the alias one data ancestor, the level 01; when that is exhausted QualifierChainMatchesFrom admits as the outermost qualifier the cd-name or the FD or SD file-name that owns the record, which is the CD arm the 1985 rule has and 2023 dropped. ScreenRenamesOperand walks each operand and its ancestors and refuses one with an OCCURS clause with COBOL2740. Probed at 85: R OF REC, FR OF F1, SR OF S1, SR OF SREC OF S1 and CR OF CIN compile; R OF G, R OF G OF REC, R OF another record, A OF R and R OF R are refused; RENAMES of a table, of an item inside a table, and a THRU range that begins or ends inside a table are refused, while a range that only spans a table compiles. The witness is RENAMES of an item with OCCURS, refused with COBOL2740.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

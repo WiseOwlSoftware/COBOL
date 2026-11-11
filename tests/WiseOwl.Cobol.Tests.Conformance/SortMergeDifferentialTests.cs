@@ -405,11 +405,12 @@ public sealed class SortMergeDifferentialTests
     /// <summary>§2023:14.9.34.3 SR4: the AT END and NOT AT END phrases may be written in REVERSED order. SPEC-PINNED —
     /// the former legacy engine's grammar predates this allowance, so the expected output derives from the spec: keys
     /// 2,1,3 ascending return ONE, TWO, THREE. (Depends on the shared conditionalPhrases rule admitting the
-    /// reversed order, kb/Work PB3830.)</summary>
+    /// reversed order, kb/Work PB3830.) The allowance is COBOL-2002's: COBOL-85 prints AT END first and refuses the
+    /// reversed order (kb/Work PB5158), so this test targets the edition whose rule it pins, not the class's default 85.</summary>
     [Fact]
     public void Return_ReversedAtEndPhrases_SpecPinned()
     {
-        var (ok, output, detail) = WiseOwlCobol.CompileAndRun("""
+        var (ok, output, detail) = new WiseOwlCobolCompiler(2023).CompileAndRun("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. RETREV.
             ENVIRONMENT DIVISION.

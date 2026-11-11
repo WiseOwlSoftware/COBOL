@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.13.3-1",
  "rule-digest": "9251c65c9693",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized; src/WiseOwl.Cobol.Compiler/Binding/Passes/ExpandTypesPass.cs#Run; src/WiseOwl.Cobol.Editions/ConstructRegistry.cs#Check; src/WiseOwl.Cobol.Editions/Constructs.g.cs#SyncOnGroup2023",
  "test-ref": "conformance:cases/VI.5.13@1985-SYNCHRONIZED-CLAUSE/1985-SR-VI_5_13_3-1",
+ "notes": "§1985:VI.5.13.3 SR1: \"This clause may only appear with an elementary item.\" ExpandTypesPass.Run walks every root of the storage forest through InheritSynchronized, which calls GateSynchronizedGroup at each non-elementary entry; the gate asks the registry row sync-on-group-2023 (introduced 2023) for an entry that wrote the clause whenever the edition is below 2023, so 85 draws COBOL0900 (a hard error) at the group entry. Probed at --std 85: SYNC, SYNC LEFT and SYNCHRONIZED RIGHT are each refused on a level 01 group of the Working-Storage, File and Linkage Sections, on a subordinate group, on a group with OCCURS, on a group with REDEFINES and on a group under a CD, and SYNC on an elementary level 77 item is accepted; a level 66 or 88 entry takes no SYNCHRONIZED clause at all (a syntax error for 66, COBOL1747 for 88). The witness writes 01 GRP SYNCHRONIZED over one elementary item and is refused with COBOL0900.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

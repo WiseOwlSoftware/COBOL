@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.5.3-1",
  "rule-digest": "5decbf95fd33",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAcceptFromMnemonic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice",
  "test-ref": "conformance:cases/VI.6.5@1985-ACCEPT-STATEMENT/1985-SR-VI_6_5_3-1",
+ "notes": "§1985:VI.6.5.3 SR1 requires that 'Mnemonic-name-1 in format 1 must also be specified in the SPECIAL-NAMES paragraph of the Environment Division and must be associated with a hardware device.' BindAcceptFromMnemonic hands the FROM word to MnemonicDevice at every edition (no edition arm): it reports COBOL0817 when the word is not a mnemonic-name declared in SPECIAL-NAMES (ctx.Mnemonics.TryUse fails), when its implementor-name is not a device-name (a switch or a feature-name; §1985:VI.4.5.3 SR1 keeps a switch's mnemonic-name to SET), and when the device cannot supply input (SYSOUT, SYSERR: the implementor's device table). Probed at --std 85: a mnemonic of CONSOLE or SYSIN (written in either case) is accepted and reads; an undeclared word, a data-name, a bare CONSOLE or SYSIN, a switch mnemonic, a switch condition-name, a C01 mnemonic, an alphabet-name, a class-name and a SYSOUT or SYSERR mnemonic are each COBOL0817. The witness refuses ACCEPT X FROM NODEVICE with no SPECIAL-NAMES paragraph.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

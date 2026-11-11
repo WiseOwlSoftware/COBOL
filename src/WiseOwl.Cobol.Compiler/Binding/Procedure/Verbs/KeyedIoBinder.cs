@@ -159,6 +159,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // because SR3 tests bracket 1's IGNORING LOCK against it. Same shape as SequentialIoBinder.BindRead —
         // both READ arms, so the split cannot be half-applied (feedback_two_arm_dispatch).
         BoundRecordLock retention = fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");
+        // COBOL-85: AT END or INVALID KEY is mandatory where no applicable USE procedure takes the exception (kb/Work PB5076).
+        ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Read, r.conditionalPhrases());
         return new BoundKeyedRead(file, kind, keyIndex, into, atEnd, notAtEnd, invalid)
         {
             Lock = retention,
@@ -187,8 +189,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 + "of the write file is indexed or relative, format 2 shall be specified\" (ISO §2023:14.9.51.3 SR3), and "
                 + "Format 2 prints no print-control phrase");
         KeyedInvalidKey? invalid = KeyedInvalidPhrase(w.conditionalPhrases());
+        ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Write, w.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
         return new BoundKeyedWrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Write, record, w.recordFromPhrase()?.sendingOperand()), invalid)
+            host.Move.BindFromPhrase(FromPhraseRules.Write, file, record, w.recordFromPhrase()?.sendingOperand()), invalid)
         { Lock = lock_, Retry = retry };
     }
 
@@ -213,8 +216,9 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 "a file with relative organization and sequential access mode", "ISO §2023:14.9.35.3 SR2");
             invalid = KeyedInvalidPhrase(rw.conditionalPhrases());
         }
+        ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Rewrite, rw.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
         return new BoundKeyedRewrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Rewrite, record, rw.recordFromPhrase()?.sendingOperand()), invalid)
+            host.Move.BindFromPhrase(FromPhraseRules.Rewrite, file, record, rw.recordFromPhrase()?.sendingOperand()), invalid)
         { Lock = lock_, Retry = retry };
     }
 
@@ -250,6 +254,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 "a file that is in sequential access mode", "ISO §2023:14.9.10.3 SR2");
             invalid = KeyedInvalidPhrase(del.conditionalPhrases());
         }
+        ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Delete, del.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
         return new BoundKeyedDelete(file, invalid)
         { Retry = fileLock.BindVerbRetry(del.retryPhrase()) };   // §2023:14.7.9 / §2023:14.9.10 GR6
     }
@@ -312,6 +317,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': the access mode shall be sequential or "
                 + "dynamic (ISO §2023:14.9.41.3 SR1)");
         KeyedInvalidKey? invalid = KeyedInvalidPhrase(st.conditionalPhrases());
+        ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Start, st.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
 
         if (st.FIRST() is not null || st.LAST() is not null)
         {

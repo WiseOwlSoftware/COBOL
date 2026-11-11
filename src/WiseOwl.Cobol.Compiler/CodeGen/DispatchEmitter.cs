@@ -51,6 +51,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
         w.Line($"private const int __N = {n};   // paragraph count");
         alterSwitch.EmitFields(bound, w);   // the per-altered-paragraph mutable GO TO target fields (control-flow design D4)
+        dispatchState.SegmentEntry = alterSwitch.EmitSegmentState(bound, w);   // an independent segment's initial state (§1985:XVI.1.4.3)
         reportWriter.EmitReportMembers(w);      // per-report engine fields + line compose methods (Verbs/ReportWriterEmitter.cs)
         if (dispatchState.DebugActive)
         {
@@ -194,11 +195,28 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // an OO method's __MDispatch is a LOCAL FUNCTION (design SSOT §9.10), so the program's label is not in
         // scope there. Save/restore keeps a nested emission (a class unit emitted while a program is open) honest.
         var savedXfer = dispatchState.BeginTransferScope(dispatchState.DispatchName == "__Dispatch" ? "__xfer" : "__mxfer");
+        // §1985:XVI.1.4.3 (kb/Work PB5084): a call returns control to the caller's segment in its LAST-USED state, so the
+        // caller's __seg is restored however the call ends, and every pc entered from another segment enters that segment.
+        bool segmentEntry = dispatchState.SegmentEntry && !inMethod;
         using (w.Block(header))
+        {
+            if (!segmentEntry) EmitLoop();
+            else
+            {
+                w.Line("int __segOfCaller = __seg;");
+                using (w.Block("try")) EmitLoop();
+                using (w.Block("finally")) w.Line("__seg = __segOfCaller;   // the caller's segment, last-used (§1985:XVI.1.4.3)");
+            }
+        }
+        dispatchState.EndTransferScope(savedXfer);
+
+        void EmitLoop()
         {
             w.Line("int __pc = __startPc;");
             using (w.Block("while ((uint)__pc < (uint)__N)"))
             {
+                if (segmentEntry)
+                    w.Line("if (__SegOf[__pc] != __seg) __EnterSegment(__SegOf[__pc]);   // control enters another segment (§1985:XVI.1.4.3)");
                 w.Line("bool __atExit = __pc == __exitPc;   // captured before the body overwrites __pc");
                 using (w.Block("switch (__pc)"))
                 {
@@ -235,7 +253,6 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             }
             w.Line("return __pc;");
         }
-        dispatchState.EndTransferScope(savedXfer);
     }
 
     /// <summary>Emit the X3.23-1985 debug trigger runner (VCR Table 7 row 7.17): space-fill DEBUG-ITEM, set

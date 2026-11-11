@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.10.3-4",
  "rule-digest": "f7e9b276b900",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
  "test-ref": "conformance:cases/VI.5.10@1985-REDEFINES-CLAUSE/1985-SR-VI_5_10_3-4",
+ "notes": "§1985:VI.5.10.3 SR4: \"This clause must not be used in level 01 entries in the Communication Section.\" BindEntry binds the record description entries that follow a CD entry in EntrySection.Communication, and ScreenRedefinesEntry, which Run asks of every REDEFINES clause whose data-name-2 resolved, refuses a subject that is a level-1 root of that section with COBOL2739; a REDEFINES there whose data-name-2 does not resolve (an item of another section, the cd-name) is refused by Run with COBOL1654, so no level 01 REDEFINES in the section compiles. The check has no edition arm; the 2023 text has no Communication Section, and the section itself is the 1985 construct. Probed at 85: refused under CD FOR INPUT (the witness), FOR OUTPUT and FOR I-O, on an elementary and a group subject, and across two CDs; a REDEFINES in a level 05 entry of a CD record and two level 01 records without REDEFINES compile.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

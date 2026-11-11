@@ -63,20 +63,20 @@
            WRITE R2
            CLOSE F
            OPEN I-O F
-           READ F
-           READ F
+           READ F AT END CONTINUE END-READ
+           READ F AT END CONTINUE END-READ
            REWRITE R1 FROM W10
            DISPLAY "R1-ON-20=" ST
-           READ F
+           READ F AT END CONTINUE END-READ
            MOVE ALL "D" TO R2
            REWRITE R2
            DISPLAY "R2-ON-20=" ST
            CLOSE F
            OPEN INPUT F
-           READ F
-           READ F
+           READ F AT END CONTINUE END-READ
+           READ F AT END CONTINUE END-READ
            DISPLAY "REC2=" R2
-           READ F
+           READ F AT END CONTINUE END-READ
            DISPLAY "REC3=" R2
            CLOSE F
            OPEN OUTPUT G
@@ -84,13 +84,13 @@
            WRITE G1
            CLOSE G
            OPEN I-O G
-           READ G
+           READ G AT END CONTINUE END-READ
            MOVE "HHHHHHHH" TO G1
            REWRITE G1
            DISPLAY "G1-ON-12=" ST
            CLOSE G
            OPEN INPUT G
-           READ G
+           READ G AT END CONTINUE END-READ
            DISPLAY "GREC=" G1
            CLOSE G
            STOP RUN.

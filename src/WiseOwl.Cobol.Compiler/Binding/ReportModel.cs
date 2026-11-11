@@ -782,6 +782,9 @@ public sealed record ReportDetailRef(string Name, string? Qualifier)
 {
     public ReportGroupModel? Detail { get; set; }
 
+    /// <summary>The operand as written, where a refusal of it stands (kb/Work PB5090).</summary>
+    public CobolParserCore.DataReferenceContext? Ctx { get; init; }
+
     /// <summary>The report description the resolved <see cref="Detail"/> belongs to — the RD of the SUM entry itself
     /// for an unqualified operand, ANOTHER report's when SR7's report-name qualifier says so (§2023:13.18.54.4 GR7 c) 2):
     /// the GENERATE that adds is then executed against that report's engine).</summary>
@@ -1018,6 +1021,9 @@ public sealed class ReportSumModel
     /// Null for RESET ON FINAL and for no RESET phrase.</summary>
     public ReportControlRef? ResetOperand { get; set; }
     public bool ResetFinal { get; set; }
+
+    /// <summary>The RESET phrase as written, where a diagnostic about its operand stands (kb/Work PB5079); null when none.</summary>
+    public CobolParserCore.ReportSumResetContext? ResetAt { get; set; }
 
     /// <summary>The clause's ROUNDED phrase (§2023:13.18.54.2's trailing <c>[ rounded-phrase ]</c>, §2023:14.7.4), or null.
     /// §2023:13.18.54.4 GR4: "If the ROUNDED phrase is specified …, the content of the sum counter is computed

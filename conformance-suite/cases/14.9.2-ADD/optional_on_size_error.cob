@@ -2,7 +2,7 @@
       *> id: optional_on_size_error
       *> rules: [GR-14.9.2.4-6, GR-14.9.8.4-2, GR-14.9.44.4-6,
       *>    FMT-14.9.2.2, FMT-14.9.8.2, FMT-14.9.12.2]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

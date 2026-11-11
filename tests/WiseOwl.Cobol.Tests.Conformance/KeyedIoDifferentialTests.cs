@@ -42,10 +42,12 @@ public sealed class KeyedIoDifferentialTests
             MAIN-PARA.
                 OPEN OUTPUT KFIL.
                 MOVE "ALPHA" TO KFIL-REC.
-                WRITE KFIL-REC.
+                WRITE KFIL-REC INVALID KEY CONTINUE END-WRITE
+                .
                 DISPLAY "W1 RRN=" WS-RRN " FS=" WS-FS.
                 MOVE "BETA" TO KFIL-REC.
-                WRITE KFIL-REC.
+                WRITE KFIL-REC INVALID KEY CONTINUE END-WRITE
+                .
                 DISPLAY "W2 RRN=" WS-RRN " FS=" WS-FS.
                 CLOSE KFIL.
                 OPEN INPUT KFIL.
@@ -127,10 +129,12 @@ public sealed class KeyedIoDifferentialTests
                 OPEN OUTPUT KFIL.
                 MOVE 1 TO WS-RRN.
                 MOVE "ONE" TO KFIL-REC.
-                WRITE KFIL-REC.
+                WRITE KFIL-REC INVALID KEY CONTINUE END-WRITE
+                .
                 MOVE 2 TO WS-RRN.
                 MOVE "TWO" TO KFIL-REC.
-                WRITE KFIL-REC.
+                WRITE KFIL-REC INVALID KEY CONTINUE END-WRITE
+                .
                 CLOSE KFIL.
                 OPEN I-O KFIL.
                 MOVE 2 TO WS-RRN.
@@ -392,10 +396,10 @@ public sealed class KeyedIoDifferentialTests
                 OPEN OUTPUT KFIL.
                 MOVE 1 TO WS-RRN.
                 MOVE "FIRST" TO KFIL-REC.
-                WRITE KFIL-REC NOT INVALID KEY DISPLAY "NI-1".
+                WRITE KFIL-REC INVALID KEY CONTINUE NOT INVALID KEY DISPLAY "NI-1".
                 MOVE 1 TO WS-RRN.
                 MOVE "CLASH" TO KFIL-REC.
-                WRITE KFIL-REC NOT INVALID KEY DISPLAY "NI-2".
+                WRITE KFIL-REC INVALID KEY CONTINUE NOT INVALID KEY DISPLAY "NI-2".
                 DISPLAY "AFTER FS=" WS-FS.
                 CLOSE KFIL.
                 STOP RUN.
@@ -437,12 +441,14 @@ public sealed class KeyedIoDifferentialTests
                 MOVE "K001" TO THE-KEY IN PRIME-AREA.
                 MOVE "A902" TO THE-KEY OF ALT-AREA.
                 MOVE "PAYLOAD1" TO PAYLOAD.
-                WRITE KFIL-REC.
+                WRITE KFIL-REC INVALID KEY CONTINUE END-WRITE
+                .
                 DISPLAY "W1 FS=" WS-FS.
                 MOVE "K002" TO THE-KEY IN PRIME-AREA.
                 MOVE "A901" TO THE-KEY OF ALT-AREA.
                 MOVE "PAYLOAD2" TO PAYLOAD.
-                WRITE KFIL-REC.
+                WRITE KFIL-REC INVALID KEY CONTINUE END-WRITE
+                .
                 DISPLAY "W2 FS=" WS-FS.
                 CLOSE KFIL.
                 OPEN INPUT KFIL.

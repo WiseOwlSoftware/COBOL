@@ -888,6 +888,19 @@ never between every pair. Each rule of the older edition carries one classificat
 | CHANGED | same subject, a different requirement | its own expected behaviour at each side |
 | REMOVED | no counterpart | the older edition accepts it; the newer refuses it (syntax) or does not do it (semantics) |
 
+**The two rules are compared on the programs the OLDER edition admits (decided 2026-11-10, kb/Work PB5021).** A
+program is admitted by the older edition's general formats and syntax rules. A case the newer edition adds that no
+such program can write (new syntax, a new operand class such as national or boolean, a phrase such as INSPECT's
+BACKWARD) does not make the older RULE CHANGED: its record stays KEPT, and the difference is recorded once, on the
+general format or the syntax rule of the older edition that excludes the syntax, which is CHANGED and owes the older
+compiler's refusal. A refusal the older edition makes of a program its own formats admit, which the newer edition
+lifts (or the reverse, or a refusal made an exception condition), IS a change of that rule. So every edition gate of
+the compiler rests on a CHANGED format or syntax-rule record, and a general rule is CHANGED only when a program both
+editions accept behaves differently. A `to` list names only rules that state the older requirement, in whole or in
+part; a newer rule about syntax the older edition lacks is never a KEPT record's target, whatever subject it shares
+(PB4996's band adjudication found 18 such targets: 16 records lost the target and stayed KEPT, and two, whose only
+target it was, were re-decided CHANGED and keep it as the same-subject successor).
+
 A rule of the newer edition that no older row's `to` names is NEW; that is derived, never written. A `next` stores the
 rule ids it links, its `reason` (the words that differ, or what deleted the feature) and its `source` (the audit run or
 the adjudication); its evidence is the citation of the older rule and of each `to` rule, read from their catalogs,

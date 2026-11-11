@@ -9,12 +9,10 @@
    "GR-9.1.13.2-2",
    "GR-9.1.13.2-3",
    "GR-9.1.13.2-4",
-   "GR-9.1.13.2-5",
-   "GR-9.1.13.2-6",
-   "GR-9.1.13.2-7"
+   "GR-9.1.13.2-6"
   ],
   "bridge": true,
-  "reason": "The 1985 rule names the whole successful-completion class. 2023 §9.1.13.2 keeps that class, and each 0x status states the statement is successfully executed; 00 is one member, not a narrowing.",
-  "source": "audit-1985/state-route"
+  "reason": "The 1985 rule names the whole successful-completion class: 'Successful Completion. The input-output statement was successfully executed' (§1985:VIII.1.3.4 GR1). §2023:9.1.13.2 keeps that class, and each remaining 0x status states the statement is successfully executed (00, §2023:9.1.13.2 GR1 'is successfully executed and no further information is available'); 00 is one member, not a narrowing. Status 06 (§2023:9.1.13.2 GR5, 'A READ statement for a line sequential file has successfully executed but a line delimiter or the end-of-file has not been detected') and status 09 (§2023:9.1.13.2 GR7, 'the record contains one or more characters that are not in the implementor-defined character set for a line sequential file') are no longer targets: they are values of a line sequential file, an organization 1985 lacks, and state nothing this 1985 rule states (band-85/slice-10).",
+  "source": "band-85/slice-10"
  }
 }

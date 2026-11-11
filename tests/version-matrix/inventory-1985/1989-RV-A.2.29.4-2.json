@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-RV-A.2.29.4-2",
  "rule-digest": "2e29841c1c77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#ReturnsExactParse",
  "test-ref": "conformance:cases/A.2.29@1985-NUMVAL-FUNCTION/1989-RV-A_2_29_4-2",
+ "notes": "§1989:A.2.29.4 RV2: \"The number of digits returned is 18.\" Read with §1989:A.2.29.3 AR2 (\"The total number of digits in argument-1 must not exceed 18.\"), the duty at 85 is a returned value that carries all 18 digits of a conforming argument, at any scale. RenderDec routes NUMVAL to NumvalDec in every arithmetic mode and channel (ReturnsExactParse, no edition arm), NvScan accumulates the digits in an Int128 and NumvalDec lifts them to the 34-digit decimal carrier exactly at the parsed scale, so no 18-digit value passes through binary64. Probed at --std 85: 18 digits as an integer, as 9.9, as V18 and as 1.17, with a leading minus, a trailing minus and CR, in COMPUTE, in a relation and as an argument of MAX and INTEGER, each exact to the last digit. The witness converts an 18-digit integer string.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

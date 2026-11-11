@@ -79,7 +79,8 @@
            CLOSE IF1.
            MOVE SPACES TO IR.
            OPEN INPUT IF1.
-           READ IF1.
+           READ IF1 AT END CONTINUE END-READ
+           .
            DISPLAY "I REC=" IR.
            CLOSE IF1.
            EXIT PROGRAM.
@@ -110,7 +111,8 @@
            CLOSE JF1.
            MOVE SPACES TO JR.
            OPEN INPUT JF1.
-           READ JF1.
+           READ JF1 AT END CONTINUE END-READ
+           .
            MOVE N TO ED.
            DISPLAY "J ED=" ED " REC=" JR.
            CLOSE JF1.

@@ -2,13 +2,13 @@
  "rule-id": "1985-SR-IX.2.5.3-3",
  "rule-digest": "c5637dbffa2a",
  "next": {
-  "kind": "KEPT",
+  "kind": "CHANGED",
   "edition": 2023,
   "to": [
    "SR-12.4.5.6.3-3"
   ],
   "bridge": true,
-  "reason": "A group containing an OCCURS DEPENDING item is a variable-length data item, so 2023 refuses the same 1985 programs. Its wider reach (dynamic-length items, data-name-2) only covers features new since 1985.",
-  "source": "audit-1985/state-route"
+  "reason": "§1985:IX.2.5.3 SR3: 'Data-name-1 must not reference a group item that contains a variable occurrence data item.' §2023:12.4.5.6.3 SR3: 'Data-name-1 and data-name-2 shall not reference a variable-length data item', and §2023:8.5.1.11.1: 'The term variable-length data item refers to either a dynamic-capacity table or a dynamic-length elementary item.' The words that differ: 1985 refuses 'a group item that contains a variable occurrence data item' (OCCURS DEPENDING ON); 2023 refuses 'a variable-length data item', which is not that group: such a group is an alphanumeric group item (§2023:8.5.2.1 'an alphanumeric group item has class and category alphanumeric'), not even a variable-length group (§2023:8.5.1.12.1: one with 'at least one dynamic-length elementary item or dynamic-capacity table as a subordinate item'). A refusal 1985 makes of a program its own formats admit, which 2023 lifts; what 2023 refuses instead no 1985 program can write (band-85 adjudication 2026-11-10; was KEPT by audit-1985/state-route).",
+  "source": "band-85/slice-12"
  }
 }

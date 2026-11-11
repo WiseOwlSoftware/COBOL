@@ -100,12 +100,12 @@
        M-1.
            OPEN OUTPUT XS
            MOVE "K001A01V01" TO XS-REC
-           WRITE XS-REC
+           WRITE XS-REC INVALID KEY CONTINUE END-WRITE
            MOVE "K002A02V02" TO XS-REC
-           WRITE XS-REC
+           WRITE XS-REC INVALID KEY CONTINUE END-WRITE
            CLOSE XS
            OPEN I-O XS
-           READ XS
+           READ XS AT END CONTINUE END-READ
       *> S1: prime key differs from the last record read
            MOVE "NONE" TO ARM
            MOVE "K002" TO XS-KEY
@@ -115,7 +115,7 @@
                NOT INVALID KEY MOVE "NOT-INVALID" TO ARM
            END-REWRITE
            DISPLAY "S1 ST=" ST " REC=" XS-REC " ARM=" ARM
-           READ XS
+           READ XS AT END CONTINUE END-READ
            DISPLAY "S2 ST=" ST " REC=" XS-REC
       *> S3: prime key equals the last record read
            MOVE "NONE" TO ARM
@@ -127,16 +127,16 @@
            DISPLAY "S3 ST=" ST " ARM=" ARM
            CLOSE XS
            OPEN INPUT XS
-           READ XS
+           READ XS AT END CONTINUE END-READ
            DISPLAY "S4 ST=" ST " REC=" XS-REC
-           READ XS
+           READ XS AT END CONTINUE END-READ
            DISPLAY "S5 ST=" ST " REC=" XS-REC
            CLOSE XS
            OPEN OUTPUT XD
            MOVE "K001B01V01" TO XD-REC
-           WRITE XD-REC
+           WRITE XD-REC INVALID KEY CONTINUE END-WRITE
            MOVE "K002B02V02" TO XD-REC
-           WRITE XD-REC
+           WRITE XD-REC INVALID KEY CONTINUE END-WRITE
            CLOSE XD
            OPEN I-O XD
       *> D1: no record with this prime key
@@ -149,7 +149,7 @@
            DISPLAY "D1 ST=" ST " REC=" XD-REC " ARM=" ARM
       *> D2: replace by prime key, not by the last record read
            MOVE "K001" TO XD-KEY
-           READ XD
+           READ XD INVALID KEY CONTINUE END-READ
            MOVE "NONE" TO ARM
            MOVE "K002NEWK02" TO XD-REC
            REWRITE XD-REC
@@ -158,10 +158,10 @@
            END-REWRITE
            DISPLAY "D2 ST=" ST " ARM=" ARM
            MOVE "K002" TO XD-KEY
-           READ XD
+           READ XD INVALID KEY CONTINUE END-READ
            DISPLAY "D3 ST=" ST " REC=" XD-REC
            MOVE "K001" TO XD-KEY
-           READ XD
+           READ XD INVALID KEY CONTINUE END-READ
            DISPLAY "D4 ST=" ST " REC=" XD-REC
            CLOSE XD
       *> D5: no preceding READ is required outside sequential access
@@ -174,7 +174,7 @@
            END-REWRITE
            DISPLAY "D5 ST=" ST " ARM=" ARM
            MOVE "K001" TO XD-KEY
-           READ XD
+           READ XD INVALID KEY CONTINUE END-READ
            DISPLAY "D6 ST=" ST " REC=" XD-REC
            CLOSE XD
            STOP RUN.

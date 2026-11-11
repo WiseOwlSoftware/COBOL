@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.4.3.3-1",
  "rule-digest": "80acad5a9018",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenTapePhrase; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#OpenTapePhraseRule; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openFileSpec",
  "test-ref": "conformance:cases/VII.4.3@1985-OPEN-STATEMENT/1985-SR-VII_4_3_3-1",
+ "notes": "§1985:VII.4.3.3 SR1 requires a refusal: \"The REVERSED phrase can only be used with sequential files.\" BindOpen reads openFileSpec's REVERSED into BoundOpenTapePhrase.Reversed and screens it through CheckOpenTapePhrase, whose OpenTapePhraseRule row for REVERSED admits only a file control entry of ORGANIZATION SEQUENTIAL (COBOL2210 otherwise, and COBOL2211 outside the INPUT group, the only group the 1985 format writes it in); the screen has no edition arm, and 85 is the only edition where the phrase survives VersionConformancePass's 2002 removal gate. The witness refuses OPEN INPUT REVERSED on a relative file in sequential access; probes at --std 85 refuse it on an indexed file, refuse it under I-O on a sequential file, and accept it under INPUT on a sequential file.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

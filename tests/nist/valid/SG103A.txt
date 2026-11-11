@@ -1,0 +1,34 @@
+
+                            FEDERAL COMPILER TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM                          
+                                                                                                                        
+CCVS74 NCC  COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SG103A                                           
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1974          
+                                                                                                                        
+                                                                                                                        
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS                     
+ TESTED               FAIL                                                                                              
+                                                                                                                        
+ ***********************************************************************************************************************
+ INITIAL STATE        PASS  TEST-1                                                                                      
+ GO TO INDEP SEG      PASS  TEST-2                                                                                      
+ PERFORM IND SEG      PASS  TEST-3                                                                                      
+ ALT RES FRM IND      PASS  TEST-4                                                                                      
+ FALL THRU TEST       PASS  TEST-5                                                                                      
+ FALL THRU TEST       PASS  TEST-6                                                                                      
+ GO TO ALTER IND      PASS  TEST-7                                                                                      
+ ***********************************************************************************************************************
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                    END OF TEST-  SG103A    NTIS DISTRIBUTION COBOL 74                  
+                                                                                                                        
+                                                    007 OF 007  TESTS WERE EXECUTED SUCCESSFULLY                        
+                                                    NO  TEST(S) FAILED                                                  
+                                                    NO  TEST(S) DELETED                                                 
+                                                    NO  TEST(S) REQUIRE INSPECTION                                      
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1974
