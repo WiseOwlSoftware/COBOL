@@ -29,11 +29,11 @@ THIS_ORIGIN = ScratchRepo(REPO).git("remote", "get-url", "origin")
 ELSEWHERE = "https://example.invalid/elsewhere.git"
 
 
-def same_origin(prefix: str, *settings: tuple[str, ...]) -> str:
-    """A scratch repository whose `origin` is this repository's, plus a remote `other` at ELSEWHERE and each
-    `git config` setting; its posix path."""
+def same_origin(prefix: str, *settings: tuple[str, ...], branch: str = "main") -> str:
+    """A scratch repository on `branch` whose `origin` is this repository's, plus a remote `other` at ELSEWHERE and
+    each `git config` setting; its posix path."""
     d = scratch_dir(prefix)
-    r = ScratchRepo.init(d)
+    r = ScratchRepo.init(d, branch=branch)
     r.git("remote", "add", "origin", THIS_ORIGIN)
     r.git("remote", "add", "other", ELSEWHERE)
     for s in settings:
@@ -49,6 +49,11 @@ PUSH_DEFAULT_SAME = same_origin("fc-pushdefault-same-", ("remote.pushDefault", "
 BRANCH_PUSH = same_origin("fc-branchpush-", ("branch.main.pushRemote", "other"), ("remote.pushDefault", "origin"))
 BRANCH_REMOTE = same_origin("fc-branchremote-", ("branch.main.remote", "other"))
 REWRITE = same_origin("fc-rewrite-", (f"url.{ELSEWHERE}.pushInsteadOf", THIS_ORIGIN))
+# THE SESSION'S DIRECTORY every case runs the hook from (the payload's `cwd`, which is how Claude Code tells the hook
+# where the session is): a scratch repository on a branch this test names, its origin this repository's. A push that
+# names no repository is resolved from ITS branch and configuration, so no verdict depends on which branch the
+# developer's or the gate's checkout is on (kb/Work PB5227: the hook asked the real checkout `git symbolic-ref HEAD`).
+SESSION = same_origin("fc-session-", branch="unit-work")
 BS = chr(92)  # a backslash, spelled without one
 NL = chr(10)
 # kb/Work PB3198: every rule reads the ONE model of the command line (shell_location.steps), so each rule is checked
@@ -279,7 +284,7 @@ def blocked(cmd: str, unit: bool = False, tool: str = "Bash") -> bool:
     if unit:
         env["COBOL_COORD_DIR"] = "E:/COBOL-coord"
     r = subprocess.run([sys.executable, str(HOOK)], input=json.dumps({"tool_name": tool, "tool_input": {"command": cmd},
-                                                                   "cwd": str(REPO)}),
+                                                                   "cwd": SESSION}),
                        capture_output=True, text=True, timeout=30, env=env)
     return r.returncode == 2
 

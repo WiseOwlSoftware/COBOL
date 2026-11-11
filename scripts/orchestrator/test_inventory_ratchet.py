@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Self-test for inventory_ratchet.py: a fabricated reopen and a fabricated GAP rise are RED, the marker excuses
-exactly the rows it names, and the real repository against itself is GREEN.
+exactly the rows it names, and the command line over planted commits of a scratch repository is GREEN, RED and excused
+as planted (kb/Work PB5227: it read the real repository, and every gate re-ran it).
 Run: python scripts/orchestrator/test_inventory_ratchet.py   (no submodule, no build)."""
 import pathlib
 import subprocess
@@ -69,11 +70,46 @@ check("marker does not excuse others", r.unexcused(["GR-2-1", "SR-1-1"], marks),
 check("glob does not overmatch", r.unexcused(["SR-91-1"], marks), ["SR-91-1"])
 check("multi-id marker", [p for p, _ in r.excuses(["reopens-rows: A-1, B-2 , C-3: reason here"])], ["A-1", "B-2", "C-3"])
 
-# 7. end to end on the real repository: HEAD against itself is green
-p = subprocess.run([sys.executable, str(HERE / "inventory_ratchet.py"), "--base", "HEAD", "--head", "HEAD"],
-                   capture_output=True, text=True, encoding="utf-8")
-check("real repo HEAD..HEAD exit", p.returncode, 0)
-check("real repo verdict line", "GREEN ===" in p.stdout, True)
+# 7. END TO END, the command line over committed inventories, in a scratch repository (kb/Work PB5227). It ran over the
+#    real repository (HEAD against itself), whose excuse diff and object reads keyed this self-test's PASS on the whole
+#    tree, so every gate re-ran it; and HEAD against itself can only be GREEN. Here each verdict is a planted one.
+import inventory_schema  # noqa: E402  (scripts/spec, on the path through inventory_ratchet)
+import inventory_store  # noqa: E402
+
+from scratch_repo import ScratchRepo, remove_tree, scratch_dir  # noqa: E402  (scripts/: the one scratch fixture)
+
+tmp = scratch_dir("inventory-ratchet-test-")
+try:
+    scratch = ScratchRepo.init(tmp / "repo")
+    store = scratch.path / inventory_schema.NEWEST.store
+
+    def commit_rows(rows, message, files=None):
+        inventory_store.write_store([{**x, "verdict": "PARTIAL", "section": "1", "ordinal": n}
+                                     for n, x in enumerate(rows, 1)], store)
+        scratch.commit(message, files)
+
+    def ratchet(*args):
+        p = subprocess.run([sys.executable, str(HERE / "inventory_ratchet.py"), "--repo", str(scratch.path), *args],
+                           capture_output=True, text=True, encoding="utf-8")
+        if p.returncode not in (0, 1, 2) or p.stderr:
+            fails.append(f"inventory_ratchet.py {' '.join(args)} failed (exit {p.returncode}): {p.stderr[-400:]}")
+        return p.returncode, p.stdout
+
+    commit_rows(BASE, "the inventory, rows with their states (a commit before PB4992)")
+    rc, out = ratchet("--base", "HEAD", "--head", "HEAD")
+    check("end to end: HEAD against itself is GREEN", (rc, "GREEN ===" in out), (0, True))
+    commit_rows(reopen, "SR-1-2 reopens")
+    rc, out = ratchet("--base", "HEAD~1", "--head", "HEAD")
+    check("end to end: a committed reopen is RED, exit 1, naming the row",
+          (rc, "RED ===" in out, "offending rows: SR-1-2" in out), (1, True, True))
+    scratch.commit("its excuse", {"DEVLOG/pending-x.md": "## x\n\nreopens-rows: SR-1-2 — re-adjudicated DIVERGES\n"})
+    rc, out = ratchet("--base", "HEAD~2", "--head", "HEAD")
+    check("end to end: an excuse line added in the range makes it GREEN, the reopen still said",
+          (rc, "GREEN ===" in out, "reopened (excused) SR-1-2" in out), (0, True, True))
+    rc, out = ratchet("--base", "no-such-ref", "--head", "HEAD")
+    check("end to end: a base with no inventory is exit 2", rc, 2)
+finally:
+    remove_tree(tmp)
 
 for f in fails:
     print("FAIL:", f)

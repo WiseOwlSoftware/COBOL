@@ -567,7 +567,8 @@ def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, 
     if fetch.returncode != 0:
         raise LaneError(f"git fetch origin failed in {repo}: {fetch.stderr.strip()[:200]}")
     rows = prune_worktrees.live_survey(repo, coord_dir=cdir, prs=prs)
-    order = [r.name for r in prune_worktrees.landing_order(rows, prune_worktrees.note_rank())]
+    # the surveyed checkout's own register ranks its notes, as live_survey reads it (kb/Work PB5227)
+    order = [r.name for r in prune_worktrees.landing_order(rows, prune_worktrees.note_rank(repo / "kb" / "Work"))]
     return row_dicts(rows, prs), order, prs
 
 
