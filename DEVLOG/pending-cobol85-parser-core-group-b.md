@@ -16,13 +16,13 @@ restricts SEND's only as a function. `ClassRules2002` makes them 2002 rows; a lo
 numeric item, a short message into a numeric item (GR3: no space fill, 12999), a numeric-edited and an alphabetic item.
 The SEND identifier-2 and ADVANCING identifier-3 screens now read `PicInfo.IsIntegerDescription` (PIC 9P and 9PP are
 integers; USAGE INDEX is not), refuse a symbolic-character, constant-name or index-name at identifier-3, and take
-`ALL ZERO` through `FigurativeConstants.Classify`. The ENABLE and DISABLE KEY operand is now asked §1985:XIV.3.2.3 SR4 and
+`ALL ZERO` as the bound figurative ZERO; a constant-name of an unsigned integer stays integer-1 (`pb4677_send_advancing_constant`). The ENABLE and DISABLE KEY operand is now asked §1985:XIV.3.2.3 SR4 and
 §1985:XIV.3.3.3 SR4 ("defined as alphanumeric", COBOL6171). `DESIGN-communication-facility.md` §4 carries the per-edition
 operand table.
 
 **PB5240 (half).** `callTarget`, `cancelTarget` and `communicationKeyPhrase` now take the one `sendingOperand` rule, so an
 alphanumeric function-identifier is identifier-1 there (§2023:8.4.3.2.3 SR1; §1985:IV.4.3.8.3.3 SR3) at every edition.
-`CallBinder` asks SR1's class of such a target (`ComputedNameTargetRefusal`, COBOL1681 / COBOL1696). The golden calls and
+`CallBinder` asks SR1's category of such a target (`ComputedNameTargetRefusal`: a returning item through `NameTargetRefusal`, a function through its §2023:15.2 result category; COBOL1681 / COBOL1696). The golden calls and
 cancels a contained program through UPPER-CASE and REVERSE, and the callee's call count proves each CANCEL reached it.
 The report SOURCE site the note's addendum names stays open: admitting a function as identifier-1 there changes the
 report writer's SOURCE model.

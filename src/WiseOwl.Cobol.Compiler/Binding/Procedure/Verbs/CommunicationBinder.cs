@@ -2,7 +2,6 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
-using WiseOwl.Cobol.CodeGen;
 using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
@@ -180,8 +179,9 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     /// will ignore" it (A.2.6.3 GR12; docs/CONFORMANCE.md); the statement still has to be a legal one, so its operands are asked and nothing of them is kept.</summary>
     private void ScreenSendAdvancing(Core.SendAdvancingPhraseContext advancing)
     {
-        // SR5: integer-1 "may be zero", and the figurative ZERO is that zero with or without the optional word ALL (kb/Work PB5289).
-        if (advancing.literal() is { } literal && FigurativeConstants.Classify(literal.GetText(), includeNull: false).Kind is not 'Z')
+        // SR5: integer-1 "may be zero", and the figurative ZERO is that zero with or without the optional word ALL (kb/Work PB5289):
+        // the bound literal answers which constant it is, whatever its spelling.
+        if (advancing.literal() is { } literal && host.Expr.LiteralOperand(literal) is not BoundFigurative { Kind: 'Z' })
             using (ctx.Edition.At(literal))
                 ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {literal.GetText()}: ISO/IEC 1989:2002 A.2.6.1 prints integer-1 here, and A.2.6.2 SR6 says it may be zero.");
         if (advancing.dataReference() is not { } operand) return;
@@ -194,7 +194,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
                     + "is specified, the name is associated with a feature-name specified by the implementor\", and A.2.6.1 prints no LINE or LINES after it.");
             return;
         }
-        // SR3/SR4 "an integer data item" (kb/Work PB5289): a trailing-P item is one; an index data item, a symbolic-character or constant-name (a literal, and
+        // SR3/SR4 "an integer data item" (kb/Work PB5289): a trailing-P item is one; an index data item, a symbolic-character (a figurative constant, and
         // no mnemonic-name "defined in the SPECIAL-NAMES paragraph", §1985:XIV.3.6.3 SR4) and an index-name are not.
         if (!IsIntegerItem(host.Expr.FieldOperand(operand), static _ => true))
             ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {DataBinder.WrittenText(operand)}: ISO/IEC 1989:2002 A.2.6.2 SR4: \"Identifier-3 shall reference an integer data item.\"");
@@ -202,11 +202,14 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
 
     /// <summary>Whether a bound SEND operand is an integer data item (<see cref="PicInfo.IsIntegerDescription"/>, which no index data item meets) whose picture also meets
     /// <paramref name="more"/>. An operand already refused is not refused again; a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER is an integer special register and passes;
-    /// every other shape (an index-name, the literal a constant-name or symbolic-character stands for, a group) is no integer data item.</summary>
+    /// a constant-name of an unsigned integer is integer-1; every other shape (an index-name, a symbolic-character, a group) is neither.</summary>
     private static bool IsIntegerItem(BoundOperand? operand, Func<PicInfo, bool> more) => operand switch
     {
         BoundFieldOperand { Place.Item.Pic: { IsIntegerDescription: true } pic } => more(pic),
         BoundOperandError or null => true,
+        // A constant-name of an integer value stands for integer-1 (§2023:13.10.3 SR2: "anywhere that a format specifies a
+        // literal of the class and category of constant-name-1").
+        BoundNumericLiteral number => number.Text.All(char.IsAsciiDigit),
         BoundComputedOperand { Expr: BoundIndexRef } => false,
         BoundComputedOperand => true,
         _ => false,

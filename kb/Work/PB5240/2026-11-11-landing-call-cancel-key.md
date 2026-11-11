@@ -7,7 +7,7 @@ at 2023.
 Fix. `callTarget`, `cancelTarget` and `communicationKeyPhrase` each take the one `sendingOperand` rule, so a function-identifier
 and an inline method invocation are identifier-1 there (§2023:8.4.3.2.3 SR1 bars a function-identifier only from a receiving
 operand; §1985:IV.4.3.8.3.3 SR3). `CallBinder.BindCall` and `BindCancel` bind such a target through `MoveBinder.SendingOperand`
-and ask §2023:14.9.4.3 SR1 / §2023:14.9.5.3 SR1 of its class (`ComputedNameTargetRefusal`: alphanumeric or national, else
+and ask §2023:14.9.4.3 SR1 / §2023:14.9.5.3 SR1 of its category (`ComputedNameTargetRefusal`: a returning item through `NameTargetRefusal`, a function by its §2023:15.2 result category, alphanumeric or national, else
 COBOL1681 / COBOL1696); `CommunicationBinder.BindPath` asks §1985:XIV.3.2.3 SR4 / §1985:XIV.3.3.3 SR4 (kb/Work PB5082).
 Goldens: `cases/14.9.5-CANCEL/pb5240_call_cancel_function_identifier` (accepted at every edition: CALL and CANCEL through
 UPPER-CASE and REVERSE, the counts prove each CANCEL reached the program), `pb5240-cancel-numeric-function` (refused at every

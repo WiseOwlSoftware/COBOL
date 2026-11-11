@@ -1111,13 +1111,19 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// <para>⚠ An operand whose class is not statically decidable (a recovery profile for an entry whose PICTURE was
     /// already refused) is admitted, exactly as every class screen over the lattice fails open (kb/Work PB960).</para></summary>
     /// <summary>The §2023:14.9.4.3 SR1 / §2023:14.9.5.3 SR1 screen of a target that is a function-identifier or an inline method
-    /// invocation (kb/Work PB5240): its class shall be alphanumeric or national; an operand already refused, or one whose class
-    /// is not statically known, is not refused again. Null when admitted, else the face the diagnostic names.</summary>
-    private static string? ComputedNameTargetRefusal(BoundOperand target) =>
-        target is BoundOperandError || IntrinsicArgumentRules.ClassOf(target) is not { } cls
-            || cls is CobolClass.Alphanumeric or CobolClass.National
+    /// invocation (kb/Work PB5240), asked of its CATEGORY as the data-item arm asks it (<see cref="NameTargetRefusal"/>): a
+    /// returning item through the same reader, a function through its §2023:15.2 result category. An operand already refused,
+    /// or one whose category is not statically known, is not refused again. Null when admitted, else the face the diagnostic
+    /// names.</summary>
+    private static string? ComputedNameTargetRefusal(BoundOperand target) => target switch
+    {
+        BoundOperandError => null,
+        BoundFieldOperand { Place: var returning } => NameTargetRefusal(returning),
+        _ => IntrinsicArgumentRules.FunctionIdentifierCategory(target) is not { } category
+             || category is PicCategory.Alphanumeric or PicCategory.National
             ? null
-            : $"a function-identifier or inline method invocation of class {cls}";
+            : $"a function-identifier of category {category.ToString().ToLowerInvariant()}",
+    };
 
     private static string? NameTargetRefusal(Place target) =>
         IntrinsicArgumentRules.ClassOfPlace(target) is null || ItemCategory.IsAlphanumericOrNational(target)

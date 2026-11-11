@@ -285,6 +285,7 @@
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::DeclareUserWord": [
+      "WiseOwl.Cobol.Binding.Bound.StatementBinder",
       "WiseOwl.Cobol.Binding.CommunicationSectionBinder",
       "WiseOwl.Cobol.Binding.ConstantEntryBinder",
       "WiseOwl.Cobol.Binding.FileControlBinder",
