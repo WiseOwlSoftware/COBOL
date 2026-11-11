@@ -721,7 +721,7 @@ try {
         $budgetArgs = @((Join-Path $Here 'budget.py'), '--json', '--borrow-days', "$BorrowDays")
         if ($TelemetryDir) { $budgetArgs += @('--telemetry-dir', $TelemetryDir) }
         $budget = Invoke-Py $budgetArgs | ConvertFrom-Json
-        Say "budget ($($budget.account)): weekly $($budget.weekly_est_pct) % of $($budget.allowance_pct) %, session $($budget.session_est_pct) % -> $($budget.decision)$(if (-not $budget.anchor) { " (no $($budget.account) reading anchors this week)" })$(if ($budget.unstamped_readings) { " ($($budget.unstamped_readings) unstamped reading(s) anchor nothing)" })"
+        Say "budget ($($budget.account)): weekly $($budget.weekly_est_pct) % of $($budget.allowance_pct) %, session $($budget.session_est_pct) % -> $($budget.decision)$(if ($budget.anchor) { $budget.anchor_note } else { " (no $($budget.account) reading anchors this week)" })$(if ($budget.live_problem) { " (METER FILE PROBLEM: $($budget.live_problem))" })$(if ($budget.unstamped_readings) { " ($($budget.unstamped_readings) unstamped reading(s) anchor nothing)" })"
         if ($budget.decision -eq 'stop-week') { Say 'weekly cap reached: ending the loop'; break }
         $hold = $budget.decision -in @('hold-session', 'hold-day')
         if ($hold -and $OverrideHold -and -not $DryRun) { Say "owner override: $($budget.decision) lifted (-OverrideHold)"; $hold = $false }
