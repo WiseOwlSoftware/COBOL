@@ -990,17 +990,28 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>F.2 item 139: "The sending operand [of UNSTRING] may be reference modified."</summary>
+        /// <summary>F.2 item 139: "The sending operand [of UNSTRING] may be reference modified." §1985:VI.6.27.3 SR7,
+        /// "Identifier-1 must not be reference modified", is a property of the OPERAND, so it is asked of every
+        /// alternative of <c>strUnstrSender</c>: a data-name, and a function-identifier (§1985:IV.4.3.8.3.3 SR2 lets an
+        /// alphanumeric function be reference-modified) or an inline method invocation whose result carries a
+        /// reference modifier (kb/Work PB5194: the function form compiled at --std 85).</summary>
         public override object? VisitUnstringStatement(CobolParserCore.UnstringStatementContext ctx)
         {
-            if (ctx.strUnstrSender()?.dataReference() is { } sender
-                && ReferenceResolver.ReadWritten(sender).IsReferenceModified)
+            if (ctx.strUnstrSender() is { } sender && IsReferenceModified(sender))
             {
                 using var _ = Sink.At(sender);
                 _p.Check(Constructs.UnstringSenderReferenceModified2002, "a reference-modified UNSTRING sending operand");
             }
             return base.VisitChildren(ctx);
         }
+
+        /// <summary>Whether an UNSTRING sending operand, whichever alternative it is, is written with a reference
+        /// modifier. A <c>refModPart</c> of a function call or an inline invocation is always the result's reference
+        /// modifier (an argument list is a <c>subscriptPart</c>; <c>IntrinsicBinder.FinishIntrinsic</c>).</summary>
+        private static bool IsReferenceModified(CobolParserCore.StrUnstrSenderContext sender) =>
+            sender.dataReference() is { } data ? ReferenceResolver.ReadWritten(data).IsReferenceModified
+            : sender.functionCall() is { } call ? call.refModPart().Length > 0
+            : sender.inlineMethodInvocation() is { } invocation && invocation.refModPart().Length > 0;
 
         /// <summary>SEARCH and SEARCH ALL identifier-1 written with a subscript (kb/Work PB4577, PB4609). ISO §2023:14.9.37.3 SR2 and SR3
         /// permit the enclosing tables' subscripts; the 2002 text, the 2009 committee draft and the 2014 FCD 1.0 say
@@ -1572,6 +1583,37 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The CONTROL HEADING / CONTROL FOOTING operand of the TYPE clause (ISO §2023:13.18.57.2 Format 2; kb/Work
+        /// PB5116). §1985:XIII.3.9.2 Format 1 braces it, {CONTROL HEADING | CH} {data-name-1 | FINAL}, so at COBOL-85 the
+        /// operand is required and OR PAGE does not exist (ISO/IEC 1989:2002 Annex F.2 item 87 adds it); the ON / FOR word
+        /// is <see cref="VisitReportControlName"/>'s. Fires once per written form; report-section-exclusive rule.</summary>
+        public override object? VisitReportGroupType(CobolParserCore.ReportGroupTypeContext ctx)
+        {
+            bool control = ctx.CH() is not null || ctx.CF() is not null || ctx.CONTROL() is not null;
+            if (control && ctx.reportControlName() is null)
+                _p.Check(Constructs.ReportControlOperandForms2002,
+                    $"TYPE {WrittenSource.Of(ctx)} without its control operand (report group description)");
+            if (ctx.OR() is { } or)
+            {
+                using var _ = Sink.At(or.Symbol);
+                _p.Check(Constructs.ReportControlOperandForms2002, "the OR PAGE phrase of TYPE CONTROL HEADING (report group description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The optional word ON or FOR before a TYPE clause's control operand (ISO §2023:13.18.57.2 Format 2):
+        /// §1985:XIII.3.9.2 Format 1 prints the operand alone (kb/Work PB5116).</summary>
+        public override object? VisitReportControlName(CobolParserCore.ReportControlNameContext ctx)
+        {
+            if ((ctx.ON() ?? ctx.FOR()) is { } word)
+            {
+                using var _ = Sink.At(word.Symbol);
+                _p.Check(Constructs.ReportControlOperandForms2002,
+                    $"the word {word.GetText().ToUpperInvariant()} before a TYPE clause's control operand (report group description)");
+            }
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The '+' symbol for PLUS in a relative LINE or NEXT GROUP operand (ISO §2023:13.18.35.3 SR1, §2023:13.18.37.3
         /// SR2: "PLUS and + are synonyms"; kb/Work PB3964): ANSI X3.23-1985 prints the word alone and ISO/IEC 1989:2002
         /// Annex F.2 item 115 lists "PLUS or MINUS can be the symbol '+' or '-'". The ONE production
@@ -1879,7 +1921,33 @@ internal sealed class VersionConformancePass
         {
             if (ctx.computerName() is null && ctx.objectComputerClause().Any(c => c.unrecognizedClause() is null))
                 _p.Check(Constructs.ComputerNameOptional2002, "an OBJECT-COMPUTER clause without computer-name-1");
+            GateLonePeriod(ctx, "OBJECT-COMPUTER");
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>SOURCE-COMPUTER followed by a second period and no entry (kb/Work PB5170); see <see cref="GateLonePeriod"/>.</summary>
+        public override object? VisitSourceComputerParagraph(CobolParserCore.SourceComputerParagraphContext ctx)
+        {
+            GateLonePeriod(ctx, "SOURCE-COMPUTER");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>SPECIAL-NAMES followed by a second period and no clause (kb/Work PB5170); see <see cref="GateLonePeriod"/>.</summary>
+        public override object? VisitSpecialNamesParagraph(CobolParserCore.SpecialNamesParagraphContext ctx)
+        {
+            GateLonePeriod(ctx, "SPECIAL-NAMES");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The second separator period of a configuration paragraph that writes no entry: the 1985 formats
+        /// (§1985:VI.4.3.2, §1985:VI.4.4.2, §1985:VI.4.5.2) print it inside the bracket that holds the entries, and the 2002
+        /// formats print it outside, with a syntax rule letting it go when nothing is written (kb/Work PB5170). Read through
+        /// the one reader, <see cref="ParagraphPeriods.LonePeriod"/>.</summary>
+        private void GateLonePeriod(Antlr4.Runtime.ParserRuleContext paragraph, string name)
+        {
+            if (ParagraphPeriods.LonePeriod(paragraph) is not { } period) return;
+            using var _ = Sink.At(period.Symbol);
+            _p.Check(Constructs.ConfigurationParagraphLonePeriod2002, $"{name} followed by a second separator period and no entry");
         }
 
         /// <summary>CLASS … FOR ALPHANUMERIC/NATIONAL (ISO §2023:12.3.7) — the second SPECIAL-NAMES FOR-phrase site.
@@ -1892,6 +1960,14 @@ internal sealed class VersionConformancePass
         {
             if (ctx.specialNamesForPhrase() is not null)
                 _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+            // §1985:VI.4.5.2 prints no IN phrase for CLASS, and §1985:VI.4.5.4 GR10 takes a numeric literal as "The ordinal
+            // number of a character within the native character set"; the 2002 phrase changes the class's members, so it
+            // is refused below 2002 rather than read (kb/Work PB5172).
+            if (ctx.IN() is { } inWord)
+            {
+                using var _ = Sink.At(inWord.Symbol);
+                _p.Check(Constructs.ClassClauseInAlphabet2002, "the IN alphabet-name phrase of the CLASS clause");
+            }
             return base.VisitChildren(ctx);
         }
 
@@ -2220,6 +2296,19 @@ internal sealed class VersionConformancePass
                 : ctx.MESSAGE_TAG() is not null ? Constructs.InitializeCategory2023
                 : null;                                   // the COBOL-85 five: ALPHABETIC/ALPHANUMERIC[-EDITED]/NUMERIC[-EDITED]
             if (id is not null) _p.Check(id, $"INITIALIZE category-name {ctx.GetText()}");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The optional word RECORD after REWRITE's record-name or FILE file-name (§2023:14.9.35.2): §1985:VII.4.5.2
+        /// and §1985:IX.4.6.2 print REWRITE record-name-1 [FROM identifier-1] with no such word, and the 2002 format adds
+        /// it (kb/Work PB5159).</summary>
+        public override object? VisitRewriteStatement(CobolParserCore.RewriteStatementContext ctx)
+        {
+            if (ctx.RECORD() is { } record)
+            {
+                using var _ = Sink.At(record.Symbol);
+                _p.Check(Constructs.RewriteRecordWord2002, "the word RECORD after the record-name of a REWRITE statement");
+            }
             return base.VisitChildren(ctx);
         }
 
@@ -2799,10 +2888,15 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>Site — an EVALUATE selection OBJECT that is boolean-expression-2 (§2023:14.9.13.2; kb/Work PB1412).</summary>
+        /// <summary>Site — an EVALUATE selection OBJECT that is boolean-expression-2 (§2023:14.9.13.2; kb/Work PB1412), and
+        /// the partial-expression alternative (§2023:14.9.13.3 SR5): the COBOL-85 selection object (§1985:VI.6.13.2) is
+        /// ANY, a condition, TRUE, FALSE or [NOT] an identifier, literal or arithmetic expression, and ISO/IEC 1989:2002
+        /// Annex F.2 item 48 adds "A partial expression may now be used as a selection object" (kb/Work PB5179).</summary>
         public override object? VisitEvaluateWhenItem(CobolParserCore.EvaluateWhenItemContext ctx)
         {
             GateBooleanOperators(ctx.booleanExpression());
+            if (ctx.partialExpression() is not null)
+                _p.Check(Constructs.EvaluatePartialExpression2002, $"the partial expression '{WrittenSource.Of(ctx)}' as an EVALUATE selection object");
             return base.VisitChildren(ctx);
         }
 

@@ -1,0 +1,12 @@
+{
+ "id": "evaluate-partial-expression-2002",
+ "description": "A partial expression as an EVALUATE selection object (WHEN > 3, WHEN NOT NUMERIC, a bare class-name) - a COBOL-2002 addition, QUOTED from ISO/IEC 1989:2002 Annex F.2 item 48: \"EVALUATE statement, partial expressions. A partial expression may now be used as a selection object in an EVALUATE statement.\" The COBOL-85 selection object (§1985:VI.6.13.2) is ANY, condition-1, TRUE, FALSE, or [NOT] identifier-3, literal-3 or arithmetic-expression-1 with an optional THROUGH operand. kb/Work PB398 added the alternative and PB5179 gated it. Gated in ONE place, VersionConformancePass.ParseArm.VisitEvaluateWhenItem, on the partialExpression alternative of evaluateWhenItem (VCR row 7.47).",
+ "display": "a partial expression as an EVALUATE selection object",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.13.3 SR5; §1985:VI.6.13.2 (the selection objects); ISO/IEC 1989:2002 Annex F.2 item 48",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.47 - the 2002 Annex F.2 relaxations of COBOL-85 restrictions (item 48)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEVP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 9 VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    EVALUATE A\n        WHEN > 3 DISPLAY \"GT\"\n        WHEN OTHER DISPLAY \"OTHER\"\n    END-EVALUATE.\n    STOP RUN.\n"
+}

@@ -1042,8 +1042,18 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             _ => null,
         };
         bool function = op is BoundComputedOperand { Expr: BoundIntrinsicCall };
-        foreach (var rule in alt.Rules)
-            if (ClassConditionModel.Violates(rule, category, usage, function))
+        // The edition's rule set: §1985:VI.6.3.1.2 at COBOL-85, §2023:8.8.4.4.3 (worded so from the 2002 text) after.
+        var rules = alt.RulesAt(ctx.Edition.DialectLevel);
+        // §1985:VI.6.3.1.2's NUMERIC bar reads two more facts of the operand's own DESCRIPTION (kb/Work PB5122): an item
+        // described as alphabetic, and a group holding an elementary item described with an operational sign. A
+        // reference-modified slice is neither (§2023:8.4.3.3.4 GR6 c). The group is walked only when the rule is asked.
+        var described = op is BoundFieldOperand { Place: not RefModPlace } d ? d.Place.Item : null;
+        bool signedGroup = described is { IsGroup: true }
+            && Array.IndexOf(rules, ClassOperandRule.NumericNotAlphabeticOrSignedGroup1985) >= 0
+            && DataItem.DescendantsOf(described).Any(i => i.Pic is { Signed: true });
+        var facts = new ClassOperandFacts(category, usage, function, described?.Pic is { IsAlphabetic: true }, signedGroup);
+        foreach (var rule in rules)
+            if (ClassConditionModel.Violates(rule, facts))
             {
                 var (code, clause, text) = ClassConditionModel.Wording(rule);
                 ctx.Edition.Error(code, $"the {alt.Spelling} class condition over '{OperandName(op)}': {text} ({clause})");

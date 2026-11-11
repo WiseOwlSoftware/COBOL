@@ -9474,6 +9474,40 @@ public static class DiagnosticCatalog
         + "independent segment (§1985:XVI.3.3.2, XVI.3.3.3, XVI.3.3.4).",
         "X3.23-1985 Segmentation module restrictions on program flow (§1985:XVI.3.3.1 through XVI.3.3.4)");
 
+    /// <summary>COBOL6916 — at COBOL-85, the ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER or class-name-1 class condition over
+    /// an item described as numeric (kb/Work PB5122). The 1985 arm of COBOL6000's rule: 1985 bars a numeric item only, a numeric
+    /// edited item being of the alphanumeric class (§1985:IV.4.3.3). Emitted by <c>ConditionBinder.CheckClassConditionOperand</c>
+    /// through <c>ClassConditionModel</c>'s 1985 rules.</summary>
+    public static readonly DiagnosticDescriptor ClassConditionAlphabeticNumeric1985 = new(
+        "COBOL6916", "class-condition-alphabetic-numeric-1985", EditionSeverity.Error,
+        "At COBOL-85, a class condition naming ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER or class-name-1 is written over "
+        + "an item described as numeric. §1985:VI.6.3.1.2: \"The ALPHABETIC test cannot be used with an item whose data "
+        + "description describes the item as numeric\" (ALPHABETIC-LOWER and ALPHABETIC-UPPER the same), and \"The class-name-1 "
+        + "test must not be used with an item whose data description describes the item as numeric.\" A numeric edited item is "
+        + "of the alphanumeric class (§1985:IV.4.3.3) and may be tested.",
+        "§1985:VI.6.3.1.2");
+
+    /// <summary>COBOL6917 — at COBOL-85, the NUMERIC class condition over an item described as alphabetic or a group of signed
+    /// items (kb/Work PB5122); ISO/IEC 1989:2002 lifted both bars. Emitted by <c>ConditionBinder.CheckClassConditionOperand</c>.</summary>
+    public static readonly DiagnosticDescriptor ClassConditionNumericAlphabeticOrSignedGroup1985 = new(
+        "COBOL6917", "class-condition-numeric-alphabetic-or-signed-group-1985", EditionSeverity.Error,
+        "At COBOL-85, a NUMERIC class condition is written over an item described as alphabetic, or over a group item that "
+        + "holds an elementary item described with an operational sign. §1985:VI.6.3.1.2: \"The NUMERIC test cannot be used "
+        + "with an item whose data description describes the item as alphabetic or as a group item composed of elementary "
+        + "items whose data description indicates the presence of operational sign(s).\"",
+        "§1985:VI.6.3.1.2");
+
+    /// <summary>COBOL6918 — at COBOL-85, a class condition (NUMERIC included) over an item whose usage is not DISPLAY, or a
+    /// function-identifier that is not alphanumeric (kb/Work PB5122). From 2002 the NUMERIC test also admits a numeric item of
+    /// any usage (§2023:8.8.4.4.3 SR8). Emitted by <c>ConditionBinder.CheckClassConditionOperand</c>.</summary>
+    public static readonly DiagnosticDescriptor ClassConditionUsageDisplay1985 = new(
+        "COBOL6918", "class-condition-usage-display-1985", EditionSeverity.Error,
+        "At COBOL-85, a class condition is written over an item whose usage is not DISPLAY, or over a function-identifier "
+        + "that is not an alphanumeric function. §1985:VI.6.3.1.2: \"Identifier-1 must reference a data item whose usage is "
+        + "explicitly or implicitly DISPLAY. If identifier-1 is a function-identifier, it must reference an alphanumeric "
+        + "function.\"",
+        "§1985:VI.6.3.1.2");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)
