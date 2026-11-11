@@ -112,7 +112,17 @@ from coord import NEVER_WORK  # noqa: E402  — THE paths that are never work, s
 import queue_facts  # noqa: E402  — THE one reader of GitHub's facts: a merge-queue bounce's reds (kb/Work PB3644)
 from test_population import (GATED_ASSEMBLIES, LINUX_GATE_RESULTS, Population, PopulationError,  # noqa: E402
                              UnreadableTrx, check as check_population, failed_results, list_population, not_passed, passed_cases,
-                             parse_listing, red_classes, result_outcomes, scrubbed_env, synthetic_listing, synthetic_trx)
+                             parse_listing, red_classes, scrubbed_env, synthetic_listing, synthetic_trx)
+from test_population import TRX_NS, trx_root  # noqa: E402
+
+
+def result_outcomes(path) -> Counter:
+    """EVERY RESULT A TRX RECORDS, by outcome (kb/Work PB5205): what a host's own verdict line counts (`Failed: F, Passed:
+    P, Skipped: S, Total: T` are results, never definitions: a theory whose rows share a display name is one definition
+    with several results). It lives here, beside its one caller (`--rederive`), and reads the file with
+    `test_population.trx_root`, so a change to it is no change to what plans the population the compiler tests run. A file
+    that cannot be read raises `test_population.UnreadableTrx` naming it."""
+    return Counter(r.get("outcome", "") for r in trx_root(path).iter(TRX_NS + "UnitTestResult"))
 from standard_streams import ensure_utf8  # noqa: E402
 from test_leg_report import verdict_of  # noqa: E402  — THE reader of a host's verdict line
 

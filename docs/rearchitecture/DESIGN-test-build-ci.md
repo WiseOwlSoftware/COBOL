@@ -1327,7 +1327,7 @@ is RED for the audit alone. A run whose gate predates that (or that an audit sto
 from its own files: `gate.py --rederive <run> [--dry-run]` (`Gate.rederive`) proves, or refuses naming what is missing, that
 its record is a full-lane one; its recorded toolchain is this host's; every gated assembly's host exited 0, its log ends in
 the host's own `Passed!  - Failed: 0, Passed: P, Skipped: S, Total: T` line and its trx is COMPLETE against that line
-(`test_population.result_outcomes`: T results, P Passed, S NotExecuted; results, not definitions, because theory rows that
+(`gate.result_outcomes`: T results, P Passed, S NotExecuted; results, not definitions, because theory rows that
 share a display name are one definition); every reason is an audit's; and its tree stood while it ran, which no file of the
 run records, so the evidence is the worktree's: the run measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog
 puts HEAD at the recorded head at the run's start (its `gate.pid`'s time, written before the tree was measured; the
