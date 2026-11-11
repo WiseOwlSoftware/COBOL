@@ -216,6 +216,10 @@ yourself, and use the readers only as leads.
 - KEPT: one or more candidates state the same requirement in substance: the same programs are accepted or refused, with the
   same effect. Wording, numbering and terms for the same thing ("must" and "shall", "nonnumeric literal" and "alphanumeric
   literal") are no difference, and neither is the 1985 level-2 box.
+  Compare the two on the programs the 1985 edition ADMITS (its general formats and syntax rules): a case 2023 adds that
+  no 1985 program can write (new syntax, a new operand class) does not make this rule CHANGED, and a 2023 rule about
+  such syntax is not a candidate to name (kb/Work PB5021). The 1985 general format or syntax rule that excludes the
+  syntax is the one that is CHANGED.
 - CHANGED: candidates cover the same subject but the requirement differs in substance (a case added or removed, a result
   changed, made undefined or implementor-defined); name them and quote the words that differ.
 - REMOVED: the 2023 standard drops the feature or the requirement (a deleted module, statement, clause or phrase), and the
@@ -247,6 +251,9 @@ in four wrong, in three ways, so try to DISPROVE this one. Work through all thre
 Then give the change record the texts support, whether or not it is the adjudicator's:
 - KEPT: the 2023 rules state the same requirement in substance: the same programs are accepted or refused, with the same
   effect. Wording, numbering and terms for the same thing are no difference, and neither is the 1985 level-2 box.
+  Compare the two on the programs the 1985 edition ADMITS (its general formats and syntax rules): a case 2023 adds that
+  no 1985 program can write does not make this rule CHANGED, and a 2023 rule about such syntax is not one to name
+  (kb/Work PB5021); the 1985 general format or syntax rule that excludes the syntax is the one that is CHANGED.
 - CHANGED: they cover the same subject with a different requirement (a case added or removed, a result changed, made
   undefined or implementor-defined, a refusal made an exception condition); quote the words that differ.
 - REMOVED: the 2023 standard drops the feature or the requirement, and no rule below states it.

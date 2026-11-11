@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.9.4-5",
  "rule-digest": "e75402a7168a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#IsEditedCategorySymbol; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditFormatSimpleInsertion; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPictureClause",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-GR-VI_5_9_4-5",
+ "notes": "§1985:VI.5.9.4 GR5: the character-string 'must contain at least one 'A' or 'X' and must contain at least one 'B' or '0' (zero) or '/' (slant)', drawn from A X 9 B 0 /. AnalyzeCharacterString's A/X arm is entered only by a string holding an A or an X, admits only A X 9 and the symbols CobolEdit.IsEditedCategorySymbol names (B 0 /), and keeps the string as the EditMask exactly when one of B 0 / is present, which is the item's alphanumeric edited identity; a B 0 / string with no A or X goes to the numeric-edited arm instead, and PictureComposition.Precedence refuses any other symbol beside an A or X. The one symbol 2023 adds to the set, an EDITING character-1, cannot arrive at 85: VersionConformancePass VisitPictureClause refuses the phrase with COBOL0900 (probed). Sentence b's two or more characters follow from the two required symbols, each counted in the size. Probed at --std 85: PIC XBX, A0A, 9/X, AB and B9X0 edit 'AB', 'AB', '1Z', 'QR', '7Q' to 'A B', 'A0B', '1/Z', 'Q ', ' 7Q0' through FormatSimpleInsertion; PIC 9B9 is numeric edited; PIC XX,XX, X.X, XXZ, A+ and X$ are refused (COBOL1935). The witness edits PIC XXBXX and PIC X/X0X.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

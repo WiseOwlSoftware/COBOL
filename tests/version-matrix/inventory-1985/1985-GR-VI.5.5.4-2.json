@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.5.4-2",
  "rule-digest": "aab15c7bb52b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Frontend/Cst/CstExtensions.cs#NameOrNull; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportGroupEntry",
  "test-ref": "conformance:cases/VI.5.5@1985-DATA-NAME-OR-FILLER-CLAUSE/1985-GR-VI_5_5_4-2",
+ "notes": "§1985:VI.5.5.4 GR2 requires \"The key word FILLER may be used to name a data item. Under no circumstances can a FILLER item be referred to explicitly\", and allows that \"the key word FILLER may be used to name a conditional variable\". The grammar rule dataName admits the reserved word FILLER only as a data description entry's name, and CstExtensions.NameOrNull gives such an entry no name, so nothing can resolve to it; no identifier, qualifier, REDEFINES, RENAMES or DEPENDING ON position admits the word, and each explicit reference is refused at parse (COBOL5506 or COBOL0001; nine positions probed at --std 85). DataBinder.BindEntries associates a level-88 entry with the entry it follows whether or not that entry is named, so a FILLER item is a conditional variable for the condition test and for SET. The rule has no edition arm for a data description entry; the 1985 difference the change record names (FILLER in a report group description entry, a 2002 addition) is refused by VersionConformancePass.VisitReportGroupEntry. The witness declares elementary, group and level-01 FILLER items, tests and SETs condition-names on four of them, and displays the record; a probe added a group and a level-01 FILLER with members, an entry with the name omitted, and the refusals.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -4,6 +4,6 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
  "test-ref": "conformance:cases/15.3-Arguments/pb1-numeric-arg-trig-family",
- "editions": "2002,2014,2023",
- "notes": "PB1 EXTENDED. NOTE THIS ROW DID NOT EXIST until the extractor fix: 15.10.3 is headed 'Argument*s* rules' and the literal-spelling KINDS map never recognised it, so ASIN's two rules were absent from the denominator entirely. Bare class-numeric constraint, now enforced."
+ "editions": "85,2002,2014,2023",
+ "notes": "PB1 EXTENDED. NOTE THIS ROW DID NOT EXIST until the extractor fix: 15.10.3 is headed 'Argument*s* rules' and the literal-spelling KINDS map never recognised it, so ASIN's two rules were absent from the denominator entirely. Bare class-numeric constraint, now enforced. EDITIONS AS ADJUDICATED 2026-11-10: in force at 85, §1989:A.2.7.3 AR1 'Argument-1 must be class numeric.'"
 }

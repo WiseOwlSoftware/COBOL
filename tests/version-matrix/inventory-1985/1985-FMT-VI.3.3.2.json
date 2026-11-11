@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.3.3.2",
  "rule-digest": "a902f76ade0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramIdAttributes; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPrototypePhrase; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
  "test-ref": "conformance:cases/VI.3.3@1985-PROGRAM-ID-PARAGRAPH/1985-FMT-VI_3_3_2",
+ "notes": "§1985:VI.3.3.2 prints the paragraph as the header PROGRAM-ID, a period, program-name and a period, nothing else; the only 1985 additions are the Inter-Program module's COMMON and INITIAL (§1985:X.3.1.2). The grammar rule programIdParagraph requires both periods and exactly one programName (a word, never a literal), and parses the later editions' tails as a superset that 1985 refuses by name: VersionConformancePass.VisitExternalizedNamePhrase refuses AS literal-1 (COBOL0900), VisitProgramIdAttributes refuses RECURSIVE (COBOL0885) and VisitPrototypePhrase refuses IS PROTOTYPE (COBOL0900), each a 2002 introduction; BinderDriver.MakeUnit takes the unit's name from the paragraph. The witness compiles and runs a program whose paragraph is PROGRAM-ID. PGMID1. Probed further at --std 85: the name on the line after the header, lower case, and a comma separator before the period are accepted, as is IS INITIAL PROGRAM; AS with a literal or a word, RECURSIVE with and without IS, IS PROTOTYPE, IS GLOBAL, IS PROGRAM with no attribute, a literal or an integer as the name, two names, no name, a missing period after the header or after the name, a second PROGRAM-ID paragraph, and the 1985 reserved words MOVE, ALTER, SECURITY and CD as the name are each refused.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.4.3-3",
  "rule-digest": "9ed07dbde1a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#refModPart; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveImplCore; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#ReadScreenedRefMod; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#RefModView",
  "test-ref": "conformance:cases/IV.4.3.8.4@1985-Reference-Modification/1985-SR-IV_4_3_8_4_3-3",
+ "notes": "§1985:IV.4.3.8.4.3 SR3: \"Unless otherwise specified, reference modification is allowed anywhere an identifier referencing a data item of the class alphanumeric is permitted.\" The permission is structural: every identifier position parses the one dataReference rule, whose suffix admits refModPart, and binds through ResolveImplCore, which builds the modified item with ReadScreenedRefMod and RefModView at every edition (no gate at 85). Probed at 85 with correct output in each position: CALL identifier and its USING BY REFERENCE / BY CONTENT operands, CANCEL, EVALUATE subjects and WHEN objects (ALSO, THRU), INITIALIZE and its REPLACING BY operand, every INSPECT operand (TALLYING, REPLACING, CONVERTING, BEFORE/AFTER), UNSTRING delimiters, INTO and DELIMITER IN fields, STRING senders and delimiters, WRITE FROM, READ INTO, RELEASE FROM, RETURN INTO, ACCEPT FROM DATE, PERFORM UNTIL and SEARCH WHEN conditions, abbreviated and class conditions (a user CLASS included), figurative-constant moves, and a function argument. The witness runs MOVE, DISPLAY, IF, INSPECT, STRING and a function argument, qualified and subscripted.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

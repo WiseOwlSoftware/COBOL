@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.6.5.2",
  "rule-digest": "d12f2304bb00",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#acceptStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#acceptSource; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAcceptFromMnemonic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#DeviceFormatPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAcceptStatement",
  "test-ref": "conformance:cases/VI.6.5@1985-ACCEPT-STATEMENT/1985-FMT-VI_6_5_2",
+ "notes": "§1985:VI.6.5.2 prints Format 1, ACCEPT identifier-1 [FROM mnemonic-name-1], and Format 2, ACCEPT identifier-2 FROM one of DATE, DAY, DAY-OF-WEEK or TIME. acceptStatement parses one receiving identifier and an optional FROM acceptSource whose alternatives are those four words and one word for the mnemonic-name; BindAccept routes a temporal source to Format 2 and BindAcceptFromMnemonic with MnemonicDevice requires the word to be a SPECIAL-NAMES mnemonic-name (COBOL0817). The later editions' additions are refused at 85: DATE YYYYMMDD, DAY YYYYDDD and END-ACCEPT by VisitAcceptStatement (COBOL0815, COBOL0816), the screen format's positioning phrase by ScreenFormatOf (COBOL1707) and an ON EXCEPTION phrase on a device ACCEPT by DeviceFormatPhrase (COBOL2269). Probed at --std 85: both formats with a subscripted and a reference-modified receiver run; two receivers, no receiver, a literal, FROM with no operand or two, a subscripted mnemonic-name and an undeclared device word are refused. The witness runs the four Format 2 sources and compiles both Format 1 forms.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

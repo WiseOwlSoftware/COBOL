@@ -54,6 +54,7 @@ public static partial class ConstructRegistry
         new("communication-key-phrase-removed-2002", "the KEY phrase of the ENABLE and DISABLE statements", 85, 2002, null, "COBOL0902", "ISO/IEC 1989:2002 A.2.2.1, A.2.3.1 (no KEY phrase); §1985:XIV.3.2.4 GR7, §1985:XIV.3.3.4 GR6 (the password, REMOVED); CCVS-85 CM303M (obsolete at 85); VCR Table 7"),
         new("computer-name-optional-2002", "an OBJECT-COMPUTER clause without computer-name-1", 2002, null, null, "COBOL0900", "ISO §2023:12.3.6.2 (OBJECT-COMPUTER: [computer-name-1] before the clause set) — 2002 relaxation of the '85 required-name format"),
         new("concat-operator-2002", "concatenation expression (&)", 2002, null, null, "COBOL0900", "ISO §2023:8.8.3"),
+        new("conditional-phrases-any-order-2002", "a conditional phrase written after a phrase its general format prints after it", 2002, null, null, "COBOL0900", "§1985:IV.2.1; §2002:F.2; §2023:5.2.6.4; §2023:14.9.34.3 SR4"),
         new("constant-entry-2002", "constant entry (01 … CONSTANT AS)", 2002, null, null, "COBOL0900", "ISO §2023:13.10"),
         new("constant-record-2014", "the CONSTANT RECORD clause", 2014, null, null, "COBOL0900", "ISO §2023:13.18.15"),
         new("continue-after-2023", "CONTINUE AFTER n SECONDS", 2023, null, null, "COBOL0900", "ISO §2023:14.9.9.2 / §2023:14.9.9.4 GR1; Annex E.3.3 item 14; §2023:14.9.9.3 SR2"),

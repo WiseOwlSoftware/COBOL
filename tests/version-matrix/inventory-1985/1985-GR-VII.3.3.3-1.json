@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.3.3-1",
  "rule-digest": "83fcd80ef805",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows",
  "test-ref": "conformance:cases/VII.3.3@1985-BLOCK-CONTAINS-CLAUSE/1985-GR-VII_3_3_3-1",
+ "notes": "§1985:VII.3.3.3 GR1: \"This clause is required except when one or more of the following conditions exist\", of which a is \"A physical record contains one and only one complete logical record.\" and c is \"The number of records contained in a block is specified in the operating environment.\" This implementation has no block of its own: BindBlockContainsClause reads the clause's integers and keeps nothing on the file, no runtime member holds a blocking factor, and every WRITE transfers one logical record to a host file whose buffering is the host's, so an exemption holds for every file and the clause is never required. fileDescriptionEntry makes every file description clause optional and the FileDescriptionFormats.Rows row admits BLOCK CONTAINS in every format, so 85 accepts an entry with the clause and an entry without it; there is no edition arm, and 2023 changes only the wording of exemption c. The witness writes and reads back one file with BLOCK CONTAINS 3 RECORDS and one with no clause; probed, each file holds its 10-character records end to end with no block structure. The refusal of equal bounds (n TO n) at 85 is the format row's and kb/Work PB5115, not this rule.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

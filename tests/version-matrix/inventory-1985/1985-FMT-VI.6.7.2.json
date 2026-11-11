@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.6.7.2",
  "rule-digest": "a412e6a38096",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#alterStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#alterEntry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#BindAlter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#AlterIsSoleGoToParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlterStatement; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter",
  "test-ref": "conformance:cases/VI.6.7@1985-ALTER-STATEMENT/1985-FMT-VI_6_7_2",
+ "notes": "§1985:VI.6.7.2 prints ALTER followed by one or more groups of procedure-name-1 TO [PROCEED TO] procedure-name-2. alterStatement is ALTER alterEntry+ and alterEntry writes TO as required and PROCEED TO as an optional pair; BindAlter resolves both procedure-names of every entry and binds one BoundAlterEntry each, which EmitAlter lowers. The 1985 edition reaches it through VisitAlterStatement, whose construct (ALTER removed in 2002) is available at 85 and refused from 2002 (COBOL0810). Probed at --std 85: one and two entries, with and without PROCEED TO, with a comma between entries, a section as procedure-name-2 and qualified procedure-names run as altered; PROCEED TO without the first TO, PROCEED without its TO, a missing procedure-name-2 and a literal are refused. The witness alters one GO TO with PROCEED TO and displays the altered path.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

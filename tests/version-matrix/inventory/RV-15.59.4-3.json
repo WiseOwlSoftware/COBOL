@@ -4,6 +4,6 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#OperandCategory",
  "test-ref": "conformance:cases/15.3-Arguments/pb58_argument_predicates_legal",
- "editions": "2002,2014,2023",
- "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.59.4 r3 — the alphanumeric MAX returns a value the size of the selected argument: golden MAXG (MAX of a 4-character group and a 4-character literal → ABCD, 4 characters). The sweep's premise correction stands (§13.18.29.4 GR3: a group without GROUP-USAGE is alphanumeric); GROUP-USAGE NATIONAL is unparsed (PB61's grammar gap), so no national-group counter-example can be written yet."
+ "editions": "85,2002,2014,2023",
+ "notes": "LANDED 2026-08-17 (kb/Work PB58 — the argument-screen table's missing predicate kinds and absent rows). §15.59.4 r3 — the alphanumeric MAX returns a value the size of the selected argument: golden MAXG (MAX of a 4-character group and a 4-character literal → ABCD, 4 characters). The sweep's premise correction stands (§13.18.29.4 GR3: a group without GROUP-USAGE is alphanumeric); GROUP-USAGE NATIONAL is unparsed (PB61's grammar gap), so no national-group counter-example can be written yet. EDITIONS AS ADJUDICATED 2026-11-10: in force at 85, in part (the alphanumeric type; the national type is a class 1985 lacks), §1989:A.2.23.4 RV3 'If the type of the function is alphanumeric, the size of the returned value is the same as the size of the selected argument-1.'"
 }

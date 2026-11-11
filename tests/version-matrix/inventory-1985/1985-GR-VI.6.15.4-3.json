@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.15.4-3",
  "rule-digest": "3d77dadfa966",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitGoToDepending; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#HostInt32",
  "test-ref": "conformance:cases/VI.6.15@1985-GO-TO-STATEMENT/1985-GR-VI_6_15_4-3",
+ "notes": "§1985:VI.6.15.4 GR3: control goes 'to procedure-name-1, etc., depending on the value of identifier-1 being 1, 2, ... , n', and 'If the value of identifier-1 is anything other than the positive or unsigned integers 1, 2, ... , n, then no transfer occurs and control passes to the next statement in the normal sequence for execution'. ControlFlowBinder.BindGoTo resolves every procedure-name of the series (a section to its first paragraph) and screens identifier-1 as an integer numeric elementary item; ControlFlowEmitter.EmitGoToDepending reads the selector once through the saturating RuntimeApi.HostInt32 landing, switches on 1..n to set the target, and transfers only inside `>= 1 && <= n`, so every other value falls through to the next statement. No edition arm is needed: the 2023 addition (EC-DATA-INCOMPATIBLE processing for non-numeric content) acts only when checking is enabled by >>TURN, which a 1985 program cannot write, and a selector holding spaces falls through at 85 (probed). Probed at --std 85 beyond the witness: a signed selector of -1 (no transfer) and +2 (procedure-name-2), a COMP selector of 4 with n = 3 (no transfer) and 3 (a section target), and the statement inside an inline PERFORM (transfers out). The witness exercises 3 and 0 with n = 2, then 2.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

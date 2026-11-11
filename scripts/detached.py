@@ -101,11 +101,21 @@ def pid_alive(pid: int) -> bool:
         return False
     except PermissionError:
         pass   # EPERM: it exists and is another user's; its /proc stat still says whether it is a zombie
+    stat = proc_stat(pid)
+    return stat is None or stat[0] != "Z"   # no readable stat: it exists (kill said so), so it reads as running
+
+
+def proc_stat(pid: int) -> "tuple[str, int] | None":
+    """Linux: (state, process group id) from /proc/<pid>/stat, or None when it cannot be read (no such pid, no /proc).
+    THE ONE parse of that file (kb/Work PB5206, review R1-1): the second field, the command name, is the process's own
+    choice of up to 15 BYTES in parentheses, so it may hold spaces, ')' and bytes that are not ASCII; the fields after
+    it start after the LAST ') ', and are read as bytes so no name can make the parse raise."""
     try:
-        with open(f"/proc/{pid}/stat", encoding="ascii") as fh:
-            return fh.read().split(") ", 1)[1][:1] != "Z"
-    except OSError:
-        return True
+        with open(f"/proc/{pid}/stat", "rb") as fh:
+            fields = fh.read().rsplit(b") ", 1)[1].split()
+        return fields[0].decode("ascii", "replace"), int(fields[2])
+    except (OSError, IndexError, ValueError):
+        return None
 
 
 def kill_tree(pid: int) -> None:
@@ -150,6 +160,24 @@ def self_test() -> int:
 
     root = scratch_dir("detached-selftest-")
     survivor = None
+    if sys.platform.startswith("linux"):
+        # 0. a running process whose command name holds ') Z ' and a byte that is not ASCII reads as RUNNING, and the
+        #    parse does not raise (kb/Work PB5206 review R1-1: a first-') ' split read it as a zombie, an ASCII decode
+        #    raised). PR_SET_NAME = 15 sets the name; the child sleeps until killed.
+        named = subprocess.Popen([sys.executable, "-c",
+                                  "import ctypes, time; ctypes.CDLL(None).prctl(15, b'x) Z \\xc3\\xa9', 0, 0, 0); "
+                                  "print('named', flush=True); time.sleep(600)"],
+                                 stdout=subprocess.PIPE, stdin=subprocess.DEVNULL)
+        try:
+            named.stdout.readline()
+            name = pathlib.Path(f"/proc/{named.pid}/comm").read_bytes()
+            expect("the probe child carries the hostile name", name.startswith(b"x) Z "), repr(name))
+            stat = proc_stat(named.pid)
+            expect("proc_stat reads its state past the name", stat is not None and stat[0] in "RS", repr(stat))
+            expect("a running process with ') Z ' in its name is alive", pid_alive(named.pid))
+        finally:
+            named.kill()
+            named.wait()
     try:
         # 1. a detached process OUTLIVES a tree kill of its caller (the agent harness's kill, kb/Work PB3536): a caller
         #    process starts it, the caller's whole tree is killed, and the target still runs and still writes its log.

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.15.3-2",
  "rule-digest": "5e24a9574a40",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#BindAlter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#AlterIsSoleGoToParagraph; src/WiseOwl.Cobol.Frontend/Parsing/GoToFormat.cs#Of",
  "test-ref": "conformance:cases/VI.6.15@1985-GO-TO-STATEMENT/1985-SR-VI_6_15_3-2",
+ "notes": "§1985:VI.6.15.3 SR2: \"When a paragraph is referenced by an ALTER statement, that paragraph can consist only of a paragraph header followed by a format 1 GO TO statement.\" BindAlter resolves procedure-name-1 of every ALTER entry and asks AlterIsSoleGoToParagraph of the paragraph: exactly one sentence, exactly one statement in it, and that statement a GO TO that GoToFormats.Of does not class as the DEPENDING format (so format 1 with or without procedure-name-1); otherwise the ALTER is refused with COBOL1757. ALTER is the 1985 edition's alone (refused from 2002), so the check has no edition arm to take. Probed at 85: an altered paragraph of GO TO P2. and of GO TO. accepted and the altered transfer taken; refused COBOL1757 for a statement before the GO TO in its sentence (the witness), a statement after it, a second sentence after it, two GO TO sentences, GO TO ... DEPENDING ON, a GO TO inside IF, a paragraph of DISPLAY or EXIT, and an empty paragraph; with two entries the second entry's paragraph is checked too; a qualified paragraph-name (P1 OF S1) is checked the same way. Found beside this rule and not part of it: ALTER S1 TO P3, where S1 is a section holding exactly one paragraph, compiles and alters that paragraph's GO TO, because PcRange.IsParagraph is true of any one-paragraph range; §1985:VI.6.7.3 SR1 requires procedure-name-1 to be \"the name of a paragraph\" (row 1985-SR-VI.6.7.3-1; no kb/Work note). The paragraph so altered still has the shape this rule requires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

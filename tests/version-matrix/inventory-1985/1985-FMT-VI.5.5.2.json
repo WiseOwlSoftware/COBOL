@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.5.5.2",
  "rule-digest": "0aca5554cc6e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#entryNameHere; src/WiseOwl.Cobol.Frontend/Cst/CstExtensions.cs#NameOrNull",
  "test-ref": "conformance:cases/VI.5.5@1985-DATA-NAME-OR-FILLER-CLAUSE/1985-FMT-VI_5_5_2",
+ "notes": "§1985:VI.5.5.2 writes the clause as the bracketed choice of data-name-1 or FILLER: an entry names itself with a user-defined word, with the key word FILLER, or with neither (§1985:VI.5.5.4 GR1: \"If this clause is omitted, the data item being described is treated as though FILLER had been specified.\"). The grammar rule dataDescriptionEntry is `levelNumber (dataName)? dataDescriptionBody DOT` and dataName is one cobolWord or FILLER, so the slot holds at most one of the two and may be empty; there is no edition arm, the 1985 and 2023 data description entries share the rule (the 2023 screen-name format is the screen description entry's own rule). The predicate entryNameHere reads a word as the name unless the targeted edition reserves it, so at --std 85 a word 1985 leaves free (NATIONAL) is data-name-1; CstExtensions.NameOrNull gives the binder one reading of the slot, null for FILLER written or omitted. The witness declares named, FILLER and unnamed entries at levels 01 and 05, some with level-88 entries. Probed further at --std 85: FILLER and an unnamed entry as a File Section record, with REDEFINES and with OCCURS, and lower-case filler, are accepted and run; `05 FILLER WS-X PIC X.`, `05 WS-A WS-B PIC X.` and `05 PIC X FILLER.` are each refused with COBOL1941.",
  "next": {
   "kind": "CHANGED",
   "to": [

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.24.3-2",
  "rule-digest": "fa4b4a5b0110",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#SequenceRuleOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#EndsImperativeRun; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement",
  "test-ref": "conformance:cases/VI.6.24@1985-STOP-STATEMENT/1985-SR-VI_6_24_3-2",
+ "notes": "§1985:VI.6.24.3 SR2: \"If a STOP RUN statement appears in a consecutive sequence of imperative statements within a sentence, it must appear as the last statement in that sequence.\" The statement funnel (BindStatement) asks RefusedOutOfSequence of every statement at every edition; SequenceRuleOf selects the rule for STOP RUN only (the 1985 STOP literal, which continues, is not governed, as the rule names STOP RUN), and EndsImperativeRun passes a STOP RUN that is last in its sentence or phrase or is followed by a conditional statement (IsConditional), which is the 1985 scope (the imperative run ends where a conditional statement begins, §1985:IV.6.4.2.1.1) and not the wider 2023 wording. Probed at --std 85: STOP RUN followed by DISPLAY (the witness), CONTINUE, a delimited ADD ... END-ADD or IF ... END-IF, and STOP RUN followed by a statement inside an IF phrase, an ELSE phrase and an inline PERFORM are refused with COBOL2968; STOP RUN followed by an IF, an IF ... NEXT SENTENCE, a SEARCH or an ADD ... ON SIZE ERROR without its terminator, STOP RUN ending a sentence, and STOP literal followed by DISPLAY are accepted.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

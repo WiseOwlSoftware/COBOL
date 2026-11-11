@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-AR-A.2.17.3-1",
  "rule-digest": "24d6c797ce87",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDay; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
  "test-ref": "conformance:cases/A.2.17@1985-INTEGER-OF-DAY-FUNCTION/1989-AR-A_2_17_3-1",
+ "notes": "kb/Work PB5130 owns the fix. §1989:A.2.17.3 AR1 bounds the year below only (\"It must be an integer greater than 1600.\"); 2023 adds \"and less than 10000\". The runtime body IntegerOfDay refuses a year above 9999 at every edition (\"year is < 1601 or > 9999\" returns the argument-error value 0), so at --std 85 INTEGER-OF-DAY (10000001) returns 0 where the 1989 value is 3067672. The rest of the rule conforms: the integer screen (CheckArgumentClasses, IntegerViolation) refuses a non-integer or non-numeric argument, and the body checks DDD against the year's length (\"a positive integer less than 367 provided that it is valid for the year specified\": 1604366 gives 1461). The witness runs 1601001 and 1602001 only.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.8.4-2",
  "rule-digest": "384abe413cc1",
+ "verdict": "NOT-IMPLEMENTED",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckExternalFileConsistency; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Of; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe",
  "test-ref": "conformance:cases/VII.3.8@1985-RECORD-CLAUSE/1985-GR-VII_3_8_4-2",
+ "notes": "§1985:VII.3.8.4 GR2 requires of an external file connector that \"all file description entries in the run unit which are associated with that file connector must specify the same values for integer-1 or integer-2 and integer-3\" and \"If the RECORD clause is not specified, all record description entries associated with this file connector must be the same length\". Nothing compares the RECORD clauses or record lengths of two describers at any edition: the one cross-program screen, BinderDriver.CheckExternalFileConsistency, runs only under DialectLevel >= 2023 and reads FILE STATUS, RELATIVE KEY and LINAGE; the run-time identity of an external file connector (FileEntryIdentity.Of, compared in ExternalTable.Describe) carries the file control entry and no RECORD integer or record size, and its gate is 2023 exception checking. The named members are where the check is missing, not an implementation. Probed at --std 85 in one compilation group (probes f1, f2, nr): RECORD CONTAINS 20 against RECORD CONTAINS 10, VARYING FROM 1 TO 20 against FROM 5 TO 10, and no RECORD clause over PIC X(20) against PIC X(10) all compile clean and the second program reads the 20-character records as 10 characters. The witness is the agreeing case only (both entries RECORD CONTAINS 20), which shares one connector correctly. Same mechanism as kb/Work PB5069 (PADDING CHARACTER, ACCESS MODE, RELATIVE KEY), which does not list this rule.",
  "next": {
   "kind": "CHANGED",
   "to": [

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.7.4-2",
  "rule-digest": "fe618794dd53",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#BindAlter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#AlterEnsureScan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition",
  "test-ref": "conformance:cases/VI.6.7@1985-ALTER-STATEMENT/1985-GR-VI_6_7_4-2",
+ "notes": "§1985:VI.6.7.4 GR2 has two sentences. The second, \"All other uses of the ALTER statement are valid and are performed even if procedure-name-1 is in an overlayable fixed segment\", conforms at 85: AlterEnsureScan gives every ALTERed paragraph one switch field over the whole procedure table, BindAlter binds each entry with no question about its section, and EmitAlter stores the new target, so an ALTER in the same segment (the witness: ALTER and GO TO both in SECTION 50) and an ALTER from segment 10 of a GO TO in fixed segment 40 (probed) both run and display ALTERED. The first sentence, \"A GO TO statement in a section whose segment-number is greater than or equal to 50 must not be referred to by an ALTER statement in a section with a different segment-number\", is not implemented: VisitSectionDefinition reads the segment-number only for the 2002 removal gate and discards it at 85 (\"all segments resident\"), and BindAlter never compares the segment of the ALTER with the segment of procedure-name-1, so the forbidden program compiles without a diagnostic and runs. The rule is a general rule and the text defines no result for the violating program; whether 85 must refuse it is the same question kb/Work PB5084 holds for the segmentation flow restrictions of MERGE (§1985:XVI.3.3.1 repeats this sentence for ALTER), and PB5084 does not list this rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

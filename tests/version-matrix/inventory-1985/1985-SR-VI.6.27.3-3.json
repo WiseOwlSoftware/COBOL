@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.27.3-3",
  "rule-digest": "c8d68db1ae9c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#UnstringReceiverAllowed; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#HasPScaling",
  "test-ref": "conformance:cases/VI.6.27@1985-UNSTRING-STATEMENT/1985-SR-VI_6_27_3-3",
+ "notes": "§1985:VI.6.27.3 SR3 requires that 'Identifier-4 may be described as either the category alphabetic, alphanumeric, or numeric (except that the symbol 'P' may not be used in the PICTURE character-string), and must be described implicitly or explicitly, as USAGE IS DISPLAY.' BindUnstring asks UnstringReceiverAllowed of every elementary INTO receiver at every edition (no edition arm): it admits an unedited alphanumeric or alphabetic picture, and a numeric one only when usage DISPLAY, not float and HasPScaling false, and reports COBOL1626 otherwise; the predicate's 2023-only national arm is unreachable at 85 because national data is refused there (COBOL0900, national-data-2002). Probed at --std 85: PIC A, X, 9, S9 SIGN SEPARATE, 9V9 and a group receiver are accepted and run; COMP, BINARY, COMP-3, PACKED-DECIMAL, 99PP, PP99, numeric-edited, alphanumeric-edited (X(2)BX(2), A(2)BA), USAGE INDEX and an item under a USAGE COMP group are each COBOL1626. The witness refuses a PIC 9(4) COMPUTATIONAL receiver with COBOL1626.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

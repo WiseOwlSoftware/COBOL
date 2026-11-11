@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.2.10.2",
  "rule-digest": "f928ed4cbde5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#multipleFileClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rerunClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenParagraphPeriods; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands",
  "test-ref": "conformance:cases/VII.2.10@1985-I-O-CONTROL-PARAGRAPH/1985-FMT-VII_2_10_2",
+ "notes": "§1985:VII.2.10.2 prints I-O-CONTROL. followed by an optional run of RERUN clauses, SAME [RECORD] AREA clauses ('AREA FOR file-name-3 { file-name-4 }') and MULTIPLE FILE TAPE clauses closed by one period, and §1985:VII.2.10.3 SR1 frees their order ('The order of appearance of the clauses is immaterial.'). ioControlParagraph parses the header and any sequence of ioControlClause alternatives (sameClause, multipleFileClause, rerunClause; the 2023 applyCommitClause arm is COBOL0900 below 2023), ClosedFormatPass.ScreenParagraphPeriods holds the run to its one closing period (COBOL3407, COBOL3408), VisitUnrecognizedClause refuses any other clause (COBOL1970), and BindIoControl resolves each clause at every edition, RERUN and MULTIPLE FILE without a removal diagnostic at 85. Probed at --std 85: an empty paragraph, and eleven clauses of the three kinds interleaved in one sentence (every RERUN arm, both SAME forms, MULTIPLE FILE with and without TAPE CONTAINS) run; a period between two clauses, a missing closing period, APPLY WRITE-ONLY and a SAME naming one file (COBOL2738) are refused. The witness writes SAME AREA, MULTIPLE FILE TAPE and SAME RECORD AREA in one sentence and shows the shared record area.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

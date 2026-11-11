@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.9.4-3",
  "rule-digest": "87453efb891f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
  "test-ref": "conformance:cases/IX.4.9@1985-WRITE-STATEMENT/1985-GR-IX_4_9_4-3",
+ "notes": "§1985:IX.4.9.4 GR3 makes WRITE ... FROM \"equivalent to the execution of the following statements in the order specified\": \"MOVE identifier-1 TO record-name-1\" under the MOVE statement's rules, then \"The same WRITE statement without the FROM phrase.\" KeyedIoBinder.BindWrite binds the phrase through MoveBinder.BindFromPhrase, which hands identifier-1 and record-name-1 to BindMoveOf, the one application of the MOVE rules; KeyedIoEmitter.EmitWrite emits that bound move first and then the code path a WRITE without FROM takes. No edition arm in the move; the one 1985 difference is the gate VersionConformancePass.VisitRecordFromPhrase, which refuses FROM literal-1 at --std 85 (COBOL0871), since the 1985 format prints only identifier-1. The witness writes from a shorter alphanumeric item over a record filled with Z and reads the space-padded record back. Probed further at --std 85: a numeric sender to a numeric record aligns on the decimal point, a longer sender truncates, a JUSTIFIED RIGHT record right-justifies, a group sender with a COMP item moves byte for byte, and each record reads back as moved; the move is done when the WRITE then fails with status 22; an alphanumeric-edited sender to a numeric record draws COBOL0819 and an index data item COBOL0809. A sender in the record's own storage draws nothing; that is the syntax rule §1985:IX.4.9.3 SR1, kb/Work PB5077, not this rule.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

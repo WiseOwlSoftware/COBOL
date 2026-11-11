@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.21.4-1",
  "rule-digest": "63053bf6099b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#CheckVaryingOperandRules; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitVarying; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#Augment",
  "test-ref": "conformance:cases/VI.6.21@1985-PERFORM-STATEMENT/1985-GR-VI_6_21_4-1",
+ "notes": "§1985:VI.6.21.4 GR1: 'The data items referenced by identifier-4 and identifier-7 must not have a zero value.' It is a requirement on the content of the BY identifiers at run time, which the program must meet; the 1985 text states no action for a program that breaks it, so what the compiler owes is to take any BY identifier and augment by its current value. ControlFlowBinder.BindVaryingOperand binds identifier-4 / identifier-7 with no test on the item's value (only a zero BY literal is refused, the separate §1985:VI.6.21.3 SR9, in CheckVaryingOperandRules), and ControlFlowEmitter.Augment reads the BY operand at each augment of EmitVarying's levels, at every edition. The witness runs a VARYING ... AFTER nest whose two BY operands are data items holding 1. Probes at --std 85: a negative BY item, a noninteger one and a negative one over an index-name step as their values say; a BY item holding zero is not diagnosed and leaves the variable unchanged at each augment, the loop ending when its condition does (E:/COBOL-coord/scratch/coderead-85/out/work-slice-19/p8/a.cob), a deterministic outcome where the rule defines none.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

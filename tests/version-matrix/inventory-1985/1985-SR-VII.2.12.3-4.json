@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.2.12.3-4",
  "rule-digest": "198a08c103b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenRerunClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ResolveIoControlFile",
  "test-ref": "conformance:cases/VII.2.12@1985-RERUN-CLAUSE/1985-SR-VII_2_12_3-4",
+ "notes": "§1985:VII.2.12.3 SR4 allows more than one RERUN clause for a file-name-2 with two limits: among the integer-1 RECORDS phrases and among the END OF REEL or END OF UNIT phrases, \"no two of them may specify the same file-name-2\". The clause is 1985-only: rerunClause parses it at every edition, VisitRerunClause refuses it from 2002 (COBOL0902), and at --std 85 BindIoControl collects the paragraph's RERUN clauses and ScreenRerunClauses asks the five syntax rules; the clause is otherwise a null rerun facility. ScreenRerunClauses runs after the whole paragraph is collected and keeps two sets of resolved files, one for the RECORDS phrases and one shared by REEL and UNIT; a file already in its set is refused with COBOL6531 at the second clause. The sets hold the file, not the spelling, and are separate, so one RECORDS clause and one END OF REEL clause for the same file are accepted, as the rule's first sentence allows. Probed at --std 85 beyond the witness (two RECORDS clauses of one file): different ON names with the same file-name-2, END OF REEL then UNIT of one file, a REEL clause without ON then one with, and a repeat that is the third of three clauses are refused; two RECORDS clauses or two REEL clauses of different files, and RECORDS plus REEL of one file, are accepted.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

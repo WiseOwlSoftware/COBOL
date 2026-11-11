@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.21.4-16",
  "rule-digest": "cba2ec979603",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sectionDefinition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform",
  "test-ref": "conformance:cases/VI.6.21@1985-PERFORM-STATEMENT/1985-GR-VI_6_21_4-16",
+ "notes": "§1985:VI.6.21.4 GR16 lets a PERFORM in an independent segment (segment-number 50 through 99, §1985:XVI.3.2.4 GR3) have in its range \"only one of the following\": \"a. Sections and/or paragraphs wholly contained in one or more non-independent segments.\" or \"b. Sections and/or paragraphs wholly contained in the same independent segment as that PERFORM statement.\" Implemented at 85: the grammar rule sectionDefinition parses the segment-number, VisitSectionDefinition is the edition arm (accepted at --std 85, COBOL0902 from 2002), and nothing after the parser reads the number, so every segment is resident and BindPerform and EmitOutOfLinePerform run both permitted ranges like any other (probed: a THRU range over segments 10, 20 and 49, and paragraph, TIMES, VARYING and section ranges inside segment 50, all from a PERFORM in segment 50). Not implemented: the restriction. BindPerform resolves procedure-name-1 and procedure-name-2 without their segment-numbers, so a PERFORM in segment 50 that names a section of segment 60 compiles and runs with no diagnostic. kb/Work PB5084 holds the mechanism (the accepted-inert Segmentation module, docs/VERSION_CHANGE_REFERENCE.md row 7.18) and lists the same restriction under its Segmentation twins 1985-SR-XVI.3.3.2-L2.1 and 1985-SR-XVI.3.3.2-L2.2; it does not name this rule id. The witness runs range a (a section of segment 10) and range b (a paragraph of the same segment 50).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

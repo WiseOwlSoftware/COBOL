@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.9.5-2",
  "rule-digest": "6c34b69f8e64",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#IsEditedCategorySymbol; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsCharacterEdited; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#FormatSimpleInsertion; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPictureClause",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-GR-VI_5_9_5-2",
+ "notes": "§1985:VI.5.9.5 GR2: 'The type of editing which may be performed upon an item is dependent upon the category to which the item belongs', with a table giving alphabetic, numeric and alphanumeric items none, alphanumeric edited items 'Simple insertion '0', 'B', and '/'' and numeric edited items 'All, subject to rules in rule 3 below'. AnalyzeCharacterString gives the three plain categories no EditMask, so a store into them edits nothing. Its A/X arm keeps a mask only for the symbols CobolEdit.IsEditedCategorySymbol names, B 0 / without the comma, and FormatSimpleInsertion is the only editing an alphanumeric edited store runs; PictureComposition.Precedence refuses every other editing symbol beside an A or X. A string with any editing symbol and no A or X is NumericEdited, whose store runs CobolEdit.Format with every editing type. The 2023 addition to the alphanumeric edited row, an EDITING character-1, is refused at 85 by VersionConformancePass VisitPictureClause (COBOL0900, probed). Probed at --std 85: PIC XX,XX, X.X, XXZ, A+, X$ and AZ are refused with COBOL1935; PIC B9X0 edits '7Q' to ' 7Q0'; numeric edited pictures run simple, special, fixed and floating insertion and both suppressions. The witness edits PIC XX/XXBXX0 with all three simple insertion characters.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

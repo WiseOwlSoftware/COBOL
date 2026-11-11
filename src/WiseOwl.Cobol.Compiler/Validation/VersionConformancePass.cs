@@ -912,6 +912,24 @@ internal sealed class VersionConformancePass
             _p.Check(Constructs.ProcedureWithoutLeadingParagraph2002, $"a sentence before the first paragraph-name of {where}");
         }
 
+        /// <summary>F.2 item 33: "The conditional phrases in the ACCEPT, ADD, CALL, COMPUTE, DELETE, DISPLAY, DIVIDE,
+        /// MULTIPLY, READ, RECEIVE, REWRITE, START, STRING, SUBTRACT, UNSTRING, and WRITE statements may be specified in
+        /// any order" (§2002:F.2; RETURN's twin is §2023:14.9.34.3 SR4). COBOL-85 writes them "in the sequence given in the
+        /// general formats" (§1985:IV.2.1), the positive phrase before its NOT twin. Every statement's phrases are the
+        /// ONE <c>conditionalPhrases</c> rule (kb/Work PB3830), so this one visit covers every owner, and the printed
+        /// order is the owner's row in <see cref="ConditionalPhraseAssociation.Owners"/> (kb/Work PB5158).</summary>
+        public override object? VisitConditionalPhrases(CobolParserCore.ConditionalPhrasesContext ctx)
+        {
+            if (ConditionalPhraseAssociation.OutOfPrintedOrder(ctx) is { } breach)
+            {
+                using var _ = Sink.At(breach.Phrase);
+                _p.Check(Constructs.ConditionalPhrasesAnyOrder2002,
+                    $"the {breach.Statement} statement writes {breach.Kind.Words} after {breach.PrintedAfter.Words}, and "
+                    + $"its COBOL-85 general format prints {breach.Kind.Words} first");
+            }
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>F.2 item 61: "The GLOBAL clause may be specified in level 1 data description entries in the linkage
         /// section."</summary>
         public override object? VisitGlobalClause(CobolParserCore.GlobalClauseContext ctx)

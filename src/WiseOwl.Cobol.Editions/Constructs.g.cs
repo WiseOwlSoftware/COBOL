@@ -52,6 +52,7 @@ public static class Constructs
     public const string CommunicationKeyPhraseRemoved2002 = "communication-key-phrase-removed-2002";
     public const string ComputerNameOptional2002 = "computer-name-optional-2002";
     public const string ConcatOperator2002 = "concat-operator-2002";
+    public const string ConditionalPhrasesAnyOrder2002 = "conditional-phrases-any-order-2002";
     public const string ConstantEntry2002 = "constant-entry-2002";
     public const string ConstantRecord2014 = "constant-record-2014";
     public const string ContinueAfter2023 = "continue-after-2023";
