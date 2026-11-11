@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """line_endings.py — ONE LINE ENDING, LF, IN EVERY TRACKED TEXT FILE: the index AND the working tree (kb/Work PB3029).
 
-    python scripts/line_endings.py --check          # exit 1 when any arm below finds a CR (the gate's audit, CI's too)
+    python scripts/line_endings.py --check          # THE SWEEP: every tracked text file (CI's backstop, a hand run)
+    python scripts/line_endings.py --check --base B --tree T   # THE CHANGE: only what T changes against B (the gate)
     python scripts/line_endings.py --fix            # rewrite this checkout's CRLF text files to LF (content unchanged)
     python scripts/line_endings.py --fix-writers    # give every Python text-mode write the check names `newline="\\n"`
     python scripts/line_endings.py --self-test
@@ -13,9 +14,11 @@ commit; CRLF'd shell and Workflow scripts could not run at all (kb/Work PB1732, 
 PB3029, `.gitattributes` opens with `* text=auto eol=lf`: git stores LF and checks out LF on every OS. Attributes alone do
 not keep it so — a text file git's heuristic calls binary (it holds a lone CR) is stored as-is, a Windows tool that writes
 CRLF leaves a CRLF working tree behind it until the next checkout, and a commit made outside git (an API upload) bypasses
-the attributes — so this check holds the rule, in three arms:
+the attributes — so this check holds the rule, in four arms:
 
-  INDEX        no tracked TEXT file's staged blob holds a CR. A file is TEXT unless `.gitattributes` declares it
+  ATTRIBUTES   `.gitattributes`' catch-all still says `* text=auto eol=lf`, read through `git check-attr`: the rule every
+               checkout's bytes rest on, so a Windows checkout of an LF blob is LF and CI needs no Windows sweep.
+  INDEX       no tracked TEXT file's staged blob holds a CR. A file is TEXT unless `.gitattributes` declares it
                byte-exact (`-text` / `binary`, each with its reason there) or it holds a NUL (an encoding fixture, an
                archive): a lone CR in a file nobody declared is the accident this arm exists for.
   WORKING TREE the same rule over the checkout's bytes, which are what a Windows gate compiles and compares. A checkout
@@ -30,6 +33,25 @@ the attributes — so this check holds the rule, in three arms:
 
 Explicitly byte-exact files are exempt from every arm: the pinned Unicode/CLDR inputs (content-addressed by SHA-256)
 and a conformance fixture whose lone CRs are its subject.
+
+⛔ TWO POPULATIONS, ONE RULE (kb/Work PB5225; owner 2026-11-10: "Why do we need line_endings.py --check? We long ago
+standardized on LF and the GitHub configuration should enforce that."). The attributes miss the three cases above, so the
+rule stays; but a file already on main was checked when it landed, and the sweep read all 35,241 tracked files in every
+gate (13.2 s measured). So the rule is applied to two populations:
+  THE CHANGE   `--check --base B --tree T`: the gate's LINE ENDINGS audit (gate.py CHANGE_SCOPED), handed the change's
+               cut point and measured tree. It reads the paths T changes against B (`inert_lane.changed`, the listing the
+               gate's lane is classified from) plus every tracked file the checkout has modified and every untracked file
+               git does not ignore (`git ls-files -m -o --exclude-standard`): a CRLF rewrite of an unchanged file cleans
+               to the base's blob under `eol=lf`, so no tree diff names it, while its size differs from the index's
+               record, which `-m` trusts. INDEX and WORKING TREE read those paths' bytes; WRITERS parses only the live
+               Python files among them.
+  THE SWEEP    `--check` alone: every tracked text file and every live Python file. CI's Linux `audits` job runs it once
+               per merge group, the backstop for a commit made outside git's attributes (an API upload) that no branch's
+               gate saw. The battery and a hand run use it too. CI runs no other: a CI checkout is a fresh checkout of
+               the blobs this sweep read, LF on every OS while ATTRIBUTES holds, and main changes only through a merge
+               group, so a Windows-job or nightly sweep would re-read bytes already read.
+The residue the change form cannot see: a CRLF rewrite of an UNCHANGED file that was then staged (`git add` records the
+CRLF size against the LF blob, so `-m` no longer lists it). The sweep and `--fix` find it.
 """
 from __future__ import annotations
 
@@ -45,6 +67,7 @@ import tokenize
 from dataclasses import dataclass
 from pathlib import Path
 
+import inert_lane  # this directory's: `changed`, THE listing of what a change changes (the gate's lane reads it too)
 import live_tools  # this directory's: the one list of the live tools' trees, where the WRITERS arm looks
 from standard_streams import ensure_utf8
 
@@ -89,15 +112,20 @@ def entries(root: Path) -> list[Entry]:
     return result
 
 
+def text_holds_cr(data: bytes) -> bool:
+    """THE RULE over one file's bytes: TEXT (no NUL: an encoding fixture or an archive holds one) and holding a CR."""
+    return NUL not in data and CR in data
+
+
 def holds_cr(eol_class: str, read) -> bool:
     """Whether a TEXT file's bytes hold a CR, from git's class: `crlf`/`mixed` do; `lf`/`none`/absent do not; `-text` is
-    git's binary verdict, which a NUL earns honestly and a lone CR earns too — so read the bytes and tell them apart."""
+    git's binary verdict, which a NUL earns honestly and a lone CR earns too, so read the bytes and tell them apart
+    (`text_holds_cr`). git's class is the sweep's filter: git reads every file in C, and only `-text` needs Python."""
     if eol_class in ("crlf", "mixed"):
         return True
     if eol_class != "-text":
         return False
-    data = read()
-    return NUL not in data and CR in data
+    return text_holds_cr(read())
 
 
 def scan_tree(root: Path) -> tuple[int, list[str], list[str]]:
@@ -111,6 +139,105 @@ def scan_tree(root: Path) -> tuple[int, list[str], list[str]]:
             in_index.append(e.path)
         if e.worktree and holds_cr(e.worktree, lambda: (root / e.path).read_bytes()):
             in_tree.append(e.path)
+    return checked, in_index, in_tree
+
+
+# ── the ATTRIBUTES arm (kb/Work PB5225) ──────────────────────────────────────────────────────────────────────────
+
+#: A path no `.gitattributes` rule names more narrowly than `*`: what git answers for it is what the catch-all says.
+ATTRIBUTE_PROBE = "line-endings-attribute-probe"
+#: What the catch-all must say: every text file is stored LF and checked out LF, whatever `core.autocrlf` says.
+CATCH_ALL = {"text": "auto", "eol": "lf"}
+
+
+def attribute_findings(root: Path) -> list[str]:
+    """`.gitattributes`' catch-all, as git itself reads it: one finding per attribute that is not CATCH_ALL's. This is
+    the rule every checkout's bytes rest on, so a Windows checkout of an LF blob is LF: with it held here, CI needs no
+    second sweep over a Windows checkout (kb/Work PB5225)."""
+    out = git(root, "check-attr", "-z", *CATCH_ALL, "--", ATTRIBUTE_PROBE, binary=True).stdout.decode("utf-8")
+    fields = out.split(chr(0))
+    said = {attr: value for attr, value in zip(fields[1::3], fields[2::3])}
+    return [f".gitattributes: `{attr}` is `{said.get(attr)}` for a path only `*` names; it must be `{want}`"
+            for attr, want in CATCH_ALL.items() if said.get(attr) != want]
+
+
+# ── the change's population (kb/Work PB5225) ─────────────────────────────────────────────────────────────────────
+
+def _nul_split(data: bytes) -> list[str]:
+    return [p for p in data.decode("utf-8").split(chr(0)) if p]
+
+
+def changed_paths(root: Path, base: str, tree: str) -> list[str]:
+    """THE CHANGE'S POPULATION, sorted: what `tree` (the gate's measured tree) changes against `base`
+    (`inert_lane.changed`, the one listing the gate's lane is classified from), with every tracked file the checkout has
+    modified and every untracked file git does not ignore. Raises CalledProcessError when git cannot list it.
+
+    The second listing is not a second diff: under `eol=lf` a checkout that a Windows tool rewrote CRLF cleans to the
+    blob it had, so the measured tree equals the base's at that path and no tree diff names it. Its SIZE differs from
+    the index's record, and `git ls-files -m` trusts a size mismatch as modified without comparing content."""
+    local = _nul_split(git(root, "ls-files", "-z", "-m", "-o", "--exclude-standard", binary=True).stdout)
+    return sorted(set(inert_lane.changed(root, base, tree)) | set(local))
+
+
+def _index_blobs(root: Path, paths: list[str]) -> dict[str, tuple[str, str]]:
+    """{path: (mode, blob id)}: the index's entry for each of `paths` it holds (mid-merge, the first stage listed)."""
+    wanted, found = set(paths), {}
+    for record in _nul_split(git(root, "ls-files", "-s", "-z", binary=True).stdout):
+        info, _, path = record.partition("\t")
+        if path in wanted and path not in found:
+            mode, sha, _stage = info.split()
+            found[path] = (mode, sha)
+    return found
+
+
+def _byte_exact(root: Path, paths: list[str]) -> set[str]:
+    """The `paths` .gitattributes declares byte-exact (`text` unset: `-text`, or the `binary` macro), as `Entry.byte_exact`
+    reads them for the sweep."""
+    if not paths:
+        return set()
+    out = subprocess.run(["git", "-C", str(root), "check-attr", "-z", "--stdin", "text"], capture_output=True,
+                         check=True, input="".join(p + chr(0) for p in paths).encode("utf-8")).stdout
+    fields = out.decode("utf-8").split(chr(0))
+    return {path for path, _attr, value in zip(fields[0::3], fields[1::3], fields[2::3]) if value == "unset"}
+
+
+def _blobs(root: Path, shas: list[str]) -> dict[str, bytes]:
+    """{blob id: its bytes}, read in one `git cat-file --batch` (`<id> blob <size>` LF, the bytes, LF)."""
+    if not shas:
+        return {}
+    out = subprocess.run(["git", "-C", str(root), "cat-file", "--batch"], capture_output=True, check=True,
+                         input="".join(s + chr(10) for s in shas).encode("ascii")).stdout
+    blobs, at = {}, 0
+    for sha in shas:
+        end = out.index(LF, at)
+        size = int(out[at:end].split()[2])
+        blobs[sha] = out[end + 1:end + 1 + size]
+        at = end + 1 + size + 1
+    return blobs
+
+
+def scan_paths(root: Path, paths: list[str]) -> tuple[int, list[str], list[str]]:
+    """`scan_tree` over `paths` alone: (text files checked, INDEX findings, WORKING TREE findings), by the one rule
+    (`text_holds_cr`). A path the index holds is read there and, when on disk, in the checkout; an untracked one in the
+    checkout only. Skipped, as the sweep skips them: a declared byte-exact file, a submodule (gitlink); and a symlink
+    entry, and a path neither staged nor on disk (deleted by the change)."""
+    index = _index_blobs(root, paths)
+    exact = _byte_exact(root, paths)
+    regular = {p: sha for p, (mode, sha) in index.items() if mode not in ("120000", "160000")}
+    blobs = _blobs(root, sorted(set(regular.values())))
+    checked, in_index, in_tree = 0, [], []
+    for rel in paths:
+        if rel in exact or (rel in index and rel not in regular):
+            continue
+        disk = root / rel
+        on_disk = disk.is_file() and not disk.is_symlink()
+        if rel not in regular and not on_disk:
+            continue
+        checked += 1
+        if rel in regular and text_holds_cr(blobs[regular[rel]]):
+            in_index.append(rel)
+        if on_disk and text_holds_cr(disk.read_bytes()):
+            in_tree.append(rel)
     return checked, in_index, in_tree
 
 
@@ -187,9 +314,16 @@ def live_python(root: Path) -> list[str]:
     return live_tools.tracked(root, (".py",))
 
 
-def scan_writers(root: Path) -> list[str]:
+def changed_python(root: Path, paths: list[str]) -> list[str]:
+    """The live Python files among a change's `paths` (under `live_tools.ROOTS`, on disk): the WRITERS arm's population
+    for a change (kb/Work PB5225). An untracked new tool is among them, so its writers are read before it is staged."""
+    return [p for p in paths if p.endswith(".py") and p.startswith(live_tools.ROOTS) and (root / p).is_file()]
+
+
+def scan_writers(root: Path, files: list[str]) -> list[str]:
+    """The text-mode writes in `files` (repository paths) that do not state `newline=`."""
     found = []
-    for rel in live_python(root):
+    for rel in files:
         path = root / rel
         if not path.exists():
             continue
@@ -324,10 +458,23 @@ def _show(title: str, items: list[str], hint: str) -> list[str]:
     return lines
 
 
-def check(root: Path) -> int:
-    checked, in_index, in_tree = scan_tree(root)
-    writers = scan_writers(root)
-    report = []
+def check(root: Path, change: tuple[str, str] | None = None) -> int:
+    """THE CHECK: the sweep, or with `change` = (base, measured tree) only what the change changes (`changed_paths`)."""
+    if change is None:
+        checked, in_index, in_tree = scan_tree(root)
+        writers = scan_writers(root, live_python(root))
+        scope = "tracked text files"
+    else:
+        try:
+            paths = changed_paths(root, *change)
+        except subprocess.CalledProcessError as e:
+            print(f"=== LINE ENDINGS: RED — the change {change[0][:12]}..{change[1][:12]} could not be listed: "
+                  f"{((e.stderr or b'').decode('utf-8', 'replace').strip().splitlines() or [str(e)])[0]} ===")
+            return 1
+        checked, in_index, in_tree = scan_paths(root, paths)
+        writers = scan_writers(root, changed_python(root, paths))
+        scope = f"text files of the {len(paths)} paths the change touches against {change[0][:12]}"
+    report = [f"ATTRIBUTES: {finding}" for finding in attribute_findings(root)]
     if in_index:
         report += _show("INDEX: tracked text files whose staged blob holds a CR", in_index,
                         "`git add --renormalize <file>` for CRLF; a lone CR is removed by hand, or the file is declared "
@@ -339,17 +486,18 @@ def check(root: Path) -> int:
     if writers:
         report += _show("WRITERS: Python text-mode writes that do not state newline= (CRLF on Windows)", writers,
                         "`python scripts/line_endings.py --fix-writers`")
-    if not checked:
-        # A green over nothing is not a green: a wrong root or an unreadable index lists no file at all.
+    if not checked and change is None:
+        # A green over nothing is not a green: a wrong root or an unreadable index lists no file at all. (A change may
+        # touch no text file, only deletions or byte-exact files; git raises when it cannot list the change.)
         report.append(f"POPULATION: no tracked text file was read under {root} — nothing was checked")
     for line in report:
         print(line)
     if report:
         print(f"=== LINE ENDINGS: RED — {len(in_index)} index · {len(in_tree)} working tree · {len(writers)} writers "
-              f"(of {checked} tracked text files; kb/Work PB3029) ===")
+              f"(of {checked} {scope}; kb/Work PB3029) ===")
         return 1
-    print(f"=== LINE ENDINGS: CLEAN — {checked} tracked text files LF in the index and the working tree; every Python "
-          "writer states newline= ===")
+    print(f"=== LINE ENDINGS: CLEAN — {checked} {scope} LF in the index and the working tree; every Python "
+          "writer among them states newline= ===")
     return 0
 
 
@@ -445,6 +593,59 @@ def self_test() -> int:
                (in_index, in_tree), (["accident.md"], ["accident.md"]))
         expect("--fix leaves a lone-CR file untouched, terminators included, and names it",
                (fix_tree(root), (root / "accident.md").read_bytes()), ((0, 0, ["accident.md"]), accident))
+
+    with tempfile.TemporaryDirectory() as d:
+        # kb/Work PB5225: THE CHANGE reads what the change touches and the checkout's own dirt; THE SWEEP reads every file
+        root = Path(d)
+        scratch = ScratchRepo.init(root, options=("-c", "core.autocrlf=false"))
+        # a CR committed outside the attributes (an API upload), on main already: text=auto never normalizes a path whose
+        # staged blob holds CRLF, so it stays unmodified under the attributes added after it
+        scratch.write({"kept.md": b"api" + CRLF})
+        scratch.git("add", "-A")
+        scratch.git("commit", "-q", "-m", "an upload")
+        expect("arm ATTRIBUTES: a tree whose .gitattributes does not say `* text=auto eol=lf` is a finding per attribute",
+               len(attribute_findings(root)), 2)
+        scratch.write({".gitattributes": b"* text=auto" + LF})
+        expect("arm ATTRIBUTES: `* text=auto` without `eol=lf` is a finding (a Windows checkout would be CRLF)",
+               [f.split("`")[1] for f in attribute_findings(root)], ["eol"])
+        scratch.write({
+            ".gitattributes": b"* text=auto eol=lf" + LF,
+            ".gitignore": b"ignored.md" + LF,
+            "edited.md": b"one" + LF,
+            "restyled.md": b"line" + LF,                    # LF; the checkout is rewritten CRLF below and never staged
+            "scripts/old_tool.py": b"open('x', 'w')" + LF,  # an unstated writer the change leaves alone
+        })
+        scratch.git("add", "-A")
+        scratch.git("commit", "-q", "-m", "base")
+        base = scratch.git("rev-parse", "HEAD")
+        expect("arm ATTRIBUTES: `* text=auto eol=lf` is no finding", attribute_findings(root), [])
+        scratch.write({"edited.md": b"one" + CR + b"two" + LF, "scripts/new_tool.py": b"open('y', 'w')" + LF})
+        scratch.git("add", "-A")
+        scratch.git("commit", "-q", "-m", "the change")
+        tree = scratch.git("rev-parse", "HEAD^{tree}")
+        scratch.write({"restyled.md": b"line" + CRLF, "untracked.md": b"new" + CRLF, "ignored.md": b"no" + CRLF})
+        paths = changed_paths(root, base, tree)
+        expect("THE CHANGE lists the changed paths, a checkout rewritten CRLF over an unchanged blob, and an untracked "
+               "file; never an unchanged file or an ignored one", paths,
+               ["edited.md", "restyled.md", "scripts/new_tool.py", "untracked.md"])
+        _, in_index, in_tree = scan_paths(root, paths)
+        expect("THE CHANGE: a CR planted in a changed file is caught in the index and the checkout, and the checkout's "
+               "own CRs too; the CR in the unchanged tracked file is not read",
+               (in_index, in_tree), (["edited.md"], ["edited.md", "restyled.md", "untracked.md"]))
+        expect("THE CHANGE: WRITERS reads only the changed live Python files",
+               scan_writers(root, changed_python(root, paths)), ["scripts/new_tool.py:1"])
+        _, in_index, in_tree = scan_tree(root)
+        expect("THE SWEEP catches the CR in the unchanged tracked file, which the change form does not read",
+               (sorted(in_index), sorted(in_tree)), (["edited.md", "kept.md"], ["edited.md", "kept.md", "restyled.md"]))
+        expect("THE SWEEP: WRITERS reads every live Python file",
+               scan_writers(root, live_python(root)), ["scripts/new_tool.py:1", "scripts/old_tool.py:1"])
+        expect("--check is RED in either form", (check(root, (base, tree)), check(root)), (1, 1))
+        scratch.write({"edited.md": b"one" + LF, "scripts/new_tool.py": b"open('y', 'w', newline='')" + LF,
+                       "restyled.md": b"line" + LF, "untracked.md": None})
+        scratch.git("add", "-A")
+        scratch.git("commit", "-q", "-m", "fixed")
+        expect("--check of a clean change is CLEAN while the unchanged file still holds its CR, and the sweep is RED",
+               (check(root, (base, scratch.git("rev-parse", "HEAD^{tree}"))), check(root)), (0, 1))
 
     planted = "\n".join([
         "from pathlib import Path",
@@ -543,8 +744,12 @@ def main() -> int:
     group.add_argument("--fix", action="store_true")
     group.add_argument("--fix-writers", action="store_true")
     group.add_argument("--self-test", action="store_true")
+    ap.add_argument("--base", help="with --check and --tree: read only what TREE changes against this commit (the gate)")
+    ap.add_argument("--tree", help="with --check and --base: the change's measured tree (gate.py Host.measured_tree)")
     ap.add_argument("--root", type=Path, default=REPO, help=argparse.SUPPRESS)
     args = ap.parse_args()
+    if (args.base is None) != (args.tree is None) or (args.base is not None and not args.check):
+        ap.error("--base and --tree go together, and only with --check")
     if args.self_test:
         return self_test()
     if args.fix:
@@ -558,7 +763,7 @@ def main() -> int:
         n = fix_writers(args.root)
         print(f"=== LINE ENDINGS FIX-WRITERS: {n} Python writer(s) now state newline= ===")
         return 0
-    return check(args.root)
+    return check(args.root, (args.base, args.tree) if args.base is not None else None)
 
 
 if __name__ == "__main__":

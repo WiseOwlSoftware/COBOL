@@ -407,6 +407,12 @@ AUDITS = (
 #: the Windows ones whenever the change touches a script or that data (`Lane.reads_tooling`). The recorded-inputs
 #: reuse (PB2914) still lets a script change re-run exactly the self-tests that read it.
 TOOLING_ONLY = ("SELF-TESTS",)
+#: ⛔ THE AUDITS THAT READ ONLY WHAT THE CHANGE CHANGES (kb/Work PB5225): each is handed the change's cut point and its
+#: measured tree (`--base <base> --tree <tree>`), the pair the lane is classified from. LINE ENDINGS read all 35,241
+#: tracked files in every gate (13.2 s) although a file already on main was read when it landed; the full sweep is CI's
+#: Linux `audits` job's, once per merge group, the backstop for a commit made outside git's attributes. A gate that has
+#: no base or no measured tree (the full lane's fallback, `Host.lane`) runs them over everything.
+CHANGE_SCOPED = ("LINE ENDINGS",)
 #: ⛔ WHAT AN AUDIT NEEDS IN THE TREE, made ready before any audit runs, exactly as CI's `audits` job makes it ready:
 #: FLEET PRACTICES reads the pinned public skills submodule, which a fresh worktree does not have. A prerequisite that
 #: fails is a RED and no audit runs. The self-test maps every command of CI's `audits` job to an AUDITS entry, to one of
@@ -712,10 +718,22 @@ class Host:
                 return [f"{name} RED"]
         return []
 
-    def audits(self, spawn: Spawn, say: Callable[[str], None], tooling: bool) -> list[str]:
+    @staticmethod
+    def gate_form(name: str, cmd: list[str], change: tuple[str, str] | None) -> list[str]:
+        """An audit's command as THE GATE runs it: the self-tests reuse recorded PASSes (SELF_TESTS_REUSE), and a
+        CHANGE_SCOPED audit reads only the `change` (base, measured tree) when the gate knows one."""
+        if name == "SELF-TESTS":
+            return [*cmd, SELF_TESTS_REUSE]
+        if name in CHANGE_SCOPED and change is not None:
+            return [*cmd, "--base", change[0], "--tree", change[1]]
+        return cmd
+
+    def audits(self, spawn: Spawn, say: Callable[[str], None], tooling: bool,
+               change: tuple[str, str] | None) -> list[str]:
         """The audits (`audit_commands`), every one of them, CONCURRENTLY, once their prerequisites
-        (`audit_prerequisites`, run first and in order) are ready; the self-tests reuse recorded PASSes
-        (SELF_TESTS_REUSE). Each audit's whole output is printed as one block when it finishes, so no two interleave.
+        (`audit_prerequisites`, run first and in order) are ready, each in its gate form (`gate_form`: the self-tests
+        reuse recorded PASSes, a CHANGE_SCOPED audit reads only `change`, the (base, measured tree) pair or None).
+        Each audit's whole output is printed as one block when it finishes, so no two interleave.
         ⛔ THE FIRST RED STOPS THE REST (kb/Work PB3061): the audits still running are stopped, process trees and all
         (`_Live.stop_all`), and reported STOPPED — never RED — so a red found in 23 s is the verdict in 23 s and not
         after the slowest audit (the self-tests: 5–9 min in every first gate of wave 1062). Returns the RED reasons in
@@ -724,8 +742,7 @@ class Host:
             return not_ready
         reds: dict[str, str] = {}
         live = _Live()
-        commands = [(name, [*cmd, SELF_TESTS_REUSE] if name == "SELF-TESTS" else cmd)
-                    for name, cmd in self.audit_commands(tooling)]
+        commands = [(name, self.gate_form(name, cmd, change)) for name, cmd in self.audit_commands(tooling)]
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(commands)) as pool:
             futures = {pool.submit(self._captured, cmd, spawn, live): name for name, cmd in commands}
             for f in concurrent.futures.as_completed(futures):
@@ -1734,7 +1751,9 @@ class Gate:
         lines: list[str] = []
         t = time.monotonic()
         try:
-            reds = self.host.audits(_no_slot, lines.append, tooling)  # an unchanged self-test is REUSED (PB2914)
+            # an unchanged self-test is REUSED (PB2914); a CHANGE_SCOPED audit reads only the change (PB5225)
+            change = (out.base, out.tree) if out.base and out.tree else None
+            reds = self.host.audits(_no_slot, lines.append, tooling, change)
         except Exception:
             out.audit_reds = ["AUDITS FAILED"]
             self.host.stop_hosts()
@@ -2073,6 +2092,7 @@ class FakeHost(Host):
         self.slots_taken = 0
         self.audited = self.built = self.toolchain_checked = False
         self.tooling_seen: bool | None = None   # what `audits` was told about the change (kb/Work PB4326)
+        self.change_seen: tuple[str, str] | None = None   # the (base, measured tree) `audits` was handed (PB5225)
         #: Set when the gate stops the hosts for a RED audit; and when a test host starts (the "audit-late" arm's order).
         self.stopped_by_audit, self.host_started = threading.Event(), threading.Event()
         #: Set when every planted test host has returned: the "audit-after-hosts" arm's audit turns RED only then.
@@ -2156,8 +2176,8 @@ class FakeHost(Host):
     def measured_tree(self) -> str | None:
         return self.trees.pop(0) if len(self.trees) > 1 else self.trees[0]
 
-    def audits(self, spawn, say, tooling) -> list[str]:
-        self.audited, self.tooling_seen = True, tooling
+    def audits(self, spawn, say, tooling, change) -> list[str]:
+        self.audited, self.tooling_seen, self.change_seen = True, tooling, change
         say("PLANTED-AUDIT-OUTPUT")
         if "audit-late" in self.plant:   # red only once a test host is running, so the hosts have to be STOPPED
             self.host_started.wait(60)
@@ -2449,6 +2469,9 @@ def self_test() -> int:
             and h.audited and h.events == [] and not h.built and not o.runs and o.lane == "inert"
             and o.tooling is False and h.tooling_seen is False and h.growth == []
             and read_verdict(o.line[len(VERDICT):]) == GREEN_READING, f"{o.line} {h.events}")
+        arm("the gate hands its audits the change it classified its lane from: (the base, the measured tree) (kb/Work "
+            "PB5225)", h.change_seen == ("0" * 40, "tree-1") and (o.base, o.tree) == h.change_seen,
+            f"{h.change_seen} {o.base} {o.tree}")
         o, h = gate("inert-audit", plant={"inert", "audit"})
         arm("a red audit is RED in the inert lane too: the audits ARE the inert lane's gate",
             o.verdict == "RED" and o.exit_code == 1 and h.audited and h.events == [] and o.lane == "inert"
@@ -2494,17 +2517,26 @@ def self_test() -> int:
             def audit_prerequisites(self):
                 return (("PLANTED PREREQUISITE", [sys.executable, "-c", "print('not ready'); raise SystemExit(3)"]),)
         unready, heard_unready = PrerequisiteFails(), []
-        reasons = unready.audits(_no_slot, heard_unready.append, True)
+        reasons = unready.audits(_no_slot, heard_unready.append, True, None)
         arm("a failed audit prerequisite (CI's `git submodule update --init tools/claude-skills`) is its RED, with its "
             "output, and no audit runs (kb/Work PB1957 row 44)",
             reasons == ["PLANTED PREREQUISITE RED"] and unready.commands == [] and "not ready" in heard_unready,
             f"{reasons} {unready.commands} {heard_unready}")
         hung = HungSelfTests()
-        reasons = hung.audits(_no_slot, lambda _: None, True)
+        reasons = hung.audits(_no_slot, lambda _: None, True, ("base-1", "tree-1"))
         arm("a hung self-test is `SELF-TESTS HANG` in the gate's reasons, never RED, and every gate's self-tests run "
             "with --reuse (kb/Work PB2914, PB3022)",
             reasons == ["SELF-TESTS HANG"] and ["scripts/self_tests.py", SELF_TESTS_REUSE] in hung.commands,
             f"{reasons} {hung.commands}")
+        whole = HungSelfTests()
+        whole.audits(_no_slot, lambda _: None, False, None)
+        arm("a CHANGE_SCOPED audit (LINE ENDINGS) reads only the change the gate hands it, `--base <base> --tree "
+            "<measured tree>`, and the whole tree when the gate has no change; no other audit is told (kb/Work PB5225)",
+            CHANGE_SCOPED == ("LINE ENDINGS",)
+            and ["scripts/line_endings.py", "--check", "--base", "base-1", "--tree", "tree-1"] in hung.commands
+            and ["scripts/line_endings.py", "--check"] in whole.commands
+            and sum("--base" in c for c in hung.commands) == 1 and not any("--base" in c for c in whole.commands),
+            f"{hung.commands} {whole.commands}")
 
         class FirstRedStops(Host):  # the real Host.audits over REAL processes: a slow audit with a child, and a red one
             def __init__(self, mark: Path):
@@ -2523,7 +2555,7 @@ def self_test() -> int:
                 return (("SLOW", ["-c", slow]), ("QUICK-RED", ["-c", red]))
         mark = scratch_dir("first-red-") / "grandchild.pid"
         heard: list[str] = []
-        reasons = FirstRedStops(mark).audits(_no_slot, heard.append, False)
+        reasons = FirstRedStops(mark).audits(_no_slot, heard.append, False, None)
         grandchild = int(mark.read_text(encoding="utf-8"))
         while pid_alive(grandchild):  # termination is asynchronous; a tree that never dies is the hang detector's
             time.sleep(0.05)

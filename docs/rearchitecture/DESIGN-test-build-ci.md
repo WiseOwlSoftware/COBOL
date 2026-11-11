@@ -284,7 +284,7 @@ is the ref a scheduled run reads:
 | job | measures | red when |
 |---|---|---|
 | `guard` | the NIST corpus through the `cobol` CLI (`scripts/guard-fast.sh`, Linux, about 12 minutes at JOBS=4) | the guard is not ALL GREEN (a REGRESSION, DIFF, FAIL*, audit finding, build warning, or its own instrument self-tests) |
-| `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused) and `line_endings.py --check`, then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
+| `self-tests` (both OSes) | every script self-test (`scripts/self_tests.py`, nothing reused), then the `--built` phase after a solution build | any self-test is red on either OS: the Windows ones whether or not the day's landings touched a tooling path |
 | `differential` (Windows) | the GnuCOBOL differential: `scripts/battery.sh` with `SKIP_TESTS=1 SKIP_GUARD=1`, so the citation audits, the corpus fetch, the solution build and phase 3, the battery's one definition and never a copy | a per-case verdict flip against the committed baseline, or a case with no compiler verdict. Windows, because the baseline was measured there and `gnucobol_differential.py` defaults to the `cobol.exe` apphost |
 | `shard-spread` | `scripts/shard_weights.py report`: for each OS of the newest 8 successful merge-group runs of the last 24 hours that ran the matrix (one run's artifacts, about 200 MB, are downloaded and deleted before the next), the slowest `test-results-<OS>-shard-<k>` shard's wall (the sum of its trx `<Times>`) over the mean shard wall | the worst spread exceeds 1.5 (exit 1; the weights file wants regenerating, `shard_weights.py generate`), or a download or trx cannot be read (exit 2, UNMEASURED). NOT MEASURED and green on a day with no matrix run. Live while `tests/_shared/test-weights.json` exists and `build-and-test.yml` names `WISEOWL_COBOL_SHARD` (the weighted shards, PB4329), since regenerating that file is its remedy |
 | `latest` | `toolchain.py latest`: is `toolchain.env` at every publisher's newest release (§1.4) | the manifest is behind a tool, or a publisher cannot be read |
@@ -1770,8 +1770,11 @@ demand and not committed.
   index (exit 3, which `land` maps to exit 2), and an interrupted stamp is completed by the next run.
 - **Line endings (PB3029; owner 2026-10-11: "standardize on a single line-ending format"): LF everywhere.** `.gitattributes`
   opens with `* text=auto eol=lf`, and a file that must keep its bytes is declared `-text` there with its reason.
-  `scripts/line_endings.py --check` (a gate audit, CI's `audits` job and a `windows-self-tests` step) refuses a CR in a tracked
-  text file's blob or checkout and a Python text-mode write that does not state `newline=`; `--fix` rewrites a checkout made
+  `scripts/line_endings.py --check` refuses a CR in a tracked text file's blob or checkout, a Python text-mode write that does
+  not state `newline=`, and a catch-all that no longer says `text=auto eol=lf`. The gate's LINE ENDINGS audit reads only what
+  the change touches (`--base B --tree T`: the paths the measured tree changes, plus the checkout's modified and untracked
+  files; kb/Work PB5225), and CI's Linux `audits` job runs the one full sweep per merge group, the backstop for a commit made
+  through the API; neither the Windows jobs nor the nightly sweep again; `--fix` rewrites a checkout made
   before the rule and re-states the index entry of each file whose cleaned content IS the staged blob (a plain `git update-index`:
   `--refresh` trusts the stale recorded size and answers "needs update" for exactly these files), `--fix-writers` adds
   `newline="\n"` to a new writer, and the PowerShell generators of tracked files write through `scripts/LfText.psm1`
