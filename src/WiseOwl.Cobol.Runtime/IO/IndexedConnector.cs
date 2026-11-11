@@ -397,7 +397,7 @@ public sealed class IndexedConnector : KeyedConnector
 
     /// <summary>Sequential <c>READ [NEXT]</c> in (key-of-reference value, THAT key's release ordinal) order
     /// (§2023:14.9.30.4 GR21 indexed rules d–g; GR26 — duplicates in release order). Sets '02' when the key of
-    /// reference is an alternate and the FOLLOWING record duplicates the key just read (GR27 a).</summary>
+    /// reference is an alternate and the FOLLOWING record duplicates the key just read (GR27a).</summary>
     public string ReadNext(out string image) => ReadSequential(out image, previous: false);
 
     /// <summary>Sequential <c>READ PREVIOUS</c> (COBOL-2002+; compiler-gated) — the same walk in reverse
@@ -464,7 +464,7 @@ public sealed class IndexedConnector : KeyedConnector
         if ((status = Resolve(cursor, _refKey, forward, null, out found)) != StoreStatus.Ok || found is not { } f
             || !lookAhead || !composite)
             return status;
-        // §2023:14.9.30 GR27 a) — '02': the key of reference is an alternate key and the next record in the walk duplicates
+        // §2023:14.9.30.4 GR27a — '02': the key of reference is an alternate key and the next record in the walk duplicates
         // the key just read; the ordinal order makes "next" the next entry of the same key part.
         if ((status = forward ? cursor.Next() : cursor.Previous()) != StoreStatus.Ok) return status;
         var keyOrder = OrderOf(_refKey);
@@ -553,13 +553,38 @@ public sealed class IndexedConnector : KeyedConnector
         if (FindRandom(keyIndex, value, out var selected) != StoreStatus.Ok)   // §2023:14.9.30.4 GR32 + §2023:12.4.5.6.4 GR6 — the ONE copy
             return Unsuccessful(FileStatusCode.PermanentError);            // a torn page: '30' §2023:9.1.13.6 item 1
         if (selected is not { } found) return Unsuccessful(FileStatusCode.RecordNotFound);   // '23' GR32
+        // §1985:IX.1.3.4 GRL2.1 — '02' for ANY READ whose key of reference equals the same key in the next record, so a random
+        // READ of an alternate key's duplicate set answers it at COBOL-85; from 2002 only the sequential READ does
+        // (§2023:14.9.30.4 GR27 — DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, VERSION_CHANGE_REFERENCE row 7.55).
+        // The look-ahead is SELECTION, decided before anything commits, as SelectSequentialRecord's is: a torn page under
+        // it is the READ's '30' with the file position untouched, never a quiet '00' (kb/Work PB5117 review R1-1).
+        bool duplicateFollows = false;
+        if (keyIndex >= 0 && !DialectBehaviors.IsActive(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, Edition)
+            && NextRecordDuplicatesKey(keyIndex, found, out duplicateFollows) != StoreStatus.Ok)
+            return Unsuccessful(FileStatusCode.PermanentError);            // a torn page: '30' §2023:9.1.13.6 item 1
         // GR32 sets the FPI "to the value in the key of reference" — the key VALUE the program supplied; the
         // duplicate-set position of the record made available is separate state (GR21 e)/f), kb/Work PB342).
         _fpiKey = value!; _readOrdinal = found.Ordinal; FpiValid = true; _positioner = 'R';
         _lastReadPrime = found.Prime;
         NoteRecordRead(found.Record.Image, found.Record.Extents);   // §2023:13.18.43 GR15 — the stored frame length
         image = Fit(found.Record.Image);
-        return ReadSucceeded(FileStatusCode.Success);
+        return ReadSucceeded(duplicateFollows ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success);
+    }
+
+    /// <summary>Whether the record after <paramref name="found"/> in alternate key <paramref name="keyIndex"/>'s order (key
+    /// part, then release ordinal — §2023:14.9.30.4 GR26) has an equal key part: a seek strictly past the entry, selection
+    /// only. Serves the COBOL-85 random READ's '02' (§1985:IX.1.3.4 GRL2.1); the sequential READ reads the same fact
+    /// through <see cref="SelectSequentialRecord"/>'s look-ahead from its own cursor.</summary>
+    private StoreStatus NextRecordDuplicatesKey(int keyIndex, Found found, out bool duplicateFollows)
+    {
+        duplicateFollows = false;
+        var status = _st.Seek(keyIndex, _orders, CompositeKeyOrder.Compose(found.KeyPart, found.Ordinal),
+            SeekRelation.GreaterThan, prefix: false, out var cursor);
+        if (status != StoreStatus.Ok || cursor is null) return status;
+        var order = OrderOf(keyIndex);
+        status = Resolve(cursor, keyIndex, forward: true, part => order.Compare(part, found.KeyPart) == 0, out var adjacent);
+        duplicateFollows = adjacent is not null;
+        return status;
     }
 
     // ── WRITE / REWRITE / DELETE (ISO §2023:14.9.51 / §2023:14.9.35 / §2023:14.9.10) ───────────────────────────────────────
