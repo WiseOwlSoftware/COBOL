@@ -84,13 +84,26 @@ public enum DialectBehavior
     /// <c>PerformVarying.AugmentOuterFirst</c> for the emitter.</summary>
     PerformVaryingInitInnerBeforeAugmentOuter = 3,
 
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.16.4 GR4 a) — while a control break's footings print, the control data items
+    /// hold their PRIOR values, and "If the printing of the control footing causes a page advance and the page heading
+    /// or page footing refers to a control data item, the value produced is similarly the prior value" (the 2002 text,
+    /// 13.16.15.3 GR4 a, says the same, and 2023 keeps it). §1985:XIII.3.20.4 GR13 gives the prior values only to a
+    /// control footing's own USE procedure and SOURCE clauses (a), and at TERMINATE to the control footings and the
+    /// report footing (b), and GR13 c) says "All other data item references within report groups and their USE
+    /// procedures access the current values that are contained within the data items at the time the report group is
+    /// processed" — so at <c>--std 85</c> the page footing, page heading and OR PAGE control headings of a footing's
+    /// page advance, and the TERMINATE page footing, see the CURRENT values (kb/Work PB5128). Both editions are QUOTED
+    /// (VCR row 7.54). The consumer is <c>CobolReport.WithPageGroupControlValues</c>, over the edition the compilation
+    /// baked into the report (<c>CobolReport.Edition</c>).</summary>
+    ControlFootingPageGroupsSeePriorControlValues = 4,
+
     /// <summary>ISO/IEC 1989:2023 §2023:14.9.30.4 GR27 a) — '02' is set only when "an indexed file is being sequentially
     /// accessed" and the key of reference's next record has the same key; the 2002 text words it the same (a READ with the
     /// NEXT or PREVIOUS phrase). §1985:IX.1.3.4 item (1) b) names no access mode: "For a READ statement, the key value for
     /// the current key of reference is equal to the value of the same key in the next record within the current key of
     /// reference", so at <c>--std 85</c> a random READ (format 2, a KEY phrase) of an alternate key that has duplicates
     /// also answers '02' (kb/Work PB5117). The consumer is <c>IndexedConnector.ReadRandom</c>.</summary>
-    IndexedDuplicateKeyStatusSequentialOnly = 4,
+    IndexedDuplicateKeyStatusSequentialOnly = 5,
 }
 
 /// <summary>
@@ -134,8 +147,12 @@ public static class DialectBehaviors
             "7.53", "14.9.28.4 GR13 e) 2", "§1985:VI.6.21.4 GR10 d) 1",
             "a TEST BEFORE PERFORM VARYING ... AFTER step sets the inner variable to its initialization value before "
             + "augmenting the outer one only from COBOL-2002; COBOL-85 augments the outer variable first"),
+        new(DialectBehavior.ControlFootingPageGroupsSeePriorControlValues, "control-footing-page-groups-see-prior-values", 2002,
+            "7.54", "13.18.16.4 GR4 a", "§1985:XIII.3.20.4 GR13",
+            "the page heading and page footing a control footing's page advance reaches see the PRIOR control values only "
+            + "from COBOL-2002; COBOL-85 gives the prior values to the control footing alone and every other reference the current ones"),
         new(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, "indexed-duplicate-key-status-sequential-only", 2002,
-            "7.54", "14.9.30.4 GR27", "§1985:IX.1.3.4 item (1) b)",
+            "7.55", "14.9.30.4 GR27", "§1985:IX.1.3.4 item (1) b)",
             "I-O status 02 for a READ whose key of reference equals the next record's key is set only by a sequential "
             + "READ from COBOL-2002; COBOL-85 also sets it for a random READ of an alternate key's duplicate set"),
     ];

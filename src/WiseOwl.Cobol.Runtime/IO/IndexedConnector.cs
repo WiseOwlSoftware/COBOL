@@ -561,7 +561,7 @@ public sealed class IndexedConnector : KeyedConnector
         image = Fit(found.Record.Image);
         // §1985:IX.1.3.4 item (1) b) — '02' for ANY READ whose key of reference equals the same key in the next record, so a random
         // READ of an alternate key's duplicate set answers it at COBOL-85; from 2002 only the sequential READ does
-        // (§2023:14.9.30.4 GR27 — DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, VERSION_CHANGE_REFERENCE row 7.54).
+        // (§2023:14.9.30.4 GR27 — DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, VERSION_CHANGE_REFERENCE row 7.55).
         if (keyIndex >= 0 && !DialectBehaviors.IsActive(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, Edition)
             && NextRecordDuplicatesKey(keyIndex, found, out bool duplicateFollows) == StoreStatus.Ok && duplicateFollows)
             return ReadSucceeded(FileStatusCode.DuplicateAlternateKey);

@@ -590,7 +590,7 @@ internal sealed class ReportWriterEmitter(
             if (r.File is null) continue;   // diagnosed at bind (§2023:13.18.46) — compile already failed
             w.Line($"__RPT_{r.CsIndex} = new CobolReport({CsLiteral(r.Name)}, {FileKeyExpr(r.File)}, "
                 + $"{r.LineWidth}, {r.PageWidth}, {(r.Paged ? "true" : "false")}, {r.PageLimit}, {r.Heading}, {r.FirstDetail}, "
-                + $"{r.LastControlHeading}, {r.LastDetail}, {r.Footing});");
+                + $"{r.LastControlHeading}, {r.LastDetail}, {r.Footing}) {{ Edition = {ctx.Data.DialectLevel} }};");
             // The CODE clause (§2023:13.18.12): the characters every logical record of this report begins with (GR1). A
             // literal is a constant; an identifier is READ by the engine at each body group (GR3 — the value is used
             // until the next evaluation), through the one string-carrier read the CONTROL operands use.
@@ -895,7 +895,10 @@ internal sealed class ReportWriterEmitter(
             string addend = SumAddition(rolledTarget, rolledSum, [source.Value],
                 $"report {rolledTarget.Name}: the value of data-name-1 '{source.Family.Name}' is not a number a sum counter can add (ISO §2023:13.18.54.4 GR6)",
                 w, source);
-            w.Line($"__RPT_{rolledTarget.CsIndex}.AddRolled(__rg{sourceReport.CsIndex}_{gi}, {rolledSum.Id}, {slot}, {addend});"
+            // The group's OWN counter arithmetic (roll forward: the addend is a counter; crossfoot: the counter is the group's
+            // own) precedes its USE BEFORE REPORTING declarative; a data entry into another group's counter follows it.
+            string crossFoot = source.Sum is not null || ReferenceEquals(rolledSum.PrintedIn, source.Family.Group) ? "true" : "false";
+            w.Line($"__RPT_{rolledTarget.CsIndex}.AddRolled(__rg{sourceReport.CsIndex}_{gi}, {rolledSum.Id}, {slot}, {addend}, {crossFoot});"
                 + $"   // rolled total of '{source.Family.Name}' (ISO §2023:13.18.54.4 GR6/GR7)");
         }
     }
