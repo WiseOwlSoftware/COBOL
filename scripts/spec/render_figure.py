@@ -42,6 +42,7 @@ from standard_streams import ensure_utf8  # noqa: E402
 import spec_pdf  # noqa: E402  (scripts/spec: the one edition table, kb/Work PB4815)
 import figure_extract  # noqa: E402  (`split_fused` re-measures a fused word's underline)
 from figure_extract import GLYPH_PIECES  # noqa: E402  (the text layer's delimiter pieces: decoded where the words are read)
+from spec_headings import INTRODUCES_FORMAT  # noqa: E402  (THE sentence that introduces a general format)
 
 # THE HOUSE STYLE — see FIGURE-STYLE.md for the measurements behind each choice.
 # BOX DRAWING ONLY (U+2500–U+257F). The Miscellaneous Technical extension glyphs (⎡⎧⎪, U+23A1–U+23AD) look right
@@ -85,6 +86,10 @@ X_TOL = 2.0                           # how far apart two positions may be and s
 # `[ BY CONTENT ]` were lifted off the point rows they are printed level with (kb/Work PB3530). See `cluster`.
 ROW_TOL, LINE_GAP = 4.0, 3.5
 TOP_SLACK, BOTTOM_INSET = 2.0, 8.0    # how a stem's span maps onto rows of text — see `covers`
+# The least printed indent, in characters, that makes a line a continuation (`build`): 2002's DEPENDING ON line is
+# set 4 characters in, 2023's WITH DUPLICATES 7; INSPECT's `ALL`, `LEADING` and `FIRST` sit 1 character right of
+# their sibling `CHARACTERS` (§2023:14.9.22.2, 5.5 pt) and are alternatives, not continuations.
+CONTINUATION_INDENT = 2
 HOOK_REACH = 1.0                      # how far above its first enclosed row a top hook may sit — see `hook_row`
 
 
@@ -120,7 +125,7 @@ def cluster(values, tol, gap=None):
     return out
 
 
-def pack_columns(items):
+def pack_columns(items, indent=None):
     """Assign text columns to measured x positions.
 
     Vertical alignment must be preserved — items printed at the same x belong in one column — but printed x
@@ -128,8 +133,11 @@ def pack_columns(items):
     everywhere and the figure balloons (the first version of this file did exactly that). So columns are packed
     LEFT TO RIGHT, each starting just past whatever already occupies its own rows.
 
-    items: iterable of (row, xkey, text). Returns {xkey: column}.
+    items: iterable of (row, xkey, text). `indent` maps an xkey to (the xkey it continues, n): that column starts at
+    least n characters right of the one it continues, which lies left of it and so is packed first (`build`'s
+    continuation lines). Returns {xkey: column}.
     """
+    indent = indent or {}
     by_col = collections.defaultdict(list)
     for r, x, t in items:
         by_col[x].append((r, t))
@@ -137,6 +145,8 @@ def pack_columns(items):
     for x in sorted(by_col):
         start = max((row_end[r] for r, _ in by_col[x]), default=0)
         col[x] = start + 1 if start else 0
+        if x in indent:
+            col[x] = max(col[x], col[indent[x][0]] + indent[x][1])
         for r, t in by_col[x]:
             row_end[r] = col[x] + len(t)
     return col
@@ -160,7 +170,12 @@ def split_fused(page, words):
     out = [w for w in words if id(w) not in {id(f) for f in fused}]
     rules = figure_extract.underlines(page)
     for w in fused:
-        run = None
+        # The run is the one AT the word: its text, its column and the NEAREST height. Text and column alone are not
+        # an identity, because a page can print one figure twice: 2002's file control entry sets the same ASSIGN
+        # brace, fused with its `...`, in Formats 3 and 4 of one page (PDF page 234, x 214.3 and 213.8), and the
+        # first match re-measured Format 4's hook from Format 3's, 393 pt higher, which lifted Format 4's inner
+        # brace and its ellipsis above `SELECT` (kb/Work PB5332, reconciliation claim p234-1).
+        runs = []
         for line in lines:
             for is_space, grp in itertools.groupby((c for span in line["spans"] for c in span["chars"]),
                                                    key=lambda c: c["c"].isspace()):
@@ -168,10 +183,8 @@ def split_fused(page, words):
                     continue
                 cs = list(grp)
                 if "".join(c["c"] for c in cs) == w["text"] and abs(cs[0]["bbox"][0] - w["x0"]) < 1.0:
-                    run = cs
-                    break
-            if run:
-                break
+                    runs.append(cs)
+        run = min(runs, key=lambda cs: abs(min(c["bbox"][1] for c in cs) - w["y0"]), default=None)
         if run is None:
             sys.exit(f"FATAL: could not re-measure the fused word {w['text']!r} against the raw text layer — "
                      "splitting it by estimate would put the delimiter in the wrong column")
@@ -311,6 +324,37 @@ def place_rows(rowof, words, encl):
     return out
 
 
+def rejoin_lines(rowof, words, encl):
+    """Give a printed line back the word that row clustering tore off it toward an enclosure's alternative.
+
+    `cluster` bounds a row by its width from the row's FIRST height, so a line set a little unevenly can lose a word
+    to the row above it. 2002's UNLOCK format sets `file-name-1` 1.4 pt below `UNLOCK` on one printed line, and the
+    bracket beside them opens with `RECORD` 2.8 pt above `UNLOCK`: the row anchored at `RECORD` took `UNLOCK` and left
+    `file-name-1` a row of its own, so the two were drawn stacked, as alternatives (PDF page 566, kb/Work PB5332,
+    reconciliation claim p566-1; 2023 prints the same UNLOCK format, §2023:14.9.47.2, and drew it the same way). A word no enclosure holds, on a row with a word some enclosure
+    holds, is moved to the neighbouring row when that row holds only words no enclosure holds, lies nearer to it than
+    any other word of its own row, and stays within ROW_TOL of it: it is that line's word, not the alternative's."""
+    held = {w["y0"] for w in words if any(e.x_open < w["x0"] < e.x_close for e in encl)}
+    members = collections.defaultdict(set)
+    for v, r in rowof.items():
+        members[r].add(v)
+    out = dict(rowof)
+    order = sorted(members)
+    for i, r in enumerate(order):
+        if not members[r] & held:
+            continue
+        for v in sorted(members[r] - held):
+            others = [u for u in members[r] if u != v]
+            for j in (i - 1, i + 1):
+                if not 0 <= j < len(order):
+                    continue
+                near = min(abs(u - v) for u in members[order[j]])
+                span = members[order[j]] | {v}
+                if near < min(abs(u - v) for u in others) and max(span) - min(span) <= ROW_TOL:
+                    out[v] = order[j]
+    return out
+
+
 def pair_glyphs(spans, row_of, label_x):
     """A glyph delimiter's two PIECES are one shape: pair each opening brace or parenthesis with its closing piece, give
     the pair one span and a brace one point row. Returns the spans (x, r0, r1, pieces) with each pair's rows unified,
@@ -420,6 +464,7 @@ def build(page, lo, hi, extract, classify_page):
     rowof = cluster([w["y0"] for w in text_w], ROW_TOL, LINE_GAP)
     encl = enclosures(glyphs, stems)
     rowof = place_rows(rowof, text_w, encl)
+    rowof = rejoin_lines(rowof, text_w, encl)
     rows = sorted(set(rowof.values()))
     rindex = {y: i for i, y in enumerate(rows)}
 
@@ -634,14 +679,18 @@ def build(page, lo, hi, extract, classify_page):
     # row at 129.7 — 0.9 apart, which is exactly the spread of a GENUINE alignment (FIRST/KEY/LAST), so no
     # tolerance can separate the two cases. Nothing needs to: the words are in one phrase and belong together.
     delim_at = collections.defaultdict(list)
+    delim_of = collections.defaultdict(list)          # row -> (x, delimiter id) of every GROUPING delimiter crossing it
     for x, r0, r1, grp in glyph_spans:
         for r in range(r0, r1 + 1):
             delim_at[r].append(min(b["x0"] for b in grp))
+            delim_of[r].append((min(b["x0"] for b in grp), id(grp)))
     for st in stems:
         cov = covers(st)
         if cov:
             for r in range(shift[cov[0]], shift[cov[-1]] + 1):
                 delim_at[r].append(st["x"])
+                if st["kind"] != "box":                # a level-2 box groups nothing (FIGURE-STYLE.md rule 9)
+                    delim_of[r].append((st["x"], id(st)))
 
     cells = collections.defaultdict(list)
     for w in text_w:
@@ -653,6 +702,34 @@ def build(page, lo, hi, extract, classify_page):
     xcell = keyed([ws[0]["x0"] for ws in cells.values()], 3)
     cell_key = {k: xcell[ws[0]["x0"]] + (gid[rindex[rowof[ws[0]["y0"]]]],) for k, ws in cells.items()}
 
+    # A CONTINUATION LINE KEEPS ITS PRINTED INDENT. Inside one delimiter the standard sets each alternative at the
+    # delimiter's margin and indents a line that CONTINUES the alternative above it: 2002's SD entry prints
+    # `[ DEPENDING ON data-name-1 ]` 17.5 pt right of `IS VARYING IN SIZE …`, the alternative it belongs to (PDF
+    # page 259). Packing starts every cell just past what occupies its own rows, so with nothing between it and the
+    # brace the continuation was drawn flush, as a fourth alternative (kb/Work PB5332, reconciliation claim
+    # p259-1). 2023 prints the same shape and drew it flush too: SPECIAL-NAMES' `IS literal-5 …` under `CLASS
+    # class-name-1` (§2023:12.3.7.2) and the file control entry's `[ WITH DUPLICATES ] …` under `ALTERNATE RECORD
+    # KEY` (§2023:12.4.5.1 Format 1). A cell is a continuation when the nearest earlier row holding a cell after the
+    # SAME delimiter (the nearest one to its left) starts that cell CONTINUATION_INDENT characters or more further
+    # left; it is drawn that many characters, measured on that cell's own text, right of that cell's column.
+    slot = {k: max(((dx, d) for dx, d in delim_of[k[0]] if dx < ws[0]["x0"]), default=None) for k, ws in cells.items()}
+    indent = {}
+    for k in sorted(cells):
+        if slot[k] is None:
+            continue
+        prev = max((q for q in cells if q[0] < k[0] and slot[q] == slot[k]), default=None)
+        if prev is None or cell_key[prev] == cell_key[k]:
+            continue
+        ws, text = cells[prev], cell_text[prev]
+        pitch = (ws[-1]["x1"] - ws[0]["x0"]) / len(text)
+        n = round((cells[k][0]["x0"] - ws[0]["x0"]) / pitch)
+        # A CENTRED alternative is no continuation: the standard centres a short word under a long one inside a
+        # brace (`STACK` over `TOP-LEVEL`), and its start moves right by half the difference in width. A
+        # continuation is set at an indent, so its centre does not fall on the centre of the line it continues.
+        centred = abs((cells[k][0]["x0"] + cells[k][-1]["x1"]) - (ws[0]["x0"] + ws[-1]["x1"])) / 2 <= pitch
+        if n >= CONTINUATION_INDENT and not centred:
+            indent[cell_key[k]] = (cell_key[prev], n)
+
     items = [((r), cell_key[(r, i)], cell_text[(r, i)]) for (r, i) in cells]
     for x, r0, r1, _ in glyph_spans:
         items += [(r, x, "X") for r in range(r0, r1 + 1)]
@@ -660,7 +737,7 @@ def build(page, lo, hi, extract, classify_page):
         cov = covers(s)
         if cov:
             items += [(r, stem_key[id(s)], "X") for r in range(shift[cov[0]], shift[cov[-1]] + 1)]
-    col = pack_columns(items)
+    col = pack_columns(items, indent)
 
     width = max(col[x] + len(t) for _, x, t in items) + 2
     grid = [[" "] * width for _ in range(nrows)]
@@ -796,6 +873,11 @@ BODY_TOP, BODY_BOTTOM = 60.0, 730.0     # inside the running header and the foli
 # clause headings, none a numbered list item or a table cell (kb/Work PB332).
 CLAUSE_HEADING = re.compile(r"^(?:\d+|[A-Z])(?:\.\d+)+(?:\s+\S|$)")   # an annex clause too: 2002's `A.2.1.1` (Annex A)
 FORMAT_LABEL = re.compile(r"^Formats?\s+\d+\b")
+
+
+def introduces_format(words) -> bool:
+    """Does this prose row introduce a general format ("The general format of ... is shown below:")?"""
+    return bool(INTRODUCES_FORMAT.search(" ".join(w["text"] for w in sorted(words, key=lambda w: w["x0"]))))
 PAD_ABOVE, PAD_BELOW = 6.0, 14.0        # a band must reach the bracket feet below its last row of text
 
 
@@ -931,10 +1013,18 @@ def find_figures(page, extract):
         inside = [r for r in rows if top < r[0] < bot]
         if not inside:
             continue
-        if title is not None:
-            if not GENERAL_FORMAT_TITLE.search(title):
+        introduced = False
+        if title is not None and not GENERAL_FORMAT_TITLE.search(title):
+            # A SENTENCE CAN INTRODUCE A FORMAT. 2002's communication section is a clause of Annex A headed by its
+            # name (§2002:A.1.1 "Communication section"), and its general format follows the sentence "The general
+            # format of the communication section is shown below:". No clause there is titled General format, so the
+            # figure was never located and stayed flattened prose that had lost both brackets, an ellipsis and its
+            # underlining (PDF page 677, kb/Work PB5332, reconciliation claim p677-1). In such a region only the run
+            # that directly follows the introducing sentence is a figure; every other row stays prose.
+            if not any(k == "prose" and introduces_format(ws) for _, k, ws in inside):
                 continue
-        elif inside[0][1] != "label" and not continues_from_previous(page):
+            introduced = True
+        elif title is None and inside[0][1] != "label" and not continues_from_previous(page):
             continue                                   # a leading region that is not a figure continuation
 
         # Split at each `Format N` label, then take the maximal runs of figure rows within each segment. Prose
@@ -942,16 +1032,17 @@ def find_figures(page, extract):
         # a run rather than joining it. Glue joins a run at either end (a brace's top hook sits ~6 pt above
         # the first row of text, and clipping it off left the brace starting one row down, its point off
         # centre); a run of glue ALONE is not a figure, so a run must contain at least one figure row.
-        run, has_figure, above, label = [], False, top, None
+        run, has_figure, above, label, lead = [], False, top, None, False
         for y, kind, ws in inside + [(bot, "prose", [])]:
             if kind in ("figure", "glue"):
                 run.append(y)
                 has_figure = has_figure or kind == "figure"
             else:                                      # a label or a prose row closes whatever is open
-                if run and has_figure:
+                if run and has_figure and (lead or not introduced):
                     runs.append((run[0], run[-1], above, y, title, label))
                 if kind == "label":
                     label = " ".join(w["text"] for w in sorted(ws, key=lambda w: w["x0"]))
+                lead = kind == "prose" and introduces_format(ws)
                 run, has_figure, above = [], False, y
     # A WRAPPED PROSE FRAGMENT is not a figure. The report description clause lists its meta-language terms in
     # a table, and "…or dynamic-capacity-table-format)" wraps onto a line of its own — all lower case and

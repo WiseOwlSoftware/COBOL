@@ -44,7 +44,7 @@ import re
 import sys
 from typing import NamedTuple
 
-from spec_headings import GENERAL_FORMAT_NAMED, GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
+from spec_headings import GENERAL_FORMAT_NAMED, GENERAL_FORMAT_TITLE, INTRODUCES_FORMAT   # THE one spelling of the heading (kb/Work PB284)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -161,6 +161,9 @@ def words_of(text: str, furniture: re.Pattern, drop_notes: bool = False) -> coll
     body = re.sub(r"</?u>", "", unescape("\n".join(kept)))
     body = re.sub(r"</?[A-Za-z][^>]*>", " ", body).replace("`", " ")
     body = re.sub(r"&[a-zA-Z]+;?", " ", body)          # HTML entities used for indentation
+    # A Markdown HARD BREAK (a backslash ending a line) is markup too: a figure flattened into prose lines carries
+    # one per line, as 2002's communication section did before it was located as a figure (§2002:A.1.1).
+    body = re.sub(r"\\[ \t]*$", "", body, flags=re.MULTILINE)
     # The standard sets a dash four ways in figures — hyphen, figure dash, en dash, minus sign — and the
     # transcription picked one per site. Which glyph is used is typography, not a difference in the language.
     body = body.translate(str.maketrans({"‒": "-", "–": "-", "−": "-", "—": "-"}))
@@ -214,15 +217,12 @@ def figure_ish(line: str, furniture: re.Pattern) -> bool:
 def md_index(lines):
     """{(clause, format-number) -> (start, end)} — where each figure's content lives in the transcription.
 
-    The same structure the generator reads off the printed page: a numbered `… General format(s)` heading opens
-    a region, the next heading of any level closes it, and `Format N (…)` labels divide it.
+    The same structure the generator reads off the printed page: a numbered `… General format(s)` heading (or a
+    sentence that introduces a format, `format_regions`) opens a region, the next heading of any level closes it,
+    and `Format N (…)` labels divide it.
     """
-    heads = [(i, m.group(1), m.group(2)) for i, l in enumerate(lines) if (m := MD_HEADING.match(l))]
     out = {}
-    for n, (i, clause, title) in enumerate(heads):
-        if not GENERAL_FORMAT_TITLE.search(title):
-            continue
-        end = heads[n + 1][0] if n + 1 < len(heads) else len(lines)
+    for i, clause, _, end in format_regions(lines):
         marks = [(j, int(m.group(1))) for j in range(i + 1, end) if (m := MD_FORMAT.match(lines[j]))]
         if not marks:
             out[(clause, None)] = (i + 1, end)
@@ -232,14 +232,25 @@ def md_index(lines):
     return out
 
 
-def clause_spans(lines):
-    """{clause -> (start, end)} for every `… General format(s)` region, labels or not."""
+def format_regions(lines):
+    """[(heading line, clause, start, end)] for every region that holds general formats: a `… General format(s)` clause,
+    from its heading to the next heading, and a clause of another title whose sentence introduces its format
+    (`spec_headings.INTRODUCES_FORMAT`, §2002:A.1.1), from that sentence to the next heading: the region
+    `render_figure.find_figures` reads on the printed page."""
     heads = [(i, m.group(1), m.group(2)) for i, l in enumerate(lines) if (m := MD_HEADING.match(l))]
-    out = {}
+    out = []
     for n, (i, clause, title) in enumerate(heads):
+        end = heads[n + 1][0] if n + 1 < len(heads) else len(lines)
         if GENERAL_FORMAT_TITLE.search(title):
-            out[clause] = (i + 1, heads[n + 1][0] if n + 1 < len(heads) else len(lines))
+            out.append((i, clause, i + 1, end))
+        elif (lead := next((j for j in range(i + 1, end) if INTRODUCES_FORMAT.search(lines[j].strip())), None)) is not None:
+            out.append((lead, clause, lead + 1, end))
     return out
+
+
+def clause_spans(lines):
+    """{clause -> (start, end)} for every general-format region (`format_regions`), labels or not."""
+    return {clause: (start, end) for _, clause, start, end in format_regions(lines)}
 
 
 def targets(lines, lo, hi, furniture):

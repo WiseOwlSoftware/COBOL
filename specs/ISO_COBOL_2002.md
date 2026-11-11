@@ -8810,13 +8810,13 @@ The SPECIAL-NAMES paragraph provides a means for:
 
 [ <u>ORDER</u> <u>TABLE</u> ordering-name-1 IS literal-9 ]
 
-┌                    ┌     ╭ <u>ALPHANUMERIC</u>  ╮ ┐                        ┐
-│ <u>CLASS</u> class-name-1 │ FOR ┤               ├ │                        │
-│                    └     ╰ <u>NATIONAL</u>      ╯ ┘                        │
-│                                                                     │ …
-│    ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
-│ IS ┤ literal-5 │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
-└    ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
+┌                    ┌     ╭ <u>ALPHANUMERIC</u>        ╮ ┐                        ┐
+│ <u>CLASS</u> class-name-1 │ FOR ┤                     ├ │                        │
+│                    └     ╰ <u>NATIONAL</u>            ╯ ┘                        │
+│                                                                           │ …
+│          ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
+│       IS ┤ literal-5 │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
+└          ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
 
 [ <u>CURRENCY</u> SIGN IS literal-7 [ WITH <u>PICTURE</u> <u>SYMBOL</u> literal-8 ] ] …
 
@@ -9549,14 +9549,13 @@ Format 3 (sequential):
 Format 4 (sort-merge):
 
 <pre style="line-height:1">
-                  ╭               ╮ …
-<u>SELECT</u> [ <u>OPTIONAL</u> │ ] file-name-1 │
-                  │               │
-       ╭          │ device-name-1 │                       ╮
-       │ TO       ┤               ├ [ <u>USING</u> data-name-1 ] │
-<u>ASSIGN</u> ┤          ╰ literal-1     ╯                       ├
-       │                                                  │
-       ╰ <u>USING</u> data-name-1                                ╯
+<u>SELECT</u> [ <u>OPTIONAL</u> ] file-name-1
+
+       ╭    ╭ device-name-1 ╮                         ╮
+       │ TO ┤               ├ … [ <u>USING</u> data-name-1 ] │
+<u>ASSIGN</u> ┤    ╰ literal-1     ╯                         ├
+       │                                              │
+       ╰ <u>USING</u> data-name-1                            ╯
 
 [ [ <u>ORGANIZATION</u> IS ] <u>SEQUENTIAL</u> ] .
 </pre>
@@ -10445,7 +10444,7 @@ The sort-merge file description entry (SD entry) represents the highest level of
 │        │                                                                       │ │
 │        │ IS <u>VARYING</u> IN SIZE [ [ FROM integer-2 ] [ <u>TO</u> integer-3 ] CHARACTERS ] │ │
 │ <u>RECORD</u> ┤                                                                       ├ │ .
-│        │ [ <u>DEPENDING</u> ON data-name-1 ]                                          │ │
+│        │     [ <u>DEPENDING</u> ON data-name-1 ]                                      │ │
 │        │                                                                       │ │
 └        ╰ CONTAINS integer-4 <u>TO</u> integer-5 CHARACTERS                            ╯ ┘
 </pre>
@@ -10708,7 +10707,7 @@ A constant entry defines a constant. A constant may be used in place of a litera
                                              ╭    ╭ arithmetic-expression-1    ╮ ╮
                                              │    │                            │ │
                                              │    │ <u>BYTE-LENGTH</u> OF data-name-1 │ │
-╭ 1  ╮                                       │ AS ┤                            ├ │
+╭ <u>1</u>  ╮                                       │ AS ┤                            ├ │
 ┤    ├ constant-name-1 <u>CONSTANT</u> [ IS <u>GLOBAL</u>] ┤    │ literal-1                  │ ├ .
 ╰ <u>01</u> ╯                                       │    │                            │ │
                                              │    ╰ <u>LENGTH</u> OF data-name-2      ╯ │
@@ -10791,23 +10790,23 @@ The report description entry names a report and describes its general physical a
 │ ┤              ├ ┤                         ├ │
 └ ╰ <u>CONTROLS</u> ARE ╯ ╰ <u>FINAL</u> [ data-name-1 ] … ╯ ┘
 
-┌                     ╭ integer-1                                         ╮ ┐
-│      ┌ LIMIT IS   ┐ │                                                   │ │
-│ <u>PAGE</u> │            │ ┤ ┌           ╭ <u>LINE</u>  ╮ ┐ ┌           ╭ <u>COLS</u>    ╮ ┐ ├ │
-│      └ LIMITS ARE ┘ │ │ integer-1 ┤       ├ │ │ integer-2 ┤         ├ │ │ │
-│                     ╰ └           ╰ <u>LINES</u> ╯ ┘ └           ╰ <u>COLUMNS</u> ╯ ┘ ╯ │
-│                                                                           │
-│ [ <u>HEADING</u> IS integer-3 ] ┌       ╭ <u>DE</u>     ╮              ┐                │
-│                          │ <u>FIRST</u> ┤        ├ IS integer-4 │                │ .
-│                          └       ╰ <u>DETAIL</u> ╯              ┘                │
-│                                                                           │
-│ ┌      ╭ <u>CH</u>              ╮                    ┐                           │
-│ │ <u>LAST</u> ┤                 ├       IS integer-5 │                           │
-│ └      ╰ <u>CONTROL</u> <u>HEADING</u> ╯                    ┘                           │
-│                                                                           │
-│ ┌      ╭ <u>DE</u>     ╮              ┐                                          │
-│ │ <u>LAST</u> ┤        ├ IS integer-6 │ [ <u>FOOTING</u> IS integer-7 ]                 │
-└ └      ╰ <u>DETAIL</u> ╯              ┘                                          ┘
+┌                     ╭ integer-1                                           ╮ ┐
+│      ┌ LIMIT IS   ┐ │                                                     │ │
+│ <u>PAGE</u> │            │ ┤ ┌           ╭ <u>LINE</u>    ╮ ┐ ┌           ╭ <u>COLS</u>    ╮ ┐ ├ │
+│      └ LIMITS ARE ┘ │ │ integer-1 ┤         ├ │ │ integer-2 ┤         ├ │ │ │
+│                     ╰ └           ╰ <u>LINES</u>   ╯ ┘ └           ╰ <u>COLUMNS</u> ╯ ┘ ╯ │
+│                                                                             │
+│   [ <u>HEADING</u> IS integer-3 ] ┌       ╭ <u>DE</u>     ╮              ┐                │
+│                            │ <u>FIRST</u> ┤        ├ IS integer-4 │                │ .
+│                            └       ╰ <u>DETAIL</u> ╯              ┘                │
+│                                                                             │
+│ ┌      ╭ <u>CH</u>              ╮                    ┐                             │
+│ │ <u>LAST</u> ┤                 ├       IS integer-5 │                             │
+│ └      ╰ <u>CONTROL</u> <u>HEADING</u> ╯                    ┘                             │
+│                                                                             │
+│ ┌      ╭ <u>DE</u>     ╮              ┐                                            │
+│ │ <u>LAST</u> ┤        ├ IS integer-6 │ [ <u>FOOTING</u> IS integer-7 ]                   │
+└ └      ╰ <u>DETAIL</u> ╯              ┘                                            ┘
 </pre>
 
 ##### 13.12.2 Syntax rules
@@ -12682,8 +12681,8 @@ Format 1 (report-writer):
 <pre style="line-height:1">
                      ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮
 ╭ <u>LINE</u> NUMBER IS   ╮ │                            │
-│                  │ │ ╭ <u>PLUS</u> ╮                   │ …
-┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├
+│                  │ │ ╭ <u>PLUS</u> ╮                   │
+┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├ …
 │                  │ │ ╰ +    ╯                   │
 ╰ <u>LINES</u> ARE        ╯ │                            │
                      ╰ ON <u>NEXT</u> <u>PAGE</u>               ╯
@@ -12962,13 +12961,11 @@ Format 1 (fixed-table):
 Format 2 (variable-table):
 
 <pre style="line-height:1">
-       ╭              ╮ KEY
-       │              │
-<u>OCCURS</u> │ integer-1 <u>TO</u> │ integer-2 TIMES <u>DEPENDING</u> ON data-name-1
-       │              │
-┌      │ <u>ASCENDING</u>    │                      ┐
-│      ┤              ├ IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
-└      ╰ <u>DESCENDING</u>   ╯                      ┘
+<u>OCCURS</u> integer-1 <u>TO</u> integer-2 TIMES <u>DEPENDING</u> ON data-name-1
+
+┌ ╭ <u>ASCENDING</u>  ╮                          ┐
+│ ┤            ├ KEY IS { data-name-2 } … │ … [ <u>INDEXED</u> BY { index-name-1 } … ]
+└ ╰ <u>DESCENDING</u> ╯                          ┘
 </pre>
 
 Format 3 (report-writer):
@@ -17954,11 +17951,9 @@ Format 1 (into):
 Format 2 (into-giving):
 
 <pre style="line-height:1">
-       ╭              ╮ <u>INTO</u>
-       │              │
-       │ identifier-1 │ ╭ identifier-2 ╮
-<u>DIVIDE</u> ┤              ├ ┤              ├
-       ╰ literal-1    ╯ ╰ literal-2    ╯
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
 <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
 
@@ -17988,11 +17983,9 @@ Format 3 (by-giving):
 Format 4 (into-remainder):
 
 <pre style="line-height:1">
-       ╭              ╮ <u>INTO</u>
-       │              │
-       │ identifier-1 │ ╭ identifier-2 ╮
-<u>DIVIDE</u> ┤              ├ ┤              ├
-       ╰ literal-1    ╯ ╰ literal-2    ╯
+       ╭ identifier-1 ╮      ╭ identifier-2 ╮
+<u>DIVIDE</u> ┤              ├ <u>INTO</u> ┤              ├
+       ╰ literal-1    ╯      ╰ literal-2    ╯
 
 <u>GIVING</u> identifier-3 [ <u>ROUNDED</u> ]
 <u>REMAINDER</u> identifier-4
@@ -18895,8 +18888,8 @@ Format 3 (tallying-and-replacing):
 Format 4 (converting):
 
 <pre style="line-height:1">
-<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ╭ identifier-6 ╮    ╭ identifier-7 ╮ [ after-before-phrase ]
-                                ┤              ├ <u>TO</u> ┤              ├
+                                ╭ identifier-6 ╮    ╭ identifier-7 ╮
+<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ┤              ├ <u>TO</u> ┤              ├ [ after-before-phrase ]
                                 ╰ literal-4    ╯    ╰ literal-5    ╯
 </pre>
 
@@ -21772,11 +21765,9 @@ Format 1 (simple):
 Format 2 (giving):
 
 <pre style="line-height:1">
-         ╭              ╮ …
-         │              │
-         │ identifier-1 │      ╭ identifier-2 ╮
-<u>SUBTRACT</u> ┤              ├ <u>FROM</u> ┤              ├
-         ╰ literal-1    ╯      ╰ literal-2    ╯
+         ╭ identifier-1 ╮        ╭ identifier-2 ╮
+<u>SUBTRACT</u> ┤              ├ … <u>FROM</u> ┤              ├
+         ╰ literal-1    ╯        ╰ literal-2    ╯
 
 <u>GIVING</u> { identifier-3 [ <u>ROUNDED</u> ] } …
 
@@ -21954,10 +21945,9 @@ The UNLOCK statement explicitly releases any record locks associated with a file
 ###### 14.8.43.1 General format
 
 <pre style="line-height:1">
-<u>UNLOCK</u>      ┌ RECORD  ┐
-            │         │
-file-name-1 │         │
-            └ RECORDS ┘
+                   ┌ RECORD  ┐
+<u>UNLOCK</u> file-name-1 │         │
+                   └ RECORDS ┘
 </pre>
 
 ###### 14.8.43.2 Syntax rules
@@ -25661,11 +25651,13 @@ The communication section is located in the data division of a source program. T
 
 The general format of the communication section is shown below:
 
-COMMUNICATION SECTION .
+<pre style="line-height:1">
+<u>COMMUNICATION</u> <u>SECTION</u> .
 
-   communication-description-entry constant-entry . . .\
-   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;record-description-entry
-
+┌                                 ┌ constant-entry           ┐   ┐
+│ communication-description-entry │                          │ … │ …
+└                                 └ record-description-entry ┘   ┘
+</pre>
 ###### A.1.1.1 Communication description entry
 
 In a COBOL program the communication description entry (CD entry) represents the highest level of organization in the communication section.
@@ -25711,13 +25703,13 @@ Format 1 (input):
                                    │ │                                         │ │
                                    │ └ [ MESSAGE <u>COUNT</u> IS data-name-11 ]       ┘ │
                                    │                                             │
-                                   │ ┌ data-name-1 data-name-2 data-name-3 ┐     │
-                                   │ │                                     │     │
-                                   │ │ data-name-4 data-name-5 data-name-6 │     │
-                                   │ │                                     │     │
-                                   │ │ data-name-7 data-name-8 data-name-9 │     │
-                                   │ │                                     │     │
-                                   └ └ data-name-10 data-name-11           ┘     ┘
+                                   │ ┌ data-name-1 data-name-2 data-name-3    ┐  │
+                                   │ │                                        │  │
+                                   │ │    data-name-4 data-name-5 data-name-6 │  │
+                                   │ │                                        │  │
+                                   │ │    data-name-7 data-name-8 data-name-9 │  │
+                                   │ │                                        │  │
+                                   └ └    data-name-10 data-name-11           ┘  ┘
 </pre>
 
 Format 2 (output):
@@ -25737,21 +25729,21 @@ Format 2 (output):
 Format 3 (I-O):
 
 <pre style="line-height:1">
-                                 ┌ ┌ [ <u>MESSAGE</u> <u>DATE</u> IS data-name-1 ]      ┐ ┐
-                                 │ │                                      │ │
-                                 │ │ [ <u>MESSAGE</u> <u>TIME</u> IS data-name-2 ]      │ │
-                                 │ │                                      │ │
-                                 │ │ [ SYMBOLIC <u>TERMINAL</u> IS data-name-3 ] │ │
-                                 │ │                                      │ │
-                                 │ │ [ <u>TEXT</u> <u>LENGTH</u> IS data-name-4 ]       │ │
-<u>CD</u> cd-name-1 FOR [ <u>INITIAL</u> ] <u>I-O</u> │ │                                      │ │ .
-                                 │ │ [ <u>END</u> <u>KEY</u> IS data-name-5 ]           │ │
-                                 │ │                                      │ │
-                                 │ └ [ <u>STATUS</u> <u>KEY</u> IS data-name-6 ]        ┘ │
-                                 │                                          │
-                                 │ ┌ data-name-1 data-name-2 data-name-3 ┐  │
-                                 │ │                                     │  │
-                                 └ └ data-name-4 data-name-5 data-name-6 ┘  ┘
+                                 ┌ ┌ [ <u>MESSAGE</u> <u>DATE</u> IS data-name-1 ]      ┐   ┐
+                                 │ │                                      │   │
+                                 │ │ [ <u>MESSAGE</u> <u>TIME</u> IS data-name-2 ]      │   │
+                                 │ │                                      │   │
+                                 │ │ [ SYMBOLIC <u>TERMINAL</u> IS data-name-3 ] │   │
+                                 │ │                                      │   │
+                                 │ │ [ <u>TEXT</u> <u>LENGTH</u> IS data-name-4 ]       │   │
+<u>CD</u> cd-name-1 FOR [ <u>INITIAL</u> ] <u>I-O</u> │ │                                      │   │ .
+                                 │ │ [ <u>END</u> <u>KEY</u> IS data-name-5 ]           │   │
+                                 │ │                                      │   │
+                                 │ └ [ <u>STATUS</u> <u>KEY</u> IS data-name-6 ]        ┘   │
+                                 │                                            │
+                                 │ ┌ data-name-1 data-name-2 data-name-3    ┐ │
+                                 │ │                                        │ │
+                                 └ └    data-name-4 data-name-5 data-name-6 ┘ ┘
 </pre>
 
 ###### A.1.2.2 Syntax rules
