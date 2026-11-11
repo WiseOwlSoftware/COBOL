@@ -37,6 +37,10 @@ its key is every population input. PB5230's split of repository drift out of Uni
 the first merge groups once the landing publishes. Until enqueue.py calls `publish` (PB5235 addendum "remaining", item 1),
 the landing runs it by hand.
 
+**Caught before the merge group.** The first draft read the plan's JSON list in the Windows listing step with `jq -r`.
+On this host, toolchain.env's jq 1.8.2 ends each line CRLF on Windows, and bash keeps the CR, so `Unit` would have become
+`Unit\r` and the listing would have named no project. Both shard listings now read it with Python.
+
 **Also.** The BUILD TARGETS audit (`buildgraph.py check`) now runs in the merge group's audits job, as it already did in the
 local gate. The session probe's first line is the latest scheduled nightly's verdict. Its first run showed the
 2026-11-10 nightly red in `latest` and in the NIST `Guard`.

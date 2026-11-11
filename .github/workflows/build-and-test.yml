@@ -656,7 +656,8 @@ jobs:
           set -euo pipefail
           . scripts/python-resolve.sh
           mkdir -p TestResults/${{ runner.os }}-shard
-          for assembly in $(printf '%s' "$TARGETS" | jq -r '.[]'); do
+          # The plan's JSON list, read by Python: a native jq on Windows ends each line CRLF, and bash keeps the CR.
+          for assembly in $("$PY" -c 'import json, sys; print(" ".join(json.loads(sys.argv[1])))' "$TARGETS"); do
             "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
               --configuration ${{ needs.changes.outputs.linux_configuration }} --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
           done
@@ -761,7 +762,8 @@ jobs:
           set -euo pipefail
           . scripts/python-resolve.sh
           mkdir -p TestResults/${{ runner.os }}-shard
-          for assembly in $(printf '%s' "$TARGETS" | jq -r '.[]'); do
+          # The plan's JSON list, read by Python: a native jq on Windows ends each line CRLF, and bash keeps the CR.
+          for assembly in $("$PY" -c 'import json, sys; print(" ".join(json.loads(sys.argv[1])))' "$TARGETS"); do
             "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
               --configuration ${{ needs.changes.outputs.windows_configuration }} --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
           done
