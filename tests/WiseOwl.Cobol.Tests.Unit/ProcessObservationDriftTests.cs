@@ -472,6 +472,26 @@ public sealed class ProcessObservationDriftTests
         Assert.Throws<ArgumentOutOfRangeException>(() => ObservationBudget.For(1_000, children: -1, parallel: 1, "x"));
         Assert.Throws<ArgumentOutOfRangeException>(() => ObservationBudget.For(0, children: 0, parallel: 1, "x"));
         Assert.Throws<ArgumentException>(() => ObservationBudget.For(1_000, children: 0, parallel: 1, " "));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ObservationBudget.For(1_000, children: 0, parallel: 1, "x", TimeSpan.FromMilliseconds(-1)));
+        Assert.Equal(0, ObservationBudget.OneProcess.OwnWaitMs);
+    }
+
+    /// <summary>A process that waits on its own clock by design (kb/Work PB5154, CCVS CM102M's three 30-second delays) gets
+    /// its units PLUS the wait, added once and never multiplied by the units, and its report names the wait; the wait
+    /// does not count as a unit, and a fractional millisecond rounds up so the stated wait is never shortened.</summary>
+    [Theory]
+    [InlineData(0, 1, 90_000.0, 1, 91_000)]
+    [InlineData(9, 8, 90_000.0, 3, 93_000)]
+    [InlineData(0, 1, 0.5, 1, 1_001)]
+    public void TheBudget_AddsAStatedOwnWait_OnceOnTopOfTheUnits(int children, int parallel, double waitMs, long units, int ms)
+    {
+        var budget = ObservationBudget.For(1_000, children, parallel, "a program with delays", TimeSpan.FromMilliseconds(waitMs));
+        Assert.Equal(units, budget.Units);
+        Assert.Equal(ms, budget.Ms);
+        Assert.Contains($"+ {ms - units * 1_000} ms it waits on its own clock", budget.ToString(), StringComparison.Ordinal);
+        var waiting = ObservationBudget.OneProcessWaiting(TimeSpan.FromSeconds(90), "CM102M");
+        Assert.Equal(ObservationBudget.UnitMs + 90_000L, waiting.Ms);
+        Assert.Equal(1, waiting.Units);
     }
 
     /// <summary>A slow process stated to run children is observed: its budget is at least the harness unit.</summary>

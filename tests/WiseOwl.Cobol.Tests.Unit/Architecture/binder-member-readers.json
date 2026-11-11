@@ -671,6 +671,9 @@
       "WiseOwl.Cobol.Binding.Procedure.MessagingBinder",
       "WiseOwl.Cobol.Binding.Procedure.SortBinder"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::ScreenGlobalNameUniqueness": [
+      "WiseOwl.Cobol.Binding.Passes.CheckGlobalNameUniquenessPass"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::ScreenImmediateMemberLevel": [
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
