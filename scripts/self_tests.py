@@ -51,11 +51,11 @@ trace shows no git command over the whole repository is RED; a whole-tree git co
     # SELF-TEST-POPULATION: tree — <why it reads the whole tracked tree>
 
 UNKEYED READ (kb/Work PB5227, the owner 2026-11-10): a self-test that passes but whose trace holds a read the tracer
-cannot place inside the repository (self_test_inputs.py `UnkeyedRead`: a git command, subcommand, global option or
-pathspec form `git_reads` does not model, a path outside the repository or past its top, a trace record of no known kind)
-is RED, labelled `UNKEYED READ`, naming each command and its directory, and records no PASS. It is never keyed as the
-whole tree: such a read is a hermeticity defect of the self-test (run git in its scratch repository) or a gap in
-`git_reads` (teach it the form).
+cannot key (self_test_inputs.py `UnkeyedRead`: a git subcommand, option or argument form outside `GIT_GRAMMAR`, the
+declared grammar `git_reads` reads a command by; pathspec magic it does not model; a path outside the repository or past
+its top; a trace record of no known kind) is RED, labelled `UNKEYED READ`, naming each command and its directory, and
+records no PASS. It is never keyed as the whole tree: such a read is a hermeticity defect of the self-test (run git in
+its scratch repository) or a gap in the grammar (declare the form).
 
 THE CLOCK PROOF (kb/Work PB4358; scripts/self_test_clock.py; DESIGN-test-build-ci.md §3.14.10): a Python self-test whose
 run opened a tracked `.py` file that can read the wall clock is run a SECOND time, in the same budget place, with the clock
@@ -179,8 +179,9 @@ BUDGET_POLL_S = 0.25
 #: The shared PASS store (module docstring), and how many PASS records it keeps per self-test and platform.
 PASS_STORE_DIR = "cobol-self-test-passes"
 #: 2: Deps.trees (kb/Work PB2914); 3: the clock proof (kb/Work PB4358); 4: the clock proof's own key and the day its
-#: shifted run ran (`clock.key`, `clock.proved`, kb/Work PB5226)
-PASS_SCHEMA = 4
+#: shifted run ran (`clock.key`, `clock.proved`, kb/Work PB5226); 5: git reads by a declared grammar, a history read
+#: keyed by its revisions (`rev:`), the import key's `__init__` entries (kb/Work PB5227 review round 2)
+PASS_SCHEMA = 5
 PASS_KEEP = 20
 #: A marker counts only on a `#` line among a file's first lines: its header comment.
 HEADER_LINES = 5

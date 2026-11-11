@@ -1069,26 +1069,35 @@ the content of everything it read, in ONE store shared by every checkout of the 
   hands a child process, inside the repository;
 - **imports** — each module name an import looked for (the audit event `import`, raised before the search, so a failed
   import counts), per directory inside the repository it searched: a top-level name in each sys.path entry, a submodule in
-  its package's `__path__`. The import system's own directory listings (`FileFinder._fill_cache`) are not listings: read so,
-  every self-test that imports from `scripts/` re-ran on any new file there (kb/Work PB5227). The IMPORT KEY holds instead
-  the entries of each searched directory that could answer an imported name (`Tree.importable`: the name as a package or
-  namespace directory, and the name with each suffix `importlib.machinery.all_suffixes()` gives), so a new `scripts/json.py`
-  re-runs every self-test that imported `json` and an unrelated new file re-runs none;
+  each entry of its package's `__path__` (`import a.b` raises its event before `a` loads, so the tracer holds the name
+  until `a` is in `sys.modules`). The import system's own directory listings (`FileFinder._fill_cache`) are not listings:
+  read so, every self-test that imports from `scripts/` re-ran on any new file there (kb/Work PB5227). The IMPORT KEY holds
+  instead the entries of each searched directory that could answer an imported name (`Tree.importable`: the name as a
+  package or namespace directory with its `__init__` entries, and the name with each suffix
+  `importlib.machinery.all_suffixes()` gives), so a new `scripts/json.py` re-runs every self-test that imported `json`, a
+  namespace package gaining `__init__.py` re-runs its importers, and an unrelated new file re-runs none. Case follows the
+  import system on each platform: the directory as the file system finds it (without case on Windows), a module entry
+  exactly, an `__init__` file as the file system finds it;
 - **static** — what no audit hook sees: the self-test's own file, the runner itself (`self_tests.py`, `self_test_inputs.py`),
   `# SELF-TEST-READS: <path> …` header declarations, and for a PowerShell or bash self-test the closure over the files its
   CODE mentions (comments dropped);
-- **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says: nothing for its
-  location, configuration, worktrees or a commit id (`GIT_ENVIRONMENT`); the NAMES (`ls-files`) or the CONTENT (`diff`,
-  `log`, `show <rev>:<path>`, `ls-files -s` …, `GIT_CONTENT`) under its pathspec (an absolute one made relative to the
+- **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says, by the DECLARED
+  GRAMMAR of its subcommand (`GIT_GRAMMAR`: its options, which of them take a value, what its arguments are; declared:
+  `ls-files`, `rev-parse`, `log`, `grep`): nothing for a location query (`rev-parse --show-toplevel`, `--exec-path`); the
+  NAMES (`ls-files`) or the CONTENT (`ls-files -s`, `grep`) under its pathspec (an absolute one made relative to the
   repository; `:(top)`/`:/`, `:(glob)`, `:(literal)` and `:(exclude)`/`:!` modelled exactly, an exclusion narrowing
-  nothing), and the whole tree when that is the command's meaning (no pathspec, `*.py` at the root).
-- **unkeyed** — anything else a trace records is an UNKEYED READ (`UnkeyedRead`): a subcommand, global option or pathspec
-  magic `git_reads` does not model (`:(icase)`, `:(attr:…)`, `fetch`, `--git-dir`), a path outside the repository or past
-  its top, a trace record of no known kind. `self_tests.py` turns a passing run that has one into a RED labelled
-  `UNKEYED READ`, naming each command and its directory, and records no PASS. ⛔ It is never keyed as the whole tree
-  (the owner, 2026-11-10: "If it cannot be resolved, there is a problem/bug"): that would hide a self-test's hermeticity
-  defect as a test that re-runs on every gate; and never as a path no tracked file can appear under, whose key would
-  never change (`Tree.under` refuses such a path at the call; kb/Work PB5227).
+  nothing), the whole tree when that is the command's meaning (no pathspec, `*.py` at the root); and for a HISTORY read
+  (`rev-parse <rev>`, `log`) the object each revision it names resolves to (`rev:<expression>`, `HEAD` for a log naming
+  none). An object is immutable, so a PASS reused while every named revision resolves to the same object is sound: a
+  `rev-parse HEAD` reader re-runs on every new commit, which is the price of reading the real checkout's history.
+- **unkeyed** — anything else a trace records is an UNKEYED READ (`UnkeyedRead`): a subcommand, option or argument form
+  the grammar does not declare (`git diff`, `ls-files --with-tree`, `grep -f`), pathspec magic it does not model
+  (`:(icase)`, `:(attr:…)`), a global option such as `--git-dir`, a path outside the repository or past its top, a trace
+  record of no known kind. `self_tests.py` turns a passing run that has one into a RED labelled `UNKEYED READ`, naming each
+  command and its directory, and records no PASS. ⛔ It is never keyed as the whole tree (the owner, 2026-11-10: "If it
+  cannot be resolved, there is a problem/bug"): that would hide a self-test's hermeticity defect as a test that re-runs on
+  every gate; and never as a path no tracked file can appear under, whose key would never change (`Tree.under` refuses
+  such a path at the call; kb/Work PB5227).
 A record holds each file's git blob id (the working tree's content id for an edited or untracked file; `-` where the run looked
 and found nothing), a digest of what it saw of each directory (`Tree.digest`) and each searched directory's import key
 (the names and the entries that answered them; a record without it is of another shape and no PASS). `--reuse` reports a self-test REUSED, unrun,

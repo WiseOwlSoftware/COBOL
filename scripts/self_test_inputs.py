@@ -28,27 +28,34 @@ self-test reads (a hand-derived closure over mentions reached the whole tree fro
            directory only as a bare word with no `/` and no `.` beside the mentioning file, so `kb/Work` in a message
            string never pulls in the register), followed through the PowerShell and bash scripts it reaches (a Python
            script it runs is traced when it runs);
-  GIT      a `git` child a traced process runs inside the repository reads what `git_reads` says: nothing for its
-           location, configuration, worktrees or a commit id (GIT_ENVIRONMENT); the NAMES (`ls-files`, GIT_NAMES) or
-           the CONTENT (`diff`, `log`, `show`, `ls-files -s` …, GIT_CONTENT) under its pathspec (a wildcard one: under
-           the directory of its literal prefix; an absolute one made relative to the repository; the magic
-           PATHSPEC_MAGIC models), and the whole tree when the command's MEANING is the whole tree (no pathspec, `*.py`
-           at the root). Anything else is an UNKEYED READ: a subcommand, global option or pathspec magic it does not
+  GIT      a `git` child a traced process runs inside the repository reads what `git_reads` says, by the DECLARED
+           GRAMMAR of its subcommand (GIT_GRAMMAR: its options, which of them take a value, what its arguments are):
+           nothing for a location query (`rev-parse --show-toplevel`, `--exec-path`); the NAMES (`ls-files`) or the
+           CONTENT (`ls-files -s`, `grep`) under its pathspec (a wildcard one: under the directory of its literal prefix;
+           an absolute one made relative to the repository; the magic PATHSPEC_MAGIC models), the whole tree when that
+           is the command's MEANING (no pathspec, `*.py` at the root); and for a HISTORY read (`rev-parse <rev>`,
+           `log`) the objects its revisions name (`rev:<expression>`, `Tree.revision`; `HEAD` when a log names none):
+           an object is immutable, so the PASS holds while each revision names the same one. Anything else is an
+           UNKEYED READ: a subcommand, option or argument form the grammar does not declare, pathspec magic it does not
            model, a path outside the repository or past its top. The runner fails the self-test and records no PASS
            (scripts/self_tests.py; the owner 2026-11-10): it is never keyed as the whole tree, which would hide the
            self-test's hermeticity defect as a test that re-runs on every gate, and never as a path no tracked file can
            appear under (`Tree.under` refuses one), whose key would never change;
   IMPORTS  each module NAME an import looked for, per directory inside the repository it searched (the audit event
            `import`, raised before the search, so a failed import counts): a top-level name in every sys.path entry, a
-           submodule's last name in its package's `__path__`. The import system's own directory listings
-           (`FileFinder._fill_cache`) are NOT recorded as listings (kb/Work PB5227): read so, every Python self-test that
-           imports from scripts/ was keyed on every NAME in scripts/ and the repository root, and any new file there
-           re-ran them all. The IMPORT KEY keeps only what an import can find: the entries of the searched directory
-           that answer one of its names (`Tree.importable`: `name`, a package or namespace directory, and `name<s>`
-           for each suffix importlib gives, IMPORT_SUFFIXES).
+           submodule's last name in each entry of its package's `__path__` (`import a.b` raises its event BEFORE `a`
+           loads: the tracer holds the name until `a` is in sys.modules, or the process ends). The import system's own
+           directory listings (`FileFinder._fill_cache`) are NOT recorded as listings (kb/Work PB5227): read so, every
+           Python self-test that imports from scripts/ was keyed on every NAME in scripts/ and the repository root, and
+           any new file there re-ran them all. The IMPORT KEY keeps only what an import can find: the entries of the
+           searched directory that answer one of its names (`Tree.importable`: `name`, a package or namespace
+           directory, with its `__init__<s>` entries, and `name<s>` for each suffix importlib gives, IMPORT_SUFFIXES),
+           compared by the import system's own CASE RULE on each platform: the directory as the file system finds it
+           (without case on Windows), a module entry exactly, an `__init__` file as the file system finds it.
 A run's Deps hold, per input file, its git blob id (`-` when the run looked for an untracked path), per directory it
 saw a digest of what it saw (`Tree.digest`: the names in a listed directory, the paths or the content under a git
-pathspec or a STATIC directory), and per searched directory its import key. A recorded PASS is REUSED only while every
+pathspec or a STATIC directory), per revision a history read named its object id, and per searched directory its
+import key. A recorded PASS is REUSED only while every
 one of them is unchanged on the current tree (`Deps.changed` is empty): an edit to anything it read, a new file in a
 directory it listed, a tracked file where it found none, a module, package or extension that appeared or went under an
 imported name (a new scripts/json.py re-runs every self-test that imported json; a new scripts/zz.py re-runs none that
@@ -97,8 +104,10 @@ TOKEN_RE = re.compile(r"[\w.\-/\\]+")
 TRACE_ENV = "COBOL_SELF_TEST_TRACE"
 TRACE_ROOT_ENV = "COBOL_SELF_TEST_TRACE_ROOT"
 UNTRACKED = "-"
-#: What a run can have seen of a directory (`Tree.digest`): the names in it, every path under it, or all their content.
-DIGESTS = ("entries", "paths", "content")
+#: What a run can have seen (`Tree.digest`): of a directory, the names in it, every path under it, or all their content;
+#: of a revision expression (`rev`), the object it resolves to.
+DIGESTS = ("entries", "paths", "content", "rev")
+OBJECT_ID_RE = re.compile(r"[0-9a-f]{40}|[0-9a-f]{64}")
 #: The file suffixes an import finds a module by (source, bytecode, extension) on THIS interpreter: an entry `name<s>`
 #: of a searched directory can answer `import name` (`Tree.importable`). From importlib, never a hand list.
 IMPORT_SUFFIXES = tuple(importlib.machinery.all_suffixes())
@@ -134,18 +143,40 @@ if _root and _out:
         if rel is not None:
             _seen.add(kind + "\t" + rel)
 
+    _pending = []
+
+    def _place(name, where):
+        for d in list(where):   # a namespace package's __path__ is every portion of it
+            rel = _inside(d)
+            if rel is not None:
+                _seen.add("I\t" + rel + "\t" + name)
+
+    def _place_pending():
+        still = []
+        for dotted in _pending:
+            head, _, tail = dotted.rpartition(".")
+            if head in sys.modules:
+                _place(tail, getattr(sys.modules[head], "__path__", None) or ())
+            else:
+                still.append(dotted)   # its parent is not imported (yet): nothing was searched for it (yet)
+        _pending[:] = still
+
     def _hook(event, args):
         if event == "open":
             _record("F", args[0])
         elif event == "import":
             # what an import can find: its name in each directory it searches (kb/Work PB5227, the import key)
             try:
+                _place_pending()
                 head, _, tail = args[0].rpartition(".")
-                where = (getattr(sys.modules.get(head), "__path__", None) or ()) if head else (args[2] or ())
-                for d in list(where):
-                    rel = _inside(d)
-                    if rel is not None:
-                        _seen.add("I\t" + rel + "\t" + tail)
+                if not head:
+                    _place(tail, args[2] or ())
+                elif head in sys.modules:
+                    _place(tail, getattr(sys.modules[head], "__path__", None) or ())
+                else:
+                    # `import a.b` raises the event for a.b BEFORE it imports a: the submodule is searched in a's
+                    # __path__, known once a is in sys.modules (set before a's own code runs)
+                    _pending.append(args[0])
             except Exception:
                 pass
         elif event in ("os.listdir", "os.scandir"):
@@ -176,6 +207,10 @@ if _root and _out:
     sys.addaudithook(_hook)
 
     def _write():
+        try:
+            _place_pending()   # a submodule whose parent loaded after the last import event
+        except Exception:
+            pass
         name = os.path.join(_out, "%d-%s.trace" % (os.getpid(), os.urandom(6).hex()))
         try:
             with open(name, "w", encoding="utf-8") as fh:
@@ -208,6 +243,7 @@ class Tree:
     _folded: dict[str, str] = field(init=False)
     _digests: dict[tuple[str, str], str] = field(init=False, default_factory=dict)
     _entry_sets: dict[str, frozenset[str]] = field(init=False, default_factory=dict)
+    _revisions: dict[str, str] = field(init=False, default_factory=dict)
 
     def __post_init__(self) -> None:
         self.paths = sorted(self.blobs)
@@ -271,20 +307,51 @@ class Tree:
                 lines = self.under(d)
             elif kind == "content":
                 lines = [f"{p}\0{self.blobs[p]}" for p in self.under(d)]
+            elif kind == "rev":
+                return self.revision(d)
             else:
                 raise ValueError(f"a tree digest kind is one of {DIGESTS}, not {kind!r}")
             self._digests[(kind, d)] = hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()[:20]
         return self._digests[(kind, d)]
 
+    def resolve(self, expressions: Iterable[str]) -> None:
+        """Resolve revision expressions (`rev:` keys) to their object ids in one `git cat-file --batch-check`: an
+        object is immutable, so the id is what a history read saw (GIT_GRAMMAR, HISTORY). `-` for one that names none."""
+        todo = sorted({e for e in expressions if e not in self._revisions})
+        if todo:
+            out = _git(self.repo, "cat-file", "--batch-check=%(objectname)", stdin="\n".join(todo) + "\n").splitlines()
+            if len(out) != len(todo):
+                raise ValueError(f"git cat-file answered {len(out)} lines for {len(todo)} revisions")
+            for e, line in zip(todo, out):
+                self._revisions[e] = line if OBJECT_ID_RE.fullmatch(line) else UNTRACKED
+
+    def revision(self, expression: str) -> str:
+        self.resolve([expression])
+        return self._revisions[expression]
+
+    def _real_dir(self, d: str) -> str:
+        """Directory `d` in the tree's own case, matched as the FILE SYSTEM matches a sys.path entry (os.path.normcase:
+        without case on Windows); `d` itself when the tree has no such directory yet."""
+        real = self._folded.get(os.path.normcase(d.replace("/", os.sep))) if d else ""
+        return real if real is not None and real in self.dirs else d
+
     def importable(self, d: str, names: Iterable[str]) -> list[str]:
-        """The entries of directory `d` that could answer an import of one of `names` there: `name` itself (a package
-        or namespace directory) and `name<suffix>` for each IMPORT_SUFFIXES — what the import system's directory cache
-        is consulted for, and nothing else of the directory (the import key, kb/Work PB5227). Exact case, as the
-        import system compares (no PYTHONCASEOK)."""
-        if d not in self._entry_sets:
-            self._entry_sets[d] = frozenset(self.entries(d))
-        present = self._entry_sets[d]
-        return sorted({e for n in names for e in (n, *(n + s for s in IMPORT_SUFFIXES)) if e in present})
+        """The entries of directory `d` that could answer an import of one of `names` there (the import key, kb/Work
+        PB5227): `name` (a package or namespace directory) and `name<suffix>` for each IMPORT_SUFFIXES, what the import
+        system's directory cache is consulted for; and, for a `name` that is a directory, its `__init__<suffix>` entries,
+        which decide whether it is a regular or a namespace package. THE CASE RULE, the import system's own on each
+        platform: the directory is matched as the file system matches it (`_real_dir`), a cache entry exactly
+        (FileFinder compares the exact name unless PYTHONCASEOK), an `__init__` file as the file system finds it (it is
+        stat'ed, not looked up in the cache)."""
+        real = self._real_dir(d)
+        if real not in self._entry_sets:
+            self._entry_sets[real] = frozenset(self.entries(real))
+        present = self._entry_sets[real]
+        found = {e for n in names for e in (n, *(n + s for s in IMPORT_SUFFIXES)) if e in present}
+        inits = {os.path.normcase("__init__" + s) for s in IMPORT_SUFFIXES}
+        for n in [e for e in found if posixpath.join(real, e) in self.dirs]:
+            found.update(f"{n}/{c}" for c in self.entries(posixpath.join(real, n)) if os.path.normcase(c) in inits)
+        return sorted(found)
 
     def blob(self, path: str) -> str:
         return self.blobs.get(path, UNTRACKED)
@@ -447,24 +514,69 @@ def traced_env(env: dict[str, str], tracer_dir: Path, trace_out: Path, repo: Pat
     return env
 
 
-#: ⛔ WHAT A GIT COMMAND READS (`git_reads`) — each subcommand a traced self-test may run inside the repository, by what
-#: it reads of the tracked tree. A subcommand in none of these is NOT UNDERSTOOD, and its read is UNKEYED: the runner
-#: fails the self-test (kb/Work PB5227, the owner 2026-11-10), never keys it as the whole tree.
-#: ENVIRONMENT: the repository's location and configuration, the worktree list, creating a repository, a commit id.
-GIT_ENVIRONMENT = frozenset({"rev-parse", "config", "init", "worktree", "version", "var", "symbolic-ref"})
-#: NAMES: the tracked paths under its pathspec — `ls-files`, unless one of GIT_LS_FILES_CONTENT asks for content ids.
-GIT_NAMES = frozenset({"ls-files"})
-GIT_LS_FILES_CONTENT = frozenset({"-s", "--stage", "-m", "--modified", "-d", "--deleted", "--debug"})
-#: CONTENT: the tracked paths under its pathspec and their content (history included: it changes with them).
-GIT_CONTENT = frozenset({"diff", "log", "show", "status", "merge-base", "rev-list", "cat-file", "ls-tree", "grep",
-                         "diff-tree", "diff-index", "blame"})
-#: `log` whose output is a commit id only (environment, as `rev-parse HEAD` is).
-GIT_LOG_ID_FORMATS = frozenset({"--format=%h", "--format=%H", "--pretty=%h", "--pretty=%H"})
+#: ⛔ WHAT A GIT COMMAND READS (`git_reads`) — a DECLARED GRAMMAR per subcommand a traced self-test may run inside the
+#: repository (kb/Work PB5227 review round 2): which options it takes (and which of them take a value, so a value is
+#: never read as an argument), what its positional arguments are, and what it reads. A subcommand, option or argument
+#: form not declared here is NOT UNDERSTOOD, and its read is UNKEYED: the runner fails the self-test (the owner
+#: 2026-11-10), never keys a guess. Declared: the subcommands the self-tests run in the real checkout (a traced run of
+#: the whole phase, 2026-11-11: `ls-files`, `rev-parse`) and `log` and `grep`, cheap to model exactly.
+#:
+#: HISTORY. A command that reads history (`log`, `rev-parse <rev>`, a `<rev>:<path>`) answers from COMMITS, which no
+#: working-tree key holds, and a ref moves on every commit. Its read is keyed by what it names: each REVISION it
+#: reads, resolved to its object id (`rev:<expression>`, `Tree.revision`; `HEAD` when a history command names none).
+#: Objects are immutable, so a PASS reused while every named revision resolves to the same object is sound: `rev-parse
+#: HEAD` re-runs on every new commit, `log -- <path>` re-runs when HEAD moves, `<rev>:<path>` when that blob changes.
+@dataclass(frozen=True)
+class GitGrammar:
+    """One subcommand's declared form. `reads`: "nothing" (git's configuration, not the tracked tree), "paths" (the
+    tracked names under its pathspecs), "content" (the names and their content), "history" (the revisions it names:
+    `rev:` keys; its `location_flags` alone read nothing). `positionals`: "pathspecs", "revisions", "key" (exactly one
+    configuration key), or "pattern" (grep: its first positional is a PATTERN unless `-e` gives it)."""
+    reads: str
+    positionals: str
+    flags: frozenset[str] = frozenset()        # options with no value
+    valued: frozenset[str] = frozenset()       # options with a value: `--x=v`, or `--x v` / `-x v` (the next word)
+    content_flags: frozenset[str] = frozenset()   # flags that make a "paths" read a "content" one
+    location_flags: frozenset[str] = frozenset()  # flags that ask only for the repository's location
+    optional: frozenset[str] = frozenset()     # flags that also take `=<value>` in the same word (`--short=7`)
+    count_flags: bool = False                  # `-<N>` (log's `-1`)
+
+
+GIT_GRAMMAR = {
+    "ls-files": GitGrammar(
+        "paths", "pathspecs",
+        flags=frozenset({"-z", "-c", "--cached", "-o", "--others", "--exclude-standard", "--full-name",
+                         "--error-unmatch", "--directory", "--no-empty-directory"}),
+        content_flags=frozenset({"-s", "--stage", "-m", "--modified", "-d", "--deleted"})),
+    "rev-parse": GitGrammar(
+        "history", "revisions",
+        flags=frozenset({"--verify", "--quiet", "-q", "--short", "--abbrev-ref", "--symbolic-full-name"}),
+        optional=frozenset({"--short", "--abbrev-ref"}),
+        location_flags=frozenset({"--show-toplevel", "--absolute-git-dir", "--git-dir", "--git-common-dir",
+                                  "--show-prefix", "--show-cdup", "--is-inside-work-tree", "--is-bare-repository",
+                                  "--is-inside-git-dir", "--path-format=absolute", "--path-format=relative"})),
+    "log": GitGrammar(
+        "history", "revisions",
+        flags=frozenset({"--oneline", "--no-merges", "--reverse", "--first-parent", "-p", "--stat", "--name-only",
+                         "--name-status", "--no-color", "--no-decorate"}),
+        valued=frozenset({"--format", "--pretty", "-n", "--max-count", "--skip"}), count_flags=True),
+    "config": GitGrammar(   # a READ of one configuration key: git's configuration, not the tracked tree
+        "nothing", "key",
+        flags=frozenset({"--get", "--get-all", "--global", "--local", "--system", "--bool", "--int", "--path", "-z",
+                         "--null", "--show-origin", "--includes", "--no-includes"})),
+    "grep": GitGrammar(
+        "content", "pattern",
+        flags=frozenset({"-n", "-l", "-L", "-c", "--count", "-i", "-w", "-v", "-E", "-F", "-G", "-P", "-I", "-z", "-q",
+                         "-h", "-H", "--name-only", "--full-name", "--no-color", "--line-number"}),
+        valued=frozenset({"-e", "--max-depth"})),
+}
 #: git's own global options that change nothing a command reads; any other global option (`--git-dir`, `--work-tree`,
 #: `--literal-pathspecs`, a `-C` after another option, which the tracer does not follow) is not understood.
 GIT_GLOBAL_INERT = frozenset({"--no-pager", "-p", "--paginate", "-P", "--no-optional-locks", "--no-replace-objects",
                               "--no-advice"})
 GIT_GLOBAL_VALUED = frozenset({"-c"})
+#: A git invocation that is no subcommand and reads nothing of the repository.
+GIT_GLOBAL_QUERIES = frozenset({"--version", "--exec-path", "--html-path", "--man-path", "--info-path"})
 #: Pathspec magic modelled EXACTLY (`_pathspec`): `top` (`:/`), from the root; `glob` and the default, a wildcard
 #: narrowed to its literal prefix's directory; `literal`, no wildcard; `exclude` (`:!`, `:^`), which narrows nothing,
 #: so the key is the positive pathspecs' (a superset of the read by meaning). Any other (`icase`, `attr:…`) is unkeyed.
@@ -472,6 +584,7 @@ PATHSPEC_MAGIC = frozenset({"top", "glob", "literal", "exclude"})
 PATHSPEC_SHORT = {"/": "top", "!": "exclude", "^": "exclude"}
 WILDCARDS = "*?["
 DRIVE_RE = re.compile(r"[A-Za-z]:")
+COUNT_RE = re.compile(r"-[0-9]+")
 
 
 @dataclass(frozen=True)
@@ -553,70 +666,126 @@ def _spec_read(spec: str, where: str, root: Path) -> tuple[str | None, str]:
     return (p, "") if p is not None else (None, f"pathspec {spec!r} names no place inside the repository")
 
 
+def _revisions(arg: str, where: str, root: Path) -> list[str] | None:
+    """The revision expressions one revision argument names, each resolvable alone (`Tree.revision`): a range's ends
+    (`a..b`, `a...b`, `^a`), a `<rev>:<path>` with its path made root-relative (`./`, `../` are from `where`, as git
+    resolves them). None for a form not modelled (whitespace, a path outside the repository)."""
+    if not arg or any(c.isspace() for c in arg):
+        return None
+    if ":" in arg and not arg.startswith(":"):
+        rev, _, path = arg.partition(":")
+        if path.startswith(("./", "../")):
+            path = repo_path(path, where, root)
+            if path is None:
+                return None
+        elif path and repo_path(path, "", root) is None:
+            return None
+        return [f"{rev}:{path}"] if rev else None
+    ends = [e.removeprefix("^") for e in re.split(r"\.\.\.?", arg)]
+    return ends if all(ends) else None
+
+
 def git_reads(args: list[str], where: str, root: Path) -> list[tuple[str, str]] | UnkeyedRead:
     """What a git command run in directory `where` (its arguments after the leading `-C <dir>`s) of the repository at
-    `root` reads of the tracked tree: (kind, path) pairs, kind `paths` (the names under path) or `content` (the names and
-    their content), path "" the whole tree — or an UnkeyedRead for a command it cannot place, never a guess.
+    `root` reads, by its DECLARED GRAMMAR (GIT_GRAMMAR): (kind, what) pairs — `paths` or `content` of a directory ("" the
+    whole tree), `rev` of a revision expression — or an UnkeyedRead for any form the grammar does not declare.
 
-    THREE OUTCOMES. RESOLVED: the pathspecs after `--` (or, before it, an argument naming an existing path, or one with
-    a wildcard: git's own rule, an argument that is no revision must be a path in the working tree) each key the
-    directory they read under (`_spec_read`: an absolute path made relative to the root; a wildcard narrowed to the
-    directory of its literal prefix, `scripts/spec/work*.py` reading under scripts/spec; kb/Work PB5227), and
-    `<rev>:<path>` its path (from the root; `./` and `../` from `where`, as git resolves them). THE WHOLE TREE BY MEANING:
-    a command with no pathspec, a wildcard at the root (`*.py`), only exclusions — that IS its read set, not a fallback.
-    UNKEYED: a subcommand, global option or pathspec magic not modelled here, and a path outside the repository or past
-    its top. An environment command reads nothing."""
+    THREE OUTCOMES. RESOLVED: each pathspec keys the directory it reads under (`_spec_read`: an absolute path made
+    relative to the root, a wildcard narrowed to its literal prefix's directory, `scripts/spec/work*.py` reading under
+    scripts/spec), each revision its object (`rev:`). THE WHOLE TREE BY MEANING: a tree-reading command with no
+    pathspec, a wildcard at the root (`*.py`), only exclusions — that IS its read set, not a fallback. UNKEYED: a
+    subcommand, option or argument form not declared, pathspec magic not modelled, a path outside the repository or
+    past its top. A location query (`rev-parse --show-toplevel`, `--exec-path`) reads nothing."""
     unkeyed = lambda why: UnkeyedRead("git " + " ".join(args), where or ".", why)  # noqa: E731
     i = 0
     while i < len(args) and args[i].startswith("-"):
-        if args[i] in GIT_GLOBAL_VALUED:
+        if args[i] in GIT_GLOBAL_VALUED and i + 1 < len(args):
             i += 2
         elif args[i] in GIT_GLOBAL_INERT:
             i += 1
-        elif i == len(args) - 1 and args[i] in ("--version", "--exec-path", "--help"):
+        elif args[i] in GIT_GLOBAL_QUERIES and i == len(args) - 1:
             return []
         else:
             return unkeyed(f"global option {args[i]} is not modelled")
     if i >= len(args):
         return []
     sub, rest = args[i], args[i + 1:]
-    dashdash = "--" in rest
-    opts, specs = (rest[:rest.index("--")], rest[rest.index("--") + 1:]) if dashdash else (rest, [])
-    if sub in GIT_ENVIRONMENT and not any(":" in a and not a.startswith("-") for a in opts):
+    grammar = GIT_GRAMMAR.get(sub)
+    if grammar is None:
+        return unkeyed(f"subcommand {sub!r} has no declared grammar (GIT_GRAMMAR)")
+    flags, positional, after, j = set(), [], None, 0
+    while j < len(rest):
+        a = rest[j]
+        if a == "--":
+            after = rest[j + 1:]
+            break
+        if a.startswith("-") and a != "-":
+            name = a.split("=", 1)[0]
+            if name in grammar.valued:
+                if "=" not in a:
+                    if j + 1 >= len(rest):
+                        return unkeyed(f"option {a} takes a value and has none")
+                    j += 1
+                flags.add(name)
+                if name == "-e":
+                    flags.add("pattern-given")
+            elif a in grammar.flags or a in grammar.content_flags or a in grammar.location_flags or (
+                    grammar.count_flags and COUNT_RE.fullmatch(a)):
+                flags.add(a)
+            elif "=" in a and name in grammar.optional:
+                flags.add(name)
+            else:
+                return unkeyed(f"option {a} is not declared for `git {sub}`")
+        else:
+            positional.append(a)
+        j += 1
+    if sub == "ls-files" and flags & {"-o", "--others"} and "--exclude-standard" not in flags:
+        return unkeyed("`ls-files --others` without --exclude-standard lists ignored files, which no key holds")
+    if grammar.location_flags and flags & grammar.location_flags:
+        if positional or after is not None or flags - grammar.location_flags:
+            return unkeyed(f"a location query of `git {sub}` mixed with other arguments is not modelled")
         return []
-    if sub == "log" and any(a in GIT_LOG_ID_FORMATS for a in opts):
+    if grammar.positionals == "key":   # one key read; a second positional is a value WRITTEN, not modelled
+        if len(positional) != 1 or after is not None:
+            return unkeyed(f"`git {sub}` is modelled only as the read of one key")
         return []
-    if sub in GIT_NAMES:
-        kind = "content" if GIT_LS_FILES_CONTENT.intersection(opts) else "paths"
-    elif sub in GIT_CONTENT or sub in GIT_ENVIRONMENT:   # `rev-parse <rev>:<path>` reads that path's content id
-        kind = "content"
+    reads: set[tuple[str, str]] = set()
+    specs = list(after or [])
+    if grammar.positionals == "pathspecs":
+        specs = positional + specs
     else:
-        return unkeyed(f"subcommand {sub!r} is not one git_reads models (GIT_ENVIRONMENT, GIT_NAMES, GIT_CONTENT)")
-    reads: set[str] = set()
-    specs = list(specs or [])
-    for a in (a for a in opts if not a.startswith("-")):
-        # ls-files takes no revision: every positional is a pathspec. Elsewhere, before `--`, git's own rule: `<rev>:<path>`
-        # names a path; an argument that is no revision must name a path of the working tree (or carry a wildcard or
-        # magic); anything else is a revision, which reads history and is keyed by what the command reads under.
-        if sub in GIT_NAMES or (not dashdash and (a.startswith(":") or any(c in a for c in WILDCARDS))):
-            specs.append(a)
-        elif ":" in a and not DRIVE_RE.match(a):
-            shown = a.split(":", 1)[1]
-            p = repo_path(shown, where if shown.startswith(("./", "../")) else "", root)
-            if p is None:
-                return unkeyed(f"{a!r} names no place inside the repository")
-            reads.add(p)
-        elif not dashdash and os.path.exists(os.path.join(root, where, a)):
-            specs.append(a)
+        if grammar.positionals == "pattern" and "pattern-given" not in flags:
+            if not positional:
+                return unkeyed(f"`git {sub}` with no pattern is not modelled")
+            positional = positional[1:]   # the PATTERN, never a path
+        if grammar.positionals == "pattern" and positional:
+            return unkeyed(f"`git {sub}` over a revision is not modelled")
+        for a in positional:
+            if after is None and (any(c in a for c in WILDCARDS) or a.startswith(":")):
+                return unkeyed(f"{a!r} before `--` could be a revision or a pathspec: give `--`")
+            revs = _revisions(a, where, root)
+            if revs is None:
+                return unkeyed(f"{a!r} is not a revision form git_reads models")
+            reads.update(("rev", r) for r in revs)
+    if grammar.reads == "history":
+        if not reads:
+            if sub == "rev-parse":
+                return unkeyed("`git rev-parse` with no revision and no location flag is not modelled")
+            reads.add(("rev", "HEAD"))
+        for spec in specs:   # history under a pathspec: its commits are named by the revisions; the spec must parse
+            _, why = _spec_read(spec, where, root)
+            if why:
+                return unkeyed(why)
+        return sorted(reads)
+    kind = "content" if grammar.reads == "content" or flags & grammar.content_flags else "paths"
+    dirs: set[str] = set()
     for spec in specs:
         p, why = _spec_read(spec, where, root)
         if why:
             return unkeyed(why)
         if p is not None:   # None: an exclusion, which narrows nothing
-            reads.add(p)
-    if not reads:   # no pathspec, or only exclusions: the whole tree, by meaning
-        reads.add("")
-    return [(kind, p) for p in sorted(reads)]
+            dirs.add(p)
+    return sorted({(kind, d) for d in (dirs or {""})})   # no positive pathspec: the whole tree, by meaning
 
 
 @dataclass(frozen=True)
@@ -683,7 +852,7 @@ class Deps:
     """Everything one run read, with what it read: {path: blob id, or UNTRACKED where it found none} and
     {`<kind>:<directory>`: Tree.digest} — `entries:d` for a directory it listed, `paths:d` for the names a git command
     listed, `content:d` for a STATIC directory input or a git command that read content (`content:` is the whole
-    tree) — and {directory: {"names": the module names an import looked for there, "found": `Tree.importable`}}, the
+    tree), `rev:<expression>` for a revision a history read named (its object id) — and {directory: {"names": the module names an import looked for there, "found": `Tree.importable`}}, the
     IMPORT KEY: the entries of a searched directory that could answer one of those names, so a new or removed module,
     package or extension of an imported name re-runs the run, and an unrelated new file beside them does not."""
     files: dict[str, str]
@@ -696,6 +865,7 @@ class Deps:
         """`files` read, directories `seen` as (kind, directory) pairs — a `content` read of a single tracked file
         is that file — and modules `imported` as (directory, name) pairs."""
         files = set(files) | {d for kind, d in seen if kind == "content" and d in tree.blobs}
+        tree.resolve(d for kind, d in seen if kind == "rev")
         trees = {f"{kind}:{d}": tree.digest(kind, d) for kind, d in seen if not (kind == "content" and d in tree.blobs)}
         names: dict[str, set[str]] = {}
         for d, name in imported:
@@ -707,6 +877,7 @@ class Deps:
         """What differs on `tree` from what the run read (empty: the PASS still holds). An import key names each
         entry that appeared or went: `imports:<directory>/<entry>`."""
         out = [p for p, blob in self.files.items() if tree.blob(p) != blob]
+        tree.resolve(k[4:] for k in self.trees if k.startswith("rev:"))   # every revision in one git process
         for key, digest in self.trees.items():
             kind, _, d = key.partition(":")
             if tree.digest(kind, d) != digest:
@@ -754,6 +925,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def self_test() -> int:
     import tempfile
+    from scratch_repo import ScratchRepo  # this directory's
     fails: list[str] = []
 
     def check(name: str, got, want) -> None:
@@ -781,6 +953,7 @@ def self_test() -> int:
             "scripts/o/test_y.py": "#!/usr/bin/env python3\n# SELF-TEST-READS: kb/Work docs/ignored.md\nprint(1)\n",
             "scripts/o/test_z.py": "# SELF-TEST-READS: no/such/path\n",
             "scripts/o/pk/__init__.py": "",
+            "scripts/o/nspkg/sub.py": "",   # a namespace package: no __init__
             "docs/ignored.md": "x\n",
             "kb/Work/n.md": "x\n",
         }
@@ -828,65 +1001,86 @@ def self_test() -> int:
               "re-runs on a new name under its pathspec, never on an edit",
               (whole.changed(edited), names.changed(edited), names.changed(added)),
               (["content:"], [], ["paths:kb"]))
-        check("arm: what a git command reads: nothing for the repository's location, worktrees or a commit id; the "
-              "names or the content under its pathspec (from its directory); a shown file; the whole tree otherwise",
-              [git_reads(c.split(), w, root) for c, w in (
-                  ("rev-parse --show-toplevel", ""), ("--exec-path", ""), ("worktree list --porcelain", ""),
-                  ("log -1 --format=%h", ""), ("log -5", ""), ("ls-files -z", ""), ("ls-files -z -- scripts", ""),
-                  ("ls-files -s -- src/ tests/", ""), ("diff --name-only -- x", "docs"), ("diff HEAD", ""),
-                  ("show HEAD:a/b.json", ""), ("ls-files -- *.py", ""),
-                  ("ls-files -z -- :(glob)scripts/spec/work*.py", ""), ("diff -- docs/*.md", ""),
-                  ("ls-files -- *.ps1", "scripts"), ("ls-files -- :(exclude)docs", ""))],
-              [[], [], [], [], [("content", "")], [("paths", "")], [("paths", "scripts")],
-               [("content", "src"), ("content", "tests")], [("content", "docs/x")], [("content", "")],
-               [("content", "a/b.json")], [("paths", "")], [("paths", "scripts/spec")], [("content", "docs")],
-               [("paths", "scripts")], [("paths", "")]])
         posix_root, outside = root.as_posix(), (root.parent / "elsewhere").as_posix()
 
-        def outcome(argv: list[str], where: str):
+        def outcome(argv: list[str], where: str = ""):
             got = git_reads(argv, where, root)
             return ("UNKEYED", got.what, got.where) if isinstance(got, UnkeyedRead) else got
-        check("arm: THREE OUTCOMES, RESOLVED — an absolute path inside the repository is made relative to it, literal "
-              "or wildcard, with either separator; `:(top)`/`:/` read from the root, `:(literal)` keeps a wildcard "
-              "literal, an exclusion narrows nothing; before `--`, a positional of ls-files and a path that exists are "
-              "pathspecs and `<rev>:<path>` reads that path (kb/Work PB5227)",
+        check("arm: THREE OUTCOMES, RESOLVED — by the declared grammar: an absolute path inside the repository made "
+              "relative to it, literal or wildcard, with either separator; `:(top)`/`:/` from the root, `:(literal)` "
+              "literal, an exclusion narrowing nothing; an ls-files positional is a pathspec; an option's value never "
+              "an argument; a revision (`rev-parse`, `log`) keyed by what it names, `HEAD` for a log naming none; "
+              "grep's pattern never a path (kb/Work PB5227 review round 2)",
               [outcome(c, w) for c, w in (
                   (["ls-files", "--", f"{posix_root}/scripts/*.py"], ""),
-                  (["diff", "--", str(root / "docs")], "scripts"),
+                  (["ls-files", "-z", "--", str(root / "docs")], "scripts"),
                   (["ls-files", "--", ":(top)scripts/o"], "docs"),
                   (["ls-files", "--", ":/docs"], "scripts"),
                   (["ls-files", "--", ":(literal)scripts/o*"], ""),
                   (["ls-files", "--", "scripts", ":!scripts/o"], ""),
                   (["ls-files", "-z", "scripts/o"], ""),
-                  (["diff", "--name-only", "HEAD", "docs"], ""),
-                  (["show", "HEAD:./x"], "docs"))],
-              [[("paths", "scripts")], [("content", "docs")], [("paths", "scripts/o")], [("paths", "docs")],
-               [("paths", "scripts/o*")], [("paths", "scripts")], [("paths", "scripts/o")], [("content", "docs")],
-               [("content", "docs/x")]])
-        check("arm: THREE OUTCOMES, THE WHOLE TREE BY MEANING — no pathspec, a wildcard at the root, only exclusions, "
-              "a shown root: that is the read set, not a fallback",
+                  (["-c", "core.quotePath=false", "ls-files", "-z", "--", ".github/"], ""),
+                  (["ls-files", "-s", "--", "src/", "tests/"], ""),
+                  (["ls-files", "-o", "--exclude-standard", "--", "x"], "docs"),
+                  (["grep", "-n", "kb/Work/.*md"], ""),
+                  (["grep", "-l", "-e", "kb/Work", "--", "docs"], ""),
+                  (["rev-parse", "HEAD"], ""), (["rev-parse", "--short", "origin/main"], ""),
+                  (["rev-parse", "--verify", "--quiet", "abc^{tree}"], ""), (["rev-parse", "HEAD:./x"], "docs"),
+                  (["log", "--format=%H", "--", "scripts/x.py"], ""), (["log", "-1", "--format", "%s", "a..b"], ""))],
+              [[("paths", "scripts")], [("paths", "docs")], [("paths", "scripts/o")], [("paths", "docs")],
+               [("paths", "scripts/o*")], [("paths", "scripts")], [("paths", "scripts/o")], [("paths", ".github")],
+               [("content", "src"), ("content", "tests")], [("paths", "docs/x")],
+               [("content", "")], [("content", "docs")],
+               [("rev", "HEAD")], [("rev", "origin/main")], [("rev", "abc^{tree}")], [("rev", "HEAD:docs/x")],
+               [("rev", "HEAD")], [("rev", "a"), ("rev", "b")]])
+        check("arm: THREE OUTCOMES, NOTHING OR THE WHOLE TREE BY MEANING — a location query reads nothing; no pathspec, "
+              "a wildcard at the root and only exclusions read the whole tree: that is the read set, not a fallback",
               [outcome(c, w) for c, w in (
-                  (["ls-files", "--", f"{posix_root}/*.md"], "docs"), (["ls-files", "--", "../*.py"], "docs"),
-                  (["ls-files", "--", ":!docs"], ""), (["diff", "HEAD"], ""), (["show", "HEAD:"], ""))],
-              [[("paths", "")], [("paths", "")], [("paths", "")], [("content", "")], [("content", "")]])
+                  (["rev-parse", "--show-toplevel"], "docs"), (["--exec-path"], ""),
+                  (["rev-parse", "--path-format=absolute", "--git-common-dir"], ""),
+                  (["config", "--global", "user.name"], ""),
+                  (["ls-files", "-z"], ""), (["ls-files", "--", f"{posix_root}/*.md"], "docs"),
+                  (["ls-files", "--", "../*.py"], "docs"), (["ls-files", "--", ":!docs"], ""))],
+              [[], [], [], [], [("paths", "")], [("paths", "")], [("paths", "")], [("paths", "")]])
         unkeyed_rows = [
             (["ls-files", "--", f"{outside}/scripts"], ""), (["ls-files", "--", f"{outside}/*.py"], ""),
-            (["diff", "--", "../../x"], "docs"), (["ls-files", "--", "/*.py"], ""),
-            (["ls-files", "--", "//server/share/x"], ""), (["show", "HEAD:../x"], ""),
+            (["ls-files", "--", "../../x"], "docs"), (["ls-files", "--", "/*.py"], ""),
+            (["ls-files", "--", "//server/share/x"], ""), (["rev-parse", "HEAD:../x"], ""),
             (["ls-files", "--", ":(icase)docs"], ""), (["ls-files", "--", ":(attr:x)docs"], ""),
             (["ls-files", "--", ":(glob,literal)docs"], ""), (["ls-files", "--", ""], ""),
-            (["fetch", "origin", "main"], ""), (["--git-dir=x", "status"], ""), (["-c", "a=b", "-C", "x", "status"], ""),
-            (["ls-files", "--", "a\\b"] if os.sep == "/" else ["ls-files", "--", "E:x"], "")]
-        check("arm: THREE OUTCOMES, UNKEYED — a path outside the repository, past its top or UNC, a shown path past "
-              "the top, pathspec magic not modelled (icase, attr, glob with literal), an empty pathspec, a subcommand "
-              "or global option not modelled, a drive-relative path (Windows) or a backslash (POSIX) is an UnkeyedRead "
-              "carrying its command and directory, never a key (the owner 2026-11-10)",
+            (["fetch", "origin", "main"], ""), (["diff", "HEAD"], ""), (["--git-dir=x", "status"], ""),
+            (["-c", "a=b", "-C", "x", "status"], ""),
+            (["ls-files", "--", "a\\b"] if os.sep == "/" else ["ls-files", "--", "E:x"], ""),
+            # one undeclared option per declared subcommand, and each argument form the grammar refuses
+            (["ls-files", "--with-tree", "HEAD", "x"], ""), (["ls-files", "-o", "--", "x"], ""),
+            (["rev-parse", "--git-path", "x"], ""), (["rev-parse"], ""), (["rev-parse", "--show-toplevel", "HEAD"], ""),
+            (["log", "--since=1.day", "HEAD"], ""), (["log", "-n"], ""), (["log", "*.py"], ""),
+            (["grep", "-f", "patterns.txt"], ""), (["grep", "foo", "HEAD"], ""), (["grep"], ""),
+            (["config", "user.name", "x"], ""), (["config", "--unset", "user.name"], "")]
+        check("arm: THREE OUTCOMES, UNKEYED — a path outside the repository, past its top or UNC, pathspec magic not "
+              "modelled, an empty pathspec, a subcommand with no declared grammar, a global option not modelled, a "
+              "drive-relative path (Windows) or a backslash (POSIX), and for each declared subcommand an undeclared "
+              "option or argument form, is an UnkeyedRead carrying its command and directory, never a key (the owner "
+              "2026-11-10; kb/Work PB5227 review round 2)",
               [outcome(c, w) for c, w in unkeyed_rows],
               [("UNKEYED", "git " + " ".join(c), w or ".") for c, w in unkeyed_rows])
         check("arm: Tree.under refuses a path that is not repository-relative (an outside path's key would never "
               "change), at the call", [_raises(lambda d=d: tree.under(d)) for d in ("../x", posix_root + "/scripts",
                                                                                      "a\\b", "/x", "x/")],
               [True] * 5)
+        # A HISTORY READ is keyed by the objects its revisions name (GIT_GRAMMAR, HISTORY): a new commit re-runs a
+        # `HEAD` read, and a `<rev>:<path>` read only when that blob changes.
+        hist = ScratchRepo.init(root / "history")
+        hist.commit("one", {"a.txt": "a\n", "b.txt": "b\n"})
+        hist_tree = lambda: Tree.load(hist.path)  # noqa: E731
+        history = Deps.of(hist_tree(), set(), {("rev", "HEAD"), ("rev", "HEAD:a.txt"), ("rev", "no-such-ref")})
+        hist.commit("two", {"b.txt": "b2\n"})
+        after_b = history.changed(hist_tree())
+        hist.commit("three", {"a.txt": "a2\n"})
+        check("arm: a history read is keyed by its revisions' objects: unchanged on the same tree, a new commit re-runs "
+              "a HEAD read, a `HEAD:a.txt` read re-runs only when a.txt changes; a revision that names nothing is `-`",
+              (Deps.of(hist_tree(), set(), {("rev", "no-such-ref")}).trees, after_b, history.changed(hist_tree())),
+              ({"rev:no-such-ref": UNTRACKED}, ["rev:HEAD"], ["rev:HEAD", "rev:HEAD:a.txt"]))
 
         out = root / "trace-out"
         out.mkdir()
@@ -915,18 +1109,24 @@ def self_test() -> int:
         keyed.mkdir()
         subprocess.run([sys.executable, "-c", "import sys\nsys.path.insert(0, 'scripts/o')\nimport runner, colorsys\n"
                         "try:\n    import zz_absent\nexcept ImportError:\n    pass\n"
-                        "try:\n    from pk import sub_absent\nexcept ImportError:\n    pass\n"],
+                        "try:\n    from pk import sub_absent\nexcept ImportError:\n    pass\n"
+                        "try:\n    import nspkg.absent\nexcept ImportError:\n    pass\n"   # parent not yet loaded
+                        "sys.path.insert(0, 'scripts/o/Gen')\n"                    # a directory that does not exist yet
+                        "try:\n    import gfoo\nexcept ImportError:\n    pass\n"],
                        cwd=root, check=True, capture_output=True, env=traced_env(dict(os.environ), tracer, keyed, root))
         seen = read_trace(keyed, tree)
+        gen = next(d for d, n in seen.imports if n == "gfoo" and os.path.normcase(d) == os.path.normcase("scripts/o/Gen"))
         check("arm: the tracer records each module name an import looked for in a directory inside the repository — "
-              "found or not, a top-level name in each sys.path entry, a submodule in its package's directory",
-              sorted(i for i in seen.imports if i[0].startswith("scripts/")
-                     and i[1] in ("runner", "colorsys", "zz_absent", "pk", "sub_absent")),
-              [("scripts/o", "colorsys"), ("scripts/o", "pk"), ("scripts/o", "runner"), ("scripts/o", "zz_absent"),
-               ("scripts/o/pk", "sub_absent")])
+              "found or not, a top-level name in each sys.path entry, a submodule in its package's directory, also one "
+              "whose package `import a.b` had not loaded when the import began (review R2-1)",
+              sorted(i for i in seen.imports if i[0].startswith("scripts/") and i[0] != gen
+                     and i[1] in ("runner", "colorsys", "zz_absent", "pk", "sub_absent", "nspkg", "absent")),
+              [("scripts/o", "colorsys"), ("scripts/o", "nspkg"), ("scripts/o", "pk"), ("scripts/o", "runner"),
+               ("scripts/o", "zz_absent"), ("scripts/o/nspkg", "absent"), ("scripts/o/pk", "sub_absent")])
         keyed_deps = run_deps("scripts/o/test_y.py", tree, deriver, seen)
-        check("arm: the import key holds only the entries that answer an imported name",
-              keyed_deps.imports["scripts/o"]["found"], ["pk", "runner.py"])
+        check("arm: the import key holds only the entries that answer an imported name, and a package directory's "
+              "`__init__` (it decides regular or namespace)",
+              keyed_deps.imports["scripts/o"]["found"], ["nspkg", "pk", "pk/__init__.py", "runner.py"])
         suffix = next(s for s in IMPORT_SUFFIXES if s != ".py")
         cases = {
             "(a) an unrelated new file in a searched directory": planted_tree(**{"scripts/o/unrelated.py": "b"}),
@@ -938,6 +1138,14 @@ def self_test() -> int:
                 **{"scripts/o/colorsys/__init__.py": "b"}),
             "(e) the imported module's file removed": Tree(root, {k: v for k, v in blobs.items()
                                                                 if k != "scripts/o/runner.py"}, frozenset({"tools/sub"})),
+            "(R2-1) a new submodule answering `import nspkg.absent`": planted_tree(**{"scripts/o/nspkg/absent.py": "b"}),
+            "(R2-2) a namespace package gaining __init__": planted_tree(**{"scripts/o/nspkg/__init__.py": "b"}),
+            "(R2-2) a regular package losing __init__": Tree(root, {k: v for k, v in blobs.items()
+                                                                  if k != "scripts/o/pk/__init__.py"}, frozenset({"tools/sub"})),
+            "(R2-2) a directory appearing where a module file is": planted_tree(**{"scripts/o/runner/x.py": "b"}),
+            "(R2-5) a module in a sys.path directory created later, in its own case": planted_tree(
+                **{"scripts/o/Gen/gfoo.py": "b"}),
+            "(R2-5) a file whose name differs in case from the import": planted_tree(**{"scripts/o/Gen/GFOO.py": "b"}),
         }
         check("arm: an unrelated new file leaves the Deps unchanged; a new shadowing module, a new module or package "
               "answering an imported name and a removed module each change them (kb/Work PB5227)",
@@ -946,8 +1154,16 @@ def self_test() -> int:
                "(b) a new module shadowing an imported standard-library one": ["imports:scripts/o/colorsys.py"],
                "(c) a new module answering a failed import": [f"imports:scripts/o/zz_absent{suffix}"],
                "(c) a new submodule answering a failed import from a package": ["imports:scripts/o/pk/sub_absent.py"],
-               "(d) a new package directory with an imported module's name": ["imports:scripts/o/colorsys"],
-               "(e) the imported module's file removed": ["scripts/o/runner.py", "imports:scripts/o/runner.py"]})
+               "(d) a new package directory with an imported module's name": ["imports:scripts/o/colorsys",
+                                                                              "imports:scripts/o/colorsys/__init__.py"],
+               "(e) the imported module's file removed": ["scripts/o/runner.py", "imports:scripts/o/runner.py"],
+               "(R2-1) a new submodule answering `import nspkg.absent`": ["imports:scripts/o/nspkg/absent.py"],
+               "(R2-2) a namespace package gaining __init__": ["imports:scripts/o/nspkg/__init__.py"],
+               "(R2-2) a regular package losing __init__": ["scripts/o/pk/__init__.py", "imports:scripts/o/pk",
+                                                            "imports:scripts/o/pk/__init__.py"],   # its only file
+               "(R2-2) a directory appearing where a module file is": ["imports:scripts/o/runner"],
+               "(R2-5) a module in a sys.path directory created later, in its own case": [f"imports:{gen}/gfoo.py"],
+               "(R2-5) a file whose name differs in case from the import": []})
         check("arm: the import key survives its record (to_json → from_json), and a record without it is no PASS",
               (Deps.from_json(json.loads(json.dumps(keyed_deps.to_json()))) == keyed_deps,
                _raises(lambda: Deps.from_json({"files": {}, "trees": {}}))), (True, True))
