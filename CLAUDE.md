@@ -133,9 +133,10 @@ BelowNormal`** (`scripts/gate.py`), run at a branch's head before it lands. It d
 - **code** (everything else): the build once and the WHOLE Unit, Conformance and Characterization populations on Windows.
 There is no impact map, no tier, no selected leg and no Linux half per change; the inner loop (`dotnet test --filter` by
 hand) claims nothing. **A branch lands through ONE script, `python scripts/orchestrator/enqueue.py land <branch>`**: it
-refuses a tip no GREEN record covers, merges `origin/main` in, stamps the DEVLOG entry, runs the landing checks and queues
-one pull request in GitHub's merge queue. **The merge group is the whole-population net on both OSes** and the ONLY run of
-the merged tree, of Linux and of Release. A nightly runs the CLI NIST guard, every self-test on both OSes and the GnuCOBOL
+refuses a tip no GREEN record covers, merges `origin/main` in, stamps the DEVLOG entry, runs the landing checks, publishes
+this host's passes to the store ref and queues one pull request in GitHub's merge queue. **The merge group runs every target
+on Linux (Release) and, on Windows (Debug), each target with no pass at the merged tree's key on the store ref the landing
+publishes** (kb/Work PB5235), and it is the ONLY run of the merged tree, of Linux and of Release. A nightly runs the CLI NIST guard, every self-test on both OSes and the GnuCOBOL
 differential. Build `WiseOwl.Cobol.sln` (not a single project) before any `--no-build` run. Commands and the current
 baseline are in plan §0 "Gates" and §9.
 
