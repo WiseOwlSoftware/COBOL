@@ -1,0 +1,16 @@
+{
+  "batch": [601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612],
+  "pages_checked": [601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p607-1",
+      "page": 607,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Character Positions | Contents (column headings) ... 13-14 Two numeric characters of the seconds past the minute in the range: — 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect — 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. 15-16 Two numeric digits of the hundredths of a second ... 17 Either the character '–' ... 18-19 If character position 17 is '–' ... 20-21 Two numeric digits are returned in the range 00 through 59 ...",
+      "markdown_says": "   Character Contents\\\n   Positions\n\n| 1-4 | Four numeric digits of the year in the Gregorian calendar. |\n|---|---|\n... \n| 13-14 | Two numeric characters of the seconds past the minute in the range: |\n\n— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\\\n— 00 through nn, ...\n\n   15-16 Two numeric digits of the hundredths of a second past the second, in the range 00 through\n\n99\\. The value 00 is returned ...\n\n   17 Either the character '–' ...",
+      "why_it_matters": "The CURRENT-DATE character-position table is broken: its column headings sit outside the table as a mangled prose line (\"Character Contents\\ Positions\"), the table ends at row 13-14, the two LEAP-SECOND sub-items are detached from the 13-14 row, and rows 15-16, 17, 18-19 and 20-21 fall out as unstructured indented paragraphs. The 15-16 row is further split mid-sentence (\"in the range 00 through\" / \"99\\. The value 00 ...\"), so its upper bound 99 is detached into a separate paragraph that markdown renders as a stray numbered fragment. All text is present; the table structure that ties each position range to its contents is lost."
+    }
+  ]
+}

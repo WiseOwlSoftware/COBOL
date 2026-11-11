@@ -1,0 +1,13 @@
+{
+  "claim_id": "p42-1",
+  "claim_key": "08afcf866c4d691c",
+  "page": 42,
+  "kind": "ocr-error",
+  "severity": "cosmetic",
+  "claim": {"id": "p42-1", "page": 42, "kind": "ocr-error", "severity": "cosmetic", "pdf_says": "When an operand is textually subscripted, as operand-j<sub>n</sub>, the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.", "markdown_says": "When an operand is textually subscripted, as operand-jn, the term 'operand-j' identifies a specific operand and 'n' refers to the nth position or occurrence of operand-j.", "why_it_matters": "The subscript n is printed as a subscript in the PDF; the markdown flattens it to 'operand-jn', so the very notation 5.3.1 defines is not shown (it reads as a different operand name)."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered printed page 20 (PDF p42) at 300 dpi: §2002:5.3.1 reads 'as operand-j' followed by a lowered, smaller 'n' (a true subscript glyph). page-42.md line 9 reads 'as operand-jn' with the n on the baseline, no subscript markup. Both sources are quoted accurately by the claim. Ordinarily lost subscript styling is mere formatting, but here the subscript IS the content: 5.3.1 exists to define the textual-subscript notation, and the flattened 'operand-jn' is indistinguishable from an operand named 'operand-jn', so the defining example no longer shows the notation it defines. Genuine but cosmetic transcription loss; no normative rule text is missing.",
+    "corrected_description": null
+  }
+}
