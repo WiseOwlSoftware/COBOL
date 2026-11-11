@@ -1099,3 +1099,7 @@ WiseOwl.Cobol.Runtime.DebugCause.MergeOutput = 6 -> WiseOwl.Cobol.Runtime.DebugC
 WiseOwl.Cobol.Runtime.DebugCause.UseProcedure = 7 -> WiseOwl.Cobol.Runtime.DebugCause
 *REMOVED*WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply) -> void
 WiseOwl.Cobol.Runtime.IO.CobolReport.AddRolled(WiseOwl.Cobol.Runtime.IO.ReportGroup! source, int sumId, int presentSlot, System.Func<System.Int128, System.Int128>! apply, bool crossFoot) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.BeginOpen(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.EndOpen(string! name) -> void
+WiseOwl.Cobol.Runtime.IO.FileRegistry.BeginOpen(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode) -> void
+WiseOwl.Cobol.Runtime.IO.FileRegistry.EndOpen(string! name) -> void
