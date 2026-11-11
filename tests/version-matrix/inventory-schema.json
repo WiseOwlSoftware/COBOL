@@ -1096,7 +1096,9 @@
       "records bridge over it as over an edition not held (1985's name 2023, `bridge` true), and its own rows' records",
       "name the next linked held edition. 2002 is held unlinked from the day its catalog exists until the adjudication of",
       "the 1985 to 2002 records, which links it in the same change that rewrites 1985's records into it (section 10.2,",
-      "'A missing edition is bridged, provisionally'). The newest held edition ends the lineage and is always linked."
+      "'A missing edition is bridged, provisionally'). The newest held edition ends the lineage and is always linked. An",
+      "edition is linked only once its transcription is reconciled (inventory_schema.link_errors, asked by the INVENTORY",
+      "VIEW audit against verify_publishable.reconciled): until then its rule ids may still move under a change record."
     ],
     "of": [
       {"year": 1985, "spelling": "85", "catalog": "docs/rearchitecture/spec-rule-catalog-1985.json", "locator": "locator",

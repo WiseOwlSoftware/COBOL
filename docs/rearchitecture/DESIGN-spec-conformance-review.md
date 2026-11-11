@@ -832,8 +832,8 @@ kb/Work PB5256), its change records do not yet.
   changes the rows' text, and the store records adjudicated against the reconstruction are refused by their
   `rule-digest` until they are decided again against the printed text.
 
-The catalog is written to `docs/rearchitecture/spec-rule-catalog-1985.json` and held by the gate's RULE CATALOG 1985
-audit (`--edition 1985 --check`: no finding, and the committed catalog is this run's). On the reconciled file it counts
+The catalog is written to `docs/rearchitecture/spec-rule-catalog-1985.json` and held by the gate's RULE CATALOGS
+audit (`--held --check`, every held edition; for 1985 no finding, and the committed catalog is this run's). On the reconciled file it counts
 2,274 rows from 669 blocks (SR 660, GR 1,256, AR 65, RV 80, FMT 213), 12 of them provisional, and no finding; the
 content-keyed scan measures 89 paragraphs (777 ordinals, an upper bound), of which the manifest admits 52 (255 rows) and
 records 37 as not rules.
@@ -931,7 +931,7 @@ one (an I-O-CONTROL paragraph beside SAME, a file description entry, VI 3.2 besi
 DISABLE and ENABLE statements; 2023's EXIT, IF, SEARCH and MOVE statements, the ARITHMETIC clause, the data description
 entry and the PRESENT WHEN, VALUE and VARYING clauses) marks only the syntax and general rules that name a term, never
 its general format, whose later fate is its own CHANGED record. OWN or SHARED is derived from the heading, never held.
-The drift checks, which the RULE CATALOG and RULE CATALOG 1985 audits fail on, hold the data to the text, per list: the
+The drift checks, which the RULE CATALOGS audit fails on, hold the data to the text, per list: the
 entries are exactly the list's items, every section is a locator of the text, every sentence that gives an element the
 list's standing ("is an obsolete element", "is an archaic feature") falls in a section some entry names (or a remark
 section the data names: the 1985 level tables' Z notation, a 2023 definition's note, Annex A's lists, Annex D's
@@ -1215,22 +1215,39 @@ rule-shaped headings no kind types (§2002:8.8.1.3.1.3 "Rounding rules", §2002:
 for word a clause of the 2023 manifest, so none carried a disposition: every one is `pending`, and its rules are outside
 the 2002 denominator until it is adjudicated by §2002:5.2.1 and 5.2.2. Each carries a `candidate` (71 of them: the 2023
 manifest clause of the same title nearest in text, its disposition and kind) as the adjudicator's starting point. Until
-then the 2002 rule count is a lower bound, and the summary says how many clauses wait.
+then the 2002 rule count is a lower bound: the catalog records what it leaves out (`outside-denominator`: the pending
+clauses and the untyped headings), and every reader that prints the count prints it beside it
+(`inventory_view.lower_bound`: the session probe's `invent` line, the ledger), so a 2002 count at zero GAP cannot read
+as a complete denominator (branch review R1-5).
 
 **The stability rule.** An id is its clause, its kind and its printed number (`IsoEdition.rule_id`), so regenerating the
 catalog after the reconciliation corrects a page keeps every id whose clause and number did not change and changes only
 the corrected rule's text; a rule the correction inserts renumbers the rules after it in its own block, as the printed
 numbers do. A record adjudicated against changed text is refused by its `rule-digest` (§10.2). The extractor's
-`--self-test` plants a page, applies a correction and holds this.
+`--self-test` plants a page, applies a correction and holds this. A CHANGE RECORD names its `to` rules by id, so it
+also carries each target's `rule-digest` when it was decided (`next.digests`, stamped by `record_verdicts.py`; 1985's
+1,937 records were stamped against the 2023 texts they were decided on, unchanged since): a target whose text has
+moved under its id makes the record STALE by name (`lineage.stale_targets`), and the INVENTORY VIEW audit fails on it.
+The reviewer's scenario, one rule inserted into READ's general rules, moves the text under 27 ids, and a record into
+each is named STALE (branch review R1-4). And an edition is LINKED only once its transcription is reconciled
+(`inventory_schema.link_errors`, asked by the INVENTORY VIEW audit, against `verify_publishable.reconciled`: the
+reconciliation ledger records every page of the PDF, `spec_pdf.EDITIONS[...].pages`), so no older edition's records
+can name 2002 ids before the reconciliation stops moving them. The extractor's `IsoEdition.reconciled` is the same fact.
 
 **The inventory** is `tests/version-matrix/inventory-2002/`, the 1985 store's layout and fields (`verdict`, `code-location`,
 `test-ref`, `derivation`, `notes`, `next`), held by the schema's `editions.of` and read by the same view, store and
 recording path (`inventory_view.py`, `inventory_store.py`, `record_verdicts.py --edition 2002`): no 2002 script. It holds no
 file (a store holds adjudication only), so every row is open: 3,290 rules, 3,290 GAP, printed by the session probe's
 `invent` line and the ledger beside 1985's and 2023's, which iterate `inventory_schema.HELD`. 2002 is held but not linked
-(§10.2): no change record names it yet.
+(§10.2): no change record names it yet. The gate's RULE CATALOGS, LINEAGE CANDIDATES and CATALOG COVERAGE audits (and
+CI's) read the held editions from the schema, so a newly held edition needs no new audit line (branch review R1-2, R1-7).
 
-**The lineage seed.** `python scripts/spec/lineage.py --candidates 2002` writes `spec-lineage-candidates-2002.json`: each 2002
-rule paired with the 2023 rules of the same construct (`subject`), kind and words (`exact`, or `normalized` by `cite.norm`),
-no judgment and no record. On 2026-11-11: 1,955 paired (1,732 exact, 223 normalized, 2 with two candidates), 1,335
-unpaired. The adjudication of the 2002 change records starts there, and the 1985 to 2002 records after it link 2002.
+**The lineage seed.** `python scripts/spec/lineage.py --candidates` writes `spec-lineage-candidates-<year>.json` for every
+older held edition: each rule paired with the next linked edition's rules of the same construct (`subject`), kind and
+text, `exact` or `normalized`, no judgment and no record. NORMALIZATION ERASES TYPOGRAPHY ONLY (`lineage.pairing_text`):
+a Markdown escape, typographic quotes and dashes, the ellipsis glyph (read as `...`), a list item's delimiter (`1.` and
+`1)`) and white space; never a bracket, a brace, a choice bar, an ellipsis, an underline, a word, a letter's case or a
+number, so a general format's notation is part of its key (the first seed, by `cite.norm`'s words only, paired 2002's
+`{character-1} ...` with 2023's `[character-1] ...`, a change of meaning: branch review R1-3). On 2026-11-11, 2002 to
+2023: 1,758 paired (1,732 exact, 26 normalized, 2 with two candidates), 1,532 unpaired; 1985 to 2023: none paired
+(2,274 unpaired: no 1985 rule is word for word a 2023 rule). The adjudication of the 2002 change records starts there, and the 1985 to 2002 records after it link 2002.
