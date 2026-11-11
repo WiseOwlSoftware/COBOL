@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-II.6.4.1.2-3",
  "rule-digest": "3f6fac7fb7cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Runtime/Control/ProgramNameScope.cs#CommonProgramReferable; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate",
  "test-ref": "conformance:cases/II.6.4.1@1985-Transfer-of-Control/1985-SR-II_6_4_1_2-3",
+ "notes": "§1985:II.6.4.1.2 SR3 lets any program call a common program \"directly contained within a program which itself directly or indirectly contains the calling program, unless the calling program is itself contained within the program possessing the common attribute\". Activate resolves every CALL name, literal or identifier, through ResolveVisible: after the caller's own children it walks the caller's containers nearest first and returns a COMMON child of one, except where CommonProgramReferable finds the caller to be that common program or inside it; the exception's only release is the RECURSIVE attribute, which is refused at 85 (COBOL0885), so the 1985 exclusion is unconditional and the name then falls to a separately compiled program or EC-PROGRAM-NOT-FOUND (§1985:II.6.4.1.3 SR3 \"the program called is the separately compiled program\"). Probed at --std 85 over a three-level tree, by literal and by identifier: a grandchild and a sibling common program reach the common program, the common program and the program it contains do not reach it, a program outside the container does not, and the DUPLICATE-NAME example of II.6.4.1.3 resolves as the text lists. The witness calls a common sibling from a contained program.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

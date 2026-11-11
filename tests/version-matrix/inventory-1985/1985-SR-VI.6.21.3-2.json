@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.21.3-2",
  "rule-digest": "ad29fdfffa6b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVaryingAfter; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performVaryingAfter; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performInlineHead",
  "test-ref": "conformance:cases/VI.6.21@1985-PERFORM-STATEMENT/1985-SR-VI_6_21_3-2",
+ "notes": "§1985:VI.6.21.3 SR2: \"In format 4, if procedure-name-1 is omitted, the AFTER phrase must not be specified.\" The grammar parses an AFTER phrase (performVaryingAfter) under either form, and an inline PERFORM's options hang under performInlineHead; VisitPerformVaryingAfter walks each AFTER phrase's ancestors up to its own PERFORM statement and, when one is a performInlineHead, checks the construct inline-perform-after-2002, which refuses it below 2002 with COBOL0900 (kb/Work PB4305). Probed at --std 85: an inline PERFORM VARYING with one AFTER, with two (each reported), with WITH TEST AFTER and with index-names is refused; PERFORM P1 VARYING ... AFTER and PERFORM P1 THRU P2 ... AFTER ... AFTER run, as does an out-of-line PERFORM with AFTER nested inside an inline PERFORM (the walk stops at the nearer statement), and an inline PERFORM VARYING without AFTER. The witness is an inline PERFORM VARYING with one AFTER phrase.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

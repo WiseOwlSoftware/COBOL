@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.7.4-2",
  "rule-digest": "40785f5241e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueClauseFalsePhrase",
  "test-ref": "conformance:cases/VI.5.7@1985-LEVEL-NUMBER/1985-GR-VI_5_7_4-2",
+ "notes": "§1985:VI.5.7.4 GR2 assigns level-number 77 to \"noncontiguous working storage data items, noncontiguous linkage data items\", usable \"only as described by format 1 of the data description entry\", 66 to RENAMES entries \"only as described by format 2\", and 88 to condition-name entries \"only as described by format 3\". LevelNumberPass.VisitLevelNumber refuses a level 77 under an FD or SD (COBOL1746) and passes every data description entry to CheckEntryFormat, which refuses a RENAMES body at any level but 66, a level 66 without RENAMES, a level 88 whose body is not a VALUE clause alone, and a 66, 77 or 88 entry without the name its format prints (COBOL1747); DataBinder.BindEntries refuses a level 02-49 entry that follows a level 77, so a 77 is never subdivided (COBOL2771). None of this has an edition arm. The 1985 arm is what 2002 added to those formats: the local-storage section (the third home of a 77) and the level-88 validation format, WHEN SET TO FALSE and IN alphabet-name phrases are each refused at --std 85 with COBOL0900 (VisitValueClauseFalsePhrase and its sibling gates; probed under row 1985-GR-VI.5.3.4-2). The witness declares a level 77 and a level 88 and uses both; 15 probes covered a 77 with a subordinate entry, without PICTURE, unnamed, with RENAMES, in the file section, a 66 with PICTURE or without a name, RENAMES at level 05, and the legal forms (77 in working-storage and linkage, 77 with an 88, 66 with and without THRU).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

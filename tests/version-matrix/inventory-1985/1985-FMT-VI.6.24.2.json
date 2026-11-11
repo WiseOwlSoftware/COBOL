@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.6.24.2",
  "rule-digest": "16645f721997",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#stopStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindStop; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStopStatement",
  "test-ref": "conformance:cases/VI.6.24@1985-STOP-STATEMENT/1985-FMT-VI_6_24_2",
+ "notes": "§1985:VI.6.24.2 prints STOP followed by one of RUN or literal-1, both required alternatives of one brace. stopStatement has exactly those two alternatives (STOP RUN with an optional statusPhrase, and STOP literal) and BindStop binds each to its own node; at 85 VisitStopStatement lets STOP literal through (the construct is removed only from 2002) and refuses the WITH ERROR or NORMAL STATUS phrase that later editions add to STOP RUN (COBOL0900). Probed at --std 85: STOP RUN, STOP \"MSG\", STOP 5 and STOP ZERO compile and run; a bare STOP, STOP identifier, STOP RUN 5, STOP \"A\" \"B\", STOP RUN WITH ERROR STATUS 3 and a concatenation expression are refused. The literal's own rules (§1985:VI.6.24.3, kb/Work PB5074) are other rows. The witness is the refusal of STOP identifier.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

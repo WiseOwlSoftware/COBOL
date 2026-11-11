@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.2.12.3-3",
  "rule-digest": "abd08ad74502",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenRerunClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rerunClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rerunEvery",
  "test-ref": "conformance:cases/VII.2.12@1985-RERUN-CLAUSE/1985-SR-VII_2_12_3-3",
+ "notes": "§1985:VII.2.12.3 SR3: \"When either the integer-1 RECORDS phrase or the integer-2 CLOCK-UNITS phrase is specified, implementor-name-1 must be given in the RERUN clause.\" The clause is 1985-only: rerunClause parses it at every edition, VisitRerunClause refuses it from 2002 (COBOL0902), and at --std 85 BindIoControl collects the paragraph's RERUN clauses and ScreenRerunClauses asks the five syntax rules; the clause is otherwise a null rerun facility. On the RECORDS and CLOCK-UNITS arms ScreenRerunClauses reports COBOL6530 when the clause has no ON phrase and also when the ON word names a file, since that operand is then file-name-1 and not implementor-name-1 (§1985:VII.2.12.4 GR2 d: \"the device specified by implementor-name-1, which must be specified in the ON phrase\"). Probed at --std 85 beyond the witness (RECORDS with no ON phrase): CLOCK-UNITS with no ON phrase, and RECORDS and CLOCK-UNITS with a sequential file in ON, are refused; both phrases with an implementor-name in ON are accepted, and the END OF REEL phrase without ON stays legal.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

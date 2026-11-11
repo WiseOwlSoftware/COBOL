@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.6.4-6",
  "rule-digest": "a91bb36ce6a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#SentRecordImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#ReleasedRecordNeedsAlsoAvailable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord",
  "test-ref": "conformance:cases/IX.4.6@1985-REWRITE-STATEMENT/1985-GR-IX_4_6_4-6",
+ "notes": "§1985:IX.4.6.4 GR6: \"After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available\", with no condition on where identifier-1 lies (2023 adds one for an item inside the file's own records). KeyedIoEmitter.EmitRewrite emits the FROM move into record-name-1, reads the record to send out of the area (SentRecordImage) and passes it to the runtime by value; nothing is stored back into identifier-1 or the record area afterwards. The one store that can follow a REWRITE, EndReleasedRecord, is emitted only when ReleasedRecordNeedsAlsoAvailable finds an out-of-line record in a SAME RECORD AREA group (a dynamic-length or pointer-class record, shapes that cannot be declared at --std 85), so the 1985 path leaves every area as the move left it; the record-name-1 area keeping its content is within \"is not available\". No edition arm. The witness rewrites from a WORKING-STORAGE group and displays it afterwards. Probed further at --std 85: identifier-1 lying past record-name-1's end in a longer record of the same FD (legal under §1985:IX.4.6.3 SR1, the case 2023 withdrew), with fixed and with RECORD VARYING records, and identifier-1 in a record of another file of the same SAME RECORD AREA clause, each keep their content after a successful REWRITE and after one that fails with status 23.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

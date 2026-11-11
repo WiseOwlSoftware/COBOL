@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-IV.5.3.1",
  "rule-digest": "9ab287b46d3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen",
  "test-ref": "conformance:cases/IV.5.3@1985-STRUCTURE/1985-FMT-IV_5_3_1",
+ "notes": "§1985:IV.5.3.1 prints a source program as identification-division, then [ environment-division ], [ data-division ], [ procedure-division ] and [ end-program-header ], each bracket optional and in that order (§1985:IV.5.2: the divisions \"are grouped into four divisions which are sequenced in the following order\"). The grammar rule programUnit is that format (identificationDivision, then environmentDivision?, dataDivision?, procedureDivision?, endProgramHeader?), so a division out of order or written twice has no parse; the one 1985 difference from 2023, the required identification division header, is the edition gate VisitIdentificationDivision (COBOL0900 at 85 for a unit that opens at PROGRAM-ID), and SourceUnitShape.Screen checks the end marker's keyword. Probed at --std 85: an identification division alone, with an empty environment and data division, and with END PROGRAM compile; DATA before ENVIRONMENT, DATA after PROCEDURE, two DATA or ENVIRONMENT divisions, two end program headers and a program with no identification division are refused. The witness runs the identification and procedure divisions alone. LEAD outside this row (§1985:X.2.3.1 prints [ procedure-division ] and [ source-program ] ... as separate brackets): SourceUnitShape.Screen applies the 2023 format at every edition and refuses at 85 a program that contains a program and has no procedure division (COBOL2274, probe n1.cob); no kb/Work note names it.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

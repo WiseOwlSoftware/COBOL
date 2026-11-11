@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.3.3-5",
  "rule-digest": "ba5c6b7e3776",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckExternalFileConsistency; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitExternalDescribes; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe",
  "test-ref": "conformance:cases/VII.3.3@1985-BLOCK-CONTAINS-CLAUSE/1985-GR-VII_3_3_3-5",
+ "notes": "§1985:VII.3.3.3 GR5: \"If the associated file connector is an external file connector, all BLOCK CONTAINS clauses in the run unit which are associated with that file connector must have the same value for integer-1 and integer-2.\" Implemented at 85: BinderDriver.Bind keys every EXTERNAL file by its external name, so the file description entries of a run unit share one connector, and BindBlockContainsClause reads each clause's integers; agreeing clauses (the witness: 1 TO 4 RECORDS in both programs) compile and run, and so does an entry with no clause beside one with it (probed), which 1985 allows because it constrains only the clauses present, where §2023:13.4.5.4 GR2 says \"If any of the file description entries has a BLOCK CONTAINS clause, all shall have a BLOCK CONTAINS clause specifying the same minimum and maximum size\". Not implemented: the agreement. BindBlockContainsClause keeps no value on the FileModel; CheckExternalFileConsistency runs only under edition.DialectLevel >= 2023 and compares the FILE STATUS, RELATIVE KEY and LINAGE items only, and the descriptor EmitExternalDescribes renders for ExternalTable.Describe has no field for this clause, so no stage compares the clauses at any edition (probed at 85 and at 2023). Two programs of one compilation group whose clauses say 1 TO 4 RECORDS and 10 RECORDS, or 4 RECORDS and 80 CHARACTERS, compile without a diagnostic and run. kb/Work PB5069 holds the mechanism for two other clauses' rules; it does not list this rule id.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

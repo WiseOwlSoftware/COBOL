@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.2.4.4-2",
  "rule-digest": "6a0fee7e3523",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#compilationGroup; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#identificationDivision; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitClassDefinition",
  "test-ref": "conformance:cases/VI.2.4@1985-END-PROGRAM-HEADER/1985-GR-VI_2_4_4-2",
+ "notes": "§1985:VI.2.4.4 GR2: \"If the next source statement after the program terminated by the end program header is a COBOL statement, it must be the Identification Division header of a program to be compiled separately from that program terminated by the end program header.\" In the grammar the outermost program's endProgramHeader closes programUnit, and compilationGroup admits after it only another source unit, whose first rule is identificationDivision; the 2002 forms that rule and the group add are refused at --std 85, so only the IDENTIFICATION DIVISION header of a program passes: a unit opening on PROGRAM-ID by VisitIdentificationDivision (Constructs.IdentificationHeaderOptional2002, COBOL0900), a class or interface unit by VisitClassDefinition and its interface sibling (COBOL0900), a FUNCTION-ID unit by its own 2002 gate (COBOL0900). Probed at 85 after END PROGRAM E1.: PROGRAM-ID, CLASS-ID and an IDENTIFICATION DIVISION with FUNCTION-ID draw COBOL0900; a statement, a paragraph, DATA DIVISION, a second END PROGRAM and ID DIVISION draw COBOL0001; comment and blank lines then IDENTIFICATION DIVISION of a second program compile and run, as does end of source. The witness is the refusal of DISPLAY after the header (COBOL0001).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

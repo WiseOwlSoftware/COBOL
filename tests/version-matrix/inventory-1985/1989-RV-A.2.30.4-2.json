@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-RV-A.2.30.4-2",
  "rule-digest": "2e29841c1c77",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalCDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Compiler/Binding/Bound/IntrinsicCarrierRules.cs#ReturnsExactParse",
  "test-ref": "conformance:cases/A.2.30@1985-NUMVAL-C-FUNCTION/1989-RV-A_2_30_4-2",
+ "notes": "§1989:A.2.30.4 RV2: \"The number of digits returned is 18.\" Read with §1989:A.2.30.3 AR3 (\"The total number of digits in argument-1 must not exceed 18.\"), the duty at 85 is a returned value that carries all 18 digits of a conforming argument, at any scale. RenderDec routes NUMVAL-C to NumvalCDec in every arithmetic mode and channel (ReturnsExactParse, no edition arm); NvScan counts digits only, skipping the currency string and the grouping commas, accumulates them in an Int128, and NumvalCDec lifts the result to the 34-digit decimal carrier exactly at the parsed scale. Probed at --std 85: 18 digits as a grouped integer, as 9.9 after a currency sign and as V18, in COMPUTE and in a relation, each exact to the last digit. The witness converts 18 digits in six comma groups after a currency sign.",
  "next": {
   "kind": "REMOVED",
   "to": [],

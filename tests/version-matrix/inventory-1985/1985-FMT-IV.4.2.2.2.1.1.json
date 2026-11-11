@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-IV.4.2.2.2.1.1",
  "rule-digest": "82b9748cdb33",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
  "test-ref": "conformance:cases/IV.4.2.2.2.1@1985-Nonnumeric-Literals/1985-FMT-IV_4_2_2_2_1_1",
+ "notes": "§1985:IV.4.2.2.2.1.1 gives the nonnumeric literal one format, the quotation mark around one or more characters (\"{character-1}\" in braces, repeated), and §1985:IV.4.2.2.2.1 says it is \"delimited at the beginning and at the end by the separator quotation mark\". The lexer fragment STR_BODY delimits a literal by a quotation mark or by an apostrophe at every edition, and GateFormat, the one edition screen of a literal's format, asks two questions only: the hexadecimal X literal and the zero-length literal, both refused at 85 with COBOL0900 (N and B literals are refused with their classes). It has no arm for the apostrophe delimiter, which §2023:8.3.3.1 introduced (\"may be either apostrophes or quotation marks\") and the 1985 COBOL character set does not contain, so at --std 85 an apostrophe-delimited literal compiles and runs in every position probed (DISPLAY, MOVE, VALUE, a level-88 VALUE, ALL literal). The rest of the format conforms at 85: a quotation-mark literal of one character, of 160 characters over three continued lines and with doubled quotation marks is accepted with its value, and the empty literal is refused. The witness displays one quotation-mark literal. No kb/Work note owns the fix.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

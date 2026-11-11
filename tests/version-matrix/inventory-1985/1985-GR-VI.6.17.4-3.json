@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.17.4-3",
  "rule-digest": "771e65f376f0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#InitializeItemCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeStatement",
  "test-ref": "conformance:cases/VI.6.17@1985-INITIALIZE-STATEMENT/1985-GR-VI_6_17_4-3",
+ "notes": "§1985:VI.6.17.4 GR3: 'Index data items and elementary FILLER data items are not affected by the execution of an INITIALIZE statement.' InitializeBinder.ExpandInitialize, the one receiver walk, returns without a store for a contained elementary item whose name is null (an explicit FILLER or an entry with no data-name) unless the statement has WITH FILLER, and for any item InitializeItemCategory gives no category, whose first arm is USAGE INDEX; both tests stand before the REPLACING qualification, so neither form of the statement stores into them, and a FILLER group is still walked for its named items. The 1985 edition reaches the rule's unconditional form because Bind's WITH FILLER flag can never be set at 85: VersionConformancePass.VisitInitializeStatement refuses the phrase below 2002 (COBOL0830, probed). Probed at --std 85 beyond the witness: an entry with no data-name, a FILLER inside a FILLER group, a FILLER in each occurrence of a table, a FILLER table, a numeric-edited FILLER, each under INITIALIZE with and without REPLACING and under INITIALIZE of one table occurrence, and index data items (elementary and under a USAGE INDEX group) beside a numeric item with and without REPLACING NUMERIC: every FILLER and index item kept its content and every named item was set. The witness exercises one FILLER between two named items and one index data item.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

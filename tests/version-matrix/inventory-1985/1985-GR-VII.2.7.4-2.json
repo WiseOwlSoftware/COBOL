@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.2.7.4-2",
  "rule-digest": "efc923e14416",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#paddingCharacterClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPaddingCharacterClause; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#DeviceClasses; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
  "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-GR-VII_2_7_4-2",
+ "notes": "§1985:VII.2.7.4 GR2: \"If the PADDING CHARACTER clause is not applicable to the device type to which the file is assigned, the creation or recognition of padding characters does not occur.\" This is the arm every file of this implementation takes: a file is assigned to a host file whatever the ASSIGN operand (AssignTargetRule.DeviceClasses: DISK and PRINTER both name a file of the host file system, and a one-operand TO phrase names one directly), and the sequential connector has no physical record larger than the logical one, so padding characters apply to no device type it supports (§1985:p.XVII-94 item 5 makes the clause depend on that). paddingCharacterClause parses the clause and keeps nothing, no binder or emitter reads it, and SequentialConnector.Write and Read hold no padding arm, so neither creation nor recognition can occur; VisitPaddingCharacterClause accepts the clause at --std 85. Probed at 85, with and without BLOCK CONTAINS: the file holds exactly the records written (three 5-character records are 15 bytes), and a record of five asterisks under PADDING CHARACTER IS \"*\" is returned by READ, not ignored. The witness writes ALPHA, a record of five asterisks and GAMMA under PADDING CHARACTER IS \"*\" and reads all three back.",
  "next": {
   "kind": "REMOVED",
   "to": [],

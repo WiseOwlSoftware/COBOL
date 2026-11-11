@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.6.3-1",
  "rule-digest": "4b3f2f98a10c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#labelRecordsClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
  "test-ref": "conformance:cases/VII.3.6@1985-LABEL-RECORDS-CLAUSE/1985-GR-VII_3_6_3-1",
+ "notes": "§1985:VII.3.6.3 GR1: \"OMITTED specifies that no explicit labels exist for the file or the device to which the file is assigned.\" labelRecordsClause parses the clause, its FileDescriptionFormats.Rows row admits it in every file description format, VisitLabelRecordsClause is the edition arm (accepted at --std 85, refused from 2002), and BindFileSection has no arm for it, so no connector reads or writes a label: a file described OMITTED is created and read with no label, which is what the rule says of it. The implementation's label specification is that a file carries no label record the COBOL program can see: labels belong to the host file system (§1985:C.1: \"Specifying the presence of file labels is considered a function of the operating system and as such does not belong in the COBOL program.\"), and docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.4 states the clause as accepted-inert at 85. Probed at 85: LABEL RECORDS ARE OMITTED, LABEL RECORD IS OMITTED and LABEL RECORDS OMITTED compile, and the file written holds the data records alone. The witness writes one record to a file described LABEL RECORDS ARE OMITTED and reads it back. The grammar also takes words other than STANDARD and OMITTED; that is the general format's row and kb/Work PB5070, not this rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

@@ -17,7 +17,7 @@ rule's text and wrote one record per rule (`{"records": [...]}` files under a di
 This script does the placement from the records, never by hand:
 
     python scripts/spec/place_witnesses.py --confirm DIR --state DIR --batch FILE [--summary FILE] [--cobol PATH]
-                                           [--edition 1985] [--jobs 8]
+                                           [--edition 1985] [--jobs 8] [--replace]
     python scripts/spec/place_witnesses.py --self-test
 
 Each witness is first judged again on THIS build through the harness (`run_drafts.harness_run`, `run_drafts.judge`: the
@@ -32,6 +32,12 @@ model's, checked against its rule, never yet against the portability lint or the
   waits for the clause pass that writes it.
 A draft that needs a COPY library is skipped (its library text is no draft's: kb/Work PB5067), and so is a refusal the
 compiler reports with no error at the violating line (a warning alone refuses nothing).
+
+A rule is placed once, whichever pass's records place it. A run that places a rule whose test the suite already holds
+leaves it alone when the case it would write is the one there, byte for byte (its program and the sidecars of its shape,
+and no other); when it is not, the run is refused before it writes anything, naming the source the placed test was placed
+from and the records file that places it again. `--replace` replaces it instead: every file of the old case (its program
+in whatever clause folder, its `.out` files, its `wiseowl/diagnostics/` refusal) is removed before the new one is written.
 
 The witness of a rule whose change record is its own (`next` not `chained`: CHANGED, REMOVED) is recorded as a
 WITNESS-ONLY record (`{"rule-id", "test-ref"}`) in the batch this writes, for `record_verdicts.py --edition <year>`; its
@@ -82,6 +88,8 @@ class Witness:
     draft: dict[str, Any]
     #: what the draft is: the audit's own (CONFIRMED) or the confirmation pass's redraft
     source: str
+    #: the records file whose record gives it
+    origin: pathlib.Path
 
 
 @dataclass
@@ -93,31 +101,33 @@ class Sorted:
     unplaced: dict[str, str]
 
 
-def read_confirmations(directory: pathlib.Path) -> list[dict[str, Any]]:
-    """Every record of every `*.json` under `directory` (`{"records": [...]}`), in file order; a rule twice is refused."""
-    records: list[dict[str, Any]] = []
+def read_confirmations(directory: pathlib.Path) -> list[tuple[pathlib.Path, dict[str, Any]]]:
+    """Every record of every `*.json` under `directory` (`{"records": [...]}`) with the file that holds it, in file order;
+    a rule twice is refused."""
+    records: list[tuple[pathlib.Path, dict[str, Any]]] = []
     for f in sorted(directory.glob("*.json")):
-        records += json.loads(f.read_text(encoding="utf-8"))["records"]
-    twice = [r for r, n in collections.Counter(r["rule-id"] for r in records).items() if n > 1]
+        records += [(f, r) for r in json.loads(f.read_text(encoding="utf-8"))["records"]]
+    twice = [r for r, n in collections.Counter(r["rule-id"] for _, r in records).items() if n > 1]
     if twice:
         raise SystemExit(f"{TOOL}: {directory} decides {', '.join(sorted(twice)[:5])} more than once")
     return records
 
 
-def sort_records(records: list[dict[str, Any]], drafts: dict[str, dict[str, Any]]) -> Sorted:
+def sort_records(records: list[tuple[pathlib.Path, dict[str, Any]]], drafts: dict[str, dict[str, Any]]) -> Sorted:
     """The witnesses the records give, the UNDECIDED records' questions, and why each other record gives none."""
     out = Sorted([], {}, {})
-    for r in records:
+    for origin, r in records:
         rid, decision = r["rule-id"], r["decision"]
         if decision == CONFIRMED:
             if rid in drafts:
-                out.witnesses.append(Witness(rid, drafts[rid], "the audit's draft, confirmed"))
+                out.witnesses.append(Witness(rid, drafts[rid], "the audit's draft, confirmed", origin))
             else:
                 out.unplaced[rid] = "CONFIRMED, but the audit run holds no draft of it"
         elif decision in REDRAFTED and r.get("redraft_run") == PLACEABLE_REDRAFT:
-            out.witnesses.append(Witness(rid, r["draft"], f"the confirmation pass's redraft ({decision} original)"))
+            out.witnesses.append(Witness(rid, r["draft"], f"the confirmation pass's redraft ({decision} original)",
+                                         origin))
         elif decision == DRAFTED and r.get("redraft_run") == PLACEABLE_REDRAFT:
-            out.witnesses.append(Witness(rid, r["draft"], f"written and run by {r['pass']}"))
+            out.witnesses.append(Witness(rid, r["draft"], f"written and run by {r['pass']}", origin))
         elif decision == UNDECIDED:
             out.undecided[rid] = r.get("question") or ""
         else:
@@ -211,6 +221,27 @@ class Placement:
     placed: dict[str, tuple[str, str, str | None]]
     #: rule id -> why it is not placed
     skipped: dict[str, str]
+    #: the placed rules whose case the suite already held, byte for byte (nothing written)
+    unchanged: list[str]
+
+
+def case_files(suite: pathlib.Path, tid: str) -> list[pathlib.Path]:
+    """Every file of `suite` that is test `tid`'s case: its program in whatever clause folder, the expected-output files
+    beside it (`<id>.out`, `<id>.<...>.out`: generate.py's names), and its refusal (`wiseowl/diagnostics/<id>.json`,
+    `<id>.<step file>.json`)."""
+    programs = sorted((suite / "cases").glob(f"*/{tid}.cob"))
+    outs = [o for p in programs for o in sorted(p.parent.glob(f"{tid}.*out")) if o.name.endswith(".out")]
+    diagnostics = suite / "wiseowl" / "diagnostics"
+    refusals = [f for f in (diagnostics / f"{tid}.json", *sorted(diagnostics.glob(f"{tid}.*.json"))) if f.is_file()]
+    return programs + outs + refusals
+
+
+def placed_from(program: pathlib.Path) -> str:
+    """The source a placed test names in its comment (`Placed from <source> by scripts/spec/place_witnesses.py`)."""
+    text = " ".join(line[len(COMMENT):] for line in program.read_text(encoding="utf-8").splitlines()
+                    if line.startswith(COMMENT))
+    m = re.search(r"Placed from (.+?) by scripts/spec/place_witnesses\.py", text)
+    return m.group(1) if m else "a source this script does not name (it did not place it)"
 
 
 def judge_all(witnesses: list[Witness], adapter: pathlib.Path, variables: dict[str, str], edition: str,
@@ -233,9 +264,13 @@ def judge_all(witnesses: list[Witness], adapter: pathlib.Path, variables: dict[s
 
 
 def place(witnesses: list[Witness], rows: dict[str, dict[str, Any]], names: dict[str, str], ed: inventory_schema.Edition,
-          judged: dict[str, tuple[str, str | None]], suite: pathlib.Path) -> Placement:
-    """Write each witness that holds on this build into `suite`; the rest are skipped with their reason."""
-    out = Placement({}, {})
+          judged: dict[str, tuple[str, str | None]], suite: pathlib.Path, replace: bool = False) -> Placement:
+    """Write each witness that holds on this build into `suite`; the rest are skipped with their reason. A rule whose
+    test the suite already holds is left alone when its case is the one this would write, byte for byte; otherwise the
+    whole run is refused before anything is written, unless `replace`, when the old case's files are removed first."""
+    out = Placement({}, {}, [])
+    #: rule id -> the files of its case (path -> text)
+    cases: dict[str, dict[pathlib.Path, str]] = {}
     for w in witnesses:
         row = rows.get(w.rule_id)
         verdict, code = judged.get(w.rule_id, ("not judged", None))
@@ -253,17 +288,33 @@ def place(witnesses: list[Witness], rows: dict[str, dict[str, Any]], names: dict
             clause = clause_of(row["section"])
             folder, tid = f"{clause}@{ed.year}-{names[clause]}", test_id(w.rule_id)
             where = suite / "cases" / folder
-            where.mkdir(parents=True, exist_ok=True)
-            (where / f"{tid}.cob").write_text(render(w, row, ed.spelling, code), encoding="utf-8", newline="\n")
+            case = {where / f"{tid}.cob": render(w, row, ed.spelling, code)}
             if refused:
-                diagnostics = suite / "wiseowl" / "diagnostics"
-                diagnostics.mkdir(parents=True, exist_ok=True)
-                (diagnostics / f"{tid}.json").write_text(json.dumps({"refuse-at": [ed.spelling], "expect": code}) + "\n",
-                                                         encoding="utf-8", newline="\n")
+                case[suite / "wiseowl" / "diagnostics" / f"{tid}.json"] = json.dumps(
+                    {"refuse-at": [ed.spelling], "expect": code}) + "\n"
             else:
-                (where / f"{tid}.out").write_text("\n".join(w.draft["expected"]["output"]) + "\n", encoding="utf-8",
-                                                  newline="\n")
+                case[where / f"{tid}.out"] = "\n".join(w.draft["expected"]["output"]) + "\n"
+            cases[w.rule_id] = case
             out.placed[w.rule_id] = (folder, tid, code)
+    by_rule = {w.rule_id: w for w in witnesses}
+    held = {rid: case_files(suite, out.placed[rid][1]) for rid in cases}
+    for rid, case in cases.items():
+        if {f: f.read_bytes() for f in held[rid]} == {f: text.encode("utf-8") for f, text in case.items()}:
+            out.unchanged.append(rid)
+    differing = [rid for rid in cases if held[rid] and rid not in out.unchanged]
+    if differing and not replace:
+        lines = [f"  {rid}: {held[rid][0].relative_to(suite).as_posix()} was placed from {placed_from(held[rid][0])}; "
+                 f"{by_rule[rid].origin} places {by_rule[rid].source}, a different case" for rid in sorted(differing)]
+        raise SystemExit(f"{TOOL}: {len(differing)} rule(s) already placed differently (--replace replaces them; nothing "
+                         f"was written):\n" + "\n".join(lines))
+    for rid, case in cases.items():
+        if rid in out.unchanged:
+            continue
+        for f in held[rid]:
+            f.unlink()
+        for f, text in case.items():
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(text, encoding="utf-8", newline="\n")
     return out
 
 
@@ -287,6 +338,7 @@ def batch_of(placement: Placement, rows: dict[str, dict[str, Any]], change: inve
 def summary_of(s: Sorted, placement: Placement, chained: list[str], unclassified: list[str]) -> dict[str, Any]:
     kinds = collections.Counter("refusal" if code else "output" for _, _, code in placement.placed.values())
     return {"placed": len(placement.placed), "placed-by-kind": dict(sorted(kinds.items())),
+            "unchanged": len(placement.unchanged),
             "recorded": len(placement.placed) - len(chained) - len(unclassified), "chained": chained,
             "unclassified": unclassified,
             "skipped": dict(sorted(placement.skipped.items())), "unplaced": dict(sorted(s.unplaced.items())),
@@ -295,14 +347,15 @@ def summary_of(s: Sorted, placement: Placement, chained: list[str], unclassified
 
 def run_placement(confirm: pathlib.Path, state: pathlib.Path, year: int, adapter: pathlib.Path, variables: dict[str, str],
                   jobs: int, suite: pathlib.Path, rows: list[dict[str, Any]] | None = None,
-                  schema: inventory_schema.Schema | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
+                  schema: inventory_schema.Schema | None = None, replace: bool = False
+                  ) -> tuple[dict[str, Any], dict[str, Any]]:
     schema = schema or inventory_schema.load_schema()
     ed = schema.edition(year)
     rows = rows if rows is not None else inventory_view.inventory(year, schema)
     by_id = {r["rule-id"]: r for r in rows}
     s = sort_records(read_confirmations(confirm), answers_by_id(state, "drafts"))
     judged = judge_all(s.witnesses, adapter, variables, ed.spelling, jobs)
-    placement = place(s.witnesses, by_id, clause_names(rows), ed, judged, suite)
+    placement = place(s.witnesses, by_id, clause_names(rows), ed, judged, suite, replace)
     batch, chained, unclassified = batch_of(placement, by_id, schema.next, f"place-witnesses-{year}")
     return batch, summary_of(s, placement, chained, unclassified)
 
@@ -312,7 +365,9 @@ def run_placement(confirm: pathlib.Path, state: pathlib.Path, year: int, adapter
 def self_test() -> int:
     """Three planted records through the harness's stub compiler (run.py `_STUB`): a CONFIRMED output draft of a CHANGED
     rule, a WEAK record's MATCH redraft refusing at its line (a KEPT rule), and an UNDECIDED record; then a redraft that
-    COPYs, a refusal the compiler only warns about, and a MISMATCH redraft."""
+    COPYs, a refusal the compiler only warns about, a MISMATCH redraft, a MATCH record that mismatches on this build and
+    a DRAFTED record its pass ran to MISMATCH; then the same records again (nothing written), another pass's records that
+    place two of the rules in the other shape (refused) and the same with `--replace`."""
     from audit_batch import Pass, custom_id, write_plan  # noqa: PLC0415
     fails: list[str] = []
 
@@ -337,7 +392,7 @@ def self_test() -> int:
         state, confirm, suite = root / "run", root / "confirm", root / "suite"
         changed, kept, undecided = "1985-GR-VI.6.18.4-1", "1985-SR-VI.6.18.3-2", "1985-GR-VI.6.18.4-3"
         copying, warned, filed = "1985-GR-VI.6.18.4-4", "1985-SR-VI.6.18.3-5", "1985-GR-VI.6.18.4-6"
-        drafted = "1985-GR-VI.6.18.4-7"
+        drafted, stale, drafted_filed = "1985-GR-VI.6.18.4-7", "1985-GR-VI.6.18.4-8", "1985-GR-VI.6.18.4-9"
         refusing = "\n".join(["*> STUB diag 2", "*> STUB refuse"])
         warning = "\n".join(["*> STUB diag 2", "*> the violating line"])
         p = Pass(state, "drafts")
@@ -362,7 +417,13 @@ def self_test() -> int:
             {"rule-id": filed, "decision": "WEAK", "basis": "b", "redraft_run": "MISMATCH",
              "draft": {"program": "*> STUB run out Y", "expected": {"outcome": "output", "output": ["Z"]}}},
             {"rule-id": drafted, "decision": "DRAFTED", "pass": "the drafting pass", "redraft_run": "MATCH",
-             "draft": {"program": "*> STUB run out W", "expected": {"outcome": "output", "output": ["W"]}}}]}),
+             "draft": {"program": "*> STUB run out W", "expected": {"outcome": "output", "output": ["W"]}}},
+            # its record says MATCH, but on this build the program DISPLAYs another line: the re-judge skips it
+            {"rule-id": stale, "decision": "WEAK", "basis": "b", "redraft_run": "MATCH",
+             "draft": {"program": "*> STUB run out Y", "expected": {"outcome": "output", "output": ["Q"]}}},
+            # a DRAFTED witness its pass ran to MISMATCH is a filed defect, even though this build would match it
+            {"rule-id": drafted_filed, "decision": "DRAFTED", "pass": "the drafting pass", "redraft_run": "MISMATCH",
+             "draft": {"program": "*> STUB run out V", "expected": {"outcome": "output", "output": ["V"]}}}]}),
             encoding="utf-8", newline="\n")
 
         def row(rid: str, kind: str | None) -> dict[str, Any]:
@@ -372,7 +433,8 @@ def self_test() -> int:
                     "next": {"kind": kind} if kind else {}}
 
         rows = [row(changed, "CHANGED"), row(kept, "KEPT"), row(undecided, "CHANGED"), row(copying, "REMOVED"),
-                row(warned, "CHANGED"), row(filed, "CHANGED"), row(drafted, "REMOVED")]
+                row(warned, "CHANGED"), row(filed, "CHANGED"), row(drafted, "REMOVED"), row(stale, "CHANGED"),
+                row(drafted_filed, "CHANGED")]
         batch, summary = run_placement(confirm, state, 1985, root / "adapters" / "stub.json", {}, 2, suite, rows, schema)
         folder = suite / "cases" / "VI.6.18@1985-INSPECT-STATEMENT"
         out_test = folder / f"{test_id(changed)}.cob"
@@ -399,6 +461,48 @@ def self_test() -> int:
         ok("PB5067" in summary["skipped"].get(copying, "") and "no error" in summary["skipped"].get(warned, "")
            and summary["placed"] == 3,
            "a draft that COPYs is skipped, and so is a refusal the compiler only warns about")
+        ok("on this build" in summary["skipped"].get(stale, "") and not (folder / f"{test_id(stale)}.cob").exists()
+           and stale not in summary["unplaced"],
+           "a redraft whose record says MATCH but which no longer matches on this build is judged again and not placed")
+        ok("MISMATCH" in summary["unplaced"].get(drafted_filed, "") and not (folder / f"{test_id(drafted_filed)}.cob").exists(),
+           "a DRAFTED record whose pass ran it to MISMATCH is a filed defect, never placed, though this build matches it")
+
+        def snapshot() -> dict[str, bytes]:
+            return {f.relative_to(suite).as_posix(): f.read_bytes() for f in sorted(suite.rglob("*")) if f.is_file()}
+
+        before = snapshot()
+        _, again = run_placement(confirm, state, 1985, root / "adapters" / "stub.json", {}, 2, suite, rows, schema)
+        ok(again["placed"] == 3 and again["unchanged"] == 3 and snapshot() == before,
+           "placing the same records again finds every case already there, byte for byte, and writes nothing")
+        # another pass's records place two placed rules again in the other shape: the output test as a refusal, the
+        # refusal as an output test
+        confirm2 = root / "confirm-2"
+        confirm2.mkdir()
+        (confirm2 / "triage.json").write_text(json.dumps({"records": [
+            {"rule-id": changed, "decision": "DRAFTED", "pass": "the triage pass", "redraft_run": "MATCH", "draft": refusal},
+            {"rule-id": kept, "decision": "DRAFTED", "pass": "the triage pass", "redraft_run": "MATCH",
+             "draft": {"program": "*> STUB run out K", "expected": {"outcome": "output", "output": ["K"]}}}]}),
+            encoding="utf-8", newline="\n")
+        try:
+            run_placement(confirm2, state, 1985, root / "adapters" / "stub.json", {}, 2, suite, rows, schema)
+            ok(False, "a rule placed again from another pass in a different case is refused, naming both sources")
+        except SystemExit as e:
+            ok(f"{changed}:" in str(e) and f"{kept}:" in str(e) and "the audit's draft, confirmed" in str(e)
+               and "the confirmation pass's redraft (WEAK original)" in str(e) and str(confirm2 / "triage.json") in str(e)
+               and "written and run by the triage pass" in str(e) and snapshot() == before,
+               "a rule placed again from another pass in a different case is refused, naming both sources, and the "
+               "run writes nothing")
+        (folder / f"{test_id(changed)}.85.out").write_text("HELLO\n", encoding="utf-8", newline="\n")
+        _, replaced = run_placement(confirm2, state, 1985, root / "adapters" / "stub.json", {}, 2, suite, rows, schema,
+                                    replace=True)
+        diagnostics = suite / "wiseowl" / "diagnostics"
+        ok(replaced["placed"] == 2 and replaced["unchanged"] == 0
+           and "written and run by the triage pass" in out_test.read_text(encoding="utf-8")
+           and (diagnostics / f"{test_id(changed)}.json").is_file()
+           and not list(folder.glob(f"{test_id(changed)}.*out"))
+           and (folder / f"{test_id(kept)}.out").read_text(encoding="utf-8") == "K\n"
+           and not (diagnostics / f"{test_id(kept)}.json").exists(),
+           "--replace writes the new case and removes every file of the old shape (the .out files, the refusal)")
         dup = confirm / "slice-03.json"
         dup.write_text(json.dumps({"records": [{"rule-id": changed, "decision": "CONFIRMED", "basis": "b"}]}),
                        encoding="utf-8", newline="\n")
@@ -423,6 +527,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--cobol", type=pathlib.Path, default=run_drafts.DEFAULT_COBOL)
     ap.add_argument("--edition", type=int, default=1985, help="the held edition whose rules the drafts witness")
     ap.add_argument("--jobs", type=int, default=8)
+    ap.add_argument("--replace", action="store_true",
+                    help="replace a rule's placed test that differs from the case this would write (its old files removed)")
     a = ap.parse_args(argv)
     if a.self_test:
         return self_test()
@@ -431,11 +537,12 @@ def main(argv: list[str] | None = None) -> int:
     if not a.cobol.is_file():
         raise SystemExit(f"{TOOL}: no compiler at {a.cobol} (dotnet build WiseOwl.Cobol.sln)")
     batch, summary = run_placement(a.confirm, a.state, a.edition, run_drafts.ADAPTER, {"cobol": str(a.cobol)}, a.jobs,
-                                   SUITE)
+                                   SUITE, replace=a.replace)
     write_atomic(a.batch, json.dumps(batch, indent=1, ensure_ascii=False))
     if a.summary:
         write_atomic(a.summary, json.dumps(summary, indent=1, ensure_ascii=False))
-    print(f"{TOOL}: placed {summary['placed']} {summary['placed-by-kind']}, {summary['recorded']} recorded in {a.batch}, "
+    print(f"{TOOL}: placed {summary['placed']} {summary['placed-by-kind']} ({summary['unchanged']} already there), "
+          f"{summary['recorded']} recorded in {a.batch}, "
           f"{len(summary['chained'])} their chain's, skipped {len(summary['skipped'])}, undecided "
           f"{len(summary['undecided'])}, unplaced {len(summary['unplaced'])}", flush=True)
     return 0

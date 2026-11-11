@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.4.3-5",
  "rule-digest": "d3452c60afac",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ResultRefMod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#FinishIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
  "test-ref": "conformance:cases/IV.4.3.8.4@1985-Reference-Modification/1985-SR-IV_4_3_8_4_3-5",
+ "notes": "§1985:IV.4.3.8.4.3 SR5 (Amendment 1): \"The function referenced by function-name-1 and its arguments, if any, must be an alphanumeric function.\" ResultRefMod, the one applier of a reference-modifier to a function result (reached from FinishIntrinsic), decides from the bound call's result category, which the arguments set for MAX and MIN, and refuses a numeric or integer function with COBOL1629; the national and boolean categories it also admits name no function at 85, because BindFunctionResult refuses every function introduced after the 1989 module with COBOL1502. Probed at 85: MAX (A1 A2) (2:3) over alphanumeric items is accepted and MAX (N1 N2) (1:1) over numeric items is refused, as are LENGTH, SQRT, NUMVAL and INTEGER-OF-DATE; a second modifier on the result draws COBOL1630. The witness accepts UPPER-CASE (WS-A) (2:2) and refuses ORD (WS-B (1:1)) (1:1).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

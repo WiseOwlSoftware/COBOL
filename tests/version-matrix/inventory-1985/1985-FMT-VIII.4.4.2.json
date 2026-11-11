@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VIII.4.4.2",
  "rule-digest": "eef6530f6d3f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openFileSpec; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#openMode; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#MapOpenMode; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenTapePhrase",
  "test-ref": "conformance:cases/VIII.4.4@1985-OPEN-STATEMENT/1985-FMT-VIII_4_4_2",
+ "notes": "§1985:VIII.4.4.2 prints the relative file's OPEN as one or more groups, each INPUT, OUTPUT, I-O or EXTEND followed by one or more file-names, with none of the sequential format's REVERSED and NO REWIND phrases. openStatement is OPEN openClause+, openClause an openMode with openFileSpec+, and BindOpen binds each file of each group with its group's mode from MapOpenMode, one implicit OPEN per file-name; the two tape phrases the superset openFileSpec parses are kept off a relative file by CheckOpenTapePhrase (NO REWIND is COBOL1802, REVERSED COBOL2210), and the SHARING and RETRY phrases of the later editions are refused at 85 (COBOL0900 for SHARING; RETRY is not read as a phrase below 2002 and fails as an undefined file-name). Probes at --std 85 accept all four modes in one statement and a repeated mode, and refuse OPEN with no mode, a mode with no file, a record-name and an undefined name; the witness opens two relative files under OUTPUT, I-O with INPUT, EXTEND and INPUT and reads back what each wrote.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.3.6.2",
  "rule-digest": "736d6992b3e1",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#labelRecordsClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
  "test-ref": "conformance:cases/VII.3.6@1985-LABEL-RECORDS-CLAUSE/1985-FMT-VII_3_6_2",
+ "notes": "kb/Work PB5070 owns the fix (labelRecordsClause is a word list no binder reads); it records the IGNORED case under the report file's row 1985-FMT-XIII.3.2.2 and does not list this row. §1985:VII.3.6.2 prints LABEL { RECORD IS | RECORDS ARE } { STANDARD | OMITTED }, every word but IS and ARE underlined. Implemented at 85: labelRecordsClause is LABEL (RECORD IS? | RECORDS ARE?) (STANDARD | OMITTED | cobolWord+), so the head of the clause is the format exactly (LABEL RECORD ARE, LABEL RECORDS IS, LABEL STANDARD and a clause with no operand are syntax errors; STANDARD OMITTED together is COBOL1970); VisitLabelRecordsClause is silent at 85 and refuses the clause from 2002 (COBOL0902); ScreenClauseRepetition refuses a second clause (COBOL2423). Not implemented: the closed choice of the second brace. The third alternative cobolWord+ takes any run of user-defined words (the 1974 data-name form and dialect words such as IGNORED), BindFileSection has no arm for the clause and nothing asks the edition, so LABEL RECORDS ARE IGNORED and LABEL RECORD IS LBL1 LBL2 (two words defined nowhere) compile clean at 85. The clause has no effect on the object program here (labels are the implementor's, §1985:VII.3.6.3 GR1 to GR3), so the harm is acceptance of non-conforming source. The witness writes LABEL RECORDS ARE STANDARD and reads one record back.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

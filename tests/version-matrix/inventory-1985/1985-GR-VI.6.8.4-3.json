@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.8.4-3",
  "rule-digest": "b3fe6d01842f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindCompute; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitCompute",
  "test-ref": "conformance:cases/VI.6.8@1985-COMPUTE-STATEMENT/1985-GR-VI_6_8_4-3",
+ "notes": "§1985:VI.6.8.4 GR3: \"The COMPUTE statement allows the user to combine arithmetic operations without the restrictions on composite of operands and/or receiving data items imposed by the arithmetic statements ADD, SUBTRACT, MULTIPLY, and DIVIDE\" and \"each implementor will indicate the techniques used in handling arithmetic expressions\". The 18-digit composite cap of §1985:VI.6.4.4 is CheckComposite (cap = the edition's MaxDigits, 18 at 85), which only the ADD, SUBTRACT, MULTIPLY, DIVIDE and CORRESPONDING binders call; BindCompute binds the expression and every receiver without calling it, at every edition, and EmitCompute evaluates the expression once in the implementor's documented technique (docs/CONFORMANCE.md row DOC-A.1-123: a scaled Int128 intermediate, exact wide form past it), which is the indication the second sentence asks for. Probed at 85: the witness's operands (9(10) and V9(10), composite 20) draw COBOL0805 in ADD A B GIVING R and compile in COMPUTE (5.5); COMPUTE R1 R2 = A + B with 9(18) and V9(18) operands and receivers (composite 36) and (A * B) / A + C store the exact values. The witness runs the 20-digit composite through COMPUTE.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

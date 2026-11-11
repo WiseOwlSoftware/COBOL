@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.6.4-5",
  "rule-digest": "d430dccf0617",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
  "test-ref": "conformance:cases/IX.4.6@1985-REWRITE-STATEMENT/1985-GR-IX_4_6_4-5",
+ "notes": "§1985:IX.4.6.4 GR5 makes REWRITE ... FROM \"equivalent to the execution of the following statements in the order specified\": \"MOVE identifier-1 TO record-name-1\" under the MOVE statement's rules, then \"The same REWRITE statement without the FROM phrase.\" KeyedIoBinder.BindRewrite binds the phrase through MoveBinder.BindFromPhrase, which hands identifier-1 and record-name-1 (the record named, not the widest record of the area) to BindMoveOf, the one application of the MOVE rules; KeyedIoEmitter.EmitRewrite emits that bound move first and then the code path a REWRITE without FROM takes. No edition arm in the move; the one 1985 difference is the gate VersionConformancePass.VisitRecordFromPhrase, which refuses FROM literal-1 at --std 85 (COBOL0871), since the 1985 format prints only identifier-1. The witness rewrites from a shorter and a longer alphanumeric item and a group, and shows the move done even when the REWRITE then fails with status 23. Probed further at --std 85: a numeric sender to a numeric record aligns on the decimal point (12.34 to 9(8)V9(4) stores 000000123400), a COMP sender converts, a subscripted sender and a JUSTIFIED RIGHT record follow MOVE, an alphanumeric-edited sender to a numeric record draws COBOL0819 and an index data item COBOL0809. A sender in the record's own storage draws nothing; that is the syntax rule §1985:IX.4.6.3 SR1, kb/Work PB5077, not this rule.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.8.4-7",
  "rule-digest": "48cc2108000a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
  "test-ref": "conformance:cases/IX.4.8@1985-USE-STATEMENT/1985-GR-IX_4_8_4-7",
+ "notes": "§1985:IX.4.8.4 GR7 is a prohibition laid on the program: \"Within a USE procedure, there must not be the execution of any statement that would cause the execution of a USE procedure that had previously been invoked and had not yet returned control to the invoking routine.\" It states no result for a program that does so, and it leaves a USE procedure free to cause the execution of a different one. EmitUseMachinery gives each declarative its own slot of the per-program __useActive array and routes every selection through the one __RunUse invoker (EmitRunUseBody): a procedure that is not active runs, nested inside another when a statement of that other raised it, and its slot is cleared when it returns; a procedure selected while its slot is set is not re-invoked and the selecting statement falls through, so the forbidden execution does not recurse. At --std 85 the unit is free of the exception-condition model (its enabling directives are later than 1985), so EmitUseMachinery picks the void form of the guard, which only declines; the EC-FLOW-USE raise of §2023:14.9.49.4 GR2 is the other arm and is never emitted there. The witness has file A's procedure raise file B's, and both run. Probed further at --std 85: B's procedure, entered from A's, then raises A's again; A's is declined, B's and A's complete, the run ends with exit 0, and A's procedure runs again on the next error after it has returned.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

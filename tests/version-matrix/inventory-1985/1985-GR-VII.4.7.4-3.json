@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.4.7.4-3",
  "rule-digest": "87453efb891f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite",
  "test-ref": "conformance:cases/VII.4.7@1985-WRITE-STATEMENT/1985-GR-VII_4_7_4-3",
+ "notes": "§1985:VII.4.7.4 GR3 makes WRITE ... FROM \"equivalent to the execution of the following statements in the order specified\": \"MOVE identifier-1 TO record-name-1\" under the MOVE rules, then the same WRITE without FROM. BindWrite hands the FROM operand to BindFromPhrase, which binds it with record-name-1 as the one receiver through BindMoveOf, the MOVE statement's own binder (its category screen refuses an invalid pair with COBOL0819), and EmitWrite emits that bound move before it reads the record image and calls the runtime write; no edition arm is involved (FROM literal-1, the 2002 widening, is refused at 85 with COBOL0871). Probed at --std 85 beyond the witness (numeric to a longer and a shorter numeric record): a numeric item to a numeric-edited record, alphanumeric to a shorter record and to a JUSTIFIED RIGHT record, a group, a subscripted and a reference-modified item, an alphanumeric function and a numeric-edited item to a group record all store what the MOVE would, the rest of the record area and identifier-1 stay unchanged, and alphabetic to numeric, numeric to alphabetic and alphanumeric-edited to numeric are refused.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

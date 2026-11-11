@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.2.3.4-1",
  "rule-digest": "f8406d69bb18",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckExternalFileConsistency; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Of; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe; src/WiseOwl.Cobol.Compiler/Binding/CheckingFold.cs#ExternalMaskAt",
  "test-ref": "conformance:cases/IX.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-IX_2_3_4-1",
+ "notes": "§1985:IX.2.3.4 GR1: \"all file control entries in the run unit which reference this file connector must have\" the same OPTIONAL phrase, a consistent ASSIGN, the same RESERVE integer, organization, access mode, prime key description and location, and alternate keys (items a to g). Implemented at 85: BinderDriver.Bind keys every EXTERNAL file by its external name, so the entries of a run unit share one connector, and it calls CheckExternalFileConsistency only under edition.DialectLevel >= 2023, so the 2023 addition (item i, the same external FILE STATUS item) is not imposed at 85; probed: two entries with different, non-external FILE STATUS items compile and run at 85 and are refused at 2023 (COBOL1573, COBOL1624). Not implemented at 85: the agreement itself. FileEntryIdentity.Of builds the a-to-g identity, but ExternalTable.Describe compares it only under the EC-EXTERNAL-FILE-MISMATCH gate that CheckingFold.ExternalMaskAt folds from >>TURN, a directive --std 85 refuses (COBOL0900), and no compile-time pass compares the entries of one compilation group; so entries that disagree in access mode and prime key compile and run in silence, the activated program using the first describer's entry. kb/Work PB5069 holds the same mechanism for the Sequential and Relative modules' rules; it does not list this rule id. The witness runs two agreeing entries (OPTIONAL, RESERVE 2, DYNAMIC, an alternate key WITH DUPLICATES) and reads through both keys in the called program.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

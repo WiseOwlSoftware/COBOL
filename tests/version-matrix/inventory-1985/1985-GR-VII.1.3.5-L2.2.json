@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.1.3.5-L2.2",
  "rule-digest": "7d836bc42496",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#AtEnd; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Unsuccessful; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadUnsuccessful; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore",
  "test-ref": "conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/1985-GR-VII_1_3_5-L2_2",
+ "notes": "§1985:VII.1.3.5 gives the at end condition one value: \"I-O Status = 10. A sequential READ statement is attempted and no next logical record exists in the file because: 1) The end of the file has been reached, or 2) A sequential READ statement is attempted for the first time on an optional input file that is not present.\" The runtime is the same at every edition. Cause 1: SequentialConnector.ReadRecord returns ReadUnsuccessful(AtEnd) when the reader has no next frame (and, for OPEN REVERSED, when the target record number falls below 1). Cause 2: OpenCore marks an absent OPTIONAL file opened INPUT as positioned at end, and FileConnector.SequentialReadGuard answers 10 for the first READ of it; the guard tests the unsuccessful-previous-READ arm first, so the 10 is first-time-only and the next READ is 46, as the logic-error list of the same paragraph requires. Probed at --std 85: an absent optional input file READ gives 10 then 46, with READ INTO leaving identifier-1 unchanged; an absent optional file opened I-O (created empty) 10; an empty file 10 then 46; OPEN REVERSED of a one-record file 00 then 10; with no AT END phrase the USE procedure runs with 10. The witness reads a two-record file to its end (00, 00, AT END with 10) and reads an absent optional input file once (AT END with 10).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -4,6 +4,6 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
  "test-ref": "conformance:cases/15.3-Arguments/pb1-numeric-arg-trig-family",
- "editions": "2002,2014,2023",
- "notes": "PB1 EXTENDED. ACOS is now in the Verified table, so 15.8.3 r1 (a bare class-numeric constraint) is enforced end to end. The batch-2 finding was precisely a table MISS, not a missing mechanism."
+ "editions": "85,2002,2014,2023",
+ "notes": "PB1 EXTENDED. ACOS is now in the Verified table, so 15.8.3 r1 (a bare class-numeric constraint) is enforced end to end. The batch-2 finding was precisely a table MISS, not a missing mechanism. EDITIONS AS ADJUDICATED 2026-11-10: in force at 85, §1989:A.2.5.3 AR1 'Argument-1 must be class numeric.'"
 }

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.5.8.2",
  "rule-digest": "70040e982f1a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#occursClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#occursKeyClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#indexNameList; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#NarrowToDataDivisionFormats; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOccursClause",
  "test-ref": "conformance:cases/VI.5.8@1985-OCCURS-CLAUSE/1985-FMT-VI_5_8_2",
+ "notes": "§1985:VI.5.8.2 prints two formats: format 1, OCCURS \"integer-2 TIMES\", and format 2, OCCURS integer-1 TO integer-2 TIMES DEPENDING \"ON data-name-1\" with no part bracketed, each followed by the repeatable ASCENDING or DESCENDING \"KEY IS { data-name-2 }\" phrase and then one INDEXED \"BY { index-name-1 }\" phrase. The grammar rule occursClause parses the union of the 2023 formats (optional TO, optional DEPENDING, STEP, DYNAMIC) with occursKeyClause repeated before one INDEXED BY indexNameList, and two members narrow it to the 1985 pair: DataBinder.NarrowToDataDivisionFormats refuses TO without DEPENDING, DEPENDING without TO and the report-writer STEP phrase in a data description entry at every edition (COBOL2789), and VersionConformancePass.VisitOccursClause refuses OCCURS DYNAMIC below COBOL-2014 (COBOL0900), which is the edition arm 1985 reaches. The witness runs both formats with TIMES written and omitted, two KEY phrases and two index-names. Probed further at --std 85: KEY and IS omitted, a comma between index-names, integer-1 of zero and a qualified data-name-1 are accepted and run; `OCCURS 1 TO 5 TIMES` alone, `OCCURS 5 TIMES DEPENDING ON N`, STEP, OCCURS DYNAMIC, INDEXED BY before a KEY phrase, a second INDEXED BY phrase and a KEY phrase without ASCENDING or DESCENDING are each refused (COBOL2789, COBOL0900 or COBOL1941).",
  "next": {
   "kind": "CHANGED",
   "to": [

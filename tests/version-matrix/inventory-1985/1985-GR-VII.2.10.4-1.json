@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.2.10.4-1",
  "rule-digest": "23602f17b962",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#multipleFileClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rerunClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMultipleFileClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRerunClause",
  "test-ref": "conformance:cases/VII.2.10@1985-I-O-CONTROL-PARAGRAPH/1985-GR-VII_2_10_4-1",
+ "notes": "§1985:VII.2.10.4 GR1: \"The MULTIPLE FILE TAPE clause, the RERUN clause, and the SAME clause are presented in alphabetical order on the following pages.\" The rule states no behaviour of its own: it names the three clauses of the 1985 I-O-CONTROL paragraph and points to their descriptions, so what the compiler owes at --std 85 is that exactly those three are the paragraph's clauses. ioControlClause carries one alternative for each (sameClause, multipleFileClause, rerunClause), BindIoControl binds each at every edition, and the two clauses 2023 no longer has are 1985-only by their edition arms: VisitMultipleFileClause and VisitRerunClause accept them at 85 and refuse them from 2002 (COBOL0902). Probed: one I-O-CONTROL sentence with SAME RECORD AREA, RERUN ... RECORDS, MULTIPLE FILE TAPE ... POSITION and RERUN ... END OF REEL, in that order (§1985:VII.2.10.3 SR1: \"The order of appearance of the clauses is immaterial.\"), compiles and runs at --std 85 with the record area shared, and at --std 2002 the two RERUN clauses and the MULTIPLE FILE TAPE clause are each refused with COBOL0902. What each clause then does is its own row's (the RERUN function is 1985-GR-VII.2.12.4-1 and -2). The witness writes SAME AREA FOR two files and runs.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

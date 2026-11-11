@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.12.3-2",
  "rule-digest": "e4558c058a02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#GateGroupSignSubordinates; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#SignedSubordinatesTheClauseReaches",
  "test-ref": "conformance:cases/VI.5.12@1985-SIGN-CLAUSE/1985-SR-VI_5_12_3-2",
+ "notes": "§1985:VI.5.12.3 SR2: \"The numeric data description entries to which the SIGN clause applies must be described, implicitly or explicitly, as USAGE IS DISPLAY.\" The entries the clause applies to are the signed ones (§1985:VI.5.12.4 GR1: \"The SIGN clause applies only to numeric data description entries whose PICTURE contains the character 'S'\"). Run runs after usage inheritance, so an implicit group usage is known. For an elementary entry SignClauseElementaryDefect refuses a usage other than display or national with COBOL2422, and national data is refused at 85 by its own edition gate (COBOL0900, probed), which leaves DISPLAY. For a group the 1985 arm GateGroupSignSubordinates (it returns at once from 2002) walks SignedSubordinatesTheClauseReaches, every signed numeric item below the group that no nearer SIGN clause takes over, and refuses the group through the construct sign-group-nondisplay-subordinate-2002 with COBOL0900 when one is not DISPLAY; 2023 has no such rule for a group. Probed at 85: SIGN on PIC S9(3) with COMP (the witness), BINARY, COMP-3 and PACKED-DECIMAL, on an item under a USAGE COMP group, and on a group over a signed COMP or COMP-3 item (its own usage or a USAGE COMP written on the group) is refused; a group SIGN over a signed DISPLAY item beside an unsigned COMP item or an index data item compiles.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

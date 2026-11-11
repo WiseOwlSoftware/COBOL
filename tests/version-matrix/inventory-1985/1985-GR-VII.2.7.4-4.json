@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.2.7.4-4",
  "rule-digest": "3158545a69d1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#paddingCharacterClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPaddingCharacterClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitCodeSetRegistration; src/WiseOwl.Cobol.Runtime/IO/FileCharacterSet.cs#ToChannel; src/WiseOwl.Cobol.Runtime/IO/FileCharacterSet.cs#FromChannel",
  "test-ref": "conformance:cases/VII.2.7@1985-PADDING-CHARACTER-CLAUSE/1985-GR-VII_2_7_4-4",
+ "notes": "§1985:VII.2.7.4 GR4: \"If the CODE-SET clause is specified for the file, conversion of the padding character specified by literal-1 or the content of data-name-1 is established for the file when the file is opened.\" The rule converts a padding character that is going to be written or recognized; on this implementation none is (GR2 of the same clause: padding characters apply to no device type it supports, §1985:p.XVII-94 item 5), so there is nothing to convert. paddingCharacterClause keeps nothing and VisitPaddingCharacterClause accepts the clause at --std 85; the CODE-SET conversion EmitCodeSetRegistration registers is applied by FileCharacterSet.ToChannel and FromChannel to the characters of each record and to nothing else. Probed at 85: with CODE-SET naming an EBCDIC alphabet, BLOCK CONTAINS 4 RECORDS and PADDING CHARACTER IS \"*\", the record ABCDE is stored as the five bytes C1 C2 C3 C4 C5 with no fill in either code, read back as ABCDE, and the second READ is at end. The witness is the same program with a STANDARD-1 alphabet: one record written, read back, then EOF.",
  "next": {
   "kind": "REMOVED",
   "to": [],

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VII.2.12.3-5",
  "rule-digest": "23132478bfbd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenRerunClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rerunEvery",
  "test-ref": "conformance:cases/VII.2.12@1985-RERUN-CLAUSE/1985-SR-VII_2_12_3-5",
+ "notes": "§1985:VII.2.12.3 SR5: \"Only one RERUN clause containing the CLOCK-UNITS phrase may be specified.\" The clause is 1985-only: rerunClause parses it at every edition, VisitRerunClause refuses it from 2002 (COBOL0902), and at --std 85 BindIoControl collects the paragraph's RERUN clauses and ScreenRerunClauses asks the five syntax rules; the clause is otherwise a null rerun facility. ScreenRerunClauses walks every RERUN clause of the I-O-CONTROL paragraph with one flag for the CLOCK-UNITS arm of rerunEvery and reports COBOL6531 at each clause after the first that writes the phrase, whatever its ON operand or integer. Probed at --std 85 beyond the witness (two adjacent CLOCK-UNITS clauses with one implementor-name): two with different implementor-names are refused, and so is a second one separated from the first by a RECORDS clause and a SAME clause; one CLOCK-UNITS clause beside a RECORDS clause is accepted.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

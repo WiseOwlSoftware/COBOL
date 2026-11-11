@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-FMT-A.2.19.2",
  "rule-digest": "89e2292d1bf6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordWordOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
  "test-ref": "conformance:cases/A.2.19@1985-LENGTH-FUNCTION/1989-FMT-A_2_19_2",
+ "notes": "§1989:A.2.19.2 prints \"FUNCTION LENGTH ( argument-1 )\": the word FUNCTION, the name, and exactly one argument in parentheses. The functionCall rule parses the reference, the catalog row (Build) admits LENGTH at 85, and BindLengthFamily requires exactly one operand (COBOL1504 for none, for empty parentheses and for two). The PHYSICAL phrase that §2023:15.50.2 adds is refused at 85 by BindLengthFamily's construct check (COBOL0900), and where the program declares a data item named PHYSICAL, KeywordWordOf reads the word as an operand, so the two-operand form is refused with COBOL1504; LENGTH written without FUNCTION is refused with COBOL1543 in BindIntrinsic. The witness runs the format over an item, a group and a literal.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.7.3-2",
  "rule-digest": "be7605a5d1a7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#BindAlter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand",
  "test-ref": "conformance:cases/VI.6.7@1985-ALTER-STATEMENT/1985-SR-VI_6_7_3-2",
+ "notes": "§1985:VI.6.7.3 SR2 requires that 'Procedure-name-2 is the name of a paragraph or section in the Procedure Division.' BindAlter (no edition arm; the removal of ALTER from 2002 is a post-bind gate) passes the second procedureName of each alterEntry to ProcedureTableBuilder.ResolveProcedureOperand, the one procedure-name resolution, which returns the paragraph or section of this source element or reports COBOL1639 (no such procedure) or the ambiguity diagnostic; the entry is bound to dest.Range.Start, so a section-name transfers to the section's first paragraph. Probed at --std 85: an undefined word and a data-name as procedure-name-2 are each COBOL1639, and a paragraph, a section-name and an entry with or without PROCEED TO are accepted and transfer there at run time. The witness alters P1 to proceed to paragraph P3 and displays 'ALTERED TO P3'.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

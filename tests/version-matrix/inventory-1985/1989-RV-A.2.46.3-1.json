@@ -5,12 +5,11 @@
   "kind": "KEPT",
   "to": [
    "RV-15.99.3-1",
-   "GR-7.3.17.4-1",
    "GR-7.3.17.4-3"
   ],
-  "reason": "§2023:15.99.3 RV1 keeps the 1985 21-position layout. Saying Coordinated Universal Time where 1985 said Greenwich Mean Time, and 'numeric characters' where it said 'digits', changes only the terms. The only new case is seconds '00 through nn' 'when a LEAP-SECOND directive with the ON phrase is in effect'. A 1985 program has no such directive, and §2023:7.3.17.4 GR1 says 'If the LEAP-SECOND directive is not specified, a LEAP-SECOND directive with the OFF phrase is implied'. Under OFF the range is '00 through 59', and §2023:7.3.17.4 GR3 says 'a value greater than 59 shall not be reported'. That is the 1985 range, so the result is the same. The earlier CHANGED records missed the implied-OFF default.",
+  "reason": "§2023:15.99.3 RV1 keeps the 1985 21-position layout; saying Coordinated Universal Time where 1985 said Greenwich Mean Time, and 'numeric characters' where it said 'digits', changes only the terms. 1985: 'Two numeric digits of the seconds past the minute, in the range 00 through 59' (§1989:A.2.46.3 RV1). 2023: '00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect' (§2023:15.99.3 RV1), and under OFF 'a value greater than 59 shall not be reported in the seconds position' (§2023:7.3.17.4 GR3). The ON range needs a directive no 1985 program can write. §2023:7.3.17.4 GR1 ('a LEAP-SECOND directive with the OFF phrase is implied') is why a 1985 program is under OFF, but it states the default of a directive 1985 lacks and no 1985 requirement, so it is no longer a target (band-85/slice-10; it was one under adjudicate-712/slice-36).",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-36"
+  "source": "band-85/slice-10"
  }
 }

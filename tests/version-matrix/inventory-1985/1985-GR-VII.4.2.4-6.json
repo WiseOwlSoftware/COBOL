@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.4.2.4-6",
  "rule-digest": "2f21c2c44dc6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell",
  "test-ref": "conformance:cases/VII.4.2@1985-CLOSE-STATEMENT/1985-GR-VII_4_2_4-6",
+ "notes": "§1985:VII.4.2.4 GR6: \"Following the successful execution of a CLOSE statement without the REEL or UNIT phrase, the record area associated with a file-name-1 is no longer available. The unsuccessful execution of such a CLOSE statement leaves the availability of the record area undefined\". The rule withdraws the area from the program and defines no result for a later reference (§1985:I.1.6: \"The results of violating the formats or rules of Standard COBOL are undefined unless otherwise specified\"), so it obliges the implementation to nothing beyond a CLOSE that completes. No edition arm: SequentialIoEmitter.EmitClose emits only the registry call and FileRegistry.CloseCell closes the connector; neither touches the record area, which is a typed field of the emitted program and keeps its last content (the realization docs/CONFORMANCE.md DOC-A.1-24 documents). Probed at --std 85: after a successful CLOSE, after an unsuccessful one (42), and for a file sharing its area with an open file through SAME RECORD AREA (the case 2023 defines and 1985 leaves unavailable), a reference to the area reads and stores the same storage and nothing fails. The witness closes the file after READ ... INTO and displays the saved copy (ABCDE), a conforming program that never references the closed file's area.",
  "next": {
   "kind": "CHANGED",
   "to": [

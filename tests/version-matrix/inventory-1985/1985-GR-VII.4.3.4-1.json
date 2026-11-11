@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.4.3.4-1",
  "rule-digest": "f3c291c2d9b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#FileSharingFacility",
  "test-ref": "conformance:cases/VII.4.3@1985-OPEN-STATEMENT/1985-GR-VII_4_3_4-1",
+ "notes": "§1985:VII.4.3.4 GR1: \"The successful execution of an OPEN statement determines the availability of the file and results in the file being in an open mode\", \"A file is available if it is physically present and is recognized by the input-output control system\", and Table 1 gives each mode's result for an available and an unavailable file. FileConnector.OpenOnceEntered probes presence once and SequentialConnector.OpenCore applies the table: INPUT, I-O and EXTEND of an absent non-optional file are unsuccessful (35), an absent OPTIONAL input file is a normal open whose first READ is at end (05, then 10), an absent OPTIONAL I-O or EXTEND file is created (05), OUTPUT creates or empties the file. The 1985 arm is in FileRegistry.SharedOpenAttempt: the 2023 Table 19 refusal (61) of an open against another connector is applied only when FileConnector.SharingFacilityInEffect, a behavior that starts at 2002 (DialectBehavior.FileSharingFacility), so at 85 an available file is a normal open whatever else has it open, as Table 1 says and no 1985 rule denies. Probed at --std 85: all fourteen cells of Table 1 give the result above, and a second connector opens the same physical file INPUT, EXTEND, I-O and OUTPUT with 00 while the first holds it. The witness is the OUTPUT row for an available file: a file holding one record is opened OUTPUT and closed, and the next READ is at end (EMPTY).",
  "next": {
   "kind": "CHANGED",
   "to": [

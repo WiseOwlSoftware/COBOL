@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-AR-A.2.29.3-2",
  "rule-digest": "3df3743e649e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#DigitCapFlag; src/WiseOwl.Cobol.Compiler/Binding/Model/OptionsModel.cs#NumvalDigitCap",
  "test-ref": "conformance:cases/A.2.29@1985-NUMVAL-FUNCTION/1989-AR-A_2_29_3-2",
+ "notes": "§1989:A.2.29.3 AR2: \"The total number of digits in argument-1 must not exceed 18.\" This bounds the argument's value, and beyond it §1989:A.2.2 leaves the reference undefined, so the duty at 85 is an exact value for every argument of up to 18 digits. NvScan accumulates the digits in an Int128 and stops only past the digit cap, which at 85 is the native 31 (NumvalDigitCap; DigitCapFlag omits it, and no OPTIONS paragraph exists at 85 to change the mode), and NumvalDec returns that value exactly at the parsed scale; probed at 85, 18 nines compare equal and 123456789.123456789 is returned whole. The witness converts an 18-digit integer.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
