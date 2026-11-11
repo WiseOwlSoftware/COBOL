@@ -1,4 +1,4 @@
-## PB5199 and PB5201: REVERSED is ignored on a medium that cannot be positioned, and a file's print capability is a property of the program
+## Entry 3487 — 2026-11-11 13:05 PST — PB5199 and PB5201: REVERSED is ignored on a medium that cannot be positioned, and a file's print capability is a property of the program
 
 Group D of wave 20262000 (one root: `SequentialConnector`).
 
@@ -9,3 +9,4 @@ Group D of wave 20262000 (one root: `SequentialConnector`).
 The gate's first full run showed one golden that assumed the old rule: `pb1190_varying_advancing_bounds` wrote a plain WRITE to a file that also had ADVANCING writes and read the record back as data (status 47 now, because that plain WRITE is AFTER ADVANCING 1 LINE and the file is a print stream). It now compares the byte count of that file with a control print file written only by the valid WRITE, which still shows that the two refused writes left nothing behind.
 
 No inventory row is closed: both rows are 1985 ids that `work.py check` refuses in `inventory_rows` (PB5094). No diagnostic codes used.
+
