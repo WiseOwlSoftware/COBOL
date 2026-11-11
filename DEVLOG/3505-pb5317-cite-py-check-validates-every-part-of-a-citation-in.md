@@ -1,4 +1,4 @@
-## PB5317: cite.py --check validates every part of a citation, in every edition, and the citation audit sweeps the repository with it
+## Entry 3505 — 2026-11-11 15:40 PST — PB5317: cite.py --check validates every part of a citation, in every edition, and the citation audit sweeps the repository with it
 
 kb/Work PB5317. `python scripts/spec/cite.py --check "§1985:XI.4.4.4 GR99" "x"` printed `OK` on main: a 1985 citation's rule
 number was never compared, and a one-character quotation matched almost any clause. The 2023 arm was looser than it looked
@@ -27,3 +27,4 @@ wrong rule is still invisible there.
 Filed: PB5318 (the audit's 2023 ordinal family is now a second reading of RESOLVE), PB5319 (the catalog's general-format
 rows miscount their formats and cut their text at 4,000 characters) and PB5333 (the 103 refused citations no scripted
 rewrite owns).
+
