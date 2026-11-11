@@ -30,9 +30,8 @@ self-test reads (a hand-derived closure over mentions reached the whole tree fro
            script it runs is traced when it runs);
   GIT      a `git` child a traced process runs inside the repository reads what `git_reads` says, by the DECLARED
            GRAMMAR of its subcommand (GIT_GRAMMAR: its options, which of them take a value, what its arguments are):
-           nothing for git's configuration (`config <key>`, `remote get-url <name>`) or a location query (`rev-parse
-           --show-toplevel`, `--exec-path`); the NAMES (`ls-files`) or the
-           CONTENT (`ls-files -s`, `grep`) under its pathspec (a wildcard one: under the directory of its literal prefix;
+           nothing for git's configuration (`config`'s read modes, `remote get-url <name>`) or a location query
+           (`rev-parse --show-toplevel`, `--exec-path`); the NAMES (`ls-files`) or the CONTENT (`ls-files -s`, `grep`) under its pathspec (a wildcard one: under the directory of its literal prefix;
            an absolute one made relative to the repository; the magic PATHSPEC_MAGIC models), the whole tree when that
            is the command's MEANING (no pathspec, `*.py` at the root); and for a HISTORY read (`rev-parse <rev>`,
            `log`) the objects its revisions name (`rev:<expression>`, `Tree.revision`; `HEAD` when a log names none):
@@ -571,12 +570,18 @@ def traced_env(env: dict[str, str], tracer_dir: Path, trace_out: Path, repo: Pat
 class GitGrammar:
     """One subcommand's declared form. `reads`: "nothing" (git's configuration, not the tracked tree), "paths" (the
     tracked names under its pathspecs), "content" (the names and their content), "history" (the revisions it names:
-    `rev:` keys; its `location_flags` alone read nothing). `positionals`: "pathspecs", "revisions", "key" (exactly one
-    configuration key, or one remote's name), or "pattern" (grep: its first positional is a PATTERN unless `-e` gives
-    it). `verb`: the one sub-subcommand modelled, which must be the first positional (`remote get-url`); "" for none."""
+    `rev:` keys; its `location_flags` alone read nothing). `positionals`: "pathspecs", "revisions", "key" (a
+    configuration name or pattern, or one remote's name: exactly one, or as many as its read mode takes), or "pattern"
+    (grep: its first positional is a PATTERN unless `-e` gives it). `verb`: the one sub-subcommand modelled, which must
+    be the first positional (`remote get-url`); "" for none. `modes`: for a "key" subcommand, each READ mode flag with
+    the fewest and most positionals it takes (`config --get-regexp <pattern> [<value-pattern>]`, `config --list`); with
+    no mode flag it takes exactly one (`config <name>`, an implicit `--get`). A second positional with no mode is a
+    value WRITTEN, and every writing flag (`--add`, `--unset`, `--replace-all`, `--edit`, …) is undeclared, so a write
+    is never keyed."""
     reads: str
     positionals: str
     verb: str = ""
+    modes: tuple[tuple[str, int, int], ...] = ()
     flags: frozenset[str] = frozenset()        # options with no value
     valued: frozenset[str] = frozenset()       # options with a value: `--x=v`, or `--x v` / `-x v` (the next word)
     content_flags: frozenset[str] = frozenset()   # flags that make a "paths" read a "content" one
@@ -603,10 +608,12 @@ GIT_GRAMMAR = {
         flags=frozenset({"--oneline", "--no-merges", "--reverse", "--first-parent", "-p", "--stat", "--name-only",
                          "--name-status", "--no-color", "--no-decorate"}),
         valued=frozenset({"--format", "--pretty", "-n", "--max-count", "--skip"}), count_flags=True),
-    "config": GitGrammar(   # a READ of one configuration key: git's configuration, not the tracked tree
+    "config": GitGrammar(   # a READ of git's configuration, not the tracked tree; every writing form is undeclared
         "nothing", "key",
-        flags=frozenset({"--get", "--get-all", "--global", "--local", "--system", "--bool", "--int", "--path", "-z",
-                         "--null", "--show-origin", "--includes", "--no-includes"})),
+        modes=(("--get", 1, 2), ("--get-all", 1, 2), ("--get-regexp", 1, 2), ("--list", 0, 0), ("-l", 0, 0)),
+        flags=frozenset({"--get", "--get-all", "--get-regexp", "--list", "-l", "--global", "--local", "--system",
+                         "--worktree", "--bool", "--int", "--path", "-z", "--null", "--show-origin", "--show-scope",
+                         "--name-only", "--includes", "--no-includes"})),
     "remote": GitGrammar(   # `remote get-url <name>`: the remote's URL, a read of git's configuration as `config` is
         "nothing", "key", verb="get-url", flags=frozenset({"--push", "--all"})),
     "grep": GitGrammar(
@@ -794,9 +801,14 @@ def git_reads(args: list[str], where: str, root: Path) -> list[tuple[str, str]] 
         if not positional or positional[0] != grammar.verb:
             return unkeyed(f"`git {sub}` is modelled only as `git {sub} {grammar.verb}`")
         positional = positional[1:]
-    if grammar.positionals == "key":   # one key read; a second positional is a value WRITTEN, not modelled
-        if len(positional) != 1 or after is not None:
-            return unkeyed(f"`git {sub}` is modelled only as the read of one key")
+    if grammar.positionals == "key":   # a configuration read; a positional its mode does not take is a value WRITTEN
+        modes = [m for m in grammar.modes if m[0] in flags]
+        if len(modes) > 1:
+            return unkeyed(f"`git {sub}` with two read modes ({', '.join(m[0] for m in modes)}) is not modelled")
+        _, fewest, most = modes[0] if modes else ("", 1, 1)
+        if not fewest <= len(positional) <= most or after is not None:
+            return unkeyed(f"`git {sub}` is modelled only as a configuration read "
+                           f"({modes[0][0] if modes else 'one key'}: {fewest}..{most} argument(s))")
         return []
     reads: set[tuple[str, str]] = set()
     specs = list(after or [])
@@ -1115,9 +1127,13 @@ def self_test() -> int:
                   (["rev-parse", "--show-toplevel"], "docs"), (["--exec-path"], ""),
                   (["rev-parse", "--path-format=absolute", "--git-common-dir"], ""),
                   (["config", "--global", "user.name"], ""), (["remote", "get-url", "origin"], ""),
+                  (["config", "--get-regexp", r"^url\..*\.(push)?insteadof$"], ""),
+                  (["config", "--get", "branch.x.remote", "^o"], ""), (["config", "--get-all", "remote.o.url"], ""),
+                  (["config", "--list", "--show-origin", "--local"], ""), (["config", "-l"], ""),
+                  (["remote", "get-url", "--push", "--all", "origin"], ""),
                   (["ls-files", "-z"], ""), (["ls-files", "--", f"{posix_root}/*.md"], "docs"),
                   (["ls-files", "--", "../*.py"], "docs"), (["ls-files", "--", ":!docs"], ""))],
-              [[], [], [], [], [], [("paths", "")], [("paths", "")], [("paths", "")], [("paths", "")]])
+              [[], [], [], [], [], [], [], [], [], [], [], [("paths", "")], [("paths", "")], [("paths", "")], [("paths", "")]])
         unkeyed_rows = [
             (["ls-files", "--", f"{outside}/scripts"], ""), (["ls-files", "--", f"{outside}/*.py"], ""),
             (["ls-files", "--", "../../x"], "docs"), (["ls-files", "--", "/*.py"], ""),
@@ -1134,7 +1150,11 @@ def self_test() -> int:
             (["grep", "-f", "patterns.txt"], ""), (["grep", "foo", "HEAD"], ""), (["grep"], ""),
             (["config", "user.name", "x"], ""), (["config", "--unset", "user.name"], ""),
             (["remote", "-v"], ""), (["remote", "add", "x", "y"], ""), (["remote", "get-url"], ""),
-            (["remote", "get-url", "--expire", "origin"], "")]
+            (["remote", "get-url", "--expire", "origin"], ""),
+            (["config", "--get-regexp"], ""), (["config", "--list", "x"], ""), (["config", "--get", "--list", "x"], ""),
+            (["config", "--add", "a.b", "c"], ""), (["config", "--unset-all", "a.b"], ""),
+            (["config", "--file", "f", "--list"], ""), (["config", "--get", "a", "b", "c"], ""),
+            (["symbolic-ref", "--short", "-q", "HEAD"], "")]   # the checked-out BRANCH: no tree content, no key
         check("arm: THREE OUTCOMES, UNKEYED — a path outside the repository, past its top or UNC, pathspec magic not "
               "modelled, an empty pathspec, a subcommand with no declared grammar, a global option not modelled, a "
               "drive-relative path (Windows) or a backslash (POSIX), and for each declared subcommand an undeclared "

@@ -65,5 +65,7 @@ merge of main brought `git remote get-url origin` (from the forbidden-commands h
 a configuration read. `self_tests.py`'s clock-key arm failed on both runners: it rewrote a module to the same size
 within one second, and CPython reused the stale bytecode. Its fixture now drops the bytecode with each rewrite. The
 whole self-test phase is GREEN with no UNKEYED read on this host and under WSL, where the unfixed tip reproduced the
-merge group's 8 reds exactly (kb/Work PB5227, PB1957).
+merge group's 8 reds exactly (kb/Work PB5227, PB1957). The next merge of main brought two more git forms from the
+hook: `config --get-regexp`, now declared among `config`'s read modes, and `symbolic-ref HEAD`, the checked-out branch,
+which no key holds. The hook's self-test now runs every case from a scratch repository on a branch it names.
 

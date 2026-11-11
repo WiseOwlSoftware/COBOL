@@ -1070,8 +1070,10 @@ the content of everything it read, in ONE store shared by every checkout of the 
   CODE mentions (comments dropped);
 - **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says, by the DECLARED
   GRAMMAR of its subcommand (`GIT_GRAMMAR`: its options, which of them take a value, what its arguments are; declared:
-  `ls-files`, `rev-parse`, `log`, `grep`, a one-key `config` read and `remote get-url <name>`): nothing for git's
-  configuration (`config`, `remote get-url`) or a location query (`rev-parse --show-toplevel`, `--exec-path`); the
+  `ls-files`, `rev-parse`, `log`, `grep`, `config`'s READ modes and `remote get-url <name>`): nothing for git's
+  configuration (`config <name>`, `--get`, `--get-all`, `--get-regexp`, `--list`/`-l`, each with the arguments its
+  mode takes; every writing form is undeclared, and so is `symbolic-ref`, whose answer, the checked-out branch, no key
+  holds) or a location query (`rev-parse --show-toplevel`, `--exec-path`); the
   NAMES (`ls-files`) or the CONTENT (`ls-files -s`, `grep`) under its pathspec (an absolute one made relative to the
   repository; `:(top)`/`:/`, `:(glob)`, `:(literal)` and `:(exclude)`/`:!` modelled exactly, an exclusion narrowing
   nothing), the whole tree when that is the command's meaning (no pathspec, `*.py` at the root); and for a HISTORY read
