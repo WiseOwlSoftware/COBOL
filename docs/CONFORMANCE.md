@@ -3462,8 +3462,8 @@ the source program"), and implements the two rules a program can observe. The de
 
 ### 3.9 The language level at COBOL-85: level 2, so no level 1 restriction is enforced (kb/Work PB5142, PB4885)
 
-X3.23-1985 divides nine of its modules into level 1 and level 2 elements (§1985:I.1.2), and a conforming implementation "must fully support any of the three subsets"
-of §1985:I.1.5.1 (§1985:I.1.5.2). `--std 85` claims the HIGH subset, the highest level of every required module (owner decision, kb/Work PB4885), so it is a LEVEL 2
+X3.23-1985 divides nine of its modules into level 1 and level 2 elements (§1985:I.1.2), and a conforming implementation (§1985:I.1.5.2) must support one of the three
+subsets of §1985:I.1.5.1 in full. `--std 85` claims the HIGH subset, the highest level of every required module (owner decision, kb/Work PB4885), so it is a LEVEL 2
 processor and has no level axis: a level 1 restriction is a restriction on the programs of a LOWER level, and a level 2 processor accepts the program that breaks it.
 
 | Item | Determination |
