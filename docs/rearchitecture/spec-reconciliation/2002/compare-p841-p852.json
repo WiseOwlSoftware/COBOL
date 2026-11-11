@@ -1,0 +1,17 @@
+{
+  "batch": [841, 842, 843, 844, 845, 846, 847, 848, 849, 850, 851, 852],
+  "pages_checked": [841, 842, 843, 844, 845, 846, 847, 848, 849, 850, 851, 852],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p850-1",
+      "page": 850,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Item 78) prints the new intrinsic functions as a three-column list whose first column ends \"EXCEPTION-LOCATION\" then \"EXCEPTION-LOCATION-N\" (12 entries in column 1, 11 in columns 2 and 3); no column carries a header.",
+      "markdown_says": "| ABS | EXCEPTION-STATEMENT | NATIONAL-OF |\n|---|---|---|\n... | EXCEPTION-LOCATION | LOWEST-ALGEBRAIC | YEAR-TO-YYYY |\n\n   EXCEPTION-LOCATION-N",
+      "why_it_matters": "A reader or tool parsing the table sees ABS, EXCEPTION-STATEMENT and NATIONAL-OF as column headers rather than list members, and EXCEPTION-LOCATION-N appears as stray text outside the list of new intrinsic functions.",
+      "explanation": "The list was restructured into a markdown table whose first row (ABS / EXCEPTION-STATEMENT / NATIONAL-OF) is rendered as a header row, and the twelfth entry of column 1, EXCEPTION-LOCATION-N, was detached from the table into a separate indented paragraph. All 34 function names are present, so no name is lost, but the list's structure is altered."
+    }
+  ]
+}
