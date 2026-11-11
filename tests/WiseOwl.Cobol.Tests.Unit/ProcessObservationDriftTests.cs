@@ -569,6 +569,16 @@ public sealed class ProcessObservationDriftTests
         finally { ScratchDirectory.Remove(dir); }
     }
 
+    /// <summary>A start that names no working directory runs its child in this process's current directory, and that
+    /// is the directory the flush probe times, never the temp directory (kb/Work PB5147, review R1-2).</summary>
+    [Fact]
+    public void TheFlushProbe_OfAStartWithNoWorkingDirectory_TimesTheCurrentDirectory()
+    {
+        Assert.Equal(Environment.CurrentDirectory, HostLoad.RunDirectory(null));
+        Assert.Equal(Environment.CurrentDirectory, HostLoad.RunDirectory(""));
+        Assert.Equal(Path.GetTempPath(), HostLoad.RunDirectory(Path.GetTempPath()));
+    }
+
     /// <summary>A non-observation names the command a caller built with <c>ArgumentList</c>: before PB3108 the log read a
     /// bare <c>python</c> for every script, run.py included.</summary>
     [Fact]

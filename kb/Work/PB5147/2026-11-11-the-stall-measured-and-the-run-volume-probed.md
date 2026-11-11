@@ -1,4 +1,4 @@
-## Landed 2026-11-11 (wave 20261998 A) - what the stall is made of, and the probe that names it
+## Step taken 2026-11-11 (wave 20261998 A) - what the stall is made of, and the probe that names it. NOT CLOSED: the cause is still owed
 
 **Re-probe (Debug build, this host).** `CM102M_ReportsNoFailure` Passed in 1 m 36 s. With a temporary stopwatch (not kept) on
 every durable flush of the run (`McsStore.Transmit`'s `FlushToDisk` and `PagedFile.TrySync`) the run made **544 device
@@ -27,3 +27,11 @@ what a statement answered; `McsStoreCrashMatrixTests`), so reducing them is a re
 test-harness matter. The stated own-clock wait (PB5154, 210 s for CM102M) stays: it is right whatever the flush costs
 (a 90 s wait is not a load multiple), and it is the budget, not the cause. If the probe line shows a slow volume, the
 product question (a SEND to a device paying one volume flush each) becomes its own note with that line as evidence.
+
+**Still owed (PB5147 stays OPEN).** The probe is the step taken, not the fix: nothing yet says why a runner's CM102M
+spent about 88 s off the processor. Owed: read the next red's `durable flush on the run volume` line. If the median is
+high, the cause is the volume's flush time against the 544 flushes, and the fix is the product question above (or a
+decision recorded against it). If it is low, the flush is ruled out and the block is elsewhere (stack the process at the
+kill, the store mutex, the device file). Either way the structural guard owed is one that fails when a program's
+durable work times out of proportion to its measured cost, never a longer limit. The probe's directory is the one the
+child runs in (`HostLoad.RunDirectory`, review R1-2). PB5154's stated own-clock wait stays, as a budget.

@@ -59,7 +59,7 @@ internal static class HostLoad
     /// The probe file is created in, and removed from, that directory; an instrument that cannot probe says so.</summary>
     public static string DurableFlushLine(string? directory)
     {
-        string dir = string.IsNullOrEmpty(directory) ? Path.GetTempPath() : directory;
+        string dir = RunDirectory(directory);
         string probe = Path.Combine(dir, ".flush-probe-" + Guid.NewGuid().ToString("N"));
         try
         {
@@ -82,6 +82,12 @@ internal static class HostLoad
             return "durable flush on the run volume: not probed (" + e.GetType().Name + ")";
         }
     }
+
+    /// <summary>The directory a child started with <paramref name="workingDirectory"/> runs in: that directory, or, when the
+    /// start names none, the one the child inherits, the current directory of this process (which may be on another volume
+    /// than the temp directory, so the probe must not read the temp directory's flush time for it).</summary>
+    internal static string RunDirectory(string? workingDirectory) =>
+        string.IsNullOrEmpty(workingDirectory) ? Environment.CurrentDirectory : workingDirectory;
 
     /// <summary>The line for the flush times of the probes: their median and their largest, in milliseconds.</summary>
     internal static string DescribeFlushes(IReadOnlyList<TimeSpan> times)

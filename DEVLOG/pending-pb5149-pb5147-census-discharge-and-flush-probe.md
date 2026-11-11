@@ -22,6 +22,11 @@ data item), which §2023:8.3.2.2 exception 3 lets share a data-name's spelling. 
 `pb5149-report-name-and-global-data-name` (refused at 85, 2002, 2014, 2023). Lead for the registrar: a reference to a name that
 a constant and a data item share compiles and takes the constant, where §2023:8.4.2.2.1 asks for a unique reference.
 
+**Review round.** PB5147 stays OPEN: the probe is a step, the runner stall's cause is still owed. PB5154 gained a
+correction addendum (its budget states CM102M's own wait; it did not explain the kills), and the design doc's observer row
+says the same. The probe times the directory the child really runs in (`HostLoad.RunDirectory`). The constant/data-item
+reference lead is filed as PB5301.
+
 **Rows.** None claimed, none closed (`closes_rows: []` on both).
 
 **Self-review.** Architecture: the probe lives in the one observer's host-load instrument, no second mechanism. Full code: the
