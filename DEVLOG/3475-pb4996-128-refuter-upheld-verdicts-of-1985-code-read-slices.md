@@ -1,4 +1,4 @@
-## PB4996: 128 refuter-upheld verdicts of 1985 code-read slices 43-49, 57-70 and the re-read recorded (1985 GAP 606 to 478); PB5272-PB5300 filed
+## Entry 3475 — 2026-11-11 06:22 PST — PB4996: 128 refuter-upheld verdicts of 1985 code-read slices 43-49, 57-70 and the re-read recorded (1985 GAP 606 to 478); PB5272-PB5300 filed
 
 The operator's Opus pipeline on account 2 read slices 57-70 (139 rules) and refuted their closing verdicts. It also refuted slices 43-49, whose 55 rules waited in the slices 36-56 recording. The refute files agree with the operator's counts:
 - slices 57-63: 48 upheld, 9 overturned, 4 doubtful
@@ -20,3 +20,4 @@ Of the refuters' sibling leads for slices 43-49, the PADDING CHARACTER lead no l
 A second batch recorded the operator's re-read of the 18 rows that were fixed after their first read, made at main eb2b01f730. For those rows the re-read supersedes the first read. Of its 16 closing verdicts, 12 were upheld and are recorded (GAP 490 to 478), 2 were overturned and 2 are doubtful (held in `held-5.json`). The 2 overturned ones are filed as PB5299: VALUE OF FILE-ID names a table element without a subscript. Two rows still read PARTIAL. One goes to PB5159 by addendum. The other is the LABEL RECORDS agreement that landed PB5069 left undone, and it is filed as the new PB5300.
 
 This branch merges records-85c (the PB4996 correction and PB5243's harm flags) and lands after it.
+
