@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-18",
  "rule-digest": "29844e6c780e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#ValidCount; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#DestinationCount",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-18",
+ "notes": "§1985:XIV.2.2.4 GR18 puts the destination count's validity on the user (\"It is the responsibility of the user to insure that the value ... is valid\"); it asks nothing of the implementation beyond GR17, and an invalid value is detected, not undefined: ValidCount answers status 30 for a value outside 1..integer-1 or not an unsigned integer (CommunicationArea.DestinationCount is null then). Probes at 85: non-numeric \"AB12\", spaces, 0, 9999 gave 30 on SEND, PURGE, ENABLE and DISABLE OUTPUT; the witness's valid count 1 delivers one message with status 00.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

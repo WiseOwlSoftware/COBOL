@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.3.2.3-2",
  "rule-digest": "a16c9656b7b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindDisable; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ResolveCommunicationCd; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationPath",
  "test-ref": "conformance:cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-SR-XIV_3_2_3-2",
+ "notes": "§1985:XIV.3.2.3 SR2: \"Cd-name-1 must reference an input-output CD when the I-O TERMINAL phrase is specified.\" communicationPath admits I-O only with TERMINAL, and BindPath maps it to a CdRule of formats [InputOutput], refusing through ResolveCommunicationCd (COBOL6170) a name that is no cd-name and an input or output CD. The witness refuses DISABLE I-O TERMINAL of an input CD. Probes at --std 85: (b) I-O TERMINAL of an output CD refused COBOL6170; of an input CD WITH KEY refused; of an undeclared name refused; of a containing program's I-O CD from a nested program refused; DISABLE I-O without TERMINAL refused COBOL5506. (d) DISABLE I-O TERMINAL CX WITH KEY \"PW\" accepted and ran, printing ST=21, then DISABLE OUTPUT CO printed ST=30. (c) the KEY phrase is refused at --std 2002 (COBOL0902), the facility at --std 2023. (a, e, f) not reached: the operand is a cd-name. Every refusal's text cites ISO/IEC 1989:2002 Annex A rather than the 1985 rule, the cross-cutting citation matter kb/Work PB4950 decides; the outcome is the one the rule requires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

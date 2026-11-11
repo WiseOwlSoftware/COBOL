@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-27",
  "rule-digest": "841e7e8b62e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/StoredMessage.cs#Complete; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Statement; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-27",
+ "notes": "§1985:XIV.2.2.4 GR27: data-name-2 \"has the format 'HHMMSSTT'\" for the time the MCS recognized the message complete, updated \"only by the MCS as part of the execution of the RECEIVE statement\". StoredMessage#Complete renders HHmmss plus milliseconds/10 at completion; MessageControlSession#Transfer stores it at positions 7-14 through CommunicationArea#SetReceived on a transferring RECEIVE only, and other statements touch only the status key (#Statement). Probes at --std 85: a message an output CD SENDs (deliverTo terminal) is received with a time between CURRENT-DATE before and after the SEND, a seeded time is in HHMMSSTT form, an ODO receiving item, NO DATA and a refused RECEIVE leave the moved time; the witness covers SEND/PURGE/DISABLE/ENABLE.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

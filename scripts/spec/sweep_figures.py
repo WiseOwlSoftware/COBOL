@@ -100,6 +100,10 @@ FURNITURE_LINES: dict[int, str] = {
     # stray one transparent.
     2002: r"""\**ISO/IEC\s+1989:2002\s*\(E\)\**
         |\**©\s*ISO/IEC\s+2002(?:\s*-\s*All\ rights\ reserved)?\**""",
+    # 2014's, the same way (kb/Work PB5268): the head is printed both `ISO/IEC 1989:2014 (E)` and `ISO/IEC 1989:2014(E)`,
+    # the copyright line with a hyphen or an en dash.
+    2014: r"""\**ISO/IEC\s+1989:2014\s*\(E\)\**
+        |\**©\s*ISO/IEC\s+2014(?:\s*[-–]\s*All\ rights\ reserved)?\**""",
 }
 
 

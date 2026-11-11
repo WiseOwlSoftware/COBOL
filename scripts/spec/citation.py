@@ -14,8 +14,8 @@ THE FORMAT (owner 2026-11-06; the edition is MANDATORY):
 | Edition | Document                         | Locator                                                               | Checked against          |
 |---------|----------------------------------|-----------------------------------------------------------------------|--------------------------|
 | `2023`  | ISO/IEC 1989:2023                | clause number `13.18.35.4`; an annex clause `A.1`, `E.2`               | `specs/ISO_COBOL_2023.md` |
-| `2014`  | ISO/IEC 1989:2014                | clause number                                                         | parsed only (no transcription) |
-| `2002`  | ISO/IEC 1989:2002                | clause number                                                         | `specs/ISO_COBOL_2002.md` once it exists, parsed only until then |
+| `2014`  | ISO/IEC 1989:2014                | clause number                                                         | `specs/ISO_COBOL_2014.md` |
+| `2002`  | ISO/IEC 1989:2002                | clause number                                                         | `specs/ISO_COBOL_2002.md` |
 | `1985`  | ANSI X3.23-1985                  | Roman section, then that section's own paragraph number: `VI.5.3.2` (Section VI, the Nucleus); the section alone `VI`; a printed page with no paragraph `p.VI-20`; an appendix `B`, `B.2.1` | `specs/ANSI_COBOL_1985.md` |
 | `1989`  | ANSI X3.23a-1989 (the amendment) | Section A's paragraph `A.2.2`, or a printed page `p.A-20`              | its Amendment 1 in `specs/ANSI_COBOL_1985.md` |
 | `1993`  | ANSI X3.23b-1993 (the amendment) | a printed page `p.B-16` (a table of changes: no paragraph of its own)  | its Amendment 2 in `specs/ANSI_COBOL_1985.md` |
@@ -639,7 +639,8 @@ def self_test() -> int:
         ("2023 clause validates", bad("§2023:13.18.35.4 GR1") is None),
         ("2023 annex clause validates", bad("§2023:A.1") is None),
         ("2023 phantom refused", bad("§2023:8.3.1.2") == "the 2023 standard has no clause 8.3.1.2"),
-        ("2014 is parsed only", bad("§2014:99.99") is None),
+        ("2014 validates against its transcription (kb/Work PB5268)", bad("§2014:14.9.23.2 SR2") is None),
+        ("2014 phantom refused", bad("§2014:99.99") == "the 2014 standard has no clause 99.99"),
         ("2002 is parsed only while its transcription is absent", parse_only),
         ("1989 and 1993 are read from their amendments in the 1985 transcription (kb/Work PB5043): Section A's paragraph "
          "and either amendment's printed page validate",

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-12",
  "rule-digest": "d552bdecfba1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugDataTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-12",
+ "notes": "§1985:XV.3.2.3 SR12: 'Identifier-1 must not be reference modified.' ProcedureTableBuilder.AddDebugDataTarget, which FinalizeDebug reaches for both the identifier-1 and ALL REFERENCES OF identifier-1 operands, refuses COBOL6334 a refModPart on the operand or on any qualifier before it records a target. Probed at 85: S (1:2), ALL REFERENCES OF S (2:), the table element F1 (1:1) and the degenerate S ( ) are each refused COBOL6334; the bare S is accepted and fires after MOVE \"QQ\" TO S(2:2) with DEBUG-CONTENTS AQQDEF; at 2002 and 2023 the statement is COBOL0902. The witness refuses WS-A (1:2).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

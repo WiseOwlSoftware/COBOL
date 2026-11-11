@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-3",
  "rule-digest": "cbbc30172fb2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdMode; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BuildArea",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-3",
+ "notes": "§1985:XIV.2.2.3 SR3: \"Except for the INITIAL clause, the optional clauses may be written in any order.\" The grammar takes the clauses as cdClause+ in any order with INITIAL fixed in cdMode before INPUT or I-O; ReadClauses files each clause under its field whatever its position (refusing a clause written twice or of another format), and BuildArea lays the implicit description out from the CommunicationFormats table in §1985:XIV.2.2.4 GR2 and GR24 order, so the written order never moves a field. The witness runs Format 1 with four clauses out of print order and prints CD CLAUSES ACCEPTED. Probes at --std 85: (d) all eleven Format 1 clauses in reverse order over an X(87) redefinition, each named field moved to, printed AAAAAAAAAAAABBBBBBBBBBBBCCCCCCCCCCCCDDDDDDDDDDDD12345612345678SSSSSSSSSSSS1234EKK654321, positions 1-87 exactly as GR2 lays them; Format 3's six clauses reversed over an X(33) record printed 12345612345678TTTTTTTTTTTT1234EKK (GR24 order). (b) INPUT INITIAL (INITIAL after INPUT) refused COBOL5506; INITIAL after a clause refused COBOL0001; STATUS KEY written twice refused COBOL6169; a clause mixed with the series of data-names refused COBOL0001. (c) --std 2023 refuses the section (COBOL0902). (a, e, f) not reached: no variable data, file or arithmetic in a clause-order rule. Every refusal's text cites ISO/IEC 1989:2002 Annex A rather than the 1985 rule, the cross-cutting citation matter kb/Work PB4950 decides; the outcome is the one the rule requires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

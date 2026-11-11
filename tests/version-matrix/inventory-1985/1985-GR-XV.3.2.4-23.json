@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-23",
  "rule-digest": "619fbc302d99",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanFile; src/WiseOwl.Cobol.Compiler/Binding/Bound/DebugTriggerPlanner.cs#PlanCd; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#FireText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#LandFileNameAfterFailure; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#PopulateReference",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-23",
+ "notes": "§1985:XV.3.2.4 GR23: for a file-name or cd-name reference DEBUG-LINE identifies the statement, DEBUG-NAME the name, \"For READ, DEBUG-CONTENTS contains the entire record read\", spaces for every other file reference, and the CD area for a cd-name. DebugTriggerPlanner.PlanFile tags READ fires FileRecord and the rest Spaces, PlanCd fires with the CD area; DebugTriggerEmitter.FireText renders the record area, \"\" or the CD image, LandFileNameAfterFailure forces spaces on a READ that read nothing, and DebugItem.PopulateReference sets the members. Probes at 85: indexed random and sequential READ NEXT show the record, OPEN/CLOSE/START/DELETE spaces, a failed READ (23, 10) spaces; a RECORD VARYING file shows the 300-char record then the 5-char one with spaces after; an output CD shows its area after DISABLE, ENABLE and SEND, and PURGE runs nothing (GR8); COBOL0902 at 2002/2023.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
