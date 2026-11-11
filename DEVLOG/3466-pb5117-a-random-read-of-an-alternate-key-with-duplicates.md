@@ -1,4 +1,4 @@
-## PB5117: a random READ of an alternate key with duplicates answers I-O status 02 at --std 85
+## Entry 3466 — 2026-11-11 00:29 PST — PB5117: a random READ of an alternate key with duplicates answers I-O status 02 at --std 85
 
 Re-probe on the Debug build: the note's program (alternate key AA with records 0001AA, 0002AA) printed `READ ALT AA 0001AA 00` at `--std 85`; the 1985 text (§1985:IX.1.3.4 GRL2.1, no access mode named) requires 02. From 2002 the rule is limited to a READ with NEXT or PREVIOUS (§2002:9.1.12.1 GR2a, §2023:14.9.30.4 GR27), so 00 is right there.
 
@@ -9,3 +9,4 @@ Goldens: `14.9.30-READ/pb5117_random_read_dup_status_1985` (accept 85, 02 on the
 Review R1-1: the look-ahead is selection, decided before the READ commits anything, as the sequential READ's is. A torn page under it (the next duplicate's record) now answers 30 (§2023:9.1.13.6 item 1) with the file position untouched, where it used to drop the failure and answer 00. `IndexedEngineTests.A_torn_page_under_the_1985_random_read_look_ahead_is_30` tears only the second duplicate's page: 30 at 1985 (replayed until the CLOSE), 00 and the first record at 2023, which does no look-ahead. Review R1-2: the 1985 citation is `§1985:IX.1.3.4 GRL2.1` (rule 1 of the clause's second numbered list, the catalog row `1985-GR-IX.1.3.4-L2.1`), and `GR27 a)` is written `GR27a`, the forms `cite.py --check` parses.
 
 Merge with main: main's COBOL6826 (§1985:IX.4.9.3 SR3, a 1985 WRITE of an indexed file needs INVALID KEY when no USE procedure applies) refused the `_1985` golden, whose WRITEs had no phrase; the golden is illegal 1985 source without it, so each WRITE now carries INVALID KEY (never taken: a duplicate alternate key is a successful WRITE) and the expected output is unchanged.
+
