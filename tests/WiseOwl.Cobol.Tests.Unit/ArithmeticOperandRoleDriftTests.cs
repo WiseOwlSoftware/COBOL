@@ -40,13 +40,12 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// </summary>
 public sealed class ArithmeticOperandRoleDriftTests
 {
-    private static readonly string GrammarDir = Path.Combine("src", "WiseOwl.Cobol.Frontend", "Grammar");
 
     /// <summary>rule-name → the rule names its body references, over every grammar file, comments stripped.</summary>
     private static Dictionary<string, HashSet<string>> RuleReferences()
     {
         var rules = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-        foreach (string path in Directory.EnumerateFiles(Path.Combine(TestRepo.Root, GrammarDir), "*.g4",
+        foreach (string path in Directory.EnumerateFiles(TestRepo.Src("WiseOwl.Cobol.Frontend", "Grammar"), "*.g4",
                      SearchOption.AllDirectories).Order(StringComparer.Ordinal))
         {
             string g4 = File.ReadAllText(path);

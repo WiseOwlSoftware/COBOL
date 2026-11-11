@@ -24,28 +24,21 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// <summary>
 /// ⛔ THE GATE'S TEST-ASSEMBLY HALF (kb/Work PB1708, PB4328, PB4329; DESIGN-test-build-ci.md §3.14.3–3.14.4): the test
 /// orderer (tests/_shared/GateLegs.cs <c>GateOrderer</c>) only orders, its output checked to be a permutation; CI's shard
-/// variable, weights file and deal; every test project under tests/ links GateLegs.cs and names GateTestFramework; and no
-/// discovered case carries the repository root. What the gate's SCRIPTS must hold (the population check's arms, the
-/// scrubbed <c>dotnet test</c> callers, the trx writers and readers, the one shape) is their own self-tests' and audits'
-/// (kb/Work PB4395: a compiler test reading a script made every change to it a compiler change).
+/// variable, weights file and deal; this assembly names GateTestFramework; and no discovered case carries the repository
+/// root. What the gate's SCRIPTS must hold (the population check's arms, the scrubbed <c>dotnet test</c> callers, the trx
+/// writers and readers, the one shape) is their own self-tests' and audits' (kb/Work PB4395: a compiler test reading a
+/// script made every change to it a compiler change).
 /// </summary>
 /// <remarks>
 /// <para>
 /// The arms are numbered as in section 3.14.4: (2) the orderer, (4) the links, (5) no repository root in a name. Arm
-/// (4)'s and (5)'s per-assembly halves also run in the Conformance and Characterization assemblies (their own
-/// GateLegDriftTests), because each audits the assembly it runs in.
+/// (4)'s and (5)'s per-assembly halves also run in the Conformance, RepoDrift and Characterization assemblies (their own
+/// GateLegDriftTests), because each audits the assembly it runs in. Arm (4) over the tree (every test project links
+/// GateLegs.cs) reads every test project, so it is the RepoDrift assembly's (kb/Work PB5230).
 /// </para>
 /// </remarks>
-[Trait("Sweep", "tree")]
 public sealed class GateLegDriftTests
 {
-    /// <summary>The test projects (<c>tests/**/*.csproj</c>), COMMITTED (kb/Work PB3814): never a walk of <c>tests/</c> from
-    /// the file system, which enters every running test host's <c>bin/</c> and <c>obj/</c>.</summary>
-    private static readonly TreeScope TestProjects = new(Under: ["tests/"], Kinds: [".csproj"]);
-
-    /// <summary>The test sources (<c>tests/**/*.cs</c>), COMMITTED, for the same reason.</summary>
-    private static readonly TreeScope TestSources = new(Under: ["tests/"], Kinds: [".cs"]);
-
     // ── Arm (2): the orderers ─────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>A case with a planted display name; only the orderers see it, and nothing serializes it.</summary>
@@ -301,42 +294,11 @@ public sealed class GateLegDriftTests
         }
     }
 
-    // ── Arm (4): every test project links GateLegs.cs and names the gate's framework ──────────────────────────────
+    // ── Arm (4), this assembly's half: it names the gate's framework ─────────────────────────────────────────────
 
     [Fact]
-    public void Arm4_EveryTestProject_LinksGateLegs_AndNamesTheGateFramework()
-    {
-        string props = File.ReadAllText(TestRepo.At("tests", "Directory.Build.props"));
-        Assert.Contains(@"<Compile Include=""$(MSBuildThisFileDirectory)_shared\*.cs""", props, StringComparison.Ordinal);
-        Assert.Matches(new Regex(@"<AssemblyAttribute Include=""Xunit\.TestFrameworkAttribute"">\s*"
-                                 + @"<_Parameter1>WiseOwl.Cobol\.Gate\.GateTestFramework</_Parameter1>\s*"
-                                 + @"<_Parameter2>\$\(AssemblyName\)</_Parameter2>"), props);
-        Assert.True(File.Exists(TestRepo.At("tests", "_shared", "GateLegs.cs")), "tests/_shared/GateLegs.cs is gone");
-
-        var testProjects = TrackedTree.Files(TestProjects).Select(rel => TestRepo.At(rel.Split('/')))
-            .Where(p => File.ReadAllText(p).Contains("<IsTestProject>true</IsTestProject>", StringComparison.Ordinal))
-            .ToList();
-        foreach (string gated in new[] { "WiseOwl.Cobol.Tests.Conformance", "WiseOwl.Cobol.Tests.Unit",
-                     "WiseOwl.Cobol.Tests.Characterization" })
-        {
-            Assert.True(testProjects.Any(p => Path.GetFileNameWithoutExtension(p) == gated),
-                $"the gated test project {gated} is not found as a test project under tests/");
-        }
-
-        var unlinked = testProjects.Where(p => Regex.IsMatch(File.ReadAllText(p),
-                @"<Compile\s+Remove=""[^""]*(_shared|GateLegs)", RegexOptions.IgnoreCase))
-            .Select(p => Path.GetRelativePath(TestRepo.Root, p)).ToList();
-        Assert.True(unlinked.Count == 0, "a test project drops the gate's leg filter (tests/_shared/GateLegs.cs): "
-                                         + string.Join(", ", unlinked));
-
-        var ownFramework = TrackedTree.Files(TestSources).Select(rel => TestRepo.At(rel.Split('/')))
-            .Where(f => Regex.IsMatch(File.ReadAllText(f), @"\[\s*assembly\s*:\s*(Xunit\.)?TestFramework(Attribute)?\s*\("))
-            .Select(f => Path.GetRelativePath(TestRepo.Root, f)).ToList();
-        Assert.True(ownFramework.Count == 0, "a test source names its own xunit framework, so its assembly would "
-                                             + "name two: " + string.Join(", ", ownFramework));
-
+    public void Arm4_ThisAssembly_NamesTheGateFramework() =>
         GateLegAudit.AssertNamesTheGateFramework(typeof(GateLegDriftTests).Assembly);
-    }
 
     // ── Arm (5): no discovered case carries the repository root ──────────────────────────────────────────────────
 
@@ -370,7 +332,7 @@ public sealed class GateLegDriftTests
         {
             "windows" => @"E:\COBOL-wt\battery87",
             "posix" => "/home/runner/work/COBOL/COBOL",
-            "host" => TestRepo.Root,
+            "host" => GateLegAudit.HostRoot,
             _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, "no such root shape"),
         };
         char sep = root.Contains('\\') ? '\\' : '/';

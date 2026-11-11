@@ -204,9 +204,21 @@ TESTREPO_BASES = {
     "At": "", "Root": "", "Src": "src", "SrcBin": None, "Tests": "tests", "Docs": "docs", "Scripts": "scripts",
     "Specs": "specs", "VersionMatrix": "tests/version-matrix", "ConstructsDir": "tests/version-matrix/constructs",
     "ConstructRows": "tests/version-matrix/constructs", "Nist": "tests/nist", "Suite": "conformance-suite",
-    "SuiteCase": "conformance-suite", "SuiteFile": "conformance-suite", "Configuration": None, "TargetFramework": None,
+    "Configuration": None, "TargetFramework": None,
 }
+#: The helpers that find a conformance-suite test by its id, and the two trees they list to find it (TestRepo.cs
+#: `s_suiteCases`): an id names no path, so the trees are the read.
+SUITE_CASE_HELPERS = {"SuiteCase": ("conformance-suite/cases/", "conformance-suite/wiseowl/cases/"),
+                      "SuiteFile": ("conformance-suite/cases/", "conformance-suite/wiseowl/cases/")}
 TESTREPO_CALL = re.compile(r"\bTestRepo\.(\w+)")
+#: The helper that DECLARES the directory a computed path lies in (tests/_shared/TestRepo.cs `Within`): its first
+#: argument, a literal directory, is the read.
+WITHIN = "Within"
+#: What precedes a `TestRepo.Root` that reads nothing: the root made relative (`Path.GetRelativePath(TestRepo.Root, f)`
+#: computes a string), or a documentation reference (`<see cref="TestRepo.Root"/>`, `nameof(TestRepo.Root)`).
+NOT_A_READ = re.compile(r"(?:Path\.GetRelativePath\(\s*|cref=\"|nameof\(\s*)$")
+#: A declared sweep of the tracked tree (tests/_shared/TrackedTree.cs `TreeScope`): its `Under` prefixes.
+TREE_SCOPE = re.compile(r"\bTreeScope\s+\w+\s*=\s*new\(\s*Under:\s*\[([^\]]*)\]")
 STRING = re.compile(r'"((?:[^"\\\n]|\\.)*)"')
 #: A TOP-LEVEL type declaration (no indentation): what another source must name to use a tests/_shared file. Nested types
 #: (`Row`, `Edition`) are reached through their outer type, and their common names would link every file to every other.
@@ -225,12 +237,13 @@ def _top_dirs(repo: Path) -> list[str]:
 
 
 def _args(text: str, start: int) -> str | None:
-    """The argument text of a call whose `(` is at `start`, to its matching `)`; None when `start` is no `(`."""
-    if start >= len(text) or text[start] != "(":
+    """The text between the `(` (or `[`) at `start` and its matching close; None when `start` is neither."""
+    if start >= len(text) or text[start] not in "([":
         return None
+    opener, closer = text[start], ")" if text[start] == "(" else "]"
     depth = 0
     for i in range(start, len(text)):
-        depth += {"(": 1, ")": -1}.get(text[i], 0)
+        depth += {opener: 1, closer: -1}.get(text[i], 0)
         if depth == 0:
             return text[start + 1:i]
     return None
@@ -249,6 +262,14 @@ def _split_top(args: str) -> list[str]:
                 continue
         cur.append(ch)
     parts.append("".join(cur).strip())
+    return parts
+
+
+def _spread(parts: list[str]) -> list[str]:
+    """Call arguments with a lone collection expression spread into its elements: `At(["src", "X", .. rest])` names
+    the same path as `At("src", "X", rest)`; a spread element (`.. rest`) is computed, so the literals stop there."""
+    if len(parts) == 1 and parts[0].startswith("[") and parts[0].endswith("]"):
+        return [x for x in _split_top(parts[0][1:-1]) if x]
     return parts
 
 
@@ -283,15 +304,28 @@ def reads_in(text: str, top_dirs: list[str]) -> list[tuple[int, str]]:
         found.append((line_of(m.start()), "/".join(x for x in [base, *segs, m.group(3)] if x)))
     for m in TESTREPO_CALL.finditer(text):
         helper = m.group(1)
-        base = TESTREPO_BASES.get(helper, None) if helper in TESTREPO_BASES else None
+        before = text[max(0, m.start() - 60):m.start()]
+        if helper == WITHIN:
+            # `TestRepo.Within("src/", rel)`: a computed path DECLARED to lie in a literal directory, and held there at
+            # run time (TestRepo.Within throws otherwise), so the directory is the read.
+            parts = [x for x in _split_top(_args(text, m.end()) or "") if x]
+            n, segs = _leading_literals(parts[:1])
+            found.append((line_of(m.start()), "/".join(segs) + "/" if n and segs else ""))
+            continue
+        if helper in SUITE_CASE_HELPERS:
+            found += [(line_of(m.start()), tree) for tree in SUITE_CASE_HELPERS[helper]]
+            continue
+        base =TESTREPO_BASES.get(helper, None) if helper in TESTREPO_BASES else None
         if base is None or m.start() in listed:
             continue
+        if helper == "Root" and (NOT_A_READ.search(before) or (before.endswith("{") and text[m.end():m.end() + 1] == "}")):
+            continue   # the root as TEXT: a path made relative to it, a doc reference, an interpolated message
         segs: list[str] = []
         complete = False
         if helper == "Root":
-            call = re.search(r"Path\.Combine\(\s*$", text[max(0, m.start() - 40):m.start()])
+            call = re.search(r"Path\.Combine\(\s*(\[\s*)?$", before)
             if call is not None:
-                open_at = text.rindex("(", 0, m.start())
+                open_at = text.rindex("[" if call.group(1) else "(", 0, m.start())
                 whole = _args(text, open_at)
                 parts = [x for x in _split_top(whole or "")[1:] if x]
                 n, segs = _leading_literals(parts)
@@ -299,7 +333,7 @@ def reads_in(text: str, top_dirs: list[str]) -> list[tuple[int, str]]:
         else:
             args = _args(text, m.end())
             if args is not None:
-                parts = [x for x in _split_top(args) if x]
+                parts = _spread([x for x in _split_top(args) if x])
                 n, segs = _leading_literals(parts)
                 complete = n == len(parts) and n > 0
         path = "/".join(x for x in [base, *segs] if x)
@@ -312,6 +346,11 @@ def reads_in(text: str, top_dirs: list[str]) -> list[tuple[int, str]]:
             continue
         cut = re.split(r"[*?]", s, maxsplit=1)[0]
         found.append((line_of(m.start()), s if cut == s else (cut if cut.endswith("/") else cut.rsplit("/", 1)[0] + "/")))
+    for m in TREE_SCOPE.finditer(text):
+        # A sweep of the tracked tree reads what its scope's `Under` prefixes hold; a directory prefix is a literal read
+        # above, and the empty prefix is the whole tree: a bare root reference like any other.
+        if '""' in re.findall(r'"[^"]*"', m.group(1)):
+            found.append((line_of(m.start()), ""))
     return found
 
 
@@ -358,7 +397,8 @@ def scan(repo: Path, target: Target, top_dirs: list[str], tracked: tuple[set[str
         text = src.read_text(encoding="utf-8", errors="replace")
         for line, read in reads_in(text, top_dirs):
             if read == "":
-                roots.add(f"{rel}:{line}")
+                if f"{rel}|" not in judged:   # `<file>|` judges that file's root references by hand, with its reason
+                    roots.add(f"{rel}:{line}")
                 continue
             read = _normalized(read, tracked)
             if read is None or f"{rel}|{read}" in judged:

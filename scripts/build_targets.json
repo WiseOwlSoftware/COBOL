@@ -25,7 +25,50 @@
       "assembly": "Unit",
       "project": "tests/WiseOwl.Cobol.Tests.Unit/",
       "inputs": {
-        "@population-inputs": "the compiler's unit tests and the repository's drift tests in one assembly read nearly every path a test may read, the names of every tracked file among them (tests/_shared/TrackedTree.cs); until stage 2 splits repo-drift out of it, its inputs are every population input (inert_lane.Classification.is_population_input)"
+        "@build": "the compiler, the runtime and the CLI it tests, and the sources its sweeps read (src/)",
+        "tests/WiseOwl.Cobol.Tests.Unit/": "its own sources, project and data (Architecture/binder-member-readers.json, Store/, TestData/)",
+        "specs/ISO_COBOL_2023.md": "the ORACLE the compiler's tables are derived from and checked against (SpecClauseText and ~40 table drift tests: Table12StatementNameDriftTests, PictureTable10DriftTests, ...)",
+        "data/unicode/": "the pinned UCD and CLDR tables the runtime's generated tables come from (CollationTableTests, CldrCollationSettingsTests, GraphemeBreakerTests)",
+        "docs/rearchitecture/spec-rule-catalog.json": "the standard's rules as the catalog extracts them (EcRaiseSiteDriftTests); SuiteManifest's generate.py (the inventory view)",
+        "docs/rearchitecture/spec-rule-catalog-1985.json": "SuiteManifest's generate.py (the inventory view of the 1985 edition)",
+        "tests/version-matrix/reserved-words.json": "CobolWordsDriftTests, ReservedWordsDriftTests, InitializeLaneDriftTests, ...; SuiteManifest's generate.py",
+        "tests/version-matrix/reserved-words-2002.json": "ReservedWordsDriftTests",
+        "tests/version-matrix/cobol-words.json": "CobolWordsDriftTests, NonstandardExtensionRegisterDriftTests, ScreenFacilityConstructDriftTests, WhenOperandAheadDriftTests",
+        "tests/version-matrix/context-sensitive-words.json": "ContextSensitiveWordsDriftTests, CobolWordsReachDriftTests, CobolWordsSpellingSweepDriftTests",
+        "tests/version-matrix/context-sensitive-words-2002.json": "ContextSensitiveWordsDriftTests",
+        "tests/version-matrix/intrinsic-introductions.json": "IntrinsicIntroductionDriftTests",
+        "tests/version-matrix/conformance-register.json": "ConformanceRegister (DeclinedFacilityAnnexDriftTests); SuiteManifest's generate.py",
+        "tests/version-matrix/constructs/": "the construct catalogue (TestRepo.ConstructRows: ConstructRegistryDriftTests, DataBinderNameReferenceDriftTests, DocumentedFactsDriftTests, RegistryShapeDriftTests); SuiteManifest's generate.py",
+        "tests/version-matrix/inventory/": "SuiteManifest's generate.py ONLY (it refuses a test naming a rule the inventory lacks; traced, kb/Work PB5218): no Unit test reads the inventory, and kb/Work PB5231 replaces these generator inputs with the generator target's output",
+        "tests/version-matrix/inventory-1985/": "SuiteManifest's generate.py ONLY (as tests/version-matrix/inventory/)",
+        "tests/version-matrix/inventory-schema.json": "SuiteManifest's generate.py ONLY (as tests/version-matrix/inventory/)",
+        "tests/version-matrix/annex-a2-undefined.json": "SuiteManifest's generate.py ONLY (as tests/version-matrix/inventory/)",
+        "tests/nist/": "the NIST corpus programs a compiler test compiles (StorageFormEquivalenceTests, LexerDfaCacheDriftTests)",
+        "conformance-suite/": "the suite's programs, options and adapter (TestRepo.SuiteCase, LexerDfaCacheDriftTests, NumericDisplayFormDriftTests, ConformanceSuiteAdapterDriftTests) and SuiteManifest, which runs harness/generate.py --out",
+        "tests/doc-facts/": "the compiler facts the documents state and the manual's programs (DocFacts, DocumentedFactsDriftTests, UserManualDriftTests)",
+        "scripts/spec/construct_store.py": "SuiteManifest's generate.py imports it (traced, kb/Work PB5218)",
+        "scripts/spec/inventory_schema.py": "SuiteManifest's generate.py imports it",
+        "scripts/spec/inventory_view.py": "SuiteManifest's generate.py imports it",
+        "scripts/spec/inventory_store.py": "SuiteManifest's generate.py imports it",
+        "scripts/spec/lineage.py": "SuiteManifest's generate.py imports it",
+        "scripts/spec/generated_output.py": "SuiteManifest's generate.py imports it",
+        "scripts/standard_streams.py": "imported by SuiteManifest's generate.py",
+        "scripts/live_tools.py": "imported by scripts/standard_streams.py",
+        "scripts/git_batch.py": "imported by scripts/spec/inventory_store.py (generate.py)",
+        "scripts/scratch_repo.py": "imported through generate.py's chain (inert_lane CODE_READS)"
+      },
+      "exclude": ["@inert", "@tooling-lane"],
+      "judged": {
+        "tests/_shared/TrackedTree.cs|": "`git ls-files` at the root: the names it returns are filtered by the caller's TreeScope before any caller sees one, and each scope's Under prefixes are literal reads the audit judges in that caller (TrackedTreeScopeDriftTests holds every TrackedTree.Files call to a declared scope; a whole-tree scope, Under \"\", is a bare root reference there)",
+        "tests/_shared/GateLegAudit.cs|": "GateLegAudit.HostRoot: the root AS TEXT, which arm (5) matches discovered case names against; no file is read through it",
+        "tests/_shared/PythonInstrument.cs|": "the working directory of the one Python script a Unit test runs, SuiteManifest's conformance-suite/harness/generate.py --out, whose reads are the generator inputs declared above (traced, kb/Work PB5218)"
+      }
+    },
+    "repo-drift": {
+      "assembly": "RepoDrift",
+      "project": "tests/WiseOwl.Cobol.Tests.RepoDrift/",
+      "inputs": {
+        "@population-inputs": "the repository's drift tests bind the documents' data files, the records, the scripts a compiler test runs, the CI files, every test source and the NAMES of every tracked file (tests/_shared/TrackedTree.cs, NulByteDriftTests' whole-tree sweep) to each other and to the compiler: every population input (inert_lane.Classification.is_population_input)"
       },
       "exclude": ["@inert", "@tooling-lane"]
     },

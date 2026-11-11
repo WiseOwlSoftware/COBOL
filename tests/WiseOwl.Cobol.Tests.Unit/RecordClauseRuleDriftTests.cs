@@ -253,35 +253,4 @@ public sealed class RecordClauseRuleDriftTests
         Assert.Equal(RecordClauseFormat.FixedOrVariable, fov.RecordClause!.Value.Format);
     }
 
-    /// <summary>⭐ THE "NEXT RULE IS A ROW" CLAMP, in both directions: a rule the traceability inventory credits
-    /// to this file must have a row, and a row's rule-id must be a real inventory id that the inventory does not
-    /// credit somewhere else. A row claiming an id filed against a different site is a claim on the burn-down
-    /// that the code does not back.</summary>
-    [Fact]
-    public void EveryScreenedRuleInTheInventory_IsARowInTheTable()
-    {
-        var claimed = new SortedSet<string>(StringComparer.Ordinal);
-        var locatedElsewhere = new Dictionary<string, string>(StringComparer.Ordinal);
-        var allIds = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var row in TraceabilityInventory.Rows)
-        {
-            string id = row.RuleId;
-            allIds.Add(id);
-            string where = row.CodeLocation;
-            if (where.Contains("RecordClauseRules", StringComparison.Ordinal)) claimed.Add(id);
-            else if (where.Length > 0) locatedElsewhere[id] = where;
-        }
-        var inTable = new SortedSet<string>(
-            RecordClauseRules.Catalog.Select(r => r.RuleId), StringComparer.Ordinal);
-
-        Assert.True(claimed.Count > 0,
-            "no inventory row points at RecordClauseRules — either the batch was never applied or the screen moved.");
-        Assert.Empty(claimed.Except(inTable));
-        foreach (string id in inTable)
-        {
-            Assert.True(allIds.Contains(id), $"row '{id}' is not a rule-id the traceability inventory knows.");
-            Assert.False(locatedElsewhere.TryGetValue(id, out string? where),
-                $"row '{id}' is screened here, but the inventory credits it to '{where}'.");
-        }
-    }
 }

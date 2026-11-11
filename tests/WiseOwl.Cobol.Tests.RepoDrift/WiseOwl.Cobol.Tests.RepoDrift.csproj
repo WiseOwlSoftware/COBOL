@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WiseOwl.Cobol.Tests.RepoDrift — the REPOSITORY DRIFT tests (kb/Work PB5207 stage 2, PB5230): the tests that bind the
+    repository's documents, records, scripts, CI files, test sources and tracked tree to each other and to the compiler.
+    They left WiseOwl.Cobol.Tests.Unit so that Unit's declared inputs (scripts/build_targets.json, target `unit`) are the
+    compiler's build inputs and its own test data only: a documentation, records or scripts change re-runs this assembly
+    and not Unit's compiler tests, and a compiler change no longer waits on them inside Unit. What belongs here is
+    DERIVED, never listed: a test source whose repository reads (the BUILD TARGETS audit, scripts/buildgraph.py `check`)
+    lie outside Unit's declared inputs cannot stay in Unit.
+  -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\WiseOwl.Cobol.Compiler\WiseOwl.Cobol.Compiler.csproj" />
+    <ProjectReference Include="..\..\src\WiseOwl.Cobol.Runtime\WiseOwl.Cobol.Runtime.csproj" />
+    <ProjectReference Include="..\..\src\WiseOwl.Cobol.Cli\WiseOwl.Cobol.Cli.csproj" />
+    <!--
+      BUILT FIRST, NEVER REFERENCED: TrackedTreeScopeDriftTests reads the TreeScope fields the compiler built in every
+      test project that declares one, the Unit assembly's from its build output (ScratchDirectory.LoadAssembly), so a
+      build of this project alone builds Unit too.
+    -->
+    <ProjectReference Include="..\WiseOwl.Cobol.Tests.Unit\WiseOwl.Cobol.Tests.Unit.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>
