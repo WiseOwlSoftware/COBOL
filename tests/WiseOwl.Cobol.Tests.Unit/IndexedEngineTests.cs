@@ -702,6 +702,47 @@ public sealed class IndexedEngineTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ THE COBOL-85 RANDOM READ'S '02' LOOK-AHEAD MEETS A TORN PAGE (kb/Work PB5117 review R1-1). At
+    /// <c>--std 85</c> a random READ of an alternate key reads the NEXT duplicate's record too, to decide §1985:IX.1.3.4
+    /// GRL2.1's '02'; when that record's page is torn (2.2.1.6 R3) the READ is '30' (§2023:9.1.13.6 item 1), exactly as the
+    /// sequential READ's look-ahead is, never a quiet '00', and the permanent error is replayed until the CLOSE. The
+    /// records are a page each (3000 bytes in a 4096-byte page), so only the SECOND duplicate's page is torn: the first
+    /// is read clean, which the 2023 READ (no look-ahead, VERSION_CHANGE_REFERENCE row 7.55) proves on the same file.</summary>
+    [Theory]
+    [InlineData(1985, "30")]
+    [InlineData(2023, "00")]
+    public void A_torn_page_under_the_1985_random_read_look_ahead_is_30(int edition, string expected)
+    {
+        const int Length = 3000;
+        string host = Tmp("tornahead" + edition);
+        string first = "0001AA" + new string('X', Length - 6), second = "0002AA" + new string('Y', Length - 6);
+        try
+        {
+            var c = new IndexedConnector(host, Length, KeyedAccess.Dynamic, [new(0, 4)]);
+            c.AddAlternateKey([new(4, 2)], duplicates: true);
+            Assert.Equal("00", c.Open(FileOpenMode.Output));
+            Assert.Equal("00", c.Write(first));
+            Assert.Equal("00", c.Write(second));
+            Assert.Equal("00", c.Close());
+            byte[] before = File.ReadAllBytes(host);
+            Assert.True(TearPagesCarrying(host, Encoding.ASCII.GetBytes(new string('Y', 64))) > 0);
+            byte[] after = File.ReadAllBytes(host);
+            int page = HostFile.InputOutputAreaBytes;
+            Assert.All(Enumerable.Range(0, before.Length / page).Where(p => before.AsSpan(p * page, page)
+                    .IndexOf(Encoding.ASCII.GetBytes(new string('X', 64))) >= 0),
+                p => Assert.True(before.AsSpan(p * page, page).SequenceEqual(after.AsSpan(p * page, page)),
+                    $"page {p} carries the FIRST record and must stay intact"));
+            var t = new IndexedConnector(host, Length, KeyedAccess.Dynamic, [new(0, 4)]) { Edition = edition };
+            t.AddAlternateKey([new(4, 2)], duplicates: true);
+            Assert.Equal("00", t.Open(FileOpenMode.Input));
+            Assert.Equal(expected, t.ReadRandom(0, new string(' ', 4) + "AA" + new string(' ', Length - 6), out string image));
+            if (expected == "00") Assert.Equal(first, image);
+            else Assert.Equal(expected, t.ReadRandom(-1, "0001" + new string(' ', Length - 4), out _));   // replayed
+            Assert.Equal("00", t.Close());                             // the CLOSE ends it (DOC-A.1-105)
+        }
+        finally { TryDelete(host); }
+    }
+
     // ── 2.2.1.16's OPEN and CLOSE rows through the INDEXED connector (review finding R1-3 of kb/Work PB3334) ───────────
 
     /// <summary>The writes and syncs of a CLOSE after one completed WRITE (which owes the promotion, 2.2.1.6 R5), measured

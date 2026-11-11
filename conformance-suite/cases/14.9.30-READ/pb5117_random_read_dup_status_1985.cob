@@ -7,7 +7,7 @@
       *>---
       *> kb/Work PB5117 - a RANDOM READ of an alternate key that has duplicates, at COBOL-85: I-O status 02.
       *>
-      *> §1985:IX.1.3.4 item (1) b) (checked with scripts/spec/cite.py --check): "For a READ statement, the key value
+      *> §1985:IX.1.3.4 GRL2.1 (checked with scripts/spec/cite.py --check): "For a READ statement, the key value
       *> for the current key of reference is equal to the value of the same key in the next record within the current
       *> key of reference." The rule names no access mode, so a READ with a KEY phrase is covered; the record made
       *> available is the first of the duplicates released.  From COBOL-2002 the rule is limited

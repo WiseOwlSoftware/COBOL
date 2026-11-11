@@ -97,9 +97,9 @@ public enum DialectBehavior
     /// baked into the report (<c>CobolReport.Edition</c>).</summary>
     ControlFootingPageGroupsSeePriorControlValues = 4,
 
-    /// <summary>ISO/IEC 1989:2023 §2023:14.9.30.4 GR27 a) — '02' is set only when "an indexed file is being sequentially
+    /// <summary>ISO/IEC 1989:2023 §2023:14.9.30.4 GR27a — '02' is set only when "an indexed file is being sequentially
     /// accessed" and the key of reference's next record has the same key; the 2002 text words it the same (a READ with the
-    /// NEXT or PREVIOUS phrase). §1985:IX.1.3.4 item (1) b) names no access mode: "For a READ statement, the key value for
+    /// NEXT or PREVIOUS phrase). §1985:IX.1.3.4 GRL2.1 names no access mode: "For a READ statement, the key value for
     /// the current key of reference is equal to the value of the same key in the next record within the current key of
     /// reference", so at <c>--std 85</c> a random READ (format 2, a KEY phrase) of an alternate key that has duplicates
     /// also answers '02' (kb/Work PB5117). The consumer is <c>IndexedConnector.ReadRandom</c>.</summary>
@@ -152,7 +152,7 @@ public static class DialectBehaviors
             "the page heading and page footing a control footing's page advance reaches see the PRIOR control values only "
             + "from COBOL-2002; COBOL-85 gives the prior values to the control footing alone and every other reference the current ones"),
         new(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, "indexed-duplicate-key-status-sequential-only", 2002,
-            "7.55", "14.9.30.4 GR27", "§1985:IX.1.3.4 item (1) b)",
+            "7.55", "14.9.30.4 GR27", "§1985:IX.1.3.4 GRL2.1",
             "I-O status 02 for a READ whose key of reference equals the next record's key is set only by a sequential "
             + "READ from COBOL-2002; COBOL-85 also sets it for a random READ of an alternate key's duplicate set"),
     ];
