@@ -36,11 +36,14 @@ be resolved, there is a problem/bug"): a dependency whose output digest is unkno
 command did not write or a file it wrote that is not declared, a facet the caller did not give.
 
 A GENERATED TARGET'S RUN IS TRACED (`TRACER`): its command runs under a Python audit hook that records every file it
-opens for reading, every directory it lists and every process it starts, and at its end every module it loaded with that
-module's SOURCE (an import from a warm `__pycache__` opens only the .pyc: kb/Work PB5231 review R1-1). A tracked path it
-opened, or a module source it loaded, that its inputs do not match, a module loaded from inside the repository with no
-tracked source, a tracked directory it listed that no input lies in, or any process it started (whose reads no hook sees)
-refuses the generation by name (`undeclared`): its declared inputs are verified at every run, not trusted. THE TRACE'S
+opens for reading, every directory it lists and every process it starts. Its bytecode cache is a fresh empty directory
+of its own (`sys.pycache_prefix`), so every Python source it executes is OPENED, whatever loader runs it (an import, or
+`spec_from_file_location` + `exec_module`, which never enters `sys.modules`): a warm `__pycache__` in the worktree is never
+read (kb/Work PB5231 review R1-1, R2-1). At its end it lists the modules it loaded that are not Python sources (a
+compiled extension, whose loading raises no open event). A tracked path it opened that its inputs do not match, compiled
+code opened or loaded from inside the repository (no tracked source the key could cover), a tracked directory it listed
+that no input lies in, or any process it started (whose reads no hook sees) refuses the generation by name
+(`undeclared`): its declared inputs are verified at every run, not trusted. THE TRACE'S
 RESIDUE, named: a call that asks whether a path exists or stats it (`Path.exists`, `is_file`, `is_dir`, `os.stat`, …)
 raises no audit event, so no run sees it. The STATIC half covers it, before any run (`static_check`, part of `check`):
 the program's import closure (every import, a lazy one included) lies in its inputs, and every existence or stat call in
@@ -110,6 +113,8 @@ OUT = "{out}"
 CLASSES = ("@inert", "@tooling-lane")
 #: The observation a dependent's host records when it generated its own output (`GeneratedTarget.own_mark`).
 OWN_GENERATION = "GENERATED-OWN"
+#: Compiled code a traced run may open: never inside the worktree, where nothing the key covers is its source (`undeclared`).
+COMPILED = (".pyc", ".pyo", ".pyd", ".so")
 
 
 class GraphError(ValueError):
@@ -383,14 +388,23 @@ def key(target: Target, entries: list[tuple[bytes, str]], facets: Mapping[str, s
 
 
 def keys(graph: Graph, entries: list[tuple[bytes, str]], facets: Mapping[str, str],
-         outputs: Mapping[str, str] | Callable[[GeneratedTarget, str], str]) -> dict[str, str]:
+         outputs: Mapping[str, str] | Callable[[GeneratedTarget, str], str],
+         refused: dict[str, str] | None = None) -> dict[str, str]:
     """Every target's key, in topological order. `outputs` gives each generated target's output digest: a mapping (the
-    digests a gate's generations made), or a function of (the target, its key) that resolves it (`stored_outputs`)."""
+    digests a gate's generations made, or a run recorded), or a function of (the target, its key) that resolves it
+    (`stored_outputs`). A key that cannot be resolved raises Unresolved; with `refused` given it is left out and its
+    reason kept there by target name instead (a re-derivation keys what it can and refuses the rest by name)."""
     known: dict[str, str] = {}
     out: dict[str, str] = {}
     for name in graph.order:
         t = graph.targets[name]
-        out[name] = key(t, entries, facets, known)
+        try:
+            out[name] = key(t, entries, facets, known)
+        except Unresolved as e:
+            if refused is None:
+                raise
+            refused[name] = str(e)
+            continue
         if isinstance(t, GeneratedTarget):
             digest = outputs(t, out[name]) if callable(outputs) else outputs.get(name)
             if digest:
@@ -485,12 +499,17 @@ def output_digest(directory: Path, target: GeneratedTarget) -> tuple[str, int]:
 
 
 #: ⛔ THE TRACER a generated target's command runs under (`traced_run`): stdlib only, imported before the hook, so every
-#: repository module the command imports is opened, and seen, after it. argv: <log> <script> <args...>. It runs the
-#: script as `python <script>` would (sys.path[0] its directory, __name__ "__main__") and writes, at its end, the
-#: absolute paths it opened for reading, the directories it listed and the processes it started.
+#: repository module the command imports is opened, and seen, after it; its bytecode cache is a fresh empty directory, so
+#: every source is opened from source. argv: <log> <script> <args...>. It runs the script as `python <script>` would
+#: (sys.path[0] its directory, __name__ "__main__") and writes, at its end, the absolute paths it opened for reading, the
+#: directories it listed, the processes it started and the modules it loaded that are not Python sources.
 TRACER = r"""
-import importlib.util, json, os, runpy, sys, traceback
+import json, os, runpy, shutil, sys, tempfile, traceback
 log, script, argv = sys.argv[1], os.path.abspath(sys.argv[2]), sys.argv[3:]
+# THE BYTECODE CACHE IS A FRESH EMPTY DIRECTORY OF THIS RUN'S OWN (kb/Work PB5231 review R2-1): with none to read, every
+# source the run executes is OPENED, and seen by the open hook, whatever loader runs it (an import, or
+# spec_from_file_location + exec_module, which never enters sys.modules); a warm __pycache__ in the worktree is never read.
+sys.pycache_prefix = tempfile.mkdtemp(prefix="buildgraph-pycache-")
 before = set(sys.modules)
 opened, listed, started = set(), set(), []
 WRITE = os.O_WRONLY | os.O_RDWR | os.O_APPEND | os.O_CREAT
@@ -524,25 +543,23 @@ except BaseException:
     traceback.print_exc()
     code = 1
 finally:
-    # Every module the run loaded, with where it came from and its SOURCE: an import from a warm __pycache__ opens only
-    # the .pyc (and stats the source), so the open hook alone never sees the module's source (kb/Work PB5231 R1-1).
+    # Every module the run loaded that is NOT a Python source (a compiled extension, whose loading raises no open
+    # event; a sourceless .pyc): the one thing the open hook cannot see. Sources are seen when opened (the cache above).
     modules = []
     for name, m in list(sys.modules.items()):
         if name in before:
             continue
         spec = getattr(m, "__spec__", None)
         origin = getattr(spec, "origin", None) or getattr(m, "__file__", None)
-        if not origin or origin in ("built-in", "frozen", "namespace"):
-            continue
-        source = origin
-        if origin.endswith(".pyc"):
-            try:
-                source = importlib.util.source_from_cache(origin)
-            except ValueError:
-                source = None
-        modules.append([name, os.path.abspath(origin), os.path.abspath(source) if source else None])
+        if origin and origin not in ("built-in", "frozen", "namespace") and not origin.endswith(".py"):
+            modules.append([name, os.path.abspath(origin)])
     with open(log, "w", encoding="utf-8") as fh:
         json.dump({"opened": sorted(opened), "listed": sorted(listed), "started": started, "modules": modules}, fh)
+    try:
+        shutil.rmtree(sys.pycache_prefix)
+    except OSError as e:
+        print(f"buildgraph tracer: the run's bytecode cache {sys.pycache_prefix} could not be removed: {e}",
+              file=sys.stderr)
 sys.exit(code)
 """
 
@@ -555,8 +572,9 @@ class Trace:
     opened: tuple[str, ...]
     listed: tuple[str, ...]
     started: tuple[str, ...]
-    #: Every module the run loaded: (its name, the file it was loaded from, its source file or None when it has none).
-    modules: tuple[tuple[str, str, str | None], ...] = ()
+    #: Every module the run loaded that is not a Python source (a compiled extension, a sourceless .pyc): (its name, the
+    #: file it was loaded from). Loading one raises no open event of a source the key could cover.
+    modules: tuple[tuple[str, str], ...] = ()
 
 
 def traced_run(repo: Path, target: GeneratedTarget, out: Path) -> Trace:
@@ -574,7 +592,7 @@ def traced_run(repo: Path, target: GeneratedTarget, out: Path) -> Trace:
             data = {"opened": [], "listed": [], "started": ["(the tracer wrote no log: what the run read is unknown)"],
                     "modules": []}
     return Trace(rc, output, tuple(data["opened"]), tuple(data["listed"]), tuple(data["started"]),
-                 tuple((n, o, s) for n, o, s in data["modules"]))
+                 tuple((n, o) for n, o in data["modules"]))
 
 
 def undeclared(target: GeneratedTarget, trace: Trace, repo: Path, tracked: set[str],
@@ -604,23 +622,21 @@ def undeclared(target: GeneratedTarget, trace: Trace, repo: Path, tracked: set[s
         r = rel(p)
         if r is not None and r in tracked and not target.matches(r, cls):
             found.append(f"opened {r}")
+        elif r is not None and r not in tracked and r.endswith(COMPILED):
+            # The run's bytecode cache is outside the worktree (TRACER), so compiled code opened inside it is code with
+            # no tracked source (a sourceless .pyc, a stale cache loaded by hand): nothing the key could cover.
+            found.append(f"loaded {r}, compiled code with no tracked source in the repository")
     for p in trace.listed:
         r = rel(p)
         d = "" if not r else r + "/"
         if r is not None and d in dirs and not target.lists(d):
             found.append(f"listed {d or '(the repository root)'}")
-    for name, origin, source in trace.modules:
-        # ⛔ A MODULE IS READ WHETHER IT CAME FROM ITS SOURCE OR FROM A CACHE (kb/Work PB5231 R1-1): its source is judged
-        # like an opened path; one loaded from inside the repository with no TRACKED source there (a sourceless .pyc, an
-        # untracked module, a compiled extension) cannot be keyed at all, and is a failure naming it.
+    for name, origin in trace.modules:
+        # A module that is not a Python source, loaded from inside the repository (a compiled extension, whose loading
+        # raises no open event; a sourceless .pyc): its key could cover no source, so it is a failure naming it.
         where = rel(origin)
-        src = rel(source) if source else None
-        if where is None and src is None:
-            continue
-        if src is None or src not in tracked:
-            found.append(f"imported {name} from {where or src}, which has no tracked source in the repository")
-        elif not target.matches(src, cls):
-            found.append(f"imported {src}")
+        if where is not None:
+            found.append(f"imported {name} from {where}, which is not a tracked Python source")
     found += [f"started a process, whose reads no hook sees: {s}" for s in trace.started]
     return sorted(set(found))
 
@@ -1304,13 +1320,28 @@ def self_test() -> int:
         imp_tracked = {p for _, p in ientries}
         static_imp = static_check(imp.path, it, imp_tracked)
         declared_imp = static_check(imp.path, replace(it, inputs=("gen/", "lib/")), imp_tracked)
-        arm("an undeclared import that is already cached is refused by the trace (its source is judged though only the "
-            ".pyc was opened); the static import closure refuses it without running anything, and is clean once "
-            "declared",
+        arm("an undeclared import that is already cached is refused by the trace (the run's own empty bytecode cache "
+            "makes it open the source); the static import closure refuses it without running anything, and is clean "
+            "once declared",
             any((imp.path / "lib" / "__pycache__").glob("helper.*.pyc")) and "UndeclaredRead" in warm
-            and "imported lib/helper.py" in warm
+            and "opened lib/helper.py" in warm
             and any("imports lib/helper.py" in f for f in static_imp) and declared_imp == [],
             f"{warm} | {static_imp} | {declared_imp}")
+        loader = ("import sys, importlib.util\nfrom pathlib import Path\nhere = Path(__file__).resolve().parent\n"
+                  "s = importlib.util.spec_from_file_location('h', here.parent / 'lib' / 'helper.py')\n"
+                  "helper = importlib.util.module_from_spec(s)\ns.loader.exec_module(helper)\n"
+                  "out = Path(sys.argv[sys.argv.index('--out') + 1])\n"
+                  "(out / 'm.json').write_text(str(helper.VALUE), encoding='utf-8')\n")
+        imp.commit("hook loader", {"gen/make.py": loader})
+        subprocess.run([sys.executable, "-c", "import importlib.util\n"
+                        "s = importlib.util.spec_from_file_location('h', 'lib/helper.py')\n"
+                        "s.loader.exec_module(importlib.util.module_from_spec(s))"], cwd=imp.path, check=True)
+        hentries = tree_entries(imp.path, imp.git("rev-parse", "HEAD^{tree}"))
+        hooked = refused(lambda: generate(imp.path, it, "k-hook", Store(root / "imp-store"), {p for _, p in hentries}))
+        arm("a module loaded by spec_from_file_location + exec_module (never in sys.modules), with a warm cache in the "
+            "default location, is refused by the trace: the run opens its source",
+            "UndeclaredRead" in hooked and "opened lib/helper.py" in hooked
+            and Store(root / "imp-store").lookup("imp", "k-hook") is None, hooked)
         probing = ("from pathlib import Path\nhere = Path(__file__).resolve().parent\n"
                    "def probe(p):\n    return p.is_file()\n"
                    "def self_test():\n    return Path('anything').exists()\n"

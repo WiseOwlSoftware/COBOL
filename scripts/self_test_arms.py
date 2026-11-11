@@ -70,6 +70,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'an undeclared import that is already cached is refused by the trace',
         'the static check refuses an existence probe of a path outside the inputs',
         "the generator's program is reached through the dependency only at its ONE hand-off site",
+        'a module loaded by spec_from_file_location + exec_module (never in sys.modules), with a warm cache',
     ),
     'scripts/gate.py': (
         'a whole planted population is GREEN, every assembly EXACT',
@@ -144,6 +145,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a missing dependency record is not up to date: with its outputs still on disk the generator runs again',
         'a host that changes the generated output it was handed makes the gate RED',
         'a gate whose Conformance host generated its own suite instead of the handed one is RED',
+        'a re-derivation keys Conformance on the digest the run itself was handed',
         'a nondeterministic generator (planted: the time) is REFUSED',
         'a dependency cycle in the targets file is refused',
         'a stopped run with complete green trx and no listing is RECOVERED from its own files',

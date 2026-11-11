@@ -1331,11 +1331,13 @@ topological order, before any test target's key. It is UP TO DATE when the store
 output directory holds exactly that digest (`output_digest`: the sha256 of every file's relative POSIX path and content hash,
 in path order; no absolute path, time or platform). Otherwise the directory is removed and the command runs under a Python
 audit hook (`TRACER`, `traced_run`), and the generation is REFUSED, naming what stopped it, when it exits non-zero, OPENS a
-tracked path its inputs do not match (an input excluded as `@inert` included: then the classification is wrong), LOADS a
-module whose source its inputs do not match, or one from inside the repository with no tracked source (the tracer lists
-every module loaded with its source at its end: an import from a warm `__pycache__` opens only the .pyc, kb/Work PB5231
-review R1-1), LISTS a tracked directory no input lies in or under, STARTS a process (whose reads no hook sees), writes a file
-its outputs do not
+tracked path its inputs do not match (an input excluded as `@inert` included: then the classification is wrong; the run's
+bytecode cache is a fresh empty directory of its own, `sys.pycache_prefix`, so every Python source it executes is opened,
+whatever loader runs it, an import or `spec_from_file_location` + `exec_module`, and a warm `__pycache__` in the worktree is
+never read: kb/Work PB5231 review R1-1, R2-1), OPENS or LOADS compiled code from inside the worktree (a sourceless .pyc, a
+compiled extension, which raises no open event and is found in the module list the tracer writes at its end: code with no
+tracked source the key could cover), LISTS a tracked directory no input lies in or under, STARTS a process (whose reads no
+hook sees), writes a file its outputs do not
 declare or leaves a declared output unwritten, reproduces NOT the digest the store records at that key (`Nondeterministic`:
 the outputs are kept to compare), or runs while the working tree changes (`TreeMoved`). Only a first generation at a key is
 recorded (its digest, file count, seconds, worktree). A gate whose generated target is refused ends RED before any host: a
@@ -1431,7 +1433,10 @@ measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog puts HEAD
 `gate.pid`'s time, written before the tree was measured; the filesystem's clock, the hosts' and the reflog's, never the
 driver's) with no move until the hosts' last write. Its residue, written into the record (kb/Work PB5205 review R1-2): an
 uncommitted edit made while the run ran and undone at ANY time before the re-derivation is in no reflog, where the live gate,
-which measures `tree_end` after its hosts, would have refused it. Each target's key is computed from the RECORDED tree. A proved
+which measures `tree_end` after its hosts, would have refused it. Each target's key is computed from the RECORDED tree, and a
+dependent target's from the generated output the RUN recorded it was handed (`Gate._rederived_keys`, kb/Work PB5231 review
+R2-2): a run whose recorded digest the store now contradicts is refused naming both, and a run from before the hand-off has
+its Conformance REFUSED (never stored or carried; its host generated its own suite). A proved
 record keeps its verdict, line and exit code (RED), gains `tree_end`, `keys`, `audit_reds` and `rederived` (when, the
 evidence, the residue, per assembly "stored" or "passes"), and the original stays beside it as `verdict.original.json`. An
 assembly for which a run at the same key kept the listing (`listing-<asm>.txt`) is checked EXACT against it by the live check

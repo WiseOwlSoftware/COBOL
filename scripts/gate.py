@@ -584,21 +584,25 @@ class Host:
         """The platform facet of a target's key: this host's (`self_tests.this_platform`)."""
         return this_platform()
 
-    def target_keys(self, tree: str, facets: dict[str, str],
-                    outputs: dict[str, str] | None = None) -> dict[str, str] | None:
+    def target_keys(self, tree: str, facets: dict[str, str], outputs: dict[str, str] | None = None,
+                    refused: dict[str, str] | None = None) -> dict[str, str] | None:
         """EACH TEST TARGET'S KEY at the measured `tree` (kb/Work PB5218, PB5231; `buildgraph.keys`), by assembly: one `git
         ls-tree`, no file read. A target that depends on a generated one takes that target's OUTPUT DIGEST: from
         `outputs` (what this gate's generations made, `generate`), else from the store's record at its key (a re-derivation
         of an old run). None when git cannot say (then nothing is up to date and nothing is carried); raises
-        buildgraph.Unresolved, naming the dependency, when a digest is in neither."""
+        buildgraph.Unresolved, naming the dependency, when a digest is in neither, unless `refused` is given: then that
+        assembly is left out and its reason kept there, by assembly (`buildgraph.keys`)."""
         try:
             entries = buildgraph.tree_entries(self.repo, tree)
         except (subprocess.CalledProcessError, OSError):
             return None
         graph = self.graph()
+        by_name: dict[str, str] | None = {} if refused is not None else None
         got = buildgraph.keys(graph, entries, facets,
-                              outputs if outputs is not None else buildgraph.stored_outputs(self.store()))
-        return {asm: got[t.name] for asm, t in graph.by_assembly().items()}
+                              outputs if outputs is not None else buildgraph.stored_outputs(self.store()), by_name)
+        if refused is not None:
+            refused.update({asm: by_name[t.name] for asm, t in graph.by_assembly().items() if t.name in by_name})
+        return {asm: got[t.name] for asm, t in graph.by_assembly().items() if t.name in got}
 
     def generate(self, tree: str, facets: dict[str, str],
                  stable: Callable[[], bool]) -> dict[str, buildgraph.Generation]:
@@ -1469,7 +1473,10 @@ class Gate:
             write. THE RESIDUE (kb/Work PB5205 review R1-2), named in the record: an uncommitted edit made while the run
             ran and undone at ANY time before this re-derivation is in no reflog, where the live gate, which measures
             `tree_end` after its hosts, would have refused it;
-          * each target's key is computed from its RECORDED tree and toolchain (`Host.target_keys`).
+          * each target's key is computed from its RECORDED tree and toolchain (`Host.target_keys`), a dependent one on the
+            generated output the RUN recorded it was handed (`_rederived_keys`, kb/Work PB5231 review R2-2): refused when
+            the store now records another digest there, and that assembly REFUSED (never stored or carried) when the run
+            predates the hand-off.
         Then the record gains `tree_end` (its tree), `keys`, `audit_reds` and `rederived` (when, the evidence, the
         residue). Its verdict, line and exit code are unchanged: it stays RED. An assembly for which a run of this worktree
         at the SAME KEY kept the listing (`listing-<asm>.txt`, the expected population) is checked EXACT against it by the
@@ -1547,20 +1554,16 @@ class Gate:
                     found.append(f"HEAD stood at {rec['head'][:12]} (tree {rec['tree'][:12]}) from the run's start "
                                  f"{dt.datetime.fromtimestamp(started, dt.timezone.utc):%Y-%m-%dT%H:%M:%SZ} to its hosts' "
                                  f"last write {dt.datetime.fromtimestamp(end, dt.timezone.utc):%Y-%m-%dT%H:%M:%SZ}")
-        try:
-            keys = self.host.target_keys(rec["tree"], self.facets(str(rec.get("toolchain") or "")))
-        except buildgraph.Unresolved as e:   # a generated dependency with no record at its key (kb/Work PB5231)
-            keys = None
-            refusals.append(f"the targets' keys of its tree {rec['tree'][:12]} cannot be resolved: {e}")
-        else:
-            if keys is None:
-                refusals.append(f"the targets' keys of its tree {rec['tree'][:12]} cannot be computed")
-        if refusals:
+        keys, refused = self._rederived_keys(rec, refusals)
+        if refusals or keys is None:
             return Rederived(None, found, refusals)
         new = {**rec, "tree_end": rec["tree"], "keys": keys, "audit_reds": audit}
-        levels: dict[str, str] = {}
+        levels: dict[str, str] = {asm: f"refused: {why}" for asm, why in refused.items()}
         stored: dict[str, dict] = {}
         for asm in GATED_ASSEMBLIES:
+            if asm in refused:
+                found.append(f"{asm}: REFUSED, never stored or carried: {refused[asm]}")
+                continue
             listing = self._listing_at(asm, keys[asm], run)
             if listing is None:
                 levels[asm] = "passes"
@@ -1581,9 +1584,35 @@ class Gate:
                        + ("; an assembly with no listing of its key on disk is left to the next gate, which lists its "
                           "population and checks the carried passes EXACT against it" if "passes" in levels.values() else "")}
         new["populations"] = {**(rec.get("populations") or {}), **{a: {**c, "exact": True} for a, c in stored.items()}}
-        level = "stored" if all(v == "stored" for v in levels.values()) else (
-            "passes" if all(v == "passes" for v in levels.values()) else "stored and passes")
+        kept = [v for a, v in levels.items() if a not in refused]
+        level = ("stored" if all(v == "stored" for v in kept) else
+                 "passes" if all(v == "passes" for v in kept) else "stored and passes") \
+            + (f" ({', '.join(sorted(refused))} refused)" if refused else "")
         return Rederived(new, found, [], level, stored)
+
+    def _rederived_keys(self, rec: dict, refusals: list[str]) -> tuple[dict[str, str] | None, dict[str, str]]:
+        """THE KEYS A RE-DERIVED RUN STANDS AT (kb/Work PB5231 review R2-2): each assembly's key at the run's RECORDED
+        tree and toolchain, a dependent one keyed on the output digest the RUN ITSELF recorded (`generated`: the suite
+        its host was handed and ran), never the digest the store holds now. Where the store's record at that generated
+        key holds another digest, the run is refused (`refusals`), naming both. A run that recorded no generation of a
+        dependency (it predates the hand-off, and its host generated its own suite) has that dependent assembly REFUSED:
+        returned in the second map, never stored or carried. Returns (the keys, None when git cannot say; the refused
+        assemblies with why)."""
+        facets = self.facets(str(rec.get("toolchain") or ""))
+        generated = {n: g for n, g in (rec.get("generated") or {}).items() if isinstance(g, dict) and g.get("outputs")}
+        store = self.host.store()
+        for name, g in sorted(generated.items()):
+            now = (store.lookup(name, str(g.get("key") or "")) or {}).get("outputs")
+            if now is not None and now != g["outputs"]:
+                refusals.append(f"{name}: the run was handed output {g['outputs'][:12]} at key {str(g.get('key'))[:12]}, "
+                                f"and the store now records {now[:12]} there: its dependents' passes are not that run's")
+        refused: dict[str, str] = {}
+        keys = self.host.target_keys(rec["tree"], facets, {n: g["outputs"] for n, g in generated.items()}, refused)
+        refused = {asm: f"its run recorded no generation it was handed ({why}; it predates the hand-off of kb/Work "
+                        "PB5231, so its host generated its own suite)" for asm, why in refused.items()}
+        if keys is None:
+            refusals.append(f"the targets' keys of its tree {rec['tree'][:12]} cannot be computed")
+        return keys, refused
 
     def _listing_at(self, asm: str, key: str, run: Path) -> tuple[str, Counter] | None:
         """The expected population of `asm` at its `key`: the listing (`listing-<asm>.txt`) a run of this worktree kept
@@ -2291,12 +2320,12 @@ class FakeHost(Host):
         self.graph()
         return super().generate(tree, facets, stable) if self.planted_graph is not None else {}
 
-    def target_keys(self, tree, facets, outputs=None):
+    def target_keys(self, tree, facets, outputs=None, refused=None):
         """The planted keys: per assembly, the tree's `keys` value (else the tree itself) with the facets; the real ones
         over a planted graph (`graph`). The real key's digest over a real tree is buildgraph.py's self-test and the
         real-key arm here."""
         if self.planted_graph is not None:
-            return super().target_keys(tree, facets, outputs)
+            return super().target_keys(tree, facets, outputs, refused)
         planted = self.keys.get(tree, tree)
         out = {}
         for asm in GATED_ASSEMBLIES:
@@ -3414,6 +3443,29 @@ def self_test() -> int:
             "the gate is RED naming it, and no test host runs",
             g7.verdict == "GREEN" and g8.verdict == "RED" and "GENERATED TARGET RED — Nondeterministic" in g8.line
             and hg8.envs == {} and not hg8.built, g8.line)
+        # A RE-DERIVATION KEYS ON THE DIGEST THE RUN WAS HANDED (kb/Work PB5231 review R2-2), from g7's real record.
+        g7_rec = next((r for r in map(read_record, run_dirs(gd / "runs")) if r and r.get("line") == g7.line), {})
+        rgate = Gate(FakeHost(gd, gd / "gate.lock", graph=ggraph, repo=grepo.path, store_dir=gstore), gd / "runs",
+                     say=sink.append)
+        own_refusals: list[str] = []
+        own_keys, own_refused = rgate._rederived_keys(g7_rec, own_refusals)
+        suite_rec_path = buildgraph.Store(gstore)._path("suite", g7_rec["generated"]["suite"]["key"])
+        kept_text = suite_rec_path.read_text(encoding="utf-8")
+        suite_rec_path.write_text(kept_text.replace(g7_rec["generated"]["suite"]["outputs"], "f" * 64), encoding="utf-8",
+                                  newline="\n")
+        moved_refusals: list[str] = []
+        rgate._rederived_keys(g7_rec, moved_refusals)
+        suite_rec_path.write_text(kept_text, encoding="utf-8", newline="\n")
+        old_refusals: list[str] = []
+        old_keys, old_refused = rgate._rederived_keys({k: v for k, v in g7_rec.items() if k != "generated"}, old_refusals)
+        arm("a re-derivation keys Conformance on the digest the run itself was handed; one whose digest the store now "
+            "contradicts is refused naming both; a run from before the hand-off has Conformance REFUSED, never stored",
+            own_refusals == [] and own_refused == {} and own_keys == g7_rec["keys"]
+            and len(moved_refusals) == 1 and g7_rec["generated"]["suite"]["outputs"][:12] in moved_refusals[0]
+            and "f" * 12 in moved_refusals[0]
+            and old_refusals == [] and sorted(old_refused) == ["Conformance"] and "Conformance" not in (old_keys or {})
+            and (old_keys or {}).get("Unit") == g7_rec["keys"]["Unit"],
+            f"{own_refusals} {own_refused} | {moved_refusals} | {old_refusals} {old_refused}")
         cyclic = root / "cyclic-targets.json"
         cyclic.write_text(json.dumps({"facets": ["toolchain"], "build": {"inputs": {}}, "targets": {
             "a": {"kind": "generated", "command": ["a.py", "{out}"], "outputs": {"x": ""}, "env": "WISEOWL_COBOL_GATE_A",
