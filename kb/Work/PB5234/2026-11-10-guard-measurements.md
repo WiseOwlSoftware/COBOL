@@ -16,7 +16,7 @@ is a refused command that would really have done the harm the rule names; a FALS
 |---|---|---|---|---|---|---|---|
 | `forbidden_commands.py` rule 1, `git stash` / `--autostash` | the stash stack is shared by every worktree (PB713) | every Bash + PowerShell call | 0.070 (whole hook) | 1 (1) | 1/1 (`git stash push` of settings.local.json) | the settings.json deny rules cover four literal spellings only | KEEP, a name match on the git subcommand |
 | rule 2, a push to THIS repository's main | main takes only queued pull requests (PB3023, PB3024) | same | - | 0 | - | the server ruleset refuses it (binds administrators) | KEEP, fast feedback for a refusal the server makes anyway |
-| rule 2b, ANY `git push` inside a loop unit | a unit published the skills repository's main (PB2044) | same, when `COBOL_COORD_DIR` is set | - | 31 (31) | 0/31: every one pushed the unit's own work branch (`HEAD`, `HEAD:worktree-…`, `-u origin <branch>`); none named main, none another repository | rule 7 asks every checkpoint to be pushed | NARROW to a push whose destination is main, in any repository |
+| rule 2b, ANY `git push` inside a loop unit | a unit published the skills repository's main (PB2044) | same, when `COBOL_COORD_DIR` is set | - | 31 (31) | 0/31: every one pushed the unit's own work branch (`HEAD`, `HEAD:worktree-…`, `-u origin <branch>`); none named main, none another repository | rule 7 asks every checkpoint to be pushed | NARROW to a push to ANOTHER repository, judged by the remote's URL (fails closed when it cannot be read); rule 2 still refuses this repository's main |
 | rule 3, a backslash escape in a heredoc body | heredoc bodies arrived altered (memory `feedback_heredoc_backslash_mangling`, 2026-08: PB60, PB64, PB66, PB78, PB82) | Bash + PowerShell | - | 576 (369) | 176/576 (31 %) carried the shape that is really altered (below); 400 held only single backslashes, which arrive intact | nothing: the cause is in the harness (below) | NARROW to the measured shape, Bash tool only |
 | rule 4a, a bare `~X` test filter | `--filter "~X"` matches nothing and exits 0: a silent green | Bash + PowerShell | - | 0 | - | `dotnet test` prints "No test matches"; the gate never filters | KEEP: a match on the command's own `--filter` argument, zero false refusals |
 | rule 4b, an unredirected filtered `dotnet test` | the output floods the context (no wrong result) | same | - | 0 | - | nothing needed: the cost is the agent's own context, not a wrong result | DELETE |
@@ -77,7 +77,22 @@ NIST guard, which stage 6 (PB5235) makes a slow target of the graph:
   (`CorpusManifestTests.cs`, `NistRunner.cs`, `CompilerUnderTest.cs`, `NistWrittenFilesTests.cs`), and
   `scripts/build_targets.json` declares them as inputs.
 
-**What this stage does not finish: the isolation guard (SPLIT).** Its 282 refusals are the second-largest family. Its
+**After, measured.** `replay.py` runs every Bash and PowerShell command of the window through a hook file in-process,
+judged as an attended session, with the same inputs for both arms (`replay_old.log`, `replay_new.log`):
+
+| forbidden_commands.py | Commands replayed | Refused | heredoc | chained | stash | bg_cd |
+|---|---|---|---|---|---|---|
+| origin/main (before) | 43,484 | 1,166 (2.68 per 100 calls) | 979 | 182 | 2 | 3 |
+| this branch (after) | 43,414 | 185 (0.43 per 100 calls) | 180 | 0 | 2 | 3 |
+
+The replay counts more heredoc refusals than the transcripts recorded (979 against 576), because it judges every command
+by today's rule, including commands written where the hook did not run. The 31 unit pushes replayed as a unit: the old
+rule refuses 30, the new one 0 of the 6 whose directory still exists; the other 25 ran in worktrees since pruned, whose
+remote the rule cannot read, so it refuses them (it fails closed). Hook wall time per Bash call: 0.457 s → 0.070 s
+(forbidden_commands alone; the `if`-scoped worktree_rm_allow runs on 2 calls in 42,411). Hook lines: `scripts/hooks/` and
+`.claude/settings.json` lose 1,609 lines and gain 147.
+
+**What this stage does not finish: the isolation guard (SPLIT, kb/Work PB5236).** Its 282 refusals are the second-largest family. Its
 replacement is a dispatch shape: Workflow agents started without `isolation: 'worktree'`, each in a worktree the
 dispatcher creates, bounded by the brief and permission rules. The harness-made worktree and its `worktree-wf_*` branch
 names run through `plan_wave.py`, `prune_worktrees.py`, `landing_rules.py`, `review_lane.py`, `coord.py` and the
