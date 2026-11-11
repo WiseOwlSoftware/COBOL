@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XI.3.2.3-4",
  "rule-digest": "05163874e391",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen",
  "test-ref": "conformance:cases/XI.3.2@1985-SORT-MERGE-FILE-DESCRIPTION-ENTRY/1985-SR-XI_3_2_3-4",
+ "notes": "SR4 states only that the VARYING phrase is available in an SD as far as the Sequential I-O level allows; the compiler implements level 2 Sequential I-O and admits RECORD IS VARYING ... DEPENDING ON in an SD at 85 (V1LG and V1SH compile and sort). The refuter's finding, that a RELEASE whose DEPENDING ON value lies outside FROM/TO is still released, is real and reproduced here, but it is the obligation of §1985:VII.3.8.4 GR10's last paragraph (Amendment 2), reached through §1985:XI.3.2.4 GR2, not of this availability rule; it is recorded as sibling_defect against 1985-GR-VII.3.8.4-10.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

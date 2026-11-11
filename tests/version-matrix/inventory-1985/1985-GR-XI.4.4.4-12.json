@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XI.4.4.4-12",
  "rule-digest": "c90fd6d15173",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
  "test-ref": "conformance:cases/XI.4.4@1985-SORT-STATEMENT/1985-GR-XI_4_4_4-12",
+ "notes": "The held case is the same as 1985-GR-XI.4.3.4-6's: givsize's SD has no RECORD clause, so its record type is the implementor's (§1985:II.2.1.4.3), and under the documented fixed-length choice R2's size 'when it was read from file-name-1' (the SD) is 5 characters, so GR12 b writes LEN=5 [ABXXX] into the varying GIVING file, as observed; likewise [CCCCC]. Every other arm (implicit OPEN after the input procedure, relative keys, the boundary USE, a varying SD into a varying FD at the released sizes) was probed by the reader and the refuter and is not disputed. Attack point: the same SD-reach question as the RETURN row.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

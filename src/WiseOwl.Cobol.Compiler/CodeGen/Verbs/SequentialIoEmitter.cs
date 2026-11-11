@@ -406,7 +406,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // truncation bound) separately from the area width it pads to.
             string vary = file.RecordSizeVaries ? $", {file.VaryMin}, {file.VaryMax}" : "";
             int recordMax = file.RecordMax > file.RecordWidth ? file.RecordMax : 0;
-            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", ctx.Data.DialectLevel, vary, CsLiteral(file.SelectName), recordMax)};");
+            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", ctx.Data.DialectLevel, vary, CsLiteral(file.SelectName), recordMax, file.WrittenWithAdvancing)};");
             EmitAreaRegistrations(w, file);
             EmitSharingRegistration(w, file);
         }

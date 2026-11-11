@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.2.3.2",
  "rule-digest": "df144c5a7079",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
  "test-ref": "conformance:cases/XIII.2.3@1985-FILE-CONTROL-ENTRY/1985-FMT-XIII_2_3_2",
+ "notes": "The clause set, the order freedom and the refusal of what the diagram omits are undisputed. The refuter's ground (2), PADDING operands of the wrong class compiling, no longer holds at this tree: PA ('PADDING CHARACTER IS 5') is refused COBOL6848 citing §1985:VII.2.7.3 SR1. Ground (1): ASSIGN TO \"RPTY1\" \"RPTY2\" is refused COBOL2256. The diagram repeats {implementor-name-1 | literal-1}, but SR3 gives the implementor 'the meaning and rules for the allowable content' of those operands; the 1985 words do not say whether that reaches how many may be written, so CLAUDE.md rule 1's precedence applies: ISO 2023 §2023:12.4.5.2 SR5 gives the implementor 'the allowable specification of device-name-1 and the value of literal-1', and the compiler's recorded determination (one operand, or DISK or PRINTER followed by one) applies at 85 as at 2023. Attack point: whether 1985's 'allowable content', narrower words than 2023's 'allowable specification', lets the implementor refuse a list the diagram prints.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

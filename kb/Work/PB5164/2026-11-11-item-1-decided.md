@@ -1,0 +1,3 @@
+**Addendum (2026-11-11): item 1 is decided.** kb/Work PB5304 (decision, signed by Claude under the owner's delegation of 2026-11-10) records that PB191's true-offset determination covers `1989-RV-A.2.11.3-1`: §1989:A.2.11.3 prints the same table, and one formatter serves every edition. docs/CONFORMANCE.md's CURRENT-DATE / WHEN-COMPILED entry now says it holds for the 1989 amendment.
+
+The verdict the decision implies is DOCUMENTED-NON-SUPPORT. The row is not recorded: the adjudicator's file gives it NEEDS-OWNER-DECISION, and no refuter has attacked a closing verdict for it. Item 2 (R43 item 3 and `1985-GR-VII.4.4.4-9`) is still open.
