@@ -159,16 +159,27 @@ internal enum ArgPredicateKind
     CharacterCategory,
 }
 
-/// <summary>One per-position predicate: its <see cref="Kind"/>, the clause it was read from, and the width
-/// operand for the width kinds.</summary>
-internal readonly record struct ArgPredicate(ArgPredicateKind Kind, string Clause, int N = 0)
+/// <summary>One per-position predicate: its <see cref="Kind"/>, the clause it was read from, the width
+/// operand for the width kinds, and <see cref="Since"/>, the first edition whose rule states it.</summary>
+/// <param name="Since">⛔ THE EDITION THE PREDICATE'S WORDING STARTS IN (kb/Work PB5162). A function's argument rule can say
+/// less in an earlier edition than the clause it was read from: §1989:A.2.31.3 AR1 asks of ORD's argument "class alphabetic or
+/// alphanumeric", and the 1985 alphanumeric class holds the numeric edited and alphanumeric edited categories (§1985:IV.4.3.3),
+/// where the 2002 text and §2023:15.70.3 AR1 say "category". The screen asks a predicate only at an edition at or after
+/// <see cref="Since"/> (<c>IntrinsicBinder.CheckArgumentClasses</c>), and <c>IntrinsicArgumentClassDriftTests</c> holds each
+/// CharacterCategory row's edition to the 1989 module's own wording, so a row cannot carry the later wording backwards.
+/// 85 for a predicate every edition that has the function states.</param>
+internal readonly record struct ArgPredicate(ArgPredicateKind Kind, string Clause, int N = 0, int Since = 85)
 {
     public static ArgPredicate MinWidth(int n, string clause) => new(ArgPredicateKind.MinWidth, clause, n);
     public static ArgPredicate ExactWidth(int n, string clause) => new(ArgPredicateKind.ExactWidth, clause, n);
     public static ArgPredicate DataItemOrLiteralOnly(string clause) => new(ArgPredicateKind.DataItemOrLiteralOnly, clause);
     public static ArgPredicate DataItemOnly(string clause) => new(ArgPredicateKind.DataItemOnly, clause);
     public static ArgPredicate NotStrongGroup(string clause) => new(ArgPredicateKind.NotStrongGroup, clause);
-    public static ArgPredicate CharacterCategory(string clause) => new(ArgPredicateKind.CharacterCategory, clause);
+    public static ArgPredicate CharacterCategory(string clause, int since = 85) =>
+        new(ArgPredicateKind.CharacterCategory, clause, Since: since);
+
+    /// <summary>Does the rule of <paramref name="editionYear"/> (85, 2002, 2014, 2023) state this predicate?</summary>
+    public bool AppliesAt(int editionYear) => editionYear >= Since;
 }
 
 /// <summary>A §15.x.3 rule about the argument list AS A WHOLE, which no per-position code can express.</summary>
@@ -856,8 +867,11 @@ internal static class IntrinsicArgumentRules
             // be of category alphabetic, alphanumeric, or national" (PB58 — the width half was unscreened).
             // …and "of CATEGORY alphabetic, alphanumeric, or national" — a category wording, so the edited categories
             // (a one-position PIC Z item is class alphanumeric and category numeric-edited) are out (kb/Work PB658).
+            // From 2002: the 1989 module says "class alphabetic or alphanumeric" (§1989:A.2.31.3 AR1), and the 1985
+            // alphanumeric class holds the edited categories (§1985:IV.4.3.3), so at --std 85 a one-character PIC Z item is
+            // an ORD argument (kb/Work PB5162).
             ["ORD"] = Uniform('s', "§2023:15.70.3 r1").WithTailPredicate(ArgPredicate.ExactWidth(1, "§2023:15.70.3 r1"))
-                .WithTailPredicate(ArgPredicate.CharacterCategory("§2023:15.70.3 r1")),
+                .WithTailPredicate(ArgPredicate.CharacterCategory("§2023:15.70.3 r1", since: 2002)),
             // r1's negative class list ('p') + "nor shall it be a strongly-typed group item" (the predicate);
             // r2 no zero-length literal; r3 all-same-class (PB58 — ORD-MAX/ORD-MIN never had the cross rule MAX
             // and MIN had: the two-arm-dispatch scar, one arm fixed).

@@ -2015,8 +2015,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             // A "shall be a data item" violation is about the operand's SHAPE (a literal or an expression written where
             // an item is required), which no --permissive coercion relaxes: it stays the error it always was
             // (§2023:15.48.3 r3, kb/Work PB58 / PB4507); IntrinsicArgumentRules.IsCoercible says which predicates are.
+            // A predicate is asked only at an edition whose rule states it (ArgPredicate.Since, kb/Work PB5162).
             foreach (var p in rule.Predicates)
-                if (IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
+                if (p.AppliesAt(ctx.Edition.Edition.Year)
+                    && IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
                     Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: IntrinsicArgumentRules.IsCoercible(p, rule, args[i]));
             if (IntrinsicArgumentRules.Violation(rule, args[i]) is not { } why) continue;
             ReportClass($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})", args[i]);
