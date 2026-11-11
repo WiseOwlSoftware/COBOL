@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.7.4-4",
  "rule-digest": "0e2a6a8768ec",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportInactiveError; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitTerminate",
  "test-ref": "conformance:cases/XIII.4.7@1985-TERMINATE-STATEMENT/1985-GR-XIII_4_7_4-4",
+ "notes": "§1985:XIII.4.7.4 GR4: 'The TERMINATE statement cannot be executed for a report unless the TERMINATE statement was chronologically preceded by an INITIATE statement for that report and for which no TERMINATE statement has yet been executed'; no result is stated. TerminateCore does its work only for a report Initiate made active, and otherwise raises EC-REPORT-INACTIVE, which cannot be enabled at 85, and returns. Probes at 85: TERMINATE with no INITIATE, and a second TERMINATE, run with no output (one FINAL footing in the file) and no abend; INITIATE, GENERATE, TERMINATE, INITIATE, TERMINATE prints the witness's TERMINATE OK.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

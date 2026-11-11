@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-13",
  "rule-digest": "3df81e529b4b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#ValidCount; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-13",
+ "notes": "§1985:XIV.2.2.3 SR13: \"In level 2, there is no restriction on the value of the data item referenced by data-name-1.\" The compiler implements level 2 of the module: ReadClauses accepts DESTINATION TABLE OCCURS, nothing pins the count to 1, and the only run-time limit is ValidCount's 1 through integer-1 of §1985:XIV.2.2.4 GR17. Probed: counts 3 and 2 of a 3-entry table (3 set by a first-redefinition VALUE) accepted and delivered to that many destinations; 4 and 9999 got 30; count 1 without a table accepted and 2 got 30. The witness sends to two destinations with count 2.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

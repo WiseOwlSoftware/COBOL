@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.5.4-7",
  "rule-digest": "b2a25bcf5a44",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#PendingReceive; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Release; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#TakeFromQueue",
  "test-ref": "conformance:cases/XIV.3.5@1985-RECEIVE-STATEMENT/1985-GR-XIV_3_5_4-7",
+ "notes": "§1985:XIV.3.5.4 GR7: one RECEIVE \"never returns ... more than a single message (when the MESSAGE phrase is used) or a single segment (when the SEGMENT phrase is used)\", and \"the MCS does not pass any portion of a message to the object program until the entire message is available to the MCS, even if the SEGMENT phrase ... is specified\". PendingReceive.Next stops at the end of the current message (MESSAGE) or segment (SEGMENT), and Dialogue.Release hands a sent message to the MCS only at EMI or EGI, so TakeFromQueue never sees a partial one. The witness shows ESI-only text giving NO DATA until EMI. Probes at --std 85 (classes a, d): MESSAGE into a 30-character area with two messages queued returned only AAAABBBB, length 8, key 2; SEGMENT returned CC key 1 then DD key 2; a terminal message under SEGMENT stopped at its first segment.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

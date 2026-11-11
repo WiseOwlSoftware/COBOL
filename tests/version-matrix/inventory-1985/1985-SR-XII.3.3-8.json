@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XII.3.3-8",
  "rule-digest": "1ea46f744951",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalConversion.cs#FixedFormConverter; src/WiseOwl.Cobol.Frontend/Preprocessor/CommentEntryCarrier.cs#Encode; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword; src/WiseOwl.Cobol.Frontend/Preprocessor/CommentEntryResolver.cs#Resolve",
  "test-ref": "conformance:cases/XII.3@1985-REPLACE-STATEMENT/1985-SR-XII_3_3-8",
+ "notes": "§1985:XII.3.3 SR8: \"If the word REPLACE appears in a comment-entry or in the place where a comment-entry may appear, it is considered part of the comment-entry.\" FixedFormConverter carries every line of an AUTHOR, INSTALLATION, DATE-WRITTEN, DATE-COMPILED or SECURITY paragraph (header and Area B lines) as a CommentEntryCarrier comment, FindStatementKeyword walks TextWordScanner words that skip comments, so no REPLACE there is a statement, and CommentEntryResolver.Resolve settles the entry after text manipulation. Witness: AUTHOR. REPLACE ==\"AAA\"== BY ==\"BBB\"==. leaves DISPLAY \"AAA\" (AAA). Probes (classes b, d): REPLACE in an Area B line of AUTHOR, lowercase replace in INSTALLATION, REPLACE in DATE-WRITTEN's next line, REPLACE OFF and a second REPLACE in DATE-COMPILED, an unclosed == in SECURITY (s8a: AAA); a REPLACE in Area A after the period ends the entry and is a statement (s8b: BBB); a REPLACE active before IDENTIFICATION DIVISION leaves AUTHOR's text alone and still replaces the procedure (s8c: ZZZ).",
  "next": {
   "kind": "REMOVED",
   "to": [],

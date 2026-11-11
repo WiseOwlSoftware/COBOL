@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-16",
  "rule-digest": "8def9df6b11d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CommunicationFormats; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BuildArea; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#AddSlot; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#DestinationCapacity",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-16",
+ "notes": "§1985:XIV.2.2.4 GR16 allocates an output CD area of \"(10 plus (13 times integer-1))\" positions: count 9(4), text length 9(4), status XX, then integer-1 occurrences of error key X and destination X(12). CommunicationFormats.OutputHeader/OutputEntry and BuildArea build exactly that implicit record (an OCCURS group only with DESTINATION TABLE, else the 23-position flat area of SR11), and CommunicationArea.DestinationCapacity reads integer-1 back from the area's width. Probes at 85: layout and ref-mod bounds with OCCURS 2 (36 positions), unsigned truncation (-5 -> 0005, 123456 -> 3456), a shorter redefining record, OCCURS 0, a clause twice, a Format 1 clause, a series, no clause and no record, a duplicate data-name (all refused), and BINARY-CHAR in the record (2002, refused); the witness checks the 23- and 49-position images.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

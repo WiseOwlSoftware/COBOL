@@ -43,11 +43,13 @@ internal static class CutRunner
 
     /// <summary>Run <c>dotnet &lt;dll&gt;</c> in <paramref name="workDir"/> and capture normalized stdout.
     /// <paramref name="stdinFile"/> (when given) is piped to the program's stdin — ACCEPT device input (ISO
-    /// §2023:14.9.1 F1); stdin is always redirected and closed so an over-reading ACCEPT sees EOF, never the console.</summary>
+    /// §2023:14.9.1 F1); stdin is always redirected and closed so an over-reading ACCEPT sees EOF, never the console.
+    /// <paramref name="budget"/> is the run's work (<see cref="ObservationBudget"/>); null is one process, and a program that
+    /// waits on its own clock by design states the wait (<see cref="ObservationBudget.OneProcessWaiting"/>, kb/Work PB5154).</summary>
     public static (bool ok, string stdout, string detail) Run(string dllPath, string workDir, string? stdinFile = null,
-        IReadOnlyDictionary<string, string?>? env = null)
+        IReadOnlyDictionary<string, string?>? env = null, ObservationBudget? budget = null)
     {
-        var (code, stdout, detail) = RunExit(dllPath, workDir, stdinFile, env);
+        var (code, stdout, detail) = RunExit(dllPath, workDir, stdinFile, env, budget);
         return (code == 0, stdout, detail);
     }
 
@@ -66,7 +68,7 @@ internal static class CutRunner
     /// budget has already created and rewritten files there, and IX216A's OPEN EXTEND of an absent OPTIONAL file
     /// answered 00 instead of 05 over the leftovers.</para></summary>
     public static (int exitCode, string stdout, string detail) RunExit(string dllPath, string workDir,
-        string? stdinFile = null, IReadOnlyDictionary<string, string?>? env = null)
+        string? stdinFile = null, IReadOnlyDictionary<string, string?>? env = null, ObservationBudget? budget = null)
     {
         var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"") { WorkingDirectory = workDir };
         // ⚖ DETERMINISM (DESIGN-locale-facility §10 T-F): the run unit's USER and SYSTEM default locales are the
@@ -86,7 +88,7 @@ internal static class CutRunner
                 if (v is null) psi.Environment.Remove(k);
                 else psi.Environment[k] = v;
         // ACCEPT device input (ISO §2023:14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard-run-group.sh parity.
-        var obs = ProcessObserver.ObserveOrThrow(psi, stdinFile is null ? null : File.ReadAllText(stdinFile), runDirectory: workDir);
+        var obs = ProcessObserver.ObserveOrThrow(psi, stdinFile is null ? null : File.ReadAllText(stdinFile), budget, runDirectory: workDir);
         return (obs.ExitCode, Normalize(obs.Stdout), Normalize(obs.Stderr));
     }
 

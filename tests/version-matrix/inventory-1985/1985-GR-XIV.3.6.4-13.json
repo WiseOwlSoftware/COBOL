@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-13",
  "rule-digest": "e943b51f4bbe",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ScreenSendAdvancing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#IndicatorOf; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Release; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCommunicationSendStatement",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-13",
+ "notes": "§1985:XIV.3.6.4 GR13: \"If identifier-2 is specified and the content of the data item referenced by identifier-2 is zero, the ADVANCING phrase and the REPLACING phrase, if specified, are ignored by the MCS.\" The ADVANCING and REPLACING phrases are never applied (ScreenSendAdvancing keeps nothing; devices are variable-length, GR12), and IndicatorOf maps a zero identifier-2 to SendIndicator.None, which Release keeps as a portion. Probe s1: MOVE 0 TO IND, SEND COUT FROM SHORTM WITH IND BEFORE 5 LINES REPLACING LINE answers 00 and DEV.out shows the portion joined to the next segments (XYZXYZXYZ) with no positioning; a two-digit identifier-2 (PIC 99) is refused (COBOL6171).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

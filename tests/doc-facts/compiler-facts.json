@@ -61,11 +61,15 @@
     },
     {
       "id": "inspect-format-3-length-identified-once",
-      "vcrRow": "7.56"
+      "vcrRow": "7.57"
     },
     {
       "id": "perform-varying-after-init-inner-first",
       "vcrRow": "7.53"
+    },
+    {
+      "id": "search-index-below-table-unsuccessful",
+      "vcrRow": "7.56"
     }
   ],
   "nonstandardExtensionIds": [
@@ -868,6 +872,8 @@
     "COBOL6848",
     "COBOL6849",
     "COBOL6859",
+    "COBOL6862",
+    "COBOL6863",
     "COBOL6877"
   ],
   "cliOptions": [

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-17",
  "rule-digest": "fd0ed9226fe7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/McsStore.cs#Transmit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindSend; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCommunicationSendStatement",
  "test-ref": "conformance:cases/XIV.3.6@1985-SEND-STATEMENT/1985-GR-XIV_3_6_4-17",
+ "notes": "§1985:XIV.3.6.4 GR17: on a device that \"does not support the replacement of characters, regardless of whether or not the REPLACING phrase is specified, the characters transmitted ... appear superimposed upon the characters which may have previously been transmitted to the same line, beginning with the leftmost character position\". McsStore.Transmit writes each complete message from the leftmost position of a new line of <name>.out, so no earlier characters share its line, and REPLACING LINE (or REPLACING alone, LINE being optional) is accepted and has no effect. Probe s1: SEND ... AFTER 0 LINES REPLACING LINE and WITH IND (0) ... REPLACING LINE answer 00 and DEV.out keeps every earlier line intact; REPLACING written before ADVANCING is refused.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

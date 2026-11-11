@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-20",
  "rule-digest": "7747f07acfdf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SendToDestinations; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Purge; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#Destination; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#FindDestination",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-20",
+ "notes": "§1985:XIV.2.2.4 GR20: \"Each occurrence of the data item referenced by data-name-5 contains a symbolic destination name previously known to the MCS\". The statements look each occurrence up with MessageStoreState.FindDestination (the destinations mcs.json defines); a name the MCS does not know gets error key 1 and status 20 while known ones are acted on (Table 2, §1985:XIV.2.2.6). Probes at 85: a 12-character name was delivered, and lowercase, all-space and leading-space names were each error key 1 with status 20; with no mcs.json at all every destination is unknown (20, key 1); the witness checks known, unknown and mixed occurrences.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

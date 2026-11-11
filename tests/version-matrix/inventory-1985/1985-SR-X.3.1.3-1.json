@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-X.3.1.3-1",
  "rule-digest": "dfd67c15596e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programName; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#MaxLength; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#CharacterViolation; src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#CheckWord",
  "test-ref": "conformance:cases/X.3.1@1985-PROGRAM-ID-PARAGRAPH-AND-NESTED-SOURCE/1985-SR-X_3_1_3-1",
+ "notes": "§1985:X.3.1.3 SR1: the PROGRAM-ID program-name of a (nested) program 'must conform to the rules for formation of a user-defined word' (§1985:IV.4.2.2.1: at most 30 characters of letters, digits and hyphen, hyphen not at an edge). programIdParagraph takes programName (cobolWord), the same funnel as the end marker: ParseArm.VisitCobolWord (30-char ceiling COBOL1567, reserved word COBOL0901), WordCharacterScreen.CheckWord (underscore/extended letter COBOL0900 below 2002), CharacterViolation (edge hyphen COBOL2773). Probes at --std 85 on a contained program (classes b, c): MY_SUB COBOL0900 (accepted at 2023), ADD COBOL0901, SUB- COBOL2773, 999 and \"SUBL\" COBOL5506, a 33-char name COBOL1567, the 2002 AS literal phrase COBOL0900; S-2 IS COMMON PROGRAM runs. The witness BADNAME- is refused with COBOL2773.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

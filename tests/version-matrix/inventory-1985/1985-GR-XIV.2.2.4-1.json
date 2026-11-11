@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-1",
  "rule-digest": "6597f6a920df",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#EmitReceive; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BuildArea",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-1",
+ "notes": "§1985:XIV.2.2.4 GR1: the input CD information 'does not come from the terminal as part of the message'. The CD's 87-position area (BuildArea) is handed to MessageControlSession.Receive, which fills the queue path, date, time, source, length and end key from the MCS's stored message (Transfer, CommunicationArea.SetReceived), while EmitReceive stores only the message text into identifier-1; nothing at 85 gates it. Probes gr1/rc1 at --std 85: the area record reads 'Q1 ... 85123123595999TERM1 0005200999999' with the text 'HELLO' only in the INTO item, and INTO an ODO group or a ref-modified window keeps the CD out of the text. The witness checks MESSAGE/QUEUE/SOURCE/LENGTH/END/STATUS.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

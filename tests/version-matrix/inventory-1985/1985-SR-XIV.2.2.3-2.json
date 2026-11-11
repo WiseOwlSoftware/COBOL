@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-2",
  "rule-digest": "da3d261013e4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ScreenInitialClause; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#cdMode",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-2",
+ "notes": "§1985:XIV.2.2.3 SR2: \"Within a single program, the INITIAL clause may be specified in only one CD entry. The INITIAL clause must not be used in a program that specifies the USING phrase of the Procedure Division header.\" BindSection (run per program; no edition arm, the facility's 85..2014 interval is the edition pass's construct communication-facility-removed-2014) calls ScreenInitialClause, which refuses every INITIAL CD after the first (COBOL6169 at that CD) and an INITIAL CD in a program whose procedure division header has USING (COBOL6169 at USING); cdMode admits INITIAL only before INPUT or I-O. The witness refuses two INITIAL INPUT CDs. Probes at --std 85: (b) INITIAL INPUT plus INITIAL I-O refused COBOL6169 at the second CD; INITIAL INPUT and INITIAL I-O each with PROCEDURE DIVISION USING refused COBOL6169 at USING; FOR INITIAL OUTPUT and FOR INITIAL INITIAL INPUT refused COBOL5506; one INITIAL among three CDs accepted and printed P2C RAN; USING with a non-INITIAL CD accepted; nested OUTER and INNER each with one INITIAL CD accepted (each is a single program), printing OUTER and INNER. (c) the same program at --std 2023 refused COBOL0902 (facility removed in 2014), at --std 2002 warned COBOL0903 and ran. (a, d, e, f) not reached: the rule has no data operand, record, file or arithmetic. Every refusal's text cites ISO/IEC 1989:2002 Annex A rather than the 1985 rule, the cross-cutting citation matter kb/Work PB4950 decides; the outcome is the one the rule requires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

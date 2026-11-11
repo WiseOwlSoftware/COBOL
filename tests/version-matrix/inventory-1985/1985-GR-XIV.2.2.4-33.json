@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-33",
  "rule-digest": "5ba7a590924b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Next; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetReceived",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-33",
+ "notes": "§1985:XIV.2.2.4 GR33: data-name-5 \"is set only by the MCS as part of the execution of a RECEIVE statement\": 3 end of group, 2 end of message, 0 less than a message (MESSAGE); 3, 2, 1 end of segment, 0 (SEGMENT); the first rule satisfied wins. PendingReceive#Next returns 0 for a partial transfer, 3 or 2 at the last segment by the message's EGI flag, and 1 only under the SEGMENT phrase; MessageControlSession#Transfer writes it at position 31 through CommunicationArea#SetReceived. Probes at --std 85: MESSAGE of a two-segment message 2, partial 0 then the group's end 3; SEGMENT 0, 1, then the group's last segment 3 (rule c), the last segment of a plain message 2; NO DATA leaves a moved 9; the witness accepts 0/2/3.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

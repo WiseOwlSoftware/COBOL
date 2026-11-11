@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-12",
  "rule-digest": "b74cadd15363",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BuildArea; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenSubscriptArity",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-12",
+ "notes": "§1985:XIV.2.2.3 SR12: with DESTINATION TABLE OCCURS \"data-name-4 and data-name-5 may be referenced only by subscripting\". BuildArea nests both under an unnamed OCCURS integer-1 group (GR16's implicit description), so ScreenSubscriptArity refuses an unsubscripted reference (COBOL2270) and a wrong subscript count (COBOL2097), and SEARCH cannot name them. Probed: OUT-DEST and OUT-ERR in MOVE and IF, OUT-DEST(1:3), OUT-DEST(1 1), OUT-DEST() and SEARCH OUT-DEST refused; OUT-DEST(1), OUT-DEST(IX - 1) and OUT-DEST(2)(1:4) accepted and correct. Diagnostics cite §2023 rules (PB4950 class). The witness refuses an unsubscripted OUT-DEST.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

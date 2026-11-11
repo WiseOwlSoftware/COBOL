@@ -127,7 +127,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         }
 
         // ⛔ A FORMAT 3 OVER AN OCCURS-DEPENDING GROUP: WHEN IS THE LENGTH TAKEN (kb/Work PB5119; DialectBehavior
-        // InspectFormat3LengthIdentifiedOnce, VCR row 7.56)? The TALLYING half may store into the DEPENDING ON object
+        // InspectFormat3LengthIdentifiedOnce, VCR row 7.57)? The TALLYING half may store into the DEPENDING ON object
         // (`INSPECT G TALLYING N ... REPLACING ...`). From 2002 item identification of the format 2 statement "is done only
         // once before executing the format 1 statement" (§2023:14.9.22.4 GR19) and identification includes the "length
         // evaluation for an occurs-depending group item" (§2023:14.6.4 step 6), so the object is pinned for the whole
