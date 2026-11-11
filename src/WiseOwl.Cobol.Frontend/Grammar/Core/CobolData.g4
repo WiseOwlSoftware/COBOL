@@ -195,7 +195,7 @@ dataRecordsClause
 // EVERY operand (the braces, §1985:IV.2.1.4), so `VALUE OF "F1DATA"` is not the clause (kb/Work PB5070: a word-eater
 // `(cobolWord | literal | IS)+` took it). Labels are not processed, so implementor-name-1 names a label field this
 // implementation does not check (any word is admitted: docs/CONFORMANCE.md 3.7); data-name-1's syntax rules
-// (§1985:VII.3.9.3 SR1, SR2) are FileControlBinder.ScreenValueOfDataName (COBOL6849).
+// (§1985:VII.3.9.3 SR1, SR2) are FileControlBinder.CaptureValueOf and ResolveValueOfDataNames (COBOL6849).
 valueOfClause
     : VALUE OF valueOfEntry+
     ;

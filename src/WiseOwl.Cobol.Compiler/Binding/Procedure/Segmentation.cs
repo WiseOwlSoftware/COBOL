@@ -24,7 +24,9 @@ internal static class Segmentation
 {
     /// <summary>The value a written segment-number literal denotes: 0 when it is omitted (§1985:XVI.3.2.3 SR2), and
     /// <see cref="int.MaxValue"/> for more than two significant digits (out of every range of the module, so the range
-    /// screen refuses it and no larger number is parsed).</summary>
+    /// screen refuses it and no larger number is parsed). It is a section header's segment-number at every edition: from
+    /// 2002 a written number is refused (COBOL0902), and under --permissive the removed construct keeps the meaning COBOL-85
+    /// gives it (the migration mode), as ALTER does.</summary>
     public static int ValueOf(CobolParserCore.IntegerLiteralContext? number)
     {
         if (number is null) return 0;
@@ -32,10 +34,6 @@ internal static class Segmentation
         return digits.Length is 0 ? 0 : digits.Length > 2 ? int.MaxValue
             : int.Parse(digits, System.Globalization.CultureInfo.InvariantCulture);
     }
-
-    /// <summary>The segment-number of a section header, at every edition: from 2002 a written number is refused (COBOL0902),
-    /// and under --permissive the removed construct keeps the meaning COBOL-85 gives it (the migration mode), as ALTER does.</summary>
-    public static int OfHeader(CobolParserCore.IntegerLiteralContext? number) => ValueOf(number);
 
     /// <summary>Are the module's syntax rules in force at the edition being compiled? Only where the segment-number is an
     /// available construct (COBOL-85), as for the range screen (COBOL6819); under --permissive at a later edition the number

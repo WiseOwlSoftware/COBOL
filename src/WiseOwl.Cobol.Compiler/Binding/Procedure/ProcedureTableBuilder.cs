@@ -165,7 +165,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // statement of its first paragraph through last statement of its last (ISO §2023:14.9.28).
             string sectionName = HeaderName(section.sectionName().procedureName(), "section");
             ctx.Data.DeclareUserWord(sectionName, UserWordKind.SectionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
-            var info = new SectionInfo(sectionName, _paras.Count, segment: Segmentation.OfHeader(section.integerLiteral()));
+            var info = new SectionInfo(sectionName, _paras.Count, segment: Segmentation.ValueOf(section.integerLiteral()));
             // §2023:14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
             // the section's first paragraph, so GO TO / PERFORM <section> enters them (§2023:14.9.17/§2023:14.9.28).
             AddAnonymousParagraph(section.sentence(), info, used);
@@ -496,7 +496,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         ctx.Data.DeclareUserWord(name, UserWordKind.SectionName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
         // isDeclarative: THE fact §2023:14.9.28.3 SR11 (and GO TO's / ALTER's analogous constraints) asks about,
         // recorded where it is known rather than re-derived from pc arithmetic later.
-        var info = new SectionInfo(name, _paras.Count, isDeclarative: true, segment: Segmentation.OfHeader(sec.integerLiteral()));
+        var info = new SectionInfo(name, _paras.Count, isDeclarative: true, segment: Segmentation.ValueOf(sec.integerLiteral()));
 
         // SR1: the first sentence consists of exactly one USE statement.
         var leading = sec.sentence();

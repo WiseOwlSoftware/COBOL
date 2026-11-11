@@ -1131,7 +1131,7 @@ internal sealed class VersionConformancePass
 
         /// <summary>A section-header segment-number — the '85 Segmentation module's priority number, deleted
         /// 2002. At 85 its range is checked here (<see cref="ScreenSegmentNumber"/>); the binder reads the number into the
-        /// section (<see cref="Segmentation.OfHeader"/>) for the module's flow restrictions and the initial state of an
+        /// section (<see cref="Segmentation.ValueOf"/>) for the module's flow restrictions and the initial state of an
         /// independent segment (VCR row 7.18, kb/Work PB5084).</summary>
         public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
         {
