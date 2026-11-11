@@ -563,22 +563,52 @@ class Host:
             return inert_lane.Lane("full", f"the change could not be listed ({e}): the full lane", tooling=True,
                                    reads_tooling=True)
 
-    def targets(self) -> dict[str, buildgraph.Target]:
-        """The targets file (scripts/build_targets.json), by ASSEMBLY."""
-        return {t.assembly: t for t in buildgraph.load_targets().values()}
+    def graph(self) -> buildgraph.Graph:
+        """THE BUILD'S GRAPH (scripts/build_targets.json, checked by `buildgraph.load_targets`): raises GraphError on a
+        malformed one (a cycle, an unknown dependency)."""
+        return buildgraph.load_targets()
+
+    def targets(self) -> dict[str, buildgraph.TestTarget]:
+        """The test targets of the graph, by ASSEMBLY."""
+        return self.graph().by_assembly()
 
     def platform(self) -> str:
         """The platform facet of a target's key: this host's (`self_tests.this_platform`)."""
         return this_platform()
 
-    def target_keys(self, tree: str, facets: dict[str, str]) -> dict[str, str] | None:
-        """EACH TARGET'S KEY at the measured `tree` (kb/Work PB5218; `buildgraph.key`), by assembly: one `git ls-tree`, no
-        file read. None when git cannot say (then nothing is up to date and nothing is carried)."""
+    def target_keys(self, tree: str, facets: dict[str, str],
+                    outputs: dict[str, str] | None = None) -> dict[str, str] | None:
+        """EACH TEST TARGET'S KEY at the measured `tree` (kb/Work PB5218, PB5231; `buildgraph.keys`), by assembly: one `git
+        ls-tree`, no file read. A target that depends on a generated one takes that target's OUTPUT DIGEST: from
+        `outputs` (what this gate's generations made, `generate`), else from the store's record at its key (a re-derivation
+        of an old run). None when git cannot say (then nothing is up to date and nothing is carried); raises
+        buildgraph.Unresolved, naming the dependency, when a digest is in neither."""
         try:
             entries = buildgraph.tree_entries(self.repo, tree)
         except (subprocess.CalledProcessError, OSError):
             return None
-        return {asm: buildgraph.key(t, entries, facets) for asm, t in self.targets().items()}
+        graph = self.graph()
+        got = buildgraph.keys(graph, entries, facets,
+                              outputs if outputs is not None else buildgraph.stored_outputs(self.store()))
+        return {asm: got[t.name] for asm, t in graph.by_assembly().items()}
+
+    def generate(self, tree: str, facets: dict[str, str],
+                 stable: Callable[[], bool]) -> dict[str, buildgraph.Generation]:
+        """BRING EVERY GENERATED TARGET UP TO DATE at the measured `tree` (kb/Work PB5231; `buildgraph.bring_up_to_date`):
+        each one whose store record at its key is matched by its outputs on disk runs nothing; the others run, traced,
+        into `<worktree>/TestResults/generated/<target>/`, and their output digest is recorded. `stable` says whether the
+        working tree is still `tree` (a generation that ran while it changed records nothing). Raises buildgraph.BuildError
+        naming the target and what stopped it."""
+        return buildgraph.bring_up_to_date(self.repo, self.graph(), buildgraph.tree_entries(self.repo, tree), facets,
+                                           self.store(), stable=stable)
+
+    def output_digest(self, generation: buildgraph.Generation) -> str | None:
+        """The digest of `generation`'s output directory NOW (None when it is no longer the declared outputs): what the
+        gate compares with the digest it keyed the dependents on, after their hosts ran."""
+        try:
+            return buildgraph.output_digest(generation.directory, self.graph().generated()[generation.target])[0]
+        except buildgraph.Unresolved:
+            return None
 
     def store(self) -> buildgraph.Store:
         """THE ONE STORE of the targets' passes, in the git common directory: every worktree's."""
@@ -765,8 +795,10 @@ class Host:
         return subprocess.run(["dotnet", "build", "WiseOwl.Cobol.sln", "-v", "quiet"], cwd=self.repo,
                               **spawn()).returncode == 0
 
-    def listing(self, asm: str, spawn: Spawn) -> tuple[Counter, str]:
-        return list_population(self.repo / GATED_ASSEMBLIES[asm], cwd=self.repo, **spawn())
+    def listing(self, asm: str, spawn: Spawn, handed: dict[str, str] | None = None) -> tuple[Counter, str]:
+        """`asm`'s population (`--list-tests`), its discovery handed the generated outputs its host is handed (`handed`,
+        `Gate._handed`), so the listing and the run read one suite."""
+        return list_population(self.repo / GATED_ASSEMBLIES[asm], cwd=self.repo, handed=handed, **spawn())
 
     def fetch_bounce_results(self) -> str:
         """The failed merge-group run's test results of this branch's open pull request, into
@@ -797,17 +829,20 @@ class Host:
                     self.hosts_live.discard(p)
 
 
-def host_env(first: Path | None, observations: Path, only: Path | None = None) -> dict[str, str]:
+def host_env(first: Path | None, observations: Path, only: Path | None = None,
+             handed: dict[str, str] | None = None) -> dict[str, str]:
     """⛔ THE ONLY PLACE A TEST HOST'S ENVIRONMENT IS MADE (DESIGN-test-build-ci.md §3.14.3): the scrubbed environment — no stray
     WISEOWL_COBOL_GATE_*, WISEOWL_COBOL_SHARD, VSTest* or RunSettingsFilePath, so nothing can narrow the run — in English,
     with the one ordering channel (FIRST_CLASSES) when this gate has classes to run first, and the one retry channel
-    (ONLY_CASES) when this host runs only the cases an earlier run of the tree did not pass. The test harness's observation
+    (ONLY_CASES) when this host runs only the cases an earlier run of the tree did not pass. `handed`: each generated
+    target the host's target depends on, its variable naming the output directory the gate generated and keyed the target
+    on (kb/Work PB5231; `Gate._handed`), so the host runs exactly that suite. The test harness's observation
     log (every retry and non-observation of a child process, tests/_shared/ProcessObservation.cs) goes to `observations`
     in the run directory, one per host, so a non-observation is read beside the host's own log instead of in one temp
     file every gate on the host appends to (kb/Work PB3108)."""
     order = {FIRST_CLASSES: str(first)} if first is not None else {}
     retry = {ONLY_CASES: str(only)} if only is not None else {}
-    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **order, **retry,
+    return {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **order, **retry, **(handed or {}),
             "WISEOWL_COBOL_HARNESS_LOG": str(observations)}
 
 
@@ -1103,6 +1138,9 @@ class Outcome:
     up_to_date: dict[str, dict] = field(default_factory=dict)
     #: The assemblies whose pass THIS gate recorded in the store.
     recorded: list[str] = field(default_factory=list)
+    #: EACH GENERATED TARGET this gate brought up to date (kb/Work PB5231; `Host.generate`), by name: its key, its output
+    #: digest, its output directory, whether it ran and why (`buildgraph.Generation.record`).
+    generated: dict[str, dict] = field(default_factory=dict)
 
 
 #: THE ORIGINAL RECORD OF A RE-DERIVED RUN (kb/Work PB5205; `Gate.rederive`): the verdict file as its gate wrote it, kept
@@ -1227,6 +1265,9 @@ class Gate:
         self.now = now
         self._pool: concurrent.futures.ThreadPoolExecutor | None = None  # `run` owns it for the work `_beside` starts
         self._base_sha: str | None = None
+        #: The generated targets this gate brought up to date (`_generate`), by name: what it hands the hosts of their
+        #: dependents (`_handed`) and checks again after them (`_check_generated`).
+        self._generations: dict[str, buildgraph.Generation] = {}
 
     def _base(self) -> str:
         """The change's cut point, resolved once: `--base`, else the merge base with origin/main (raises when none)."""
@@ -1391,12 +1432,14 @@ class Gate:
             pop, k = out.populations.get(asm), out.keys.get(asm)
             if pop is None or not pop.exact or k is None or any(r.asm == asm and r.red for r in out.runs):
                 continue
-            target = self.host.targets()[asm].name
-            store.record(target, k, {
+            target = self.host.targets()[asm]
+            store.record(target.name, k, {
                 "assembly": asm, "facets": self.facets(str(out.toolchain)), "worktree": str(self.host.repo),
                 "run": run.name, "evidence": str(run), "head": out.head, "tree": out.tree, "when": f"{self.now():%Y-%m-%dT%H:%M:%SZ}",
                 "counts": {"discovered": pop.discovered, "ran": pop.ran, "skipped": pop.skipped, "carried": pop.carried},
-                "composed_from": out.composed_from})
+                "composed_from": out.composed_from,
+                # the output digest of each generated target it was keyed on and ran (kb/Work PB5231)
+                "depends": {d: self._generations[d].outputs for d in target.depends if d in self._generations}})
             out.recorded.append(asm)
 
     def rederive(self, run: Path) -> Rederived:
@@ -1496,9 +1539,14 @@ class Gate:
                     found.append(f"HEAD stood at {rec['head'][:12]} (tree {rec['tree'][:12]}) from the run's start "
                                  f"{dt.datetime.fromtimestamp(started, dt.timezone.utc):%Y-%m-%dT%H:%M:%SZ} to its hosts' "
                                  f"last write {dt.datetime.fromtimestamp(end, dt.timezone.utc):%Y-%m-%dT%H:%M:%SZ}")
-        keys = self.host.target_keys(rec["tree"], self.facets(str(rec.get("toolchain") or "")))
-        if keys is None:
-            refusals.append(f"the targets' keys of its tree {rec['tree'][:12]} cannot be computed")
+        try:
+            keys = self.host.target_keys(rec["tree"], self.facets(str(rec.get("toolchain") or "")))
+        except buildgraph.Unresolved as e:   # a generated dependency with no record at its key (kb/Work PB5231)
+            keys = None
+            refusals.append(f"the targets' keys of its tree {rec['tree'][:12]} cannot be resolved: {e}")
+        else:
+            if keys is None:
+                refusals.append(f"the targets' keys of its tree {rec['tree'][:12]} cannot be computed")
         if refusals:
             return Rederived(None, found, refusals)
         new = {**rec, "tree_end": rec["tree"], "keys": keys, "audit_reds": audit}
@@ -1538,8 +1586,11 @@ class Gate:
             if not f.is_file() or not rec.get("tree"):
                 continue
             recorded = rec.get("keys") if isinstance(rec.get("keys"), dict) else {}
-            k = recorded.get(asm) or (self.host.target_keys(rec["tree"], self.facets(str(rec.get("toolchain") or "")))
-                                      or {}).get(asm)
+            try:
+                k = recorded.get(asm) or (self.host.target_keys(rec["tree"], self.facets(str(rec.get("toolchain") or "")))
+                                          or {}).get(asm)
+            except buildgraph.Unresolved:
+                continue   # its key cannot be resolved (kb/Work PB5231), so its listing is of no key we know
             if k == key:
                 try:
                     return p.name, parse_listing(f.read_text(encoding="utf-8"), str(f))
@@ -1686,10 +1737,13 @@ class Gate:
                 return self._audit_red(out, run, "the tooling lane runs the audits and the script self-tests, and one is "
                                        "RED: NO TEST RAN")
             return self._tooling(out, run, lane)
-        # ⭐ THE TARGETS (kb/Work PB5207 stage 1, PB5218; scripts/buildgraph.py): each assembly's key at this tree; the
-        # store, shared by every worktree, answers which are UP TO DATE (a pass at their key), and those start no host.
-        # The rest run, less what an earlier RED run of this worktree passed at their key (`carry`, kb/Work PB5099).
-        out.keys = (self.host.target_keys(out.tree, self.facets(tools)) or {}) if out.tree else {}
+        # ⭐ THE TARGETS (kb/Work PB5207 stages 1 and 2, PB5218, PB5231; scripts/buildgraph.py): first every GENERATED target
+        # is brought up to date (the conformance suite's manifests), because a test target that depends on one is keyed on
+        # its OUTPUT; then each assembly's key at this tree; the store, shared by every worktree, answers which are UP TO
+        # DATE (a pass at their key), and those start no host. The rest run, less what an earlier RED run of this worktree
+        # passed at their key (`carry`, kb/Work PB5099).
+        if (generated_red := self._generate(out, run, tools)) is not None:
+            return generated_red
         store = self.host.store()
         for asm in GATED_ASSEMBLIES:
             k = out.keys.get(asm)
@@ -1724,6 +1778,61 @@ class Gate:
             return self._tested(out, run, slot, started, carry, todo)
         finally:
             slot.release()
+
+    def _generate(self, out: Outcome, run: Path, tools: str) -> Outcome | None:
+        """THE GENERATED TARGETS, THEN THE KEYS (kb/Work PB5231). Every generated target is brought up to date at the
+        measured tree (`Host.generate`: up to date when the store records its output digest at its key AND its outputs on
+        disk have it, else it runs, traced), and each test target's key takes its dependencies' output digests
+        (`Host.target_keys`): so a records-only change whose generated suite is byte-identical leaves Conformance's key,
+        and Conformance, up to date. Sets `out.keys` and `out.generated`; returns the gate's RED end when a generated
+        target could not be brought up to date (it failed, read outside its inputs, wrote an undeclared output, was not
+        deterministic, or ran while the tree changed) or the graph is malformed: no test host can run on a suite that
+        is not the key's. No measured tree: no generation and no key (nothing is up to date or recorded)."""
+        if not out.tree:
+            out.keys = {}
+            return None
+        facets = self.facets(tools)
+        tree = out.tree
+        try:
+            self._generations = self.host.generate(tree, facets, lambda: self.host.measured_tree() == tree)
+            out.generated = {n: g.record() for n, g in self._generations.items()}
+            for g in self._generations.values():
+                self.say(f"build-local: {g.describe()} — {g.why} (kb/Work PB5231)")
+            out.keys = self.host.target_keys(tree, facets, {n: g.outputs for n, g in self._generations.items()}) or {}
+        except (buildgraph.BuildError, buildgraph.GraphError) as e:
+            self._join_beside(out)
+            return self._finish(out, run, "RED", f"GENERATED TARGET RED — {type(e).__name__}: {e} — no test host ran: a "
+                                f"dependent's key would not be the suite it runs (kb/Work PB5231; run {run.name})", 1)
+        return None
+
+    def _handed(self, asm: str) -> dict[str, str]:
+        """What `asm`'s host (and its listing) is handed (kb/Work PB5231; `host_env`): for each generated target its target
+        depends on, that target's variable naming the output directory this gate generated and keyed it on."""
+        graph = self.host.graph()
+        target = self.host.targets().get(asm)
+        deps = target.depends if target is not None else ()
+        return {graph.targets[d].env: str(self._generations[d].directory) for d in deps if d in self._generations}
+
+    def _check_generated(self, out: Outcome, ran: list[str]) -> set[str]:
+        """THE HANDED OUTPUTS ARE STILL THE KEYED ONES (kb/Work PB5231): after the hosts, each generated output a host of
+        `ran` was handed must still have the digest its dependents were keyed on; one that changed (a host wrote into it,
+        or anything else did) is a RED reason, and returns the assemblies that read it, whose passes are not recorded."""
+        stale: set[str] = set()
+        for asm in ran:
+            target = self.host.targets().get(asm)
+            for d in (target.depends if target is not None else ()):
+                g = self._generations.get(d)
+                if g is None:
+                    continue
+                now = self.host.output_digest(g)
+                if now != g.outputs:
+                    stale.add(asm)
+                    reason = (f"GENERATED OUTPUT CHANGED: {d}'s output in {g.directory} is {str(now)[:12]} after the "
+                              f"{asm} host, not the {g.outputs[:12]} {asm} was keyed on")
+                    if reason not in out.reasons:
+                        out.reasons.append(reason)
+                        self.say(f"=== {reason} ===")
+        return stale
 
     def _audits(self, out: Outcome, tooling: bool) -> tuple[list[str], list[str]]:
         """The audits as work BESIDE the critical path (`_beside`, kb/Work PB4326): returns (their RED reasons, their output
@@ -1783,8 +1892,13 @@ class Gate:
         stands = "; ".join(f"{asm} (run {u['run']} of {Path(str(u['worktree'])).name}, "
                            f"{int((u.get('counts') or {}).get('ran', 0)):,} cases)" for asm, u in out.up_to_date.items())
         return self._finish(out, run, "GREEN", f"EVERY TARGET UP TO DATE (kb/Work PB5207, PB5218): the store holds a pass "
-                            f"at each target's key: {stands}; what ran now: the audits, GREEN; no corpus fetch, build or "
-                            f"test host ran · toolchain {out.toolchain} (run {run.name})", 0)
+                            f"at each target's key: {stands}{self._generated_detail()}; what ran now: the audits, GREEN; no "
+                            f"corpus fetch, build or test host ran · toolchain {out.toolchain} (run {run.name})", 0)
+
+    def _generated_detail(self) -> str:
+        """The verdict line's entry for the generated targets (kb/Work PB5231): `· conformance-suite generated in 13.1 s
+        (output 1a2b3c4d5e6f, 5 file(s))`, or `… up to date …`."""
+        return "".join(f" · {g.describe()}" for g in self._generations.values())
 
     def _plan(self, out: Outcome, run: Path, listings: dict[str, Counter], carry: Carry,
               todo: list[str]) -> dict[str, Path | None]:
@@ -1872,9 +1986,10 @@ class Gate:
             return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
                                 f"the population could not be listed: {e}", 2)
         self._check_populations(out, listings, run, carry, todo)
+        stale = self._check_generated(out, [r.asm for r in out.runs])
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
         out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`reusable`)
-        self.record_passes(out, run, todo)
+        self.record_passes(out, run, [a for a in todo if a not in stale])
         self._prune(run, out.composed_from)
         return self._verdict(out, run)
 
@@ -1883,7 +1998,7 @@ class Gate:
         `_listings` joins them."""
         pool = concurrent.futures.ThreadPoolExecutor(max_workers=max(len(todo), 1), thread_name_prefix="listing")
         try:
-            return {asm: pool.submit(self.host.listing, asm, spawn) for asm in todo}
+            return {asm: pool.submit(self.host.listing, asm, spawn, self._handed(asm)) for asm in todo}
         finally:
             pool.shutdown(wait=False)
 
@@ -1948,7 +2063,7 @@ class Gate:
                  + (" concurrently" if len(asms) > 1 else ""))
 
         def one(asm: str) -> tuple[str, int, float, float]:
-            env = host_env(first, run / f"{asm}.observations.log", plan[asm])
+            env = host_env(first, run / f"{asm}.observations.log", plan[asm], self._handed(asm))
             t = time.monotonic()
             rc = self.host.run_host(asm, run, env, spawn)
             return asm, rc, time.monotonic() - t, time.monotonic() - hosts_started
@@ -2003,7 +2118,7 @@ class Gate:
         skipped = sum(p.skipped for p in pops.values())
         first = f"{len(out.first)} class(es) first" if out.first else "no class first"
         carried = sum(p.carried for p in pops.values())
-        detail = (f"{tally} (skipped {skipped:,})"
+        detail = (f"{tally} (skipped {skipped:,})" + self._generated_detail()
                   + (f" · passes recorded: {', '.join(out.recorded)}" if out.recorded else "")
                   + (f" · {carried:,} carried from run(s) {', '.join(out.composed_from)} (kb/Work PB5099)" if carried else "")
                   + (f" · {out.slot}" if out.slot else "")
@@ -2035,6 +2150,7 @@ class Gate:
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "composed_from": out.composed_from, "carried": out.carried,
                 "keys": out.keys, "up_to_date": out.up_to_date, "recorded": out.recorded, "audit_reds": out.audit_reds,
+                "generated": out.generated,
                 "slot": out.slot, "gate_class": out.gate_class, "lane": out.lane, "tooling": out.tooling, "first": out.first,
                 "runs": [vars(r) for r in out.runs], "timings": out.timings,
                 "assembly_wall_s": self._assembly_walls(out), "effective_concurrency": self._concurrency(out),
@@ -2058,14 +2174,20 @@ class FakeHost(Host):
     def __init__(self, root: Path, lock: Path, plant: set[str] = frozenset(),
                  trees: list[str | None] | None = None, base: str = "0" * 40, keys: dict[str, object] | None = None,
                  tools: str = "dotnet-sdk 10.0.403, python 3.15.2", store_dir: Path | None = None,
-                 platform: str = "windows"):
+                 platform: str = "windows", graph: buildgraph.Graph | None = None, repo: Path | None = None):
         """`trees`: the working tree the gate measures, call by call (its start, then its end; the last value
         repeats); `base`: the planted cut point; `keys`: each planted tree's inputs (`target_keys`, kb/Work PB5218): a
         string stands for every target (two trees with one string differ only in paths no target reads), a dict names it
         per assembly (an assembly it does not name is the tree's own); a tree not named is its own for every target;
         `tools` and `platform`: the toolchain and platform the host reports; `store_dir`: the store (default: one per
-        planted worktree; two hosts handed one directory are two worktrees of one repository)."""
+        planted worktree; two hosts handed one directory are two worktrees of one repository). `graph` and `repo`: a
+        planted graph over a REAL scratch repository (kb/Work PB5231): the generated targets really run, traced, and the
+        keys are the real ones (`Host.generate`, `Host.target_keys`); `trees` then names that repository's real trees.
+        Without them the graph is the real targets file, nothing is generated and the keys are planted."""
         super().__init__(root)
+        self.planted_graph = graph
+        if repo is not None:
+            self.repo = repo
         self.root, self._lock, self.plant, self.keys, self.tools = root, lock, set(plant), dict(keys or {}), tools
         self.store_dir, self.platform_name = store_dir or root / "store", platform
         self.trees, self.base_sha = list(trees or ["tree-1"]), base
@@ -2083,6 +2205,7 @@ class FakeHost(Host):
         #: own, so they are `audited`, never an event of this order.
         self.events: list[str] = []
         self.envs: dict[str, dict[str, str]] = {}
+        self.listing_handed: dict[str, dict[str, str]] = {}   # what each listing was handed (`listing`, kb/Work PB5231)
         self.growth: list[tuple[str, float, int]] = []   # the growth samples taken: (run name, tests_s, Conformance cases)
 
     def lock_path(self) -> Path:
@@ -2133,9 +2256,21 @@ class FakeHost(Host):
     def store(self) -> buildgraph.Store:
         return buildgraph.Store(self.store_dir)
 
-    def target_keys(self, tree, facets):
-        """The planted keys: per assembly, the tree's `keys` value (else the tree itself) with the facets. The real key's
-        digest over a real tree is buildgraph.py's self-test and the real-key arm here."""
+    def graph(self) -> buildgraph.Graph:
+        return self.planted_graph if self.planted_graph is not None else super().graph()
+
+    def generate(self, tree, facets, stable):
+        """The real generations over the planted graph's scratch repository (`graph`, kb/Work PB5231); none without one,
+        once the graph has loaded (a malformed one raises here, as the real host's does)."""
+        self.graph()
+        return super().generate(tree, facets, stable) if self.planted_graph is not None else {}
+
+    def target_keys(self, tree, facets, outputs=None):
+        """The planted keys: per assembly, the tree's `keys` value (else the tree itself) with the facets; the real ones
+        over a planted graph (`graph`). The real key's digest over a real tree is buildgraph.py's self-test and the
+        real-key arm here."""
+        if self.planted_graph is not None:
+            return super().target_keys(tree, facets, outputs)
         planted = self.keys.get(tree, tree)
         out = {}
         for asm in GATED_ASSEMBLIES:
@@ -2196,7 +2331,8 @@ class FakeHost(Host):
             raise RuntimeError("planted: a defect in the driver's own code")
         return "build" not in self.plant
 
-    def listing(self, asm, spawn):
+    def listing(self, asm, spawn, handed=None):
+        self.listing_handed[asm] = dict(handed or {})
         if "population" in self.plant and asm == "Unit":
             raise PopulationError("Unit: planted: `--list-tests` exited 1 (a test class's static constructor threw)")
         path = synthetic_listing(self.root / f"src-listing-{asm}.txt", self.POPULATION[asm])
@@ -2220,6 +2356,11 @@ class FakeHost(Host):
                     self.hosts_done.set()
 
     def _planted_host(self, asm, run, env) -> int:
+        if "tamper-output" in self.plant:   # a host that writes into the generated output it was handed (kb/Work PB5231)
+            for name, directory in env.items():
+                if name.startswith("WISEOWL_COBOL_GATE_") and name not in (ONLY_CASES, FIRST_CLASSES):
+                    for manifest in Path(directory).rglob("*.json"):
+                        manifest.write_text("{}\n", encoding="utf-8", newline="\n")
         only = env.get(ONLY_CASES)   # a RETRY (kb/Work PB5099): the host runs exactly the cases its file names
         names = Path(only).read_text(encoding="utf-8").splitlines() if only else self.POPULATION[asm]
         cases = [(n, ["Passed"]) for n in self.POPULATION[asm] if n in names]
@@ -3124,23 +3265,136 @@ def self_test() -> int:
         keyhost = Host(keyrepo.path)
         kfacets = {"platform": "windows", "configuration": GATE_CONFIGURATION, "toolchain": "t1"}
 
-        def keys_after(edit: dict[str, str], facets: dict[str, str] = kfacets) -> dict[str, str]:
+        suite_out = {"conformance-suite": "d" * 64}   # the generated suite's output digest, as a gate's generation gives it
+
+        def keys_after(edit: dict[str, str], facets: dict[str, str] = kfacets,
+                       outputs: dict[str, str] = suite_out) -> dict[str, str]:
             keyrepo.commit("edit", {**files, **edit}, allow_empty=True)
-            return keyhost.target_keys(keyhost.head_tree() or "", facets) or {}
+            return keyhost.target_keys(keyhost.head_tree() or "", facets, outputs) or {}
 
         k0 = keys_after({})
         ks = {"docs": keys_after({"docs/n.md": "# edited\n", "kb/Work/X.md": "y\n", planted_tool: "x = 2\n"}),
               "unit-test": keys_after({"tests/WiseOwl.Cobol.Tests.Unit/U.cs": "class U { int x; }\n"}),
               "char": keys_after({"tests/characterization/positive/p.cob": "q\n"}),
+              "inventory": keys_after({"tests/version-matrix/inventory/r.json": '{"v": 2}\n'}),
+              "suite-output": keys_after({}, outputs={"conformance-suite": "e" * 64}),
               "src": keys_after({"src/A.cs": "class A { int b; }\n"}),
               "toolchain": keys_after({}, {**kfacets, "toolchain": "t2"})}
+        try:
+            unresolved = str(keyhost.target_keys(keyhost.head_tree() or "", kfacets))
+        except buildgraph.Unresolved as e:
+            unresolved = f"Unresolved: {e}"
         arm("the real keys: a docs, kb or tooling-lane edit leaves every key; a Unit test source changes Unit's key only, a "
-            "characterization program Unit's and Characterization's only; src/ and the toolchain change every key",
+            "characterization program Unit's and Characterization's only; an inventory edit Unit's only (Conformance takes "
+            "the generated suite's digest, kb/Work PB5231), and another suite digest Conformance's only; src/ and the "
+            "toolchain change every key; with no record of the suite in the store Conformance's key is UNRESOLVED",
             len(k0) == 3 and ks["docs"] == k0
             and ks["unit-test"]["Unit"] != k0["Unit"] and ks["unit-test"]["Conformance"] == k0["Conformance"]
             and ks["unit-test"]["Characterization"] == k0["Characterization"]
             and ks["char"]["Characterization"] != k0["Characterization"] and ks["char"]["Conformance"] == k0["Conformance"]
-            and all(ks["src"][a] != k0[a] and ks["toolchain"][a] != k0[a] for a in GATED_ASSEMBLIES), str(ks))
+            and ks["inventory"]["Unit"] != k0["Unit"] and ks["inventory"]["Conformance"] == k0["Conformance"]
+            and ks["inventory"]["Characterization"] == k0["Characterization"]
+            and ks["suite-output"]["Conformance"] != k0["Conformance"]
+            and ks["suite-output"]["Unit"] == k0["Unit"] and ks["suite-output"]["Characterization"] == k0["Characterization"]
+            and all(ks["src"][a] != k0[a] and ks["toolchain"][a] != k0[a] for a in GATED_ASSEMBLIES)
+            and unresolved.startswith("Unresolved: conformance's key needs the output digest of conformance-suite"),
+            f"{ks} {unresolved}")
+
+        # THE GENERATED TARGET (kb/Work PB5231): a planted graph over a REAL scratch repository, its generator really run
+        # (traced) by the gate, its output digest really keying Conformance; only the test hosts are planted.
+        grepo = ScratchRepo.init(root / "genrepo")
+        grepo.commit("base", {".gitignore": "TestResults/\n__pycache__/\n", "gen/make.py": buildgraph.PLANTED_GENERATOR,
+                              "inv/r1.json": '{"id": "r1", "verdict": "GAP"}\n', "src/A.cs": "class A {}\n",
+                              "tests/C/T.cs": "class T {}\n", "tests/U/U.cs": "class U {}\n",
+                              "tests/H/H.cs": "class H {}\n"})
+        every = ("platform", "configuration", "toolchain")
+        ggraph = buildgraph.Graph.of({
+            "suite": buildgraph.GeneratedTarget(
+                name="suite", inputs=("gen/", "inv/"), exclude=("@inert",), facets=("toolchain",),
+                command=("gen/make.py", "--out", buildgraph.OUT), outputs=("suite/manifest.json",),
+                env="WISEOWL_COBOL_GATE_SUITE"),
+            "unit": buildgraph.TestTarget(name="unit", assembly="Unit", project="tests/U/", inputs=("src/", "tests/U/", "inv/"),
+                                          exclude=("@inert",), facets=every),
+            "conformance": buildgraph.TestTarget(name="conformance", assembly="Conformance", project="tests/C/",
+                                                 inputs=("src/", "tests/C/"), exclude=("@inert",), facets=every,
+                                                 depends=("suite",)),
+            "characterization": buildgraph.TestTarget(name="characterization", assembly="Characterization",
+                                                      project="tests/H/", inputs=("src/", "tests/H/"), exclude=("@inert",),
+                                                      facets=every)}, every)
+        gstore, gd = root / "gen-store", root / "gen-gates"
+        gd.mkdir()
+        suite_dir = str(grepo.path / buildgraph.GENERATED_ROOT / "suite")
+
+        def ggate(edit: dict[str, str | None] | None = None, **fake) -> tuple[Outcome, FakeHost]:
+            if edit:
+                grepo.commit("edit", edit)
+            host = FakeHost(gd, gd / "gate.lock", graph=ggraph, repo=grepo.path, store_dir=gstore,
+                            trees=[grepo.git("rev-parse", "HEAD^{tree}")], **fake)
+            sink.clear()
+            return Gate(host, gd / "runs", say=sink.append).run(), host
+
+        g0, hg0 = ggate()
+        arm("a gate brings the generated target up to date first (its generator traced and run) and hands its output "
+            "directory to Conformance's host and listing, and to no other assembly's; the line names the generation",
+            g0.verdict == "GREEN" and g0.generated["suite"]["ran"] and sorted(g0.recorded) == sorted(GATED_ASSEMBLIES)
+            and hg0.envs["Conformance"].get("WISEOWL_COBOL_GATE_SUITE") == suite_dir
+            and hg0.listing_handed["Conformance"] == {"WISEOWL_COBOL_GATE_SUITE": suite_dir}
+            and "WISEOWL_COBOL_GATE_SUITE" not in hg0.envs["Unit"] and "suite generated in" in g0.line,
+            f"{g0.line} {hg0.envs.get('Conformance', {}).get('WISEOWL_COBOL_GATE_SUITE')}")
+        g1, hg1 = ggate({"inv/r1.json": '{"id": "r1", "verdict": "PASS"}\n'})
+        arm("an inventory edit that leaves the generator's output unchanged: the generator re-runs, Conformance's key is "
+            "unchanged and Conformance is UP TO DATE (no host); Unit, which reads the inventory, runs",
+            g1.verdict == "GREEN" and g1.generated["suite"]["ran"] and g1.keys["Conformance"] == g0.keys["Conformance"]
+            and sorted(hg1.envs) == ["Unit"] and "Conformance up to date" in g1.line
+            and g1.generated["suite"]["outputs"] == g0.generated["suite"]["outputs"], g1.line)
+        g2, hg2 = ggate({"inv/r2.json": '{"id": "r2", "verdict": "GAP"}\n'})
+        arm("an inventory edit that changes the generator's output changes Conformance's key: Conformance runs on the new "
+            "suite",
+            g2.verdict == "GREEN" and g2.keys["Conformance"] != g1.keys["Conformance"] and "Conformance" in hg2.envs
+            and "Conformance" in g2.recorded and g2.generated["suite"]["outputs"] != g1.generated["suite"]["outputs"],
+            g2.line)
+        g3, hg3 = ggate({"gen/make.py": buildgraph.PLANTED_GENERATOR + "# edited\n"})
+        arm("a generator source edit re-runs the generator; its output unchanged, every test target is UP TO DATE and the "
+            "line says the suite was generated",
+            g3.verdict == "GREEN" and g3.generated["suite"]["ran"] and g3.generated["suite"]["key"] != g2.generated["suite"]["key"]
+            and hg3.envs == {} and "EVERY TARGET UP TO DATE" in g3.line and "suite generated in" in g3.line, g3.line)
+        g4, hg4 = ggate({"docs/n.md": "# a path no target reads: another tree, so no REUSED record answers\n"})
+        arm("its inputs unchanged: the generated target is up to date (its record and its outputs on disk agree), nothing runs",
+            g4.verdict == "GREEN" and not g4.generated["suite"]["ran"] and "suite up to date" in g4.line and hg4.envs == {},
+            g4.line)
+        rec_file = buildgraph.Store(gstore)._path("suite", g4.generated["suite"]["key"])
+        rec_file.unlink()
+        g5, hg5 = ggate({"docs/n.md": "# again\n"})
+        arm("a missing dependency record is not up to date: with its outputs still on disk the generator runs again "
+            "(no record at its key), and only then is Conformance, at its unchanged key, up to date",
+            g5.verdict == "GREEN" and g5.generated["suite"]["ran"] and g5.generated["suite"]["why"] == "no record at its key"
+            and rec_file.is_file() and g5.keys["Conformance"] == g4.keys["Conformance"] and hg5.envs == {}, g5.line)
+        g6, hg6 = ggate({"tests/C/T.cs": "class T { int x; }\n"}, plant={"tamper-output"})
+        arm("a host that changes the generated output it was handed makes the gate RED and records no pass of its target",
+            g6.verdict == "RED" and "GENERATED OUTPUT CHANGED" in g6.line and "Conformance" not in g6.recorded
+            and not buildgraph.Store(gstore).up_to_date("conformance", g6.keys["Conformance"]), g6.line)
+        g7, _ = ggate({"gen/NONDET": "x\n"})
+        remove_tree(grepo.path / buildgraph.GENERATED_ROOT / "suite")
+        g8, hg8 = ggate({"docs/n.md": "# the generator's inputs as at g7\n"})
+        arm("a nondeterministic generator (planted: the time) is REFUSED when its outputs are generated again at a key: "
+            "the gate is RED naming it, and no test host runs",
+            g7.verdict == "GREEN" and g8.verdict == "RED" and "GENERATED TARGET RED — Nondeterministic" in g8.line
+            and hg8.envs == {} and not hg8.built, g8.line)
+        cyclic = root / "cyclic-targets.json"
+        cyclic.write_text(json.dumps({"facets": ["toolchain"], "build": {"inputs": {}}, "targets": {
+            "a": {"kind": "generated", "command": ["a.py", "{out}"], "outputs": {"x": ""}, "env": "WISEOWL_COBOL_GATE_A",
+                  "inputs": {"a.py": ""}, "depends": ["b"]},
+            "b": {"kind": "generated", "command": ["b.py", "{out}"], "outputs": {"x": ""}, "env": "WISEOWL_COBOL_GATE_B",
+                  "inputs": {"b.py": ""}, "depends": ["a"]}}}), encoding="utf-8", newline="\n")
+        cd = root / "gate-cycle"
+        cd.mkdir()
+        chost = FakeHost(cd, cd / "gate.lock")
+        chost.graph = lambda: buildgraph.load_targets(cyclic)   # the targets file has a cycle
+        sink.clear()
+        cyc = Gate(chost, cd / "runs", say=sink.append).run()
+        arm("a dependency cycle in the targets file is refused: the gate is RED naming the cycle, and nothing is built or run",
+            cyc.verdict == "RED" and "a dependency cycle: a -> b -> a" in cyc.line and not chost.built and chost.envs == {},
+            cyc.line)
 
         # RE-DERIVED EVIDENCE (kb/Work PB5205, PB5218; `Gate.rederive`): a gate before the fix, stopped by a hung self-test
         # after every host had exited, wrote `populations: {}` and `tree_end: null` over complete green results and
@@ -3546,9 +3800,17 @@ def rederive_main(run: Path, dry_run: bool) -> int:
         print(f"  REFUSED  {line}")
     rec = read_record(run) or {}
     facets = gate.facets(str(rec.get("toolchain") or ""))
-    then = host.target_keys(str(rec.get("tree")), facets) if rec.get("tree") else None
+
+    def keys_at(tree: str | None) -> dict[str, str] | None:
+        try:
+            return host.target_keys(tree, facets) if tree else None
+        except buildgraph.Unresolved as e:   # a generated dependency with no record at its key (kb/Work PB5231)
+            print(f"  UNRESOLVED  the keys at {tree[:12]}: {e}")
+            return None
+
+    then = keys_at(str(rec.get("tree")) if rec.get("tree") else None)
     head_tree = host.head_tree()
-    now = host.target_keys(head_tree, facets) if head_tree else None
+    now = keys_at(head_tree)
     for asm in GATED_ASSEMBLIES:
         print(f"  {asm}: key at the run's tree {str(rec.get('tree'))[:12]} {(then or {}).get(asm)}; at HEAD's tree "
               f"{str(head_tree)[:12]} (head {str(host.head())[:12]}) {(now or {}).get(asm)}")
