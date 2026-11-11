@@ -1,4 +1,4 @@
-## PB5207: the build process is redesigned top-down as one incremental build (decision, approved by the owner)
+## Entry 3450 — 2026-11-10 16:44 PST — PB5207: the build process is redesigned top-down as one incremental build (decision, approved by the owner)
 
 **Why.** The owner asked for a redesign of the build process as a whole and had received piecemeal fixes: "This is
 precisely what the Unix make and Windows MSBuild utilities are for. They rerun only what is required due to changes."
@@ -15,3 +15,4 @@ Tests split by what they read; self-tests run against fixtures with declared tim
 on its own and deleting what it replaces. The owner approved it and allowed CI to accept a pass recorded on his machine.
 
 **Nothing is implemented by this entry.** Stage 1 follows kb/Work PB5205, which is its first half.
+
