@@ -56,7 +56,7 @@ CASES = [
     ("python - <<'EOF'\nprint('plain')\nEOF", False),
     ('dotnet test x.csproj --filter "~Drift|~EditionGate" > log.txt', True),
     ('dotnet test x.csproj --filter "FullyQualifiedName~Drift|FullyQualifiedName~EditionGate" > log.txt', False),
-    ('dotnet test x.csproj --filter "FullyQualifiedName~Drift"', True),
+    ('dotnet test x.csproj --filter "FullyQualifiedName~Drift"', False),   # unredirected output is not refused (kb/Work PB5234)
     ('dotnet test x.csproj --filter "FullyQualifiedName~Drift" 2>&1 | tail -5', False),
     ("dotnet test x.csproj", False),
     # a command chained after a verdict command is no longer refused (kb/Work PB5234: 1 true refusal of 127, and
@@ -120,9 +120,9 @@ CASES = [
     ("bash -c 'cat' <<'EOF'" + NL + "a" + BS + "nb" + NL + "EOF", True),  # a body feeding a -c payload is a body
     (HD + 'dotnet test x.csproj --filter "~Foo" > log.txt', True),
     (QS + 'dotnet test x.csproj --filter "~Foo" > log.txt', True),
-    (HD + 'dotnet test x.csproj --filter "FullyQualifiedName~Foo"', True),   # unredirected, after a heredoc
+    (HD + 'dotnet test x.csproj --filter "FullyQualifiedName~Foo"', False),   # unredirected output is not refused (kb/Work PB5234)
     ('dotnet test x.csproj --filter=~Foo > log.txt', True),
-    ('dotnet test x.csproj --filter "FullyQualifiedName~Foo" & echo x > y.txt', True),  # another command's redirect
+    ('dotnet test x.csproj --filter "FullyQualifiedName~Foo" & echo x > y.txt', False),   # unredirected output is not refused (kb/Work PB5234)
     ('git commit -m "dotnet test --filter ~X"', False),                  # quoted text is no test run
     (QS + "dotnet build x.sln > b.log && git commit -m x", False),
     (HD + "wsl --shutdown", True),
@@ -151,13 +151,11 @@ CASES = [
     ("git commit -m \"$(cat <<'EOF'" + NL + 'say "hi" (and \') too' + NL + "EOF" + NL + ')" && git status', False),
     ("dotnet test x.csproj > t.log 2>&1; echo \"EXIT=$? $(date)\"", False),   # a substitution is its echo's own
     ('dotnet test x.csproj --filter "FullyQualifiedName~X" | tail $(echo -5)', False),   # the reader is still tail
-    # R2-1: a `dotnet test` inside a substitution pipes to the next stage OF THAT SUBSTITUTION, and the reader's own
-    # substitution (one level deeper) is never the reader
     ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | tail -5)', False),
     ("bash -c 'r=$(dotnet test x.csproj --filter FullyQualifiedName~Foo | tail -5)'", False),
     ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | grep $(echo Passed))', False),
-    ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | sort)', True),       # piped, but not to a reader
-    ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | sort $(echo x | tail -1))', True),  # tail is sort's
+    ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | sort)', False),   # unredirected output is not refused (kb/Work PB5234)
+    ('r=$(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | sort $(echo x | tail -1))', False),   # unredirected output is not refused (kb/Work PB5234)
     ('dotnet test x.csproj --filter "FullyQualifiedName~Foo" | ( tail -5 )', False),    # a grouped reader is a reader
     # a group is a pipeline stage: it reads the stage before it, and the stage after it reads the group
     ("( echo 'git stash' ) | bash", True),
@@ -220,10 +218,9 @@ PS_CASES = [
     ("'y' | & { Set-Location E:/claude-skills; git push origin main }", False),
     ("$m = (git log -1 --format=%s)", False),
     ("Write-Output 'git stash'", False),
-    # R2-1: a filtered run inside an expression or subexpression pipes to the reader beside it
     ('$r = (dotnet test x.csproj --filter "FullyQualifiedName~Foo" | Select-String Passed)', False),
     ('$r = $(dotnet test x.csproj --filter "FullyQualifiedName~Foo" | Select-String Passed)', False),
-    ('$r = (dotnet test x.csproj --filter "FullyQualifiedName~Foo" | Sort-Object)', True),
+    ('$r = (dotnet test x.csproj --filter "FullyQualifiedName~Foo" | Sort-Object)', False),   # unredirected output is not refused (kb/Work PB5234)
     # and every interpreter handed a string
     ('Invoke-Expression "git stash"', True),
     ("iex 'git stash'", True),

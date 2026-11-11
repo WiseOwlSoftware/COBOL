@@ -18,8 +18,6 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
                             harness decodes some escapes in tool input); write the file with the Write tool instead.
   bare `~X` test filter     `--filter "~X|~Y"` matches NOTHING and exits 0 — a silent green; every term needs a
                             property (FullyQualifiedName~X).
-  unredirected filtered     a filtered `dotnet test` whose output is neither redirected nor piped floods the context
-  dotnet test               and hides the verdict line; log it and read the verdict line (the gate skill).
   `cd` in a backgrounded    a location change (`cd`, `pushd`, `Set-Location`, ...) inside an and-or list that a single
   list, then more           `&` sends to the background, with another command after that `&` (MANDATORY-PRACTICES
                             P14(b), kb/Work PB3095): `cd X && a & b &` runs `a` in a background subshell under X and
@@ -153,10 +151,8 @@ if any(re.search(r"\\[nrtuUx0abfvdswDSW\\'\"]", body) for st in STEPS for body i
           "script or file with the Write tool (into your own scratch directory, MANDATORY-PRACTICES P16) and run it, or express the character without an "
           "escape (chr(10), a character class).")
 
-# 4. dotnet test filters, per `dotnet test` command: its own `--filter` value, and its own redirection or the reader the
-# pipe after it feeds (a `>` elsewhere in the line logs some other command)
-_PIPE_READERS = {"tail", "grep", "select-string", "tee-object", "tee", "findstr", "out-file"}
-for n, st in enumerate(STEPS):
+# 4. a property-less dotnet test filter term, per `dotnet test` command: its own `--filter` value
+for st in STEPS:
     w = st.words
     at = next((k for k in range(len(w) - 1) if shell_location.program(w[k]) == "dotnet" and w[k + 1] == "test"), None)
     if at is None:
@@ -172,16 +168,6 @@ for n, st in enumerate(STEPS):
         block(f"filter term(s) {bare} have no property, so they match NOTHING and the run exits 0 — a silent "
               "green. Write `FullyQualifiedName~X` for every term. (A GATE never filters: it is "
               "`scripts/build-local.ps1`, the ordered gate.)")
-    # the reader is the next stage's command: the next step at this step's own substitution level (a `dotnet test`
-    # inside `$( … )` pipes to a step of that same substitution); the steps of the READER's substitutions run before
-    # it, one level deeper, and are not the reader (the branch review of PB3198, R2-1)
-    nxt = next((s for s in STEPS[n + 1:] if s.substitution <= st.substitution), None) if st.sep == "|" else None
-    reader = nxt.words[:1] if nxt is not None else ()
-    piped = bool(reader) and shell_location.program(reader[0]) in _PIPE_READERS
-    if not (piped or any(">" in a for a in args)):
-        block("a filtered `dotnet test` must redirect its output to a log (or pipe it through tail/grep) and read the "
-              "verdict line — unredirected output floods the context and hides the verdict. A GATE is "
-              "`scripts/build-local.ps1`, never a filtered run.")
 
 # 5. WSL lifecycle commands (owner 2026-10-04): `wsl --terminate/--shutdown/--update/--export/--import/--unregister/--install`
 # can end the owner's open session, race a procedure they run by hand, or burn tens of GB of disk, so NO agent or unattended
