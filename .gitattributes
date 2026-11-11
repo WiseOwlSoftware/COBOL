@@ -4,9 +4,13 @@
 # Windows gate and a Linux gate read the SAME bytes from the same commit. Before this rule every Windows checkout was
 # CRLF, and two narrower rules here forced LF where a CR broke a tool outright: a CRLF'd shell script dies at its first
 # `set -u\r` (kb/Work PB1732, wave 72 group G), and the Workflow tool refuses a script holding a CR as "control
-# characters". A file git's heuristic calls binary (a NUL, or a lone CR) is stored as-is, so
-# `scripts/line_endings.py --check` (a gate audit, and CI's) refuses a CR in any tracked TEXT file, in the index or in
-# the checkout. A file that must keep its bytes is declared `-text` below, WITH ITS REASON. Nothing here must be CRLF
+# characters". These attributes do not hold the rule alone: a file git's heuristic calls binary (a NUL, or a lone CR) is
+# stored as-is, a Windows tool can leave a CRLF checkout behind it, and a commit made through the API skips this file.
+# So `scripts/line_endings.py --check` refuses a CR in a tracked TEXT file, in the index or in the checkout, and refuses
+# any file whose attributes git resolves to anything but `-text` or text with `eol=lf` (a narrower rule that unsets or
+# changes `eol` included; kb/Work PB5225): the gate reads only the paths a branch changes, and the whole tree when a
+# branch edits this file, and CI's Linux `audits` job sweeps every tracked file once per merge group. A file that must
+# keep its bytes is declared `-text` below, WITH ITS REASON. Nothing here must be CRLF
 # (no .bat or .cmd is tracked; one would be declared `eol=crlf` here, with its reason).
 * text=auto eol=lf
 
