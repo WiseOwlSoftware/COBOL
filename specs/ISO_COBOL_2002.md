@@ -5181,9 +5181,7 @@ When a source element, source element B, is directly contained within another so
 
    2\. The item in the containing source element if the name is not declared in source element A and is declared in the source element containing source element A. This rule is applied to further containing source elements until a single valid name has been found.
 
-###### 8.4.5.1.1 Scope of condition-names, constant-names, data-names, file-names, record-names,
-
-report-names, screen-names, and type-names
+###### 8.4.5.1.1 Scope of condition-names, constant-names, data-names, file-names, record-names, report-names, screen-names, and type-names
 
 A constant-name, file-name, record-name, report-name, screen-name, or type-name described with a GLOBAL clause is a global name. A constant-name, data-name or file-name declared in a source element for an object definition, whether factory or instance, is a global name. All data-names and screen-names subordinate to a global name are global names. All condition-names associated with a global name are global names.
 
@@ -6254,9 +6252,7 @@ FORMAT 3
 
 For operands whose class is numeric, a comparison is made with respect to the algebraic value of the operands regardless of the manner in which their usage is described. The length of the literal or arithmetic expression operands, in terms of the number of digits represented, is not significant. Zero is considered a unique value regardless of the sign; an operand having the value zero is equal to any other operand having the value zero – whether positive, negative, or unsigned. When one or both of the operands is an operand for which native arithmetic applies, the comparison proceeds by the rules of native arithmetic regardless of the mode of arithmetic in effect. When standard arithmetic is used, the number of digits of the standard intermediate data item used and whether there is rounding shall be as specified in 8.8.1.3.1.3, Rounding rules.
 
-###### 8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or
-
-national
+###### 8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or national
 
 The numeric integer operand shall be an integer literal or an integer numeric data item of usage display or national. The other operand may be a literal or data item of class alphanumeric or national.
 
@@ -28046,43 +28042,51 @@ WHEN condition-2 imperative-statement-3
 END-SEARCH
 </pre>
 
-Entrance
-
-   Index Setting:\
-   exceeds highest True (AT END)\* imperative-\
-   permissible occur- statement-1\
-   rence or is zero or\
-   &emsp;negative
-
-False
-
-True imperative- \*\* Condition-1
-
-statement-2
-
-False
-
-| \* |  | \* |
-|---|---|---|
-| True | imperative- |  |
-
-   Condition-2\
-   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;statement-3
-
-False
-
-Increment\
-index-name for\
-identifier-1
-
-Increment
-
-### \*
-
-   index-name-1\
-   (for a different\
-   &emsp;table)\
-   or identifier-2
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              │
+   ┌─────────────────────────►┤
+   │                          │
+   │                          ▼
+   │               ╭──────────┴──────────╮
+   │               │   Index Setting:    │
+   │               │   exceeds highest   │   True (AT END)   *  ┌─────────────┐          ╮
+   │               │ permissible occur-  ├─────────────────────►│ imperative- ├───────►  │
+   │               │ rence or is zero or │                      │ statement-1 │          │
+   │               │      negative       │                      └─────────────┘          │
+   │               ╰──────────┬──────────╯                                               │
+   │                          │ False                                                    │
+   │                          │                                                          │
+   │                          ▼                                                          │
+   │                   ╭──────┴──────╮   True                   ┌─────────────┐          │
+   │                   │ Condition-1 ├─────────────────────────►│ imperative- ├───────►  ├ **
+   │                   ╰──────┬──────╯                          │ statement-2 │          │
+   │                          │ False                           └─────────────┘          │
+   │                          │     *                                                    │
+   │                          ▼                                                  *       │
+   │                   ╭──────┴──────╮   True                   ┌─────────────┐          │
+   │                   │ Condition-2 ├─────────────────────────►│ imperative- ├───────►  │
+   │                   ╰──────┬──────╯                          │ statement-3 │          │
+   │                          │ False                           └─────────────┘          ╯
+   │                          │
+   │                          ▼
+   │                ┌─────────┴─────────┐
+   │                │     Increment     │
+   │                │  index-name for   │
+   │                │   identifier-1    │
+   │                └─────────┬─────────┘
+   │                          │
+   │                          │
+   │                          ▼
+   │                ┌─────────┴─────────┐
+   │                │     Increment     │
+   │                │   index-name-1    │  *
+   │                │ (for a different  │
+   └────────────────┤      table)       │
+                    │  or identifier-2  │
+                    └───────────────────┘
+</pre>
 
    \*These operations are options included only when specified in the SEARCH statement.
 
@@ -28294,29 +28298,57 @@ Figure E.2 — Compilation group sample structure example
 
 Figure E.3, Compilation group and run unit structures, shows schematically, in an example, the relationships between the components of a compilation group and their corresponding runtime entities. Note that runtime modules resulting from compilation units of the same compilation group need not be part of the same run unit, and runtime modules in the same run unit need not result from compilation units of the same compilation group.
 
-P-1
-
-Legend
-
-P-1-1 P-1-2 Compilation Group
-
-P-1-2-1 P-1-2-2
-
-Compilation Unit
-
-Source Unit
-
-Source Element
-
-| To other run unit | To other run unit |
-|---|---|
-| From other comp. group | From other comp. group |
-
-Run Unit
-
-Runtime Module
-
-Runtime Element
+<pre style="line-height:1">
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ┌─────────┐ ┌─────────────────────────────────────────┐ ┌─────────┐ ┃         Legend
+┃ │         │ │ ┌─ P-1 ───────────────────────────────┐ │ │         │ ┃
+┃ │         │ │ │ ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ │ │ │         │ ┃   ┏━━━━━━━━━━━━━━━━━━━━┓
+┃ │         │ │ │ ╎                                 ╎ │ │ │         │ ┃   ┃ Compilation Group  ┃
+┃ │         │ │ │ ╎                                 ╎ │ │ │         │ ┃   ┗━━━━━━━━━━━━━━━━━━━━┛
+┃ │         │ │ │ └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘ │ │ │         │ ┃
+┃ │         │ │ │ ┌─ P-1-1 ─────┐ ┌─ P-1-2 ─────────┐ │ │ │         │ ┃   ┌────────────────────┐
+┃ │         │ │ │ │ ┌╌╌╌╌╌╌╌╌╌┐ │ │ ┌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ │ │ │ │         │ ┃   │ Compilation Unit   │
+┃ │         │ │ │ │ ╎         ╎ │ │ └╌╌╌╌╌╌╌╌╌╌╌╌╌┘ │ │ │ │         │ ┃   └────────────────────┘
+┃ │         │ │ │ │ ╎         ╎ │ │ P-1-2-1 P-1-2-2 │ │ │ │         │ ┃
+┃ │         │ │ │ │ ╎         ╎ │ │ ┌─────┐ ┌─────┐ │ │ │ │         │ ┃   ┌────────────────────┐
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ┌╌┐ │ │ ┌╌┐ │ │ │ │ │         │ ┃   │ Source Unit        │
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃   └────────────────────┘
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+┃ │         │ │ │ │ ╎         ╎ │ │ │ ╎ ╎ │ │ ╎ ╎ │ │ │ │ │         │ ┃   ╎ Source Element     ╎
+┃ │         │ │ │ │ ╎         ╎ │ │ │ └╌┘ │ │ └╌┘ │ │ │ │ │         │ ┃   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+┃ │    │    │ │ │ │ └╌╌╌╌╌╌╌╌╌┘ │ │ └─────┘ └─────┘ │ │ │ │    │    │ ┃
+┃ │    │    │ │ │ └─────────────┘ └─────────────────┘ │ │ │    │    │ ┃
+┃ │    │    │ │ └─────────────────────────────────────┘ │ │    │    │ ┃
+┃ └────┼────┘ └─────────────────────────────────────────┘ └────┼────┘ ┃
+┗━━━━━━┿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┿━━━━━━┛
+       │     └────────────────────┬────────────────────┘       │
+       ▼                          │                            ▼
+To other run unit                 │                      To other run unit
+                                  │
+From other comp. group            │                  From other comp. group
+       │                          ▼                            │
+       │     ┌─────────────────────────────────────────┐       │
+┏━━━━━━┿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┿━━━━━━┓
+┃ ┌────┼────┐ ┌─────────────────────────────────────────┐ ┌────┼────┐ ┃
+┃ │    │    │ │                                         │ │    │    │ ┃
+┃ │    ▼    │ │   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐   │ │    ▼    │ ┃   ┏━━━━━━━━━━━━━━━━━━━━┓
+┃ │         │ │   ╎                                 ╎   │ │         │ ┃   ┃ Run Unit           ┃
+┃ │         │ │   ╎                                 ╎   │ │         │ ┃   ┗━━━━━━━━━━━━━━━━━━━━┛
+┃ │         │ │   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘   │ │         │ ┃
+┃ │         │ │                                         │ │         │ ┃   ┌────────────────────┐
+┃ │         │ │   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌┐ ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐   │ │         │ ┃   │ Runtime Module     │
+┃ │         │ │   ╎             ╎ └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘   │ │         │ ┃   └────────────────────┘
+┃ │         │ │   ╎             ╎                       │ │         │ ┃
+┃ │         │ │   ╎             ╎   ┌╌╌╌╌╌┐ ┌╌╌╌╌╌┐     │ │         │ ┃   ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃   ╎ Runtime Element    ╎
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃   └╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┘
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃
+┃ │         │ │   ╎             ╎   ╎     ╎ ╎     ╎     │ │         │ ┃
+┃ │         │ │   └╌╌╌╌╌╌╌╌╌╌╌╌╌┘   └╌╌╌╌╌┘ └╌╌╌╌╌┘     │ │         │ ┃
+┃ └─────────┘ └─────────────────────────────────────────┘ └─────────┘ ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+</pre>
 
 Figure E.3 — Compilation group and run unit structures
 
@@ -28773,62 +28805,52 @@ These relationships are shown in figure E.4, COBOL communication environment, an
 
 ## Page 758
 
-| COBOL Program | Message Control System | Communication |
-|---|---|---|
-|  | (MCS) | Devices |
+<pre style="line-height:1">
+  COBOL Program                  Message Control System           Communication
+                                         (MCS)                       Devices
 
-(communication using queues)
+                              (communication using queues)
 
-   . . . Input Queues\
-   . . .
-
-| . . . | . . . |
-|---|---|
-| RECEIVE | . . . |
-
-. . .\
-. . .\
-. . .\
-. . .\
-. . .\
-. . .\
-. . .\
-. . .\
-RECEIVE\
-. . .\
-. . .\
-. . .
-
-| SEND | (CD) |  |
-|---|---|---|
-| . . .<br>. . .<br>. . . | Descriptions . . . Output Queues | DISABLE |
-
-| . . . | . . . | / |
-|---|---|---|
-| . . .<br>. . .<br>. . . | . . .<br>. . .<br>. . .<br>. . . | ENABLE |
-| . . . | . . . | ENABLE |
-
-. . .
-
-| . . . | . . . |
-|---|---|
-| Communication ..SEND | . . . |
-
-   . . .\
-   . . .\
-   . . . RECEIVE\
-   . . . (transaction communication)\
-   . . .
-
-   . . .\
-   SEND\
-   . . .
-
-| COBOL/MCS | MCS/Communication Device |
-|---|---|
-| Interface | Interface |
+┌───────────────────┐   ┌─┐                                  ┌─┐
+│...................│   │C│             Input Queues         │ │
+│.................. │   │o│      ┌──────────────────────┐    │ │    ┌─────┐
+│ ................  │   │m│      │ ........   ........  │◄───┤ ├────┤     │
+│      RECEIVE      │◄──┤m├──────┤   .....     ........ │    │ │    │     │
+│...................│   │u│      │             ........ │    │ │    └─────┘
+│...................│   │n│      │             ........ │    │ │    ┌─────┐
+│...................│   │i│      │              ....... │◄───┤ ├────┤     │
+│...................│   │c│      │                      │    │E│    │     │
+│       ....        │   │a│      │                      │◄┐  │N│    └─────┘
+│      RECEIVE      │◄──┤t├──────┤                      │ │  │A│
+│...................│   │i│      └──────────────────────┘ │  │B│
+│...................│   │o│             Output Queues     │  │L│
+│...................│   │n│      ┌──────────────────────┐ │  │E│
+│       SEND        ├───┤ ├─────►│ ........     .....   │ │  │ │    ┌─────┐
+│...................│   │D│      │ ........             │ └──┤/├────┤     │
+│...................│   │e│      │ ........             ├────┤ ├───►│     │
+│...................│   │s│      │ ........             │    │D│    └─────┘
+│...................│   │c│      │ ........             │    │I│
+│...................│   │r│      │ ........             │    │S│    ┌─────┐
+│...................│   │i│      │                      │    │A│    │     │
+│      ......       │   │p│      │                      ├────┤B├───►│     │
+│      ..SEND       ├───┤t├─────►│                      │    │L│    └─────┘
+│...................│   │i│      └──────────────────────┘    │E│
+│...................│   │o│                                  │ │    ┌─────┐
+│   .....RECEIVE    │◄──┤n├──────────────────────────────────┤ ├────┤     │
+│...................│   │s│      (transaction communication) │ │  ┌►│     │
+│   ............    │   │ │                                  │ │  │ └─────┘
+│                   │   │(│                                  │ │  │
+│ ................  │   │C│                                  │ │  │
+│       SEND        ├───┤D├──────────────────────────────────┤ ├──┘
+│...................│   │)│                                  │ │
+└───────────────────┘   └┬┘                                  └┬┘
+                         ▲                                    ▲
+                  COBOL/MCS Interface             MCS/Communication Device Interface
+</pre>
 
 Figure E.4 — COBOL communication environment
+
+> **Figure notes (Figure E.4 — COBOL communication environment).** The printed figure draws the five communication devices as pictures of terminals, shown here as empty boxes; the labels of the two interface bars, `Communication Descriptions (CD)` and `ENABLE / DISABLE`, are printed rotated and are set here one character to a row; the printed arrows run diagonally and are routed here along rows, each joining the same two elements as on the page.
 
 ###### E.5.3.1 Invoking the run unit
 
@@ -28910,24 +28932,27 @@ control system may, upon prior specification by the user, dequeue on some other 
 
 In order to control more explicitly the messages being enqueued and dequeued, it is possible to define in the message control system a hierarchy of input queues, that is, queues containing queues. In COBOL, four levels of queues are available to the user. In order of decreasing significance, the queue levels are named queue, sub-queue-1, sub-queue-2, and sub-queue-3. The full queue structure is depicted in figure E.5, Hierarchy of queues, where queues and sub-queues have been named with the letters A through O. Messages have been named with a letter according to their source (X, Y, or Z) and with a sequential number.
 
-   QUEUE
-
-A
-
-SUB-QUEUE (1)
-
-| B |  |  | C |  |
-|---|---|---|---|---|
-| SUB-QUEUE (2)<br>D | E | F |  | G |
-
-| I | O |
-|---|---|
-
-| Z1 | X3 | X1 | Z6 | Y7 | Y1 | X6 | Z2 |
-|---|---|---|---|---|---|---|---|
-| X2 | X4 | Y3 | Z7 | Y8 | Y2 |  | Z3 |
-| MESSAGE | X5 | Y5 | Y6 |  |  |  | Z4 |
-|  |  | Z5 |  |  |  |  | Y4 |
+<pre style="line-height:1">
+                ╭                                 │
+         QUEUE  ┤                               A │
+                ╰                                 │
+                ╭                 ┌───────────────┴───────────────┐
+ SUB-QUEUE (1)  ┤                 │                               │
+                │               B │                             C │
+                ╰                 │                               │
+                ╭         ┌───────┴───────┐               ┌───────┴───────┐
+ SUB-QUEUE (2)  ┤         │               │               │               │
+                │       D │             E │             F │             G │
+                ╰         │               │               │               │
+                ╭     ┌───┴───┐       ┌───┴───┐       ┌───┴───┐       ┌───┴───┐
+ SUB-QUEUE (3)  ┤     │       │       │       │       │       │       │       │
+                │   H │     I │     J │     K │     L │     M │     N │     O │
+                ╰     │       │       │       │       │       │       │       │
+                ╭     Z1      X3      X1      Z6      Y7      Y1      X6      Z2
+       MESSAGE  ┤     X2      X4      Y3      Z7      Y8      Y2              Z3
+                │             X5      Y5      Y6                              Z4
+                ╰                     Z5                                      Y4
+</pre>
 
 Figure E.5 — Hierarchy of queues
 
@@ -30583,11 +30608,21 @@ One of the language features that separates object oriented languages from conve
 
 ## Page 795
 
-Person
-
-Employee
-
-Manager
+<pre style="line-height:1">
+    ┌───────────────┐
+    │    Person     │
+    └───────────────┘
+            ▲
+            │
+    ┌───────┴───────┐
+    │   Employee    │
+    └───────────────┘
+            ▲
+            │
+    ┌───────┴───────┐
+    │    Manager    │
+    └───────────────┘
+</pre>
 
 Figure E.6 — Manager class
 
@@ -30613,23 +30648,29 @@ A bank will have different kinds of accounts, and yet they are all accounts. If 
 
 and the savings account subclasses. Thus the account class defines what is common to all accounts; the checking account class defines what is specific to checking accounts; and the savings account class defines only what is specific to savings accounts. Any changes to the account class will be picked up by the inheriting classes automatically. These relationships can be represented as shown in figure E.7, Banking hierarchy.
 
-Account
-
-account-number\
-Data items balance\
-date-opened
-
-deposit\
-Methods\
-withdraw\
-balance
-
-| CheckingAccount | SavingAccount |
-|---|---|
-| charges | interest-rate |
-| displayCharges | calculateInterest |
-
-calculateCharges
+<pre style="line-height:1">
+                          ┌──────────────────┐
+                          │     Account      │
+                          ├──────────────────┤
+                          │  account-number  │
+  Data items  ───────────►│     balance      │
+                          │   date-opened    │
+                          ├──────────────────┤
+                          │     deposit      │
+  Methods  ──────────────►│     withdraw     │
+                          │     balance      │
+                          └──────────────────┘
+                             ▲          ▲
+                             │          │
+            ┌────────────────┴─┐    ┌───┴──────────────┐
+            │ CheckingAccount  │    │  SavingAccount   │
+            ├──────────────────┤    ├──────────────────┤
+            │     charges      │    │  interest-rate   │
+            ├──────────────────┤    ├──────────────────┤
+            │  displayCharges  │    │calculateInterest │
+            │ calculateCharges │    │                  │
+            └──────────────────┘    └──────────────────┘
+</pre>
 
 Figure E.7 — Banking hierarchy
 
@@ -31254,45 +31295,51 @@ The FOOTING phrase has two different functions:
 
 2\) When a page advance occurs, the line count is advanced to either the position specified in the FOOTING phrase or to the next line, whichever is greater, and the applicable page and report footings are printed.
 
-   PAGE clause phrases Report content
+<pre style="line-height:1">
+                          PAGE clause phrases   Report content
 
-   Physical Top the first line that can be printed\
-   of Form\
-   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&lt;blank>
-
-| Logical Top Heading | the first line of the report or page heading |
-|---|---|
-| of Form | &lt;(first page only) report header lines> |
-
-&lt;page heading lines>\
-First Detail the first line of a body group\
-&lt;Control Heading lines>\
-&lt;Detail lines>\
-&lt;Control Footing lines>\
-&lt;Control Heading lines>\
-&lt;Detail lines>\
-&lt;Control Footing lines>
-
-&lt;Control Heading lines>\
-&emsp;&lt;Detail lines>\
-&lt;Control Footing lines>\
-Last Control Heading the last line on which a control heading may print\
-&lt;Detail lines>
-
-   Last Detail the last line on which Detail lines will print\
-   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&lt;Control Footing lines>
-
-   Footing last line of Control footing or first line of a report or page footing &lt;page footing lines.
-
-&lt;(last page only) report footing lines>
-
-   Logical Page Limit the last line on a logical page\
-   Bottom of\
-   Form
-
-   Physical\
-   Bottom of\
-   Form the last line that can be printed
+Physical Top of Form    │                       the first line that can be printed
+                        │
+                        │                                             &lt;blank&gt;
+                        │
+Logical Top of Form     │ Heading               the first line of the report or page heading
+                        │                             &lt;(first page only) report header lines&gt;
+                        │                                      &lt;page heading lines&gt;
+                        │ First Detail          the first line of a body group
+                        │                                     &lt;Control Heading lines&gt;
+                        │                                         &lt;Detail lines&gt;
+                        │                                     &lt;Control Footing lines&gt;
+                        │                                     &lt;Control Heading lines&gt;
+                        │                                         &lt;Detail lines&gt;
+                        │                                     &lt;Control Footing lines&gt;
+                        │
+                        │
+                        │
+                        │
+                        │
+                        │                                     &lt;Control Heading lines&gt;
+                        │                                         &lt;Detail lines&gt;
+                        │                                     &lt;Control Footing lines&gt;
+                        │ Last Control Heading  the last line on which a control heading may print
+                        │                                         &lt;Detail lines&gt;
+                        │
+                        │ Last Detail           the last line on which Detail lines will print
+                        │                                     &lt;Control Footing lines&gt;
+                        │
+                        │ Footing               last line of Control footing or first line of a report or page footing
+                        │                                      &lt;page footing lines.
+                        │                             &lt;(last page only) report footing lines&gt;
+                        │
+Logical Bottom of Form  │ Page Limit            the last line on a logical page
+                        │
+                        │
+                        │
+                        │
+                        │
+Physical Bottom of Form │                       the last line that can be printed
+                        │
+                        │
+</pre>
 
 Figure E.8 — Example of page layout
 
@@ -31755,95 +31802,120 @@ The comments placed in these examples explain the use and effects of the various
 
 The following figures illustrate how conditional expressions are evaluated.
 
-Evaluate\
-condition-1
-
-Condition-1 yes\
-&emsp;false
-
-no
-
-Evaluate\
-condition-2
-
-Condition-2 yes\
-&emsp;false
-
-no
-
-Evaluate\
-condition-n
-
-Condition-n yes\
-&emsp;false
-
-no
-
-| Truth value | Truth value |
-|---|---|
-| is true | is false |
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────┐
+            │        false        │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-2     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-2     ├──────────────────────┤
+            │        false        │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-n     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-n     ├──────────────────────┤
+            │        false        │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+                       ▼                                 ▼
+                  Truth value                       Truth value
+                    is <u>true</u>                          is <u>false</u>
+</pre>
 
 Figure E.9 — Evaluation of the condition-1 AND condition-2 AND ... condition-n
 
 ## Page 819
 
-Evaluate\
-condition-1
-
-Condition-1 yes\
-&emsp;true
-
-no
-
-Evaluate\
-condition-2
-
-Condition-2 yes\
-&emsp;true
-
-no
-
-Evaluate\
-condition-n
-
-Condition-n yes\
-&emsp;true
-
-no
-
-| Truth value | Truth value |
-|---|---|
-| is false | is true |
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────┐
+            │        true         │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-2     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-2     ├──────────────────────┤
+            │        true         │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-n     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+            ╭──────────┴──────────╮    yes               │
+            │     Condition-n     ├──────────────────────┤
+            │        true         │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+                       ▼                                 ▼
+                  Truth value                       Truth value
+                   is <u>false</u>                           is <u>true</u>
+</pre>
 
 Figure E.10 — Evaluation of the condition-1 OR condition-2 OR ... condition-n
 
 ## Page 820
 
-Evaluate\
-condition-1
-
-Condition-1 yes\
-&emsp;true
-
-no
-
-Evaluate\
-condition-2
-
-yes Condition-2\
-&emsp;&emsp;&emsp;&emsp;false
-
-no
-
-Evaluate\
-condition-3
-
-yes Condition-3 no\
-&emsp;&emsp;&emsp;&emsp;&emsp;false
-
-| Truth value | Truth value |
-|---|---|
-| is false | is true |
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────┐
+            │        true         │                      │
+            ╰──────────┬──────────╯                      │
+                       │ no                              │
+            ┌──────────┴──────────┐                      │
+            │      Evaluate       │                      │
+            │     condition-2     │                      │
+            └──────────┬──────────┘                      │
+                       │                                 │
+        yes ╭──────────┴──────────╮                      │
+      ┌─────┤     Condition-2     │                      │
+      │     │        false        │                      │
+      │     ╰──────────┬──────────╯                      │
+      │                │ no                              │
+      │     ┌──────────┴──────────┐                      │
+      │     │      Evaluate       │                      │
+      │     │     condition-3     │                      │
+      │     └──────────┬──────────┘                      │
+      │                │                                 │
+      │ yes ╭──────────┴──────────╮    no                │
+      ├─────┤     Condition-3     ├──────────────────────┤
+      │     │        false        │                      │
+      │     ╰─────────────────────╯                      │
+      ▼                                                  ▼
+ Truth value                                        Truth value
+  is <u>false</u>                                            is <u>true</u>
+</pre>
 
 Figure E.11 — Evaluation of condition-1 OR condition-2 AND condition-3
 
@@ -31851,39 +31923,51 @@ Figure E.11 — Evaluation of condition-1 OR condition-2 AND condition-3
 
 ## Page 821
 
-Evaluate\
-condition-1
-
-Condition-1 yes\
-&emsp;true
-
-no
-
-Evaluate\
-condition-2
-
-Condition-2 yes\
-&emsp;false
-
-no Evaluate\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;condition-3
-
-yes Condition-3\
-&emsp;&emsp;&emsp;&emsp;&emsp;false
-
-no
-
-Evaluate\
-condition-4
-
-yes Condition-4\
-&emsp;&emsp;&emsp;&emsp;&emsp;false
-
-no
-
-| Truth value | Truth value |
-|---|---|
-| is false | is true |
+<pre style="line-height:1">
+            ┌─────────────────────┐
+            │      Evaluate       │
+            │     condition-1     │
+            └──────────┬──────────┘
+                       │
+            ╭──────────┴──────────╮    yes
+            │     Condition-1     ├──────────────────────────┐
+            │        true         │                          │
+            ╰──────────┬──────────╯                          │
+                       │ no                                  │
+            ┌──────────┴──────────┐                          │
+            │      Evaluate       │                          │
+            │     condition-2     │                          │
+            └──────────┬──────────┘                          │
+                       │                                     │
+            ╭──────────┴──────────╮    yes                   │
+            │     Condition-2     ├──────────────────────────┤
+            │        false        │                          │
+            ╰──────────┬──────────╯                          │
+                       │ no                                  │
+                       │                          ┌──────────┴──────────┐
+                       │                          │      Evaluate       │
+                       │                          │     condition-3     │
+                       │                          └──────────┬──────────┘
+                       │                                     │
+                       │     yes                  ╭──────────┴──────────╮
+                       ├──────────────────────────┤     Condition-3     │
+                       │                          │        false        │
+                       │                          ╰──────────┬──────────╯
+                       │                                     │ no
+                       │                          ┌──────────┴──────────┐
+                       │                          │      Evaluate       │
+                       │                          │     condition-4     │
+                       │                          └──────────┬──────────┘
+                       │                                     │
+                       │     yes                  ╭──────────┴──────────╮
+                       ├──────────────────────────┤     Condition-4     │
+                       │                          │        false        │
+                       │                          ╰──────────┬──────────╯
+                       │                                     │ no
+                       ▼                                     ▼
+                  Truth value                           Truth value
+                   is <u>false</u>                               is <u>true</u>
+</pre>
 
 Figure E.12 — Evaluation of (condition-1 OR NOT condition-2) AND condition-3 AND condition-4
 
@@ -32014,101 +32098,164 @@ INSPECT ITEM CONVERTING "ABCDEFGHIJKLMNOPQRSTUVWXYZ"-
 
 Representations of the actions of several types of PERFORM statements with varying-phrase specified are given in figures E.13, The VARYING option of a PERFORM statement with the TEST BEFORE phrase having one condition, E.14, The VARYING option of a PERFORM statement with the TEST BEFORE phrase having two conditions, E.15, The VARYING option of a PERFORM statement with the TEST AFTER phrase having one condition, and E.16, The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions. These are not intended to dictate implementation.
 
-Entrance
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │ Set identifier-2 equal  │
+                 │  to current FROM value  │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                      ╭───────┴───────╮   True
+      ┌──────────────►│  Condition-1  ├──────────────►  <u>Exit</u>
+      │               ╰───────┬───────╯
+      │                       │ False
+      │                       ▼
+      │          ┌────────────┴────────────┐
+      │          │    Execute specified    │
+      │          │    set of statements    │
+      │          └────────────┬────────────┘
+      │                       │
+      │                       ▼
+      │          ┌────────────┴────────────┐
+      └──────────┤  Augment identifier-2   │
+                 │  with current BY value  │
+                 └─────────────────────────┘
+</pre>
 
-Set identifier-2 equal\
-to current FROM value
-
-Condition-1 True Exit
-
-False
-
-Execute specified\
-set of statements
-
-Augment identifier-2\
-with current BY value
-
-Figure E.13 — The VARYING option of a PERFORM statement with theTEST BEFORE phrase having one condition
+Figure E.13 — The VARYING option of a PERFORM statement with the TEST BEFORE phrase having one condition
 
 ## Page 826
 
-Entrance
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │   Set identifier-2 to   │
+                 │   current FROM value    │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │   Set identifier-5 to   │
+                 │   current FROM value    │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                      ╭───────┴───────╮   True
+   ┌─────────────────►│  Condition-1  ├──────────────►  Exit
+   │                  ╰───────┬───────╯
+   │                          │ False
+   │                          ▼
+   │                  ╭───────┴───────╮   True
+   │    ┌────────────►│  Condition-2  ├───────────────────────────┐
+   │    │             ╰───────┬───────╯                           │
+   │    │                     │ False                             │
+   │    │                     ▼                                   ▼
+   │    │        ┌────────────┴────────────┐         ┌────────────┴────────────┐
+   │    │        │  Execute specified set  │         │  Augment identifier-2   │
+   │    │        │      of statements      │         │  with current BY value  │
+   │    │        └────────────┬────────────┘         └────────────┬────────────┘
+   │    │                     │                                   │
+   │    │                     ▼                                   ▼
+   │    │        ┌────────────┴────────────┐         ┌────────────┴────────────┐
+   │    └────────┤  Augment identifier-5   │         │   Set identifier-5 to   │
+   │             │  with current BY value  │         │   current FROM value    │
+   │             └─────────────────────────┘         └────────────┬────────────┘
+   │                                                              │
+   └──────────────────────────────────────────────────────────────┘
+</pre>
 
-Set identifier-2 to\
-current FROM value
-
-Set identifier-5 to\
-current FROM value
-
-True\
-Condition-1 Exit
-
-False
-
-True\
-Condition-2
-
-False
-
-| Execute specified set | Augment identifier-2 |
-|---|---|
-| of statements | with current BY value |
-| Augment identifier-5 | Set identifier-5 to |
-| with current BY value | current FROM value |
-
-Figure E.14 — The VARYING option of a PERFORM statement with theTEST BEFORE phrase having two conditions
+Figure E.14 — The VARYING option of a PERFORM statement with the TEST BEFORE phrase having two conditions
 
 ## Page 827
 
-Entrance
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │ Set identifier-2 equal  │
+                 │  to current FROM value  │
+                 └────────────┬────────────┘
+                              │
+      ┌──────────────────────►┤
+      │                       │
+      │                       ▼
+      │          ┌────────────┴────────────┐
+      │          │    Execute specified    │
+      │          │    set of statements    │
+      │          └────────────┬────────────┘
+      │                       │
+      │                       ▼
+      │               ╭───────┴───────╮   True
+      │               │  Condition-1  ├──────────────►  <u>Exit</u>
+      │               ╰───────┬───────╯
+      │                       │ False
+      │                       ▼
+      │          ┌────────────┴────────────┐
+      └──────────┤  Augment identifier-2   │
+                 │  with current BY value  │
+                 └─────────────────────────┘
+</pre>
 
-Set identifier-2 equal\
-to current FROM value
-
-Execute specified\
-set of statements
-
-True\
-Condition-1 Exit
-
-False
-
-Augment identifier-2\
-with current BY value
-
-Figure E.15 — TheVARYING option of a PERFORM statement with theTEST AFTER phrase having one condition
+Figure E.15 — The VARYING option of a PERFORM statement with the TEST AFTER phrase having one condition
 
 ## Page 828
 
-Entrance
+<pre style="line-height:1">
+                          Entrance
+                              │
+                              ▼
+                 ┌────────────┴────────────┐
+                 │   Set identifier-2 to   │
+                 │   current FROM value    │
+                 └────────────┬────────────┘
+                              │
+    ┌────────────────────────►┤
+    │                         │
+    │                         ▼
+    │            ┌────────────┴────────────┐
+    │            │   Set identifier-5 to   │
+    │            │   current FROM value    │
+    │            └────────────┬────────────┘
+    │                         │
+    │   ┌────────────────────►┤
+    │   │                     │
+    │   │                     ▼
+    │   │        ┌────────────┴────────────┐
+    │   │        │  Execute specified set  │
+    │   │        │      of statements      │
+    │   │        └────────────┬────────────┘
+    │   │                     │
+    │   │                     ▼
+    │   │             ╭───────┴───────╮   True
+    │   │             │  Condition-2  ├───────────┐
+    │   │             ╰───────┬───────╯           │
+    │   │                     │ False             │
+    │   │                     ▼                   │
+    │   │        ┌────────────┴────────────┐      │
+    │   └────────┤  Augment identifier-5   │      │
+    │            │  with current BY value  │      │
+    │            └─────────────────────────┘      │
+    │                                             │
+    │                         ┌───────────────────┘
+    │                         ▼
+    │                 ╭───────┴───────╮   True
+    │                 │  Condition-1  ├──────────────►  Exit
+    │                 ╰───────┬───────╯
+    │                         │ False
+    │                         ▼
+    │            ┌────────────┴────────────┐
+    └────────────┤  Augment identifier-2   │
+                 │  with current BY value  │
+                 └─────────────────────────┘
+</pre>
 
-Set identifier-2 to\
-current FROM value
-
-Set identifier-5 to\
-current FROM value
-
-Execute specified set\
-&emsp;of statements
-
-True\
-Condition-2
-
-False
-
-Augment identifier-5\
-with current BY value
-
-Condition-1 True\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Exit
-
-False
-
-Augment identifier-2\
-with current BY value
-
-Figure E.16 — TheVARYING option of a PERFORM statement with theTEST AFTER phrase having two conditions
+Figure E.16 — The VARYING option of a PERFORM statement with the TEST AFTER phrase having two conditions
 
 ## Page 829
 
