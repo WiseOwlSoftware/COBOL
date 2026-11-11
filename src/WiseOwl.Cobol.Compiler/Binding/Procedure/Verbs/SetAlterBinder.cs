@@ -144,6 +144,8 @@ internal sealed class SetAlterBinder(BinderContext ctx)
                 bad = true;
                 continue;
             }
+            // §1985:XVI.3.3.1 (kb/Work PB5084): an independent segment's GO TO is altered only from its own segment.
+            if (!Segmentation.CheckAlter(ctx, target, names[0], ProcedureNameShape.AsWritten(names[0]))) { bad = true; continue; }
             if (ctx.Table.ResolveProcedureOperand(names[1], "ALTER TO PROCEED TO") is not { } dest)
             { bad = true; continue; }
             entries.Add(new BoundAlterEntry(_alterSwFields![target.Range.Start], dest.Range.Start, target.Range.Start, ProcedureNameShape.AsWritten(names[1])));

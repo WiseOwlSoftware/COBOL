@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.5.4-1",
  "rule-digest": "ec2784811caf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataRecordsClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
  "test-ref": "conformance:cases/VII.3.5@1985-DATA-RECORDS-CLAUSE/1985-GR-VII_3_5_4-1",
+ "notes": "§1985:VII.3.5.4 GR1: \"The presence of more than one data-name indicates that the file contains more than one type of data record. These records may be of differing sizes, different formats, etc. The order in which they are listed is not significant.\" The clause is documentation (§1985:VII.3.5.1: \"The DATA RECORDS clause serves only as documentation for the names of data records within their associated file.\"), and the code treats it so: dataRecordsClause takes one or more names in any order, VisitDataRecordsClause is the edition arm (accepted at --std 85, refused from 2002), its FileDescriptionFormats.Rows row admits it in every format, and BindFileSection has no arm for it; the file's record types are the level 01 entries BindFileSection binds, whatever their sizes and formats. Probed at 85 with records of 4, 8 and 12 characters (alphanumeric, numeric and a group): the clause naming them in two different orders, naming one of them, and absent give the same output and the same file bytes. The witness lists REC-B before REC-A against the opposite entry order, with a 5-character and a 10-character record. That the names are never resolved is the syntax rule's and kb/Work PB5070, not this rule.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

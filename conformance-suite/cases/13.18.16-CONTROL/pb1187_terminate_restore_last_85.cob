@@ -1,10 +1,12 @@
       *>--- conformance-case
       *> id: pb1187_terminate_restore_last_85
       *> rules: [GR-13.18.16.4-5, GR-14.9.46.4-3]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> (The id keeps its _85 suffix. The page footing is COBOL-2002's: it starts on a relative line, which 1985:XIII.3.15.3 SR9
+      *> forbids, and SOURCEs the control items, which 1985:XIII.3.20.3 SR5 forbids; kb/Work PB5079.)
       *> kb/Work PB1187 - TERMINATE restores the control data items
       *> LAST: the final page footing and the report footing are
       *> composed while the control items still hold their PRIOR values.
@@ -32,20 +34,14 @@
       *> b) prints CF WS-B then CF WS-A (1 1), the last page's page
       *> footing prints (FOOTING 18 + 1 = line 19) and c) the report
       *> footing follows it (LINE-COUNTER 19 + 1 = line 20) - all four
-      *> BEFORE d), so under the 2002 and later text all four show 1 1 (see
-      *> pb5128_terminate_page_footing_control_values for those editions).
-      *> AT COBOL-85 THE PAGE FOOTING IS THE EXCEPTION (kb/Work PB5128):
-      *> §1985:XIII.3.20.4 GR13 b) gives the prior control values at TERMINATE
-      *> only to "control footing and report footing report groups", and c)
-      *> "All other data item references within report groups and their USE
-      *> procedures access the current values that are contained within the
-      *> data items at the time the report group is processed" - so the page
-      *> footing shows the CURRENT 3 4, the control footings and the report
-      *> footing the prior 1 1.  d) then restores 3 and 4, which
-      *> the DISPLAY after TERMINATE shows.
-      *> Fails if d) runs before the report footing (the defect: "RF 3 4"),
-      *> if the page footing shows the prior 1 1, or if d) never runs
-      *> ("AFTER 1 1").
+      *> BEFORE d), so under the 2002 and later text all four show 1 1.
+      *> d) then restores 3 and 4, which the DISPLAY after TERMINATE shows.
+      *> (At COBOL-85 the page footing would see the CURRENT values,
+      *> §1985:XIII.3.20.4 GR13 c), kb/Work PB5128; this program's page
+      *> footing is illegal there, so
+      *> pb5128_terminate_page_footing_control_values carries that edge.)
+      *> Fails if d) runs before the page footing / report footing (the
+      *> defect: "PF 3 4" / "RF 3 4"), or never runs ("AFTER 1 1").
       *> Placement: FIRST DETAIL 2 (the first body group on the page,
       *> §2023:13.18.35.4 GR5 b) 3.), then LINE PLUS 1 per group.
       *> Only non-blank lines are displayed, with their line number.

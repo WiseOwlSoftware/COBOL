@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-IV.4.2.2.2.3-L3.1",
  "rule-digest": "b9f2e8d213bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ZeroOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPrimary; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ValidateValueCategory; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric",
  "test-ref": "conformance:cases/IV.4.2.2.2@1985-Literals/1985-SR-IV_4_2_2_2_3-L3_1",
+ "notes": "§1985:IV.4.2.2.2.3 SRL3.1: \"If the literal is restricted to a numeric literal, the only figurative constant permitted is ZERO (ZEROS, ZEROES).\" In a numeric operand position NonNumericInNumericContext returns the number 0 for the zero word (through ZeroOperand) and reports COBOL0844 for every other figurative constant, an ALL literal and a symbolic-character included (BindPrimary words the symbolic-character case); in the VALUE clause of a numeric item or of a condition-name on one, ValidateValueCategory reports COBOL1657. The edition arm is the ALL form: 2023 adds \"without the ALL phrase\", and GateAllZeroAsNumeric asks the registry row figurative-all-zero-numeric-removed-2002, which is silent at 85, where §1985:IV.4.2.2.2.3 SRL3.3 makes the word ALL \"redundant\", and COBOL0902 from 2002. Probed at --std 85 over 18 figurative spellings in 20 positions (ADD, SUBTRACT, MULTIPLY, DIVIDE with and without GIVING, COMPUTE, an arithmetic expression in a relation and a sign condition, PERFORM VARYING FROM and BY, a function argument, a reference modifier, VALUE on DISPLAY and COMP items and on a level 88 with THRU): ZERO, ZEROS, ZEROES and their ALL forms are accepted everywhere but PERFORM VARYING BY, where the zero step is refused by its own rule (COBOL2120), and SPACE(S), HIGH-VALUE, LOW-VALUES, QUOTE, their ALL forms, ALL \"1\", ALL \"12\" and a symbolic-character with and without ALL are refused in every position. The witness is ADD SPACE TO X, refused with COBOL0844.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

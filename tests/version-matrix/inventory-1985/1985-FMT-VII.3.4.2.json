@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.3.4.2",
  "rule-digest": "c024efa05ea4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#codeSetClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#codeSetForPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCodeSetClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindCodeSetClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
  "test-ref": "conformance:cases/VII.3.4@1985-CODE-SET-CLAUSE/1985-FMT-VII_3_4_2",
+ "notes": "§1985:VII.3.4.2 prints CODE-SET IS alphabet-name-1, CODE-SET the one underlined word. codeSetClause's first alternative is CODE_SET IS? cobolWord cobolWord? and its second the FOR ALPHANUMERIC / FOR NATIONAL phrases (codeSetForPhrase); the 1985 edition reaches its one-name format through VisitCodeSetClause, which refuses a second alphabet-name and either FOR phrase at --std 85 (COBOL0900, the 2002 two-class format), and BindCodeSetClause resolves alphabet-name-1 against the SPECIAL-NAMES ALPHABET clauses and binds the conversion to the file. FileDescriptionClauseAdmitted keeps the clause to a sequential file and ScreenClauseRepetition to one occurrence. Probed at 85: CODE-SET IS ASC and CODE-SET ASC compile; a file under CODE-SET IS EBC (ALPHABET EBC IS EBCDIC) is written in EBCDIC on the medium (HELLO is C8 C5 D3 D3 D6) and reads back HELLO; CODE-SET IS ASC NAT, CODE-SET FOR ALPHANUMERIC IS ASC and CODE-SET ALPHANUMERIC ASC (COBOL0900), CODE-SET IS with no name, a literal, STANDARD-1 or NATIVE written directly, CODE-SET ARE and CODE SET (syntax errors), a data-name, a class-name or an undefined word as the operand (COBOL5985), the clause twice (COBOL2423), on a relative file (COBOL2604) and in an SD (COBOL1970) are refused. The witness declares ALPHABET ASC IS STANDARD-1, writes one record under CODE-SET IS ASC and reads it back.",
  "next": {
   "kind": "CHANGED",
   "to": [

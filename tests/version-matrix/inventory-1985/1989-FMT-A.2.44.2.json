@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-FMT-A.2.44.2",
  "rule-digest": "41cabc44780a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#HasLocalePhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordWordOf; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
  "test-ref": "conformance:cases/A.2.44@1985-UPPER-CASE-FUNCTION/1989-FMT-A_2_44_2",
+ "notes": "§1989:A.2.44.2 prints \"FUNCTION UPPER-CASE ( argument-1 )\": exactly one argument in parentheses. The catalog row (Build) admits UPPER-CASE at 85 with one argument, and BindFunctionResult's arity check refuses none, empty parentheses and two (COBOL1504). The LOCALE phrase that §2023:15.97.2 adds is found by HasLocalePhrase and refused at 85 by BindCaseFunctionWithLocale's construct check (COBOL0900); where the program declares a data item named LOCALE, KeywordWordOf reads the word as an operand and the reference is refused for two arguments. Probed at 85: the format with and without spaces and with a reference modifier is accepted; LOCALE with and without a locale-name, the form without parentheses and the name without FUNCTION are refused. The witness runs the format once.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

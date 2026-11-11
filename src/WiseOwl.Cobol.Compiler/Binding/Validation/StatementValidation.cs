@@ -1140,6 +1140,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// <returns>true when the phrase conforms; false after reporting.</returns>
     public bool CheckIntoReceiver(FileModel file, Place receiver, IntoPhraseRules rules)
     {
+        CheckPhraseOperandIsNotRecordArea(file, receiver, rules.AreaVerb, rules.Statement);
         int count = file.Records.Count;
         // Arm a) of the admissibility rule and the strong-receiver rule impose THE SAME condition, which is why
         // one predicate answers both: READ's read "no record description entry or only one" and "at most one
@@ -1499,6 +1500,23 @@ internal sealed class StatementValidation(DataBinder data)
             return true;
         ScreenForbiddenPhrase(true, present, "READ",
             "a file whose file control entry specifies ACCESS MODE RANDOM", "ISO §2023:14.9.30.3 SR6");
+        return false;
+    }
+
+    /// <summary>⛔ THE ONE ENFORCEMENT OF "THE FROM / INTO OPERAND SHALL NOT BE THE FILE'S RECORD AREA" (kb/Work PB5077) —
+    /// §1985:IX.4.5.3 SR1 and its nine siblings, §2002:14.8.29.2 SR2 and its four (<see cref="RecordAreaRule"/> words each).
+    /// Asked by <c>MoveBinder.BindFromPhrase</c> (WRITE, REWRITE, RELEASE: the sender) and by <see cref="CheckIntoReceiver"/>
+    /// (READ, RETURN: the receiver), the two funnels every FROM and INTO phrase passes through, so the next phrase of
+    /// the family inherits it. The decision is <see cref="StorageSharing.IsRecordAreaOf"/>; the edition scope is
+    /// <see cref="RecordAreaRule.InForce"/> (COBOL-2023 replaced the rule with its overlapping-operand rules, §2023:14.6.10).
+    /// Returns true when the operand is acceptable; false after reporting.</summary>
+    public bool CheckPhraseOperandIsNotRecordArea(FileModel file, Place operand, RecordAreaVerb verb, string statement)
+    {
+        if (!RecordAreaRule.InForce(data.Edition.Edition.Year) || !StorageSharing.IsRecordAreaOf(file, operand)) return true;
+        var (cite, words) = RecordAreaRule.Describe(verb, file.Organization, data.Edition.Edition.Year);
+        data.Edition.Error(DiagnosticCatalog.IoPhraseOperandIsRecordArea,
+            $"{statement} {operand.DenotedItem!.CobolName}: the operand names the record area of file '{file.CobolName}' "
+            + $"({cite}: \"{words}\")");
         return false;
     }
 

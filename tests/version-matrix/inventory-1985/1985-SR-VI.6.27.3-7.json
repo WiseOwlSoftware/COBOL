@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.27.3-7",
  "rule-digest": "d552bdecfba1",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#strUnstrSender",
  "test-ref": "conformance:cases/VI.6.27@1985-UNSTRING-STATEMENT/1985-SR-VI_6_27_3-7",
+ "notes": "§1985:VI.6.27.3 SR7: 'Identifier-1 must not be reference modified.' VersionConformancePass.VisitUnstringStatement gates the construct unstring-sender-reference-modified-2002 (COBOL0900 below 2002), but only on the dataReference alternative of strUnstrSender: a data-name sender written SRC (1:5), SRC (1:), SRC OF G (1:5) or SRT (I) (I:5) is refused at 85 (probed), and a subscripted or qualified sender without a reference modifier is accepted. The functionCall alternative is never asked, so a reference-modified function-identifier (§1985:IV.4.3.8.3.3 SR2 'A reference-modifier may be specified only for functions of the category alphanumeric'; SR3 admits an alphanumeric function-identifier where an identifier is permitted) is accepted as identifier-1 at 85. Implemented for the data-name operand shape, not for the function-identifier shape. The witness refuses UNSTRING SRC (1:5) with COBOL0900.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

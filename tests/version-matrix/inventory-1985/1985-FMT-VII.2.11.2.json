@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.2.11.2",
  "rule-digest": "3bfb5de0d70e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#multipleFileClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#multipleFileTapeEntry; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenMultipleFileClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ResolveIoControlFile; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral",
  "test-ref": "conformance:cases/VII.2.11@1985-MULTIPLE-FILE-TAPE-CLAUSE/1985-FMT-VII_2_11_2",
+ "notes": "§1985:VII.2.11.2 prints MULTIPLE FILE, the optional words TAPE and CONTAINS, then one or more of file-name-1 with an optional POSITION integer-1 ('TAPE CONTAINS { file-name-1 ['). multipleFileClause requires MULTIPLE FILE, takes TAPE and CONTAINS as optional words and a list of multipleFileTapeEntry (fileName, optional POSITION integerLiteral); ScreenMultipleFileClause, run from BindIoControl at every edition (the clause is removed only from 2002, COBOL0902), refuses an empty list (COBOL5944) and resolves each file-name through ResolveIoControlFile (COBOL1639), and IntegerOperandPass refuses POSITION 0 (COBOL2386), as §1985:III.2 requires of a format's integer ('it must be neither signed nor zero unless explicitly allowed by the rules for that format'). Probed at --std 85: the full form, the form without TAPE and CONTAINS, a comma-separated list and entries with and without POSITION are accepted; MULTIPLE FILE TAPE., MULTIPLE FILE TAPE CONTAINS., MULTIPLE TAPE, POSITION with 0, +1, 1.5 or a word, two POSITION phrases on one file and an undefined file-name are each refused. The witness writes MULTIPLE FILE F1 POSITION 1 F2 POSITION 2 and runs.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

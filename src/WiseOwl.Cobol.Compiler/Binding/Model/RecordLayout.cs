@@ -168,6 +168,16 @@ internal static class RecordLayout
         if (item.Renames is { From: { } renamed }) return FirstOccurrenceOffsetOf(renamed);
         for (var p = item.Parent; p is not null; p = p.Parent)
             if (p.Occurs is not null) return null;   // subject to OCCURS ⇒ no single fixed position
+        return OffsetInRootWithEveryIndexOne(item);
+    }
+
+    /// <summary>The offset in its 01 root of <paramref name="item"/>'s occurrence whose every subscript is 1 — the
+    /// <see cref="FirstOccurrenceOffsetOf"/> walk without its OCCURS-ancestor bail. A table element has no ONE position,
+    /// so a caller asks this only to build the positions of ALL its occurrences
+    /// (<see cref="StorageExtent.OfEveryOccurrence"/>), each the walk's answer plus the occurrence strides.</summary>
+    internal static int? OffsetInRootWithEveryIndexOne(DataItem item)
+    {
+        if (item.Renames is { From: { } renamed }) return OffsetInRootWithEveryIndexOne(renamed);
         DataItem root = item;
         while (root.Parent is { } parent) root = parent;
 

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.6.15.2",
  "rule-digest": "4f06662339e3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#goToStatement; src/WiseOwl.Cobol.Frontend/Parsing/GoToFormat.cs#GoToFormats; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGoToStatement; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#GoToComplementMessage",
  "test-ref": "conformance:cases/VI.6.15@1985-GO-TO-STATEMENT/1985-FMT-VI_6_15_2",
+ "notes": "§1985:VI.6.15.2 prints format 1, GO TO with procedure-name-1 in brackets (the omission is the level 2, ALTER-dependent form §1985:VI.6.15.1 calls obsolete), and format 2, one or more procedure-names then DEPENDING \"ON identifier-1\"; TO and ON are optional words. The grammar rule goToStatement has one alternative per shape (names with DEPENDING, one name, no name), GoToFormats.Of classifies the parse once for every reader, and ControlFlowBinder.BindGoTo binds all three; the target-less form is the edition arm, which VersionConformancePass.VisitGoToStatement refuses from COBOL-2002 (COBOL0811) and so admits at 85 only. The two shapes neither format prints, several names without DEPENDING and DEPENDING without a name, are refused at every edition through CobolErrorStrategy.GoToComplementMessage (COBOL2172). The witness runs format 2 twice (a transfer and a fall-through), format 1, and an altered target-less GO TO. Probed further at --std 85: GO without TO, DEPENDING without ON, commas between names, a qualified procedure-name (OF and IN), a section-name, numeric paragraph-names, one name with DEPENDING and a subscripted identifier-1 compile and run, and GO. alone in a paragraph compiles; refused are GO TO P1 P2., GO TO DEPENDING ON I., DEPENDING before the names, a literal or a second operand after DEPENDING ON, and DEPENDING with no identifier. The same GO. at --std 2002 draws COBOL0811.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

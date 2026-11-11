@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.9.4-1",
  "rule-digest": "6e29ba7763ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
  "test-ref": "conformance:cases/IX.4.9@1985-WRITE-STATEMENT/1985-GR-IX_4_9_4-1",
+ "notes": "§1985:IX.4.9.4 GR1: the file \"must be open in the output, I-O, or extend mode at the time of the execution of this statement\"; §1985:IX.1.3.4 gives the violation its result, status 48 (\"The execution of a WRITE statement is attempted on a file not open in the I-O, output, or extend mode.\"), and Table 2 of §1985:IX.4.4.4 GR4 pairs the modes with the access modes (sequential: output, extend; random and dynamic: output, I-O). KeyedIoEmitter.EmitWrite sends every indexed WRITE to IndexedConnector.Write, whose first test after a standing permanent error is the open mode: a connector that is not open, or is open in a mode the access mode's row of Table 2 does not mark, answers 48 before any record or key rule, and the statement is unsuccessful. No edition arm: 1985 takes the 2023 body. The one cell where the two editions differ, a sequential-access WRITE on a file open I-O, answers 48 as well; 1985 defines no result there (the file is open in a mode GR1 names, but Table 2 does not permit the statement), so 48 is within the rule. The witness writes in the output, I-O (dynamic) and extend (sequential) modes and takes 48 into the USE procedure for a file open INPUT. Probed further at --std 85 with a FILE STATUS item: a file never opened, a closed file and a file open INPUT answer 48 under sequential and random access; output (both access modes), extend (sequential) and I-O (random) answer 00; sequential-access I-O answers 48.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

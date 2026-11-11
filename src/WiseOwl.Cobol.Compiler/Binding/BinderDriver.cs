@@ -305,13 +305,9 @@ internal sealed class BinderDriver
             foreach (var cd in unit.Data.Communication.Declared)
                 cd.Key = unit.RegistryKey + "::" + cd.Name;
 
-        // VCR 18/31 (ISO §2023:12.4.5.3 GR1(i)/(h); §2023:14.8.4.2; Annex E.2 items 12/24) — a COBOL-2023 requirement: all
-        // corresponding file control entries of an EXTERNAL file connector in the run unit shall specify FILE STATUS
-        // (VCR 18) and, for a relative file, RELATIVE KEY (VCR 31) naming the SAME corresponding external data item.
-        // Version-conditioned structural SR ⇒ read DialectLevel directly (the binder-reads-edition doctrine). The
-        // compile-time reach is the group's units only; true separate-compilation conformance is the VCR-15 runtime
-        // EC-EXTERNAL-DATA-MISMATCH descriptor check.
-        if (edition.DialectLevel >= 2023) CheckExternalFileConsistency(units, edition);
+        // The run unit's rules for an EXTERNAL file connector's file control entries, at every edition: their agreement
+        // and the externality of the items their clauses name (ExternalFileConnectorRules; kb/Work PB5069).
+        ExternalFileConnectorRules.Check(units, edition);
         // The OO analogue (M2-OO-1i): an OBJECT/FACTORY file connector is scoped to its class, not a program unit,
         // so the program loop above never sees it. A factory or instance file keys per object (a minted key held
         // in a __fkey field — see QualifyClassFiles); an EXTERNAL class file keys
@@ -350,131 +346,6 @@ internal sealed class BinderDriver
             new ImportedTypes(table.ImportedClasses, table.ImportedInterfaces), turn, ecActive,
             anyFiles, edition.DialectLevel, edition.SignEncoding, expansions,
             entryUnits, publishes, interfaceRecords);
-    }
-
-    /// <summary>The ≥2023 external-file conformance check (ISO §2023:14.8.4.2; §2023:12.4.5.3 GR1(i)/(h); Annex E.2 items 9/12/24).
-    /// Two conjuncts of §2023:14.8.4.2. <b>Conjunct 1 — externality (COBOL1624, per connector, ANY describer count):</b>
-    /// a specified FILE STATUS / RELATIVE KEY / LINAGE data item shall itself be an external data item. <b>Conjunct 2 —
-    /// consistency (VCR 18/31, COBOL1573/1575, needs ≥2 in-group describers):</b> "if any specifies it, all shall",
-    /// each naming the SAME corresponding external data item. Cross-compilation sameness (separately-built assemblies)
-    /// is the runtime <c>ExternalTable</c> EC-EXTERNAL-DATA-MISMATCH check's face. (In-group LINAGE consistency,
-    /// §2023:13.4.5.4 GR2(c), is a separate longstanding requirement — not this 2023-gated check.)</summary>
-    private static void CheckExternalFileConsistency(IReadOnlyList<BoundUnit> units, EditionContext edition)
-    {
-        var byExternalName = units.SelectMany(u => u.Data.Files.Declared)
-            .Where(f => f is { IsExternal: true, ExternalName: not null })
-            .GroupBy(f => f.ExternalName!, CobolNames.Comparer);
-        // The 2023 requirement REMOVES a prior-edition freedom (corresponding external-file SELECTs could name
-        // inconsistent / non-external FILE STATUS + RELATIVE KEY items), so its severity follows the removal policy:
-        // an Error under strict, downgraded to a Warning under --permissive migration mode — the same contract the
-        // continuity witnesses need (an 85 NIST program that violates the new rule, e.g. IC227A with two differently-
-        // named non-external FILE STATUS items, still COMPILES under permissive and rejects under strict).
-        var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, edition.Edition);
-        // §2023:14.8.4.2 conjunct 1 — EXTERNALITY: a FILE STATUS / RELATIVE KEY / LINAGE data item associated with an
-        // external file connector shall ITSELF be an external data item. One shared clause-parameterized diagnostic
-        // (the §2023:14.8.4.2 sentence names all three items together); the E.2-item-9 conformance-checking mechanism is
-        // the 2023 addition, so it inherits the same Removed-freedom severity as the 1573/1575 consistency siblings.
-        EditionDiagnostic Externality(string ext, string clause, string name) =>
-            new(DiagnosticCatalog.ExternalFileItemNotExternal.Code, severity, DiagnosticCatalog.ExternalFileItemNotExternal.Id,
-                $"external file '{ext}': the {clause} data item '{name}' shall be an external data item "
-                + "(ISO §2023:14.8.4.2; Annex E.2 item 9)",
-                $"external file '{ext}'", "ISO §2023:14.8.4.2 / Annex E.2 item 9");
-        foreach (var group in byExternalName)
-        {
-            string externalName = group.Key.ToUpperInvariant();   // the name as the diagnostics show it; equality was the fold's above
-            var conns = group.ToList();
-            // Conjunct 1 (externality) is enforced for EVERY external connector, regardless of describer count — a
-            // lone-program external file whose file-referencing item is non-external is a §2023:14.8.4.2 violation.
-            // ⛔ EVERY REPORT HERE IS POSITIONED (kb/Work PB2034): this is a group-level pass, so no walker has set the
-            // diagnostic cursor, and an EditionDiagnostic carries none of its own (the Editions assembly sits below the
-            // frontend's SourceLocation). The cursor is the position, and each report is made at the clause it is about.
-            foreach (var f in conns)
-            {
-                if (f.FileStatusName is not null && ExternalItemIdentity(f.FileStatusItem) is null)
-                    using (edition.At(f.ClauseOrEntryAt(f.FileStatusAt)))
-                        edition.Report(Externality(externalName, "FILE STATUS", f.FileStatusName));
-                if (f.Organization == FileOrganization.Relative && f.RelativeKeyName is not null
-                    && ExternalItemIdentity(f.RelativeKeyItem) is null)
-                    using (edition.At(f.ClauseOrEntryAt(f.RelativeKeyAt)))
-                        edition.Report(Externality(externalName, "RELATIVE KEY", f.RelativeKeyName));
-                if (f.Linage is { } lin)
-                    foreach (var op in lin.Operands)
-                        if (op.DataName is not null && ExternalItemIdentity(op.Item) is null)   // literal operands are exempt
-                            using (edition.At(f.ClauseOrEntryAt(op.At)))
-                                edition.Report(Externality(externalName, "LINAGE", op.DataName));
-            }
-            // Conjunct 2 (cross-unit CONSISTENCY, §2023:12.4.5.3 GR1(h)/(i)) needs ≥2 in-group describers to reconcile; the
-            // single-describer externality face is enforced above, and cross-compilation sameness stays with the
-            // ExternalTable runtime EC-EXTERNAL-DATA-MISMATCH check.
-            if (conns.Count < 2) continue;
-
-            // VCR 18 — FILE STATUS: if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming the
-            // same corresponding external data item (§2023:12.4.5.3 GR1(i)).
-            if (conns.Any(f => f.FileStatusName is not null))
-            {
-                var ids = conns.Select(f => ExternalItemIdentity(f.FileStatusItem)).ToList();
-                if (ids.Any(id => id is null) || ids.Distinct(StringComparer.Ordinal).Count() > 1)
-                {
-                    var odd = conns[DeviatingDescriber(ids)];
-                    using (edition.At(odd.ClauseOrEntryAt(odd.FileStatusAt)))
-                        edition.Report(new EditionDiagnostic(DiagnosticCatalog.ExternalFileStatusConsistency.Code, severity,
-                            DiagnosticCatalog.ExternalFileStatusConsistency.Id,
-                            $"external file '{externalName}': all corresponding SELECT statements in the run unit shall "
-                            + "specify FILE STATUS naming the same corresponding external data item "
-                            + "(ISO §2023:12.4.5.3 GR1(i); Annex E.2 item 12)",
-                            $"external file '{externalName}'", "ISO §2023:12.4.5.3 GR1(i) / §2023:14.8.4.2 / Annex E.2 item 12"));
-                }
-            }
-
-            // VCR 31 — RELATIVE KEY: for an external RELATIVE file, if ANY corresponding SELECT specifies RELATIVE
-            // KEY, ALL shall, each naming the same corresponding external data item (§2023:12.4.5.3 GR1(h)).
-            if (conns.Any(f => f.Organization == FileOrganization.Relative)
-                && conns.Any(f => f.RelativeKeyName is not null))
-            {
-                var ids = conns.Select(f => ExternalItemIdentity(f.RelativeKeyItem)).ToList();
-                if (ids.Any(id => id is null) || ids.Distinct(StringComparer.Ordinal).Count() > 1)
-                {
-                    var odd = conns[DeviatingDescriber(ids)];
-                    using (edition.At(odd.ClauseOrEntryAt(odd.RelativeKeyAt)))
-                        edition.Report(new EditionDiagnostic(DiagnosticCatalog.ExternalRelativeKeyConsistency.Code, severity,
-                            DiagnosticCatalog.ExternalRelativeKeyConsistency.Id,
-                            $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
-                            + "shall specify RELATIVE KEY naming the same corresponding external data item "
-                            + "(ISO §2023:12.4.5.3 GR1(h); Annex E.2 item 24)",
-                            $"external relative file '{externalName}'", "ISO §2023:12.4.5.3 GR1(h) / §2023:14.8.4.2 / Annex E.2 item 24"));
-                }
-            }
-        }
-    }
-
-    /// <summary>The describer a "if any specifies it, all shall, naming the same item" diagnostic is about: the first
-    /// that names no external item, else the first whose item differs from the first describer's. Callers have
-    /// already established that one exists (<paramref name="identities"/> has a null or two distinct values).</summary>
-    private static int DeviatingDescriber(IReadOnlyList<string?> identities)
-    {
-        for (int i = 0; i < identities.Count; i++)
-            if (identities[i] is null) return i;
-        for (int i = 1; i < identities.Count; i++)
-            if (!string.Equals(identities[i], identities[0], StringComparison.Ordinal)) return i;
-        return 0;
-    }
-
-    /// <summary>The "corresponding external data item" identity of <paramref name="item"/> (ISO §2023:14.8.4.2): the
-    /// dotted qualified path from its EXTERNAL root (the root carries the EXTERNAL clause or an external TYPE), i.e.
-    /// the externalized name plus the sub-path — null if the item is absent or is NOT an external data item. Two
-    /// file-referencing items are the SAME corresponding external item iff their identities are equal. (Keys by the
-    /// data-name, consistent with the run-unit ExternalStore cell key; the rare AS-literal externalized name is not
-    /// honored there either.)</summary>
-    internal static string? ExternalItemIdentity(DataItem? item)
-    {
-        if (item is null) return null;
-        var path = new List<string>();
-        var r = item;
-        while (r.Parent is not null) { path.Add(r.CobolName ?? "?"); r = r.Parent; }
-        if (!(r.HasExternalClause || r.ExternalFromType)) return null;   // root is not an external data item
-        path.Add(r.CobolName ?? "?");
-        path.Reverse();
-        return CobolNames.UpperFold(string.Join(".", path));
     }
 
     /// <summary>Flatten the compilation group into the ordered unit lists — top-level program units in source
@@ -870,6 +741,8 @@ internal sealed class BinderDriver
             UnitKind = SourceElementKindOf(unit),
             // §2023:15.65.3 argument rule 1 — MODULE-NAME NESTED requires a contained program.
             InNestedProgram = unit.Parent is not null,
+            // §1985:VII.4.6.4 GR1 — the declaratives of the separately compiled program, a containing program's included, are applicable here (kb/Work PB5076).
+            ContainerUses = unit.Parent is null ? null : () => ContainerUsesOf(unit),
             // kb/Work PB131 — the AS NESTED callee set (§2023:14.9.4.3 SR15): the caller's directly-contained
             // children, plus every COMMON program contained in a (transitive) ancestor — the §2023:10.7.2
             // visibility the runtime ResolveVisible applies, computed statically so GR9's formal-mode
@@ -1205,6 +1078,21 @@ internal sealed class BinderDriver
     internal static IEnumerable<BoundUnit> ContainingDefinitions(BoundUnit? unit)
     {
         for (var u = unit; u is not null; u = u.Parent) yield return u;
+    }
+
+    /// <summary>The USE declaratives of the programs that contain <paramref name="unit"/> that a statement of
+    /// <paramref name="unit"/> can select, nearest first: only those written with the GLOBAL phrase (§1985:X.5.5.4 GR1 b:
+    /// "The declarative in which the GLOBAL phrase is specified and which is within the program directly containing the
+    /// program which was last examined for a qualifying declarative", applied outward by GR1 c; the run time's outward walk
+    /// selects the same set, <c>UseTierEmitter.EmitScopeTiers</c>' globalOnly). A container's declarative without GLOBAL is
+    /// never executed for a contained program's statement, so it is not applicable to it. A container binds before the
+    /// programs it contains, so its declaratives are known when a statement of <paramref name="unit"/> asks (kb/Work PB5076).</summary>
+    private static IEnumerable<BoundDeclarative> ContainerUsesOf(BoundUnit unit)
+    {
+        for (var u = unit.Parent; u is not null; u = u.Parent)
+            foreach (var d in u.Bound?.Declaratives ?? [])
+                if (d.Global)
+                    yield return d;
     }
 
     /// <summary>The user-defined functions ONE source element may reference, by the function-prototype-name it

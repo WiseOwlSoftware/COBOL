@@ -5,6 +5,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Each WRITE carries INVALID KEY: the file has no USE AFTER
+      *> STANDARD EXCEPTION procedure, so §1985:VIII.4.9.3 SR3
+      *> requires the phrase (kb/Work PB5076).
       *> §1985:VIII.4.6.4 GR5 (THE REWRITE STATEMENT). An output test:
       *> the program must translate and run at 85 and DISPLAY exactly
       *> the lines its .out holds, the outcome the rule requires. Placed
@@ -34,11 +37,14 @@
        MAIN-1.
            OPEN OUTPUT REL-F.
            MOVE "111111" TO RL-REC.
-           WRITE RL-REC.
+           WRITE RL-REC
+               INVALID KEY DISPLAY "INVALID KEY".
            MOVE "222222" TO RL-REC.
-           WRITE RL-REC.
+           WRITE RL-REC
+               INVALID KEY DISPLAY "INVALID KEY".
            MOVE "333333" TO RL-REC.
-           WRITE RL-REC.
+           WRITE RL-REC
+               INVALID KEY DISPLAY "INVALID KEY".
            CLOSE REL-F.
            OPEN I-O REL-F.
            READ REL-F RECORD AT END DISPLAY "U1 AT END".

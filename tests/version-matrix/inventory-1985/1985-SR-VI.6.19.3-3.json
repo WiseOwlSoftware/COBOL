@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.19.3-3",
  "rule-digest": "42819dd1a92c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#GroupKindsOf",
  "test-ref": "conformance:cases/VI.6.19@1985-MOVE-STATEMENT/1985-SR-VI_6_19_3-3",
+ "notes": "§1985:VI.6.19.3 SR3: \"When the CORRESPONDING phrase is used, all identifiers must be group items.\" CorrespondingBinder.Bind screens both operands of MOVE CORRESPONDING / CORR through CheckCorrespondingGroupOperand, which refuses with COBOL1757 an operand whose GroupKindsOf is none and a reference-modified operand, at every edition (no edition arm; the group kinds 2023 adds cannot be declared at 85). Probed at --std 85: an elementary sender, an elementary receiver, a level-77 item, a qualified elementary item, a level-66 alias of an elementary item and a reference-modified group are each refused; a subordinate group, a subscripted group and a qualified group are accepted. A level-66 RENAMES ... THRU alias is accepted as the group item it is; its refusal at 85 belongs to §1985:VI.6.4.3 rule (3) (\"must not contain level-number 66, 77, or 88\"), row 1985-GR-VI.6.4.3-3, kb/Work PB5105, not to this rule. The witness is an elementary receiver.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

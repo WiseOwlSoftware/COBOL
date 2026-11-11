@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.6.3-3",
  "rule-digest": "f5571e4ef819",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#labelRecordsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
  "test-ref": "conformance:cases/VII.3.6@1985-LABEL-RECORDS-CLAUSE/1985-GR-VII_3_6_3-3",
+ "notes": "§1985:VII.3.6.3 GR3: \"If the LABEL RECORDS clause is not specified for a file, label records for that file must conform to the implementor's label specifications.\" fileDescriptionEntry makes every file description clause optional, so 85 accepts an entry with no LABEL RECORDS clause, and BindFileSection binds the file the same way with the clause or without it: it has no arm for labelRecordsClause. The implementation's label specification is that a file carries no label record the COBOL program can see: labels belong to the host file system (§1985:C.1: \"Specifying the presence of file labels is considered a function of the operating system and as such does not belong in the COBOL program.\"), and docs/VERSION_CHANGE_REFERENCE.md Table 7 row 7.4 states the clause as accepted-inert at 85. A file with no clause therefore has the same labels as one described STANDARD, the host's, which is what the rule requires of it; probed at 85, the file written with no clause is byte for byte the file written under STANDARD. The witness is an entry with no clause at all (FD F1.), written and read back.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

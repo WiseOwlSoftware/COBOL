@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IV.4.4.2-L2.5",
  "rule-digest": "e24400a1e38e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatcher; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#LastElementPc; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunMain",
  "test-ref": "conformance:cases/IV.4.4@1985-EXPLICIT-AND-IMPLICIT-SPECIFICATIONS/1985-GR-IV_4_4_2-L2_5",
+ "notes": "§1985:IV.4.4.2 GRL2.5 lists \"The end program header\" among the places with no next executable statement and then requires that, when control is not transferred outside the program, \"the program flow of control is undefined unless the program execution is in the nondeclarative procedures portion of a program under control of a CALL statement, in which case an implicit EXIT PROGRAM statement is executed\". No edition arm is involved: DispatchEmitter.EmitDispatcher emits __Activate, whose one top-level __Dispatch call is bounded at the element's last paragraph (LastElementPc), so control that falls off the last statement returns from the activation to the CALL statement that made it; EmitDispatchMethod makes control that runs past the last paragraph inside a nested range (a PERFORM a GO TO left) leave by the same ProgramReturn signal an explicit EXIT PROGRAM in a called program throws. In a main program, where 1985 leaves the flow undefined, the same return ends the run unit normally (ProgramTable.RunMain). The witness calls a contained program whose last statement precedes its end program header; a probe added a called program whose range a PERFORM entered and a GO TO left, and a called program with no Procedure Division, each returning to the statement after its CALL at --std 85.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

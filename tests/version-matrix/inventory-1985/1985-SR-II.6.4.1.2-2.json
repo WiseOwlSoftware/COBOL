@@ -6,10 +6,10 @@
   "edition": 2023,
   "to": [
    "SR-8.4.6.3-1",
-   "SR-8.4.6.3-2",
-   "SR-14.9.4.3-15"
+   "SR-8.4.6.3-2"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "source": "band-85/slice-14",
+  "reason": "1985: 'A calling program may call any program which is directly contained within the calling program' (§1985:II.6.4.1.2 SR2). 2023 states it as the scope of program-names: a directly contained program's name without the common attribute 'may be referenced only by statements included in that containing program', and with it 'by statements included in that containing program and any programs directly or indirectly contained within that containing program' (§2023:8.4.6.3 rules 1 and 2); either way the containing program may call it. SR-14.9.4.3-15 is removed from 'to' (band-85 adjudication 2026-11-10): 'If the NESTED phrase is specified, literal-1 shall be specified' (§2023:14.9.4.3 SR15) is about a phrase the 1985 CALL formats (§1985:X.5.2.2) do not have, and the two scope rules carry the 1985 requirement in full."
  }
 }

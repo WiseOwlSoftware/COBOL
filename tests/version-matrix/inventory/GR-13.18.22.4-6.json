@@ -4,6 +4,6 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#ValueSpecificationKey",
  "test-ref": "conformance:cases/8.6.7-Sharing-data-items/ec_external_format_conflict; conformance:cases/13.18.22-EXTERNAL/pb1236_external_value_literal_case_is_significant",
- "editions": "2002,2014,2023",
- "notes": "kb/Work PB1236: the record-name VALUE identity keeps a literal's characters exactly; only keywords and hexadecimal digits fold - \"ABCD\" against \"abcd\" is EC-EXTERNAL-FORMAT-CONFLICT."
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB1236: the record-name VALUE identity keeps a literal's characters exactly; only keywords and hexadecimal digits fold - \"ABCD\" against \"abcd\" is EC-EXTERNAL-FORMAT-CONFLICT. EDITIONS AS ADJUDICATED 2026-11-10: in force at 85, in part, §1985:X.4.5.4 GR2 'if two or more programs describe the same external data record, each record-name of the associated record description entries must be the same and the records must define the same number of standard data format characters', with the same allowance that a complete REDEFINES 'need not occur identically in other programs in the run unit'; the VALUE-identity and strongly-typed parts are not 1985 text."
 }

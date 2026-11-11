@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.4.5.3-11",
  "rule-digest": "d74cc193ca09",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SwitchBindClass; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#LiteralPhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#IntegerLiteralDigits; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#OneCharacterOperands",
  "test-ref": "conformance:cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/1985-SR-VI_4_5_3-11",
+ "notes": "§1985:VI.4.5.3 SR11 holds the CLASS clause's literals to two rules: \"If numeric, must be unsigned integers and must have a value within the range of one through the maximum number of characters in the native character set\" and \"If nonnumeric and associated with a THROUGH phrase, must each be one character in length\". SwitchBindClass decodes every literal-4 and literal-5 through LiteralPhraseOperand at every edition (no edition arm; the rule's 2023 successor adds only the count cap, which SwitchBindClass asks under the IN phrase alone): an integer literal (IntegerLiteralDigits) is refused when signed and when its value is outside 1 through 65,536, the native character set docs/CONFORMANCE.md DOC-A.1-188 documents; a noninteger numeric literal is refused by the class rule; and under THROUGH OneCharacterOperands refuses each nonnumeric operand that is not one character, all with COBOL1671. Probed at 85: +66, -5 THRU 9, 0, 65537, a 20-digit integer, 1.5, 66 THRU 67.5 and \"A\" THRU \"YZ\" are refused; 65536, 66 THRU 67, 67 THROUGH \"7\", \"Z\" THRU \"A\" and the multi-character \"B7\" without THROUGH compile and the class test answers correctly. The witness is \"AB\" THROUGH \"Z\", refused with COBOL1671.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

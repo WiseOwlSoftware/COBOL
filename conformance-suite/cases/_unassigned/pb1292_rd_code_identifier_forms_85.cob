@@ -1,12 +1,13 @@
       *>--- conformance-case
       *> id: pb1292_rd_code_identifier_forms_85
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
       *> kb/Work PB1292 + PB1129 - the RD CODE clause's identifier-1 is an IDENTIFIER (ISO 13.18.12), so it may be
-      *> subscripted or reference-modified, at the rule's INTRODUCING edition ('85).
+      *> subscripted or reference-modified. The identifier form is COBOL-2002's ("CODE IS identifier added", ISO/IEC 1989:2002
+      *> Annex E.1 list of changes; 1985:XIII.3.6.2 prints `CODE literal-1` alone, kb/Work PB5078), so the id's _85 suffix is historical.
       *>
       *> RULES (cite.py --check, all OK):
       *> 13.18.12.3 SR2: "Identifier-1 shall reference an alphanumeric data item that shall not be an

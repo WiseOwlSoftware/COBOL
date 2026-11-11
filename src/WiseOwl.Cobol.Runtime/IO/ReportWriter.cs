@@ -807,7 +807,7 @@ public sealed class CobolReport(
         // shall be executed before the execution of an INITIATE statement that references a report-name that is
         // associated with file-name-1"); the other half — that nothing opens a report file connector implicitly
         // — holds by construction. OpenModeIfOpen, NOT OpenModeOf: the §2023:14.9.49.4 GR6b view also answers with the
-        // ATTEMPTED mode of a FAILED open, and an INITIATE after an unsuccessful OPEN OUTPUT must not proceed.
+        // mode an OPEN now executing is attempting, and an INITIATE in the USE procedure of an unsuccessful OPEN OUTPUT must not proceed.
         if (CobolFile.OpenModeIfOpen(_fileName) is not (FileOpenMode.Output or FileOpenMode.Extend))
         {
             ExceptionState.ReportFileModeError($"INITIATE {Name}: the report's file connector is not open in "

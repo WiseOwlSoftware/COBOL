@@ -87,9 +87,11 @@
            OPEN OUTPUT KF.
            MOVE "AAA11111" TO KREC.
            DISPLAY "WRITE KF".
-           WRITE KREC.
+           WRITE KREC INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "BBB22222" TO KREC.
-           WRITE KREC.
+           WRITE KREC INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "CLOSE KF".
            CLOSE KF.
            DISPLAY "OPEN I-O KF".

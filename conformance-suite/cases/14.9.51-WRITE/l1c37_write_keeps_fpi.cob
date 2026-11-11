@@ -57,12 +57,12 @@
                MOVE N TO RK
                MOVE "R0" TO RDATA(1:2)
                MOVE N TO RDATA(3:1)
-               WRITE RREC
+               WRITE RREC INVALID KEY CONTINUE END-WRITE
            END-PERFORM
            CLOSE RELF
            OPEN I-O RELF
            MOVE 1 TO RK
-           READ RELF
+           READ RELF INVALID KEY CONTINUE END-READ
            MOVE 10 TO RK
            MOVE "R10" TO RDATA
            WRITE RREC INVALID KEY DISPLAY "REL W INVALID"

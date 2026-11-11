@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.3.3.4-1",
  "rule-digest": "8d72a00ee7b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitModuleRegistrar; src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs#EmitEntry; src/WiseOwl.Cobol.Runtime/Control/ProgramRegistry.cs#Register",
  "test-ref": "conformance:cases/VI.3.3@1985-PROGRAM-ID-PARAGRAPH/1985-GR-VI_3_3_4-1",
+ "notes": "§1985:VI.3.3.4 GR1: \"The program-name identifies the source program, the object program, and all listings pertaining to a particular program.\" BinderDriver.MakeUnit reads the PROGRAM-ID paragraph's program-name as the unit's Name, derives the emitted class name from it and sets ExternalizedName to the same word; the only way the two differ, the AS literal-1 phrase of 2002, is refused at --std 85 by VersionConformancePass.VisitExternalizedNamePhrase (Constructs.ExternalizedNameAs2002, COBOL0900, probed), so at 85 the object program carries the program-name alone. ProgramEmitter.EmitModuleRegistrar and HostEntryEmitter.EmitEntry emit that name into ProgramRegistry.Register and the unit's repository record, and a CALL finds the program by it. Probed at 85: three programs in one source, called by literal in either case and by identifier (PGM-ID-1, SUB-A, 9sub-b), each run; a name no program has takes ON OVERFLOW; two programs of one name in a sequence are refused (COBOL2213); a literal for the program-name does not parse. The compiler writes no listing (the CLI has no listing option), so the listings clause has nothing to name; diagnostics carry the source file and line. The witness calls two separately compiled programs of one source by their program-names.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

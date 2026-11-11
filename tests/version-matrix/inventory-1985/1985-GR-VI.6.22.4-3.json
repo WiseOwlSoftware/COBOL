@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.22.4-3",
  "rule-digest": "3fed873f27a8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearchAll; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitAllScan; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitSearchWhens",
  "test-ref": "conformance:cases/VI.6.22@1985-SEARCH-STATEMENT/1985-GR-VI_6_22_4-3",
+ "notes": "§1985:VI.6.22.4 GR3: \"the results of the SEARCH ALL operation are predictable only when\" the table \"is ordered in the same manner as described in the KEY IS phrase of the OCCURS clause referenced by identifier-1\" and \"The contents of the key(s) referenced in the WHEN phrase are sufficient to identify a unique table element.\" The rule states when the program may rely on the result, so the duty at 85 is the predictable case: with both conditions met, the one matching element is found. BindSearchAll binds the statement to the format 2 lowering at every edition (no edition arm), and EmitAllScan probes each occurrence from 1 through the table's maximum or its OCCURS DEPENDING count with EmitSearchWhens, a technique §1985:VI.6.22.4 GR4 leaves to the implementor; it relies on no ordering, so it finds the unique element of an ordered table, and outside the rule's two conditions any outcome conforms. The witness searches an ascending four-element table for a present key and an absent key. Probed further at --std 85: an ascending and a descending key joined by AND, a condition-name key, an arithmetic-expression object, an OCCURS DEPENDING table cut below the match, and a non-zero starting index all give the unique element or AT END.",
  "next": {
   "kind": "CHANGED",
   "to": [

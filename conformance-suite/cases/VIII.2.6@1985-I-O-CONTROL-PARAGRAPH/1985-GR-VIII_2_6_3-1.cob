@@ -5,6 +5,9 @@
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> Each WRITE carries INVALID KEY: the file has no USE AFTER
+      *> STANDARD EXCEPTION procedure, so §1985:VIII.4.9.3 SR3
+      *> requires the phrase (kb/Work PB5076).
       *> §1985:VIII.2.6.3 GR1 (THE I-O-CONTROL PARAGRAPH). An output
       *> test: the program must translate and run at 85 and DISPLAY
       *> exactly the lines its .out holds, the outcome the rule
@@ -32,7 +35,8 @@
        MAIN-PARA.
            OPEN OUTPUT RELFILE.
            MOVE "REC 1 OK" TO REL-REC.
-           WRITE REL-REC.
+           WRITE REL-REC
+               INVALID KEY DISPLAY "INVALID KEY".
            CLOSE RELFILE.
            OPEN INPUT RELFILE.
            READ RELFILE

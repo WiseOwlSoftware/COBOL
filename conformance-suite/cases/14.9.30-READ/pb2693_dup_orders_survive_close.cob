@@ -51,9 +51,11 @@
        MAIN.
            OPEN OUTPUT F.
            MOVE "01AAPP" TO R.
-           WRITE R.
+           WRITE R INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "02AAPP" TO R.
-           WRITE R.
+           WRITE R INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE F.
            OPEN I-O F.
            MOVE "01" TO R-KEY.

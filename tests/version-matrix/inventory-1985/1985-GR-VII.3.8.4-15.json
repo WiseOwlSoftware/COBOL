@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.8.4-15",
  "rule-digest": "43e2e71f3c12",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen",
  "test-ref": "conformance:cases/VII.3.8@1985-RECORD-CLAUSE/1985-GR-VII_3_8_4-15",
+ "notes": "§1985:VII.3.8.4 GR15: \"The size of each data record is specified in terms of the number of character positions required to store the logical record, regardless of the types of characters used to represent the items within the logical record\", the sum of the fixed length elementary items \"plus the sum of the maximum number of characters in any variable length item subordinate to the record\". No edition arm: the one record size every RECORD clause comparison reads is FileModel.MaxRecordSize (DataItem.ByteWidth: the storage size of each elementary item, redefinitions left out, an OCCURS DEPENDING ON table at its maximum) with MinRecordSize its minimum twin, and RecordClauseRules.Screen compares it with the clause's integers at every edition (COBOL2010). Probed at --std 85 against RECORD CONTAINS n: PIC S9(4) COMP counts 2, S9(5) PACKED-DECIMAL 3, USAGE INDEX 8, a REDEFINES nothing, a SYNC item adds no implicit FILLER (so the sum equals the stored size here), and an ODO record of 1 + 4 x 2 is refused at 8 and accepted at 9. The witness is that last case: RECORD CONTAINS 10 over a record of 1 + (1 TO 10) characters is refused with COBOL2010 because the table counts at its maximum, 11 (§1985:VII.3.8.3 SR1).",
  "next": {
   "kind": "CHANGED",
   "to": [

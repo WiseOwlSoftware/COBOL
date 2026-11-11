@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.7.3-2",
  "rule-digest": "e171f313dc78",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Classify; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Permits; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#For",
  "test-ref": "conformance:cases/VI.5.7@1985-LEVEL-NUMBER/1985-SR-VI_5_7_3-2",
+ "notes": "§1985:VI.5.7.3 SR2: \"Data description entries subordinate to a CD, FD, or SD entry must have level-numbers with the values 01 through, 49, 66, or 88.\" VisitLevelNumber classifies every level-number by the entry that contains it (Classify): a data description entry under a file description or sort-merge description entry takes the FileRecord arm and one under a communication description entry the CommunicationRecord arm, and both arms permit 1 through 49, 66 and 88 only (Permits over the table For reads), reporting COBOL1746 for any other value and for a spelling of more than two digits. The pass has no edition test, so 85 reaches it as every edition does; the CD arm, which 2023 no longer has, is kept in the same table. Probed at --std 85: level-numbers 77, 50, 55, 00, 99, 78 and 001 are refused under an FD, 77 and 55 under an SD, and 77 and 50 under a CD; 1, 2, 01, 02, 05, 49, 66 (RENAMES) and 88 compile under an FD, an SD and a CD. The witness writes 77 R2 PIC X(10) after the 01 entry of an FD and is refused with COBOL1746.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

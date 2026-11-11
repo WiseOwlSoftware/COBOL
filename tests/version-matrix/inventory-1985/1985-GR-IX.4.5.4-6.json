@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.5.4-6",
  "rule-digest": "9947f3c18787",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#LinkImplicitRecordArea; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordAreaStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitImageInto; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Fit",
  "test-ref": "conformance:cases/IX.4.5@1985-READ-STATEMENT/1985-GR-IX_4_5_4-6",
+ "notes": "§1985:IX.4.5.4 GR6 requires that the record descriptions of one file \"automatically share the same record area in storage, this is equivalent to an implicit redefinition of the area\", and leaves items beyond the current record undefined. LinkImplicitRecordArea makes every later level-01 record of an FD an implicit redefinition of the first (no edition arm: 1985 and 2023 take the same path), and an indexed READ (KeyedIoEmitter.EmitRead) stores the retrieved image once, through EmitRecordAreaStore and EmitImageInto, into the largest record's view of that one area, so every description reads the same storage; the positions past a shorter record are space filled by FileConnector.Fit, which the rule's \"undefined\" admits. 1985's narrower wording (only items lying wholly beyond the record are undefined, where 2023 adds items lying partly beyond) asks nothing more of the code: the positions inside the record are delivered verbatim. The witness writes through REC-A and reads through REC-B's names. Probed further at --std 85: four descriptions of 6, 14, 14 (with a COMP item) and 12 positions under one indexed FD show one record through every name after a sequential and a random READ, and a MOVE through one description is seen through the others.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

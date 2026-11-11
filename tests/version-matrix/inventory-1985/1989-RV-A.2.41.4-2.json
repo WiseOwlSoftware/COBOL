@@ -6,12 +6,10 @@
   "edition": 2023,
   "to": [
    "RV-15.86.4-1",
-   "RV-15.84.4-4",
-   "RV-15.84.4-2",
-   "RV-15.84.4-3"
+   "RV-15.84.4-4"
   ],
   "bridge": true,
-  "reason": "2023 defines the result as SQRT(VARIANCE(args)), the root of the mean squared deviation, and SQRT returns the absolute value as 1985 does. The rounding rules only govern the new arithmetic modes.",
-  "source": "audit-1985/state-route"
+  "reason": "§1989:A.2.41.4 RV2: 'The square root of the quotient obtained is then calculated. The returned value is the absolute value of this square root.' §2023:15.86.4 RV1 defines the result as '(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))' and §2023:15.84.4 RV4 gives SQRT, 'When native arithmetic is in effect', as 'the absolute value of the approximation of the square root of argument-1', the words of §1989:A.2.40.4 RV1. A 1985 program has no ARITHMETIC clause, so native arithmetic is in effect (§2023:11.9.5.2 GR4: 'it is as if the ARITHMETIC clause were specified with the NATIVE phrase'). RV-15.84.4-2 ('When standard-decimal arithmetic is in effect ... rounded to 34 digits') and RV-15.84.4-3 ('When standard-binary arithmetic is in effect ... rounded to 113 significant bits') are removed from 'to' (band-85 adjudication 2026-11-10): they govern modes no 1985 program can select and state no 1985 requirement.",
+  "source": "band-85/slice-12"
  }
 }

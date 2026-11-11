@@ -4,6 +4,6 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString",
  "test-ref": "conformance:cases/14.9.43-STRING/pb664_string_operand_screen",
- "editions": "2002,2014,2023",
- "notes": "GR5: no POINTER phrase => as if identifier-4 had initial value 1. Emitter: `long __strPtrN = 1;` when s.Pointer is null, and nothing is written back (there is no item). pb664 golden legs L2-L4 (no POINTER) place their first character at position 1 (L2=[123 ...]), expected values derived from the spec in the golden header. [editions as adjudicated: 2023 text (ISO/IEC 1989:2023 §14.9.43); Annex E lists no STRING change 2014->2023; the earlier-edition edge is not derivable in-repo (no 2002/2014 text)]"
+ "editions": "85,2002,2014,2023",
+ "notes": "GR5: no POINTER phrase => as if identifier-4 had initial value 1. Emitter: `long __strPtrN = 1;` when s.Pointer is null, and nothing is written back (there is no item). pb664 golden legs L2-L4 (no POINTER) place their first character at position 1 (L2=[123 ...]), expected values derived from the spec in the golden header. [editions as adjudicated: 2023 text (ISO/IEC 1989:2023 §14.9.43); Annex E lists no STRING change 2014->2023; the earlier-edition edge is not derivable in-repo (no 2002/2014 text)] EDITIONS AS ADJUDICATED 2026-11-10: in force at 85, §1985:VI.6.25.4 GR6 'If the POINTER phrase is not specified, the following general rules apply as if the user had specified identifier-4 referencing a data item with an initial value of 1.'"
 }

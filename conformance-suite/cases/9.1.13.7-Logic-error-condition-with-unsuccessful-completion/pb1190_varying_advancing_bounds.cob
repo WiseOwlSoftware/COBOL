@@ -54,9 +54,9 @@
            DISPLAY "PLAIN-VL5=" FS
            CLOSE VF
            OPEN INPUT VF
-           READ VF
+           READ VF AT END CONTINUE END-READ
            DISPLAY "READ1=" FS " VL=" VL " REC=" VR(1:VL)
-           READ VF
+           READ VF AT END CONTINUE END-READ
            DISPLAY "READ2=" FS
            CLOSE VF
            STOP RUN.

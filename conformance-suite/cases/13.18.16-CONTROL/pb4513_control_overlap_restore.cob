@@ -1,10 +1,12 @@
       *>--- conformance-case
       *> id: pb4513_control_overlap_restore
       *> rules: [SR-13.18.16.3-6, GR-13.18.16.4-4, GR-14.9.46.4-3]
-      *> accept: [85, 2002, 2014, 2023]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> (From COBOL-2002: a control footing SOURCEs WS-KEY, a group holding the control data item WS-REGION, which
+      *> 1985:XIII.3.20.3 SR5 a forbids; kb/Work PB5079.)
       *> kb/Work PB4513 - CONTROLS ARE WS-REGION WS-KEY, WS-REGION
       *> being the first two bytes of WS-KEY. The control-break step
       *> saved each control's current value and stored its prior in ONE

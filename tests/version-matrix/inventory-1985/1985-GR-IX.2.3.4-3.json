@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.2.3.4-3",
  "rule-digest": "9279e2251a14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveFileCollating; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFileCollatingSequenceClause; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOrder; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ResetPosition; src/WiseOwl.Cobol.Runtime/IO/Store/KeyOrders.cs#OrdinalKeyOrder",
  "test-ref": "conformance:cases/IX.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-IX_2_3_4-3",
+ "notes": "§1985:IX.2.3.4 GR3: \"For an indexed file, the collating sequence associated with the native character set is assumed. This is the sequence of values of a given key of reference used to process the file sequentially.\" ResolveFileCollating leaves every key's collation null when the entry has no file COLLATING SEQUENCE clause (it never reads the PROGRAM COLLATING SEQUENCE), and at --std 85 the clause itself is refused by VisitFileCollatingSequenceClause (COBOL0900, a 2002 introduction), so the native sequence is the only one an 85 indexed file can have; IndexedConnector.ResetPosition builds the prime and each alternate key order through KeyOrder, which gives OrdinalKeyOrder (a byte comparison of the native characters) for a null collation. Probed at 85 under PROGRAM COLLATING SEQUENCE IS a reversing alphabet: the relation condition follows the alphabet while READ NEXT by the prime key, READ NEXT after START on an alternate key and START GREATER THAN all follow the native order. The witness writes D, A, B at random and reads A, B, D sequentially.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

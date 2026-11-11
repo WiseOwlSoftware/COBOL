@@ -4,6 +4,6 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph",
  "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name",
- "editions": "2002,2014,2023",
- "notes": "kb/Work PB78 (2026-08-18): the paragraph without computer-name-1 — the object computer is the implementor's, i.e. the same .NET runtime a named paragraph gets; the name-less clause form behaves identically (PCS=REV)."
+ "editions": "85,2002,2014,2023",
+ "notes": "kb/Work PB78 (2026-08-18): the paragraph without computer-name-1 — the object computer is the implementor's, i.e. the same .NET runtime a named paragraph gets; the name-less clause form behaves identically (PCS=REV). EDITIONS AS ADJUDICATED 2026-11-10: in force at 85, §1985:VI.4.4.4 GR4 'When the OBJECT-COMPUTER paragraph is specified, but the object-computer-entry is not specified, the object computer is defined by the implementor' (in the 1985 format the entry is absent exactly when computer-name is)."
 }

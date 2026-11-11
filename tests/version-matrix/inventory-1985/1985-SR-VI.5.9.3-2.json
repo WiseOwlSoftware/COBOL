@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.5.9.3-2",
  "rule-digest": "48d549e7810c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateDataItem; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#PictureConstructId; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#UsageConstructId",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-SR-VI_5_9_3-2",
+ "notes": "§1985:VI.5.9.3 SR2: \"A character-string consists of certain allowable combinations of characters in the COBOL character set used as symbols. The allowable combinations determine the category of the elementary item.\" AnalyzeCharacterString holds the symbol whitelist (A B P S V X Z 0 9 / , . + - * CR DB and the currency symbol; any other character is COBOL0808), calls PictureComposition.Validate for the order and multiplicity of the symbols (COBOL1934, COBOL1935) and then sets the category in its arms: alphabetic and alphanumeric, alphanumeric edited, numeric edited, numeric, the five of §1985:VI.5.9.4 GR1. The 1985 edition reaches the same code and differs in the three symbols the later editions added: GateDataItem, through PictureConstructId and UsageConstructId, refuses N, 1 and E at --std 85 with COBOL0900. Probed at 85: PIC Q9, L99, C9, 9D refused COBOL0808; 9ZZ, AZ refused COBOL1935; 99.99.99, BBB, +, S refused COBOL1934; N(3), 1(3), 9.9E+99 refused COBOL0900; 9X9, 9A, A9X, AB, X(3)/XX accepted. The witness runs a numeric, an alphanumeric and a numeric edited item and checks each stores by its category. Two 1985 narrowings of the combinations are other rows' findings, not this rule's: a lowercase currency letter (§1985:VI.5.9.3 SR3, DIVERGES in this batch) and a repeat count after S, V, CR (kb/Work PB5118, §1985:VI.5.9.4 GR7).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

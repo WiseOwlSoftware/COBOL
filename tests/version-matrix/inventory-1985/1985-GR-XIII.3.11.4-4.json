@@ -5,10 +5,10 @@
   "kind": "KEPT",
   "edition": 2023,
   "to": [
-   "GR-13.18.14.4-7",
-   "GR-13.18.14.4-8"
+   "GR-13.18.14.4-7"
   ],
   "bridge": true,
-  "source": "audit-1985/state-route"
+  "reason": "1985: 'The leftmost position of the print line is considered to be column number 1.' §2023:13.18.14.4 GR7: 'a horizontal counter, representing the rightmost occupied column ... At the start of the line, the horizontal counter is zero', which puts the line's first position at column 1 for every absolute column a 1985 program writes. §2023:13.18.14.4 GR8 ('Integer-2 specifies a relative column number') is removed from the targets: it governs only integer-2, which the 1985 format (COLUMN NUMBER IS integer-1) lacks.",
+  "source": "band-85/slice-06"
  }
 }

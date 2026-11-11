@@ -13,7 +13,7 @@ namespace WiseOwl.Cobol.Tests.Unit;
 /// omit c) RECORD DELIMITER, d) RESERVE, g) COLLATING SEQUENCE and k)'s SUPPRESS WHEN phrase, so an entry differing
 /// only in one of them activated with no condition. Each row below changes ONE clause-level GR1 item on an otherwise
 /// identical entry and must change the identity; the key items' descriptions and relative locations (j/k), which need
-/// a bound record, are held by the golden <c>2023/w68r_pb1079_external_entry_identity</c>.
+/// a bound record, are held by the golden <c>wiseowl/cases/12.4.5-File-control/w68r_pb1079_external_entry_identity</c> (each called program its own compilation unit).
 /// </summary>
 public sealed class ExternalFileEntryIdentityTests
 {

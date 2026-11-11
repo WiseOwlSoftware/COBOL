@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.27.3-2",
  "rule-digest": "3d228a168740",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Sr2OffendingCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#UnstringSenderCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericOrNational",
  "test-ref": "conformance:cases/VI.6.27@1985-UNSTRING-STATEMENT/1985-SR-VI_6_27_3-2",
+ "notes": "§1985:VI.6.27.3 SR2: \"Identifier-1, identifier-2, identifier-3, and identifier-5 must reference data items described, implicitly or explicitly, as category alphanumeric.\" BindUnstring asks UnstringSenderCategory of the sender and of every DELIMITED BY operand and Sr2OffendingCategory of the DELIMITER IN item; the predicate IsAlphanumericOrNational admits an alphanumeric group and an elementary item of category alphanumeric or national and nothing else, and Reject reports COBOL1651. There is no edition arm; the national half is unreachable at 85, where national data is refused at its declaration (COBOL0900). Probed at --std 85: a numeric DISPLAY (the witness), numeric-edited, alphanumeric-edited and alphabetic sender, a numeric, COMP, numeric-edited and alphabetic delimiter (first, after OR and under ALL) and a numeric, alphanumeric-edited and alphabetic DELIMITER IN item are refused; an alphanumeric item (also JUSTIFIED), a group in each of the three positions and a reference-modified numeric item as delimiter (category alphanumeric by §1985:IV.4.3.8.4.4 GR5) are accepted, and a numeric identifier-4, which the rule does not name, is accepted.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -140,7 +140,7 @@ from standard_streams import ensure_utf8
 REPO = Path(__file__).resolve().parents[1]
 
 
-def _under(path: str, entry: str) -> bool:
+def under(path: str, entry: str) -> bool:
     """`path` lies under `entry`: a directory prefix ending in `/`, one exact path (and anything below it), or a
     LISTING PATTERN (`scripts/guard*.sh`: `*` and `?` within one directory, case-insensitive as a .NET listing matches),
     which covers every path it matches, a file added later included, and the pattern itself (`code_readers`). An entry
@@ -204,18 +204,25 @@ class Classification:
 
     def is_script_tree(self, path: str) -> bool:
         """Under a TOOLING_UNDER entry or of a TOOLING_SUFFIXES extension: the scripts and their trees."""
-        return any(_under(path, e) for e in self.tooling_under) or path.endswith(self.tooling_suffixes)
+        return any(under(path, e) for e in self.tooling_under) or path.endswith(self.tooling_suffixes)
 
     def in_tooling_tree(self, path: str) -> bool:
         """Under a TOOLING_UNDER entry: the trees that hold nothing but tooling."""
-        return any(_under(path, e) for e in self.tooling_under)
+        return any(under(path, e) for e in self.tooling_under)
 
     def in_tooling_lane(self, path: str) -> bool:
         """Whether a change to `path` can stay in the tooling lane: it lies in a tooling tree and no compiler test or the
         build reads it (under no CODE_READS entry). A script file elsewhere (conformance-suite/harness/, tests/, src/,
         docs/) and a TOOLING_READS entry lie in trees the compiler's tests and build read, so they never are (module
         docstring)."""
-        return self.in_tooling_tree(path) and not any(_under(path, e) for e in self.code_reads)
+        return self.in_tooling_tree(path) and not any(under(path, e) for e in self.code_reads)
+
+    def is_population_input(self, path: str) -> bool:
+        """Whether a compiler test or the build MAY read `path`: it is neither inert nor a tooling-lane path. THE ONE
+        DEFINITION of the code lane's paths (`classify`) and of the inputs of the Unit, Conformance and Characterization
+        populations (scripts/gate.py `Host.population_key`, kb/Work PB5205): a gate's population passes stand for another
+        tree exactly when every such path, and the toolchain, are the same."""
+        return not self.is_inert(path) and not self.in_tooling_lane(path)
 
     def is_watched(self, path: str) -> bool:
         """What the watch reports when a compiler test opens it: an inert path or a tooling-lane path. A DIRECTORY
@@ -226,13 +233,13 @@ class Classification:
         the static twin, which knows which name the lister wants (`code_readers`: the import closure's module file, a
         literal listing's pattern), never by the watch, which cannot (module docstring, THE PROOF)."""
         if path.endswith("/") and not self.is_inert(path):
-            return self.in_tooling_lane(path) and not any(_under(e, path) for e in self.code_reads)
+            return self.in_tooling_lane(path) and not any(under(e, path) for e in self.code_reads)
         return self.is_inert(path) or self.in_tooling_lane(path)
 
     def is_tooling(self, path: str) -> bool:
         """Whether the repo-relative POSIX `path` is tooling: under a TOOLING_UNDER or TOOLING_READS entry, or of a
         TOOLING_SUFFIXES extension."""
-        return self.is_script_tree(path) or any(_under(path, e) for e in self.tooling_reads)
+        return self.is_script_tree(path) or any(under(path, e) for e in self.tooling_reads)
 
     def unclassified_reads(self, files: Iterable[str], trees: Iterable[str]) -> list[str]:
         """THE PROOF OF THE TOOLING FLAG (module docstring): of what one self-test read, the tracked paths a change to
@@ -241,7 +248,7 @@ class Classification:
         accepted corpora); a directory listing (`entries:`) and the whole tree (`paths:`/`content:` of "") are not
         judged here (the residue, module docstring)."""
         def seen(p: str) -> bool:
-            return self.is_tooling(p) or any(_under(p, e) for e in self.inert)
+            return self.is_tooling(p) or any(under(p, e) for e in self.inert)
 
         bad = [p for p in files if not seen(p)]
         for key in trees:
@@ -253,7 +260,7 @@ class Classification:
     def is_inert(self, path: str) -> bool:
         """Whether the repo-relative POSIX `path` (a directory may end in `/`) is inert: under an INERT entry, under no
         READ entry."""
-        return any(_under(path, e) for e in self.inert) and not any(_under(path, e) for e in self.read)
+        return any(under(path, e) for e in self.inert) and not any(under(path, e) for e in self.read)
 
     def classify(self, paths: list[str]) -> Lane:
         """The lane of a change whose changed paths are `paths`."""
@@ -262,10 +269,10 @@ class Classification:
                         tooling=True, reads_tooling=True)
         read = [p for p in paths if not self.is_inert(p)]
         if not read:
-            under = sorted({e for p in paths for e in self.inert if _under(p, e)})
-            return Lane("inert", f"all {len(paths)} changed path(s) are inert (under {', '.join(under)}): no test reads "
+            entries = sorted({e for p in paths for e in self.inert if under(p, e)})
+            return Lane("inert", f"all {len(paths)} changed path(s) are inert (under {', '.join(entries)}): no test reads "
                         "them", tooling=False, reads_tooling=False)
-        code = [p for p in read if not self.in_tooling_lane(p)]
+        code = [p for p in read if self.is_population_input(p)]
         if not code:
             return Lane("tooling", f"{len(read)} of {len(paths)} changed path(s) are tooling no compiler test or build "
                         f"reads, e.g. {read[0]}, and the rest inert: the audits and the script self-tests",
@@ -311,9 +318,9 @@ class Classification:
         bad = [f"the {kind} entry {e!r} names no tracked path: remove it, or correct it" for kind, entries in
                (("INERT", self.inert), ("READ", self.read), ("TOOLING_READS", self.tooling_reads),
                 ("CODE_READS", self.code_reads)) for e in entries
-               if not any(_under(p, e) for p in paths)]
+               if not any(under(p, e) for p in paths)]
         bad += [f"the READ entry {e!r} lies under no INERT entry" for e in self.read
-                if not any(_under(e, i) for i in self.inert)]
+                if not any(under(e, i) for i in self.inert)]
         bad += [f"the CODE_READS entry {e!r} lies in no tooling tree (TOOLING_UNDER), so it changes no lane: remove it"
                 for e in self.code_reads if not self.in_tooling_tree(e)]
         for path, reader in code_readers(root, paths, self.tooling_under):
@@ -560,7 +567,7 @@ def _test_readers(root: Path, paths: list[str], literal: re.Pattern[str]) -> Ite
             yield from ((p, rel) for p in paths if p.startswith(prefix) and glob.fullmatch(p[len(prefix):]))
             if option is None or option == "SearchOption.TopDirectoryOnly":
                 # The pattern itself: a file the change ADDS that it matches is listed too (kb/Work PB4395 review
-                # R2-1), so a listing pattern entry must cover it (`_under`).
+                # R2-1), so a listing pattern entry must cover it (`under`).
                 yield prefix + e.group("pattern"), rel
         names = {s.group("name") for s in SCRIPT_NAME_RE.finditer(code)}
         for m in TEST_REPO_RE.finditer(code):
@@ -760,7 +767,7 @@ def code_readers(root: Path, paths: list[str], trees: tuple[str, ...]) -> list[t
     # under a literal directory): their imports are read too. A directory a test names (`TestRepo.Scripts("spec")`, an
     # existence check) is a read of every file below it, never a run of every script there, so it seeds no import.
     read = files + below + list(_import_closure(root, files, tracked_set))
-    return sorted({(p, r) for p, r in read if any(_under(p, t) for t in trees)})
+    return sorted({(p, r) for p, r in read if any(under(p, t) for t in trees)})
 
 
 #: ⛔ NO COMPILER TEST OPENS A MARKDOWN FILE (owner 2026-11-02, kb/Work PB4453: "There is no compelling reason a compiler
@@ -1179,7 +1186,7 @@ def self_test() -> int:
                                         "docs/rearchitecture/evidence/arch-census/a.json")],
            [True] * 9 + [False] * 11)
     expect("a `**/` entry is a pattern over a file NAME at any depth, case-insensitively, and never a longer name",
-           [_under(p, MARKDOWN_ENTRY) for p in ("a.md", "d/e/f.md", "d/E.MD", "d/e.mdx", "d/e.md/x", "d/md", MARKDOWN_ENTRY)],
+           [under(p, MARKDOWN_ENTRY) for p in ("a.md", "d/e/f.md", "d/E.MD", "d/e.mdx", "d/e.md/x", "d/md", MARKDOWN_ENTRY)],
            [True, True, True, False, False, False, True])
     # The mechanics, on a planted classification with a READ entry.
     c = Classification(inert={"DEVLOG/": "", "kb/": "", "tools/pin": ""}, read={"kb/Work/": ""})
@@ -1275,7 +1282,7 @@ def self_test() -> int:
            [True, True, True, False, False, False, False])
     expect("a LISTING PATTERN entry covers every path it matches, a file added later and the pattern itself included, "
            "case-insensitively within its one directory",
-           [_under(p, "scripts/guard*.sh") for p in ("scripts/guard-a.sh", "scripts/guard-new.sh", "scripts/Guard-B.sh",
+           [under(p, "scripts/guard*.sh") for p in ("scripts/guard-a.sh", "scripts/guard-new.sh", "scripts/Guard-B.sh",
                                                      "scripts/guard*.sh", "scripts/sub/guard-a.sh", "scripts/guard-a.py",
                                                      "scripts/xguard.sh")],
            [True, True, True, True, False, False, False])

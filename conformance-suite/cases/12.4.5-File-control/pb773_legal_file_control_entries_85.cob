@@ -79,15 +79,18 @@
            MOVE "BBDD" TO IX-KEY.
            MOVE "Y1" TO IX-A2.
            MOVE "TW" TO IX-DATA.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "CCAA" TO IX-KEY.
            MOVE "Y2" TO IX-A2.
            MOVE "TR" TO IX-DATA.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            MOVE "AABB" TO IX-KEY.
            MOVE "Y3" TO IX-A2.
            MOVE "ON" TO IX-DATA.
-           WRITE IX-REC.
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
+           .
            CLOSE IXF.
            OPEN INPUT IXF.
            DISPLAY "PRIME WALK:".

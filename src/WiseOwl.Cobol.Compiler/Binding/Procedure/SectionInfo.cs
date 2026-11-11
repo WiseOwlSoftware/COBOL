@@ -18,9 +18,15 @@ namespace WiseOwl.Cobol.Binding.Procedure;
 /// below <c>EntryPc</c>" is an arithmetic re-derivation of a fact the collection already knows. The rules that
 /// ask — §2023:14.9.28.3 SR11's PERFORM range, and §2023:14.9.49.3 SR3/SR4's declaratives boundary on every procedure-name
 /// reference (<c>StatementValidation.CheckDeclarativesBoundary</c>) — ask about the SECTION.</param>
-internal sealed class SectionInfo(string name, int startPc, bool isDeclarative = false)
+/// <param name="segment">The section's segment-number (<see cref="Segmentation.ValueOf"/>): the written one, else 0
+/// (§1985:XVI.3.2.3 SR2).</param>
+internal sealed class SectionInfo(string name, int startPc, bool isDeclarative = false, int segment = 0)
 {
     public string Name { get; } = name;
+
+    /// <summary>The section's segment-number (§1985:XVI.3.2.4 GR1: "All sections which have the same segment-number constitute a
+    /// program segment"); 0 when none is written (<see cref="Segmentation"/>).</summary>
+    public int Segment { get; } = segment;
 
     /// <summary>Is this a section of the declaratives portion of the procedure division (ISO §2023:14.3)?</summary>
     public bool IsDeclarative { get; } = isDeclarative;

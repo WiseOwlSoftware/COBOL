@@ -45,6 +45,16 @@ EXACT = frozenset({"scripts/gate_slot.py"})
 
 #: ⛔ THE ARMS each script's self-test must declare.
 DECLARED: dict[str, tuple[str, ...]] = {
+    # kb/Work PB5218: the targets, their keys and the one store
+    'scripts/buildgraph.py': (
+        "a change to an input of one target only (the inventory) changes that target's key and not the other's",
+        'a docs, kb or tooling-lane change leaves every key',
+        'the store: a pass recorded at a key (worktree A) is up to date at that key for another reader (worktree B)',
+        'a record that is not a pass is not up to date',
+        'every worktree of a repository has the ONE store',
+        'the BUILD TARGETS audit: sources whose reads lie in the declared inputs are clean',
+        'the real targets file loads',
+    ),
     'scripts/gate.py': (
         'a whole planted population is GREEN, every assembly EXACT',
         'every assembly runs its WHOLE population in one host, handed no narrowing',
@@ -85,6 +95,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a re-gate of an unchanged tree answers from the recorded GREEN',
         'a chain of reuses names the run that MEASURED the tree',
         'a re-gate of a CHANGED tree runs the gate',
+        'a recorded GREEN measured under another toolchain is never REUSED',
         'a RED is never reused',
         'a GREEN a gate before PB4328 wrote (record schema below SCHEMA_WHOLE',
         'a gate whose tree changed WHILE it ran is never reused',
@@ -95,6 +106,24 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a GREEN code-lane run, then a commit that changes only inert paths, is GREEN with NO fetch',
         'a GREEN code-lane run, then a commit that touches one path a test may read, runs EVERYTHING',
         'a composed gate whose audits are RED is RED with nothing run',
+        # kb/Work PB5205, PB5218: each test assembly is a target with its own key, its passes in one shared store
+        'an audit that turns RED after every test host has exited',
+        'a run RED only for a hung self-test, then a tooling-only difference (every key equal)',
+        'a run RED only for a hung self-test, then a difference in a path every target reads',
+        'a GREEN run, then a change no target reads and that touches no script: EVERY TARGET UP TO DATE',
+        'equal conformance and characterization keys with a changed unit key (a records-only change) run Unit ONLY',
+        'a changed input of conformance (its key differs) runs Conformance, and only it',
+        'a pass recorded from worktree A is UP TO DATE in worktree B at the same content',
+        'another toolchain or another platform is another key: every target runs',
+        'a population that is not EXACT, or a red host, records nothing for that target',
+        'a run RED for an audit AND the post-build self-tests, every host green',
+        "at a target's key, an earlier RED run of this worktree leaves only its unpassed case to run",
+        'the real keys: a docs, kb or tooling-lane edit leaves every key',
+        'a stopped run with complete green trx and no listing is RECOVERED from its own files',
+        "a stopped run with complete green trx and its keys' listings is RECOVERED EXACT",
+        'a run with a host that never finished',
+        'a run whose HEAD moved while it ran',
+        'a run recorded under another toolchain, or RED for a reason no audit gave, is REFUSED',
         '--await reads the verdict file',
         'the measured tree leaves out coord.NEVER_WORK',
         'a relative run name resolves against the worktree that gated it',

@@ -1602,15 +1602,14 @@
       "from": "WiseOwl.Cobol.CodeGen",
       "to": "WiseOwl.Cobol.Binding",
       "uses": 66,
-      "walkUses": 71,
+      "walkUses": 70,
       "removedBy": [
-        "PB2320",
         "PB2399",
         "PB2405",
         "PB2418",
         "PB2420"
       ],
-      "plan": "PB2361 (landed: DataBindResult replaced the binder on EmitContext.Data, BoundUnit.Data and the class units, so no pair here names DataBinder or ReferenceResolver), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 (landed: the OPTIONS types moved to compiler.model) and PB2399 (the alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (OoEmitter -> BinderDriver: ExternalItemIdentity to DataItem) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1). PB2375 (landed) removed UnitEmitters.Refs and the emit-time ResolveItem calls: the emitters read the PlaceTable the binder builds (BoundUnit.Places, OoClassUnit.Places)",
+      "plan": "PB2361 (landed: DataBindResult replaced the binder on EmitContext.Data, BoundUnit.Data and the class units, so no pair here names DataBinder or ReferenceResolver), PB2290 and PB2320 (the BinderDriver calls of CSharpEmitter, ProgramEmitter and OoEmitter leave code generation), PB2402 (landed: the OPTIONS types moved to compiler.model) and PB2399 (the alphabet and linkage types move to compiler.model) and PB2405 (the report-model, intrinsic-rule, class-rule and MOVE-rule families move to compiler.bound); PB2418 (landed in part: ExternalItemIdentity is a DataItem member, so OoEmitter no longer calls BinderDriver) and PB2420 (the value types: EditionContext, CallExternalBacking, ProgramSpecifier, RangeCollationCarrier, CellLifetime, IeeeSpecials, the report field sources) end the pairs onto types other than DataBinder and ReferenceResolver (Draft 6, G1). PB2375 (landed) removed UnitEmitters.Refs and the emit-time ResolveItem calls: the emitters read the PlaceTable the binder builds (BoundUnit.Places, OoClassUnit.Places)",
       "pairs": [
         {
           "from": "WiseOwl.Cobol.CodeGen.CallEmitter",
@@ -1795,14 +1794,6 @@
           "removedBy": [
             "PB2399",
             "PB2420"
-          ]
-        },
-        {
-          "from": "WiseOwl.Cobol.CodeGen.OoEmitter",
-          "to": "WiseOwl.Cobol.Binding.BinderDriver",
-          "removedBy": [
-            "PB2418",
-            "PB2320"
           ]
         },
         {

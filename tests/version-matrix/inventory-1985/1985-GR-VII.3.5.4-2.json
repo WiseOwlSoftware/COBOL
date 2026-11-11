@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VII.3.5.4-2",
  "rule-digest": "4a52f015b3f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#LinkImplicitRecordArea",
  "test-ref": "conformance:cases/VII.3.5@1985-DATA-RECORDS-CLAUSE/1985-GR-VII_3_5_4-2",
+ "notes": "§1985:VII.3.5.4 GR2: \"Conceptually, all data records within a file share the same area. This is in no way altered by the presence of more than one type of data record within the file.\" BindFileSection binds every level 01 entry of the file description entry and calls LinkImplicitRecordArea, which makes each further record an implicit redefinition of the file's first record, so all of them are views of one area; the code has no edition arm and never reads the DATA RECORDS clause, so the area is shared with the clause, without it and whatever it names. Probed at 85 with records of 4, 8 and 12 characters, the shortest described first: a MOVE to the 12-character group shows through the other two, and a MOVE to the 4-character record changes the group's first four characters. The witness moves ABCDEF to REC-A and displays it through REC-B and REC-B2, then moves XYZ to REC-B1 and displays REC-A.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

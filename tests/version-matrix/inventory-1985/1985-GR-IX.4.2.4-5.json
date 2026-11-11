@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.2.4-5",
  "rule-digest": "2e19bcf812cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose",
  "test-ref": "conformance:cases/IX.4.2@1985-CLOSE-STATEMENT/1985-GR-IX_4_2_4-5",
+ "notes": "§1985:IX.4.2.4 GR5: \"Following the successful execution of a CLOSE statement, the record area associated with file-name-1 is no longer available. The unsuccessful execution of such a CLOSE statement leaves the availability of the record area undefined.\" The rule withdraws a guarantee from the program and states no result for a reference to the area after the CLOSE, so it places no observable obligation on the implementation; what it needs is that the CLOSE completes and that nothing a later OPEN and READ deliver depends on the old content. EmitClose lowers every CLOSE (WITH LOCK included, which 85 accepts) to FileRegistry.CloseByFormat, which runs FileConnector.Close: the connector leaves its open mode and its store is flushed and disposed. The record area is a typed field of the emitted program for the life of the run unit, so after the CLOSE it keeps its last content (the determination docs/CONFORMANCE.md DOC-A.1-24 states for 2023's twin, GR-14.9.6.4-7), which the rule permits; there is no edition arm because 85 and 2023 differ only in the SAME RECORD AREA exception 2023 added, and the retained storage satisfies both. Probed at --std 85: after a successful CLOSE and after CLOSE WITH LOCK the area is readable and writable with no fault, an unsuccessful CLOSE (status 42) leaves it untouched, and a reopen and READ refill it. The witness closes an indexed file, checks status 00, reopens and reads the record back.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

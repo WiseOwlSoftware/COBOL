@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.2.8.3-1",
  "rule-digest": "ae2f994c4573",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rerunClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenRerunClauses; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRerunClause",
  "test-ref": "conformance:cases/IX.2.8@1985-I-O-CONTROL-PARAGRAPH/1985-GR-IX_2_8_3-1",
+ "notes": "§1985:IX.2.8.3 GR1: \"The RERUN clause for the Indexed I-O module is a subset of the RERUN clause for the Sequential I-O module. Thus the specifications for the RERUN clause are located on page VII-17.\" One grammar rule (rerunClause) and one screen (ScreenRerunClauses, called by BindIoControl for every I-O-CONTROL paragraph whatever its files' organization) carry the Sequential module's clause, so the indexed subset gets the same specifications: the subset's two differences from the full format, a required ON phrase and no END OF REEL/UNIT phrase, fall out of §1985:VII.2.12.3 SR3 and SR2 for an indexed file-name-2, and SR1 refuses an indexed file-name-1. The 1985 arm is VisitRerunClause, which accepts the clause at --std 85 and refuses it from 2002 (COBOL0902); the clause then records no rerun point (the null rerun facility, the posture ScreenRerunClauses states for §1985:VII.2.12.4 GR2, which is that rule's row to judge). Probed at 85 on an indexed file: ON implementor-name with integer-1 RECORDS OF the file and with integer-2 CLOCK-UNITS compile and run; ON naming the indexed file (COBOL6529, COBOL6530), END OF REEL OF the indexed file (COBOL6529), RECORDS with no ON phrase (COBOL6530) and an undefined condition-name-1 (COBOL1639) are refused. The witness runs ON implementor-name EVERY 100 RECORDS OF an indexed file.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

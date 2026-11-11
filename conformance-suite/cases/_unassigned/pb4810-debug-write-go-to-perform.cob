@@ -95,7 +95,8 @@
            WRITE F-REC FROM SRC.
            CLOSE F.
            OPEN INPUT F.
-           READ F.
+           READ F AT END CONTINUE END-READ
+           .
            DISPLAY "FILE " F-REC.
            CLOSE F.
            GO TO T1 T2 DEPENDING ON SEL.

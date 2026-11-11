@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.2.3.4-5",
  "rule-digest": "b7eb79d86002",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#AssociationFailure; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAssignClause",
  "test-ref": "conformance:cases/IX.2.3@1985-FILE-CONTROL-ENTRY/1985-GR-IX_2_3_4-5",
+ "notes": "§1985:IX.2.3.4 GR5: \"The ASSIGN clause specifies the association of the file referenced by file-name-1 to a storage medium referenced by implementor-name-1 or literal-1.\" BindFileControl reads the TO phrase through AssignTargetRule.Resolve (a word is its own spelling, a nonnumeric literal its decoded value; the allowable lists are the implementor's under §1985:IX.2.3.3 SR3: one operand, or DISK or PRINTER and one operand) into FileModel.AssignTarget; EmitRegistration passes it to FileRegistry.RegisterIndexed, and CobolFile.ResolveHostPath maps it to the one host file the connector opens (again at each OPEN, FileConnector.AssociationFailure). No edition arm is needed for the two 1985 operands; the 2002 USING data-name operand the change record names is refused at --std 85 by VisitAssignClause (COBOL0900). Probed at 85: a file written through ASSIGN TO DISK \"P4A.DAT\" is read back through ASSIGN TO \"P4A.DAT\", one written through the word P4AWORD is read back through the literal \"P4AWORD\", and a third target names a different (absent) file, status 35. The witness writes through one entry and reads through a second entry assigned to the same literal.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

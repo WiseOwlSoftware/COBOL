@@ -78,10 +78,12 @@
            DISPLAY "SQ-EURO=" FS " " FUNCTION ORD(SR(2:1)).
            CLOSE SQ.
            OPEN INPUT SQRAW.
-           READ SQRAW.
+           READ SQRAW AT END CONTINUE END-READ
+           .
            DISPLAY "SQ-RAW=" FW " " FUNCTION ORD(SW(1:1))
                " " FUNCTION ORD(SW(3:1)).
-           READ SQRAW.
+           READ SQRAW AT END CONTINUE END-READ
+           .
            DISPLAY "SQ-RAW2=" FW.
            CLOSE SQRAW.
            OPEN OUTPUT SQRAW.
@@ -89,7 +91,8 @@
            WRITE SW.
            CLOSE SQRAW.
            OPEN I-O SQ.
-           READ SQ.
+           READ SQ AT END CONTINUE END-READ
+           .
            DISPLAY "SQ-IN=" FS " " FUNCTION ORD(SR(2:1)).
            REWRITE SR.
            DISPLAY "SQ-REWR=" FS.
@@ -98,7 +101,8 @@
            DISPLAY "SQ-REWR2=" FS.
            CLOSE SQ.
            OPEN INPUT SQRAW.
-           READ SQRAW.
+           READ SQRAW AT END CONTINUE END-READ
+           .
            DISPLAY "SQ-AFTER=" FW " " SW.
            CLOSE SQRAW.
            STOP RUN.

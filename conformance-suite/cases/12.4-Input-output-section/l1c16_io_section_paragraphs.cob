@@ -83,7 +83,8 @@
            CLOSE F1.
            MOVE SPACES TO R1.
            OPEN INPUT F1.
-           READ F1.
+           READ F1 AT END CONTINUE END-READ
+           .
            DISPLAY "C FILE-CONTROL ONLY " R1.
            CLOSE F1.
            EXIT PROGRAM.
@@ -114,7 +115,8 @@
            CLOSE F2.
            MOVE SPACES TO R2.
            OPEN INPUT F2.
-           READ F2.
+           READ F2 AT END CONTINUE END-READ
+           .
            DISPLAY "D BOTH PARAGRAPHS " R2.
            CLOSE F2.
            EXIT PROGRAM.

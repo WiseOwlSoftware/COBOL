@@ -117,9 +117,10 @@ internal static class IntegerOperandRules
         // ── PROCEDURE DIVISION HEADERS ──────────────────────────────────────────────────────────────────────
         [typeof(Core.SectionDefinitionContext)] = All(IntegerSlot.Not(
             "the section header's segment-number is the 1985 Segmentation module's priority-number (0 through 99), "
-            + "not an integer-n; its range is that module's rule")),
+            + "not an integer-n; its range is that module's rule, §1985:XVI.3.2.3 SR1 (VersionConformancePass ScreenSegmentNumber, COBOL6819)")),
         [typeof(Core.DeclarativeSectionContext)] = All(IntegerSlot.Not(
-            "the declarative section header's segment-number is the 1985 Segmentation module's priority-number")),
+            "the declarative section header's segment-number is the 1985 Segmentation module's priority-number, below 50 by "
+            + "§1985:XVI.3.2.3 SR3 (VersionConformancePass ScreenSegmentNumber, COBOL6819)")),
 
         // ── DATA DIVISION ───────────────────────────────────────────────────────────────────────────────────
         [typeof(Core.BlockContainsClauseContext)] = Nonzero,   // §2023:13.18.10 — nothing permits 0; SR1 orders them (FileControlBinder.BindBlockContainsClause)
@@ -327,6 +328,10 @@ internal static class IntegerOperandRules
     /// <param name="saturated">True when the literal's value lies outside the host range and
     /// <paramref name="value"/> is the saturated bound — the fact a site that substitutes a CONSTANT for an
     /// <c>integer-n</c> needs to raise the <see cref="HostLimit"/> diagnostic the literal itself would get.</param>
+    /// <summary>Whether a numeric literal is the X3.23-1985 <c>integer</c> of a general format: §1985:III.2 "integer must be a
+    /// numeric literal which is an integer, and it must be neither signed nor zero unless explicitly allowed by the rules
+    /// for that format" (kb/Work PB5074). <paramref name="sign"/> is what the format's rules allow; no 1985 rule this reader
+    /// serves allows zero, so zero is refused at every sign.</summary>
     /// <summary>The <c>long</c> twin of <see cref="TryHostValue(string, out int, out bool)"/> for an integer literal
     /// used as a run-time POSITION (a subscript or a reference-modifier position, kb/Work PB2151): the position
     /// intakes take a <c>long</c> (<c>CobolNum.Position</c> saturates there), so the literal is read at that width and

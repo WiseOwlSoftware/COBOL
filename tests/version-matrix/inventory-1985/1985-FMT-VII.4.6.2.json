@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VII.4.6.2",
  "rule-digest": "ec80c8140ea3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useOnTarget; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
  "test-ref": "conformance:cases/VII.4.6@1985-USE-STATEMENT/1985-FMT-VII_4_6_2",
+ "notes": "§1985:VII.4.6.2 prints USE AFTER STANDARD {EXCEPTION | ERROR} PROCEDURE ON {{file-name-1} ... | INPUT | OUTPUT | I-O | EXTEND}, with USE, AFTER, EXCEPTION, ERROR, PROCEDURE and the four mode words underlined and STANDARD and ON not. The superset alternative of useStatement (USE GLOBAL? AFTER? STANDARD? (EXCEPTION | ERROR) PROCEDURE? ON? useOnTarget) parses it, useOnTarget takes exactly one of the four mode words or one or more file-names, and DeclBindUse binds the file list or the open mode as the declarative's scope; the two words 1985 requires and the later format does not are restored at 85 by VisitUseStatement, which refuses a Format 1 USE without AFTER or without PROCEDURE (COBOL0900, use-without-after-2002 and use-without-procedure-2002), and the same member refuses the 2002 formats USE AFTER EXCEPTION CONDITION / EC and EXCEPTION OBJECT (COBOL0877, COBOL0876). Probed at 85: the full spelling with EXCEPTION and with ERROR, STANDARD and ON omitted, two file-names with and without a comma, and each of INPUT, OUTPUT, I-O and EXTEND compile and run (the procedure runs for the files in its scope only); USE without AFTER, without PROCEDURE, without both, with EXCEPTION ERROR together, with BEFORE, with no operand, with no EXCEPTION/ERROR word, with INPUT OUTPUT and with a file-name followed by INPUT are refused. GLOBAL is accepted at 85 because the Inter-Program Communication module prints it (§1985:X.5.5.2). The witness declares USE AFTER STANDARD ERROR PROCEDURE ON F1 and shows the procedure run on an at end READ with no AT END phrase (USE 10).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

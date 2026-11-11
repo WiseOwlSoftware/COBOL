@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.10.3-1",
  "rule-digest": "a9551f0beca7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplayUpon; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#MnemonicDevice; src/WiseOwl.Cobol.Compiler/Binding/Procedure/MnemonicRegistry.cs#TryUse; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic",
  "test-ref": "conformance:cases/VI.6.10@1985-DISPLAY-STATEMENT/1985-SR-VI_6_10_3-1",
+ "notes": "§1985:VI.6.10.3 SR1: \"Mnemonic-name-1 is associated with a hardware device in the SPECIAL-NAMES paragraph in the Environment Division.\" BindDisplayUpon passes the UPON word to MnemonicDevice, which refuses it with COBOL0817 in three cases: no SPECIAL-NAMES entry in scope declares it as a mnemonic-name (MnemonicRegistry.TryUse over ConfigurationSlice.TryGetMnemonic, the unit's own entries and then its container's), the entry it names is a switch or a feature and not a device, or the device cannot receive data. The code has no edition arm and needs none: the devices are the implementor's four (CONSOLE, SYSOUT, SYSERR, SYSIN) at every edition, and the 2023 widening to a software device adds no name at 85. Probed at 85: UPON a mnemonic of CONSOLE or SYSERR accepted, in the declaring program and in a program contained in it, in either case of the word; UPON a data-name, an undeclared word, an alphabet-name, a class-name, a condition-name, the bare device-names CONSOLE and SYSOUT, a switch mnemonic, a C01 feature mnemonic and a SYSIN mnemonic all refused COBOL0817. The witness is UPON a data-name.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

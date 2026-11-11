@@ -45,8 +45,11 @@
        MAIN.
            OPEN OUTPUT FR
            MOVE 2 TO RK MOVE "REC-2" TO R-REC WRITE R-REC
+               INVALID KEY CONTINUE END-WRITE
            MOVE 4 TO RK MOVE "REC-4" TO R-REC WRITE R-REC
+               INVALID KEY CONTINUE END-WRITE
            MOVE 6 TO RK MOVE "REC-6" TO R-REC WRITE R-REC
+               INVALID KEY CONTINUE END-WRITE
            CLOSE FR
            OPEN INPUT FR
            MOVE 3 TO RK

@@ -1,7 +1,10 @@
 {
  "rule-id": "1989-AR-A.2.19.3-1",
  "rule-digest": "c033a0b64aef",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFamily; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNonNumericLiteral",
  "test-ref": "conformance:cases/A.2.19@1985-LENGTH-FUNCTION/1989-AR-A_2_19_3-1",
+ "notes": "§1989:A.2.19.3 AR1: \"Argument-1 may be a nonnumeric literal or a data item of any class or category.\" BindLengthFamily binds the one argument at every edition and BindLengthFold measures a nonnumeric literal and a data item of every class (probed at 85: group 14, COMP-3 3, COMP 2, INDEX 8, numeric edited 9, alphabetic 4, SIGN SEPARATE 4, reference-modified 3, OCCURS DEPENDING group 7) and refuses a numeric literal and an arithmetic expression with COBOL1627; what 2023 adds is refused at 85 by edition gates (national and boolean literals by VisitNonNumericLiteral, PHYSICAL by BindLengthFamily's construct check, all COBOL0900). The witness measures a literal, an alphanumeric item and a numeric item.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

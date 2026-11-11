@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.6.21.4-15",
  "rule-digest": "9c8afeb01135",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformedRange; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
  "test-ref": "conformance:cases/VI.6.21@1985-PERFORM-STATEMENT/1985-GR-VI_6_21_4-15",
+ "notes": "§1985:VI.6.21.4 GR15: a PERFORM in a section that is not in an independent segment 'can have within its range, in addition to any declarative sections whose execution is caused within that range only one of the following': a) sections or paragraphs wholly in one or more non-independent segments, b) 'Sections and/or paragraphs wholly contained in a single independent segment' (segment-numbers 50 through 99, §1985:XVI.3.2.4 GR3). The permitting half is implemented: VersionConformancePass.VisitSectionDefinition accepts a section header's segment-number at 85 (construct segment-numbers-removed-2002) and the number is then discarded, every segment being resident, so ControlFlowEmitter.EmitPerformedRange and the dispatch method of DispatchEmitter.EmitDispatchMethod run a PERFORM of a fixed or an independent section as they run any other; the witness performs one section of segment 60 and one of segment 10 from segment 0. The restricting half is not implemented: no member reads a segment-number after the parse, so a PERFORM whose named range lies in two independent segments, or in a non-independent and an independent one, compiles with no diagnostic and runs. docs/VERSION_CHANGE_REFERENCE.md row 7.18 records this as deliberate ('PERFORM-range ... restrictions ... are deliberately NOT implemented'), and kb/Work PB5084 already holds the same sentence where the Segmentation module restates it (§1985:XVI.3.3.2, rows 1985-SR-XVI.3.3.2-1 and -2). Only the range the PERFORM names is decidable at compile time; the logical range a GO TO or a nested PERFORM adds is the program's to keep.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

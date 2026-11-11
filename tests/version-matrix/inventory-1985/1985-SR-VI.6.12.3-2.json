@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.12.3-2",
  "rule-digest": "513e670b8865",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterOperand; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord; src/WiseOwl.Cobol.Compiler/Binding/UserWordKind.cs#UserWordKind",
  "test-ref": "conformance:cases/VI.6.12@1985-ENTER-STATEMENT/1985-SR-VI_6_12_3-2",
+ "notes": "No kb/Work note owns the fix. §1985:VI.6.12.3 SR2: \"Routine-name-1 is a COBOL word and it may be referred to only in an ENTER sentence.\" Implemented: enterOperand takes one word token for routine-name-1, so a literal or an integer is a syntax error, and because BindStatementCore binds ENTER as BoundNop and declares nothing, a word that is only a routine-name resolves nowhere else: GO TO, PERFORM, MOVE, CALL and DISPLAY of it are refused with COBOL1639 (the witness is the GO TO). Not implemented, both because routine-name-1 is a bare token that never reaches the cobolWord rule or the user-defined word census: (1) routine-names are one of the disjoint sets of user-defined words (§1985:IV.4.2.2.1.1: \"All user-defined words, except segment-numbers and level-numbers, can belong to one and only one of these disjoint sets\"), but UserWordKind has no routine-name member, so a word written as routine-name-1 and also declared as a paragraph-name or a data-name is referred to outside the ENTER sentence with no diagnostic, although the same check refuses a data-name that is also a paragraph-name (COBOL2692); (2) \"is a COBOL word\": VisitCobolWord asks the 30-character limit of §1985:IV.4.2.2.1 (COBOL1567) and the reserved-word screen only of cobolWord, so a routine-name of 31 or 38 characters and the reserved words LINKAGE and COBOL are accepted as routine-name-1 at 85 (so is a 31-character language-name-1). The verdict stands while ENTER is accepted at 85; the owner question on 1985-SR-VI.6.12.3-1 may remove the statement.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

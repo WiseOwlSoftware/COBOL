@@ -811,7 +811,7 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
   gate CHECKS it on every run by name (§3.14.4) and a drift test proves the check fires.
 - ⛔ **Nothing narrows a gate's host.** The one variable a test host's framework reads from the gate,
   `WISEOWL_COBOL_GATE_FIRST`, only ORDERS (§3.14.2); the other, `WISEOWL_COBOL_GATE_ONLY`, names the cases a RE-GATE of
-  a code state an earlier run measured still has to run, and the population check composes the passes that run carried
+  a target's key an earlier run measured still has to run, and the population check composes the passes that run carried
   (§3.14.12 item 5); CI's shard variable `WISEOWL_COBOL_SHARD` divides a merge-group run
   whose union `ci-gate` checks (§1.4); every other caller scrubs all three and the MSBuild VSTest channels, and every
   whole-assembly run — the battery and CI as well as the gate — asserts its population with one tool (§3.14.4).
@@ -827,8 +827,8 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
 - **A gate outlives its caller, and a measured tree is gated once** (kb/Work PB3536; §3.14.12): it runs DETACHED in its
   run directory and its verdict file is the one thing any reader waits on, and a re-gate of an unchanged tree answers
   from the recorded GREEN, saying `REUSED` (never from a record of schema below 5, which a gate before PB4328 wrote and
-  which may be a `LEG 1 ONLY` one); a re-gate of a code state that was gated before runs only what that run did not
-  pass (`COMPOSED`, kb/Work PB5099; §3.14.12 item 5).
+  which may be a `LEG 1 ONLY` one); a target the one store shows up to date at its key starts no host, and at a target's
+  key a re-gate runs only what an earlier run did not pass (kb/Work PB5099, PB5218; section 3.14.12 item 5).
 
 #### 3.14.2 The order: the classes red last time first, then longest first (kb/Work PB4328)
 
@@ -1300,39 +1300,103 @@ since, so nothing ran (run <this run>); that gate: … ===`. It is the self-test
 keyed on what was measured rather than on a branch or a head; a RED is never reused. A reused record carries its own seconds
 (`timings.wall_s`), so `landing_measure.py` counts what each gate cost.
 
-**5. Composition: a re-gate runs only what has not passed (kb/Work PB5099, owner 2026-11-09: "If only one test failed, any
-retry should test only that one case").** THE RULE (CLAUDE.md "Testing", 2026-10-31) asks that every case the merge group runs
-on Windows already ran green AT THE PUSHED HEAD on this host under the same `toolchain.env`, never that it ran green in ONE
-run. Wave 20261972's gate of tree fc15c9ace5 went RED on one harness non-observation among 63,000 cases and the re-gate of
-the same tree spent 58 more minutes running the 63,000 again. `Gate.carry` is the composition rule: an EARLIER RUN of this
-worktree counts when it is a full-lane run (schema 5 on) that measured its own tree and did not see it change while it ran
-(`tree` equals `tree_end`; an audit-stopped run has no `tree_end` and counts for nothing), ran under THIS toolchain (`toolchain`
-equals), is not itself a REUSED record, and its tree IS this tree or differs from it only in paths `inert_lane.py classify`
-calls inert (`Host.code_state_diff`: the one place that asks, `[]` for the same tree, None for any path a test or the build may
-read). A tree that changed in one such path runs everything, as before: there is no composition across two code states.
-Then, by the newest qualifying run's verdict:
-  * a GREEN one measured the whole population: nothing is left to run. The gate runs only its audits (they read the tree, and
-    an inert commit is exactly what they audit), takes no corpus fetch, slot, build or host, and says `GREEN — COMPOSED (kb/Work
-    PB5099): run <it> measured this code state GREEN (its tree … <is it | differs from it in n path(s), all inert …>), so its
-    populations stand`. Its record keeps `lane: full` and names the run(s) in `composed_from`, flattened (the GREEN run and the
-    runs it composed with). The same tree again is then REUSED from this record (item 4); a base other than the earlier run's no
-    longer forces a re-run, because a base only decides the lane.
-  * otherwise every earlier qualifying run's PASSES (`test_population.passed_cases`: a definition with a Passed result and no
-    Failed one; a failed case, a harness non-observation and a skip are not passes) are carried. The gate still takes the slot
-    and builds, lists the population first (about 2 s per assembly), writes for each assembly the listed names the carried
-    passes do not cover to `<run>/only-<assembly>.txt` and hands the path to that assembly's host as `WISEOWL_COBOL_GATE_ONLY`
-    (`host_env`, the one place a host's environment is made); an assembly with nothing left has no host. The test framework's
-    `GateOnly` (tests/_shared/GateLegs.cs, beside `GateShard`) runs exactly the discovered cases whose display names the file
-    holds, and refuses the run (every case an execution error) when the file is unreadable or names none. Discovery never sees
-    it, so `--list-tests` is still the whole population.
-The population check composes the same way: `test_population.check(..., carried=)` counts a carried pass as ran only when this
-run did not repeat that name and the listing printed it, so a case neither carried nor run is still a named NEVER RAN, a
-retried case is judged by the retry alone, and the verdict line says `N carried from run(s) …`. The record writes
-`composed_from` and `carried`; a composed gate writes no growth sample (§3.14.13) and `perf_baseline` refuses it (it ran part of
-the population). `gate.measuring_runs` is the ONE resolution of the run directories that hold a verdict's evidence (the run
-that measured it, or the one a REUSED record names, and `composed_from`); the landing lane's classification of a merge-queue
-red reads the branch's trx through it. The earlier runs' trx stay as long as `KEEP_RUNS` keeps the runs: a pruned source costs
-a larger retry, never a wrong verdict.
+**5. Targets: each test assembly is a target keyed by its declared inputs, its passes in one store every worktree shares,
+and a re-gate runs only what has not passed at a target's key (kb/Work PB5207 stage 1, PB5218; PB5205; PB5099, owner
+2026-11-09: "If only one test failed, any retry should test only that one case"; owner 2026-11-10: "This is precisely what
+the Unix make and Windows MSBuild utilities are for. They rerun only what is required due to changes.").** THE RULE
+(CLAUDE.md "Testing", 2026-10-31) asks that every case the merge group runs on Windows already ran green AT THE PUSHED HEAD on
+this host under the same `toolchain.env`, never that it ran green in ONE run or in one worktree. Wave 20261972's gate of tree
+fc15c9ace5 went RED on one harness non-observation among 63,000 cases and the re-gate of the same tree spent 58 more minutes
+running the 63,000 again; records-85's gate of tree 241f5fbb05 passed all 64,465 cases and was RED only because the
+orchestrate self-tests hung, and its re-gate after a merge of main that brought only `kb/`, `DEVLOG/` and three tooling-lane
+scripts ran the 64,465 again.
+
+*The targets* (`scripts/buildgraph.py`, declared in `scripts/build_targets.json`). `unit`, `conformance` and
+`characterization` are one target per gated assembly. Each declares its INPUTS as path patterns, each naming its reader:
+`@build` (what building a test assembly reads: `src/`, the root and test-tree props, `tests/_shared/`, the package sources
+and feed, the CLI's Exec scripts), the assembly's own project, and the data its tests read. `conformance` declares the suite,
+`tests/nist`, `tests/differential`, `tests/version-matrix` (the construct catalogue, and the traceability inventory of both
+editions that `conformance-suite/harness/generate.py` reads, found by a traced run of the generator), both rule catalogs, the
+ISO text, `tests/doc-facts`, `scripts/spec/` and the modules the harness imports, and `scripts/guard*.sh`.
+`characterization` declares its corpus and its snapshots. `unit` declares every population input
+(`inert_lane.Classification.is_population_input`): it is the compiler's unit tests and the repository's drift tests in one
+assembly until stage 2 of kb/Work PB5207 splits them. Every target excludes `@inert` and `@tooling-lane`, the classes the
+inert lane's watch proves no compiler test reads. A target's KEY (`buildgraph.key`, `Host.target_keys`) is the sha256 of its
+name, its FACETS (the platform, the configuration the gate builds, `GATE_CONFIGURATION`, and the toolchain) and every
+`git ls-tree -r` entry of the measured tree whose path its inputs match: object ids, no file read, about 0.7 s for 35,000
+paths. So a change to the inventory alone changes `unit`'s and `conformance`'s keys and not `characterization`'s; a change to
+`docs/`, `kb/`, `DEVLOG/` or a tooling-lane script changes none.
+
+*The store* (`buildgraph.Store`) is `<git common dir>/cobol-build-store/<target>/<key>.json`: one small record per target and
+key (the counts, the facets, the worktree, run and head that proved it), written whole. A target is UP TO DATE exactly when
+the store holds a pass at its key: that is the only rule, so a pass recorded in worktree A is up to date in worktree B at the
+same content (a branch re-cut from main, a second worktree). The store holds only what was proven: after its population check,
+`Gate.record_passes` records each assembly whose host was green (or that needed no host because its carried passes covered
+it) and whose population was EXACT, at a tree that did not change while the gate ran. A red, a partial or an unmeasured
+population records nothing.
+
+*A gate, per target.* After the lane (section 3.18) says full, the gate computes each target's key and asks the store. A
+target up to date starts no host and is not listed; its verdict-line entry is `<assembly> up to date (run <run> of
+<worktree>, N cases)`, and the record keeps `keys`, `up_to_date` (each target's pass: its worktree, run and evidence
+directory) and `recorded` (the passes this gate wrote). When every target is up to date and the change touches no script,
+nothing is fetched, built or run: the audits run and the line says `GREEN — EVERY TARGET UP TO DATE (kb/Work PB5207,
+PB5218): the store holds a pass at each target's key: …; what ran now: the audits, GREEN`. A change that touches a script owes
+the post-build self-tests (section 3.14.10), which need a build: that gate builds and runs them and starts no host for an
+up-to-date target. The audits are never carried: every gate runs them at its own tree (the script self-tests among them when
+the change touches a script, each re-run where its recorded inputs changed). An audit that turns RED after every test host
+has exited (a self-test that hangs past the last host) stops no host (`_Live.stopped_any`): the hosts' results are whole, the
+populations are checked, each exact green one's pass is recorded, and the verdict is RED for the audit alone.
+
+*At a target's key, a re-gate runs only what has not passed* (`Gate.carry`, `Gate._plan`). For each target that is not up to
+date, an EARLIER RUN of this worktree counts when it is a full-lane run (schema 5 on) that measured its own tree and did not
+see it change while it ran (`tree` equals `tree_end`; an audit-stopped run has no `tree_end` and counts for nothing), is not
+itself a REUSED record, and recorded THIS key for that assembly. Its PASSES (`test_population.passed_cases`: a definition with
+a Passed result and no Failed one; a failed case, a harness non-observation and a skip are not passes) are carried. The gate
+lists that assembly's population first (about 2 s), writes the listed names the carried passes do not cover to
+`<run>/only-<assembly>.txt` and hands the path to its host as `WISEOWL_COBOL_GATE_ONLY` (`host_env`, the one place a host's
+environment is made); an assembly with nothing left has no host, and one whose host was red for a reason its cases do not
+explain (`_red_explained`) runs whole. The test framework's `GateOnly` (tests/_shared/GateLegs.cs, beside `GateShard`) runs
+exactly the discovered cases whose display names the file holds, and refuses the run when the file is unreadable or names
+none; discovery never sees it, so `--list-tests` is still the whole population. The population check composes the same way:
+`test_population.check(..., carried=)` counts a carried pass as ran only when this run did not repeat that name and the
+listing printed it, so a case neither carried nor run is still a named NEVER RAN, and the verdict line says `N carried from
+run(s) …`. The per-case evidence stays in this worktree's run directories (the store holds whole-target passes only); the
+earlier runs' trx stay as long as `KEEP_RUNS` keeps them, and a pruned source costs a larger retry, never a wrong verdict.
+
+*Reading the evidence.* `gate.measuring_runs` is the ONE resolution of the run directories that hold a verdict's evidence: the
+run that measured it (or the one a REUSED record names), `composed_from`, and the run of every target the store showed up to
+date, in whichever worktree recorded it, while it exists. The landing lane's classification of a merge-queue red reads the
+branch's trx through it. A gate that found a target up to date or carried passes writes no growth sample (section 3.14.13),
+and `perf_baseline` refuses a composed one (it ran part of the population).
+
+*The declarations are checked, not trusted.* The BUILD TARGETS audit (`python scripts/buildgraph.py check`, one of the
+gate's AUDITS) reads every test source of an assembly and each `tests/_shared` file it uses (by the top-level types it names,
+transitively) and finds every repository read it spells: a `TestRepo` helper with its leading literal segments, a listing of
+a helper's directory by a literal pattern, `Path.Combine(TestRepo.Root, "…")`, and a string literal rooted at a top-level
+tracked directory. A read outside the target's inputs is RED, naming file and line, until the read is declared with its reader;
+a read the audit cannot resolve by itself is judged by hand in the target's `judged` map, with its reason. Its residue,
+counted in its verdict line and judged nowhere statically: a bare `TestRepo.Root` (a working directory, a path stripped from
+a message, or `TrackedTree`'s `git ls-files`), a path computed at run time, and what a process a test starts reads. The
+dynamic proof, the Linux shards' file watch extended per target, is kb/Work PB5218's remaining work.
+
+*Re-derived evidence* (`gate.py --rederive <run> [--dry-run]`, `Gate.rederive`). A run whose gate predates this (or that an
+audit stopped) may hold complete green results under a record that says `populations: {}` and `tree_end: null` and recorded
+nothing in the store. The re-derivation proves, or refuses naming what is missing, that its record is a full-lane one; its
+recorded toolchain is this host's; every gated assembly's host exited 0, its log ends in the host's own `Passed!  - Failed: 0,
+Passed: P, Skipped: S, Total: T` line and its trx is COMPLETE against that line (`gate.result_outcomes`: T results, P Passed,
+S NotExecuted; results, not definitions, because theory rows that share a display name are one definition); every reason is
+an audit's; and its tree stood while it ran, which no file of the run records, so the evidence is the worktree's: the run
+measured HEAD's own tree (`tree` equals `head_tree`) and HEAD's reflog puts HEAD at the recorded head at the run's start (its
+`gate.pid`'s time, written before the tree was measured; the filesystem's clock, the hosts' and the reflog's, never the
+driver's) with no move until the hosts' last write. Its residue, written into the record (kb/Work PB5205 review R1-2): an
+uncommitted edit made while the run ran and undone at ANY time before the re-derivation is in no reflog, where the live gate,
+which measures `tree_end` after its hosts, would have refused it. Each target's key is computed from the RECORDED tree. A proved
+record keeps its verdict, line and exit code (RED), gains `tree_end`, `keys`, `audit_reds` and `rederived` (when, the
+evidence, the residue, per assembly "stored" or "passes"), and the original stays beside it as `verdict.original.json`. An
+assembly for which a run at the same key kept the listing (`listing-<asm>.txt`) is checked EXACT against it by the live check
+and its pass is RECORDED in the store; one with no listing is left to the next gate, which builds, lists, runs only the cases
+the carried passes do not cover, checks the population EXACT and records the pass then. Neither can turn a partial run into a
+pass.
 
 #### 3.14.13 The growth trigger, and the program differential it would build (kb/Work PB4333, step 10 of PB4323)
 

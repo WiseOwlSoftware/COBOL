@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VI.5.9.4-4",
  "rule-digest": "a10f51cece9a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#CharacterPositions; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsAlphabetic",
  "test-ref": "conformance:cases/VI.5.9@1985-PICTURE-CLAUSE/1985-GR-VI_5_9_4-4",
+ "notes": "§1985:VI.5.9.4 GR4: 'Its PICTURE character-string is restricted to certain combinations of the symbols 'A', 'X', '9', and the item is treated as if the character-string contained all 'X's. A PICTURE character-string which contains all 'A's or all '9's does not define an alphanumeric item'. AnalyzeCharacterString's A/X arm takes any string holding an A or an X whose symbols are all A, X or 9 and returns PicCategory.Alphanumeric with no EditMask and only a Length (CharacterPositions): nothing per position survives, so the item is the all-X item of that size at every edition, which is the 1985 treatment (2023 keeps '9' positions numeric; the compiler never did). All 'A' sets IsAlphabetic and all '9' falls to the numeric arm, so neither is alphanumeric; PictureComposition.Precedence admits A, X and 9 in any order and refuses any other symbol beside an A or X (COBOL1935). Probed at --std 85: PIC A9 holds '#?', PIC 9X holds 'ab', PIC 9A9 holds '*-+', a numeric integer moves to PIC A9A and both class tests compile on it; PIC XV9, XP, SX and AZ are refused. The witness stores '1A2B' in PIC A9XX and 'Z*' in PIC 9X.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

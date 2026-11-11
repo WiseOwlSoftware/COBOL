@@ -11,7 +11,9 @@
       *> "the character written in numeric literals to represent the decimal separator"; DISPLAY of a
       *> literal shows it as written, kb/Work PB1643). Expected values from the declarations:
       *> -1,5 in S9(3)V99 is -001,50; 1,5 in 9(3)V99 COMP is 001,50; a V9(3) item holding ,5 shows
-      *> ,500; an integer item has no separator.
+      *> ,500; an integer item has no separator. The literal leg is
+      *> pb5074_display_decimal_comma_literal: COBOL-85 displays an unsigned
+      *> integer literal only (1985 VI.6.10.3 SR2; kb/Work PB5074).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3505C.
        ENVIRONMENT DIVISION.
@@ -30,5 +32,4 @@
            DISPLAY "DCU=" DCU "|"
            DISPLAY "DV=" DV "|"
            DISPLAY "DI=" DI "|"
-           DISPLAY "LIT=" 12,50 "|"
            STOP RUN.

@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-VI.6.9.2",
  "rule-digest": "fd856dd99f06",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#continueStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitContinueStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindContinue",
  "test-ref": "conformance:cases/VI.6.9@1985-CONTINUE-STATEMENT/1985-FMT-VI_6_9_2",
+ "notes": "§1985:VI.6.9.2 prints the one word CONTINUE, and §1985:VI.6.9.1 makes it \"a no operation statement\". The superset rule continueStatement (CONTINUE (AFTER arithmeticExpression SECONDS)?) parses it; at --std 85 the only thing the rule adds to the 1985 format, the AFTER ... SECONDS phrase, is refused by VersionConformancePass.VisitContinueStatement on the phrase's presence (Constructs.ContinueAfter2023, COBOL0900, probed at 85 and 2014), and ControlFlowBinder.BindContinue binds the plain word to BoundNop at every edition. The witness runs CONTINUE as the IF branch and as a sentence; also probed right at 85: CONTINUE in both IF branches, as an ON SIZE ERROR imperative, as EVALUATE WHEN objects, as a whole paragraph and twice in one.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

@@ -180,6 +180,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// unit's binder and overrides this through the entered method scope.</summary>
     internal SourceElementKind UnitKind { get => Ctx.UnitKind; set => Ctx.UnitKind = value; }
 
+    /// <summary>The USE declaratives of the programs that contain this unit, nearest first — the cross-program half
+    /// of an applicable USE AFTER STANDARD EXCEPTION procedure (§1985:VII.4.6.4 GR1; kb/Work PB5076). Set by
+    /// <c>BinderDriver</c> beside <see cref="UnitKind"/>; stored on the <see cref="BinderContext"/> that reads it.</summary>
+    internal Func<IEnumerable<BoundDeclarative>>? ContainerUses { get => Ctx.ContainerUses; set => Ctx.ContainerUses = value; }
+
     /// <summary>True when the unit being bound is a nested (contained) program — set from <c>BoundUnit.Parent</c>
     /// at binder construction. Gates FUNCTION MODULE-NAME NESTED (§2023:15.65.3 argument rule 1 — NESTED shall be
     /// specified only within a contained program).</summary>
@@ -287,7 +292,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             DebugSubRegisters: table.DebugSubRegisters,
             F3HandlerBasePc: table.F3Handlers.Count > 0 ? handlerBase : null,
             F3HandlerOwners: table.F3Handlers.Count > 0 ? table.F3HandlerOwners : null,
-            Raising: raising);
+            Raising: raising,
+            Segments: table.SegmentsPerPc(bound.Count));
     }
 
     // ⛔ `OoScopeHint` IS GONE (kb/Work PB390). It appended "names resolve METHOD-LOCALLY (§2023:11.7)" to the four
