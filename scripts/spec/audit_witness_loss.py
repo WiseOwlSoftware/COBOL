@@ -95,9 +95,16 @@ def renamed_from_name_status(out: str) -> dict[str, str]:
 
 def respelled_from_name_status(out: str, before: Schema, after: Schema) -> dict[str, str]:
     """`git diff -M --name-status -z` output → {before test-ref: after test-ref} for every RENAMED file that a
-    file-backed form names on both sides, each side spelled by its own tree's schema (`Schema.ref_for_path`)."""
-    return {was: now for old, new in renamed_from_name_status(out).items()
-            if (was := before.ref_for_path(old)) and (now := after.ref_for_path(new))}
+    file-backed form names on both sides, each side spelled by its own tree's schema (`Schema.ref_for_path`), and
+    {`<form>:<Class>.`: `<form>:<Class>.`} for every renamed xUnit test file (`Schema.class_ref_for_path`; a ref of
+    that class keeps its method, `inventory_schema.respelled_ref`)."""
+    out_map: dict[str, str] = {}
+    for old, new in renamed_from_name_status(out).items():
+        if (was := before.ref_for_path(old)) and (now := after.ref_for_path(new)):
+            out_map[was] = now
+        elif (was := before.class_ref_for_path(old)) and (now := after.class_ref_for_path(new)):
+            out_map[was] = now
+    return out_map
 
 
 def moves(before_rev: str, after_rev: str | None) -> dict[str, str]:
@@ -112,7 +119,7 @@ def respellings(before_rev: str, after_rev: str | None, before: Schema, after: S
     `after_rev` (None: the working tree, whose renamed files must be tracked). Git's rename record IS the identity
     of a moved file, so a move (the suite's S2 move, a test re-filed under another clause folder) needs no
     hand-kept map, and the history walk reads the same record of every commit long after the move landed."""
-    roots = sorted(set(before.ref_roots) | set(after.ref_roots))
+    roots = sorted(set(before.ref_roots) | set(after.ref_roots) | set(before.test_dirs) | set(after.test_dirs))
     out = _git("-c", "diff.renameLimit=0", "diff", "-M", "--name-status", "-z", before_rev,
                *([after_rev] if after_rev else []), "--", *roots)
     return respelled_from_name_status(out, before, after)
@@ -138,11 +145,13 @@ def compare(before: list[dict[str, Any]], after: list[dict[str, Any]], schema,
 def compare_revisions(before: list[dict[str, Any]], after: list[dict[str, Any]], before_rev: str,
                       after_rev: str | None, schema) -> tuple[list[WitnessLoss], list[str]]:
     """`compare`, with the re-spellings of the change from `before_rev` to `after_rev` (None: the working tree).
-    Git's rename record is read only when a file-backed test-ref was lost, so a change that moved nothing pays
-    nothing for it."""
+    Git's rename record is read only when a test-ref a moved file could re-spell was lost (a file-backed one, or an xUnit
+    one, whose class's file may have moved between test projects), so a change that moved nothing pays nothing for it."""
     losses, vanished = compare(before, after, schema)
     before_schema = schema_at(before_rev) or schema
-    refs = any(not l.excused and l.field == "test-ref" and before_schema.ref_path(l.ref) for l in losses)
+    refs = any(not l.excused and l.field == "test-ref"
+               and (before_schema.ref_path(l.ref) or "test-dir" in before_schema.test_ref_forms.get(l.ref.partition(":")[0], {}))
+               for l in losses)
     locations = any(not l.excused and l.field == "code-location" for l in losses)
     if refs or locations:
         after_schema = (schema_at(after_rev) or schema) if after_rev else schema
@@ -434,6 +443,17 @@ def self_test(schema) -> int:
     verify("git's rename record re-spells each renamed witness file, each side by its own tree's schema (a "
            "modified, deleted or copied file, or one no form names, re-spells nothing)",
            got == {"conformance:85/foo": "conformance:cases/7.2.3-COPY/foo_85"}, f": {got}")
+    # An xUnit test file moved between test projects (kb/Work PB5230: Unit to RepoDrift) re-spells every ref of its class.
+    xz = "\0".join(["R096", "tests/WiseOwl.Cobol.Tests.Unit/HostDriftTests.cs",
+                    "tests/WiseOwl.Cobol.Tests.RepoDrift/HostDriftTests.cs", ""])
+    xmoved = respelled_from_name_status(xz, schema, schema)
+    xrow = {**row, "test-ref": "unit:HostDriftTests.NoTest_DoesX"}
+    verify("a renamed xUnit test file re-spells its class (`unit:C.` -> `repo-drift:C.`)",
+           xmoved == {"unit:HostDriftTests.": "repo-drift:HostDriftTests."}, f": {xmoved}")
+    expect("a row citing the moved class's method under the new form is excused",
+           witness_losses(xrow, {**xrow, "test-ref": "repo-drift:HostDriftTests.NoTest_DoesX"}, schema, xmoved), 0, 1)
+    expect("a row that drops the moved class's method is still a loss",
+           witness_losses(xrow, {**xrow, "test-ref": ""}, schema, xmoved), 1, 0)
     verify("a file-backed form's ref and its path are inverses; an xUnit form names no file",
            schema.ref_for_path(schema.ref_path(moved_to) or "") == moved_to
            and schema.ref_path("unit:SomeTests.SomeMethod") is None
