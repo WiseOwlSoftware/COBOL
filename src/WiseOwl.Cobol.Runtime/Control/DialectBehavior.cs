@@ -127,6 +127,32 @@ public enum DialectBehavior
     /// <c>InspectBinder</c>, which pins the DEPENDING ON object for the statement from 2002 and sets
     /// <c>BoundInspect.ReplacingTakesLengthAnew</c> below it.</summary>
     InspectFormat3LengthIdentifiedOnce = 7,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.54.4 GR4 — "If the associated size error indicator is set, an EC-REPORT-SUM-SIZE
+    /// exception condition is set to exist and the printable item is filled with spaces" (the 2002 text, 13.16.52.3 GR4,
+    /// words it the same). §1985:XIII.3.19.4 GR4 has no size error indicator: "the sum counter serves as a source data item.
+    /// The report writer control system moves the data contained in the sum counter, according to the rules of the MOVE
+    /// statement, to the printable item for presentation", so at <c>--std 85</c> a counter whose addition overflowed still
+    /// presents the content it holds, and nothing is raised (kb/Work PB5248; VCR row 7.58). The consumer is
+    /// <c>CobolReport.SumPresentable</c>, over the edition the compilation baked into the report.</summary>
+    SumSizeErrorBlanksPrintableItem = 8,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.37.4 GR4 a) — the save location filled by an absolute NEXT GROUP "will have no
+    /// effect at all if a TERMINATE is next executed for the report" (the 2002 text, 13.16.35.3 GR4 a), words it the same).
+    /// §1985:XIII.3.10.8 GR3 gives every body group the saved-integer arm of the fit test, and §1985:XIII.4.7.4 GR1 has TERMINATE
+    /// produce the control footings as body groups, so at <c>--std 85</c> the saved integer is still there for the first
+    /// control footing TERMINATE produces: it takes the page advance and the placement the integer gives (kb/Work PB5245;
+    /// VCR row 7.59). The consumer is <c>CobolReport.TerminateCore</c>.</summary>
+    TerminateDiscardsSavedNextGroup = 9,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.28.4 GR1 — GROUP INDICATE "has the same effect as a PRESENT WHEN clause where the
+    /// associated condition is true only on the first occasion that a GENERATE is issued for the current detail report
+    /// group" after an INITIATE, a page advance or a control break (the 2002 text, 13.16.26.3 GR1, words it the same), so a
+    /// GENERATE the USE procedure's SUPPRESS PRINTING inhibited still used the occasion up. §1985:XIII.3.13.4 GR1 keys the
+    /// indication to "the first presentation of the detail report group", and §1985:XIII.4.6.4 GR3 says a suppressed group
+    /// is not presented, so at <c>--std 85</c> only a GENERATE whose group was presented consumes it (kb/Work PB5246; VCR row
+    /// 7.60). The consumer is <c>CobolReport.GenerateCore</c>.</summary>
+    GroupIndicateConsumedByIssuedGenerate = 10,
 }
 
 /// <summary>
@@ -186,6 +212,18 @@ public static class DialectBehaviors
             "7.57", "14.9.22.4 GR19", "§1985:VI.6.18.4 GR17",
             "a format 3 INSPECT of an occurs-depending group identifies the group's length once, before the TALLYING half, "
             + "only from COBOL-2002; COBOL-85 takes the length anew for the REPLACING half"),
+        new(DialectBehavior.SumSizeErrorBlanksPrintableItem, "sum-size-error-blanks-printable-item", 2002,
+            "7.58", "13.18.54.4 GR4", "§1985:XIII.3.19.4 GR4",
+            "a SUM entry whose counter holds a size error is printed as spaces, with EC-REPORT-SUM-SIZE, only from COBOL-2002; "
+            + "COBOL-85 moves the counter's content to the printable item by the rules of MOVE"),
+        new(DialectBehavior.TerminateDiscardsSavedNextGroup, "terminate-discards-saved-next-group", 2002,
+            "7.59", "13.18.37.4 GR4 a", "§1985:XIII.3.10.8 GR3",
+            "a saved absolute NEXT GROUP integer has no effect on the control footings a TERMINATE produces only from COBOL-2002; "
+            + "COBOL-85 leaves it for their page fit test"),
+        new(DialectBehavior.GroupIndicateConsumedByIssuedGenerate, "group-indicate-consumed-by-issued-generate", 2002,
+            "7.60", "13.18.28.4 GR1", "§1985:XIII.3.13.4 GR1",
+            "a GENERATE whose group SUPPRESS PRINTING kept from printing uses up the GROUP INDICATE occasion only from COBOL-2002; "
+            + "COBOL-85 keys the indication to the first presentation of the detail group"),
     ];
 
     static DialectBehaviors()

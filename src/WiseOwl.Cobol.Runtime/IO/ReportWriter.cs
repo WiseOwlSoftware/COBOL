@@ -728,7 +728,10 @@ public sealed class CobolReport(
     /// outcome GR4 states unconditionally, checking or not (kb/Work PB1130).</summary>
     public bool SumPresentable(int id)
     {
-        if (!_sums[id].SizeError) return true;
+        // §1985:XIII.3.19.4 GR4 has no size error indicator: the counter is moved to the printable item by the rules of MOVE,
+        // and nothing is raised (kb/Work PB5248; DialectBehavior.SumSizeErrorBlanksPrintableItem).
+        if (!_sums[id].SizeError
+            || !DialectBehaviors.IsActive(DialectBehavior.SumSizeErrorBlanksPrintableItem, Edition)) return true;
         ExceptionState.ReportSumSizeError($"report {Name}: sum counter {id + 1} is presented with its size error "
             + "indicator set (ISO §2023:13.18.54.4 GR4)");
         return false;
@@ -832,23 +835,34 @@ public sealed class CobolReport(
 
     // ── GENERATE (ISO §2023:14.9.16.4) ─────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>GENERATE one detail (<paramref name="detailName"/>) or a summary instance (null — §2023:14.9.16.4 GR2,
-    /// same processing with no detail printed). First GENERATE (GR4): RH once → PH → CHs major→minor → detail.
+    /// <summary>GENERATE one detail (<paramref name="detailName"/>) (summary reporting is <see cref="GenerateSummary"/>, §2023:14.9.16.4 GR2,
+    /// the same processing with no detail printed). First GENERATE (GR4): RH once → PH → CHs major→minor → detail.
     /// Subsequent (GR5): on a control break, CFs minor→break then CHs break→minor (GR5a / §2023:13.18.16.4 GR4), then
     /// the detail. Body groups page-fit per §2023:13.18.35.4 GR4 (the chronologically first since INITIATE exempt);
     /// an unsuccessful fit page-advances per GR6 (PF → physical advance → PAGE-COUNTER → LINE-COUNTER ← 0 → PH).
     /// GR7: a GENERATE for an INACTIVE report raises EC-REPORT-INACTIVE and does nothing; §2023:14.9.49.4 GR10: one
     /// executed inside a USE BEFORE REPORTING range raises EC-FLOW-REPORT, is unsuccessful, and leaves the state
     /// of the report unchanged (kb/Work PB326).</summary>
-    public void Generate(string? detailName, Func<int, bool>? beforeReporting = null)
+    public void Generate(string? detailName, Func<int, bool>? beforeReporting = null) =>
+        GenerateWith(detailName, printDetail: true, beforeReporting);
+
+    /// <summary>GENERATE report-name — SUMMARY reporting (§2023:14.9.16.4 GR2: "the same processing as for a GENERATE
+    /// data-name statement for the same report, except that no detail is printed"). <paramref name="detailName"/> is the
+    /// detail group the report has when it has exactly one (§1985:XIII.3.20.4 GR11, "as though a GENERATE data-name
+    /// statement were being executed"): its SUM ... UPON subtotalling is performed, its presentation is not (kb/Work
+    /// PB5249). Null for a report with no single named detail.</summary>
+    public void GenerateSummary(string? detailName, Func<int, bool>? beforeReporting = null) =>
+        GenerateWith(detailName, printDetail: false, beforeReporting);
+
+    private void GenerateWith(string? detailName, bool printDetail, Func<int, bool>? beforeReporting)
     {
         var saved = _beforeReporting;   // restored, not cleared: a GR10-refused nested call must not clobber it
         _beforeReporting = beforeReporting;
-        try { GenerateCore(detailName); }
+        try { GenerateCore(detailName, printDetail); }
         finally { _beforeReporting = saved; }
     }
 
-    private void GenerateCore(string? detailName)
+    private void GenerateCore(string? detailName, bool printDetail)
     {
         // §2023:14.9.49.4 GR10 — see Initiate: unsuccessful, report state unchanged, the raise gated by checking.
         if (RunUnit.Current.ReportFlow.InBeforeReporting)
@@ -925,15 +939,18 @@ public sealed class CobolReport(
                     target.Accumulate(sumId, apply);
 
         // GR4d / GR5b: the specified detail — unless summary reporting (GR2).
-        if (detailName is not null && _details.TryGetValue(detailName, out var detail))
+        if (printDetail && detailName is not null && _details.TryGetValue(detailName, out var detail))
         {
-            PresentBody(detail);
+            bool presented = PresentBody(detail);
             // §2023:13.18.28.4 GR1 — this GENERATE WAS the "first occasion that a GENERATE is issued for the current
             // detail group" since the last event, whether or not the group printed: a SUPPRESS (§2023:14.9.45) or an
             // all-absent PRESENT WHEN leaves the GENERATE issued all the same. Consumed only AFTER the
             // presentation, because the page advance of this group's own page-fit test (§2023:13.18.35.4 GR4) is an
-            // event b) that precedes its lines and must re-arm the condition they read.
-            detail.GroupIndicatePending = false;
+            // event b) that precedes its lines and must re-arm the condition they read. §1985:XIII.3.13.4 GR1 keys it to the
+            // first PRESENTATION of the group, so at --std 85 a group that did not present leaves it owed (kb/Work PB5246;
+            // DialectBehavior.GroupIndicateConsumedByIssuedGenerate).
+            if (presented || DialectBehaviors.IsActive(DialectBehavior.GroupIndicateConsumedByIssuedGenerate, Edition))
+                detail.GroupIndicatePending = false;
         }
     }
 
@@ -1046,7 +1063,10 @@ public sealed class CobolReport(
             // effect at all if a TERMINATE is next executed for the report": the save location is discarded and
             // LINE-COUNTER is what the group's own last line left it, so the control footings below neither take
             // the forced page advance nor the save-location placement.
-            if (_nextGroupSave != 0)
+            // §1985:XIII.3.10.8 GR3 / §1985:XIII.4.7.4 GR1 have no such rule: the control footings TERMINATE produces are body
+            // groups, and the first of them meets the saved integer in its fit test (PresentBody, PlaceAfterSavedNextGroup),
+            // so at --std 85 the save location stays (kb/Work PB5245; DialectBehavior.TerminateDiscardsSavedNextGroup).
+            if (_nextGroupSave != 0 && DialectBehaviors.IsActive(DialectBehavior.TerminateDiscardsSavedNextGroup, Edition))
             {
                 _nextGroupSave = 0;
                 LineCounter = _lineCounterBeforeSave;
@@ -1142,10 +1162,11 @@ public sealed class CobolReport(
     /// advance, then each line per GR5 (first line) / GR7 (subsequent lines). <paramref name="reprint"/> is the
     /// OR PAGE reprint of a control heading (<see cref="PresentOrPageHeadings"/>): the first body group of a
     /// fresh page, so it takes no page-fit test, and it is not the heading's first printing, so it neither applies
-    /// its NEXT GROUP clause nor resets the SUM counters it prints.</summary>
-    private void PresentBody(ReportGroup group, bool applyNextGroup = true, bool reprint = false)
+    /// its NEXT GROUP clause nor resets the SUM counters it prints. Returns whether the group was PRESENTED — false for
+    /// a dummy group (no present line) and for one a USE procedure's SUPPRESS inhibited.</summary>
+    private bool PresentBody(ReportGroup group, bool applyNextGroup = true, bool reprint = false)
     {
-        if (!BeginGroup(group, out int first, reprint)) return;
+        if (!BeginGroup(group, out int first, reprint)) return false;
         var lines = group.Lines;
 
         // The first line's position when the preceding body group's absolute NEXT GROUP filled the save location
@@ -1199,10 +1220,11 @@ public sealed class CobolReport(
         bool whole = PresentLines(group, firstTarget);
         _firstBodySinceInitiate = false;
         _firstBodyOnPage = false;
-        if (!whole) return;   // a raised EC-REPORT-PAGE-LIMIT — resume at the next report group (PresentLine)
-        if (reprint) return;
+        if (!whole) return true;   // a raised EC-REPORT-PAGE-LIMIT — resume at the next report group (PresentLine)
+        if (reprint) return true;
         if (applyNextGroup) ApplyNextGroup(group);   // §2023:13.18.37.4 GR2 — after the group's last line is printed
         EndOfGroupSumReset(group);
+        return true;
     }
 
     /// <summary>⛔ ISO §2023:13.18.37.4 GR4a — THE NEXT NON-DUMMY BODY GROUP AFTER A SAVED ABSOLUTE NEXT GROUP. The
