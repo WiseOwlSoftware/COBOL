@@ -159,16 +159,27 @@ internal enum ArgPredicateKind
     CharacterCategory,
 }
 
-/// <summary>One per-position predicate: its <see cref="Kind"/>, the clause it was read from, and the width
-/// operand for the width kinds.</summary>
-internal readonly record struct ArgPredicate(ArgPredicateKind Kind, string Clause, int N = 0)
+/// <summary>One per-position predicate: its <see cref="Kind"/>, the clause it was read from, the width
+/// operand for the width kinds, and <see cref="Since"/>, the first edition whose rule states it.</summary>
+/// <param name="Since">⛔ THE EDITION THE PREDICATE'S WORDING STARTS IN (kb/Work PB5162). A function's argument rule can say
+/// less in an earlier edition than the clause it was read from: §1989:A.2.31.3 AR1 asks of ORD's argument "class alphabetic or
+/// alphanumeric", and the 1985 alphanumeric class holds the numeric edited and alphanumeric edited categories (§1985:IV.4.3.3),
+/// where the 2002 text and §2023:15.70.3 AR1 say "category". The screen asks a predicate only at an edition at or after
+/// <see cref="Since"/> (<c>IntrinsicBinder.CheckArgumentClasses</c>), and <c>IntrinsicArgumentClassDriftTests</c> holds each
+/// CharacterCategory row's edition to the 1989 module's own wording, so a row cannot carry the later wording backwards.
+/// 85 for a predicate every edition that has the function states.</param>
+internal readonly record struct ArgPredicate(ArgPredicateKind Kind, string Clause, int N = 0, int Since = 85)
 {
     public static ArgPredicate MinWidth(int n, string clause) => new(ArgPredicateKind.MinWidth, clause, n);
     public static ArgPredicate ExactWidth(int n, string clause) => new(ArgPredicateKind.ExactWidth, clause, n);
     public static ArgPredicate DataItemOrLiteralOnly(string clause) => new(ArgPredicateKind.DataItemOrLiteralOnly, clause);
     public static ArgPredicate DataItemOnly(string clause) => new(ArgPredicateKind.DataItemOnly, clause);
     public static ArgPredicate NotStrongGroup(string clause) => new(ArgPredicateKind.NotStrongGroup, clause);
-    public static ArgPredicate CharacterCategory(string clause) => new(ArgPredicateKind.CharacterCategory, clause);
+    public static ArgPredicate CharacterCategory(string clause, int since = 85) =>
+        new(ArgPredicateKind.CharacterCategory, clause, Since: since);
+
+    /// <summary>Does the rule of <paramref name="editionYear"/> (85, 2002, 2014, 2023) state this predicate?</summary>
+    public bool AppliesAt(int editionYear) => editionYear >= Since;
 }
 
 /// <summary>A §15.x.3 rule about the argument list AS A WHOLE, which no per-position code can express.</summary>
@@ -856,8 +867,11 @@ internal static class IntrinsicArgumentRules
             // be of category alphabetic, alphanumeric, or national" (PB58 — the width half was unscreened).
             // …and "of CATEGORY alphabetic, alphanumeric, or national" — a category wording, so the edited categories
             // (a one-position PIC Z item is class alphanumeric and category numeric-edited) are out (kb/Work PB658).
+            // From 2002: the 1989 module says "class alphabetic or alphanumeric" (§1989:A.2.31.3 AR1), and the 1985
+            // alphanumeric class holds the edited categories (§1985:IV.4.3.3), so at --std 85 a one-character PIC Z item is
+            // an ORD argument (kb/Work PB5162).
             ["ORD"] = Uniform('s', "§2023:15.70.3 r1").WithTailPredicate(ArgPredicate.ExactWidth(1, "§2023:15.70.3 r1"))
-                .WithTailPredicate(ArgPredicate.CharacterCategory("§2023:15.70.3 r1")),
+                .WithTailPredicate(ArgPredicate.CharacterCategory("§2023:15.70.3 r1", since: 2002)),
             // r1's negative class list ('p') + "nor shall it be a strongly-typed group item" (the predicate);
             // r2 no zero-length literal; r3 all-same-class (PB58 — ORD-MAX/ORD-MIN never had the cross rule MAX
             // and MIN had: the two-arm-dispatch scar, one arm fixed).
@@ -1713,6 +1727,8 @@ internal static class IntrinsicArgumentRules
                 + $"by the literal {d.Text}, which does not always "
                 + "result in an integer value — ISO §2023:15.3 type 6 admits an arithmetic expression only when it "
                 + "ALWAYS results in one";
+        // A root POWER over a bare data item whose exponent can be negative or not an integer (kb/Work PB5208).
+        if (expr is BoundPower pw && PowerWitness(pw) is { } powerWhy) return powerWhy;
         // An additive spine (+, −, unary −) carrying a scale>0 item PURELY as its own leaves, with a net
         // coefficient the item's granularity does not cancel (10^scale ∤ net): value every other leaf at any
         // constant and step the item by 10^(−scale) — consecutive results are less than 1 apart, so a
@@ -1749,6 +1765,49 @@ internal static class IntrinsicArgumentRules
                     : "every other term is an integer, so its value is never an integer")
                 + " — ISO §2023:15.3 type 6 admits an arithmetic expression only when it ALWAYS results in an integer value";
         return null;
+    }
+
+    /// <summary>⛔ THE POWER ARM OF THE TYPE 6 SCREEN (kb/Work PB5208; §2023:15.3 type 6 and §1989:A.2.2 AR4: "An arithmetic
+    /// expression which will always result in an integer value must be specified"). <see cref="ProvablyIntegral"/> already knows a
+    /// power is integral when its exponent is a non-negative integer literal; this is the other half, the shapes with a WITNESS
+    /// valuation, so the screen refuses them as it refuses <c>N / 2</c> instead of failing open. The base is a bare numeric data
+    /// item (through negations, |−X| ** e = |X| ** e up to sign): a numeric item of scale s can hold v = 3 × 10^(−s), and
+    /// <list type="bullet">
+    /// <item>a literal exponent that is a negative integer −k gives v^(−k) = 10^(sk) / 3^k, never an integer, since 3^k does not
+    /// divide a power of ten;</item>
+    /// <item>a literal exponent that is not an integer, p/q in lowest terms with q &gt; 1, gives a v^(p/q) whose q-th power
+    /// 3^p × 10^(−sp) has a power of 3 that q does not divide, so it is not even rational;</item>
+    /// <item>an exponent that is itself a numeric data item (a different one; the same item would tie the two valuations) can be
+    /// negative when it is signed or written under an odd number of negations, and can be a non-integer when its description
+    /// admits one: −1 × 10^(−s′) or 1 × 10^(−s′) is then one of the two cases above.</item>
+    /// </list>
+    /// Every other power fails OPEN (a base that is an expression, <c>(N − N + 1) ** −1</c> being 1; a literal base, whose
+    /// value can make an item exponent's every power integral), as the quotient arm does beyond a bare item and a literal.</summary>
+    private static string? PowerWitness(BoundPower pw)
+    {
+        if (BareNumericItem(pw.Base) is not { Place.Item: { } baseItem }) return null;
+        string why;
+        if (ExactValue(pw.Exp) is { } e)
+        {
+            if (e.IsInteger && e.Sign >= 0) return null;                  // ProvablyIntegral's arm: N ** 2 is always an integer
+            why = e.IsInteger ? $"to the negative power {e}" : $"to the power {e}, which is not an integer";
+        }
+        else
+        {
+            BoundExpr x = pw.Exp;
+            bool negated = false;
+            while (x is BoundNegate n) { negated = !negated; x = n.Operand; }
+            if (x is not BoundNumRef { Place.DenotedItem: not null, Place.Item: { IsGroup: false, Pic: { Category: PicCategory.Numeric } ep } expItem }
+                || ReferenceEquals(expItem, baseItem))
+                return null;
+            bool canBeNegative = ep.Signed || negated, canBeFraction = AdmitsNonIntegralValue(ep);
+            if (!canBeNegative && !canBeFraction) return null;            // an unsigned integer exponent: N ** M is always an integer
+            why = canBeNegative
+                ? $"to the power of the {(ep.Signed ? "signed" : "negated")} data item '{expItem.CobolName}'"
+                : $"to the power of the data item '{expItem.CobolName}', which has digits to the right of the decimal point";
+        }
+        return $"raises the data item '{baseItem.CobolName}' {why}, so its value is not always an integer — ISO "
+            + "§2023:15.3 type 6 admits an arithmetic expression only when it ALWAYS results in an integer value";
     }
 
     /// <summary>The §2023:15.3 type 6 item witness over a walked spine: the first item whose net coefficient its granularity does
