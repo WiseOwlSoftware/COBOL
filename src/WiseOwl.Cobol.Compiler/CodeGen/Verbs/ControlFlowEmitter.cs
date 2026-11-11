@@ -712,7 +712,10 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     private void EmitSerialScan(BoundSearch s, int id, string bound, Action<string, string, bool> unsuccessful)
     {
         var w = ctx.Writer;
-        unsuccessful($"{s.IndexField} < 1 || {s.IndexField} > {bound}", "EC-RANGE-SEARCH-INDEX", s.CheckSearchIndex);
+        // GR4 (2002 on): an index below 1 is unsuccessful at the start; §1985:VI.6.22.4 GR2 tests the upper bound alone, so at COBOL-85
+        // an index below the table (left there by a PERFORM, §1985:VI.6.23.4 GR2) starts the scan (kb/Work PB5121).
+        unsuccessful(s.IndexBelowTableIsUnsuccessful ? $"{s.IndexField} < 1 || {s.IndexField} > {bound}" : $"{s.IndexField} > {bound}",
+            "EC-RANGE-SEARCH-INDEX", s.CheckSearchIndex);
         w.Line($"__search{id}:");
         EmitSearchWhens(s, id);
         w.Line($"{s.IndexField} += 1;");

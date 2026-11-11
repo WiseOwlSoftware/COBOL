@@ -58,6 +58,10 @@
     {
       "id": "perform-varying-after-init-inner-first",
       "vcrRow": "7.53"
+    },
+    {
+      "id": "search-index-below-table-unsuccessful",
+      "vcrRow": "7.55"
     }
   ],
   "nonstandardExtensionIds": [

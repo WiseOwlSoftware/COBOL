@@ -130,6 +130,7 @@ WiseOwl.Cobol.Runtime.DebugItem.StoreLine(string! image) -> void
 WiseOwl.Cobol.Runtime.DebugItem.StoreName(string! image) -> void
 WiseOwl.Cobol.Runtime.DebugItem.StoreSub(int level, string! image) -> void
 WiseOwl.Cobol.Runtime.DialectBehavior.ControlFootingPageGroupsSeePriorControlValues = 4 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.SearchIndexBelowTableUnsuccessful = 5 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.FileSharingFacility = 2 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter = 3 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.Exceptions.CheckingFlags.FlowApplyCommit -> bool
