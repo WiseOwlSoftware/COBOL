@@ -1,4 +1,4 @@
-## PB5218: the three test assemblies are targets with declared inputs, each with its own key, their passes in one store every worktree shares
+## Entry 3454 — 2026-11-10 19:05 PST — PB5218: the three test assemblies are targets with declared inputs, each with its own key, their passes in one store every worktree shares
 
 The owner approved the build redesign of kb/Work PB5207 on 2026-11-10: "This is precisely what the Unix make and Windows
 MSBuild utilities are for. They rerun only what is required due to changes." This is its first stage.
@@ -29,3 +29,4 @@ any worktree. Dry run on real trees: records-85 (e1a0e2f573) and records-85b (ca
 **Proof.** `gate.py --self-test` passes 109 arms; twelve of the new target arms fail against the pre-stage-1 driver.
 `buildgraph.py --self-test` passes 7 arms, and `buildgraph.py check` is GREEN over the three assemblies. The full commands and
 verdict lines are in kb/Work PB5218.
+
