@@ -2207,21 +2207,13 @@ Any term listed below refers to an instance of the corresponding element as desc
 | Operand type | Described in | Term (n = 1, 2, 3, ... ) |
 |---|---|---|
 | Argument | 15.3, Arguments | argument-n |
-| Expression | 8.8, Expressions | arithmetic-expression-n |
-
-boolean-expression-n conditional-expression-n
-
+| Expression | 8.8, Expressions | arithmetic-expression-n<br>boolean-expression-n<br>conditional-expression-n |
 | Integer | 5.5, Integer operands | integer-n |
-|---|---|---|
 | Literal | 8.3.1.2, Literals | literal-n |
 | Reference | 8.4, References |  |
-| a) User-defined word, including | 8.3.1.1.1, User-defined words | Any of the types listed in 8.3.1.1.1 |
-| qualification and subscription if | 8.4.1.1, Qualification | suffixed by -n |
-| needed | 8.4.1.2, Subscripts |  |
+| a) User-defined word, including<br>qualification and subscription if<br>needed | 8.3.1.1.1, User-defined words<br>8.4.1.1, Qualification<br>8.4.1.2, Subscripts | Any of the types listed in 8.3.1.1.1<br>suffixed by -n |
 | b) Identifier | 8.4.2.1, Identifier | identifier-n |
-| c) Exception name | 14.6.12.1.5, Exception-names and | exception-name-1 |
-
-exception conditions
+| c) Exception name | 14.6.12.1.5, Exception-names and<br>exception conditions | exception-name-1 |
 
 ##### 5.2.4 Level numbers
 
@@ -2420,23 +2412,9 @@ Floating indicators may be used in fixed-form or free-form reference format. The
 
 | Character-string | Indicator name | Indicates |
 |---|---|---|
-| \*> | comment indicator | 1) a comment line when specified as the first |
-
-character-string in the program-text area;
-
-2\) an inline comment when specified following one or more character-strings in the program-text area, subject to the additional rules in 6.2.2.1, Syntax Rules.
-
-| >> | compiler directive | a compiler-directive line when followed by a compiler-directive |
-|---|---|---|
-|  | indicator | word - with or without an intervening space, subject to |
-
-additional rules in 7.3, Compiler directives.
-
-| "- | literal continuation | continuation of a literal when specified in an unterminated |
-|---|---|---|
-| '- | indicator | literal with the same quotation symbol in its opening delimiter, |
-
-subject to additional rules in 6.2.2.1, Syntax Rules.
+| \*> | comment indicator | 1) a comment line when specified as the first<br>character-string in the program-text area;<br>2\) an inline comment when specified following one or<br>more character-strings in the program-text area, subject<br>to the additional rules in 6.2.2.1, Syntax Rules. |
+| >> | compiler directive<br>indicator | a compiler-directive line when followed by a compiler-directive<br>word - with or without an intervening space, subject to<br>additional rules in 7.3, Compiler directives. |
+| "-<br>'- | literal continuation<br>indicator | continuation of a literal when specified in an unterminated<br>literal with the same quotation symbol in its opening delimiter,<br>subject to additional rules in 6.2.2.1, Syntax Rules. |
 
 ###### 6.2.2.1 Syntax Rules
 
@@ -2653,11 +2631,10 @@ The compilation stage completes the compilation process utilizing the structured
 
 The following are the compiler directing statements and compiler directives and the stage during which their actions take place:
 
-   Compiler directing statements Stage
-
-| COPY statement | Text manipulation |
+| Compiler directing statements | Stage |
 |---|---|
-| SUPPRESS phrase | Implementor-defined |
+| COPY statement | Text manipulation |
+| &emsp;SUPPRESS phrase | Implementor-defined |
 | REPLACE statement | Text manipulation |
 | Compiler directives | Stage |
 | CALL-CONVENTION | Compilation |
@@ -2665,11 +2642,8 @@ The following are the compiler directing statements and compiler directives and 
 | EVALUATE | Text-manipulation |
 | FLAG-02 | Compilation |
 | FLAG-85 | Compilation |
-
-   FLAG-NATIVE-ARITHMETIC Compilation
-
+| FLAG-NATIVE-ARITHMETIC | Compilation |
 | IF | Text-manipulation |
-|---|---|
 | LEAP-SECOND | Compilation |
 | LISTING | Implementor-defined |
 | PAGE | Implementor-defined |
@@ -4415,12 +4389,8 @@ Required words are of two types:
 | & | Concatenation operator |
 | > | Relational operator - greater than |
 | &lt; | Relational operator - less than |
-| = | Relational operator - equal |
-
-and assignment operator in COMPUTE
-
+| = | Relational operator - equal and assignment operator in COMPUTE |
 | == | Pseudo-text delimiter in COPY and REPLACE statements |
-|---|---|
 | >= | Relational operator - greater than or equal |
 | &lt;= | Relational operator - less than or equal |
 | &lt;> | Relational operator - not equal |
@@ -6820,9 +6790,7 @@ A boolean operator specifies the type of boolean operation to be performed on on
 |---|---|
 | B-AND | AND operation (boolean conjunction) |
 | B-OR | Inclusive OR operation (boolean inclusive disjunction) |
-| B-XOR | Exclusive OR operation (boolean exclusive |
-
-disjunction)
+| B-XOR | Exclusive OR operation (boolean exclusive disjunction) |
 
 | Unary boolean operator | Meaning |
 |---|---|
@@ -7983,13 +7951,9 @@ The logical operators and their meanings are:
 
 | Logical Operator | Meaning |
 |---|---|
-| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are |
-
-true; false if one or both of the conjoined conditions is false.
-
-   OR Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false.
-
-   NOT Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.
+| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false. |
+| OR | Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false. |
+| NOT | Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true. |
 
 ###### 8.8.4.2.1 Negated conditions
 
@@ -8298,24 +8262,15 @@ The following are context-sensitive words and are reserved in the specified lang
 | EOS | ERASE clause in a screen description entry |
 | ENTRY-CONVENTION | OPTIONS paragraph |
 | ERASE | screen description entry |
-| EXPANDS | class-specifier and interface-specifier of the REPOSITORY |
-
-paragraph
-
+| EXPANDS | class-specifier and interface-specifier of the REPOSITORY paragraph |
 | FLOAT-BINARY | OPTIONS paragraph |
-|---|---|
 | FLOAT-DECIMAL | OPTIONS paragraph |
 | FOREGROUND-COLOR | screen description entry |
 | FOREVER | RETRY phrase |
 | FULL | screen description entry |
-| HIGH-ORDER-LEFT | FLOAT-BINARY clause, FLOAT-DECIMAL clause, and |
-
-USAGE clause
-
-   HIGH-ORDER-RIGHT FLOAT-BINARY clause, FLOAT-DECIMAL clause, and USAGE clause
-
+| HIGH-ORDER-LEFT | FLOAT-BINARY clause, FLOAT-DECIMAL clause, and USAGE clause |
+| HIGH-ORDER-RIGHT | FLOAT-BINARY clause, FLOAT-DECIMAL clause, and USAGE clause |
 | HIGHLIGHT | screen description entry and SET attribute statement |
-|---|---|
 | IGNORING | READ statement |
 | IMPLEMENTS | FACTORY paragraph and OBJECT paragraph |
 
@@ -8342,12 +8297,8 @@ USAGE clause
 | NONE | DEFAULT clause |
 | NORMAL | STOP statement |
 | NUMBERS | COLUMN clause and LINE clause |
-| ONLY | Object-view, SHARING clause, SHARING phrase, and |
-
-USAGE clause
-
+| ONLY | Object-view, SHARING clause, SHARING phrase, and USAGE clause |
 | PARAGRAPH | EXIT statement |
-|---|---|
 | PREFIXED | DYNAMIC LENGTH STRUCTURE clause |
 | PREVIOUS | READ statement |
 | PROHIBITED | INTERMEDIATE ROUNDING clause and ROUNDED phrase |
@@ -9279,7 +9230,7 @@ Additionally, for each parameter that is passed by value or by content, and for 
 
    a) If the parameter or returning item in the invoked method is a universal object reference, the corresponding parameter or returning item in the invocation is a universal object reference.
 
-   b) Ιf the parameter or returning item in the invoked method is described with an interface-name, the corresponding parameter or returning item in is described with the same interface- name.
+   b) If the parameter or returning item in the invoked method is described with an interface-name, the corresponding parameter or returning item in is described with the same interface- name.
 
    c) If the parameter or returning item in the invoked method is described with a class-name, the corresponding parameter or returning item in the invocation is described with the same class-name, and the presence or absence of the FACTORY and ONLY phrases is the same in both descriptions.
 
@@ -9768,11 +9719,8 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | data-division | 13, Data division |
-
-environment-division 12, Environment division
-
+| environment-division | 12, Environment division |
 | options-paragraph | 11.9, OPTIONS paragraph |
-|---|---|
 | procedure-division | 14, Procedure division |
 
 ##### 10.6.2 Syntax rules
@@ -9897,16 +9845,12 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | class-id-paragraph | 11.3, CLASS-ID paragraph |
 | factory-paragraph | 11.4, FACTORY paragraph |
-
-function-id-paragraph 11.5, FUNCTION-ID paragraph\
-interface-id-paragraph 11.6, INTERFACE-ID paragraph\
-method-id-paragraph 11.7, METHOD-ID paragraph
-
+| function-id-paragraph | 11.5, FUNCTION-ID paragraph |
+| interface-id-paragraph | 11.6, INTERFACE-ID paragraph |
+| method-id-paragraph | 11.7, METHOD-ID paragraph |
 | object-paragraph | 11.8, OBJECT paragraph |
-|---|---|
 | options-paragraph | 11.9, OPTIONS paragraph |
-
-program-id-paragraph 11.10, PROGRAM-ID paragraph
+| program-id-paragraph | 11.10, PROGRAM-ID paragraph |
 
 ## Page 235
 
@@ -12171,9 +12115,8 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | constant-entry | 13.10, Constant entry |
-
-record-description-entry 13.11, Record description entry\
-type-declaration-entry 13.12, Type declaration entry
+| record-description-entry | 13.11, Record description entry |
+| type-declaration-entry | 13.12, Type declaration entry |
 
 ##### 13.4.2 Syntax rules
 
@@ -12392,9 +12335,8 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | 77-level-entry | 13.13, 77-level data description entry |
 | constant-entry | 13.10, Constant entry |
-
-record-description-entry 13.11, Record description entry\
-type-declaration-entry 13.12, Type declaration entry
+| record-description-entry | 13.11, Record description entry |
+| type-declaration-entry | 13.12, Type declaration entry |
 
 ##### 13.5.2 Syntax rules
 
@@ -12432,9 +12374,8 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | 77-level-entry | 13.13, 77-level data description entry |
 | constant-entry | 13.10, Constant entry |
-
-record-description-entry 13.11, Record description entry\
-type-declaration-entry 13.12, Type declaration entry
+| record-description-entry | 13.11, Record description entry |
+| type-declaration-entry | 13.12, Type declaration entry |
 
 ##### 13.6.2 Syntax rules
 
@@ -12472,9 +12413,8 @@ where the following meta-language terms are described in the indicated subclause
 |---|---|
 | 77-level-entry | 13.13, 77-level data description entry |
 | constant-entry | 13.10, Constant entry |
-
-record-description-entry 13.11, Record description entry\
-type-declaration-entry 13.12, Type declaration entry
+| record-description-entry | 13.11, Record description entry |
+| type-declaration-entry | 13.12, Type declaration entry |
 
 ##### 13.7.2 Syntax rules
 
@@ -12531,8 +12471,7 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | 77-level-entry | 13.13, 77-level data description entry |
-
-report-group-description-entry 13.8.4, Report group description entry
+| report-group-description-entry | 13.8.4, Report group description entry |
 
 ##### 13.8.2 Syntax rules
 
@@ -12605,8 +12544,7 @@ where the following meta-language terms are described in the indicated subclause
 | Term | Subclause |
 |---|---|
 | constant-entry | 13.10, Constant entry |
-
-screen-description-entry 13.17, Screen description entry
+| screen-description-entry | 13.17, Screen description entry |
 
 ##### 13.9.2 Syntax rules
 
@@ -12934,19 +12872,12 @@ where the following meta-language terms are described in the indicated subclause
 | class-clause | 13.18.11, CLASS clause |
 | default-clause | 13.18.17, DEFAULT clause |
 | entry-name-clause | 13.18.20, Entry-name clause |
-| occurs-clause | 13.18.38, OCCURS clause (fixed-table, occurs-depending-table, or dynamic-capacity- |
-
-<pre style="line-height:1">
-table-format)
-</pre>
-
+| occurs-clause | 13.18.38, OCCURS clause (fixed-table, occurs-depending-table, or dynamic-capacity-table-format) |
 | picture-clause | 13.18.40, PICTURE clause |
-|---|---|
 | select-when clause | 13.18.51, SELECT WHEN clause |
 | usage-clause | 13.18.60, USAGE clause |
-
-validate-status-clause 13.18.62, VALIDATE-STATUS clause\
-value-clause 13.18.63, VALUE clause (data-item or table format)
+| validate-status-clause | 13.18.62, VALIDATE-STATUS clause |
+| value-clause | 13.18.63, VALUE clause (data-item or table format) |
 
 Format 2 (renames):
 
@@ -22052,9 +21983,9 @@ Table 18 — Category of figurative constants used in the MOVE statement
 
 | Figurative constant | Category of<br>receiving operand | Category of<br>figurative constant |
 |---|---|---|
-| ALL literal, where literal is: Alphanumeric<br>Boolean<br>National | —<br>—<br>— | Alphanumeric<br>Boolean<br>National |
-| ALL symbolic character, where symbolic character is:<br>Alphanumeric<br>National | —<br>— | Alphanumeric<br>National |
-| HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited<br>Numeric<br>Numeric-edited<br>— if usage is display — if usage is national | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National<br>Alphanumeric<br>Alphanumeric<br>National |
+| ALL literal, where literal is:<br>&emsp;Alphanumeric<br>&emsp;Boolean<br>&emsp;National | &nbsp;<br>—<br>—<br>— | &nbsp;<br>Alphanumeric<br>Boolean<br>National |
+| ALL symbolic character, where symbolic character is:<br>&emsp;Alphanumeric<br>&emsp;National | &nbsp;<br>—<br>— | &nbsp;<br>Alphanumeric<br>National |
+| HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited<br>Numeric<br>Numeric-edited<br>&emsp;— if usage is display<br>&emsp;— if usage is national | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National<br>Alphanumeric<br>&nbsp;<br>Alphanumeric<br>National |
 | SPACE, SPACES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National |
 | ZERO, ZEROS, ZEROES | Alphanumeric<br>Alphanumeric-edited<br>Boolean<br>National<br>National-edited<br>Numeric<br>Numeric-edited | Alphanumeric<br>Alphanumeric<br>Boolean<br>National<br>National<br>Numeric<br>Numeric |
 | — indicates the figurative constant category does not depend on the category of the receiving operand |  |  |
@@ -27688,8 +27619,7 @@ The type of this function depends upon the argument types as follows:
 | Index | Index |
 | All arguments integer | Integer |
 | National | National |
-
-   Numeric (some arguments may be integer) Numeric
+| Numeric (some arguments may be integer) | Numeric |
 
 ##### 15.59.1 General format
 
@@ -30154,166 +30084,81 @@ The following list presents the characters identified in Annex A of TR 10176:200
 
    NOTE This repertoire includes combining marks specified for level 2 of ISO/IEC 10646. Combining marks of level 3 are excluded so as to avoid alternative representations of user-defined words.
 
-Script or\
-character
-
-| classification | Letters or range of letters |
+| Script or character classification | Letters or range of letters |
 |---|---|
-| Latin: | 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01BA, 01BB, 01BC-01BF, |
-
-01C0-01C3, 01C4-021F, 0222-0233, 0250-02AD, 1E00-1E9B, 1EA0-1EF9, 207F
+| Latin: | 0041-005A, 0061-007A, 00AA, 00BA, 00C0-00D6, 00D8-00F6, 00F8-01BA, 01BB, 01BC-01BF, 01C0-01C3, 01C4-021F, 0222-0233, 0250-02AD, 1E00-1E9B, 1EA0-1EF9, 207F |
 
 ## Page 790
 
-Greek: 0386, 0388-038A, 038C, 038E-03A1, 03A3-03CE, 03D0-03D7, 03DA-03F3, 1F00-1F15, 1F18-1F1D, 1F20-1F45, 1F48-1F4D, 1F50-1F57, 1F59, 1F5B, 1F5D, 1F5F-1F7D, 1F80-1FB4, 1FB6-1FBC, 1FC2-1FC4, 1FC6-1FCC, 1FD0-1FD3, 1FD6-1FDB, 1FE0-1FEC, 1FF2-1FF4, 1FF6-1FFC
-
-| Cyrillic: | 0400-0481, 048C-04C4, 04C7-04C8, 04CB-04CC, 04D0-04F5, 04F8-04F9 |
+|  |  |
 |---|---|
+| Greek: | 0386, 0388-038A, 038C, 038E-03A1, 03A3-03CE, 03D0-03D7, 03DA-03F3, 1F00-1F15, 1F18-1F1D, 1F20-1F45, 1F48-1F4D, 1F50-1F57, 1F59, 1F5B, 1F5D, 1F5F-1F7D, 1F80-1FB4, 1FB6-1FBC, 1FC2-1FC4, 1FC6-1FCC, 1FD0-1FD3, 1FD6-1FDB, 1FE0-1FEC, 1FF2-1FF4, 1FF6-1FFC |
+| Cyrillic: | 0400-0481, 048C-04C4, 04C7-04C8, 04CB-04CC, 04D0-04F5, 04F8-04F9 |
 | Armenian: | 0531-0556, 0561-0587 |
 | Hebrew: | 05D0-05EA, 05F0-05F2 |
-| Hebrew | 05B0-05B9, 05BB-05BD, 05BF, 05C1-05C2 |
-
-(combining):
-
+| Hebrew (combining): | 05B0-05B9, 05BB-05BD, 05BF, 05C1-05C2 |
 | Arabic: | 0621-063A, 0640, 0641-064A, 0671-06D3, 06D5, 06E5-06E6, 06FA-06FC |
-|---|---|
-| Arabic: | 064B-0652, 0670, 06D6-06DC, 06E7-06E8, 06EA-06ED |
-
-(Combining
-
+| Arabic: (Combining | 064B-0652, 0670, 06D6-06DC, 06E7-06E8, 06EA-06ED |
 | Syriac: | 0710, 0712-072C |
-|---|---|
-| Syriac: | 0711 |
-
-(Combining)
-
+| Syriac: (Combining) | 0711 |
 | Thaana: | 0780-07A5 |
-|---|---|
-| Thaana: | 07A6-07B0 |
-
-(combining)
-
+| Thaana: (combining) | 07A6-07B0 |
 | Devanagari: | 0905-0939, 093D, 0950, 0958-0961 |
-|---|---|
-| Devanagari: | 0901-0902, 0903, 093E-0940, 0941-0948, 0949-094C, 094D, 0951-0952, 0962-0963 |
-
-(combining)
-
-Bengali: 0985-098C, 098F-0990, 0993-09A8, 09AA-09B0, 09B2, 09B6-09B9, 09DC-09DD, 09DF-09E1, 09F0-09F1
-
-Bengali: 0981, 0982-0983, 09BE-09C0, 09C1-09C4, 09C7-09C8, 09CB-09CC, 09CD, 09E2-09E3 (combining)
-
-Gurmukhi: 0A05-0A0A, 0A0F-0A10, 0A13-0A28, 0A2A-0A30, 0A32-0A33, 0A35-0A36, 0A38-0A39, 0A59-0A5C, 0A5E, 0A72-0A74
-
-Gurmukhi: 0A02, 0A3E-0A40, 0A41-0A42, 0A47-0A48, 0A4B-0A4D\
-(combining)
-
-Gujarati: 0A85-0A8B, 0A8D, 0A8F-0A91, 0A93-0AA8, 0AAA-0AB0, 0AB2-0AB3, 0AB5-0AB9, 0ABD, 0AD0, 0AE0
-
-Gujarati: 0A81-0A82, 0A83, 0ABE-0AC0, 0AC1-0AC5, 0AC7-0AC8, 0AC9, 0ACB-0ACC, 0ACD (combining)
-
-Oriya: 0B05-0B0C, 0B0F-0B10, 0B13-0B28, 0B2A-0B30, 0B32-0B33, 0B36-0B39, 0B3D, 0B5C-0B5D, 0B5F-0B61
-
-Oriya: 0B01, 0B02-0B03, 0B3E, 0B3F, 0B40, 0B41-0B43, 0B47-0B48, 0B4B-0B4C, 0B4D (combining)
+| Devanagari: (combining) | 0901-0902, 0903, 093E-0940, 0941-0948, 0949-094C, 094D, 0951-0952, 0962-0963 |
+| Bengali: | 0985-098C, 098F-0990, 0993-09A8, 09AA-09B0, 09B2, 09B6-09B9, 09DC-09DD, 09DF-09E1, 09F0-09F1 |
+| Bengali: (combining) | 0981, 0982-0983, 09BE-09C0, 09C1-09C4, 09C7-09C8, 09CB-09CC, 09CD, 09E2-09E3 |
+| Gurmukhi: | 0A05-0A0A, 0A0F-0A10, 0A13-0A28, 0A2A-0A30, 0A32-0A33, 0A35-0A36, 0A38-0A39, 0A59-0A5C, 0A5E, 0A72-0A74 |
+| Gurmukhi: (combining) | 0A02, 0A3E-0A40, 0A41-0A42, 0A47-0A48, 0A4B-0A4D |
+| Gujarati: | 0A85-0A8B, 0A8D, 0A8F-0A91, 0A93-0AA8, 0AAA-0AB0, 0AB2-0AB3, 0AB5-0AB9, 0ABD, 0AD0, 0AE0 |
+| Gujarati: (combining) | 0A81-0A82, 0A83, 0ABE-0AC0, 0AC1-0AC5, 0AC7-0AC8, 0AC9, 0ACB-0ACC, 0ACD |
+| Oriya: | 0B05-0B0C, 0B0F-0B10, 0B13-0B28, 0B2A-0B30, 0B32-0B33, 0B36-0B39, 0B3D, 0B5C-0B5D, 0B5F-0B61 |
+| Oriya: (combining) | 0B01, 0B02-0B03, 0B3E, 0B3F, 0B40, 0B41-0B43, 0B47-0B48, 0B4B-0B4C, 0B4D |
 
 ## Page 791
 
-Tamil: 0B85-0B8A, 0B8E-0B90, 0B92-0B95, 0B99-0B9A, 0B9C, 0B9E-0B9F, 0BA3-0BA4, 0BA8-0BAA, 0BAE-0BB5, 0BB7-0BB9
-
-Tamil: 0B82, 0B83, 0BBE-0BBF, 0BC0, 0BC1-0BC2, 0BC6-0BC8, 0BCA-0BCC, 0BCD\
-(combining)
-
+|  |  |
+|---|---|
+| Tamil: | 0B85-0B8A, 0B8E-0B90, 0B92-0B95, 0B99-0B9A, 0B9C, 0B9E-0B9F, 0BA3-0BA4, 0BA8-0BAA, 0BAE-0BB5, 0BB7-0BB9 |
+| Tamil: (combining) | 0B82, 0B83, 0BBE-0BBF, 0BC0, 0BC1-0BC2, 0BC6-0BC8, 0BCA-0BCC, 0BCD |
 | Telugu: | 0C05-0C0C, 0C0E-0C10, 0C12-0C28, 0C2A-0C33, 0C35-0C39, 0C60-0C61 |
-|---|---|
-| Telugu: | 0C01-0C03, 0C3E-0C40, 0C41-0C44, 0C46-0C48, 0C4A-0C4D |
-
-(combining)
-
+| Telugu: (combining) | 0C01-0C03, 0C3E-0C40, 0C41-0C44, 0C46-0C48, 0C4A-0C4D |
 | Kannada: | 0C85-0C8C, 0C8E-0C90, 0C92-0CA8, 0CAA-0CB3, 0CB5-0CB9, 0CDE, 0CE0-0CE1 |
-|---|---|
-| Kannada: | 0C82-0C83, 0CBE, 0CBF, 0CC0-0CC4, 0CC6, 0CC7-0CC8, 0CCA-0CCB, 0CCC-0CCD |
-
-(combining)
-
+| Kannada: (combining) | 0C82-0C83, 0CBE, 0CBF, 0CC0-0CC4, 0CC6, 0CC7-0CC8, 0CCA-0CCB, 0CCC-0CCD |
 | Malayalam: | 0D05-0D0C, 0D0E-0D10, 0D12-0D28, 0D2A-0D39, 0D60-0D61 |
-|---|---|
-| Malayalam: | 0D02-0D03, 0D3E-0D40, 0D41-0D43, 0D46-0D48, 0D4A-0D4C, 0D4D |
-
-(combining)
-
+| Malayalam: (combining) | 0D02-0D03, 0D3E-0D40, 0D41-0D43, 0D46-0D48, 0D4A-0D4C, 0D4D |
 | Sinhala: | 0D85-0D96, 0D9A-0DB1, 0DB3-0DBB, 0DBD, 0DC0-0DC6 |
-|---|---|
-| Sinhala: | 0D82-0D83, 0DCA, 0DCF-0DD1, 0DD2-0DD4, 0DD6, 0DD8-0DDF, 0DF2-0DF3 |
-
-(combining)
-
+| Sinhala: (combining) | 0D82-0D83, 0DCA, 0DCF-0DD1, 0DD2-0DD4, 0DD6, 0DD8-0DDF, 0DF2-0DF3 |
 | Thai: | 0E01-0E30, 0E32-0E33, 0E40-0E45, 0E46 |
-|---|---|
-| Thai: | 0E31, 0E34-0E3A, 0E47-0E4E |
-
-(combining)
-
-Lao: 0E81-0E82, 0E84, 0E87-0E88, 0E8A, 0E8D, 0E94-0E97, 0E99-0E9F, 0EA1-0EA3, 0EA5, 0EA7, 0EAA-0EAB, 0EAD-0EB0, 0EB2-0EB3, 0EBD, 0EC0-0EC4, 0EC6, 0EDC-0EDD
-
-Lao: 0EB1, 0EB4-0EB9, 0EBB-0EBC, 0EC8-0ECD\
-(combining)
-
+| Thai: (combining) | 0E31, 0E34-0E3A, 0E47-0E4E |
+| Lao: | 0E81-0E82, 0E84, 0E87-0E88, 0E8A, 0E8D, 0E94-0E97, 0E99-0E9F, 0EA1-0EA3, 0EA5, 0EA7, 0EAA-0EAB, 0EAD-0EB0, 0EB2-0EB3, 0EBD, 0EC0-0EC4, 0EC6, 0EDC-0EDD |
+| Lao: (combining) | 0EB1, 0EB4-0EB9, 0EBB-0EBC, 0EC8-0ECD |
 | Tibetan: | 0F00, 0F40-0F47, 0F49-0F6A, 0F88-0F8B |
-|---|---|
-| Tibetan: | 0F18-0F19, 0F35, 0F37, 0F39, 0F71-0F7E, 0F7F, 0F80-0F84, 0F86-0F87, 0F90-0F97, 0F99-0FBC |
-
-(combining)
-
+| Tibetan: (combining) | 0F18-0F19, 0F35, 0F37, 0F39, 0F71-0F7E, 0F7F, 0F80-0F84, 0F86-0F87, 0F90-0F97, 0F99-0FBC |
 | Myanmar: | 1000-1021, 1023-1027, 1029-102A, 1050-1055 |
-|---|---|
-| Myanmar: | 102C, 102D-1030, 1031, 1032, 1036-1037, 1038, 1039, 1056-1057, 1058-1059 |
-
-(combining)
-
+| Myanmar: (combining) | 102C, 102D-1030, 1031, 1032, 1036-1037, 1038, 1039, 1056-1057, 1058-1059 |
 | Georgian: | 10A0-10C5, 10D0-10F6 |
-|---|---|
-| Ethiopic: | 1200-1206, 1208-1246, 1248, 124A-124D, 1250-1256, 1258, 125A-125D, 1260-1286, 1288, 128A- |
-
-128D, 1290-12AE, 12B0, 12B2-12B5, 12B8-12BE, 12C0, 12C2-12C5, 12C8-12CE, 12D0-12D6, 12D8-12EE, 12F0-130E, 1310, 1312-1315, 1318-131E, 1320-1346, 1348-135A
-
-Cherokee: 13A0-13F4
-
-Canadian\
-Aboriginal\
-Syllabics : 1401-166C, 166F-1676
+| Ethiopic: | 1200-1206, 1208-1246, 1248, 124A-124D, 1250-1256, 1258, 125A-125D, 1260-1286, 1288, 128A-128D, 1290-12AE, 12B0, 12B2-12B5, 12B8-12BE, 12C0, 12C2-12C5, 12C8-12CE, 12D0-12D6, 12D8-12EE, 12F0-130E, 1310, 1312-1315, 1318-131E, 1320-1346, 1348-135A |
+| Cherokee: | 13A0-13F4 |
+| Canadian Aboriginal Syllabics : | 1401-166C, 166F-1676 |
 
 ## Page 792
 
-| Ogham: | 1681-169A |
+|  |  |
 |---|---|
+| Ogham: | 1681-169A |
 | Runic: | 16A0-16EA, 16EE-16F0 |
 | Khmer: | 1780-17B3 |
-| Khmer: | 17B4-17B6, 17B7-17BD, 17BE-17C5, 17C6, 17C7-17C8, 17C9-17D3 |
-
-(combining)
-
+| Khmer: (combining) | 17B4-17B6, 17B7-17BD, 17BE-17C5, 17C6, 17C7-17C8, 17C9-17D3 |
 | Mongolian: | 1820-1842, 1843, 1844-1877, 1880-18A8 |
-|---|---|
-| Mongolian: | 18A9 |
-
-(combining)
-
+| Mongolian: (combining) | 18A9 |
 | Hiragana: | 3041-3094 |
-|---|---|
 | Katakana: | 30A1-30FA, 30FB, 30FC |
 | Bopomofo: | 3105-312C, 31A0-31B7 |
-
-CJK Unified
-
-| Ideographs: | 3400-4DB5, 4E00-9FA5, FA0E-FA0F, FA11, FA13-FA14, FA1F, FA21, FA23-FA24, FA27-FA29 |
-|---|---|
+| CJK Unified Ideographs: | 3400-4DB5, 4E00-9FA5, FA0E-FA0F, FA11, FA13-FA14, FA1F, FA21, FA23-FA24, FA27-FA29 |
 | Yi: | A000-A48C |
 | Hangul: | AC00-D7A3 |
-| Digits: | 0030-0039, 0660-0669, 06F0-06F9, 0966-096F, 09E6-09EF, 0A66-0A6F, 0AE6-0AEF, 0B66-0B6F, |
-
-0BE7-0BEF, 0C66-0C6F, 0CE6-0CEF, 0D66-0D6F, 0E50-0E59, 0ED0-0ED9, 0F20-0F29, 1040-1049, 1369-1371, 17E0-17E9, 1810-1819
-
-Special characters: 00B5, 02B0-02B8, 02BB-02C1, 02D0-02D1, 02E0-02E4, 02EE, 037A, 0559, 1FBE, 203F-2040, 2102, 2107, 210A-2113, 2115, 2119-211D, 2124, 2126, 2128, 212A-212D, 212F-2131, 2133-2134, 2135-2138, 2139, 2160-2183, 3005, 3006, 3007, 3021-3029, 3038-303A
+| Digits: | 0030-0039, 0660-0669, 06F0-06F9, 0966-096F, 09E6-09EF, 0A66-0A6F, 0AE6-0AEF, 0B66-0B6F, 0BE7-0BEF, 0C66-0C6F, 0CE6-0CEF, 0D66-0D6F, 0E50-0E59, 0ED0-0ED9, 0F20-0F29, 1040-1049, 1369-1371, 17E0-17E9, 1810-1819 |
+| Special characters: | 00B5, 02B0-02B8, 02BB-02C1, 02D0-02D1, 02E0-02E4, 02EE, 037A, 0559, 1FBE, 203F-2040, 2102, 2107, 210A-2113, 2115, 2119-211D, 2124, 2126, 2128, 212A-212D, 212F-2131, 2133-2134, 2135-2138, 2139, 2160-2183, 3005, 3006, 3007, 3021-3029, 3038-303A |
 
 ##### B.3.2 Additional characters
 
