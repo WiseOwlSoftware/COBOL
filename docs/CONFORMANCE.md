@@ -2983,6 +2983,13 @@ a result, so GnuCOBOL 3.2 (libcob, measured on every case below) is the comparat
   `0BBB`), and a replacing operand that is the counter reads the counter's new value. The re-read is the same
   `StorageOverlap` test as D-INS1, applied between the two halves. GnuCOBOL 3.2 emits the two statements separately
   and gives the same lines. Pinned by `conformance:cases/14.9.22-INSPECT/pb1907_inspect_format3_counter_overlap`.
+  **The length of an occurs-depending identifier-1 (kb/Work PB5119, VCR row 7.56)** is part of that identification
+  (§2023:14.6.4 step 6; the 2002 text words it for a variable-length data item), so from 2002 a TALLYING counter that is
+  the DEPENDING ON item does not change the length the REPLACING half works over (`ZZZBA`, pinned by
+  `conformance:cases/14.9.22-INSPECT/pb5119_format3_odo_length`). At `--std 85` GR17 fixes only the subscripting, so the
+  second of the two successive statements takes the length at its own start (`ZZZZZ`, `pb5119_format3_odo_length_1985`).
+  A function-identifier operand of any phrase is identified once, before the first counter is stored (§2023:14.9.22.4 GR6,
+  kb/Work PB5184, `pb5184_replacing_function_once`).
 - **D-INS3 — an INSPECT REPLACING pattern, replacement or delimiter in the storage of identifier-1 (§2023:14.9.22.4 GR18,
   Annex A.2 item 21 e)).** `cite.py --check 14.9.22.4 "If identifier-3, identifier-4, or identifier-5 occupies the same
   storage area as identifier-1, the result of the execution of this statement is undefined"` → OK 18); `cite.py

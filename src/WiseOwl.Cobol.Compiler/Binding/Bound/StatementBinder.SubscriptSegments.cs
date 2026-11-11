@@ -123,7 +123,7 @@ public sealed partial class StatementBinder
     /// <paramref name="preOpMark"/> — ahead of every one of them — and the group's extent reads the temp. The copy
     /// is a plain MOVE of the object into a temp of its own description, so the length it pins is exactly the value
     /// the operand site would have read had no pre-op run first.</summary>
-    private Place FreezeOdoExtentBeforeRefMod(OdoGroupPlace odo, int preOpMark, int line)
+    internal Place FreezeOdoExtentBeforeRefMod(OdoGroupPlace odo, int preOpMark, int line)
     {
         var temp = data.Temps.Create(odo.Depending.Item, "__REFODO-", "__refodo", $"L{line}");
         if (Ctx.Refs.Places.ResolveItem(temp) is not { } frozen) return odo;
