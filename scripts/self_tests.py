@@ -59,10 +59,14 @@ start time, a git commit time) declares it, with the reason, on a `#` line among
     # SELF-TEST-CLOCK: real — <the real clock it compares the Python clock with>
 and a recorded PASS carries the last day its proof covers, so `--reuse` never answers past it. The shifted proof is
 recorded under its own CLOCK KEY (kb/Work PB5226; self_test_clock.py THE CLOCK KEY): the self-test's own file and the
-inputs of its run that read a clock, do time arithmetic or carry a date. A `--reuse` run that must re-run the self-test
-(its PASS inputs changed) but finds, after the first run, a proof recorded under the same key inside its horizon runs it
-ONCE and says `clock proof reused`; the new PASS keeps that proof's day and horizon. A run without `--reuse` (CI, the
-Linux gate, a hand run) always runs both.
+inputs of its run that show a syntactic sign of time handling (a time-module import, a clock read, a date literal or a
+dated data file). A `--reuse` run that must re-run the self-test (its PASS inputs changed) but finds, after the first
+run, a proof recorded under the same key inside its horizon runs it ONCE and says `clock proof reused`; the new PASS
+keeps that proof's day and horizon. A run without `--reuse` (CI, the Linux gate, a hand run) always runs both. The
+residue, accepted and pinned by this file's self-test (review R1-2): a module with no time import, no clock read and no
+date literal that does arithmetic or comparison on time values handed to it is outside the key, so an edit to it reuses
+the 400-day-ahead answer; today's answer is still tested on every re-run, and every CI run (the merge group's Windows
+self-tests, the nightly) runs both runs fresh, so such a change is caught before main, at the price of a bounce.
 
 ISOLATION: each self-test runs with `COBOL_COORD_DIR` pointed at a fresh private directory, so none can read or write
 the live coordination state (`E:\\COBOL-coord`: the loop's units, leases and allocations), and without git's
@@ -1356,6 +1360,10 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         (root / "scripts" / "helper_plain.py").write_text("LIMIT = 1\n", encoding="utf-8", newline="\n")
         (root / "scripts" / "helper_window.py").write_text("import datetime\nWINDOW = datetime.timedelta(days=30)\n",
                                                            encoding="utf-8", newline="\n")
+        # review R1-2's KNOWN RESIDUE: a helper with no time import, no clock read and no date literal, which compares
+        # the time values it is handed (the arms below make the self-test call it)
+        (root / "scripts" / "helper_compare.py").write_text("def ok(today, expires):\n    return True\n",
+                                                            encoding="utf-8", newline="\n")
         (root / "scripts" / "test_keyed.py").write_text(
             "import datetime, os, sys\nimport helper_plain, helper_window\n"
             f"open({str(keyed_log)!r}, 'a', encoding='utf-8').write(os.environ.get({clocks.SHIFT_ENV!r}, '0') + ' ')\n"
@@ -1662,6 +1670,38 @@ def fleet_arms(check: Callable[[str, object, object], None]) -> None:
         expired, expired_shifts, _ = keyed_gate(True)
         check("arm: a proof under an unchanged key whose horizon has ended is not reused: both runs, and it says so",
               (expired.state, expired_shifts, "ended 2000-01-01" in expired.note), (GREEN, ["0", "400"], True))
+
+        # Review R1-1 and R1-2 (kb/Work PB5226): the self-test now also compares today with a date a constants module
+        # holds (`helper_plain.EXPIRES`) and asks `helper_compare.ok` about a date of its own, 100 days ahead: inside the
+        # shift, so the shifted run fails exactly when the comparison is made
+        today = dt.date.today()
+        far, near = (today + dt.timedelta(days=900)).isoformat(), (today + dt.timedelta(days=100)).isoformat()
+        edit("helper_plain.py", f"EXPIRES = {far!r}\n")
+        edit("test_keyed.py", (root / "scripts" / "test_keyed.py").read_text(encoding="utf-8").replace(
+            "import helper_plain, helper_window\n", "import helper_compare, helper_plain, helper_window\n").replace(
+            "sys.exit(0 if now", "day = datetime.date.today().isoformat()\n"
+            f"if not (day < helper_plain.EXPIRES and helper_compare.ok(day, {near!r})):\n    sys.exit(1)\nsys.exit(0 if now"))
+        planted_dates = keyed_gate(True)
+        check("arm: the self-test that reads a dated constants module and a comparing helper is GREEN in both runs while "
+              "the date lies past the shift and the helper compares nothing", (planted_dates[0].state, planted_dates[1]),
+              (GREEN, ["0", "400"]))
+        edit("helper_plain.py", f"EXPIRES = {near!r}\n")
+        dated, dated_shifts, _ = keyed_gate(True)
+        check("arm (R1-1): a Python module that imports no time module but holds a DATE LITERAL is in the clock key, so "
+              "moving its date inside the shift re-runs both runs and the shifted one is RED (it reused the proof)",
+              (dated.state, dated_shifts, "scripts/helper_plain.py" in dated.note), (RED, ["0", "400"], True))
+        edit("helper_plain.py", f"EXPIRES = {far!r}\n")
+        check("arm: with the date past the shift again the inputs are the GREEN PASS's above, which is reused whole; its "
+              "proof is the one the next arm matches", (lambda r: (r[0].state, r[1]))(keyed_gate(True)), (REUSED, []))
+        edit("helper_compare.py", "def ok(today, expires):\n    return today < expires\n")
+        residue, residue_shifts, _ = keyed_gate(True)
+        fresh, fresh_shifts, _ = keyed_gate(False)
+        check("arm: KNOWN RESIDUE, PINNED (review R1-2, kb/Work PB5226): an edit to a helper with no time import, no clock "
+              "read and no date literal that starts comparing the time values it is handed is OUTSIDE the clock key, so a "
+              "--reuse run REUSES the proof and is GREEN while a fresh run (CI's) is RED in its shifted run. Only dataflow "
+              "analysis could see it; a change that closes this gap must update this arm",
+              (residue.state, residue_shifts, residue.note.split("; ")[-1].startswith("clock proof reused"),
+               fresh.state, fresh_shifts), (GREEN, ["0"], True, RED, ["0", "400"]))
 
 
 if __name__ == "__main__":

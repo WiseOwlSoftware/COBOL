@@ -45,17 +45,25 @@ THE CLOCK KEY (kb/Work PB5226): the shifted run proves one thing, that no fixtur
 expires inside the shift, and only an input that reads a clock, does time arithmetic or carries a date can change that
 answer. So a SHIFTED proof is recorded under its own key, narrower than the PASS's: the self-test's own file, the
 MECHANISM (this shim and the tracer that installs it) and every input of the run `keys_proof` admits (a Python file that
-imports `datetime`, `time`, `calendar` or `zoneinfo`, reaches the wall clock or names SHIFT_ENV; a script that reads a
-clock; any file that carries a date; any file whose content cannot be read; and every directory whose content a git
-command read whole). When the PASS's inputs changed but the run's clock key equals a recorded proof's, inside that
+imports `datetime`, `time`, `calendar` or `zoneinfo`, reaches the wall clock, holds a date literal in its code or names
+SHIFT_ENV; a script that reads a clock; any other file that carries a date; any file whose content cannot be read; and
+every directory whose content a git command read whole). Those are SYNTACTIC signs of time handling: they find a file
+that reads the clock, imports a time module or holds a date, never one that only computes with time values it is handed
+(KEY RESIDUE). When the PASS's inputs changed but the run's clock key equals a recorded proof's, inside that
 proof's horizon, a `--reuse` run (a gate's) runs the self-test ONCE at today's clock and says `clock proof reused`; the
 new PASS keeps the reused proof's `until`, so a proof is never stretched past CLOCK_SHIFT_DAYS from the day the shifted
 run actually ran. The decision is made AFTER the first run, from that run's own inputs, so a file that starts reading the
 clock in this change is in the new key and the shifted run happens.
-  KEY RESIDUE  named: a window or a date defined in a module that imports no time module and carries no date literal
-             (`RETAIN_DAYS = 90` in a constants module, compared by a module that does read the clock and is unchanged),
-             a date in a data file in a form DATED_RE does not match, and the NAMES in a directory listing. An edit to
-             one of those reuses a proof it may have changed. CI and every run without `--reuse` run both runs always.
+  KEY RESIDUE  named, and accepted: (1) a module with no time import, no clock read and no date literal that does
+             arithmetic or comparison on time values handed to it (`def ok(today, expires): return today < expires`,
+             review R1-2), or defines a window as a plain number (`RETAIN_DAYS = 90`) for an unchanged module that
+             compares it with the clock: only dataflow analysis could see it, and a list of time-sounding names would be a
+             hand-kept heuristic; (2) a date in a data file in a form DATED_RE does not match; (3) the NAMES in a directory
+             listing. An edit to one of those reuses a proof it may have changed; scripts/self_tests.py's self-test pins
+             (1) as known behaviour. What bounds it: the unshifted run still runs on every re-run, so today's answer is
+             always tested, and only the 400-day-ahead answer is reused; every CI run (the merge group's Windows
+             self-tests, class (d) of CLAUDE.md's Testing rule, and the nightly) runs both runs fresh, so such a change is
+             caught before main, at the price of a bounce.
 
 HOW THE CLOCK MOVES. The runner's tracer directory (`self_test_inputs.install_tracer`) holds a `sitecustomize` that
 begins with SHIM, so every Python process a shifted self-test starts (itself and every child that inherits its
@@ -217,12 +225,27 @@ DATED_RE = re.compile(r"(?<!\d)(?:19|20)\d\d-[01]\d-[0-3]\d(?!\d)|(?<!\d)(?:19|2
 MECHANISM = ("scripts/self_test_clock.py", "scripts/self_test_inputs.py")
 
 
+def dated_literal(tree: ast.AST) -> bool:
+    """True when a string or bytes LITERAL of the module's code carries a date (DATED_RE: `EXPIRES = '2027-01-15'`, a
+    JSON fixture spelled in a string, an f-string's text). A comment and a docstring are not code, as `reads_wall_clock`
+    reads them: the provenance dates this repository's prose carries (`owner 2026-11-10`) change no comparison there."""
+    docstrings = {id(node.body[0].value) for node in ast.walk(tree)
+                  if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and node.body
+                  and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant)
+                  and isinstance(node.body[0].value.value, str)}
+    return any(isinstance(n, ast.Constant) and isinstance(n.value, (str, bytes)) and id(n) not in docstrings
+               and DATED_RE.search(n.value if isinstance(n.value, str) else n.value.decode("latin-1"))
+               for n in ast.walk(tree))
+
+
 @functools.cache
 def _handles_time(source: str) -> bool:
-    """True when Python `source` can change what the shifted run answers (`keys_proof`): it imports a TIME_MODULE in any
-    form (`import time`, `import datetime as dt`, `from datetime import timedelta`), it reaches the wall clock
-    (`reads_wall_clock`: a `now`/`today` on a receiver it was handed), or it names the shift variable. A file that does
-    not parse is a fixture the run read, judged as data (a date in it)."""
+    """True when Python `source` shows a syntactic sign that it can change what the shifted run answers (`keys_proof`):
+    it imports a TIME_MODULE in any form (`import time`, `import datetime as dt`, `from datetime import timedelta`), it
+    reaches the wall clock (`reads_wall_clock`: a `now`/`today` on a receiver it was handed), it holds a date literal
+    in its code (`dated_literal`, review R1-1: a constants module that imports nothing), or it names the shift
+    variable. A file that does not parse is a fixture the run read, judged as data (a date anywhere in it). A module
+    that only computes with time values it is HANDED shows no sign and is not found (module docstring, KEY RESIDUE)."""
     if SHIFT_ENV in source:
         return True
     try:
@@ -234,13 +257,14 @@ def _handles_time(source: str) -> bool:
             return True
         if isinstance(node, ast.ImportFrom) and node.module and node.module.split(".")[0] in TIME_MODULES:
             return True
-    return _reads(source)
+    return dated_literal(tree) or _reads(source)
 
 
 def keys_proof(path: str, text: str | None) -> bool:
     """True when an input of a self-test's run belongs to the CLOCK KEY its clock proof is recorded under (kb/Work
     PB5226; module docstring, THE CLOCK KEY): an edit to it can change what the run answers with the clock moved forward.
-      a Python file  that imports a TIME_MODULE, reaches the wall clock or names the shift variable (`_handles_time`);
+      a Python file  that imports a TIME_MODULE, reaches the wall clock, holds a date literal in its code or names the
+                     shift variable (`_handles_time`);
       a PowerShell or bash script  that reads a clock (SCRIPT_CLOCK_RE) or carries a date (DATED_RE);
       any other file  that carries a date (DATED_RE: a dated fixture) or names the shift variable;
       `text` None  (the file is absent, binary or a directory: its content is unknown) — always.
@@ -352,6 +376,14 @@ def self_test() -> int:
         ("a script that reads a clock", "s.ps1", "$a = Get-Date", True),
         ("a script that reads none", "s.sh", "echo 1\n", False),
         ("a Python fixture that does not parse but carries a date", "f.py", "def (:\n2026-11-01\n", True),
+        ("a parseable constants module that imports nothing and holds a date literal (review R1-1)", "consts.py",
+         "EXPIRES = '2027-01-15'\n", True),
+        ("a date in a bytes literal and in an f-string's text", "b.py", "A = b'2027-01-15'\nB = f'{x}-2027-01-15'\n", True),
+        ("a date only in a comment and a docstring (provenance prose, not code)", "p.py",
+         '"""owner 2026-11-10: why."""\n# kb/Work 2026-11-10\ndef f():\n    """2026-11-10"""\n    return 1\n', False),
+        ("KNOWN RESIDUE (review R1-2): a helper that compares time values handed to it, with no time import, clock read "
+         "or date literal; scripts/self_tests.py pins what it costs", "h.py",
+         "def ok(today, expires):\n    return today < expires\n", False),
         ("an input whose content is unknown (absent, binary, a directory)", "x.bin", None, True),
     ):
         check(f"arm: keys_proof: {name}", keys_proof(path, text), want)

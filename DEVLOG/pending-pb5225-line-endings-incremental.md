@@ -8,5 +8,7 @@ reads only the paths `inert_lane.changed` lists plus the checkout's modified and
 changed live Python files. On this host the change form took 1.5 s against 10 to 30 s for the sweep.
 
 CI keeps one full sweep, in the Linux `audits` job. The Windows-job step and the nightly step are gone: a CI checkout is a
-fresh checkout of blobs that sweep just read, LF on every OS while the catch-all holds. A new ATTRIBUTES arm now refuses a
-catch-all that no longer says `text=auto eol=lf`, which only the Windows step would have noticed before.
+fresh checkout of blobs that sweep just read, LF on every OS while the attributes hold. So a new ATTRIBUTES arm asks
+`git check-attr text eol` for every file read and refuses any that is neither `-text` nor text with `eol=lf`: a narrower
+rule such as `*.cob -eol`, which only the Windows step would have noticed before (review R1-4). A change that edits a
+`.gitattributes` or the check's own modules re-classifies files it does not list, so it runs the whole sweep (R1-3).

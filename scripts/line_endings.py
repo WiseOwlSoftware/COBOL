@@ -16,8 +16,12 @@ not keep it so — a text file git's heuristic calls binary (it holds a lone CR)
 CRLF leaves a CRLF working tree behind it until the next checkout, and a commit made outside git (an API upload) bypasses
 the attributes — so this check holds the rule, in four arms:
 
-  ATTRIBUTES   `.gitattributes`' catch-all still says `* text=auto eol=lf`, read through `git check-attr`: the rule every
-               checkout's bytes rest on, so a Windows checkout of an LF blob is LF and CI needs no Windows sweep.
+  ATTRIBUTES   every file read is either declared byte-exact (`text` unset: `-text`, or the `binary` macro) or `text`
+               (`auto` or set) WITH `eol=lf`, as git itself resolves them (`git check-attr --stdin -z text eol`, one
+               process, `attributes`): the rule every checkout's bytes rest on, so a Windows checkout of an LF blob is LF
+               and CI needs no Windows sweep. Any other combination is a finding naming the file and what git says for it:
+               a narrower rule that unsets or changes `eol` (`*.cob -eol`, review R1-4), or one that leaves `text`
+               unspecified. The same `git check-attr` answer decides which files are byte-exact for every other arm.
   INDEX       no tracked TEXT file's staged blob holds a CR. A file is TEXT unless `.gitattributes` declares it
                byte-exact (`-text` / `binary`, each with its reason there) or it holds a NUL (an encoding fixture, an
                archive): a lone CR in a file nobody declared is the accident this arm exists for.
@@ -43,8 +47,13 @@ gate (13.2 s measured). So the rule is applied to two populations:
                gate's lane is classified from) plus every tracked file the checkout has modified and every untracked file
                git does not ignore (`git ls-files -m -o --exclude-standard`): a CRLF rewrite of an unchanged file cleans
                to the base's blob under `eol=lf`, so no tree diff names it, while its size differs from the index's
-               record, which `-m` trusts. INDEX and WORKING TREE read those paths' bytes; WRITERS parses only the live
-               Python files among them.
+               record, which `-m` trusts. ATTRIBUTES, INDEX and WORKING TREE read those paths; WRITERS parses only the
+               live Python files among them.
+               A change that edits a CLASSIFIER (a `.gitattributes` at any level, this file, or a module of this
+               directory it imports: `classifiers`, derived from this file's own imports) re-classifies files it does
+               not list: removing a `-text` line makes a file with a lone CR a TEXT file without touching it (review
+               R1-3). Such a change runs THE SWEEP instead, and says why. So the change form needs no attribute check
+               over the whole tree: the attributes of a file the change does not list change only through a classifier.
   THE SWEEP    `--check` alone: every tracked text file and every live Python file. CI's Linux `audits` job runs it once
                per merge group, the backstop for a commit made outside git's attributes (an API upload) that no branch's
                gate saw. The battery and a hand run use it too. CI runs no other: a CI checkout is a fresh checkout of
@@ -57,8 +66,10 @@ from __future__ import annotations
 
 import argparse
 import ast
+import functools
 import io
 import os
+import posixpath
 import re
 import subprocess
 import sys
@@ -82,16 +93,12 @@ SHOWN = 40
 @dataclass(frozen=True)
 class Entry:
     """One tracked file as `git ls-files --eol` reports it: the staged blob's and the checkout's line-ending class
-    (`lf`, `crlf`, `mixed`, `none`, `-text` for content git calls binary, empty when absent) and the attributes."""
+    (`lf`, `crlf`, `mixed`, `none`, `-text` for content git calls binary, empty when absent: a submodule's gitlink).
+    Its attributes are not read from this listing, which merges them (`!text eol=lf` prints as `text eol=lf`), but
+    from `attributes`, their one reader."""
     index: str
     worktree: str
-    attrs: str
     path: str
-
-    @property
-    def byte_exact(self) -> bool:
-        """`.gitattributes` declares the file byte-exact (`-text`, or the `binary` macro, which unsets `text`)."""
-        return "-text" in self.attrs.split()
 
 
 def git(root: Path, *args: str, binary: bool = False) -> subprocess.CompletedProcess:
@@ -106,9 +113,7 @@ def entries(root: Path) -> list[Entry]:
             continue
         info, _, path = record.partition("\t")
         fields = info.split(None, 2)
-        index, worktree = fields[0].removeprefix("i/"), fields[1].removeprefix("w/")
-        attrs = fields[2].strip().removeprefix("attr/") if len(fields) > 2 else ""
-        result.append(Entry(index, worktree, attrs, path))
+        result.append(Entry(fields[0].removeprefix("i/"), fields[1].removeprefix("w/"), path))
     return result
 
 
@@ -128,37 +133,98 @@ def holds_cr(eol_class: str, read) -> bool:
     return text_holds_cr(read())
 
 
-def scan_tree(root: Path) -> tuple[int, list[str], list[str]]:
-    """(text files checked, INDEX findings, WORKING TREE findings)."""
+def scan_tree(root: Path) -> tuple[int, list[str], list[str], list[str]]:
+    """THE SWEEP: (text files checked, ATTRIBUTES findings, INDEX findings, WORKING TREE findings) over every tracked
+    file but a submodule's gitlink."""
+    tracked = [e for e in entries(root) if e.index]
+    attrs = attributes(root, [e.path for e in tracked])
     checked, in_index, in_tree = 0, [], []
-    for e in entries(root):
-        if e.byte_exact or not e.index:
-            continue  # declared byte-exact, or a submodule / gitlink
+    for e in tracked:
+        if attrs[e.path].byte_exact:
+            continue
         checked += 1
         if holds_cr(e.index, lambda: git(root, "cat-file", "blob", f":{e.path}", binary=True).stdout):
             in_index.append(e.path)
         if e.worktree and holds_cr(e.worktree, lambda: (root / e.path).read_bytes()):
             in_tree.append(e.path)
-    return checked, in_index, in_tree
+    return checked, attribute_findings(attrs), in_index, in_tree
 
 
-# ── the ATTRIBUTES arm (kb/Work PB5225) ──────────────────────────────────────────────────────────────────────────
+# ── the ATTRIBUTES arm (kb/Work PB5225, review R1-4) ─────────────────────────────────────────────────────────────
 
-#: A path no `.gitattributes` rule names more narrowly than `*`: what git answers for it is what the catch-all says.
-ATTRIBUTE_PROBE = "line-endings-attribute-probe"
-#: What the catch-all must say: every text file is stored LF and checked out LF, whatever `core.autocrlf` says.
-CATCH_ALL = {"text": "auto", "eol": "lf"}
+@dataclass(frozen=True)
+class Attributes:
+    """What git resolves `text` and `eol` to for one path (`git check-attr`: `set`, `unset`, `unspecified` or a value)."""
+    text: str
+    eol: str
+
+    @property
+    def byte_exact(self) -> bool:
+        """`.gitattributes` declares the file byte-exact: `text` unset (`-text`, or the `binary` macro)."""
+        return self.text == "unset"
+
+    @property
+    def lf(self) -> bool:
+        """THE ATTRIBUTE RULE: byte-exact, or text (`auto` or set) checked out LF on every OS whatever `core.autocrlf`."""
+        return self.byte_exact or (self.text in ("auto", "set") and self.eol == "lf")
 
 
-def attribute_findings(root: Path) -> list[str]:
-    """`.gitattributes`' catch-all, as git itself reads it: one finding per attribute that is not CATCH_ALL's. This is
-    the rule every checkout's bytes rest on, so a Windows checkout of an LF blob is LF: with it held here, CI needs no
-    second sweep over a Windows checkout (kb/Work PB5225)."""
-    out = git(root, "check-attr", "-z", *CATCH_ALL, "--", ATTRIBUTE_PROBE, binary=True).stdout.decode("utf-8")
-    fields = out.split(chr(0))
-    said = {attr: value for attr, value in zip(fields[1::3], fields[2::3])}
-    return [f".gitattributes: `{attr}` is `{said.get(attr)}` for a path only `*` names; it must be `{want}`"
-            for attr, want in CATCH_ALL.items() if said.get(attr) != want]
+def attributes(root: Path, paths: list[str]) -> dict[str, Attributes]:
+    """{path: its Attributes} for every one of `paths`, from ONE `git check-attr --stdin -z text eol`: git's own
+    resolution of every `.gitattributes` level, macro and precedence, never a parse of the file here."""
+    if not paths:
+        return {}
+    out = subprocess.run(["git", "-C", str(root), "check-attr", "--stdin", "-z", "text", "eol"], capture_output=True,
+                         check=True, input="".join(p + chr(0) for p in paths).encode("utf-8")).stdout
+    fields = out.decode("utf-8").split(chr(0))
+    said: dict[str, dict[str, str]] = {}
+    for path, attr, value in zip(fields[0::3], fields[1::3], fields[2::3]):
+        said.setdefault(path, {})[attr] = value
+    return {path: Attributes(said[path]["text"], said[path]["eol"]) for path in paths}
+
+
+def attribute_findings(attrs: dict[str, Attributes]) -> list[str]:
+    """One finding per file whose attributes break THE ATTRIBUTE RULE (`Attributes.lf`), naming what git says for it."""
+    return [f"{path} (text={a.text} eol={a.eol})" for path, a in sorted(attrs.items()) if not a.lf]
+
+
+# ── the classifiers: a change to one runs the sweep (review R1-3) ────────────────────────────────────────────────
+
+#: The file that declares the attributes every arm classifies a path by, at any level of the tree.
+ATTRIBUTES_FILE = ".gitattributes"
+
+
+def _local_imports(module: Path) -> frozenset[Path]:
+    """The modules of `module`'s directory it imports at module level, and theirs, transitively: what runs whenever
+    this check runs (a function-level import, the self-test's `scratch_repo`, is not)."""
+    seen: set[Path] = set()
+    todo = [module]
+    while todo:
+        tree = ast.parse(todo.pop().read_text(encoding="utf-8"))
+        for node in tree.body:
+            names = ([a.name for a in node.names] if isinstance(node, ast.Import)
+                     else [node.module] if isinstance(node, ast.ImportFrom) and node.module and not node.level else [])
+            for name in names:
+                found = module.parent / f"{name.split('.')[0]}.py"
+                if found.is_file() and found not in seen:
+                    seen.add(found)
+                    todo.append(found)
+    return frozenset(seen)
+
+
+@functools.cache
+def classifiers() -> frozenset[str]:
+    """THE CHECK'S CLASSIFICATION INPUTS (review R1-3), as repository paths: this file and every module of its
+    directory it imports at module level (`live_tools`: the WRITERS arm's trees; `inert_lane`: the change's listing),
+    derived from its own source, so a classifying module it starts to import is one automatically. With
+    ATTRIBUTES_FILE at any level, an edit to one re-classifies files a change does not list, so `check` sweeps."""
+    here = Path(__file__).resolve()
+    return frozenset(p.relative_to(REPO).as_posix() for p in {here, *_local_imports(here)})
+
+
+def classifies(path: str) -> bool:
+    """Whether a change's `path` can re-classify files the change does not list (`classifiers`, ATTRIBUTES_FILE)."""
+    return path in classifiers() or posixpath.basename(path) == ATTRIBUTES_FILE
 
 
 # ── the change's population (kb/Work PB5225) ─────────────────────────────────────────────────────────────────────
@@ -190,17 +256,6 @@ def _index_blobs(root: Path, paths: list[str]) -> dict[str, tuple[str, str]]:
     return found
 
 
-def _byte_exact(root: Path, paths: list[str]) -> set[str]:
-    """The `paths` .gitattributes declares byte-exact (`text` unset: `-text`, or the `binary` macro), as `Entry.byte_exact`
-    reads them for the sweep."""
-    if not paths:
-        return set()
-    out = subprocess.run(["git", "-C", str(root), "check-attr", "-z", "--stdin", "text"], capture_output=True,
-                         check=True, input="".join(p + chr(0) for p in paths).encode("utf-8")).stdout
-    fields = out.decode("utf-8").split(chr(0))
-    return {path for path, _attr, value in zip(fields[0::3], fields[1::3], fields[2::3]) if value == "unset"}
-
-
 def _blobs(root: Path, shas: list[str]) -> dict[str, bytes]:
     """{blob id: its bytes}, read in one `git cat-file --batch` (`<id> blob <size>` LF, the bytes, LF)."""
     if not shas:
@@ -216,29 +271,32 @@ def _blobs(root: Path, shas: list[str]) -> dict[str, bytes]:
     return blobs
 
 
-def scan_paths(root: Path, paths: list[str]) -> tuple[int, list[str], list[str]]:
-    """`scan_tree` over `paths` alone: (text files checked, INDEX findings, WORKING TREE findings), by the one rule
-    (`text_holds_cr`). A path the index holds is read there and, when on disk, in the checkout; an untracked one in the
-    checkout only. Skipped, as the sweep skips them: a declared byte-exact file, a submodule (gitlink); and a symlink
-    entry, and a path neither staged nor on disk (deleted by the change)."""
+def scan_paths(root: Path, paths: list[str]) -> tuple[int, list[str], list[str], list[str]]:
+    """`scan_tree` over `paths` alone: (text files checked, ATTRIBUTES findings, INDEX findings, WORKING TREE
+    findings), by the same rules (`Attributes.lf`, `text_holds_cr`). A path the index holds is read there and, when on
+    disk, in the checkout; an untracked one in the checkout only, and its attributes too (a file the change adds under a
+    rule that unsets `eol` is caught before it is committed). Skipped, as the sweep skips them: a declared byte-exact
+    file, a submodule (gitlink); and a symlink entry, and a path neither staged nor on disk (deleted by the change)."""
     index = _index_blobs(root, paths)
-    exact = _byte_exact(root, paths)
     regular = {p: sha for p, (mode, sha) in index.items() if mode not in ("120000", "160000")}
+
+    def on_disk(rel: str) -> bool:
+        return (root / rel).is_file() and not (root / rel).is_symlink()
+
+    present = [p for p in paths if p in regular or (p not in index and on_disk(p))]
+    attrs = attributes(root, present)
     blobs = _blobs(root, sorted(set(regular.values())))
     checked, in_index, in_tree = 0, [], []
-    for rel in paths:
-        if rel in exact or (rel in index and rel not in regular):
+    for rel in present:
+        if attrs[rel].byte_exact:
             continue
         disk = root / rel
-        on_disk = disk.is_file() and not disk.is_symlink()
-        if rel not in regular and not on_disk:
-            continue
         checked += 1
         if rel in regular and text_holds_cr(blobs[regular[rel]]):
             in_index.append(rel)
-        if on_disk and text_holds_cr(disk.read_bytes()):
+        if on_disk(rel) and text_holds_cr(disk.read_bytes()):
             in_tree.append(rel)
-    return checked, in_index, in_tree
+    return checked, attribute_findings(attrs), in_index, in_tree
 
 
 # ── the WRITERS arm ───────────────────────────────────────────────────────────────────────────────────────────────
@@ -432,8 +490,10 @@ def fix_tree(root: Path) -> tuple[int, int, list[str]]:
     accident or the file's subject (a fixture of the line-terminator rule) is a judgment no mechanical rule makes — it
     is removed by hand, or the file is declared byte-exact in .gitattributes with its reason."""
     rewritten, left = 0, []
-    for e in entries(root):
-        if e.byte_exact or not e.index or e.worktree not in ("crlf", "mixed", "-text"):
+    candidates = [e for e in entries(root) if e.index and e.worktree in ("crlf", "mixed", "-text")]
+    attrs = attributes(root, [e.path for e in candidates])
+    for e in candidates:
+        if attrs[e.path].byte_exact:
             continue
         path = root / e.path
         data = path.read_bytes()
@@ -459,22 +519,34 @@ def _show(title: str, items: list[str], hint: str) -> list[str]:
 
 
 def check(root: Path, change: tuple[str, str] | None = None) -> int:
-    """THE CHECK: the sweep, or with `change` = (base, measured tree) only what the change changes (`changed_paths`)."""
-    if change is None:
-        checked, in_index, in_tree = scan_tree(root)
-        writers = scan_writers(root, live_python(root))
-        scope = "tracked text files"
-    else:
+    """THE CHECK: the sweep, or with `change` = (base, measured tree) only what the change changes (`changed_paths`),
+    unless the change edits a classifier (`classifies`): then the sweep, since it re-classifies files it does not list."""
+    paths: list[str] | None = None
+    if change is not None:
         try:
             paths = changed_paths(root, *change)
         except subprocess.CalledProcessError as e:
             print(f"=== LINE ENDINGS: RED — the change {change[0][:12]}..{change[1][:12]} could not be listed: "
                   f"{((e.stderr or b'').decode('utf-8', 'replace').strip().splitlines() or [str(e)])[0]} ===")
             return 1
-        checked, in_index, in_tree = scan_paths(root, paths)
+        moved = [p for p in paths if classifies(p)]
+        if moved:
+            print(f"LINE ENDINGS: the change edits {', '.join(moved)}, which classifies files it does not list: the "
+                  "whole tree is swept (review R1-3)")
+            paths = None
+    if paths is None:
+        checked, attrs_bad, in_index, in_tree = scan_tree(root)
+        writers = scan_writers(root, live_python(root))
+        scope = "tracked text files"
+    else:
+        checked, attrs_bad, in_index, in_tree = scan_paths(root, paths)
         writers = scan_writers(root, changed_python(root, paths))
         scope = f"text files of the {len(paths)} paths the change touches against {change[0][:12]}"
-    report = [f"ATTRIBUTES: {finding}" for finding in attribute_findings(root)]
+    report = []
+    if attrs_bad:
+        report += _show("ATTRIBUTES: files neither byte-exact (-text) nor text with eol=lf", attrs_bad,
+                        "a .gitattributes rule unsets or changes `eol`, or leaves `text` unspecified: a text file is "
+                        "`text=auto eol=lf` (the catch-all), and a byte-exact one `-text` with its reason")
     if in_index:
         report += _show("INDEX: tracked text files whose staged blob holds a CR", in_index,
                         "`git add --renormalize <file>` for CRLF; a lone CR is removed by hand, or the file is declared "
@@ -486,18 +558,19 @@ def check(root: Path, change: tuple[str, str] | None = None) -> int:
     if writers:
         report += _show("WRITERS: Python text-mode writes that do not state newline= (CRLF on Windows)", writers,
                         "`python scripts/line_endings.py --fix-writers`")
-    if not checked and change is None:
+    if not checked and paths is None:
         # A green over nothing is not a green: a wrong root or an unreadable index lists no file at all. (A change may
         # touch no text file, only deletions or byte-exact files; git raises when it cannot list the change.)
         report.append(f"POPULATION: no tracked text file was read under {root} — nothing was checked")
     for line in report:
         print(line)
     if report:
-        print(f"=== LINE ENDINGS: RED — {len(in_index)} index · {len(in_tree)} working tree · {len(writers)} writers "
+        print(f"=== LINE ENDINGS: RED — {len(attrs_bad)} attributes · {len(in_index)} index · {len(in_tree)} working "
+              f"tree · {len(writers)} writers "
               f"(of {checked} {scope}; kb/Work PB3029) ===")
         return 1
-    print(f"=== LINE ENDINGS: CLEAN — {checked} {scope} LF in the index and the working tree; every Python "
-          "writer among them states newline= ===")
+    print(f"=== LINE ENDINGS: CLEAN — {checked} {scope} LF in the index and the working tree, each declared "
+          "text eol=lf or byte-exact; every Python writer among them states newline= ===")
     return 0
 
 
@@ -527,7 +600,7 @@ def self_test() -> int:
         (root / ".gitattributes").write_bytes(b"pinned.xml -text" + LF)
         scratch.git("add", "-A")
         scratch.git("commit", "-q", "-m", "fixture")
-        _, in_index, in_tree = scan_tree(root)
+        _, _, in_index, in_tree = scan_tree(root)
         expect("arm INDEX: a CRLF blob and a lone-CR text blob are found; LF, a NUL file and a declared -text file "
                "are not", sorted(in_index), ["crlf.txt", "lonecr.md"])
         expect("arm WORKING TREE: the same files in the checkout", sorted(in_tree), ["crlf.txt", "lonecr.md"])
@@ -537,7 +610,7 @@ def self_test() -> int:
         scratch.git("add", "--renormalize", ".")
         scratch.git("add", "-A")
         scratch.git("commit", "-q", "-m", "normalized")
-        _, in_index, in_tree = scan_tree(root)
+        _, _, in_index, in_tree = scan_tree(root)
         expect("arm INDEX: renormalized under text=auto eol=lf, nothing is found", in_index, [])
         expect("arm WORKING TREE: the pre-normalization CRLF checkout is still found", in_tree, ["crlf.txt"])
         (root / "lf.txt").write_bytes(b"one" + LF + b"TWO" + LF)  # a real edit: --fix must neither hide nor stage it
@@ -546,7 +619,7 @@ def self_test() -> int:
                (rewritten, refreshed, left), (1, 1, []))
         expect("--fix leaves the bytes LF", (root / "crlf.txt").read_bytes(), b"one" + LF + b"two" + LF)
         expect("--fix never touches a declared -text file", (root / "pinned.xml").read_bytes(), b"<a/>" + CRLF)
-        _, in_index, in_tree = scan_tree(root)
+        _, _, in_index, in_tree = scan_tree(root)
         expect("after --fix the tree is clean", (in_index, in_tree), ([], []))
         # kb/Work PB3029 finisher: the rewrite changed crlf.txt's SIZE, and git trusts a size mismatch on a nonzero
         # recorded size without comparing content, so without the re-stat `git status` listed it ` M` over an empty
@@ -588,7 +661,7 @@ def self_test() -> int:
         (root / "accident.md").write_bytes(accident)
         scratch.git("add", "-A")
         scratch.git("commit", "-q", "-m", "a stray CR")
-        _, in_index, in_tree = scan_tree(root)
+        _, _, in_index, in_tree = scan_tree(root)
         expect("arm INDEX + WORKING TREE: an undeclared lone CR is found although git stores the file as binary",
                (in_index, in_tree), (["accident.md"], ["accident.md"]))
         expect("--fix leaves a lone-CR file untouched, terminators included, and names it",
@@ -603,11 +676,11 @@ def self_test() -> int:
         scratch.write({"kept.md": b"api" + CRLF})
         scratch.git("add", "-A")
         scratch.git("commit", "-q", "-m", "an upload")
-        expect("arm ATTRIBUTES: a tree whose .gitattributes does not say `* text=auto eol=lf` is a finding per attribute",
-               len(attribute_findings(root)), 2)
+        expect("arm ATTRIBUTES: a file no .gitattributes rule names is a finding (text and eol unspecified)",
+               attribute_findings(attributes(root, ["kept.md"])), ["kept.md (text=unspecified eol=unspecified)"])
         scratch.write({".gitattributes": b"* text=auto" + LF})
         expect("arm ATTRIBUTES: `* text=auto` without `eol=lf` is a finding (a Windows checkout would be CRLF)",
-               [f.split("`")[1] for f in attribute_findings(root)], ["eol"])
+               attribute_findings(attributes(root, ["kept.md"])), ["kept.md (text=auto eol=unspecified)"])
         scratch.write({
             ".gitattributes": b"* text=auto eol=lf" + LF,
             ".gitignore": b"ignored.md" + LF,
@@ -618,7 +691,7 @@ def self_test() -> int:
         scratch.git("add", "-A")
         scratch.git("commit", "-q", "-m", "base")
         base = scratch.git("rev-parse", "HEAD")
-        expect("arm ATTRIBUTES: `* text=auto eol=lf` is no finding", attribute_findings(root), [])
+        expect("arm ATTRIBUTES: `* text=auto eol=lf` is no finding", scan_tree(root)[1], [])
         scratch.write({"edited.md": b"one" + CR + b"two" + LF, "scripts/new_tool.py": b"open('y', 'w')" + LF})
         scratch.git("add", "-A")
         scratch.git("commit", "-q", "-m", "the change")
@@ -628,13 +701,13 @@ def self_test() -> int:
         expect("THE CHANGE lists the changed paths, a checkout rewritten CRLF over an unchanged blob, and an untracked "
                "file; never an unchanged file or an ignored one", paths,
                ["edited.md", "restyled.md", "scripts/new_tool.py", "untracked.md"])
-        _, in_index, in_tree = scan_paths(root, paths)
+        _, _, in_index, in_tree = scan_paths(root, paths)
         expect("THE CHANGE: a CR planted in a changed file is caught in the index and the checkout, and the checkout's "
                "own CRs too; the CR in the unchanged tracked file is not read",
                (in_index, in_tree), (["edited.md"], ["edited.md", "restyled.md", "untracked.md"]))
         expect("THE CHANGE: WRITERS reads only the changed live Python files",
                scan_writers(root, changed_python(root, paths)), ["scripts/new_tool.py:1"])
-        _, in_index, in_tree = scan_tree(root)
+        _, _, in_index, in_tree = scan_tree(root)
         expect("THE SWEEP catches the CR in the unchanged tracked file, which the change form does not read",
                (sorted(in_index), sorted(in_tree)), (["edited.md", "kept.md"], ["edited.md", "kept.md", "restyled.md"]))
         expect("THE SWEEP: WRITERS reads every live Python file",
@@ -646,6 +719,48 @@ def self_test() -> int:
         scratch.git("commit", "-q", "-m", "fixed")
         expect("--check of a clean change is CLEAN while the unchanged file still holds its CR, and the sweep is RED",
                (check(root, (base, scratch.git("rev-parse", "HEAD^{tree}"))), check(root)), (0, 1))
+
+    with tempfile.TemporaryDirectory() as d:
+        # Review R1-3 and R1-4: a change to a CLASSIFIER sweeps the whole tree, and ATTRIBUTES reads every file's own
+        # resolution, so a narrower rule that unsets `eol` is refused wherever it is
+        root = Path(d)
+        scratch = ScratchRepo.init(root, options=("-c", "core.autocrlf=false"))
+        expect("the classifiers are this file and the modules of its directory it imports at module level, derived "
+               "from its source (the self-test's function-level `scratch_repo` is not one)", sorted(classifiers()),
+               ["scripts/inert_lane.py", "scripts/line_endings.py", "scripts/live_tools.py", "scripts/standard_streams.py"])
+        expect("a .gitattributes at any level classifies; a file merely named like one does not",
+               [classifies(p) for p in (".gitattributes", "sub/dir/.gitattributes", "sub/x.gitattributes", "a.md")],
+               [True, True, False, False])
+        scratch.write({".gitattributes": b"* text=auto eol=lf" + LF + b"fixture.cbl -text" + LF + b"pinned.bin binary" + LF
+                       + b"*.t text eol=lf" + LF,
+                       "fixture.cbl": b"A" + CR + b"B" + LF, "pinned.bin": b"x" + CRLF, "set.t": b"t" + LF,
+                       "plain.md": b"p" + LF})
+        scratch.git("add", "-A")
+        scratch.git("commit", "-q", "-m", "base")
+        base = scratch.git("rev-parse", "HEAD")
+        expect("arm ATTRIBUTES: -text, the binary macro, `text eol=lf` and the catch-all all pass", scan_tree(root)[1], [])
+        scratch.write({".gitattributes": b"* text=auto eol=lf" + LF + b"pinned.bin binary" + LF + b"*.t text eol=lf" + LF})
+        scratch.git("commit", "-q", "-am", "the change drops fixture.cbl's -text line")
+        tree = scratch.git("rev-parse", "HEAD^{tree}")
+        expect("R1-3: the change names only .gitattributes, so its own paths hold no CR; yet --check of the change is "
+               "RED (it sweeps, and fixture.cbl's lone CR is now a TEXT file's) and agrees with the sweep",
+               (changed_paths(root, base, tree), scan_paths(root, changed_paths(root, base, tree))[2:],
+                check(root, (base, tree)), check(root)),
+               ([".gitattributes"], ([], []), 1, 1))
+        scratch.write({".gitattributes": b"* text=auto eol=lf" + LF + b"fixture.cbl -text" + LF + b"pinned.bin binary"
+                       + LF + b"*.t text eol=lf" + LF + b"*.cob -eol" + LF + b"*.u !text" + LF,
+                       "x.cob": b"A" + LF, "w.u": b"u" + LF})
+        scratch.git("add", "-A")
+        scratch.git("commit", "-q", "-m", "a narrower rule unsets eol, another leaves text unspecified")
+        expect("R1-4: arm ATTRIBUTES refuses `*.cob -eol` (a Windows checkout with core.autocrlf=true is CRLF) and `!text`, "
+               "naming each file with what git resolves for it; the catch-all's own answer is unchanged",
+               scan_tree(root)[1], ["w.u (text=unspecified eol=lf)", "x.cob (text=auto eol=unset)"])
+        base = scratch.git("rev-parse", "HEAD")
+        scratch.write({"y.cob": b"B" + LF})
+        expect("arm ATTRIBUTES in THE CHANGE: a file the change adds under a rule that unsets eol is refused before it is "
+               "committed, and --check of that change is RED", (scan_paths(root, changed_paths(root, base, base))[1],
+                                                                  check(root, (base, base))),
+               (["y.cob (text=auto eol=unset)"], 1))
 
     planted = "\n".join([
         "from pathlib import Path",

@@ -1181,12 +1181,15 @@ expires inside the shift, and only an input that reads a clock, does time arithm
 answer; yet until PB5226 every re-run of a clock-proved PASS re-ran the shifted run too. In the build-stage1 gate of
 2026-11-11, 28 of 42 self-tests that ran were clock-proved and took 6,419 of 10,022 summed seconds, about half of it the
 shifted runs; `enqueue.py`, `land_lane.py` and `gate.py` re-ran theirs because `inert_lane.py` and `buildgraph.py`
-changed, and neither imports a time module. A shifted proof is therefore recorded under its own key
+changed, and neither imports a time module (`inert_lane.py` is in the key again since review R1-1: string literals
+in its code quote dates). A shifted proof is therefore recorded under its own key
 (`clock: {..., key, proved}`; `Runner._proof_key`, `self_test_clock.keys_proof`): of the run's inputs, the self-test's own
 file, the proof's mechanism (`self_test_clock.MECHANISM`: the shim and the tracer that installs it), every Python file
-that imports `datetime`, `time`, `calendar` or `zoneinfo`, reaches the wall clock or names the shift variable, every
-script that reads a clock, every file that carries a date (`DATED_RE`: an ISO date or a basic `20261111T023340` stamp),
-every file whose content cannot be read, and every directory a git command read whole. The runner's other files are left
+that imports `datetime`, `time`, `calendar` or `zoneinfo`, reaches the wall clock, holds a date literal in its code
+(`dated_literal`: a string or bytes literal, not a comment or a docstring; review R1-1) or names the shift variable, every
+script that reads a clock, every other file that carries a date (`DATED_RE`: an ISO date or a basic `20261111T023340`
+stamp), every file whose content cannot be read, and every directory a git command read whole. These are syntactic signs
+of time handling: they never find a module that only computes with time values it is handed. The runner's other files are left
 out, as `Clock.of` leaves them out. When a `--reuse` run (a gate's) re-runs a self-test because its PASS inputs changed,
 and after the first run the run's key equals a recorded proof's inside that proof's horizon (`PassStore.clock_proof`),
 it does not run the shifted run: the console says `clock proof reused: the shift of 400 days proved <when> holds until
@@ -1194,11 +1197,16 @@ it does not run the shifted run: the console says `clock proof reused: the shift
 never moves a horizon past 400 days from the day the clock was actually moved. Otherwise both runs run and the console
 names the clock inputs that changed since the newest proof. The key is derived AFTER the first run, from that run's own
 trace, so a file that starts reading the clock in the change under test is in the new key and the shifted run runs. A run
-without `--reuse` (CI, the Linux gate, a hand run) never reuses a proof. *Its residue, named:* a window or date defined
-in a module that imports no time module and carries no date literal (`RETAIN_DAYS = 90` in a constants module read by
-an unchanged module that compares it with the clock), a date in a data file in a form `DATED_RE` does not match, and the
-names in a directory listing; an edit to one of those reuses a proof it may have changed, and CI's merge group, which
-runs every self-test fresh with both runs, is the backstop. The detector over-approximates elsewhere on purpose
+without `--reuse` (CI, the Linux gate, a hand run) never reuses a proof. *Its residue, named and accepted (review
+R1-2):* a module with no time import, no clock read and no date literal that does arithmetic or comparison on time
+values handed to it (`def ok(today, expires): return today < expires`), or defines a window as a plain number
+(`RETAIN_DAYS = 90`) for an unchanged module that compares it with the clock; a date in a data file in a form `DATED_RE`
+does not match; and the names in a directory listing. Only dataflow analysis could see the first, and a list of
+time-sounding identifiers would be a hand-kept heuristic, so none is kept; `self_tests.py`'s self-test pins it as known
+behaviour (an arm a change that closes the gap must update). An edit to one of those reuses a proof it may have changed.
+What bounds it: the unshifted run still runs on every re-run, so today's answer is always tested and only the
+400-day-ahead answer is reused; every CI run (the merge group's Windows self-tests, class (d) of CLAUDE.md's Testing
+rule, and the nightly) runs both runs fresh, so such a change is caught before main, at the price of a bounce. The detector over-approximates elsewhere on purpose
 (`import time` for a duration puts a file in the key): an extra shifted run is the cost.
 *The opt-out, declared.* A self-test that compares the Python clock with a REAL one the shift cannot move declares it, with
 the reason, among its first five lines: `# SELF-TEST-CLOCK: real — <why>`, and is not shifted. It is
@@ -1799,10 +1807,13 @@ demand and not committed.
 - **Line endings (PB3029; owner 2026-10-11: "standardize on a single line-ending format"): LF everywhere.** `.gitattributes`
   opens with `* text=auto eol=lf`, and a file that must keep its bytes is declared `-text` there with its reason.
   `scripts/line_endings.py --check` refuses a CR in a tracked text file's blob or checkout, a Python text-mode write that does
-  not state `newline=`, and a catch-all that no longer says `text=auto eol=lf`. The gate's LINE ENDINGS audit reads only what
-  the change touches (`--base B --tree T`: the paths the measured tree changes, plus the checkout's modified and untracked
-  files; kb/Work PB5225), and CI's Linux `audits` job runs the one full sweep per merge group, the backstop for a commit made
-  through the API; neither the Windows jobs nor the nightly sweep again; `--fix` rewrites a checkout made
+  not state `newline=`, and any file whose attributes, as `git check-attr text eol` resolves them, are neither `-text` nor
+  text (`auto` or set) with `eol=lf` (a narrower rule such as `*.cob -eol`; review R1-4). The gate's LINE ENDINGS audit
+  reads only what the change touches (`--base B --tree T`: the paths the measured tree changes, plus the checkout's modified
+  and untracked files; kb/Work PB5225), unless the change edits a file the check classifies by (a `.gitattributes` at any
+  level, `line_endings.py` or a module of its directory it imports: `classifiers`), which re-classifies files the change
+  does not list and so runs the full sweep (review R1-3). CI's Linux `audits` job runs the one full sweep per merge group,
+  the backstop for a commit made through the API; neither the Windows jobs nor the nightly sweep again; `--fix` rewrites a checkout made
   before the rule and re-states the index entry of each file whose cleaned content IS the staged blob (a plain `git update-index`:
   `--refresh` trusts the stale recorded size and answers "needs update" for exactly these files), `--fix-writers` adds
   `newline="\n"` to a new writer, and the PowerShell generators of tracked files write through `scripts/LfText.psm1`
