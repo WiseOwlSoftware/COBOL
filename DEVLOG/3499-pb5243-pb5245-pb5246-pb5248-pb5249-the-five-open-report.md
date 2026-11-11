@@ -1,4 +1,4 @@
-## PB5243, PB5245, PB5246, PB5248, PB5249: the five open Report Writer findings of the 1985 code read, fixed at their roots
+## Entry 3499 — 2026-11-11 14:40 PST — PB5243, PB5245, PB5246, PB5248, PB5249: the five open Report Writer findings of the 1985 code read, fixed at their roots
 
 **Scope.** One root (the report writer's emitter, binder and runtime), five notes, from the 1985 code read of slices 51, 52 and 56. Every probe was re-run on this build first and all five reproduced.
 
@@ -13,3 +13,4 @@
 **Existing tests the first gate found encoding the 2023 rule at 85 (five reds, all corrected from the 1985 text).** `pb853-report-justified-without-column` and `pb1245-group-indicate-no-column` refused at 85 a SOURCE entry with JUSTIFIED or GROUP INDICATE and no COLUMN, which Table 1 rows 3 and 4 permit: their `refuse-at` lost 85. `pb1245-group-indicate-sum-only` expected the 2023 message at 85, where the SUM-in-a-detail and Table 1 refusals now answer: `refuse-at` lost 85. `pb1296_sum_counter_digits_85` asserted spaces for an overflowed PIC 99 counter, which 1985 leaves undefined: it no longer displays that item. `pb957_next_group_control` (accept 85 only) asserted the 2023 TERMINATE discard at 85: it is now accepted at every edition, with a `.85.out` of page 4 (`PH 4`, `N11`, `J12`) derived from §1985:XIII.3.10.8 GR3. `ReportRepeatingEntryDriftTests` looked for `private void PresentBody(`; it accepts `bool` now.
 
 **Open lead, not fixed.** §1985:XIII.3.20.4 GR11 b) also runs the sole detail's USE BEFORE REPORTING procedure for GENERATE report-name; the engine runs none. It is a separate edition difference (2023 produces no group, so no USE) and is listed in the report.
+
