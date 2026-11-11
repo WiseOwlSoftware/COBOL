@@ -322,14 +322,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         // takes the value its storage bytes would hold if the fill characters were laid over them - the pre-removal
         // byte fill the construct had (the receiver's value after a move of the characters is undefined, §1985:VI.6.4.7,
         // and this is the deterministic one: MOVE LOW-VALUES TO a COMP item is 0, HIGH-VALUES all one bits), decoded by
-        // the item's own byte form through the ONE image decode (kb/Work PB5176).
-        if (target.Item.OperandPic is { Category: PicCategory.Numeric, IsFloat: false } pic && target is not RefModPlace)
-        {
-            var bytes = new NumX(RuntimeApi.NumParseImage(image, target.Item.ProfileName, sending: false), pic.Scale);
-            return PlaceRenderer.Write(target, ArithmeticEmitter.Narrow(
-                NumericRenderer.StoreExpr(NumericRenderer.TransferWide(bytes, pic.Scale, CobolRounding.Truncation, checkedTransfer: false),
-                    pic.Scale, target.Item.ProfileName, CobolRounding.Truncation, false), target.Item));
-        }
+        // the item's own byte form through the ONE image-to-carrier decode, NumericRenderer.CarrierOfImage (kb/Work PB5176).
+        if (target.Item.OperandPic is { Category: PicCategory.Numeric, IsFloat: false })
+            return PlaceRenderer.Write(target, NumericRenderer.CarrierOfImage(image, target.Item));
         return LoudStmt($"MOVE of {fillCite} into the numeric item '{target.Item.CobolName}' without "
             + "image-backed storage (a floating-point or Tier-A shared-storage receiver has no "
             + "character image to fill)");

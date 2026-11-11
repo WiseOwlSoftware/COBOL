@@ -12,8 +12,8 @@
       *> literal are no digits, so the value left in the receiver is undefined (§1985:VI.6.4.7). WiseOwl COBOL's value
       *> is the one the receiver's storage bytes hold when the fill characters are laid over them, read in the item's
       *> own byte form: LOW-VALUES are all zero bits, so zero, HIGH-VALUES all one bits, so minus one in a signed
-      *> binary item, and ALL "AB" the bytes 41 42 hexadecimal, 16706, kept to the four digits of the picture. Before
-      *> the determination the program compiled and stopped at run time with an unimplemented-feature exception.
+      *> binary item, and ALL "AB" the bytes 41 42 hexadecimal, 16706, the raw value of the two bytes with no digit
+      *> truncation. Before the determination the program compiled and stopped at run time with an unimplemented-feature exception.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5176B.
        DATA DIVISION.

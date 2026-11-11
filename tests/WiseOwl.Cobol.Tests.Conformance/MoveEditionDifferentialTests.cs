@@ -76,11 +76,24 @@ public sealed class MoveEditionDifferentialTests
             "    MOVE ALL \"5\" TO W-INT.\n    DISPLAY \"R[\" W-INT \"]\"."), "R[555]");
 
     [Fact]
-    // GR6d3b: "if the receiving item is not an integer, the number of digits includes both those to the right
-    // and the left of the decimal point" — ALL "5" → PIC 9V9 is 5.5 (DISPLAY shows 5.5; legacy-confirmed).
-    public void AllDigitToNonInteger_FillsFractionDigits_Gr6d3b()
+    // §1985:IV.4.2.2.2.3 repeats the figurative to "the number of character positions in the associated data item" (PIC 9V9:
+    // two) and §1985:VI.6.19.4 GR4 moves an alphanumeric sender "as if ... described as an unsigned numeric integer", aligned
+    // by decimal point: ALL "5" → 55 → PIC 9V9 holds 5.0, as MOVE "55" does (kb/Work PB5176).
+    public void AllDigitToNonInteger_IsAnIntegerAt85_Gr4()
         => AssertSpec(Program("MVEDA2", "01 W-FRAC PIC 9V9.",
-            "    MOVE ALL \"5\" TO W-FRAC.\n    DISPLAY \"R[\" W-FRAC \"]\"."), "R[5.5]");
+            "    MOVE ALL \"5\" TO W-FRAC.\n    DISPLAY \"R[\" W-FRAC \"]\"."), "R[5.0]");
+
+    [Fact]
+    // From COBOL-2002 on, GR6d3b: "if the receiving item is not an integer, the number of digits includes both those to
+    // the right and the left of the decimal point" — ALL "5" → PIC 9V9 is 5.5 (DISPLAY shows 5.5; legacy-confirmed,
+    // kb/Work PB426).
+    public void AllDigitToNonInteger_FillsFractionDigits_From2002_Gr6d3b()
+    {
+        var (ok, stdout, detail) = RunAt(Program("MVEDA2B", "01 W-FRAC PIC 9V9.",
+            "    MOVE ALL \"5\" TO W-FRAC.\n    DISPLAY \"R[\" W-FRAC \"]\"."), 2014);
+        Assert.True(ok, detail);
+        Assert.Equal("R[5.5]", stdout);
+    }
 
     [Fact]
     // §2023:8.3.3.6.4 GR2 repetition with right truncation — ALL "57" → PIC 9(3) stores 575. A multi-character ALL
