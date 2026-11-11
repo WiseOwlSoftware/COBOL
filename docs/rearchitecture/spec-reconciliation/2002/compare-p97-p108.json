@@ -1,0 +1,18 @@
+{
+  "batch": [97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108],
+  "pages_checked": [97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p105-1",
+      "page": 105,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "why_it_matters": "A reader of the transcription sees the exception list cut off at 'rules 2 through' and a stray '5.' item, so the scope of the qualification exceptions (rules 2 through 5) is not stated in one place and the text looks like a sixth-rule sub-list.",
+      "section": "8.4.1.1 Qualification, rule 6 continuation paragraph",
+      "pdf_says": "uniqueness shall then be established through qualification for each user-defined name explicitly referenced, except as specified in rules 2 through 5.  All available qualifiers need not be specified so long as uniqueness is established.",
+      "markdown_says": "uniqueness shall then be established through qualification for each user-defined name explicitly referenced, except as specified in rules 2 through\n\n   5\\. All available qualifiers need not be specified so long as uniqueness is established.",
+      "explanation": "The printed line break inside the sentence 'except as specified in rules 2 through 5.' was turned into a paragraph break, so the cross-reference reads 'rules 2 through' (incomplete) and the remainder starts a new paragraph beginning '5\\.', which renders as if it were a list item numbered 5 inside rule 6. The sentence should be one paragraph ending '...rules 2 through 5. All available qualifiers...'."
+    }
+  ]
+}
