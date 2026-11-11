@@ -1,0 +1,17 @@
+{
+  "batch": [73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84],
+  "pages_checked": [73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p83-1",
+      "page": 83,
+      "kind": "misplaced-content",
+      "severity": "normative",
+      "section": "8.1.2 Table 2 - COBOL character repertoire",
+      "pdf_says": "Basic special character row: the Character column's first line is blank (the space character) opposite the Meaning 'space', then '+' opposite 'plus sign', '–' opposite 'minus sign (hyphen)', ... ':' opposite 'colon', '_' opposite 'underscore' (19 meanings, 19 character lines including the blank one for space).",
+      "markdown_says": "| Basic special character | +<br>–<br>\\*<br>/<br>=<br>$<br>,<br>;<br>.<br>\"<br>'<br>(<br>)<br>><br>&lt;<br>&<br>:<br>_ | space<br>plus sign<br>minus sign (hyphen)<br>asterisk<br>...<br>colon<br>underscore |",
+      "why_it_matters": "The Character cell lost the leading blank line that stands for the space character, so it holds 18 lines against 19 meanings. Read line by line, every character is paired with the wrong meaning ('+' with 'space', '–' with 'plus sign', ..., '_' with 'colon') and 'underscore' has no character. The table defines the basic special characters of the COBOL character repertoire, so the pairing is normative."
+    }
+  ]
+}

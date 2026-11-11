@@ -1,0 +1,13 @@
+{
+  "claim_id": "p45-1",
+  "claim_key": "6dfe213e4f228868",
+  "page": 45,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p45-1", "page": 45, "kind": "misplaced-content", "severity": "structural", "pdf_says": "\"-  '-   literal continuation indicator   continuation of a literal when specified in an un-terminated literal with the same quotation symbol in its opening delimiter, subject to additional rules in 6.1.2.1, Syntax Rules.", "markdown_says": "| \"- | literal continuation | continuation of a literal when specified in an un-terminated |\n|---|---|---|\n| '- | indicator | literal with the same quotation symbol in its opening delimiter, |\n\nsubject to additional rules in 6.1.2.1, Syntax Rules.", "why_it_matters": "The floating-indicator table is broken up: '- is presented as a separate row whose indicator name is 'indicator' and whose meaning is a sentence fragment, instead of both \"- and '- being literal continuation indicators with one shared description; the *> row's two numbered meanings and the >> and >>D rows also fall out of the table as loose paragraphs, losing the column association."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page 45 (sheet 23), 6.1.2, shows one table with five entries. \"- and '- are stacked in the Character-string column of a single entry, with the indicator name 'literal continuation indicator' and one three-line description. The markdown splits the visual lines of that entry into table rows. As a result the row for '- has the indicator name 'indicator' and a mid-sentence fragment as its meaning, and 'subject to additional rules in 6.1.2.1' falls outside the table. The *> entry is cut off after its first line (a table of one row, with the rest as loose paragraphs), and the >> and >>D entries are plain paragraphs that lose their column boundaries. Every word is present, so no normative text is missing. The fault is the table structure: read literally, the markdown gives '- the wrong name and description. That makes it a real structural defect, not only line wrapping.",
+    "corrected_description": "Structural only, no text lost. The 6.1.2 floating-indicator table is transcribed by visual line, not by entry. The \"- / '- entry is split into two rows, so '- appears with the name 'indicator' and a description fragment, and the description's last line drops out of the table. The *> entry's second line and item 2) fall out of the table as paragraphs, and the >> and >>D entries are untabled paragraphs. The fix is one table with five entries: *> (both numbered meanings), >>, \"- and '- (one entry, 'literal continuation indicator'), and >>D."
+  }
+}

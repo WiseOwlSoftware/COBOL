@@ -1,0 +1,66 @@
+{
+  "batch": [
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96
+  ],
+  "pages_checked": [
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96
+  ],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p86-1",
+      "page": 86,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "section": "8.2 Locales",
+      "pdf_says": "LC_ALL    Locale-categories LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, and LC_TIME, and any other categories included in the locale.",
+      "markdown_says": "| LC_ALL | Locale-categories LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, |\n\nLC_NUMERIC, and LC_TIME, and any other categories included in the locale.",
+      "detail": "The LC_ALL row's description is split: its second line is detached from the table and appears as a standalone paragraph after it, so the table's LC_ALL entry omits LC_NUMERIC, LC_TIME and 'any other categories included in the locale'.",
+      "why_it_matters": "A reader of the table sees LC_ALL covering only four categories; the full set it controls (including LC_NUMERIC, LC_TIME and any other categories) is outside the table."
+    },
+    {
+      "id": "p87-1",
+      "page": 87,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "section": "8.2.1 Locale field names",
+      "pdf_says": "Category  Field name  Description / LC_MONETARY / int_curr_symbol international currency symbol / currency_symbol local currency symbol / mon_decimal_point decimal delimiter / mon_thousands_sep string used to group digits to the left of the decimal delimiter / mon_grouping size of each group of digits / ... / p_cs_precedes indicator of whether the currency symbol precedes or succeeds the value for a nonnegative quantity / n_cs_precedes indicator of whether the currency symbol precedes or succeeds the value for a negative quantity / LC_TIME / d_fmt date representation / t_fmt time representation",
+      "markdown_says": "Category Field name Description\n\nLC_MONETARY\n\n| int_curr_symbol | international currency symbol |\n|---|---|\n| currency_symbol | local currency symbol |\n\n   mon_decimal_point decimal delimiter\n\n   mon_thousands_sep string used to group digits to the left of the decimal delimiter\n\n| mon_grouping | size of each group of digits |\n...\n| p_cs_precedes | indicator of whether the currency symbol precedes or succeeds the value for |\n\na nonnegative quantity\n\n   n_cs_precedes indicator of whether the currency symbol precedes or succeeds the value for a negative quantity",
+      "detail": "The single three-column table (Category / Field name / Description) is fragmented into a plain-text header line, three separate two-column tables and loose paragraphs; mon_decimal_point, mon_thousands_sep and n_cs_precedes fall outside any table, and the p_cs_precedes description is cut, with 'a nonnegative quantity' detached as its own paragraph. The Category column association is lost.",
+      "why_it_matters": "The table that defines the locale fields the standard references is broken into fragments, so field-to-category association and some field rows are outside the table, and one description is cut mid-sentence."
+    },
+    {
+      "id": "p95-1",
+      "page": 95,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "section": "8.3.1.1.3.1 Required words",
+      "pdf_says": "=    Relational operator - equal\n        and assignment operator in COMPUTE",
+      "markdown_says": "| = | Relational operator - equal |\n\nand assignment operator in COMPUTE\n\n| == | Pseudo-text delimiter in COPY and REPLACE statements |\n|---|---|",
+      "detail": "The '=' row's continuation 'and assignment operator in COMPUTE' is detached from the table into a standalone paragraph, splitting the special-character-word table in two; the '=' entry in the table no longer records its assignment meaning.",
+      "why_it_matters": "The '=' table entry reads as only a relational operator; its meaning as the COMPUTE assignment operator sits detached outside the table."
+    }
+  ]
+}

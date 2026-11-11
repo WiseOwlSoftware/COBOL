@@ -1,0 +1,13 @@
+{
+  "claim_id": "p262-1",
+  "claim_key": "0f67656ba5e02fc1",
+  "page": 262,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p262-1", "page": 262, "kind": "table-restructured", "severity": "structural", "pdf_says": "Term / Subclause table with three rows, the last \"record-description-entry 13.10, Record description entry\"", "markdown_says": "| constant-entry | 13.9, Constant entry |\n\nrecord-description-entry 13.10, Record description entry", "why_it_matters": "The last row of the 13.6.1 meta-language term table fell out of the markdown table and became a loose paragraph. Text present; table structure lost."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (PDF p262, printed 240, 13.6.1) shows one Term/Subclause table of three rows: 77-level-entry / 13.11, constant-entry / 13.9, record-description-entry / 13.10. page-262.md lines 23-26 hold the first two as markdown table rows, then a blank line, then 'record-description-entry 13.10, Record description entry' as a loose paragraph. The row is cut off from the table. That is a real structural defect: anything that parses the table gets two of the three term-to-subclause mappings. The claim quotes both sources correctly. No wording is lost and the term and subclause still sit side by side in the prose, so the meaning a human reader takes away is unchanged. The defect is structural only, as the claim's severity already says.",
+    "corrected_description": ""
+  }
+}

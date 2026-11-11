@@ -1,0 +1,25 @@
+{
+  "batch": [193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204],
+  "pages_checked": [193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p194-1",
+      "page": 194,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term Subclause / data-division 13, Data division / environment-division 12, Environment division / options-paragraph 11.8, OPTIONS paragraph / procedure-division 14, Procedure division",
+      "markdown_says": "| Term | Subclause |\n|---|---|\n| data-division | 13, Data division |\n\nenvironment-division 12, Environment division\n\n| options-paragraph | 11.8, OPTIONS paragraph |\n|---|---|\n| procedure-division | 14, Procedure division |",
+      "why_it_matters": "The single four-row meta-language term table of 10.5.1 is split into two tables with the environment-division row left as a loose paragraph between them, and options-paragraph is promoted to a second table's header row. All four mappings survive textually, but a reader or tool parsing the table sees only data-division and procedure-division as rows."
+    },
+    {
+      "id": "p197-1",
+      "page": 197,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Term Subclause / class-id-paragraph 11.2, CLASS-ID paragraph / factory-paragraph 11.3, FACTORY paragraph / function-id-paragraph 11.4, FUNCTION-ID paragraph / interface-id-paragraph 11.5, INTERFACE-ID paragraph / method-id-paragraph 11.6, METHOD-ID paragraph / object-paragraph 11.7, OBJECT paragraph / options-paragraph 11.8, OPTIONS paragraph / program-id-paragraph 11.9, PROGRAM-ID paragraph",
+      "markdown_says": "| Term | Subclause |\n|---|---|\n| class-id-paragraph | 11.2, CLASS-ID paragraph |\n| factory-paragraph | 11.3, FACTORY paragraph |\n\nfunction-id-paragraph 11.4, FUNCTION-ID paragraph\\\ninterface-id-paragraph 11.5, INTERFACE-ID paragraph\\\nmethod-id-paragraph 11.6, METHOD-ID paragraph\n\n| object-paragraph | 11.7, OBJECT paragraph |\n|---|---|\n| options-paragraph | 11.8, OPTIONS paragraph |\n\nprogram-id-paragraph 11.9, PROGRAM-ID paragraph",
+      "why_it_matters": "The single eight-row meta-language term table of 11.1.1 is fragmented into two tables plus loose paragraphs: function-id, interface-id, method-id and program-id rows are plain text outside any table, and object-paragraph is promoted to a second table's header row. The text survives, but the table structure mapping each term to its subclause is lost for half its rows."
+    }
+  ]
+}

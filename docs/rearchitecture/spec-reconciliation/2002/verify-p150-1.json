@@ -1,0 +1,13 @@
+{
+  "claim_id": "p150-1",
+  "claim_key": "4151d5ce28da5310",
+  "page": 150,
+  "kind": "missing-heading",
+  "severity": "structural",
+  "claim": {"id": "p150-1", "page": 150, "kind": "missing-heading", "severity": "structural", "pdf_says": "8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or national", "markdown_says": "###### 8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or\n\nnational", "why_it_matters": "The two-line printed heading was split: its last word 'national' became a separate body paragraph, so the heading is truncated (reads as comparison with class 'alphanumeric or') and a stray fragment appears as prose."},
+  "verdict": {
+    "real": true,
+    "reasoning": "On the 300-dpi render of PDF page 150 (printed page 128), the bold heading '8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or' wraps, and 'national' is printed in the same bold heading face on the next line before the body text begins. page-150.md line 31 holds the heading markup '###### 8.8.4.1.1.4 ... alphanumeric or', then a blank line, then 'national' as a plain body paragraph on line 33. This is more than a line wrap. The markdown heading node ends at 'or', and the heading's last word has become a stray prose paragraph, so the heading text is wrong as transcribed. The claim quotes both sources accurately.",
+    "corrected_description": null
+  }
+}

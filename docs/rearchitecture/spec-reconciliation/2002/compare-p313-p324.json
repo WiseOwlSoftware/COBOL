@@ -1,0 +1,16 @@
+{
+  "batch": [313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324],
+  "pages_checked": [313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p323-1",
+      "page": 323,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "The PDF prints the two paragraphs \"If any of the LINE clauses used in computing the trial sum are subject to a PRESENT WHEN clause ...\" and \"If the trial sum is less than or equal to the lower limit for the report group, the page fit is declared successful; ...\" indented under item c) of 13.16.33.3 GR4, and prints \"If the page fit was declared successful, no page advance takes place and the report group is printed on the current page; ...\" back at the rule-4 body indent, so it applies to all three forms a), b) and c) of the page fit test.",
+      "markdown_says": "   If any of the LINE clauses used in computing the trial sum are subject to a PRESENT WHEN clause ...\n\n   If the trial sum is less than or equal to the lower limit for the report group, the page fit is declared successful; ...\n\n   If the page fit was declared successful, no page advance takes place and the report group is printed on the current page; ...",
+      "why_it_matters": "All three paragraphs carry the same 3-space indent as the a)/b)/c) items, so the transcription no longer distinguishes c)'s continuation paragraphs from the closing paragraph of GR4. A reader can take the page-advance consequence as part of item c) (relative LINE only) rather than the outcome of every page fit test form, including a) NEXT PAGE and b) absolute LINE."
+    }
+  ]
+}

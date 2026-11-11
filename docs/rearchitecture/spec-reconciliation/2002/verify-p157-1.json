@@ -1,0 +1,13 @@
+{
+  "claim_id": "p157-1",
+  "claim_key": "c2bfde37dd1cc901",
+  "page": 157,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p157-1", "page": 157, "kind": "table-restructured", "severity": "structural", "pdf_says": "Logical Operator | Meaning: AND | Logical conjunction; the truth value is true if both of the conjoined conditions are true; false if one or both of the conjoined conditions is false. / OR | Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false. / NOT | Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.", "markdown_says": "| AND | Logical conjunction; the truth value is true if both of the conjoined conditions are |\n\ntrue; false if one or both of the conjoined conditions is false.\n\n   OR Logical inclusive OR; the truth value is true if one or both of the included conditions is true; false if both included conditions are false.\n\n   NOT Logical negation or reversal of truth value; the truth value is true if the condition is false; false if the condition is true.", "why_it_matters": "The 8.8.4.2 logical-operator table keeps only the AND row, and that row's Meaning cell is cut mid-sentence; the rest of the AND meaning and the OR and NOT rows fall out of the table as loose paragraphs. All words survive, but a reader of the table sees an AND definition ending at 'are' and no OR/NOT rows."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page (2002 p.135, PDF p157) shows the 8.8.4.2 table with header 'Logical Operator | Meaning' and three rows: AND, OR, NOT, each with a two-line Meaning cell. page-157.md lines 17-25 hold a markdown table whose only row is '| AND | Logical conjunction; ... conjoined conditions are |'; the cell ends at 'are', the continuation 'true; false if one or both of the conjoined conditions is false.' is a loose paragraph after a blank line (which ends the table), and the OR and NOT rows are indented loose paragraphs outside the table. The claim quotes both sources accurately. Every word survives, so no normative text is lost, but the table structure is genuinely broken (truncated cell, two rows missing from the table), which is more than wrapping or furniture. Real as a structural defect, correctly labeled structural rather than normative.",
+    "corrected_description": ""
+  }
+}

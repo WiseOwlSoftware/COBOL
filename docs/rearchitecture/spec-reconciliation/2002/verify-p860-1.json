@@ -1,0 +1,13 @@
+{
+  "claim_id": "p860-1",
+  "claim_key": "a8c72ec23ade3914",
+  "page": 860,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p860-1", "page": 860, "kind": "misplaced-content", "severity": "structural", "pdf_says": "SORT statement  526\nALLOCATE statement  116, 372, 418, 450\nALPHABET clause\n     SPECIAL-NAMES paragraph  195", "markdown_says": "   SORT statement 526 ALLOCATE statement 116, 372, 418, 450 ALPHABET clause\n\n   SPECIAL-NAMES paragraph 195\\", "why_it_matters": "Three index entries are merged into one line, and the ALPHABET clause sub-entry is cut off from its parent by a paragraph break."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The rendered page (printed page 838, Index) shows four lines: indented 'SORT statement 526' (a sub-entry continued from the previous page), 'ALLOCATE statement 116, 372, 418, 450', 'ALPHABET clause', indented 'SPECIAL-NAMES paragraph 195'. The markdown line 3 holds 'SORT statement 526 ALLOCATE statement 116, 372, 418, 450 ALPHABET clause', then a blank line, then 'SPECIAL-NAMES paragraph 195\\'. The claim quotes both sources accurately, but every word and every page number is present, in the printed order, with no number attached to the wrong entry. The defect is lost line breaks (and a stray paragraph break) only. The 'cut off from its parent' point does not hold up as a content loss: the markdown drops the index's sub-entry indentation on the whole page (for example 'CLASS clause 269' under 'ALPHABETIC phrase' and 'CODE-SET clause 271' under 'Alphabet-name' are both flush), so no parent/child link is recorded anywhere, and the ALPHABET clause / SPECIAL-NAMES order is still kept. This is line-wrapping and formatting in the informative index. It changes no normative content, so it is rejected under the formatting and line-wrapping exclusion.",
+    "corrected_description": null
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p460-1",
+  "claim_key": "f35b48eb2d9a09f5",
+  "page": 460,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p460-1", "page": 460, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Format 2 (into-giving) and Format 4 (into-remainder) print on one baseline: DIVIDE { identifier-1 / literal-1 } INTO { identifier-2 / literal-2 }, each brace two lines tall with INTO between the closing brace of the first and the opening brace of the second.", "markdown_says": "       ╭              ╮ <u>INTO</u>\n       │              │\n       │ identifier-1 │ ╭ identifier-2 ╮\n<u>DIVIDE</u> ┤              ├ ┤              ├\n       ╰ literal-1    ╯ ╰ literal-2    ╯", "why_it_matters": "In both Format 2 and Format 4 the drawn figure is distorted: the identifier-1/literal-1 brace is stretched to five lines with an empty top, the keyword INTO is lifted to a line of its own above the second brace instead of sitting between the two braces on the DIVIDE baseline, and the second brace's middle line is attached to DIVIDE's row. The token order is recoverable (DIVIDE, first brace, INTO, second brace), so no syntax is lost, but the figure no longer reads as the printed general format and should be redrawn like Format 3 on the same page."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (PDF p.460, printed 438) shows Formats 2 and 4 as DIVIDE {identifier-1 / literal-1} INTO {identifier-2 / literal-2} on one baseline, each brace two lines tall, exactly like Format 3's DIVIDE {..} BY {..}. The markdown does draw Formats 2 and 4 badly (first brace stretched to five rows with blank top rows, underlined INTO placed on the top row above the second brace), so the layout description is accurate. But every token is present, the underline on INTO is kept, the alternatives in each brace are the same (identifier-1/literal-1; identifier-2/literal-2), and reading order is still DIVIDE, first brace, INTO, second brace; the claim itself says no syntax is lost. Blank rows inside a brace are not alternatives. The defect is figure layout only and does not change the general format's meaning, so by the refutation criteria (formatting only, meaning unchanged) it is not a content discrepancy. A cosmetic redraw to match Format 3 would still be worth doing.",
+    "corrected_description": ""
+  }
+}

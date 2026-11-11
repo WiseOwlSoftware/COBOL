@@ -1,0 +1,25 @@
+{
+  "batch": [493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503, 504],
+  "pages_checked": [493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503, 504],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p502-1",
+      "page": 502,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "3. When the sending operand is described as alphanumeric or national, the sending operand is treated as if it were an unsigned integer of category numeric with the following characteristics: [indented beneath it] a. If the sending operand is a data item, ... b. If the sending operand is a figurative constant, ... c. If the sending operand is an alphanumeric or national literal, ...",
+      "markdown_says": "   3\\. When the sending operand is described as alphanumeric or national, ...\n\n   a. If the sending operand is a data item, ...\n\n   b. If the sending operand is a figurative constant, ...\n\n   c. If the sending operand is an alphanumeric or national literal, ...\n\n   c) When a receiving item is described as alphabetic, ...",
+      "why_it_matters": "In MOVE general rule 4b the printed page nests items a.-c. under item 3. (they are the characteristics of the alphanumeric/national sending operand); the markdown puts a.-c. at the same indentation as 1.-3. and as the parent-level c) and d), so the sub-items are detached from item 3 and read as siblings of it."
+    },
+    {
+      "id": "p503-1",
+      "page": 503,
+      "kind": "incorrect-text",
+      "severity": "normative",
+      "pdf_says": "HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES | Alphabetic / Alphanumeric / Alphanumeric-edited / National / National-edited / Numeric / Numeric-edited / — if usage is display / — if usage is national | Alphanumeric / Alphanumeric / Alphanumeric / National / National / Alphanumeric / (blank) / Alphanumeric / National",
+      "markdown_says": "| HIGH-VALUE, HIGH-VALUES; LOW-VALUE, LOW-VALUES; and QUOTE, QUOTES | Alphabetic<br>Alphanumeric<br>Alphanumeric-edited<br>National<br>National-edited<br>Numeric<br>Numeric-edited<br>— if usage is display — if usage is national | Alphanumeric<br>Alphanumeric<br>Alphanumeric<br>National<br>National<br>Alphanumeric<br>Alphanumeric<br>National |",
+      "why_it_matters": "Table 18 prints Numeric-edited with no category of its own and splits it into '— if usage is display' -> Alphanumeric and '— if usage is national' -> National. The markdown merges the two sub-rows into one line and drops the blank, so the lines pair positionally as Numeric-edited -> Alphanumeric and the merged usage line -> National: the category of HIGH-VALUE/LOW-VALUE/QUOTE moved to a numeric-edited item of usage national reads as Alphanumeric."
+    }
+  ]
+}
