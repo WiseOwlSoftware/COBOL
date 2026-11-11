@@ -81,7 +81,7 @@ The facility raises no exception condition: "exception handling [is] intentional
 `CommunicationEmitter` renders one `MessageControl` call per statement. The area goes over through `OperandText.RecordAreaImage`, the one record-area channel, and comes back through
 `SequentialIoEmitter.EmitImageInto` verbatim (other descriptions read the same storage). "The message control system (MCS) always references the record according to the data description
 defined in" GR2, GR16 and GR24, so the runtime reads positions and a user's redefinitions never reach it. RECEIVE returns a `CommunicationReceipt`: the area, the receiving item's image, and
-which phrase runs. A CD with INITIAL sets its names once per instance, before the first procedure division statement (GR6, GR28).
+which phrase runs. A CD with INITIAL sets its names once per instance, before the first procedure division statement (GR6, GR28): the scheduling names go only to the program that establishes the run unit (`ModuleStack.RunningIsMain`), and a CALLed program's INITIAL CD is spaces (§1985:XIV.2.2.4 GR28 "In all other cases"; kb/Work PB5282). RECEIVE evaluates identifier-1's subscripts and reference modifiers once, before the MCS call, through `PlaceIdentification.Freeze` (§1985:IV.4.3.8; kb/Work PB5279).
 
 ## 6. The message control system
 

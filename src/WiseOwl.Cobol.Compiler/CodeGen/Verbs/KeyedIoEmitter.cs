@@ -249,9 +249,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 // X3.23-1985 USE FOR DEBUGGING general rules 5 d / 6 c: the INTO phrase ran, so its receiver's section runs; rule 2 b: a READ that
                 // delivered a record runs its file-name section, with the record read in DEBUG-CONTENTS (D20).
                 if (into) move.Emit(rd.IntoMove!);
-                Debug.LandAfterActionKeeping();   // kept for the arm below: a READ that delivered none runs the section too unless an AT END / INVALID KEY statement ran
                 if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §2023:14.9.30 — NOT AT END on success
                 if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §2023:9.1.14 — success only
+                Debug.LandAfterActionKeeping();   // after the NOT phrases, which are inside the READ (kb/Work PB5295); kept for the arm below: a READ that delivered none runs the section too unless an AT END / INVALID KEY statement ran
             }
         if (rd.AtEnd is { } at)
             using (w.Block($"if ({IoStatusClass.AtEnd(st)})"))
@@ -390,9 +390,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         var (retryKind, retryAmount) = SeqIo.RenderRetry(del.Retry);
         w.Line($"var {st} = {RuntimeApi.FileDeleteShared(name, image, retryKind, retryAmount, areaExtents)};");
         SeqIo.EmitStoreFileStatus(file);
-        Debug.LandAfterAction();   // X3.23-1985 USE FOR DEBUGGING general rule 2 c: right after the I-O, whatever its outcome (D20)
         var hook = SeqIo.EmitUseHook(file, "DELETE", invalidKeyHandled: del.InvalidKey?.Invalid is not null);
         SeqIo.EmitInvalid(st, del.InvalidKey, hook);
+        Debug.LandAfterAction();   // §1985:XV.3.2.4 GR2 c: "after the execution of any DELETE or START statement" — the USE procedure and the INVALID KEY phrases are part of it (kb/Work PB5295)
     }
 
     public void EmitDeleteFile(BoundKeyedDeleteFile df)
@@ -419,7 +419,6 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         else
             w.Line($"var {st} = {RuntimeApi.FileDeleteFile(FileKeyExpr(df.File), ovr)};");
         SeqIo.EmitStoreFileStatus(df.File);
-        Debug.LandAfterAction();   // X3.23-1985 USE FOR DEBUGGING general rule 2 c: a DELETE statement that references file-name-1 (D20)
         // §2023:14.9.10.4 GR20b: the enabled level-3 EC-I-O for the status is set to exist EVEN when the ON
         // EXCEPTION phrase is written — the phrase suppresses only the declarative dispatch and the fatal
         // default (GR20c), the same third-flag shape the AT END / INVALID KEY suppressions use. The old
@@ -432,6 +431,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         // executed" (§2023:14.6.13.1.4 2)/3), kb/Work PB3237): the hook's NotPhraseGate, as every other I-O verb's.
         SeqIo.EmitPhrasePair(IoStatusClass.Unsuccessful(st), df.OnException, df.NotOnException,
             IoStatusClass.Successful(st), hook);
+        Debug.LandAfterAction();   // §1985:XV.3.2.4 GR2 c: a DELETE statement that references file-name-1, after its USE procedure and phrases (kb/Work PB5295)
     }
 
     // ── START (ISO §2023:14.9.41) ───────────────────────────────────────────────────────────────────────────────────
@@ -499,9 +499,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), areaImage, len, areaExtents)};");
         }
         SeqIo.EmitStoreFileStatus(file);
-        Debug.LandAfterAction();   // X3.23-1985 USE FOR DEBUGGING general rule 2 c: right after the I-O, whatever its outcome (D20)
         var hook = SeqIo.EmitUseHook(file, "START", invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
         SeqIo.EmitInvalid(st, sta.InvalidKey, hook);   // §2023:14.9.41 GR6 — transfer per §2023:9.1.14
+        Debug.LandAfterAction();   // §1985:XV.3.2.4 GR2 c: "after the execution of any DELETE or START statement" — the USE procedure and the INVALID KEY phrases are part of it (kb/Work PB5295)
     }
 
     /// <summary>The <c>StartKeyLength</c> expression for a WITH LENGTH count already funnelled to its exact lane

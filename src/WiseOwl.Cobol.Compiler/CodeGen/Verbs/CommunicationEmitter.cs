@@ -86,20 +86,22 @@ internal sealed class CommunicationEmitter(EmitContext ctx, NumericRenderer num,
     private void EmitReceive(BoundCommunicationStatement n, string cd, string format, string image)
     {
         var w = ctx.Writer;
-        var into = n.Into!;
+        // §1985:IV.4.3.8: identifier-1's subscripts and reference modifiers are evaluated once, as the first operation of the statement —
+        // before the MCS updates the CD (a subscript may read TEXT LENGTH), so the receipt lands in the place the statement identified (kb/Work PB5279).
+        var into = PlaceIdentification.Freeze(n.Into!, PlaceIdentification.Hoister(ctx));
         string receipt = $"__receipt{ctx.Names.NextEc()}";
         w.Line($"var {receipt} = {RuntimeApi.McsReceive(cd, format, image, n.Segment, OperandText.RecordAreaImage(into), n.NoData is not null)};");
         seqIo.EmitImageInto(n.Area, $"{receipt}.Area", storesIntoOwnItem: false);
         // A reference-modified receiver is a window, whose write splices; the image store is for an item's whole storage.
         if (into is RefModPlace) w.Line(PlaceRenderer.Write(into, $"{receipt}.Into"));
         else seqIo.EmitImageInto(into, $"{receipt}.Into", storesIntoOwnItem: false);
-        // X3.23-1985 USE FOR DEBUGGING general rule 8 b: a cd-name's section runs after a RECEIVE "that does not result in the
-        // execution of the NO DATA imperative-statement" — here the data arrived, and the WITH DATA statements have not run (D20).
+        // §1985:XV.3.2.4 GR8 b: a cd-name's section runs after a RECEIVE "that does not result in the execution of the NO DATA
+        // imperative-statement". The WITH DATA statements are inside the RECEIVE (§1985:XIV.3.5.4 GR4), so the section lands after them (kb/Work PB5295).
         if (n.WithData is null && n.NoData is null) { Debug.LandAfterAction(); return; }
         using (w.Block($"if ({receipt}.DataAvailable)"))
         {
-            Debug.LandAfterAction();
             if (n.WithData is { } yes) Statements.EmitStatementList(yes);
+            Debug.LandAfterAction();
         }
         using (w.Block("else"))
             if (n.NoData is { } no) Statements.EmitStatementList(no);

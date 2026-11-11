@@ -1114,3 +1114,4 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.EndOpen(string! name) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
+WiseOwl.Cobol.Runtime.ModuleStack.RunningIsMain.get -> bool
