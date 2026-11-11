@@ -1,0 +1,13 @@
+{
+  "claim_id": "p864-1",
+  "claim_key": "c4019729e424df63",
+  "page": 864,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p864-1", "page": 864, "kind": "misplaced-content", "severity": "structural", "pdf_says": "COUNT IN phrase\n     UNSTRING statement  545 (left column above the D heading, and the entire right column, indent sub-entries under their headword)", "markdown_says": "   COUNT IN phrase\\\n   UNSTRING statement 545\\", "why_it_matters": "In the left column above the D heading and in the whole right column, every index line has the same indentation, so the parent/child structure is lost. The lines under the D heading are indented correctly."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 842 (PDF p864) is a two-column index. Sub-entries are visibly indented under their headwords: ADD statement..SUBTRACT statement under the continued heading, UNSTRING statement 545 under COUNT IN phrase, ACCEPT MESSAGE COUNT statement 667 under COUNT phrase, SPECIAL-NAMES paragraph 194 under CRT STATUS / CURRENCY SIGN / CURSOR clause, EXIT statement 446 under CYCLE phrase; in the right column Definintion 365 (continuing Data-pointer), INITIALIZE statement 457, ACCEPT statement 409, TYPE clause 354, Alignment 389 under Decimal point, USE statement 549, Normal completion 392, and the DEPENDING ON / DESCENDING KEY sub-entries. In the markdown every one of those lines sits at the same three-space indent as its headword (e.g. '   COUNT IN phrase\\' then '   UNSTRING statement 545\\'), while the block under the D heading uses &emsp; for sub-entries correctly. The claim quotes both sources accurately. The loss changes what the index says: 'Alignment 389' and 'Definintion 365' read as top-level index terms rather than sub-entries of 'Decimal point' and 'Data-pointer', and 'UNSTRING statement 545' reads as its own term. Index content is non-normative, so this does not affect compiler semantics, but it is a genuine structural discrepancy, not mere whitespace.",
+    "corrected_description": null
+  }
+}

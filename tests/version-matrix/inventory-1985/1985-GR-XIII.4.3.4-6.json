@@ -15,6 +15,15 @@
   ],
   "bridge": true,
   "reason": "Order kept: sense the break, control footings minor up and headings major down to the break level, then detail or summary (§2023:14.9.16.4 GR5 'each control footing and control heading is printed, if defined, up to the level of the control break'; §2023:14.9.16.4 GR2; §2023:14.9.16.4 GR3; §2023:13.18.16.4 GR3 equality test). Changed: 1985 a.1 gives the prior control values only to 'the control footing USE procedures and control footing SOURCE clauses', and 1985 XIII.3.20.4 GR13c gives every other report-group reference the current values. 2023 §2023:13.18.16.4 GR4 a): 'If the printing of the control footing causes a page advance and the page heading or page footing refers to a control data item, the value produced is similarly the prior value.' A 1985 page footing SOURCE naming a control item prints a different value when a control footing forces the page advance.",
-  "source": "adjudicate-712/slice-26"
+  "source": "adjudicate-712/slice-26",
+  "digests": {
+   "GR-14.9.16.4-5": "569d9fda51ee",
+   "GR-14.9.16.4-2": "5c30de9c4b4d",
+   "GR-14.9.16.4-3": "e5737149427c",
+   "GR-14.9.16.4-6": "ad9b8779833d",
+   "GR-13.18.16.4-3": "b9c98ef7c94a",
+   "GR-13.18.16.4-4": "8778f441e562",
+   "GR-13.18.57.4-6": "60b5eeb0db8d"
+  }
  }
 }

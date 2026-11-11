@@ -11,6 +11,11 @@
   "reason": "§1985:VII.2.4.2 lets a sequential file say only 'ACCESS MODE IS SEQUENTIAL'. §2023:12.4.5.5.1 is one ACCESS MODE format for every organization, {SEQUENTIAL | RANDOM | DYNAMIC}, the union of the 1985 sequential, relative and indexed ACCESS MODE formats (RANDOM and DYNAMIC already existed in 1985 for relative and indexed files), and §2023:12.4.5.5.2 SR2 ('The DYNAMIC and RANDOM phrases shall not be specified for a sequential file') keeps a sequential file to SEQUENTIAL. Same requirement for a sequential file, a compile-time refusal in both: KEPT. The sequential file control entry restates it in line: §2023:12.4.5.1 'Format 3 (sequential)' offers only '[ ACCESS MODE IS SEQUENTIAL ]'.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-12.4.5.5.1": "ce888455e095",
+   "SR-12.4.5.5.2-2": "6a40fc691a55",
+   "FMT-12.4.5.1": "14f82fb7eed3"
+  }
  }
 }

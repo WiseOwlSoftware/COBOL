@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.25.3-2",
  "rule-digest": "37efdb92f2a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Sr1Offence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Sr1Reject; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#UsageOutsideDisplayOrNational",
  "test-ref": "conformance:cases/VI.6.25@1985-STRING-STATEMENT/1985-SR-VI_6_25_3-2",
+ "notes": "SHARED QUESTION G (rows 1985-SR-IV.4.3.8.4.3-1 and 1985-SR-VI.6.25.3-2): is a group item 'a data item whose usage is DISPLAY' / 'described implicitly or explicitly as USAGE IS DISPLAY' in 1985, even when its own entry writes USAGE COMP? ANSWER: yes. The 1985 text as amended (Amendment 2, 1993) itself treats a group as meeting that test: the class condition requires identifier-1 to be 'a data item whose usage is explicitly or implicitly DISPLAY' and in the same paragraph gives the result for identifier-1 being 'a zero-length group item', which is possible only if a group passes the usage test. A group's class is alphanumeric at object time whatever its subordinates (IV.4.3.3), and a USAGE clause written on a group 'applies to each elementary item in the group' (VI.5.14.4 GR1), so it describes the elementary items, not the group. The next edition says so outright (§2002:8.5.2, kept as §2023:8.5.2.1). Where 1985 is unclear, CLAUDE.md rule 1 lets the ISO text decide, and the ISO text admits the group. Applied here: the elementary half is refused correctly (COBOL1626 for numeric literals and non-DISPLAY elementary items, the refuter's c9 probes), and a group operand is admitted under the answer above. ATTACK SURFACE: the same as for the reference-modification row. INSPECT SR1 of the same edition names 'a group item' separately and STRING SR2 does not; a reader could take that as 1985 meaning to exclude groups from STRING. Against that reading: GR1 says a group's USAGE clause describes its elementary items, and the 1993 class-condition sentence admits a group under the same DISPLAY test.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
@@ -10,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"All literals must be described as nonnumeric literals, and all identifiers, except identifier-4, must be described ... USAGE IS DISPLAY.\"; 2023: \"All literals shall be described as alphanumeric, boolean, or national literals, ... usage display or national.\". 2023 also allows boolean and national literals and usage national identifiers, which 1985 refused. It adds a rule that national operands must all be national.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-14.9.43.3-1": "d4fa8a36ed9f"
+  }
  }
 }

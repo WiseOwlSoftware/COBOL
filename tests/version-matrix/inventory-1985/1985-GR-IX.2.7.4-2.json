@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 keeps the rule for data-name-1 unchanged. Data-name-2 belongs to the new split-key syntax that 1985 lacks, so programs valid in 1985 face the same requirement.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-12.4.5.12.4-3": "20512ccb1bfb"
+  }
  }
 }

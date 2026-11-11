@@ -1,0 +1,17 @@
+{
+  "batch": [385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396],
+  "pages_checked": [385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p391-1",
+      "page": 391,
+      "kind": "ocr-error",
+      "severity": "cosmetic",
+      "why_it_matters": "A reader of the markdown Table 11 sees garbled group headings (\"andsymbols Zero-suppression\"); the precedence cells themselves are correct, so no rule changes, but the grouping labels should read as printed.",
+      "pdf_says": "Row-group labels (printed rotated) of Table 11: \"Simple, special, and fixed insertion symbols\", \"Zero-suppression and floating insertion symbols\", \"Other symbols\"",
+      "markdown_says": "| symbols<br>insertion<br>fixed<br>and<br>special,<br>Simple, | ... | floating<br>andsymbols Zero-suppression<br>insertion | ... | symbols<br>Other |",
+      "note": "The rotated row-group labels were transcribed word-reversed and, for the second group, scrambled into \"floating andsymbols Zero-suppression insertion\". Every 'x' cell of the 24-column table was compared cell by cell and matches the PDF; only the group labels are wrong."
+    }
+  ]
+}

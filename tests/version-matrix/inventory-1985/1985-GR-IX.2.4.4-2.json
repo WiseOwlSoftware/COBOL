@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 item c) keeps sequential order ascending within the key of reference. 'Collating sequence for that key' only allows per-key sequences that 1985 lacked; 1985 programs behave the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-12.4.5.5.3-2": "762981f4f2a5"
+  }
  }
 }

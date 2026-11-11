@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "GR-20 restates the 1985 rule: one OPEN per file-name, in the order written. The RESUME and sharing/retry additions concern only features new in 2023, so 1985 programs behave alike.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.27.4-20": "add7c3a31bdd"
+  }
  }
 }

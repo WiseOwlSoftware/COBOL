@@ -1,0 +1,13 @@
+{
+  "claim_id": "p930-2",
+  "claim_key": "f219175d92c6884f",
+  "page": 930,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p930-2", "page": 930, "kind": "misplaced-content", "severity": "structural", "pdf_says": "(right column) National  17 / Numeric  18 indented under Character; CHARACTER CLASSIFICATION clause  229 / OBJECT-COMPUTER paragraph  228 (indented); Class / BASE  735 / Parameterized  200 (indented); Class of data / Alphanumeric 129 ... Pointer 129 (indented)", "markdown_says": "   National 17\\\n   Numeric 18\\\n   CHARACTER CLASSIFICATION clause 229\\\n   OBJECT-COMPUTER paragraph 228\\ ... Class\\\n   BASE 735\\\n   Parameterized 200\\", "why_it_matters": "The whole right column loses the index hierarchy: sub-entries print at the same level as headwords. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered page 930 (printed 906, index B/C). In the PDF's right column, sub-entries are visibly indented under their headwords: National 17 / Numeric 18 continue the Character sub-list from the left column; OBJECT-COMPUTER paragraph 228 is under CHARACTER CLASSIFICATION clause 229; ALLOCATE/BLOCK CONTAINS/INSPECT/RECORD under CHARACTERS phrase; BASE 735 / Parameterized 200 under Class; SPECIAL-NAMES 231 under CLASS clause; BOOLEAN phrase under Class condition; Alphanumeric..Pointer 129 under Class of data; USAGE clause under CLASS phrase; CLASS clause..Truth value under Class-name; Implied under CLOSE statement; Report description entry under CODE clause; SPECIAL-NAMES 232 under Code-name. The markdown gives every right-column line the same 3-space prefix with no &emsp; marker (the left column uses &emsp; for sub-entries), so headwords and sub-entries are at one level and e.g. 'BASE 735' or 'OBJECT-COMPUTER paragraph 228' read as independent headwords. The claim quotes both sources accurately. This is more than whitespace: in an index the nesting carries which headword a page reference belongs to, so the meaning of entries changes. Informative annex content only, so structural not normative.",
+    "corrected_description": ""
+  }
+}

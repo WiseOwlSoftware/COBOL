@@ -1,10 +1,10 @@
 {
   "batch": [26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37],
-  "pages_checked": [26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37],
+  "pages_checked": [26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37], "pages_unread": [],
   "note": "This batch was routed as a FIGURES batch, but pages 26-37 are front matter (Foreword, Introduction, Clause 1 Scope, Clause 2 Normative references, Clause 3 Terms and definitions 3.1-3.47). scripts/spec/page_workunit.py reports '0 with figure content' for all 12 pages, and visual inspection of all 12 renders confirms there is not a single general format, syntax skeleton, bracket/brace diagram, or figure anywhere in the range. No choice-indicator (5.2.6.4 vertical-bar) findings are therefore possible in this batch. Prose reconciliation was performed instead.",
   "findings": [
     {
-      "page": 28,
+      "id": "p28-1", "page": 28,
       "kind": "missing-text",
       "severity": "normative",
       "pdf_says": "Introduction\n\nCOBOL began as a business programming language, but its present use has spread well beyond that to a general purpose programming language.\n\nAny organization interested in reproducing the COBOL standard and specifications in whole or in part, using ideas from this document as the basis for an instruction manual or for any other purpose, is free to do so. However, all such organizations are requested to reproduce the following acknowledgment paragraphs in their entirety as part of the preface to any such publication (any organization using a short passage from this document, such as in a book review, is requested to mention \"COBOL\" in acknowledgment of the source, but need not quote the acknowledgment):\n\nCOBOL is an industry language and is not the property of any company or group of companies, or of any organization or group of organizations.\n\nNo warranty, expressed or implied, is made by any contributor or by the CODASYL COBOL Committee as to the accuracy and functioning of the programming system and language. Moreover, no responsibility is assumed by any contributor, or by the committee, in connection therewith.\n\nThe authors and copyright holders of the copyrighted materials used herein:\n\n\u2014 FLOW-MATIC(TM)1;\n\n\u2014 IBM(R)2 Commercial Translator Form No F 28-8013, copyrighted 1959 by IBM;\n\n\u2014 FACT(C), DSI 27A5260-2760, copyrighted 1960 by Minneapolis-Honeywell\n\nhave specifically authorized the use of this material in whole or in part, in the COBOL specifications. Such authorization extends to the reproduction and use of COBOL specifications in programming manuals or similar publications.\n\nFor more details and additional changes, see E.2, Substantive changes potentially affecting existing programs and E.3, Substantive changes probably not affecting existing programs.\n\nFurther development of the COBOL language is a continuing process to provide facilities to satisfy user demand for the improved usability of the language and the adoption of relevant advances in techniques developed in the computer industry as a whole, including the desirability of interoperability with a wide variety of operating systems and other programming languages to enable developers to take advantage of their facilities, including pre-existing task solutions that then don't need to be repeated.\n\nAnnexes A, Language element lists B, Characters permitted in user-defined words, and C, Mapping of uppercase letters to lowercase letters in the COBOL character repertoire form a normative part of this document. Annexes D through G are for information only.\n\n[footnote] 1. FLOW-MATIC(TM) is the trademark of a product supplied by Sperry Rand Corporation. This information is given for the convenience of users of this document and does not constitute an endorsement by ISO or IEC of the product named.\n[footnote] 2. IBM is the trademark of International Business Machines Corporation. This information is given for the convenience of users of this document and does not constitute an endorsement by ISO or IEC of the product named.",
@@ -13,7 +13,7 @@
       "suggested_repair": "Re-transcribe page 28 verbatim from the render at E:/Temp/specrecon/f2/spec_p28.png, restoring every paragraph, the three em-dash acknowledgment bullets with their superscript footnote markers, both numbered footnotes, and promoting `**Introduction**` to `## Introduction` to match the `## Foreword` treatment on page 26."
     },
     {
-      "page": 28,
+      "id": "p28-2", "page": 28,
       "kind": "other",
       "severity": "structural",
       "pdf_says": "(nothing \u2014 the PDF page contains only the running header, the Introduction body text, the two footnotes, and the page/copyright footer; there is no meta-commentary anywhere on the page)",
@@ -22,7 +22,7 @@
       "suggested_repair": "Delete specs/ISO_COBOL.md lines 1255 and 1281 (and the surrounding `---` fences that frame the summary) as part of the page-28 re-transcription. Then re-run the grep for `not able to reproduce|Here is a summary` across the file to confirm zero remaining hits."
     },
     {
-      "page": 34,
+      "id": "p34-1", "page": 34,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "3.10\nalphanumeric character set\nalphanumeric coded character set\ncoded character set that the implementor has designated for representation of data items of usage display and alphanumeric literals\n\n(printed identically in style to 3.1 on page 33: the entry number in bold on its own line, the term in bold beneath it \u2014 both are numbered sub-clauses of Clause 3)",
@@ -31,7 +31,7 @@
       "suggested_repair": "Promote `**3.10**` through `**3.38**` (specs/ISO_COBOL.md lines 1456-1627) to `### 3.10` ... `### 3.38`, matching the `### 3.1`-`### 3.9` treatment on page 33, and drop the now-redundant bold markers on the number lines."
     },
     {
-      "page": 37,
+      "id": "p37-1", "page": 37,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "3.39\ncommon program\nprogram that, despite being directly contained within another program, can be called from any program directly or indirectly contained in that other program\n\n(a numbered sub-clause of \"3 Terms and definitions\", printed in the same style as 3.1 and 3.10 \u2014 one level BELOW the clause-3 heading)",
@@ -40,7 +40,7 @@
       "suggested_repair": "Demote `## 3.39` through `## 3.47` (specs/ISO_COBOL.md lines 1642-1678) to `### 3.39` ... `### 3.47` so all of 3.1-3.47 sit one level under `## 3 Terms and definitions`."
     },
     {
-      "page": 27,
+      "id": "p27-1", "page": 27,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "(second-level indent, continuing the \"\u2014 The following were general enhancements:\" list opened on page 26)\n      \u2014 Inline exception handling using the exception-checking format of the PERFORM statement\n      ...\n      \u2014 Type declarations may now be external items\n\n(first-level indent, a new top-level bullet)\n  \u2014 The following intrinsic functions were added or enhanced:\n      \u2014 BASECONVERT function",

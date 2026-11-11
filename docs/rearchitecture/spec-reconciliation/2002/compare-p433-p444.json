@@ -1,0 +1,43 @@
+{
+  "batch": [433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444],
+  "pages_checked": [433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p433-1",
+      "page": 433,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "5-6 Two numeric characters of the seconds past the minute in the range: a) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect b) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect. 7-8 Two numeric characters of the hundredths of a second past the second in the range 00 through 99.",
+      "markdown_says": "| 5-6 | Two numeric characters of the seconds past the minute in the range: |\n\na) 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\n\nb) 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect.\n\n   7-8 Two numeric characters of the hundredths of a second past the second in the range\\",
+      "why_it_matters": "In GR 11's TIME table (ACCEPT statement) the sub-items a) and b) belong inside the 5-6 row's Contents cell, but the transcription closes the table after that row and sets them as free paragraphs. The 7-8 row then falls out of the table as an indented text line. All the words are kept, but the table no longer shows that a) and b) qualify positions 5-6, and position 7-8 is no longer a table row."
+    },
+    {
+      "id": "p434-1",
+      "page": 434,
+      "kind": "misplaced-content",
+      "severity": "structural",
+      "pdf_says": "Screen item Figurative constant / Alphabetic Alphanumeric SPACES / Alphanumeric Alphanumeric SPACES / Alphanumeric-edited Alphanumeric SPACES / Boolean ZEROS / National National SPACES / ...",
+      "markdown_says": "| Alphanumeric | Alphanumeric SPACES |\n\n   Alphanumeric-edited Alphanumeric SPACES\n\n| Boolean | ZEROS |\n|---|---|",
+      "why_it_matters": "The ACCEPT GR 13 table of screen-item categories and their figurative constants is one table in the PDF. The transcription splits it in two: the Alphanumeric-edited row falls out as loose text, and the second table makes 'Boolean | ZEROS' its header row. A reader or tool that parses the tables loses the Alphanumeric-edited mapping and treats Boolean as a column heading."
+    },
+    {
+      "id": "p438-1",
+      "page": 438,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(operand-1₁ + operand-1₂ + ... + operand-1ₙ)",
+      "markdown_says": "(operand-11 + operand-12 + ... + operand-1n)",
+      "why_it_matters": "ADD GR 1 (standard arithmetic): the subscripts 1, 2 and n on operand-1 are flattened into the name, so the expression reads as operands named operand-11, operand-12 and operand-1n instead of the 1st, 2nd and nth instances of operand-1."
+    },
+    {
+      "id": "p438-2",
+      "page": 438,
+      "kind": "ocr-error",
+      "severity": "normative",
+      "pdf_says": "(operand-1₁ + operand-1₂ + ... + operand-1ₙ + operand-2)",
+      "markdown_says": "(operand-11 + operand-12 + ... + operand-1n + operand-2)",
+      "why_it_matters": "ADD GR 2 (format 2, standard arithmetic): the same lost-subscript error turns the indexed operand-1 instances into names such as operand-11 and operand-12, which could be mistaken for distinct operands."
+    }
+  ]
+}

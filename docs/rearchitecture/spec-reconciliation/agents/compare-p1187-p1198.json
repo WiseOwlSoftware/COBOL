@@ -1,9 +1,9 @@
 {
   "batch": [1187, 1188, 1189, 1190, 1191, 1192, 1193, 1194, 1195, 1196, 1197, 1198],
-  "pages_checked": [1187, 1188, 1189, 1190, 1191, 1192, 1193, 1194, 1195, 1196, 1197, 1198],
+  "pages_checked": [1187, 1188, 1189, 1190, 1191, 1192, 1193, 1194, 1195, 1196, 1197, 1198], "pages_unread": [],
   "findings": [
     {
-      "page": 1188,
+      "id": "p1188-1", "page": 1188,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "The uncaptioned flowchart on page 1188 (printed page 1158) carries three control-flow edges that are drawn, not implied: (a) a line leaves the LEFT edge of the box \"Augment identifier-5 with current BY value\", runs left and upward, and ends in an arrowhead entering the flow immediately ABOVE the box \"Execute specified set of statements\"; (b) a line leaves the LEFT edge of the box \"Augment identifier-2 with current BY value\", runs left and upward the full height of the figure, and ends in an arrowhead entering the flow immediately ABOVE the box \"Set identifier-5 to cur-rent FROM value\"; (c) the \"True\" exit of \"Condition-2\" runs to the right, turns down, and rejoins the main flow BELOW \"Augment identifier-5 with current BY value\" and above \"Condition-1\". Only the \"True\" exit of \"Condition-1\" reaches \"Exit\".",
@@ -12,7 +12,7 @@
       "suggested_repair": "Re-render the page-1188 figure inside a fenced code block with the three edges restored, in the same box-drawing style already used for Figure D.13 on page 1186; at minimum add explicit return markers, e.g. \"Augment identifier-5 with current BY value → (back to: Execute specified set of statements)\" and \"Augment identifier-2 with current BY value → (back to: Set identifier-5 to current FROM value)\", plus \"Condition-2 → True → (join before Condition-1)\"."
     },
     {
-      "page": 1197,
+      "id": "p1197-1", "page": 1197,
       "kind": "ocr-error",
       "severity": "cosmetic",
       "pdf_says": "Under \"Fractional-seconds time formats\": \"Basic local time      hhmmss.sssss      051427.8124\" (five \"s\" characters after the period; verified by cropping and enlarging the printed row — every other row on the page has four).",
@@ -21,7 +21,7 @@
       "suggested_repair": "Restore the printed token \"hhmmss.sssss\" and, if desired, record the ISO defect in a bracketed editor's note (e.g. \"hhmmss.sssss [sic; four \\\"s\\\" elsewhere and per D.31.5.2 note on p.1168]\") rather than by altering the text."
     },
     {
-      "page": 1195,
+      "id": "p1195-1", "page": 1195,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "Page 1195 (printed 1165) opens with a full-width, non-bulleted paragraph: \"For example, in operating environments that include the ability to differentiate local time from Greenwich Mean Time, the returned result would be \\\"1995021505142781-0500\\\"; in operating environments that do not have that capability, the returned result would be \\\"199502150514278100000\\\".\" It is a paragraph of D.31.3.2 (CURRENT-DATE function), sibling to the em-dash list, not a continuation of the list's final item.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Split at \"Mean Time\" / \"For example,\" so the example becomes its own paragraph following the em-dash list, still under D.31.3.2."
     },
     {
-      "page": 1193,
+      "id": "p1193-1", "page": 1193,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "\"D.31.2   Temporal format ACCEPT statement\" is printed at the same typographic rank as \"D.31.1   General\" (page 1192) — both are third-level clause headings under \"D.31 Date and time handling\".",
@@ -39,7 +39,7 @@
       "suggested_repair": "Demote to \"### D.31.2 Temporal format ACCEPT statement\". The same one-level promotion affects D.31.3 (p.1194), D.31.4 (p.1196) and D.31.5 (p.1196); fix them in the same pass so all four are \"###\" under \"## D.31\"."
     },
     {
-      "page": 1194,
+      "id": "p1194-1", "page": 1194,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "\"D.31.2.6   ACCEPT FROM DAY-OF-WEEK\" and \"D.31.2.7   ACCEPT FROM TIME\" are printed at exactly the same rank as D.31.2.1 through D.31.2.5 on page 1193.",
@@ -48,7 +48,7 @@
       "suggested_repair": "Change both to \"### D.31.2.6 …\" and \"### D.31.2.7 …\" to match D.31.2.1–D.31.2.5."
     },
     {
-      "page": 1195,
+      "id": "p1195-2", "page": 1195,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "\"D.31.3.3   WHEN-COMPILED function\", \"D.31.3.4   INTEGER-OF-DATE function\", \"D.31.3.5   INTEGER-OF-DAY function\", \"D.31.3.6   DATE-OF-INTEGER function\", \"D.31.3.7   DAY-OF-INTEGER function\", \"D.31.3.8   TEST-DATE-YYYYMMDD function\", \"D.31.3.9   TEST-DAY-YYYYDDD function\" are all printed at the same rank as D.31.3.1 and D.31.3.2 on page 1194.",
@@ -57,7 +57,7 @@
       "suggested_repair": "Change all seven to \"### D.31.3.n …\" to match D.31.3.1 and D.31.3.2."
     },
     {
-      "page": 1197,
+      "id": "p1197-2", "page": 1197,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "\"D.31.5.2   Examples of time and date formats\" is printed at the same rank as \"D.31.5.1   General\" on page 1196.",
@@ -66,7 +66,7 @@
       "suggested_repair": "Change to \"### D.31.5.2 Examples of time and date formats\"."
     },
     {
-      "page": 1198,
+      "id": "p1198-1", "page": 1198,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "\"D.31.5.3   FORMATTED-CURRENT-DATE function\", \"D.31.5.4   SECONDS-PAST-MIDNIGHT function\", \"D.31.5.5   FORMATTED-DATE function\", \"D.31.5.6   FORMATTED-TIME function\", \"D.31.5.7   FORMATTED-DATETIME function\" are all printed at the same rank as \"D.31.5.1   General\" on page 1196.",

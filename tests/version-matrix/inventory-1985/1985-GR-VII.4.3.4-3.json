@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985 GR3: when a file is not open no statement may reference it 'except for a MERGE statement with the USING or GIVING phrase, an OPEN statement, or a SORT statement with the USING or GIVING phrase'. §2023:14.9.27.4 GR6 keeps the prohibition and those exemptions ('except for a MERGE or SORT statement with the USING or GIVING phrase ... or an OPEN statement'); its added COMMIT, ROLLBACK and DELETE FILE exemptions name statements 1985 does not have. §2023:14.9.27.4 GR8 restates it for every other I-O statement. Run-time rule in both.",
-  "source": "adjudicate-712/slice-16"
+  "source": "adjudicate-712/slice-16",
+  "digests": {
+   "GR-14.9.27.4-6": "b7ae208757f4",
+   "GR-14.9.27.4-8": "85b040d1dbe8"
+  }
  }
 }

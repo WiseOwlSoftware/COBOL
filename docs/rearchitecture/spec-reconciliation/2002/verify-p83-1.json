@@ -1,0 +1,13 @@
+{
+  "claim_id": "p83-1",
+  "claim_key": "3b599d8f4b2a140d",
+  "page": 83,
+  "kind": "misplaced-content",
+  "severity": "normative",
+  "claim": {"id": "p83-1", "page": 83, "kind": "misplaced-content", "severity": "normative", "section": "8.1.2 Table 2 - COBOL character repertoire", "pdf_says": "Basic special character row: the Character column's first line is blank (the space character) opposite the Meaning 'space', then '+' opposite 'plus sign', '–' opposite 'minus sign (hyphen)', ... ':' opposite 'colon', '_' opposite 'underscore' (19 meanings, 19 character lines including the blank one for space).", "markdown_says": "| Basic special character | +<br>–<br>\\*<br>/<br>=<br>$<br>,<br>;<br>.<br>\"<br>'<br>(<br>)<br>><br>&lt;<br>&<br>:<br>_ | space<br>plus sign<br>minus sign (hyphen)<br>asterisk<br>...<br>colon<br>underscore |", "why_it_matters": "The Character cell lost the leading blank line that stands for the space character, so it holds 18 lines against 19 meanings. Read line by line, every character is paired with the wrong meaning ('+' with 'space', '–' with 'plus sign', ..., '_' with 'colon') and 'underscore' has no character. The table defines the basic special characters of the COBOL character repertoire, so the pairing is normative."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The rendered page 83 (printed p.61), Table 2, Basic special character row, shows the Character column's first line blank opposite 'space', with '+' opposite 'plus sign' on the next line and so on down to '_' opposite 'underscore': 19 lines in each column. In page-83.md line 9 the Character cell has 18 <br>-separated entries starting with '+', and the Meaning cell has 19 entries starting with 'space'. Paired by position, every character lines up with the meaning one row above its own, and 'underscore' has no character. The missing blank line is the space character's entry, which is table content and not layout, so the claim is accurate as stated.",
+    "corrected_description": ""
+  }
+}

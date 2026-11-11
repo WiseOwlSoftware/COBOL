@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: START 'Data-name-1 may be qualified.' The 2023 START clause has no rule of its own, but qualification is general: §2023:5.2.4 makes every user-defined-word operand of a format mean the word 'including qualification and subscripting if needed'; §2023:8.4.2.2.3 SR1 requires qualification for a non-unique name and §2023:8.4.2.2.3 SR2 says 'A name may be qualified even though it does not need qualification'. Nothing in §2023:14.9.41.3 forbids it, so a qualified START KEY data-name is accepted as in 1985.",
-  "source": "adjudicate-712/slice-29"
+  "source": "adjudicate-712/slice-29",
+  "digests": {
+   "SR-8.4.2.2.3-1": "f514d35c893e",
+   "SR-8.4.2.2.3-2": "007b37ad4caf"
+  }
  }
 }

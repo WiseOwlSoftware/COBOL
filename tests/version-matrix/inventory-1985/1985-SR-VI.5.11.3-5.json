@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "1985: RENAMES 'Data-name-2 and data-name-3 may be qualified.' 2023 restricts only data-name-1 (§2023:13.18.45.3 SR3 'Data-name-1 shall not be used as a qualifier'); for data-name-2 and -3 the general rules apply: §2023:8.4.2.2.3 SR1 (qualify a non-unique name) and §2023:8.4.2.2.3 SR2 'A name may be qualified even though it does not need qualification'. Same programs accepted.",
-  "source": "adjudicate-712-r2/slice-13"
+  "source": "adjudicate-712-r2/slice-13",
+  "digests": {
+   "SR-8.4.2.2.3-1": "f514d35c893e",
+   "SR-8.4.2.2.3-2": "007b37ad4caf"
+  }
  }
 }

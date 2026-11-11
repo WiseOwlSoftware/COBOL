@@ -113,7 +113,7 @@ import inert_lane  # noqa: E402  — THE classification of a change no test read
 import toolchain  # noqa: E402  — THE reader of toolchain.env, the versions CI and every host run (kb/Work PB4007)
 from self_tests import HANG_EXIT as SELF_TESTS_HANG_EXIT, this_platform  # noqa: E402
 import buildgraph  # noqa: E402  — THE targets, their keys and the one store of their passes (kb/Work PB5207, PB5218)
-from gate_slot import ExclusiveLock, GateSlots, Slot, gate_class_from_env  # noqa: E402
+from gate_slot import ExclusiveLock, GateSlots, QueueAbandoned, Slot, gate_class_from_env  # noqa: E402
 import process_job  # noqa: E402  — THE one held process tree: an audit's or a test host's whole tree, stopped as one (kb/Work PB5098)
 from detached import kill_tree, pid_alive, spawn_detached  # noqa: E402  — THE one launch that outlives its caller (kb/Work PB3536), THE one tree kill (PB4072), THE one liveness probe (PB4008)
 sys.path.append(str(REPO / "scripts" / "orchestrator"))  # appended: no module of it shadows one of scripts/
@@ -356,10 +356,17 @@ AUDITS = (
     ("EVIDENCE SUPERSESSION", ["scripts/spec/audit_evidence_supersession.py", "--check"]),
     ("RENDERED VIEWS", ["scripts/rendered_views.py", "--check"]),
     ("WITNESS LOSS", ["scripts/spec/audit_witness_loss.py", "--check"]),
-    ("RULE CATALOG", ["scripts/spec/extract_rule_catalog.py", "--check"]),
-    # kb/Work PB4886: the 1985 catalog is complete (no finding) and the committed one is this run's, so a later repair of
-    # specs/ANSI_COBOL_1985.md cannot reopen a gap in the 1985 audit's denominator.
-    ("RULE CATALOG 1985", ["scripts/spec/extract_rule_catalog.py", "--edition", "1985", "--check"]),
+    # kb/Work PB4886, PB5256: every HELD edition's catalog (inventory_schema.HELD, the schema's list, so a newly held
+    # edition needs no line here) is this run's, and a reconciled edition's is complete (no finding), so a repair of a
+    # transcription that is not regenerated cannot leave a stale denominator; an unreconciled edition's findings are its
+    # catalog's, and a change of them is stale too.
+    ("RULE CATALOGS", ["scripts/spec/extract_rule_catalog.py", "--held", "--check"]),
+    # kb/Work PB5256: every older held edition's candidate pairing with its next edition is this run's, so the
+    # adjudication of its change records starts from the catalogs as they are.
+    ("LINEAGE CANDIDATES", ["scripts/spec/lineage.py", "--candidates", "--check"]),
+    # kb/Work PB689, PB5256: the independent count critic, every held ISO edition: each rule block holds exactly the
+    # ordinals its transcription prints, but where the catalog records a finding that explains the difference.
+    ("CATALOG COVERAGE", ["scripts/spec/audit_catalog_coverage.py", "--held", "--check"]),
     # kb/Work PB4992: each held edition's inventory is a VIEW (its catalog joined with its store of adjudications), and
     # what the view refuses (an adjudication of a dropped rule, a copied catalog field or state, an adjudication decided
     # against other text) and an older edition's illegal change record are refused here, in every lane.
@@ -554,9 +561,10 @@ class Host:
         """`<worktree git dir>/cobol-gate.lock` — per WORKTREE (a linked worktree's git dir is its own)."""
         return Path(self.git("rev-parse", "--absolute-git-dir")) / LOCK_NAME
 
-    def take_slot(self, label: str, say: Callable[[str], None]) -> Slot:
-        """A slot of the GATE pool: the builds and test hosts the cap rations."""
-        return GateSlots.for_repo(self.repo).acquire(label, say=say)
+    def take_slot(self, label: str, say: Callable[[str], None], abandon: Callable[[], bool]) -> Slot:
+        """A slot of the GATE pool: the builds and test hosts the cap rations. `abandon` is polled while the gate queues:
+        true withdraws its ticket and raises `QueueAbandoned` (kb/Work PB5322)."""
+        return GateSlots.for_repo(self.repo).acquire(label, say=say, abandon=abandon)
 
     def record_growth(self, run: Path, tests_s: float, conformance: int) -> None:
         """Keep this GREEN code-lane gate's test phase where the growth trigger reads it (scripts/gate_growth.py, kb/Work
@@ -1821,7 +1829,13 @@ class Gate:
             return self._audit_red(out, run, "an audit was RED before the slot, the build and any test host: NO TEST RAN")
         t = time.monotonic()
         try:
-            slot = self.host.take_slot(label, self.say)
+            slot = self.host.take_slot(label, self.say, lambda: self._audits_known_red(out))
+        except QueueAbandoned:
+            # ⛔ THE VERDICT IS KNOWN, SO THE TICKET LEAVES (kb/Work PB5322): an audit went RED while the gate queued, so the
+            # slot is never taken, the tickets behind this one are served, and the worker reads the verdict now.
+            out.timings["slot_wait_s"] = round(time.monotonic() - t, 1)
+            return self._audit_red(out, run, "an audit was RED while the gate queued for the slot; its ticket was "
+                                   "withdrawn and the slot never taken: NO TEST RAN")
         except ValueError as e:  # the shared gate settings turned malformed while this gate queued: stop, with the reason
             return self._finish(out, run, NOT_RUN_CAUSES["settings"].verdict, str(e), 2)
         out.timings["slot_wait_s"] = round(time.monotonic() - t, 1)
@@ -2014,8 +2028,8 @@ class Gate:
         self-tests when the change touches a script, the checks, and the store records of what was proven: the part of
         the gate the slot rations."""
         spawn: Spawn = slot.spawn_kwargs
-        if self._audits_known_red(out):   # one found while the gate queued for the slot: build nothing
-            return self._audit_red(out, run, "an audit was RED while the gate queued for the slot: NO TEST RAN")
+        if self._audits_known_red(out):   # one found in the instant between the queue's last look and the slot: build nothing
+            return self._audit_red(out, run, "an audit was RED as the gate took the slot: NO TEST RAN")
         t = time.monotonic()
         if not self.host.build(spawn):
             return self._finish(out, run, "BUILD FAILED", "the solution did not build (see above)", 1)
@@ -2275,7 +2289,8 @@ class FakeHost(Host):
         #: Set when every planted test host has returned: the "audit-after-hosts" arm's audit turns RED only then.
         self.hosts_done, self._hosts_returned = threading.Event(), 0
         self.reflog: list[tuple[str, int]] = [("head-1", 0)]   # `head_reflog`: (commit, Unix time HEAD moved to it)
-        self.slot_taken = threading.Event()   # the "audit-slot" arm's ordering: the audit is red once the slot is held
+        self.slot_taken = threading.Event()   # the "audit-slot" arm's ordering: the audit is red once the gate is queued
+        self.ticket_live = False              # the "audit-slot" arm: the gate's ticket is in the planted queue
         #: The order the MAIN thread drove the host in: fetch, slot, build. The audits run beside it, in a thread of their
         #: own, so they are `audited`, never an event of this order.
         self.events: list[str] = []
@@ -2301,14 +2316,23 @@ class FakeHost(Host):
     def fetch_bounce_results(self) -> str:
         return "build-local: ci bounce: none (a planted host asks GitHub nothing)"
 
-    def take_slot(self, label, say):
+    def take_slot(self, label, say, abandon):
         self.events.append("slot")
         if "slot-settings" in self.plant:
             raise ValueError("planted: settings.json turned malformed while the gate queued")
+        if "audit-slot" in self.plant:   # every slot is held: the gate queues, and the audit turns RED meanwhile
+            self.slot_taken.set()   # the gate is in the queue
+            self.ticket_live = True
+            deadline = time.monotonic() + 60
+            try:
+                while not abandon():
+                    if time.monotonic() > deadline:
+                        raise AssertionError("planted: the queued gate never saw the RED audit (it would have waited on)")
+                    time.sleep(0.01)
+            finally:
+                self.ticket_live = False   # `acquire` drops the ticket on any exit
+            raise QueueAbandoned("planted")
         self.slots_taken += 1
-        if "audit-slot" in self.plant:   # the audit turns RED while the gate holds the slot, before it builds
-            self.slot_taken.set()
-            self.stopped_by_audit.wait(60)
         return Slot(0, 1, 1, 0.0, -1)  # a held slot's shape, no lock: the cap itself is gate_slot.py's self-test
 
     def default_base(self) -> str:
@@ -2372,7 +2396,7 @@ class FakeHost(Host):
         if "audit-late" in self.plant:   # red only once a test host is running, so the hosts have to be STOPPED
             self.host_started.wait(60)
             return ["RENDERED VIEWS RED"]
-        if "audit-slot" in self.plant:   # red only once the slot is held: the gate must build nothing
+        if "audit-slot" in self.plant:   # red only once the gate is queued for the slot: it must withdraw and build nothing
             self.slot_taken.wait(60)
             return ["RENDERED VIEWS RED"]
         if "audit-after-hosts" in self.plant:   # a self-test that hangs past the last host (kb/Work PB5205): no host to stop
@@ -2614,11 +2638,14 @@ def self_test() -> int:
             and gate("order")[1].events == ["fetch", "slot", "build"],
             str(h.events))
         o, h = gate("audit-slot", plant={"audit-slot"})
-        arm("an audit that turns RED while the gate queues for the slot ends the gate before the build: RED, the audit "
-            "named, the slot released, nothing built (kb/Work PB4326)",
+        arm("an audit that turns RED while the gate queues for the slot ends the gate AT ONCE (kb/Work PB5322): RED, the "
+            "audit named, the ticket withdrawn, the slot never taken, nothing built, the verdict written and its line "
+            "printed; a planted queue that never lets the gate in returns in seconds, not at the slot",
             o.verdict == "RED" and o.exit_code == 1 and "RENDERED VIEWS RED" in o.line
-            and "while the gate queued for the slot" in o.line and h.slots_taken == 1 and not h.built and not o.runs
-            and h.events == ["fetch", "slot"], f"{o.line} {h.events}")
+            and "ticket was withdrawn and the slot never taken" in o.line and h.slots_taken == 0 and not h.ticket_live
+            and o.slot is None and not h.built and not o.runs and h.events == ["fetch", "slot"]
+            and sink[-1] == o.line and run_dirs(root / "audit-slot" / "runs")[-1].joinpath(VERDICT_FILE).exists()
+            and o.timings.get("slot_wait_s", 99) < 30, f"{o.line} {h.events}")
         o, h = gate("audit-late", plant={"audit-late"})
         arm("an audit that is RED only after the test hosts have started STOPS them: the verdict is RED, the audit "
             "named, the hosts' partial results are NOT measured (no population) (kb/Work PB4326)",

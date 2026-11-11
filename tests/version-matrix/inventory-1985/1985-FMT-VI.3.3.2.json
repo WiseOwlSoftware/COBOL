@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"PROGRAM-ID. program-name.\"; 2023: \"PROGRAM-ID. program-name-1 [ AS literal-1 ] [ IS ... RECURSIVE ... PROGRAM ] .\". 2023 still accepts the 1985 form, but its format adds optional phrases (AS literal-1, RECURSIVE) that the 1985 format does not allow, so more programs are accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-11.10.2": "56acb8fe4e7c"
+  }
  }
 }

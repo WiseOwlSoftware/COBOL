@@ -9,6 +9,9 @@
   "reason": "§2023:14.9.28.4 GR1 keeps the 1985 definition word for word in its first and last sentences (all statements executed from the PERFORM through the implicit return; declaratives included; need not be consecutive). Its 'all statements that are executed as the result of a transfer of control in the range' does not widen 1985, whose list ('by CALL, EXIT, GO TO, and PERFORM statements') only illustrates what the first sentence already includes. Its exclusion of statements reached through 'an EXIT PROGRAM or GOBACK statement specified in the same instance of the same source element' is not new for a 1985 program: §1985:VI.6.21.4 GR12 already excludes the transfer of an EXIT PROGRAM 'specified in the same program in which the PERFORM statement is specified' within the range; GOBACK and recursive instances do not exist in 1985.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-12"
+  "source": "adjudicate-712/slice-12",
+  "digests": {
+   "GR-14.9.28.4-1": "52b4cfe24d98"
+  }
  }
 }

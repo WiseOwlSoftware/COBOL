@@ -1,0 +1,13 @@
+{
+  "claim_id": "p945-1",
+  "claim_key": "0ac5eea206b83c94",
+  "page": 945,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p945-1", "page": 945, "kind": "misplaced-content", "severity": "structural", "pdf_says": "(indented) SPECIAL-NAMES paragraph 231 / Pointer 473 / (indented) Initialization 419, 470 / Pointer class 129", "markdown_says": "   SPECIAL-NAMES paragraph 231 Pointer 473\n\n   Initialization 419, 470\\\n   Pointer class 129\\", "why_it_matters": "A continued sub-entry and the headword 'Pointer 473' are merged onto one line, and the whole left column loses its sub-entry indentation. Informative index only."},
+  "verdict": {
+    "real": false,
+    "reasoning": "Both quotes are accurate. The printed page (index p. 921, PDF p. 945) shows the indented sub-entry 'SPECIAL-NAMES paragraph 231', then the headword 'Pointer 473', the indented sub-entry 'Initialization 419, 470' and 'Pointer class 129'. The markdown keeps every word and page number in order, including 'Pointer 473'. The only differences are a missing line break between two entries and lost sub-entry indentation. Every line in the markdown has the same 3-space prefix, so the flattening is systemic formatting throughout the transcribed index. That is line wrapping and formatting in an informative index, with no text missing, changed or moved out of order, so it is not a content discrepancy.",
+    "corrected_description": ""
+  }
+}

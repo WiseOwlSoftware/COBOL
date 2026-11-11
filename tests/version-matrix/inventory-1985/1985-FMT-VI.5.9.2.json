@@ -10,6 +10,9 @@
   "reason": "§1985:VI.5.9.2 is '{PICTURE|PIC} IS character-string' alone. §2023:13.18.40.2 keeps that as the base of 'Format 1 (basic)' but adds the optional, repeatable 'EDITING character-1 FOR' NEGATIVE/POSITIVE phrase and a 'Format 2 (locale)' with LOCALE and SIZE, both refused by the 1985 format; a 1985 PICTURE clause means the same, but the format is wider, so CHANGED. PIC as an abbreviation is the 1985 rule §1985:VI.5.9.3 SR6, whose own 2023 counterpart is §2023:13.18.40.3 SR5, so it is not part of this record.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-13.18.40.2": "2b76e79719eb"
+  }
  }
 }

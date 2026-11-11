@@ -15,6 +15,11 @@
   ],
   "bridge": true,
   "reason": "1985 table: alphabetic, numeric, alphanumeric 'None'; alphanumeric edited 'Simple insertion 0, B, and /'; numeric edited 'All'. §2023:13.18.40.5 GR2 (Table 7) keeps None for those three and 'All' for fixed-point numeric-edited, but gives alphanumeric-edited plain 'Simple insertion', whose symbols per §2023:13.18.40.5 GR3 include 'Character-1' of the new EDITING phrase, which §2023:13.18.40.4 GR7 admits in alphanumeric-edited items. ',' is not usable there (Table 10 lets no ',' precede or follow 'A X'). Looser by character-1; floating-point and national rows are new.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "GR-13.18.40.5-2": "aaf3bfa289c8",
+   "GR-13.18.40.5-3": "7d68389ca1b0",
+   "GR-13.18.40.4-7": "16d4a8a67a50"
+  }
  }
 }

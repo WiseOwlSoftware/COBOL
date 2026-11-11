@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "2023 resolves CALL program-names by the 8.4.6.3 scope rules. The recursive exception needs the new RECURSIVE clause, so programs without it resolve exactly as in 1985.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.4.4-3": "04fde73bf906",
+   "SR-8.4.6.3-1": "8217603f4909",
+   "SR-8.4.6.3-2": "1ecd83c6fc5d",
+   "GR-11.10.4-2": "101af340ea81"
+  }
  }
 }

@@ -14,6 +14,14 @@
   ],
   "bridge": true,
   "reason": "1985 first GENERATE: report heading, page heading, all control headings major to minor, then the detail (or part of detail processing for GENERATE report-name), with PH/PF per GR4. 2023: §2023:14.9.16.4 GR4 the same order, 'each control heading is printed, wherever defined, in order from major to minor', then 'The specified detail is printed, unless summary reporting is specified'; §2023:14.9.16.4 GR2 summary reporting is the same processing 'except that no detail is printed'; §2023:14.9.16.4 GR1 the detail 'following any necessary control break and page fit processing'; §2023:14.9.16.4 GR6 page advance; §2023:13.18.57.4 GR5 implicit printing and GR6 a)-c) per-type conditions. 'Following an INITIATE' matches 1985 GR7. Same effect.",
-  "source": "adjudicate-712-r2/slice-12"
+  "source": "adjudicate-712-r2/slice-12",
+  "digests": {
+   "GR-14.9.16.4-1": "f7b3b662deac",
+   "GR-14.9.16.4-2": "5c30de9c4b4d",
+   "GR-14.9.16.4-4": "97abb095e6b6",
+   "GR-14.9.16.4-6": "ad9b8779833d",
+   "GR-13.18.57.4-5": "5bf65e328209",
+   "GR-13.18.57.4-6": "60b5eeb0db8d"
+  }
  }
 }

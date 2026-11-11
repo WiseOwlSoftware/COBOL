@@ -1,0 +1,13 @@
+{
+  "claim_id": "p936-2",
+  "claim_key": "ab919533d4985bbd",
+  "page": 936,
+  "kind": "incorrect-text",
+  "severity": "structural",
+  "claim": {"id": "p936-2", "page": 936, "kind": "incorrect-text", "severity": "structural", "pdf_says": "FILE STATUS clause  258\n    FILE-CONTROL paragraph  248\nFILE-CONTROL paragraph  248", "markdown_says": "   FILE STATUS clause 258\\\n   FILE-CONTROL paragraph 248\\\n   FILE-CONTROL paragraph 248\\", "why_it_matters": "With the indentation lost, the sub-entry and the following headword become two identical lines, so the sub-entry of FILE STATUS clause is indistinguishable from a duplicated headword. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."},
+  "verdict": {
+    "real": false,
+    "reasoning": "The printed page (index p.912, PDF p.936, right column) shows 'FILE STATUS clause 258', an indented sub-entry 'FILE-CONTROL paragraph 248', then the headword 'FILE-CONTROL paragraph 248'. The markdown (page-936.md lines 109-111) carries all three lines with the same words and page numbers, and nothing is missing, misquoted or duplicated in error. The only difference is that the sub-entry indentation is gone, and the markdown flattens it for every index entry on the page (for example 'Scope of 117' under File-name and 'FILE-CONTROL paragraph 250' under Feature-name are also flush). That is page-wide formatting loss in an informative index, not a content discrepancy specific to this entry, and it does not change any normative meaning.",
+    "corrected_description": null
+  }
+}

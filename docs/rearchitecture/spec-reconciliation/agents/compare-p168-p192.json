@@ -1,6 +1,6 @@
 {
   "batch": [168, 170, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192],
-  "pages_checked": [168, 170, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192],
+  "pages_checked": [168, 170, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192], "pages_unread": [],
   "findings": [],
   "notes": [
     "Batch was routed as figure-heavy, but page_workunit.py reported '0 with figure content' and visual inspection confirms it: the only general format in the whole batch is the one-line ADDRESS format on PDF page 170 (printed page 140), section 8.4.3.11.2. It has no brackets, braces, choice-indicator bars, or ellipses, so the priority defect class (dropped choice-indicator bars per 5.2.6.4) cannot occur here.",

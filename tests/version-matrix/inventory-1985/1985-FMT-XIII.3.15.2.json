@@ -13,6 +13,12 @@
   ],
   "bridge": true,
   "reason": "1985: \"LINE NUMBER IS { integer-1 [ ON NEXT PAGE ] | PLUS integer-2 }\"; 2023: \"{LINE NUMBER IS|LINE NUMBERS ARE|LINES ARE} {integer-1 [ON NEXT PAGE]|{PLUS|+} integer-2|ON NEXT PAGE} …\". 2023 still accepts the 1985 forms but adds LINES/NUMBERS ARE, the + synonym, ON NEXT PAGE alone and repeated operands, so it accepts programs 1985 refuses.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-13.18.35.2": "65085631a4c9",
+   "SR-13.18.35.3-1": "93b70d4af3ef",
+   "SR-13.18.35.3-2": "b47ec7b01604",
+   "SR-13.18.35.3-10": "e9a555272e3e"
+  }
  }
 }

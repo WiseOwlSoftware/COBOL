@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "§2023:14.9.51.4 GR9 restates 'the information in the area referenced by identifier-1 is available ... even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause', with §2023:14.9.51.4 GR4 the SAME RECORD AREA part. Its proviso excludes an identifier-1 within the file's records, which 1985 SR VII.4.7.3-1 refused ('must not refer to the same storage area'); 'successful' versus 'complete' changes nothing, since no WRITE rule alters identifier-1 and a failed WRITE leaves the record area unaffected (§2023:14.9.51.4 GR15, 1985 GR8 and GR13).",
-  "source": "adjudicate-712/slice-17"
+  "source": "adjudicate-712/slice-17",
+  "digests": {
+   "GR-14.9.51.4-9": "9c171fee870c",
+   "GR-14.9.51.4-4": "a3197285de01"
+  }
  }
 }

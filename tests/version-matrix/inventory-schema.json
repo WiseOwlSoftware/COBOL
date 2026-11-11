@@ -54,9 +54,11 @@
       "must state its `reason`, and whether its verdict is its CHAIN's (`chained`: held once, on the chain's newest row,",
       "so the row carries none of the `verdict-fields`) or its own. A rule of the next edition no record's `to` names is",
       "NEW: derived, never written. lineage.py (`next_errors`, `state_of`) reads this through inventory_schema.ChangeRecord;",
-      "no code spells a kind."
+      "no code spells a kind. `digests` (kb/Work PB5256, branch review R1-4) maps each `to` rule to the `rule-digest` of",
+      "the text the record was decided against; the writer stamps it, and a target whose text has since changed under its",
+      "id makes the record STALE (`lineage.stale_targets`), as a store record's own `rule-digest` does for its rule."
     ],
-    "keys": ["kind", "edition", "to", "bridge", "reason", "source"],
+    "keys": ["kind", "edition", "to", "digests", "bridge", "reason", "source"],
     "verdict-fields": ["verdict", "code-location", "test-ref", "derivation"],
     "kinds": {
       "KEPT": {"meaning": "the next edition states the same requirement", "to": true, "reason": false, "chained": true},
@@ -1087,13 +1089,24 @@
       "its store before kb/Work PB4148 if any, and the `adjudicated` fields its store holds. An edition with no `store` is",
       "not held: it is in the order (a change record over it is a bridge) and in the bands, and has no rows. The newest",
       "held edition's rows carry their `editions` band; an older one's carry the change record `next` (section 10.2).",
-      "inventory_schema.Edition (Python) and TraceabilityInventory (C#) read it; no code names an edition's year."
+      "inventory_schema.Edition (Python) and TraceabilityInventory (C#) read it; no code names an edition's year.",
+      "",
+      "`linked` (kb/Work PB5256): a held edition is in the LINEAGE unless it says `false`. An unlinked held edition has",
+      "its catalog, its store, its rows and its GAP count, but no older edition's change record names it yet: the",
+      "records bridge over it as over an edition not held (1985's name 2023, `bridge` true), and its own rows' records",
+      "name the next linked held edition. 2002 is held unlinked from the day its catalog exists until the adjudication of",
+      "the 1985 to 2002 records, which links it in the same change that rewrites 1985's records into it (section 10.2,",
+      "'A missing edition is bridged, provisionally'). The newest held edition ends the lineage and is always linked. An",
+      "edition is linked only once its transcription is reconciled (inventory_schema.link_errors, asked by the EDITION",
+      "GATES audit against verify_publishable.reconciled): until then its rule ids may still move under a change record."
     ],
     "of": [
       {"year": 1985, "spelling": "85", "catalog": "docs/rearchitecture/spec-rule-catalog-1985.json", "locator": "locator",
        "store": "tests/version-matrix/inventory-1985",
        "adjudicated": ["verdict", "code-location", "test-ref", "derivation", "notes", "next"]},
-      {"year": 2002, "spelling": "2002"},
+      {"year": 2002, "spelling": "2002", "catalog": "docs/rearchitecture/spec-rule-catalog-2002.json", "locator": "section",
+       "store": "tests/version-matrix/inventory-2002", "linked": false,
+       "adjudicated": ["verdict", "code-location", "test-ref", "derivation", "notes", "next"]},
       {"year": 2014, "spelling": "2014"},
       {"year": 2023, "spelling": "2023", "catalog": "docs/rearchitecture/spec-rule-catalog.json", "locator": "section",
        "store": "tests/version-matrix/inventory", "legacy-file": "tests/version-matrix/traceability-inventory.json",

@@ -11,6 +11,10 @@
   ],
   "bridge": true,
   "reason": "1985: 'SOURCE IS identifier-1'. §2023:13.18.53.2 accepts it and adds the SOURCES ARE synonym (§2023:13.18.53.3 SR1), arithmetic-expression-1 operands, repeated operands and a rounded-phrase; no 1985 rule allows those forms. CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.18.53.2": "2b504f432524",
+   "SR-13.18.53.3-1": "fe8d67460456"
+  }
  }
 }

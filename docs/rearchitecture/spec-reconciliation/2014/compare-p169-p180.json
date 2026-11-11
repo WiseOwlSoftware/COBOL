@@ -1,0 +1,17 @@
+{
+  "batch": [169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180],
+  "pages_checked": [169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p179-1",
+      "page": 179,
+      "kind": "missing-heading",
+      "severity": "structural",
+      "pdf_says": "8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or national",
+      "markdown_says": "###### 8.8.4.1.1.4 Comparison of a numeric integer operand with an operand of class alphanumeric or\n\nnational",
+      "why_it_matters": "A reader or tool indexing headings sees a truncated section title for 8.8.4.1.1.4 (dropping the national case) and a stray one-word paragraph in its body.",
+      "note":"The heading wraps onto a second printed line; the transcription splits it, truncating the heading after 'or' and leaving 'national' as a detached body paragraph."
+    }
+  ]
+}

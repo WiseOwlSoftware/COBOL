@@ -1,9 +1,9 @@
 {
   "batch": [915, 916, 917, 918, 919, 921, 922, 923, 924, 925, 926, 927],
-  "pages_checked": [915, 916, 917, 918, 919, 921, 922, 923, 924, 925, 926, 927],
+  "pages_checked": [915, 916, 917, 918, 919, 921, 922, 923, 924, 925, 926, 927], "pages_unread": [],
   "findings": [
     {
-      "page": 924,
+      "id": "p924-1", "page": 924,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "15.67.4   Returned value rules  — printed in the same subclause style as 15.67.1 General / 15.67.2 General format / 15.67.3 Argument rules (all fourth-level subclauses of 15.67 NUMVAL function)",
@@ -12,7 +12,7 @@
       "suggested_repair": "Change '## 15.67.4 Returned value rules' to '### 15.67.4 Returned value rules' (and sweep the sibling occurrences at lines 37121 for 15.68.4 and 37189 for 15.69.4)."
     },
     {
-      "page": 927,
+      "id": "p927-1", "page": 927,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "15.68.4   Returned value rules  — printed in the same subclause style as 15.68.1 General / 15.68.2 General format / 15.68.3 Argument rules (all fourth-level subclauses of 15.68 NUMVAL-C function)",
@@ -21,7 +21,7 @@
       "suggested_repair": "Change '## 15.68.4 Returned value rules' to '### 15.68.4 Returned value rules'."
     },
     {
-      "page": 926,
+      "id": "p926-1", "page": 926,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Items b) through f) are printed indented under '4)  If the LOCALE keyword is not specified, the following rules apply:' (whose item a) is on p. 895), e.g. 'b)  If argument-1 is alphanumeric, CR or DB, if specified, shall be the letters 'CR' or 'DB' in uppercase ...'; likewise 'a)  Locale-name-1, if specified, ...' and 'b)  The content of argument-1 shall be ...' are printed indented under '5)  If the LOCALE keyword is specified, the following rules apply:'",
@@ -30,7 +30,7 @@
       "suggested_repair": "Indent the continuation sub-items to match the convention already used on p. 925: three spaces before 'b)' through 'f)' (children of rule 4) and before 'a)'/'b)' that follow rule 5)."
     },
     {
-      "page": 927,
+      "id": "p927-2", "page": 927,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Items 1. through 7. are printed at a third indent level, under '5) ... b)  The content of argument-1 shall be a string of digits and characters in a format consistent with the specifications of locale category LC_MONETARY in the locale in use.  The following rules apply:' (p. 896), and are followed by the outer-level rules '6)  If native arithmetic is in effect, ...' and '7)  If standard-binary arithmetic is in effect, ...' printed back at the outermost indent",

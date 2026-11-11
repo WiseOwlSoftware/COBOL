@@ -201,6 +201,12 @@ public readonly record struct KeySuppression(string Value, bool National);
 /// </summary>
 public sealed class FileModel
 {
+    /// <summary>Whether any WRITE of this file in the program names the ADVANCING phrase - set by <c>SequentialIoBinder.BindWrite</c>,
+    /// the one place a WRITE's phrase is bound, and passed to the connector at registration (kb/Work PB5201). A file so written
+    /// is a print file from its OPEN, so a WRITE without the phrase is the §1985:VII.4.7.4 GR16 / §2023:14.9.51.4 GR25 automatic
+    /// advance whichever of the file's WRITE statements runs first.</summary>
+    public bool WrittenWithAdvancing { get; set; }
+
     /// <summary>The COBOL file-name (the SELECT / FD name). At emission the multi-unit driver QUALIFIES it with
     /// the owning program's path ("PROG::FILE") to namespace the run-unit-global runtime registry — a file
     /// connector is internal to its program (ISO §2023:8.6.3; two IC-suite units both declare PRINT-FILE). Name

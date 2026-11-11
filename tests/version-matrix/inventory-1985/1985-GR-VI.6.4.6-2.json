@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "2023 step b stores or combines the intermediate into each result in left-to-right order, identifying each receiver when accessed. Native mode keeps an implementor-defined intermediate.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.7.7-4": "cfc34ed7e634"
+  }
  }
 }

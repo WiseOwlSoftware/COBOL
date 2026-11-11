@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "§2023:9.1.13.1 repeats both sentences: 'Implementor-defined unsuccessful completion. The input-output statement was unsuccessfully executed as a result of a condition that is specified by the implementor', and 'If more than one value applies, the implementor determines which of the applicable values to place in the I-O status'. That prose has no catalog rule; §2023:9.1.13.11 GR1 carries the 9x condition. Its 'This condition shall not duplicate any other condition specified by another I-O status value' is not new: 1985 L2.5 already said 'This condition must not duplicate any condition specified by the I-O status values 00 through 49' (§1985:VII.1.3.5), the full standard set in 1985. The adjudicate CHANGED answer missed that rule.",
-  "source": "adjudicate-712/slice-14"
+  "source": "adjudicate-712/slice-14",
+  "digests": {
+   "GR-9.1.13.11-1": "13340d12689c"
+  }
  }
 }

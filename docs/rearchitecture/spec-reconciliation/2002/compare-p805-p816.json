@@ -1,0 +1,16 @@
+{
+  "batch": [805, 806, 807, 808, 809, 810, 811, 812, 813, 814, 815, 816],
+  "pages_checked": [805, 806, 807, 808, 809, 810, 811, 812, 813, 814, 815, 816],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p808-1",
+      "page": 808,
+      "kind": "table-restructured",
+      "severity": "structural",
+      "pdf_says": "Figure E.8 is a three-column layout: left column (Physical Top of Form / Logical Top of Form / Logical Bottom of Form / Physical Bottom of Form), middle column 'PAGE clause phrases' (Heading, First Detail, Last Control Heading, Last Detail, Footing, Page Limit), right column 'Report content' (e.g. 'Heading' row: 'the first line of the report or page heading' / '<(first page only) report header lines>' / '<page heading lines>'; 'Footing' row: 'last line of Control footing or first line of a report or page footing' / '<page footing lines.' / '<(last page only) report footing lines>').",
+      "markdown_says": "| Logical Top Heading | the first line of the report or page heading |\n|---|---|\n| of Form | &lt;(first page only) report header lines> |\n\n&lt;page heading lines>\\\nFirst Detail the first line of a body group\\ ... Footing last line of Control footing or first line of a report or page footing &lt;page footing lines.\n\n&lt;(last page only) report footing lines>\n\n   Logical Page Limit the last line on a logical page\\\n   Bottom of\\\n   Form",
+      "why_it_matters": "The page-layout figure's three columns are flattened and interleaved: the form-position labels are fused with the PAGE clause phrase names ('Logical Top Heading', 'Logical Page Limit'), a two-row table splits 'Logical Top of Form' across rows, and the phrase names run into their content text, so a reader cannot tell which report content belongs to which PAGE phrase or form position. Informative annex E figure; no text is lost but the column association is."
+    }
+  ]
+}

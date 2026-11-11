@@ -1,0 +1,16 @@
+{
+  "batch": [121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132],
+  "pages_checked": [121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p122-1",
+      "page": 122,
+      "kind": "misplaced-content",
+      "severity": "cosmetic",
+      "pdf_says": "Each successive element within that dimension of the table is referenced by occurrence numbers of 2, 3, ... . The highest permissible occurrence number for any given dimension of a fixed-capacity or occurs-depending table is the maximum number of occurrences of the item as specified in the associated OCCURS clause.",
+      "markdown_says": "Each successive element within that dimension of the table is referenced by occurrence numbers of 2, 3, . . . The highest permissible\n\n   occurrence number for any given dimension of a fixed-capacity or occurs-depending table is the maximum\\\n   number of occurrences of the item as specified in the associated OCCURS clause.",
+      "why_it_matters": "General rule 2 of 8.4.1.2.3 is one paragraph in the PDF; the markdown breaks it mid-sentence with a blank line and hard line breaks, so the rest of the rule (the dynamic-capacity limit and the EC-BOUND-SUBSCRIPT condition) renders as a separate indented paragraph detached from rule 2. No words are lost."
+    }
+  ]
+}

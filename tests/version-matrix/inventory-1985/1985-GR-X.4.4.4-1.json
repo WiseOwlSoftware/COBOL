@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Under GLOBAL in the report description, 2023 also makes PAGE-COUNTER and LINE-COUNTER global. Its added report groups and sum counters fall outside this 1985 rule.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.14.4-1": "50924f39dcbd"
+  }
  }
 }

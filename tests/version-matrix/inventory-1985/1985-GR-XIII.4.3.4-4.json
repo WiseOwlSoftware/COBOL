@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: an automatic function of the RWCS is to process page heading and page footing, if defined, when it must advance to a new page to present a body group. 2023: §2023:14.9.16.4 GR6 a failed page fit causes a page advance: 'If a page footing is defined it is printed', advance, then the page heading if defined; §2023:13.18.57.4 GR5 'All other report groups are printed implicitly'; §2023:13.18.57.4 GR6 b) and f) put the page heading first and the page footing last on each page. The CODE identifier and WITH RESET steps in that sequence belong to syntax 1985 lacks. Same effect.",
-  "source": "adjudicate-712-r2/slice-12"
+  "source": "adjudicate-712-r2/slice-12",
+  "digests": {
+   "GR-14.9.16.4-6": "ad9b8779833d",
+   "GR-13.18.57.4-5": "5bf65e328209",
+   "GR-13.18.57.4-6": "60b5eeb0db8d"
+  }
  }
 }

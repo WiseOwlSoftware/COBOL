@@ -53,7 +53,7 @@
     },
     {
       "id": "group-indicate-consumed-by-issued-generate",
-      "vcrRow": "7.59"
+      "vcrRow": "7.60"
     },
     {
       "id": "indexed-duplicate-key-status-sequential-only",
@@ -62,6 +62,10 @@
     {
       "id": "indexed-read-previous-after-open-at-end",
       "vcrRow": "29"
+    },
+    {
+      "id": "inspect-format-3-length-identified-once",
+      "vcrRow": "7.57"
     },
     {
       "id": "perform-varying-after-init-inner-first",
@@ -73,11 +77,11 @@
     },
     {
       "id": "sum-size-error-blanks-printable-item",
-      "vcrRow": "7.57"
+      "vcrRow": "7.58"
     },
     {
       "id": "terminate-discards-saved-next-group",
-      "vcrRow": "7.58"
+      "vcrRow": "7.59"
     }
   ],
   "nonstandardExtensionIds": [

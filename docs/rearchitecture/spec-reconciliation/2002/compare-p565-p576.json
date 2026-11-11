@@ -1,0 +1,11 @@
+{"batch": [565,566,567,568,569,570,571,572,573,574,575,576],
+ "pages_checked": [565,566,567,568,569,570,571,572,573,574,575,576],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p566-1", "page": 566, "kind": "misplaced-content", "severity": "normative",
+   "section": "14.8.43.1",
+   "pdf_says": "UNLOCK file-name-1 [ RECORD | RECORDS ]  (one line: UNLOCK, then file-name-1, then a bracket stacking RECORD over RECORDS)",
+   "markdown_says": "<u>UNLOCK</u>      ┌ RECORD  ┐\n            │         │\nfile-name-1 │         │\n            └ RECORDS ┘",
+   "why_it_matters": "A reader or grammar author working from the transcription could take file-name-1 for an alternative stacked with UNLOCK, or misorder it relative to the optional RECORD/RECORDS bracket, and so derive the wrong UNLOCK syntax.",
+   "detail": "In the drawn figure, file-name-1 sits on a different row, in the same column as UNLOCK and below it, rather than after UNLOCK on the baseline. Read as a diagram, UNLOCK and file-name-1 look stacked in one column, and their order relative to the bracket is unclear. The printed format is UNLOCK file-name-1 followed by an optional bracket (no choice bars) holding RECORD/RECORDS. Suggested fix: put 'UNLOCK file-name-1' on the middle row before the bracket."}
+ ]}

@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: the RWCS compares each control data item with its prior content 'saved when the previous GENERATE statement for the same report was executed' by the inequality relation test, numeric, index or nonnumeric by the item's kind. 2023: §2023:13.18.16.4 GR3 a prior control 'having the same data description as the corresponding data item', tested 'for equality with the corresponding prior control'; §2023:13.18.16.4 GR4 the saving after each break, 'with these new current values remaining in the prior controls'; §2023:14.9.16.4 GR3 'each execution of the GENERATE statement causes the specified control data items to be saved and subsequently compared'. Comparing a value with a like-described copy is the numeric, index or character comparison by kind, so the same records break. Same effect.",
-  "source": "adjudicate-712-r2/slice-12"
+  "source": "adjudicate-712-r2/slice-12",
+  "digests": {
+   "GR-13.18.16.4-3": "b9c98ef7c94a",
+   "GR-13.18.16.4-4": "8778f441e562",
+   "GR-14.9.16.4-3": "e5737149427c"
+  }
  }
 }

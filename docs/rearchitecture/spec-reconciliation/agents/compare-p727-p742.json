@@ -1,9 +1,9 @@
 {
   "batch": [727, 728, 729, 730, 731, 733, 735, 737, 738, 739, 741, 742],
-  "pages_checked": [727, 728, 729, 730, 731, 733, 735, 737, 738, 739, 741, 742],
+  "pages_checked": [727, 728, 729, 730, 731, 733, 735, 737, 738, 739, 741, 742], "pages_unread": [],
   "findings": [
     {
-      "page": 738,
+      "id": "p738-1", "page": 738,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "14.9.34.2 General format\n\nRETURN file-name-1 RECORD [ INTO identifier-1 ]\n   AT END imperative-statement-1\n   [ NOT AT END imperative-statement-2 ]\n   [ END-RETURN ]\n\n(printed underlining, verified at 300 dpi: RETURN, INTO, END, NOT, END, END-RETURN are underlined; RECORD, AT and AT are NOT underlined; file-name-1 / identifier-1 / imperative-statement-1 / imperative-statement-2 are lower-case generic terms.)",
@@ -12,7 +12,7 @@
       "suggested_repair": "Re-render the figure using the transcription's established convention: a fenced code block holding the four lines exactly as printed, followed by a blockquote — \"**Figure notes (RETURN statement general format).** `RETURN`, `INTO`, `END`, `NOT`, `END`, and `END-RETURN` are underlined in the printed standard (required words). `RECORD` and both occurrences of `AT` are **not** underlined — they are optional words. No choice indicators appear in this figure; the `AT END` phrase is unbracketed and is therefore mandatory, while `NOT AT END` and `END-RETURN` are each optional and, per syntax rule 4, the AT END and NOT AT END phrases may be written in reversed order.\""
     },
     {
-      "page": 742,
+      "id": "p742-1", "page": 742,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Page 742 ends general rule 9 with only item a): \"a) when identifier-1 references an intrinsic function, as though implicit-record-1 were a record description entry subordinate to the file description entry having the same class, category, usage, and length as the returned value of the intrinsic function, or\". Items b) and c) are printed as separate, separately-indented list items at the TOP of page 743: \"b) when identifier-1 does not reference an intrinsic function, ... having the same description as identifier-1, or\" and \"c) when literal-1 is specified, ... having the same class, category, usage, and length as literal-1.\"",
@@ -21,7 +21,7 @@
       "suggested_repair": "Split the paragraph back into three list items at the same indentation as item a), and move items b) and c) below the `<a id=\"page-743\"></a>` / `## Page 743` anchor so they carry their printed page attribution, leaving item a) as the last content of page 742."
     },
     {
-      "page": 735,
+      "id": "p735-1", "page": 735,
       "kind": "misplaced-content",
       "severity": "cosmetic",
       "pdf_says": "Page 735 opens with a displayed statement line and then a separate paragraph:\n\n        MOVE literal-1 TO record-name-1\n\n     according to the rules specified for the MOVE statement.\n\nfollowed by \"b) The same RELEASE statement without the FROM phrase.\"",

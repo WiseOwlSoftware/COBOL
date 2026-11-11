@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"only by the USE statement, the CLOSE statement, or the OPEN statement with the OUTPUT or EXTEND phrase\"; 2023: \"only by the USE statement, the WHEN phrase of a PERFORM statement, the CLOSE statement, or the OPEN statement\". 2023 adds the WHEN phrase of a PERFORM statement as a permitted reference to a report file's subject, a case not allowed in 1985; the rule is otherwise the same.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.4.5.3-9": "a92facb5c44a",
+   "SR-13.18.46.3-3": "a92facb5c44a"
+  }
  }
 }

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p637-1",
+  "claim_key": "ba044b63354c9eb9",
+  "page": 637,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p637-1", "page": 637, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Argument-1 characteristics | Value returned ... BINARY-CHAR SIGNED -128 (assuming an 8-bit twos-complement representation) / BINARY-CHAR UNSIGNED 0 (assuming an 8-bit twos-compliment representation)", "markdown_says": "   Argument-1\n\n| characteristics | Value returned |\n... | $\\*\\*,\\*\\*9.99 | 0 |\n\n   BINARY-CHAR SIGNED -128 (assuming an 8-bit twos-complement representation)\\\n   BINARY-CHAR UNSIGNED 0 (assuming an 8-bit twos-compliment representation)", "why_it_matters": "The NOTE example table is restructured: the two-line column header 'Argument-1 characteristics' is split so 'Argument-1' sits outside the table, and the last two rows (BINARY-CHAR SIGNED, BINARY-CHAR UNSIGNED) are detached from the table as loose text."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300-dpi render of printed page 615 (PDF p637, §2002:15.46.3 NOTE) shows one seven-row, two-column table. Its bold header is 'Argument-1 / characteristics' (two lines) over 'Value returned', and its rows run from S999 to BINARY-CHAR UNSIGNED. In page-637.md, 'Argument-1' is a loose line above a pipe table whose header cell reads only 'characteristics'. The pipe table stops after the '$**,**9.99 | 0' row, and the BINARY-CHAR SIGNED and BINARY-CHAR UNSIGNED rows follow as loose prose lines with no column split. The claim quotes both sources accurately. No text is missing ('twos-compliment' is the PDF's own spelling), and a human reader can still pair each characteristic with its value. But the table is broken: two of its rows and half its header are outside it, so any tool that reads the table sees five rows, not seven. The damage is structural only. It is in an informative NOTE, so it carries no normative effect.",
+    "corrected_description": ""
+  }
+}

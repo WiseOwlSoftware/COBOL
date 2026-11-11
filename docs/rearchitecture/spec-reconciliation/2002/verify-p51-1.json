@@ -1,0 +1,13 @@
+{
+  "claim_id": "p51-1",
+  "claim_key": "049bde9794b78189",
+  "page": 51,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p51-1", "page": 51, "kind": "table-restructured", "severity": "structural", "pdf_says": "Compiler directing statements    Stage\n\nCOPY statement    Text manipulation\n    SUPPRESS option    Implementor-defined\nREPLACE statement    Text manipulation\n\nCompiler directives    Stage\n\nCALL-CONVENTION    Compilation ...", "markdown_says": "   Compiler directing statements Stage\n\n| COPY statement | Text manipulation |\n|---|---|\n| SUPPRESS option | Implementor-defined |\n| REPLACE statement | Text manipulation |\n| Compiler directives | Stage |\n| CALL-CONVENTION | Compilation |", "why_it_matters": "The printed two-part listing (each part with its own underlined 'Stage' column header) became one markdown table whose header row is 'COPY statement | Text manipulation': the first column header sits outside the table as a run-on line, the second header 'Compiler directives | Stage' became a data row, and the indentation that makes 'SUPPRESS option' a sub-entry of the COPY statement is lost, so SUPPRESS reads as a peer statement. The stage values themselves are all correct."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The printed page 51 (§2002:7, page 29) shows two separate listings, each with underlined column headers ('Compiler directing statements / Stage' and 'Compiler directives / Stage'), and 'SUPPRESS option' visibly indented under 'COPY statement'. The markdown has the first header as a loose indented line outside the table, makes 'COPY statement | Text manipulation' the table header row, demotes 'Compiler directives | Stage' to a data row, and drops the SUPPRESS indentation so it reads as a peer compiler directing statement rather than an option of COPY. All entries and stage values (including the printed 'Text-manipulation' hyphen variants) are transcribed correctly. The loss of the two-part structure and of the SUPPRESS sub-entry relation is a genuine structural discrepancy, as described.",
+    "corrected_description": null
+  }
+}

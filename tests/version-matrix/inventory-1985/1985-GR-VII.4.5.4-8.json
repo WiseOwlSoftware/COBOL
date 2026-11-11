@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Both release a logical record to the system or environment. 'Successful' only states outright what the unsuccessful-REWRITE rules (no updating takes place) already imply.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.35.4-4": "030909116250"
+  }
  }
 }

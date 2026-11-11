@@ -243,9 +243,12 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
 
         // The FROM phrase is an implicit MOVE and is BOUND as one (§2023:14.9.51.4 GR5 a); §2023:14.9.51.3 SR6 —
         // kb/Work PB348), so it carries the MOVE statement's syntax rules and the storage facts codegen needs.
+        var advancing = BindAdvancing(adv);
+        // kb/Work PB5201: the file's positioning is a property of the PROGRAM (any WRITE of it names ADVANCING), not of the history of the run.
+        if (advancing is not null) file.WrittenWithAdvancing = true;
         return new BoundWrite(file, record,
             host.Move.BindFromPhrase(FromPhraseRules.Write, file, record, w.recordFromPhrase()?.sendingOperand()),
-            BindAdvancing(adv), UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
+            advancing, UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
         { Lock = wlock, Retry = wretry, InvalidKey = winvalid };
     }
 

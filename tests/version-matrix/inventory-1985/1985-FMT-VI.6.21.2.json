@@ -13,6 +13,9 @@
   "reason": "§1985:VI.6.21.2 gives four PERFORM formats (simple, TIMES, UNTIL, VARYING), each out-of-line or inline, with BY required in every VARYING and AFTER phrase. §2023:14.9.28.2 recasts them as 'Format 1 (out-of-line)' and 'Format 2 (inline)' over times-phrase, until-phrase and varying-phrase; every 1985 PERFORM still fits and means the same, but the 2023 format accepts programs the 1985 one refuses: BY is bracketed (its meaning given by §2023:14.9.28.4 GR12, 'For any BY phrase that is omitted, the augment value is 1'), UNTIL EXIT is added, the inline varying-phrase takes AFTER, which §1985:VI.6.21.3 SR2 forbade ('if procedure-name-1 is omitted, the AFTER phrase must not be specified'; 2023 has no such rule), and a 'Format 3 (exception-checking)' is added. Wider syntax, nothing made an exception condition: CHANGED. The syntax rules each carry their own 1985 rule, so the record names the format.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-14.9.28.2": "5f6fe95a9549"
+  }
  }
 }

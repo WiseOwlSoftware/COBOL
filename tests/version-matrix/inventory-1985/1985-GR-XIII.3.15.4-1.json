@@ -13,6 +13,12 @@
   ],
   "bridge": true,
   "reason": "1985: 'A LINE NUMBER clause must be specified to establish each print line of a report group', so one clause establishes one print line. 2023 §2023:13.18.35.4 GR1 'Each LINE clause in a given report group description defines a report line, or set of report lines'; §2023:13.18.35.4 GR9 'A multiple LINE clause is functionally equivalent to a LINE clause with a single operand, together with a simple OCCURS clause'; §2023:13.15.4 GR3 a LINE entry with OCCURS or several operands is 'a repeating entry'. A report group whose single LINE clause establishes several print lines violates the 1985 requirement and is accepted by 2023: the restriction is lifted. Kept part: §2023:13.15.3 SR9 a COLUMN entry without LINE 'shall be subordinate to an entry with a LINE clause'.",
-  "source": "adjudicate-712-r2/slice-11"
+  "source": "adjudicate-712-r2/slice-11",
+  "digests": {
+   "GR-13.18.35.4-1": "8b6991986b24",
+   "GR-13.18.35.4-9": "e9f2690c8252",
+   "GR-13.15.4-3": "56c62b78f18b",
+   "SR-13.15.3-9": "a7f2e782b052"
+  }
  }
 }

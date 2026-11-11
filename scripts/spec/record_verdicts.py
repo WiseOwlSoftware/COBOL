@@ -441,6 +441,14 @@ def main() -> int:
         by_id[rid].update(ed.blank())
         by_id[rid]["state"] = inventory_view.state_of(ed, by_id[rid], schema, targets)
     records = [(path, i, rec) for path, i, rec in records if WITHDRAW not in rec]
+    # THE WRITER STAMPS A CHANGE RECORD'S TARGETS (kb/Work PB5256, branch review R1-4): each `to` rule's `rule-digest` as
+    # the next edition's view holds it now, the text the record is decided against, so a later change of the text under
+    # that id marks the record STALE (`lineage.stale_targets`). A batch that supplies its own digests is checked, not
+    # overwritten.
+    for _, _, rec in records:
+        nxt = rec.get("next")
+        if isinstance(nxt, dict) and isinstance(nxt.get("to"), list) and "digests" not in nxt:
+            nxt["digests"] = lineage.target_digests(nxt["to"], targets)
 
     if bad := validate(records, schema, catalog, by_id, ed, targets):
         print(f"⛔ {len(bad)} shape violation(s) — NOTHING was written:\n")

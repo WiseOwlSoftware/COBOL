@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Amendment 1 (X3.23a-1989) split the second sentence for the function operand: 'When a function is referenced, the unique data item has the class and category of alphanumeric. When data-name-1 is specified, the unique data item has the same class and category as that defined for the data item referenced by data-name-1 except that the categories numeric, numeric edited, and alphanumeric edited are considered class and category alphanumeric' (§1985:IV.4.3.8.4.4 GR5). 2023 states one rule for both operands: 'an elementary data item without the JUSTIFIED clause. The unique data item has the same class, category, and usage as that defined for identifier-1, except that: a) the category alphanumeric-edited is considered class and category alphanumeric ... c) the categories numeric and numeric-edited are considered class and category national if the usage is national; otherwise they are considered class and category alphanumeric' (§2023:8.4.3.3.4 GR6). The function 1985 admits is an alphanumeric function (§1985:IV.4.3.8.4.3 SR5), whose own class and category are alphanumeric, and the data item is usage DISPLAY (§1985:IV.4.3.8.4.3 SR1), so every operand this rule governs gets the same class and category. This rule refuses nothing: GR6's national results (b, and c for usage national) are reached only through operands the two 1985 syntax rules refuse, whose own records carry that change.",
-  "source": "readjudicate-amended-1985/slice-02"
+  "source": "readjudicate-amended-1985/slice-02",
+  "digests": {
+   "GR-8.4.3.3.4-6": "c177b8bf194a"
+  }
  }
 }

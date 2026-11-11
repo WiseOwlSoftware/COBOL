@@ -14,6 +14,10 @@
   "reason": "§1985:VII.4.4.2 is 'READ file-name-1 [NEXT] RECORD [INTO identifier-1] [AT END ...] [NOT AT END ...] [END-READ]', AT END before NOT AT END. §2023:14.9.30.2 'Format 1 (sequential)' accepts every such READ with the same meaning, the omitted NEXT given by §2023:14.9.30.3 SR8 ('If neither the NEXT phrase nor the PREVIOUS phrase is specified and ACCESS MODE SEQUENTIAL is specified ... the NEXT phrase is implied'); but it adds PREVIOUS, ADVANCING ON LOCK, IGNORING LOCK, the retry-phrase and WITH [NO] LOCK, and puts AT END and NOT AT END in choice-indicator brackets, so either order is accepted. Programs the 1985 format refuses are accepted, no refusal made an exception condition: CHANGED.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-14.9.30.2": "ab07b0e7e719",
+   "SR-14.9.30.3-8": "ddf6eb4f81d8"
+  }
  }
 }

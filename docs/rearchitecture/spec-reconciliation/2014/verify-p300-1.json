@@ -1,0 +1,13 @@
+{
+  "claim_id": "p300-1",
+  "claim_key": "4d218212a34266a8",
+  "page": 300,
+  "kind": "table-restructured",
+  "severity": "structural",
+  "claim": {"id": "p300-1", "page": 300, "kind": "table-restructured", "severity": "structural", "pdf_says": "Term Subclause / 77-level-entry 13.13, 77-level data description entry / constant-entry 13.10, Constant entry / record-description-entry 13.11, Record description entry / type-declaration-entry 13.12, Type declaration entry", "markdown_says": "| Term | Subclause |\n|---|---|\n| 77-level-entry | 13.13, 77-level data description entry |\n| constant-entry | 13.10, Constant entry |\n\nrecord-description-entry 13.11, Record description entry\\\ntype-declaration-entry 13.12, Type declaration entry", "why_it_matters": "The single meta-language term table of 13.6.1 is cut short: the record-description-entry and type-declaration-entry rows fall out of the table into a loose paragraph joined by a hard line break. All text is present, but a table-reading tool would miss those two term-to-subclause mappings."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 300 (printed 276, 2014 13.6.1) shows ONE Term/Subclause table with four aligned rows: 77-level-entry 13.13; constant-entry 13.10; record-description-entry 13.11; type-declaration-entry 13.12. The markdown page-300.md holds a pipe table with only the first two rows, then a blank line and the last two rows as a plain paragraph joined by a backslash hard break. Both quotes match their sources exactly. No text is lost and the term-to-subclause pairings remain readable to a human, so it is not normative; but the table itself is split, which is a genuine structural transcription defect (a table parser sees two mappings, not four), not mere line wrapping or furniture. Severity structural is correct.",
+    "corrected_description": ""
+  }
+}

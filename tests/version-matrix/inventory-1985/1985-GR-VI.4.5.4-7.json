@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: HIGH-VALUE and LOW-VALUE written as literals in SPECIAL-NAMES are the highest/lowest characters 'in the native collating sequence'. §2023:12.3.7.4 GR10: the same, 'in the native alphanumeric collating sequence' unless NATIONAL is specified (new syntax). §2023:8.3.3.6.4 GR6 and GR7 also define the high-value and low-value formats 'when referenced in the SPECIAL-NAMES paragraph' (by the compile-time collating sequence); read with GR10, a 1985 program gets the same characters.",
-  "source": "adjudicate-712/slice-09"
+  "source": "adjudicate-712/slice-09",
+  "digests": {
+   "GR-12.3.7.4-10": "9a61ee8291f2",
+   "GR-8.3.3.6.4-6": "61feedf29584",
+   "GR-8.3.3.6.4-7": "c688de14fa82"
+  }
  }
 }

@@ -1,0 +1,13 @@
+{
+  "claim_id": "p859-1",
+  "claim_key": "7fbb91295c6bd3e3",
+  "page": 859,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p859-1", "page": 859, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Abbreviated combined relation conditions  136\nAbnormal run unit termination  391, 392, 393\nABS function  575", "markdown_says": "Abbreviated combined relation conditions 136 Abnormal run unit termination 391, 392, 393 ABS function 575", "why_it_matters": "Three separate index entries at the top of the right-hand column are merged into one line, which makes \"136 Abnormal run unit termination\" read as one entry. The page numbers can no longer be matched to their entries without the PDF."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered page 859 (printed 837, Index) shows three separate index entries at the top of the right-hand column: 'Abbreviated combined relation conditions 136', 'Abnormal run unit termination 391, 392, 393', 'ABS function 575', each on its own line. page-859.md line 59 holds all three as one paragraph with no hard-break backslashes, while every surrounding entry ends in '\\' or is its own line. Rendered, they run together as one entry, so the entry boundaries and their page numbers are lost. The text itself is all present; the defect is the lost entry separation (a merge across the column break), not missing or misplaced text. The Index is informative, so the harm is to lookup, not to normative semantics.",
+    "corrected_description": "Three consecutive index entries (the first three of the right-hand column) are merged into one markdown paragraph without line breaks; the text is complete but the entry boundaries are lost. Fix: split line 59 into three lines ending in '\\' like the neighbouring entries."
+  }
+}

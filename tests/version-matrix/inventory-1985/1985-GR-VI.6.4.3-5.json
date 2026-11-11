@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same rule in the same place: both editions open the list with 'A pair of data items correspond if' (§2023:14.7.6; 1985 'correspond if the following conditions exist'), and condition 6 reads 'The name of each data item that satisfies the above conditions is unique after application of the implied qualifiers' (§2023:14.7.6 GR6) against 1985 'must be unique after application of the implied qualifiers' (§1985:VI.6.4.3). 'is' for 'must be' inside the same condition list is wording, not a change of force; no refusal became an exception condition.",
-  "source": "adjudicate-712/slice-14"
+  "source": "adjudicate-712/slice-14",
+  "digests": {
+   "GR-14.7.6-6": "e0387b57bc28"
+  }
  }
 }

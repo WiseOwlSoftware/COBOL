@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same elementary unsigned integer requirement. The 1985 text has no local-storage section, so listing it accepts no 1985 program that was refused and refuses none that was accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-13.18.43.3-6": "d95f25db99d1"
+  }
  }
 }

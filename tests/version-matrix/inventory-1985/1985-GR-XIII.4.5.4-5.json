@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIII.4.5.4-5",
  "rule-digest": "f3ee1c81e20c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause",
  "test-ref": "conformance:cases/XIII.4.5@1985-OPEN-STATEMENT/1985-GR-XIII_4_5_4-5",
+ "notes": "SHARED QUESTION L (rows 1985-GR-VIII.4.4.4-7, 1985-GR-XIII.4.5.4-5, 1985-GR-XIII.4.5.4-11): which label convention do the OPEN label steps follow? ANSWER: the implementor's (§1985 Implementor-Defined Element List items 57, 58, 60, 61; VII.3.6.3 GR2). ISO 2023 does not control: LABEL RECORDS was deleted in 2002. The convention IS NOW RECORDED, which the refuters did not see: docs/CONFORMANCE.md section 3.7 (kb/Work PB5070, present in the probed tree) says 'WiseOwl COBOL claims no label processing, so LABEL RECORDS and VALUE OF are null facilities in function' and 'no label is read or written'. Under that convention a host file carries no label records. OMITTED and an omitted clause therefore do nothing at OPEN, and a STANDARD file is in the GR's 'specified but not present' case, whose behaviour 'is undefined', so any behaviour conforms. GnuCOBOL (next in precedence) also accepts LABEL RECORDS and processes no labels. That is recalled, not measured: this host has no GnuCOBOL. One gap remains in the documentation, not in the behaviour: section 3.7 does not cite the OPEN/CLOSE label rules or items 57, 58, 60 and 61, so a reader cannot find the 'specified conventions' from the rules. Its entry should cite them. Applied here: OPEN OUTPUT of a report file with LABEL RECORDS ARE STANDARD gives 00 and writes report lines only.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

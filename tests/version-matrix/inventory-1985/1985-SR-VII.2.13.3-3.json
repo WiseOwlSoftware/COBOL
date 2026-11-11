@@ -15,6 +15,15 @@
   ],
   "bridge": true,
   "reason": "1985 VII.2.13.3 (3): 'More than one SAME clause may be included', a file-name in at most one SAME AREA and one SAME RECORD AREA clause, the subset rule, and the precedence of the one-open-file rule. §2023:12.4.6.2 allows '{ same-clause }…'; (a)/(b) are split by file kind over §2023:12.4.6.4.3 SR5 (report file: one file-area, no record-area, matching 1985 XIII.2.4.3 SR2), §2023:12.4.6.4.3 SR6 (sort/merge file: one record-area) and §2023:12.4.6.4.3 SR7 (other files: one file-area, one record-area); (c) is §2023:12.4.6.4.3 SR9 verbatim; the precedence is §2023:12.4.6.4.4 GR1 ('No more than one of these files may be in the open mode') with §2023:12.4.6.4.4 GR2 ('except that only one file that is also specified in a file-area format SAME clause may be open'). Same requirement, all compile-time.",
-  "source": "adjudicate-712/slice-31"
+  "source": "adjudicate-712/slice-31",
+  "digests": {
+   "FMT-12.4.6.2": "bea3f5dbe52a",
+   "SR-12.4.6.4.3-5": "6d3deb9a964c",
+   "SR-12.4.6.4.3-6": "427eadbf4e4f",
+   "SR-12.4.6.4.3-7": "22d65f2b2e4a",
+   "SR-12.4.6.4.3-9": "a5438b4526d5",
+   "GR-12.4.6.4.4-1": "a9a0d9d82c17",
+   "GR-12.4.6.4.4-2": "3c2944735909"
+  }
  }
 }

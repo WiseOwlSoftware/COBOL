@@ -12,6 +12,12 @@
   ],
   "bridge": true,
   "reason": "The 1985 rule only makes the relative RESERVE clause the sequential one. 2023 writes one RESERVE clause (12.4.5.14) into both the relative format (§2023:12.4.5.2 SR9 'Format 2 shall be specified only for a relative file') and the sequential format (§2023:12.4.5.2 SR11), so the sameness holds. The clause's content (§2023:12.4.5.14.3 GR1) is the sequential RESERVE rule's record, not a part of this one.",
-  "source": "adjudicate-712-r2/slice-08"
+  "source": "adjudicate-712-r2/slice-08",
+  "digests": {
+   "FMT-12.4.5.1": "14f82fb7eed3",
+   "SR-12.4.5.2-9": "fd52bda0dde5",
+   "SR-12.4.5.2-11": "cb117217f6dd",
+   "FMT-12.4.5.14.2": "af2027060203"
+  }
  }
 }

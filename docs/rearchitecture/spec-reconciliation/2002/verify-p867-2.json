@@ -1,0 +1,13 @@
+{
+  "claim_id": "p867-2",
+  "claim_key": "c79d35d96391f143",
+  "page": 867,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p867-2", "page": 867, "kind": "misplaced-content", "severity": "structural", "pdf_says": "FACTORIAL function 600\nFACTORY clause\n    METHOD-ID paragraph 181\nFactory data 165, 770\n...\nFACTORY phrase 405\n    USAGE clause 361\n...\nFALSE phrase\n    EVALUATE statement 441\n    SET statement, condition setting 516\n...\nFeature-name 72\n    FILE-CONTROL paragraph 212\n    RECORD DELIMITER clause 225", "markdown_says": "FACTORIAL function 600 FACTORY clause\n\n   METHOD-ID paragraph 181\\\n   Factory data 165, 770\\\n...\n   FACTORY phrase 405\\\n   USAGE clause 361\\\n...\n   FALSE phrase\\\n   EVALUATE statement 441\\\n   SET statement, condition setting 516\\\n...\n   Feature-name 72\\\n   FILE-CONTROL paragraph 212\\\n   RECORD DELIMITER clause 225", "why_it_matters": "FACTORIAL function and FACTORY clause are merged on one line, and the whole F block is flattened to one indent level so sub-entries (METHOD-ID paragraph, USAGE clause, EVALUATE statement, FILE-CONTROL paragraph ...) are indistinguishable from top-level entries."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 867 (folio 845, right column, F section) shows 'FACTORIAL function 600' and 'FACTORY clause' on separate lines, with sub-entries indented under their heads: METHOD-ID paragraph 181 under FACTORY clause; Life cycle for 166 under Factory object; USAGE clause 361 under FACTORY phrase; EVALUATE statement 441 and SET statement, condition setting 516 under FALSE phrase; FILE-CONTROL paragraph 212 and RECORD DELIMITER clause 225 under Feature-name. The rest of the page in page-867.md marks sub-entries with '&emsp;'. In the F block (lines 97-117) the first two entries are joined as 'FACTORIAL function 600 FACTORY clause', and every later entry has the same three-space indent with no '&emsp;'. That loses the parent/child structure, so a sub-entry such as 'USAGE clause 361' or 'EVALUATE statement 441' reads as a top-level index entry. The claim quotes both sources accurately. The defect is structural index content, not page furniture, and it is not normative.",
+    "corrected_description": "In the F block, the transcription joins 'FACTORIAL function 600' and 'FACTORY clause' into one line. It also flattens every following entry to the same plain three-space indent, dropping the '&emsp;' sub-entry markers used on the rest of the page. As a result, the children METHOD-ID paragraph, Life cycle for, USAGE clause, EVALUATE statement, SET statement (condition setting), FILE-CONTROL paragraph and RECORD DELIMITER clause can no longer be told apart from top-level entries."
+  }
+}

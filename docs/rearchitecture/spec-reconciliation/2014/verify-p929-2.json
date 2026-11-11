@@ -1,0 +1,13 @@
+{
+  "claim_id": "p929-2",
+  "claim_key": "45a18a5ef9bbd318",
+  "page": 929,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p929-2", "page": 929, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Binary encoding\n    ISO/IEC/IEEE 60559 definition reference  410\nBINARY phrase\n    USAGE clause  405", "markdown_says": "Binary encoding\n\n   ISO/IEC/IEEE 60559 definition reference 410 BINARY phrase\n\n   USAGE clause 405\\", "why_it_matters": "The sub-entry of 'Binary encoding' is merged with the next headword 'BINARY phrase', and the whole right column (BINARY phrase through BY CONTENT phrase / Procedure division header 102) loses its sub-entry indentation. The index is informative, but a flattened or merged index entry misattributes page references to the wrong headword."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Printed page 905 (PDF p929), 300 dpi render: left column ends with headword 'Binary encoding'; the right column opens with the indented sub-entry 'ISO/IEC/IEEE 60559 definition reference 410', then headword 'BINARY phrase' on its own line at the left margin, then indented 'USAGE clause 405'. The pattern continues down the right column, with headwords such as BINARY-CHAR phrase, Boolean expressions and BY CONTENT phrase at the margin and their sub-entries indented under them. In page-929.md, line 61 reads '   ISO/IEC/IEEE 60559 definition reference 410 BINARY phrase', so the headword is joined onto the previous sub-entry's line. Lines 61-118 then put every right-column line at the same three-space indent with no &emsp; markers, while the left column keeps its &emsp; sub-entry markers on lines 25-57. Headwords and sub-entries are therefore indistinguishable: 'COMPUTE statement 482' under 'Boolean expressions' reads like a headword of its own, and 'BINARY phrase' reads as part of the 60559 sub-entry. All the words and numbers are present and in the right order, so no text is lost. What is lost is the index hierarchy, which is content in an index because it says which headword a page reference belongs to. The claim quotes both sources accurately. Informative annex, so structural rather than normative.",
+    "corrected_description": ""
+  }
+}

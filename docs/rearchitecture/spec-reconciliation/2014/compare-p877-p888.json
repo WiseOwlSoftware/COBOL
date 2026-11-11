@@ -1,0 +1,9 @@
+{"batch": [877,878,879,880,881,882,883,884,885,886,887,888],
+ "pages_checked": [877,878,879,880,881,882,883,884,885,886,887,888],
+ "pages_unread": [],
+ "findings": [
+  {"id": "p880-1", "page": 880, "kind": "incorrect-figure", "severity": "structural",
+   "pdf_says": "Figure D.6 is a three-column layout: a form-zone column (\"Physical Top of Form\", \"Logical Top of Form\", \"Logical Bottom of Form\", \"Physical Bottom of Form\"), a PAGE clause phrase column (\"Heading\", \"First Detail\", \"Last Control Heading\", \"Last Detail\", \"Footing\", \"Page Limit\") and a report-content column; e.g. row \"Logical Top of Form | Heading | the first line of the report or page heading <(first page only) report header lines> <page heading lines>\" and row \"Logical Bottom of Form | Page Limit | the last line on a logical page\".",
+   "markdown_says": "| Logical Top Heading | the first line of the report or page heading |\n|---|---|\n| of Form | &lt;(first page only) report header lines> |\n ... \n   Logical Page Limit the last line on a logical page\\\n   Bottom of\\\n   Form",
+   "why_it_matters": "The column structure of Figure D.6 is lost: form-zone labels are fused with PAGE clause phrase names (\"Logical Top Heading\", \"Logical Page Limit\"), \"of Form\" lands in the phrase column of a partial two-column table, and the rest of the figure is free text, so the association of each PAGE clause phrase with its form position and report content is garbled. Informative annex, no normative effect."}
+ ]}

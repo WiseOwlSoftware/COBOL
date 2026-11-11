@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"INSPECT identifier-1 TALLYING ... / INSPECT identifier-1 REPLACING ... / INSPECT identifier-1 CONVERTING ...\"; 2023: \"INSPECT [ BACKWARD ] identifier-1 TALLYING tallying-phrase (BACKWARD likewise in formats 2, 3, 4)\". Same four formats and phrases. 2023 adds the optional BACKWARD phrase to all formats, so it accepts programs 1985 refuses. The AFTER/BEFORE repetition is only recast as choice indicators.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.22.2": "27e57515a8b8"
+  }
  }
 }

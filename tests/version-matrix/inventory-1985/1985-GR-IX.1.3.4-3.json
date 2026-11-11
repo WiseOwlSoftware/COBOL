@@ -18,6 +18,18 @@
   ],
   "bridge": true,
   "reason": "1985 'Invalid Key. The input-output statement was unsuccessfully executed as a result of an invalid key condition' is word for word in §2023:9.1.13.1 (uncatalogued prose). Catalogued carriers: the status is 'set to a value indicating the invalid key condition as described in 9.1.13.5' (§2023:9.1.14 GR1), the class values 21-24 (§2023:9.1.13.5 GR1-GR4), and the statement rules that make the invalid key condition an unsuccessful execution (§2023:14.9.30.4 GR28, GR32; §2023:14.9.41.4 GR5; §2023:14.9.35.4 GR22, GR23). START FIRST/LAST rows are 2023-only syntax and are left out. Same class.",
-  "source": "adjudicate-712-r2/slice-01"
+  "source": "adjudicate-712-r2/slice-01",
+  "digests": {
+   "GR-9.1.14-1": "b8080cf5262e",
+   "GR-9.1.13.5-1": "42715d234365",
+   "GR-9.1.13.5-2": "49a096fddbb8",
+   "GR-9.1.13.5-3": "c3ad7e9c7625",
+   "GR-9.1.13.5-4": "2f2d4439acc4",
+   "GR-14.9.30.4-28": "f11d5a778fd1",
+   "GR-14.9.30.4-32": "41ffa95d2b25",
+   "GR-14.9.41.4-5": "19e7ff681984",
+   "GR-14.9.35.4-22": "194a97fb0600",
+   "GR-14.9.35.4-23": "4541e90fedf4"
+  }
  }
 }

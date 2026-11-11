@@ -1,9 +1,9 @@
 {
   "batch": [784, 788, 789, 792, 804, 815, 816, 859, 860, 920, 928, 962],
-  "pages_checked": [784, 788, 789, 792, 804, 815, 816, 859, 860, 920, 928, 962],
+  "pages_checked": [784, 788, 789, 792, 804, 815, 816, 859, 860, 920, 928, 962], "pages_unread": [],
   "findings": [
     {
-      "page": 816,
+      "id": "p816-1", "page": 816,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "14.9.51.3   Syntax rules  (printed in the same bold sub-clause style as 14.9.51.1 General and 14.9.51.2 General formats on page 815)",
@@ -12,7 +12,7 @@
       "suggested_repair": "Demote to '### 14.9.51.3 Syntax rules' (ISO_COBOL.md line 33010) to match 14.9.51.1/.2. Sweep 14.9.51.4 at line 33074 in the same change."
     },
     {
-      "page": 860,
+      "id": "p860-1", "page": 860,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "15.19.3   Argument rules  /  15.19.4   Returned value rules  (printed in the same bold sub-clause style as 15.19.1 General and 15.19.2 General format on page 859)",
@@ -21,7 +21,7 @@
       "suggested_repair": "Demote both to H3 in ISO_COBOL.md (lines 34597 and 34620) so they read '### 15.19.3 Argument rules' and '### 15.19.4 Returned value rules', matching 15.20.3/15.20.4."
     },
     {
-      "page": 859,
+      "id": "p859-1", "page": 859,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "FUNCTION CONVERT ( argument-1 source-format destination-format )  — BOTH 'FUNCTION' and 'CONVERT' carry an underline in the printed general format (verified by rendering page 859 at 300 dpi and cropping the line: two separate underline rules sit beneath FUNCTION and beneath CONVERT).",
@@ -30,7 +30,7 @@
       "suggested_repair": "Change ISO_COBOL.md line 34553 to '<u>FUNCTION</u> <u>CONVERT</u> ( argument-1 source-format destination-format )'. Sweep the sibling defect at line 38293 (<u>FUNCTION</u> TEST-NUMVAL) in the same change set."
     },
     {
-      "page": 804,
+      "id": "p804-1", "page": 804,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "Format 2 (reporting):  USE [ GLOBAL ] BEFORE REPORTING identifier-1  — USE, GLOBAL, BEFORE and REPORTING are all underlined (required words); only identifier-1 is not.",

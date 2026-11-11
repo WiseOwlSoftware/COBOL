@@ -16,6 +16,12 @@
   ],
   "bridge": true,
   "reason": "1985: 'COLUMN NUMBER IS integer-1'. §2023:13.18.14.2 Format 1 (report-writer) accepts it with the same meaning (absolute column, LEFT assumed: §2023:13.18.14.3 SR9 'If any of the operands is absolute and neither LEFT, CENTER, nor RIGHT is specified, LEFT is assumed') and adds the COL/COLUMNS/COLS synonyms (§2023:13.18.14.3 SR1), LEFT/CENTER/RIGHT, relative 'PLUS integer-2' and a multiple COLUMN clause (§2023:13.18.14.3 SR10). No 1985 rule allows those forms. CHANGED (looser).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.18.14.2": "8af75d870eff",
+   "SR-13.18.14.3-1": "47c8b6eace6a",
+   "SR-13.18.14.3-9": "d3a2686e0a4e",
+   "SR-13.18.14.3-10": "308ed3581a34"
+  }
  }
 }

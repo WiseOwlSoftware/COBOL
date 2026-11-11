@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-55, kb/Work PB4952). Each data-name-1, data-name-2 and FINAL is a CONTROL clause operand; 2023 SR10's last sentence states it. The qualification and reference modification SR10 allows, and SR11's omitted operand, are later additions that leave a 1985 TYPE clause valid.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "SR-13.18.57.3-10": "175b564e2af5"
+  }
  }
 }

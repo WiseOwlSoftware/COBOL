@@ -10,6 +10,10 @@
   ],
   "bridge": true,
   "reason": "Both require the file (connector) to be open for CLOSE. The 2023 status '42' outcome only states the consequence of breaking that rule; it is not a new case.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.6.4-1": "b69d85d1cce5",
+   "GR-9.1.13.7-2": "6ad5edf369fc"
+  }
  }
 }

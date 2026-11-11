@@ -13,6 +13,12 @@
   ],
   "bridge": true,
   "reason": "1985: '{SUM {identifier-1} ... [UPON {data-name-1} ...]} ... [RESET ON {data-name-2|FINAL}]', identifier-1 a numeric item or a Report Section sum counter (§1985:XIII.3.19.3 SR1, which lets that sum counter be 'in the same report group that contains this SUM clause'). §2023:13.18.54.2 adds an optional OF, arithmetic-expression-1 addends (§2023:13.18.54.3 SR1) and a rounded-phrase, and splits the addend: a Report Section item is data-name-1 (§2023:13.18.54.3 SR4), any other item identifier-1 (§2023:13.18.54.3 SR5). SR4 b) also requires a data-name-1 in the same report group to 'be a repeating item', so a 1985 same-group crossfoot of non-repeating sum counters is refused. CHANGED (looser and stricter).",
-  "source": "adjudicate-712/slice-03"
+  "source": "adjudicate-712/slice-03",
+  "digests": {
+   "FMT-13.18.54.2": "c4e9ee14dfd3",
+   "SR-13.18.54.3-1": "7ab8d9e3cbca",
+   "SR-13.18.54.3-4": "20da11e6490f",
+   "SR-13.18.54.3-5": "814bf3db81da"
+  }
  }
 }

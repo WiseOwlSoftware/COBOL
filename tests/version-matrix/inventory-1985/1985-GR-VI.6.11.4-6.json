@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: \"the same presence or absence of a sign as the quotient (identifier-3)\"; 2023: \"a subsidiary quotient is developed that is signed and derived from the quotient by truncation of digits\". Both define remainder as dividend minus truncated quotient times divisor, but 2023 always uses a signed subsidiary quotient. 1985 follows identifier-3's sign, so unsigned quotients differ.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-14.9.12.4-6": "3053112dac80",
+   "GR-14.9.12.4-7": "27a5fda5e057"
+  }
  }
 }

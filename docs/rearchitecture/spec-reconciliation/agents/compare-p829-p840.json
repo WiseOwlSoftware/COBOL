@@ -1,10 +1,10 @@
 {
   "batch": [829, 830, 831, 832, 833, 834, 835, 836, 837, 838, 839, 840],
-  "pages_checked": [829, 830, 831, 832, 833, 834, 835, 836, 837, 838, 839, 840],
+  "pages_checked": [829, 830, 831, 832, 833, 834, 835, 836, 837, 838, 839, 840], "pages_unread": [],
   "note": "Batch was routed here as figure-bearing, but pages 829-840 contain NO general-format / syntax-skeleton diagrams. Content is clause 15.3 (date/time format arguments), 15.4 (returned values), 15.5 (date/time conversion forms), 15.6 (Summary of functions) plus the first four pages of Table 21, Table of functions. The choice-indicator (5.2.6.4 vertical-bar) defect class therefore has no instances on these pages. Prose and all Table 21 cells were compared verbatim and are faithful; the only defects found are heading-level (nesting) errors.",
   "findings": [
     {
-      "page": 829,
+      "id": "p829-1", "page": 829,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "15.3   Arguments  ...  15.3.1   Format arguments to international date and time functions  /  15.3.1.1   General",
@@ -13,7 +13,7 @@
       "suggested_repair": "Promote `### 15.3 Arguments` to `## 15.3 Arguments` and demote `## 15.3.1 ...` to `### 15.3.1 ...`, then rebase the whole 15.3 subtree so 15.3.1.n is `####`; or, matching the dominant file convention, keep 15.3 at `##`, 15.3.1 at `###`, 15.3.1.n at `####`."
     },
     {
-      "page": 830,
+      "id": "p830-1", "page": 830,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "15.3.1.5   Permissible values for data associated with ordinal date formats / 15.3.1.6   Week date formats / 15.3.1.7   Permissible values for data associated with week date formats  — all printed at the same rank as 15.3.1.1 through 15.3.1.4 on page 829",
@@ -22,7 +22,7 @@
       "suggested_repair": "Change the three headings from `##` to `###` so they match 15.3.1.1-15.3.1.4."
     },
     {
-      "page": 832,
+      "id": "p832-1", "page": 832,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "15.3.3.3   Permissible values for data associated with common time formats / 15.3.3.4   Local time formats / 15.3.3.5   UTC time formats / 15.3.3.6   Offset time formats / 15.3.3.6.1   Offset subformats",
@@ -31,7 +31,7 @@
       "suggested_repair": "Demote 15.3.3.3, 15.3.3.4, 15.3.3.5 and 15.3.3.6 to `###` (matching 15.3.3.1/.2) and 15.3.3.6.1 to `####` — or, at minimum, make 15.3.3.6.1 match 15.3.3.6.2."
     },
     {
-      "page": 834,
+      "id": "p834-1", "page": 834,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "15.4   Returned values  ...  15.4.1   Numeric and integer functions",
@@ -40,7 +40,7 @@
       "suggested_repair": "Change `## 15.4.1 Numeric and integer functions` to `### 15.4.1 Numeric and integer functions`."
     },
     {
-      "page": 836,
+      "id": "p836-1", "page": 836,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "15.5.3   Standard date form / 15.5.4   Julian date form / 15.5.5   Standard numeric time form",

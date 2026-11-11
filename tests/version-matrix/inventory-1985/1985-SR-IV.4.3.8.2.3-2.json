@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "Same rule: subscripts equal OCCURS clauses, in order of less inclusive dimensions. 'This allows a maximum of seven' only restates the OCCURS nesting limit in SR-13.18.38.3-10.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "SR-8.4.2.3.3-3": "2dfac91389b6"
+  }
  }
 }

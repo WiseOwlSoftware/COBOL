@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "§1985:VII.4.6.3 SR3 as amended by X3.23b-1993: 'The same file-name must not appear in more than one USE AFTER EXCEPTION statement within the same Procedure Division.' The amendment replaced the 1985 print ('Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure') with this textual test. §2023:14.9.49.3 SR8 states it word for word: 'The same file-name shall not appear in more than one USE AFTER EXCEPTION statement within the same procedure division.' The same sources are refused; the amended rule needs no general rule on declarative selection to carry it.",
-  "source": "readjudicate-amended-1985/slice-10"
+  "source": "readjudicate-amended-1985/slice-10",
+  "digests": {
+   "SR-14.9.49.3-8": "84f74c522eb3"
+  }
  }
 }

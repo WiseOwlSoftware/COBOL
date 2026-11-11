@@ -14,6 +14,10 @@
   "reason": "1985: the numeric (integer, §1985:VI.6.3.1.1.2 'it must be an integer data item or an integer literal') operand 'is treated as though it were moved to an elementary alphanumeric data item of the same size as the numeric data item (in terms of standard data format characters)', then compared. 2023 keeps the pairing (§2023:8.8.4.2.1 GR6) and the move-then-compare scheme in §2023:8.8.4.2.5 (prose with no catalog rule id): 'treated as though it were moved, according to the rules of the MOVE statement, to an elementary data item of the same length in terms of character positions as the number of digits in the integer', of the class of the other operand (adding national). The temporary item's length basis changed from size in standard data format characters to the number of digits. A separate sign makes no observable difference (space extension), but for a scaled integer such as PIC 99PP, whose 'P' is 'not counted in the size of the item, but ... counted in the maximum number of digit positions' (§2023:13.18.40.4 GR14), 1985 truncates the moved value 1200 to a 2-character '12' while 2023 builds a 4-character '1200', so a comparison with '1200' changes truth value.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-13"
+  "source": "adjudicate-712/slice-13",
+  "digests": {
+   "GR-8.8.4.2.1-6": "09ba48ca32b4",
+   "GR-13.18.40.4-14": "afd0f88fdb6d"
+  }
  }
 }

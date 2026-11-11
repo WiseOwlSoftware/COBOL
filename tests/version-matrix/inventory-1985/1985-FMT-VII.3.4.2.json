@@ -14,6 +14,10 @@
   "reason": "§1985:VII.3.4.2 is 'CODE-SET IS alphabet-name-1' alone. §2023:13.18.13.2 keeps that form but adds an optional alphabet-name-2 (a national alphabet) and the 'FOR ALPHANUMERIC' / 'FOR NATIONAL' phrases, and the sequential file description entry §2023:13.4.5.2 'Format 1 (sequential)' restates the same wider clause in line. A 1985 CODE-SET clause means the same, but programs the 1985 format refuses are accepted: CHANGED. The USAGE DISPLAY and SIGN SEPARATE restriction (§1985:VII.3.4.3 SR1, carried by §2023:13.18.13.3 SR3) is that rule's own record.",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-13.18.13.2": "321e4fea0731",
+   "FMT-13.4.5.2": "b75b09e44e69"
+  }
  }
 }

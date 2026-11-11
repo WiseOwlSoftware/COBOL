@@ -1,0 +1,13 @@
+{
+  "claim_id": "p40-1",
+  "claim_key": "08b3184152dc8337",
+  "page": 40,
+  "kind": "misplaced-content",
+  "severity": "structural",
+  "claim": {"id": "p40-1", "page": 40, "kind": "misplaced-content", "severity": "structural", "pdf_says": "Expression | 8.8, Expressions | arithmetic-expression-n boolean-expression-n conditional-expression-n  ...  c) Exception name | 14.5.12.1.5, Exception-names and exception conditions | exception-name-1", "markdown_says": "| Expression | 8.8, Expressions | arithmetic-expression-n |\n\nboolean-expression-n conditional-expression-n\n\n| Integer | 5.4, Integer operands | integer-n |\n|---|---|---|\n...\n| c) Exception name | 14.5.12.1.5, Exception-names and | exception-name-1 |\n\nexception conditions", "why_it_matters": "The operand-type table is split into two tables: the Expression row's terms boolean-expression-n and conditional-expression-n fall out of the table as a stray paragraph, and the tail of the 'Described in' cell for Exception name ('exception conditions') becomes a detached paragraph; the multi-line User-defined word cell is also split across three rows ('a) User-defined word, including' / 'qualification and subscription if' / 'needed'). A reader of the table sees Expression mapping only to arithmetic-expression-n."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered PDF page 40 (printed page 18) shows one three-column table. The Expression row's Term cell holds three stacked terms: arithmetic-expression-n, boolean-expression-n, conditional-expression-n. The Exception name row's 'Described in' cell reads '14.5.12.1.5, Exception-names and exception conditions'. Row a) is ONE row: its operand-type cell 'User-defined word, including qualification and subscription if needed', its Described-in cell lists 8.3.1.1.1, 8.4.1.1 and 8.4.1.2, and its Term cell reads 'Any of the types listed in 8.3.1.1.1 suffixed by -n'. page-40.md matches the claim exactly. The Expression row ends after arithmetic-expression-n, and 'boolean-expression-n conditional-expression-n' follows as a bare paragraph outside the table. The table then restarts with Integer as a new header row. Row a) is split into three rows, so 'suffixed by -n' and 8.4.1.1/8.4.1.2 appear to belong to separate operand types. 'exception conditions' is a detached paragraph. No words are lost, but the table no longer pairs the Expression operand type with two of its three terms, and row a)'s cells are attached to the wrong rows. That changes what the table says. The claim quotes both sources correctly.",
+    "corrected_description": null
+  }
+}

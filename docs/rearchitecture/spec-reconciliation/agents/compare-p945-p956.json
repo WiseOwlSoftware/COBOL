@@ -1,9 +1,9 @@
 {
   "batch": [945, 946, 947, 948, 949, 950, 951, 952, 953, 954, 955, 956],
-  "pages_checked": [945, 946, 947, 948, 949, 950, 951, 952, 953, 954, 955, 956],
+  "pages_checked": [945, 946, 947, 948, 949, 950, 951, 952, 953, 954, 955, 956], "pages_unread": [],
   "findings": [
     {
-      "page": 949,
+      "id": "p949-1", "page": 949,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "FUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] [ FIRST / LAST ] argument-2 argument-3 } ... )  -- printed as ONE tall square bracket enclosing FIRST stacked above LAST (verified at 300 dpi crop), i.e. a single optional choice of at most one of FIRST or LAST; no choice-indicator vertical bars are present inside either the brace or the bracket. FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are all underlined (required words).",
@@ -12,7 +12,7 @@
       "suggested_repair": "Re-render the format with the tall stacked-bracket convention used elsewhere in the file, e.g.\n```\n                                             ⎡ FIRST ⎤\nFUNCTION SUBSTITUTE ( argument-1 { [ ANYCASE ] ⎢       ⎥ argument-2 argument-3 } ... )\n                                             ⎣ LAST  ⎦\n```\nand add a Figure notes line: the bracket is a single notation bracket with NO choice indicators, so at most one of FIRST or LAST may be specified; FUNCTION, SUBSTITUTE, ANYCASE, FIRST and LAST are underlined (required words) in the printed standard."
     },
     {
-      "page": 956,
+      "id": "p956-1", "page": 956,
       "kind": "incorrect-figure",
       "severity": "cosmetic",
       "pdf_says": "FUNCTION TEST-NUMVAL ( argument-1 )  -- both FUNCTION and TEST-NUMVAL are underlined in the printed general format (verified at 300 dpi crop).",

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "PROVISIONAL (a reconstruction of folio XIII-55, kb/Work PB4952). The seven abbreviations; 2023 SR9 states them word for word.",
-  "source": "adjudication kb/Work PB4952"
+  "source": "adjudication kb/Work PB4952",
+  "digests": {
+   "SR-13.18.57.3-9": "6ed254b899a1"
+  }
  }
 }

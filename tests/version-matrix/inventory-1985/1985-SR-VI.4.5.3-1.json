@@ -11,6 +11,11 @@
   ],
   "bridge": true,
   "reason": "1985: a mnemonic-name for an external switch 'may be specified only in the SET statement.' 2023 §2023:12.3.7.2 ties mnemonic-name-1 to switch-name-1 ('IS mnemonic-name-1'), §2023:12.3.7.4 GR2 'Switch-name-1 identifies an implementor-defined external switch', and §2023:12.3.7.3 SR5 'Mnemonic-name-1 may be specified only in a SET statement.' Same syntax refusal; no exception condition.",
-  "source": "adjudicate-712/slice-29"
+  "source": "adjudicate-712/slice-29",
+  "digests": {
+   "SR-12.3.7.3-5": "36ad3e848bf7",
+   "FMT-12.3.7.2": "1e17a1b8a88d",
+   "GR-12.3.7.4-2": "a59a27a4fa5b"
+  }
  }
 }

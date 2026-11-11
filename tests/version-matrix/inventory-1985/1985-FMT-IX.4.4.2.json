@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985 indexed OPEN: OPEN {INPUT|OUTPUT|I-O|EXTEND} {file-name} …, repeated. §2023:14.9.27.2 keeps the four repeatable modes and adds [ sharing-phrase ] [ retry-phrase ] and WITH NO REWIND; for an indexed file §2023:14.9.27.3 SR5 still refuses NO REWIND (\"The NO REWIND phrase may be specified only for sequential files\"), so the added indexed cases are the sharing and retry phrases (e.g. OPEN INPUT SHARING WITH READ ONLY idx-file), accepted at compile time. 1985 OPEN statements keep their meaning; no refusal became an exception.",
-  "source": "adjudicate-712/slice-01"
+  "source": "adjudicate-712/slice-01",
+  "digests": {
+   "FMT-14.9.27.2": "ba0f3d6b7e89",
+   "SR-14.9.27.3-5": "bf2e6c69fada"
+  }
  }
 }

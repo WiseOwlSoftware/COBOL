@@ -14,6 +14,10 @@
   ],
   "bridge": true,
   "reason": "1985: an alphabetic PICTURE 'can contain only the symbol A' and its content 'must be one or more alphabetic characters' (GR8: 'A' 'can contain only an alphabetic character'). §2023:13.18.40.4 GR5 keeps the picture rule ('shall contain only one or more occurrences of the symbol A'), but §2023:13.18.40.4 GR14 makes each 'A' 'a character position that shall contain any character from the computer's alphanumeric character set' ('equivalent to the symbol X except within the execution of a VALIDATE statement'). Content requirement loosened; only VALIDATE checks it as alphabetic.",
-  "source": "adjudicate-712/slice-10"
+  "source": "adjudicate-712/slice-10",
+  "digests": {
+   "GR-13.18.40.4-5": "5660976386bf",
+   "GR-13.18.40.4-14": "afd0f88fdb6d"
+  }
  }
 }

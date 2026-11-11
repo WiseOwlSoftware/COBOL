@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 USE GR5: USE procedures executed after the standard exception routine upon unsuccessful I-O 'unless an AT END phrase takes precedence', items a)-e). §2023:14.9.49.4 GR6 restates it and a)-e) verbatim ('unless an AT END or INVALID KEY phrase takes precedence'); the exception-checking PERFORM precondition needs 2023-only syntax, and INVALID KEY cannot arise on a 1985 sequential-file statement. Same.",
-  "source": "adjudicate-712-r2/slice-07"
+  "source": "adjudicate-712-r2/slice-07",
+  "digests": {
+   "GR-14.9.49.4-6": "b41480584b33"
+  }
  }
 }

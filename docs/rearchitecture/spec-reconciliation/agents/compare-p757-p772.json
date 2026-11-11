@@ -1,6 +1,6 @@
 {
   "batch": [757, 758, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772],
-  "pages_checked": [757, 758, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772],
+  "pages_checked": [757, 758, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772], "pages_unread": [],
   "findings": [],
   "notes": [
     "Batch was routed as a FIGURE-fidelity batch, but none of these 12 PDF pages contains a general format, syntax skeleton, or any other figure. All twelve are pure prose: PDF pp. 727-728 (printed) = SEND 14.9.38.4 General rules, and PDF pp. 733-742 (printed) = SET 14.9.39.3 Syntax rules tail + 14.9.39.4 General rules. The SET general-format figures live on the PDF pages immediately before this range (759-762), which are NOT in this batch. Therefore no choice-indicator (5.2.6.4 vertical bar) check, unclosed-bracket check, or ellipsis-placement check was applicable on any page here.",

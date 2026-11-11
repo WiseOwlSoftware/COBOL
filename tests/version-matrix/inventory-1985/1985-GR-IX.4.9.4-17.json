@@ -13,6 +13,13 @@
   ],
   "bridge": true,
   "reason": "1985 GR17 a-d: out-of-sequence prime key in sequential output/extend; duplicate prime key; duplicate non-DUPLICATES alternate key; write beyond boundaries. §2023:14.9.51.4 GR42 a)-d) states all four ('equal to the value of the prime record key of any record existing in the file'), with §2023:14.9.51.4 GR38, §2023:14.9.51.4 GR40 and 9.1.13.5 statuses 22/24. Dropping 'output or I-O' from b) adds only extend mode, where 1985 case a) with GR14 already makes a duplicate prime key an invalid key. Same programs, same invalid key effect.",
-  "source": "adjudicate-712-r2/slice-03"
+  "source": "adjudicate-712-r2/slice-03",
+  "digests": {
+   "GR-14.9.51.4-42": "20bdfd2f8d70",
+   "GR-14.9.51.4-38": "ae5934a81473",
+   "GR-14.9.51.4-40": "2ad780e17de6",
+   "GR-9.1.13.5-2": "49a096fddbb8",
+   "GR-9.1.13.5-4": "2f2d4439acc4"
+  }
  }
 }

@@ -21,6 +21,17 @@
   "reason": "§1985:VIII.2.3.2, the relative file control entry, nests RELATIVE KEY inside the ACCESS MODE clause: optional after SEQUENTIAL, required after RANDOM or DYNAMIC, impossible when ACCESS MODE is omitted. Its 2023 counterpart is §2023:12.4.5.1 'Format 2 (relative)', which §2023:12.4.5.2 SR9 ('Format 2 shall be specified only for a relative file') and §2023:12.4.5.3 GR7 ('The relative format defines a file connector for a relative file') tie to relative files; it makes RELATIVE KEY a clause of its own (§2023:12.4.5.13.2), still required for random and dynamic access by §2023:12.4.5.2 SR10 ('The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of the ACCESS clause is specified'), so every 1985 entry is accepted with the same meaning. But RELATIVE KEY may now be written with ACCESS MODE omitted, and ASSIGN USING, LOCK MODE and SHARING are added, all refused by the 1985 format: wider, compile-time only, CHANGED. The clauses written in line are restated by their own formats, which state part of the entry's syntax: §2023:12.4.5.5.1 (ACCESS MODE), §2023:12.4.5.8.2 (FILE STATUS), §2023:12.4.5.10.2 (ORGANIZATION), §2023:12.4.5.14.2 (RESERVE).",
   "edition": 2023,
   "bridge": true,
-  "source": "adjudicate-712/slice-02"
+  "source": "adjudicate-712/slice-02",
+  "digests": {
+   "FMT-12.4.5.1": "14f82fb7eed3",
+   "SR-12.4.5.2-9": "fd52bda0dde5",
+   "SR-12.4.5.2-10": "f2d735f4e5c8",
+   "GR-12.4.5.3-7": "8b91c8b9d337",
+   "FMT-12.4.5.5.1": "ce888455e095",
+   "FMT-12.4.5.8.2": "e6095ecf1b9f",
+   "FMT-12.4.5.10.2": "03687bb856b0",
+   "FMT-12.4.5.13.2": "f39565f45031",
+   "FMT-12.4.5.14.2": "af2027060203"
+  }
  }
 }

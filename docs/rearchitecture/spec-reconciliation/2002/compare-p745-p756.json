@@ -1,0 +1,16 @@
+{
+  "batch": [745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756],
+  "pages_checked": [745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756],
+  "pages_unread": [],
+  "findings": [
+    {
+      "id": "p745-1",
+      "page": 745,
+      "kind": "image-lost",
+      "severity": "structural",
+      "pdf_says": "Figure E.3 — Compilation group and run unit structures: a drawn diagram of nested boxes (a thick-bordered compilation group holding three compilation units; the middle one a source unit P-1 containing source elements P-1-1 and P-1-2, with P-1-2 containing P-1-2-1 and P-1-2-2), arrows labelled \"To other run unit\" and \"From other comp. group\", a lower thick-bordered run unit with runtime modules and dashed runtime elements mirroring the upper structure, and a Legend mapping border styles to Compilation Group, Compilation Unit, Source Unit, Source Element, Run Unit, Runtime Module, Runtime Element.",
+      "markdown_says": "P-1\n\nLegend\n\nP-1-1 P-1-2 Compilation Group\n\nP-1-2-1 P-1-2-2\n\nCompilation Unit\n\nSource Unit\n\nSource Element\n\n| To other run unit | To other run unit |\n|---|---|\n| From other comp. group | From other comp. group |\n\nRun Unit\n\nRuntime Module\n\nRuntime Element",
+      "why_it_matters": "The figure was reduced to a scatter of its text labels (legend entries interleaved with box labels, the arrow captions turned into a two-row table). The nesting that the figure exists to show (which source elements sit in which source unit, and how compilation units map onto runtime modules in a run unit) and the legend's border-style key are lost. Annex E is informative, so no normative rule is affected."
+    }
+  ]
+}

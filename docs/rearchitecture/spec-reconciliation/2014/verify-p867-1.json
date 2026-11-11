@@ -1,0 +1,13 @@
+{
+  "claim_id": "p867-1",
+  "claim_key": "14e2732b8d15a7c1",
+  "page": 867,
+  "kind": "image-lost",
+  "severity": "structural",
+  "claim": {"id": "p867-1", "page": 867, "kind": "image-lost", "severity": "structural", "pdf_says": "Figure D.5 draws an Account box (account-number, balance, date-opened in the data-items compartment; deposit, withdraw, balance in the methods compartment), with labels \"Data items\" and \"Methods\" pointing at the compartments, and two subclass boxes with arrows up to Account: CheckingAccount (charges; displayCharges, calculateCharges) and SavingAccount (interest-rate; calculateInterest).", "markdown_says": "account-number\\\nData items balance\\\ndate-opened\n\ndeposit\\\nMethods\\\nwithdraw\\\nbalance\n\n| CheckingAccount | SavingAccount |\n|---|---|\n| charges | interest-rate |\n| displayCharges | calculateInterest |\n\ncalculateCharges", "why_it_matters": "The figure is flattened and scrambled: the \"Data items\" label is run into the data item \"balance\", the \"Methods\" label sits between the method names deposit and withdraw, calculateCharges is detached from the CheckingAccount column, and the inheritance arrows are gone. Informative annex, so structural."},
+  "verdict": {
+    "real": true,
+    "reasoning": "Rendered page 867 (printed p.843) at 300 dpi. The PDF draws Figure D.5 as a UML-style diagram: an Account box with a data compartment (account-number, balance, date-opened) and a methods compartment (deposit, withdraw, balance), external labels 'Data items' and 'Methods' with arrows to those compartments, and two subclass boxes, CheckingAccount (charges | displayCharges, calculateCharges) and SavingAccount (interest-rate | calculateInterest), each with an inheritance arrow up to Account. The markdown (page-867.md) quotes exactly what the claim says: 'Data items' is fused into the line 'Data items balance', 'Methods' is wedged between deposit and withdraw, calculateCharges sits as a loose paragraph below the table rather than in the CheckingAccount methods cell, and nothing records that the two classes inherit from Account. All the words are present, but the figure's structure (which names are labels and which are members, which method belongs to which class, and the inheritance relation) is lost or wrong. The surrounding prose restates the inheritance and membership, and Annex D is informative, so structural severity is right. Claim is accurate.",
+    "corrected_description": ""
+  }
+}

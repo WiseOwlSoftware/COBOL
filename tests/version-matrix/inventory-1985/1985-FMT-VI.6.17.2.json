@@ -13,6 +13,9 @@
   ],
   "bridge": true,
   "reason": "1985: \"REPLACING {ALPHABETIC|ALPHANUMERIC|NUMERIC|ALPHANUMERIC-EDITED|NUMERIC-EDITED} DATA BY\"; 2023: \"[ WITH FILLER ] [ {ALL|category-name} TO VALUE ] [ THEN REPLACING … ] [ THEN TO DEFAULT ]; category-name adds BOOLEAN, NATIONAL, DATA-POINTER…\". 2023 format still accepts every 1985 form but adds the WITH FILLER, TO VALUE and TO DEFAULT phrases and eight more REPLACING categories, so more programs are accepted.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "FMT-14.9.20.2": "cc7a2ea6888b"
+  }
  }
 }

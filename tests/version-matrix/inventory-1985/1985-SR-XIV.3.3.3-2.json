@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.3.3.3-2",
  "rule-digest": "a16c9656b7b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindEnable; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ResolveCommunicationCd",
  "test-ref": "conformance:cases/XIV.3.3@1985-ENABLE-STATEMENT/1985-SR-XIV_3_3_3-2",
+ "notes": "The rule asks that the CD cd-name-1 references be an input-output CD for ENABLE I-O TERMINAL. For every program in which cd-name-1 references exactly one CD (every conforming program, since §1985:IV.4.3.8.1 requires a unique reference and a cd-name has no qualifier), ResolveCommunicationCd refuses every other format and every non-cd-name with COBOL6170, independent of order (r5: every wrong-format operand and every CD data-name refused; the earlier probes r2, r3, r4 cover scope, shadowing and case). A duplicated cd-name has no single referent, so this rule has nothing to apply to; the program is illegal under the uniqueness rule, and the missing refusal is ONE defect of name resolution charged there, whose fix leaves this rule's check unchanged and makes it order-independent. Attack point: if 'must reference an X CD' is held to carry the uniqueness obligation itself, this row becomes PARTIAL with the same single defect.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

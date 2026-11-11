@@ -1,0 +1,13 @@
+{
+  "claim_id": "p825-1",
+  "claim_key": "f041517cca72f5f6",
+  "page": 825,
+  "kind": "image-restructured",
+  "severity": "structural",
+  "claim": {"id": "p825-1", "page": 825, "kind": "image-restructured", "severity": "structural", "pdf_says": "Figure E.13 flowchart: a line from 'Augment identifier-2 with current BY value' loops back with an arrow into 'Condition-1'.", "markdown_says": "Condition-1 True Exit\n\nFalse\n\nExecute specified\\\nset of statements\n\nAugment identifier-2\\\nwith current BY value", "why_it_matters": "The loop-back edge, which makes this a loop with the test before execution, is lost; the markdown reads as a straight-line sequence ending at Augment. Informative annex."},
+  "verdict": {
+    "real": true,
+    "reasoning": "The 300 dpi render of printed page 803 (PDF p825) shows Figure E.13 as a flowchart: Entrance -> 'Set identifier-2 equal to current FROM value' -> 'Condition-1' (True -> Exit; False -> 'Execute specified set of statements' -> 'Augment identifier-2 with current BY value'), and a line leaves the left side of the Augment box, runs up the left margin and enters Condition-1 with an arrowhead. page-825.md carries only the box labels as flat paragraphs, ending at 'Augment identifier-2 with current BY value' with nothing marking the return to Condition-1, so the figure reads as a straight-line sequence. The loop edge is the figure's content: it is what makes the figure show a repeated test-before-execution iteration. This is not page furniture, reflow or formatting. The claim quotes both sources accurately. Impact is limited: Annex E is informative, and the normative PERFORM VARYING rules elsewhere state the iteration.",
+    "corrected_description": ""
+  }
+}

@@ -9,6 +9,9 @@
   ],
   "bridge": true,
   "reason": "1985 PAGE requires integer-1, so omitting the clause means no integer-1. 2023 then also gives a single page of indefinite length. Width-only PAGE is new syntax (SR-2), not a change.",
-  "source": "audit-1985/state-route"
+  "source": "audit-1985/state-route",
+  "digests": {
+   "GR-13.18.39.4-2": "e848559fd8d9"
+  }
  }
 }
