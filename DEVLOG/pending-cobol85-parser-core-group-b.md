@@ -22,7 +22,7 @@ operand table.
 
 **PB5240 (half).** `callTarget`, `cancelTarget` and `communicationKeyPhrase` now take the one `sendingOperand` rule, so an
 alphanumeric function-identifier is identifier-1 there (§2023:8.4.3.2.3 SR1; §1985:IV.4.3.8.3.3 SR3) at every edition.
-`CallBinder` asks SR1's category of such a target (`ComputedNameTargetRefusal`: a returning item through `NameTargetRefusal`, a function through its §2023:15.2 result category; COBOL1681 / COBOL1696). The golden calls and
+`CallBinder` asks SR1's category of such a target (`OperandTargetRefusal`: a returning item through `NameTargetRefusal`, a function through its §2023:15.2 result category; COBOL1681 / COBOL1696). The golden calls and
 cancels a contained program through UPPER-CASE and REVERSE, and the callee's call count proves each CANCEL reached it.
 The report SOURCE site the note's addendum names stays open: admitting a function as identifier-1 there changes the
 report writer's SOURCE model.
@@ -46,3 +46,11 @@ paragraph-name is COBOL2692.
 
 No inventory row moved: every row these notes claim is a 1985 rule id, which `work.py check` refuses in `inventory_rows`
 (kb/Work PB5094). Codes: COBOL6973 used; COBOL6974 and COBOL6975 returned.
+
+Branch review round 1 found that the new computed CALL-target arm had no program-pointer case (R1-1). `CALL FUNCTION GETP`,
+where GETP's RETURNING item is USAGE PROGRAM-POINTER, was refused COBOL1681, although §2023:14.9.4.3 SR1 admits a
+program-pointer identifier-1 and §2023:8.4.3.2.4 GR1 gives the result temporary the returning item's category. Both CALL
+arms now go through one screen, `CallBinder.Identifier1Screen`. A program-pointer operand of either form activates through
+`ProgramRegistry.CallPointer` after the SR14 signature check; any other category goes through `OperandTargetRefusal`.
+Golden: `pb5240_call_function_program_pointer` (2002, 2014, 2023; PCFPB counts 1, then 2). The same pass moved the PB3355
+summary back onto `NameTargetRefusal` (R1-3).
