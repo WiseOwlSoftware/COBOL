@@ -83,6 +83,19 @@ public enum DialectBehavior
     /// 2002 text being worded as 2023 is. The consumer is <c>ControlFlowBinder.BindVarying</c>, which sets
     /// <c>PerformVarying.AugmentOuterFirst</c> for the emitter.</summary>
     PerformVaryingInitInnerBeforeAugmentOuter = 3,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.16.4 GR4 a) — while a control break's footings print, the control data items
+    /// hold their PRIOR values, and "If the printing of the control footing causes a page advance and the page heading
+    /// or page footing refers to a control data item, the value produced is similarly the prior value" (the 2002 text,
+    /// 13.16.15.3 GR4 a, says the same, and 2023 keeps it). §1985:XIII.3.20.4 GR13 gives the prior values only to a
+    /// control footing's own USE procedure and SOURCE clauses (a), and at TERMINATE to the control footings and the
+    /// report footing (b), and GR13 c) says "All other data item references within report groups and their USE
+    /// procedures access the current values that are contained within the data items at the time the report group is
+    /// processed" — so at <c>--std 85</c> the page footing, page heading and OR PAGE control headings of a footing's
+    /// page advance, and the TERMINATE page footing, see the CURRENT values (kb/Work PB5128). Both editions are QUOTED
+    /// (VCR row 7.54). The consumer is <c>CobolReport.WithPageGroupControlValues</c>, over the edition the compilation
+    /// baked into the report (<c>CobolReport.Edition</c>).</summary>
+    ControlFootingPageGroupsSeePriorControlValues = 4,
 }
 
 /// <summary>
@@ -126,6 +139,10 @@ public static class DialectBehaviors
             "7.53", "14.9.28.4 GR13 e) 2", "§1985:VI.6.21.4 GR10 d) 1",
             "a TEST BEFORE PERFORM VARYING ... AFTER step sets the inner variable to its initialization value before "
             + "augmenting the outer one only from COBOL-2002; COBOL-85 augments the outer variable first"),
+        new(DialectBehavior.ControlFootingPageGroupsSeePriorControlValues, "control-footing-page-groups-see-prior-values", 2002,
+            "7.54", "13.18.16.4 GR4 a", "§1985:XIII.3.20.4 GR13",
+            "the page heading and page footing a control footing's page advance reaches see the PRIOR control values only "
+            + "from COBOL-2002; COBOL-85 gives the prior values to the control footing alone and every other reference the current ones"),
     ];
 
     static DialectBehaviors()

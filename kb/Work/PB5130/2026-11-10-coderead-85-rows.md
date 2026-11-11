@@ -1,0 +1,32 @@
+**Addendum (2026-11-10): 3 more rule(s) from the 1985 code read.** The 1985 code read (2026-11-10) found the inverse functions with this note's mechanism, and INTEGER-OF-DAY's own rule: DATE-OF-INTEGER and DAY-OF-INTEGER (§1989:A.2.12.3 AR1, §1989:A.2.13.3 AR1) take a positive integer of days after December 31, 1600 with no upper limit, and CobolDate.DateOfInteger and DayOfInteger apply the 2023 ceiling of 3,067,671 at every edition (DATE-OF-INTEGER (3067672) returns 0 in silence); INTEGER-OF-DAY (§1989:A.2.17.3 AR1) returns 0 for year 10000. The record flags one caveat for the adjudication: §1989:A.2.12.4 prints the returned form YYYYMMDD, four year digits; the verdict follows the change record and this note's reading. One fix serves all five functions: the conversion leaves System.DateTime (which ends at year 9999) for a proleptic Gregorian day count with no upper bound, and the 2023 ceiling becomes that edition's arm.
+
+**Found by.** The 1985 code read (2026-11-10; its records are `E:/COBOL-coord/scratch/coderead-85/for-register.json`): each rule below was read against the code sites it names and probed at `--std 85`, and found non-conforming. Verdict, harm, evidence, repro and observed text are the records'; the rows' verdicts are recorded on another branch.
+
+**Inventory.** kb/Work PB5094 still refuses a 1985 rule id in `inventory_rows`, so these rows are listed here, beside the note's own; this note claims them.
+
+**Rules added (3; every citation checked with `scripts/spec/cite.py --check`).**
+
+- `1989-AR-A.2.12.3-1` - `§1989:A.2.12.3 AR1` (record verdict: DIVERGES, harm: wrong-answer). Checked: §1989:A.2.12.3 AR1: "a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar". Code sites read: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateOfInteger; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses. Code read: §1989:A.2.12.3 AR1 makes argument-1 "a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar" and states no upper limit; the upper limit of 3,067,671 is the 2023 integer date form's (§2023:15.5.2), which the row's change record calls stricter. The integer screen (CheckArgumentClasses over the Verified row, IntegerViolation) conforms at 85: a non-integer literal, a scaled item and a non-numeric argument are refused with COBOL1627. The runtime body DateOfInteger applies the 2023 ceiling at every edition (no edition arm; its conversion uses System.DateTime, which ends at year 9999), so at --std 85 an argument above 3,067,671 returns 0. The witness runs arguments 1 and 366 only. Caveat on the reading: §1989:A.2.12.4 prints the returned form as YYYYMMDD, four year digits; the verdict follows the change record and kb/Work PB5130, which read the 1989 year as bounded below only. No kb/Work note owns the fix: PB5130 covers the inverse functions INTEGER-OF-DATE and INTEGER-OF-DAY and has the same mechanism.
+- `1989-AR-A.2.13.3-1` - `§1989:A.2.13.3 AR1` (record verdict: DIVERGES, harm: wrong-answer). Checked: §1989:A.2.13.3 AR1: "a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar". Code sites read: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayOfInteger; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses. Code read: §1989:A.2.13.3 AR1 makes argument-1 "a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar" with no upper limit; 3,067,671 is the 2023 ceiling (§2023:15.5.2). The integer screen (CheckArgumentClasses, IntegerViolation) conforms at 85: DAY-OF-INTEGER of a scaled item is refused with COBOL1627. The runtime body DayOfInteger applies the 2023 ceiling at every edition, so at --std 85 an argument above 3,067,671 returns 0. The witness runs arguments 1 and 366 only. Same caveat as DATE-OF-INTEGER: §1989:A.2.13.4 prints the form YYYYDDD, and the verdict follows the change record and kb/Work PB5130's reading. No kb/Work note owns the fix; PB5130 is the sibling with the same mechanism.
+- `1989-AR-A.2.17.3-1` - `§1989:A.2.17.3 AR1` (record verdict: DIVERGES, harm: wrong-answer). Checked: §1989:A.2.17.3 AR1: "It must be an integer greater than 1600.". Code sites read: src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDay; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses. Code read: kb/Work PB5130 owns the fix. §1989:A.2.17.3 AR1 bounds the year below only ("It must be an integer greater than 1600."); 2023 adds "and less than 10000". The runtime body IntegerOfDay refuses a year above 9999 at every edition ("year is < 1601 or > 9999" returns the argument-error value 0), so at --std 85 INTEGER-OF-DAY (10000001) returns 0 where the 1989 value is 3067672. The rest of the rule conforms: the integer screen (CheckArgumentClasses, IntegerViolation) refuses a non-integer or non-numeric argument, and the body checks DDD against the year's length ("a positive integer less than 367 provided that it is valid for the year specified": 1604366 gives 1461). The witness runs 1601001 and 1602001 only.
+
+**Repro (`1989-AR-A.2.12.3-1`).** `cobol.exe <file> --std 85 --source-format fixed --run`
+
+```cobol
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. DOI85.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  W PIC 9(9).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           COMPUTE W = FUNCTION DATE-OF-INTEGER (3067671).
+           DISPLAY W.
+           COMPUTE W = FUNCTION DATE-OF-INTEGER (3067672).
+           DISPLAY W.
+           STOP RUN.
+```
+
+**Expected (from the 1985 text, the record's).** 099991231 then 100000101: §1989:A.2.12.3 AR1 "Argument-1 is a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar." and §1989:A.2.12.4 "The returned value represents the ISO Standard date equivalent of the integer specified in argument-1." Day 3067671 is 9999-12-31 (§2023:15.5.2: "which is 3,067,671"), so day 3067672 is 10000-01-01.
+
+**Observed (the record's).** exit 0, no diagnostic; the program displays 099991231 and 000000000 (the second reference returns 0 in silence).
