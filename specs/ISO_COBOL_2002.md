@@ -1326,8 +1326,8 @@ For the purposes of this International Standard, the following terms and definit
 
 4.110 interface (of an object): The names of all the methods defined for the object, including inherited methods; for each of the methods:
 
-   — the ordered list of its formal parameters and the description and passing technique associated with each — any returned value and its description
-
+   — the ordered list of its formal parameters and the description and passing technique associated with each\
+   — any returned value and its description\
    — exceptions that may be raised.
 
 4.111 interface (the language construct): A grouping of method prototypes.
@@ -5578,7 +5578,9 @@ A type is referenced by specifying a data description entry with the TYPE clause
 
 Group items can be strongly or weakly typed. A typed group item is strongly typed in any of the following cases:
 
-   — The item is described with a TYPE clause that references a type declaration specifying the STRONG phrase. — The item is subordinate to a group item described with the TYPE clause that references a type declaration specifying the STRONG phrase.
+   — The item is described with a TYPE clause that references a type declaration specifying the STRONG phrase.\
+   — The item is subordinate to a group item described with the TYPE clause that references a type declaration\
+   &emsp;specifying the STRONG phrase.
 
 ## Page 136
 
@@ -5586,7 +5588,9 @@ Elementary items cannot be strongly typed.
 
 Two typed items are of the same type when:
 
-   — The items are described with TYPE clauses that reference equivalent type declarations; or — The items are described as subordinate items in equivalent type declarations, starting at the same relative byte position and having the same length in bytes.
+   — The items are described with TYPE clauses that reference equivalent type declarations; or\
+   — The items are described as subordinate items in equivalent type declarations, starting at the same relative\
+   &emsp;byte position and having the same length in bytes.
 
 Two type declarations are considered equivalent when they have the same type-name, and for each elementary item in one type declaration there is a corresponding elementary item in the other type declaration, starting at the same relative byte position and having the same length in bytes. Each pair of corresponding elementary items shall have the same BLANK WHEN ZERO, JUSTIFIED, PICTURE, SIGN, SYNCHRONIZED, and USAGE clauses, with the following exceptions:
 
@@ -14605,7 +14609,9 @@ The SIGN clause specifies the position and the mode of representation of the ope
 
 1\) The SIGN clause may be specified only for:
 
-   — a numeric data or screen description entry whose picture character-string contains the symbol 'S' — a numeric report group description entry whose picture character-string contains the symbol 'S' — an alphanumeric group item, national group item, or strongly-typed group item.
+   — a numeric data or screen description entry whose picture character-string contains the symbol 'S'\
+   — a numeric report group description entry whose picture character-string contains the symbol 'S'\
+   — an alphanumeric group item, national group item, or strongly-typed group item.
 
 2\) The usage of an elementary item for which the SIGN clause is specified shall be display or national.
 
@@ -15878,8 +15884,8 @@ FORMATS 1 AND 2
 
    The argument is used as the sending operand and the allocated record as the receiving operand in the following:
 
-   — if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase — if the formal parameter is of class index, object, or pointer, a SET statement
-
+   — if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase\
+   — if the formal parameter is of class index, object, or pointer, a SET statement\
    — otherwise, a MOVE statement.
 
    The allocated record is then treated as if it were the argument and it were passed by reference.
@@ -15888,7 +15894,8 @@ FORMATS 1 AND 2
 
    The allocated record is a data item of the same description as the formal parameter. The argument is used as the sending operand and the allocated record, whose description is specified in the linkage section, is used as the receiving operand in the following:
 
-   — if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase — if the formal parameter is of class object or pointer, a SET statement.
+   — if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase\
+   — if the formal parameter is of class object or pointer, a SET statement.
 
    The activated runtime element is given access to the allocated record.
 
@@ -15928,8 +15935,8 @@ A procedural statement is a unit of the COBOL language that specifies an action 
 
 Within the procedure division, there are the following types of statements:
 
-   — declarative statements, which specify actions that may be taken during the processing of other statements — imperative statements, which specify unconditional actions
-
+   — declarative statements, which specify actions that may be taken during the processing of other statements\
+   — imperative statements, which specify unconditional actions\
    — conditional statements, which specify, or contain one or more phrases that specify, actions that depend\
    &emsp;on the truth value of a condition.
 
@@ -16827,8 +16834,8 @@ If neither the formal parameter nor the argument is of class object or pointer, 
 
 2\) If the activated element is one of the following:
 
-   — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element — a program and the NESTED phrase is specified on the CALL statement
-
+   — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element\
+   — a program and the NESTED phrase is specified on the CALL statement\
    — a method\
    — a function
 
@@ -16874,8 +16881,8 @@ If the formal parameter is not of class object or pointer, the conformance rules
 
 2\) If the activated element is one of the following:
 
-   — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element — a program and the NESTED phrase is specified on the CALL statement
-
+   — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element\
+   — a program and the NESTED phrase is specified on the CALL statement\
    — a method\
    — a function
 
@@ -23379,7 +23386,9 @@ The type of this function is alphanumeric.
 | 11-12 | Two numeric digits of the minutes past the hour, in the range 00 through 59. |
 | 13-14 | Two numeric characters of the seconds past the minute in the range: |
 
-— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect — 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect.
+— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\
+— 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND\
+&emsp;directive with the ON phrase is in effect.
 
    15-16 Two numeric digits of the hundredths of a second past the second, in the range 00 through
 
@@ -29537,7 +29546,8 @@ The representation of a character set is the encoding used to record characters 
 
 implemented as:
 
-   — a single character set logically viewed as separate alphanumeric and national coded character sets, or — two separate coded character sets, one alphanumeric and one national.
+   — a single character set logically viewed as separate alphanumeric and national coded character sets, or\
+   — two separate coded character sets, one alphanumeric and one national.
 
 The term "computer's coded character set" refers to either character set or both, depending on context.
 

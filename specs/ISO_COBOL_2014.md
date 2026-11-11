@@ -3827,8 +3827,8 @@ The implementor shall specify the set of characters in and the encoding of each 
 
 The implementor shall specify one and only one alphanumeric coded character value associated with each of the following COBOL elements:
 
-   — the figurative constants: SPACE, QUOTE, and ZERO when associated with an alphanumeric data item — the character used for space filling of alphanumeric data items
-
+   — the figurative constants: SPACE, QUOTE, and ZERO when associated with an alphanumeric data item\
+   — the character used for space filling of alphanumeric data items\
    — the editing characters: 'B', 'C', 'D', 'E', 'R', '0', '-', '+', '\*', '/', ',', '.', and space characters used for numeric\
    &emsp;digits in alphanumeric data items and literals
 
@@ -3842,8 +3842,8 @@ There shall be a single alphanumeric coded character value used for the figurati
 
 The implementor shall specify one and only one national coded character value associated with each of the following COBOL elements:
 
-   — the figurative constants: SPACE, QUOTE, and ZERO when associated with a national data item — the character used for space filling of national data items
-
+   — the figurative constants: SPACE, QUOTE, and ZERO when associated with a national data item\
+   — the character used for space filling of national data items\
    — the editing characters: 'B', 'C', 'D', 'E', 'R', '0', '-', '+', '\*', '/', ',', '.', and space characters used for numeric\
    &emsp;digits in national data items and literals
 
@@ -6623,13 +6623,17 @@ A type is referenced by specifying a data description entry with the TYPE clause
 
 Group items can be strongly or weakly typed. A typed group item is strongly typed in any of the following cases:
 
-   — The item is described with a TYPE clause that references a type declaration specifying the STRONG phrase. — The item is subordinate to a group item described with the TYPE clause that references a type declaration specifying the STRONG phrase.
+   — The item is described with a TYPE clause that references a type declaration specifying the STRONG phrase.\
+   — The item is subordinate to a group item described with the TYPE clause that references a type declaration\
+   &emsp;specifying the STRONG phrase.
 
 Elementary items cannot be strongly typed.
 
 Two typed items are of the same type when:
 
-   — The items are described with TYPE clauses that reference equivalent type declarations; or — The items are described as subordinate items in equivalent type declarations, starting at the same relative byte position and having the same length in bytes.
+   — The items are described with TYPE clauses that reference equivalent type declarations; or\
+   — The items are described as subordinate items in equivalent type declarations, starting at the same relative\
+   &emsp;byte position and having the same length in bytes.
 
 Two type declarations are considered equivalent when they have the same type-name, and for each elementary item in one type declaration there is a corresponding elementary item in the other type declaration, starting at the same relative byte position and having the same length in bytes. Each pair of corresponding elementary items shall have the same BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, SYNCHRONIZED, and USAGE clauses, with the following exceptions:
 
@@ -13783,13 +13787,9 @@ FORMAT 1
 
    a) Integer-1 specifies an absolute column number.
 
-   b) If LEFT is specified, integer-1 is the leftmost column of the printable item. The rightmost column of the printable item is integer-1 + printable-size 1.
+   b) If LEFT is specified, integer-1 is the leftmost column of the printable item. The rightmost column of the printable item is integer-1 + printable-size —1.
 
-—
-
-   c) If RIGHT is specified, integer-1 is the rightmost column of the printable item. The leftmost column of the printable item is integer-1 printable-size + 1.
-
-—
+   c) If RIGHT is specified, integer-1 is the rightmost column of the printable item. The leftmost column of the printable item is integer-1 —printable-size + 1.
 
 ## Page 337
 
@@ -16577,7 +16577,9 @@ The SIGN clause specifies the position and the mode of representation of the ope
 
 1\) The SIGN clause may be specified only for:
 
-   — a numeric data or screen description entry whose picture character-string contains the symbol 'S' — a numeric report group description entry whose picture character-string contains the symbol 'S' — an alphanumeric group item, national group item, or strongly-typed group item.
+   — a numeric data or screen description entry whose picture character-string contains the symbol 'S'\
+   — a numeric report group description entry whose picture character-string contains the symbol 'S'\
+   — an alphanumeric group item, national group item, or strongly-typed group item.
 
 2\) The usage of an elementary item for which the SIGN clause is specified shall be display or national.
 
@@ -16603,7 +16605,7 @@ The SIGN clause specifies the position and the mode of representation of the ope
 
    a) The operational sign is presumed to be the leading (or, respectively, trailing) character position of the data item to which it applies; this character position is not a digit position.
 
-   b) The operational signs for positive and negative are the basic special characters '+' and ' ', respectively. —
+   b) The operational signs for positive and negative are the basic special characters '+' and '—', respectively.
 
 7\) Each numeric item whose picture character-string contains the symbol 'S' is a signed item. If a SIGN clause applies to such an item and conversion is necessary for purposes of computation or comparisons, conversion takes place automatically.
 
@@ -18003,8 +18005,8 @@ FORMATS 1 AND 2
 
    The argument is used as the sending operand and the allocated record as the receiving operand in the following:
 
-   — if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase — if the formal parameter is of class index, object, or pointer, a SET statement
-
+   — if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase\
+   — if the formal parameter is of class index, object, or pointer, a SET statement\
    — otherwise, a MOVE statement.
 
    The allocated record is then treated as if it were the argument and it were passed by reference.
@@ -18013,7 +18015,8 @@ FORMATS 1 AND 2
 
    The allocated record is a data item of the same description as the formal parameter. The argument is used as the sending operand and the allocated record, whose description is specified in the linkage section, is used as the receiving operand in the following:
 
-   — if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase — if the formal parameter is of class object or pointer, a SET statement.
+   — if the formal parameter is numeric, a COMPUTE statement without the ROUNDED phrase\
+   — if the formal parameter is of class object or pointer, a SET statement.
 
    The activated runtime element is given access to the allocated record.
 
@@ -18051,8 +18054,8 @@ A procedural statement is a unit of the COBOL language that specifies an action 
 
 Within the procedure division, there are the following types of statements:
 
-   — declarative statements, which specify actions that may be taken during the processing of other statements — imperative statements, which specify unconditional actions
-
+   — declarative statements, which specify actions that may be taken during the processing of other statements\
+   — imperative statements, which specify unconditional actions\
    — conditional statements, which specify, or contain one or more phrases that specify, actions that depend\
    &emsp;on the truth value of a condition.
 
@@ -19103,7 +19106,8 @@ If neither the formal parameter nor the argument is of class object or pointer, 
 
 2\) If the activated element is one of the following:
 
-   — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element — a program and the NESTED phrase is specified on the CALL statement
+   — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element\
+   — a program and the NESTED phrase is specified on the CALL statement
 
 ## Page 480
 
@@ -19150,8 +19154,8 @@ If the formal parameter is not of class object or pointer, the conformance rules
 
 2\) If the activated element is one of the following:
 
-   — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element — a program and the NESTED phrase is specified on the CALL statement
-
+   — a program for which there is a program-specifier in the REPOSITORY paragraph of the activating element\
+   — a program and the NESTED phrase is specified on the CALL statement\
    — a method\
    — a function
 
@@ -26297,7 +26301,9 @@ The type of this function is alphanumeric.
 | 11-12 | Two numeric digits of the minutes past the hour, in the range 00 through 59. |
 | 13-14 | Two numeric characters of the seconds past the minute in the range: |
 
-— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect — 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND directive with the ON phrase is in effect.
+— 00 through 59 when a LEAP-SECOND directive with the OFF phrase is in effect\
+— 00 through nn, where nn is defined by the implementor, when a LEAP-SECOND\
+&emsp;directive with the ON phrase is in effect.
 
    15-16 Two numeric digits of the hundredths of a second past the second, in the range 00 through
 
@@ -32378,7 +32384,8 @@ Alphabets refer to character sets programmed in the compilation group, or provid
 
 The representation of a character set is the encoding used to record characters for processing by the computer or for storage on external media. COBOL supports two types of character set representation — alphanumeric and national, corresponding to usages display and national, respectively. These two representations may be implemented as:
 
-   — a single character set logically viewed as separate alphanumeric and national coded character sets, or — two separate coded character sets, one alphanumeric and one national.
+   — a single character set logically viewed as separate alphanumeric and national coded character sets, or\
+   — two separate coded character sets, one alphanumeric and one national.
 
 The term "computer's coded character set" refers to either character set or both, depending on context.
 

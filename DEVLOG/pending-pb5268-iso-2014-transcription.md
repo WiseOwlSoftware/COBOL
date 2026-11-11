@@ -5,7 +5,7 @@ PDF's own text layer with no model and no API, by the route PB4813 built for 200
 the submodule pointer moves to 0727a70, the commit that added it.
 
 **Measured.** 952 pages, every one written by `transcribe_pdf.py text --edition 2014`; 470 general formats on 319 pages, every one
-drawn by the vector arm from the measured page; 39,256 lines. `verify_publishable.py --edition 2014` PUBLISHABLE,
+drawn by the vector arm from the measured page; 39,263 lines. `verify_publishable.py --edition 2014` PUBLISHABLE,
 `verify_acknowledgment.py --edition 2014` verbatim in the Preface and in position, `lint_rendering.py --edition 2014` LINT CLEAN,
 `sweep_figures.py --edition 2014 --check` clean (464 figures located, 458 byte-identical to the drawn ones), and
 `cite.py --check "§2014:14.9.23.2 SR2" "File-name-1 shall be described in a sort-merge file description entry"` OK.
@@ -20,6 +20,16 @@ that is the printed text.
 as `ii © ITIC 2003`, in the 2002 transcription: `text_layer.FOOTER` knew only ISO/IEC's line, and the boxed page puts the
 footer above the foot band. Converting all 1,834 pages of both PDFs with the old and the new module changes exactly page 2 of
 each; the 2002 file loses that one line.
+
+**Review round 1: three minus signs had left their formulas.** 2014 sets a minus inside a formula as a Times em dash
+whose box overlaps the Univers words beside it, and `text_layer.rows_of` put every overlapping span on a row of its own.
+- The effect: §2014:13.18.14.3 GR6b read "integer-1 + printable-size 1", and §2014:13.18.52.3 GR6b gave a space as the negative
+  sign. A lone dash now joins its line.
+- A new check (`stray_glyphs`) reports any one-glyph row left inside another row's line. After the fix it finds none in 2014;
+  in 2002 it finds one, in a diagram (page 761).
+- Dash lists set with no blank line between items no longer run into one paragraph (10 pages in each edition).
+- Converting all 1,834 pages with the old and the new module changes only those pages. The spliced 2014 file is
+  byte-identical to a re-assembly.
 
 **Not placed by the tools (reported in PB5268, nothing typed by hand).** Two clauses whose figure count the generator and the
 text layer read differently (`§2014:11.2.1`, `§2014:13.16.1`), and 55 pages the text layer reports structure-ambiguous: the cover

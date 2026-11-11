@@ -89,6 +89,27 @@ def main() -> int:
           "ITIC" not in cover.markdown and "Printed in the United States" in cover.markdown and cover.folio == "ii"
           and "17" in cover.markdown)
 
+    # A minus sign set as an em dash in another face, its em-wide box over the words beside it (2014 page 336, measured:
+    # the dash 9 pt wide at y 675.5, the "1." after it starting 2 pt inside the dash's box at y 674.9; PB5268 review R1-1).
+    # The planted words end at x 244.8.
+    formula = words("printable item is integer-1 + printable-size", 56.7, 675) + [
+        L.Span("—", "TimesNewRomanPSMT", 9.0, 247.3, 675.5, 256.3, 684.5), L.Span("1.", "Univers", 9.0, 254.3, 674.9, 261.8, 683.9)]
+    dashed = L.convert(page(formula, words("The next paragraph.", 56.7, 700)), 336, no_stamp)
+    check("a lone dash in another face whose box overlaps its neighbours stays in its line, set as the page sets it",
+          "integer-1 + printable-size —1." in dashed.markdown and "\n—\n" not in dashed.markdown and not dashed.ambiguous)
+    stray = L.stray_glyphs(L.rows_of(words("one two three", 56.7, 100) + [L.Span("×", "Univers", 9.0, 70.0, 100.4, 74.5, 109.4)]))
+    check("a one-glyph row that row grouping leaves inside another row's line is reported, never placed silently",
+          [r.text for r in stray] == ["×"])
+
+    # A dash list with no blank line between items, the first running to the right edge (2014 page 412, §2014:13.18.52.2
+    # SR1: three items at y 242, 253, 264, each a dash at x 74.7 and its first word at x 92.7; PB5268 review R1-2).
+    def item(y: float, rest: list[L.Span]) -> list[L.Span]:
+        return [L.Span("—", "Univers", 9.0, 74.7, y, 83.7, y + 9.0)] + rest
+    listed = L.convert(page(item(242, full_row(92.7, 242)), item(253, words("a numeric report group", 92.7, 253)),
+                            item(264, words("an alphanumeric group item,", 92.7, 264))), 412, no_stamp).markdown
+    check("each item of a dash list is a line of its own, even after an item that runs to the right edge",
+          listed.count("\n— a numeric report group") == 1 and listed.count("\n— an alphanumeric group item,") == 1)
+
     print("rules, notes, lists")
     p = page(words("1)", 56.7, 100), full_row(74.7, 100), words("of the first rule.", 74.7, 111),
              words("a)", 74.7, 133), words("a nested rule", 92.7, 133),
