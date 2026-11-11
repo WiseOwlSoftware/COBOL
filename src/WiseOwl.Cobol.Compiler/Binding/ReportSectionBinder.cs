@@ -3057,16 +3057,28 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// character ('B', '0', '/' — the simple insertion of §2023:13.18.40.5 GR1): the MOVE of an unsigned integer into such an
     /// item places one digit per position, so X(4) holds a four-digit counter. The clamp this replaced read the
     /// category's zero '9' count as ONE digit, printing "4" for a total of 24 (or spaces once the size error
-    /// indicator existed).</item>
+    /// indicator existed). At COBOL-85 that count is capped: §1985:XIII.3.19.4 GR1 c. gives the alphanumeric and
+    /// alphanumeric edited counter "the size of that data item, excluding any editing characters, or 18 characters,
+    /// whichever is smaller", so an X(20) entry has an 18-digit counter that the GR4 MOVE left-justifies in its 20
+    /// positions. The 2002 text dropped the cap (§2002:13.16.52.3 GR1 reads every category's digits the 2023 way;
+    /// kb/Work PB5247).</item>
     /// </list></summary>
-    private static int SumCounterDigits(PicInfo pic) => pic.Category switch
+    private static int SumCounterDigits(PicInfo pic, int year) => pic.Category switch
     {
         PicCategory.Numeric => pic.Digits,
         PicCategory.NumericEdited => pic.DigitPositions,
-        _ => pic.EditMask is { } mask
-            ? mask.Count(c => c is not ('B' or '0' or '/'))
-            : DataItem.DisplayTextWidthOf(pic),
+        _ when year < 2002 => Math.Min(CharacterDigits(pic), Cobol85AlphanumericSumCounterDigits),
+        _ => CharacterDigits(pic),
     };
+
+    /// <summary>§1985:XIII.3.19.4 GR1 c.'s "18 characters" (kb/Work PB5247).</summary>
+    private const int Cobol85AlphanumericSumCounterDigits = 18;
+
+    /// <summary>The character positions of an alphanumeric or national SUM entry's PICTURE, less its insertion editing
+    /// characters ('B', '0', '/').</summary>
+    private static int CharacterDigits(PicInfo pic) => pic.EditMask is { } mask
+        ? mask.Count(c => c is not ('B' or '0' or '/'))
+        : DataItem.DisplayTextWidthOf(pic);
 
     /// <summary>
     /// The <see cref="ReportSumFamily"/> of SUM entry <paramref name="ge"/> — created at the entry's FIRST replay and
@@ -3141,7 +3153,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 DeclaredAt = Edition.Cursor,
                 CobolName = entryName,
                 ClrName = NamingConvention.SumCounterName(model.Name, baseId),
-                Pic = PicInfo.SumCounterItem(pic is null ? 18 : SumCounterDigits(pic), sumScale),
+                Pic = PicInfo.SumCounterItem(pic is null ? 18 : SumCounterDigits(pic, Edition.DialectLevel), sumScale),
                 Occurs = columnCount > 1 ? columnCount : null,
                 Parent = parent,
                 Uid = _d.TakeUid(),
