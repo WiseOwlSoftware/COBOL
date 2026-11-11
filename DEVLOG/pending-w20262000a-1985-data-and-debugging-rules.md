@@ -17,7 +17,8 @@ The pb345 COBOL1836 refusals now run from 2002. FILES_DESIGN D18 says so.
 **PB5088 and PB5180, INITIALIZE.** Both are COBOL-85 restrictions that the 2002 text lifts, so each is a construct row
 (COBOL0900, VCR row 7.52 d and e). `initialize-variable-occurrence-2002` covers §1985:VI.6.17.3 SR4, which forbids
 INITIALIZE of an item whose description, or a subordinate's, has OCCURS DEPENDING ON. The 2002 syntax rules 14.8.19.2
-drop it. It is asked once for each resolved identifier-1 (`InitializeBinder.GateCobol85VariableOccurrence`).
+drop it. It is asked once for each resolved identifier-1, on the bound arm of the version-conformance pass
+(`VersionConformancePass.GateCobol85VariableOccurrence`), because only the resolved item shows the OCCURS DEPENDING.
 `initialize-replacing-category-set-2002` covers §1985:VI.6.17.2, which prints a REPLACING item's category words in
 plain braces, so an item names one category (§1985:IV.2.1.4). The 2002 format 14.8.19.1 adds choice indicators. The
 gate reports at the item's second word (`VersionConformancePass.VisitInitializeReplacingItem`). That construct rests

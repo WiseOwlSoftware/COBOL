@@ -70,6 +70,10 @@ public sealed class EditionGateArmDriftTests
             "ISO/IEC 1989:2002 Annex F.2 item 10 (kb/Work PB4305): a CALL USING operand is the 85 restriction's subject "
             + "only when the item it RESOLVES to is a group whose level-number is not 01 or 77 — `CALL \"P\" USING H` "
             + "prints the same tokens for an elementary item, a level-01 record and a level-05 group",
+        ["InitializeVariableOccurrence2002"] =
+            "§1985:VI.6.17.3 SR4 (kb/Work PB5088): the restriction is about the DESCRIPTION of the item identifier-1 RESOLVES "
+            + "to and of its subordinates (an OCCURS DEPENDING ON among them), which `INITIALIZE G` does not spell — the same "
+            + "tokens name a fixed group, so only the resolved BoundInitialize.Written place carries the fact",
         ["PointerArithmetic2002"] =
             "SET x UP/DOWN BY n is ONE printed shape for TWO constructs — the version-invariant index form "
             + "(§2023:14.9.39 Format 2, index-arithmetic) and the 2002 pointer form (Format 10). Only the operand's resolved USAGE "

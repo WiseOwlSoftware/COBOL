@@ -79,13 +79,13 @@ public sealed partial class FileControlBinder
             file.EntryAt = Edition.Cursor;
             Core.AccessModeClauseContext? accessAt = null;   // the ACCESS MODE clause cursor for §2023:12.4.5.5.2 SR2, below
             Core.FileReserveClauseContext? reserveAt = null;   // the RESERVE clause cursor for §2023:12.4.5.2 SR12, below
-            if (file.Optional) file.BeyondAssign = ("OPTIONAL", file.EntryAt);
+            if (file.Optional) file.BeyondAssign.Add(("OPTIONAL", file.EntryAt));
             foreach (var clauses in grp.fileControlClauses())
             {
-                if (file.BeyondAssign is null && clauses.assignClause() is null)
+                if (clauses.assignClause() is null)
                 {
                     using var beyond = Edition.At(clauses);
-                    file.BeyondAssign = (DataBinder.WrittenText(clauses), Edition.Cursor);   // §1985:XI.2.3.3 SR2's subject (PB5071)
+                    file.BeyondAssign.Add((DataBinder.WrittenText(clauses), Edition.Cursor));   // §1985:XI.2.3.3 SR2's subject (PB5071)
                 }
                 // ISO §2023:12.4.5.3 GR3 — BOTH phrases of the ASSIGN clause, on both general-format arms
                 // (`ASSIGN TO? assignTarget (USING dataReference)?` and the bare `ASSIGN USING dataReference`).

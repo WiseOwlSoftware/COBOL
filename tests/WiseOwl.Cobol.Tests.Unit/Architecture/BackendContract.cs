@@ -199,7 +199,7 @@ internal static class BackendContract
             "Model.UsagePhraseRule.Words", "Model.VariableLengthCompatibility.DynamicLengthOrVariableLengthGroup()",
             "Model.VariableLengthCompatibility.Mismatch()", "Model.VariableLengthCompatibility.PairRefusal()",
             "Model.VariableLengthCompatibility.Reason()",
-            "Model.FileModel.EntryFace", "Model.FileModel.OrganizationFace", "Model.OccursKey.Written",
+            "Model.FileModel.BeyondAssign", "Model.FileModel.EntryFace", "Model.FileModel.OrganizationFace", "Model.OccursKey.Written",
             "Model.PictureClauseIdentity.Phrases()", "Model.RaisingTarget.Spelled", "Model.RecordKey.Face",
             "Model.RedefinesClass.RejectReason", "Model.SameClause.Written", "Model.SuppressWhenOperand.Written",
             // how a diagnostic names an arithmetic mode's intermediate data item and its bounds (kb/Work PB194, PB2402)

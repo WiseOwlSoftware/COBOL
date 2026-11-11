@@ -52,9 +52,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// METHOD-LOCALLY (ISO §2023:8.4.6.1 over the method's own source element, §2023:3.164 — sibling methods may reuse
     /// names and cross-method resolution must FAIL), so it registers in the method's own map, never the
     /// program-global fallback.</summary>
-    public void AddParagraph(Core.ParagraphNameContext header, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
+    public void AddParagraph(Core.ProcedureNameContext header, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
     {
-        string name = HeaderName(header.procedureName(), "paragraph");
+        string name = HeaderName(header, "paragraph");
         ctx.Data.DeclareUserWord(name, UserWordKind.ParagraphName);   // §2023:8.3.2.2 — the one declaration funnel (kb/Work PB65, PB1083)
         string baseName = "P_" + DataItem.IdentifierCharacters(name);   // extended letters too (PB1402)
         string method = baseName;
@@ -163,7 +163,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         foreach (var para in pd.paragraphDefinition())
         {
             using var _ = ctx.Edition.At(para);   // the paragraph header's position (kb/Work PB82)
-            AddParagraph(para.paragraphName(), para.sentence(), null, used);
+            AddParagraph(para.paragraphName().procedureName(), para.sentence(), null, used);
         }
         foreach (var section in pd.sectionDefinition())
         {
@@ -179,7 +179,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // the section's first paragraph, so GO TO / PERFORM <section> enters them (§2023:14.9.17/§2023:14.9.28).
             AddAnonymousParagraph(section.sentence(), info, used);
             foreach (var p in section.paragraphDefinition())
-                AddParagraph(p.paragraphName(), p.sentence(), info, used);
+                AddParagraph(p.paragraphName().procedureName(), p.sentence(), info, used);
             info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§2023:14.4.2)
             (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
         }
@@ -560,7 +560,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         // name used as a paragraph-name.
         AddAnonymousParagraph(leading.Skip(1).ToArray(), info, used);
         foreach (var p in sec.declarativeParagraph())
-            AddParagraph(p.paragraphName(), p.sentence(), info, used);
+            AddParagraph(p.paragraphName().procedureName(), p.sentence(), info, used);
         // A declarative section with ZERO paragraphs is legal (§2023:14.9.49.3 SR1 — "zero, one, or more procedural
         // paragraphs"; §2023:14.4.2), and it is still SELECTED: §2023:14.9.49.4 GR3 says "the first declarative that
         // satisfies the selection criteria is executed and no other declaratives are executed", so the search

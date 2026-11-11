@@ -803,8 +803,10 @@ internal static class FileControlKeyRules
         // rule answers every clause an SD's entry writes, so below 2002 it REPLACES the 2023 sort-merge rows
         // (§2023:12.4.5.2 SR8, SR9, SR11, SR13: each is a clause beyond the 1985 entry) rather than reporting beside them.
         bool sortMerge1985 = kind == FileKinds.SortMerge && edition.DialectLevel < 2002;
-        if (sortMerge1985 && file.BeyondAssign is { } beyond)
+        // One report per clause, as the 2002+ rows report one per clause beyond Format 4.
+        foreach (var beyond in file.BeyondAssign)
         {
+            if (!sortMerge1985) break;
             using var at = edition.At(beyond.At);
             edition.Error(DiagnosticCatalog.FileControlFormatOnSortMerge, $"file '{file.CobolName}' is described by a "
                 + $"sort-merge file description entry, but its file control entry writes {beyond.Written}; §1985:XI.2.3.3 "

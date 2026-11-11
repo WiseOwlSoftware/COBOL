@@ -379,6 +379,7 @@ internal sealed class VersionConformancePass
     /// </summary>
     private void GateInitialize(BoundInitialize ini)
     {
+        GateCobol85VariableOccurrence(ini);
         foreach (var item in ini.Replacing)
         {
             if (FigurativeAssociation.Sr5FigurativeText(item.Sender) is not { } figText) continue;
@@ -389,6 +390,25 @@ internal sealed class VersionConformancePass
                         integerReceiver: cat is InitializeCategory.Numeric,
                         $"INITIALIZE REPLACING {InitializeCategories.Spelling(cat)} DATA BY {figText} (the MOVE "
                         + "ISO §2023:14.9.20.3 SR4 requires to be valid)");
+        }
+    }
+
+    /// <summary>§1985:VI.6.17.3 SR4 (kb/Work PB5088): "The description of the data item referenced by identifier-1 or any
+    /// items subordinate to identifier-1 may not contain the DEPENDING phrase of the OCCURS clause." The ISO/IEC 1989:2002
+    /// syntax rules (14.8.19.2) drop it, so INITIALIZE of a variable-occurrence item is the 2002 form: row
+    /// <c>initialize-variable-occurrence-2002</c>, asked once per implicit INITIALIZE (one per identifier-1, §2023:14.9.20.4
+    /// GR3) of the item identifier-1 RESOLVED to (<see cref="BoundInitialize.Written"/>). The subject is identifier-1's own
+    /// description and its subordinates' (so <c>INITIALIZE E (1)</c> of an ODO element E is asked too); a DEPENDING
+    /// phrase on a group that CONTAINS identifier-1 is outside the rule's words and is not asked.</summary>
+    private void GateCobol85VariableOccurrence(BoundInitialize ini)
+    {
+        if (ini.Written is not { } written || ConstructRegistry.IsAvailable(_edition, Constructs.InitializeVariableOccurrence2002)) return;
+        foreach (var d in DataItem.SelfAndDescendantsOf(written.Item))
+        {
+            if (d.OccursSpec?.DependingName is null) continue;
+            Check(Constructs.InitializeVariableOccurrence2002,
+                $"INITIALIZE of '{written.Item.CobolName ?? "FILLER"}': '{d.CobolName ?? "FILLER"}' is described with OCCURS … DEPENDING ON {d.OccursSpec.DependingName}");
+            return;
         }
     }
 
