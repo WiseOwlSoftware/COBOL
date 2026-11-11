@@ -1,13 +1,15 @@
       *>--- conformance-case
       *> id: phrase_order_overflow
       *> rules: [GR-14.9.48.4-16]
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
       *> ISO 5.2.6.4 — STRING's and UNSTRING's ON OVERFLOW / NOT ON OVERFLOW pair is enclosed in CHOICE
       *> INDICATORS in the printed general format, so BOTH may be written, each at most once, IN ANY ORDER.
       *> This golden pins the REVERSED order (NOT-then-ON) and proves each phrase keeps its own role.
+      *> Accepted from 2002: COBOL-85 writes the phrases "in the sequence given in the general formats"
+      *> (§1985:IV.2.1), ON before NOT, and ISO/IEC 1989:2002 Annex F.2 item 33 frees the order (kb/Work PB5158).
       *> Regression guard for the defect fixed 2026-07-19 (DEVLOG 927): stringOnOverflow / unstringOnOverflow
       *> admitted only ON-then-NOT, so both statements below were rejected with COBOL0001.
        IDENTIFICATION DIVISION.
