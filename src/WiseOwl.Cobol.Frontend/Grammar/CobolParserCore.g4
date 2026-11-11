@@ -1376,7 +1376,7 @@ moveReceivingPhrase
 //     ALSO Format 2, and it is spelled exactly like Format 1's `CALL identifier-1`. That arm is genuinely
 //     SEMANTIC: the binder selects it when the bare word names a program-prototype declared by the REPOSITORY
 //     paragraph's program-specifier (§2023:12.3.8.2) and does not resolve as a data item (CallBinder.BindCall). No
-//     grammar change is needed for it — `callTarget → dataReference` already carries the word.
+//     grammar change is needed for it — `callTarget → sendingOperand → dataReference` already carries the word.
 callStatement
     : CALL callTarget
       callAsPhrase?
@@ -1387,9 +1387,12 @@ callStatement
 
     ;
 
+// identifier-1 or literal-1 is a SENDING operand, so the one sendingOperand rule: a function-identifier is an identifier
+// (§2023:8.4.3.1.2 Format 1) barred only from a receiving operand (§2023:8.4.3.2.3 SR1), and so is an inline method
+// invocation (§2023:8.4.3.4.3 SR1); X3.23-1985 Amendment 1 says the same of an alphanumeric function (§1985:IV.4.3.8.3.3
+// SR3). CallBinder asks §2023:14.9.4.3 SR1's category of every shape (kb/Work PB5240).
 callTarget
-    : literal
-    | dataReference
+    : sendingOperand
     ;
 
 // `AS NESTED` | `AS program-prototype-name-1`. ⚠ NESTED IS NOT LEXED AS A TOKEN and deliberately so: §2023:8.9 makes
@@ -1547,9 +1550,9 @@ cancelStatement
     : CANCEL cancelTarget+
     ;
 
+// The CALL target's rule, for the same reason (kb/Work PB5240); CallBinder.BindCancel asks §2023:14.9.5.3 SR1.
 cancelTarget
-    : literal
-    | dataReference
+    : sendingOperand
     ;
 
 // ==========================================
