@@ -1,4 +1,4 @@
-## PB5269: the unit-push guard resolves the push destination the way git does (review leads of PB5234)
+## Entry 3471 — 2026-11-11 03:01 PST — PB5269: the unit-push guard resolves the push destination the way git does (review leads of PB5234)
 
 The branch review of PB5234 found that the in-unit push rule judged a push's repository by the first word without a dash.
 `git push --repo=https://github.com/WiseOwlSoftware/claude-skills.git` therefore read as `origin` and passed, and a remote's
@@ -20,3 +20,4 @@ Review round 1 corrected two things in the same change. The positional repositor
 order; the first fix had it reversed, so `--repo=origin <url>` passed). And a push redirected by `--git-dir`, a `GIT_DIR`-style
 variable set in the line, or a `url.*.insteadOf` / `pushInsteadOf` (on `-c` or in the repository's configuration, for a literal
 URL) is refused: the hook cannot prove where it goes.
+
