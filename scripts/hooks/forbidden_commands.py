@@ -20,13 +20,6 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
                             property (FullyQualifiedName~X).
   unredirected filtered     a filtered `dotnet test` whose output is neither redirected nor piped floods the context
   dotnet test               and hides the verdict line; log it and read the verdict line (the gate skill).
-  chaining after a verdict  a build / test / gate / landing command followed by `&&`, `||` or `;` and another
-                            command: the chain's exit status is its LAST command's, so the verdict is masked or acted
-                            on unread (`dotnet test … && git commit` committed on a false green). Allowed after it: an
-                            `echo … $?` that CAPTURES the status, and once captured, read-only commands on the log.
-                            Owner 2026-09-27 (adopting the no-chaining idea from carlymr/carlys-claude-skills in a
-                            targeted form: independent commands go as parallel tool calls in one turn, because a
-                            blanket ban would add turns, and agent cost is quadratic in turns).
   `cd` in a backgrounded    a location change (`cd`, `pushd`, `Set-Location`, ...) inside an and-or list that a single
   list, then more           `&` sends to the background, with another command after that `&` (MANDATORY-PRACTICES
                             P14(b), kb/Work PB3095): `cd X && a & b &` runs `a` in a background subshell under X and
@@ -190,48 +183,7 @@ for n, st in enumerate(STEPS):
               "verdict line — unredirected output floods the context and hides the verdict. A GATE is "
               "`scripts/build-local.ps1`, never a filtered run.")
 
-# 5. chaining after a verdict command
-# A verdict command is a command that RUNS one: `dotnet test|build`, or a gate / landing script invoked directly or through
-# an interpreter (`python scripts/orchestrator/enqueue.py land b`, `pwsh -File scripts/build-local.ps1`). A command that
-# merely NAMES one of those files (`git add -- scripts/build-local.ps1`, `sed -n 1,5p scripts/orchestrator/enqueue.py`)
-# is not one: matching anywhere in the
-# segment blocked such harmless commands and cost extra turns (2026-10-04).
-_GATE_SCRIPT = (r"(?:\./)?\S*(?:build-local\.(?:ps1|sh)|battery\.sh|guard(?:-fast)?\.sh"
-                r"|orchestrator/enqueue\.py)\b")
-VERDICT = re.compile(r"^(?:\w+=\S*\s+)*(?:dotnet\s+(?:test|build)\b|"
-                     r"(?:(?:bash|sh|pwsh|powershell|python3?|py)(?:\.exe)?\s+(?:-\S+\s+)*)?" + _GATE_SCRIPT + r")")
-READ_ONLY = re.compile(r"^\s*(?:grep|rg|tail|head|cat|sed\s+-n|wc|ls|Select-String|Get-Content|findstr|type)\b")
-
-
-# Rules 5-7 read the same STEPS as every rule above: quotes, escapes, comments, heredoc bodies, here-strings,
-# `( … )`/`{ … }` groups and `bash -c` payloads are the shared parser's to know, never a private scanner's (the branch
-# review of PB3024, R1-1: a private splitter opened a quote on a comment's apostrophe and failed open).
-
-
-def _segments(steps) -> list[str]:
-    """The command line's segments: each a command or pipeline ended by `&&`, `||`, `;` or a newline (a pipe or a
-    background `&` keeps what follows in the same segment). A group or a `-c` payload is one opaque part, `( … )`: a
-    verdict command inside one is not this command line's chain. A substitution's steps are part of the command whose
-    text holds them (`echo "EXIT=$? $(date)"` is one echo), so they are no segment of their own."""
-    out: list[str] = []
-    cur: list[str] = []
-    for st in steps:
-        if st.substitution:
-            continue
-        part = st.text if st.depth == 0 else "( … )"
-        if not (part == "( … )" and cur and cur[-1] == part):
-            cur.append(part)
-        if st.sep not in ("|", "&"):
-            out.append(" | ".join(cur))
-            cur = []
-    if cur:
-        out.append(" | ".join(cur))
-    return out
-
-
-segs = _segments(STEPS)
-
-# 6. WSL lifecycle commands (owner 2026-10-04): `wsl --terminate/--shutdown/--update/--export/--import/--unregister/--install`
+# 5. WSL lifecycle commands (owner 2026-10-04): `wsl --terminate/--shutdown/--update/--export/--import/--unregister/--install`
 # can end the owner's open session, race a procedure they run by hand, or burn tens of GB of disk, so NO agent or unattended
 # unit runs them; the owner does. Reads and commands INSIDE a distro (`wsl -d Ubuntu -e ...`) stay allowed. Only a segment
 # whose command IS wsl is checked, so a commit message or a grep pattern that mentions the flags passes.
@@ -243,24 +195,7 @@ for _st in STEPS:   # every simple command, a `-c` payload's and a pipeline's la
               "`--install`) are the OWNER's to run (owner 2026-10-04: they can end an open session or burn disk). Give the "
               "owner the exact command and wait; commands inside a distro (`wsl -d Ubuntu -e ...`) are fine.")
 
-for i, seg in enumerate(segs[:-1]):
-    if not VERDICT.match(seg):
-        continue
-    captured = False
-    for nxt in segs[i + 1:]:
-        if re.match(r"^\s*echo\b", nxt) and ("$?" in nxt or "PIPESTATUS" in nxt or "$LASTEXITCODE" in nxt):
-            captured = True
-            continue
-        if captured and READ_ONLY.match(nxt):
-            continue
-        block(f"`{nxt[:60]}` is chained after the verdict command `{seg[:60]}`: the chain's exit status is its LAST "
-              "command's, so the verdict is masked or acted on unread. Run the verdict command alone (redirect it to "
-              "a log), read its verdict line, then run the next step as its own call. To capture the status in the "
-              "same call, append `; echo \"EXIT=$?\"` (read-only commands may follow that). Independent commands go "
-              "as parallel tool calls in one turn.")
-        break
-
-# 7. a location change inside a BACKGROUNDED and-or list that another command follows (MANDATORY-PRACTICES P14(b),
+# 6. a location change inside a BACKGROUNDED and-or list that another command follows (MANDATORY-PRACTICES P14(b),
 # kb/Work PB3095). A single `&` ends an and-or list and runs THE WHOLE LIST in a background subshell (bash) or job
 # (PowerShell 7), so a `cd` joined to it by `&&`/`||` moves only that subshell: `cd X && a & b &` runs `a` under X and
 # `b` in the caller's directory. On 2026-10-11 a landing audit written that way reported a false OK into the queue. A

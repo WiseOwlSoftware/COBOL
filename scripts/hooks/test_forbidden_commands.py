@@ -59,41 +59,13 @@ CASES = [
     ('dotnet test x.csproj --filter "FullyQualifiedName~Drift"', True),
     ('dotnet test x.csproj --filter "FullyQualifiedName~Drift" 2>&1 | tail -5', False),
     ("dotnet test x.csproj", False),
-    # 5. chaining after a verdict command
-    ("dotnet test x.csproj > t.log 2>&1 && git commit -m x", True),
-    ("dotnet build WiseOwl.Cobol.sln -c Debug && dotnet test x.csproj > t.log", True),
-    ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1; git log -1", True),
-    ("pwsh -File scripts/build-local.ps1 -Priority BelowNormal *> b.log || true", True),
-    ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1; echo \"rc=$?\"; grep -E ENQUEUE l.log | tail -2", False),
-    ("dotnet build WiseOwl.Cobol.sln -c Debug -v q 2>&1 | grep -E 'error|Build succeeded'", False),
-    ("cd /e/COBOL && dotnet build WiseOwl.Cobol.sln -c Debug > b.log 2>&1", False),
-    ("timeout 580 bash -c 'tail -n +1 -f b.log | grep -m1 VERDICT' ; tail -3 b.log", False),
-    ("git status --short && git log --oneline -3", False),
-    ("bash -c 'dotnet test x.csproj > t.log && echo done'", False),
-    # 5b. a command that merely NAMES a gate or landing script is not a verdict command
-    ("git add -- scripts/build-local.ps1 DEVLOG/1961-x.md && git commit -q -m x", False),
-    ("sed -n 17,20p scripts/orchestrator/enqueue.py && head -3 x.txt", False),
-    ("git add -- .github/workflows/build-and-test.yml && git commit -q -m x", False),
-    ("pwsh -NoProfile -File scripts/build-local.ps1 > b.log 2>&1; git status", True),
-    # the repros of kb/Work PB1725 and PB1736: a read-only command whose ARGUMENTS name a verdict command or script
-    ('grep -n "dotnet test" scripts/x.sh; echo ---', False),
-    ('sed -i "s/x/overlaps battery.sh/" STATUS.md; git add -A', False),
-    ("cat scripts/build-local.ps1; echo", False),
-    ("git ls-tree HEAD scripts/linux-gate.sh scripts/build-local.sh; git ls-tree HEAD x", False),
-    ("grep -rlE 'x|build-local.ps1' kb/Work | head; echo", False),
-    ("pwsh scripts/build-local.ps1 -Priority BelowNormal; git commit -m x", True),
-    ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1 && git log -1", True),
-    # 5b'. the chain is read by the SHARED parser (review R1-1's sibling): a comment's apostrophe, an escaped quote or a
-    # heredoc before the chain no longer hides it
-    ("git status  # don't" + chr(10) + "dotnet build x.sln > b.log 2>&1 && git commit -m x", True),
-    ("echo it" + BS + "'s here && dotnet test x.csproj > t.log 2>&1 && git commit -m x", True),
-    ("cat > m.txt <<'EOF'" + chr(10) + "x" + chr(10) + "EOF" + chr(10) + "dotnet test x.csproj > t.log 2>&1 && git commit -m x", True),
-    ("dotnet test x.csproj > t.log 2>&1 & git status", False),           # a background `&` is not a chain (as before)
-    # 5c. the merge-queue landing is a verdict command too (kb/Work PB3024)
-    ("python scripts/orchestrator/enqueue.py queue --title T --body-file m.txt > q.log 2>&1 && git log -1", True),
-    ("python scripts/orchestrator/enqueue.py queue --title T --body-file m.txt > q.log 2>&1; echo \"rc=$?\"", False),
-    ("git add -- scripts/orchestrator/enqueue.py && git commit -q -m x", False),
-    # 6. WSL lifecycle commands are the owner's to run
+    # a command chained after a verdict command is no longer refused (kb/Work PB5234: 1 true refusal of 127, and
+    # enqueue.py refuses a tip no GREEN gate record covers); each of these was refused by the deleted rule
+    ("dotnet test x.csproj > t.log 2>&1 && git commit -m x", False),
+    ("dotnet build WiseOwl.Cobol.sln -c Debug && dotnet test x.csproj > t.log", False),
+    ("python scripts/orchestrator/enqueue.py land b > l.log 2>&1; git log -1", False),
+    ("pwsh -File scripts/build-local.ps1 -Priority BelowNormal *> b.log || true", False),
+    # 5. WSL lifecycle commands are the owner's to run
     ("wsl --terminate Ubuntu", True),
     ("wsl.exe --export Ubuntu E:/x.tar", True),
     ("wsl --shutdown", True),
@@ -109,7 +81,7 @@ CASES = [
     ("grep -n 'wsl --export' docs/x.md", False),
     ("bash -c 'wsl --shutdown'", True),                                  # a -c payload's command is a command
     ("echo y | wsl --terminate Ubuntu", True),                           # so is a pipeline's later side
-    # 7. a `cd` inside a BACKGROUNDED list with another command after its `&` (MANDATORY-PRACTICES P14(b), kb/Work PB3095)
+    # 6. a `cd` inside a BACKGROUNDED list with another command after its `&` (MANDATORY-PRACTICES P14(b), kb/Work PB3095)
     ("cd /e/x && git log -1 > a.txt & git status > b.txt &", True),     # the 2026-10-11 shape: b ran in the caller's dir
     ("cd /e/x && a & b", True),
     ("pushd /e/x && a & b", True),
@@ -152,7 +124,7 @@ CASES = [
     ('dotnet test x.csproj --filter=~Foo > log.txt', True),
     ('dotnet test x.csproj --filter "FullyQualifiedName~Foo" & echo x > y.txt', True),  # another command's redirect
     ('git commit -m "dotnet test --filter ~X"', False),                  # quoted text is no test run
-    (QS + "dotnet build x.sln > b.log && git commit -m x", True),
+    (QS + "dotnet build x.sln > b.log && git commit -m x", False),
     (HD + "wsl --shutdown", True),
     (QS + "wsl --shutdown", True),
     ("cat > m.txt <<'EOF'" + NL + "wsl --shutdown" + NL + "EOF", False),
