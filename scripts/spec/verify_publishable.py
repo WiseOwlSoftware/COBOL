@@ -350,8 +350,10 @@ def check_corrections(text: str, edition: int) -> list[str]:
 
 #: The reconciliation ledger of a transcription that keeps its pages (`## Page N`), by edition (kb/Work PB4850): every
 #: batch claim with its decision, every repair, and every level-2 box. 2023 dropped its pages; its reconciliation is
-#: LEDGER.json (merge_reconciliation.py) and its corrections the Addendum (check_corrections).
-LEDGER: dict[int, str] = {1985: "docs/rearchitecture/spec-reconciliation/LEDGER-1985.json"}
+#: LEDGER.json (merge_reconciliation.py) and its corrections the Addendum (check_corrections). An edition joins once every
+#: claim of its ledger is decided: 2014 by kb/Work PB5331; 2002 when its repairs decide its last claim.
+LEDGER: dict[int, str] = {1985: "docs/rearchitecture/spec-reconciliation/LEDGER-1985.json",
+                          2014: "docs/rearchitecture/spec-reconciliation/LEDGER-2014.json"}
 #: EVERY edition's reconciliation ledger, the one home of their paths: the page-keeping ledgers above, and each ledger
 #: merge_reconciliation.py writes from its agent files (its EDITIONS rows take their ledger from here): 2023's
 #: LEDGER.json, and 2002's and 2014's, in LEDGER-1985.json's shape (kb/Work PB5255).
@@ -359,7 +361,6 @@ RECONCILIATION: dict[int, str] = {
     **LEDGER,
     2023: "docs/rearchitecture/spec-reconciliation/LEDGER.json",
     2002: "docs/rearchitecture/spec-reconciliation/LEDGER-2002.json",
-    2014: "docs/rearchitecture/spec-reconciliation/LEDGER-2014.json",
 }
 
 

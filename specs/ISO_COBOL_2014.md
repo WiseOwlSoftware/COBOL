@@ -3856,7 +3856,7 @@ Table 2 — COBOL character repertoire (Continued)
 
 | Description | Character | Meaning |
 |---|---|---|
-| Basic special characters | +<br>–<br>\*<br>/<br>=<br>$<br>,<br>;<br>.<br>"<br>'<br>(<br>)<br>><br>&lt;<br>&<br>:<br>_ | space<br>plus sign<br>minus sign (hyphen)<br>asterisk<br>slant (slash, solidus)<br>equal sign<br>currency sign<br>comma<br>semicolon<br>period<br>quotation mark<br>apostrophe<br>left parenthesis<br>right parenthesis<br>greater than<br>less than<br>ampersand<br>colon<br>underscore |
+| Basic special characters | &nbsp;<br>+<br>–<br>\*<br>/<br>=<br>$<br>,<br>;<br>.<br>"<br>'<br>(<br>)<br>><br>&lt;<br>&<br>:<br>_ | space<br>plus sign<br>minus sign (hyphen)<br>asterisk<br>slant (slash, solidus)<br>equal sign<br>currency sign<br>comma<br>semicolon<br>period<br>quotation mark<br>apostrophe<br>left parenthesis<br>right parenthesis<br>greater than<br>less than<br>ampersand<br>colon<br>underscore |
 | Extended letters |  | Additional characters for use in the formation of user-defined words, as specified in Annex B, Characters permitted in user-defined words |
 
 ###### 8.1.2.1 General rules
