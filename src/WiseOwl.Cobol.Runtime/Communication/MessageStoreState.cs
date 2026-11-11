@@ -97,6 +97,10 @@ internal sealed class MessageStoreState
 
     internal DestinationEndpoint? FindDestination(string name) => _definitions.Destination(name) is { } destination ? new DestinationEndpoint(destination, _tables!) : null;
 
+    /// <summary>§1985:XIV.2.2.4 GR10: whether <paramref name="name"/> is "the symbolic name of the communication terminal" the MCS knows: a source or a terminal of its definitions.
+    /// A destination's own name, which the MCS gives a message the destination delivers when no source is defined for it, is neither.</summary>
+    internal bool KnowsCommunicationTerminal(string name) => _definitions.Source(name) is not null || _definitions.Terminal(name) is not null;
+
     internal TerminalEndpoint? FindTerminal(string name) => _definitions.Terminal(name) is { } terminal ? new TerminalEndpoint(terminal, _tables!) : null;
 
     /// <summary>The next message of the designated structure, removed from its queue, with the level it was found at (E.5.5.3, E.5.5.4: the first key at or after the structure's prefix).</summary>
