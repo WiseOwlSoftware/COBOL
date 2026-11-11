@@ -54,16 +54,16 @@ trap 'rm -rf "$WORK"' EXIT
 #    is cloned, so it cannot read toolchain.env or call scripts/install-tool.sh: the two blocks between the markers are
 #    copies of theirs, and toolchain.py's and toolchain_audit.py's self-tests keep each one identical. ──────────
 # >>> toolchain (kept byte-identical in toolchain.env and scripts/cloud/setup-env.sh)
-DOTNET_SDK_VERSION=10.0.403
+DOTNET_SDK_VERSION=10.0.404
 PYTHON_VERSION=3.15.2
 JDK_VERSION=27.0.1
-PWSH_VERSION=7.6.9
+PWSH_VERSION=7.7.0
 GIT_LINUX_VERSION=2.56.0
 GIT_WINDOWS_VERSION=2.56.0
 GH_VERSION=2.103.3
 JQ_VERSION=1.8.2
 UV_VERSION=0.13.7
-SEMGREP_VERSION=1.183.0
+SEMGREP_VERSION=1.185.0
 SEMGREP_PYTHON_VERSION=3.14.10
 CI_LINUX_IMAGE=ubuntu-26.04
 CI_WINDOWS_IMAGE=windows-2025-vs2026
