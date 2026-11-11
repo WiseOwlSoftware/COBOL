@@ -1,4 +1,4 @@
-## PB4996: the 56 held 1985 rows adjudicated and refuted; 26 CONFORMS recorded (1985 GAP 478 to 452), three decisions, PB5307-PB5317 filed
+## Entry 3481 — 2026-11-11 11:07 PST — PB4996: the 56 held 1985 rows adjudicated and refuted; 26 CONFORMS recorded (1985 GAP 478 to 452), three decisions, PB5307-PB5317 filed
 
 Three Opus adjudicators decided the 56 rows held across `held.json` through `held-5.json`, and an independent refuter attacked every closing verdict. Set 1 has 17 rows: 9 CONFORMS, 5 PARTIAL, 2 DIVERGES and 1 NEEDS-OWNER-DECISION. Its refuter upheld the 9 CONFORMS and both spot-checks. Set 2 has 20 rows: 4 CONFORMS, 11 PARTIAL and 5 DIVERGES. Its refuter upheld 3 CONFORMS, found 1 DOUBTFUL, and upheld the three shared readings. Set 3 has 19 rows: 14 CONFORMS and 5 PARTIAL, and its refuter upheld all 14.
 
@@ -26,3 +26,4 @@ docs/CONFORMANCE.md changes:
 - A new section 3.7.1 records ENTER, group usage DISPLAY, and the external connector's omitted RESERVE.
 
 The doc audits and the Annex A.1 register audit are green.
+
