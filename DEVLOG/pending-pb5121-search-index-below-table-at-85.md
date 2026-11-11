@@ -8,4 +8,4 @@ Fix shape: a new `DialectBehavior.SearchIndexBelowTableUnsuccessful` (2002, VCR 
 
 Sibling sweep: SEARCH ALL ignores the initial index (GR9), so it has no start test; the advance test in `EmitSerialScan` (`index > bound`) already agrees at both editions.
 
-Goldens: `14.9.37-SEARCH/pb5121_search_index_below_table_85` (85, FOUND AT 2) and `pb5121_search_index_below_table` (2002 2014 2023, AT END). No refusal exists, the change gates behaviour and refuses nothing. Rows closed: none (no 1985 inventory rows yet, PB5094).
+Goldens: `14.9.37-SEARCH/pb5121_search_index_below_table_85` (85, FOUND AT 2) and `pb5121_search_index_below_table` (2002 2014 2023, AT END). No refusal exists, the change gates behaviour and refuses nothing. The first gate was RED on one Characterization case, `char_occurs` at 85, whose emitted-C# snapshot carried the old start test; it is re-baselined (the only changed line is `_IX_1 < 1 || _IX_1 > 5L` becoming `_IX_1 > 5L`). Rows closed: none (no 1985 inventory rows yet, PB5094).
