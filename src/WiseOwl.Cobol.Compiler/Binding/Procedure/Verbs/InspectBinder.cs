@@ -138,7 +138,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         if (ins.inspectTallyingPhrase() is not null && ins.inspectReplacingPhrase() is not null && target is OdoGroupPlace odo)
         {
             if (DialectBehaviors.IsActive(DialectBehavior.InspectFormat3LengthIdentifiedOnce, ctx.Edition.Edition.Year))
-                target = host.FreezeOdoExtentBeforeRefMod(odo, ctx.Data.Procedure.PendingPreOps.Mark(), ins.Start.Line);
+                target = host.FreezeOdoExtentForStatement(odo, ins.Start.Line);
             else
                 lengthAnew = true;
         }

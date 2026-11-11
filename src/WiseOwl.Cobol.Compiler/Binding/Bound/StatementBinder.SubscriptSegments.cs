@@ -123,11 +123,18 @@ public sealed partial class StatementBinder
     /// <paramref name="preOpMark"/> — ahead of every one of them — and the group's extent reads the temp. The copy
     /// is a plain MOVE of the object into a temp of its own description, so the length it pins is exactly the value
     /// the operand site would have read had no pre-op run first.</summary>
-    internal Place FreezeOdoExtentBeforeRefMod(OdoGroupPlace odo, int preOpMark, int line)
+    private Place FreezeOdoExtentBeforeRefMod(OdoGroupPlace odo, int preOpMark, int line)
     {
         var temp = data.Temps.Create(odo.Depending.Item, "__REFODO-", "__refodo", $"L{line}");
         if (Ctx.Refs.Places.ResolveItem(temp) is not { } frozen) return odo;
         data.Procedure.PendingPreOps.InsertAt(preOpMark, new BoundMove(new BoundFieldOperand(odo.Depending), [frozen]));
         return odo with { Depending = frozen };
     }
+
+    /// <summary>The same pin for a STATEMENT whose item identification fixes the length once for the whole statement (a
+    /// format 3 INSPECT's occurs-depending identifier-1, §2023:14.9.22.4 GR19 with §2023:14.6.4 step 6; kb/Work PB5119): the
+    /// copy of the DEPENDING ON object is a pre-op placed NOW, after the pre-ops identifier-1's own subscripts registered
+    /// and before those of every later operand.</summary>
+    internal Place FreezeOdoExtentForStatement(OdoGroupPlace odo, int line) =>
+        FreezeOdoExtentBeforeRefMod(odo, data.Procedure.PendingPreOps.Mark(), line);
 }
