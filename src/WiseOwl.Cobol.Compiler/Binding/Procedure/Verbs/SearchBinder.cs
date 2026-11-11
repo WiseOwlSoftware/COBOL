@@ -6,6 +6,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -230,7 +231,9 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             // §2023:14.9.37.4 GR4: an out-of-range initial index (SEARCH-INDEX) / a scan advancing off the end (NO-MATCH)
             // sets the nonfatal range EC when checking is enabled — captured at the statement line (F10/CONTINUE template).
             CheckSearchIndex: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-INDEX", null, s.Start.Line),
-            CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line)));
+            CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line),
+            // §2023:14.9.37.4 GR4 vs §1985:VI.6.22.4 GR2: the lower bound of the start test is a 2002 rule (kb/Work PB5121).
+            IndexBelowTableIsUnsuccessful: DialectBehaviors.IsActive(DialectBehavior.SearchIndexBelowTableUnsuccessful, ctx.Edition.Edition.Year)));
     }
 
     /// <summary>Bind <c>SEARCH ALL</c> (ISO §2023:14.9.37 Format 2 — the ordered-table search form). The initial index
