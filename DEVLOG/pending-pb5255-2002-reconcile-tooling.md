@@ -39,8 +39,17 @@ and `page_workunit.py` names heading-only pages. Both decision ledgers carry `bo
 names already implied (346 verdicts, each matching the committed LEDGER.json's), and LEDGER.json and REPORT.md were
 regenerated: 210 confirmed, 136 refuted, 0 unverified, as before.
 
+**Review round 2 (addendum `2026-11-11-review-round-2.md`).** An id is reused when a batch is re-run, so a leftover
+verdict could judge a new claim with the same id, and a kept decision was matched on `pdf_says` alone. A claim's identity
+is now its content: `claim_key` fingerprints its page and every text field, the workflow hands it to the verifier to
+copy, and a verdict or a kept decision attaches only to the claim with that key; a mismatch is refused by name. The rule
+for a re-run is that the run on disk wins, and the merge refuses an earlier run's leftover verdict rather than anything
+deleting it. Keys were compared, not quoted text, because 203 of 2023's 346 verify files quote their claim inexactly;
+the 346 got the keys of the claims their ids named.
+
 **Proof.** The self-tests of every touched script PASS, among them `test_wf_spec_reconcile.py`, a dry run of the workflow
-with stubbed agents (8 arms; all 8 fail on the round-0 workflow); the reviewer's `merge_probe.py` sweeps pages 1-12 and 500
+with stubbed agents (10 arms; 8 fail on the round-0 workflow and the 2 key arms on the round-1 one); `probe2.py`'s re-run
+and re-kinded cases are refused (each attached the wrong verdict or decision on round 1); the reviewer's `merge_probe.py` sweeps pages 1-12 and 500
 and refutes the unverified claim on the round-0 merge, and is refused naming its four files on this one;
 `verify_publishable.py --edition 1985` holds the 1985 transcription to its ledger, 976 of 976 pages compared;
 `reconcile_ranges.py --check` passes; the canary `page_workunit.py 1..12 --edition 2002 --dpi 300` rendered 12 pages from

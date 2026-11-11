@@ -13,6 +13,7 @@ keeps no pages, is refused (R1-5).
 """
 from __future__ import annotations
 
+import json
 import os
 import pathlib
 import shutil
@@ -20,6 +21,8 @@ import subprocess
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from merge_reconciliation import claim_key  # noqa: E402  (the merge's half of the one claim-key function)
 WORKFLOW = pathlib.Path(os.environ.get("WF_SPEC_RECONCILE") or REPO / ".claude" / "workflows" / "spec-reconcile.js")
 
 HARNESS = r"""
@@ -36,11 +39,11 @@ const check = (name, ok) => { console.log((ok ? '  ok    ' : '  FAIL  ') + name)
 async function run(argv, compare, verify) {
   const agent = async (prompt, opt) => opt.phase === 'Compare'
     ? compare(JSON.parse(prompt.match(/"batch": (\[[^\]]*\])/)[1]))
-    : verify(prompt.match(/CLAIM (\S+)/)[1])
+    : verify(prompt.match(/CLAIM (\S+)/)[1], (prompt.match(/claim_key exactly "([0-9a-f]+)"/) || [])[1])
   try { return await body(argv, () => {}, agent, pipeline, parallel) } catch (e) { return { thrown: e.message } }
 }
 const clean = (batch) => ({ batch, pages_checked: batch, pages_unread: [], findings: [] })
-const verdict = (id) => ({ claim_id: id, real: false, reasoning: 'present' })
+const verdict = (id, key) => ({ claim_id: id, claim_key: key, real: false, reasoning: 'present' })
 const finding = (id, page, said) => ({ id, page, kind: 'incorrect-figure', severity: 'normative', pdf_says: said,
   markdown_says: 'm', why_it_matters: 'w' })
 const twoClaims = (b) => b[0] === 1 ? { ...clean(b), findings: [finding('p2-1', 2, 'a'), finding('p2-2', 2, 'b')] } : clean(b)
@@ -62,11 +65,19 @@ check('a compare result with pages_checked [] is a batch with no valid result, n
 r = await run(base, (b) => (b[0] === 1 ? { ...clean(b), pages_checked: [1, 2], pages_unread: [{ page: 3, reason: 'blank render' }] } : clean(b)), verdict)
 check('an unread page is reported with its reason, not counted checked, and the run is not ok',
   r.ok === false && r.pages_checked === 4 && ((r.pages_unread || [])[0] || {}).page === 3)
-r = await run(base, twoClaims, (id) => (id === 'p2-1' ? verdict(id) : null))
+r = await run(base, twoClaims, (id, key) => (id === 'p2-1' ? verdict(id, key) : null))
 check('a claim whose verifier died is unverified by its id, never refuted by its neighbour',
   r.ok === false && r.refuted === 1 && String(r.unverified) === 'p2-2')
-r = await run(base, twoClaims, () => verdict('p2-1'))
+r = await run(base, twoClaims, (id, key) => verdict('p2-1', key))
 check("a verdict echoing another claim's id attaches to nothing", r.refuted === 1 && String(r.unverified) === 'p2-2')
+r = await run(base, twoClaims, (id, key) => verdict(id, id === 'p2-2' ? '0123456789abcdef' : key))
+check("a verdict echoing its id with another claim's key attaches to nothing",
+  r.refuted === 1 && String(r.unverified) === 'p2-2')
+// The key the workflow hands a verifier is merge_reconciliation.claim_key of the claim: Python checks the printed pairs.
+const keyed = [finding('p2-1', 2, 'ASCII'), { ...finding('p2-2', 2, 'é ü — “bars” ║ 𝔘 \u001f'), markdown_says: 'line\none' }]
+const seen = []
+await run(base, (b) => b[0] === 1 ? { ...clean(b), findings: keyed } : clean(b), (id, key) => { seen.push({ id, key }); return verdict(id, key) })
+console.log('KEYS ' + JSON.stringify(keyed.map(f => ({ claim: f, key: (seen.find(s => s.id === f.id) || {}).key }))))
 r = await run(base, (b) => b[0] === 1 ? { ...clean(b), findings: [finding('p2-1', 2, 'a'), finding('p2-1', 2, 'b')] } : clean(b), verdict)
 check('findings misnumbered on their page make the batch invalid',
   r.ok === false && /should be p2-2/.test(((r.batches_without_valid_compare || [])[0] || { problems: [] }).problems.join()))
@@ -81,8 +92,21 @@ def main() -> int:
         print("=== SPEC-RECONCILE WORKFLOW DRY RUN: FAIL (node is not on PATH; the dry run needs it) ===")
         return 1
     run = subprocess.run([node, "--input-type=module", "-"], input=HARNESS, text=True, encoding="utf-8",
-                         env={**os.environ, "WF_SPEC_RECONCILE": str(WORKFLOW)})
-    return run.returncode
+                         capture_output=True, env={**os.environ, "WF_SPEC_RECONCILE": str(WORKFLOW)})
+    lines = run.stdout.splitlines()
+    pairs = [json.loads(ln[5:]) for ln in lines if ln.startswith("KEYS ")]
+    verdict = lines.pop() if lines and lines[-1].startswith("===") else None
+    for ln in lines:
+        if not ln.startswith("KEYS "):
+            print(ln)
+    sys.stderr.write(run.stderr)
+    # The workflow's claimKey and the merge's claim_key are one function written twice; this holds them equal.
+    same = bool(pairs) and all(p.get("key") == claim_key(p["claim"]) for p in pairs[0])
+    print(("  ok    " if same else "  FAIL  ") + "the key the workflow hands each verifier is merge_reconciliation."
+          "claim_key of its claim (non-ASCII, astral and control characters among them)")
+    ok = run.returncode == 0 and same and verdict is not None
+    print(f"=== SPEC-RECONCILE WORKFLOW DRY RUN: {'PASS' if ok else 'FAIL'} ===")
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

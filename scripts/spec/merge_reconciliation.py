@@ -20,10 +20,18 @@ each makes its file INVALID, the merge names the file and the problem, exits 1 a
     two files never share a page.
   - A FINDING carries `id` = `p<page>-<n>`, n counting its page's findings from 1 in order, written by the compare
     agent, plus `page` (a page it checked), `kind`, `severity`, `pdf_says`, `markdown_says` and `why_it_matters`.
-  - A VERIFY file holds `claim_id` (the id of the claim it judged, echoed by the verify agent), the claim's `page` and
-    `kind`, and `verdict` {`real`: true or false, `reasoning`}. A verdict attaches to EXACTLY the claim its id names,
-    once: a verdict naming no claim, or a second verdict for one claim, is invalid. A claim with no verdict is
-    UNVERIFIED and stays open; it never takes another claim's verdict.
+  - A VERIFY file holds `claim_id` (the id of the claim it judged, echoed by the verify agent), `claim_key` (the
+    claim's content fingerprint, `claim_key`, which the workflow computes and the verifier copies), the claim's `page`
+    and `kind`, and `verdict` {`real`: true or false, `reasoning`}. A verdict attaches to EXACTLY the claim its id names,
+    once, and only when its `claim_key` is that claim's: an id is reused when a batch is re-run, so a verdict of an
+    earlier run whose claim the id no longer holds is refused by name, never attached and never ignored. A verdict
+    naming no claim, or a second verdict for one claim, is invalid. A claim with no verdict is UNVERIFIED and stays
+    open; it never takes another claim's verdict.
+THE RE-RUN RULE (review R2-1). A re-run batch's compare file replaces the earlier one under the same name, so the run
+on disk is the one that counts. Its earlier verify files are deleted with it (README, "Re-running a batch"); one left
+behind is refused unless it judged a claim identical in every field to one the new run holds, in which case it is a
+verdict on exactly that claim and attaches. The merge refuses rather than having the workflow delete files: a workflow
+cannot see the disk, and an agent told to delete could delete a verdict that was valid; a refusal loses nothing.
 Partial coverage is not an error: a batch with no compare file yet is UNSWEPT, and the report names those pages
 against the transcription's page count, so the merge is safe to run while agents are still working.
 
@@ -69,6 +77,25 @@ COMPARE_NAME = re.compile(r"^compare-p(\d+)-p(\d+)\.json$")
 #: and the verify agent echoes it as `claim_id` (the workflow's prompts), so a verdict names its claim exactly.
 CLAIM_ID = re.compile(r"^p(\d+)-([1-9]\d*)$")
 FINDING_TEXT = ("kind", "pdf_says", "markdown_says", "why_it_matters")
+
+
+def claim_key(claim: dict) -> str:
+    """A claim's CONTENT identity (kb/Work PB5255 review R2-1): a fingerprint of its page and every text field
+    (FINDING_TEXT), two 32-bit FNV-1a hashes over the UTF-16 code units of those fields joined by U+001F, as 16 hex
+    digits. An id (`p5-1`) is reused when a batch is re-run, so it cannot alone say which claim a verdict judged; this
+    can. The workflow computes the same function (spec-reconcile.js `claimKey`; test_wf_spec_reconcile.py holds the two
+    equal) and hands it to the verifier to copy: agents retype long quotes inexactly (203 of 2023's 346 verify files
+    differ from their claim in whitespace, escaping or length), so the key is copied, never the text compared. A
+    verdict attaches only when its key is its claim's; a kept decision only when the ledger claim's key is the claim's."""
+    text = "\x1f".join([str(claim.get("page"))] + [str(claim.get(k)) for k in FINDING_TEXT])
+    raw = text.encode("utf-16-le")
+    units = [raw[i] | raw[i + 1] << 8 for i in range(0, len(raw), 2)]
+    out = ""
+    for h in (0x811C9DC5, 0x050C5D1F):
+        for u in units:
+            h = ((h ^ u) * 0x01000193) & 0xFFFFFFFF
+        out += f"{h:08x}"
+    return out
 
 
 @dataclasses.dataclass(frozen=True)
@@ -218,9 +245,10 @@ def collect(source: pathlib.Path, book_pages: int | None) -> tuple[Collected, li
             errors.append(f"{path.name}: `claim_id` {cid!r} names no claim of a valid compare file")
         elif cid in got.verdicts:
             errors.append(f"{path.name}: a second verdict for claim {cid} ({got.verdicts[cid]['file']} has one)")
-        elif (doc.get("page"), doc.get("kind")) != (claim["page"], claim["kind"]):
-            errors.append(f"{path.name}: claim {cid} is page {claim['page']} {claim['kind']}, the verdict says page "
-                          f"{doc.get('page')!r} {doc.get('kind')!r}")
+        elif doc.get("claim_key") != claim_key(claim):
+            errors.append(f"{path.name}: it judged claim key {doc.get('claim_key')!r}, but {cid} is now the claim keyed "
+                          f"{claim_key(claim)!r}: a verdict of another run of the batch (delete it with the batch's "
+                          "other stale files; the batch's compare file on disk is the run that counts)")
         elif not isinstance(verdict, dict) or not isinstance(verdict.get("real"), bool) \
                 or not isinstance(verdict.get("reasoning"), str) or not verdict["reasoning"].strip():
             errors.append(f"{path.name}: `verdict` is not {{real: true|false, reasoning}}")
@@ -259,9 +287,10 @@ def render_decisions(row: Row, got: Collected, old: dict | None, edition: int, b
         now = by_id.get(cid)
         if now is None:
             errors.append(f"{row.ledger}: claim {cid} is decided {c.get('decision')!r} but no agent file holds it")
-        elif now["pdf_says"] != c.get("pdf_says"):
-            errors.append(f"{row.ledger}: claim {cid} is decided {c.get('decision')!r} on other text than its agent "
-                          "file now holds (a re-run batch renumbered its claims): decide it again")
+        elif claim_key(now) != claim_key(c):
+            errors.append(f"{row.ledger}: claim {cid} is decided {c.get('decision')!r} on another claim than its agent "
+                          "file now holds (a re-run batch renumbered its claims, or changed its kind or text): decide "
+                          "it again")
     claims = []
     for r in sorted(got.rows(), key=lambda r: (r["page"], int(CLAIM_ID.match(r["id"])[2]))):
         claim = {"id": r["id"], "page": r["page"], "i": int(CLAIM_ID.match(r["id"])[2]) - 1, "kind": r["kind"],
@@ -443,8 +472,8 @@ def self_test() -> int:
         return {**doc, **over}
 
     def verify(c: dict, real: bool, why: str) -> dict:
-        return {"claim_id": c["id"], "page": c["page"], "kind": c["kind"], "claim": {"pdf_says": c["pdf_says"]},
-                "verdict": {"real": real, "reasoning": why}}
+        return {"claim_id": c["id"], "claim_key": claim_key(c), "page": c["page"], "kind": c["kind"],
+                "claim": {"pdf_says": c["pdf_says"]}, "verdict": {"real": real, "reasoning": why}}
 
     def good(root: pathlib.Path) -> pathlib.Path:
         d = root / "2002"
@@ -508,7 +537,15 @@ def self_test() -> int:
         write(root / "2002" / "compare-p1-p12.json", compare(1, 12, [{**claim, "pdf_says": "a new claim"}, twin]))
         rc, out = run("write", root)
         check("a kept decision whose claim now says something else is refused, never moved to the new claim",
-              rc == 1 and "claim p5-1 is decided 'APPLIED' on other text" in out)
+              rc == 1 and "claim p5-1 is decided 'APPLIED' on another claim" in out)
+        # R2-2: the same quote under another kind is another claim; its own fresh verdict does not carry the decision.
+        rekinded = {**claim, "kind": "missing-heading"}
+        write(root / "2002" / "compare-p1-p12.json", compare(1, 12, [rekinded, twin]))
+        write(root / "2002" / "verify-p5-1.json", verify(rekinded, True, "seen again"))
+        rc, out = run("write", root)
+        check("a kept decision whose claim kept its quote but changed its kind is refused (one key for verdicts and "
+              "decisions)", rc == 1 and "claim p5-1 is decided 'APPLIED' on another claim" in out
+              and "verify-p5-1.json" not in out)
         write(root / "2002" / "compare-p1-p12.json", compare(1, 12, [twin]))
         (root / "2002" / "verify-p5-1.json").unlink()
         write(root / "2002" / "verify-p5-1.json", verify({**twin, "id": "p5-1"}, False, "x"))
@@ -569,8 +606,29 @@ def self_test() -> int:
             "verify-p9-1.json: `claim_id` 'p9-1' names no claim")
     refused("a second verdict for one claim is refused",
             {"verify-p5-1-again.json": verify(claim, False, "x")}, "a second verdict for claim p5-1")
-    refused("a verdict whose page and kind are not its claim's is refused",
-            {"verify-p5-1.json": {**verify(claim, True, "x"), "kind": "missing-text"}}, "claim p5-1 is page 5")
+    # R2-1: an id is reused by a re-run; the verdict attaches only to the claim whose content it judged.
+    refused("a verdict left from an earlier run of a re-run batch is refused by name, never attached to the new p5-1",
+            {"compare-p1-p12.json": compare(1, 12, [{**claim, "pdf_says": "{| ADVANCING |} lost its choice bars"},
+                                                   twin])},
+            "verify-p5-1.json: it judged claim key")
+    refused("a verdict with no claim_key is refused",
+            {"verify-p5-1.json": {k: v for k, v in verify(claim, True, "x").items() if k != "claim_key"}},
+            "verify-p5-1.json: it judged claim key None")
+    refused("a verdict whose claim differs from its claim's only in kind is refused",
+            {"verify-p5-1.json": verify({**claim, "kind": "missing-text"}, True, "x")}, "verify-p5-1.json: it judged")
+    with tempfile.TemporaryDirectory() as tmp:
+        root = pathlib.Path(tmp)
+        d = good(root)
+        write(d / "compare-p1-p12.json", compare(1, 12, [claim, twin], notes="a re-run that found the same claims"))
+        rc, _ = run("write", root)
+        by = {c["id"]: c for c in json.loads((root / "LEDGER-2002.json").read_text(encoding="utf-8"))["claims"]}
+        check("a verdict of an earlier run attaches when the re-run holds the identical claim (same key)",
+              rc == 0 and by["p5-1"]["batch"] == "CONFIRMED" and by["p5-2"]["batch"] == "REFUTED")
+    check("claim_key is the content: page and every text field change it, severity and id do not",
+          len({claim_key(claim), claim_key({**claim, "page": 6}), claim_key({**claim, "kind": "ocr-error"}),
+               claim_key({**claim, "pdf_says": "x"}), claim_key({**claim, "markdown_says": "x"}),
+               claim_key({**claim, "why_it_matters": "x"})}) == 6
+          and claim_key(claim) == claim_key({**claim, "id": "p5-9", "severity": "cosmetic"}))
     refused("a verdict with no `real` is refused, never counted refuted",
             {"verify-p5-1.json": {**verify(claim, True, "x"), "verdict": {"reasoning": "x"}}}, "`verdict` is not")
     with tempfile.TemporaryDirectory() as tmp:

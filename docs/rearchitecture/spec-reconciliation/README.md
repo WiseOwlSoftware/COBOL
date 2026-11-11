@@ -8,7 +8,7 @@ is interrupted, and re-deriving it costs another full page render and read.
 | file | written by | holds |
 |---|---|---|
 | `<dir>/compare-p<first>-p<last>.json` | a Compare agent (`agents/` for 2023, `2002/` for 2002) | `batch` (its pages), `pages_checked` (the pages it compared), `pages_unread` (each `{page, reason}`: a page it could not read), and `findings`, each with its `id` `p<page>-<n>` (n counting that page's findings from 1) |
-| `<dir>/verify-<id>.json` (2023's older files: `verify-p<page>-<kind>-<n>.json`) | a Verify agent | `claim_id` (the id of the claim it judged), the claim **and** the adversarial verdict, standing alone |
+| `<dir>/verify-<id>.json` (2023's older files: `verify-p<page>-<kind>-<n>.json`) | a Verify agent | `claim_id` (the id of the claim it judged), `claim_key` (that claim's content key, which the workflow computes and the verifier copies; the merge attaches the verdict only to the claim with that id and key), the claim **and** the adversarial verdict, standing alone |
 | `LEDGER.json` / `REPORT.md` | `scripts/spec/merge_reconciliation.py --edition 2023 --write` | the 2023 merge: confirmed, refuted and unverified claims (the shape `spec-grammar-impact.js` reads), plus `pages_swept` and `pages_unread` |
 | `2002/ranges.json` | `scripts/spec/reconcile_ranges.py --edition 2002` | the 2002 page-range plan: 882 pages in batches of 12, each marked `figure`, `ambiguous` and `clauses`, flagged and figure batches first, two halves of equal estimated work (`account1`, `account2`), each cut into runs of up to six batches (six of six, then one of one); generated and `--check`ed, never typed |
 | `LEDGER-2002.json` / `2002/REPORT.md` | `scripts/spec/merge_reconciliation.py --edition 2002 --write`, on the branch that closes a set of runs only | the 2002 merge, in `LEDGER-1985.json`'s shape (`edition`, `about`, `book_pages`, `pages_swept`, `pages_unread`, `claims`, `sweeps`, `boxes`): each claim with its `id`, its own verdict as `batch` (CONFIRMED, REFUTED, UNVERIFIED) and its decision; a re-merge keeps every decision (by claim id), sweep and box |
@@ -89,10 +89,18 @@ Workflow({ scriptPath: ".claude/workflows/spec-reconcile.js", args: { pages: "<t
 ```
 
 The Workflow does not look at the disk, so it recomputes every batch it is given: give it only the batches with no
-valid compare file, or with unread pages. A re-run batch numbers its claims afresh, so FIRST delete that batch's
-`compare-p<first>-p<last>.json` and every `verify-p<page>-<n>.json` of its pages on the re-run's branch: a verdict
-left behind would name a claim id that now means another claim. A decision already recorded on such a claim is refused
-by the next `--write` (its claim now says something else, or is gone), so it is decided again, never moved.
+valid compare file, or with unread pages.
+
+THE RE-RUN RULE (kb/Work PB5255 review R2-1): a re-run batch replaces its earlier files as a unit, and the run on disk
+wins. Its compare file replaces the earlier one under the same name, and it numbers its claims afresh, so an id such as
+`p5-1` can now mean another claim. FIRST delete that batch's `compare-p<first>-p<last>.json` and every
+`verify-p<page>-<n>.json` of its pages on the re-run's branch. If one is left behind, the merge refuses it by name: each
+verdict carries its claim's content key (`claim_key`: the page, kind, `pdf_says`, `markdown_says` and `why_it_matters`)
+and attaches only to a claim with that key, so an earlier run's verdict attaches only if the new run holds exactly the
+claim it judged. The merge refuses; it never deletes. The workflow cannot see the disk, and an agent told to delete
+files could delete a valid verdict, whereas a refusal loses nothing. A decision already recorded on a claim is held to
+the same key: if the claim now differs in any of those fields, or is gone, the next `--write` refuses it, so it is
+decided again, never moved.
 
 ---
 

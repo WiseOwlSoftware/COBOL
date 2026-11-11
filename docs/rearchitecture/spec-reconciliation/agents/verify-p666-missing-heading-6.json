@@ -1,5 +1,5 @@
 {
-  "claim_id": "p666-1", "page": 666,
+  "claim_id": "p666-1", "claim_key": "a2d953316a47ab93", "page": 666,
   "kind": "missing-heading",
   "severity": "structural",
   "claim": {

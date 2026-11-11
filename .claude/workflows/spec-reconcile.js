@@ -17,7 +17,10 @@ export const meta = {
 //            105 others swept, and the run still reported "169 pages swept"). For 2002 pass a run's `pages` from
 //            docs/rearchitecture/spec-reconciliation/2002/ranges.json (scripts/spec/reconcile_ranges.py). The proof of
 //            what was swept is the files on disk: `merge_reconciliation.py --edition <e>` validates them and names every
-//            page no valid compare file covers.
+//            page no valid compare file covers. RE-RUNNING a batch replaces its earlier files as a unit, and the run on
+//            disk wins: delete the batch's compare and verify files first. This script cannot see the disk, so it
+//            never deletes; the merge refuses an earlier run's verdict whose claim_key the new claim does not share
+//            (README, "Re-running a batch").
 //   edition  1985 or 2002: a row of EDITIONS below.
 //   model    the model of every agent (the owner's decision for 2002, 2026-11-11: Opus).
 //   effort   the reasoning effort of every agent: low, medium, high, xhigh or max (2002: medium).
@@ -155,15 +158,32 @@ const FINDINGS = {
   required: ['batch', 'pages_checked', 'pages_unread', 'findings'],
 }
 
+// A claim's CONTENT identity, the same function as merge_reconciliation.claim_key (kb/Work PB5255 review R2-1;
+// test_wf_spec_reconcile.py holds the two equal): two 32-bit FNV-1a hashes over the UTF-16 code units of the page and
+// every text field joined by U+001F. An id is reused when a batch is re-run, so the verifier copies this key into its
+// file and the merge attaches the verdict only to a claim with the same key. Agents retype long quotes inexactly, so the
+// key is copied, never the text compared.
+const CLAIM_TEXT = ['kind', 'pdf_says', 'markdown_says', 'why_it_matters']
+function claimKey(f) {
+  const text = [String(f.page)].concat(CLAIM_TEXT.map(k => String(f[k]))).join('\u001f')
+  let out = ''
+  for (let h of [0x811c9dc5, 0x050c5d1f]) {
+    for (let i = 0; i < text.length; i++) h = Math.imul((h ^ text.charCodeAt(i)) >>> 0, 0x01000193) >>> 0
+    out += h.toString(16).padStart(8, '0')
+  }
+  return out
+}
+
 const VERDICT = {
   type: 'object',
   properties: {
     claim_id: { type: 'string' },
+    claim_key: { type: 'string' },
     real: { type: 'boolean' },
     reasoning: { type: 'string' },
     corrected_description: { type: 'string' },
   },
-  required: ['claim_id', 'real', 'reasoning'],
+  required: ['claim_id', 'claim_key', 'real', 'reasoning'],
 }
 
 // What makes a compare result untrustworthy: the merge's rules (merge_reconciliation.compare_problems), so a batch the
@@ -301,15 +321,17 @@ const results = await pipeline(
           '',
           'PERSIST BEFORE YOU RETURN - MANDATORY. Use the Write tool to save your verdict as JSON to:',
           '  ' + LEDGER + 'verify-' + f.id + '.json',
-          'Shape: {"claim_id": "' + f.id + '", "page": ' + f.page + ', "kind": "' + f.kind + '", "severity": "' + f.severity + '",',
-          '        "claim": {"pdf_says": ..., "markdown_says": ..., "why_it_matters": ...},',
+          'Shape: {"claim_id": "' + f.id + '", "claim_key": "' + claimKey(f) + '", "page": ' + f.page + ', "kind": "' + f.kind + '",',
+          '        "severity": "' + f.severity + '", "claim": {"pdf_says": ..., "markdown_says": ..., "why_it_matters": ...},',
           '        "verdict": {"real": true|false, "reasoning": ..., "corrected_description": ...}}',
-          'claim_id is exactly "' + f.id + '": the merge attaches your verdict to that claim and no other. Include the',
-          'claim so the file stands alone. Return {"claim_id": "' + f.id + '", "real": ..., "reasoning": ...}. A verdict',
-          'that exists only in a return value is lost the moment the run is interrupted.',
+          'claim_id is exactly "' + f.id + '" and claim_key exactly "' + claimKey(f) + '" (copy both character for',
+          'character): the key is this claim\'s content, and the merge attaches your verdict to the claim with that id AND',
+          'that key, no other. Include the claim so the file stands alone. Return {"claim_id": "' + f.id + '",',
+          '"claim_key": "' + claimKey(f) + '", "real": ..., "reasoning": ...}. A verdict that exists only in a return',
+          'value is lost the moment the run is interrupted.',
         ].join('\n'),
         { label: 'verify:' + f.id, phase: 'Verify', schema: VERDICT, model: MODEL, effort: EFFORT }
-      ).then(v => Object.assign({}, f, { verdict: v && v.claim_id === f.id ? v : null }))
+      ).then(v => Object.assign({}, f, { verdict: v && v.claim_id === f.id && v.claim_key === claimKey(f) ? v : null }))
     )).then(claims => ({ batch, res, claims }))
   }
 )

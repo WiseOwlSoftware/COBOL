@@ -1,5 +1,5 @@
 {
-  "claim_id": "p800-1", "page": 800,
+  "claim_id": "p800-1", "claim_key": "d22ceae92c9f1fa3", "page": 800,
   "kind": "missing-heading",
   "severity": "structural",
   "claim": {
