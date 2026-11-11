@@ -111,11 +111,15 @@ jobs:
       # the test matrix, its configuration and the JSON list of the target assemblies it runs. A target whose key at
       # this merged tree has a pass on the store ref (`refs/cobol-build-store/passes`, published by the landing) is not
       # run on a leg that accepts records (Windows, Debug: the local gate's facets); every other target runs. Empty
-      # when the matrix does not run. The shard jobs read nothing else to decide what they run (`ci_plan.ci_wiring`).
+      # when the matrix does not run. `<leg>_generate`: the generated targets (kb/Work PB5231) the leg's running targets
+      # depend on, each with the output digest the plan keyed them on ("" when none), which `<leg>-generate` makes ONCE
+      # for every shard. The generate and shard jobs read nothing else to decide what they run (`ci_plan.ci_wiring`).
       linux_configuration: ${{ steps.plan.outputs.linux_configuration }}
       linux_targets: ${{ steps.plan.outputs.linux_targets }}
+      linux_generate: ${{ steps.plan.outputs.linux_generate }}
       windows_configuration: ${{ steps.plan.outputs.windows_configuration }}
       windows_targets: ${{ steps.plan.outputs.windows_targets }}
+      windows_generate: ${{ steps.plan.outputs.windows_generate }}
     steps:
       - id: checkout
         uses: actions/checkout@v7
@@ -258,7 +262,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$EVENT" = "merge_group" ]; then records=(--remote origin); else records=(--no-records); fi
-          python3 scripts/ci_plan.py "${records[@]}" --github-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
+          python3 scripts/ci_plan.py plan "${records[@]}" --github-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
       # ── ⛔ THE DRIFT TEST FOR THE GATE ITSELF. `ci-gate` can only block a red it is `needs:`-wired to see, and
       # a job added months from now without that wiring would be a job whose failure lands on main silently —
       # the same shape as PB796 one level down. This asserts, from the workflow file itself, that every job id
@@ -591,10 +595,55 @@ jobs:
   # configuration, so the owner's machine's pass stands for it (owner 2026-11-10), and the whole Windows matrix is
   # skipped when every target has one. Every build is TreatWarningsAsErrors (Directory.Build.props, every
   # configuration). ──
+  # ── LINUX'S GENERATED TARGETS, MADE ONCE FOR EVERY SHARD (kb/Work PB5231, PB5235; scripts/ci_plan.py
+  # `generate`): the conformance suite's manifests are a generated target that Conformance's key takes the OUTPUT digest
+  # of. This job makes the plan's `linux_generate` once, traced, exactly as the gate does (`buildgraph.bring_up_to_date`),
+  # and every Linux shard downloads it and hands it to its Conformance listing and hosts in WISEOWL_COBOL_GATE_SUITE:
+  # without it each host generates its own (SuiteManifest), a suite no key names. A digest the plan took from the store
+  # ref must be reproduced (Nondeterministic otherwise). ──
+  linux-generate:
+    name: Linux generated targets (once, for every shard)
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.linux_generate != '{}'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    outputs:
+      digests: ${{ steps.generate.outputs.digests }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - name: Generate the plan's generated targets, traced (ci_plan.py generate)
+        id: generate
+        shell: bash
+        env:
+          EXPECT: ${{ needs.changes.outputs.linux_generate }}
+        run: |
+          set -euo pipefail
+          . scripts/python-resolve.sh
+          "$PY" scripts/ci_plan.py generate --leg linux --expect "$EXPECT" --github-output "$GITHUB_OUTPUT"
+      - name: Upload the generated outputs (every Linux shard downloads them)
+        uses: ./.github/actions/upload-results
+        with:
+          name: generated-linux
+          path: TestResults/generated/
+
   linux-shard:
     name: Linux shard ${{ matrix.shard }}/5
-    needs: changes
-    if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.linux_targets != '[]'
+    needs: [changes, linux-generate]
+    # `!failure()`: linux-generate is skipped when the plan generates nothing for this leg, which must not skip the shards.
+    if: ${{ !cancelled() && !failure() && needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.linux_targets != '[]' }}
     runs-on: ubuntu-26.04
     timeout-minutes: 15
     strategy:
@@ -647,7 +696,15 @@ jobs:
         run: dotnet build WiseOwl.Cobol.sln --configuration ${{ needs.changes.outputs.linux_configuration }}
       # The POPULATIONS every Linux shard's trx is checked against (`ci-gate`), listed once, from shard 1's build: the
       # assemblies the plan runs.
-      - name: List the discovered populations (shard 1; scripts/test_population.py, scrubbed)
+      # The leg's generated outputs, made once by linux-generate (kb/Work PB5231, PB5235): the listing and every host
+      # that depends on one is handed its directory, so no host generates its own.
+      - name: Download the leg's generated outputs (made once by linux-generate)
+        if: needs.changes.outputs.linux_generate != '{}'
+        uses: ./.github/actions/download-results
+        with:
+          pattern: generated-linux
+          path: TestResults/handed
+      - name: List the discovered populations (shard 1; ci_plan.py list, scrubbed, handed the generated outputs)
         if: matrix.shard == 1
         shell: bash
         env:
@@ -655,14 +712,10 @@ jobs:
         run: |
           set -euo pipefail
           . scripts/python-resolve.sh
-          mkdir -p TestResults/${{ runner.os }}-shard
-          # The plan's JSON list as ONE space-separated line with NO line end (sys.stdout.write): on Windows both a native
-          # jq and Python's print end a line CRLF, and bash keeps a CR that is not the output's last character, so a
-          # name per line would arrive as `Unit<CR>` (kb/Work PB5235 review R1-4).
-          for assembly in $("$PY" -c 'import json, sys; sys.stdout.write(" ".join(json.loads(sys.argv[1])))' "$TARGETS"); do
-            "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
-              --configuration ${{ needs.changes.outputs.linux_configuration }} --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
-          done
+          # Each assembly of the plan's set, from its build target's project, its listing handed what the target depends
+          # on (ci_plan.py list; kb/Work PB5235): the JSON list never passes through the shell.
+          "$PY" scripts/ci_plan.py list --targets "$TARGETS" --configuration ${{ needs.changes.outputs.linux_configuration }} \
+            --generated "${{ github.workspace }}/TestResults/handed/generated-linux" --out-dir TestResults/${{ runner.os }}-shard
       - name: Unit, this shard
         if: contains(fromJSON(needs.changes.outputs.linux_targets), 'Unit')
         env:
@@ -678,6 +731,7 @@ jobs:
       - name: Conformance, this shard
         if: ${{ !cancelled() && contains(fromJSON(needs.changes.outputs.linux_targets), 'Conformance') }}
         env:
+          WISEOWL_COBOL_GATE_SUITE: ${{ github.workspace }}/TestResults/handed/generated-linux/conformance-suite
           WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration ${{ needs.changes.outputs.linux_configuration }} --logger "trx;LogFileName=Conformance.trx" --results-directory TestResults/${{ runner.os }}-shard
       # ── INV-1-STRONG (VERSION_TEST_MATRIX_DESIGN §8; rearch P3 step 8), A STEP OF EVERY LINUX SHARD: the full NIST golden
@@ -695,8 +749,22 @@ jobs:
         env:
           WISEOWL_COBOL_NIST_STD: "2023"
           WISEOWL_COBOL_NIST_PERMISSIVE: "1"
+          WISEOWL_COBOL_GATE_SUITE: ${{ github.workspace }}/TestResults/handed/generated-linux/conformance-suite
           WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
         run: python3 scripts/inert_lane.py watch -- dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration ${{ needs.changes.outputs.linux_configuration }} --filter "FullyQualifiedName~NistProgram_MatchesGolden" --logger "trx;LogFileName=inv1-strong.trx" --results-directory TestResults/${{ runner.os }}-shard
+      # ── THE HOSTS RAN WHAT THEY WERE HANDED (kb/Work PB5231 R1-2; gate.py `_check_generated`, in CI): each generated
+      # output still has the digest linux-generate wrote, and no host's harness log records generating its own. ──
+      - name: The hosts ran the generated outputs they were handed (ci_plan.py handed)
+        if: ${{ !cancelled() && needs.changes.outputs.linux_generate != '{}' }}
+        shell: bash
+        env:
+          TARGETS: ${{ needs.changes.outputs.linux_targets }}
+          DIGESTS: ${{ needs.linux-generate.outputs.digests }}
+        run: |
+          set -euo pipefail
+          . scripts/python-resolve.sh
+          "$PY" scripts/ci_plan.py handed --targets "$TARGETS" --digests "$DIGESTS" \
+            --generated "${{ github.workspace }}/TestResults/handed/generated-linux" --log TestResults/${{ runner.os }}-shard/harness-observations.log
       - name: Upload test results (TRX + shard 1's population listings + harness log)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results
@@ -708,10 +776,55 @@ jobs:
   # and the same name check (`ci-gate`). The cross-platform net is load-bearing (the 2026-08-07 BOM break was
   # Windows-caught), so a target runs here unless the owner's machine passed it at this merged tree's very key, on
   # Windows, in Debug, under toolchain.env's tools (kb/Work PB5235; the plan's log names the record accepted).
+  # ── WINDOWS'S GENERATED TARGETS, MADE ONCE FOR EVERY SHARD (kb/Work PB5231, PB5235; scripts/ci_plan.py
+  # `generate`): the conformance suite's manifests are a generated target that Conformance's key takes the OUTPUT digest
+  # of. This job makes the plan's `windows_generate` once, traced, exactly as the gate does (`buildgraph.bring_up_to_date`),
+  # and every Windows shard downloads it and hands it to its Conformance listing and hosts in WISEOWL_COBOL_GATE_SUITE:
+  # without it each host generates its own (SuiteManifest), a suite no key names. A digest the plan took from the store
+  # ref must be reproduced (Nondeterministic otherwise). ──
+  windows-generate:
+    name: Windows generated targets (once, for every shard)
+    needs: changes
+    if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.windows_generate != '{}'
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 10
+    outputs:
+      digests: ${{ steps.generate.outputs.digests }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - name: Generate the plan's generated targets, traced (ci_plan.py generate)
+        id: generate
+        shell: bash
+        env:
+          EXPECT: ${{ needs.changes.outputs.windows_generate }}
+        run: |
+          set -euo pipefail
+          . scripts/python-resolve.sh
+          "$PY" scripts/ci_plan.py generate --leg windows --expect "$EXPECT" --github-output "$GITHUB_OUTPUT"
+      - name: Upload the generated outputs (every Windows shard downloads them)
+        uses: ./.github/actions/upload-results
+        with:
+          name: generated-windows
+          path: TestResults/generated/
+
   windows-shard:
     name: Windows shard ${{ matrix.shard }}/7
-    needs: changes
-    if: needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.windows_targets != '[]'
+    needs: [changes, windows-generate]
+    # `!failure()`: windows-generate is skipped when the plan generates nothing for this leg, which must not skip the shards.
+    if: ${{ !cancelled() && !failure() && needs.changes.outputs.run_matrix == 'true' && needs.changes.outputs.windows_targets != '[]' }}
     runs-on: windows-2025-vs2026
     timeout-minutes: 20
     strategy:
@@ -755,7 +868,15 @@ jobs:
         run: dotnet build WiseOwl.Cobol.sln --configuration ${{ needs.changes.outputs.windows_configuration }}
       # The POPULATIONS every Windows shard's trx is checked against (`ci-gate`), listed once, from shard 1's build: the
       # assemblies the plan runs.
-      - name: List the discovered populations (shard 1; scripts/test_population.py, scrubbed)
+      # The leg's generated outputs, made once by windows-generate (kb/Work PB5231, PB5235): the listing and every host
+      # that depends on one is handed its directory, so no host generates its own.
+      - name: Download the leg's generated outputs (made once by windows-generate)
+        if: needs.changes.outputs.windows_generate != '{}'
+        uses: ./.github/actions/download-results
+        with:
+          pattern: generated-windows
+          path: TestResults/handed
+      - name: List the discovered populations (shard 1; ci_plan.py list, scrubbed, handed the generated outputs)
         if: matrix.shard == 1
         shell: bash
         env:
@@ -763,14 +884,10 @@ jobs:
         run: |
           set -euo pipefail
           . scripts/python-resolve.sh
-          mkdir -p TestResults/${{ runner.os }}-shard
-          # The plan's JSON list as ONE space-separated line with NO line end (sys.stdout.write): on Windows both a native
-          # jq and Python's print end a line CRLF, and bash keeps a CR that is not the output's last character, so a
-          # name per line would arrive as `Unit<CR>` (kb/Work PB5235 review R1-4).
-          for assembly in $("$PY" -c 'import json, sys; sys.stdout.write(" ".join(json.loads(sys.argv[1])))' "$TARGETS"); do
-            "$PY" scripts/test_population.py list --project tests/WiseOwl.Cobol.Tests.$assembly/WiseOwl.Cobol.Tests.$assembly.csproj \
-              --configuration ${{ needs.changes.outputs.windows_configuration }} --out TestResults/${{ runner.os }}-shard/$assembly.list.txt
-          done
+          # Each assembly of the plan's set, from its build target's project, its listing handed what the target depends
+          # on (ci_plan.py list; kb/Work PB5235): the JSON list never passes through the shell.
+          "$PY" scripts/ci_plan.py list --targets "$TARGETS" --configuration ${{ needs.changes.outputs.windows_configuration }} \
+            --generated "${{ github.workspace }}/TestResults/handed/generated-windows" --out-dir TestResults/${{ runner.os }}-shard
       - name: Unit, this shard
         if: contains(fromJSON(needs.changes.outputs.windows_targets), 'Unit')
         env:
@@ -784,8 +901,22 @@ jobs:
       - name: Conformance, this shard
         if: ${{ !cancelled() && contains(fromJSON(needs.changes.outputs.windows_targets), 'Conformance') }}
         env:
+          WISEOWL_COBOL_GATE_SUITE: ${{ github.workspace }}/TestResults/handed/generated-windows/conformance-suite
           WISEOWL_COBOL_HARNESS_LOG: ${{ github.workspace }}/TestResults/${{ runner.os }}-shard/harness-observations.log
         run: dotnet test tests/WiseOwl.Cobol.Tests.Conformance/WiseOwl.Cobol.Tests.Conformance.csproj --no-build --configuration ${{ needs.changes.outputs.windows_configuration }} --logger "trx;LogFileName=Conformance.trx" --results-directory TestResults/${{ runner.os }}-shard
+      # ── THE HOSTS RAN WHAT THEY WERE HANDED (kb/Work PB5231 R1-2; gate.py `_check_generated`, in CI): each generated
+      # output still has the digest windows-generate wrote, and no host's harness log records generating its own. ──
+      - name: The hosts ran the generated outputs they were handed (ci_plan.py handed)
+        if: ${{ !cancelled() && needs.changes.outputs.windows_generate != '{}' }}
+        shell: bash
+        env:
+          TARGETS: ${{ needs.changes.outputs.windows_targets }}
+          DIGESTS: ${{ needs.windows-generate.outputs.digests }}
+        run: |
+          set -euo pipefail
+          . scripts/python-resolve.sh
+          "$PY" scripts/ci_plan.py handed --targets "$TARGETS" --digests "$DIGESTS" \
+            --generated "${{ github.workspace }}/TestResults/handed/generated-windows" --log TestResults/${{ runner.os }}-shard/harness-observations.log
       - name: Upload test results (TRX + shard 1's population listings + harness log)
         if: ${{ always() }}
         uses: ./.github/actions/upload-results
@@ -1037,7 +1168,7 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [changes, supersede, audits, linux-shard, windows-shard, linux-built-self-tests, windows-self-tests, toolchain-cache, package-cache]
+    needs: [changes, supersede, audits, linux-generate, linux-shard, windows-generate, windows-shard, linux-built-self-tests, windows-self-tests, toolchain-cache, package-cache]
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:

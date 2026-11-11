@@ -79,6 +79,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import json
 import os
 import re
 import subprocess
@@ -508,6 +509,18 @@ _SCRUBBED_RUN = re.compile(r"\bscrubbed\s+dotnet\s+test\b")
 _ASSIGNED = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)\s*[:=]")
 #: A run of the union check (`check` always reads `--trx`): what licenses a workflow to set SHARD.
 _CHECKS_UNION = re.compile(r"\btest_population\.py\s+check\b")
+#: A run of the after-host hand-off check (kb/Work PB5235): what licenses a workflow to set a generated target's variable.
+_CHECKS_HANDED = re.compile(r"\bci_plan\.py\s+handed\b")
+
+
+def handoff_variables(targets_file: Path | None = None) -> frozenset[str]:
+    """The variable each generated target of the build graph is handed to its dependents' hosts in (kb/Work PB5231;
+    scripts/build_targets.json, a `generated` target's `env`), upper-cased: a variable the scrub removes, which a workflow
+    may set only where it checks after the hosts that they ran what they were handed (`ci_plan.py handed`). Read as data:
+    buildgraph, the graph's reader, imports this module, and a script this one imports reaches every sparse checkout
+    that runs it (scripts/sparse_checkout.py)."""
+    data = json.loads((targets_file or REPO / "scripts" / "build_targets.json").read_text(encoding="utf-8"))
+    return frozenset(str(t["env"]).upper() for t in data["targets"].values() if t.get("kind") == "generated")
 MECHANISM = "scripts/test_population.py"
 #: Documentation and data under scripts/ — prose that may QUOTE a command, never a runner.
 _PROSE_SUFFIXES = frozenset({".md", ".txt", ".json", ".tsv", ".csv"})
@@ -550,9 +563,12 @@ def _python_findings(text: str, rel: str) -> tuple[bool, list[str]]:
     return subprocess_run or printed, findings
 
 
-def audit_callers(root: Path = REPO) -> tuple[list[str], list[str]]:
+def audit_callers(root: Path = REPO, handoffs: frozenset[str] | None = None) -> tuple[list[str], list[str]]:
     """(the sites that run `dotnet test`, the offenders). Scope: every script under `scripts/` except the hooks
-    (they receive commands as data and run no test) and this mechanism; every workflow under `.github/workflows/`."""
+    (they receive commands as data and run no test) and this mechanism; every workflow under `.github/workflows/`. A
+    workflow may set SHARD where it checks the shards' union, and a generated target's hand-off variable (`handoffs`,
+    by default `handoff_variables()`) where it checks the hand-off; every other scrubbed variable it sets narrows."""
+    handoffs = handoff_variables() if handoffs is None else handoffs
     sites, offenders = [], []
     for path in sorted((root / "scripts").rglob("*")):
         rel = path.relative_to(root).as_posix()
@@ -586,10 +602,15 @@ def audit_callers(root: Path = REPO) -> tuple[list[str], list[str]]:
             sites.append(rel)
         # The shard variable divides a run only where the same workflow checks the shards' union (`ci-gate`).
         checks_union = any(_CHECKS_UNION.search(line) for _, line in code)
+        # A generated target's variable hands a host the output its key names, only where the workflow checks after the
+        # hosts that they ran it (kb/Work PB5235).
+        checks_handed = any(_CHECKS_HANDED.search(line) for _, line in code)
         offenders += [f"{rel}:{i}: sets `{m.group(1)}`, a variable that narrows a `dotnet test` run"
                       + (", and runs no `test_population.py check` over its shards' trx" if m.group(1).upper() == SHARD else "")
+                      + (", and runs no `ci_plan.py handed` check of the hand-off" if m.group(1).upper() in handoffs else "")
                       for i, line in code for m in _ASSIGNED.finditer(line)
-                      if is_scrubbed(m.group(1)) and not (m.group(1).upper() == SHARD and checks_union)]
+                      if is_scrubbed(m.group(1)) and not (m.group(1).upper() == SHARD and checks_union)
+                      and not (m.group(1).upper() in handoffs and checks_handed)]
     return sites, offenders
 
 
@@ -620,8 +641,13 @@ def _filtered(code: str) -> bool:
     return "dotnet test" in code and _FILTER_FLAG in code
 
 
+#: The commands that list a shard's population through `list_population`: this file's own `list`, and the merge group's
+#: (`scripts/ci_plan.py list`, which hands a listing the generated outputs its target depends on; kb/Work PB5235).
+SHARD_LISTERS = (f"{MECHANISM} list", "scripts/ci_plan.py list")
+
+
 def _by_shard_union(code: str) -> bool:
-    return f"{MECHANISM} list" in code and TRX_LOGGER_MARK in code and UPLOAD_ACTION in code
+    return any(lister in code for lister in SHARD_LISTERS) and TRX_LOGGER_MARK in code and UPLOAD_ACTION in code
 
 
 def audit_filtered_runs(root: Path = REPO) -> tuple[list[str], list[str], list[str]]:
@@ -903,6 +929,13 @@ def self_test() -> int:
             ".github/workflows/unchecked.yml": "jobs:\n  a:\n    env:\n      WISEOWL_COBOL_SHARD: 1/2\n    steps:\n"
                                               "      - run: dotnet test tests/X\n"
                                               "      # python scripts/test_population.py check in a comment checks nothing\n",
+            # a generated target's hand-off (kb/Work PB5235): set where the workflow checks it, a narrowing elsewhere
+            ".github/workflows/handed.yml": "jobs:\n  a:\n    steps:\n      - env:\n          WISEOWL_COBOL_GATE_SUITE: s\n"
+                                            "        run: dotnet test tests/X\n"
+                                            "      - run: python scripts/ci_plan.py handed --targets x\n",
+            ".github/workflows/unhanded.yml": "jobs:\n  a:\n    steps:\n      - env:\n          WISEOWL_COBOL_GATE_SUITE: s\n"
+                                              "        run: dotnet test tests/X\n"
+                                              "      # python scripts/ci_plan.py handed in a comment checks nothing\n",
         }
         for rel, text in files.items():
             (r / rel).parent.mkdir(parents=True, exist_ok=True)
@@ -910,9 +943,11 @@ def self_test() -> int:
         sites, offenders = audit_callers(r)
         flagged = {o.split(":", 1)[0] for o in offenders}
         want = {"scripts/bad.sh", "scripts/bad.ps1", "scripts/bad.py", "scripts/instruction.py",
-                "scripts/runner.cmd", ".github/workflows/bad.yml", ".github/workflows/unchecked.yml"}
+                "scripts/runner.cmd", ".github/workflows/bad.yml", ".github/workflows/unchecked.yml",
+                ".github/workflows/unhanded.yml"}
         arm("audit-callers flags every unscrubbed shape and passes every scrubbed one (an unparsable runner type "
-            "fails closed, a Markdown note is prose)", flagged == want,
+            "fails closed, a Markdown note is prose; a generated target's hand-off variable is set only beside "
+            "`ci_plan.py handed`)", flagged == want and "WISEOWL_COBOL_GATE_SUITE" in handoff_variables(),
             f"flagged {sorted(flagged)}")
         arm("audit-callers: a docstring or a help string is prose, a hook is out of scope, a comment is not a run",
             "scripts/prose.py" not in sites and "scripts/hooks/hook.sh" not in sites and "scripts/good.sh" in sites

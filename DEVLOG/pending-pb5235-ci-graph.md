@@ -43,12 +43,22 @@ the landing lane retries it once, as it does exit 9. A warning would have let a 
 **Review round 1, folded in.** The plan's reading of the ref is loud: an absent ref, an unreachable remote, a ref naming a
 blob or a tree, a commit holding no pass, and each entry that is no pass (not JSON, filed under another key, not a record
 path) are each a named warning in the job log, and every target then runs. A publisher that loses its lease mid-publish
-re-reads and re-sends (now a self-test arm). The shard listings write the plan's list as one line with no line end, since
-on Windows both jq and Python's print end lines CRLF.
+re-reads and re-sends (now a self-test arm).
 
 **Caught before the merge group.** The first draft read the plan's JSON list in the Windows listing step with `jq -r`.
 On this host, toolchain.env's jq 1.8.2 ends each line CRLF on Windows, and bash keeps the CR, so `Unit` would have become
-`Unit\r` and the listing would have named no project. Both shard listings now print it from Python as one line with no line end.
+`Unit\r` and the listing would have named no project. The shard listings are now one Python command, `ci_plan.py list`,
+which reads the plan's JSON list itself, so the list never passes through the shell.
+
+**The generated suite, made once per leg.** With PB5231 on main, Conformance's key takes the output digest of the
+`conformance-suite` generated target. The plan keys the graph in topological order: Windows takes the generator's digest
+from the ref, and Linux, which accepts no record, leaves Conformance's key unresolved and runs it. Each leg's new
+`<leg>-generate` job runs the gate's traced generation once and uploads it, and every shard hands it to its Conformance
+listing and hosts in `WISEOWL_COBOL_GATE_SUITE`. Without that, each host would generate its own suite, which no key names.
+A digest the plan took from the ref must be reproduced, or the generation is `Nondeterministic`. After the hosts, each
+shard checks that the suite is unchanged and that no host generated its own (`ci_plan.py handed`, gate.py's
+`_check_generated` in CI). The own-generation test moved from gate.py into `GeneratedTarget.recorded_own`, so the gate and
+CI share it. The caller audit lets a workflow set the hand-off variable only beside that check.
 
 **Also.** The BUILD TARGETS audit (`buildgraph.py check`) now runs in the merge group's audits job, as it already did in the
 local gate. The session probe's first line is the latest scheduled nightly's verdict. Its first run showed the

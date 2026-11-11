@@ -1495,7 +1495,8 @@ with it.
 store's own layout, `<target>/<key>.json`. A record is found there by its key and by nothing else.
 
 **What a record carries** (`PUBLISHED_FIELDS`): `target`, `key`, `result`, `assembly`, `facets` (platform, configuration,
-toolchain), `counts` (discovered, ran, skipped, carried), and where it came from: `head`, `tree`, `run`, `when`. The host's
+toolchain), `counts` (discovered, ran, skipped, carried), a generated target's `outputs` (its output digest) and `files`,
+and where it came from: `head`, `tree`, `run`, `when`. The host's
 record also names its worktree and its run directory. Those stay on the host, with the evidence they point at.
 
 **Who writes it: the landing, when it pushes the branch.** `enqueue.py`'s `queue` step 4 calls `buildgraph.publish`
@@ -1514,14 +1515,39 @@ and a landing that silently skipped its publish would make that the rule. `publi
 A publisher that loses the lease re-reads and re-sends, so two landings never drop each other's records, and the ref's
 history stays one commit deep. Pruning is a by-product of publishing: every record pruned leaves an empty tree.
 
-**How CI reads it: the `changes` job's plan step** (`scripts/ci_plan.py`). Only in a merge group does it read the ref
+**How CI reads it: the `changes` job's plan step** (`scripts/ci_plan.py plan`). Only in a merge group does it read the ref
 (`--remote origin`). It fetches it with `--no-filter`, because the job's checkout is a `blob:none` partial clone that would
 otherwise fetch each record on demand. A dispatch run or an unverified push to main reads none (`--no-records`) and runs
-everything. For each leg of `CI_LEGS` and each target of `scripts/build_targets.json`, it computes the target's key at the
-merged tree with `buildgraph.keys`, the function the local gate uses. Its log names, per leg and target, the key and either
-`RUN` or the record accepted (run, head, tree, time, counts). The job's summary carries the same table. Its outputs are, per
-leg, the configuration and the JSON list of assemblies to run. A ref that cannot be read is a warning, and every target
-runs. A crash fails `changes`, so `ci-gate` is red.
+everything. For each leg of `CI_LEGS` it computes every target's key at the merged tree with `buildgraph.keys`, the
+function the local gate uses, in the graph's topological order. A dependent's key takes its generated dependency's OUTPUT
+digest (§3.14.12 item 5, kb/Work PB5231): a leg that accepts records takes the digest the ref records at the generator's
+key, which is the digest the local gate keyed its own pass on. A key that cannot be resolved (the Linux leg, which accepts
+no record; a generator with no record at its key, because a merge changed one of its inputs) leaves its target to run. Its
+log names, per leg and target, the key and either `RUN` or the record accepted (run, head, tree, time, counts), and for a
+generated target the digest its dependents were keyed on. The job's summary carries the same table. Its outputs are, per
+leg, the configuration, the JSON list of assemblies to run, and `<leg>_generate`: the generated targets those assemblies
+depend on, each with the digest the plan keyed them on ("" when none). A ref that cannot be read is a warning, and every
+target runs. A crash fails `changes`, so `ci-gate` is red.
+
+**Generated targets in CI: made once per leg, handed to every shard** (kb/Work PB5231, PB5235). A leg whose running
+targets depend on a generated target makes it ONCE, in its `<leg>-generate` job (`ci_plan.py generate`), with the gate's own
+traced `buildgraph.bring_up_to_date`, and uploads `TestResults/generated/` as `generated-<leg>`. Every shard of the leg
+downloads it into `TestResults/handed/generated-<leg>/`. The shard's listing is handed it (`ci_plan.py list`, through
+`buildgraph.Graph.handed`), and so is each host of a dependent target: its step sets the generated
+target's variable (`WISEOWL_COBOL_GATE_SUITE` for `conformance-suite`) to that directory. Without the hand-off each host
+would generate its own suite (`SuiteManifest`), a run no key names, and the Linux inert watch would charge the generator's
+reads to Conformance. Three checks hold it:
+- A digest the plan took from the ref is recorded at its key in the job's private store before the generation runs, so a
+  generation that does not reproduce it is `Nondeterministic`: the merge group then proves the local host's suite is the
+  one its key names.
+- After the hosts, each shard runs `ci_plan.py handed`, gate.py's `_check_generated` in CI: the output still has the
+  digest the generation wrote, and no host's harness log records generating its own (`GeneratedTarget.recorded_own`, the
+  one test of the mark, which the gate uses too).
+- `test_population.py audit-callers` lets a workflow set a generated target's hand-off variable only where it also runs
+  that check, as it lets the shard variable be set only beside the union check.
+
+A shard job needs its leg's generate job, and runs under `!cancelled() && !failure()`, so a generate job that the plan
+skipped does not skip the shards, and one that failed does.
 
 **The trust model.** A record is accepted only when all four hold:
 - it sits at `<target>/<key>.json` for the key CI computed itself at the merged tree;
@@ -1530,13 +1556,17 @@ runs. A crash fails `changes`, so `ci-gate` is red.
 - its facets equal the leg's;
 - the leg accepts records.
 
+A generated target's record carries no facets field: its key covers its own facets (the toolchain), so a record at the
+key CI computed is at the leg's. Its digest decides only a dependent's key; that dependent's pass must still meet all four.
+
 The leg's toolchain facet is `toolchain.summary(<toolchain.env at the merged tree>, "gate", <the leg's OS>)`. That is the
 string the gate on that OS records, and the gate refuses to run under any other tools (NOT RUN [toolchain]). So a pass
 measured under tools other than toolchain.env's never matches. Whoever can push the ref can write a record, and that is
 exactly the set of people who can push a branch. The ref adds no new writer. A forged record can make CI skip a target on
 the Windows leg only, never on Linux, never in Release, and never at a key the merged tree does not have.
 
-**The legs** (`ci_plan.CI_LEGS`, the one statement, held by `ci_plan.ci_wiring` in its self-test):
+**The legs** (`ci_plan.CI_LEGS`, the one statement, held by `ci_plan.ci_wiring` in its self-test, which also holds each
+leg's generate job, its download, the handed listing and hosts and the after-host check):
 
 | leg | configuration | accepts a record | what it proves that no record can |
 |---|---|---|---|

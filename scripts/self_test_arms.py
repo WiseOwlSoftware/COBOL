@@ -79,13 +79,20 @@ DECLARED: dict[str, tuple[str, ...]] = {
     ),
     # kb/Work PB5235: the merge group's plan over the store ref, and the workflow held to it
     'scripts/ci_plan.py': (
-        'the Windows leg accepts a pass at the key it computes itself and names the record',
+        "the Windows leg keys Conformance on the generator's output digest the ref records at the generator's key",
+        "a change to the GENERATOR's inputs (inv/) moves its key off its record",
         'a record is accepted only at the key CI computes',
         "a pass whose facets are not the leg's, and a record filed under a key it does not name, are refused",
-        '--no-records reads no ref and runs every target',
+        '--no-records reads no ref and runs every test target',
+        # kb/Work PB5235 round 2: a leg's generated targets, made once and handed to its shards
+        "`generate` makes the plan's generated targets once, traced",
+        'a generation that does not reproduce the digest the plan keyed on is a named Nondeterministic red',
+        '`handed`: a shard whose hosts ran the handed suite is GREEN',
+        "`list` lists each assembly of the plan's set from its target's project, handing a dependent target's",
         'the store ref is read loudly',
         'the real workflow runs each leg as CI_LEGS states it',
         'the wiring check names a Windows Unit step that runs whatever the plan says',
+        "a Windows Conformance step not handed the leg's generated suite",
     ),
     'scripts/gate.py': (
         'a whole planted population is GREEN, every assembly EXACT',
@@ -192,6 +199,7 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'red_classes: the class of every definition with a Failed result',
         'the XML range is stated once, as escapes',
         'audit-callers flags every unscrubbed shape',
+        "a generated target's hand-off variable is set only beside",
     ),
     'scripts/test_leg_report.py': (
         'calibration: the retired build-local.ps1 filter DROPS the planted message',

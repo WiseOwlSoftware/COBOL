@@ -87,7 +87,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -223,8 +223,16 @@ class GeneratedTarget(Target):
     def own_mark(self) -> str:
         """What a dependent's host records in the harness observation log (tests/_shared/HarnessLog.cs) when it was
         handed no output and generated its own (kb/Work PB5231 R1-2): a gate whose host log holds it is RED
-        (gate.py `_check_generated`), and the hand-off site must spell it (`scan`)."""
+        (gate.py `_check_generated`; CI's `ci_plan.py handed`), and the hand-off site must spell it (`scan`)."""
         return f"{OWN_GENERATION}  {self.name}"
+
+    def recorded_own(self, log: Path | None) -> bool:
+        """Whether a host's observation log records `own_mark`: the host generated its own output instead of the one it
+        was handed (a missing log records nothing). THE ONE TEST of it, the gate's and CI's."""
+        try:
+            return log is not None and self.own_mark in log.read_text(encoding="utf-8-sig", errors="replace")
+        except OSError:
+            return False
 
     def argv(self, out: Path) -> list[str]:
         """The command's arguments after the program, `{out}` replaced by `out`."""
@@ -302,6 +310,25 @@ class Graph:
     def by_assembly(self) -> dict[str, TestTarget]:
         """The test targets by the assembly each runs."""
         return {t.assembly: t for t in self.tests().values()}
+
+    def handed(self, name: str, root: Path) -> dict[str, str]:
+        """What the host of target `name` is handed when each generated target's output lies in `root/<generated
+        target>` (as `GENERATED_ROOT` lays a worktree's out): for each target it depends on, that target's variable and
+        directory. CI's listing and hosts (`ci_plan.py list`, ci_plan's wiring) read it; the gate
+        hands the directories it generated (`Gate._handed`)."""
+        return {self.targets[d].env: str(root / d) for d in self.targets[name].depends
+                if isinstance(self.targets[d], GeneratedTarget)}
+
+    def needs_generated(self, names: Iterable[str]) -> set[str]:
+        """Every generated target the targets `names` depend on, directly or through another generated target."""
+        seen: set[str] = set()
+        todo = [d for n in names for d in self.targets[n].depends]
+        while todo:
+            d = todo.pop()
+            if d not in seen:
+                seen.add(d)
+                todo += self.targets[d].depends
+        return seen
 
 
 def _topological(targets: Mapping[str, Target]) -> tuple[str, ...]:
@@ -982,15 +1009,17 @@ def generate(repo: Path, target: GeneratedTarget, k: str, store: Store, tracked:
 
 def bring_up_to_date(repo: Path, graph: Graph, entries: list[tuple[bytes, str]], facets: Mapping[str, str],
                      store: Store, *, stable: Callable[[], bool] | None = None,
-                     run: Callable[[Path, GeneratedTarget, Path], Trace] = traced_run) -> dict[str, Generation]:
-    """Every generated target of `graph`, in topological order, brought up to date (`generate`) at the tree `entries`
-    lists; a dependent's key is made from the output digests its dependencies have just been given. Raises the first
-    BuildError."""
+                     run: Callable[[Path, GeneratedTarget, Path], Trace] = traced_run,
+                     only: Iterable[str] | None = None) -> dict[str, Generation]:
+    """Every generated target of `graph` (of `only`, when given: a set closed under dependency, `Graph.needs_generated`),
+    in topological order, brought up to date (`generate`) at the tree `entries` lists; a dependent's key is made from
+    the output digests its dependencies have just been given. Raises the first BuildError."""
     tracked = {p for _, p in entries}
+    wanted = None if only is None else set(only)
     done: dict[str, Generation] = {}
     for name in graph.order:
         t = graph.targets[name]
-        if isinstance(t, GeneratedTarget):
+        if isinstance(t, GeneratedTarget) and (wanted is None or name in wanted):
             k = key(t, entries, facets, {n: g.outputs for n, g in done.items()})
             done[name] = generate(repo, t, k, store, tracked, stable=stable, run=run)
     return done
