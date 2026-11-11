@@ -1,10 +1,10 @@
 {
  "rule-id": "1989-AR-A.2.13.3-1",
  "rule-digest": "41e782a7e8df",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayOfInteger; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
- "test-ref": "conformance:cases/A.2.13@1985-DAY-OF-INTEGER-FUNCTION/1989-AR-A_2_13_3-1",
- "notes": "§1989:A.2.13.3 AR1 makes argument-1 \"a positive integer that represents a number of days succeeding December 31, 1600, in the Gregorian calendar\" with no upper limit; 3,067,671 is the 2023 ceiling (§2023:15.5.2). The integer screen (CheckArgumentClasses, IntegerViolation) conforms at 85: DAY-OF-INTEGER of a scaled item is refused with COBOL1627. The runtime body DayOfInteger applies the 2023 ceiling at every edition, so at --std 85 an argument above 3,067,671 returns 0. The witness runs arguments 1 and 366 only. Same caveat as DATE-OF-INTEGER: §1989:A.2.13.4 prints the form YYYYDDD, and the verdict follows the change record and kb/Work PB5130's reading. No kb/Work note owns the fix; PB5130 is the sibling with the same mechanism.",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearAndDayOf; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IntegerDateFormBounded",
+ "test-ref": "conformance:cases/A.2.13@1985-DAY-OF-INTEGER-FUNCTION/1989-AR-A_2_13_3-1; conformance:cases/A.2.16@1985-INTEGER-OF-DATE-FUNCTION/pb5130_integer_date_year_10000_85",
+ "notes": "kb/Work PB5130 (landed). §1989:A.2.13.3 AR1: \"a positive integer that represents a number of days succeeding December 31, 1600\", no upper limit. At --std 85 CobolDate.DayOfInteger takes any positive day count: DAY-OF-INTEGER (3068037) is 10000366. Witnesses 1989-AR-A_2_13_3-1 and pb5130_integer_date_year_10000_85.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

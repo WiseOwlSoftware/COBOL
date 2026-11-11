@@ -31,8 +31,13 @@ a witness valuation (the base holding 3 × 10^(−s)); a literal base and an exp
 **Goldens.** `pb5130_integer_date_year_10000_85` and `pb5130_integer_date_form_bounded`; `pb5161_numval_c_currency_content_85`
 and the refusal `pb5161-numval-c-currency-content`; `pb5162_ord_numeric_edited_85` (the refusal
 `pb658-ord-numeric-edited-argument` now refuses from 2002); refusals `pb5208-power-negative-exponent`,
-`-fractional-exponent`, `-signed-exponent` and the complement `pb5208_power_integral_exponents`. No inventory row changed:
-the inventory has no 1985 rows yet (PB5094), and the 2023 rows the fixes touch stay CONFORMS. No diagnostic code was needed;
+`-fractional-exponent`, `-signed-exponent` and the complement `pb5208_power_integral_exponents`. The first full gate found
+two older goldens that wrote `FUNCTION MOD (A ** X, B)` over a SIGNED exponent item X (`pb65_power_receiver`,
+`pb69_native_power_past_the_carrier`): by §2023:15.3 type 6 that argument is not always an integer, so the new arm refuses
+it, and the goldens now declare X (and Y) unsigned, which keeps the data-item-exponent leg they exist for. The 1985
+inventory store re-verdicts eight rows to CONFORMS (1989-AR-A.2.12.3-1, A.2.13.3-1, A.2.16.3-1, A.2.17.3-1, A.2.30.3-1,
+A.2.30.3-4, A.2.31.3-1, A.2.2-4; its GAP 478 → 470), and AR-15.68.3-2's code-location moves from the deleted
+`InvalidCurrency` to `CurrencyStringViolatesContentRules` (the 2023 rows stay CONFORMS). No diagnostic code was needed;
 COBOL6970-COBOL6972 are returned. Design: `docs/INTRINSICS_DESIGN.md` gains the section on edition arms of argument rules
 and the power arm of the type-6 screen. Left for adjudication: whether the 1989 module trims NUMVAL-C argument-2's edge
 spaces (the 2002 text says they are ignored; the scan still trims at 85).
