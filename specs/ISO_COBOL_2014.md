@@ -10604,13 +10604,13 @@ The SPECIAL-NAMES paragraph provides a means for:
 <u>SPECIAL-NAMES</u>.
 [ alphabet-name-clause ] …
 
-┌                    ┌     ╭ <u>ALPHANUMERIC</u>  ╮ ┐                        ┐
-│ <u>CLASS</u> class-name-1 │ FOR ┤               ├ │                        │
-│                    └     ╰ <u>NATIONAL</u>      ╯ ┘                        │
-│                                                                     │ …
-│    ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
-│ IS ┤ literal-5 │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
-└    ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
+┌                    ┌     ╭ <u>ALPHANUMERIC</u>        ╮ ┐                        ┐
+│ <u>CLASS</u> class-name-1 │ FOR ┤                     ├ │                        │
+│                    └     ╰ <u>NATIONAL</u>            ╯ ┘                        │
+│                                                                           │ …
+│          ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
+│       IS ┤ literal-5 │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
+└          ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
 
 [ <u>CRT</u> <u>STATUS</u> IS data-name-2 ]
 
@@ -12631,23 +12631,23 @@ The report description entry names a report and describes its general physical a
 │ ┤              ├ ┤                         ├ │
 └ ╰ <u>CONTROLS</u> ARE ╯ ╰ <u>FINAL</u> [ data-name-1 ] … ╯ ┘
 
-┌                     ╭ integer-1                                         ╮ ┐
-│      ┌ LIMIT IS   ┐ │                                                   │ │
-│ <u>PAGE</u> │            │ ┤ ┌           ╭ <u>LINE</u>  ╮ ┐ ┌           ╭ <u>COLS</u>    ╮ ┐ ├ │
-│      └ LIMITS ARE ┘ │ │ integer-1 ┤       ├ │ │ integer-2 ┤         ├ │ │ │
-│                     ╰ └           ╰ <u>LINES</u> ╯ ┘ └           ╰ <u>COLUMNS</u> ╯ ┘ ╯ │
-│                                                                           │
-│ [ <u>HEADING</u> IS integer-3 ] ┌       ╭ <u>DE</u>     ╮              ┐                │
-│                          │ <u>FIRST</u> ┤        ├ IS integer-4 │                │ .
-│                          └       ╰ <u>DETAIL</u> ╯              ┘                │
-│                                                                           │
-│ ┌      ╭ <u>CH</u>              ╮                    ┐                           │
-│ │ <u>LAST</u> ┤                 ├       IS integer-5 │                           │
-│ └      ╰ <u>CONTROL</u> <u>HEADING</u> ╯                    ┘                           │
-│                                                                           │
-│ ┌      ╭ <u>DE</u>     ╮              ┐                                          │
-│ │ <u>LAST</u> ┤        ├ IS integer-6 │ [ <u>FOOTING</u> IS integer-7 ]                 │
-└ └      ╰ <u>DETAIL</u> ╯              ┘                                          ┘
+┌                     ╭ integer-1                                           ╮ ┐
+│      ┌ LIMIT IS   ┐ │                                                     │ │
+│ <u>PAGE</u> │            │ ┤ ┌           ╭ <u>LINE</u>    ╮ ┐ ┌           ╭ <u>COLS</u>    ╮ ┐ ├ │
+│      └ LIMITS ARE ┘ │ │ integer-1 ┤         ├ │ │ integer-2 ┤         ├ │ │ │
+│                     ╰ └           ╰ <u>LINES</u>   ╯ ┘ └           ╰ <u>COLUMNS</u> ╯ ┘ ╯ │
+│                                                                             │
+│   [ <u>HEADING</u> IS integer-3 ] ┌       ╭ <u>DE</u>     ╮              ┐                │
+│                            │ <u>FIRST</u> ┤        ├ IS integer-4 │                │ .
+│                            └       ╰ <u>DETAIL</u> ╯              ┘                │
+│                                                                             │
+│ ┌      ╭ <u>CH</u>              ╮                    ┐                             │
+│ │ <u>LAST</u> ┤                 ├       IS integer-5 │                             │
+│ └      ╰ <u>CONTROL</u> <u>HEADING</u> ╯                    ┘                             │
+│                                                                             │
+│ ┌      ╭ <u>DE</u>     ╮              ┐                                            │
+│ │ <u>LAST</u> ┤        ├ IS integer-6 │ [ <u>FOOTING</u> IS integer-7 ]                   │
+└ └      ╰ <u>DETAIL</u> ╯              ┘                                            ┘
 </pre>
 
 ##### 13.14.2 Syntax rules
@@ -14564,8 +14564,8 @@ Format 1 (report-writer):
 <pre style="line-height:1">
                      ╭ integer-1 [ ON <u>NEXT</u> <u>PAGE</u> ] ╮
 ╭ <u>LINE</u> NUMBER IS   ╮ │                            │
-│                  │ │ ╭ <u>PLUS</u> ╮                   │ …
-┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├
+│                  │ │ ╭ <u>PLUS</u> ╮                   │
+┤ <u>LINE</u> NUMBERS ARE ├ ┤ ┤      ├ integer-2         ├ …
 │                  │ │ ╰ +    ╯                   │
 ╰ <u>LINES</u> ARE        ╯ │                            │
                      ╰ ON <u>NEXT</u> <u>PAGE</u>               ╯
@@ -21222,8 +21222,8 @@ Format 3 (tallying-and-replacing):
 Format 4 (converting):
 
 <pre style="line-height:1">
-<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ╭ identifier-6 ╮    ╭ identifier-7 ╮ [ after-before-phrase ]
-                                ┤              ├ <u>TO</u> ┤              ├
+                                ╭ identifier-6 ╮    ╭ identifier-7 ╮
+<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ┤              ├ <u>TO</u> ┤              ├ [ after-before-phrase ]
                                 ╰ literal-4    ╯    ╰ literal-5    ╯
 </pre>
 
@@ -24565,10 +24565,9 @@ The UNLOCK statement explicitly releases any record locks associated with a file
 ###### 14.9.43.1 General format
 
 <pre style="line-height:1">
-<u>UNLOCK</u>      ┌ RECORD  ┐
-            │         │
-file-name-1 │         │
-            └ RECORDS ┘
+                   ┌ RECORD  ┐
+<u>UNLOCK</u> file-name-1 │         │
+                   └ RECORDS ┘
 </pre>
 
 ###### 14.9.43.2 Syntax rules

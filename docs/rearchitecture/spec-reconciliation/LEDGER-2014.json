@@ -3643,6 +3643,36 @@
    "sweep": "index-levels(p929-1)",
    "was": "Strongly-typed group items 131 Strongly-typed groups 131 Strongly-typed items 806 Structured compilation group 36, 37, 202 Structured constant 315, 862 Subfield 629",
    "now": "Strongly-typed group items 131\\"
+  },
+  {
+   "page": 255,
+   "sweep": "figure-generator",
+   "was": "┌                    ┌     ╭ <u>ALPHANUMERIC</u>  ╮ ┐                        ┐",
+   "now": "┌                    ┌     ╭ <u>ALPHANUMERIC</u>        ╮ ┐                        ┐"
+  },
+  {
+   "page": 309,
+   "sweep": "figure-generator",
+   "was": "┌                     ╭ integer-1                                         ╮ ┐",
+   "now": "┌                     ╭ integer-1                                           ╮ ┐"
+  },
+  {
+   "page": 362,
+   "sweep": "figure-generator",
+   "was": "│                  │ │ ╭ <u>PLUS</u> ╮                   │ …",
+   "now": "│                  │ │ ╭ <u>PLUS</u> ╮                   │"
+  },
+  {
+   "page": 539,
+   "sweep": "figure-generator",
+   "was": "<u>INSPECT</u> identifier-1 <u>CONVERTING</u> ╭ identifier-6 ╮    ╭ identifier-7 ╮ [ after-before-phrase ]",
+   "now": "                                ╭ identifier-6 ╮    ╭ identifier-7 ╮"
+  },
+  {
+   "page": 629,
+   "sweep": "figure-generator",
+   "was": "<u>UNLOCK</u>      ┌ RECORD  ┐",
+   "now": "                   ┌ RECORD  ┐"
   }
  ],
  "boxes": []
