@@ -1270,8 +1270,9 @@ roundingModeName
 // ADD (§2023:14.9.2)
 // ==========================================
 
-// Format 1 `ADD {identifier-1 | literal-1} … TO {identifier-2 [rounded]} …`, Format 2 `… [TO {identifier-2 |
-// literal-2}] GIVING …` and Format 3 CORRESPONDING. ArithmeticBinder narrows the union per format.
+// Format 1 `ADD {identifier-1 | literal-1} … TO {identifier-2 [rounded]} …`, Format 2 `… [TO] {identifier-2 |
+// literal-2} GIVING …` (only the word TO optional: without it the last sendingOperand is identifier-2) and Format 3
+// CORRESPONDING. ArithmeticBinder narrows the union per format, and refuses a Format 2 of one addend (kb/Work PB5203).
 addStatement
     : ADD (CORRESPONDING | CORR) dataReference TO receivingIdentifier roundedPhrase? conditionalPhrases END_ADD?
     | ADD sendingOperand+ addToPhrase? arithmeticGivingPhrase? conditionalPhrases END_ADD?
