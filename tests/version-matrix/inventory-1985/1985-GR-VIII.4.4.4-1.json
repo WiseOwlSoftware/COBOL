@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.4.4-1",
  "rule-digest": "004c7daaff6e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OptionalAbsent",
  "test-ref": "conformance:cases/VIII.4.4@1985-OPEN-STATEMENT/1985-GR-VIII_4_4_4-1",
+ "notes": "§1985:VIII.4.4.4 GR1: 'The successful execution of an OPEN statement determines the availability of the file and results in the file being in an open mode', with Table 1 giving 'Normal open' for every available file and, for an unavailable one, unsuccessful (INPUT, I-O, EXTEND), created (OUTPUT, optional I-O, optional EXTEND) or a normal open whose first read gives at end or invalid key (optional INPUT). KeyedConnector.OpenCore implements Table 1 for a relative file (05 for an absent optional file, 35 for an absent mandatory one, creation on OUTPUT and optional I-O/EXTEND), FileConnector.OptionalAbsent drives the first read's 10/23, and the 1985 edition arm is FileRegistry.SharedOpenAttempt: Table 19 arbitration runs only when FileConnector.SharingFacilityInEffect (2002 on), so at 85 every open of an available file is a normal open. Probes at --std 85 (classes c, e): two RELATIVE connectors (DYNAMIC and RANDOM) on one physical file both open I-O (00) and the second reads the first's record, and INPUT while the other is I-O is 00, whereas at --std 2002 the same program gives 61 (the edition arm); a re-OPEN of an open file 41; OPTIONAL RANDOM INPUT absent 05 and its first READ invalid key 23; mandatory I-O absent 35 and the READ after that failed OPEN 47; OPTIONAL DYNAMIC I-O absent 05, a WRITE creates the record and it reads back (00). The witness walks Table 1's seven rows for sequential-access relative files with USE procedures on the unsuccessful ones (35).",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

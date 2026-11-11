@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-VIII.4.8.4-7",
  "rule-digest": "90410f39d9b1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
  "test-ref": "conformance:cases/VIII.4.8@1985-USE-STATEMENT/1985-GR-VIII_4_8_4-7",
+ "notes": "§1985:VIII.4.8.4 GR7: 'there must not be the execution of any statement that would cause the execution of a USE procedure that had previously been invoked and had not yet returned control'; 1985 leaves such an execution undefined, so any outcome conforms provided the run neither recurses nor corrupts. DispatchEmitter#EmitRunUseBody emits the per-declarative __useActive guard; at --std 85 the group is EC-free (USE AFTER EXCEPTION CONDITION and EC-names are refused, COBOL0877/COBOL0878), so the void arm 'if (__useActive[__id]) return;' declines the nested invocation quietly. Probes: a READ past end inside the relative file's USE (status 46) and a failed OPEN INPUT inside an INPUT-mode USE (status 35) each return without re-entering the procedure, its counter staying at 1; the witness checks the single invocation on status 10.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
