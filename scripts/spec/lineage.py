@@ -35,6 +35,7 @@ it; nothing else spells the rules.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import pathlib
 import re
@@ -388,10 +389,15 @@ def self_test() -> int:
        and all(pairing_text(a) != pairing_text(b) for a, b in (
            ('" {character-1} ... "', '" [character-1] ... "'), ("<u>MOVE</u> x", "MOVE x"), ("A | B", "A B"),
            ("x shall be", "x may be"), ("x shall be", "x SHALL be"), ("NOT x", "x"), ("31 digits", "36 digits"),
-           ("a ... b", "a b"))),
+           ("a ... b", "a b"), ("A & B", "A B"), ("a &amp b", "a & b"), ("a\\b", "ab"))),
        "the pairing erases typography only (an escape, typographic quotes, dashes and ellipsis glyph, an item's "
        "delimiter, white space) and never a bracket, a brace, a bar, an ellipsis, an underline, a word, a case or a "
        "number (branch review R1-3: 2002's braces against 2023's brackets are no pair)")
+    ok(pairing_text("the symbol 'S'\\ — a numeric item\\\n— an alphanumeric\\\n&emsp;group item\\")
+       == pairing_text("the symbol 'S' — a numeric item — an alphanumeric group item")
+       and pairing_text("IS &lt; x &#60; y &#x3C;") == pairing_text("IS < x < y <"),
+       "the transcription's markup is typography: a Markdown hard break is a line break and a character entity is its "
+       "character (the merge of PB5268, whose split dash lists end each item in a hard break)")
     print(f"=== LINEAGE SELF-TEST: {'PASS' if not fails else 'FAIL - ' + str(len(fails))} ===")
     return 1 if fails else 0
 
@@ -405,16 +411,24 @@ def self_test() -> int:
 #: case, a number or any other character: the review found `cite.norm`, which keeps words only, pairing 2002's
 #: "{character-1} ..." (at least one character) with 2023's "[character-1] ..." (the zero-length literal), a change of
 #: meaning, so a general format's notation is part of the key like every other character.
+#: THE TRANSCRIPTION'S OWN MARKUP IS TYPOGRAPHY TOO (kb/Work PB5256, the merge of PB5268): a Markdown hard break (a
+#: backslash that ends a line, `'S'\` before the next dash item) is a line break, and a character entity (`&emsp;`, the
+#: indent of a dash item's wrapped line; `&lt;`) is that character's spelling. PB5268 split 2002's run-on dash lists into
+#: one item per line, each ending in a hard break, and 2002-SR-13.16.50.2-1 and 2002-GR-14.1.3-10 lost the exact 2023
+#: pairs whose words they still share; the 2023 transcription spells the same lists with no hard break.
 _TYPOGRAPHY = str.maketrans({"\u2018": "'", "\u2019": "'", "\u201a": "'", "\u201b": "'", "\u201c": '"', "\u201d": '"',
                              "\u201e": '"', "\u2013": "-", "\u2014": "-", "\u2012": "-", "\u2015": "-", "\u2212": "-",
                              "\u2010": "-", "\u2011": "-"})
+_HARD_BREAK = re.compile(r"\\(?=\s|$)")
 _ESCAPE = re.compile(r"\\(?=[^\w\s])")
+_ENTITY = re.compile(r"&(?:#[0-9]+|#[xX][0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]*);")
 _ITEM_DELIMITER = re.compile(r"(?:(?<=^)|(?<=\s))(\d+|[a-z])[.)](?=\s)")
 
 
 def pairing_text(text: str) -> str:
     """`text` with its typography erased and nothing else (see `_TYPOGRAPHY`): the text a `normalized` pair shares."""
-    t = _ESCAPE.sub("", text).translate(_TYPOGRAPHY).replace("\u2026", "...")
+    t = _ESCAPE.sub("", _HARD_BREAK.sub(" ", text))
+    t = _ENTITY.sub(lambda m: html.unescape(m.group()), t).translate(_TYPOGRAPHY).replace("\u2026", "...")
     return re.sub(r"\s+", " ", _ITEM_DELIMITER.sub(r"\1)", t)).strip()
 
 

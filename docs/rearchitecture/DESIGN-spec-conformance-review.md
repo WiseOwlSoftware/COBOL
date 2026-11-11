@@ -1246,8 +1246,9 @@ CI's) read the held editions from the schema, so a newly held edition needs no n
 older held edition: each rule paired with the next linked edition's rules of the same construct (`subject`), kind and
 text, `exact` or `normalized`, no judgment and no record. NORMALIZATION ERASES TYPOGRAPHY ONLY (`lineage.pairing_text`):
 a Markdown escape, typographic quotes and dashes, the ellipsis glyph (read as `...`), a list item's delimiter (`1.` and
-`1)`) and white space; never a bracket, a brace, a choice bar, an ellipsis, an underline, a word, a letter's case or a
+`1)`), white space and the transcription's own markup (a Markdown hard break, read as a line break; a character entity
+such as `&emsp;` or `&lt;`, read as its character); never a bracket, a brace, a choice bar, an ellipsis, an underline, a word, a letter's case or a
 number, so a general format's notation is part of its key (the first seed, by `cite.norm`'s words only, paired 2002's
 `{character-1} ...` with 2023's `[character-1] ...`, a change of meaning: branch review R1-3). On 2026-11-11, 2002 to
-2023: 1,758 paired (1,732 exact, 26 normalized, 2 with two candidates), 1,532 unpaired; 1985 to 2023: none paired
+2023: 1,771 paired (1,730 exact, 41 normalized, 2 with two candidates), 1,519 unpaired; 1985 to 2023: none paired
 (2,274 unpaired: no 1985 rule is word for word a 2023 rule). The adjudication of the 2002 change records starts there, and the 1985 to 2002 records after it link 2002.
