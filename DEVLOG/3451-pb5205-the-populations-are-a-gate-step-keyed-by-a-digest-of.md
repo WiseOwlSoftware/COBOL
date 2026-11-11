@@ -1,4 +1,4 @@
-## PB5205: the populations are a gate step keyed by a digest of their inputs, so a docs, kb or tooling-only difference carries their passes
+## Entry 3451 — 2026-11-10 16:54 PST — PB5205: the populations are a gate step keyed by a digest of their inputs, so a docs, kb or tooling-only difference carries their passes
 
 Worktree records-85's gate run 000001 passed every case (Conformance 23,687, Unit 40,741, Characterization 37) and was RED
 only because the orchestrate self-tests hung (PB5155). The branch then merged main: 61 `kb/` files, 2 `DEVLOG/` files and three
@@ -56,3 +56,4 @@ unchanged since a recorded PASS) in 1919s … ===` after the key, and `=== SELF-
 637s … (1 deferred to --built: scripts/filter_population.py) ===` after the re-derivation, which includes the 400-day clock
 proof. That proof turned red on a first version that took the run's start from its name's stamp (the driver's clock) and
 compared it with file times. The start is now the gate.pid's time, on the filesystem's clock.
+
