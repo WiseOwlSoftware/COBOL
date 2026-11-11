@@ -1597,7 +1597,7 @@ def self_test() -> int:
     ed = ISO[2002]
     with tempfile.TemporaryDirectory() as tmp:
         standing = pathlib.Path(tmp) / "standing.json"
-        standing.write_text(json.dumps({"lists": []}), encoding="utf-8")
+        standing.write_text(json.dumps({"lists": []}), encoding="utf-8", newline="\n")
 
         def run(text: str) -> IsoCatalog:
             return extract(ed, text.splitlines(), {}, {}, set(), standing, cite=False)
@@ -1652,7 +1652,7 @@ def self_test() -> int:
        "a rule-bearing annex's clause heads a block only in the edition that declares it")
     with tempfile.TemporaryDirectory() as tmp:
         standing = pathlib.Path(tmp) / "standing.json"
-        standing.write_text(json.dumps({"lists": []}), encoding="utf-8")
+        standing.write_text(json.dumps({"lists": []}), encoding="utf-8", newline="\n")
         lost = PLANTED_2002.replace("A.9 Data division . . . 655", "A.9 Data division . . . 655\\\n14.8.91 FRAB statement . . . 279")
         unseen = [f for f in extract(ed, lost.splitlines(), {}, {}, set(), standing, cite=False).findings
                   if f.kind == "toc-unseen"]

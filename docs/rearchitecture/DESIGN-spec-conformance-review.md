@@ -741,8 +741,8 @@ the reconstructed `VERSION_CHANGE_REFERENCE.md` and the NIST CCVS85 suite alone.
 parameter, not a second audit:** the same three phases (§3), the same definition of done (§1), the same inventory store (one directory per edition, §10.2) and
 its one recording path (§4, §8), and the same rule that an omitted rule is silent false confidence (§7). Only the reader of
 the standard's structure, the row key and the change record between adjacent editions are per edition, and each is below. The 2002
-edition (kb/Work PB4813) takes the same path once it is transcribed; it is ISO-structured, so its reader is closer to
-2023's.
+edition (kb/Work PB4813) is ISO-structured, so it shares 2023's reader: its catalog and its inventory exist (§10.4,
+kb/Work PB5256), its change records do not yet.
 
 ### 10.1 The 1985 rule catalog and its key
 
@@ -1031,6 +1031,12 @@ the note that fixes it.
 **A missing edition is bridged, provisionally.** Until the 2002 and 2014 texts are transcribed, the 1985 rows' `next`
 points straight at 2023 and is marked `bridge`. When 2002 is held, its two adjacent records replace the bridge, and
 composing them must give the bridge's answer: a cross-check of both audits, held by a drift test, at no extra cost.
+Holding an edition and linking it are two steps (kb/Work PB5256): 2002 is HELD (its catalog, its store, its rows and its
+GAP count) but not yet LINKED (the schema's `linked: false`, `inventory_schema.Edition.linked`), so the lineage still
+bridges over it exactly as over an edition not held: 1985's records name 2023, 2002's own records name 2023 over 2014,
+and the EDITION GATES audit spans no edge at 2002. The adjudication that writes the 1985 to 2002 records sets `linked`
+in the same change, and from then on `next_held` routes 1985's records into 2002 (both languages read the flag:
+`editions_of` and `TraceabilityInventory.Editions`).
 
 **Why it stays maintainable.** A new edition costs one rule list, one adjacent change record and the adjudication of what
 changed; every change carries a checked citation in both texts; and the drift tests hold that every older rule is
@@ -1171,3 +1177,60 @@ against the rule text; a MISMATCH is a defect or a suspect draft for the fleet t
   the transcriber's self-test's too) and opens no key file.
 
 The passes run after the reconciled 1985 file (PB4850) and its catalog exist; the verdicts stay with the fleet (§5, §8).
+
+### 10.4 The 2002 catalog, its inventory and its lineage seed (kb/Work PB5256)
+
+**One ISO reader, a table of structure facts.** ISO/IEC 1989:2002 is built as 2023 is (numbered clauses, a general format
+and Syntax and General rules per construct, Argument and Returned value rules per intrinsic function), and measured on
+2026-11-11 the 2023 extraction read the 2002 text unchanged into 2,990 rows and 13 findings, each a structure fact or a
+defect of the transcription. So `python scripts/spec/extract_rule_catalog.py --edition 2002` is the 2023 reader with the
+edition as its parameter: `extract` is the one extraction and `ISO` (`IsoEdition`) holds what differs. For 2002 that is
+Annex A (normative, the communications facility), whose clauses carry rule blocks as the body's do; the
+implementor-defined list in B.1 (2023: A.1); §2002:5.2, the taxonomy clause, outside the denominator, and its four
+sub-clauses that define the kinds; §2002:15.3 and §2002:13.16.38.5 known empty (their rules sit in §2002:15.3.1, and the
+precedence rules are Tables 11 and 12); a table of contents that prints the clauses to the third level, each of which must
+be a heading of the transcription with the TOC's title; and the row form 1985's rows have: the year in the id
+(`2002-SR-14.8.25.2-1`), the `citation` (`§2002:14.8.25.2 SR1`) and the PDF `page`. The 1985 reader stays its own
+(`rule_catalog_1985.py`): its structure is not ISO's, and it already shares the kind table, the heading rules, the
+content-keyed scan and the standing lists. The 2023 and 1985 catalogs regenerate byte-identical through the restructure.
+
+**What it reads.** 3,290 rows from 548 blocks: SR 1,168, GR 1,361, AR 142, RV 142, DOC 184 (B.1), FMT 293; 117 of them
+Annex A's. The standing lists are `spec-element-standing-2002.json` (§2002:G.1, five archaic elements, and §2002:G.2, three
+obsolete ones; `element_standing.LIST_ITEMS` reads 2002's body-type item): 11 rules archaic, 129 obsolete (Annex A whole).
+Every row's citation names a region of the transcription (`citation.validate`, in the extractor), no two numbered rules
+share one, and a sample of 284 citations over 236 clauses (every twelfth numbered rule, every tenth format and
+implementor-defined item, each quoted by the first words of its printed line) passes `cite.py --check`, the rule
+ordinal included.
+
+**What it cannot read is a finding, never a guess.** Each is a `Finding` (its kind, clause, line and PDF page); the kinds are
+`FINDING_KINDS`, counted in the summary. 2023's transcription is reconciled, so `--check` fails on any finding; 2002's is
+not (kb/Work PB4813), so its findings are written into its catalog (`findings`) for the reconciliation and `--check` fails
+when they change. On 2026-11-11 there are six: a table cell of §2002:15.16.2 ("00 through 99.") that the text layer wrapped
+onto a line of its own (kept in RV1's text, never a row: an ordinal no list explains is no longer filed as a guessed row in
+any edition), a nested item of §2002:14.8.1.3 GR25 printed at column 0 after a page break (folded into GR25), and four
+rule-shaped headings no kind types (§2002:8.8.1.3.1.3 "Rounding rules", §2002:8.8.4.1.4.2, 8.8.4.1.5.2 and 8.8.4.1.6.2
+"Rules"), which wait for the content-keyed manifest's adjudication.
+
+**The content-keyed manifest** (`spec-unharvested-rule-blocks-2002.json`) measures 92 clauses (395 ordinals). None is word
+for word a clause of the 2023 manifest, so none carried a disposition: every one is `pending`, and its rules are outside
+the 2002 denominator until it is adjudicated by §2002:5.2.1 and 5.2.2. Each carries a `candidate` (71 of them: the 2023
+manifest clause of the same title nearest in text, its disposition and kind) as the adjudicator's starting point. Until
+then the 2002 rule count is a lower bound, and the summary says how many clauses wait.
+
+**The stability rule.** An id is its clause, its kind and its printed number (`IsoEdition.rule_id`), so regenerating the
+catalog after the reconciliation corrects a page keeps every id whose clause and number did not change and changes only
+the corrected rule's text; a rule the correction inserts renumbers the rules after it in its own block, as the printed
+numbers do. A record adjudicated against changed text is refused by its `rule-digest` (§10.2). The extractor's
+`--self-test` plants a page, applies a correction and holds this.
+
+**The inventory** is `tests/version-matrix/inventory-2002/`, the 1985 store's layout and fields (`verdict`, `code-location`,
+`test-ref`, `derivation`, `notes`, `next`), held by the schema's `editions.of` and read by the same view, store and
+recording path (`inventory_view.py`, `inventory_store.py`, `record_verdicts.py --edition 2002`): no 2002 script. It holds no
+file (a store holds adjudication only), so every row is open: 3,290 rules, 3,290 GAP, printed by the session probe's
+`invent` line and the ledger beside 1985's and 2023's, which iterate `inventory_schema.HELD`. 2002 is held but not linked
+(§10.2): no change record names it yet.
+
+**The lineage seed.** `python scripts/spec/lineage.py --candidates 2002` writes `spec-lineage-candidates-2002.json`: each 2002
+rule paired with the 2023 rules of the same construct (`subject`), kind and words (`exact`, or `normalized` by `cite.norm`),
+no judgment and no record. On 2026-11-11: 1,955 paired (1,732 exact, 223 normalized, 2 with two candidates), 1,335
+unpaired. The adjudication of the 2002 change records starts there, and the 1985 to 2002 records after it link 2002.

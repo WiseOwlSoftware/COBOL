@@ -42,6 +42,7 @@ from typing import Any, Iterable, NamedTuple
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from inventory_schema import Edition, Schema, edition, load_schema  # noqa: E402  (the schema's `editions.of`, `next`)
+import inventory_schema  # noqa: E402  (the repository root, for the candidate pairing's file)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -306,17 +307,103 @@ def self_test() -> int:
     except SystemExit:
         refused = True
     ok(refused, "the newest held edition ends the lineage: an unlinked one is refused")
+
+    def rule(rid: str, kind: str, text: str, subject: str = "MOVE statement") -> dict[str, Any]:
+        return {"id": rid, "kind": kind, "subject": subject, "text": text}
+
+    older = [rule("2002-SR-1", "SR", "Identifier-1 shall be numeric."),
+             rule("2002-SR-2", "SR", "Identifier-2 shall be numeric — or not."),
+             rule("2002-GR-1", "GR", "Identifier-1 shall be numeric."),
+             rule("2002-GR-2", "GR", "This International Standard says so."),
+             rule("2002-SR-3", "SR", "Identifier-1 shall be numeric.", "ADD statement")]
+    newer = [rule("SR-1", "SR", "Identifier-1 shall be numeric."), rule("SR-2", "SR", "Identifier-2 shall be numeric - or not."),
+             rule("GR-1", "GR", "This document says so."), rule("SR-9", "SR", "Identifier-1 shall be numeric.", "ADD statement"),
+             rule("SR-10", "SR", "Identifier-1 shall be numeric.", "ADD statement")]
+    got = candidates(older, newer)
+    ok(got["pairs"] == [{"rule-id": "2002-SR-1", "to": ["SR-1"], "match": "exact"},
+                        {"rule-id": "2002-SR-2", "to": ["SR-2"], "match": "normalized"},
+                        {"rule-id": "2002-SR-3", "to": ["SR-9", "SR-10"], "match": "exact"}]
+       and got["unpaired"] == ["2002-GR-1", "2002-GR-2"]
+       and got["counts"] == {"rules": 5, "paired": 3, "exact": 2, "normalized": 1, "ambiguous": 1, "unpaired": 2},
+       "the candidate pairing matches construct, kind and words only: typography is no difference, a changed word, "
+       "another kind or another construct is no candidate, and two matches are both listed")
     print(f"=== LINEAGE SELF-TEST: {'PASS' if not fails else 'FAIL - ' + str(len(fails))} ===")
     return 1 if fails else 0
+
+
+# -- the candidate pairing: where the adjudication of an edition's change records starts ----------------------------------
+
+def candidate_key(rule: dict[str, Any]) -> tuple[str, str, str]:
+    """What a candidate pairing compares: the rule's construct (its catalog `subject`, the clause title its rules rule),
+    its kind (the rule block's title: Syntax rules, General rules, ...) and its text in words only (`cite.norm`)."""
+    from cite import norm  # noqa: PLC0415  (one notion of "the same words" as the citation checker's)
+    return rule["subject"].strip().lower(), rule["kind"], norm(rule["text"].replace(chr(92), ""))
+
+
+def candidates(older: Iterable[dict[str, Any]], newer: Iterable[dict[str, Any]]) -> dict[str, Any]:
+    """THE CANDIDATE PAIRING of each rule of `older` (an edition's catalog rules) with the rules of `newer` (the next
+    linked held edition's) whose construct, kind and words are the same (`candidate_key`): `exact` when the text is
+    identical, `normalized` when only its typography differs. NO JUDGMENT: a rule whose words changed at all is unpaired,
+    a rule two newer rules match lists both (`ambiguous`), and no change record is written. It is where the adjudication
+    of the older edition's records starts (DESIGN-spec-conformance-review.md section 10.2), never a verdict."""
+    by_key: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    for r in newer:
+        by_key.setdefault(candidate_key(r), []).append(r)
+    pairs, unpaired = [], []
+    for r in older:
+        hits = by_key.get(candidate_key(r), [])
+        if not hits:
+            unpaired.append(r["id"])
+            continue
+        pairs.append({"rule-id": r["id"], "to": [h["id"] for h in hits],
+                      "match": "exact" if all(h["text"] == r["text"] for h in hits) else "normalized"})
+    counts = {"rules": len(pairs) + len(unpaired), "paired": len(pairs),
+              "exact": sum(p["match"] == "exact" for p in pairs),
+              "normalized": sum(p["match"] == "normalized" for p in pairs),
+              "ambiguous": sum(len(p["to"]) > 1 for p in pairs), "unpaired": len(unpaired)}
+    return {"counts": counts, "pairs": pairs, "unpaired": unpaired}
+
+
+def candidates_path(year: int) -> pathlib.Path:
+    return inventory_schema.REPO / "docs" / "rearchitecture" / f"spec-lineage-candidates-{year}.json"
+
+
+def candidates_document(year: int) -> dict[str, Any]:
+    """The candidate pairing of the held edition `year` with its next linked held edition, as committed."""
+    ed = edition(year)
+    if ed.next_held is None:
+        raise SystemExit(f"--candidates: {year} is the newest held edition; its rules carry into no later one")
+    found = candidates(ed.rules(), edition(ed.next_held).rules())
+    return {"_comment": [
+        f"THE CANDIDATE PAIRING of each {year} rule with the {ed.next_held} rules of the same construct, kind and words",
+        "(lineage.candidates, kb/Work PB5256): `exact` text, or `normalized` (cite.norm: words only). No judgment and no",
+        "verdict: a rule whose words changed is unpaired, two matches are both listed, and nothing here is a change record.",
+        f"The adjudication of the {year} change records (record_verdicts.py --edition {year}) starts from it.",
+        f"Regenerate: python scripts/spec/lineage.py --candidates {year}; --check fails when it is stale."],
+        "edition": year, "next": ed.next_held, "bridge": ed.bridged, **found}
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="The rule lineage across editions (kb/Work PB4991). The audit's kept change "
                                              "records are written by audit_batch.py change-batch.")
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--candidates", type=int, metavar="YEAR",
+                    help="write the candidate pairing of the held edition YEAR's rules with its next linked edition's")
+    ap.add_argument("--check", action="store_true", help="with --candidates: fail when the committed pairing is stale")
     a = ap.parse_args(argv)
     if a.self_test:
         return self_test()
+    if a.candidates:
+        doc, path = candidates_document(a.candidates), candidates_path(a.candidates)
+        print(f"{a.candidates} -> {doc['next']}: " + ", ".join(f"{k} {v}" for k, v in doc["counts"].items()))
+        text = json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
+        if a.check:
+            stale = not path.exists() or path.read_text(encoding="utf-8") != text
+            print(f"{'⛔ STALE' if stale else '✓ current'}: {path.relative_to(inventory_schema.REPO)}")
+            return 1 if stale else 0
+        path.write_text(text, encoding="utf-8", newline="\n")
+        print(f"wrote {path.relative_to(inventory_schema.REPO)}")
+        return 0
     ap.print_help()
     return 2
 
