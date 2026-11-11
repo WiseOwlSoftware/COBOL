@@ -107,11 +107,11 @@ jobs:
       # Empty when no honest base exists (a dispatch run, an unresolvable `before`); that check then falls back
       # to its own default, the merge-base with origin/main.
       base: ${{ steps.decide.outputs.base }}
-      # ── THE PLAN (kb/Work PB5235; scripts/buildgraph.py `plan`, CI_LEGS; DESIGN-test-build-ci.md §3.14.14): per leg of
+      # ── THE PLAN (kb/Work PB5235; scripts/ci_plan.py, CI_LEGS; DESIGN-test-build-ci.md §3.14.14): per leg of
       # the test matrix, its configuration and the JSON list of the target assemblies it runs. A target whose key at
       # this merged tree has a pass on the store ref (`refs/cobol-build-store/passes`, published by the landing) is not
       # run on a leg that accepts records (Windows, Debug: the local gate's facets); every other target runs. Empty
-      # when the matrix does not run. The shard jobs read nothing else to decide what they run (`buildgraph.ci_wiring`).
+      # when the matrix does not run. The shard jobs read nothing else to decide what they run (`ci_plan.ci_wiring`).
       linux_configuration: ${{ steps.plan.outputs.linux_configuration }}
       linux_targets: ${{ steps.plan.outputs.linux_targets }}
       windows_configuration: ${{ steps.plan.outputs.windows_configuration }}
@@ -249,7 +249,7 @@ jobs:
       # time, counts). A ref that cannot be read is a warning and every target runs: a missing record costs minutes,
       # never a verdict. A crash fails this job, so `ci-gate` is red. Only a MERGE GROUP reads the ref: a dispatch run
       # and a push to main that no merge group verified run every target (`--no-records`). ──
-      - name: Plan — each target's key per leg, and the passes the store ref holds (buildgraph.py plan)
+      - name: Plan — each target's key per leg, and the passes the store ref holds (ci_plan.py)
         id: plan
         if: steps.decide.outputs.run_matrix == 'true'
         shell: bash
@@ -258,7 +258,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$EVENT" = "merge_group" ]; then records=(--remote origin); else records=(--no-records); fi
-          python3 scripts/buildgraph.py plan "${records[@]}" --github-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
+          python3 scripts/ci_plan.py "${records[@]}" --github-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
       # ── ⛔ THE DRIFT TEST FOR THE GATE ITSELF. `ci-gate` can only block a red it is `needs:`-wired to see, and
       # a job added months from now without that wiring would be a job whose failure lands on main silently —
       # the same shape as PB796 one level down. This asserts, from the workflow file itself, that every job id
@@ -583,7 +583,7 @@ jobs:
   # name-split matrix of six Conformance shards per OS beside one whole Unit + Characterization job per OS, whose longest
   # job (Windows Unit, 8 minutes of tests) was the merge group's critical path with the Guard job (the NIST corpus through
   # the CLI, 14 minutes), which runs in the nightly workflow now (owner 2026-10-31, kb/Work PB4323 decision 2; PB4332).
-  # ⛔ WHAT EACH LEG RUNS IS THE PLAN'S (kb/Work PB5235; `changes`' plan step, scripts/buildgraph.py CI_LEGS): the
+  # ⛔ WHAT EACH LEG RUNS IS THE PLAN'S (kb/Work PB5235; `changes`' plan step, scripts/ci_plan.py CI_LEGS): the
   # configuration and the target assemblies come from `needs.changes.outputs.<leg>_configuration` / `<leg>_targets`, and
   # every test step is gated on its assembly being in the set, so a target whose pass at this merged tree's key is on the
   # store ref is not run again on a leg that accepts records. Linux runs RELEASE under the inert watch and accepts no

@@ -53,13 +53,20 @@ DECLARED: dict[str, tuple[str, ...]] = {
         'a record that is not a pass is not up to date',
         'every worktree of a repository has the ONE store',
         'the BUILD TARGETS audit: sources whose reads lie in the declared inputs are clean',
-        # kb/Work PB5235: the store ref, CI's plan and its wiring
-        'the transport: a pass published from the host\'s store is read back from the remote ref by a clone',
-        'a record is accepted only at the key CI computes',
-        'a record filed under a key it does not name, a record that is not a pass, and a pass whose facets are not',
+        # kb/Work PB5235: the store's transport, the ref
+        "the transport: a pass published from the host's store is read back from the remote ref by a partial clone",
+        "a record read from the ref is held to the store's one rule",
         "two publishers' records are a union on the ref (neither loses the other's)",
-        'the real workflow runs each leg as CI_LEGS states it',
         'the real targets file loads',
+    ),
+    # kb/Work PB5235: the merge group's plan over the store ref, and the workflow held to it
+    'scripts/ci_plan.py': (
+        'the Windows leg accepts a pass at the key it computes itself and names the record',
+        'a record is accepted only at the key CI computes',
+        "a pass whose facets are not the leg's, and a record filed under a key it does not name, are refused",
+        '--no-records reads no ref and runs every target',
+        'the real workflow runs each leg as CI_LEGS states it',
+        'the wiring check names a Windows Unit step that runs whatever the plan says',
     ),
     'scripts/gate.py': (
         'a whole planted population is GREEN, every assembly EXACT',

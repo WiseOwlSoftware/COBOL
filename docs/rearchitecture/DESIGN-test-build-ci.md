@@ -39,7 +39,8 @@ Every later section describes one mechanism of it in detail.
    textual merge in a shared file included, and a lane MANDATORY-PRACTICES I10 does not review gates its own tip.
 3. **The pull request's own run is the cheap jobs** (`changes` and `ci-gate`, plus `toolchain-cache` on a push to main;
    kb/Work PB4330), and its caches are saved from main only (kb/Work PB4324).
-4. **The merge group is the whole-population net on both operating systems and the ONLY run of the merged tree, of
+4. **The merge group is the whole-population net (on Windows, for each target with no local pass at the merged tree's
+   key) and the ONLY run of the merged tree, of
    Linux and of Release** (`.github/workflows/build-and-test.yml`, §1.4, §3.14.14; kb/Work PB4329, PB5235): seven Windows and five Linux
    weighted shards, each dealt test classes by their measured weight (`scripts/shard_weights.py`), their union checked
    against one listing per OS and assembly in `ci-gate`; the audits with every Linux self-test; the Windows self-tests
@@ -1466,7 +1467,7 @@ A publisher that loses the lease re-reads and re-sends, so two landings never dr
 history stays one commit deep. Pruning is a by-product of publishing: every record pruned leaves an empty tree. Until
 `enqueue.py` makes that call (kb/Work PB5235 addendum, "transport"), `buildgraph.py publish` is run by hand at a landing.
 
-**How CI reads it: the `changes` job's plan step** (`buildgraph.py plan`). Only in a merge group does it read the ref
+**How CI reads it: the `changes` job's plan step** (`scripts/ci_plan.py`). Only in a merge group does it read the ref
 (`--remote origin`). It fetches it with `--no-filter`, because the job's checkout is a `blob:none` partial clone that would
 otherwise fetch each record on demand. A dispatch run or an unverified push to main reads none (`--no-records`) and runs
 everything. For each leg of `CI_LEGS` and each target of `scripts/build_targets.json`, it computes the target's key at the
@@ -1488,7 +1489,7 @@ measured under tools other than toolchain.env's never matches. Whoever can push 
 exactly the set of people who can push a branch. The ref adds no new writer. A forged record can make CI skip a target on
 the Windows leg only, never on Linux, never in Release, and never at a key the merged tree does not have.
 
-**The legs** (`buildgraph.CI_LEGS`, the one statement, held by `buildgraph.ci_wiring` in buildgraph's self-test):
+**The legs** (`ci_plan.CI_LEGS`, the one statement, held by `ci_plan.ci_wiring` in its self-test):
 
 | leg | configuration | accepts a record | what it proves that no record can |
 |---|---|---|---|

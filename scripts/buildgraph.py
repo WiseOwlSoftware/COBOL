@@ -4,6 +4,8 @@
     python scripts/buildgraph.py keys [--tree T] [--toolchain S] [--platform P] [--configuration C]   # each target's key
     python scripts/buildgraph.py check          # the BUILD TARGETS audit: every repository read a test source names
                                                 # lies in its assembly's declared inputs
+    python scripts/buildgraph.py publish [--remote R]   # send this host's passes to R's refs/cobol-build-store/passes
+                                                # (the landing's push; CI's plan, scripts/ci_plan.py, reads them)
     python scripts/buildgraph.py --self-test
 
 THE MODEL (owner 2026-11-10: "This is precisely what the Unix make and Windows MSBuild utilities are for. They rerun only
@@ -222,13 +224,15 @@ def is_pass(rec: object, target: str, k: str) -> bool:
 # fields below): the evidence (the run directory, the worktree) stays on the host that made it. `publish` (the landing,
 # when it pushes its branch) sends the union of the ref's records and this host's, less those older than PRUNE_DAYS, as a
 # new parentless commit pushed with a lease on the commit it read, so two publishers never lose each other's records
-# (the loser re-reads and re-sends) and the ref's history is one commit deep. `fetch_published` (CI's `plan`) reads it.
+# (the loser re-reads and re-sends) and the ref's history is one commit deep. `fetch_published` (CI's plan, scripts/ci_plan.py) reads it.
 
 #: The ref of the repository the records travel on.
 STORE_REF = "refs/cobol-build-store/passes"
-#: What a published record carries (PB5207: target, key, platform, configuration, toolchain, counts; and where it came
-#: from, by commit and run, so a CI log can name the record it accepted).
-PUBLISHED_FIELDS = ("target", "key", "result", "assembly", "facets", "counts", "head", "tree", "run", "when")
+#: What a published record carries (PB5207: target, key, platform, configuration, toolchain, counts; a generated target's
+#: output digest and file count, which a dependent's key is computed from; and where it came from, by commit and run, so
+#: a CI log can name the record it accepted).
+PUBLISHED_FIELDS = ("target", "key", "result", "assembly", "facets", "counts", "outputs", "files", "head", "tree",
+                    "run", "when")
 #: A record older than this is pruned when the ref is next published: a branch gated earlier than that re-runs its
 #: targets in CI, which costs minutes and never a verdict.
 PRUNE_DAYS = 21
@@ -356,141 +360,6 @@ def publish(repo: Path, store: Store, remote: str = "origin", now: datetime | No
             return commit
         say(f"build store: {remote} {STORE_REF} moved while publishing ({pushed.stderr.decode().strip()}); re-reading")
     raise RuntimeError(f"could not publish {STORE_REF} to {remote}: the lease was lost {attempts} times")
-
-
-# ── CI's legs: the merge group runs each target on each leg unless the store ref holds its pass (kb/Work PB5235) ──────
-
-@dataclass(frozen=True)
-class Leg:
-    """One platform and configuration the merge group tests on. `accepts_records`: whether a pass recorded elsewhere at
-    this leg's key stands for the leg's run; `why` says what the leg proves that no record can."""
-    name: str
-    platform: str
-    configuration: str
-    system: str          # toolchain.py's name for the OS (its `gate` scope's tools differ by OS: git-linux, git-windows)
-    accepts_records: bool
-    why: str
-
-
-#: ⛔ THE ONE STATEMENT OF WHAT EACH MERGE-GROUP LEG RUNS. The workflow's shard jobs read the configuration and the
-#: target set from `plan`'s outputs (`ci_wiring` holds them to it). Windows runs Debug, the local gate's configuration,
-#: so a pass the owner's machine recorded at the merged tree stands for it (owner 2026-11-10); Linux runs Release and
-#: accepts no record: it is the merge group's own proof of Linux, of Release, of the inert watch and of INV-1-strong.
-CI_LEGS = {
-    "linux": Leg("linux", "linux", "Release", "Linux", False,
-                 "Linux and Release are proven only here; the inert watch and INV-1-strong run only in this leg"),
-    "windows": Leg("windows", "windows", "Debug", "Windows", True,
-                   "the local gate's own facets (windows, Debug, toolchain.env's tools): a pass recorded at the merged "
-                   "tree's key stands for this leg; with none, the leg runs"),
-}
-
-
-def leg_facets(leg: Leg, manifest: dict[str, str]) -> dict[str, str]:
-    """The facets of `leg`'s keys: its platform and configuration and the toolchain toolchain.env names for its OS,
-    exactly as the gate on that OS names it (`toolchain.summary(…, "gate", …)`, the gate's `Host.toolchain`)."""
-    import toolchain  # noqa: PLC0415  — THE reader of toolchain.env
-    return {"platform": leg.platform, "configuration": leg.configuration,
-            "toolchain": toolchain.summary(manifest, "gate", leg.system)}
-
-
-@dataclass(frozen=True)
-class Planned:
-    leg: str
-    target: str
-    assembly: str
-    key: str
-    record: dict | None   # the accepted pass; None: the leg runs this target
-
-    def line(self) -> str:
-        where = f"{self.leg}/{self.target} ({self.assembly}) key {self.key}"
-        if self.record is None:
-            return f"plan: {where}: RUN (no pass at this key)"
-        r = self.record
-        return (f"plan: {where}: PASSED, not run: the record of run {r.get('run')} at {str(r.get('head'))[:12]} "
-                f"(tree {str(r.get('tree'))[:12]}, {r.get('when')}, counts {json.dumps(r.get('counts'), sort_keys=True)})")
-
-
-def plan(repo: Path, tree: str, records: Published, targets: dict[str, Target] | None = None,
-         manifest: dict[str, str] | None = None) -> list[Planned]:
-    """THE MERGE GROUP'S PLAN: each target's key at `tree` on each leg; a leg that accepts records takes a pass of that
-    target at that key whose facets are the leg's (toolchain.env's tools at `tree`), and runs every other target."""
-    import toolchain  # noqa: PLC0415
-    targets = targets if targets is not None else load_targets(repo / "scripts" / "build_targets.json")
-    manifest = manifest if manifest is not None else toolchain.load(repo / "toolchain.env")
-    out: list[Planned] = []
-    for leg in CI_LEGS.values():
-        facets = leg_facets(leg, manifest)
-        for name, k in keys(repo, tree, facets, targets).items():
-            rec = records.lookup(name, k) if leg.accepts_records else None
-            if rec is not None and rec.get("facets") != facets:
-                rec = None
-            out.append(Planned(leg.name, name, targets[name].assembly, k, rec))
-    return out
-
-
-def plan_outputs(rows: list[Planned]) -> dict[str, str]:
-    """The `changes` job's outputs: per leg, its configuration and the JSON list of the assemblies it runs."""
-    out: dict[str, str] = {}
-    for leg in CI_LEGS.values():
-        out[f"{leg.name}_configuration"] = leg.configuration
-        out[f"{leg.name}_targets"] = json.dumps(sorted(r.assembly for r in rows if r.leg == leg.name and r.record is None))
-    return out
-
-
-def ci_wiring(repo: Path) -> list[str]:
-    """⛔ THE WORKFLOW RUNS WHAT THE PLAN SAYS, AND NOTHING DECIDES IT BESIDE THE PLAN (kb/Work PB5235): the drift test
-    that makes a new target or leg automatic. For each leg of CI_LEGS, its `<leg>-shard` job: runs only when the plan
-    gives it a target; builds and tests in the plan's configuration; runs a `dotnet test` step for every target of the
-    targets file, each gated on that target's assembly being in the plan's set; lists its populations from that set;
-    and `ci-gate` checks the population of exactly that set. Returns the findings."""
-    import ci_workflow  # noqa: PLC0415
-    text = (repo / ".github" / "workflows" / "build-and-test.yml").read_text(encoding="utf-8").replace("\r\n", "\n")
-    jobs = {j.id: j for j in ci_workflow.jobs(text)}
-    targets = load_targets(repo / "scripts" / "build_targets.json")
-    bad: list[str] = []
-    changes = jobs.get("changes")
-    if changes is None or not all(w in changes.code for w in (
-            'if [ "$EVENT" = "merge_group" ]; then records=(--remote origin); else records=(--no-records); fi',
-            'python3 scripts/buildgraph.py plan "${records[@]}"')):
-        bad.append("the `changes` job no longer runs `buildgraph.py plan`, reading the store ref in a merge group only")
-    gate = jobs.get("ci-gate")
-    for leg in CI_LEGS.values():
-        out = f"needs.changes.outputs.{leg.name}_targets"
-        conf = f"--configuration ${{{{ needs.changes.outputs.{leg.name}_configuration }}}}"
-        for o in ("targets", "configuration"):
-            line = f"{leg.name}_{o}: ${{{{ steps.plan.outputs.{leg.name}_{o} }}}}"
-            if changes is not None and line not in changes.code:
-                bad.append(f"the `changes` job does not output `{line}`")
-        job = jobs.get(f"{leg.name}-shard")
-        if job is None:
-            bad.append(f"no `{leg.name}-shard` job for the {leg.name} leg of CI_LEGS")
-            continue
-        if f"{out} != '[]'" not in (job.value("if") or ""):
-            bad.append(f"{job.id}: its `if` does not skip the job when the plan gives it no target ({out} != '[]')")
-        steps = job.steps
-        builds = [s for s in steps if "dotnet build WiseOwl.Cobol.sln" in s.code]
-        if not builds or any(conf not in s.code for s in builds):
-            bad.append(f"{job.id}: the solution is not built in the plan's configuration ({conf})")
-        lists = [s for s in steps if "scripts/test_population.py list" in s.code]
-        if not lists or any(out not in s.code or conf not in s.code for s in lists):
-            bad.append(f"{job.id}: the populations are not listed from the plan's set in its configuration")
-        tests = [s for s in steps if re.search(r"\bdotnet test tests/", s.code)]
-        for s in tests:
-            m = re.search(r"\bdotnet test (tests/[^/\s]+/)", s.code)
-            gated = re.search(rf"contains\(fromJSON\({re.escape(out)}\), '(\w+)'\)", s.value("if") or "")
-            if conf not in s.code:
-                bad.append(f"{job.id}: `{s.label}` does not test in the plan's configuration")
-            if gated is None:
-                bad.append(f"{job.id}: `{s.label}` runs whatever the plan says (no contains(fromJSON({out}), …))")
-            elif m and not any(t.project == m.group(1) and t.assembly == gated.group(1) for t in targets.values()):
-                bad.append(f"{job.id}: `{s.label}` is gated on {gated.group(1)!r}, not on its own project's target")
-        tested = {m.group(1) for s in tests if (m := re.search(r"\bdotnet test (tests/[^/\s]+/)", s.code))}
-        for t in targets.values():
-            if t.project not in tested:
-                bad.append(f"{job.id}: no test step of {t.project} for target {t.name}: the leg would never run it")
-        if gate is None or out not in gate.code:
-            bad.append(f"ci-gate's population check does not read the {leg.name} leg's plan ({out})")
-    return bad
 
 
 # ── the declared-inputs audit ────────────────────────────────────────────────────────────────────────────────────────────
@@ -716,69 +585,39 @@ def transport_arms(root: Path, arm) -> None:
     host = ScratchRepo.init(root / "t-host")
     remote = host.origin(root / "t-remote.git")
     remote.git("config", "uploadpack.allowFilter", "true")
-    host.commit("base", {"src/A.cs": "class A {}\n", "conformance-suite/c.cob": "c\n", "docs/n.md": "n\n",
-                         "toolchain.env": "DOTNET_SDK_VERSION=1\n"})
+    host.commit("base", {"src/A.cs": "class A {}\n"})
     host.git("push", "-q", "origin", "HEAD:refs/heads/main")
-    targets = {"unit": Target("unit", "Unit", "tests/U/", ("src/",), ()),
-               "conformance": Target("conformance", "Conformance", "tests/C/", ("src/", "conformance-suite/"), ())}
-    manifest = {"DOTNET_SDK_VERSION": "10.0.404", "PYTHON_VERSION": "3.15.2", "JDK_VERSION": "27.0.1",
-                "PWSH_VERSION": "7.7.0", "GIT_LINUX_VERSION": "2.56.0", "GIT_WINDOWS_VERSION": "2.56.0",
-                "GH_VERSION": "2.103.3", "JQ_VERSION": "1.8.2"}
-    win = CI_LEGS["windows"]
-    facets = leg_facets(win, manifest)
-    tree = host.git("rev-parse", "HEAD^{tree}")
-    k = keys(host.path, tree, facets, targets)
+    k1, k2 = "1" * 64, "2" * 64
     now = datetime(2026, 11, 10, 12, 0, tzinfo=timezone.utc)
     stamp = f"{now:%Y-%m-%dT%H:%M:%SZ}"
+    facets = {"platform": "windows", "configuration": "Debug", "toolchain": "t1"}
     store = Store(root / "t-store")
-    store.record("conformance", k["conformance"], {
+    store.record("conformance", k1, {
         "assembly": "Conformance", "facets": facets, "worktree": "E:/secret/wt", "evidence": "E:/secret/wt/run",
-        "run": "000007", "head": "f" * 40, "tree": tree, "when": stamp,
+        "run": "000007", "head": "f" * 40, "tree": "a" * 40, "when": stamp,
         "counts": {"discovered": 9, "ran": 9, "skipped": 0, "carried": 0}})
     said: list[str] = []
     first = publish(host.path, store, "origin", now, say=said.append)
     ci = ScratchRepo.clone(f"file://{remote.path.as_posix()}", root / "t-ci")
-    ci.git("fetch", "-q", "--filter=blob:none", "origin")  # the partial clone CI's `changes` checkout is
+    ci.git("config", "remote.origin.partialclonefilter", "blob:none")  # the partial clone CI's `changes` checkout is
+    ci.git("config", "remote.origin.promisor", "true")
     got = fetch_published(ci.path, "origin")
-    rows = {(r.leg, r.target): r for r in plan(ci.path, tree, got, targets, manifest)}
-    rec = got.lookup("conformance", k["conformance"]) or {}
-    arm("the transport: a pass published from the host's store is read back from the remote ref by a clone, carrying "
-        "only the published fields (no worktree or evidence path); the Windows leg accepts it at the key it computes "
-        "itself, runs the target with no pass, and the Linux leg accepts no record",
-        first is not None and sorted(rec) == sorted(PUBLISHED_FIELDS[:4] + ("facets", "counts", "head", "tree", "run",
-                                                                            "when"))
-        and rows[("windows", "conformance")].record is not None and rows[("windows", "unit")].record is None
-        and rows[("linux", "conformance")].record is None
-        and "PASSED, not run: the record of run 000007" in rows[("windows", "conformance")].line()
-        and plan_outputs(list(rows.values()))["windows_targets"] == '["Unit"]',
-        f"{first} {sorted(rec)} {[r.line() for r in rows.values()]}")
-    host.commit("edit", {"conformance-suite/c.cob": "c2\n"})
-    tree2 = host.git("rev-parse", "HEAD^{tree}")
-    host.git("push", "-q", "origin", "HEAD:refs/heads/main")
-    ci.git("fetch", "-q", "origin")
-    moved = {(r.leg, r.target): r for r in plan(ci.path, tree2, got, targets, manifest)}
-    other_tools = {**manifest, "DOTNET_SDK_VERSION": "10.0.999"}
-    tools = {(r.leg, r.target): r for r in plan(ci.path, tree, got, targets, other_tools)}
-    arm("a record is accepted only at the key CI computes: a change to one of the target's inputs (the merged tree "
-        "moved), or another toolchain named by toolchain.env, runs the target",
-        moved[("windows", "conformance")].record is None and tools[("windows", "conformance")].record is None,
-        f"{moved[('windows', 'conformance')].line()} {tools[('windows', 'conformance')].line()}")
-    forged = Published({("unit", k["unit"]): {"target": "unit", "key": k["conformance"], "result": "pass"},
-                        ("conformance", k["conformance"]): {"target": "conformance", "key": k["conformance"],
-                                                            "result": "red", "facets": facets},
-                        }, "x")
-    wrong_facets = Published({("conformance", k["conformance"]): {**rec, "facets": {**facets, "configuration": "Release"}}},
-                             "x")
-    f_rows = {(r.leg, r.target): r for r in plan(ci.path, tree, forged, targets, manifest)}
-    w_rows = {(r.leg, r.target): r for r in plan(ci.path, tree, wrong_facets, targets, manifest)}
-    arm("a record filed under a key it does not name, a record that is not a pass, and a pass whose facets are not "
-        "the leg's are each refused",
-        f_rows[("windows", "unit")].record is None and f_rows[("windows", "conformance")].record is None
-        and w_rows[("windows", "conformance")].record is None)
-    # a second publisher, then a stale lease, then pruning
+    rec = got.lookup("conformance", k1) or {}
+    arm("the transport: a pass published from the host's store is read back from the remote ref by a partial clone, "
+        "carrying only the published fields (no worktree or evidence path), at its key and at no other",
+        first is not None and got.commit == first and sorted(rec) == sorted(
+            ("assembly", "counts", "facets", "head", "key", "result", "run", "target", "tree", "when"))
+        and got.lookup("conformance", k2) is None and got.lookup("unit", k1) is None,
+        f"{first} {got.commit} {sorted(rec)}")
+    forged = Published({("unit", k1): {"target": "unit", "key": k2, "result": "pass"},
+                        ("conformance", k1): {"target": "conformance", "key": k1, "result": "red"}}, "x")
+    arm("a record read from the ref is held to the store's one rule (`is_pass`): one filed under a key it does not "
+        "name, or one that is not a pass, is no pass",
+        forged.lookup("unit", k1) is None and forged.lookup("conformance", k1) is None
+        and Store(root / "t-store").lookup("conformance", k1) is not None)
     other = Store(root / "t-store-2")
-    other.record("unit", k["unit"], {"assembly": "Unit", "facets": facets, "run": "000002", "head": "e" * 40,
-                                     "tree": tree, "when": stamp, "counts": {"ran": 4}})
+    other.record("unit", k2, {"assembly": "Unit", "facets": facets, "run": "000002", "head": "e" * 40,
+                              "tree": "b" * 40, "when": stamp, "counts": {"ran": 4}})
     second = publish(host.path, other, "origin", now, say=said.append)
     both = fetch_published(ci.path, "origin")
     stale = _git(host.path, "push", "--quiet", f"--force-with-lease={STORE_REF}:{first}", "origin",
@@ -788,8 +627,9 @@ def transport_arms(root: Path, arm) -> None:
                     say=said.append)
     pruned = fetch_published(ci.path, "origin")
     arm("two publishers' records are a union on the ref (neither loses the other's); a push leased on a commit the ref "
-        "no longer names is refused; publishing nothing new pushes nothing; a record older than PRUNE_DAYS is pruned",
-        set(both.records) == {("conformance", k["conformance"]), ("unit", k["unit"])} and stale.returncode != 0
+        "no longer names is refused; publishing nothing new pushes nothing; a record older than PRUNE_DAYS is pruned, "
+        "leaving the ref on an empty tree",
+        set(both.records) == {("conformance", k1), ("unit", k2)} and stale.returncode != 0
         and again == second and any("nothing pushed" in s for s in said)
         and later is not None and later != second and pruned.commit == later and pruned.records == {}
         and remote_store_commit(ci.path, "origin") == later,
@@ -897,10 +737,6 @@ def self_test() -> int:
             "adding scripts/Guard-legacy.sh changes the key",
             cased == [True, True, True, False, False] and g0 != g1, f"{cased} {g0} {g1}")
         transport_arms(root, arm)
-        wiring = ci_wiring(REPO)
-        arm("the real workflow runs each leg as CI_LEGS states it: its configuration and target set from `plan`'s "
-            "outputs, a step per target assembly gated on that set, and ci-gate's population check over that set",
-            wiring == [], "; ".join(wiring))
         real_targets = load_targets()
         arm("the real targets file loads: unit, conformance, characterization, each with its assembly, @build expanded",
             sorted(real_targets) == ["characterization", "conformance", "unit"]
@@ -912,44 +748,6 @@ def self_test() -> int:
     print(f"=== buildgraph SELF-TEST: {'PASS' if not bad else 'FAIL'} ({len(results)} arms"
           + (f"; failed: {'; '.join(bad)}" if bad else "") + ") ===")
     return 1 if bad else 0
-
-
-def plan_main(repo: Path, tree: str, remote: str | None, github_output: Path | None, summary: Path | None,
-              say=print) -> int:
-    """`plan`: read the remote's store ref (a ref that cannot be read is said, and every target runs: a missing record
-    costs minutes, never a verdict), print one line per leg and target, and write the outputs. `remote` None
-    (`--no-records`: a dispatch run or a push to main, which run the whole matrix) reads no record."""
-    try:
-        if remote is None:
-            raise LookupError
-        records = fetch_published(repo, remote)
-        source = (f"{remote} {STORE_REF} at {records.commit[:12]}, {len(records.records)} record(s)" if records.commit
-                  else f"{remote} has no {STORE_REF}")
-    except subprocess.CalledProcessError as e:
-        records = Published({}, None)
-        source = f"{remote} {STORE_REF} could not be read ({(e.stderr or b'').decode(errors='replace').strip()})"
-        say(f"::warning::build store: {source}; every target runs")
-    except LookupError:
-        records, source = Published({}, None), "not read (--no-records: only a merge group accepts a recorded pass)"
-    rows = plan(repo, tree, records)
-    say(f"plan: the store: {source}")
-    for r in rows:
-        say(r.line())
-    outputs = plan_outputs(rows)
-    for k, v in outputs.items():
-        say(f"plan: {k}={v}")
-    nl = chr(10)
-    if github_output is not None:
-        with github_output.open("a", encoding="utf-8", newline=nl) as fh:
-            fh.write("".join(f"{k}={v}{nl}" for k, v in outputs.items()))
-    if summary is not None:
-        with summary.open("a", encoding="utf-8", newline=nl) as fh:
-            fh.write(f"### plan (scripts/buildgraph.py plan; kb/Work PB5235){nl}{nl}The store: {source}{nl}{nl}"
-                     f"| leg | target | key | |{nl}|---|---|---|---|{nl}"
-                     + "".join(f"| {r.leg} | {r.target} | `{r.key[:16]}` | "
-                               + ("run" if r.record is None else f"passed: run {r.record.get('run')} at "
-                                  f"`{str(r.record.get('head'))[:12]}`") + f" |{nl}" for r in rows))
-    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -964,13 +762,6 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("check", help="the BUILD TARGETS audit")
     pub = sub.add_parser("publish", help=f"send this host's passes to the remote's {STORE_REF} (the landing's push)")
     pub.add_argument("--remote", default="origin")
-    pl = sub.add_parser("plan", help="CI's plan: each target's key per merge-group leg, and the passes the ref holds")
-    pl.add_argument("--tree", default="HEAD^{tree}")
-    src = pl.add_mutually_exclusive_group(required=True)
-    src.add_argument("--remote", help="read the passes this remote's store ref holds (a merge group)")
-    src.add_argument("--no-records", action="store_true", help="read none: every target runs (any other event)")
-    pl.add_argument("--github-output", type=Path, help="append the legs' outputs here ($GITHUB_OUTPUT)")
-    pl.add_argument("--summary", type=Path, help="append the plan as Markdown here ($GITHUB_STEP_SUMMARY)")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args(argv)
     if args.self_test:
@@ -980,8 +771,6 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "publish":
         publish(REPO, Store.for_repo(REPO), args.remote)
         return 0
-    if args.cmd == "plan":
-        return plan_main(REPO, args.tree, None if args.no_records else args.remote, args.github_output, args.summary)
     if args.cmd == "keys":
         facets = {"platform": args.platform, "configuration": args.configuration, "toolchain": args.toolchain}
         for name, value in keys(Path(args.repo), args.tree, facets).items():
