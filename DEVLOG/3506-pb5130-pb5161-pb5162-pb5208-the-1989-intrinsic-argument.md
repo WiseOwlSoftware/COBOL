@@ -1,4 +1,4 @@
-## PB5130, PB5161, PB5162, PB5208: the 1989 intrinsic argument rules get their edition arms, and the type-6 screen a power arm
+## Entry 3506 — 2026-11-11 15:40 PST — PB5130, PB5161, PB5162, PB5208: the 1989 intrinsic argument rules get their edition arms, and the type-6 screen a power arm
 
 Four intrinsic-argument defects found by the 1985 witness-drafting, code-read and refuter passes, fixed as one group (wave
 20262001, group A). Each was re-probed on e3c9e8551a first, and each reproduced.
@@ -45,3 +45,4 @@ spaces (the 2002 text says they are ignored; the scan still trims at 85).
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 24,025/24,025 ran · Unit 40,757/40,757 ran · Characterization up to
 date ... (run 000003-20261111T220507Z) ===` at fdce0fbfb2, after two reds (an inert-lane finding: the first drift test read
 the 1985 Markdown, which no compiler test may, PB4453; then the two signed-exponent goldens and AR-15.68.3-2's stale site).
+
