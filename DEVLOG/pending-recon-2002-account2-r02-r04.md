@@ -10,3 +10,6 @@ subscripts and superscripts that rename operands or change numbers (`argument-1`
 2 (page 328), whose drawn braces were misplaced. Most structural ones are Annex E flowcharts that kept their labels and
 lost every connector. This change lands the runs' compare and verify files only; the ledger is written when a round of
 runs closes (README step 5).
+
+Four of the 48 agent files were written CRLF and passed `merge_reconciliation.py`, which the gate's LINE ENDINGS audit
+then refused; `line_endings.py --fix` repaired them and kb/Work PB5330 records the gap in the merge's validation.
