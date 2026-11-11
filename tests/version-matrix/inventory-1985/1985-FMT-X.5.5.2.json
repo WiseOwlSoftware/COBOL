@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-X.5.5.2",
  "rule-digest": "721ce4c6fde1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useOnTarget; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
  "test-ref": "conformance:cases/X.5.5@1985-USE-STATEMENT/1985-FMT-X_5_5_2",
+ "notes": "§1985:X.5.5.2 prints 'USE [GLOBAL] AFTER STANDARD {EXCEPTION|ERROR} PROCEDURE ON {{file-name-1}...|INPUT|OUTPUT|I-O|EXTEND}' with AFTER and PROCEDURE underlined (required) and STANDARD and ON optional. useStatement and useOnTarget parse it; VisitUseStatement refuses at 85 a USE without AFTER (COBOL0900, use-without-after-2002) or without PROCEDURE (use-without-procedure-2002) and the EXCEPTION CONDITION/EC form (COBOL0877); GLOBAL twice, an empty ON, two modes and a file-name with a mode are refused by the grammar; DeclBindUse binds the GLOBAL scope. Probed at 85: ERROR/EXCEPTION, STANDARD and ON omitted, INPUT and I-O mode USE GLOBAL in the outer program fired for an indexed (random, status 23) READ in a contained program while the contained program's own USE ON its relative file took precedence over the outer GLOBAL I-O one; the witness runs the outer USE GLOBAL for a READ at end in a contained program. Lead outside this row, unfiled: after a failed OPEN INPUT (35) a later READ (47) still runs a USE ... ON INPUT procedure, because FileConnector.OpenModeView keeps the attempted mode, though §1985:VII.4.6.4 GR5 b names only a file 'open in the input mode or in the process of being opened in the input mode'.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
