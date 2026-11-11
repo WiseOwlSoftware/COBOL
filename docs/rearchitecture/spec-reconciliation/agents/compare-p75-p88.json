@@ -1,9 +1,9 @@
 {
   "batch": [75, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 88],
-  "pages_checked": [75, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 88],
+  "pages_checked": [75, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87, 88], "pages_unread": [],
   "findings": [
     {
-      "page": 88,
+      "id": "p88-1", "page": 88,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "7.3.8.4.2 General format\n\ncompilation-variable-name-1 IS [ NOT ] DEFINED\n\n(printed with NOT and DEFINED UNDERLINED; IS is printed WITHOUT an underline; compilation-variable-name-1 is lowercase generic term)",
@@ -12,7 +12,7 @@
       "suggested_repair": "Add a Figure notes blockquote after the format line, in the same style used at ISO_COBOL.md lines 3920 / 4871: '> **Figure notes (defined condition general format).** `NOT` and `DEFINED` are underlined in the printed standard (required words). `IS` is **not** underlined -- it is an optional word and may be omitted. `compilation-variable-name-1` is a generic term. The brackets around `NOT` make it optional; there are no choice indicators in this figure.'"
     },
     {
-      "page": 78,
+      "id": "p78-1", "page": 78,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Items b) through e) are printed indented one level under general rule 9) (which begins on page 77 with 'The comparison operation to determine text replacement occurs in the following manner:'), and the numbered items 1. through 6. are printed indented a further level under 'c) The following rules apply for the purpose of matching:'.",
@@ -21,7 +21,7 @@
       "suggested_repair": "Indent b), c), d), e) by 3 spaces to match 'a)' on page 77, and indent 1. through 6. by 6 spaces under c) (matching the existing 'a.'/'b.' items which are already indented under 4.)."
     },
     {
-      "page": 79,
+      "id": "p79-1", "page": 79,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Items f) and g) are printed indented one level under general rule 9) (begun on page 77); the following items 10), 11), 12), 13) return to the outer level flush with 9).",
@@ -30,7 +30,7 @@
       "suggested_repair": "Indent 'f)' and 'g)' by 3 spaces to match 'a)' on page 77."
     },
     {
-      "page": 82,
+      "id": "p82-1", "page": 82,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "Items b), c), d) are printed indented one level under general rule 7) (begun on page 81); items a), b), c) are printed indented one level under general rule 8); items 1. through 4. are printed indented a further level under 'c) The following rules apply for the purpose of matching:'.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Indent b), c), d) (under 7) and a), b), c) (under 8) by 3 spaces, and indent 1. through 4. by 6 spaces under c) -- matching the already-correct '   a)' / '      1.' pattern on page 81."
     },
     {
-      "page": 83,
+      "id": "p83-1", "page": 83,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "'b. In the content of the literal ...' is printed indented under '4. For alphanumeric, boolean, and national literals:'; '5.' and '6.' are printed indented under 'c) The following rules apply ...'; 'NOTE 1 Because comments are removed during logical conversion, none are expected.' is printed indented under item 6.; and d) through g) are printed indented one level under general rule 8).",

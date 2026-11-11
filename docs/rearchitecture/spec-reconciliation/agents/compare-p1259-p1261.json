@@ -1,10 +1,10 @@
 {
   "batch": [1259, 1260, 1261],
-  "pages_checked": [1259, 1260, 1261],
+  "pages_checked": [1259, 1260, 1261], "pages_unread": [],
   "notes": "Batch was routed here as 'figure-bearing', but PDF pages 1259-1261 are back matter: the tail of the alphabetical index (W/X/Y/Z), a genuinely blank verso, and the back cover. No general formats or syntax skeletons appear on any of the three pages, so the choice-indicator / bracket-closure / ellipsis-placement checks had nothing to apply to. Page 1259 transcribes cleanly (all 40 index entries and every page reference verified glyph-by-glyph against the render).",
   "findings": [
     {
-      "page": 1261,
+      "id": "p1261-1", "page": 1261,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "ISO/IEC 1989:2023(E)  [top-left running head]  ...  ICS  35.060 / Price based on 1229 pages / © ISO/IEC 2023 – All rights reserved   [the back cover carries NOTHING else]",
@@ -13,7 +13,7 @@
       "suggested_repair": "Delete specs/ISO_COBOL.md lines 53198-53203 (the stray block between 'Price based on 1229 pages' and the end of the page-1261 slice). Leave the page-1261 slice as: the '**ISO/IEC 1989:2023(E)**' head, the rule, '**ICS 35.060**', 'Price based on 1229 pages'. Verify the surviving copy at lines 48918-48922 still reads '3) Exception conditions...' / '— For the Asynchronous messaging facility (EC-MCS, ...)' / '— For the Commit and Rollback facility (...)' intact."
     },
     {
-      "page": 1260,
+      "id": "p1260-1", "page": 1260,
       "kind": "summarised-not-transcribed",
       "severity": "structural",
       "pdf_says": "[page 1260 is genuinely blank — the render shows only the '[per-copy licence stamp]' footer line]",

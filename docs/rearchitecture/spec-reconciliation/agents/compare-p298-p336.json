@@ -1,9 +1,9 @@
 {
   "batch": [298, 300, 312, 314, 316, 318, 324, 326, 328, 330, 332, 336],
-  "pages_checked": [298, 300, 312, 314, 316, 318, 324, 326, 328, 330, 332, 336],
+  "pages_checked": [298, 300, 312, 314, 316, 318, 324, 326, 328, 330, 332, 336], "pages_unread": [],
   "findings": [
     {
-      "page": 298,
+      "id": "p298-1", "page": 298,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "INTERFACE-ID.  interface-name-1  [ AS literal-1 ]\n    [ INHERITS FROM { interface-name-2 }  ... ]\n    [ USING { parameter-name-1 }  ... ] .\n\n(printed underlining, verified on the rendered page at 300 dpi: INTERFACE-ID, AS, INHERITS and USING each carry an underline; FROM carries NO underline)",
@@ -12,7 +12,7 @@
       "suggested_repair": "Append after the 11.6.2 fence: '> **Figure notes (INTERFACE-ID paragraph general format).** `INTERFACE-ID`, `AS`, `INHERITS`, and `USING` are underlined in the printed standard (required words). `FROM` is **not** underlined — it is an optional word and may be omitted. The paragraph is terminated by a separator period printed after the USING bracket.'"
     },
     {
-      "page": 312,
+      "id": "p312-1", "page": 312,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "ENVIRONMENT  DIVISION.\n[ configuration-section ]\n[ input-output-section ]\n\n(ENVIRONMENT and DIVISION are each separately underlined in the printed page)",
@@ -21,7 +21,7 @@
       "suggested_repair": "Append after the 12.2.1 fence: '> **Figure notes (Environment division general format).** `ENVIRONMENT` and `DIVISION` are both underlined in the printed standard (required words). The division header is terminated by a separator period; the two section entries are optional and, when present, appear in the order shown.'"
     },
     {
-      "page": 300,
+      "id": "p300-1", "page": 300,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "11.7.4   General rules   (a fourth-level clause heading, printed at the same typographic rank as 11.7.1 General, 11.7.2 General format and 11.7.3 Syntax rules)",
@@ -30,7 +30,7 @@
       "suggested_repair": "Change '## 11.7.4 General rules' to '### 11.7.4 General rules'."
     },
     {
-      "page": 314,
+      "id": "p314-1", "page": 314,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "12.3.5   SOURCE-COMPUTER paragraph   (a third-level clause heading under 12.3 Configuration section, printed at the same rank as 12.3.1 General, 12.3.2 General format, 12.3.3 Syntax rules and 12.3.4 General rule)",
@@ -39,7 +39,7 @@
       "suggested_repair": "Change '## 12.3.5 SOURCE-COMPUTER paragraph' to '### 12.3.5 SOURCE-COMPUTER paragraph'."
     },
     {
-      "page": 316,
+      "id": "p316-1", "page": 316,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "12.3.6.4   General rules   (a fourth-level clause heading, printed at the same rank as 12.3.6.1 General, 12.3.6.2 General format and 12.3.6.3 Syntax rules)",
@@ -48,7 +48,7 @@
       "suggested_repair": "Change '## 12.3.6.4 General rules' to '### 12.3.6.4 General rules'."
     },
     {
-      "page": 326,
+      "id": "p326-1", "page": 326,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "12.3.7.4   General rules   (a fourth-level clause heading under 12.3.7 SPECIAL-NAMES paragraph, printed at the same rank as 12.3.7.1 General, 12.3.7.2 General format and 12.3.7.3 Syntax rules)",

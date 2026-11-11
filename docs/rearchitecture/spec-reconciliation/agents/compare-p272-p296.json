@@ -1,9 +1,9 @@
 {
   "batch": [272, 274, 276, 278, 280, 282, 284, 288, 290, 292, 294, 296],
-  "pages_checked": [272, 274, 276, 278, 280, 282, 284, 288, 290, 292, 294, 296],
+  "pages_checked": [272, 274, 276, 278, 280, 282, 284, 288, 290, 292, 294, 296], "pages_unread": [],
   "findings": [
     {
-      "page": 288,
+      "id": "p288-1", "page": 288,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "where class-definition is:\n\n  [ IDENTIFICATION DIVISION. ]\n  CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]\n      [ INHERITS FROM { object-class-name-2 } ... ]\n      [ USING { parameter-name-1 }  ...  ] .\n\n  [ options-paragraph ]\n  [ environment-division ]\n  [ factory-definition ]\n  [ instance-definition ]\n  END CLASS object-class-name-1.\n\n(and likewise the 'where factory-definition is:' and 'where instance-definition is:' skeletons) -- three multi-line general-format skeletons whose line structure and indentation are load-bearing.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Wrap all three skeletons on page 288 in ``` fences, matching the treatment already used on pages 287, 289 and 294, and replace the U+3000 indent with ordinary spaces."
     },
     {
-      "page": 288,
+      "id": "p288-2", "page": 288,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "CLASS-ID. object-class-name-1 [ AS literal-1 ] [ IS FINAL ]\n    [ INHERITS FROM { object-class-name-2 } ... ]\n    [ USING { parameter-name-1 }  ...  ] .\n\n-- with underlining on IDENTIFICATION, DIVISION, CLASS-ID, AS, FINAL, INHERITS, USING, END, CLASS, FACTORY, IMPLEMENTS, OBJECT. IS and FROM are printed WITHOUT underlining (verified by cropping/zooming the rendered page at 300 dpi).",
@@ -21,7 +21,7 @@
       "suggested_repair": "Record the underlining for all three page-288 skeletons the way the transcription already does elsewhere: either <u>...</u> markers (as used at 11.4.2 on page 296, e.g. '<u>FACTORY</u>. [ <u>IMPLEMENTS</u> ...') or a '> **Figure notes ...** Underlined (required) words in the printed figure: ...' paragraph (as used for program-definition on page 287)."
     },
     {
-      "page": 294,
+      "id": "p294-1", "page": 294,
       "kind": "incorrect-figure",
       "severity": "normative",
       "pdf_says": "11.3.2  General format\n\n  CLASS-ID.  object-class-name-1 [ AS literal-1 ]  [ IS  FINAL ]\n      [ INHERITS FROM { object-class-name-2 }  ... ]\n      [ USING { parameter-name-1 }  ... ] .\n\n-- underlining on CLASS-ID, AS, FINAL, INHERITS, USING; IS and FROM printed WITHOUT underlining.",
@@ -30,7 +30,7 @@
       "suggested_repair": "Add a 'Figure notes' line under the 11.3.2 fence recording the underlined (required) words -- CLASS-ID, AS, FINAL, INHERITS, USING -- and explicitly noting that IS and FROM are optional words. Apply the same to the other unannotated general-format fences in clause 11."
     },
     {
-      "page": 274,
+      "id": "p274-1", "page": 274,
       "kind": "misplaced-content",
       "severity": "structural",
       "pdf_says": "5)  For each parameter that is passed by value there shall be a corresponding parameter in the invoked method that:\n\n    a)  is specified with the BY VALUE phrase\n\n[page break]\n\n    b)  if the passed parameter is specified with the OMITTED phrase, shall be specified with the OPTIONAL phrase. No further checking is performed on this parameter and this parameter is considered to match exactly.\n\n-- two separate lettered list items, a) ending the printed page and b) opening the next.",
@@ -39,7 +39,7 @@
       "suggested_repair": "Split ISO_COBOL.md line 12016 into two list items: '   a) is specified with the BY VALUE phrase' and, after a blank line, '   b) if the passed parameter is specified with the OMITTED phrase, ...'. Move item b) after the page-275 anchor if the transcription's convention is to place text on the page where it is printed."
     },
     {
-      "page": 276,
+      "id": "p276-1", "page": 276,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "9.3.7   Method prototypes\n...\n9.3.8   Conformance and interfaces\n9.3.8.1   General\n\n-- third-level subsections of 9.3 Objects, printed identically to 9.3.6 Method invocation which immediately precedes them.",
@@ -48,7 +48,7 @@
       "suggested_repair": "Demote to '### 9.3.7 Method prototypes' and '### 9.3.8 Conformance and interfaces' (and correspondingly deepen 9.3.8.1 / 9.3.8.2.x). This is systematic -- sweep the whole file for headings whose '#' depth disagrees with their dotted number depth relative to their parent."
     },
     {
-      "page": 282,
+      "id": "p282-1", "page": 282,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "9.3.13   Parameterized interfaces\n...\n9.3.14   Object life cycle\n9.3.14.1   General\n...\n9.4   User-defined functions\n\n-- 9.3.13 and 9.3.14 are third-level subsections of 9.3, printed identically to 9.3.12 Parameterized classes; 9.4 is a second-level subclause of clause 9, printed identically to 9.1 Files.",
@@ -57,7 +57,7 @@
       "suggested_repair": "Demote '## 9.3.13' and '## 9.3.14' to '###' (deepening 9.3.14.1-9.3.14.3 accordingly), and make 9.2/9.3/9.4 agree in level with 9.1 Files. Part of the same document-wide heading-depth sweep."
     },
     {
-      "page": 290,
+      "id": "p290-1", "page": 290,
       "kind": "missing-heading",
       "severity": "structural",
       "pdf_says": "10.6.3   General rule\n\n-- a third-level subsection of 10.6 COBOL compilation group, printed identically to 10.6.1 General format which precedes it.",

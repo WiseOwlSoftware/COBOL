@@ -1,9 +1,9 @@
 {
   "batch": [440, 444, 447, 450, 457, 460, 468, 471, 494, 497, 503, 505],
-  "pages_checked": [440, 444, 447, 450, 457, 460, 468, 471, 494, 497, 503, 505],
+  "pages_checked": [440, 444, 447, 450, 457, 460, 468, 471, 494, 497, 503, 505], "pages_unread": [],
   "findings": [
     {
-      "page": 471,
+      "id": "p471-1", "page": 471,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "13.18.40.2 General formats / Format 1 (basic): the PICTURE Format 1 general-format diagram is printed EXACTLY ONCE on page 471 (one diagram: '{PICTURE/PIC} IS character-string-1 [ EDITING character-1 { IS literal-1 / FOR {| NEGATIVE IS literal-2 / POSITIVE IS literal-3 |} } ] ...'), followed immediately by 'Format 2 (locale):'.",
@@ -12,7 +12,7 @@
       "suggested_repair": "Delete the second fenced block (source lines 33-37 of the page-471 slice) and its accompanying figure-notes paragraph (line 39-40), keeping ONE Format 1 diagram. Retain the SECOND note's underline list (it is the accurate one - see the companion finding) merged onto the surviving diagram."
     },
     {
-      "page": 471,
+      "id": "p471-2", "page": 471,
       "kind": "incorrect-text",
       "severity": "normative",
       "pdf_says": "In the PICTURE Format 1 diagram the word FOR is printed UNDERLINED (verified by rendering page 471 at 300 dpi and cropping the FOR group: 'FOR' carries a rule beneath it, exactly as NEGATIVE and POSITIVE do).",
@@ -21,7 +21,7 @@
       "suggested_repair": "In the surviving Format 1 figure-notes paragraph state: '`PICTURE`, `PIC`, `EDITING`, `FOR`, `NEGATIVE`, and `POSITIVE` are underlined in the printed standard (required words / required minimum abbreviation); `IS`, `character-string-1`, `character-1`, and the literals are not.'"
     },
     {
-      "page": 460,
+      "id": "p460-1", "page": 460,
       "kind": "incorrect-figure",
       "severity": "structural",
       "pdf_says": "13.18.38.2 General formats, 'Format 3 (report-writer):' is printed as a general-format figure in the diagram font with four words UNDERLINED: 'OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]' - OCCURS, TO, DEPENDING and STEP each carry an underline rule; TIMES, ON, integer-1, integer-2, integer-3 and data-name-1 do not.",

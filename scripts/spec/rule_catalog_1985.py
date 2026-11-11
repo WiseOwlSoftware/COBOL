@@ -54,9 +54,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from citation import (AMENDMENT_85, APPENDIX_85, FOLIO_85, MARK_85, PAGE_85, PARAGRAPH_85,  # noqa: E402
+from citation import (AMENDMENT_85, APPENDIX_85, FOLIO_85, MARK_85, PARAGRAPH_85,  # noqa: E402
                       SCAN_REPEAT_85, SECTION_85, SECTIONS_85)  # (THE readers of the 1985 structure, kb/Work PB4887)
-from spec_pdf import BOX_SIDE  # noqa: E402  (THE side of a level-2 box, kb/Work PB4850)
+from spec_pdf import BOX_SIDE, PAGE_HEADING  # noqa: E402  (THE side of a level-2 box, kb/Work PB4850; THE page heading)
 # THE shapes of an editorial note (a correction, R66; a reconstruction's opening and closing, kb/Work PB4952): never rule
 # text. A reconstruction's own text IS read, its rows marked provisional (`reconstructed`).
 from cite import EDITORIAL_NOTE, RECONSTRUCTED, RECONSTRUCTED_END, reconstructed  # noqa: E402
@@ -244,7 +244,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     folio_of: dict[int, str] = {}
     page = 0
     for line in lines:
-        if PAGE_85.match(line):
+        if PAGE_HEADING.match(line):
             page = int(line.split()[-1])
         elif (f := FOLIO_85.match(line)) is not None:
             folio_of[page] = f.group(1)
@@ -316,7 +316,7 @@ def parse(lines: list[str], manifest: dict[str, dict] | None = None) -> Catalog:
     inside = [f is not None for f in recon_folio]
     drawn_from: set[bool] = set()
     for at, line in enumerate(lines):
-        if PAGE_85.match(line):
+        if PAGE_HEADING.match(line):
             page, page_top, repeat = int(line.split()[-1]), True, False
             continue
         if repeat or not line.strip():

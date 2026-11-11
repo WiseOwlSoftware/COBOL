@@ -1,6 +1,6 @@
 {
   "batch": [853, 854, 855, 856, 857, 858, 861, 862, 863, 864, 865, 866],
-  "pages_checked": [853, 854, 855, 856, 857, 858, 861, 862, 863, 864, 865, 866],
+  "pages_checked": [853, 854, 855, 856, 857, 858, 861, 862, 863, 864, 865, 866], "pages_unread": [],
   "findings": [],
   "notes": [
     "Sweep of ISO/IEC 1989:2023 printed pages 823-836 (PDF pages 853-866), clause 15.14 BYTE-LENGTH through 15.22 DATE-OF-INTEGER, plus the tail of 15.19 CONVERT (pp. 861-862).",
