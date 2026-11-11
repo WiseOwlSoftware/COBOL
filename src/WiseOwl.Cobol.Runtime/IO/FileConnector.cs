@@ -623,28 +623,35 @@ public abstract class FileConnector
     /// <summary>The current open mode (meaningful while <see cref="ModeKnown"/>).</summary>
     protected FileOpenMode Mode;
 
-    /// <summary>True while the file is open, and after a CLOSE that failed (the CLOSE statement's own USE procedure still
-    /// finds the mode the file was open in); cleared by a successful CLOSE (§2023:9.1.4 — the file is then in no mode).
-    /// A FAILED OPEN never sets it: the mode an OPEN is attempted in is the OPEN statement's <see cref="BeingOpened"/>.</summary>
+    /// <summary>True while the file is open; cleared by <see cref="Close"/> whatever its outcome (§2023:14.9.6.4 GR8, and
+    /// docs/CONFORMANCE.md DOC-A.1-105 for a failed CLOSE — the file is then in no mode). A FAILED OPEN never sets it. The mode an
+    /// OPEN is attempted in, and the mode a CLOSE was issued against, are the executing statement's own
+    /// <see cref="_statementMode"/>: kb/Work PB5200 (OPEN) and PB5261 (CLOSE).</summary>
     protected bool ModeKnown;
 
-    /// <summary>⛔ THE MODE THE OPEN STATEMENT NOW EXECUTING IS ATTEMPTING (§1985:VII.4.6.4 GR5 b)–e), §2023:14.9.49.4 GR6 b)–e):
-    /// a USE ON INPUT / OUTPUT / I-O / EXTEND procedure is applicable to a file "in the process of being opened" in that
-    /// mode). It is a property of the OPEN STATEMENT'S EXECUTION, held apart from the file's open mode: set before the OPEN
-    /// does anything (so an OPEN refused for '41' or '38' has it too), kept through the statement's own USE procedure and
-    /// cleared when the statement ends (<see cref="EndOpen"/>), so no later statement finds a mode a failed OPEN left behind.</summary>
-    private FileOpenMode? _beingOpened;
+    /// <summary>⛔ THE MODE THE OPEN OR CLOSE STATEMENT NOW EXECUTING IS SCOPED TO (§1985:VII.4.6.4 GR5 b)–e), §2023:14.9.49.4 GR6
+    /// b)–e): a USE ON INPUT / OUTPUT / I-O / EXTEND procedure is applicable to a file open in that mode "or in the process of being
+    /// opened" in it). For an OPEN it is the mode attempted (<see cref="BeginOpen"/>), for a CLOSE the mode the file was open in
+    /// when the statement began (<see cref="BeginClose"/>). It is a property of the STATEMENT'S EXECUTION, held apart from the
+    /// file's open mode: set before the statement does anything (so an OPEN refused for '41' or '38', and a CLOSE that answers '30',
+    /// have it too), kept through the statement's own USE procedure and cleared when the statement ends
+    /// (<see cref="EndModeScope"/>), so no later statement finds a mode a failed OPEN or CLOSE left behind.</summary>
+    private FileOpenMode? _statementMode;
 
-    /// <summary>The OPEN statement begins: the mode it attempts is the file's being-opened mode until <see cref="EndOpen"/>.</summary>
-    internal void BeginOpen(FileOpenMode mode) => _beingOpened = mode;
+    /// <summary>The OPEN statement begins: the mode it attempts is the file's statement mode until <see cref="EndModeScope"/>.</summary>
+    internal void BeginOpen(FileOpenMode mode) => _statementMode = mode;
 
-    /// <summary>The OPEN statement ends, with its USE procedure (if any) run: the file is in no being-opened mode.</summary>
-    internal void EndOpen() => _beingOpened = null;
+    /// <summary>The CLOSE statement begins: the mode the file is open in (none, for a CLOSE of a file that is not open, which
+    /// answers '42') is the statement mode until <see cref="EndModeScope"/>.</summary>
+    internal void BeginClose() => _statementMode = ModeKnown ? Mode : null;
+
+    /// <summary>The OPEN or CLOSE statement ends, with its USE procedure (if any) run: the file has no statement mode.</summary>
+    internal void EndModeScope() => _statementMode = null;
 
     /// <summary>The open-mode view for USE-declarative mode scoping (§2023:14.9.49.4 GR6 b)–e)): <c>(int)</c> of the mode an
-    /// OPEN now executing is attempting, else of the mode the file is open in; −1 when the file is in neither (before any
-    /// OPEN, after a failed OPEN's statement has ended, after a successful CLOSE).</summary>
-    public int OpenModeView => _beingOpened is { } being ? (int)being : ModeKnown ? (int)Mode : -1;
+    /// OPEN or CLOSE now executing is scoped to, else of the mode the file is open in; −1 when the file is in neither (before any
+    /// OPEN, after a failed OPEN's or any CLOSE's statement has ended).</summary>
+    public int OpenModeView => _statementMode is { } scoped ? (int)scoped : ModeKnown ? (int)Mode : -1;
 
     /// <summary>The open mode while the connector IS OPEN (ISO §2023:9.1.4), null otherwise.
     /// ⛔ DELIBERATELY NOT <see cref="OpenModeView"/>: that view also answers with the mode an OPEN now
@@ -1303,7 +1310,7 @@ public abstract class FileConnector
         // failure, never an OutOfMemoryException killing the run unit (the CobolDynTable precedent, kb/Work PB1410).
         catch (OutOfMemoryException) { s = FileStatusCode.PermanentError; }
         _openMode = s[0] == '0';   // a success-family OPEN ('00'/'05'/'07') puts the connector in its open mode
-        ModeKnown = _openMode;     // a failed OPEN leaves the file in no mode; its attempt is BeingOpened's, ended with the statement
+        ModeKnown = _openMode;     // a failed OPEN leaves the file in no mode; its attempt is the statement mode's, ended with the statement
         // §2023:9.1.15 — "The SUCCESSFUL opening of a file establishes a file lock": an unsuccessful one establishes
         // none, and §2023:14.9.27.4 GR25 leaves the file unaffected. Any handle the body took on its way to failing
         // goes back HERE, because Close() answers '42' for a connector that is not open and never reaches
@@ -1436,6 +1443,7 @@ public abstract class FileConnector
         {
             ReleaseRunUnitFileLock();   // §2023:9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement"
             _openMode = false;
+            ModeKnown = false;   // §2023:9.1.4 / §2023:14.9.6.4 GR8 — a completed CLOSE leaves no open mode, failed ('30') or not (kb/Work PB5261)
             // §2023:9.1.13.1 / Annex A.1 item 105 — THE CORRECTION TECHNIQUE: a completed CLOSE ends a permanent error in
             // effect, successful or not (an unsuccessful CLOSE also leaves the connector closed), so the next OPEN
             // starts clean (kb/Work PB1541, docs/CONFORMANCE.md DOC-A.1-105). A CLOSE that itself fails '30' does not
@@ -1480,7 +1488,7 @@ public abstract class FileConnector
     protected abstract string OpenCore(FileOpenMode mode, FilePresence presence);
 
     /// <summary>The organization-specific CLOSE body (flush/persist/dispose); returns the resulting status.
-    /// A successful close must clear <see cref="ModeKnown"/> (§2023:9.1.4 — the file is then in no open mode).</summary>
+    /// <see cref="Close"/> clears <see cref="ModeKnown"/> after it, whatever its outcome (§2023:9.1.4), so no body does.</summary>
     protected abstract string CloseCore();
 
     /// <summary>⛔ ISO §2023:12.4.5.14.3 GR1 — the number of input-output areas this connector allocates: the RESERVE

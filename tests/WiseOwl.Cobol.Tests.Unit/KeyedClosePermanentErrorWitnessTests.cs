@@ -322,4 +322,71 @@ public sealed class KeyedClosePermanentErrorWitnessTests : WiseOwlCobolTestBase
         Assert.Contains("EC-I-O-PERMANENT-ERROR", ended.Message);
         if (cover == Cover.Neither) Assert.Contains("(CLOSE)", ended.Message);
     }
+
+    /// <summary>⛔ A MODE-SCOPED USE PROCEDURE SEES THE CLOSE THAT FAILED, AND NO LATER STATEMENT (kb/Work PB5261; §2023:14.9.49.4 GR6d):
+    /// <i>"If I-O is specified, the associated procedure is executed when the condition described in the USE statement occurs for any
+    /// file open in the I-O mode or in the process of being opened in the I-O mode"</i>). The file is open in the I-O mode when its
+    /// CLOSE answers '30', so <c>USE AFTER STANDARD EXCEPTION PROCEDURE ON I-O</c> runs for the CLOSE (the statement's own scope,
+    /// <c>CobolFile.BeginClose</c>); the CLOSE then leaves the file in no mode (§2023:14.9.6.4 GR8; DOC-A.1-105), so the READ that
+    /// follows answers '47' (the file is not open) for a file that is open in no mode, and the I-O USE procedure does not run for
+    /// it. The FILE STATUS clause covers the '47', so the run unit continues (DOC-A.1-103).</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void A_mode_scoped_use_procedure_runs_for_the_close_that_answers_30_and_not_for_the_read_after_it(FileOrg org)
+    {
+        string id = $"KM{(org == FileOrg.Relative ? "R" : "I")}";
+        string host = Seeded(id, org);
+        Probe(host, org, Refusal.Promotion);
+        string key = org == FileOrg.Relative ? "RELATIVE KEY WK" : "RECORD KEY KWK";
+        string organization = org == FileOrg.Relative ? "RELATIVE" : "INDEXED";
+        string at3 = org == FileOrg.Relative ? "MOVE 3 TO WK." : "CONTINUE.";
+        string Note(string what) =>
+            $"STRING \"{what} \" FS \";\" DELIMITED BY SIZE INTO LG WITH POINTER P.";
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {id}.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT KW ASSIGN TO "{host}"
+                    ORGANIZATION {organization} ACCESS DYNAMIC LOCK MODE IS MANUAL SHARING WITH ALL OTHER
+                    {key} FILE STATUS FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD KW.
+            01 KWR.
+               05 KWK PIC X(4).
+               05 KWD PIC X(4).
+            WORKING-STORAGE SECTION.
+            01 FS PIC XX VALUE "--".
+            01 WK PIC 9(4).
+            01 P PIC 999 VALUE 1.
+            LINKAGE SECTION.
+            01 LG PIC X(240).
+            PROCEDURE DIVISION USING LG.
+            DECLARATIVES.
+            USE-S SECTION.
+                USE AFTER STANDARD EXCEPTION PROCEDURE ON I-O.
+            USE-P.
+                {Note("USE")}
+            END DECLARATIVES.
+            MAIN-S SECTION.
+            MAIN-P.
+                OPEN I-O KW.
+                {Note("OPEN")}
+                MOVE "0003CCCC" TO KWR.
+                {at3}
+                WRITE KWR.
+                {Note("WRITE")}
+                CLOSE KW.
+                {Note("CLOSE")}
+                READ KW NEXT RECORD.
+                {Note("READ")}
+                GOBACK.
+            """;
+        var (trace, ended) = Run(id, source);
+        Assert.Equal(["OPEN 00", "WRITE 00", "USE 30", "CLOSE 30", "READ 47"], trace);
+        Assert.Null(ended);
+    }
 }

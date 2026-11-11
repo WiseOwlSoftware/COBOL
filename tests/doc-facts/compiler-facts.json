@@ -64,6 +64,10 @@
       "vcrRow": "7.53"
     },
     {
+      "id": "record-contains-range-binds-record-size",
+      "vcrRow": "7.57"
+    },
+    {
       "id": "search-index-below-table-unsuccessful",
       "vcrRow": "7.56"
     }

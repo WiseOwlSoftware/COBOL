@@ -114,6 +114,16 @@ public enum DialectBehavior
     /// (kb/Work PB5121; VCR row 7.56). Both editions are QUOTED. The consumer is <c>SearchBinder.BindSearch</c>, which sets
     /// <c>BoundSearch.IndexBelowTableIsUnsuccessful</c> for <c>ControlFlowEmitter.EmitSerialScan</c>.</summary>
     SearchIndexBelowTableUnsuccessful = 6,
+
+    /// <summary>ISO/IEC 1989:2023 §2023:13.18.43.4 GR19 — "If the number of bytes in the logical record to be written is
+    /// less than integer-4 or greater than integer-5", a WRITE or REWRITE of a file whose RECORD clause is Format 3
+    /// (<c>RECORD CONTAINS integer-4 TO integer-5</c>) is unsuccessful (I-O status '44' on a WRITE/REWRITE, §2023:9.1.13.7
+    /// item 4 a). The 2002 text carries the same rule (§2002:13.16.41.3 GR19 a: the "REWRITE or WRITE statement is
+    /// unsuccessful"; its I-O status 44 item c names the fixed-or-variable-length format of the RECORD clause), whereas
+    /// §1985:VII.1.3.5 names only "the RECORD IS VARYING clause", with Format 3's size "completely defined in the
+    /// record description entry" (§1985:VII.3.8.4 GR14). So at <c>--std 85</c> a Format 3 range only documents the record
+    /// sizes and no WRITE is refused for it (kb/Work PB5197). The consumer is <c>FileControlBinder.BindRecordClause</c>.</summary>
+    RecordContainsRangeBindsRecordSize = 7,
 }
 
 /// <summary>
@@ -169,6 +179,11 @@ public static class DialectBehaviors
             "7.56", "14.9.37.4 GR4", "§1985:VI.6.22.4 GR2",
             "a format 1 SEARCH whose index is zero or negative at its start is unsuccessful at once only from COBOL-2002; "
             + "COBOL-85 tests the upper bound alone and an index below the table starts the serial scan"),
+        new(DialectBehavior.RecordContainsRangeBindsRecordSize, "record-contains-range-binds-record-size", 2002,
+            "7.57", "13.18.43.4 GR19", "§1985:VII.1.3.5",
+            "a WRITE or REWRITE of a record outside a RECORD CONTAINS integer-4 TO integer-5 range is unsuccessful ('44') "
+            + "only from COBOL-2002; COBOL-85 bounds only the RECORD IS VARYING clause and the range only documents the "
+            + "record sizes"),
     ];
 
     static DialectBehaviors()

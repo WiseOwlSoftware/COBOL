@@ -354,11 +354,14 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     {
         var w = ctx.Writer;
         string f = FileKeyExpr(input);
-        w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR12c / GR7c)");
-        // The as-if CLOSE gets the hook an explicit CLOSE gets (SequentialIoEmitter.EmitClose): no AT END phrase
-        // exists on a CLOSE, so nothing takes precedence over its declarative.
-        seqIo.EmitStoreFileStatus(input);
-        EmitTransferHook(input, RuntimeApi.FileStatus(f), TransferIo.UsingClose, tx);
+        // The as-if CLOSE gets the scope and the hook an explicit CLOSE gets (SequentialIoEmitter.EmitClose): no AT END phrase
+        // exists on a CLOSE, so nothing takes precedence over its declarative (kb/Work PB5261).
+        using (seqIo.EmitCloseScope(input))
+        {
+            w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR12c / GR7c)");
+            seqIo.EmitStoreFileStatus(input);
+            EmitTransferHook(input, RuntimeApi.FileStatus(f), TransferIo.UsingClose, tx);
+        }
     }
 
     /// <summary>The implicit GIVING transfer for one output file (SORT GR15 / MERGE GR12): REWIND the return
@@ -448,9 +451,12 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             }
             EmitSuccessfulTransferHook(output, ws, TransferIo.GivingWrite, tx, otherwise: true);
         }
-        w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
-        seqIo.EmitStoreFileStatus(output);
-        EmitTransferHook(output, RuntimeApi.FileStatus(f), TransferIo.GivingClose, tx);
+        using (seqIo.EmitCloseScope(output))
+        {
+            w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
+            seqIo.EmitStoreFileStatus(output);
+            EmitTransferHook(output, RuntimeApi.FileStatus(f), TransferIo.GivingClose, tx);
+        }
         if (tx.Bypassed) w.Line($"{tx.BypassLabel}: ;   // MERGE GR12 a) — the bypassed file's processing ends here");
         tx.BypassLabel = null;
     }
