@@ -1,4 +1,4 @@
-## The message control session: error keys of a refused statement, the count of a partial message, one message per destination occurrence, the terminal lock, the source of a received message
+## Entry 3503 — 2026-11-11 15:11 PST — The message control session: error keys of a refused statement, the count of a partial message, one message per destination occurrence, the terminal lock, the source of a received message
 
 Five defects of `MessageControlSession` (kb/Work PB5281, PB5285, PB5288, PB5283, PB5280), one root: the session's rules were written per
 path, so each early return, each key and each lookup missed a rule that binds the whole statement. Each was re-probed on this build first
@@ -26,3 +26,4 @@ Goldens, one per mechanism, each failing on the tree before the fix and passing 
 `1985-GR-XIV_3_1_4-1-partly-received`, `1985-GR-XIV_3_6_4-6-duplicate-destination`, `1985-GR-XIV_2_2_4-31-failing-first-statement`,
 `1985-GR-XIV_2_2_4-10-unknown-source`. The rules exist at 1985 alone, so no program is refused below. Rows: the 1985 rule ids stay out of
 `closes_rows` (kb/Work PB5094). Self-review found nothing beyond the source-lookup correction above.
+
