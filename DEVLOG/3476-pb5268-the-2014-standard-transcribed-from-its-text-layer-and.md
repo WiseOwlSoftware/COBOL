@@ -1,4 +1,4 @@
-## PB5268: the 2014 standard transcribed from its text layer, and the first 2014 edge checked against it (PB5270)
+## Entry 3476 — 2026-11-11 06:59 PST — PB5268: the 2014 standard transcribed from its text layer, and the first 2014 edge checked against it (PB5270)
 
 kb/Work PB5268. `specs/ISO_COBOL_2014.md` is new: ISO/IEC 1989:2014 (INCITS/ISO/IEC 1989:2014 (R2019)), converted from the
 PDF's own text layer with no model and no API, by the route PB4813 built for 2002. The PDF is `specs-private/ISO_COBOL_2014.pdf`;
@@ -40,3 +40,4 @@ format clause. The page-by-page reconciliation is still owed, as for 2002.
 because no 2014 text was held. `§2014:E.3` items 21, 24, 25, 26 and 38 say all five phrases are "no longer prohibited" at
 2014, so `--std 2014` refuses legal source: filed as kb/Work PB5270 (open). The docs that said the repository holds no 2014 text
 now name the file and say which derivations predate it.
+
