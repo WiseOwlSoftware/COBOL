@@ -207,6 +207,13 @@ public static class CobolFile
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §2023:14.9.49.4 GR6b–e).</summary>
     public static int OpenModeOf(string name) => _reg.OpenModeOf(name);
 
+    /// <summary>An OPEN statement begins on a file in <paramref name="mode"/> (§2023:14.9.49.4 GR6 b)–e), "in the process of being
+    /// opened"): emitted before the OPEN, paired with <see cref="EndOpen"/> after the statement's USE hook.</summary>
+    public static void BeginOpen(string name, FileOpenMode mode) => _reg.BeginOpen(name, mode);
+
+    /// <summary>The OPEN statement ends (<see cref="BeginOpen"/>), its USE procedure run.</summary>
+    public static void EndOpen(string name) => _reg.EndOpen(name);
+
     /// <summary>The open mode of a connector that IS OPEN, null otherwise (ISO §2023:9.1.4) -- the
     /// §2023:14.9.21.4 GR3 report-file-mode test. See <see cref="FileConnector.OpenModeIfOpen"/> for why this is
     /// not <see cref="OpenModeOf"/>.</summary>
