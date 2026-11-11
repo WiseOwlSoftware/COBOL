@@ -289,6 +289,12 @@ def self_test() -> int:
     cases = [
         ("reads the transcription of the edition the citation names (2002), not 2023's", edition_2002 == 0),
         ("an edition whose transcription is absent exits naming it", absent_1985),
+        ("checks a 2014 citation against the 2014 transcription (kb/Work PB5268)",
+         check(*load(2014), c("§2014:14.9.23.2 SR2"),
+               "File-name-1 shall be described in a sort-merge file description entry")[0] == 0),
+        ("fires on a 2014 citation naming the wrong rule",
+         check(*load(2014), c("§2014:14.9.23.2 SR1"),
+               "File-name-1 shall be described in a sort-merge file description entry")[0] == 1),
         ("checks a 1985 citation against the 1985 transcription",
          check(*load(1985), c("§1985:VI.5.3.1"), "A data description entry specifies the characteristics")[0] == 0),
         ("fires on a 1985 paragraph of the wrong section",

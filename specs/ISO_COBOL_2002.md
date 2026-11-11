@@ -67,8 +67,6 @@ Details of the software products used to create this PDF file can be found in th
    should be submitted to ITI, 1101 K Street NW, Suite 610, Washington DC 20005.\
    Printed in the United States of America
 
-ii © ITIC 2003 – All rights reserved
-
 ## Page 3
 
 STANDARD 1989

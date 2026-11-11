@@ -80,6 +80,14 @@ def main() -> int:
     check("the running header, the footer and the stamp are dropped; the folio is returned",
           "ISO/IEC 1989" not in md and "rights reserved" not in md and "store order" not in md and c.folio == "158")
     check("the headings are returned", c.headings == [("9.2", "Screens"), ("9.2.1", "Terminal screen")])
+    # The INCITS cover page is boxed, so its footer row is the page's lowest but sits above the foot band (2014: y 712.5
+    # of 792, measured).
+    cover = L.convert(page(words("Printed in the United States of America", 56.7, 600), words("17", 56.7, 650),
+                           words("ii", 56.7, 712), words("© ITIC 2014 – All rights reserved", 390.9, 712)), 2, no_stamp)
+    check("the INCITS cover page's ITIC footer, the lowest row of a boxed page above the foot band, is furniture like "
+          "ISO/IEC's: dropped, its roman folio returned, and a bare number above it is kept (PB5268)",
+          "ITIC" not in cover.markdown and "Printed in the United States" in cover.markdown and cover.folio == "ii"
+          and "17" in cover.markdown)
 
     print("rules, notes, lists")
     p = page(words("1)", 56.7, 100), full_row(74.7, 100), words("of the first rule.", 74.7, 111),

@@ -57,9 +57,12 @@ CLAUSE_NUMBER = re.compile(r"^(?:\d+(?:\.\d+)*|[A-Z](?:\.\d+)+)$")
 LABEL = re.compile(r"^(?:\d{1,3}|[a-z]|[ivx]{1,5})[.)]$")
 CAPTION = re.compile(r"^(?:Table|Figure)\s+[A-Z]?\.?\d")
 #: The footer row: a folio, the copyright line, or both on one row in either order (the folio sits outside, so it is left
-#: on an even page and right on an odd one).
+#: on an even page and right on an odd one). The copyright line is ISO/IEC's on the standard's own pages and ITIC's on the
+#: INCITS cover page that prints the adoption notice (2002 and 2014 page 2: `ii © ITIC 2014 – All rights reserved`,
+#: kb/Work PB5268).
 _FOLIO = r"(?:\d{1,4}|[ivxlcdm]{1,8})"
-FOOTER = re.compile(rf"^(?:(?P<a>{_FOLIO})\s+)?©\s?ISO/IEC\s+\d{{4}}(?:\s*[-–]\s*All rights reserved)?(?:\s+(?P<b>{_FOLIO}))?$"
+FOOTER = re.compile(rf"^(?:(?P<a>{_FOLIO})\s+)?©\s?(?:ISO/IEC|ITIC)\s+\d{{4}}(?:\s*[-–]\s*All rights reserved)?"
+                    rf"(?:\s+(?P<b>{_FOLIO}))?$"
                     rf"|^(?P<c>{_FOLIO})$")
 DOT_LEADER = re.compile(r"(?:\s*\.){4,}\s*")
 #: A row of the contents is an entry, a leader, a page number: the leader is written as this, and such a row is a line of its own.
@@ -360,13 +363,15 @@ def convert(layout: Layout, pno: int, stamp: Callable[[str], bool], format_open:
     folio: str | None = None
     head_y, foot_y = HEADER_FRACTION * layout.height, FOOTER_FRACTION * layout.height
     body: list[Span] = []
-    for r in rows_of(s for s in layout.spans if s.text.strip()):
+    printed = [r for r in rows_of(s for s in layout.spans if s.text.strip()) if not stamp(r.text)]
+    # The footer lies in the foot band, or, on a boxed page (the INCITS cover page, whose box ends above the band), it is
+    # the page's lowest printed row and carries the copyright line; a bare number is a folio only inside the band.
+    lowest = max(printed, key=lambda r: r.y0) if printed else None
+    for r in printed:
         t = r.text
-        if stamp(t):
-            continue
         if r.y1 <= head_y:
             continue
-        m = FOOTER.match(t) if r.y0 >= foot_y else None
+        m = FOOTER.match(t) if r.y0 >= foot_y or (r is lowest and "©" in t) else None
         if m:
             folio = m.group("a") or m.group("b") or m.group("c") or folio
             continue
