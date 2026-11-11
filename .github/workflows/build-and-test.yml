@@ -634,6 +634,7 @@ jobs:
           . scripts/python-resolve.sh
           "$PY" scripts/ci_plan.py generate --leg linux --expect "$EXPECT" --github-output "$GITHUB_OUTPUT"
       - name: Upload the generated outputs (every Linux shard downloads them)
+        if: ${{ always() }}
         uses: ./.github/actions/upload-results
         with:
           name: generated-linux
@@ -815,6 +816,7 @@ jobs:
           . scripts/python-resolve.sh
           "$PY" scripts/ci_plan.py generate --leg windows --expect "$EXPECT" --github-output "$GITHUB_OUTPUT"
       - name: Upload the generated outputs (every Windows shard downloads them)
+        if: ${{ always() }}
         uses: ./.github/actions/upload-results
         with:
           name: generated-windows
