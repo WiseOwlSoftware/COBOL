@@ -51,7 +51,8 @@ public sealed class Ansi85AcceptanceTests
             WRITE R.
             CLOSE F.
             OPEN INPUT F.
-            READ F INTO W.
+            READ F INTO W AT END CONTINUE END-READ
+            .
             CLOSE F.
             DISPLAY W.
             STOP RUN.

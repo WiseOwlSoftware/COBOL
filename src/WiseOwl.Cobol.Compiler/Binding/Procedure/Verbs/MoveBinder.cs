@@ -49,12 +49,15 @@ using Core = CobolParserCore;
 /// <param name="FunctionRuleCite">The quoted rule behind <paramref name="FunctionCategories"/>.</param>
 /// <param name="ZeroLengthLiteralRuleCite">The quoted rule forbidding a zero-length literal-1, or
 /// <see langword="null"/> where the verb states none.</param>
+/// <param name="AreaVerb">The verb's place in <c>RecordAreaRule</c>: identifier-1 shall not be the file's record area
+/// at the editions before COBOL-2023 (kb/Work PB5077).</param>
 internal sealed record FromPhraseRules(
     string Statement,
     string MoveRuleCite,
     PicCategory[]? FunctionCategories,
     string? FunctionRuleCite,
-    string? ZeroLengthLiteralRuleCite)
+    string? ZeroLengthLiteralRuleCite,
+    RecordAreaVerb AreaVerb)
 {
     /// <summary>The <see cref="ImplicitMovePhrase"/> every move of THIS verb's FROM phrase carries — built once
     /// per verb, beside the three static rows, rather than once per bound statement. It is the same object the
@@ -69,7 +72,8 @@ internal sealed record FromPhraseRules(
         [PicCategory.Alphanumeric, PicCategory.National],
         "ISO §2023:14.9.32.3 SR2 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
         + "national function.\"",
-        "ISO §2023:14.9.32.3 SR4 — \"Literal-1 shall not be a zero-length literal.\"");
+        "ISO §2023:14.9.32.3 SR4 — \"Literal-1 shall not be a zero-length literal.\"",
+        RecordAreaVerb.Release);
 
     /// <summary>WRITE (ISO §2023:14.9.51). §2023:14.9.51.3 SR4 is UNCONDITIONAL and stricter than the FILE-less SR11
     /// ("alphanumeric, boolean, or national"), so a conforming program satisfies both only inside SR4's set —
@@ -80,7 +84,8 @@ internal sealed record FromPhraseRules(
         [PicCategory.Alphanumeric, PicCategory.National],
         "ISO §2023:14.9.51.3 SR4 — \"If identifier-1 is a function-identifier, it shall reference an alphanumeric or "
         + "national function.\"",
-        null);
+        null,
+        RecordAreaVerb.Write);
 
     /// <summary>REWRITE (ISO §2023:14.9.35). §2023:14.9.35.3 SR9's set is the WIDER one — it admits a boolean function —
     /// and it is the applicable rule because the FILE phrase (SR8's condition) is declined, A.4.13 item 2.</summary>
@@ -90,7 +95,8 @@ internal sealed record FromPhraseRules(
         [PicCategory.Alphanumeric, PicCategory.Boolean, PicCategory.National],
         "ISO §2023:14.9.35.3 SR9 — \"If identifier-1 references a function and the FILE phrase is not specified, "
         + "identifier-1 shall reference an alphanumeric, boolean, or national function.\"",
-        null);
+        null,
+        RecordAreaVerb.Rewrite);
 }
 
 internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, CorrespondingBinder corr)
@@ -380,10 +386,14 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
     /// The home moved here because this class is where a MOVE's rules live; the sort binder no longer reaches
     /// across into the sequential I-O binder for it.</para>
     /// </summary>
-    public BoundMove? BindFromPhrase(FromPhraseRules rules, Place record, Core.SendingOperandContext? send)
+    public BoundMove? BindFromPhrase(FromPhraseRules rules, FileModel file, Place record, Core.SendingOperandContext? send)
     {
         if (send is null) return null;   // no FROM phrase
         BoundOperand source = SendingOperand(send, rules.Statement);
+        // identifier-1 shall not be the file's record area (§1985:IX.4.9.3 SR1 and siblings; PB5077) — the rule is the
+        // verb's own, asked before the implicit MOVE's, exactly as BindIntoPhrase asks it through CheckIntoReceiver.
+        if (source is BoundFieldOperand { Place: var sender })
+            ctx.Validation.CheckPhraseOperandIsNotRecordArea(file, sender, rules.AreaVerb, rules.Statement);
         // §2023:8.4.3.1.2 Format 4 (kb/Work PB428): the per-verb FunctionCategories screen below is deliberately NOT
         // extended to an inline method invocation. §2023:14.9.51.3 SR4, §2023:14.9.35.3 SR9 and §2023:14.9.32.3 SR2 each restrict
         // "a FUNCTION-IDENTIFIER" by name, and none states a rule for an inline invocation, so what governs it is

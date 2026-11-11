@@ -7,7 +7,7 @@
 *> VCR 31 (ISO 12.4.5.3 GR1(h); 14.8.4.2; Annex E.2 item 24): at >=2023 all corresponding
 *> SELECTs of an EXTERNAL relative file shall specify RELATIVE KEY naming the same
 *> corresponding external data item. Here program B's RELATIVE KEY (RELKEY) is a LOCAL
-*> (non-external) item. Below 2023 the requirement did not exist.
+*> (non-external) item. The 1985 and 2002 texts state it too (pb5069-external-relative-key-not-external).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. XRKCA.
        ENVIRONMENT DIVISION.

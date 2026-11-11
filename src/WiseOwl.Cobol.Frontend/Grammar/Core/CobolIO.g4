@@ -166,10 +166,10 @@ fileReserveClause
 // .VisitPaddingCharacterClause (registry row `padding-character-removed-2014`, COBOL0902 — an error under
 // strict, a warning with the pre-removal no-op reading under --permissive). Deleting the rule was MEASURED and
 // rejected: NIST SQ216A writes `PADDING CHARACTER IS "9"` and SQ217A the operand form `PADDING PADDING-CHARACTER`
-// (both compiled at --std 85), so the 85/2002 reading has to stay. Nothing is captured on the FileModel and that
-// is deliberate — WiseOwl COBOL has no blocking model, so a stored padding character would be a field nothing reads
-// (feedback_a_dead_lookup_is_also_unverified); the clause is inert in the program's own terms, which is what
-// makes the --permissive migration reading honest.
+// (both compiled at --std 85), so the 85/2002 reading has to stay. WiseOwl COBOL has no blocking model, so the
+// padding character changes no I-O, but the clause IS captured (FileModel.Padding, kb/Work PB5069, PB5070) for its two
+// readers: its own syntax rules (§1985:VII.2.7.3 SR1, SR3; FileControlBinder.CapturePadding, COBOL6848) and the external file
+// connector's entry identity (§1985:VII.2.7.4 GR6; FileEntryIdentity.Segments, ExternalFileConnectorRules).
 // ⛔ TWO ARMS, ONE TOKEN (kb/Work PB300 — the second arm is why a decline may not cost the user the WORD):
 // PADDING is also a `reservationGated` row in tests/version-matrix/cobol-words.json, so `01 PADDING PIC X.` is a
 // legal declaration exactly at 2014/2023, where §2023:8.9 does not reserve the word, and draws a targeted

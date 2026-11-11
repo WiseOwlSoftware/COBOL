@@ -21,8 +21,8 @@
       *> DERIVATION. Both reports are INITIATEd and TERMINATEd independently and are not divided into pages. A
       *> GENERATE writes one logical record for its detail, led by its report's code: the codes are what separate
       *> the two reports' records on the one file. GENERATE order DE-A (1), DE-B (1), DE-B (2), DE-A (2) therefore
-      *> writes, in this order, the records A + "AAA" + blank + "1", B + "BBB" + blank + "1", B + "BBB" + blank +
-      *> "2" and A + "AAA" + blank + "2": AAAA 1, BBBB 1, BBBB 2, AAAA 2. Blank lines (each report positions
+      *> writes, in this order, the records "A-" + "AAA" + blank + "1", "B-" + "BBB" + blank + "1", "B-" + "BBB" + blank +
+      *> "2" and "A-" + "AAA" + blank + "2": A-AAA 1, B-BBB 1, B-BBB 2, A-AAA 2. (A COBOL-85 code is a two-character literal, 1985:XIII.3.6.3 SR1.) Blank lines (each report positions
       *> its own LINE-COUNTER) are not asserted: only the records are, and all-space lines are skipped.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1050RF.
@@ -46,11 +46,11 @@
        01  WS-I    PIC 99    VALUE 0.
        01  WS-LINE PIC X(12) VALUE SPACES.
        REPORT SECTION.
-       RD  R-A CODE IS "A".
+       RD  R-A CODE IS "A-".
        01  DE-A TYPE DE LINE PLUS 1.
            02  COLUMN 1 PIC X(3) VALUE "AAA".
            02  COLUMN 5 PIC 9 SOURCE WS-N.
-       RD  R-B CODE IS "B".
+       RD  R-B CODE IS "B-".
        01  DE-B TYPE DE LINE PLUS 1.
            02  COLUMN 1 PIC X(3) VALUE "BBB".
            02  COLUMN 5 PIC 9 SOURCE WS-N.

@@ -1,0 +1,12 @@
+{
+ "id": "set-arithmetic-expression-2002",
+ "description": "A SET index-assignment (Format 1) or index-arithmetic (Format 2) sending operand other than the COBOL-85 ones — §1985:VI.6.23.2 prints Format 1's sender as {index-name-2 | identifier-2 | integer-1} and Format 2's as {identifier-3 | integer-2}, with §1985:VI.6.23.3 SR2 (identifier-2 \"an index data item or an elementary item described as an integer\"), SR3 (identifier-3 \"an elementary numeric integer\") and SR4 (\"Integer-1 and integer-2 may be signed. Integer-1 must be positive.\") and §1985:III.2's \"neither signed nor zero\". ISO/IEC 1989:2002 (14.8.35.1) prints arithmetic-expression-1 and arithmetic-expression-2 in those positions, and its Annex F.2 item 121 adds that an index may be set outside its table's range, so an expression, a non-integer literal or item, and a zero or negative integer-1 are each the 2002 form (kb/Work PB5074). Read from the printed formats, as the rows of VCR row 7.52 are. Gated in ONE place, SetBinder.GateCobol85IndexAmount, once per statement after the format is selected (VCR row 7.52).",
+ "display": "a SET index sending operand that is an arithmetic expression, a non-integer, or a zero or negative integer",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:14.9.39.2 Formats 1 and 2; ISO/IEC 1989:2002 14.8.35.1 and Annex F.2 item 121; §1985:VI.6.23.2; §1985:VI.6.23.3 SR2, SR3 and SR4",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "VCR Table 7 row 7.52 (c) - the SET sending operands, a COBOL-85 restriction read from the printed formats",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSAX.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T.\n    05 E PIC X OCCURS 4 INDEXED BY IX.\nPROCEDURE DIVISION.\nMAIN.\n    SET IX TO 1 + 1.\n    STOP RUN.\n"
+}

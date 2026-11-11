@@ -47,10 +47,12 @@
        MAIN.
            OPEN OUTPUT F.
            MOVE "01AAAABBBBCCCC" TO R.
-           WRITE R.
+           WRITE R INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "W1=" WS-FS.
            MOVE "02DDDDEEEEFFFF" TO R.
-           WRITE R.
+           WRITE R INVALID KEY CONTINUE END-WRITE
+           .
            DISPLAY "W2=" WS-FS.
            CLOSE F.
            OPEN INPUT F.

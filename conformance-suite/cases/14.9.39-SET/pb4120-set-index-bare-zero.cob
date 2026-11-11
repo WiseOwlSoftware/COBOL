@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb4120-set-index-bare-zero
       *> rules: [FMT-14.9.39.2]
-      *> accept: [85, 2002, 2014, 2023]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -10,9 +10,10 @@
       *> DOWN BY arithmetic-expression-2, and 8.8.1.1: "An arithmetic
       *> expression may be an identifier referencing a numeric data item,
       *> a numeric literal, the figurative constant ZERO (ZEROS,
-      *> ZEROES)". (The earlier editions print integer-1 there, and
-      *> 8.3.3.6.3 SR1 a) admits ZERO where the literal is restricted to
-      *> a numeric one.) So each bare ZERO below is the value zero:
+      *> ZEROES)". (COBOL-85 prints integer-1 and integer-2 there, which
+      *> 1985 VI.6.23.3 SR4 and III.2 hold nonzero, so the program is a
+      *> 2002 one: kb/Work PB5074, row set-arithmetic-expression-2002.)
+      *> So each bare ZERO below is the value zero:
       *> SET IX TO 3, UP BY ZERO and DOWN BY ZEROS leave IX on the third
       *> occurrence (C); SET IX TO ZEROES, then UP BY 2, puts it on the
       *> second (B; the occurrence number 0 lies inside the range OCCURS

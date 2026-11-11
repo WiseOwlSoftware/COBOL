@@ -106,9 +106,9 @@
            DISPLAY "W21 " FS1 " L=" L1
            CLOSE F1
            OPEN INPUT F1
-           READ F1
+           READ F1 AT END CONTINUE END-READ
            DISPLAY "R " FS1 " L=" L1 " [" R1 (1:L1) "]"
-           READ F1
+           READ F1 AT END CONTINUE END-READ
            DISPLAY "R " FS1 " L=" L1 " [" R1 (1:L1) "]"
            MOVE 99 TO L1
            READ F1 AT END
@@ -120,15 +120,15 @@
            OPEN OUTPUT F2
            MOVE "AAAAAAAAAAAAAAAAAAAA" TO R2
            MOVE 5 TO L2
-           WRITE R2
+           WRITE R2 INVALID KEY CONTINUE END-WRITE
            MOVE "BBBBBBBBBBBBBBBBBBBB" TO R2
            MOVE 12 TO L2
-           WRITE R2
+           WRITE R2 INVALID KEY CONTINUE END-WRITE
            CLOSE F2
            OPEN I-O F2
            MOVE "AAA" TO K2
            MOVE 77 TO L2
-           START F2 KEY IS EQUAL TO K2
+           START F2 KEY IS EQUAL TO K2 INVALID KEY CONTINUE END-START
            DISPLAY "S " FS2 " L=" L2
            MOVE "ZZZ" TO K2
            MOVE 66 TO L2
@@ -137,20 +137,20 @@
            END-READ
            DISPLAY "RF " FS2 " L=" L2
            MOVE "AAA" TO K2
-           READ F2 KEY IS K2
+           READ F2 KEY IS K2 INVALID KEY CONTINUE END-READ
            DISPLAY "RK " FS2 " L=" L2
            MOVE 15 TO L2
-           REWRITE R2
+           REWRITE R2 INVALID KEY CONTINUE END-REWRITE
            DISPLAY "RW " FS2 " L=" L2
            MOVE 25 TO L2
-           REWRITE R2
+           REWRITE R2 INVALID KEY CONTINUE END-REWRITE
            DISPLAY "RW " FS2 " L=" L2
            MOVE "BBB" TO K2
            MOVE 55 TO L2
-           DELETE F2
+           DELETE F2 INVALID KEY CONTINUE END-DELETE
            DISPLAY "D " FS2 " L=" L2
            MOVE "AAA" TO K2
-           READ F2 KEY IS K2
+           READ F2 KEY IS K2 INVALID KEY CONTINUE END-READ
            DISPLAY "RK " FS2 " L=" L2
            CLOSE F2.
        M3.

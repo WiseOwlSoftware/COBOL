@@ -67,7 +67,7 @@ public static class Constructs
     public const string DefineDirective2002 = "define-directive-2002";
     public const string DeleteFile2023 = "delete-file-2023";
     public const string DisplayDirective2023 = "display-directive-2023";
-    public const string DisplaySignedNumericLiteral2002 = "display-signed-numeric-literal-2002";
+    public const string DisplayNumericLiteral2002 = "display-numeric-literal-2002";
     public const string DynamicLengthItem2014 = "dynamic-length-item-2014";
     public const string DynamicLengthStructure2014 = "dynamic-length-structure-2014";
     public const string EndAccept2002 = "end-accept-2002";
@@ -231,6 +231,7 @@ public static class Constructs
     public const string SegmentLimitRemoved2002 = "segment-limit-removed-2002";
     public const string SegmentNumbersRemoved2002 = "segment-numbers-removed-2002";
     public const string SetAddress2002 = "set-address-2002";
+    public const string SetArithmeticExpression2002 = "set-arithmetic-expression-2002";
     public const string SetConditionFalse2002 = "set-condition-false-2002";
     public const string SetConditionRepeated2002 = "set-condition-repeated-2002";
     public const string SetDynLengthSize2023 = "set-dyn-length-size-2023";

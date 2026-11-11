@@ -64,9 +64,9 @@
            DISPLAY "WB " FS3
            CLOSE F3
            OPEN INPUT G3
-           READ G3
+           READ G3 AT END CONTINUE END-READ
            DISPLAY "G " FSG " L=" LG " [" RG (1:LG) "]"
-           READ G3
+           READ G3 AT END CONTINUE END-READ
            DISPLAY "G " FSG " L=" LG " [" RG (1:LG) "]"
            READ G3 AT END
                CONTINUE

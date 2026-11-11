@@ -34,7 +34,8 @@
            CLOSE F.
            CALL "W73BSCOPEIN".
            OPEN INPUT F.
-           READ F.
+           READ F AT END CONTINUE END-READ
+           .
            DISPLAY "OUTER-READ=" FR.
            CLOSE F.
            STOP RUN.
@@ -55,7 +56,8 @@
            WRITE FR.
            CLOSE F.
            OPEN INPUT F.
-           READ F.
+           READ F AT END CONTINUE END-READ
+           .
            DISPLAY "INNER-READ=" FR.
            CLOSE F.
            EXIT PROGRAM.

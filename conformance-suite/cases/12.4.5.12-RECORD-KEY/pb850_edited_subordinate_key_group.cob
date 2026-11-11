@@ -43,11 +43,11 @@
            MOVE "CDEF" TO IX-KEY-ED
            MOVE 2 TO IX-KEY-NO
            MOVE "SECOND" TO IX-DATA
-           WRITE IX-REC
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
            MOVE "ABCD" TO IX-KEY-ED
            MOVE 1 TO IX-KEY-NO
            MOVE "FIRST" TO IX-DATA
-           WRITE IX-REC
+           WRITE IX-REC INVALID KEY CONTINUE END-WRITE
            CLOSE IXF
            DISPLAY "WRITE " IX-STATUS
            OPEN INPUT IXF

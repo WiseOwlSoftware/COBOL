@@ -92,6 +92,10 @@ public sealed partial class FileControlBinder
                         $"the FORMAT clause on file description entry '{name}' ({DataBinder.Spelled(fmt)})");
                 else if (clause.linageClause() is { } lc)
                     BindLinageClause(lc, file);   // LINAGE logical-page model → FileModel.Linage (ISO §2023:13.18.34)
+                else if (clause.dataRecordsClause() is { } drc)
+                    ScreenDataRecords(drc, records, name);   // §1985:VII.3.5.3 SR1 (kb/Work PB5070)
+                else if (clause.valueOfClause() is { } voc)
+                    CaptureValueOf(voc);   // §1985:VII.3.9.3 SR1, SR2, screened post-build (kb/Work PB5070)
                 else if (clause.reportClause() is { } rep)
                     // REPORT(S) clause (ISO §2023:13.18.46): the FD hosts these reports — a report FILE (§2023:9.1.22,
                     // legally record-less). Names resolve to ReportModels post-build (ResolveReports).
@@ -181,6 +185,8 @@ public sealed partial class FileControlBinder
             {
                 if (clause.recordClause() is { } rc)
                     BindRecordClause(rc, sdFile);
+                else if (clause.dataRecordsClause() is { } drc)
+                    ScreenDataRecords(drc, sdRecords, sdName);   // §1985:VII.3.5.3 SR1, the SD's own records (kb/Work PB5070)
                 // (The SD DATA RECORDS 0873 gate MIGRATED to the version-conformance pass parse-arm (VisitDataRecordsClause) — one
                 // enforcement site covering FD AND SD via the shared grammar rule; P2.6 / Table-7 row 7.1.)
             }

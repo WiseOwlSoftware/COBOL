@@ -104,19 +104,23 @@
            DISPLAY "SQ-E=" FS.
            CLOSE SQ.
            OPEN INPUT SQ.
-           READ SQ.
+           READ SQ AT END CONTINUE END-READ
+           .
            DISPLAY "SQ-READ=" FS " " FUNCTION ORD(SR(2:1)).
-           READ SQ.
+           READ SQ AT END CONTINUE END-READ
+           .
            DISPLAY "SQ-READ2=" FS.
            CLOSE SQ.
            OPEN I-O SQ.
-           READ SQ.
+           READ SQ AT END CONTINUE END-READ
+           .
            MOVE "Z€ZZ" TO SR.
            REWRITE SR.
            DISPLAY "SQ-REWR=" FS.
            CLOSE SQ.
            OPEN INPUT SQ.
-           READ SQ.
+           READ SQ AT END CONTINUE END-READ
+           .
            DISPLAY "SQ-AGAIN=" FS " " FUNCTION ORD(SR(2:1)).
            CLOSE SQ.
            OPEN OUTPUT RL.
@@ -129,7 +133,8 @@
            DISPLAY "RL-E=" FR.
            CLOSE RL.
            OPEN INPUT RL.
-           READ RL NEXT RECORD.
+           READ RL NEXT RECORD AT END CONTINUE END-READ
+           .
            DISPLAY "RL-READ=" FR " " RK " " FUNCTION ORD(RR(2:1)).
            READ RL NEXT RECORD AT END DISPLAY "RL-READ2 AT END".
            CLOSE RL.
@@ -146,7 +151,8 @@
            READ IX INVALID KEY DISPLAY "IX-READ-EURO INVALID KEY".
            DISPLAY "IX-READ-EURO=" FI.
            MOVE "Ké01" TO IX-K.
-           READ IX.
+           READ IX INVALID KEY CONTINUE END-READ
+           .
            DISPLAY "IX-READ-E=" FI " " IX-D.
            CLOSE IX.
            OPEN OUTPUT PRTF.
@@ -160,7 +166,7 @@
            OPEN INPUT CK.
            MOVE 0 TO N.
            PERFORM UNTIL FC NOT = "00"
-               READ CK
+               READ CK AT END CONTINUE END-READ
                IF FC = "00"
                    ADD 1 TO N
                    IF CR NOT = SYM-X0D AND CR NOT = SYM-X0A

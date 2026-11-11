@@ -44,8 +44,11 @@
        MAIN.
            OPEN OUTPUT IXF
            MOVE "AB01" TO IX-KEY WRITE IX-REC
+               INVALID KEY CONTINUE END-WRITE
            MOVE "AB02" TO IX-KEY WRITE IX-REC
+               INVALID KEY CONTINUE END-WRITE
            MOVE "CD03" TO IX-KEY WRITE IX-REC
+               INVALID KEY CONTINUE END-WRITE
            CLOSE IXF
            OPEN INPUT IXF
            MOVE "AB02" TO IX-KEY
