@@ -6,7 +6,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 1589,
+ "count": 1630,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
@@ -630,6 +630,12 @@
    "file": "docs/DATA_MODEL_DESIGN.md",
    "line": 1588,
    "citation": "§2023:14.9.20 GR10",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "docs/DATA_MODEL_DESIGN.md",
+   "line": 1611,
+   "citation": "§2023:13.7.1 SR6",
    "kind": "no-rule-list"
   },
   {
@@ -1889,6 +1895,12 @@
   {
    "file": "docs/rearchitecture/PHASE-13-plan-vs-spec-review.md",
    "line": 126,
+   "citation": "§2023:14.9.35 GR14",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "docs/rearchitecture/PHASE-13-plan-vs-spec-review.md",
+   "line": 126,
    "citation": "§2023:14.9.30 GR14",
    "kind": "no-rule-list"
   },
@@ -1908,6 +1920,12 @@
    "file": "docs/rearchitecture/PHASE-13-plan-vs-spec-review.md",
    "line": 128,
    "citation": "§2023:14.9.30 GR14",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "docs/rearchitecture/PHASE-13-plan-vs-spec-review.md",
+   "line": 128,
+   "citation": "§2023:14.9.35 GR14",
    "kind": "no-rule-list"
   },
   {
@@ -2225,6 +2243,12 @@
   {
    "file": "docs/rearchitecture/PHASE-13-remaining-waves-scout.md",
    "line": 1112,
+   "citation": "§2023:13.18.27 GR6",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "docs/rearchitecture/PHASE-13-remaining-waves-scout.md",
+   "line": 1112,
    "citation": "§2023:13.18.22 GR6",
    "kind": "no-rule-list"
   },
@@ -2446,7 +2470,7 @@
   },
   {
    "file": "docs/REARCHITECTURE_PLAN.md",
-   "line": 5174,
+   "line": 5176,
    "citation": "§2023:12.3.7 GR4",
    "kind": "no-rule-list"
   },
@@ -8314,6 +8338,12 @@
   },
   {
    "file": "kb/Work/PB1085.md",
+   "line": 44,
+   "citation": "§2023:12.3.8.2 GR12",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB1085.md",
    "line": 46,
    "citation": "§2023:12.3.8.2 GR5",
    "kind": "no-rule-list"
@@ -8334,6 +8364,12 @@
    "file": "kb/Work/PB1138.md",
    "line": 35,
    "citation": "§2023:13.18.22 GR6",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB1140.md",
+   "line": 91,
+   "citation": "§2023:14.9.40 GR7c",
    "kind": "no-rule-list"
   },
   {
@@ -8387,6 +8423,12 @@
   {
    "file": "kb/Work/PB1380.md",
    "line": 40,
+   "citation": "§2023:8.4.3.3.2 SR1",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB1380.md",
+   "line": 58,
    "citation": "§2023:8.4.3.3.2 SR1",
    "kind": "no-rule-list"
   },
@@ -8451,9 +8493,33 @@
    "kind": "no-rule-list"
   },
   {
+   "file": "kb/Work/PB159.md",
+   "line": 59,
+   "citation": "§2023:14.9 GR4",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB159.md",
+   "line": 68,
+   "citation": "§2023:14.9 GR4",
+   "kind": "no-rule-list"
+  },
+  {
    "file": "kb/Work/PB163.md",
    "line": 33,
    "citation": "§2023:13.18.27 GR2",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB1643.md",
+   "line": 69,
+   "citation": "§2023:12.3.7 GR14a",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB1643.md",
+   "line": 94,
+   "citation": "§2023:12.3.7 GR14a",
    "kind": "no-rule-list"
   },
   {
@@ -8490,6 +8556,12 @@
    "file": "kb/Work/PB184.md",
    "line": 206,
    "citation": "§2023:13.18.49 GR1",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB1928.md",
+   "line": 63,
+   "citation": "§2023:12.3.8.2 GR12",
    "kind": "no-rule-list"
   },
   {
@@ -9003,6 +9075,12 @@
    "kind": "no-rule-list"
   },
   {
+   "file": "kb/Work/PB447.md",
+   "line": 201,
+   "citation": "§2023:14.9.37 SR1",
+   "kind": "no-rule-list"
+  },
+  {
    "file": "kb/Work/PB449.md",
    "line": 84,
    "citation": "§2023:14.9.39 SR23",
@@ -9030,6 +9108,12 @@
    "file": "kb/Work/PB452.md",
    "line": 36,
    "citation": "§2023:8.4.3.13 GR4",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB454.md",
+   "line": 88,
+   "citation": "§2023:12.3.7 GR3",
    "kind": "no-rule-list"
   },
   {
@@ -9117,6 +9201,36 @@
    "kind": "no-rule-list"
   },
   {
+   "file": "kb/Work/PB4887.md",
+   "line": 53,
+   "citation": "§2002:14.8.4 SR2",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB4887.md",
+   "line": 53,
+   "citation": "§1985:VI.5.3.2 GR3",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB4887.md",
+   "line": 61,
+   "citation": "§1985:VI.5.3.2 GR3",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB4924.md",
+   "line": 18,
+   "citation": "§2023:15.61.4 GR2",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB4924.md",
+   "line": 33,
+   "citation": "§2023:15.61.4 GR2",
+   "kind": "no-rule-list"
+  },
+  {
    "file": "kb/Work/PB495.md",
    "line": 139,
    "citation": "§2023:13.18.49.3 GR3",
@@ -9126,6 +9240,12 @@
    "file": "kb/Work/PB4952.md",
    "line": 56,
    "citation": "§2002:13.16.55 SR9",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB4960.md",
+   "line": 34,
+   "citation": "§2023:15.61.4 GR2",
    "kind": "no-rule-list"
   },
   {
@@ -9195,6 +9315,12 @@
    "kind": "text-not-in-rule"
   },
   {
+   "file": "kb/Work/PB5318.md",
+   "line": 42,
+   "citation": "§2023:14.9.39 SR17",
+   "kind": "no-rule-list"
+  },
+  {
    "file": "kb/Work/PB54.md",
    "line": 34,
    "citation": "§2023:8.4.3.2 SR2",
@@ -9249,6 +9375,24 @@
    "kind": "no-rule-list"
   },
   {
+   "file": "kb/Work/PB591.md",
+   "line": 45,
+   "citation": "§2023:8.8.4.4 GR2",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB616.md",
+   "line": 35,
+   "citation": "§2023:12.3.7 GR14a",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB616.md",
+   "line": 51,
+   "citation": "§2023:12.3.7 GR14a",
+   "kind": "no-rule-list"
+  },
+  {
    "file": "kb/Work/PB667.md",
    "line": 52,
    "citation": "§2023:12.4.5.9 SR2",
@@ -9258,6 +9402,12 @@
    "file": "kb/Work/PB671.md",
    "line": 2,
    "citation": "§2023:12.4.5.9 GR1a",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB671.md",
+   "line": 94,
+   "citation": "§2023:12.3.7 GR14a",
    "kind": "no-rule-list"
   },
   {
@@ -9276,6 +9426,12 @@
    "file": "kb/Work/PB692.md",
    "line": 76,
    "citation": "§2023:12.4.5.13 SR2",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB699.md",
+   "line": 91,
+   "citation": "§2023:12.4.5.13 SR3",
    "kind": "no-rule-list"
   },
   {
@@ -9370,6 +9526,12 @@
   },
   {
    "file": "kb/Work/PB777.md",
+   "line": 102,
+   "citation": "§2023:14.9.39 SR7",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB777.md",
    "line": 128,
    "citation": "§2023:14.9.39 SR7",
    "kind": "no-rule-list"
@@ -9453,6 +9615,12 @@
    "kind": "no-rule-list"
   },
   {
+   "file": "kb/Work/PB921.md",
+   "line": 213,
+   "citation": "§2023:13.18.63 SR6",
+   "kind": "no-rule-list"
+  },
+  {
    "file": "kb/Work/PB94.md",
    "line": 38,
    "citation": "§2023:13.18.8 GR2",
@@ -9484,14 +9652,32 @@
   },
   {
    "file": "kb/Work/PB996.md",
+   "line": 96,
+   "citation": "§2023:14.9.40 GR7c",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "kb/Work/PB996.md",
    "line": 142,
    "citation": "§2023:8.8.4.2.1 Format 3",
    "kind": "no-format"
   },
   {
+   "file": "kb/Work/R10.md",
+   "line": 66,
+   "citation": "§2023:14.9.25 GR8",
+   "kind": "no-rule-list"
+  },
+  {
    "file": "kb/Work/R33.md",
    "line": 44,
    "citation": "§2023:11.7 GR5",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": ".claude/skills/land-a-fix/SKILL.md",
+   "line": 48,
+   "citation": "§2023:14.9.24 GR4d",
    "kind": "no-rule-list"
   },
   {
@@ -9507,9 +9693,69 @@
    "kind": "no-rule-list"
   },
   {
-   "file": "scripts/spec/extract_rule_catalog.py",
-   "line": 582,
-   "citation": "§2023:15.30.3 GR2b",
+   "file": "scripts/spec/audit_code_citations.py",
+   "line": 795,
+   "citation": "§2023:14.9.39 GR29",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/audit_code_citations.py",
+   "line": 799,
+   "citation": "§2023:13.18.41 GR2",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/audit_code_citations.py",
+   "line": 1234,
+   "citation": "§2023:14.9.39 SR17",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/cite.py",
+   "line": 28,
+   "citation": "§2023:14.9.39 SR17",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/cite.py",
+   "line": 687,
+   "citation": "§2023:14.9.39 SR17",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/cite.py",
+   "line": 688,
+   "citation": "§2023:13.18.40.2 SR13",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/cite.py",
+   "line": 974,
+   "citation": "§2023:14.9.8.4 SR1",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/cite.py",
+   "line": 976,
+   "citation": "§2023:14.9.8 GR1",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/cite.py",
+   "line": 978,
+   "citation": "§2023:13.18.40.2 SR13",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/phase_b_batch.py",
+   "line": 262,
+   "citation": "§2023:14.9.27 SR8",
+   "kind": "no-rule-list"
+  },
+  {
+   "file": "scripts/spec/phase_b_batch.py",
+   "line": 299,
+   "citation": "§2023:14.9.27 GR10",
    "kind": "no-rule-list"
   },
   {

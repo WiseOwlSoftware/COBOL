@@ -15,9 +15,10 @@ this way (the real clauses are §2023:8.4.2.3.4 GR2 and §2023:13.18.38.4 GR7) a
 
 ⛔ EVERY PART OF THE CITATION IS CHECKED, IN EVERY EDITION, OR THE CHECK FAILS NAMING THE PART (kb/Work PB5317; owner
 2026-11-10: "If it cannot be resolved, there is a problem/bug"). Until PB5317 a 1985 citation's rule number was never
-compared (`§1985:XI.4.4.4 GR99` passed with any quotation from the paragraph) and a one-character quotation matched
-almost any clause. `--check` answers OK only when ALL of these hold, and otherwise prints `FAIL [<kind>]` naming the
-first part that failed (`FAILURE_KINDS`) and, where the checker can find it, the designator the text really sits under:
+compared (the nonexistent `§1985:XI.4.4.4 GR99` passed with any quotation from the paragraph) and a one-character
+quotation matched almost any clause. `--check` answers OK only when ALL of these hold, and otherwise prints
+`FAIL [<kind>]` naming the first part that failed (`FAILURE_KINDS`) and, where the checker can find it, the designator
+the text really sits under:
 
   1. the edition's transcription is in the tree (`edition-not-held`);
   2. the locator names a region of it (`no-clause`; citation.validate);
@@ -934,21 +935,22 @@ def self_test() -> int:
          absent_1985 and not_held == "edition-not-held"),
         # kb/Work PB5317: the 1985 rule number, the arms the old checker passed.
         ("1985: GR99 fails, naming how many general rules there are",
-         fails("§1985:XI.4.4.4 GR99", q85, "no-ordinal", "GR1-GR14 (14 in all)")),
+         fails("§1985:XI.4.4.4 GR99", q85, "no-ordinal", "GR1-GR14 (14 in all)")),  # citation-audit: example
         ("1985: a real quotation under the wrong ordinal (GR10) fails, naming the right one (GR7)",
          fails("§1985:XI.4.4.4 GR10", q85, "text-not-in-rule", "GR7")),
         ("1985: the right ordinal passes", v("§1985:XI.4.4.4 GR7", q85).ok),
         ("1985: a one-character quotation fails", fails("§1985:XI.4.4.4 GR7", "x", "quote-too-short")),
-        ("1985: a paragraph with no general rules cited GR1 fails", fails("§1985:XI.4.4.3 GR1", q85, "no-rule-list")),
+        ("1985: a paragraph with no general rules cited GR1 fails",
+         fails("§1985:XI.4.4.3 GR1", q85, "no-rule-list")),  # citation-audit: example
         ("1985: a sub-item's text under the wrong letter fails naming its letter, the right one passes, a missing one fails",
          fails("§1985:XI.4.4.4 GR6c", q85b, "text-not-in-rule", "GR6b") and v("§1985:XI.4.4.4 GR6b", q85b).ok
-         and fails("§1985:XI.4.4.4 GR6d", None, "no-sub-item", "GR6a, GR6b, GR6c")),
+         and fails("§1985:XI.4.4.4 GR6d", None, "no-sub-item", "GR6a, GR6b, GR6c")),  # citation-audit: example
         ("checks a 1985 citation against the 1985 transcription",
          v("§1985:VI.5.3.1", "A data description entry specifies the characteristics").ok),
         ("fires on a 1985 paragraph of the wrong section",
          not v("§1985:VII.5.3.1", "A data description entry specifies the characteristics").ok),
         ("1989 (Amendment 1): a returned-value rule resolves in its own section, a missing one fails",
-         v("§1989:A.2.5.4 RV1").ok and fails("§1989:A.2.5.4 RV99", None, "no-ordinal")),
+         v("§1989:A.2.5.4 RV1").ok and fails("§1989:A.2.5.4 RV99", None, "no-ordinal")),  # citation-audit: example
         # kb/Work PB4952: a quotation of a reconstruction passes MARKED; the printed text beside it carries no mark.
         ("marks a citation verified against a reconstruction (TYPE SR1, folio XIII-55)",
          RECONSTRUCTED_MARK in v("§1985:XIII.3.20.3 SR1", "RH is an abbreviation for REPORT HEADING").message
@@ -960,12 +962,14 @@ def self_test() -> int:
          and [(r.start, r.end) for r in reconstructions(planted_notes[3:4])] == [(-1, 0)]
          and reconstructed(planted_notes) == [None, "XIII-54", "XIII-54", "XIII-54", None, "XIII-30", "XIII-30"]),
         # 2023: the same arms.
-        ("2023: GR99 fails, naming the count", fails("§2023:14.9.8.4 GR99", q23, "no-ordinal", "GR1-GR3 (3 in all)")),
+        ("2023: GR99 fails, naming the count",
+         fails("§2023:14.9.8.4 GR99", q23, "no-ordinal", "GR1-GR3 (3 in all)")),  # citation-audit: example
         ("2023: a real quotation under the wrong ordinal fails, naming the rule and sub-item it is in",
          fails("§2023:14.9.8.4 GR2", q23, "text-not-in-rule", "GR1b")),
         ("2023: the right ordinal passes, and its sub-item", v("§2023:14.9.8.4 GR1", q23).ok and v("§2023:14.9.8.4 GR1b", q23).ok),
         ("2023: the wrong sub-item fails naming the right one; a missing one fails",
-         fails("§2023:14.9.8.4 GR1a", q23, "text-not-in-rule", "GR1b") and fails("§2023:14.9.8.4 GR1z", None, "no-sub-item")),
+         fails("§2023:14.9.8.4 GR1a", q23, "text-not-in-rule", "GR1b")
+         and fails("§2023:14.9.8.4 GR1z", None, "no-sub-item")),  # citation-audit: example
         ("2023: a one-character quotation fails", fails("§2023:14.9.8.4 GR1", "x", "quote-too-short")),
         ("2023: a clause with no syntax rules cited SR1 fails", fails("§2023:14.9.8.4 SR1", q23, "no-rule-list")),
         ("2023: a statement's clause cited for its general rule names the subclause that has them",
@@ -977,20 +981,22 @@ def self_test() -> int:
          and fails("§2023:14.9.39.4 GR2a3b", "If index-name-2 is associated with the same table as index-name-1",
                    "text-not-in-rule", "GR2a.3.a")),
         ("2023: a table cited under the wrong clause names the clause that captions it",
-         fails("§2023:9.1.15 Table 19", None, "no-table", "§2023:14.9.27.4 Table 19") and v("§2023:14.9.27.4 Table 19").ok),
+         fails("§2023:9.1.15 Table 19", None, "no-table", "§2023:14.9.27.4 Table 19")  # citation-audit: example
+         and v("§2023:14.9.27.4 Table 19").ok),
         ("2023: a rule of a mixed block cited under the wrong kind names its kind (14.7.7 rule 2 is SR2)",
-         fails("§2023:14.7.7 GR2", None, "no-ordinal", "§2023:14.7.7 SR2") and v("§2023:14.7.7 SR2").ok),
+         fails("§2023:14.7.7 GR2", None, "no-ordinal", "§2023:14.7.7 SR2") and v("§2023:14.7.7 SR2").ok),  # citation-audit: example
         ("2023: a format the statement prints passes, one it does not fails",
-         v("§2023:14.9.39 Format 4").ok and fails("§2023:14.9.39 Format 40", None, "no-format")),
+         v("§2023:14.9.39 Format 4").ok and fails("§2023:14.9.39 Format 40", None, "no-format")),  # citation-audit: example
         ("2023: a designator form the checker does not read fails by name, never on the clause alone",
-         fails("§2023:14.9.8.4 GR1..2", q23, "designator-not-understood")),
+         fails("§2023:14.9.8.4 GR1..2", q23, "designator-not-understood")),  # citation-audit: example
         # 2002 and 2014 have no rule catalog in this tree: LABEL MODE, every verdict marked.
-        ("2002 LABEL MODE: GR99 fails", fails("§2002:14.8.21.3 GR99", q02, "no-ordinal")),
+        ("2002 LABEL MODE: GR99 fails", fails("§2002:14.8.21.3 GR99", q02, "no-ordinal")),  # citation-audit: example
         ("2002 LABEL MODE: the wrong ordinal fails naming GR1; GR1 passes, marked",
          fails("§2002:14.8.21.3 GR2", q02, "text-not-in-rule", "GR1")
          and v("§2002:14.8.21.3 GR1", q02).ok and LABEL_MODE_MARK in v("§2002:14.8.21.3 GR1", q02).message),
         ("2002 LABEL MODE: a one-character quotation fails; a clause with no syntax rules cited SR1 fails",
-         fails("§2002:14.8.21.3 GR1", "x", "quote-too-short") and fails("§2002:14.8.21.3 SR1", q02, "no-rule-list")),
+         fails("§2002:14.8.21.3 GR1", "x", "quote-too-short")
+         and fails("§2002:14.8.21.3 SR1", q02, "no-rule-list")),  # citation-audit: example
         ("2014 LABEL MODE: GR6c with item b)'s text fails naming GR6b (the reviewer's case); GR6b passes",
          fails("§2014:13.18.14.3 GR6c", q14, "text-not-in-rule", "GR6b") and v("§2014:13.18.14.3 GR6b", q14).ok),
         ("2014 LABEL MODE: SR1 with SR2's text fails; SR2 passes",

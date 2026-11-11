@@ -161,9 +161,10 @@ class Citation:
 
 def _rule(raw: str | None) -> str | None:
     """The rule designator in its canonical spelling (`GR 1` -> `GR1`), or CitationError. A sub-list designator
-    (`GRL2.1`) is read in every edition: the ISO catalogs restart a numbered list inside a block too (§2023:7.2.3.4's
-    general rules restart for text-word matching), and `cite.resolve` checks the list and the ordinal it names against the
-    catalog (kb/Work PB5317; until then an ISO citation refused the form because the checker read only the ordinal)."""
+    (`GRL2.1`) is read in every edition: the ISO catalogs restart a numbered list inside a block too (§2023:9.3.6
+    restarts its list for the method resolution steps, the first of them §2023:9.3.6 GRL2.1), and `cite.resolve` checks
+    the list and the ordinal it names against the catalog (kb/Work PB5317; until then an ISO citation refused the form
+    because the checker read only the ordinal)."""
     if raw is None:
         return None
     raw = raw.strip()
@@ -602,7 +603,7 @@ def self_test() -> int:
         md.write_text(_PLANTED_1985, encoding="utf-8", newline="\n")
         spec_pdf.markdown(2002, planted).write_text("## 14.8.4 Planted\n\ntext\n", encoding="utf-8", newline="\n")
         planted_1985 = [
-            ("1985 section and paragraph validates", bad("§1985:VI.5.3.2 GR3", planted) is None),
+            ("1985 section and paragraph validates", bad("§1985:VI.5.3.2 GR3", planted) is None),  # citation-audit: example
             ("1985 heading paragraph validates", bad("§1985:VI.5.3", planted) is None),
             ("1985 heading boxed as level 2 validates: the box side is no part of its number",
              bad("§1985:VI.5.4", planted) is None),
@@ -616,7 +617,8 @@ def self_test() -> int:
             ("1985 printed page that does not exist is refused", bad("§1985:p.VI-21", planted) is not None),
             ("an amendment's part heading ends the 1985 sections: its addendum paragraph is no paragraph of Section XVIII",
              bad("§1985:XVIII.1", planted) is None and bad("§1985:XVIII.8", planted) is not None),
-            ("2002 validates against its transcription once it exists", bad("§2002:14.8.4 SR2", planted) is None),
+            ("2002 validates against its transcription once it exists",
+             bad("§2002:14.8.4 SR2", planted) is None),  # citation-audit: example
             ("2002 phantom refused once its transcription exists", bad("§2002:14.8.5", planted) is not None),
         ]
     with tempfile.TemporaryDirectory() as td:
@@ -627,13 +629,13 @@ def self_test() -> int:
         ("parses the 2023 form with its rule", parse("§2023:13.18.35.4 GR1") == Citation(2023, "13.18.35.4", "GR1", 0, 20)),
         ("parses a glued rule path", parse("§2023:14.9.25.4 GR6d.2").rule == "GR6d.2"),
         ("parses Format n and Table n", parse("§2023:14.9.39 Format 4").rule == "Format 4"
-         and parse("§2023:8.9 Table 12").rule == "Table 12"),
+         and parse("§2023:14.5.1 Table 12").rule == "Table 12"),
         ("a restarted list's rule names its list, and GR L2.1 canonicalizes to GRL2.1 (kb/Work PB4969)",
          parse("§1985:IV.4.4.2 GRL2.1").rule == "GRL2.1" and render(parse("§1985:IV.4.4.2 GR L2.1")) == "§1985:IV.4.4.2 GRL2.1"
          and rule_designator("GR", 1) == "GR1" and rule_designator("SR", 3, 2) == "SRL2.3"
          and raises("§1985:IV.4.4.2 GRL2", "not a rule designator")),
         ("an ISO edition reads the restarted-list designator, which cite.resolve checks (kb/Work PB5317)",
-         parse("§2023:7.2.3.4 GRL2.1").rule == "GRL2.1" and parse("§2002:14.9.8.4 GR L1.1").rule == "GRL1.1"),
+         parse("§2023:9.3.6 GRL2.1").rule == "GRL2.1" and parse("§2002:14.9.8.4 GR L1.1").rule == "GRL1.1"),
         ("canonicalizes GR 1 to GR1", render(parse("§2023:14.9.8.4 GR 1")) == "§2023:14.9.8.4 GR1"),
         ("parses an annex clause", parse("§2023:A.1").locator == "A.1"),
         ("parses every edition token", all(parse(f"§{e}:{'VI.5.3' if e == 1985 else '1.2'}").edition == e

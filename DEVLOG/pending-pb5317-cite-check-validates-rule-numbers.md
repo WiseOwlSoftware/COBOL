@@ -15,10 +15,13 @@ edition, because the 2023 catalog restarts lists too.
 
 **The sweep.** The CITATIONS audit gains RESOLVE, which runs the checker over every edition-form citation it reads, plus the
 inventory's 6,474 store records: 99,616 citations, 1,590 refused (2023 1,578, 1985 8, 2002 4), 1,484 of them a rule
-block's clause written as its statement's (`§2023:14.9.39 SR17` for `14.9.39.3 SR17`). The 1,589 in the gate's population are
-`scripts/spec/data/cite-resolve-baseline.json`, debt that may only shrink: a new failure is RED, and so is a listed one that
+block's clause written as its statement's (`§2023:14.9.39 SR17` for `14.9.39.3 SR17`). RESOLVE reads a citation in
+backticks or quotes too (PHANTOM's quoted-spelling exemption is not its own), and its baseline,
+`scripts/spec/data/cite-resolve-baseline.json`, holds the gate population's 1,630 failures: PB5318's 1,514 and PB5333's
+116 (10 of them 1985's). It is debt that may only shrink: a new failure is RED, and so is a listed one that
 no longer fails. Measured: 2,709 of the 2,843 1985 rule citations carry no quotation, so an ordinal that names a real but
 wrong rule is still invisible there.
 
-Filed: PB5318 (the audit's 2023 ordinal family is now a second reading of RESOLVE) and PB5319 (the catalog's general-format
-rows miscount their formats and cut their text at 4,000 characters).
+Filed: PB5318 (the audit's 2023 ordinal family is now a second reading of RESOLVE), PB5319 (the catalog's general-format
+rows miscount their formats and cut their text at 4,000 characters) and PB5333 (the 116 refused citations no scripted
+rewrite owns).

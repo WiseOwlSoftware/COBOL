@@ -1,5 +1,7 @@
 ## The fix, and the sweep of every citation the repository holds
 
+<!-- audit-code-citations: names-phantoms (the sweep lists the failing citations it found) -->
+
 Branch `fix-cite-1985-ordinals` (2026-11-11). The defect was wider than the 1985 rule number, and both of the brief's holes
 were real in every edition: the 2023 arm compared only the top-level ordinal through `rule_path` (never the kind, the
 sub-item or a restarted list, and one line at a time), 2002 and 2014 were checked the same loose way, and a quotation of one

@@ -57,13 +57,14 @@ THE CHECKS, each narrow on purpose:
   NUMBER are not quotations, so there is nothing for a quote-based check to resolve. Four sub-checks, each
   EXACT — they resolve the ordinal against the standard's own lists and never score or guess:
 
-  FORMAT    — `§2023:14.9.28 Format 4` where §2023:14.9.28.2 prints THREE general formats. (Cited four times, including
-              in a differential test's summary; PERFORM VARYING is a PHRASE of formats 1 and 2.)
+  FORMAT    — `§2023:14.9.28 Format 4`, a format that does not exist: §2023:14.9.28.2 prints THREE. (Cited four
+              times, including in a differential test's summary; PERFORM VARYING is a PHRASE of formats 1 and 2.)
   FORMAT-RULE — `§2023:14.9.39 Format 4 … GR12`, where the standard's own `FORMAT n` banners partition the rule
               block and rule 12 sits under FORMAT 7. The banners (`ALL FORMATS`, `FORMATS 1 AND 2`, `FORMAT 10`)
               are printed in the rule block itself, so this pairing is decidable with no heuristic at all.
-  RULE      — `§2023:14.9.12.3 SR6` where that clause has four syntax rules, `§2023:14.9.47.4 GR6` where it has three.
-  SUBITEM   — `§2023:14.9.37.4 GR8b` where rule 8 has no sub-items (the serial-SEARCH VARYING rules are GR3 a)–c)).
+  RULE      — `§2023:14.9.12.3 SR6` and `§2023:14.9.47.4 GR6`, numbers each clause does not have (4 and 3 rules).
+  SUBITEM   — `§2023:14.9.37.4 GR8b`, which does not exist: rule 8 has no sub-items (the serial-SEARCH VARYING
+              rules are GR3 a)–c)).
   QUOTE-RULE — (kb/Work PB597) the clause is right, the quotation is really in it, and the rule NUMBER beside it
               belongs to a DIFFERENT rule: `§2023:14.9.25.4 GR8 — "the absolute value"`, where the words are printed
               in GR6 d) 2. b.) and GR8 is the dynamic-length rule. `cite.py --check` answers "is this sentence
@@ -349,13 +350,19 @@ def names_in(text: str) -> set[str]:
     return set(WORD.findall(text))
 
 
+def _repair_record(line: str, c: citation.Citation) -> bool:
+    """Whether `c` is the OLD side of a repair record's arrow: "§8.4.2.4 → §2023:8.4.3.3" (each side bare, in backticks
+    or in quotes) records a repair, not a claim."""
+    return re.match(r"[`\"”]?\s*(?:→|->)", line[c.end:c.end + 5]) is not None
+
+
 def _reported(line: str, c: citation.Citation, prev: str) -> bool:
     """Whether the text around `c` REPORTS a wrong citation rather than making one (the exclusions PHANTOM cannot do
     without): a disclaimer on the line or the one above, a repair record's arrow, a quoted spelling."""
     if NAMED_AS_WRONG.search(line) or NAMED_AS_WRONG.search(prev):
         return True                                      # the text is REPORTING the phantom, not making it
-    if re.match(r"\s*(?:→|->)", line[c.end:c.end + 4]):
-        return True                                      # "§8.4.2.4 → §2023:8.4.3.3" — a repair RECORD, not a claim
+    if _repair_record(line, c):
+        return True
     return (line[c.start - 1:c.start] in ('"', "“", "`")
             and line[c.end:c.end + 1] in ('"', "”", "`"))   # `"§8.8.4.1.1"` — prose NAMING a spelling
 
@@ -457,9 +464,9 @@ def file_findings(rel: str, lines: list[str], universe: set[str]) -> list[tuple[
 # ── RESOLVE: EVERY CITATION THROUGH THE ONE CHECKER (kb/Work PB5317) ─────────────────────────────────────
 
 #: ⛔ THE CHECKS ABOVE ASKED WHETHER A CLAUSE EXISTS; FOR A 1985 CITATION THAT WAS ALL ANYTHING ASKED. PHANTOM validates
-#: the locator of every edition, and the ordinal family below resolves rule numbers of the 2023 standard alone, so a
-#: `§1985:XI.4.4.4 GR99` passed this audit as it passed `cite.py --check` (kb/Work PB5317). RESOLVE hands every
-#: edition-form citation of the population to `cite.resolve`, the one checker, with the quotation the citation is paired
+#: the locator of every edition, and the ordinal family below resolves rule numbers of the 2023 standard alone, so
+#: the nonexistent `§1985:XI.4.4.4 GR99` passed this audit as it passed `cite.py --check` (kb/Work PB5317). RESOLVE hands
+#: every edition-form citation of the population to `cite.resolve`, the one checker, with the quotation the citation is paired
 #: with when there is one (`audit_doc_citations.citations`, the one reader of that pairing), and reports every part it
 #: refuses: the rule list, the ordinal, the sub-item, the format, the table, a quotation under the wrong rule. A locator
 #: that names nothing is PHANTOM's finding and a quotation misfiled to another clause the doc audit's MISFILED, so
@@ -502,8 +509,10 @@ def resolve_line(line: str, prev: str = "") -> list[tuple[citation.Citation, "ci
     if NAMED_AS_WRONG.search(line) or NAMED_AS_WRONG.search(prev):
         return out                                   # the line REPORTS a wrong citation (`_reported`'s first arm)
     for c in citation.scan(line):
-        if c.error or c.bare or _reported(line, c, ""):
-            continue
+        if c.error or c.bare or _repair_record(line, c):
+            continue                                 # ⛔ not `_reported`: its quoted-spelling arm is PHANTOM's; a
+            #                                          citation in backticks or quotes is the commonest form in docs/
+            #                                          and kb/Work, and inheriting it left them unchecked (PB5317 R1-3)
         quote = quoted.get(c.start)
         v = _resolved(c.edition, c.locator, c.rule, quote)
         if v.kind == "text-not-found" or (v.kind == "text-not-in-clause"
@@ -540,9 +549,10 @@ def resolve_scan(paths) -> list[Resolved]:
 
 
 def resolve_population() -> list[pathlib.Path]:
-    """The gate's RESOLVE population: every file PHANTOM reads, and the inventory's store records."""
-    return list(dict.fromkeys(citation_corpus.all_files() + citation_corpus.tooling_files()
-                              + citation_corpus.inventory_files()))
+    """The gate's RESOLVE population: every file PHANTOM reads, and the inventory's store records. Not the baseline: it
+    RECORDS the failing citations, and read as a citer it would list each of its own entries again at every rewrite."""
+    return [p for p in dict.fromkeys(citation_corpus.all_files() + citation_corpus.tooling_files()
+                                     + citation_corpus.inventory_files()) if p != RESOLVE_BASELINE]
 
 
 def read_baseline(path: pathlib.Path = RESOLVE_BASELINE) -> list[dict]:
@@ -650,6 +660,10 @@ def resolve_self_test() -> bool:
                              '(§2014:13.18.14.3 GR6c)'),  # citation-audit: example
         (None, '"integer-1 is the leftmost column of the printable item" (§2014:13.18.14.3 GR6b)'),
         (None, "a phantom is PHANTOM's, not RESOLVE's (§1985:VII.5.3.2 GR3)"),
+        ("no-ordinal", "the SORT statement (`§1985:XI.4.4.4 GR99`)"),  # citation-audit: example
+        ("no-ordinal", 'the SORT statement ("§1985:XI.4.4.4 GR99")'),  # citation-audit: example
+        (None, "the SORT statement (`§1985:XI.4.4.4 GR7`)"),
+        (None, "the repair `§1985:XI.4.4.4 GR99` → `§1985:XI.4.4.4 GR7`"),  # citation-audit: example
     ]
     ok = True
     for want, line in cases:
@@ -1162,7 +1176,7 @@ def _ordinal_findings(rel: str, lines: list[str], data, tops: dict[tuple[str, st
             if num > top:
                 # ⛔ THE CATALOG HAS PARSE GAPS AND THE GATE MUST NOT ACCUSE ON ONE. `spec-rule-catalog.json`
                 # carries a `parse_gaps` count for exactly this reason — a block whose tail did not harvest
-                # reports a low top, and READ's `§2023:14.9.32.4 GR9` was reported missing from a clause that has
+                # reports a low top, and READ's `§2023:14.9.30.4 GR9` was reported missing from a clause that has
                 # it. The standard's own text is the veto: if a line in that clause OPENS with the ordinal,
                 # the rule exists and nothing is said (over-accepting here is free; accusing wrongly is not).
                 if re.search(rf"^\s*{num}\\?[.)]\s", block.get(0, ""), re.M):
