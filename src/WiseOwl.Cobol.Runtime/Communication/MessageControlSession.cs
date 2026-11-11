@@ -69,10 +69,12 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
             {
                 case CommunicationPath.Input:
                     return state.FindQueue(area.QueuePath()) is { } queue
-                        ? SetOne(queue, key, enable)
+                        ? SetPaths(queue, key, enable, () => state.SetQueuePaths(queue, enable))
                         : Unknown;
                 case CommunicationPath.InputTerminal:
-                    return state.FindSource(area.SourceName(format)) is { } source ? SetOne(source, key, enable) : UnknownSource;
+                    return state.FindSource(area.SourceName(format)) is { } source
+                        ? SetPaths(source, key, enable, () => state.SetSourcePaths(source, enable))
+                        : UnknownSource;
                 case CommunicationPath.InputOutputTerminal:
                     if (dialogue.LockedTerminalChanged(cd, area, format)) return UnknownSource;
                     return state.FindTerminal(area.SourceName(format)) is { } terminal ? SetOne(terminal, key, enable) : UnknownSource;
@@ -80,6 +82,10 @@ internal sealed class MessageControlSession(MessageStore? store = null, Action? 
                     return SetOutput(area, key, enable, state);
             }
         }).Area;
+
+    /// <summary>The statements that act on logical paths (§1985:XIV.3.2.4 GR3, GR4; §1985:XIV.3.3.4 GR2, GR3): a statement that finds every path it names already so changes nothing.</summary>
+    private static string SetPaths(IMessageEndpoint endpoint, string? key, bool enable, Func<bool> set) =>
+        !endpoint.Admits(key) ? BadKey : set() ? Ok : AlreadySet;
 
     private static string SetOne(IMessageEndpoint endpoint, string? key, bool enable)
     {
