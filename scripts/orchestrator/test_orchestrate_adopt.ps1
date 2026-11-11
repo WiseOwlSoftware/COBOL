@@ -32,7 +32,7 @@ G init -q -b main $Checkout
 G -C $Checkout remote add origin $Origin
 # The "supervisor" of the checkout is a stub that says it ran and with which arguments: the restart re-executes THAT file.
 Land $Checkout 'scripts/orchestrator/orchestrate.ps1' 'Write-Host "STUB-SUPERVISOR v1 $args"; exit 0'
-Land $Checkout 'kb/Work/PB1.md' 'the register'
+Land $Checkout 'kb/Work/PB1.md' (Note 'PB1' 'the register')
 G clone -q $Origin $Lander
 
 # A fake GitHub CLI: answers with the run list the case puts in FAKE_GH_JSON (generated here, so no .cmd is tracked).
@@ -45,7 +45,7 @@ Set-Content -Path $Red -Value '[{"status":"completed","conclusion":"failure"}]'
 $unitArgs = @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-RepoDir', $Checkout, '-GhExe', $FakeGh)
 
 # 1. A DRY RUN ADOPTS NOTHING (and says where it would)
-Land $Lander 'kb/Work/PB2.md' 'landed while the loop ran'
+Land $Lander 'kb/Work/PB2.md' (Note 'PB2' 'landed while the loop ran')
 $before = Head $Checkout
 $env:FAKE_GH_JSON = $Green
 $r = Run-Orch 'adoptdry' 'good' (@('-DryRun') + $unitArgs)
@@ -62,7 +62,7 @@ Check 'adopt: the unit ran' $r.runs 1
 Check 'adopt: a landing that left the supervisor alone did not restart it' ($r.out -match 'restarting the supervisor') $false
 
 # 3. A RED MAIN IS NOT ADOPTED; the unit still runs on the checkout as it is
-Land $Lander 'kb/Work/PB3.md' 'landed, then CI went red'
+Land $Lander 'kb/Work/PB3.md' (Note 'PB3' 'landed, then CI went red')
 $before = Head $Checkout
 $env:FAKE_GH_JSON = $Red
 $r = Run-Orch 'adoptred' 'good' $unitArgs
@@ -107,7 +107,7 @@ Check 'stderr: the checkout is origin/main' (Head $Checkout) (Head $Lander)
 #    fetched beside the unit's last tick (review R1-1). A fake tick that lasts until the unit is recorded and 5 s more
 #    (FAKE_PYTHON_TICK_AFTER_UNIT) is still running at both points however loaded the host (review R2-2), so any overlap is
 #    certain; the fake python's timeline holds every interval, and a tick the run outlives is open-ended.
-Land $Lander 'kb/Work/PB5.md' 'landed while the lane ticks'
+Land $Lander 'kb/Work/PB5.md' (Note 'PB5' 'landed while the lane ticks')
 $env:FAKE_GH_JSON = $Green
 $env:FAKE_PYTHON_TICK_AFTER_UNIT = '5'
 $env:FAKE_PYTHON_CHECKPOINT_SECONDS = '0'

@@ -343,8 +343,8 @@ class Classification:
 #: names no tracked path is stale (`check`, THE INERT LANE audit of every gate). A READ entry, when one is needed, lies under
 #: an INERT entry and names the tests that read it: the path is then the full lane until they stop.
 CLASSIFICATION = Classification(inert={
-    "DEVLOG/": "the development log: read by scripts/devlog.py (CI's devlog step, the landing checks, its self-test's "
-               "lint of every entry) and by people",
+    "DEVLOG/": "the development log: read by scripts/devlog.py (CI's devlog step and the landing checks: `devlog.py check` "
+               "lints every entry; its self-test reads only planted trees since kb/Work PB5227) and by people",
     "kb/": "the knowledge base and THE work register (kb/Work): read by scripts/spec/work.py and work_inventory.py (the "
            "gate's WORK REGISTER audit, CI's audits job: the register against the inventory), the audits that cite a "
            "note, and by people; no test reads it since kb/Work PB2878 (the register drift tests became "
@@ -377,7 +377,8 @@ CLASSIFICATION = Classification(inert={
        "Directory.Build.props": "scripts/abi_pin.py (settling the ABI pin)",
        "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs": "scripts/abi_pin.py (settling the ABI pin)",
        "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin": "scripts/abi_pin.py (settling the ABI pin)",
-       ".gitmodules":"scripts/devlog.py, scripts/orchestrator/landing_devlog.py, scripts/hooks/test_forbidden_commands.py",
+       ".gitmodules": "scripts/hooks/tooling_check.py (its PB2605 repro runs every registered hook), "
+                     "scripts/hooks/test_forbidden_commands.py",
        ".agent-fleet.json": "scripts/spec/ledger_plan.py, scripts/orchestrator/test_orchestrate_adopt.ps1 and _ledger.ps1",
        "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files)",
        "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py and the harness self-tests (the "

@@ -1067,20 +1067,31 @@ the content of everything it read, in ONE store shared by every checkout of the 
 - **traced** — a `sitecustomize` tracer first on PYTHONPATH records, through the interpreter's audit hooks (PEP 578), each
   file a Python process opens (a module's `__pycache__` file counts as its source), each directory it lists and each path it
   hands a child process, inside the repository;
+- **imports** — each module name an import looked for (the audit event `import`, raised before the search, so a failed
+  import counts), per directory inside the repository it searched: a top-level name in each sys.path entry, a submodule in
+  its package's `__path__`. The import system's own directory listings (`FileFinder._fill_cache`) are not listings: read so,
+  every self-test that imports from `scripts/` re-ran on any new file there (kb/Work PB5227). The IMPORT KEY holds instead
+  the entries of each searched directory that could answer an imported name (`Tree.importable`: the name as a package or
+  namespace directory, and the name with each suffix `importlib.machinery.all_suffixes()` gives), so a new `scripts/json.py`
+  re-runs every self-test that imported `json` and an unrelated new file re-runs none;
 - **static** — what no audit hook sees: the self-test's own file, the runner itself (`self_tests.py`, `self_test_inputs.py`),
   `# SELF-TEST-READS: <path> …` header declarations, and for a PowerShell or bash self-test the closure over the files its
   CODE mentions (comments dropped);
 - **git** — a `git` command a traced process runs inside the repository reads what `git_reads` says: nothing for its
   location, configuration, worktrees or a commit id; the NAMES (`ls-files`) or the CONTENT (`diff`, `ls-files -s`,
-  `show <rev>:<path>`, any other command) under its pathspec, the whole tree when it names none.
+  `show <rev>:<path>`, any other command) under its pathspec (an absolute one made relative to the repository), the whole
+  tree when it names none or names a path outside the repository or past its top (`repo_path`): a key no tracked file
+  can appear under would never change, and the PASS would be reused forever (kb/Work PB5227 R1-1).
 A record holds each file's git blob id (the working tree's content id for an edited or untracked file; `-` where the run looked
-and found nothing) and a digest of what it saw of each directory (`Tree.digest`). `--reuse` reports a self-test REUSED, unrun,
+and found nothing), a digest of what it saw of each directory (`Tree.digest`) and each searched directory's import key
+(the names and the entries that answered them; a record without it is of another shape and no PASS). `--reuse` reports a self-test REUSED, unrun,
 while a record's inputs are ALL unchanged on the tree being gated. A self-test that RUNS says why on its console line (kb/Work
 PB3061): `first run: no PASS recorded for <platform>, Python <v>`, or `re-run: N input(s) changed since the newest PASS — a,
 b, c (+k more)`. **Every gate reuses** (`gate.py` adds `SELF_TESTS_REUSE` to its SELF-TESTS audit); **CI's `audits` and
 `windows-self-tests` jobs and the hand-run Linux tool never reuse**, so a PASS reused past a read nothing traced (a PowerShell
-or bash process's own reads of a path built at run time, `os.stat`-style probes, a Python child started with `-I`) is caught
-in the merge group. The `--built` phase reads build output no record covers: it always runs and never records. A Python
+or bash process's own reads of a path built at run time, `os.stat`-style probes and `importlib.util.find_spec`, a Python
+child started with `-I`, a module search through a finder or `.pth` file a self-test installs, an import answered by a
+file git ignores) is caught in the merge group. The `--built` phase reads build output no record covers: it always runs and never records. A Python
 self-test whose trace does not show its own file had no tracer, and records no PASS.
 
 **2. The machine-wide budget.** A self-test waits for one of `BUDGET_CAP` places (one per core) before it starts, and holds
@@ -1109,7 +1120,9 @@ has them killed, and its output names them.
 repository: a full run records; the gates on the unchanged tree re-run nothing; a changed input (a file read through a name
 built at run time, which only the trace sees) re-runs exactly its self-test in every gate, at most the budget's two at a
 time; an edited import re-runs only its importer; a planted 60-s self-test under a 1-s detector is HANG; a malformed store
-record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification and the tracer;
+record is skipped. `self_test_inputs.py --self-test` proves the static rule, the git classification, the tracer and the import key (an
+unrelated new file changes nothing; a shadowing module, a module or package answering an imported name and a removed module
+each re-run);
 `gate.py --self-test` proves every gate reuses and that a hung self-test is `SELF-TESTS HANG`; `scripts/self_test_arms.py`
 holds the arms by name, and `self_tests.py --self-test` forbids `--reuse` in CI and the Linux tool (kb/Work PB4395).
 

@@ -17,14 +17,14 @@ New-Item -ItemType Directory -Force -Path (Join-Path $sc 'scratch') | Out-Null
 $StopPs = Join-Path (Split-Path $Orch) 'stop.ps1'
 & pwsh -NoProfile -File $StopPs -CoordDir $sc | Out-Null
 Check 'stop.ps1 creates STOP' (Test-Path (Join-Path $sc 'STOP')) $true
-Check 'stop.ps1 -Status reports it' ((& pwsh -NoProfile -File $StopPs -Status -CoordDir $sc) -join ' ' -match 'STOP pending: True') $true
+Check 'stop.ps1 -Status reports it' ((& pwsh -NoProfile -File $StopPs -Status -RepoDir $FxRepo -CoordDir $sc) -join ' ' -match 'STOP pending: True') $true
 Check 'stop.ps1 does not create the global stop' (Test-Path (Join-Path $sc 'scratch/STOP')) $false
 Set-Content -Path (Join-Path $sc 'STOP-UNIT') -Value 'x'; Set-Content -Path (Join-Path $sc 'scratch/STOP-loop') -Value 'x'
 & pwsh -NoProfile -File $StopPs -Clear -CoordDir $sc | Out-Null
 Check 'stop.ps1 -Clear removes all three' (@('STOP', 'STOP-UNIT', 'scratch/STOP-loop') | Where-Object { Test-Path (Join-Path $sc $_) }).Count 0
 & pwsh -NoProfile -File $StopPs -Global -CoordDir $sc | Out-Null
 Check 'stop.ps1 -Global creates the loop and the global stop' "$(Test-Path (Join-Path $sc 'STOP')) $(Test-Path (Join-Path $sc 'scratch/STOP'))" 'True True'
-Check 'stop.ps1 -Status names the global stop' ((& pwsh -NoProfile -File $StopPs -Status -CoordDir $sc) -join ' ' -match 'GLOBAL stop \(scratch/STOP\): True') $true
+Check 'stop.ps1 -Status names the global stop' ((& pwsh -NoProfile -File $StopPs -Status -RepoDir $FxRepo -CoordDir $sc) -join ' ' -match 'GLOBAL stop \(scratch/STOP\): True') $true
 & pwsh -NoProfile -File $StopPs -Clear -CoordDir $sc | Out-Null
 Check 'stop.ps1 -Clear leaves the global stop' (Test-Path (Join-Path $sc 'scratch/STOP')) $true
 & pwsh -NoProfile -File $StopPs -Clear -Global -CoordDir $sc | Out-Null

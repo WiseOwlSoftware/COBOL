@@ -30,32 +30,51 @@ self-test reads (a hand-derived closure over mentions reached the whole tree fro
            script it runs is traced when it runs);
   GIT      a `git` child a traced process runs inside the repository reads what `git_reads` says: nothing for its
            location, configuration, worktrees or a commit id (GIT_ENVIRONMENT); otherwise the NAMES (`ls-files`) or
-           the CONTENT (`diff`, `ls-files -s`, `show <rev>:<path>`, any other command) under its pathspec — the whole
-           tree when it names none.
-A run's Deps hold, per input file, its git blob id (`-` when the run looked for an untracked path), and per directory it
+           the CONTENT (`diff`, `ls-files -s`, `show <rev>:<path>`, any other command) under its pathspec (a wildcard
+           one: under the directory of its literal prefix; an absolute one made relative to the repository) — the
+           whole tree when it names none, or a path `repo_path` cannot place inside the repository (outside it,
+           climbing past its top): never a key no tracked file can appear under, whose digest would never change;
+  IMPORTS  each module NAME an import looked for, per directory inside the repository it searched (the audit event
+           `import`, raised before the search, so a failed import counts): a top-level name in every sys.path entry, a
+           submodule's last name in its package's `__path__`. The import system's own directory listings
+           (`FileFinder._fill_cache`) are NOT recorded as listings (kb/Work PB5227): read so, every Python self-test that
+           imports from scripts/ was keyed on every NAME in scripts/ and the repository root, and any new file there
+           re-ran them all. The IMPORT KEY keeps only what an import can find: the entries of the searched directory
+           that answer one of its names (`Tree.importable`: `name`, a package or namespace directory, and `name<s>`
+           for each suffix importlib gives, IMPORT_SUFFIXES).
+A run's Deps hold, per input file, its git blob id (`-` when the run looked for an untracked path), per directory it
 saw a digest of what it saw (`Tree.digest`: the names in a listed directory, the paths or the content under a git
-pathspec or a STATIC directory). A recorded PASS is REUSED only while every one of them is unchanged on the current tree
-(`Deps.changed` is empty): an edit to anything it read, a new file in a directory it listed, a tracked file where it
-found none — each re-runs it. The blob ids are the index's for an unedited file and `git hash-object`'s
+pathspec or a STATIC directory), and per searched directory its import key. A recorded PASS is REUSED only while every
+one of them is unchanged on the current tree (`Deps.changed` is empty): an edit to anything it read, a new file in a
+directory it listed, a tracked file where it found none, a module, package or extension that appeared or went under an
+imported name (a new scripts/json.py re-runs every self-test that imported json; a new scripts/zz.py re-runs none that
+did not import zz) — each re-runs it. The blob ids are the index's for an unedited file and `git hash-object`'s
 for an edited one (a gate tests the working tree), a submodule's commit for anything under it.
 
 ⛔ WHAT NOTHING HERE SEES, named rather than hidden: a PowerShell or bash process's own reads of a path it builds at run
-time (declare it: `SELF-TEST-READS`) and the git commands it runs itself, and `os.stat`-style probes (no audit event).
-A trace that does not contain a Python self-test's own file means the tracer did not run: the runner records no PASS
-for it. The same `sitecustomize` begins with the CLOCK SHIM (scripts/self_test_clock.py, kb/Work PB4358): it moves the
-Python clock only in the proof run of a self-test that can read it, and does nothing otherwise. The backstop for all three is CI (and the Linux gate), which never reuse a PASS.
+time (declare it: `SELF-TEST-READS`) and the git commands it runs itself; `os.stat`-style probes (no audit event),
+`importlib.util.find_spec` among them (it raises no `import` event); a module search outside the default path finder
+(a meta path finder, path hook or zip importer a self-test installs, a `.pth` file); a sys.path directory OUTSIDE the
+repository (its modules are the environment, as the interpreter is); and an import answer the tree does not hold — an
+empty namespace directory, or a file git ignores (an ignored `.pyd` build output beside a module). A trace that does
+not contain a Python self-test's own file means the tracer did not run: the runner records no PASS for it. The same
+`sitecustomize` begins with the CLOCK SHIM (scripts/self_test_clock.py, kb/Work PB4358): it moves the Python clock only
+in the proof run of a self-test that can read it, and does nothing otherwise. The backstop for all of these is CI (and
+the Linux gate), which never reuse a PASS.
 """
 from __future__ import annotations
 
 import ast
 import bisect
 import hashlib
+import importlib.machinery
 import json
 import os
 import posixpath
 import re
 import subprocess
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 import self_test_clock as clock  # this directory's: the shim every traced process starts with (kb/Work PB4358)
@@ -74,12 +93,17 @@ TRACE_ROOT_ENV = "COBOL_SELF_TEST_TRACE_ROOT"
 UNTRACKED = "-"
 #: What a run can have seen of a directory (`Tree.digest`): the names in it, every path under it, or all their content.
 DIGESTS = ("entries", "paths", "content")
+#: The file suffixes an import finds a module by (source, bytecode, extension) on THIS interpreter: an entry `name<s>`
+#: of a searched directory can answer `import name` (`Tree.importable`). From importlib, never a hand list.
+IMPORT_SUFFIXES = tuple(importlib.machinery.all_suffixes())
 
 #: ⛔ THE TRACER — written as `sitecustomize.py` into a directory the runner puts first on PYTHONPATH, so every Python
 #: process a traced self-test starts (itself, and every child that inherits its environment) records its reads. It
 #: records only paths inside the traced repository, keeps them in memory and writes one file per process at exit;
 #: it never prints, so no self-test's output changes. F = a file opened, D = a directory listed, X = a path argument
-#: of a child process (a script it runs), G = a `git` child started inside the repository (its cwd).
+#: of a child process (a script it runs), G = a `git` child started inside the repository (its cwd), I = a module name
+#: an import looked for in a directory inside the repository (a top-level name in each sys.path entry, a submodule's in
+#: its package's `__path__`): the audit event `import` comes before the search, so a failed import is recorded too.
 TRACER = r'''
 import atexit, os, sys
 _root, _out = os.environ.get("COBOL_SELF_TEST_TRACE_ROOT"), os.environ.get("COBOL_SELF_TEST_TRACE")
@@ -107,7 +131,23 @@ if _root and _out:
     def _hook(event, args):
         if event == "open":
             _record("F", args[0])
+        elif event == "import":
+            # what an import can find: its name in each directory it searches (kb/Work PB5227, the import key)
+            try:
+                head, _, tail = args[0].rpartition(".")
+                where = (getattr(sys.modules.get(head), "__path__", None) or ()) if head else (args[2] or ())
+                for d in list(where):
+                    rel = _inside(d)
+                    if rel is not None:
+                        _seen.add("I\t" + rel + "\t" + tail)
+            except Exception:
+                pass
         elif event in ("os.listdir", "os.scandir"):
+            # the import system's directory cache is no read of the directory (kb/Work PB5227): an import reads the
+            # module file it opens ("open") and the entries that could answer its name ("import"), never all names
+            _caller = sys._getframe(1).f_code
+            if _caller.co_name == "_fill_cache" and _caller.co_filename.startswith("<frozen importlib"):
+                return
             _record("D", "." if args[0] is None else args[0])
         elif event == "subprocess.Popen":
             argv, cwd = args[1], args[2]
@@ -161,6 +201,7 @@ class Tree:
     dirs: frozenset[str] = field(init=False)
     _folded: dict[str, str] = field(init=False)
     _digests: dict[tuple[str, str], str] = field(init=False, default_factory=dict)
+    _entry_sets: dict[str, frozenset[str]] = field(init=False, default_factory=dict)
 
     def __post_init__(self) -> None:
         self.paths = sorted(self.blobs)
@@ -224,6 +265,16 @@ class Tree:
                 raise ValueError(f"a tree digest kind is one of {DIGESTS}, not {kind!r}")
             self._digests[(kind, d)] = hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()[:20]
         return self._digests[(kind, d)]
+
+    def importable(self, d: str, names: Iterable[str]) -> list[str]:
+        """The entries of directory `d` that could answer an import of one of `names` there: `name` itself (a package
+        or namespace directory) and `name<suffix>` for each IMPORT_SUFFIXES — what the import system's directory cache
+        is consulted for, and nothing else of the directory (the import key, kb/Work PB5227). Exact case, as the
+        import system compares (no PYTHONCASEOK)."""
+        if d not in self._entry_sets:
+            self._entry_sets[d] = frozenset(self.entries(d))
+        present = self._entry_sets[d]
+        return sorted({e for n in names for e in (n, *(n + s for s in IMPORT_SUFFIXES)) if e in present})
 
     def blob(self, path: str) -> str:
         return self.blobs.get(path, UNTRACKED)
@@ -395,11 +446,44 @@ GIT_LOG_ID_FORMATS = frozenset({"--format=%h", "--format=%H", "--pretty=%h", "--
 GIT_LS_FILES_CONTENT = frozenset({"-s", "--stage", "-m", "--modified", "-d", "--deleted", "--debug"})
 
 
-def git_reads(args: list[str], where: str) -> list[tuple[str, str]]:
-    """What a git command run in repository directory `where` (its arguments after any `-C <dir>`) reads of the
-    tracked tree: (kind, path) pairs, kind `paths` (the names under path) or `content` (the names and their content);
-    path "" is the whole tree. Its pathspec (after `--`) narrows it; a pathspec with glob magic, and no pathspec, is
-    the whole tree. `show <rev>:<path>` reads that path. An environment command reads nothing."""
+DRIVE_RE = re.compile(r"[A-Za-z]:")
+
+
+def repo_path(path: str, where: str, root: Path) -> str | None:
+    """The repository-relative POSIX path a git path argument names, given from repository directory `where` of the
+    repository at `root`; None when it cannot be placed inside the repository — the caller then keys the WHOLE tree,
+    never a path `Tree.under` cannot resolve (an absolute or escaping path would key a constant digest, and the PASS
+    would be reused forever: kb/Work PB5227 R1-1). An absolute path (`/…`, `X:/…`, `X:\\…`, a UNC path) is made
+    relative to `root` when it lies inside it; a drive-relative one (`X:x`), one outside the root or on another drive,
+    one that climbs past the top (`../..`), and on POSIX one with a backslash (git's glob escape) are None."""
+    if "\\" in path:
+        if os.sep != "\\":
+            return None
+        path = path.replace("\\", "/")   # git for Windows takes either separator
+    base = where
+    drive = os.name == "nt" and DRIVE_RE.match(path)
+    if drive or posixpath.isabs(path):
+        if drive and path[2:3] != "/":
+            return None
+        try:
+            path = os.path.relpath(os.path.normpath(path), os.path.normpath(root)).replace(os.sep, "/")
+        except ValueError:
+            return None
+        base = ""
+    p = posixpath.normpath(posixpath.join(base, path))
+    if p == ".." or p.startswith("../") or posixpath.isabs(p):
+        return None
+    return "" if p == "." else p
+
+
+def git_reads(args: list[str], where: str, root: Path) -> list[tuple[str, str]]:
+    """What a git command run in directory `where` (its arguments after any `-C <dir>`) of the repository at `root`
+    reads of the tracked tree: (kind, path) pairs, kind `paths` (the names under path) or `content` (the names and
+    their content); path "" is the whole tree. Its pathspec (after `--`) narrows it; a wildcard pathspec (plain, or with
+    `:(glob)` magic) narrows it to the directory its literal prefix names, since every path it matches begins with that
+    prefix (`scripts/spec/work*.py` reads under scripts/spec, `*.py` the whole tree; kb/Work PB5227); any other magic,
+    no pathspec, and a path `repo_path` cannot place inside the repository is the whole tree. `show <rev>:<path>` reads
+    that path (from the root; `./` and `../` from `where`, as git resolves them). An environment command reads nothing."""
     opts, specs = (args[:args.index("--")], args[args.index("--") + 1:]) if "--" in args else (args, [])
     sub = next((a for a in opts if not a.startswith("-")), None)
     if sub is None or sub in GIT_ENVIRONMENT or (sub == "log" and any(a in GIT_LOG_ID_FORMATS for a in opts)):
@@ -407,14 +491,20 @@ def git_reads(args: list[str], where: str) -> list[tuple[str, str]]:
     if sub == "show" and not specs:
         shown = [a.split(":", 1)[1] for a in opts if ":" in a and not a.startswith("-")]
         if shown:
-            return [("content", posixpath.normpath(p)) for p in shown]
+            paths = [repo_path(p, where if p.startswith(("./", "../")) else "", root) for p in shown]
+            return [("content", "")] if None in paths else [("content", p) for p in paths]
     kind = "paths" if sub == "ls-files" and not GIT_LS_FILES_CONTENT.intersection(opts) else "content"
     paths = []
     for spec in specs or [""]:
-        if not spec or spec.startswith(":") or any(c in spec for c in "*?["):
+        spec = spec.removeprefix(":(glob)")
+        if not spec or spec.startswith(":"):
             return [(kind, "")]
-        p = posixpath.normpath(posixpath.join(where, spec)).strip("/")
-        paths.append("" if p == "." else p)
+        if (wild := min((spec.find(c) for c in "*?[" if c in spec), default=-1)) >= 0:
+            spec = posixpath.dirname(spec[:wild]) or "."
+        p = repo_path(spec, where, root)
+        if p is None:
+            return [(kind, "")]
+        paths.append(p)
     return [(kind, p) for p in paths]
 
 
@@ -424,22 +514,29 @@ class Trace:
     dirs: frozenset[str]           # tracked directories listed ("" is the repository root)
     git_in_repo: frozenset[str]    # `<dir>: git <command>` for each git child run inside the repository
     git_read: frozenset[tuple[str, str]] = frozenset()   # what those commands read (`git_reads`)
+    imports: frozenset[tuple[str, str]] = frozenset()    # (directory, module name) an import looked for there
 
     def saw(self, path: str) -> bool:
         return path in self.files
 
 
 def read_trace(trace_out: Path, tree: Tree) -> Trace:
-    files, dirs, git, git_read = set(), set(), set(), set()
+    files, dirs, git, git_read, imports = set(), set(), set(), set(), set()
     for f in sorted(trace_out.glob("*.trace")):
         for line in f.read_text(encoding="utf-8").splitlines():
             kind, _, folded = line.partition("\t")
+            if kind == "I":
+                where, _, name = folded.partition("\t")
+                where = tree.unfold(where.rstrip(os.sep)) if where not in ("", ".") else ""
+                if not (where == ".git" or where.startswith(".git/")):  # kept when empty: a file can appear there
+                    imports.add((where, name))
+                continue
             if kind == "G":
                 where, _, command = folded.partition("\t")
                 where = tree.unfold(where) if where else ""
                 args = command.split(chr(31))  # the tracer joins a command's arguments with the unit separator
                 git.add(f"{where or '.'}: git {' '.join(args)}")
-                git_read.update(git_reads(args, where))
+                git_read.update(git_reads(args, where, tree.repo))
                 continue
             rel = tree.unfold(folded.rstrip(os.sep)) if folded not in ("", ".") else ""
             if rel.startswith(".git/") or rel == ".git" or "/.git/" in rel:
@@ -452,7 +549,7 @@ def read_trace(trace_out: Path, tree: Tree) -> Trace:
                 files.add(owner)
             elif owner is None and "__pycache__" not in rel:
                 files.add(rel)  # looked for and not tracked: a tracked file appearing there must re-run it
-    return Trace(frozenset(files), frozenset(dirs), frozenset(git), frozenset(git_read))
+    return Trace(frozenset(files), frozenset(dirs), frozenset(git), frozenset(git_read), frozenset(imports))
 
 
 # ── the deps of one run ────────────────────────────────────────────────────────────────────────────────────────────
@@ -463,40 +560,55 @@ class Deps:
     """Everything one run read, with what it read: {path: blob id, or UNTRACKED where it found none} and
     {`<kind>:<directory>`: Tree.digest} — `entries:d` for a directory it listed, `paths:d` for the names a git command
     listed, `content:d` for a STATIC directory input or a git command that read content (`content:` is the whole
-    tree)."""
+    tree) — and {directory: {"names": the module names an import looked for there, "found": `Tree.importable`}}, the
+    IMPORT KEY: the entries of a searched directory that could answer one of those names, so a new or removed module,
+    package or extension of an imported name re-runs the run, and an unrelated new file beside them does not."""
     files: dict[str, str]
     trees: dict[str, str]
+    imports: dict[str, dict[str, list[str]]]
 
     @classmethod
-    def of(cls, tree: Tree, files: set[str], seen: set[tuple[str, str]] = frozenset()) -> "Deps":
-        """`files` read, and directories `seen` as (kind, directory) pairs — a `content` read of a single tracked file
-        is that file."""
+    def of(cls, tree: Tree, files: set[str], seen: set[tuple[str, str]] = frozenset(),
+           imported: set[tuple[str, str]] = frozenset()) -> "Deps":
+        """`files` read, directories `seen` as (kind, directory) pairs — a `content` read of a single tracked file
+        is that file — and modules `imported` as (directory, name) pairs."""
         files = set(files) | {d for kind, d in seen if kind == "content" and d in tree.blobs}
         trees = {f"{kind}:{d}": tree.digest(kind, d) for kind, d in seen if not (kind == "content" and d in tree.blobs)}
-        return cls({p: tree.blob(p) for p in sorted(files)}, dict(sorted(trees.items())))
+        names: dict[str, set[str]] = {}
+        for d, name in imported:
+            names.setdefault(d, set()).add(name)
+        imports = {d: {"names": sorted(n), "found": tree.importable(d, n)} for d, n in sorted(names.items())}
+        return cls({p: tree.blob(p) for p in sorted(files)}, dict(sorted(trees.items())), imports)
 
     def changed(self, tree: Tree) -> list[str]:
-        """What differs on `tree` from what the run read (empty: the PASS still holds)."""
+        """What differs on `tree` from what the run read (empty: the PASS still holds). An import key names each
+        entry that appeared or went: `imports:<directory>/<entry>`."""
         out = [p for p, blob in self.files.items() if tree.blob(p) != blob]
         for key, digest in self.trees.items():
             kind, _, d = key.partition(":")
             if tree.digest(kind, d) != digest:
                 out.append(key)
+        for d, seen in self.imports.items():
+            now = tree.importable(d, seen["names"])
+            out += [f"imports:{posixpath.join(d, e)}" for e in sorted(set(now).symmetric_difference(seen["found"]))]
         return out
 
     def to_json(self) -> dict:
-        return {"files": self.files, "trees": self.trees}
+        return {"files": self.files, "trees": self.trees, "imports": self.imports}
 
     @classmethod
     def from_json(cls, data: dict) -> "Deps":
-        return cls(dict(data["files"]), dict(data["trees"]))
+        """A record without the import key (written before it existed) raises KeyError: its run is keyed on less than
+        a run now is, so it is no PASS (self_tests.py `lookup` counts it unusable and re-runs)."""
+        return cls(dict(data["files"]), dict(data["trees"]),
+                   {d: {"names": list(v["names"]), "found": list(v["found"])} for d, v in data["imports"].items()})
 
 
 def run_deps(test: str, tree: Tree, deriver: Deriver, trace: Trace) -> Deps:
     """The Deps of one PASSED run: its trace plus its static inputs (a static directory is read whole)."""
     files, dirs = deriver.static(test)
     seen = {("entries", d) for d in trace.dirs} | {("content", d) for d in dirs} | set(trace.git_read)
-    return Deps.of(tree, files | set(trace.files), seen)
+    return Deps.of(tree, files | set(trace.files), seen, set(trace.imports))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -526,6 +638,13 @@ def self_test() -> int:
         if got != want:
             fails.append(name)
 
+    def _raises(call) -> bool:
+        try:
+            call()
+        except (KeyError, TypeError, ValueError):
+            return True
+        return False
+
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
         planted = {
@@ -538,6 +657,7 @@ def self_test() -> int:
             "scripts/o/testdata/data.json": "{}\n",
             "scripts/o/test_y.py": "#!/usr/bin/env python3\n# SELF-TEST-READS: kb/Work docs/ignored.md\nprint(1)\n",
             "scripts/o/test_z.py": "# SELF-TEST-READS: no/such/path\n",
+            "scripts/o/pk/__init__.py": "",
             "docs/ignored.md": "x\n",
             "kb/Work/n.md": "x\n",
         }
@@ -587,14 +707,38 @@ def self_test() -> int:
               (["content:"], [], ["paths:kb"]))
         check("arm: what a git command reads: nothing for the repository's location, worktrees or a commit id; the "
               "names or the content under its pathspec (from its directory); a shown file; the whole tree otherwise",
-              [git_reads(c.split(), w) for c, w in (
+              [git_reads(c.split(), w, root) for c, w in (
                   ("rev-parse --show-toplevel", ""), ("--exec-path", ""), ("worktree list --porcelain", ""),
                   ("log -1 --format=%h", ""), ("log -5", ""), ("ls-files -z", ""), ("ls-files -z -- scripts", ""),
                   ("ls-files -s -- src/ tests/", ""), ("diff --name-only -- x", "docs"), ("diff HEAD", ""),
-                  ("show HEAD:a/b.json", ""), ("ls-files -- *.py", ""))],
+                  ("show HEAD:a/b.json", ""), ("ls-files -- *.py", ""),
+                  ("ls-files -z -- :(glob)scripts/spec/work*.py", ""), ("diff -- docs/*.md", ""),
+                  ("ls-files -- *.ps1", "scripts"), ("ls-files -- :(exclude)docs", ""))],
               [[], [], [], [], [("content", "")], [("paths", "")], [("paths", "scripts")],
                [("content", "src"), ("content", "tests")], [("content", "docs/x")], [("content", "")],
-               [("content", "a/b.json")], [("paths", "")]])
+               [("content", "a/b.json")], [("paths", "")], [("paths", "scripts/spec")], [("content", "docs")],
+               [("paths", "scripts")], [("paths", "")]])
+        posix_root, outside = root.as_posix(), (root.parent / "elsewhere").as_posix()
+        check("arm: a path git takes that names no place INSIDE the tree keys the whole tree, never a key Tree.under "
+              "cannot resolve: an absolute path inside the repository is made relative to it, literal or wildcard, "
+              "with either separator; one outside it, one climbing past the top and a shown path doing either is the "
+              "whole tree (kb/Work PB5227 R1-1)",
+              [git_reads(c, w, root) for c, w in (
+                  (["ls-files", "--", f"{posix_root}/scripts/*.py"], ""),
+                  (["diff", "--", str(root / "docs")], "scripts"),
+                  (["ls-files", "--", f"{posix_root}/*.md"], "docs"),
+                  (["ls-files", "--", f"{outside}/scripts"], ""),
+                  (["ls-files", "--", f"{outside}/*.py"], ""),
+                  (["diff", "--", "../../x"], "docs"),
+                  (["ls-files", "--", "../*.py"], "docs"),
+                  (["ls-files", "--", "/*.py"], ""),
+                  (["show", "HEAD:../x"], ""), (["show", "HEAD:./x"], "docs"), (["show", "HEAD:"], ""))],
+              [[("paths", "scripts")], [("content", "docs")], [("paths", "")], [("paths", "")], [("paths", "")],
+               [("content", "")], [("paths", "")], [("paths", "")],
+               [("content", "")], [("content", "docs/x")], [("content", "")]])
+        check("arm: Tree.under of a path that names nothing tracked is empty, and so is constant: the reason every "
+              "path git_reads keys must be one a tracked file can appear under",
+              (tree.under("../x"), tree.under(posix_root + "/scripts")), ([], []))
 
         out = root / "trace-out"
         out.mkdir()
@@ -608,6 +752,57 @@ def self_test() -> int:
               "process, in every Python process the self-test starts",
               (seen.saw("scripts/o/runner.py"), "kb/Work" in seen.dirs, seen.saw("scripts/o/stop.ps1"),
                len(list(out.glob("*.trace"))) >= 2), (True, True, True, True))
+        imports = root / "trace-imports"
+        imports.mkdir()
+        subprocess.run([sys.executable, "-c", "import sys\nsys.path.insert(0, 'scripts/o')\nimport runner\n"
+                        "import os\nos.listdir('scripts/o/testdata')\n"], cwd=root, check=True, capture_output=True,
+                       env=traced_env(dict(os.environ), tracer, imports, root))
+        seen = read_trace(imports, tree)
+        check("arm: an import records the module file it opens, never the sys.path directory the import system "
+              "caches a listing of; a listing the code makes itself is still one (kb/Work PB5227)",
+              (seen.saw("scripts/o/runner.py"), sorted(seen.dirs)), (True, ["scripts/o/testdata"]))
+
+        # THE IMPORT KEY (kb/Work PB5227): the names an import looked for, and the entries that could answer them
+        keyed = root / "trace-import-key"
+        keyed.mkdir()
+        subprocess.run([sys.executable, "-c", "import sys\nsys.path.insert(0, 'scripts/o')\nimport runner, colorsys\n"
+                        "try:\n    import zz_absent\nexcept ImportError:\n    pass\n"
+                        "try:\n    from pk import sub_absent\nexcept ImportError:\n    pass\n"],
+                       cwd=root, check=True, capture_output=True, env=traced_env(dict(os.environ), tracer, keyed, root))
+        seen = read_trace(keyed, tree)
+        check("arm: the tracer records each module name an import looked for in a directory inside the repository — "
+              "found or not, a top-level name in each sys.path entry, a submodule in its package's directory",
+              sorted(i for i in seen.imports if i[0].startswith("scripts/")
+                     and i[1] in ("runner", "colorsys", "zz_absent", "pk", "sub_absent")),
+              [("scripts/o", "colorsys"), ("scripts/o", "pk"), ("scripts/o", "runner"), ("scripts/o", "zz_absent"),
+               ("scripts/o/pk", "sub_absent")])
+        keyed_deps = run_deps("scripts/o/test_y.py", tree, deriver, seen)
+        check("arm: the import key holds only the entries that answer an imported name",
+              keyed_deps.imports["scripts/o"]["found"], ["pk", "runner.py"])
+        suffix = next(s for s in IMPORT_SUFFIXES if s != ".py")
+        cases = {
+            "(a) an unrelated new file in a searched directory": planted_tree(**{"scripts/o/unrelated.py": "b"}),
+            "(b) a new module shadowing an imported standard-library one": planted_tree(**{"scripts/o/colorsys.py": "b"}),
+            "(c) a new module answering a failed import": planted_tree(**{"scripts/o/zz_absent" + suffix: "b"}),
+            "(c) a new submodule answering a failed import from a package": planted_tree(
+                **{"scripts/o/pk/sub_absent.py": "b"}),
+            "(d) a new package directory with an imported module's name": planted_tree(
+                **{"scripts/o/colorsys/__init__.py": "b"}),
+            "(e) the imported module's file removed": Tree(root, {k: v for k, v in blobs.items()
+                                                                if k != "scripts/o/runner.py"}, frozenset({"tools/sub"})),
+        }
+        check("arm: an unrelated new file leaves the Deps unchanged; a new shadowing module, a new module or package "
+              "answering an imported name and a removed module each change them (kb/Work PB5227)",
+              {name: keyed_deps.changed(t) for name, t in cases.items()},
+              {"(a) an unrelated new file in a searched directory": [],
+               "(b) a new module shadowing an imported standard-library one": ["imports:scripts/o/colorsys.py"],
+               "(c) a new module answering a failed import": [f"imports:scripts/o/zz_absent{suffix}"],
+               "(c) a new submodule answering a failed import from a package": ["imports:scripts/o/pk/sub_absent.py"],
+               "(d) a new package directory with an imported module's name": ["imports:scripts/o/colorsys"],
+               "(e) the imported module's file removed": ["scripts/o/runner.py", "imports:scripts/o/runner.py"]})
+        check("arm: the import key survives its record (to_json → from_json), and a record without it is no PASS",
+              (Deps.from_json(json.loads(json.dumps(keyed_deps.to_json()))) == keyed_deps,
+               _raises(lambda: Deps.from_json({"files": {}, "trees": {}}))), (True, True))
     print(f"self_test_inputs.py --self-test: {'ALL GREEN' if not fails else f'{len(fails)} FAILED'}")
     return 1 if fails else 0
 

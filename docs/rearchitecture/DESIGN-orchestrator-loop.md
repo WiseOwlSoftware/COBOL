@@ -916,7 +916,7 @@ and the repository.
 
 ## 7. The closed-rows ratchet (`inventory_ratchet.py`)
 
-`python scripts/orchestrator/inventory_ratchet.py [--base REF] [--head REF|WORKTREE]` compares the inventory at
+`python scripts/orchestrator/inventory_ratchet.py [--base REF] [--head REF|WORKTREE] [--repo DIR]` compares the inventory at
 `head` (default the working tree) with `base` (default the merge base of HEAD and `origin/main`, the same default
 as `audit_witness_loss.py`, whose `rows_at` it reuses).
 
@@ -1417,7 +1417,7 @@ new terminal. A STOP file left on purpose by that procedure is named in the prom
 
 Python self-tests in the style of `scripts/hooks/test_dispatch_guard.py` (a script that prints a case count and
 exits nonzero on a failure; no framework): `test_alloc.py` (including two real parallel processes allocating
-concurrently with no duplicate), `test_inventory_ratchet.py` (a fabricated reopen, a GAP rise, the marker),
+concurrently with no duplicate), `test_inventory_ratchet.py` (a fabricated reopen, a GAP rise, the marker, and the command line end to end in a scratch repository),
 `test_budget.py` (with each account's reset, readings and telemetry), `scripts/hooks/test_dispatch_guard.py` (its one rule: a loop
 unit's fleet launch refused after `STOP-UNIT`, an attended session's not), `test_adopt_main.py` (section 4.10: the loop adopts a stable main commit, and only that), `test_ledger_state.py` (owed until the current stamp is
 marked, owed again after an input-touching commit, not after an unrelated one; per account, the first mark needs `--url`;
@@ -1460,7 +1460,7 @@ reported `NOT RUN on <platform>` with its declared reason, never skipped silentl
 recorded PASS of a self-test whose inputs its change left unchanged, so these long parts run there only when a change
 touches what they read (kb/Work PB2914; DESIGN-test-build-ci.md §3.14.10). `test_plan_wave.py` imports
 `check_practices.py`, so the runner fetches the `tools/claude-skills` submodule when a checkout lacks it.
-`test_inventory_ratchet.py` reads the inventory at `HEAD`, which CI's full-history checkout provides.
+`test_inventory_ratchet.py` runs the command line with `--repo` over planted commits of a scratch repository, never the real one (kb/Work PB5227).
 
 ## 14. Publishing the ledger after every landing
 
