@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c16_io_section_paragraphs
       *> rules: [FMT-12.4.2]
-      *> accept: [85]
+      *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -25,6 +25,9 @@
       *>     i-o-control-paragraph omitted)
       *>   L1C16D  both paragraphs, FILE-CONTROL first (the format's
       *>     order)
+      *> Accepted from 2002: X3.23-1985 prints FILE-CONTROL unbracketed
+      *>   with one entry at least (kb/Work PB5167, the construct row
+      *>   file-control-entry-optional-2002).
       *> The ordering arm (I-O-CONTROL before FILE-CONTROL) is the
       *>   negative
       *> l1c16-io-control-before-file-control.

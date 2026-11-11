@@ -61,14 +61,24 @@ WORKTREE = re.compile(r"([A-Za-z]:[\\/][^\s`*]*?[\\/]worktrees[\\/][A-Za-z0-9_.\
                       r"[A-Za-z0-9_.\-]+)")
 
 
-def sha_field(word: str) -> tuple[re.Pattern[str], re.Pattern[str]]:
-    """(the FIELD, the fallback) for a header's `word <sha>` field, read like BRANCH_FIELD: first at a field position
-    (a line's start, or after the template's ` · ` or a ` | ` separator: `HEAD: x`, `**head:** `x``, `· head x`), and
-    only when no field holds it, the first `word <sha>` anywhere in the header (`Base x  Head y`), any case. Prose
-    before the field must not win: w1080f's header says "(reviewed head 1e7b95d95 merged in) · head 182b8124d", and the
-    unanchored first match read the predecessor's head as the report's (kb/Work PB3181; measured over the 360 reports
-    on disk 2026-10-15: this rule changes that one and reads 17 the old one missed, 12 name no head)."""
-    return (re.compile(r"(?im)(?:^|[·|])[ \t]*\**" + word + r"\b:?\**[ \t]*`?([0-9a-f]{7,40})\b"),
+#: The combined `Base/Head: <base> / <head>` field (kb/Work PB5334: 6 reports on disk write it, as `Base/Head:` or
+#: `**Base / head:**`), read before either single field: its first sha is the base, its second the head.
+BASE_HEAD = re.compile(r"(?im)(?:^|[·|])[ \t]*\**base[ \t]*/[ \t]*head\b:?\**[ \t]*`?([0-9a-f]{7,40})\b`?[ \t]*/[ \t]*"
+                       r"`?([0-9a-f]{7,40})\b")
+
+
+def sha_field(word: str) -> tuple[int, re.Pattern[str], re.Pattern[str]]:
+    """(its group in BASE_HEAD, the FIELD, the fallback) for a header's `word <sha>` field, read like BRANCH_FIELD.
+    The combined `Base/Head: <base> / <head>` field is read FIRST (kb/Work PB5334): the fallback below reads
+    `Head: <base>` out of it, and three DONE branches sat 130 to 171 minutes outside the review lane as DECISION rows
+    ("the report's HEAD is not a commit of this branch"). Then the field at a field position (a line's start, or after
+    the template's ` · ` or a ` | ` separator: `HEAD: x`, `**head:** `x``, `· head x`), and only when no field holds it,
+    the first `word <sha>` anywhere in the header (`Base x  Head y`), any case. Prose before the field must not win:
+    w1080f's header says "(reviewed head 1e7b95d95 merged in) · head 182b8124d", and the unanchored first match read the
+    predecessor's head as the report's (kb/Work PB3181; measured over the 360 reports on disk 2026-10-15: this rule
+    changes that one and reads 17 the old one missed, 12 name no head)."""
+    return ({"base": 1, "head": 2}[word],
+            re.compile(r"(?im)(?:^|[·|])[ \t]*\**" + word + r"\b:?\**[ \t]*`?([0-9a-f]{7,40})\b"),
             re.compile(r"(?i)\b" + word + r"\b[:*`\s]*([0-9a-f]{7,40})\b"))
 
 
@@ -78,8 +88,10 @@ def sha_field(word: str) -> tuple[re.Pattern[str], re.Pattern[str]]:
 HEAD, BASE = sha_field("head"), sha_field("base")
 
 
-def header_sha(fields: tuple[re.Pattern[str], re.Pattern[str]], header: str) -> str | None:
-    m = fields[0].search(header) or fields[1].search(header)
+def header_sha(fields: tuple[int, re.Pattern[str], re.Pattern[str]], header: str) -> str | None:
+    if pair := BASE_HEAD.search(header):
+        return pair.group(fields[0])
+    m = fields[1].search(header) or fields[2].search(header)
     return m.group(1) if m else None
 
 

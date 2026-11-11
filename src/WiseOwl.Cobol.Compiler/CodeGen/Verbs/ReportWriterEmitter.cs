@@ -1012,8 +1012,9 @@ internal sealed class ReportWriterEmitter(
             ctx.Writer.Line($"{Engine(r)}.Initiate();");
     }
 
-    /// <summary>GENERATE: detail reporting names the detail group; summary reporting (the report-name form,
-    /// §2023:14.9.16.4 GR2) passes null.</summary>
+    /// <summary>GENERATE: detail reporting names the detail group and prints it; summary reporting (the report-name form,
+    /// §2023:14.9.16.4 GR2) prints no detail, and names only the detail it subtotals for (<see cref="BoundGenerate.SummaryDetail"/>,
+    /// kb/Work PB5249).</summary>
     public void EmitGenerate(BoundGenerate s)
     {
         if (s.Detail is { } det && det.Name is null)
@@ -1024,8 +1025,8 @@ internal sealed class ReportWriterEmitter(
             return;
         }
         string sel = SelectorArgument(s.Report);
-        EmitPresenting(() => ctx.Writer.Line($"{Engine(s.Report)}.Generate({(s.Detail is { } d ? CsLiteral(d.Name!) : "null")}"
-            + $"{(sel.Length > 0 ? ", " + sel : "")});"));
+        string call = s.Detail is { } d ? $"Generate({CsLiteral(d.Name!)}" : $"GenerateSummary({(s.SummaryDetail is { } sd ? CsLiteral(sd.Name!) : "null")}";
+        EmitPresenting(() => ctx.Writer.Line($"{Engine(s.Report)}.{call}{(sel.Length > 0 ? ", " + sel : "")});"));
     }
 
     /// <summary>TERMINATE: one engine call per report, in written order (§2023:14.9.46.4 GR4).</summary>

@@ -3651,6 +3651,12 @@ check("PB3476: a HEAD field that gives no sha ('see the trailing commit') takes 
 check("PB3476: ... a header with a HEAD sha keeps it, the stamp notwithstanding",
       head_of("w1136d-PB3472-report.md", f"Status: DONE\n{STAMP}\n**Branch:** worktree-x-2\n**HEAD:** 1234567abc\n"),
       "1234567abc")
+check("PB5334: the combined `Base/Head: <base> / <head>` field gives the HEAD its SECOND sha (w20262000c's header)",
+      head_of("w1136f-PB3474-report.md", "Status: DONE\nBranch: worktree-x-4\n"
+              "Base/Head: 74bd6713166c0e8a247df36e8d25ab1dacdd4689 / 0a97e37a1c0b64c44342abcacde61ae5b0d33f21\n"),
+      "0a97e37a1c0b64c44342abcacde61ae5b0d33f21")
+check("PB5334: ... and the BASE its first",
+      parse_report(HD / "w1136f-PB3474-report.md").base, "74bd6713166c0e8a247df36e8d25ab1dacdd4689")
 check("PB3476: ... and a header with neither describes no commit",
       head_of("w1136e-PB3473-report.md", "Status: DONE\n**Branch:** worktree-x-3\n**HEAD:** see the trailing commit\n"),
       None)

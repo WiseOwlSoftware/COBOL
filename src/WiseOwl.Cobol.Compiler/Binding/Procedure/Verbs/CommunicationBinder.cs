@@ -15,7 +15,8 @@ using Core = CobolParserCore;
 /// <summary>
 /// ⛔ THE STATEMENTS OF THE COMMUNICATION FACILITY (ISO/IEC 1989:2002 Annex A.2; docs/rearchitecture/DESIGN-communication-facility.md §4; kb/Work PB4677): one
 /// <see cref="BoundCommunicationStatement"/> per statement, carrying the CD's implicit description as its area. Each method asks the statement's syntax rules:
-/// A.2.1.2, A.2.2.2, A.2.3.2, A.2.4.2, A.2.5.2 and A.2.6.2. The facility's edges are the edition pass's, so nothing here reads an edition.
+/// A.2.1.2, A.2.2.2, A.2.3.2, A.2.4.2, A.2.5.2 and A.2.6.2, and X3.23-1985's §1985:XIV.3 where its rules differ. The facility's edges are the edition pass's; the one
+/// edition fact read here is <see cref="ClassRules2002"/>, the class rules ISO 2002 added on the RECEIVE and SEND identifier-1 (kb/Work PB5278).
 /// </summary>
 internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder host)
 {
@@ -26,6 +27,12 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     private static readonly CdRule PurgeRule = new("PURGE", "A.2.4.2 SR1", "Cd-name-1 shall reference an output CD or input-output CD.", [CommunicationFormat.Output, CommunicationFormat.InputOutput]);
     private static readonly CdRule ReceiveRule = new("RECEIVE", "A.2.5.2 SR1", "Cd-name-1 shall reference an input CD or input-output CD.", [CommunicationFormat.Input, CommunicationFormat.InputOutput]);
     private static readonly CdRule SendRule = new("SEND", "A.2.6.2 SR1", "Cd-name-1 shall reference an output CD or input-output CD.", [CommunicationFormat.Output, CommunicationFormat.InputOutput]);
+
+    /// <summary>⛔ THE 2002 CLASS RULES ON RECEIVE'S AND SEND'S IDENTIFIER-1 ARE AN EDITION ROW (kb/Work PB5278). ISO/IEC 1989:2002 A.2.5.2 SR2 ("Identifier-1 shall
+    /// reference a data item of category alphanumeric") and A.2.6.2 SR2 ("... of class alphanumeric") are new at 2002: X3.23-1985 prints no rule on RECEIVE's
+    /// identifier-1 (§1985:XIV.3.5.3 has SR1 alone, on cd-name-1) and restricts SEND's only when it is a function-identifier (§1985:XIV.3.6.3 SR6), so at 85 a numeric,
+    /// numeric-edited or alphabetic item is legal there and RECEIVE moves the message into its character positions (§1985:XIV.3.5.4 GR3).</summary>
+    private bool ClassRules2002 => ctx.Edition.Edition.Year >= 2002;
 
     /// <summary>The cd-name a statement writes, or null after reporting it. A name that is no cd-name and a cd-name of the wrong format are the same code, each quoting the rule.</summary>
     private CommunicationDescription? ResolveCommunicationCd(Core.CobolWordContext word, CdRule rule)
@@ -70,11 +77,27 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             : (written.TERMINAL() is not null ? CommunicationPath.InputTerminal : CommunicationPath.Input,
                new CdRule(statement, $"{clause} SR1", "Cd-name-1 shall reference an input CD when the INPUT phrase is specified.", [CommunicationFormat.Input]));
         if (ResolveCommunicationCd(word, rule) is not { } cd) return BoundRejected.Reported(ctx.Edition);
-        BoundOperand? keyOperand = key?.literal() is { } literal ? host.Expr.LiteralOperand(literal)
-            : key?.dataReference() is { } item ? host.Expr.FieldOperand(item)
-            : null;
+        if (key is null) return new BoundCommunicationStatement(verb, cd, CommunicationAreaOf(cd)) { Path = path };
+        var keyOperand = host.Move.SendingOperand(key.sendingOperand(), $"{statement} KEY operand");
+        // §1985:XIV.3.2.3 SR4 and §1985:XIV.3.3.3 SR4: "Literal-1 or the content of the data item referenced by identifier-1 must be defined as alphanumeric"
+        // (kb/Work PB5082); an alphanumeric function-identifier is an identifier there (§1985:IV.4.3.8.3.3 SR3, kb/Work PB5240). The phrase is 85's alone
+        // (communication-key-phrase-removed-2002), so the rule has no later row.
+        if (!IsAlphanumericKey(keyOperand))
+            using (ctx.Edition.At(key.sendingOperand()))
+                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"{statement} KEY {DataBinder.WrittenText(key.sendingOperand())}: the operand is not "
+                    + $"alphanumeric; §1985:{(verb is CommunicationVerb.Enable ? "XIV.3.3.3" : "XIV.3.2.3")} SR4: \"Literal-1 or the content of the data item referenced by "
+                    + "identifier-1 must be defined as alphanumeric.\"");
         return new BoundCommunicationStatement(verb, cd, CommunicationAreaOf(cd)) { Path = path, Key = keyOperand };
     }
+
+    /// <summary>SR4's "defined as alphanumeric": a data item of category alphanumeric (<see cref="IsCommunicationAlphanumericArea"/>), a nonnumeric literal or an
+    /// alphanumeric function. A figurative constant whose class only its receiver decides, and an operand already refused, are not asked again.</summary>
+    private static bool IsAlphanumericKey(BoundOperand key) => key switch
+    {
+        BoundFieldOperand { Place.Item: var item } => IsCommunicationAlphanumericArea(item),
+        BoundOperandError => true,
+        _ => IntrinsicArgumentRules.ClassOf(key) is null or CobolClass.Alphanumeric,
+    };
 
     /// <summary>A.2.4: <c>PURGE cd-name-1</c>.</summary>
     internal BoundStatement BindPurge(Core.PurgeStatementContext s) =>
@@ -87,7 +110,7 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     {
         var cd = ResolveCommunicationCd(s.cobolWord(), ReceiveRule);
         if (host.Expr.ResolveReceiving(s.receivingIdentifier()) is not { } into) return BoundRejected.Reported(ctx.Edition);
-        if (!IsCommunicationAlphanumericArea(into.Item))
+        if (ClassRules2002 && !IsCommunicationAlphanumericArea(into.Item))
             using (ctx.Edition.At(s.receivingIdentifier()))
                 ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"RECEIVE INTO {DataBinder.WrittenText(s.receivingIdentifier())}: the item is not of category alphanumeric; "
                     + "ISO/IEC 1989:2002 A.2.5.2 SR2: \"Identifier-1 shall reference a data item of category alphanumeric.\"");
@@ -114,9 +137,15 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             ? written.functionCall() is { } call ? host.Intrinsic.IntrinsicOperand(call) : host.Expr.FieldOperand(written.dataReference())
             : null;
         if (text is not null && IntrinsicArgumentRules.ClassOf(text) is not (null or CobolClass.Alphanumeric))
-            using (ctx.Edition.At(s.sendText()))
+        {
+            using var at = ctx.Edition.At(s.sendText());
+            if (ClassRules2002)
                 ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {DataBinder.WrittenText(s.sendText())}: the operand is not of class alphanumeric; "
                     + "ISO/IEC 1989:2002 A.2.6.2 SR2: \"Identifier-1 shall reference a data item of class alphanumeric\", and SR7 asks a function-identifier the same.");
+            else if (s.sendText().functionCall() is not null)
+                ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND FROM {DataBinder.WrittenText(s.sendText())}: the function is not an alphanumeric "
+                    + "function; §1985:XIV.3.6.3 SR6: \"If identifier-1 is a function-identifier, it must reference an alphanumeric function.\"");
+        }
         var indicator = SendIndicator.None;
         BoundOperand? indicatorItem = null;
         if (s.sendIndicator() is { } ind)
@@ -127,7 +156,10 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
             else
             {
                 indicatorItem = host.Expr.FieldOperand(ind.dataReference());
-                if (indicatorItem is BoundFieldOperand { Place.Item: { Pic: { Category: PicCategory.Numeric, Digits: not 1 } or { Category: PicCategory.Numeric, Scale: not 0 } or { Category: PicCategory.Numeric, Signed: true } or { Category: not PicCategory.Numeric } or null } })
+                // "a one-character integer without an operational sign" (§1985:XIV.3.6.3 SR2): an integer has no digit position right of the point, so a trailing P
+                // makes one, and "the scaling position character P is not counted in the size of the data item" (§1985:VI.5.9.4), so PIC 9P is one character
+                // (kb/Work PB5289).
+                if (!IsIntegerItem(indicatorItem, static pic => pic is { Digits: 1, Signed: false }))
                     using (ctx.Edition.At(ind))
                         ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND WITH {DataBinder.WrittenText(ind.dataReference())}: "
                             + "ISO/IEC 1989:2002 A.2.6.2 SR3: \"Identifier-2 shall reference a one-character integer without an operational sign.\"");
@@ -147,7 +179,9 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
     /// will ignore" it (A.2.6.3 GR12; docs/CONFORMANCE.md); the statement still has to be a legal one, so its operands are asked and nothing of them is kept.</summary>
     private void ScreenSendAdvancing(Core.SendAdvancingPhraseContext advancing)
     {
-        if (advancing.literal() is { } literal && !(CobolNames.Same(literal.GetText(), "ZERO") || CobolNames.Same(literal.GetText(), "ZEROS") || CobolNames.Same(literal.GetText(), "ZEROES")))
+        // SR5: integer-1 "may be zero", and the figurative ZERO is that zero with or without the optional word ALL (kb/Work PB5289):
+        // the bound literal answers which constant it is, whatever its spelling.
+        if (advancing.literal() is { } literal && host.Expr.LiteralOperand(literal) is not BoundFigurative { Kind: 'Z' })
             using (ctx.Edition.At(literal))
                 ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {literal.GetText()}: ISO/IEC 1989:2002 A.2.6.1 prints integer-1 here, and A.2.6.2 SR6 says it may be zero.");
         if (advancing.dataReference() is not { } operand) return;
@@ -160,7 +194,24 @@ internal sealed class CommunicationBinder(BinderContext ctx, StatementBinder hos
                     + "is specified, the name is associated with a feature-name specified by the implementor\", and A.2.6.1 prints no LINE or LINES after it.");
             return;
         }
-        if (host.Expr.FieldOperand(operand) is BoundFieldOperand { Place.Item: var item } && item.Pic is not { Category: PicCategory.Numeric, Scale: 0 })
+        // SR3/SR4 "an integer data item" (kb/Work PB5289): a trailing-P item is one; an index data item, a symbolic-character (a figurative constant, and
+        // no mnemonic-name "defined in the SPECIAL-NAMES paragraph", §1985:XIV.3.6.3 SR4) and an index-name are not.
+        if (!IsIntegerItem(host.Expr.FieldOperand(operand), static _ => true))
             ctx.Edition.Error(DiagnosticCatalog.CommunicationStatementOperand, $"SEND ADVANCING {DataBinder.WrittenText(operand)}: ISO/IEC 1989:2002 A.2.6.2 SR4: \"Identifier-3 shall reference an integer data item.\"");
     }
+
+    /// <summary>Whether a bound SEND operand is an integer data item (<see cref="PicInfo.IsIntegerDescription"/>, which no index data item meets) whose picture also meets
+    /// <paramref name="more"/>. An operand already refused is not refused again; a LINAGE-COUNTER, LINE-COUNTER or PAGE-COUNTER is an integer special register and passes;
+    /// a constant-name of an unsigned integer is integer-1; every other shape (an index-name, a symbolic-character, a group) is neither.</summary>
+    private static bool IsIntegerItem(BoundOperand? operand, Func<PicInfo, bool> more) => operand switch
+    {
+        BoundFieldOperand { Place.Item.Pic: { IsIntegerDescription: true } pic } => more(pic),
+        BoundOperandError or null => true,
+        // A constant-name of an integer value stands for integer-1 (§2023:13.10.3 SR2: "anywhere that a format specifies a
+        // literal of the class and category of constant-name-1").
+        BoundNumericLiteral number => number.Text.All(char.IsAsciiDigit),
+        BoundComputedOperand { Expr: BoundIndexRef } => false,
+        BoundComputedOperand => true,
+        _ => false,
+    };
 }

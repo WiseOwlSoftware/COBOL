@@ -87,7 +87,6 @@ public sealed class ConstantNameLiteralPositionDriftTests
         ["procedureName"] = "a paragraph-name or section-name written in digits, a user-defined word (ISO §2023:8.3.2.2), never a "
             + "literal",
         ["valueOfEntry"] = "the VALUE OF clause of the file description entry, " + Removed2002 + " and constant entries begin at 2002",
-        ["communicationKeyPhrase"] = "the KEY phrase of ENABLE and DISABLE, " + Removed2002 + " and constant entries begin at 2002 (kb/Work PB4677)",
         ["screenFromClause"] = Screen,
         ["validateDefaultClause"] = Validate,
         ["validateStatusClause"] = Validate,

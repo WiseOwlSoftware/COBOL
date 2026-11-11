@@ -52,6 +52,10 @@
       "vcrRow": "7.39"
     },
     {
+      "id": "group-indicate-consumed-by-issued-generate",
+      "vcrRow": "7.60"
+    },
+    {
       "id": "indexed-duplicate-key-status-sequential-only",
       "vcrRow": "7.55"
     },
@@ -70,6 +74,14 @@
     {
       "id": "search-index-below-table-unsuccessful",
       "vcrRow": "7.56"
+    },
+    {
+      "id": "sum-size-error-blanks-printable-item",
+      "vcrRow": "7.58"
+    },
+    {
+      "id": "terminate-discards-saved-next-group",
+      "vcrRow": "7.59"
     }
   ],
   "nonstandardExtensionIds": [
@@ -874,7 +886,8 @@
     "COBOL6859",
     "COBOL6862",
     "COBOL6863",
-    "COBOL6877"
+    "COBOL6877",
+    "COBOL6973"
   ],
   "cliOptions": [
     "--copy",

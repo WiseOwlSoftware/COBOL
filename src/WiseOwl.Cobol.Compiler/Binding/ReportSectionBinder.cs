@@ -1449,6 +1449,22 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             }
             string where = $"RD '{model.Name}' entry '{ge.dataName().NameOrNull() ?? "FILLER"}'";
             using var _ = Edition.At(ge);
+            // The clauses §1985:XIII.3.9.3 SR11 Table 1 tabulates, as the entry writes them.
+            var written = ReportEntryClause.None;
+            if (picture) written |= ReportEntryClause.Picture;
+            if (column) written |= ReportEntryClause.Column;
+            if (source) written |= ReportEntryClause.Source;
+            if (sum) written |= ReportEntryClause.Sum;
+            if (value) written |= ReportEntryClause.Value;
+            if (groupIndicate) written |= ReportEntryClause.GroupIndicate;
+            if (usage) written |= ReportEntryClause.Usage;
+            if (sign) written |= ReportEntryClause.Sign;
+            if (line) written |= ReportEntryClause.Line;
+            foreach (var c in ge.reportGroupBody().reportGroupClause())
+            {
+                if (c.justifiedClause() is not null) written |= ReportEntryClause.Justified;
+                if (c.blankWhenZeroClause() is not null) written |= ReportEntryClause.BlankWhenZero;
+            }
             // SR5 — "The TYPE clause may be specified only in a level 1 entry and shall be specified in every level 1
             // entry." Both halves are properties of the WRITTEN entry. The binder used to honour a TYPE clause at any
             // level (retyping the enclosing group) and to make a TYPE-less level 1 entry a detail group by default
@@ -1492,30 +1508,43 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                     + "control footing report group (ISO §1985:XIII.3.19.3 SR3)");
             if (!elementary)
             {
-                var written = new List<string>();
-                if (picture) written.Add("PICTURE");
-                if (column) written.Add("COLUMN");
-                if (source) written.Add("SOURCE");
-                if (value) written.Add("VALUE");
-                if (sum) written.Add("SUM");
-                if (groupIndicate) written.Add("GROUP INDICATE");
-                if (written.Count > 0)
+                var notElementary = new List<string>();
+                if (picture) notElementary.Add("PICTURE");
+                if (column) notElementary.Add("COLUMN");
+                if (source) notElementary.Add("SOURCE");
+                if (value) notElementary.Add("VALUE");
+                if (sum) notElementary.Add("SUM");
+                if (groupIndicate) notElementary.Add("GROUP INDICATE");
+                if (notElementary.Count > 0)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} is a group entry and writes "
-                        + $"{string.Join(", ", written)}; the PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE "
+                        + $"{string.Join(", ", notElementary)}; the PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE "
                         + "clauses may be written only in an elementary entry (ISO §2023:13.15.3 SR11)");
             }
             else
             {
-                if (column && !source && !value && !sum)
+                // SOURCE, SUM and VALUE are the ONE brace of the entry format, at every edition (§2023:13.15.2; §1985:XIII.3.9.2),
+                // and "The VALUE clause must not conflict with other clauses in the data description of the item"
+                // (§1985:XIII.3.22.4 GR1): the entry takes one operand list, and a second clause was dropped in silence
+                // (kb/Work PB5243).
+                if (ReportEntryClauseTable.AlternativesWritten(written) is var several and not ReportEntryClause.None)
+                    Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} writes {ReportEntryClauseTable.Words(several)}; "
+                        + "the SOURCE, SUM and VALUE clauses are alternatives of one another, and an entry takes one of them "
+                        + "(ISO §2023:13.15.2; §1985:XIII.3.9.2; §1985:XIII.3.22.4 GR1)");
+                if (Edition.DialectLevel < 2002) ScreenReportEntryClauseTable(where, written, picture || column || source || value || sum
+                    || groupIndicate || justifiedOrBwz || sign);
+                // COBOL-2002 and later: the entry's own syntax rules. At COBOL-85 Table 1 above holds all of them (its M cells
+                // are SR10 and SR13, its blank JUSTIFIED and BLANK WHEN ZERO cells SR15's, with a COLUMN clause required only of
+                // the rows that print by VALUE or SUM).
+                if (Edition.DialectLevel >= 2002 && column && !source && !value && !sum)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a COLUMN clause but no "
                         + "SOURCE, VALUE or SUM clause; every elementary entry with a COLUMN clause shall also "
                         + "contain either a SOURCE, VALUE or SUM clause (ISO §2023:13.15.3 SR10)");
-                if (value && !column)
+                if (Edition.DialectLevel >= 2002 && value && !column)
                     Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} has a VALUE clause but no "
                         + "COLUMN clause; a COLUMN clause shall be specified in each elementary entry that has a "
                         + "VALUE clause (ISO §2023:13.15.3 SR13)");
             }
-            if (justifiedOrBwz && !column)
+            if (Edition.DialectLevel >= 2002 && justifiedOrBwz && !column)
                 Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} specifies BLANK WHEN ZERO or "
                     + "JUSTIFIED without a COLUMN clause; if BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN "
                     + "clause shall also be specified (ISO §2023:13.15.3 SR15)");
@@ -1531,8 +1560,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 var faults = new List<string>();
                 if (groupKind != ReportGroupKindModel.Detail)
                     faults.Add($"is in a {ReportGroupTypeWords(groupKind)} report group");
-                if (elementary && !column) faults.Add("has no COLUMN clause");
-                if (elementary && !source && !value) faults.Add("has neither a SOURCE nor a VALUE clause");
+                // §1985:XIII.3.9.3 SR11 Table 1 lets a SOURCE entry indicate without a COLUMN clause (rows 3 and 4: "P"); its
+                // blank cells are asked above, so the two elementary conditions are the 2002 and later rule's alone.
+                if (elementary && Edition.DialectLevel >= 2002 && !column) faults.Add("has no COLUMN clause");
+                if (elementary && Edition.DialectLevel >= 2002 && !source && !value) faults.Add("has neither a SOURCE nor a VALUE clause");
                 if (faults.Count > 0)
                     Edition.Error(DiagnosticCatalog.ReportGroupIndicatePlacement, $"{where} specifies GROUP INDICATE "
                         + $"but {string.Join(" and ", faults)}; the GROUP INDICATE clause may be specified only within "
@@ -1540,6 +1571,22 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                         + "clause and a SOURCE or VALUE clause (ISO §2023:13.18.28.3 SR1)");
             }
         }
+    }
+
+    /// <summary>⛔ §1985:XIII.3.9.3 SR11 Table 1, asked of one ELEMENTARY entry of format 3 at COBOL-85 (<see cref="ReportEntryClauseTable"/>;
+    /// kb/Work PB5243): the entry's clauses must be the cells of one row. An entry that writes none of the format 3 clauses is
+    /// format 2, whose rules <see cref="ScreenReportEntryFormats"/> asks; an entry that writes more than one of SOURCE, SUM and VALUE
+    /// is refused once as that, not again as a table row it cannot match.</summary>
+    private void ScreenReportEntryClauseTable(string where, ReportEntryClause written, bool formatThree)
+    {
+        if (!formatThree || ReportEntryClauseTable.AlternativesWritten(written) != ReportEntryClause.None) return;
+        // A USAGE clause on an entry with no COLUMN clause is §1985:XIII.3.9.3 SR8 a)'s refusal (ScreenReportEntryFormats), which is
+        // stricter than the table's USAGE cells of rows 3 and 4 and names the same fault as row 1's blank one: ask it once, there.
+        if ((written & ReportEntryClause.Column) == 0) written &= ~ReportEntryClause.Usage;
+        if (!ReportEntryClauseTable.Permits(written, out string problem))
+            Edition.Error(DiagnosticCatalog.ReportEntryClausePresence, $"{where} writes {ReportEntryClauseTable.Words(written)}, a "
+                + $"combination that no row of Table 1 permits ({problem}); a blank in Table 1 means the clause is not permitted "
+                + "(ISO §1985:XIII.3.9.3 SR11)");
     }
 
     /// <summary>⛔ THE 1985 REPORT GROUP ENTRY FORMATS (§1985:XIII.3.9.2, §1985:XIII.3.9.3 SR4, SR6, SR8; kb/Work PB5079),
@@ -2497,8 +2544,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 if (pic.IsCharacterFormNumeric)
                     _d.State.ImageForcedItems.Add(item);
                 // THE OPERAND LIST (§2023:13.18.63.2 format 4 / §2023:13.18.53.2 — both clauses write `{ operand } …`).
-                // SUM wins the entry (§2023:13.18.54.4 GR4 — the sum counter acts as the source item); then the
-                // SOURCE operands; then the VALUE operands. There is no fourth arm: §2023:13.15.3 SR10 forbids the
+                // The entry has exactly ONE of the three: they are the alternatives of one brace (§2023:13.15.2;
+                // §1985:XIII.3.9.2), and ScreenReportEntryClausePresence refuses an entry that writes two — so no arm
+                // below chooses between clauses (kb/Work PB5243; there used to be an order, SUM, SOURCE, VALUE, that
+                // dropped the other clauses' operands). There is no fourth arm: §2023:13.15.3 SR10 forbids the
                 // operand-less entry, and the guard above returns before one reaches here (kb/Work PB853).
                 // A multiple COLUMN SUM entry supplies one counter PER printable item (kb/Work PB1271), paired with
                 // its repetition by the same SourceAt reader a multi-operand SOURCE uses.

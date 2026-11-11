@@ -81,7 +81,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         ProgramPrototype? prototype = null;
         // literal-1, as written or spelled by a constant-name (ISO §2023:13.10.3 SR2), asked ONCE: §2023:14.9.4.3 SR15's
         // presence test, the NESTED scope lookup and the static target all read it (kb/Work PB780).
-        var target = call.callTarget();
+        var target = call.callTarget()?.sendingOperand();
         ProgramNameOperand? literal1 = Literal1Of(target?.literal(), target?.dataReference());
         if (call.callAsPhrase() is { } asPhrase)
         {
@@ -202,40 +202,18 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             else
             {
                 dynamicName = new BoundFieldOperand(place);
-                // §2023:14.9.4.3 SR1: "Identifier-1 shall be defined as an alphanumeric, national, or program-pointer
-                // data item" — a program-pointer target activates the HELD program (ProgramRegistry.CallPointer,
-                // P10 Step 7); any OTHER category is rejected here (kb/Work PB132 — the old arm read the category
-                // only to set the pointer flag, and a numeric or boolean target fell through to a garbage
-                // name-string read at run time; kb/Work PB3355 — and the class lattice's alphanumeric answer for a
-                // strongly-typed group let that group through, so the screen asks the category reader).
-                if (place.Item.Pic is { Category: PicCategory.ProgramPointer } pointerPic)
-                {
-                    isPointerTarget = true;
-                    // §2023:14.9.4.3 SR14 (Format 2): "If identifier-1 references a restricted program-pointer, the
-                    // signature of the program-prototype specified in the definition of that pointer shall be the
-                    // same as the signature of program-prototype-name-1." — the pointer's own prototype
-                    // (§2023:13.18.60.3 SR19 / §2023:13.18.60.4 GR25, PicInfo.RestrictedPrototypeName) against the AS phrase's,
-                    // through the ONE signature comparator and the ONE name-to-signature reader the SET
-                    // program-pointer pairs spend. An unrestricted pointer has no prototype to disagree with; a
-                    // prototype whose details are the external repository's (§2023:12.3.8.4 GR10 c)) has that entry's
-                    // signature (DESIGN-external-repository §8.2), and so is compared as any other.
-                    if (prototype is { } named && pointerPic.RestrictedPrototypeName is { } held
-                        && StatementBinder.SignaturesDiffer(host.ProgramSignatureOf(held), named.Signature))
-                    {
-                        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallRestrictedProgramPointerSignature,
-                            $"CALL {DataBinder.WrittenText(dref)} AS {named.Name}: '{DataBinder.WrittenText(dref)}' is a "
-                            + $"restricted program-pointer declared with program-prototype '{held}', and the signature of "
-                            + $"'{held}' is not the same as the signature of program-prototype-name-1 '{named.Name}' "
-                            + "(ISO §2023:14.9.4.3 SR14; §2023:13.18.60.4 GR25)");
-                    }
-                }
-                else if (NameTargetRefusal(place) is { } targetFace)
-                {
-                    return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallTargetCategory,
-                        $"CALL target '{DataBinder.WrittenText(dref)}' is {targetFace}; ISO "
-                        + "§2023:14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item");
-                }
+                if (Identifier1Screen(dynamicName, DataBinder.WrittenText(dref), prototype, out isPointerTarget) is { } refused)
+                    return refused;
             }
+        }
+        else if (target is not null)
+        {
+            // A function-identifier or an inline method invocation is identifier-1 too (kb/Work PB5240): an identifier
+            // barred only from a receiving operand (§2023:8.4.3.2.3 SR1, §2023:8.4.3.4.3 SR1; §1985:IV.4.3.8.3.3 SR3), whose
+            // value names the program, or whose returning item is the program-pointer the CALL activates through.
+            dynamicName = host.Move.SendingOperand(target, "CALL target");
+            if (Identifier1Screen(dynamicName, DataBinder.WrittenText(target), prototype, out isPointerTarget) is { } refused)
+                return refused;
         }
         else if (prototype is null)
             // The bracket may be omitted only in Format 2, where the outer brace then supplies the operand. With
@@ -1087,6 +1065,64 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         return false;
     }
 
+    /// <summary>⛔ THE ONE CALL identifier-1 SCREEN, whatever form identifier-1 takes — a data item, a function-identifier or an
+    /// inline method invocation (kb/Work PB5240 review R1-1: the computed arm had no program-pointer case, so a user-defined
+    /// function returning a program-pointer was refused although §2023:14.9.4.3 SR1 admits "an alphanumeric, national, or
+    /// program-pointer data item", and §2023:8.4.3.2.4 GR1 gives the function's result temporary the returning item's
+    /// category). A program-pointer operand sets <paramref name="isPointerTarget"/>: the activation goes through the HELD
+    /// program (ProgramRegistry.CallPointer, P10 Step 7), after the SR14 signature check; any other category is screened by
+    /// <see cref="OperandTargetRefusal"/>. Null when admitted, else the rejection the statement returns.</summary>
+    private BoundStatement? Identifier1Screen(BoundOperand name, string written, ProgramPrototype? prototype, out bool isPointerTarget)
+    {
+        isPointerTarget = false;
+        if (name is BoundFieldOperand { Place.Item.Pic: { Category: PicCategory.ProgramPointer } pointerPic })
+        {
+            isPointerTarget = true;
+            // §2023:14.9.4.3 SR14 (Format 2): "If identifier-1 references a restricted program-pointer, the
+            // signature of the program-prototype specified in the definition of that pointer shall be the
+            // same as the signature of program-prototype-name-1." — the pointer's own prototype
+            // (§2023:13.18.60.3 SR19 / §2023:13.18.60.4 GR25, PicInfo.RestrictedPrototypeName) against the AS phrase's,
+            // through the ONE signature comparator and the ONE name-to-signature reader the SET
+            // program-pointer pairs spend. An unrestricted pointer has no prototype to disagree with; a
+            // prototype whose details are the external repository's (§2023:12.3.8.4 GR10 c)) has that entry's
+            // signature (DESIGN-external-repository §8.2), and so is compared as any other.
+            if (prototype is { } named && pointerPic.RestrictedPrototypeName is { } held
+                && StatementBinder.SignaturesDiffer(host.ProgramSignatureOf(held), named.Signature))
+            {
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallRestrictedProgramPointerSignature,
+                    $"CALL {written} AS {named.Name}: '{written}' is a "
+                    + $"restricted program-pointer declared with program-prototype '{held}', and the signature of "
+                    + $"'{held}' is not the same as the signature of program-prototype-name-1 '{named.Name}' "
+                    + "(ISO §2023:14.9.4.3 SR14; §2023:13.18.60.4 GR25)");
+            }
+            return null;
+        }
+        // §2023:14.9.4.3 SR1: any OTHER category is rejected here (kb/Work PB132 — the old arm read the category only to set
+        // the pointer flag, and a numeric or boolean target fell through to a garbage name-string read at run time; kb/Work
+        // PB3355 — and the class lattice's alphanumeric answer for a strongly-typed group let that group through, so the
+        // screen asks the category reader).
+        return OperandTargetRefusal(name) is { } face
+            ? BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallTargetCategory,
+                $"CALL target '{written}' is {face}; ISO §2023:14.9.4.3 SR1 admits an alphanumeric, national, or "
+                + "program-pointer data item")
+            : null;
+    }
+
+    /// <summary>The §2023:14.9.4.3 SR1 / §2023:14.9.5.3 SR1 screen of a bound identifier-1 target, whatever its form (kb/Work
+    /// PB5240): a data item, or the returning item of a user-defined function or an inline method invocation, through the ONE
+    /// category reader <see cref="NameTargetRefusal"/>; an intrinsic function through its §2023:15.2 result category. An
+    /// operand already refused, or one whose category is not statically known, is not refused again. CALL tests
+    /// program-pointer first (<see cref="Identifier1Screen"/>). Null when admitted, else the face the diagnostic names.</summary>
+    private static string? OperandTargetRefusal(BoundOperand target) => target switch
+    {
+        BoundOperandError => null,
+        BoundFieldOperand { Place: var place } => NameTargetRefusal(place),
+        _ => IntrinsicArgumentRules.FunctionIdentifierCategory(target) is not { } category
+             || category is PicCategory.Alphanumeric or PicCategory.National
+            ? null
+            : $"a function-identifier of category {category.ToString().ToLowerInvariant()}",
+    };
+
     /// <summary>⛔ THE ONE §2023:14.9.4.3 SR1 / §2023:14.9.5.3 SR1 CATEGORY SCREEN of an identifier-1 program-name target
     /// (kb/Work PB3355): what the operand IS when the rule refuses it, else null. SR1 reads "Identifier-1 shall be
     /// defined as an alphanumeric or national data item" (CALL adds program-pointer, which its caller tests first),
@@ -1159,7 +1195,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// statement binds.</summary>
     internal CalleeSignature? CalleeSignatureOf(Core.CallStatementContext call)
     {
-        var target = call.callTarget();
+        var target = call.callTarget()?.sendingOperand();
         if (call.callAsPhrase() is { } asPhrase)
         {
             if (asPhrase.formatWord() is null)
@@ -1191,7 +1227,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindCancel(Core.CancelStatementContext cancel)
     {
         var targets = new List<(string?, BoundOperand?)>();
-        foreach (var t in cancel.cancelTarget())
+        foreach (var t in cancel.cancelTarget().Select(target => target.sendingOperand()))
         {
             if (Literal1Of(t.literal(), t.dataReference()) is { } lit)
             {
@@ -1252,6 +1288,21 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     targets.Add((null, new BoundFieldOperand(p)));
                 }
                 // an unresolved name was already diagnosed by the resolver; keep binding the rest
+            }
+            else
+            {
+                // A function-identifier or an inline method invocation is identifier-1 (kb/Work PB5240; the CALL twin's arm):
+                // §2023:14.9.5.3 SR1 asks its category.
+                var computed = host.Move.SendingOperand(t, "CANCEL target");
+                if (OperandTargetRefusal(computed) is { } computedFace)
+                {
+                    using (ctx.Edition.At(t))
+                        ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
+                            $"CANCEL target '{DataBinder.WrittenText(t)}' is {computedFace}; "
+                            + "ISO §2023:14.9.5.3 SR1 admits an alphanumeric or national data item");
+                    continue;
+                }
+                if (computed is not BoundOperandError) targets.Add((null, computed));
             }
         }
         return new BoundCancel(targets);
