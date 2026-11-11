@@ -37,6 +37,15 @@ character (a self-test arm plants both; `A & B`, `a &amp b` and `a\b` stay unequ
 13 pairs gained each carry a hard break or `&lt;` that alone separated them (2002-SR-8.7.5.2-5 and -8, 2002-GR-14.8.12.3-4,
 2002-RV-15.18.3-1, among them). The 1985 pairing is unchanged (none paired).
 
+**The gate found a sibling R1-4 missed: a self-test that plants a 1985 change record.** The first gate of the merged head
+(run 000005-20261111T155134Z at cf97b0fb09) was RED in its SELF-TESTS, 1 of 87: `audit_witness_loss.py --self-test`, three
+arms of "writer at 1985" (PB4995's witness-before-verdict, already on this branch before the merge, so not a merge
+interaction). Its planted CHANGED record named `to: ["SR-1"]` with no `next.digests`, which R1-4's `next_errors` now refuses;
+no earlier gate of this branch had reached the self-tests (each was withdrawn in the slot queue). The planted targets now
+carry a `rule-digest` and the planted records into them carry digests stamped by the writer's own `lineage.target_digests`,
+so the arm follows the writer; the KEPT arm is refused for its own reason alone. The other 86 self-tests were green in that
+run, so the sweep for planted change records found no other.
+
 **THE RULE FOR THE NEXT RECORDS BRANCH (records-85e and every one after it).** A 1985 change record that names `to` rules
 carries `next.digests`, the `rule-digest` of each target as the 2023 view holds it when the record is written.
 

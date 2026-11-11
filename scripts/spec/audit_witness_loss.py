@@ -606,11 +606,14 @@ def self_test(schema) -> int:
     # no verdict; a KEPT rule's test is its chain's, and a rule with no change record has no adjudication to join.
     ed85 = schema.edition(1985)
     rid85, place = "1985-GR-VI.6.18.4-1", "conformance:cases/VI.6.18@1985-INSPECT-STATEMENT/self_test_witness"
-    targets85 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023"}}
+    targets85 = {"SR-1": {"rule-id": "SR-1", "state": "OK", "editions": "85,2002,2014,2023", "rule-digest": "d1"}}
     change = {"edition": ed85.next_held, "bridge": ed85.bridged, "source": "planted"}
-    changed85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "CHANGED", "to": ["SR-1"], "reason": "x"}}
+    # A record into `to` rules carries their digests, stamped as the writer stamps them (kb/Work PB5256 R1-4).
+    from lineage import target_digests
+    into = {"to": ["SR-1"], "digests": target_digests(["SR-1"], targets85)}
+    changed85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "CHANGED", **into, "reason": "x"}}
     removed85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "REMOVED", "to": [], "reason": "gone"}}
-    kept85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "KEPT", "to": ["SR-1"]}}
+    kept85 = {"rule-id": rid85, "verdict": "", "next": {**change, "kind": "KEPT", **into}}
     witness85 = {"rule-id": rid85, "test-ref": place}
 
     def errors85(on: dict[str, Any]) -> list[str]:
