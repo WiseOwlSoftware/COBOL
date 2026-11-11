@@ -114,7 +114,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // never reaches this check.
         // kb/Work PB856: SR1's elementary arm is SR2's, read from the ONE predicate both rules share, and its group
         // arm names exactly two kinds — so a bit, strongly-typed or variable-length group is refused too.
-        if (!Validation.StatementValidation.IsInspectIdentifier1(target.Item))
+        if (!Validation.StatementValidation.IsInspectIdentifier1(target))
         {
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CharacterOperandUsage,
                 $"INSPECT identifier-1 '{target.Item.CobolName}' is "
@@ -340,7 +340,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
     /// "all shall reference a data item or literal" of that class, so a group conforms by its class but never
     /// triggers.</summary>
     private static (CobolClass? Class, bool Triggers) Sr4Entry(BoundOperand op) =>
-        (IntrinsicArgumentRules.ClassOf(op), op is not BoundFieldOperand { Place.Item.IsGroup: true });
+        (IntrinsicArgumentRules.ClassOf(op), op is not BoundFieldOperand { Place: var place } || ItemCategory.IsElementaryReference(place));
 
     /// <summary>⛔ SR3's last sentence, asked of every literal position (kb/Work PB1127): "Literal-1, literal-2,
     /// literal-3, literal-4, or literal-5 shall not be a zero-length literal" — a zero-length literal has no

@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "COBOL0846"}
+{"refuse-at": ["85"], "expect": "COBOL0846: INSPECT REPLACING CHARACTERS BY identifier-5 (the data item 'WS-T2', 2 characters)"}

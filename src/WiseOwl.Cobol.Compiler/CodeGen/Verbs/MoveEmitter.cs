@@ -316,11 +316,23 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                 $"MoveKind.FigurativeToNumericImage with a non-fill source ({source.GetType().Name}) — "
                 + "MoveClassifier and this renderer have drifted"),
         };
-        return target.Item.StoreAsImage || target is RedefViewPlace or NumericImagePlace
-            ? PlaceRenderer.Write(target, image)
-            : LoudStmt($"MOVE of {fillCite} into the numeric item '{target.Item.CobolName}' without "
-                + "image-backed storage (a BINARY/PACKED/COMP-5/float or Tier-A shared-storage receiver has no "
-                + "character image to fill)");
+        if (target.Item.StoreAsImage || target is RedefViewPlace or NumericImagePlace)
+            return PlaceRenderer.Write(target, image);
+        // A fixed-point receiver with a native carrier (BINARY / PACKED-DECIMAL / COMP-5, no character image of its own)
+        // takes the value its storage bytes would hold if the fill characters were laid over them - the pre-removal
+        // byte fill the construct had (the receiver's value after a move of the characters is undefined, §1985:VI.6.4.7,
+        // and this is the deterministic one: MOVE LOW-VALUES TO a COMP item is 0, HIGH-VALUES all one bits), decoded by
+        // the item's own byte form through the ONE image decode (kb/Work PB5176).
+        if (target.Item.OperandPic is { Category: PicCategory.Numeric, IsFloat: false } pic && target is not RefModPlace)
+        {
+            var bytes = new NumX(RuntimeApi.NumParseImage(image, target.Item.ProfileName, sending: false), pic.Scale);
+            return PlaceRenderer.Write(target, ArithmeticEmitter.Narrow(
+                NumericRenderer.StoreExpr(NumericRenderer.TransferWide(bytes, pic.Scale, CobolRounding.Truncation, checkedTransfer: false),
+                    pic.Scale, target.Item.ProfileName, CobolRounding.Truncation, false), target.Item));
+        }
+        return LoudStmt($"MOVE of {fillCite} into the numeric item '{target.Item.CobolName}' without "
+            + "image-backed storage (a floating-point or Tier-A shared-storage receiver has no "
+            + "character image to fill)");
     }
 
     // IsGroupSender lives on MoveClassifier since P7 Step 7 (the ONE GR4 sender-side test).
@@ -638,18 +650,41 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         }
     }
 
-    /// <summary>The compile-time numeric value of a digit-only <c>ALL "literal"</c> moving to a numeric receiver
-    /// (ISO §2023:8.3.3.6.4 GR2 repetition + §2023:14.9.25.4 GR6d3b — the digit string spans the receiver's digit positions,
-    /// fraction digits included, so the unscaled value IS the repeated digit run at the receiver's scale). ≤18
-    /// digit positions fold to a native <c>long</c> literal; a WIDE receiver (19–31 digits, COBOL-2002+ — ISO
-    /// §2023:8.3.3.3.2) decodes its digit run through the ONE deterministic digit decode (<c>FromAlphanumeric</c>,
-    /// Int128 — numeric design D1).</summary>
-    private static NumX AllDigitFill(string literal, PicInfo pic)
+    /// <summary>⛔ THE NUMERIC VALUE A DIGIT-ONLY <c>ALL "literal"</c> SENDS to a numeric or numeric-edited receiver — the one place
+    /// the repeated string becomes a number, so the receiver's category and the edition's rule are decided once
+    /// (kb/Work PB5176); <see langword="null"/> for any other source. The string is repeated to a length by
+    /// §2023:8.3.3.6.4 GR2 and the digit string it makes is a number by the move's own rule, and the two editions' texts differ in
+    /// both lengths and what the number is:
+    /// <list type="bullet">
+    /// <item>COBOL-85: the string is repeated "until the size of the resultant string is greater than or equal to the number of
+    /// character positions in the associated data item" (§1985:IV.4.2.2.2.3), so a SIGN SEPARATE item counts its sign position
+    /// and a numeric-edited item every position of its picture, the decimal point and the insertion characters included;
+    /// the figurative constant belongs to category alphanumeric (§1985:VI.6.19.4 GR3), and "data is moved as if the sending
+    /// operand were described as an unsigned numeric integer" (§1985:VI.6.19.4 GR4 b 3), aligned "by decimal point"
+    /// (GR4 b), so the digits are an INTEGER — <c>ALL "12"</c> into <c>PIC 9(3)V99</c> holds 121.00, exactly as the nonnumeric
+    /// literal "12121" does, and into <c>PIC ZZ9.99</c> the integer 121212 edits as 212.00.</item>
+    /// <item>COBOL-2002 on: "the number of digits is the same as the number of digits in the receiving operand ... If the
+    /// receiving item is not an integer, the number of digits includes both those to the right and the left of the decimal
+    /// point" (§2023:14.9.25.4 GR6 d 3 b), so the digits span the receiver's digit positions at its scale (kb/Work PB426:
+    /// <c>ALL "12"</c> into <c>PIC 9(3)V99</c> holds 121.21).</item>
+    /// </list>
+    /// A numeric-edited receiver is EDITED in both (§2023:14.9.25.4 GR6), through the numeric arm that edits a numeric sender
+    /// - the image of the repeated characters was never an edited value. Up to 18 digit positions fold to a native
+    /// <c>long</c>; more (COBOL-2002+ wide receivers, ISO §2023:8.3.3.3.2, and a 1985 edited picture) decode through the ONE
+    /// deterministic digit decode (<c>FromAlphanumeric</c>, Int128 — numeric design D1).</summary>
+    private NumX? AllLiteralNumber(BoundOperand source, PicInfo pic)
     {
-        string digits = EmitText.RepeatToWidth(literal, Math.Max(pic.Digits, 1));
+        if (source is not BoundAllLiteral { IsDigitOnly: true } all) return null;
+        bool edited = pic.Category is PicCategory.NumericEdited;
+        bool level1985 = ctx.Data.DialectLevel < 2002;
+        int width = level1985
+            ? edited ? pic.Length : pic.Digits + (pic.SignKind is "LeadingSeparate" or "TrailingSeparate" && pic.Signed ? 1 : 0)
+            : edited ? pic.DigitPositions : pic.Digits;
+        int scale = level1985 ? 0 : edited ? pic.ReceiverScale() : pic.Scale;
+        string digits = EmitText.RepeatToWidth(all.Literal, Math.Max(width, 1));
         return digits.Length <= 18
-            ? new NumX($"{long.Parse(digits, System.Globalization.CultureInfo.InvariantCulture)}L", pic.Scale)
-            : new NumX(RuntimeApi.NumDigitMagnitude(CsLiteral(digits)), pic.Scale);
+            ? new NumX($"{long.Parse(digits, System.Globalization.CultureInfo.InvariantCulture)}L", scale)
+            : new NumX(RuntimeApi.NumDigitMagnitude(CsLiteral(digits)), scale);
     }
 
     /// <summary>True when a MOVE source carries a NUMERIC VALUE for the §2023:14.9.25.4 GR5 editing path into a
@@ -660,7 +695,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
     private static bool IsNumericOperand(BoundOperand source) => source switch
     {
         BoundNumericLiteral or BoundComputedOperand => true,
-        BoundFigurative { Kind: 'Z' } => true,
+        BoundFigurative { Kind: 'Z' } or BoundAllLiteral { IsDigitOnly: true } => true,
         BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Numeric or PicCategory.NumericEdited,
         _ => false,
     };
@@ -846,7 +881,9 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
             return $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Configuration.Collating, figContext, ctx.Data.Configuration.NationalCollating)}, {wN})";
         // ALL "literal" repeats the literal to the receiver width (ISO §2023:8.3.3.6.4 GR2). An ANY LENGTH
         // receiver's width exists only at runtime — repeat at runtime, then width-fit (§2023:13.18.2 GR1).
-        if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric && !pic.IsCharacterEdited)
+        // (A digit-only ALL into a numeric-EDITED receiver is a numeric value to edit, never the image: AllLiteralNumber, kb/Work PB5176.)
+        if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric && !pic.IsCharacterEdited
+            && !(pic.Category is PicCategory.NumericEdited && a.IsDigitOnly))
             return runtimeWidth is null
                 ? CsLiteral(EmitText.RepeatToWidth(a.Literal, pic.Length))
                 : RuntimeApi.StrStore(RuntimeApi.StrRepeat(CsLiteral(a.Literal), runtimeWidth), runtimeWidth);
@@ -885,7 +922,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                 // A function whose value is on the exact wide form (an exact-family call over an argument expression past the
                 // Int128 carrier, kb/Work PB3953) is kept exact here and TRANSFERRED at the mask's scale below, so the edit sees
                 // the value's own low-order digits and not its 34-digit image.
-                NumX e = num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
+                NumX e = AllLiteralNumber(source, pic)
+                    ?? num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
                 // A FLOATING-POINT numeric-edited receiver (D21/PB66) takes the sender's EXACT form — no alignment to a
                 // mask scale (it has none) — and the transfer's mode rounds the significand to the mask's digits
                 // (kb/Work PB2638): TRUNCATION for a MOVE (§2023:14.6.8.4 rule 2), the clause's own for the report's rounded
@@ -993,9 +1031,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
                     // as its IEEE window bytes.
                     return target.StoreAsImage ? RuntimeApi.NumFormatImageFloat(fval, target.ProfileName, pic.IsSingle) : fval;
                 }
-                NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
-                    ? AllDigitFill(allDigit.Literal, pic)
-                    : num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
+                NumX n = AllLiteralNumber(source, pic)
+                    ?? num.AsNum(source, SenderContext(target), SendingRef.MoveToNumeric, keepWide: true);
                 // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §2023:14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).

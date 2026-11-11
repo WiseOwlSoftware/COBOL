@@ -105,11 +105,11 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // one lowering over — the two-arm shape, and reachable the moment the EC gate stopped demanding a
         // literal pair. A no-op for every non-signed-numeric operand, which is why it is unconditional there too.
         // At --std 85 a group end keeps the numeric operand's image (DropsOperationalSign, kb/Work PB5106).
-        string read = OperandText.AsString(n.Left, num, DropsOperationalSign(n.Left, n.Lo) && DropsOperationalSign(n.Left, n.Hi));
+        string read = ComparisonText(n.Left, DropsOperationalSign(n.Left, n.Lo) && DropsOperationalSign(n.Left, n.Hi));
         var lo = new MembershipOperand(loFig ? FigSeed(n.Lo, subjectCat)
-            : OperandText.AsString(n.Lo, num, DropsOperationalSign(n.Left, n.Lo)), loFig);
+            : ComparisonText(n.Lo, DropsOperationalSign(n.Left, n.Lo)), loFig);
         var hi = new MembershipOperand(hiFig ? FigSeed(n.Hi, subjectCat)
-            : OperandText.AsString(n.Hi, num, DropsOperationalSign(n.Left, n.Hi)), hiFig);
+            : ComparisonText(n.Hi, DropsOperationalSign(n.Left, n.Hi)), hiFig);
         return RenderStringRange(read, lo, hi, n.CheckInvalid, collate);
     }
 
@@ -384,10 +384,19 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §2023:8.8.4.2.5 → §2023:14.9.25.4 GR6a),
             // except where DropsOperationalSign says the pair is a 1985 numeric-with-group one (kb/Work PB5106).
             bool deSign = DropsOperationalSign(r.Left, r.Right);
-            return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign)}, {OperandText.AsString(r.Right, num, deSign)}{ctx.CollateArgFor(leftCat, rightCat)}) {r.Op} 0";
+            return $"CobolString.Compare({ComparisonText(r.Left, deSign)}, {ComparisonText(r.Right, deSign)}{ctx.CollateArgFor(leftCat, rightCat)}) {r.Op} 0";
         }
         return RenderNumericRelational(r);
     }
+
+    /// <summary>⛔ THE CHARACTER IMAGE OF AN OPERAND OF A CHARACTER COMPARISON, for every string-relation surface (the direct
+    /// relation, the figurative relation and the EVALUATE range): the operand's sending image, except at --std 85 where the
+    /// numeric operand is "treated as though it were moved to an elementary alphanumeric data item of the same size as the
+    /// numeric data item (in terms of standard data format characters)" (§1985:VI.6.3.1.1.2 GR1), which has no room for a
+    /// scaling position (<see cref="OperandText.AsItemSizeTemporary"/>, kb/Work PB5187). From 2002 the temporary is the number
+    /// of digits in the integer long (§2023:8.8.4.2.5), the sending image whole.</summary>
+    private string ComparisonText(BoundOperand op, bool deSign) =>
+        ctx.Data.DialectLevel < 2002 ? OperandText.AsItemSizeTemporary(op, num, deSign) : OperandText.AsString(op, num, deSign);
 
     /// <summary>⛔ WHETHER A CHARACTER COMPARISON OF THE PAIR (<paramref name="a"/>, <paramref name="b"/>) READS A SIGNED
     /// NUMERIC OPERAND WITHOUT ITS OPERATIONAL SIGN — the ONE answer for every string-relation surface (the direct
@@ -522,7 +531,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             // numeric anchor (alphanumeric, numeric-edited — whose EDITED sign is part of its image and stays,
             // §2023:8.8.4.2.1 NOTE — national, boolean), which is why it is unconditional here as it is above.
             string fig = FigSeed(figLeft ? r.Left : r.Right, figLeft ? leftCat : rightCat),
-                   other = OperandText.AsString(anchor, num, deSign: true);
+                   other = ComparisonText(anchor, deSign: true);
             return $"{RuntimeApi.StrCompareFig(figLeft ? fig : other, figLeft ? other : fig, figLeft, pad + collate)} {r.Op} 0";
         }
         NumX l = FigOrNum(r.Left), rr = FigOrNum(r.Right);
