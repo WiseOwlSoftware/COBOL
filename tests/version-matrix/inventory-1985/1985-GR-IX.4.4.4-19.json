@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-IX.4.4.4-19",
  "rule-digest": "798ac0e21348",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open",
  "test-ref": "conformance:cases/IX.4.4@1985-OPEN-STATEMENT/1985-GR-IX_4_4_4-19",
+ "notes": "The refuter's overturn (an OPEN refused with 41 runs no USE procedure, or the current mode's) does NOT reproduce at eb2b01f730. With FB open INPUT and only USE ... ON OUTPUT, OPEN OUTPUT gives 41 and the OUTPUT procedure runs with SB already 41 (p05). With INPUT and OUTPUT procedures both declared, the OUTPUT one (mode being opened) runs (p05c). The refuter's own op41.cob, against a present file, gives USE OUTPUT SB=41 and USE EXTEND SB=41 (p05f). Status precedes the USE procedure each time (GR19 a then b). The refuter's other probes (35 per file-name in order, 39 and 37 leaving the file intact) held. Attack point: the refuter's op41 printed INPUT 00 then no USE line; the same source does not do that here, so its run was on another tree or file state.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

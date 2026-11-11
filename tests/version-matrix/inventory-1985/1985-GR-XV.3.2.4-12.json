@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-12",
  "rule-digest": "247c7204ee14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#Set; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#FireText; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDebugRunner",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-12",
+ "notes": "GR12 gives the means wholly to the implementor; it asks for a means of identifying a statement, not a value no other statement shares, and no line-number means is unique when two statements share a line (a case the reader already recorded). The compiler's means is the statement's line in the source file that holds it: copied statements report their library text's lines (1, 2), main text 18, 19, 21. GnuCOBOL's DEBUG-LINE is the same per-file statement line (from its code generator; not run here, no cobc), which settles the latitude under CLAUDE.md rule 1, ISO 2023 having no debugging module to control it. The behaviour conforms; the documentation does not yet say which file's line, a documentation gap rather than a wrong value. Attack point: a reading that 'a particular source statement' demands a value unique within the resultant program after COPY.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

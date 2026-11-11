@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-IV.4.3.8.4.3-1",
  "rule-digest": "e8120de72f4c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#RefModExclusion; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#ReadScreenedRefMod; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ResolveImplCore",
  "test-ref": "conformance:cases/IV.4.3.8.4@1985-Reference-Modification/1985-SR-IV_4_3_8_4_3-1",
+ "notes": "SHARED QUESTION G (rows 1985-SR-IV.4.3.8.4.3-1 and 1985-SR-VI.6.25.3-2): is a group item 'a data item whose usage is DISPLAY' / 'described implicitly or explicitly as USAGE IS DISPLAY' in 1985, even when its own entry writes USAGE COMP? ANSWER: yes. The 1985 text as amended (Amendment 2, 1993) itself treats a group as meeting that test: the class condition requires identifier-1 to be 'a data item whose usage is explicitly or implicitly DISPLAY' and in the same paragraph gives the result for identifier-1 being 'a zero-length group item', which is possible only if a group passes the usage test. A group's class is alphanumeric at object time whatever its subordinates (IV.4.3.3), and a USAGE clause written on a group 'applies to each elementary item in the group' (VI.5.14.4 GR1), so it describes the elementary items, not the group. The next edition says so outright (§2002:8.5.2, kept as §2023:8.5.2.1). Where 1985 is unclear, CLAUDE.md rule 1 lets the ISO text decide, and the ISO text admits the group. Applied here: neither agent could break the elementary half, in which every non-DISPLAY elementary item is refused with COBOL1647. A group, including '01 GC USAGE COMP', is admitted as a DISPLAY item, which is the answer above. ATTACK SURFACE: the verdict depends on reading the 1993 class-condition sentence as evidence that a group satisfies a usage-DISPLAY test, and on the ISO text deciding where 1985 is unclear. A literal reader could say a group whose own entry writes USAGE COMP is 'explicitly' COMP.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,
