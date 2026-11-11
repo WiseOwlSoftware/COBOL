@@ -1,4 +1,4 @@
-## PB5255: the spec-reconcile tooling takes the 2002 edition: every Workflow argument required, the work unit slices by page heading, the merge writes LEDGER-2002.json, and the 882 pages are planned as data
+## Entry 3482 — 2026-11-11 11:19 PST — PB5255: the spec-reconcile tooling takes the 2002 edition: every Workflow argument required, the work unit slices by page heading, the merge writes LEDGER-2002.json, and the 882 pages are planned as data
 
 **Decision.** The project owner's controller decided the 2002 reconciliation's route on 2026-11-11 (kb/Work PB4813 addendum
 `2026-11-11-reconcile-route.md`): the Workflow on the plan's quota with Opus agents at effort medium, never Message
@@ -67,3 +67,4 @@ and refutes the unverified claim on the round-0 merge, and is refused naming its
 `verify_publishable.py --edition 1985` holds the 1985 transcription to its ledger, 976 of 976 pages compared;
 `reconcile_ranges.py --check` passes; the canary `page_workunit.py 1..12 --edition 2002 --dpi 300` rendered 12 pages from
 the private PDF and wrote 12 non-empty slices. The fleet was not started.
+
