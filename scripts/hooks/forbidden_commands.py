@@ -10,10 +10,10 @@ fires inside subagents and Workflow agents too. Each rule below was written in a
                             `python scripts/orchestrator/enqueue.py land <branch>` (kb/Work PB3023: main merged in, the
                             gate, the DEVLOG stamp, then one pull request into GitHub's merge queue; owner decision Q23,
                             2026-09-06; kb/Work PB3024). A push to a work branch is fine.
-  direct push in a unit     inside an orchestrator unit (COBOL_COORD_DIR set) ANY `git push`, any repository, any
-                            flags: a unit lands through the landing script (enqueue.py) and never publishes another repo
-                            (owner 2026-10-05, kb/Work/PB2044: the wave unit pushed the public skills repo's main with
-                            `git push -q origin HEAD:main`, which the deny rule's text pattern missed).
+  a unit's push to another  inside an orchestrator unit (COBOL_COORD_DIR set) a `git push` whose remote is not THIS
+  repository                repository, any flags: a unit never publishes another repo (owner 2026-10-05, kb/Work/PB2044:
+                            the wave unit pushed the public skills repo's main with `git push -q origin HEAD:main`). Its
+                            own work branch it pushes like any session (kb/Work PB5234: every one of 31 refusals was that).
   escapes in a heredoc      heredoc bodies with backslash escapes were mangled or mis-escaped in six sessions (and the
                             harness decodes some escapes in tool input); write the file with the Write tool instead.
   bare `~X` test filter     `--filter "~X|~Y"` matches NOTHING and exits 0 — a silent green; every term needs a
@@ -35,6 +35,7 @@ import json
 import os
 import pathlib
 import re
+import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -127,23 +128,62 @@ for call in GIT_CALLS:
               "runs the gate, stamps the DEVLOG entry and queues one pull request into GitHub's merge queue (it "
               "refuses while `ruleset.py check` does not report the queue ACTIVE). It is idempotent; run it with "
               "run_in_background and block on its `=== ENQUEUE: ` line.")
-# 2b. ANY direct `git push`, in ANY repository, inside an orchestrator unit (owner 2026-10-05, kb/Work/PB2044).
+# 2b. inside an orchestrator unit, a `git push` to ANOTHER repository, whatever its flags (owner 2026-10-05, kb/Work/PB2044).
 # Rule 2 guards THIS repo's main and deliberately leaves another repository to its own rules, so an attended session may
 # push the sites and the public skills repo. A unit has no such need and runs under `bypassPermissions`: on 2026-10-05 the
-# wave unit published the public skills repo's main with `git push -q origin HEAD:main` from a scratch clone, and the
-# project's deny rule (a TEXT pattern, `git push origin HEAD:main`) missed it because of the extra `-q`. A unit lands
-# through `python scripts/orchestrator/enqueue.py land`, whose command text contains no `git push`; the supervisor exports
-# COBOL_COORD_DIR into every unit's environment and hooks (also in its subagents) inherit it. Attended sessions and
-# cloud sessions never have it set, so their pushes are untouched. A call is the git SUBCOMMAND after any global options
-# (`-C dir`, `-c k=v`, `--no-pager`; `shell_location.git_calls`), so flags before or after cannot dodge it, `git log
-# --grep=push` is not hit, a commit message that says "git push" is one quoted word, and a `bash -c` payload is a command
-# line like any other.
-if os.environ.get("COBOL_COORD_DIR") and any(call.subcommand == "push" for call in GIT_CALLS):
-    block("a direct `git push` is refused inside an orchestrator unit (any repository, any flags). Land this "
-          "repository's work with `python scripts/orchestrator/enqueue.py land <branch>` (it queues a pull "
-          "request into GitHub's merge queue). A change to ANOTHER repository (the public skills "
-          "repo, a site) is never published by a unit: hand it off as an owed push in the handoff and the "
-          "attended session or the owner publishes it (kb/Work/PB2044).")
+# wave unit published the public skills repo's main with `git push -q origin HEAD:main` from a scratch clone. The
+# supervisor exports COBOL_COORD_DIR into every unit's environment and hooks (also in its subagents) inherit it; attended
+# and cloud sessions never have it set. Until kb/Work PB5234 this refused EVERY push in a unit; measured over three days
+# (2026-11-08..10), all 31 refusals were a unit pushing its own work branch of this repository, which CLAUDE.md rule 7 asks
+# of every checkpoint. So the repository is now judged by what the push publishes to, the remote's URL, never by a folder
+# name: a scratch clone of another repository under `E:/COBOL-coord` (whose name starts with this repo's) is another
+# repository. The remote is the push's first positional word (`origin` when it names none), a URL or path when written
+# as one; its URL is asked of git in the directory the push runs in (`GitCall.cwd`). A push whose repository cannot be
+# determined (an unknown directory, a git that does not answer) is refused: inside a unit the rule fails closed.
+_HOOK_CWD = pathlib.Path(data.get("cwd") or os.getcwd())
+
+
+def _git_out(cwd: pathlib.Path, *args: str) -> str | None:
+    try:
+        r = subprocess.run(["git", "-C", str(cwd), *args], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else None
+
+
+def _repo_key(url: str) -> str:
+    """One spelling of a remote: `https://github.com/O/R.git`, `git@github.com:O/R` and `ssh://git@github.com/O/R` are
+    one key; a local path is its resolved path."""
+    u = url.strip().replace("\\", "/").rstrip("/")
+    u = re.sub(r"\.git$", "", u, flags=re.I)
+    m = re.match(r"^(?:[a-z+]+://)?(?:[^@/]+@)?([^/:]+)[:/](.+)$", u, re.I)
+    if m and not re.match(r"^[a-z]:/", u, re.I):
+        return (m.group(1) + "/" + m.group(2)).lower()
+    return str(pathlib.Path(u).resolve()).lower()
+
+
+_THIS_REMOTE = _git_out(_ROOT_DIR, "remote", "get-url", "origin")
+
+
+def _pushes_elsewhere(call) -> bool:
+    """Whether a push publishes to a repository other than this one (or one this hook cannot determine)."""
+    cwd = _HOOK_CWD if call.cwd is None else (_HOOK_CWD / call.cwd)
+    positional = [a for a in call.args if not a.startswith("-") and ">" not in a and "<" not in a]
+    remote = positional[0] if positional else "origin"
+    url = remote if re.search(r"[:/\\]", remote) else _git_out(cwd, "remote", "get-url", remote)
+    if call.cwd is None or url is None or _THIS_REMOTE is None:
+        return True
+    return _repo_key(url) != _repo_key(_THIS_REMOTE)
+
+
+if os.environ.get("COBOL_COORD_DIR"):
+    for call in GIT_CALLS:
+        if call.subcommand == "push" and _pushes_elsewhere(call):
+            block("a `git push` to another repository (or one whose remote this hook cannot read) is refused inside an "
+                  "orchestrator unit. A unit pushes only its own work branch of THIS repository and lands it with "
+                  "`python scripts/orchestrator/enqueue.py land <branch>`; a change to ANOTHER repository (the public "
+                  "skills repo, a site) is never published by a unit: hand it off as an owed push and the attended "
+                  "session or the owner publishes it (kb/Work/PB2044).")
 # 3. backslash escapes inside a heredoc body — the bodies the model cut out at their delimiter lines, never the text after
 # the first `<<` (a `<<` inside quotes is no heredoc, and a command after the body is no body)
 if any(re.search(r"\\[nrtuUx0abfvdswDSW\\'\"]", body) for st in STEPS for body in st.heredocs):

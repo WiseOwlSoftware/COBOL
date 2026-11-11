@@ -8,14 +8,22 @@ import base64
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
+import tempfile
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
 ensure_utf8()
 
 HOOK = pathlib.Path(__file__).with_name("forbidden_commands.py")
+REPO = HOOK.resolve().parents[2]
+# another repository, for the unit-push rule: a real git directory whose origin is not this repository's
+OTHER_DIR = pathlib.Path(tempfile.mkdtemp(prefix="fc-other-"))
+subprocess.run(["git", "init", "-q", str(OTHER_DIR)], check=True)
+subprocess.run(["git", "-C", str(OTHER_DIR), "remote", "add", "origin", "https://example.invalid/other.git"], check=True)
+OTHER = OTHER_DIR.as_posix()
 BS = chr(92)  # a backslash, spelled without one
 NL = chr(10)
 # kb/Work PB3198: every rule reads the ONE model of the command line (shell_location.steps), so each rule is checked
@@ -239,23 +247,31 @@ def blocked(cmd: str, unit: bool = False, tool: str = "Bash") -> bool:
     env = {k: v for k, v in os.environ.items() if k != "COBOL_COORD_DIR"}
     if unit:
         env["COBOL_COORD_DIR"] = "E:/COBOL-coord"
-    r = subprocess.run([sys.executable, str(HOOK)], input=json.dumps({"tool_name": tool, "tool_input": {"command": cmd}}),
+    r = subprocess.run([sys.executable, str(HOOK)], input=json.dumps({"tool_name": tool, "tool_input": {"command": cmd},
+                                                                   "cwd": str(REPO)}),
                        capture_output=True, text=True, timeout=30, env=env)
     return r.returncode == 2
 
 
-# Inside an orchestrator unit EVERY direct `git push` is refused, whatever the repository or the flags (PB2044: a unit pushed
-# the public skills repo with `git push -q origin HEAD:main`, which the deny rule's text pattern missed). The legitimate
-# neighbours stay silent: the landing script, other git subcommands that merely mention the word, and a stash (rule 1's).
+# Inside an orchestrator unit a `git push` to ANOTHER repository is refused, whatever the flags (PB2044: a unit pushed
+# the public skills repo with `git push -q origin HEAD:main`), judged by the remote's URL; a push of the unit's own
+# branch of THIS repository passes (kb/Work PB5234). The directories that exist nowhere (`/e/claude-skills`) have no
+# remote to read, so the rule fails closed on them; OTHER is a real repository with another remote.
 UNIT_CASES = [
     ("git push -q origin HEAD:main", True),
     ("cd /e/claude-skills && git push -q origin main", True),
     ("git -C E:/claude-skills push origin main", True),
-    ("git -c core.askpass=x push origin v1.18.0", True),
+    ("git -c core.askpass=x push origin v1.18.0", False),   # this repository (kb/Work PB5234)
     ("git --no-pager push --quiet origin HEAD:refs/heads/main", True),
-    ("git push origin HEAD:worktree-agent-abc123", True),
-    ("cd /e/Sites/wiseowlsoftware.com; git push", True),
-    ("git push -u origin claude/batch-7", True),
+    ("git push origin HEAD:worktree-agent-abc123", False),                   # its own branch, this repository
+    ("git push -u origin claude/batch-7", False),
+    ("git push -q origin HEAD 2>&1 | tail -1", False),
+    ("git push origin HEAD:main", True),                                     # rule 2: this repository's main
+    ("cd /e/Sites/wiseowlsoftware.com; git push", True),                     # no repository there: fails closed
+    ("cd " + OTHER + " && git push -u origin x", True),                      # another repository's branch
+    ("git -C " + OTHER + " push origin v1.18.0", True),                      # and its tag
+    ("git push https://github.com/WiseOwlSoftware/claude-skills.git x", True),  # a URL that is another repository
+    ("git push https://github.com/WiseOwlSoftware/COBOL x", False),          # the same repository spelled as a URL
     ("python scripts/orchestrator/enqueue.py land worktree-agent-abc123", False),   # its push is the script's
     ("python scripts/orchestrator/enqueue.py queue --title T --body-file m.txt", False),   # its push is the script's
     ("git log --grep=push", False),
@@ -270,21 +286,22 @@ UNIT_CASES = [
      + "git commit -q -F ../m.txt; git push -q origin HEAD:main", True),
     ("cat > ../m.txt <<'EOF'" + chr(10) + "the unit ran git push -q origin HEAD:main" + chr(10) + "EOF" + chr(10)
      + "git commit -q -F ../m.txt", False),                                    # the word inside the heredoc BODY is text
-    (QS + "git push", True),                                                   # a quoted `<<` hides nothing (PB3198)
-    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", True),    # git wherever it stands in the step
+    (QS + "git push", False),                                                   # a quoted `<<` hides nothing (PB3198)   # this repository (kb/Work PB5234)
+    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", False),    # git wherever it stands in the step   # this repository (kb/Work PB5234)
     # the branch review of PB3198, R1-1: a push inside a command substitution is a push
     ("out=$(git -C /e/claude-skills push origin main 2>&1)", True),
     ("out=$(git push -q origin HEAD:main 2>&1)", True),
-    ("echo `git push`", True),
+    ("echo `git push`", False),   # this repository (kb/Work PB5234)
 ]
 
 fails =[(c, e) for c, e in CASES if blocked(c) != e]
 fails += [(f"[unit] {c}", e) for c, e in UNIT_CASES if blocked(c, unit=True) != e]
 fails += [(f"[PowerShell] {c}", e) for c, e in PS_CASES if blocked(c, tool="PowerShell") != e]
-# The same pushes in an ATTENDED session (no COBOL_COORD_DIR) keep their old behaviour: rule 2 alone decides.
+# The same pushes in an ATTENDED session (no COBOL_COORD_DIR): rule 2 alone decides.
 ATTENDED = [("git push -u origin claude/batch-7", False), ("git -C E:/claude-skills push origin v1.18.0", False),
             ("git push -q origin HEAD:main", True)]
 fails += [(f"[attended] {c}", e) for c, e in ATTENDED if blocked(c) != e]
+shutil.rmtree(OTHER_DIR, ignore_errors=True)
 for c, e in fails:
     print(f"FAIL: expected {'BLOCK' if e else 'PASS'}: {c!r}")
 total = len(CASES) + len(UNIT_CASES) + len(PS_CASES) + len(ATTENDED)
