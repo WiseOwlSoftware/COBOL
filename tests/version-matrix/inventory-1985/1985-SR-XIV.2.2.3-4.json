@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.2.2.3-4",
  "rule-digest": "adff29e9129e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#communicationDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#ReadClauses",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-SR-XIV_2_2_3-4",
+ "notes": "§1985:XIV.2.2.3 SR4: \"If neither option for specifying the interface area is used, a level 01 data description entry must follow the CD entry. Either option may be followed by a level 01 data description entry.\" BindEntry refuses, with COBOL6169 at the CD, an entry whose clause list and series of data-names are both empty when no record follows; a 77 or a 02 in the record's place is refused by the level checks (COBOL1746, COBOL2771), so the entry that satisfies it is a level 01 one. The witness refuses CD CD-IN FOR INPUT followed by nothing. Probes at --std 85: (b) Format 3 FOR I-O with nothing following refused COBOL6169 SR4; a clause-less input CD followed only by a 77 refused COBOL1746 and by a 02 refused COBOL2771; a clause-less CD followed by another CD that holds the record refused COBOL6169 at the first; a series of 10 names refused COBOL6169. (d) the series option alone (FILLER for name 2) and no record accepted, MOVE to A1 and A11 printed QQQQ        |000042; a clause-less INITIAL INPUT CD with a group 01 record accepted and printed QUEUEX      |; Format 3 series plus an X(33) 01 record accepted, printing ******************************* then KK (status key at 32-33). (c) --std 2023 refuses (COBOL0902). (a, e, f) not reached by a presence rule. Every refusal's text cites ISO/IEC 1989:2002 Annex A rather than the 1985 rule, the cross-cutting citation matter kb/Work PB4950 decides; the outcome is the one the rule requires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

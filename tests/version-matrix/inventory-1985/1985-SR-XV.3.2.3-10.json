@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-10",
  "rule-digest": "c2c25705bdf5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugDataTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#NamesDataItem; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-10",
+ "notes": "§1985:XV.3.2.3 SR10 (as amended by X3.23a-1989): an identifier-1 whose entry has or is subordinate to an OCCURS clause 'must be specified without the subscripting normally required'. FinalizeDebug sends both the identifier-1 and ALL REFERENCES OF identifier-1 operands to ProcedureTableBuilder.AddDebugDataTarget, which refuses COBOL6334 any subscript part on the operand or on any of its qualifiers; NamesDataItem resolves the declaration without the 'shall be subscripted' screen, so the bare table element is accepted. Probed at 85 on an OCCURS DEPENDING ON table: F1, ALL REFERENCES OF F2 (two-level) and the group R unsubscripted are accepted and fire with DEBUG-SUB-1/2 naming the occurrence (+0003 +0002); F1 (1), F1 (IX), F2 (SUBV), ALL REFERENCES OF F2 (1 2), F1 OF R (1) and ALL F1 IN T (2) are each refused COBOL6334; at 2002 and 2023 the statement is COBOL0902. The witness refuses ELEM (1).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

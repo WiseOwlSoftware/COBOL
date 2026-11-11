@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XV.3.2.4-13",
  "rule-digest": "b9c16624de49",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DebugOperandAsWritten; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugDataTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddDebugSubject; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/DebugTriggerEmitter.cs#FireText; src/WiseOwl.Cobol.Runtime/Control/DebugItem.cs#Set",
  "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-GR-XV_3_2_4-13",
+ "notes": "§1985:XV.3.2.4 GR13: \"DEBUG-NAME contains the first 30 characters of the name that caused the debugging section to be executed\", qualifiers separated by IN or OF and no subscripts. ProcedureTableBuilder.DebugOperandAsWritten spells the USE operand with its OF/IN qualifiers and no subscript or reference modifier; that name is the BoundDebugTarget's (AddDebugDataTarget) or BoundDebugSubject's (AddDebugSubject), DebugTriggerEmitter.FireText and DispatchEmitter.__RunDebug pass it, and DebugItem.Set left-justifies and cuts it at 30. Reached at --std 85 only (COBOL0902 at 2002 and 2023). Probes at 85: a qualified target written OF and referenced IN gives 'FLD OF G1'; a ref-modified reference, a subscripted TE(5) and an ODO element DX(3) give bare 'TE'/'DX'; a 30-character name fills DEBUG-NAME exactly; ALL PROCEDURES gives the bare paragraph name (no qualifier is written for it); refusals: ON TE (1) COBOL6334, an operand twice COBOL6335, an empty USE FOR DEBUGGING COBOL0001. The witness checks PARA-A, an unsubscripted ELEM and a 30-character cut of a qualified name.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

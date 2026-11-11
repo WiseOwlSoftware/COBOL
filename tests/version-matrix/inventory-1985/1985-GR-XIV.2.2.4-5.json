@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.2.2.4-5",
  "rule-digest": "8acc6d719343",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Receive; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Transfer; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Answers; src/WiseOwl.Cobol.Runtime/Communication/CommunicationArea.cs#SetQueuePath; src/WiseOwl.Cobol.Runtime/Communication/MessageStoreState.cs#TakeFromQueue; src/WiseOwl.Cobol.Runtime/Communication/McsTables.cs#TakeQueueMessage",
  "test-ref": "conformance:cases/XIV.2.2@1985-COMMUNICATION-DESCRIPTION-ENTRY/1985-GR-XIV_2_2_4-5",
+ "notes": "§1985:XIV.2.2.4 GR5: RECEIVE returns serially the next message or portion from the queue the CD names; with fewer levels named \"the MCS determines the next message or portion\", and afterwards data-name-1 through data-name-4 \"will contain the symbolic names of all the levels of the queue structure\". MessageControlSession#Receive serves first a held remainder that PendingReceive#Answers the named prefix, else MessageStoreState#TakeFromQueue / McsTables#TakeQueueMessage takes the first message at or under the prefix, and #Transfer writes the found path via CommunicationArea#SetQueuePath. Probes at --std 85: Q alone over Q/A/X, Q/A/Y, Q/B returns Q/A/X with the levels filled, Q+B returns B1, the partial X remainder answers next, then Q/A/Y, then NO DATA; the witness returns FIRST, SECOND, NO DATA.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

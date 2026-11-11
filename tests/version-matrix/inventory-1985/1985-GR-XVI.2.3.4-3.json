@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XVI.2.3.4-3",
  "rule-digest": "2d77a0aefaee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSectionDefinition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitFields; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitAlter; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AlterSwitchEmitter.cs#EmitGoTo",
  "test-ref": "conformance:cases/XVI.2.3@1985-SEGMENT-LIMIT-CLAUSE/1985-GR-XVI_2_3_4-3",
+ "notes": "§1985:XVI.2.3.4 GR3: \"When the SEGMENT-LIMIT clause is omitted, all segments having segment-numbers from 0 through 49 are considered as permanent segments of the object program\": none is overlaid, so each keeps its last-used state. With no clause every segment is resident at 85 (VisitSectionDefinition admits the number, AlterSwitchEmitter's instance fields hold ALTER state). The witness (no OBJECT-COMPUTER, segment 49 PERFORMed twice) prints FIRST, SECOND. Probes: r4c (no clause; segments 1 and 49 each re-entered after independent segment 99) S1 LATER, S49 LATER; r6c (segments 30, 40, 70, 30 intermixed) SB LATER; class c the segment-number at --std 2002/2023 refused COBOL0902 (r2f); class b r5a SECTION 100 accepted (PB5084, 1985-SR-XVI.3.2.3-1).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

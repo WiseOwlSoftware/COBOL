@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-FMT-XIII.4.8.2",
  "rule-digest": "4a8de4f16a19",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useOnTarget; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
  "test-ref": "conformance:cases/XIII.4.8@1985-USE-AFTER-STANDARD-EXCEPTION-PROCEDURE-STATEMENT/1985-FMT-XIII_4_8_2",
+ "notes": "§1985:XIII.4.8.2 prints USE AFTER STANDARD {EXCEPTION|ERROR} PROCEDURE ON {{file-name-1}...|OUTPUT|EXTEND} with USE, AFTER and PROCEDURE underlined (confirmed on the rendered page 654); INPUT, I-O and GLOBAL come to an 85 program from §1985:VII.4.6.2 and §1985:X.5.5.2, so the 85 compiler accepts the union. The grammar's Format 1 (useStatement over useOnTarget) admits the words, VersionConformancePass.VisitUseStatement refuses an omitted AFTER or PROCEDURE at 85 (COBOL0900), and DeclBindUse binds the scope, refusing a file in two USEs, a mode written twice (SR6) and a sort file (COBOL0897). Probed at 85 with report files: ON R1 R2 runs for 30 (bad path), 35 (absent EXTEND) and 41 (EXTEND while open); ON OUTPUT and ON EXTEND fire for their modes; a file-name USE excludes that file from ON OUTPUT; INPUT and GLOBAL I-O accepted and never fire; ON R1 R1 accepted; missing AFTER or PROCEDURE COBOL0900; empty ON and ON OUTPUT EXTEND / ON R1 OUTPUT syntax errors; OUTPUT twice and R1 in two USEs COBOL0897; RD name or unknown name COBOL0897; USE AFTER EXCEPTION CONDITION COBOL0877. Witness: file-name, OUTPUT and EXTEND declaratives over two report files, the EXTEND one firing with 35.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

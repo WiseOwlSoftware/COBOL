@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.2.4-6",
  "rule-digest": "ac730e89f073",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindPath; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CommunicationEmitter.cs#Emit; src/WiseOwl.Cobol.Runtime/Communication/MessageControl.cs#Disable; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetPath; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#SetOutput; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#ValidCount",
  "test-ref": "conformance:cases/XIV.3.2@1985-DISABLE-STATEMENT/1985-GR-XIV_3_2_4-6",
+ "notes": "§1985:XIV.3.2.4 GR6: with OUTPUT \"the logical paths are deactivated for all destinations specified by the content of each occurrence of data-name-5 up to and including the occurrence specified by the content of data-name-1\". CommunicationBinder.BindPath binds DISABLE OUTPUT to CommunicationPath.Output (SR3 refused as COBOL6170), CommunicationEmitter.Emit calls MessageControl.Disable, and MessageControlSession.SetOutput disables occurrences 1..DESTINATION COUNT only (ValidCount: a count outside 1..OCCURS is 30, no action, Table 1), error key 1 unknown / 5 already disabled, status 20/15/80; no edition reads here, the facility gate is VersionConformancePass. The witness disables D1-D2 of three with count 2 and SEND shows D3 still enabled (10, 220). Probes at 85: (a/f) count 0, 4 over OCCURS 3 and 9999 each 30; MOVE -1 stores 1 (unsigned count); (b) count 3 with D3 already disabled 15 '005'; unknown ZZ + already-disabled D1 80 '15'; unknown + newly disabled 20 '10'; (c) DISABLE refused COBOL0902 at 2014 and 2023, obsolete warning COBOL0903 at 2002; (d,e) not applicable: no operand class or file reaches GR6.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

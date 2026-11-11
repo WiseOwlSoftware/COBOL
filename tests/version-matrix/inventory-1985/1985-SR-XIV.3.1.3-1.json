@@ -1,7 +1,10 @@
 {
  "rule-id": "1985-SR-XIV.3.1.3-1",
  "rule-digest": "1aef063221b0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#BindAcceptMessageCount; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#ResolveCommunicationCd; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolCommunication.g4#acceptMessageCountStatement",
  "test-ref": "conformance:cases/XIV.3.1@1985-ACCEPT-MESSAGE-COUNT-STATEMENT/1985-SR-XIV_3_1_3-1",
+ "notes": "§1985:XIV.3.1.3 SR1: \"Cd-name-1 must reference an input CD.\" BindAcceptMessageCount resolves the word through ResolveCommunicationCd with AcceptRule (formats [Input]), which refuses with COBOL6170 a name that is no cd-name of this program and a CD of another format; cd-names are local to their program (§1985:X.1.3.8). The witness refuses ACCEPT of an output CD. Probes at --std 85: (b) an I-O CD refused COBOL6170; a data-name of the CD refused COBOL6170; an undeclared name refused; a containing program's input CD named from a nested program refused COBOL6170 (cd-name scope is its program); no operand refused COBOL0901; two cd-names refused COBOL5506; an ON EXCEPTION phrase refused COBOL2269. (d) an input CD with MESSAGE omitted (it is not underlined) accepted and ran, printing ST=20 MC=000099; with MESSAGE printed ST=20 MC=000000. (c) --std 2023 refuses the section (COBOL0902). (a, e, f) not reached: the operand is a cd-name. Every refusal's text cites ISO/IEC 1989:2002 Annex A rather than the 1985 rule, the cross-cutting citation matter kb/Work PB4950 decides; the outcome is the one the rule requires.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
