@@ -1,4 +1,4 @@
-## PB5149 is discharged by the user-word census, and PB5147's stall gets a probe (PB5073 review R2-1)
+## Entry 3472 — 2026-11-11 05:27 PST — PB5149 is discharged by the user-word census, and PB5147's stall gets a probe (PB5073 review R2-1)
 
 Wave 20261998 group A finished the PB5073 branch (the declaration name-uniqueness screens, COBOL6862 and COBOL6863, landed in its own
 entry) and took its two leads.
@@ -34,3 +34,4 @@ probe only describes a non-observation and never fails one (IO and permission er
 `DeleteOnClose`. Performance: five small flushes, taken only on a timeout. Duplication: none. Semgrep `verify.py` PASS, no count up.
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 23,997/23,997 ran · Unit 40,755/40,755 ran · Characterization 37/37 ran (skipped 0) ... (run 000001-20261111T105532Z) ===` (fix gate).
+
