@@ -1075,8 +1075,8 @@ def self_test() -> int:
         pushed = scratch.git("ls-remote", "origin", "refs/heads/land-train").split()[:1]
         verbs = [a[:2] for a in log]
         published_ref = buildgraph.fetch_published(wt, "origin")
-        expect("an ACTIVE queue pushes the branch, publishes this host's passes to origin's store ref, opens one pull "
-               "request and queues it with --auto",
+        expect("an ACTIVE queue pushes the branch, opens one pull request and queues it with --auto, having published "
+               "this host's passes to origin's store ref between the push and the pull request (kb/Work PB5235)",
                rc == 0 and pushed == [head] and verbs == [["pr", "list"], ["pr", "create"], ["pr", "merge"]]
                and log[2] == ["pr", "merge", "17", "--auto"] and lines[-1].startswith("ENQUEUED pr=17 sha=" + head)
                and published_ref.lookup("unit", planted_key) is not None,
