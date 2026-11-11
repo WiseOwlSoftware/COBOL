@@ -1,8 +1,10 @@
-## The 2002 and 2014 reconciliation ledgers: every page of both editions compared, 157 discrepancies confirmed
+## The 2014 reconciliation ledger lands; the complete 2002 ledger is held for its rule catalog (PB5332)
 
-`merge_reconciliation.py --write` wrote `LEDGER-2002.json`, `2002/REPORT.md`, `LEDGER-2014.json` and `2014/REPORT.md`
-from the agent files that landed with the fourteen 2002 runs (#1522 to #1525) and the fourteen 2014 runs (#1526,
-#1527); `--check` reads CURRENT for both. 2002: 882 of 882 pages swept, 123 claims, 83 confirmed (17 normative, 62
+`merge_reconciliation.py --write` wrote the ledgers of both editions from the agent files that landed with the fourteen
+2002 runs (#1522 to #1525) and the fourteen 2014 runs (#1526, #1527); `--check` read CURRENT for both. Only
+`LEDGER-2014.json` and `2014/REPORT.md` land here. A complete `LEDGER-2002.json` makes `reconciled(2002)` true, and the
+2002 rule catalog then fails on six findings it records today (the gate's RULE CATALOGS audit went RED on this
+branch), so the 2002 ledger is held until they are resolved: kb/Work PB5332. 2002: 882 of 882 pages swept, 123 claims, 83 confirmed (17 normative, 62
 structural, 4 cosmetic), 40 refuted. 2014: 952 of 952 pages, 134 claims, 74 confirmed (13 normative, 57 structural, 4
 cosmetic), 60 refuted. Every claim carries its own adversarial verdict.
 
