@@ -219,10 +219,15 @@ def current(account: str | None = None, borrow_days: int = 0, now: dt.datetime |
     tdir = pathlib.Path(telemetry_dir)
     readings = coord.read_json(coord.coord_dir(coord_dir) / "readings.json", [])
     live, problem = live_reading(acct)
-    if live is not None:
+    if live is not None and parse_ts(live["noted_at"]) > now:
+        # A figure measured in the future (a wrong clock) is outside every week `estimate` can anchor in: say so.
+        problem = (f"{acct.config_dir / LIVE_FILE} holds a reading measured at {live['noted_at']}, after the current time "
+                   f"{now.isoformat()} (clock skew?): it anchors nothing")
+    elif live is not None:
         readings = [*readings, live]     # `estimate` anchors on the newest reading of the current week, this one included
     out = estimate(now, readings, lambda s, u: telemetry_events(tdir, s, u), rules, acct, borrow_days)
     out["live_problem"] = problem
+    out["anchor_note"] = anchor_note(out, now) if out["anchor"] else None
     return out
 
 
@@ -280,7 +285,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{acct.name}: weekly ≈ {out['weekly_est_pct']} % of an allowance of {out['allowance_pct']} % (day {out['day']}"
               f"{', borrowing ' + str(a.borrow_days) if a.borrow_days else ''}); session ≈ {out['session_est_pct']} %"
               f" → {out['decision']}{' until ' + out['resume_at'] if out['resume_at'] else ''}"
-              f"{anchor_note(out, now) if out['anchor'] else f' (no {acct.name} meter reading this week: estimate from telemetry alone)'}"
+              f"{out['anchor_note'] or f' (no {acct.name} meter reading this week: estimate from telemetry alone)'}"
               f"{' (METER FILE PROBLEM: ' + out['live_problem'] + ')' if out['live_problem'] else ''}"
               f"{'' if out['telemetry_account'] else ' (account id unknown: every account telemetry counted)'}"
               + (f" ({n} unstamped reading(s) this week anchor nothing: --record a fresh one)"

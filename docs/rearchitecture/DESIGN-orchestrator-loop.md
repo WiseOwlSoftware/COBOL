@@ -948,7 +948,8 @@ D5), because it changes the landing contract.
   the reading with the account.
 - **Anchor.** That account's newest reading: the status line's cached `rate_limits` when measured in the current quota week, at any age (the
   meter shows whole percents, so a figure stands for hours; `budget.live_reading`, kb/Work PB4505 and PB5229; a present
-  but malformed file is reported in the output), else `readings.json` (values the owner records with `--record`). Readings
+  but malformed or future-dated file is reported in the output, `live_problem`; the loop's budget line prints it and the
+  anchor's source and age), else `readings.json` (values the owner records with `--record`). Readings
   from before the account's current week's reset anchor nothing; the weekly base is then 0 from the reset. A reading
   with no `account` (written before 2026-10-07) is ambiguous: it anchors nothing, and the output counts it
   (`unstamped_readings`) so a fresh `--record` replaces it.

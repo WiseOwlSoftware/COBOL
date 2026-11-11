@@ -271,6 +271,9 @@ try:
     old44 = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
     live44, _p = budget.live_reading(A1)
     with_spend = budget.estimate(now, [live44], source([ev(now - dt.timedelta(minutes=10), "claude-opus-5-5", out=5_000_000, who=UUID1)]), RULES, A1)
+    future = dict(tap, measured_at=(now + dt.timedelta(hours=3)).astimezone(dt.timezone.utc).isoformat())
+    (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(future), encoding="utf-8", newline="\n")
+    skewed = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
     stale = dict(tap, measured_at=(at(2026, 10, 20, 9, 0)).astimezone(dt.timezone.utc).isoformat())
     (A1.config_dir / budget.LIVE_FILE).write_text(json.dumps(stale), encoding="utf-8", newline="\n")
     old = budget.current("account1", now=now, coord_dir=str(cdir), telemetry_dir=tdir)
@@ -289,6 +292,8 @@ check("current PB5229: the telemetry spent after the reading is added on", with_
       and with_spend["anchor"]["weekly_pct"] == 29.0, True)
 check("current PB5229: last week's reading is no anchor (the stored 10 % is)", old["anchor"]["weekly_pct"], 10.0)
 check("current PB5229: a malformed file is reported in the estimate", bool(broken["live_problem"]), True)
+check("current PB5229: a reading measured after now is reported with both times, not dropped silently",
+      (skewed["weekly_est_pct"], "after the current time" in (skewed["live_problem"] or "")), (10.0, True))
 check("current PB5229: the note names the source and age", budget.anchor_note(old44, now),
       " (anchored on the status line's 29 % of 44 min ago + telemetry since)")
 
