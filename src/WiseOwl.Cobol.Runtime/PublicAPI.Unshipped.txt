@@ -131,8 +131,8 @@ WiseOwl.Cobol.Runtime.DebugItem.StoreName(string! image) -> void
 WiseOwl.Cobol.Runtime.DebugItem.StoreSub(int level, string! image) -> void
 WiseOwl.Cobol.Runtime.DialectBehavior.ControlFootingPageGroupsSeePriorControlValues = 4 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.SearchIndexBelowTableUnsuccessful = 6 -> WiseOwl.Cobol.Runtime.DialectBehavior
-WiseOwl.Cobol.Runtime.DialectBehavior.IntegerDateFormBounded = 7 -> WiseOwl.Cobol.Runtime.DialectBehavior
-WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 8 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.IntegerDateFormBounded = 8 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.NumvalCCurrencyContentRules = 9 -> WiseOwl.Cobol.Runtime.DialectBehavior
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolDate.DateOfInteger(long integerDate) -> long
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolDate.DayOfInteger(long integerDate) -> long
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolDate.IntegerOfDate(long yyyymmdd) -> long
