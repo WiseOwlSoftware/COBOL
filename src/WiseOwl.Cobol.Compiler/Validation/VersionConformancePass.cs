@@ -2888,15 +2888,13 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>Site — an EVALUATE selection OBJECT that is boolean-expression-2 (§2023:14.9.13.2; kb/Work PB1412), and
-        /// the partial-expression alternative (§2023:14.9.13.3 SR5): the COBOL-85 selection object (§1985:VI.6.13.2) is
-        /// ANY, a condition, TRUE, FALSE or [NOT] an identifier, literal or arithmetic expression, and ISO/IEC 1989:2002
-        /// Annex F.2 item 48 adds "A partial expression may now be used as a selection object" (kb/Work PB5179).</summary>
+        /// <summary>Site — an EVALUATE selection OBJECT that is boolean-expression-2 (§2023:14.9.13.2; kb/Work PB1412). The
+        /// partial-expression object's gate is the binder's (<c>EvaluateBinder</c>'s partial-expression arm), because
+        /// three parses make that one form and only the bound symbol tells a bare class-name from identifier-2
+        /// (kb/Work PB5179, PB843).</summary>
         public override object? VisitEvaluateWhenItem(CobolParserCore.EvaluateWhenItemContext ctx)
         {
             GateBooleanOperators(ctx.booleanExpression());
-            if (ctx.partialExpression() is not null)
-                _p.Check(Constructs.EvaluatePartialExpression2002, $"the partial expression '{WrittenSource.Of(ctx)}' as an EVALUATE selection object");
             return base.VisitChildren(ctx);
         }
 
