@@ -664,8 +664,11 @@ localePhrase
 // ⛔ PROGRAM IS AN OPTIONAL WORD TOO (kb/Work PB695): folio 285 prints `PROGRAM COLLATING SEQUENCE` with the
 // rule under SEQUENCE only, so `SEQUENCE IS REV.` and `COLLATING SEQUENCE IS REV.` are conforming spellings.
 // COLLATING was already relaxed and PROGRAM was not — the two-word head was half-measured.
+// ⛔ ALPHABET-NAME-2 IS NEVER THE NEXT CLAUSE (kb/Work PB5298): §1985:XVI.2.2.2 prints [SEGMENT-LIMIT IS segment-number]
+// right after this clause, and SEGMENT-LIMIT, MEMORY and CLASSIFICATION open their clauses as bare words, so the optional
+// second name asks the one clause-or-name question the computer-name slot asks.
 programCollatingSequenceClause
-    : PROGRAM? COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord cobolWord?)
+    : PROGRAM? COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord ({!objectComputerClauseAhead()}? cobolWord)?)
     ;
 
 computerName
