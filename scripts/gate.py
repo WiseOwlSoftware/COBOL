@@ -67,6 +67,14 @@ It is GREEN only when every host is green and every population is exact.
     pass. At a target's key an earlier RED run of this worktree leaves only its unpassed cases to run (kb/Work PB5099:
     WISEOWL_COBOL_GATE_ONLY, the population check composing the rest). The audits are never carried. When every target is
     up to date and the change touches no script, nothing is built (`GREEN — EVERY TARGET UP TO DATE …`).
+  * GENERATED TARGETS (kb/Work PB5207 stage 2, PB5231): before any key, every generated target (the conformance suite's
+    manifests, `conformance-suite`) is brought up to date at the measured tree (`Gate._generate`): up to date when the
+    store records its output digest at its key and its outputs on disk have it; else its generator runs, TRACED, into
+    `TestResults/generated/<target>/`. A test target that depends on it is keyed on that OUTPUT DIGEST, not on the
+    generator's inputs, so a records-only change whose suite is byte-identical leaves Conformance up to date. The output
+    directory is handed to the dependent's host and listing (`WISEOWL_COBOL_GATE_SUITE`, `host_env`), so the host runs
+    the suite its key names, and is checked unchanged after the hosts (`_check_generated`). A generation that fails, reads
+    outside its inputs, is not deterministic or runs while the tree changes ends the gate RED before any host.
 
 Exit codes: 0 GREEN (reused or run) · 1 RED (or the build failed) · 2 NOT RUN [<cause>] (the population could not be
 listed, the driver failed, the gate's process DIED with no verdict (`--await`, or the follower): BRANCH, the tree's own
