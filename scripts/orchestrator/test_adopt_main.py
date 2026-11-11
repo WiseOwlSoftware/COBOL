@@ -8,6 +8,8 @@ garbled run keeps the checkout where it is, and so does a GitHub CLI that is not
 flagged when the fast-forward changes it (the restart trigger); another file is not. The adopted commit is recorded, and
 `require` / the planner's guard refuse a checkout that does not contain it, naming both shas.
 Run: python scripts/orchestrator/test_adopt_main.py   (a fabricated repo and its bare origin in a temp directory)."""
+import contextlib
+import io
 import json
 import pathlib
 import subprocess
@@ -203,9 +205,19 @@ out = json.loads(r.stdout)
 check("without the GitHub CLI nothing is adopted: an unobserved CI is never a pass", (r.returncode, out["action"], head()), (0, am.KEPT, base))
 check("... and the line says why", "not on PATH" in out["line"], True)
 am.record(COORD, "e" * 40, base)
-r = subprocess.run([sys.executable, str(HERE / "plan_wave.py"), "--budget-points", "1", "--dry-run", "--coord", str(COORD)],
-                   capture_output=True, text=True, encoding="utf-8")
-check("plan_wave.py refuses a checkout behind the adopted commit (exit 2)", (r.returncode, "behind the commit the loop adopted" in r.stdout), (2, True))
+# The planner's guard runs over the planner's own checkout (plan_wave.REPO). Pointed at the scratch repository for this one
+# call (kb/Work PB5227): run as a child over the real checkout, its `git merge-base` keyed this self-test's PASS on the
+# whole tree's content and every gate re-ran it (848 s). The guard is the same code either way; only its checkout moves.
+import plan_wave as pw  # noqa: E402
+planned, pw.REPO = pw.REPO, REPO
+said = io.StringIO()
+try:
+    with contextlib.redirect_stdout(said):
+        rc = pw.main(["--budget-points", "1", "--dry-run", "--coord", str(COORD)])
+finally:
+    pw.REPO = planned
+check("plan_wave.py refuses a checkout behind the adopted commit (exit 2)",
+      (rc, "behind the commit the loop adopted" in said.getvalue()), (2, True))
 
 # 10. A FETCH RUNNING ELSEWHERE IN THE REPOSITORY (kb/Work PB4046): every worktree shares refs/remotes/origin/main, and a
 #     `git fetch` that is updating it holds its lock. The landing lane's survey fetched in this very checkout while the
