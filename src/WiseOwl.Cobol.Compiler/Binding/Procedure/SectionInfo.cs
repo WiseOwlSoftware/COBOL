@@ -35,6 +35,16 @@ internal sealed class SectionInfo(string name, int startPc, int headerLine, bool
     /// <summary>Is this a section of the declaratives portion of the procedure division (ISO §2023:14.3)?</summary>
     public bool IsDeclarative { get; } = isDeclarative;
 
+    /// <summary>Is this a COMPILED debugging section — "a section that contains a USE FOR DEBUGGING statement" (§1985:III.2),
+    /// with WITH DEBUGGING MODE in force, so that its procedures exist? The rules that ask — §1985:XV.3.2.3 SR3 and SR5 on
+    /// a reference to one of its procedures, SR11 on DEBUG-ITEM, general rule 1 on the statements in it — ask about the
+    /// SECTION, so the fact is recorded where it is known (kb/Work PB5081), as <see cref="IsDeclarative"/> is.</summary>
+    public bool IsDebugging { get; private set; }
+
+    /// <summary>Record that the section's USE statement is a compiled USE FOR DEBUGGING (the one writer,
+    /// <c>ProcedureTableBuilder.DeclCollectSection</c>).</summary>
+    public void MarkDebugging() => IsDebugging = true;
+
     /// <summary>The section's pc range — EMPTY until <see cref="CloseAt"/> records a collected paragraph, and
     /// PERMANENTLY empty for a zero-paragraph section.</summary>
     public PcRange Range { get; private set; } = PcRange.EmptyAt(startPc);

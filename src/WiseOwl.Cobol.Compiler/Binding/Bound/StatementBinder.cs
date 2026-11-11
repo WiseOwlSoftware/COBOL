@@ -267,7 +267,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // Section + cursor as ONE scoped bind position (10s; no method overlay in a program unit) —
             // §2023:8.4.2.2 in-section resolution + the RESUME SR1/SR2 / §2023:15.30 location anchoring.
             using var _ = Ctx.EnterMethodScope(table.ParaSections[i], null, i);
-            _inDebuggingSection = table.IsDebuggingSection(table.ParaSections[i]);   // general rule 1: a debugging section's own statements run no section
+            _inDebuggingSection = table.ParaSections[i] is { IsDebugging: true };   // general rule 1: a debugging section's own statements run no section
             var sentences = new List<IReadOnlyList<BoundStatement>>();
             foreach (var sentence in table.Paragraphs[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());

@@ -515,8 +515,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         if (leading.Length == 0
             || leading[0].statement() is not { Length: 1 } first
             || first[0].useStatement() is not { } use)
+        {
             ctx.Edition.Error(DiagnosticCatalog.DeclarativeUseRule, $"declarative section '{name}': the first sentence shall consist "
                 + "of a single USE statement (ISO §2023:14.3 / §2023:14.9.49.3 SR1)");
+            _nonDebuggingDeclarativeSeen = true;
+        }
         else if (use.DEBUGGING() is not null)
         {
             // X3.23-1985 USE FOR DEBUGGING (the '85 debug facility, deleted by ISO 2002 — 0902-gated ≥2002 by
@@ -528,12 +531,20 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // The section body is collected below (an ordinary pc range invoked by the emitted __RunDebug, not a
             // BoundDeclarative — scope stays null); FinalizeDebug records the subjects once every procedure is in.
             if (!ctx.Data.State.Configuration.DebuggingModeDeclared) return;
+            // §1985:XV.3.2.3 SR1: "Debugging section(s), if specified, must appear together immediately after the
+            // DECLARATIVES header." — so no other declarative section may precede one (kb/Work PB5081).
+            if (_nonDebuggingDeclarativeSeen)
+                ctx.Edition.Error(DiagnosticCatalog.DebuggingSectionPlacement, $"declarative section '{name}' is a debugging "
+                    + "section and follows a declarative section that is not one; §1985:XV.3.2.3 SR1: \"Debugging section(s), if "
+                    + "specified, must appear together immediately after the DECLARATIVES header.\"");
+            info.MarkDebugging();
             ctx.Data.State.Implicit.ActivateDebugRegisters(ctx.Data.TakeUid);   // make DEBUG-* references resolvable while this section binds
             _pendingDebug.Add((info, use));      // info.EndPc is filled after the body is collected below
             // fall through to collect the section body into the pc space (scope stays null — no BoundDeclarative)
         }
         else
         {
+            _nonDebuggingDeclarativeSeen = true;
             scope = DeclBindUse(use, name);
             // The USE statement is COMPLETE — fold its operands into the procedure division's registers. Until
             // this point a repeated operand belongs to the statement being bound, and §2023:14.9.49.3 SR7/SR8/SR9/
@@ -579,6 +590,10 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     // The debug declaratives collected under WITH DEBUGGING MODE (section info + the USE statement), pending
     // subject resolution once every nondeclarative procedure is in the pc space (FinalizeDebug).
     private readonly List<(SectionInfo Section, Core.UseStatementContext Use)> _pendingDebug = [];
+
+    /// <summary>Whether a declarative section that is not a debugging section has been collected — the fact §1985:XV.3.2.3
+    /// SR1 asks of each debugging section after it (<see cref="DeclCollectSection"/>).</summary>
+    private bool _nonDebuggingDeclarativeSeen;
     private readonly List<BoundDebugSubject> _debugSubjects = [];
 
     /// <summary>The X3.23-1985 debug-facility trigger subjects (VCR Table 7 row 7.17) — each a nondeclarative
@@ -603,6 +618,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private void FinalizeDebug()
     {
         if (_pendingDebug.Count == 0) return;
+        // §1985:XV.3.2.3 SR7 and SR8 relate the operands of EVERY USE FOR DEBUGGING statement of the program, so the first
+        // ALL PROCEDURES operand is found before any operand is recorded (kb/Work PB5081).
+        var allProcedures = _pendingDebug.SelectMany(p => p.Use.useDebugTarget()).FirstOrDefault(t => t.PROCEDURES() is not null);
         foreach (var (section, use) in _pendingDebug)
         {
             foreach (var t in use.useDebugTarget())
@@ -611,7 +629,12 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 // PB2034: a refusal names the file and line the user edits).
                 using var _ = ctx.Edition.At(t);
                 if (t.PROCEDURES() is not null)          // ALL PROCEDURES → every procedure-name outside a debugging section
-                    AddAllProceduresSubjects(section);
+                {
+                    if (ReferenceEquals(t, allProcedures)) AddAllProceduresSubjects(section);
+                    else ctx.Edition.Error(DiagnosticCatalog.DebugAllProceduresConflict, $"declarative section '{section.Name}': "
+                        + "USE FOR DEBUGGING ON ALL PROCEDURES is written a second time in the program; §1985:XV.3.2.3 SR7: \"The "
+                        + "ALL PROCEDURES phrase can appear only once in a program.\"");
+                }
                 else if (t.ALL() is not null)            // ALL [REFERENCES] [OF] identifier-1 → an all-references data-name target
                 {
                     // ALL, not REFERENCES, marks the arm: REFERENCES and OF are the '85 format's optional words,
@@ -652,12 +675,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                     if (subject.Ambiguity is { } dambiguity)
                         ctx.Validation.RejectAmbiguousProcedureName(dambiguity, "USE FOR DEBUGGING ON");
                     else if (subject.Procedure is { } named)
-                    {
-                        // GR13: DEBUG-NAME holds the name that caused the section to run, "All qualifiers of the name ... separated
-                        // by the word 'IN' or 'OF'": a paragraph subject written P OF S is named so, as the USE statement wrote it.
-                        if (!named.IsSection) AddDebugSubject(named.Range.Start, section, nm);
-                        else if (!named.Range.IsEmpty && named.Section is { } namedSection) AddDebugSectionSubject(namedSection, section);
-                    }
+                        AddNamedDebugSubject(named, nm, section, allProcedures);
                     else if (NamesDataItem(dr))
                         AddDebugDataTarget(dr, section, DebugTargetKind.DataName);
                     else if (NamesCommunicationDescription(dr))
@@ -773,7 +791,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
 
     /// <summary>Record the paragraph subject at <paramref name="pc"/> (its name, its source line and the debugging
     /// section's invokable pc range). A paragraph-name omitted (§2023:14.4.3) is no procedure-name for a subject
-    /// to name, and a procedure named twice does not double-fire.</summary>
+    /// to name. A procedure is named once: <see cref="AddNamedDebugSubject"/> refuses a repeat (syntax rule 6).</summary>
     private void AddDebugSubject(int pc, SectionInfo debugging, string? written = null)
     {
         if (pc < 0 || pc >= _paras.Count || _paras[pc].Cobol.Length == 0) return;
@@ -791,10 +809,45 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             pc, subject.Name, _paraLine[pc], debugging.StartPc, debugging.EndPc, IsSection: true));
     }
 
-    private void AddDebugSubject(BoundDebugSubject subject)
+    private void AddDebugSubject(BoundDebugSubject subject) => _debugSubjects.Add(subject);
+
+    /// <summary>Record the procedure-name subject <paramref name="named"/> (procedure-name-1 of the USE FOR DEBUGGING format), held to
+    /// the three syntax rules that speak of one (kb/Work PB5081): §1985:XV.3.2.3 SR5, "Procedure-names defined within debugging
+    /// sections must not appear within USE FOR DEBUGGING statements."; SR8, no procedure-name-1 in a program with ALL PROCEDURES
+    /// (<paramref name="allProcedures"/>); and SR6, a procedure-name "may appear in only one USE FOR DEBUGGING statement and may
+    /// appear only once in that statement" — the repeat the subject list used to swallow silently. A paragraph is one trigger
+    /// point and a section another, at its first paragraph (§1985:XV.3.2.4 GR3 a, kb/Work PB5083), so P and the section that
+    /// begins with P are two procedure-names.</summary>
+    private void AddNamedDebugSubject(ResolvedProcedure named, string written, SectionInfo debugging, Core.UseDebugTargetContext? allProcedures)
     {
-        if (_debugSubjects.Any(s => s.SubjectPc == subject.SubjectPc && s.IsSection == subject.IsSection)) return;
-        _debugSubjects.Add(subject);
+        if (named.Section is { IsDebugging: true } home)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DebuggingProcedureReferenced, $"declarative section '{debugging.Name}': USE FOR "
+                + $"DEBUGGING ON '{written}' names a procedure of the debugging section '{home.Name}'; §1985:XV.3.2.3 SR5: "
+                + "\"Procedure-names defined within debugging sections must not appear within USE FOR DEBUGGING statements.\"");
+            return;
+        }
+        if (allProcedures is not null)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DebugAllProceduresConflict, $"declarative section '{debugging.Name}': USE FOR "
+                + $"DEBUGGING ON '{written}' names a procedure-name in a program whose USE FOR DEBUGGING ON ALL PROCEDURES already "
+                + "makes it a subject; §1985:XV.3.2.3 SR8: \"When the ALL PROCEDURES phrase is specified, procedure-name-1 must "
+                + "not be specified in any USE FOR DEBUGGING statement.\"");
+            return;
+        }
+        if (named.IsSection && named.Range.IsEmpty) return;   // a section of no paragraphs is never executed: no trigger point
+        int pc = named.Range.Start;
+        if (_debugSubjects.Any(s => s.SubjectPc == pc && s.IsSection == named.IsSection))
+        {
+            ctx.Edition.Error(DiagnosticCatalog.DebugTargetRepeated, $"declarative section '{debugging.Name}': USE FOR DEBUGGING "
+                + $"ON '{written}' names a procedure that another USE FOR DEBUGGING operand names; X3.23-1985 USE FOR DEBUGGING "
+                + "syntax rule 6 allows a procedure-name in one USE FOR DEBUGGING statement, once");
+            return;
+        }
+        // GR13: DEBUG-NAME holds the name that caused the section to run, "All qualifiers of the name ... separated
+        // by the word 'IN' or 'OF'": a paragraph subject written P OF S is named so, as the USE statement wrote it.
+        if (!named.IsSection) AddDebugSubject(pc, debugging, written);
+        else if (named.Section is { } namedSection) AddDebugSectionSubject(namedSection, debugging);
     }
 
     /// <summary>ALL PROCEDURES (§1985:XV.3.2.4 GR4): "the effects described in general rule 3 ... for every
@@ -805,7 +858,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         for (int pc = 0; pc < _paras.Count; pc++)
         {
             var owner = _paraSection[pc];
-            if (IsDebuggingSection(owner)) continue;
+            if (owner is { IsDebugging: true }) continue;
             AddDebugSubject(pc, debugging);
             if (owner is { } sec && sec.StartPc == pc) AddDebugSectionSubject(sec, debugging);
         }
@@ -832,10 +885,6 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// <summary>The three DEBUG-SUB-n items (general rule 10), each its own `DataItem` with its own profile; empty when no debugging section activated the register.</summary>
     public IReadOnlyList<DataItem> DebugSubRegisters => ctx.Data.State.Implicit.DebugSubRegisters;
 
-    /// <summary>Whether <paramref name="section"/> is a debugging section. General rule 1: "Automatic execution of a debugging section is not
-    /// caused by a statement appearing in a debugging section", so the statement binder plans no fire for one.</summary>
-    public bool IsDebuggingSection(SectionInfo? section) =>
-        section is not null && _pendingDebug.Any(p => ReferenceEquals(p.Section, section));
 
     /// <summary>Record one data-name or ALL REFERENCES OF target. The operand is resolved to its DATA ITEM (a qualified name is the one
     /// item its qualifiers pick, §2023:8.4.2.2), written without subscripts or a reference modifier (syntax rules 10 and 12: the trigger watches
