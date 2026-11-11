@@ -22,6 +22,32 @@ REPO = HOOK.resolve().parents[2]
 OTHER_DIR = scratch_dir("fc-other-")
 ScratchRepo.init(OTHER_DIR).git("remote", "add", "origin", "https://example.invalid/other.git")
 OTHER = OTHER_DIR.as_posix()
+# THIS repository's origin URL (read through the fixture, which only reads): the push destinations a unit must reach
+# through whatever git configuration names them (kb/Work PB5269). Each scratch repository's `origin` IS this repository;
+# the extra setting makes git publish somewhere else, or (the twins) to origin again.
+THIS_ORIGIN = ScratchRepo(REPO).git("remote", "get-url", "origin")
+ELSEWHERE = "https://example.invalid/elsewhere.git"
+
+
+def same_origin(prefix: str, *settings: tuple[str, ...]) -> str:
+    """A scratch repository whose `origin` is this repository's, plus a remote `other` at ELSEWHERE and each
+    `git config` setting; its posix path."""
+    d = scratch_dir(prefix)
+    r = ScratchRepo.init(d)
+    r.git("remote", "add", "origin", THIS_ORIGIN)
+    r.git("remote", "add", "other", ELSEWHERE)
+    for s in settings:
+        r.git("config", *s)
+    return d.as_posix()
+
+
+SAME = same_origin("fc-same-")
+PUSHURL = same_origin("fc-pushurl-", ("remote.origin.pushurl", ELSEWHERE))
+PUSHURL_SAME = same_origin("fc-pushurl-same-", ("remote.origin.pushurl", THIS_ORIGIN))
+PUSH_DEFAULT = same_origin("fc-pushdefault-", ("remote.pushDefault", "other"))
+PUSH_DEFAULT_SAME = same_origin("fc-pushdefault-same-", ("remote.pushDefault", "origin"))
+BRANCH_PUSH = same_origin("fc-branchpush-", ("branch.main.pushRemote", "other"), ("remote.pushDefault", "origin"))
+BRANCH_REMOTE = same_origin("fc-branchremote-", ("branch.main.remote", "other"))
 BS = chr(92)  # a backslash, spelled without one
 NL = chr(10)
 # kb/Work PB3198: every rule reads the ONE model of the command line (shell_location.steps), so each rule is checked
@@ -290,12 +316,40 @@ UNIT_CASES = [
      + "git commit -q -F ../m.txt; git push -q origin HEAD:main", True),
     ("cat > ../m.txt <<'EOF'" + chr(10) + "the unit ran git push -q origin HEAD:main" + chr(10) + "EOF" + chr(10)
      + "git commit -q -F ../m.txt", False),                                    # the word inside the heredoc BODY is text
-    (QS + "git push", False),                                                   # a quoted `<<` hides nothing (PB3198)   # this repository (kb/Work PB5234)
-    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", False),    # git wherever it stands in the step   # this repository (kb/Work PB5234)
+    # a quoted `<<` hides nothing (PB3198): the push after it is read; each of these shapes, pointed at another repository
+    # (blocked) and at this one (passes), so a push that went unseen would fail the first of each pair (kb/Work PB5269)
+    (QS + "git -C " + OTHER + " push", True),
+    (QS + "git push", False),
+    ("git commit -q -m 'x' && xargs -n1 git -C " + OTHER + " push origin < refs.txt", True),   # git wherever it stands in the step
+    ("git commit -q -m 'x' && xargs -n1 git push origin < refs.txt", False),
     # the branch review of PB3198, R1-1: a push inside a command substitution is a push
     ("out=$(git -C /e/claude-skills push origin main 2>&1)", True),
     ("out=$(git push -q origin HEAD:main 2>&1)", True),
-    ("echo `git push`", False),   # this repository (kb/Work PB5234)
+    ("echo `git -C " + OTHER + " push`", True),
+    ("echo `git push`", False),
+    # kb/Work PB5269: the destination is resolved as git resolves it, not read from the first word that has no dash
+    ("git push --repo=https://github.com/WiseOwlSoftware/claude-skills.git", True),   # no refspec: the old rule read origin
+    ("git push -q --force --repo=https://github.com/WiseOwlSoftware/claude-skills.git", True),
+    ("git push --repo=https://github.com/WiseOwlSoftware/claude-skills.git HEAD", True),
+    ("git push --repo https://github.com/WiseOwlSoftware/claude-skills.git HEAD", True),
+    ("git push --repo=https://github.com/WiseOwlSoftware/COBOL HEAD", False),   # the same repository
+    ("git push --repo origin HEAD", False),
+    ("git push --repo=" + OTHER + " HEAD", True),                              # a path to another repository
+    ("git push -o ci.skip https://github.com/WiseOwlSoftware/claude-skills.git x", True),   # `-o`'s value is no repository
+    ("git push --receive-pack=x origin HEAD", False),
+    ("git -c remote.origin.pushurl=" + ELSEWHERE + " push origin HEAD", True),   # the call's own configuration
+    ("cd " + SAME + " && git push origin HEAD", False),
+    ("cd " + SAME + " && git push", False),                                    # no repository named: origin
+    ("cd " + SAME + " && git push other HEAD", True),                          # a second remote that is not this one
+    ("cd " + SAME + " && git push -u other x", True),
+    ("cd " + PUSHURL + " && git push origin HEAD", True),                      # origin fetches here, pushes elsewhere
+    ("cd " + PUSHURL + " && git push", True),
+    ("cd " + PUSHURL_SAME + " && git push origin HEAD", False),
+    ("cd " + PUSH_DEFAULT + " && git push", True),                             # remote.pushDefault
+    ("cd " + PUSH_DEFAULT + " && git push origin HEAD", False),                # an explicit remote overrides it
+    ("cd " + PUSH_DEFAULT_SAME + " && git push", False),
+    ("cd " + BRANCH_PUSH + " && git push", True),                              # branch.<b>.pushRemote beats pushDefault
+    ("cd " + BRANCH_REMOTE + " && git push", True),                            # branch.<b>.remote beats origin
 ]
 
 fails =[(c, e) for c, e in CASES if blocked(c) != e]
