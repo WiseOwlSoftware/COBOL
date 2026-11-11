@@ -49,7 +49,7 @@ This is the same lesson the figure audits taught (`plan §0`: "MY CHECKERS WERE 
 76 findings went to 1 as three tool bugs came out). Confirm a measured defect before changing anything.
 
 FOUND BY THE FIRST RUN (all corrected in the same change set):
-  · `DESIGN.md` cited "§2023:12.3.7 GR7 k3 … distinct ascending" TWICE — a phrase that appears NOWHERE in the
+  · `DESIGN.md` cited "§2023:12.3.7 GR7 k3 … distinct ascending" TWICE — a phrase that appears NOWHERE in the (citation-audit: example)
     standard. A Phase-B agent inherited it into a fix-queue finding. The real rule is §2023:12.3.7.4 GR7 1.3.
   · `REDEFINES_DESIGN.md` cited §2023:13.18.60 for GR4/GR11 text really in §2023:13.18.60.4 — one level short,
     the CA37/CA38 shape.

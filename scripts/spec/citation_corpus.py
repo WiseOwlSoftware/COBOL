@@ -111,6 +111,17 @@ def tooling_files() -> list[pathlib.Path]:
     return sorted(p for p in repository_files() if tooling(p.relative_to(REPO).as_posix()) and _keep(p))
 
 
+def inventory_files() -> list[pathlib.Path]:
+    """The traceability inventory's store records (one JSON file per adjudicated rule, every held edition's store:
+    `tests/version-matrix/inventory/`, `inventory-1985/`), whose notes and derivations cite the rules they were decided
+    on: the population the RESOLVE check reads beside the files that carry prose (kb/Work PB5317). The stores are the
+    inventory schema's (`inventory_schema.EDITIONS`), so a newly held edition's store is read with no edit here."""
+    import inventory_schema  # noqa: PLC0415  (scripts/spec, beside this module)
+    stores = tuple(e.store.rstrip("/") + "/" for e in inventory_schema.EDITIONS if e.store)
+    return sorted(p for p in repository_files()
+                  if p.suffix == ".json" and p.relative_to(REPO).as_posix().startswith(stores) and _keep(p))
+
+
 def all_files() -> list[pathlib.Path]:
     """Every file that carries a citation — grammars, C#, goldens, design docs, the work register and the vault
     notes. Used by the checks that need no convention at all (does this clause EXIST), which are exactly the

@@ -34,6 +34,14 @@ THE CHECKS, each narrow on purpose:
   BARE      — (kb/Work PB4887) a bare `§N` that names a clause of the 2023 standard and no document of the
               repository's own (`citation.bare_standard`): a citation of the standard carries its edition.
 
+  RESOLVE   — (kb/Work PB5317) every edition-form citation of every edition, through `cite.resolve`, the one checker:
+              the rule list of the cited kind, the ordinal, the sub-item path, `Format n`, `Table n`, and a paired
+              quotation inside the cited rule. Until it, a 1985 rule number was checked by nothing (`§1985:XI.4.4.4
+              GR99` passed this audit and `cite.py --check`). It reads PHANTOM's population and the inventory's store
+              records; the citations it refused when it landed are its BASELINE (`RESOLVE_BASELINE`), debt that may
+              only shrink. The ordinal family below predates it and reads the 2023 standard alone: its RULE, SUBITEM
+              and QUOTE-RULE arms are a second reading of what RESOLVE decides, retired by kb/Work PB5318.
+
   SUBJECT   — the cited clause's catalog subject is a NAMED construct (`MERGE statement`, `HIGHLIGHT clause`,
               `ROUNDED phrase`) whose name appears NOWHERE in the citation's context, while the context DOES name
               another construct that has a clause of its own. That is the exact `MOVE (§2023:14.9.24)` shape.
@@ -129,6 +137,8 @@ REFUSES with exit 2 rather than skip half its checks and print a green — it ga
 from __future__ import annotations
 
 import argparse
+import dataclasses
+import functools
 import json
 import pathlib
 import re
@@ -444,6 +454,227 @@ def file_findings(rel: str, lines: list[str], universe: set[str]) -> list[tuple[
     return out
 
 
+# ── RESOLVE: EVERY CITATION THROUGH THE ONE CHECKER (kb/Work PB5317) ─────────────────────────────────────
+
+#: ⛔ THE CHECKS ABOVE ASKED WHETHER A CLAUSE EXISTS; FOR A 1985 CITATION THAT WAS ALL ANYTHING ASKED. PHANTOM validates
+#: the locator of every edition, and the ordinal family below resolves rule numbers of the 2023 standard alone, so a
+#: `§1985:XI.4.4.4 GR99` passed this audit as it passed `cite.py --check` (kb/Work PB5317). RESOLVE hands every
+#: edition-form citation of the population to `cite.resolve`, the one checker, with the quotation the citation is paired
+#: with when there is one (`audit_doc_citations.citations`, the one reader of that pairing), and reports every part it
+#: refuses: the rule list, the ordinal, the sub-item, the format, the table, a quotation under the wrong rule. A locator
+#: that names nothing is PHANTOM's finding and a quotation misfiled to another clause the doc audit's MISFILED, so
+#: RESOLVE does not repeat either; a quotation found nowhere (a paraphrase, a label: the doc audit's ungated `absent`)
+#: leaves the citation's structure to be checked alone.
+#:
+#: ⛔ THE BASELINE IS DEBT, AND IT MAY ONLY SHRINK. When RESOLVE landed, the repository held thousands of citations it
+#: refuses (the sweep's counts are in kb/Work/PB5317). They are listed, each by file, line, citation and failure kind, in
+#: RESOLVE_BASELINE; `--check` allows exactly those and is RED on a failing citation the baseline does not list and on a
+#: listed one that no longer fails (repair it, then delete its entry: `--write-baseline` rewrites the file and refuses
+#: to ADD an entry). An entry is matched on its file, citation and kind (as a multiset), not its line: an edit above a
+#: listed citation moves it without making it new.
+RESOLVE_BASELINE = REPO / "scripts" / "spec" / "data" / "cite-resolve-baseline.json"
+#: The DEVLOG entries the sweep reads besides the gate's population (history, never gated: an entry is a record).
+SWEEP_DEVLOG_DAYS = 31
+
+
+@dataclasses.dataclass(frozen=True)
+class Resolved:
+    """One citation RESOLVE refused: where, what, why, and the designator the checker found the text under."""
+    file: str
+    line: int
+    citation: str
+    kind: str
+    message: str
+    suggestion: str | None
+    edition: int
+
+    def key(self) -> tuple[str, str, str]:
+        return self.file, self.citation, self.kind
+
+
+def resolve_line(line: str, prev: str = "") -> list[tuple[citation.Citation, "cite_mod.Verdict"]]:
+    """(citation, refusing verdict) for every edition-form citation on ONE line that `cite.resolve` refuses."""
+    import audit_doc_citations  # noqa: PLC0415  (the quotation pairing's one reader; it imports this module's peers)
+    quoted = {}
+    for _col, paired, quote, _form in audit_doc_citations.citations(line):
+        quoted[paired.start] = quote
+    out = []
+    if NAMED_AS_WRONG.search(line) or NAMED_AS_WRONG.search(prev):
+        return out                                   # the line REPORTS a wrong citation (`_reported`'s first arm)
+    for c in citation.scan(line):
+        if c.error or c.bare or _reported(line, c, ""):
+            continue
+        quote = quoted.get(c.start)
+        v = _resolved(c.edition, c.locator, c.rule, quote)
+        if v.kind == "text-not-found" or (v.kind == "text-not-in-clause"
+                                          and len(c.locator.split(".")) >= audit_doc_citations.FLOOR_SEGMENTS):
+            v = _resolved(c.edition, c.locator, c.rule, None)
+        if not v.ok and v.kind != "no-clause":
+            out.append((c, v))
+    return out
+
+
+@functools.lru_cache(maxsize=None)
+def _resolved(edition: int, locator: str, rule: str | None, quote: str | None):
+    """`cite.resolve`, once per distinct (citation, quotation): the population repeats them by the thousand."""
+    return cite_mod.resolve(citation.Citation(edition, locator, rule), quote)
+
+
+def resolve_scan(paths) -> list[Resolved]:
+    """RESOLVE over `paths`: every citation the one checker refuses, in file order."""
+    out: list[Resolved] = []
+    for path in paths:
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        if _opted_out(lines):
+            continue
+        rel = path.relative_to(REPO).as_posix()
+        for i, line in enumerate(lines, 1):
+            if "§" not in line or citation.example(line):
+                continue
+            for c, v in resolve_line(line, lines[i - 2] if i >= 2 else ""):
+                out.append(Resolved(rel, i, citation.render(c), v.kind, v.message, v.suggestion, c.edition))
+    return out
+
+
+def resolve_population() -> list[pathlib.Path]:
+    """The gate's RESOLVE population: every file PHANTOM reads, and the inventory's store records."""
+    return list(dict.fromkeys(citation_corpus.all_files() + citation_corpus.tooling_files()
+                              + citation_corpus.inventory_files()))
+
+
+def read_baseline(path: pathlib.Path = RESOLVE_BASELINE) -> list[dict]:
+    if not path.is_file():
+        return []
+    return json.loads(path.read_text(encoding="utf-8"))["entries"]
+
+
+def baseline_drift(found: list[Resolved], baseline: list[dict]) -> tuple[list[Resolved], list[dict]]:
+    """(failing citations the baseline does not list, listed entries that no longer fail), matched as a multiset on
+    (file, citation, kind)."""
+    from collections import Counter  # noqa: PLC0415
+    allowed = Counter((e["file"], e["citation"], e["kind"]) for e in baseline)
+    new = []
+    for r in found:
+        if allowed[r.key()] > 0:
+            allowed[r.key()] -= 1
+        else:
+            new.append(r)
+    stale = []
+    left = +allowed
+    for e in baseline:
+        k = (e["file"], e["citation"], e["kind"])
+        if left[k] > 0:
+            stale.append(e)
+            left[k] -= 1
+    return new, stale
+
+
+def write_baseline(found: list[Resolved], path: pathlib.Path = RESOLVE_BASELINE, grow: bool = False) -> int:
+    """Rewrite the baseline from `found`. ⛔ It refuses to ADD an entry (the baseline may only shrink) unless `grow`
+    (`--grow`), which only a change that makes the checker stricter uses, naming the growth in its kb/Work note."""
+    new, _stale = baseline_drift(found, read_baseline(path))
+    if new and path.is_file() and not grow:
+        print(f"⛔ REFUSED: {len(new)} failing citation(s) the baseline does not list; repair them (the baseline may "
+              f"only shrink). First: {new[0].file}:{new[0].line} {new[0].citation} [{new[0].kind}]")
+        return 1
+    entries = [{"file": r.file, "line": r.line, "citation": r.citation, "kind": r.kind} for r in found]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "_comment": ["DEBT (kb/Work PB5317): every citation the one checker (scripts/spec/cite.py resolve) refuses that",
+                     "the repository held when RESOLVE landed, by file, line, citation and failure kind. The CITATIONS",
+                     "audit allows exactly these and may only SHRINK: a new failure is RED, and so is an entry that no",
+                     "longer fails. Repair a citation, then rewrite this file with",
+                     "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."],
+        "count": len(entries), "entries": entries}, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    print(f"wrote {path.relative_to(REPO).as_posix() if path.is_relative_to(REPO) else path}: {len(entries)} entr{'y' if len(entries) == 1 else 'ies'}")
+    return 0
+
+
+def devlog_recent(days: int = SWEEP_DEVLOG_DAYS) -> list[pathlib.Path]:
+    """The DEVLOG entries committed within `days` (by their last commit's date): the sweep reads them, the gate does not."""
+    import subprocess  # noqa: PLC0415
+    out = subprocess.run(["git", "-C", str(REPO), "log", f"--since={days} days ago", "--name-only", "--format=",
+                          "--", "DEVLOG/"], capture_output=True, text=True, check=True).stdout
+    return sorted({REPO / p for p in out.split() if p.endswith(".md") and (REPO / p).is_file()})
+
+
+def sweep(out_path: pathlib.Path) -> int:
+    """Every failing citation of the gate's population and the last month's DEVLOG entries, to `out_path` as JSON,
+    with the counts by edition, failure kind and top-level directory printed."""
+    from collections import Counter  # noqa: PLC0415
+    found = resolve_scan(resolve_population() + devlog_recent())
+    rows = [dataclasses.asdict(r) for r in found]
+    by = {name: Counter(key(r) for r in rows) for name, key in (
+        ("edition", lambda r: str(r["edition"])), ("kind", lambda r: r["kind"]),
+        ("directory", lambda r: r["file"].split("/")[0]))}
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps({"total": len(rows), "counts": {k: dict(v.most_common()) for k, v in by.items()},
+                                    "failures": rows}, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"{len(rows)} failing citation(s) -> {out_path}")
+    for name, counts in by.items():
+        print(f"  by {name}: " + ", ".join(f"{k} {n}" for k, n in counts.most_common()))
+    return 0
+
+
+def resolve_findings(found: list[Resolved], baseline: list[dict] | None = None) -> list[tuple[str, str, str, str]]:
+    """RESOLVE's gate findings: a refused citation the baseline does not list, and a listed one that no longer fails."""
+    new, stale = baseline_drift(found, read_baseline() if baseline is None else baseline)
+    out = [("RESOLVE", f"{r.file}:{r.line}", r.citation, f"[{r.kind}] {r.message}"
+            + (f" (the right citation: {r.suggestion})" if r.suggestion else "")) for r in new]
+    out += [("RESOLVE-STALE", f"{e['file']}:{e['line']}", e["citation"],
+             f"[{e['kind']}] listed in {RESOLVE_BASELINE.relative_to(REPO).as_posix()} but no longer fails: delete its "
+             "entry (--write-baseline)") for e in stale]
+    return out
+
+def resolve_self_test() -> bool:
+    """RESOLVE fires on each part the old audit never checked, in every edition, and stays silent on the repaired twin;
+    the baseline allows what it lists, refuses what it does not, and refuses an entry that no longer fails."""
+    cases = [
+        ("no-ordinal", "the SORT statement (§1985:XI.4.4.4 GR99)"),  # citation-audit: example
+        (None, "the SORT statement (§1985:XI.4.4.4 GR7)"),
+        ("text-not-in-rule", 'it reads "input procedure may consist of any procedure needed to select, modify, or '
+                             'copy" (§1985:XI.4.4.4 GR10)'),  # citation-audit: example
+        (None, 'it reads "input procedure may consist of any procedure needed to select, modify, or copy" '
+               '(§1985:XI.4.4.4 GR7)'),
+        ("no-sub-item", "the three phases (§1985:XI.4.4.4 GR6d)"),  # citation-audit: example
+        ("no-rule-list", "the SORT statement (§1985:XI.4.4.3 GR1)"),  # citation-audit: example
+        ("no-ordinal", "COMPUTE (§2023:14.9.8.4 GR99)"),  # citation-audit: example
+        ("no-rule-list", "COMPUTE (§2023:14.9.8 GR1)"),  # citation-audit: example
+        (None, "COMPUTE (§2023:14.9.8.4 GR1b)"),
+        ("no-ordinal", "INSPECT (§2002:14.8.21.3 GR99)"),  # citation-audit: example
+        ("text-not-in-rule", '"integer-1 is the leftmost column of the printable item" '
+                             '(§2014:13.18.14.3 GR6c)'),  # citation-audit: example
+        (None, '"integer-1 is the leftmost column of the printable item" (§2014:13.18.14.3 GR6b)'),
+        (None, "a phantom is PHANTOM's, not RESOLVE's (§1985:VII.5.3.2 GR3)"),
+    ]
+    ok = True
+    for want, line in cases:
+        got = {v.kind for _c, v in resolve_line(line)}
+        good = got == ({want} if want else set())
+        print(f"  {'ok  ' if good else 'FAIL'} RESOLVE {'fires ' + want if want else 'silent'} on {line[:70]}"
+              + ("" if good else f"  (got {sorted(got)})"))
+        ok &= good
+    import tempfile  # noqa: PLC0415
+    with tempfile.TemporaryDirectory() as d:
+        probe = pathlib.Path(d) / "baseline.json"
+        a = Resolved("docs/x.md", 3, "§1985:XI.4.4.4 GR99", "no-ordinal", "", None, 1985)  # citation-audit: example
+        b = Resolved("docs/x.md", 9, "§2023:14.9.8 GR1", "no-rule-list", "", None, 2023)  # citation-audit: example
+        quiet = write_baseline([a, b], probe, grow=True) == 0
+        moved = baseline_drift([dataclasses.replace(a, line=40), b], read_baseline(probe)) == ([], [])
+        new = baseline_drift([a, b, dataclasses.replace(b, file="docs/y.md")], read_baseline(probe))[0]
+        stale = baseline_drift([a], read_baseline(probe))[1]
+        refused = write_baseline([a, b, dataclasses.replace(b, file="docs/y.md")], probe) == 1
+        shrinks = write_baseline([a], probe) == 0 and len(read_baseline(probe)) == 1
+    base = (quiet and moved and len(new) == 1 and [e["citation"] for e in stale] == [b.citation]
+            and refused and shrinks)
+    print(f"  {'ok  ' if base else 'FAIL'} the baseline allows its entries wherever their line moves, is RED on a new "
+          "failure and on an entry that no longer fails, and refuses to grow")
+    return ok and base
+
+
 # ── THE ORDINAL FAMILY (kb/Work PB388) ───────────────────────────────────────────────────────────────────
 
 #: `§2023:14.9.39 Format 7`, `ISO 14.9.39 format 6`, `14.9.39.2 Formats 11`. The clause may be the CONSTRUCT
@@ -472,8 +703,8 @@ def _sub(m: re.Match) -> str | None:
 #: ANOTHER edition's citation (`§2002:14.8.4`) is not a 2023 token (`citation.NOT_ANOTHER_EDITION`, kb/Work PB4887).
 CLAUSE_TOKEN = re.compile(r"(?<![\d.])" + citation.NOT_ANOTHER_EDITION + r"(\d+(?:\.\d+){2,4})(?![\d.])")
 
-#: ⛔ INSIDE A MESSAGE STRING A TWO-SEGMENT CLAUSE IS A CITATION WHEN IT CARRIES THE `§` — `(ISO §2023:11.7 SR6)`,
-#: `(ISO §2023:13.16 SR16 …)`. The three-segment floor exists for PROSE (a doc's own bare `§4.2`), and it made the
+#: ⛔ INSIDE A MESSAGE STRING A TWO-SEGMENT CLAUSE IS A CITATION WHEN IT CARRIES THE `§` — `(ISO §2023:11.7 SR6)`, (citation-audit: example)
+#: `(ISO §2023:13.16 SR16 …)`. The three-segment floor exists for PROSE (a doc's own bare `§4.2`), and it made the (citation-audit: example)
 #: diagnostic family blind to exactly the unqualified citations it exists to catch: fourteen shipped in
 #: `OoClassTable`/`DataBinder` messages while DIAG-UNQUALIFIED read zero (kb/Work PB388, wave 47). The `§` is
 #: the evidence; a bare `11.7` in a message is still not read. The mark is the 2023 one (`§2023:11.7`; a bare `§11.7`
@@ -1158,7 +1389,8 @@ def construct_citation_scan(root: pathlib.Path = REPO):
 def audit(subjects: dict[str, str], own: dict[str, str], universe: set[str] | None, ordinals=None,
           tops=None, direct=None):
     findings: list[tuple[str, str, str, str]] = (phantom_scan(universe) + ordinal_scan(ordinals, tops)
-                                                 + diagnostic_scan(direct) + construct_citation_scan())
+                                                 + diagnostic_scan(direct) + construct_citation_scan()
+                                                 + resolve_findings(resolve_scan(resolve_population())))
     for path in citation_corpus.declaration_files():
         rel = path.relative_to(REPO).as_posix()
         for lineno, parts, context, window, label, head in blocks(path):
@@ -1222,24 +1454,24 @@ SELF_TEST_CLEAN = [
 #: in the tree on 2026-09-13, not invented (kb/Work PB388).
 ORDINAL_SELF_TEST = [
     ("FORMAT",
-     "/// PERFORM VARYING (ISO §2023:14.9.28 Format 4, GR12–13): nested induction loops",
+     "/// PERFORM VARYING (ISO §2023:14.9.28 Format 4, GR12–13): nested induction loops",  # citation-audit: example
      "/// PERFORM VARYING (ISO §2023:14.9.28, the VARYING phrase of Formats 1 and 2 — §2023:14.9.28.4 GR12–13)"),
     ("RULE",
-     '    + "(ISO §2023:14.9.12.2 / §2023:14.9.12.3 SR6)");',
+     '    + "(ISO §2023:14.9.12.2 / §2023:14.9.12.3 SR6)");',  # citation-audit: example
      '    + "(ISO §2023:14.9.12.2)");'),
     # ⛔ THE EDITION FORM IS MEASURED THE SAME WAY, AND ANOTHER EDITION'S RULE IS NOT MEASURED AGAINST 2023'S
     # (kb/Work PB4887): the silent twin is the same designator filed under a 2002 clause that HAS it (2002 numbers its
     # statements 14.8, and its EVALUATE statement carries a sixth syntax rule; 2023's DIVIDE at 14.9.12.3 has none).
     ("RULE",
-     '    + "(§2023:14.9.12.2 / §2023:14.9.12.3 SR6)");',
+     '    + "(§2023:14.9.12.2 / §2023:14.9.12.3 SR6)");',  # citation-audit: example
      '    + "(§2023:14.9.12.2 / §2002:14.8.12.2 SR6)");'),
     ("SUBITEM",
-     "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §2023:14.9.37.4 GR8b) falls through",
+     "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §2023:14.9.37.4 GR8b) falls through",  # citation-audit: example
      "/// serial SEARCH with VARYING index-of-ANOTHER-table (ISO §2023:14.9.37.4 GR3 c) 2) falls through"),
     # ⛔ THE ARTICLE IS NOT A SUB-ITEM (kb/Work PB388, wave 47). The silent twin is the prose shape the first
     # regex accused six times in twenty; the defect is the same rule with a sub-item it does not have.
     ("SUBITEM",
-     "/// ISO basis — §2023:13.5.4 GR1a (a non-initial program's WS is STATIC data)",
+     "/// ISO basis — §2023:13.5.4 GR1a (a non-initial program's WS is STATIC data)",  # citation-audit: example
      "/// ISO basis — §2023:13.5.4 GR1 (a non-initial program's WS is STATIC data)"),
     ("FORMAT-NAME",
      "/// <summary>SET data-pointer assignment (§2023:14.9.39 Format 4; Phase-4b increment 1)",
@@ -1275,7 +1507,7 @@ ORDINAL_SELF_TEST = [
      '// a data file interchanges. An UNSIGNED item holds the magnitude (§2023:14.9.25.4 GR6 — "the absolute value").'),
     # ... and the quotation BEFORE its parenthetical cite, the other order a comment writes it in.
     ("QUOTE-RULE",
-     '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §2023:14.9.25.4 GR8) mod 2^bits.',
+     '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §2023:14.9.25.4 GR8) mod 2^bits.',  # citation-audit: example
      '/// An UNSIGNED receiver stores "the absolute value of the sending value" (ISO §2023:14.9.25.4 GR6) mod 2^bits.'),
     # ⛔ THE DEPTH TOLERANCE the note demands: `GR6 d) 2. b.)` and `6) 1.` are the SAME top-level rule 6, so the
     # deeper spelling of the right rule must stay silent (and the wrong top-level number, above, must not).
@@ -1315,12 +1547,12 @@ DIAG_SELF_TEST = [
      'w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §2023:14.9.18 SR)"));',
      'w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §2023:14.9.18.4 GR2)"));'),
     ("DIAG-UNQUALIFIED",
-     '    edition.Error("COBOL0867", $"{where}: SET receiver (ISO §2023:14.9.39 SR17)");',
+     '    edition.Error("COBOL0867", $"{where}: SET receiver (ISO §2023:14.9.39 SR17)");',  # citation-audit: example
      '    edition.Error("COBOL0867", $"{where}: SET receiver (ISO §2023:14.9.39.3 SR17)");'),
     # ⛔ AND THE TWO-SEGMENT CLAUSE (kb/Work PB388, wave 47): `§2023:11.7` is below the prose floor of three
     # segments, and fourteen OO messages hid there while this arm read zero.
     ("DIAG-UNQUALIFIED",
-     '    + "one USING and no RETURNING (ISO §2023:11.7 SR7)");',
+     '    + "one USING and no RETURNING (ISO §2023:11.7 SR7)");',  # citation-audit: example
      '    + "one USING and no RETURNING (ISO §2023:11.7.3 SR7)");'),
     # ⛔ THE THREE SHAPES THAT MUST STAY SILENT, and each was a candidate the measurement rejected:
     # an INTERPOLATED ordinal is computed at run time and is a citation the reader never sees unqualified;
@@ -1330,7 +1562,7 @@ DIAG_SELF_TEST = [
      '    Edition.Error(code, $"{w}: (ISO §2023:12.3.7.3 SR{rule})");   // and the row SR-12.3.7.3-4',
      '    Edition.Error(code, $"{w}: (ISO §2023:12.3.7.3 SR{rule})");'),
     (None,
-     '    // the SET receiver rule (ISO §2023:14.9.39 SR17) and its GR — see §2023:14.9.39.4 GR',
+     '    // the SET receiver rule (ISO §2023:14.9.39 SR17) and its GR — see §2023:14.9.39.4 GR',  # citation-audit: example
      '    // the SET receiver rule (ISO §2023:14.9.39.3 SR17)'),
     # ⛔ AND THE ORDINAL WRITTEN WITH A SPACE — `SR 10`, not `SR10`. Both of the arm's remaining findings on
     # its first full run were this shape (`OoBinder.cs:645`, `ConstructRegistry.g.cs:119`, generated from
@@ -1447,7 +1679,7 @@ EDITION_SELF_TEST = [
     ("PHANTOM", "a figurative constant operand (§2023:8.3.1.2)"),
     (None, "a figurative constant operand (§2023:8.3.3.6)"),
     ("PHANTOM", "the data description entry (§1985:VII.5.3.2)"),
-    (None, "the data description entry (§1985:VI.5.3.2 GR3)"),
+    (None, "the data description entry (§1985:VI.5.3.4 GR3)"),
     ("CITATION", "the default is EC-ALL CHECKING OFF (§5000: the line it was on)"),  # citation-audit: example
     ("CITATION", "a Roman locator for an ISO edition (§2023:VI.5)"),  # citation-audit: example
     ("PHANTOM", "a clause the 2014 transcription lacks (§2014:99.99)"),
@@ -1523,6 +1755,7 @@ def self_test(subjects, own, universe, ordinals=None, tops=None, direct=None) ->
     ok &= ordinal_self_test(ordinals, tops)
     ok &= diagnostic_self_test(direct)
     ok &= construct_self_test()
+    ok &= resolve_self_test()
     print("SELF-TEST:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 
@@ -1591,7 +1824,19 @@ def main() -> int:
                     help="exit 1 on EVERY finding, the measured backlog included — the gate kb/Work's "
                          "rule-ordinal sweep drives to zero, and what --check becomes the day it gets there")
     ap.add_argument("--self-test", action="store_true", help="prove every check fails on a real defect")
+    ap.add_argument("--sweep", metavar="JSON", type=pathlib.Path,
+                    help="write every citation RESOLVE refuses (the gate's population and the last month's DEVLOG) "
+                         "with its file, line, failure kind and suggestion, and print the counts")
+    ap.add_argument("--write-baseline", action="store_true",
+                    help="rewrite RESOLVE's baseline of known failures; refuses to add an entry")
+    ap.add_argument("--grow", action="store_true",
+                    help="with --write-baseline: let it ADD entries. Only for a change that makes the CHECKER stricter "
+                         "(a rule catalog lands, a new arm), which names the growth and its count in its kb/Work note")
     args = ap.parse_args()
+    if args.sweep:
+        return sweep(args.sweep)
+    if args.write_baseline:
+        return write_baseline(resolve_scan(resolve_population()), grow=args.grow)
 
     subjects = catalog_subjects()
     own = construct_clause(subjects)
@@ -1615,6 +1860,9 @@ def main() -> int:
     gating = [f for f in findings if _gates(f)]
     backlog = [f for f in findings if not _gates(f)]
     print(f"{len(citation_corpus.all_files())} files and {len(citation_corpus.tooling_files())} tooling files scanned for phantoms, {len(citation_corpus.declaration_files())} for construct agreement · {len(own)} constructs keyed to their own clause")
+    print(f"RESOLVE: {len(citation_corpus.inventory_files())} inventory records read besides; "
+          f"{len(read_baseline())} known failing citation(s) allowed by "
+          f"{RESOLVE_BASELINE.relative_to(REPO).as_posix()} — DEBT, which may only shrink (kb/Work PB5317)")
     print(f"⛔ {len(gating)} finding(s)\n")
     for kind, site, cited, msg in gating:
         print(f"  [{kind}] {site}\n      {msg}")

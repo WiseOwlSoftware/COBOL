@@ -98,9 +98,11 @@ from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  (THE spelling of a
 # The transcription escapes a rule label's delimiter (`1\)`) so Markdown does not eat it as a list — see
 # repairs/rule_numbering.py. Match both forms so this works on any revision.
 TOP = re.compile(r"^(\d+)\\?\)\s")
-SUB = re.compile(r"^(\s{2,})([a-z])\\?\)\s")
+#: A lettered item: indented under its rule, or at column 0 where the transcription flattened the list (§2023:14.9.23.4
+#: rule 7's a) to d)); its depth is still (indentation, style level), so it nests under the rule either way.
+SUB = re.compile(r"^(\s*)([a-z])\\?\)\s")
 SUBSUB = re.compile(r"^(\s{2,})(\d+)\\?\.\s")
-SUBSUBSUB = re.compile(r"^(\s{2,})([a-z])\\?\.\s")
+SUBSUBSUB = re.compile(r"^(\s*)([a-z])\\?\.\s")
 #: The 1985 transcription's labels (kb/Work PB4850): a rule `(6)` at column 0 (a boxed rule opens with the box's side,
 #: spec_pdf.BOX_SIDE), its lettered items `a.` and their numbered items `1)`, all at column 0.
 _BOX = re.escape(spec_pdf.BOX_SIDE)
@@ -261,11 +263,11 @@ def labels_of(edition: int) -> LabelStyles:
 
 
 def _label(line: str, styles: LabelStyles = ISO_LABELS):
-    """((indent, level), level, token, printed label) for a rule-label line, else None."""
+    """(indent, level, token, printed label) for a rule-label line, else None."""
     for level, (pattern, form) in enumerate(styles.levels, start=1):
         if m := pattern.match(line):
             token = m.groups()[-1]
-            return (_indent(line), level), level, token, form.format(token)
+            return _indent(line), level, token, form.format(token)
     return None
 
 
@@ -280,12 +282,16 @@ def label_path(lines, at, start, styles: LabelStyles = ISO_LABELS) -> list[tuple
         item…" follows its sub-items a) and b) at their indent and is neither — so it reports the bare rule.
     A paragraph INSIDE a sub-item sits deeper than its label, which is how the two are told apart.
 
-    ⛔ A LABEL ABOVE IS AN ANCESTOR ONLY IF IT IS SHALLOWER THAN EVERYTHING ACCEPTED SO FAR (kb/Work PB55 review
+    ⛔ A LABEL ABOVE IS AN ANCESTOR ONLY IF ITS LEVEL IS SHALLOWER THAN EVERYTHING ACCEPTED SO FAR (kb/Work PB55 review
     R1-1). A nested `N.` list is transcribed at the SAME indentation as the lettered items around it (§2023:7.2.3.4 9)
     c) 1.–6. sits at the indent of a)–f)), so the nearest `N.` above `d)` belongs to the EARLIER letter `c)`, and
-    taking it reported the impossible `9) 6. d)`. Each label's depth is (indentation, style level): a deeper
-    indent nests, and at one indent the styles nest in `styles.levels` order. Walking back, a label whose depth is not
-    strictly below the last one accepted is a sibling or a sibling's descendant, never an ancestor, and is skipped."""
+    taking it reported the impossible `9) 6. d)`. A label's depth is its STYLE LEVEL (`styles.levels` order: ISO `N)`
+    `x)` `N.` `x.`, 1985 `(N)` `x.` `N)`), never its indentation (kb/Work PB5317): the transcription flattens some
+    nested lists onto column 0 (§2023:14.9.39.4 rule 2's `a.` items under `1.`, §2023:14.9.23.4 rule 7's `a)` to `d)`),
+    and an indentation-first depth read a flattened `a.` as shallower than the `1.` it belongs to. Walking back, a
+    label whose level is not strictly below the last one accepted is a sibling or a sibling's descendant, never an
+    ancestor, and is skipped. Indentation decides only who owns an UNLABELLED line (above); a flattened label (column 0,
+    below the rule) owns the column-0 lines after it, there being no indentation to say otherwise."""
     if lines[at].startswith(">"):
         top = at
         while top > start and lines[top - 1].startswith(">"):
@@ -300,21 +306,22 @@ def label_path(lines, at, start, styles: LabelStyles = ISO_LABELS) -> list[tuple
     is_label = _label(own, styles) is not None
     own_indent = _indent(own)
     path = []
-    # an unlabelled line is deeper than any label at its own indentation: (indent, a level below every style)
-    bound = (own_indent, len(styles.levels) + 1)
+    bound = len(styles.levels) + 1   # an unlabelled line is deeper than every label style
+    owned = False
     for k in range(at, start - 1, -1):
         hit = _label(lines[k], styles)
         if hit is None:
             continue
-        depth, level, token, printed = hit
-        if depth >= bound:
+        indent, level, token, printed = hit
+        if level >= bound:
             continue  # a sibling, or inside one: not on this line's path
         if level == 1:  # the rule itself ends the walk
             path.append((level, token, printed))
             break
-        if is_label or own_indent > depth[0] or not styles.indented:
+        if is_label or owned or own_indent > indent or not styles.indented or indent == 0:
             path.append((level, token, printed))
-        bound = depth
+            owned = True   # inside this label, so inside each of its ancestors
+        bound = level
     return list(reversed(path))
 
 
@@ -324,8 +331,9 @@ def rule_path(lines, at, start, styles: LabelStyles = ISO_LABELS) -> str:
 
 
 def render_path(tokens: tuple[str, ...]) -> str:
-    """A sub-item path in the designator's glued form: ('d', '2') -> 'd.2', ('c',) -> 'c'."""
-    return ".".join(tokens)
+    """A sub-item path in the designator's glued form: ('d', '2') -> 'd.2', ('c',) -> 'c', and a path that opens with a
+    number takes a `.` so it is not read as the ordinal's digits: ('1',) -> '.1' (`GR6.1`, never `GR61`)."""
+    return ("." if tokens and tokens[0].isdigit() else "") + ".".join(tokens)
 
 
 # ── THE RULES OF EACH EDITION: THE CATALOG'S BOUNDARIES, ANCHORED IN THE TRANSCRIPTION ───────────────────────────────
@@ -357,9 +365,17 @@ class RuleBook:
     lines: list[str]
     regions: list[tuple[str, str, int, int]]
     rules: dict[str, list[Rule]]
-    formats: dict[str, list[tuple[str, int | None]]]   # general-format locator -> [(text, declared format count)]
+    formats: dict[str, str]    # general-format locator -> its text in the transcription
     unanchored: list[str]
     _items: dict = dataclasses.field(default_factory=dict)
+    _by_locator: dict = dataclasses.field(default_factory=dict)
+
+    def regions_of(self, locator: str) -> list[tuple[str, str, int, int]]:
+        """Every region `locator` names (a 1985 section the transcription heads twice owns two), indexed once."""
+        if not self._by_locator:
+            for r in self.regions:
+                self._by_locator.setdefault(r[0], []).append(r)
+        return self._by_locator.get(locator, [])
 
     @property
     def styles(self) -> LabelStyles:
@@ -379,7 +395,7 @@ class RuleBook:
                     path = label_path(self.lines, i, rule.lines[0], self.styles)
                     tokens = tuple(t for level, t, _p in path if level > 1)
                     hit = _label(self.lines[i], self.styles)
-                    out.append((i, tokens, hit is not None and hit[1] > 1))
+                    out.append((i, tokens, hit is not None and hit[1] > 1 and bool(tokens) and tokens[-1] == hit[2]))
             self._items[rule] = out
         return self._items[rule]
 
@@ -460,13 +476,15 @@ def rule_book(edition: int, repo: pathlib.Path = spec_pdf.REPO, catalog: pathlib
     for loc, _t, s, e in regions:
         spans.setdefault(loc, []).extend(range(s, e))
     rules: dict[str, list[Rule]] = {}
-    formats: dict[str, list[tuple[str, int | None]]] = {}
+    formats: dict[str, str] = {}
     unanchored: list[str] = []
     by_loc: dict[str, list[dict]] = {}
     for r in rows:
         loc = r.get("locator") or r["section"]
         if r["kind"] == "FMT":
-            formats.setdefault(loc, []).append((r["text"], r.get("formats")))
+            # The catalog decides which clause prints a general format; its text is read whole from the transcription
+            # (the row's `text` is cut at 4,000 characters, and its `formats` count misses a bold `**Format n**` label).
+            formats[loc] = "\n".join(lines[i] for i in spans.get(loc, []))
         elif r["kind"] in KIND_NAMES:
             by_loc.setdefault(loc, []).append(r)
     for loc, rs in by_loc.items():
@@ -517,10 +535,10 @@ def _label_book(edition: int, lines: list[str], regions) -> RuleBook:
     erc, _rc85 = _extractors()
     top = labels_of(edition).levels[0][0]
     rules: dict[str, list[Rule]] = {}
-    formats: dict[str, list[tuple[str, int | None]]] = {}
+    formats: dict[str, str] = {}
     for loc, title, s, e in regions:
         if GENERAL_FORMAT_TITLE.fullmatch(title.strip()):
-            formats.setdefault(loc, []).append(("\n".join(lines[s + 1:e]), None))
+            formats[loc] = "\n".join(lines[s + 1:e])
         kind = erc.kind_of(title)
         if kind is None:
             continue
@@ -551,6 +569,12 @@ class Verdict:
     @property
     def ok(self) -> bool:
         return self.kind == "ok"
+
+
+@functools.lru_cache(maxsize=None)
+def _held(edition: int, repo: pathlib.Path) -> pathlib.Path | None:
+    """`citation.transcription`, asked of the disk once per edition: the audits resolve citations by the ten thousand."""
+    return citation.transcription(edition, repo)
 
 
 def _hit(lines: list[str], regions, needle: str) -> int | None:
@@ -594,11 +618,11 @@ def resolve(cited: citation.Citation, text: str | None = None, repo: pathlib.Pat
     sub-item, the format or the table): the citation audit's form for a citation that quotes nothing."""
     shown = citation.render(cited)
     clause_shown = citation.render(dataclasses.replace(cited, rule=None))
-    if citation.transcription(cited.edition, repo) is None:
+    if _held(cited.edition, repo) is None:
         return Verdict("edition-not-held", f"the {cited.edition} transcription is not in this tree, so nothing of {shown} "
                                            "can be checked")
     book = rule_book(cited.edition, repo, catalog)
-    regions = [r for r in book.regions if r[0] == cited.locator]
+    regions = book.regions_of(cited.locator)
     if not regions:
         return Verdict("no-clause", citation.validate(cited, repo) or f"there is no {clause_shown} in the "
                                                                        f"{cited.edition} transcription")
@@ -634,11 +658,19 @@ def resolve(cited: citation.Citation, text: str | None = None, repo: pathlib.Pat
 
 
 def _lists(rules: list[Rule]) -> str:
-    """`GR1-GR12` (and `GRL2.1-GRL2.4` for a restarted list): the rules a block has."""
+    """`GR1-GR12` (`GRL2.1-GRL2.4` for a restarted list, `GR1, GR3-GR4` where a mixed block gives a number to another
+    kind): the rules of one kind a block has, as runs of consecutive ordinals."""
     out = []
     for sub in sorted({r.sublist for r in rules}):
-        mine = [r for r in rules if r.sublist == sub]
-        out.append(f"{mine[0].designator}-{mine[-1].designator}" if len(mine) > 1 else mine[0].designator)
+        mine = sorted((r for r in rules if r.sublist == sub), key=lambda r: r.ordinal)
+        run = [mine[0]]
+        for r in mine[1:] + [None]:
+            if r is not None and r.ordinal == run[-1].ordinal + 1:
+                run.append(r)
+                continue
+            out.append(f"{run[0].designator}-{run[-1].designator}" if len(run) > 1 else run[0].designator)
+            if r is not None:
+                run = [r]
     return ", ".join(out)
 
 
@@ -651,19 +683,29 @@ def _resolve_rule(book: RuleBook, cited, m: re.Match, needle, text, title, regio
     in_clause = book.rules.get(loc, [])
     of_kind = [r for r in in_clause if r.kind == kind]
     if not of_kind:
-        child = next((r for k, rs in book.rules.items() if k.startswith(loc + ".") for r in rs
-                      if r.kind == kind and r.sublist == sub and r.ordinal == n), None)
+        # The block the author meant: a subclause's (`§2023:14.9.39 SR17` is 14.9.39.3's) or, when exactly one has it,
+        # a sibling's (`§2023:13.18.40.2 SR13`, the general format's clause, is 13.18.40.3's).
+        parent = loc.rsplit(".", 1)[0] if "." in loc else None
+        near = [r for k, rs in book.rules.items()
+                if k.startswith(loc + ".") or (parent and k != loc and k.rsplit(".", 1)[0] == parent)
+                for r in rs if r.kind == kind and r.sublist == sub and r.ordinal == n]
         has = sorted({KIND_NAMES[r.kind] + "s" for r in in_clause})
         hint = f" (it has {' and '.join(has)})" if has else " (no numbered rule of any kind)"
+        child = next((r for r in near if r.locator.startswith(loc + ".")), None) or (near[0] if len(near) == 1 else None)
         if child is not None:
             where = f"§{cited.edition}:{child.locator} {cited.rule}"
-            return Verdict("no-rule-list", f"{clause_shown} has no {KIND_NAMES[kind]}s{hint}; its subclause "
+            how = "subclause" if child.locator.startswith(loc + ".") else "sibling clause"
+            return Verdict("no-rule-list", f"{clause_shown} has no {KIND_NAMES[kind]}s{hint}; its {how} "
                                            f"{child.locator} has {child.designator}: cite {where}{mode}", where)
         return Verdict("no-rule-list", f"{clause_shown} has no {KIND_NAMES[kind]}s{hint}{mode}")
     rule = next((r for r in of_kind if r.sublist == sub and r.ordinal == n), None)
     if rule is None:
+        other = next((r for r in in_clause if r.sublist == sub and r.ordinal == n), None)
+        said = (f"; its rule {n} is a {KIND_NAMES[other.kind]} (the catalog types this block's rules one by one): cite "
+                f"{clause_shown} {other.designator}" if other is not None else "")
         return Verdict("no-ordinal", f"{clause_shown} has no {citation.rule_designator(kind, n, sub)}: its {KIND_NAMES[kind]}s are "
-                                     f"{_lists(of_kind)} ({len(of_kind)} in all){mode}")
+                                     f"{_lists(of_kind)} ({len(of_kind)} in all){said}{mode}",
+                       f"{clause_shown} {other.designator}" if other is not None else None)
     if not rule.lines and (path or needle is not None):
         return Verdict("unanchored", f"{shown}: the catalog row {rule.designator} of {loc} was not found in the "
                                      f"transcription ({book.catalog}): the catalog has drifted; regenerate it")
@@ -692,12 +734,17 @@ def _resolve_rule(book: RuleBook, cited, m: re.Match, needle, text, title, regio
 
 def _resolve_format(book: RuleBook, cited, n: int, needle, text, mode) -> Verdict:
     loc, shown = cited.locator, citation.render(cited)
-    found = book.formats.get(loc) or [f for k, fs in book.formats.items() if k.rsplit(".", 1)[0] == loc for f in fs]
+    found = [body for k, body in book.formats.items() if k == loc or k.rsplit(".", 1)[0] == loc]
     if not found:
+        parent = loc.rsplit(".", 1)[0]
+        if "." in loc and any(k.rsplit(".", 1)[0] == parent for k in book.formats):
+            where = f"§{cited.edition}:{parent} Format {n}"
+            return Verdict("no-format", f"{shown}: {loc} prints no general format; its statement's general format is "
+                                        f"{parent}'s: cite {where}{mode}", where)
         return Verdict("no-format", f"{shown}: {loc} prints no general format, nor does a general-format subclause of it{mode}")
-    body, declared = found[0]
+    body = found[0]
     starts = [(int(x[1]), x.start()) for x in FORMAT_LABEL.finditer(body)]
-    count = declared or len({k for k, _p in starts}) or 1
+    count = len({k for k, _p in starts}) or 1
     if n > count:
         return Verdict("no-format", f"{shown}: the general format of {loc} prints {count} format(s){mode}")
     if needle is None:
@@ -733,7 +780,13 @@ def _resolve_table(book: RuleBook, cited, n: int, needle, text) -> Verdict:
             if needle in norm(" ".join(book.lines[i:end])):
                 return Verdict("ok", f"{shown}  the text is in table {n} ({k})", excerpt=book.lines[i].strip()[:220])
             return Verdict("text-not-in-rule", f"{shown}: {text!r} is not in table {n} ({k}, lines {i + 1}-{end})")
-    return Verdict("no-table", f"{shown}: no table {n} is captioned in {loc} or under it")
+    where = next((k for k, _t, s, e in book.regions if not k.startswith("p.")
+                  for i in range(s, e) if caption.match(book.lines[i])), None)
+    if where is not None:
+        return Verdict("no-table", f"{shown}: no table {n} is captioned in {loc} or under it; it is captioned in {where}",
+                       f"§{cited.edition}:{where} Table {n}")
+    return Verdict("no-table", f"{shown}: no table {n} is captioned in {loc} or under it, nor anywhere in the "
+                               f"{cited.edition} transcription")
 
 
 def check(cited: citation.Citation, text: str, repo: pathlib.Path = spec_pdf.REPO,
@@ -917,6 +970,16 @@ def self_test() -> int:
         ("2023: a clause with no syntax rules cited SR1 fails", fails("§2023:14.9.8.4 SR1", q23, "no-rule-list")),
         ("2023: a statement's clause cited for its general rule names the subclause that has them",
          fails("§2023:14.9.8 GR1", q23, "no-rule-list", "§2023:14.9.8.4 GR1")),
+        ("2023: the general format's clause cited for a syntax rule names the sibling that has it",
+         fails("§2023:13.18.40.2 SR13", None, "no-rule-list", "§2023:13.18.40.3 SR13")),
+        ("2023: a list the transcription flattened onto column 0 keeps its levels (14.9.39.4 2) a) 1. a.)",
+         v("§2023:14.9.39.4 GR2a1a", "the EC-BOUND-SUBSCRIPT exception condition is set to exist").ok
+         and fails("§2023:14.9.39.4 GR2a3b", "If index-name-2 is associated with the same table as index-name-1",
+                   "text-not-in-rule", "GR2a.3.a")),
+        ("2023: a table cited under the wrong clause names the clause that captions it",
+         fails("§2023:9.1.15 Table 19", None, "no-table", "§2023:14.9.27.4 Table 19") and v("§2023:14.9.27.4 Table 19").ok),
+        ("2023: a rule of a mixed block cited under the wrong kind names its kind (14.7.7 rule 2 is SR2)",
+         fails("§2023:14.7.7 GR2", None, "no-ordinal", "§2023:14.7.7 SR2") and v("§2023:14.7.7 SR2").ok),
         ("2023: a format the statement prints passes, one it does not fails",
          v("§2023:14.9.39 Format 4").ok and fails("§2023:14.9.39 Format 40", None, "no-format")),
         ("2023: a designator form the checker does not read fails by name, never on the clause alone",
